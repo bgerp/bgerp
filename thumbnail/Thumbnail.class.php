@@ -69,10 +69,10 @@ class thumbnail_Thumbnail extends core_Manager {
         
         if(is_array($size)) {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size[0] . "-" . $size[1] . "." . $ext;
-            $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size[0] . "-" . $size[1] . "." . $ext, '');
+            $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size[0] . "-" . $size[1] . "." . $ext, $attr['qt'], $attr['isAbsolute']);
         } else {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext;
-            $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext, '');
+            $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext, $attr['qt'], $attr['isAbsolute']);
         }
         
         if(!file_exists($thumbFilePath)) {

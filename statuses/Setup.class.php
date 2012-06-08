@@ -3,7 +3,7 @@
 /**
  * Версията на toast message
  */
-defIfNot('STATUSES_TOAST_MESSAGE_VERSION', '0.3.0');
+defIfNot('STATUSES_TOAST_MESSAGE_VERSION', '0.3.0f');
 
 
 /**

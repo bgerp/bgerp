@@ -20,11 +20,6 @@ defIfNot('EF_DOWNLOAD_DIR', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '
 defIfNot('EF_DOWNLOAD_PREFIX_PTR', '$*****');
 
 
-/**
- * Минималната големина на файла в байтове, за който ще се показва размера на файла след името му
- * в narrow режим. По подразбиране е 100KB
- */
-defIfNot('LINK_NARROW_MIN_FILELEN_SHOW', 102400);
 
 
 /**
@@ -277,6 +272,8 @@ class fileman_Download extends core_Manager {
      */
     static function getDownloadLink($fh)
     {
+    	$conf = core_Packs::getConfig('fileman');
+    	
         //Намираме записа на файла
         $fRec = fileman_Files::fetchByFh($fh);
         
@@ -321,7 +318,7 @@ class fileman_Download extends core_Manager {
             if (Mode::is('screenMode', 'narrow')) {
                 
                 //Ако големината на файла е по - голяма от константата
-                if ($fileLen >= LINK_NARROW_MIN_FILELEN_SHOW) {
+                if ($fileLen >= $conf->LINK_NARROW_MIN_FILELEN_SHOW) {
                     
                     //След името на файла добавяме размера в скоби
                     $name = $fRec->name . "&nbsp;({$size})";     

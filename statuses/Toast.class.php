@@ -34,7 +34,7 @@ class statuses_Toast extends core_Plugin
         if (!Mode::is('javascript', 'yes')) return TRUE;
         
         //Всички активни статуси за текущия потребител
-        $notifArr = core_Statuses::fetch();
+        $notifArr = core_Statuses::fetchStatuses();
         
         //Създаваме шаблона
         $tpl = new ET();
@@ -87,8 +87,8 @@ class statuses_Toast extends core_Plugin
                         sticky          : '[#isSticky#]',
                         stayTime        : [#stayTime#],
                         inEffectDuration: 800,
-                        type            : '[#type#]'
-                        
+                        type            : '[#type#]',
+                        position        :'bottom-right',
                         });
                 	}, [#timeOut#]);
                 	
@@ -160,8 +160,8 @@ class statuses_Toast extends core_Plugin
                                 sticky          : true,
                                 stayTime        : 10000,
                                 inEffectDuration: 1800,
-                                type            : type
-                            
+                                type            : type,
+                    			position        :'bottom-right',
                             });
                             
                         });

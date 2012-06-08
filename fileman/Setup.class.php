@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Минималната големина на файла в байтове, за който ще се показва размера на файла след името му
+ * в narrow режим. По подразбиране е 100KB
+ */
+defIfNot('LINK_NARROW_MIN_FILELEN_SHOW', 102400);
+
 
 
 /**
@@ -39,6 +45,17 @@ class fileman_Setup extends core_Manager {
      */
     var $info = "Мениджър на файлове: качване, съхранение и използване";
     
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+               
+           'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int')
+    
+    
+        );
     
     /**
      * Инсталиране на пакета
