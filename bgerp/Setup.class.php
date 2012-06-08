@@ -1,6 +1,17 @@
 <?php
 
 
+/**
+ * FileHandler на логото на фирмата на английски
+ */
+defIfNot(BGERP_COMPANY_LOGO_EN, '');
+
+
+/**
+ * FileHandler на логото на фирмата на български
+ */
+defIfNot(BGERP_COMPANY_LOGO, '');
+
 
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
