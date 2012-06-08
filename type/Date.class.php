@@ -2,17 +2,6 @@
 
 
 
-/**
- * Формат по подразбиране за датите
- */
-defIfNot('EF_DATE_FORMAT', 'd-m-YEAR');
-
-
-/**
- * Формат по подразбиране за датата при тесни екрани
- */
-defIfNot('EF_DATE_NARROW_FORMAT', 'd-m-year');
-
 
 /**
  * Клас  'type_Date' - Тип за дати
@@ -52,14 +41,16 @@ class type_Date extends core_Type {
      */
     function toVerbal($value, $useFormat = TRUE)
     {
+    	$conf = core_Packs::getConf('core');
+    	
         if(empty($value)) return NULL;
         
         if($this->params['format'] && !Mode::is('printing') && (Mode::is('text', 'html') || !Mode::is('text')) && $useFormat) {
             $format = $this->params['format'];
         } elseif(Mode::is('screenMode', 'narrow')) {
-            $format = EF_DATE_NARROW_FORMAT . $this->timePart;
+            $format = $conf->EF_DATE_NARROW_FORMAT . $this->timePart;
         } else {
-            $format = EF_DATE_FORMAT . $this->timePart;
+            $format = $conf->EF_DATE_FORMAT . $this->timePart;
         }
         
         $date = dt::mysql2verbal($value, $format);

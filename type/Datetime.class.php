@@ -1,13 +1,6 @@
 <?php
 
 
-
-/**
- * Формат по подразбиране за времевата част
- */
-defIfNot('EF_DATETIME_TIME_PART', ' H:i');
-
-
 /**
  * Клас  'type_Datetime' - Тип за време
  *

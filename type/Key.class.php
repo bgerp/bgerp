@@ -2,10 +2,6 @@
 
 
 
-/**
- * @todo Чака за документация...
- */
-defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
 
 /**
@@ -67,11 +63,13 @@ class type_Key extends type_Int {
      */
     function fromVerbal_($value)
     {
+    	$conf = core_Packs::getConfig('core');
+    	
         if(empty($value)) return NULL;
         
         $mvc = &cls::get($this->params['mvc']);
         
-        setIfNot($maxSuggestions, $this->params['maxSuggestions'], TYPE_KEY_MAX_SUGGESTIONS);
+        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
         
         $options = $this->options;
         
@@ -133,7 +131,7 @@ class type_Key extends type_Int {
         
         $mvc = cls::get($this->params['mvc']);
         
-        setIfNot($maxSuggestions, $this->params['maxSuggestions'], TYPE_KEY_MAX_SUGGESTIONS);
+        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
         
         if(!$value) {
             $value = $attr['value'];
@@ -284,7 +282,7 @@ class type_Key extends type_Int {
             );
         }
         
-        setIfNot($maxSuggestions, Request::get('maxSugg', 'int'), TYPE_KEY_MAX_SUGGESTIONS);
+        setIfNot($maxSuggestions, Request::get('maxSugg', 'int'), $conf->TYPE_KEY_MAX_SUGGESTIONS);
         
         $select = new ET('<option value="">&nbsp;</option>');
         
