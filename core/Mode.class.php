@@ -99,8 +99,23 @@ class core_Mode
     /**
      * Връща стойността на променлива от обкръжението
      */
-    static function get($name)
+    static function get($name, $offset = 0)
     {
+        expect ($offset <= 0);
+        
+        if ($offset < 0) {
+            foreach (self::$stack as $r) {
+                if ($r->name == $name) {
+                    $offset++;
+                    if ($offset == 0) {
+                        return $r->value;
+                    }
+                }
+            }
+            
+            return NULL;
+        }
+        
         // Инициализираме стойностите с данните от сесията
         if (!is_array(self::$mode)) {
             
