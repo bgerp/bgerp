@@ -34,7 +34,7 @@ class statuses_Toast extends core_Plugin
         if (!Mode::is('javascript', 'yes')) return TRUE;
         
         //Всички активни статуси за текущия потребител
-        $notifArr = core_Statuses::fetch();
+        $notifArr = core_Statuses::fetchStatuses();
         
         //Създаваме шаблона
         $tpl = new ET();
