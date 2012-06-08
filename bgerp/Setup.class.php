@@ -52,6 +52,24 @@ class bgerp_Setup {
     var $info = "Основно меню и портал на bgERP";
     
     
+    var $loadList = 'fileman_Files';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+           
+           'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)'),
+    
+         
+           'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)'),
+    
+       
+        );
+    
+    
     /**
      * Инсталиране на пакета
      */
