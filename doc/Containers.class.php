@@ -219,8 +219,12 @@ class doc_Containers extends core_Manager
 
             $row->document = new ET("<h2 style='color:red'>[#1#]</h2><p>[#2#]</p>", tr('Грешка при показването на документа'), $debug);
         }
-
-        $avatar = avatar_Plugin::getImg($docRow->authorId ? $docRow->authorId : $rec->createdBy, $docRow->authorEmail);
+        
+        if($docRow->authorId || $docRow->authorEmail) {
+            $avatar = avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail);
+        } else {
+            $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail);
+        }
 
         $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
                                             <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
