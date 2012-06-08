@@ -7,30 +7,7 @@
  */
 defIfNot('XMPPHP_VERSION', '0.1rc2-r77');
 
-/**
- * @todo Чака за документация...
- */
-defIfNot('XMPPHP_SERVER', 'talk.google.com');
 
-/**
- * @todo Чака за документация...
- */
-defIfNot('XMPPHP_PORT', '5222');
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('XMPPHP_USER', '');
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('XMPPHP_PASSWORD', '');
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('XMPPHP_DOMAIN', 'gmail.com');
 
 
 /**
@@ -60,6 +37,8 @@ class xmpphp_Sender extends core_Manager
      */
     static function send($user, $message)
     {
+    	$conf = core_Packs::getConfig('xmpphp');
+    	
         include (XMPPHP_VERSION . "/XMPPHP/XMPP.php");
         
         $conn = new XMPPHP_XMPP(XMPPHP_SERVER, XMPPHP_PORT, XMPPHP_USER, XMPPHP_PASSWORD, 'xmpphp', XMPPHP_DOMAIN, $printlog = False, $loglevel = LEVEL_ERROR);

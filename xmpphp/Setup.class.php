@@ -1,6 +1,31 @@
 <?php
 
 
+/**
+ * @todo Чака за документация...
+ */
+defIfNot('XMPPHP_SERVER', 'talk.google.com');
+
+/**
+ * @todo Чака за документация...
+ */
+defIfNot('XMPPHP_PORT', '5222');
+
+/**
+ * @todo Чака за документация...
+ */
+defIfNot('XMPPHP_USER', '');
+
+/**
+ * @todo Чака за документация...
+ */
+defIfNot('XMPPHP_PASSWORD', '');
+
+/**
+ * @todo Чака за документация...
+ */
+defIfNot('XMPPHP_DOMAIN', 'gmail.com');
+
 
 /**
  * class xmpphp_Setup
@@ -48,6 +73,26 @@ class xmpphp_Setup
      * Необходими пакети
      */
     var $depends = '';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+               
+           'XMPPHP_SERVER'   => array ('varchar', 'mandatory'),
+    
+           'XMPPHP_PORT'   => array ('int', 'mandatory'),
+     
+           'XMPPHP_DOMAIN'   => array ('varchar', 'mandatory'),
+    
+           'XMPPHP_USER'   => array ('identifier', 'mandatory'),
+    
+           'XMPPHP_PASSWORD'   => array ('password', 'mandatory')
+    
+    
+        );
     
     
     /**
