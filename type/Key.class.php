@@ -127,6 +127,8 @@ class type_Key extends type_Int {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
+        $conf = core_Packs::getConfig('core');
+        
         expect($this->params['mvc']);
         
         $mvc = cls::get($this->params['mvc']);
@@ -265,6 +267,8 @@ class type_Key extends type_Int {
      */
     function act_ajax_GetOptions()
     {
+        $conf = core_Packs::getConfig('core');
+        
         Mode::set('wrapper', 'page_Ajax');
         
         // Приключваме, ако няма заявка за търсене
