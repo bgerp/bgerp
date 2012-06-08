@@ -1,6 +1,17 @@
 <?php
 
 
+/**
+ * FileHandler на логото на фирмата на английски
+ */
+defIfNot(BGERP_COMPANY_LOGO_EN, '');
+
+
+/**
+ * FileHandler на логото на фирмата на български
+ */
+defIfNot(BGERP_COMPANY_LOGO, '');
+
 
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
@@ -39,6 +50,24 @@ class bgerp_Setup {
      * Описание на модула
      */
     var $info = "Основно меню и портал на bgERP";
+    
+    
+    var $loadList = 'fileman_Files';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+           
+           'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)'),
+    
+         
+           'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)'),
+    
+       
+        );
     
     
     /**

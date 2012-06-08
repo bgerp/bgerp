@@ -744,6 +744,8 @@ class cams_Records extends core_Master
      */
     function renderListTable_($data)
     {
+    	$conf = core_Packs::getConfig('cams');
+    	
         $cols = $this->getClipsPerRow();
         $rows = $this->getClipsPerPage() / $this->getClipsPerRow();
         

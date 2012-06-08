@@ -1,19 +1,6 @@
 <?php
 
 
-
-/**
- * @todo Чака за документация...
- */
-defIfNot(BGERP_COMPANY_LOGO, 'bgerp/img/companyLogo.png');
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot(BGERP_COMPANY_LOGO_BG, 'bgerp/img/companyLogoBg.png');
-
-
 /**
  * Добавя бланка в началото на документите, които се изпращат или принтират
  *
@@ -41,9 +28,9 @@ class bgerp_plg_Blank extends core_Plugin
             $blank = new ET(getFileContent('/bgerp/tpl/Blank.shtml'));
             
             //Създаваме и заместваме логото на фирмата
-            $logoPath = core_Lg::getCurrent() == 'bg' ? BGERP_COMPANY_LOGO_BG : BGERP_COMPANY_LOGO;
-            $logo = "<img src=" . sbf($logoPath, '"', TRUE) . " alt='Logo'  width='750' height='100'>";
-            
+            $logoPath = self::getCompanyLogoUrl();
+            $logo = "<img src=" . $logoPath . " alt='Logo'  width='750' height='100'>";
+
             $blank->replace($logo, 'blankImage');
             
             // Дали режимът е печат?
@@ -72,5 +59,53 @@ class bgerp_plg_Blank extends core_Plugin
             //Заместваме placeholder' a бланк
             $tpl->replace($blank, 'blank');
         }
+    }
+    
+    
+    /**
+     * Връща логото на нашата компания
+     */
+    static function getCompanyLogoUrl()
+    {
+        //Вземема конфигурационните константи
+        $conf = core_Packs::getConfig('bgerp');
+        
+        //Ако езика е на български
+        if (core_Lg::getCurrent() == 'bg') {
+            
+            //Ако не е дефинирана константата за българско лого
+            if (!$conf->BGERP_COMPANY_LOGO) {
+                //Логото на компанията по поразбиране (BG)
+                $companyLogo = 'bgerp/img/companyLogo.png';
+            }
+        } else {
+            
+            //Ако не е дефинирана константата за английско лого
+            if (!$conf->BGERP_COMPANY_LOGO_EN) {
+                
+                //Логото на компанията по поразбиране (EN)
+                $companyLogo = 'bgerp/img/companyLogoEn.png';
+            }
+        }
+        
+        //Ако е дефинирана логото на компанията
+        if ($companyLogo) {
+            
+            //Намираме абсолютния файл до файла
+            $companyLogoPath = sbf($companyLogo, '"', TRUE);
+        } else {
+            
+            //Ако сме дефинирали логото на компанията с fileHandler
+            //Масив със стойности, необходими за създаване на thumbnail
+            $attr = array('baseName' => 'companyLogo', 'isAbsolute' => TRUE, 'qt' => '"');
+            
+            //Размера на thumbnail изображението
+            $size = array('750', '100');
+            
+            //Създаваме тумбнаил с параметрите
+            $companyLogoPath = thumbnail_Thumbnail::getLink($conf->BGERP_COMPANY_LOGO, $size, $attr);
+        }
+        
+        return $companyLogoPath;
     }
 }
