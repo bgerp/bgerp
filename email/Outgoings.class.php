@@ -542,13 +542,13 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
         
-        //Добавяме бутона изпрати
+        // Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
         
-        //Ако субмитнем формата, кода не се изпълнява
+        // Ако субмитнем формата, кода не се изпълнява
         if ($form->isSubmitted()) return;
         
-        //Ако редактираме записа или го клонираме, няма да се изпълни нататък
+        // Ако редактираме записа или го клонираме, няма да се изпълни нататък
         if (($rec->id) || (Request::get('Clone'))) return;
         
         //Зареждаме нужните променливи от $data->form->rec
@@ -557,29 +557,26 @@ class email_Outgoings extends core_Master
         $folderId = $rec->folderId;
         $emailTo = Request::get('emailto');
         
-        //Определяме треда от originId
+        // Определяме треда от originId
         if($originId && !$threadId) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
         
-        //Определяме папката от треда
+        // Определяме папката от треда
         if($threadId && !$folderId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
         
-        //Ако сме дошли на формата чрез натискане на имейл
+        // Ако сме дошли на формата чрез натискане на имейл
         if ($emailTo) {
             
-            //Проверяваме дали е валидем имейл адрес
+            // Проверяваме дали е валидем имейл адрес
             if (type_Email::isValidEmail($emailTo)) {
-                
-                //Против SQL Injection
-                $emailToEscaped = $mvc->db->escape($emailTo);
-                
-                //Вземаме папката на имейла
-                $folderId = email_Router::getEmailFolder($emailToEscaped); 
-                
-                //Попълваме полето Адресант->Имейл със съответния имейл
+                                
+                // Вземаме папката на имейла
+                $folderId = email_Router::getEmailFolder($emailTo); 
+
+                // Попълваме полето Адресант->Имейл със съответния имейл
                 $rec->email = $emailTo;       
             } else {
                 
@@ -588,7 +585,7 @@ class email_Outgoings extends core_Master
             }
         }
         
-        //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
+        // Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
         if ($originId) {
             //Добавяме в полето Относно отговор на съобщението
             $oDoc = doc_Containers::getDocument($originId);
@@ -597,7 +594,7 @@ class email_Outgoings extends core_Master
             $oContragentData = $oDoc->getContragentData();
         }
         
-        //Определяме езика на който трябва да е имейла
+        // Определяме езика на който трябва да е имейла
         $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
         
         //Сетваме езика, който сме определили за превод на съобщението
@@ -655,9 +652,15 @@ class email_Outgoings extends core_Master
         core_Lg::pop();
         
         //Добавяме новите стойности на $rec
-        $rec->threadId = $threadId;
-        $rec->folderId = $folderId;
-    }
+        if($threadId) {
+            $rec->threadId = $threadId;
+        }
+
+        if($folderId) {
+            $rec->folderId = $folderId;
+        }
+
+     }
     
     
     /**
