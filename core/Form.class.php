@@ -454,7 +454,10 @@ class core_Form extends core_FieldSet
                 if ($field->width) {
                     $attr['style'] .= "width:{$field->width};";
                 }
-                
+                if ($field->class) {
+                    $attr['class'] = trim($attr['class']) . " {$field->class}";
+                }
+               
                 if ($field->height) {
                     $attr['style'] .= "height:{$field->height};";
                 }
@@ -644,7 +647,7 @@ class core_Form extends core_FieldSet
             
             $lastCaptionArr = array();
             
-            $tpl = new ET("<table cellpadding=\"3\" border=0 cellspacing=\"0\">[#FIELDS#]</table>");
+            $tpl = new ET("<table cellpadding=\"3\" border=0 cellspacing=\"0\" width='100%'>[#FIELDS#]</table>");
             
             foreach ($fields as $name => $field) {
                 

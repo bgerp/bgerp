@@ -40,7 +40,7 @@ class core_Html
                 }
             }
 
-            if (empty($body) && !$closeTag) {
+            if ( ($body === '' || $body === NULL || $body === FALSE)  && !$closeTag) {
                 $element = "<{$name}{$attrStr}>";
             } else {
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";

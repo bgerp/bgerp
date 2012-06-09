@@ -98,7 +98,8 @@ class core_Manager extends core_Mvc
         
         // Създаваме обекта $data
         $data = new stdClass();
-        
+        $data->action = 'list';
+
         // Създаваме заявката
         $data->query = $this->getQuery();
         
@@ -127,7 +128,7 @@ class core_Manager extends core_Mvc
         $tpl = $this->renderList($data);
         
         // Опаковаме изгледа
-        $tpl = $this->renderWrapping($tpl);
+        $tpl = $this->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
         $this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
@@ -209,6 +210,8 @@ class core_Manager extends core_Mvc
     function act_Manage()
     {
         $data = new stdClass();
+
+        $data->action = 'manage';
         
         // Създаване и подготвяне на формата
         $this->prepareEditForm($data);
@@ -273,7 +276,7 @@ class core_Manager extends core_Mvc
         $tpl = $data->form->renderHtml();
         
         // Опаковаме изгледа
-        $tpl = $this->renderWrapping($tpl);
+        $tpl = $this->renderWrapping($tpl, $data);
         
         return $tpl;
     }
@@ -654,7 +657,7 @@ class core_Manager extends core_Mvc
      * Прави стандартна 'обвивка' на изгледа
      * @todo: да се отдели като плъгин
      */
-    function renderWrapping_($tpl)
+    function renderWrapping_($tpl, $data = NULL)
     {
         return $tpl;
     }
