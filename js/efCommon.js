@@ -68,6 +68,10 @@ function ajaxRefreshContent(url, sec, id)
 					if(res.alert) {
 						alert(res.alert);
 					}
+
+					if(res.script) {
+						eval(res.script);
+					}
 				}
 
  			}
@@ -632,28 +636,35 @@ function SetWithCheckedButton()
 	 }
 }
 
-function flashHashDoc(i) {
+function flashHashDoc()
+{
 	var h = window.location.hash.substr(1); 
-	if(h) { 
-		var tr=get$(h);
-		var cells = tr.getElementsByTagName('td');
-		
-		var col = i * 5 + 155;
+	if(h) {
+		flashDoc(h);
+	}
+}
 
-		var y = col.toString(16);
+function flashDoc(docId, i)
+{
+	var tr = get$(docId);
+	var cells = tr.getElementsByTagName('td');
+	if(typeof i == 'undefined') {
+        i = 1;
+    }  
+	var col = i * 5 + 155;
 
-		var color = '#' + y + 'ff' + y;
+	var y = col.toString(16);
 
-		cells[0].style.backgroundColor = color;
-		cells[1].style.backgroundColor = color;
+	var color = '#' + y + 'ff' + y;
 
-		if(i<20) {
-			i++;
-			setTimeout( "flashHashDoc(" + i + ")", 120);
-		} else {
-			cells[0].style.backgroundColor = 'transparent';
-			cells[1].style.backgroundColor = 'transparent';
-		}
+	cells[0].style.backgroundColor = color;
+	cells[1].style.backgroundColor = color;
 
+	if(i<20) {
+		i++;
+		setTimeout( "flashDoc('" + docId + "', " + i + ")", 120);
+	} else {
+		cells[0].style.backgroundColor = 'transparent';
+		cells[1].style.backgroundColor = 'transparent';
 	}
 }

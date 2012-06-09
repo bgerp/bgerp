@@ -42,8 +42,10 @@ class type_Richtext extends type_Text {
         $tpl = new ET("<span class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar'>[#TBL_GROUP1#]&nbsp;[#TBL_GROUP2#]&nbsp;[#TBL_GROUP3#]</div></span>");
         
         if(Mode::is('screenMode', 'narrow')) {
+            $attr['style'] .= 'min-width:380px;';
             setIfNot($attr['rows'], $this->params['rows'], 7);
         } else {
+            $attr['style'] .= 'min-width:520px;';
             setIfNot($attr['rows'], $this->params['rows'], 10);
         }
         
@@ -55,7 +57,6 @@ class type_Richtext extends type_Text {
         $attr['onkeyup'] = 'sc(this);';
         $attr['onchange'] = 'sc(this);';
         
-        $attr['style'] .= 'min-width:568px;';
         
         $tpl->append(ht::createTextArea($name, $value, $attr), 'TEXTAREA');
         
