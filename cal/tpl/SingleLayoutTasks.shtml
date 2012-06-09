@@ -1,0 +1,57 @@
+[#SingleToolbar#]
+                 
+	<div class='document'>
+		<div class='header [#STATE_CLASS#]'>
+			<span style='[#iconStyle#]'>Задача [#id#] / [#priority#] / [#createdDate#] ([#state#])</span>
+		</div>
+
+        <!-- BEGIN Блок ляво -->
+        <div class='block_left'>
+        
+            <br/>
+			 <table cellspacing='1' class='top-table'>
+			     <tr>
+                     <td align='right' style='width: 140px;'>Заглавие:</td>
+                     <td>[#title#]</td>			     
+			     </tr>
+	             <tr>
+	                 <td align='right' colspan="2" style='background: #e6e6e6;'>[#details#]</td>
+	             </tr>
+	             <tr>
+	                 <td align='right'>Отговорници:</td>
+	                 <td>[#responsables#]</td>
+	             </tr>
+                 <tr>
+                     <td align='right'>Първоначално:</td>
+                     <td>[#timeStart#]</td>
+                 </tr>
+                 <tr>
+                     <td align='right'>Стартиране:</td>
+                     <td>[#timeNextRepeat#]</td>
+                 </tr>
+                 <!--ET_BEGIN timeDuration-->
+	                 <tr>
+	                     <td align='right'>Продължителност:</td>
+	                     <td>[#timeDuration#]</td>
+	                 </tr>                               
+                 <!--ET_END timeDuration-->
+                 <!--ET_BEGIN timeEnd-->
+                 <tr>
+                     <td align='right'>Край:</td>
+                     <td>[#timeEnd#]</td>
+                 </tr>
+                 <!--ET_END timeEnd-->
+                 <tr>
+                     <td align='right'>Повторение:</td>
+                     <td>[#repeat#]</td>
+                 </tr>
+                 <tr>
+                     <td align='right'>Напомняне:</td>
+                     <td>[#notification#]</td>
+                 </tr>
+             </table>
+         </div>    
+         <!-- END Блок ляво -->   
+                     
+         <div style='clear: both;'></div>
+    </div>         
