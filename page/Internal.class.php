@@ -68,13 +68,13 @@ class page_Internal extends page_Html {
             $msgType = Mode::get('NotificationType_' . $Nid);
             
             if($msgType) {
-                $invoker->append("<div class='notification-{$msgType}'>", 'NOTIFICATION');
+                $invoker->append("<div class='notification-{$msgType}'>", 'STATUSES');
             }
             
-            $invoker->append($msg, 'NOTIFICATION');
+            $invoker->append($msg, 'STATUSES');
             
             if($msgType) {
-                $invoker->append("</div>", 'NOTIFICATION');
+                $invoker->append("</div>", 'STATUSES');
             }
             
             Mode::setPermanent('Notification_' . $Nid, NULL);

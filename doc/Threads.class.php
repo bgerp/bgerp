@@ -44,7 +44,7 @@ class doc_Threads extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'hnd=Номер,title=Заглавие,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване';
+    var $listFields = 'hnd=Номер,title=Заглавие,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване,modifiedOn';
     
     
     /**
@@ -601,7 +601,8 @@ class doc_Threads extends core_Manager
                 $rec->state = 'closed';
             }
             
-            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared');
+            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy');
+
         } else {
             $this->delete($id);
         }

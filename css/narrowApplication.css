@@ -565,8 +565,14 @@ table.mc-header a {
 	background-color:#aea  !important;
 }
 
-
 #notificationsCnt {
+    position: absolute;
+	margin-right:5px;
+	right:10px;
+	display: inline-block;
+}
+
+#notificationsCnt a {
 	display:block;
 	font-size:0.8em;
 	background-color:red;
@@ -581,4 +587,8 @@ table.mc-header a {
 
 LEGEND IMG {
 	vertical-align:middle; 
+}
+
+input.contactData {
+	width:100%;
 }

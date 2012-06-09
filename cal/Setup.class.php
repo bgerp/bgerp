@@ -54,6 +54,7 @@ class cal_Setup
     {
         $managers = array(
             'cal_Agenda',
+            'cal_Tasks',
         );
         
         // Роля за power-user на този модул

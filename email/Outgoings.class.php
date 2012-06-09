@@ -145,15 +145,15 @@ class email_Outgoings extends core_Master
         $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
         
         //Данни за адресанта
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
-        $this->FLD('email', 'emails', 'caption=Адресант->Имейл');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
+        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData');
+        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Адресант->Имейл,class=contactData');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone,class=contactData');
+        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,class=contactData');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,class=contactData');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=pCode');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData');
     }
     
     

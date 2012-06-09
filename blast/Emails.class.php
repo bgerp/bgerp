@@ -151,15 +151,15 @@ class blast_Emails extends core_Master
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
         //Данни на адресанта - антетка
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
-        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
+        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData');
+        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf,class=contactData');
+        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,class=contactData');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,class=contactData');
+        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,class=contactData');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,class=contactData');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=contactData');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData');
         
         $this->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Windows Cyrillic|* (CP1251),
