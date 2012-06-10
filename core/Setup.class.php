@@ -25,11 +25,6 @@ defIfNot('EF_DATE_FORMAT', 'd-m-YEAR');
 defIfNot('EF_DATE_NARROW_FORMAT', 'd-m-year');
 
 /**
- * Формат по подразбиране за времевата част
- */
-defIfNot('EF_DATETIME_TIME_PART', ' H:i');
-
-/**
  * @todo Чака за документация...
  */
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
@@ -87,9 +82,7 @@ class core_Setup {
            'EF_DATE_FORMAT'   => array ('varchar'),
     
            'EF_DATE_NARROW_FORMAT'   => array ('varchar'),
-     
-           'EF_DATETIME_TIME_PART'   => array ('varchar'),
-    
+         
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int'), 
 
            'EF_DEFAULT_LANGUAGE'   => array ('varchar'),

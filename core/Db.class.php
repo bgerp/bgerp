@@ -651,7 +651,9 @@ class core_Db extends core_BaseClass
                 if($errno == self::MYSQL_MISSING_TABLE) {
                    $Packs = cls::get('core_Packs');
                     self::$noAutoSetup = TRUE;
+                    Debug::log('Before checkSetup');
                     $Packs->checkSetup();
+                    Debug::log('After checkSetup');
                 } 
                 
                 if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) { 
@@ -666,6 +668,8 @@ class core_Db extends core_BaseClass
                         $app = 'и пакета `' . EF_APP_NAME . '`';
                     }
                     
+                    bp($res);
+
                     redirect(array('core_Packs'), FALSE, "Пакета `core` {$app} беше обновен");
                 }
             }

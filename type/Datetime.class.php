@@ -25,7 +25,7 @@ class type_Datetime extends type_Date {
     /**
      * Формат на времевата част
      */
-    var $timePart = EF_DATETIME_TIME_PART;
+    var $timePart = ' H:i';
     
     
     /**
