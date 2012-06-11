@@ -493,6 +493,55 @@ class core_Users extends core_Manager
     
     
     /**
+     * Временна подмяна на текущия потребител
+     * 
+     * След изпълнението на този метод системата работи точно както ако зададения потребител
+     * се беше логнал през логин формата.
+     * 
+     * Този ефект продължава до извикването на метода @see core_Users::exitSudo().
+     * 
+     * @param int $id key(mvc=core_Users)
+     * @return boolean TRUE ако всичко е наред, FALSE ако има проблем - тогава текущия 
+     *                                                                  потребител не 
+     *                                                                  се променя.
+     */
+    static function sudo($id)
+    {
+        if (!$id) {
+            return FALSE;
+        }
+        
+        $userRec = static::fetch($id);
+        
+        $bValid = !empty($userRec);
+        
+        /**
+         * @TODO Други проверки за допустимостта на sudo - напр. дали е активен потребителя и
+         * пр.
+         */ 
+        
+        if($bValid) {
+            core_Mode::push('currentUserRec', $userRec);
+        }
+        
+        return $bValid;
+    }
+    
+    
+    /**
+     * Възстановява текущия потребител до предишна стойност.
+     * 
+     * Текущ става потребителя, който е бил такъв точно преди последното извикване на 
+     * @see core_Users::sudo().
+     * 
+     */
+    static function exitSudo()
+    {
+        core_Mode::pop('currentUserRec');
+    }
+    
+    
+    /**
      * Зарежда записа за текущия потребител в сесията
      */
     static function loginUser($id)
