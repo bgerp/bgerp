@@ -1031,4 +1031,15 @@ class core_Users extends core_Manager
         
         return $id;
     }
+    
+    
+	/**
+     * Проверявамед дали потребителя е активен
+     */
+    static function isActiveUser($nick)
+    {
+        $user = static::fetch("#nick = '{$nick}' AND #state = 'active'");
+        
+        return $user;
+    }
 }
