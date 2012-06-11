@@ -427,7 +427,7 @@ class crm_Persons extends core_Master
      * @param core_Et $tpl
      * @return core_et $tpl
      */
-    function renderWrapping_($tpl)
+    function renderWrapping_($tpl, $data = NULL)
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
 

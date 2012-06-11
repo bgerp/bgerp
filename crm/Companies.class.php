@@ -443,7 +443,7 @@ class crm_Companies extends core_Master
      * @param core_Et $tpl
      * @return core_et $tpl
      */
-    function renderWrapping_($tpl)
+    function renderWrapping_($tpl, $data = NULL)
     {
         $mvc = $this;
         
