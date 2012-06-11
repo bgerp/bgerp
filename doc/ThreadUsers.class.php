@@ -64,7 +64,7 @@ class doc_ThreadUsers extends core_Manager
      * Ако $users е int приема се, че това е id на един потребител. 
      * При множество потребители $users е keylist или масив
      */
-    function addShared($threadId, $containerId, $users, $relation = 'shared')
+    static function addShared($threadId, $containerId, $users, $relation = 'shared')
     {
         if(!$users) return;
 
@@ -120,7 +120,7 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Връща всички потребители, които са абонирани за посочената нишка
      */
-    function getSubscribed($threadId)
+    static function getSubscribed($threadId)
     {
         return static::getShared($threadId, 'subscribed');
     }
@@ -129,7 +129,7 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Проверява дали посочения потребител е в посоченото отношение към посочената нишка
      */
-    function is($threadId, $userId, $relation)
+    static function is($threadId, $userId, $relation)
     {
         if(static::fetch("#threadId = {$threadId} AND #userId = {$userId} AND #relation = {$relation}")) {
 
@@ -144,7 +144,7 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Премахва цялата информация за даден контейнер
      */
-    function removeContainer($containerId)
+    static function removeContainer($containerId)
     {
         return static::delete("#containerId = {$containerId}");
     }
