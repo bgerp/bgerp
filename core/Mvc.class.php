@@ -167,7 +167,7 @@ class core_Mvc extends core_FieldSet
 
             if (is_object($me->_cashedRecords[$casheKey])) {
 
-                return $me->_cashedRecords[$casheKey];
+                return clone ($me->_cashedRecords[$casheKey]);
             }
         }
 
@@ -182,7 +182,12 @@ class core_Mvc extends core_FieldSet
 
         // Ако е необходимо, записваме в кеша
         if ($cache) {
-            $me->_cashedRecords[$casheKey] = $rec;
+            if (is_object($rec)) {
+                $cacheData = clone($rec);
+            } else {
+                $cacheData = $rec;
+            }
+            $me->_cashedRecords[$casheKey] = $cacheData;
         }
 
         return $rec;
