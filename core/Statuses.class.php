@@ -16,77 +16,9 @@ class core_Statuses extends core_Manager
     
     
     /**
-     * id' та на статуси, които сме извлекли от БД за визуализация
-     */
-    var $_fetchedRecords;
-    
-    
-    /**
      * Заглавие
      */
     var $title = "Статусни съобщения";
-    
-    
-    /**
-     * Кой има право да го променя?
-     */
-    var $canEdit = 'admin, ceo';
-    
-    
-    /**
-     * Кой има право да добавя?
-     */
-    var $canAdd = 'admin, ceo';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    var $canView = 'admin, ceo';
-    
-    
-    /**
-     * Кой може да го разглежда?
-     */
-    var $canList = 'admin, ceo';
-    
-    
-    /**
-     * Кой има право да изтрива?
-     */
-    var $canDelete = 'admin, ceo';
-    
-    /**
-     * 
-     * Enter description here ...
-     * @var unknown_type
-     */
-    var $canSingle = 'admin, ceo';
-    
-    
-    /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'plg_SystemWrapper, plg_Created';
-    
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    var $listFields = 'userId, type, message, lifetime, createdOn,createdBy';
-    
-	
-    /**
-     * Описание на модела
-     */
-    function description()
-    {
-        $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор');
-        $this->FLD('userId', 'key(mvc=core_Users, select=names)', 'caption=Потребител');
-        $this->FLD('message', 'text', 'caption=Съобщение');
-        $this->FLD('type', 'enum(success=Успешно, notice=Информация, warning=Предупреждение, error=Грешка)', 'caption=Тип');
-        $this->FLD('lifeTime', 'int', 'caption=Активен до');
-    }
     
     
     /**
@@ -99,31 +31,35 @@ class core_Statuses extends core_Manager
      * 
      * @return integer $id - При успешен запис връща id' то на записа
      */
-    static function add($mesage, $type='notice', $userId=NULL, $lifeTime=60)
+    static function add($text, $type='notice')
     {
         //Очакваме съобщението да не е празен стринг
-        expect(str::trim($mesage), 'Няма въведено съобщение.');
+        expect(str::trim($text), 'Няма въведено съобщение.');
         
-        //Ако не подаден потребител, тогава взема текущия потребител
-        $userId = ($userId) ? ($userId) : (core_Users::getCurrent());
+        //Всички статус съобщения
+        $statusArr = mode::get('statusArr');
         
-        //До кога може да се покаже
-        $lifeTime = time() + $lifeTime;
+        //Създаваме обект
+        $textObj = new stdClass();
         
-        //Вземаме уникалния sid'а на потребителя
-        $sid = static::getSid();
+        //Записваме текстовата част, типа и времето
+        $textObj->statusText = $text;
+        $textObj->statusType = $type;
+        $textObj->time = time();
         
-        $rec = new stdClass();
-        $rec->sid = $sid;
-        $rec->userId = $userId;
-        $rec->message = $mesage;
-        $rec->lifeTime = $lifeTime;
-        $rec->type = $type;
-        
-        //Записваме данните
-        $id = static::save($rec);
-        
-        return $id;
+        //Ако има предишни статуси
+        if ($statusArr) {
+            
+            //Добавяме в края на масива
+            array_push($statusArr, $textObj);  
+            
+            //Записваме новия масив
+            mode::setPermanent('statusArr', $statusArr);  
+        } else {
+            
+            //Записваме обекта
+            mode::setPermanent('statusArr', array($textObj)); 
+        }
     }
     
     
@@ -132,51 +68,41 @@ class core_Statuses extends core_Manager
      * 
      * @return array $resArr - Масив със съобщението и типа на статуса
      */
-    static function fetchStatuses()
+    static function getStatuses()
     {
         $resArr = array();
-        
-        //Правим инстанция на класа
-        $Statuses = cls::get('core_Statuses');
-        
-        //Текущото време
-        $now = time();
-        
-        //Заявка към класа
-        $query = $Statuses->getQuery();
 
-        //Данните да са подредени по дата на създаване. Най - новите да са най отпред.
-        $query->orderBy('createdOn', 'DESC');
+        //Времето на последното показване на нотификация
+        $lastNotificationTime = Mode::get('lastNotificationTime');
         
-        //Да се вземат тези, на които не им е изтекъл срока
-        $query->where("#lifeTime >= '{$now}'");
+        //Масив с всички статуси
+        $statusArr = mode::get('statusArr');
         
-        //За кой потребител
-        if ($userId = core_Users::getCurrent()) {
+        $i=0;
+        
+        if ($statusArr) {
             
-            //Ако сме логнат потребител
-            $query->where("#userId = '{$userId}'");        
-        } else {
+            //Докатове има стойност в масива - вземаме първия му елемент
+            while ($res=array_shift($statusArr)) {
+                
+                // Ако все още не е видян
+                if ($res->time > $lastNotificationTime) {
+                    
+                    //Текстовата част
+                    $resArr[$i]['statusText'] = $res->statusText;
+                    
+                    //Типа на статуса
+                    $resArr[$i]['statusType'] = $res->statusType;
+                    
+                    //Увеличаваме ключа на масива с единица
+                    $i++;
+                }
+            }
             
-            //Ако не сме тогава вземаме cid'а на текущия потребител
-            $sid = $Statuses->getSid();
-            $query->where("#sid = '{$sid}'");        
+            //Записваме останалите стойности в масива
+            mode::setPermanent('statusArr', $resArr);
         }
-
-        //Обикаляме в откритите резултати
-        while ($rec = $query->fetch()) {
-            
-            //Добавяме id' то на записа към променливата, от където ще се трият
-            $Statuses->_fetchedRecords .= ($Statuses->_fetchedRecords) ? (',' . $rec->id) : ($rec->id);
-            
-            //Добавяме към масива съобщението
-            $resArr[$rec->id]['message'] = $Statuses->getVerbal($rec, 'message');
-            
-            //Добавяме към масива типа
-            $resArr[$rec->id]['type'] = $rec->type;
-        }
-
-        //Връщаме масива
+        
         return $resArr;
     }
     
@@ -189,60 +115,16 @@ class core_Statuses extends core_Manager
     static function show_()
     {
         //Всички активни статуси за текущия потребител
-        $notifArr = core_Statuses::fetchStatuses();
+        $notifArr = core_Statuses::getStatuses();
         
         //Обикаляме всички статуси
         foreach ($notifArr as $value) {
             
             //Записваме всеки статус в отделен div и класа се взема от типа на статуса
-            $res .= "<div class='statuses-{$value['type']}'> {$value['message']} </div>";
+            $res .= "<div class='statuses-{$value['statusType']}'> {$value['statusText']} </div>";
         }
-
-        //Инстанция към класа
-        $Statuses = cls::get('core_Statuses');
-        
-        //Извикваме метода shutdown
-        $Statuses->invoke('shutdown');
 
         return $res;
-    }
-    
-    
-    /**
-     * 
-     */
-    function on_Shutdown($mvc)
-    {
-        if (!$mvc->_fetchedRecords) {
-
-            return ;
-        }
-        //Масив с всички id' на съобщения, които са показани
-        $recsArr = explode(',', $mvc->_fetchedRecords);
-        
-        foreach ($recsArr as $id) {
-            
-            //Изтриваме записити
-            $mvc::delete($id);
-        }
-    }
-    
-    
-    /**
-     * Генерира и връща sid на текущия потребител
-     */
-    static function getSid()
-    {
-        //Перманентния ключ на текущия потребител
-        $permanentKey = Mode::getPermanentKey();
-        
-        $conf = core_Packs::getConfig('core');
-        $salt = $conf->EF_STATUSE_SALT;
-        
-        //Вземаме md5'а на sid
-        $sid = md5($salt . $permanentKey);
-        
-        return $sid;
     }
     
     
@@ -252,7 +134,10 @@ class core_Statuses extends core_Manager
     function act_AjaxGetStatuses()
     {
         //Всички статуси за текущия потребител
-        $recs = $this->fetchStatuses();
+        $recs = $this->getStatuses();
+        
+        //Задаваме текущото време
+        Mode::setPermanent('lastNotificationTime', time());
         
         //Енкодираме записите в json формат
         $json = json_encode($recs);  
@@ -260,72 +145,7 @@ class core_Statuses extends core_Manager
         //Извеждаме записити на екрана
         echo $json;
         
-        //Извикваме функцията, която се изпулнява след приключване на операцията
-        $this->invoke('shutdown');
-        
         //Прекраряваме изпълнението на кода по нататаък
         die;
-    }
-    
-    
-	/**
-     * Изтрива по крон всички записи, на които им е изтекъл срока
-     */
-    function cron_deleteExpiredStatuses()
-    {
-        //Брой изтрити записи
-        $n = (int)$this->deleteOldStatuses();
-        
-        return "{$n} статуси с изтекъл срок бяха изтрити.";
-    }
-    
-    
-    /**
-     * Изтрива всички записи, на които им е изтекъл срока
-     */
-    function deleteOldStatuses()
-    {        
-        //Текущото време
-        $now = time();
-        
-        //Заявка към класа
-        $query = $this->getQuery();
-        
-        //Да се вземат тези, на които не им е изтекъл срока
-        $query->where("#lifeTime < '{$now}'");
-        
-        //Изтриваме всички отркити резултати
-        $del = $query->delete();
-        
-        //Връщаме броя на изтритете записи
-        return $del;
-    }
-    
-
-	/**
-     * Изпълнява се след създаването на модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
-        //Данни за работата на cron
-        $rec = new stdClass();
-        $rec->systemId = 'deleteExpiredStatuses';
-        $rec->description = 'Изтриване на изтекли статуси.';
-        $rec->controller = $mvc->className;
-        $rec->action = 'deleteExpiredStatuses';
-        $rec->period = 10;
-        $rec->offset = 0;
-        $rec->delay = 0;
-        $rec->timeLimit = 50;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да изтрива статусите с изтекъл срок.</font></li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да изтрива статусите с изтекул срок.</li>";
-        }
     }
 }

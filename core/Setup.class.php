@@ -139,9 +139,6 @@ class core_Setup {
         $Locks = cls::get('core_Locks');
         $html .= $Locks->setupMVC();
         
-        $Statuses = cls::get('core_Statuses');
-        $html .= $Statuses->setupMVC();
-        
         // Проверяваме дали имаме достъп за четене/запис до следните папки
         $folders = array(
             EF_SBF_PATH, // sbf root за приложението
