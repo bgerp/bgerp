@@ -247,8 +247,16 @@ class doc_FolderPlg extends core_Plugin
         }
         
         if($rec->folderId) {
+            
+            //Ако има папка - обновяме ковъра
             doc_Folders::updateByCover($rec->folderId);
-        }
+        } else {
+            
+            //Ako няма папка и autoCreateFolder е TRUE, тогава създава папка
+            if ($mvc->autoCreateFolder) {
+                $mvc->forceCoverAndFolder($rec);
+            }
+        }   
     }
     
     
