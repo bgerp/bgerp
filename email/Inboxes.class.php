@@ -259,9 +259,52 @@ class email_Inboxes extends core_Master
                     return $eml;
                 }
             }
+            
+            //Намираме имейла, за който има активен потребител и домейна е общ
+            foreach ($emailsArr as $eml) {
+                
+                //Ако намери съвпадение връща имейла
+                if (static::findAlternativeEmail($eml)) {
+
+                    return $eml;
+                }
+            }
         }
         
         return NULL;
+    }
+    
+    
+    /**
+     * Проверява дали има вероятноста да има такъв потребител в системата
+     */
+    static function findAlternativeEmail($email)
+    {
+        //Разделяме имейла на акаунт и домейн
+        $emailArr = explode('@', $email);
+        
+        $domain = '@' . $emailArr[1];
+        
+        $nick = $emailArr[0];
+        
+        //Ако домейна е общ и има активен потребител
+        if ((static::isGroupDomain($domain)) && (core_Users::isActiveUser($nick))) {
+
+            return $email;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Проверява дали домейна е общ
+     */
+    static function isGroupDomain($domain)
+    {
+        $rec = static::fetch("#email LIKE '%{$domain}' AND #applyRouting = 'yes'");
+
+        return $domain;
     }
     
     
