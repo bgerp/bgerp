@@ -59,6 +59,9 @@ class page_Internal extends page_Html {
      */
     static function on_Output(&$invoker)
     {
+        if (!Mode::get('lastNotificationTime')) {
+            Mode::setPermanent('lastNotificationTime', time());
+        }
         $invoker->append(core_Statuses::show(), 'STATUSES');
         
         $Nid = Request::get('Nid', 'int');
