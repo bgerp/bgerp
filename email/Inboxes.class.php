@@ -288,8 +288,26 @@ class email_Inboxes extends core_Master
         $nick = $emailArr[0];
         
         //Ако домейна е общ и има активен потребител
-        if ((static::isGroupDomain($domain)) && (core_Users::isActiveUser($nick))) {
-
+        if ((static::isGroupDomain($domain)) && ($user = core_Users::isActiveUser($nick))) {
+            
+            //Създаваме папка
+            $nick = $user->nick;
+            if (EF_USSERS_EMAIL_AS_NICK) {
+                $nick = type_Nick::parseEmailToNick($rec->nick);
+            }
+            
+            //Запис необходим за създаване на папка
+            $eRec = new stdClass();
+            $eRec->inCharge = $user->id;
+            $eRec->access = "private";
+            $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
+            $eRec->type = 'internal';
+            $eRec->applyRouting = 'yes';
+            $eRec->email = $email;
+            $eRec->name = $nick;
+            
+            email_Inboxes::forceCoverAndFolder($eRec);
+            
             return $email;
         }
         
