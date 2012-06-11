@@ -74,7 +74,7 @@ class drdata_IpToCountry extends core_Manager {
      * Връща двубуквения код на страната от която е това $ip
      * Ако не е посочено ip, взема ip-то от заявката на клиента
      */
-    function get($ip = NULL)
+    static function get($ip = NULL)
     {
         if(!$ip) {
             $ip = $_SERVER['REMOTE_ADDR'];

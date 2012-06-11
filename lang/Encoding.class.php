@@ -191,7 +191,7 @@ class lang_Encoding {
      * Опитва се да извлече име на познато кодиране на
      * двоични данни от зададения стринг
      */
-    function canonizeEncoding($encoding)
+    static function canonizeEncoding($encoding)
     {
         $encoding = strtoupper(trim($encoding));
         
