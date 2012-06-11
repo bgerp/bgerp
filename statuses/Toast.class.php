@@ -34,7 +34,7 @@ class statuses_Toast extends core_Plugin
         if (!Mode::is('javascript', 'yes')) return TRUE;
         
         //Всички активни статуси за текущия потребител
-        $notifArr = core_Statuses::fetchStatuses();
+        $notifArr = core_Statuses::getStatuses();
         
         //Създаваме шаблона
         $tpl = new ET();
@@ -53,12 +53,11 @@ class statuses_Toast extends core_Plugin
         
         //Броя на намерените статуси
         $countArr = count($notifArr);
-        
+
         //Обикаляме всички открити статуси
         foreach ($notifArr as $val) {
-            
             //Типа на статуса
-            $toastType = $val['type'];
+            $toastType = $val['statusType'];
             
             //Първия статус да се покаже 1 секунда след зареждане на страницата
             //Всеки следващ статус със закъсенине + 1,5 секунди
@@ -73,10 +72,10 @@ class statuses_Toast extends core_Plugin
             } else {
                 
                 //Лепкавостта на статусите да се определя от вида на статуса
-                $sticky = $this->isSticky($val['type']);
+                $sticky = $this->isSticky($val['statusType']);
                 
                 //Времето за оставане на екрана да се определя от типа на статуса (само за тези, които не са лепкави)
-                $stayTime = $this->getStayTime($val['type']);
+                $stayTime = $this->getStayTime($val['statusType']);
             }
             
             //Създаваме шаблон за статусите
@@ -95,7 +94,7 @@ class statuses_Toast extends core_Plugin
         	   ");
             
             //Заместваме съобщението на статуса.
-            $toastTpl->replace(addslashes($val['message']), 'text');
+            $toastTpl->replace(addslashes($val['statusText']), 'text');
             
             //Заместваме типа на статуса
             $toastTpl->replace($toastType, 'type');
@@ -115,10 +114,7 @@ class statuses_Toast extends core_Plugin
         
         //Извикваме метода за добавяне на ajax извикване 
         $this->invoke('afterAjaxGetStatuses', array(&$tpl));
-        
-        //Извикваме метода shutdown
-        $mvc->invoke('shutdown');
-        
+                
         //Връщаме FALSE за да не се изпълнява метода
         return FALSE;
     }
@@ -152,11 +148,11 @@ class statuses_Toast extends core_Plugin
                 	function(data){
                     	$.each(data, function(index, value) { 
                          	id = (value.id);
-                         	message = (value.message);
-                         	type = (value.type);
+                         	text = (value.statusText);
+                         	type = (value.statusType);
                          	                     	
                          	$().toastmessage('showToast', {
-                                text            : message,
+                                text            : text,
                                 sticky          : true,
                                 stayTime        : 10000,
                                 inEffectDuration: 1800,
