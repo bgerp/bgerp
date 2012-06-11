@@ -15,6 +15,11 @@
 class email_Outgoings extends core_Master
 {
     
+    /**
+     * Папката по подразбиране да е inbox' а на текущия потребител
+     */
+    var $defaultFolder='inbox';
+    
     
     /**
      * Полета, които ще се клонират

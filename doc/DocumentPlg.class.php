@@ -656,7 +656,18 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if(!$rec->folderId) {
-            $rec->folderId = $mvc->GetUnsortedFolder();
+            
+            //Ако сме задали папката по подразбиране да е текущата папка
+            if ($mvc->defaultFolder == 'inbox') {
+                
+                //id' то на текущия потребител
+                $currUserId = email_Inboxes::getUserEmailId();
+                
+                //id' то на папката
+                $rec->folderId = email_Inboxes::forceCoverAndFolder($currUserId);   
+            } else {
+                $rec->folderId = $mvc->GetUnsortedFolder();
+            }
         }
         
         //Ако нямаме права, тогава използваме папката на потребителя
