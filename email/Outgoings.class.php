@@ -20,6 +20,7 @@ class email_Outgoings extends core_Master
      */
     var $defaultFolder='inbox';
     
+
     /**
      * Полета, които ще се клонират
      */
