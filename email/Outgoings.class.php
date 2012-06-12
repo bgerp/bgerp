@@ -220,7 +220,7 @@ class email_Outgoings extends core_Master
                     array(
                         'containerId' => $data->rec->containerId,
                         'action'      => doc_Log::ACTION_SEND, 
-                        'details'     => array(
+                        'data'        => (object)array(
                             'from' => $data->rec->boxFrom,
                             'to'   => $emailTo,
                         )
@@ -228,6 +228,7 @@ class email_Outgoings extends core_Master
                 );
                 
                 // Подготовка на текста на писмото (HTML & plain text)
+                $data->rec->__mid = NULL;
                 $data->rec->html = $this->getEmailHtml($data->rec, $lg, $emailCss);
                 $data->rec->text = $this->getEmailText($data->rec, $lg);
                 

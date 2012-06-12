@@ -204,7 +204,8 @@ class doc_Log extends core_Manager
             $rec->mid = static::generateMid();
         }
         
-        $rec->details     = serialize($rec->details);
+        
+        $rec->data     = serialize($rec->data);
         
         /*
          * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и
@@ -397,12 +398,112 @@ class doc_Log extends core_Manager
      * Отразява факта, че документ е изпратен по имейл
      *
      * @param int $containerId key(mvc=doc_Containers)
-     * @param mixed $details допълнителни данни свързани с изпращането
+     * @param mixed $data допълнителни данни свързани с изпращането
      * @return string MID
      */
-    public static function sent($containerId, $details = NULL)
+    public static function sent($containerId, $data = NULL)
     {
         return static::add(self::ACTION_SEND, $containerId);
+    }
+
+
+    public static function returned($mid, $date = NULL)
+    {
+        if (!($sendRec = static::fetch(array("#mid = '[#1#]' AND #action = '" . static::ACTION_SEND . "'", $mid)))) {
+            // Няма изпращане с такъв MID
+            return FALSE;
+        }
+    
+        $sendRec->data = @unserialize($sendRec->data);
+        
+        if (!$sendRec->data) {
+            $sendRec->data = new stdClass;
+        }
+    
+        if (!empty($sendRec->data->returnedOn)) {
+            // Връщането на писмото вече е било отразено в историята; не правим нищо
+            return TRUE;
+        }
+
+        if (!isset($date)) {
+            $date = dt::now();
+        }
+        
+        expect(is_object($sendRec->data), $sendRec);
+    
+        $sendRec->data->returnedOn = $date;
+        $sendRec->data = serialize($sendRec->data);
+    
+        static::save($sendRec);
+    
+        $retRec = (object)array(
+            'action' => static::ACTION_RETURN,
+            'containerId' => $sendRec->containerId,
+            'threadId'    => $sendRec->threadId,
+            'parentId'    => $sendRec->id
+        );
+    
+        static::save($retRec);
+    
+        // Нотификация за връщането на писмото до изпращача му
+        bgerp_Notifications::add(
+            'Върнати писма', // съобщение
+            array('doc_Containers', 'list', 'threadId'=>$sendRec->threadId, 'containerId'=>$sendRec->containerId), // URL
+            $sendRec->createdBy, // получател на нотификацията
+            'alert' // Важност (приоритет)
+        );
+    
+        return TRUE;
+    }
+
+
+    public static function received($mid, $date = NULL)
+    {
+        if (!($sendRec = static::fetch(array("#mid = '[#1#]' AND #action = '" . static::ACTION_SEND . "'", $mid)))) {
+            // Няма изпращане с такъв MID
+            return FALSE;
+        }
+    
+        $sendRec->data = @unserialize($sendRec->data);
+        
+        if (!$sendRec->data) {
+            $sendRec->data = new stdClass;
+        }
+    
+        if (!empty($sendRec->data->receivedOn)) {
+            // Връщането на писмото вече е било отразено в историята; не правим нищо
+            return TRUE;
+        }
+    
+        if (!isset($date)) {
+            $date = dt::now();
+        }
+
+        expect(is_object($sendRec->data), $sendRec);
+        
+        $sendRec->data->receivedOn = $date;
+        $sendRec->data = serialize($sendRec->data);
+    
+        static::save($sendRec);
+    
+        $rcvRec = (object)array(
+            'action' => static::ACTION_RECEIVE,
+            'containerId' => $sendRec->containerId,
+            'threadId'    => $sendRec->threadId,
+            'parentId'    => $sendRec->id
+        );
+    
+        static::save($rcvRec);
+    
+        // Нотификация за връщането на писмото до изпращача му
+        bgerp_Notifications::add(
+            'Получени писма', // съобщение
+            array('doc_Containers', 'list', 'threadId'=>$sendRec->threadId, 'containerId'=>$sendRec->containerId), // URL
+            $sendRec->createdBy, // получател на нотификацията
+            'alert' // Важност (приоритет)
+        );
+    
+        return TRUE;
     }
     
 
