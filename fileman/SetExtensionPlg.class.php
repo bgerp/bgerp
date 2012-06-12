@@ -42,8 +42,16 @@ class fileman_SetExtensionPlg extends core_Plugin
         
         $filePrg = EF_EXTENSION_FILE_PROGRAM;
         
-        $filemanFiles = cls::get('fileman_Files');
-        $dataId = $filemanFiles->fetchByFh($fileHnd, 'dataId');
+        if (!empty($rec->dataId)) {
+            $dataId = $rec->dataId;
+        } else {
+            // stv: Не виждам как би могло да се стигне до тук но го оставям за всеки случай.
+            
+            $filemanFiles = cls::get('fileman_Files');
+            $dataId = $filemanFiles->fetchByFh($fileHnd, 'dataId');
+        }
+        
+        expect($dataId);
         
         $dataRec = fileman_Data::fetch(array("#id = '[#1#]'", $dataId));
         $filePath = $dataRec->path;
