@@ -230,7 +230,8 @@ class catering_Requests extends core_Master
         $totalPrice = 0;
         
         while($rec = $queryRequestDetails->fetch($where)) {
-            $priceForOne = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'price');
+            $menuDetails = cls::get('catering_MenuDetails');
+            $priceForOne = $menuDetails->fetchField($rec->menuDetailsId, 'price');
             $priceAdd = $priceForOne * $rec->quantity;
             $totalPrice += $priceAdd;
         }

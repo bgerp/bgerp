@@ -38,7 +38,6 @@ class page_InternalLayout extends core_ET
             "</div>" .
             "<div id=\"maincontent\" {$minHeighStyle}><div>" .
             "<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:10px;'></div>" .
-            " <!--ET_BEGIN NOTIFICATION-->[#NOTIFICATION#]<!--ET_END NOTIFICATION-->" .
             " <!--ET_BEGIN STATUSES-->[#STATUSES#]<!--ET_END STATUSES-->" .
             "[#PAGE_CONTENT#]" .
             "</div></div>" .

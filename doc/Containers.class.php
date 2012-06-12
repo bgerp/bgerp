@@ -20,13 +20,13 @@ class doc_Containers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified,plg_RowTools,doc_Wrapper,plg_State, plg_RefreshRows';
+    var $loadList = 'plg_Created, plg_Modified,plg_RowTools,doc_Wrapper,plg_State, doc_ThreadRefreshPlg';
     
     
     /**
      * 10 секунди време за опресняване на нишката
      */
-    var $refreshRowsTime = 30000;
+    var $refreshRowsTime = 10000;
 
 
     /**
@@ -166,7 +166,7 @@ class doc_Containers extends core_Manager
         bgerp_Notifications::clear($url);
 
 
-        $tpl->appendOnce("flashHashDoc(1);", 'ON_LOAD');
+        $tpl->appendOnce("flashHashDoc();", 'ON_LOAD');
     }
     
     
@@ -229,7 +229,7 @@ class doc_Containers extends core_Manager
         $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
                                             <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
                                             <div style='margin:10px;'>[#2#]</div></center>",
-            $row->createdOn,
+            $mvc->getVerbal($rec, 'createdOn'),
             $avatar,
             $row->created);
             

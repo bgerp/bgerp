@@ -259,9 +259,70 @@ class email_Inboxes extends core_Master
                     return $eml;
                 }
             }
+            
+            //Намираме имейла, за който има активен потребител и домейна е общ
+            foreach ($emailsArr as $eml) {
+                
+                //Ако намери съвпадение връща имейла
+                if (static::findAlternativeEmail($eml)) {
+
+                    return $eml;
+                }
+            }
         }
         
         return NULL;
+    }
+    
+    
+    /**
+     * Проверява дали има вероятноста да има такъв потребител в системата
+     */
+    static function findAlternativeEmail($email)
+    {
+        //Разделяме имейла на акаунт и домейн
+        $emailArr = explode('@', $email);
+        
+        $domain = '@' . $emailArr[1];
+        
+        $nick = $emailArr[0];
+        
+        //Ако домейна е общ и има активен потребител
+        if ((static::isGroupDomain($domain)) && ($user = core_Users::isActiveUser($nick))) {
+            
+            //Създаваме папка
+            $nick = $user->nick;
+            if (EF_USSERS_EMAIL_AS_NICK) {
+                $nick = type_Nick::parseEmailToNick($rec->nick);
+            }
+            
+            //Запис необходим за създаване на папка
+            $eRec = new stdClass();
+            $eRec->inCharge = $user->id;
+            $eRec->access = "private";
+            $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
+            $eRec->type = 'internal';
+            $eRec->applyRouting = 'yes';
+            $eRec->email = $email;
+            $eRec->name = $nick;
+            
+            email_Inboxes::forceCoverAndFolder($eRec);
+            
+            return $email;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Проверява дали домейна е общ
+     */
+    static function isGroupDomain($domain)
+    {
+        $rec = static::fetch("#email LIKE '%{$domain}' AND #applyRouting = 'yes'");
+
+        return $domain;
     }
     
     

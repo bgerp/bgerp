@@ -673,7 +673,18 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if(!$rec->folderId) {
-            $rec->folderId = $mvc->GetUnsortedFolder();
+            
+            //Ако сме задали папката по подразбиране да е текущата папка
+            if ($mvc->defaultFolder == 'inbox') {
+                
+                //id' то на текущия потребител
+                $currUserId = email_Inboxes::getUserEmailId();
+                
+                //id' то на папката
+                $rec->folderId = email_Inboxes::forceCoverAndFolder($currUserId);   
+            } else {
+                $rec->folderId = $mvc->GetUnsortedFolder();
+            }
         }
         
         //Ако нямаме права, тогава използваме папката на потребителя
@@ -681,33 +692,41 @@ class doc_DocumentPlg extends core_Plugin
             $user->email = email_Inboxes::getUserEmail();
             $rec->folderId = email_Inboxes::forceCoverAndFolder($user);
         }
-        
-        //Добавяме текст по подразбиране
-        if ($rec->folderId) {
-            $fRec = doc_Folders::fetch($rec->folderId);
+    }
+
+
+
+    /**
+     *
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {   
+        //Добавяме текст по подразбиране за титлата на формата
+        if ($form->rec->folderId) {
+            $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = mb_strtolower($mvc->singleTitle) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
         
         if($rec->threadId) {
-            $thRec = doc_Threads::fetch($rec->threadId);
+            $thRec = doc_Threads::fetch($form->rec->threadId);
             
-            if($thRec->firstContainerId != $rec->containerId) {
+            if($thRec->firstContainerId != $form->rec->containerId) {
                 $title = mb_strtolower($mvc->singleTitle) . ' |към|* ' . doc_Threads::recToVerbal($thRec)->title;
             }
         }
-        
-        if($data->form->rec->id) {
-            $data->form->title = 'Редактиране на|* ';
+
+        if($form->rec->id) {
+            $form->title = 'Редактиране на|* ';
         } else {
             if(Request::get('Clone') && ($rec->originId)) {
-                $data->form->title = 'Копие на|* ';
+                $form->title = 'Копие на|* ';
             } else {
-                $data->form->title = 'Нов|* ';
+                $form->title = 'Нов|* ';
             }
         }
         
-        $data->form->title .= $title;
-    }
+        $form->title .= $title;
+     }
     
     
     /**

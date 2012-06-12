@@ -15,6 +15,10 @@
 class email_Outgoings extends core_Master
 {
     
+    /**
+     * Папката по подразбиране да е inbox' а на текущия потребител
+     */
+    var $defaultFolder='inbox';
     
     /**
      * Полета, които ще се клонират
@@ -145,15 +149,15 @@ class email_Outgoings extends core_Master
         $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
         
         //Данни за адресанта
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
-        $this->FLD('email', 'emails', 'caption=Адресант->Имейл');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
+        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData');
+        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Адресант->Имейл,class=contactData');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone,class=contactData');
+        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,class=contactData');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,class=contactData');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=pCode');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData');
     }
     
     
@@ -557,13 +561,13 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
         
-        //Добавяме бутона изпрати
+        // Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
         
-        //Ако субмитнем формата, кода не се изпълнява
+        // Ако субмитнем формата, кода не се изпълнява
         if ($form->isSubmitted()) return;
         
-        //Ако редактираме записа или го клонираме, няма да се изпълни нататък
+        // Ако редактираме записа или го клонираме, няма да се изпълни нататък
         if (($rec->id) || (Request::get('Clone'))) return;
         
         //Зареждаме нужните променливи от $data->form->rec
@@ -572,7 +576,7 @@ class email_Outgoings extends core_Master
         $folderId = $rec->folderId;
         $emailTo = Request::get('emailto');
         
-        //Определяме треда от originId
+        // Определяме треда от originId
         if($originId && !$threadId) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
@@ -582,12 +586,24 @@ class email_Outgoings extends core_Master
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
         
-        //Ако сме дошли на формата чрез натискане на имейл
+        // Ако сме дошли на формата чрез натискане на имейл
         if ($emailTo) {
-            $folderId = email_Router::getEmailFolder($emailTo);
+            // Проверяваме дали е валидем имейл адрес
+            if (type_Email::isValidEmail($emailTo)) {
+                                
+                // Вземаме папката на имейла
+                $folderId = email_Router::getEmailFolder($emailTo); 
+
+                // Попълваме полето Адресант->Имейл със съответния имейл
+                $rec->email = $emailTo;       
+            } else {
+                
+                //Ако не е валидемимейал, добавяме статус съобщения, че не е валиден имейл
+                core_Statuses::add("Невалиден имейл: {$emailTo}", 'warning');   
+            }
         }
         
-        //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
+        // Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
         if ($originId) {
             //Добавяме в полето Относно отговор на съобщението
             $oDoc = doc_Containers::getDocument($originId);
@@ -596,7 +612,7 @@ class email_Outgoings extends core_Master
             $oContragentData = $oDoc->getContragentData();
         }
         
-        //Определяме езика на който трябва да е имейла
+        // Определяме езика на който трябва да е имейла
         $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
         
         //Сетваме езика, който сме определили за превод на съобщението
@@ -659,9 +675,15 @@ class email_Outgoings extends core_Master
         core_Lg::pop();
         
         //Добавяме новите стойности на $rec
-        $rec->threadId = $threadId;
-        $rec->folderId = $folderId;
-    }
+        if($threadId) {
+            $rec->threadId = $threadId;
+        }
+
+        if($folderId) {
+            $rec->folderId = $folderId;
+        }
+
+     }
     
     
     /**

@@ -131,7 +131,7 @@ class crm_Persons extends core_Master
     {
         // Име на лицето
         $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение');
-        $this->FLD('name', 'varchar(255)', 'caption=Имена,width=100%,mandatory,remember=info');
+        $this->FLD('name', 'varchar(255)', 'caption=Имена,class=contactData,mandatory,remember=info');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
 
         // Единен Граждански Номер
@@ -141,27 +141,28 @@ class crm_Persons extends core_Master
         $this->FLD('birthday', 'combodate', 'caption=Рожден ден');
 
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
-        $this->FLD('pCode', 'varchar(16)', 'caption=Пощ. код,recently');
-        $this->FLD('place', 'varchar(64)', 'caption=Нас. място,width=100%');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember,class=contactData');
+        $this->FLD('pCode', 'varchar(16)', 'caption=Пощ. код,recently,class=pCode');
+        $this->FLD('place', 'varchar(64)', 'caption=Нас. място,class=contactData');
+        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
 
         // Служебни комуникации
-        $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId');
-        $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Имейл,width=100%');
-        $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,width=100%');
-        $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,width=100%');
-        $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,width=100%');
+        $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 
+            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData');
+        $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Имейл,class=contactData');
+        $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,class=contactData');
+        $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,class=contactData');
+        $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData');
 
         // Лични комуникации
-        $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,width=100%');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,width=100%');
-        $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,width=100%');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,width=100%');
-        $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,width=100%');
+        $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,class=contactData');
+        $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,class=contactData');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,class=contactData');
+        $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData');
 
         // Допълнителна информация
-        $this->FLD('info', 'richtext', 'caption=Информация->Бележки,height=150px');
+        $this->FLD('info', 'richtext', 'caption=Информация->Бележки,height=150px,class=contactData');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
 
         // Лична карта
@@ -426,7 +427,7 @@ class crm_Persons extends core_Master
      * @param core_Et $tpl
      * @return core_et $tpl
      */
-    function renderWrapping_($tpl)
+    function renderWrapping_($tpl, $data = NULL)
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
 

@@ -194,6 +194,9 @@ class bgerp_Notifications extends core_Manager
         // Рендираме изгледа
         $tpl = $Notifications->renderPortal($data);
         
+        //Задаваме текущото време, за последно преглеждане на нотификациите
+        Mode::setPermanent('lastNotificationTime', time());
+        
         return $tpl;
     }
     

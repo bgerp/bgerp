@@ -155,26 +155,26 @@ class crm_Companies extends core_Master
     function description()
     {
         // Име на фирмата
-        $this->FLD('name', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
+        $this->FLD('name', 'varchar(255)', 'caption=Фирма,class=contactData,mandatory,remember=info');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
-        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently');
-        $this->FLD('place', 'varchar(64)', 'caption=Град,width=100%');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData');
+        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
         
         // Комуникации
-        $this->FLD('email', 'emails', 'caption=Имейли,width=100%');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
-        $this->FLD('website', 'url', 'caption=Web сайт,width=100%');
+        $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,class=contactData');
+        $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
         
         // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,class=contactData');
         
         // Допълнителна информация
-        $this->FLD('info', 'richtext', 'caption=Бележки,height=150px');
+        $this->FLD('info', 'richtext', 'caption=Бележки,height=150px,class=contactData');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого');
         
         // Данни за съдебната регистрация
@@ -443,7 +443,7 @@ class crm_Companies extends core_Master
      * @param core_Et $tpl
      * @return core_et $tpl
      */
-    function renderWrapping_($tpl)
+    function renderWrapping_($tpl, $data = NULL)
     {
         $mvc = $this;
         

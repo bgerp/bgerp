@@ -329,10 +329,6 @@ class email_Incomings extends core_Master
                         $logMsg  .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>"  . $rec->parserWarning;
                         $htmlRes .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>" . $rec->parserWarning;
                     }
-                    
-                    if ($rec->toBox) {
-                        $cntEmailsToArr[$rec->toBox] += 1;
-                    }
                 }
                 
                 if ($accRec->deleteAfterRetrieval == 'yes') {
@@ -351,8 +347,6 @@ class email_Incomings extends core_Master
             $logMsg .= $msg;
             $htmlRes .= $msg;
         }
-        
-        self::addUserStatusCntEmails($cntEmailsToArr);
         
         return $logMsg;
     }
@@ -1478,34 +1472,6 @@ class email_Incomings extends core_Master
 
         while($rec = $query->fetch()) {
             $this->setEmlAndHtmlFileNames($rec); 
-        }
-    }
-    
-    
-    /**
-     * Добавя статус съобщение на всеки имейл, на който има потребител, който отговаря
-     * @param array $emailArr - Масив с броя на срещанията на всеки имейл
-     */
-    static function addUserStatusCntEmails($emailArr) 
-    {
-        //Ако не е масив
-        if (!count($emailArr)) return ;
-        
-        foreach ($emailArr as $email => $cntEmail) {
-            
-            //Намираме id' то на потребителя, който е inCharge на съответния имейл
-            $inCharge = email_Inboxes::getEmailInCharge($email);
-            
-            //Ако не е системата
-            if ($inCharge > 0) {
-                
-                //Съобщение с броя на писмата в съответния имейл
-                $msg = ($cntEmail>1) ? ("Имате {$cntEmail} нови имейла") : ("Имате нов имейл");
-                $msg .= " в {$email}";
-                
-                //Добавяме статус съобщение за съответния потребител
-                core_Statuses::add($msg, 'notice', $inCharge);
-            }
         }
     }
 }

@@ -1080,6 +1080,12 @@ div.attachments A {
 }
 
 #notificationsCnt {
+    margin-left:30px;
+	float:right;
+	position: absolute;
+ }
+
+#notificationsCnt a    {
 	display:block;
 	color:white;
 	font-size:0.9em;
@@ -1199,4 +1205,17 @@ fieldset.sharing-history i {
 	width: 16px;
 	background-repeat: no-repeat;
 	background-position: left center;
+}
+
+
+input.contactData, textarea.contactData, select.contactData {
+	width:400px;
+}
+
+input.pCode {
+	width:80px;
+}
+
+select {
+    max-width:500px;
 }

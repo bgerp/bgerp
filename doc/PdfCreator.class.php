@@ -1,12 +1,5 @@
 <?php
-
-
-
-/**
- * Кофата по подразбиране за генерирани pdf' и
- */
-defIfNot('BGERP_PDF_BUCKET', 'pdf');
-
+ 
 /**
  * Генериране на PDF файлове от HTML файл чрез web kit
  *
@@ -21,6 +14,7 @@ defIfNot('BGERP_PDF_BUCKET', 'pdf');
 class doc_PdfCreator extends core_Manager
 {
     
+    const PDF_BUCKET = 'pdf';
     
     /**
      * Заглавие
@@ -82,7 +76,7 @@ class doc_PdfCreator extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име,mandatory');
-        $this->FLD('fileHnd', 'varchar(8)', 'caption=Файл,mandatory');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=' . self::PDF_BUCKET . ')', 'caption=Файл,mandatory');
         $this->FLD('md5', 'varchar(32)', 'caption=MD5');
         
         $this->setDbUnique('md5');
@@ -121,9 +115,9 @@ class doc_PdfCreator extends core_Manager
             
             // Генерираме PDF и му вземаме файловия манипулатор
             if($conf->BGERP_PDF_GENERATOR == 'dompdf') {
-                $fileHnd = dompdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+                $fileHnd = dompdf_Converter::convert($html, $name, self::PDF_BUCKET);
             } elseif($conf->BGERP_PDF_GENERATOR == 'webkittopdf') {
-                $fileHnd = webkittopdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+                $fileHnd = webkittopdf_Converter::convert($html, $name, self::PDF_BUCKET);
             } else {
                 expect(FALSE, $conf->BGERP_PDF_GENERATOR);
             }
@@ -181,7 +175,7 @@ class doc_PdfCreator extends core_Manager
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket(BGERP_PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
+        $res .= $Bucket->createBucket(self::PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
     }
     
     

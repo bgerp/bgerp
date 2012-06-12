@@ -24,13 +24,13 @@ class page_InternalHeader extends core_ET {
         if(Mode::is('screenMode', 'narrow')) {
             $this->header = new ET("
                 <div id='mainMenu'>
-                     <div class=\"menuRow\" class='clearfix21;'>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><a id='notificationsCnt' style='margin-right:5px;float:right;' href='" . toUrl(array('bgerp_Portal', 'Show')) . "'>[#NOTIFICATIONS_CNT#]</a><!--ET_END NOTIFICATIONS_CNT--></div>
+                     <div class='menuRow clearfix21'><div style='width:100%; border:solid 1px red;'>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div></div>
                 </div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
         } else {
             $this->header = new ET("
                 <div id='mainMenu'>
-                    <div style='float:right;'><!--ET_BEGIN NOTIFICATIONS_CNT--><a id='notificationsCnt' style='position:absolute;margin-left:22px;' href='" . toUrl(array('bgerp_Portal', 'Show')) . "'>[#NOTIFICATIONS_CNT#]</a><!--ET_END NOTIFICATIONS_CNT-->[#logo#]</div>
+                    <div style='float:right;'><!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT-->[#logo#]</div>
                     <div class=\"menuRow\">[#MENU_ROW1#]</div>
                     <div class=\"menuRow\" style=\"margin-top:3px; margin-bottom:3px;\">[#MENU_ROW2#]</div>
                     <div class=\"menuRow\">[#MENU_ROW3#]</div>                   

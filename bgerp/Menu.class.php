@@ -246,11 +246,24 @@ class bgerp_Menu extends core_Manager
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         
+        $url  = toUrl(array('bgerp_Portal', 'Show'));
+        $attr = array();
+
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-        if($openNotifications > 0) {
-            $tpl->replace($openNotifications, 'NOTIFICATIONS_CNT');
-            $tpl->prepend("({$openNotifications}) ", 'PAGE_TITLE');
-        }
+        if(Mode::is('screenMode', 'narrow')) {
+            if($openNotifications > 0) {
+                $nLink = ht::createLink($openNotifications, $url, NULL, $attr);
+            } else {
+                $attr['style'] = 'background-color: #bbb !important; border: solid 1px #999 !important; ';
+                $nLink = ht::createLink('0', $url, NULL, $attr);
+            }
+            $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
+        } else {
+            if($openNotifications > 0) {
+                $nLink = ht::createLink($openNotifications, $url, NULL, $attr);
+                $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
+            }
+        }  
     }
     
     
@@ -414,13 +427,13 @@ class bgerp_Menu extends core_Manager
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
                 <div id='mainMenu'>
-                     <div class=\"menuRow\" class='clearfix21;'>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><a id='notificationsCnt' style='margin-right:5px;float:right;' href='" . toUrl(array('bgerp_Portal', 'Show')) . "'>[#NOTIFICATIONS_CNT#]</a><!--ET_END NOTIFICATIONS_CNT--></div>
+                     <div class='menuRow clearfix21'>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
                 </div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
         } else {
             $tpl = new ET("
                 <div id='mainMenu'>
-                    <div style='float:right;'><!--ET_BEGIN NOTIFICATIONS_CNT--><a id='notificationsCnt' style='position:absolute;margin-left:28px;' href='" . toUrl(array('bgerp_Portal', 'Show')) . "'>[#NOTIFICATIONS_CNT#]</a><!--ET_END NOTIFICATIONS_CNT-->[#logo#]</div>
+                    <div style='float:right;'><!--ET_BEGIN NOTIFICATIONS_CNT--><span id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span><!--ET_END NOTIFICATIONS_CNT-->[#logo#]</div>
                     <div class=\"menuRow\">[#MENU_ROW1#]</div>
                     <div class=\"menuRow\" style=\"margin-top:3px; margin-bottom:3px;\">[#MENU_ROW2#]</div>
                     <div class=\"menuRow\">[#MENU_ROW3#]</div>                   

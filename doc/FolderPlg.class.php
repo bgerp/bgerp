@@ -153,7 +153,7 @@ class doc_FolderPlg extends core_Plugin
                 $rec->folderId = doc_Folders::createNew($mvc);
                 $mvc->save($rec);
             }
-            
+
             $folderId = $rec->folderId;
         }
     }
@@ -192,9 +192,13 @@ class doc_FolderPlg extends core_Plugin
         if($cu != $rec->inCharge && $cu > 0) {
             $rec->shared = type_Keylist::addKey($rec->shared, $cu);
         }
+
+        // Този синтаксис заобикаля предупрежденията на PHP5.4 за Deprecated: Call-time pass-by-reference
+        // но е доста грозен
+        // call_user_func_array(array($mvc, 'forceCoverAndFolder'), array(&$rec));
         
-        $mvc->forceCoverAndFolder($rec);
-        
+        $rec->folderId = $mvc->forceCoverAndFolder($rec);
+ 
         $res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId));
         
         return FALSE;
@@ -247,8 +251,16 @@ class doc_FolderPlg extends core_Plugin
         }
         
         if($rec->folderId) {
+            
+            //Ако има папка - обновяме ковъра
             doc_Folders::updateByCover($rec->folderId);
-        }
+        } else {
+            
+            //Ako няма папка и autoCreateFolder е TRUE, тогава създава папка
+            if ($mvc->autoCreateFolder) {
+                $mvc->forceCoverAndFolder($rec);
+            }
+        }   
     }
     
     
