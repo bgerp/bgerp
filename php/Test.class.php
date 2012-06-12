@@ -40,11 +40,21 @@ class php_Test extends core_Manager
     
     
     /**
+     * Масив с всички използвани функции
+     * @var array
+     */
+    var $arrF;
+    
+    var $functions;
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('fileName', 'varchar', 'caption=Файл');
+        $this->FLD('functionName', 'varchar', 'caption=Име->Функция');
+        $this->FLD('modulName', 'varchar', 'caption=Име->Модул');
+        //$this->FLD('modul', 'varchar', 'caption=Модул');
     }
     
     
@@ -83,7 +93,12 @@ class php_Test extends core_Manager
             
             if(!$form->gotErrors()) {
                 
-                $files = (object) $this->readAllFiles($src);
+                $files = (object) php_Formater::readAllFiles($src);
+                
+                unset($files['files'][29]);     //изключване на store/_PalletDetails
+                unset($files['files'][89]);     //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                unset($files['files'][86]);     //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                unset($files['files'][103]);    //изключване на tests/config/core/Exception/Expect.class.php
                 
                 set_time_limit(120);
                 
@@ -195,65 +210,132 @@ class php_Test extends core_Manager
     
     
     /**
+     * 
+     * Функция за извеждане на всички активни php модули и функциите, които използваме
+     */
+    function act_phpInfo()
+    {
+    
+     // Намираме всички активни модули	
+     $modules = get_loaded_extensions();
+     
+     foreach ($modules as $mod){
+     	
+     	// За всеки модул търсим, кои функции спадат към него
+     	$functions = get_extension_funcs($mod);
+    
+     	if (is_array($functions)) {
+	     	foreach ($functions as $fun){
+	     		
+	     		// Масив с ключ името на функцията и стойност модула му
+	     		$info[$fun] = $mod;
+	     	}	
+     	}
+      }
+
+    // Зареждаме клас  php_Formater
+    $formater = cls::load(php_Formater);
+          
+    set_time_limit(540);
+    
+    // Прочитаме всички файлове
+    $erp = (object) php_Formater::readAllFiles('/var/www/ef_root/');
+ 
+   
+
+     	foreach($erp->files as $file){
+     		$file = '/var/www/ef_root/'. $file;
+     		
+     		// Ако файловете имат път различен от посочения ги пропускаме
+     		if(!strpos($file, 'ef_root/ef/') && 
+     		   !strpos($file, 'ef_root/bgerp/') && 
+     		   !strpos($file, 'ef_root/vendors/')) continue;
+     		
+     		// Разглеждаме само тези файлове, които имат определен суфикс 
+     		if(strpos($file, '.class.php') || strpos($file, 'boot.inc.php')) {
+     			$src = $file;
+     			
+     			// Вземаме съдържанието на файла
+       			$str = file_get_contents($src);
+     			
+     			$this->tokenArr = array();
+     			
+     			// Парсираме файла
+     			php_BeautifierM::parse($str);
+     			
+     			// Правим масив с токените
+     			$ta = $this->tokenArr;
+     			
+				if (is_array($ta)) {
+					foreach($ta as $i => $c) {
+						
+						// Махаме всички интервали
+						if($c->type != T_WHITESPACE) {
+							$e[] = $i;
+						}
+					}
+				}
+			        
+				if (is_array($e)) {
+				     foreach($e as $id => $i) {
+
+				     	// Върсим всички функции, които използваме
+				      	 if (($ta[$e[$id]]->type == T_STRING)   &&
+				             ($ta[$e[$id+1]]->type == '(')) {
+
+				            // Масив с ключ името на функцията и стойност колко пъти се среща
+				            $this->arrF[$ta[$e[$id]]->str]++;
+				         }
+				     }
+				}
+
+				   // $r++;
+		     		//if($r > 500)  bp($this->arrF, $info);
+     		}	
+
+     	}
+     	
+     	// Сравняваме ключовете на двата масива, ако има съответствие взимаме името на функцията 
+     	// и записваме като стойност модула й
+     	foreach ($this->arrF as $f=>$v){
+     		foreach ($info as $func=>$mode){
+     			if(trim($f) === trim($func)){
+     				$ourFun[$f] = $mode;
+     				$mods[] = $mode; 
+     				asort($mods);
+     				/*$i=0;
+     				if($mods[$i] === $mods[$i+1]){
+     					unset($mods[$i]);
+     					$i++;
+     				}*/
+     				
+     				// Записваме в БД
+     				$rec = new stdClass();
+     				$rec->functionName = $f;
+                    $rec->modulName = $mode;
+                    //$rec->modul = $m;
+                    
+     			}
+     		}
+     	}
+     	 //bp($mods);
+     	
+     	 php_Test::save($rec, NULL, 'IGNORE');
+     	 
+     	 return new Redirect(array($this));
+    }
+
+    
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         
         $data->toolbar->addBtn('Тест', array($mvc, 'Tester'));
+        $data->toolbar->addBtn('Инфо модули', array($mvc, 'phpInfo'));
     }
     
-    
-    /**
-     * Връща масив със всички поддиректории и файлове от посочената начална директория
-     *
-     * array(
-     * 'files' => [],
-     * 'dirs'  => [],
-     * )
-     * @param string $root
-     * @result array
-     */
-    function readAllFiles($root = '.')
-    {
-        $files = array('files'=>array(), 'dirs'=>array());
-        $directories = array();
-        $last_letter = $root[strlen($root)-1];
-        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;
-        
-        $directories[] = $root;
-        
-        while (sizeof($directories)) {
-            
-            $dir = array_pop($directories);
-            
-            if ($handle = opendir($dir)) {
-                while (FALSE !== ($file = readdir($handle))) {
-                    if ($file == '.' || $file == '..' || $file == '.git') {
-                        continue;
-                    }
-                    
-                    $file = $dir . $file;
-                    
-                    if (is_dir($file)) {
-                        $directory_path = $file . DIRECTORY_SEPARATOR;
-                        array_push($directories, $directory_path);
-                        $files['dirs'][] = $directory_path;
-                    } elseif (is_file($file) && strpos($file, '.class.php')) {
-                        
-                        $files['files'][] = str_replace($root, "", $file);
-                        
-                        unset($files['files'][29]);     //изключване на store/_PalletDetails
-                        unset($files['files'][89]);     //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][86]);     //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][103]);    //изключване на tests/config/core/Exception/Expect.class.php
-                    }
-                }
-                closedir($handle);
-            }
-        }
-        
-        return $files;
-    }
 }
 
