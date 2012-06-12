@@ -151,7 +151,16 @@ defIfNot('EF_SBF', 'sbf');
 
 
 // Параметрите от виртуалното URL за зареждат в $_GET
-core_App::processUrl();
+  try
+        {
+			core_App::processUrl();
+        }
+        catch (core_Exception_Expect $e)
+        { 
+            echo $e->getAsHtml();
+            
+            die;
+        }
 
 // Вземаме името на приложението от параметрите на URL, ако не е дефинирано
 if (!defined('EF_APP_NAME')) {

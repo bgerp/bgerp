@@ -20,10 +20,13 @@ class core_exception_Expect extends Exception
 
     public function getAsHtml()
     {
-        if (isDebug() && isset($this->debug)) {
-            core_App::_bp(core_Html::arrayToHtml(array($this->errorTitle, $this->getMessage(), $this->debug)), $this->getTrace());
+        if (isDebug() && isset($this->debug)) { 
+        	$msg = $this->getMessage();
+        	$p1 = core_Html::arrayToHtml(array($this->errorTitle, $msg, $this->debug));
+        
+            core_App::_bp($p1, $this->getTrace());
         }
-
+ 
         $text = core_App::isDebug() ? $this->getMessage() : $this->errorTitle;
 
         core_Message::redirect($text, 'page_Error');

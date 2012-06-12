@@ -369,7 +369,7 @@ class core_App
      */
     public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
     {
-        expect(ob_get_length() == 0, ob_get_length());
+        expect(ob_get_length() <= 3, ob_get_length());
 
         $url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
 
