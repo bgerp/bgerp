@@ -740,8 +740,8 @@ class doc_DocumentPlg extends core_Plugin
         $res  = $mvc->renderDocument($id, $data);
         
         // Връщаме старата стойност на 'printing' и 'text'
-        Mode::pop('printing');
         Mode::pop('text');
+        Mode::pop('printing');
     }
     
     
