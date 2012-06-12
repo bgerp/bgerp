@@ -74,6 +74,7 @@ class core_Message extends core_BaseClass
     static function redirect($text, $tpl = 'error', $cancel = '', $next = '')
     {
         // Създава съобщението
+        $msg = new stdClass();
         $msg->text = tr($text);
         $msg->tpl = $tpl;
         
