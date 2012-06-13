@@ -49,7 +49,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data)
+    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
     {   
         if($data->action != 'list') return;
 
