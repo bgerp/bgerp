@@ -181,12 +181,11 @@ class email_Incomings extends core_Master
     /**
      * Взема записите от пощенската кутия и ги вкарва в модела
      *
-     * @param number $oneMailId - Потребителя, за когото ще се проверяват записите.
-     * Ако е празен, тогава ще се проверяват за всички.
-     * @param boolean $deleteFetched TRUE - изтрива писмото от IMAP при успешно изтегляне
-     * @return boolean
+     * @param string $htmlRes
+     *
+     * @return string $logMsg - Съобщение с броя на новите имейли
      */
-    function getMailInfo($oneMailId = FALSE, $deleteFetched = FALSE, &$htmlRes = NULL)
+    function getMailInfo(&$htmlRes = NULL)
     {
     	$conf = core_Packs::getConfig('email');
     	
@@ -583,18 +582,7 @@ class email_Incomings extends core_Master
     {
         requireRole('admin');
         
-        $mailInfo = $this->getMailInfo(FLASE, FALSE, $htmlRes);
-        
-        return $htmlRes;
-    }
-    
-    
-    /**
-     * Сваля и изтрива от IMAP свалените имейли.
-     */
-    function act_DownloadAndDelete()
-    {
-        $mailInfo = $this->getMailInfo(NULL, TRUE /* изтриване след изтегляне */, $htmlRes);
+        $mailInfo = $this->getMailInfo($htmlRes);
         
         return $htmlRes;
     }
