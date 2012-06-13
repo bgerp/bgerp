@@ -194,10 +194,10 @@ class email_Incomings extends core_Master
         
         $accQuery = email_Inboxes::getQuery();
         
-        // Нулираме броячите за различните получени писма
-        $skipedEmails = $skipedServiceEmails = $errorEmails = $newEmails = 0;
-        
         while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
+            
+            // Нулираме броячите за различните получени писма
+            $skipedEmails = $skipedServiceEmails = $errorEmails = $newEmails = 0;
             
             /* @var $imapConn email_Imap */
             $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
