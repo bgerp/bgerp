@@ -715,7 +715,7 @@ class cams_Records extends core_Master
     {
     	$conf = core_Packs::getConfig('cams');
     	
-        return $cams->CAMS_CLIP_DURATION * $this->getClipsPerPage();
+        return $conf->CAMS_CLIP_DURATION * $this->getClipsPerPage();
     }
     
     
