@@ -723,7 +723,16 @@ class crm_Companies extends core_Master
         $Countries = cls::get('drdata_Countries');
         $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
         
-        if(static::save($rec, NULL, 'REPLACE')) {
+        //Ако има такъв запис
+        if (static::fetch($conf->BGERP_OWN_COMPANY_ID)) {
+            
+            //Упдейтваме стойностите
+            $mode = 'UPDATE';
+        } else {
+            $mode = 'REPLACE';
+        }
+        
+        if(static::save($rec, NULL, $mode)) {
             
             $html = "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
             $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
