@@ -41,6 +41,12 @@ class doc_ThreadUsers extends core_Manager
     
     
     /**
+     * Кой има право да добавя ?
+     */
+    var $canAdd = 'no_one';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
