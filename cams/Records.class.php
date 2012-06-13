@@ -187,7 +187,7 @@ class cams_Records extends core_Master
      */
     function act_Single()
     {
-    	$conf = core_Packs::grtConfig('cams');
+    	$conf = core_Packs::getConfig('cams');
     	
         $id = Request::get('id', 'int');
         
