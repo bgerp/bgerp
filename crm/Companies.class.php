@@ -727,7 +727,7 @@ class crm_Companies extends core_Master
             
             $html = "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
             $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
-            }
+        }
         
         return $html;
     }
