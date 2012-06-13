@@ -715,22 +715,19 @@ class crm_Companies extends core_Master
     {
         $conf = core_Packs::getConfig('crm');
         
-        if (!static::fetch($conf->BGERP_OWN_COMPANY_ID)){
+        $rec = new stdClass();
+        $rec->id = $conf->BGERP_OWN_COMPANY_ID;
+        $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
+        
+        // Страната не е стринг, а id
+        $Countries = cls::get('drdata_Countries');
+        $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
+        
+        if(static::save($rec, NULL, 'REPLACE')) {
             
-            $rec = new stdClass();
-            $rec->id = $conf->BGERP_OWN_COMPANY_ID;
-            $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
-            
-            // Страната не е стринг, а id
-            $Countries = cls::get('drdata_Countries');
-            $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
-            
-            if(static::save($rec, NULL, 'REPLACE')) {
-                
-                $html = "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
-                $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
+            $html = "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
+            $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
             }
-        }
         
         return $html;
     }
