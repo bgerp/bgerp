@@ -143,7 +143,7 @@ class email_Router extends core_Manager
     {
         $key = static::getRoutingKey($fromEmail, $toEmail, $type);
         
-        $rec = static::fetch("#type = '{$type}' AND #key = '{$key}'");
+        $rec = static::fetch(array("#type = '[#1#]' AND #key = '[#2#]'", $type, $key));
         
         $folderId = NULL;
         
