@@ -1,27 +1,5 @@
 <?php
 
-/**
- * Константи за изпращане на СМС-и през Pro-SMS
- */
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('PROSMS_URL', '');
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('PROSMS_USER', '');
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('PROSMS_PASS', '');
-
 
 /**
  * SMS-и през Pro-SMS
@@ -44,6 +22,8 @@ class prosms_Plugin extends core_Plugin
      */
     function on_BeforeSend($mvc, &$res, $number, $message, $sender)
     {
+    	$conf = core_Packs::getConfig('prosms');
+    	
         // Записваме в модела данните за СМС-а
         $rec = new stdClass();
         $rec->gateway = "PRO-SMS";
@@ -57,14 +37,14 @@ class prosms_Plugin extends core_Plugin
         $mvc->save($rec);
         
         // Ако константата за УРЛ-то не е зададена връщаме TRUE за да се пробва да бъде изпратен от друг плъгин
-        if (PROSMS_URL == '') return TRUE;
+        if ($conf->PROSMS_URL == '') return TRUE;
         
-        $tpl = new ET(PROSMS_URL);
+        $tpl = new ET($conf->PROSMS_URL);
         
         // По този начин образуваме уникалният номер на СМС-а, който изпращаме за идентификация
         $uid = "{$rec->id}" . "{$rec->uid}";
         
-        $tpl->placeArray(array('USER' => urlencode(PROSMS_USER), 'PASS' => urlencode(PROSMS_PASS), 'FROM' => urlencode($rec->sender), 'ID' => $uid, 'PHONE' => urlencode($rec->number), 'MESSAGE' => urlencode($rec->message)));
+        $tpl->placeArray(array('USER' => urlencode($conf->PROSMS_USER), 'PASS' => urlencode($conf->PROSMS_PASS), 'FROM' => urlencode($rec->sender), 'ID' => $uid, 'PHONE' => urlencode($rec->number), 'MESSAGE' => urlencode($rec->message)));
         
         $url = $tpl->getContent();
         

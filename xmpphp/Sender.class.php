@@ -41,7 +41,7 @@ class xmpphp_Sender extends core_Manager
     	
         include (XMPPHP_VERSION . "/XMPPHP/XMPP.php");
         
-        $conn = new XMPPHP_XMPP(XMPPHP_SERVER, XMPPHP_PORT, XMPPHP_USER, XMPPHP_PASSWORD, 'xmpphp', XMPPHP_DOMAIN, $printlog = False, $loglevel = LEVEL_ERROR);
+        $conn = new XMPPHP_XMPP($conf->XMPPHP_SERVER, $conf->XMPPHP_PORT, $conf->XMPPHP_USER, $conf->XMPPHP_PASSWORD, 'xmpphp', $conf->XMPPHP_DOMAIN, $printlog = False, $loglevel = LEVEL_ERROR);
         
         try {
             $conn->connect();

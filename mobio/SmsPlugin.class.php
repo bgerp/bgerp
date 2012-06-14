@@ -2,10 +2,6 @@
 
 
 
-/**
- * Урл за изпращане на СМС-и през Мобио
- */
-defIfNot('MOBIO_URL', '');
 
 
 /**
@@ -29,6 +25,8 @@ class mobio_SmsPlugin extends core_Plugin
      */
     function on_BeforeSend($mvc, &$res, $number, $message, $sender)
     {
+    	$conf = core_Packs::getConfig('mobio');
+    	
         // Записваме в модела данните за СМС-а
         $rec = new stdClass();
         $rec->gateway = "Mobio";
@@ -39,9 +37,9 @@ class mobio_SmsPlugin extends core_Plugin
         $rec->time = dt::verbal2mysql();
         
         // Ако константата за УРЛ-то не е зададена връщаме TRUE за да се пробва да бъде изпратен от друг плъгин
-        if (MOBIO_URL == '') return TRUE;
+        if ($conf->MOBIO_URL == '') return TRUE;
         
-        $tpl = new ET(MOBIO_URL);
+        $tpl = new ET($conf->MOBIO_URL);
         
         $tpl->placeArray(array('FROM' => urlencode($sender), 'PHONE' => urlencode($number), 'MESSAGE' => urlencode($message)));
         

@@ -7,10 +7,6 @@
 defIfNot('DOMPDF_TEMP_DIR', EF_TEMP_PATH . "/dompdf");
 
 
-/**
- * Разделителна способност по подразбиране
- */
-defIfNot("DOMPDF_DPI", "120");
 
         
 /**
@@ -50,10 +46,7 @@ class dompdf_Converter extends core_Manager
         $html = $wrapperTpl->getContent();
         $html = "\xEF\xBB\xBF" . $html;
         
-        /**
-         * @todo Чака за документация...
-         */
-       // defIfNot("DOMPDF_DPI", "120");
+     
         
         /**
          * @todo Чака за документация...
