@@ -298,12 +298,14 @@ class crm_Persons extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         $form = $data->form;
 
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" . BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+            $form->setDefault('country', $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
         }
 
         $mvrQuery = drdata_Mvr::getQuery();

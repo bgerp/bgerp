@@ -827,13 +827,15 @@ class fax_Outgoings extends core_Master
      */
     function getFooter()
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         //Вземаме езика
         $lg = core_Lg::getCurrent();
         
         //Зареждаме класа, за да имаме достъп до променливите
         cls::load('crm_Companies');
         
-        $companyId = BGERP_OWN_COMPANY_ID;
+        $companyId = $conf->BGERP_OWN_COMPANY_ID;
         
         //Вземаме данните за нашата фирма
         $myCompany = crm_Companies::fetch($companyId);

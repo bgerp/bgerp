@@ -14,10 +14,7 @@ defIfNot('BGERP_OWN_COMPANY_ID', '1');
 defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
 
 
-/**
- * Държавата на собствената компания (тази за която ще работи bgERP)
- */
-defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
+
 
 
 /**
@@ -304,13 +301,15 @@ class crm_Companies extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         $form = $data->form;
         
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
-                    BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+                    $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
         }
         
         for($i = 1989; $i <= date('Y'); $i++) $years[$i] = $i;

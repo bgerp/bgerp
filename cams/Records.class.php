@@ -671,9 +671,11 @@ class cams_Records extends core_Master
      */
     function getNextRec($id)
     {
+    	$conf = core_Packs::getConfig('cams');
+    	
         $rec = $this->fetch($id);
         $startStamp = dt::mysql2timestamp($rec->startTime);
-        $nextStamp = $startStamp + CAMS_CLIP_DURATION;
+        $nextStamp = $startStamp + $conf->CAMS_CLIP_DURATION;
         $nextTime = dt::timestamp2mysql($nextStamp);
         
         if($nextRec = $this->fetch("#startTime = '{$nextTime}' AND #cameraId = {$rec->cameraId}")) {
