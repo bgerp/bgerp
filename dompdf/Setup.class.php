@@ -1,7 +1,27 @@
 <?php
 
+/**
+ * Разделителна способност по подразбиране
+ */
+defIfNot("DOMPDF_DPI", "120");
+
+/**
+ * @todo Чака за документация...
+ */
+defIfNot('DOMPDF_VER', '3.0');
 
 
+/**
+ * Дефинира име на папка в която ще се съхраняват временните данни данните
+ */
+defIfNot('DOMPDF_TEMP_DIR', EF_TEMP_PATH . "/dompdf");
+
+/**
+ * Възможност да се използват ресурси от Интернет
+ */
+ defIfNot("DOMPDF_ENABLE_REMOTE", TRUE);
+
+ 
 /**
  * class dompdf_Setup
  *

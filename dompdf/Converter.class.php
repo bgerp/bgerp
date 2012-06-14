@@ -1,19 +1,6 @@
 <?php
 
 
-/**
- * Дефинира име на папка в която ще се съхраняват временните данни данните
- */
-defIfNot('DOMPDF_TEMP_DIR', EF_TEMP_PATH . "/dompdf");
-
-
-
-        
-/**
- * Възможност да се използват ресурси от Интернет
- */
- defIfNot("DOMPDF_ENABLE_REMOTE", TRUE);
-
 
 /**
  * Клас 'dompdf_Converter' - Конвертиране към PDF на HTML код, чрез DOMPDF
@@ -46,19 +33,13 @@ class dompdf_Converter extends core_Manager
         $html = $wrapperTpl->getContent();
         $html = "\xEF\xBB\xBF" . $html;
         
-     
-        
-        /**
-         * @todo Чака за документация...
-         */
-        defIfNot("DOMPDF_ENABLE_REMOTE", TRUE);
         
         require_once(__DIR__ . '/' . $conf->DOMPDF_VER . '/' . "dompdf_config.inc.php");
         
         do {
             // Път до временния HTML файл
             $pdfFile = $fileName . '_' . $i . '_.pdf';
-            $pdfPath = DOMPDF_TEMP_DIR . '/' . $pdfFile;
+            $pdfPath = $conf->DOMPDF_TEMP_DIR . '/' . $pdfFile;
             $i++;
         } while (file_exists($pdfPath));
         
@@ -84,8 +65,10 @@ class dompdf_Converter extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
+    	$conf = core_Packs::getConfig('dompdf');
+    	
         //Създаваме рекурсивно папката
-        $d = DOMPDF_TEMP_DIR;
+        $d = $conf->DOMPDF_TEMP_DIR;
         $caption = 'За временни файлове на DOMPDF';
         
         if(!is_dir($d)) {
