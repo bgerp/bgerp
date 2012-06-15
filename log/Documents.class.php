@@ -75,7 +75,7 @@ class log_Documents extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $listFields = 'createdOn=Кога, createdBy=Кой/Какво, containerId=Кое, actionText=Резултат';
+    var $listFields = 'userNdate=Кой/кога, action=Какво, containerId=Кое, data=Обстоятелства';
     
     /**
      * Масов-кеш за историите на контейнерите по нишки
@@ -574,17 +574,6 @@ class log_Documents extends core_Manager
             core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, '2 дена');
         }
         
-        // Прибавяме историята на изпращанията / получаванията / връщанията
-        $sentHistory = email_Sent::loadHistory($threadId, $history);
-        
-        foreach ($sentHistory as $containerId => $h) {
-            if (isset($history[$containerId]->summary)) {
-                $history[$containerId]->summary = array_merge($history[$containerId]->summary, $h->summary);
-            } else {
-                $history[$containerId] = $h;
-            }
-        }
-        
         return $history;
     }
     
@@ -643,26 +632,6 @@ class log_Documents extends core_Manager
         
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
-            switch ($rec->action) {
-                case 'sent' :
-                    $rec->data = unserialize($rec->data);
-                    
-                    if (isset($rec->returnedOn)) {
-                        $data[$rec->containerId]->summary['returned'] += 1;
-                    }
-                    
-                    if (isset($rec->receivedOn)) {
-                        $data[$rec->containerId]->summary['received'] += 1;
-                    }
-                    break;
-                case 'viewed' :
-                    break;
-                case 'printed' :
-                    break;
-                default :
-                //expect(FALSE, "Неочаквана стойност: {$rec->action}");
-            }
-            
             $data[$rec->containerId]->summary[$rec->action] += 1;
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
@@ -742,82 +711,38 @@ EOT;
     {
         static $wordings = NULL;
         
-        $tplString = <<<EOT
-              <ul class="history summary">
-                <!--ET_BEGIN sent-->
-                    <li class="sent"><b>[#sent#]</b> <span>[#sentVerbal#]</span></li>
-                <!--ET_END sent-->
-                <!--ET_BEGIN received-->
-                    <li class="received"><b>[#received#]</b> <span>[#receivedVerbal#]</span></li>
-                <!--ET_END received-->
-                <!--ET_BEGIN returned-->
-                    <li class="returned"><b>[#returned#]</b> <span>[#returnedVerbal#]</span></li>
-                <!--ET_END returned-->
-                <!--ET_BEGIN printed-->
-                    <li class="printed"><b>[#printed#]</b> <span>[#printedVerbal#]</span></li>
-                <!--ET_END printed-->
-                <!--ET_BEGIN shared-->
-                    <li class="shared"><b>[#shared#]</b> <span>[#sharedVerbal#]</span></li>
-                <!--ET_END shared-->
-                <!--ET_BEGIN detailed-->
-                    <li class="detailed"><b>&nbsp;&nbsp;</b> [#detailed#]</li>
-                <!--ET_END detailed-->
-            </ul>
-EOT;
-        
-        $tpl = new core_ET($tplString);
+        if (empty($data->summary)) {
+            return '';
+        }
         
         if (!isset($wordings)) {
             $wordings = array(
-                'sent'     => array('изпращане', 'изпращания'),
-                'received' => array('получаване', 'получавания'),
-                'returned' => array('връщане', 'връщания'),
-                'printed'  => array('отпечатване', 'отпечатвания'),
-                'shared'   => array('споделяне', 'споделяния'),
+                static::ACTION_SEND    => array('изпращане', 'изпращания'),
+                static::ACTION_RECEIVE => array('получаване', 'получавания'),
+                static::ACTION_RETURN  => array('връщане', 'връщания'),
+                static::ACTION_PRINT   => array('отпечатване', 'отпечатвания'),
+                static::ACTION_OPEN   => array('показване', 'показвания'),
             );
         }
         
-        if (isset($data->summary['sent'])) {
-            $data->summary["sentVerbal"] = ht::createLink(
-                tr($wordings['sent'][intval($data->summary['sent'] > 1)]),
-                array(
-                    'email_Sent', 'list', 'containerId' => $data->containerId
-                )
+        $html = '';
+        
+        foreach ($data->summary as $action=>$count) {
+            $actionVerbal = $action;
+            if (isset($wordings[$action])) {
+                $actionVerbal = $wordings[$action][intval($count > 1)];
+            }
+            
+            $link = ht::createLink(
+                "<b>{$count}</b> <span>{$actionVerbal}</span>", 
+                array(get_called_class(), 'list', 'containerId'=>$data->containerId)
             );
+            $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
         
-        if (isset($data->summary['received'])) {
-            $data->summary["receivedVerbal"] = ht::createLink(
-                tr($wordings['received'][intval($data->summary['received'] > 1)]),
-                array(
-                    'email_Sent', 'list', 'containerId' => $data->containerId
-                )
-            );
-        }
+        $html = "<ul class=\"history summary\">{$html}</ul>";
         
-        if (isset($data->summary['returned'])) {
-            $data->summary["returnedVerbal"] = ht::createLink(
-                tr($wordings['returned'][intval($data->summary['returned'] > 1)]),
-                array(
-                    'email_Sent', 'list', 'containerId' => $data->containerId
-                )
-            );
-        }
-        
-        if (isset($data->summary['printed'])) {
-            $data->summary["printedVerbal"] = ht::createLink(
-                tr($wordings['printed'][intval($data->summary['printed'] > 1)]),
-                array(
-                    'log_Documents', 'list', 'containerId' => $data->containerId
-                )
-            );
-        }
-        
-        $tpl->placeObject($data->summary);
-        
-        $tpl->removeBlocks();
-        
-        return $tpl;
+        return $html;
     }
     
     
@@ -958,62 +883,15 @@ EOT;
         $row->createdBy = static::getVerbal($rec, 'createdBy');
         $row->action    = $rec->action;
         
-        switch ($rec->action) {
-            case 'sent' :
-                $row->createdBy .= ' '
-                . '<span class="verbal">'
-                . tr('изпрати до')
-                . '</span>'
-                . ' '
-                . '<span class="email">'
-                . $rec->data['toEml']
-                . '</span>';
-                
-                if ($rec->receivedOn) {
-                    $row->actionText .=
-                    '<b class="received">'
-                    . '<span class="verbal">'
-                    . tr('получено')
-                    . '</span>'
-                    . ': '
-                    . '<span class="date">'
-                    . static::getVerbal($rec, 'receivedOn')
-                    . '</span>'
-                    . '</b>';
-                }
-                
-                if ($rec->returnedOn) {
-                    $row->actionText .=
-                    '<b class="returned">'
-                    . '<span class="verbal">'
-                    . tr('върнато')
-                    . '</span>'
-                    . ': '
-                    . '<span class="date">'
-                    . static::getVerbal($rec, 'returnedOn')
-                    . '</span>'
-                    . '</b>';
-                }
-                break;
-            case 'viewed' :
-                $row->createdBy .= ' '
-                . '<span class="verbal">'
-                . tr('видя')
-                . '</span>';
-                break;
-            case 'printed' :
-                $row->createdBy .= ' '
-                . '<span class="print action">'
-                . '<span class="verbal">'
-                . tr('отпечата')
-                . '</span>'
-                . '</span>';
-                break;
-            default :
-            expect(FALSE, "Неочаквана стойност: {$rec->action}");
-        }
+        $row->createdBy = '<div>' . $row->createdBy . '</div>';
         
-        $row->createdBy = '<div style="text-align: right;">' . $row->createdBy . '</div>';
+        $row->userNdate = $row->createdBy . $row->createdOn;
+        
+        ob_start();
+        print_r($rec->data);
+        $dataStr = ob_get_clean();
+        
+        $row->data = "<pre>{$dataStr}</pre>";
     }
     
     
@@ -1048,9 +926,12 @@ EOT;
      */
     static function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
-        if ($data->doc) {
-            $row = $data->doc->getDocumentRow();
-            $tpl = '<div class="listTitle">История на документ "<b>' . $row->title . '</b>"</div>';
+        /* @var $doc doc_DocumentIntf */
+        $doc = $data->doc;
+        
+        if ($doc) {
+            $row = $doc->getDocumentRow();
+            $tpl = '<div class="listTitle">' . $doc->getLink() . '</div>';
         }
     }
     
