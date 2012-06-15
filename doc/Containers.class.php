@@ -234,7 +234,7 @@ class doc_Containers extends core_Manager
             $row->created);
             
         // визуализиране на обобщена информация от лога
-        $row->created->append(doc_Log::getSummary($rec->id, $rec->threadId));
+        $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId));
                 
     }
     

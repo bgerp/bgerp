@@ -221,10 +221,10 @@ class email_Outgoings extends core_Master
             $success  = $failure = array(); // списъци с изпратени и проблеми получатели
             
             foreach ($emailsTo as $emailTo) {
-                doc_Log::pushAction(
+                log_Documents::pushAction(
                     array(
                         'containerId' => $data->rec->containerId,
-                        'action'      => doc_Log::ACTION_SEND, 
+                        'action'      => log_Documents::ACTION_SEND, 
                         'data'        => (object)array(
                             'from' => $data->rec->boxFrom,
                             'to'   => $emailTo,
@@ -278,7 +278,7 @@ class email_Outgoings extends core_Master
                     $failure[] = $emailTo;
                 }
                 
-                doc_Log::popAction();
+                log_Documents::popAction();
             }
                 
             $msg = empty($failure) ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото до ' . implode(', ', $failure);

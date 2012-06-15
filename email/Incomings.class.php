@@ -355,7 +355,7 @@ class email_Incomings extends core_Master
      * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
      *
      * Вдига флага $rec->isServiceMail в случай, че $rec съдържа служебно писмо.Обработката на
-     * служебни писма включва запис в doc_Log.
+     * служебни писма включва запис в log_Documents.
      *
      * @param stdClass $rec запис на модел email_Incomings
      * @return boolean TRUE ако писмото е служебно
@@ -366,10 +366,10 @@ class email_Incomings extends core_Master
         
         if ($mid = static::isReturnedMail($toEml)) {
             // Върнато писмо
-            $isServiceMail = doc_Log::returned($mid, $date);
+            $isServiceMail = log_Documents::returned($mid, $date);
         } elseif ($mid = static::isReceipt($toEml)) {
             // Разписка
-            $isServiceMail = doc_Log::received($mid, $date, $fromIp);
+            $isServiceMail = log_Documents::received($mid, $date, $fromIp);
         } else {
             // Не служебна поща
         }
