@@ -274,137 +274,6 @@ class log_Documents extends core_Manager
         
         return $rec;
     }
-    
-    
-    /**
-     * Отразява факта, че споделен документ е видян от текущия потребител.
-     *
-     * Ако документа е споделен с текущия потребител, метода отразява виждането му в историята.
-     *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param int $threadId key(mvc=doc_Threads)
-     */
-    public static function viewed($containerId, $threadId = NULL)
-    {
-        expect($containerId);
-        
-        // Отбелязваме като видяни само документи, които не са чернови (state != draft)
-        if (doc_Containers::getDocState($containerId) == 'draft') {
-            return;
-        }
-        
-        // С кои потребители е споделен документа
-        $sharedWith = doc_Containers::getShared($containerId);
-        $currentUserId = core_Users::getCurrent();
-        
-        if (!type_Keylist::isIn($currentUserId, $sharedWith)) {
-            // Документа не е споделен с текущия потребител - не правим нищо
-            return;
-        }
-        
-        if (empty($threadId)) {
-            // Извличаме $threadId, в случай, че не е подадено като параметър
-            $threadId = doc_Containers::fetchField($containerId, 'threadId');
-        }
-        
-        expect($threadId);
-        
-        if (static::isViewedBefore($threadId, $containerId, $currentUserId)) {
-            // Документа е бил виждан преди от текущия потребител и това е отразено в историята
-            // Не правим нищо.
-            return;
-        }
-        
-        // Правим запис, за да отразим факта, че текущия потребител вижда посочения документ
-        // за първи път.
-        
-        $rec = new stdClass();
-        
-        $rec->action      = 'viewed';
-        $rec->containerId = $containerId;
-        $rec->threadId    = $threadId;
-        
-        /*
-         * Забележка: plg_Created ще попълни полетата createdBy (кой е видял документа) и 
-         *               createdOn (кога е станало това)
-         */
-        
-        return static::save($rec);
-    }
-    
-    /**
-     * Помощен метод за проверка дали даден потребител е виждал този документ и преди
-     *
-     * (... и това вече е отразено в историята). Целта е в историята да се отразява само
-     * първото виждане на даден документ от даден потребител.
-     *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param int $threadId key(mvc=doc_Threads)
-     * @param int $userId key(mvc=core_Users) NULL означава текущия потребител
-     * @return boolean TRUE - документът вече е маркиран като видян от потребителя;
-     *                           FALSE - в противен случай.
-     *
-     */
-    protected static function isViewedBefore($threadId, $containerId, $userId = NULL)
-    {
-        if (!isset($userId)) {
-            // не е зададен потребител - вземаме текущия
-            $userId = core_Users::getCurrent();
-        }
-        
-        // Първо проверяваме кешираната история
-        if (isset(static::$histories[$threadId])) {
-            if ($histRecs = static::$histories[$threadId][$containerId]->recs) {
-                // Имаме кеширана история на документа
-                foreach ($histRecs as $r) {
-                    if ($r->action == 'viewed' && $r->createdBy == $userId) {
-                        // Документа е бил виждан преди от този потребител
-                        return TRUE;
-                    }
-                }
-            }
-        } else {
-            // Няма кешинара история - проверяваме директно в БД
-            // Това (предполагам) ще се изпълнява само за документи, които са първи в 
-            // нишката си и при това са споделени с $userId
-            if (static::fetch(
-                    "#containerId = {$containerId} 
-                    AND #action = 'viewed' 
-                    AND #createdBy = {$userId}")) {
-                // Документа е бил виждан преди от този потребител
-                return TRUE;
-            }
-        }
-        
-        // Няма данни в историята, че зададения потребител е виждал този документ
-        return FALSE;
-    }
-    
-    
-    /**
-     * Отразява факта, че документ е отпечатан
-     *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return string MID
-     */
-    public static function printed($containerId, $threadId = NULL)
-    {
-        return static::add(self::ACTION_PRINT, $containerId);
-    }
-    
-
-    /**
-     * Отразява факта, че документ е изпратен по имейл
-     *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param mixed $data допълнителни данни свързани с изпращането
-     * @return string MID
-     */
-    public static function sent($containerId, $data = NULL)
-    {
-        return static::add(self::ACTION_SEND, $containerId);
-    }
 
 
     public static function returned($mid, $date = NULL)
@@ -547,34 +416,21 @@ class log_Documents extends core_Manager
      * @param int $threadId key(mvc=doc_Threads)
      * @return array ключ е contanerId, стойност - историята на този контейнер
      */
-    public static function prepareThreadHistory($threadId)
+    protected static function prepareThreadHistory($threadId)
     {
         if (!isset(static::$histories[$threadId])) {
-            static::$histories[$threadId] = static::loadHistory($threadId);
+            $cacheKey = static::getHistoryCacheKey($threadId);
+        
+            if (($history = core_Cache::get(static::CACHE_TYPE, $cacheKey)) === FALSE) {
+                // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
+                $history = static::buildThreadHistory($threadId);
+                core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, '2 дена');
+            }
+            
+            static::$histories[$threadId] = $history;
         }
         
         return static::$histories[$threadId];
-    }
-    
-    /**
-     * Зарежда историята на нишка. Проверява в кеша, ако я няма - преизчислява записва в кеша.
-     *
-     * @see core_Cache
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return array историята на нишката, във вида в който я връща @link log_Documents::prepareThreadHistory()
-     */
-    protected static function loadHistory($threadId)
-    {
-        $cacheKey = static::getHistoryCacheKey($threadId);
-        
-        if (($history = core_Cache::get(static::CACHE_TYPE, $cacheKey)) === FALSE) {
-            // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
-            $history = static::buildThreadHistory($threadId);
-            core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, '2 дена');
-        }
-        
-        return $history;
     }
     
     
@@ -610,17 +466,13 @@ class log_Documents extends core_Manager
      * @return array масив с ключ $containerId (на контейнерите от $threadId, за които има запис
      *                  в историята) и стойности - обекти (stdClass) със следната структура:
      *
-     *     ->summary => array(
-     *         'returned' => {брой връщания}, // след изпращане на документа по имейл
-     *         'received' => {брой получавания},
-     *         'sent'     => {брой изпращания}, // колко пъти документа е бил изпратен по имейл
-     *         'printed'  => {брой отпечатвания},
-     *         'viewed'   => {брой виждания}, // брои се само първото виждане за всеки потребител
+     *  ->summary => array(
+     *         [ACTION1] => брой,
+     *         [ACTION2] => брой,
+     *         ...
      *     )
-     *
+     *         
      *  ->containerId - контейнера, чиято история се съдържа в обекта (за удобство)
-     *
-     *  ->recs - масив от всички записи на този модел за контейнера $containerId
      */
     protected static function buildThreadHistory($threadId)
     {
@@ -646,63 +498,13 @@ class log_Documents extends core_Manager
      * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Threads)
      */
-    public static function prepareContainerHistory($containerId, $threadId)
+    protected static function prepareContainerHistory($containerId, $threadId)
     {
         $threadHistory = static::prepareThreadHistory($threadId);
         
         return $threadHistory[$containerId];
     }
-    
-    
-    /**
-     * Шаблон (@link core_ET) с историята на документ.
-     *
-     * @param stdClass $data обект, който вече е бил подготвен чрез @link log_Documents::prepareHistory()
-     * @return core_ET
-     * @deprecated
-     */
-    public static function renderHistory($data)
-    {
-        $tpl = new core_ET();
-        
-        $tplString = <<<EOT
-              <ul class="history detailed">
-                <!--ET_BEGIN ROW-->
-                    <li class="row [#action#]">
-                        <span class="verbal">На</span>
-                        <span class="date">[#date#]</span> 
-                        <span class="user">[#createdBy#]</span>
-                        <span class="action">[#actionText#]</span>
-                    </li>
-                <!--ET_END ROW-->
-            </ul>
-EOT;
-        
-        $tpl = new core_ET($tplString);
-        
-        // recToVerbal
-        $rows = array();
-        
-        if ($data->recs) {
-            foreach ($data->recs as $i=>$rec) {
-                static::formatAction($rec, $rows[$i]);
-            }
-        } else {
-            return '';
-        }
-        
-        $rowTpl = $tpl->getBlock('ROW');
-        
-        foreach ($rows as $i=>$row) {
-            $rowTpl->placeObject($row);
-            $rowTpl->append2Master();
-        }
-        
-        $tpl->removeBlocks();
-        
-        return $tpl;
-    }
-    
+
     
     /**
      * @todo Чака за документация...
