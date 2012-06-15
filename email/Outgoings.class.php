@@ -280,8 +280,18 @@ class email_Outgoings extends core_Master
                 
                 log_Documents::popAction();
             }
-                
-            $msg = empty($failure) ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото до ' . implode(', ', $failure);
+
+            // Създаваме съобщение, в зависимост от състоянието на изпращане
+            if (empty($failure)) {
+                $msg = 'Успешно изпратено до: ' . implode(', ', $success);
+                $statusType = 'notice';
+            } else {
+                $msg = 'Грешка при изпращане до: ' . implode(', ', $failure);
+                $statusType = 'warning';
+            }
+            
+            // Добавяме статус
+            core_Statuses::add($msg, $statusType);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -289,7 +299,7 @@ class email_Outgoings extends core_Master
             $this->prepareRetUrl($data);
             
             // $msg е съобщение за статуса на изпращането
-            return new Redirect($data->retUrl, $msg);
+            return new Redirect($data->retUrl);
         } else {
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата

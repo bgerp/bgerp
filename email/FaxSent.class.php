@@ -211,7 +211,7 @@ class email_FaxSent extends core_Manager
                     $failure[] = $faxTo;
                 }
                 
-                doc_Log::popAction();
+                log_Documents::popAction();
             }
 
             // Създаваме съобщение, в зависимост от състоянието на изпращане
@@ -230,12 +230,6 @@ class email_FaxSent extends core_Manager
             // при успешно записване на данните от формата
             $data->form->rec->id = $data->rec->id;
             $this->prepareRetUrl($data);
-            
-            if (!empty($success)) {
-                foreach ($success as $value) {
-                    $rec = new stdClass();
-                }
-            }
             
             return new Redirect($data->retUrl);
             
