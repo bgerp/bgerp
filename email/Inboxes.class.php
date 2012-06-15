@@ -161,7 +161,7 @@ class email_Inboxes extends core_Master
         $this->FLD('ssl', 'varchar', 'caption=Сертификат');
         
         // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
-        $this->FLD('applyRouting', 'enum(yes=Да, no=Не)', 'notNull,caption=Сортиране на писмата');
+        $this->FLD('applyRouting', 'enum(yes=Да, no=Не)', 'notNull,caption=Общ (екипен)');
         
         // Поле, показващо, кога за последен път е имало пълно синхронизиране със сметката
         $this->FLD('lastFetchAll', 'datetime', 'caption=Последно източване,input=none');
@@ -302,7 +302,7 @@ class email_Inboxes extends core_Master
             $eRec->access = "private";
             $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
             $eRec->type = 'internal';
-            $eRec->applyRouting = 'yes';
+            $eRec->applyRouting = 'no';
             $eRec->email = $email;
             $eRec->name = $nick;
             
