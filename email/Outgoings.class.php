@@ -311,7 +311,7 @@ class email_Outgoings extends core_Master
     }
     
     
-    protected static function getAttachedDocuments($rec)
+    static function getAttachedDocuments($rec)
     {
         $docs     = array();
         $docNames = type_Set::toArray($rec->documentsSet);
@@ -1036,7 +1036,7 @@ class email_Outgoings extends core_Master
         
         return $contrData;
     }
-    
+            
     
     /**
      * Добавя бутон за Изпращане в единичен изглед
@@ -1050,6 +1050,10 @@ class email_Outgoings extends core_Master
             if ($mvc->haveRightFor('email')) {
                 $retUrl = array($mvc, 'single', $data->rec->id);
                 $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+            }
+            if ($mvc->haveRightFor('fax')) {
+                $retUrl = array($mvc, 'single', $data->rec->id);
+                $data->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-fax');    
             }
         }
     }
