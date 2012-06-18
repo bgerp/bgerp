@@ -322,7 +322,7 @@ class email_Inboxes extends core_Master
     {
         $rec = static::fetch("#email LIKE '%{$domain}' AND #applyRouting = 'yes'");
 
-        return $domain;
+        return $rec;
     }
     
     
