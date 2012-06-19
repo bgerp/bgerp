@@ -451,7 +451,7 @@ class core_Users extends core_Manager
     /**
      * Връща id-то (или друга зададена част) от записа за текущия потребител
      */
-    static function getCurrent($part = 'id')
+    static function getCurrent($part = 'id', $escaped = FALSE)
     {
         $Users = cls::get('core_Users');
         
@@ -463,7 +463,11 @@ class core_Users extends core_Manager
             $res = $rec->{$part};
         } else {
             $cRec = Mode::get('currentUserRec');
-            $res = $cRec->{$part};
+            if ($escaped) {
+                $res = core_Users::getVerbal($cRec, $part);    
+            } else {
+                $res = $cRec->$part;    
+            }
         }
         
         return $res;
