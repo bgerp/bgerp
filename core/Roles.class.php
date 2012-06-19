@@ -42,7 +42,7 @@ class core_Roles extends core_Manager
     function description()
     {
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory');
-        $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Наследяване,notNull');
+        $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type, prepareQuery=core_Roles::removeRangsInQuery)', 'caption=Наследяване,notNull');
         $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност)', 'caption=Тип,notNull');
         
         $this->setDbUnique('role');
@@ -321,5 +321,15 @@ class core_Roles extends core_Manager
         }
 
         return $type;
+    }
+    
+    
+    /**
+     * При подготвяне на заявката, задава да не се показват ролити от тип ранг.
+     * Използва се при създаване на роля, да няма възможност за наследяване на роли от тип ранг.
+     */
+    function removeRangsInQuery($mvc, $query)
+    {
+        $query->where("#type != 'rang'");    
     }
 }
