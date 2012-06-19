@@ -62,7 +62,7 @@ class type_Users extends type_Keylist
             if(haveRole($this->params['roles'])) {
                 $opt = new stdClass();
                 $opt->keylist = '|' . core_Users::getCurrent() . '|';
-                $opt->title = core_Users::getCurrent('names');
+                $opt->title = core_Users::getCurrent('names', TRUE);
                 $this->options = array($opt->keylist => $opt); 
             } else {
                 $this->options = array();
@@ -106,7 +106,7 @@ class type_Users extends type_Keylist
             
             foreach($teams as $t) {
                 $group = new stdClass();
-                $group->title = "Екип \"" . core_Roles::fetchField($t, 'role') . "\"";
+                $group->title = "Екип \"" . core_Roles::getVerbal($t, 'role') . "\"";
                 $group->attr = array('class' => 'team');
                 
                 $this->options[$t . ' team'] = $group;
@@ -120,7 +120,7 @@ class type_Users extends type_Keylist
                 while($uRec = $uQueryCopy->fetch()) {
                     $key = $t . '_' . $uRec->id;
                     $this->options[$key] = new stdClass();
-                    $this->options[$key]->title = $uRec->names;
+                    $this->options[$key]->title = core_Users::getVerbal($uRec, 'names');
                     $this->options[$key]->keylist = '|' . $uRec->id . '|';
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;

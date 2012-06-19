@@ -61,7 +61,7 @@ class type_User extends type_Key
         if(!haveRole($this->params['rolesForTeams'])) {
             if(haveRole($this->params['roles'])) {
                 $user = core_Users::getCurrent();
-                $name = core_Users::getCurrent('names');
+                $name = core_Users::getCurrent('names', TRUE);
                 $this->options = array($user => $name);
             } else {
                 $this->options = array();
@@ -91,7 +91,7 @@ class type_User extends type_Key
             
             foreach($teams as $t) {
                 $group = new stdClass();
-                $group->title = "Екип \"" . core_Roles::fetchField($t, 'role') . "\"";
+                $group->title = "Екип \"" . core_Roles::getVerbal($t, 'role') . "\"";
                 $group->attr = array('class' => 'team');
                 $group->group = TRUE;
                 $group->keylist = $this->options[$t . ' team'] = $group;
@@ -105,7 +105,7 @@ class type_User extends type_Key
                 $part = $this->params['select'];
                 
                 while($uRec = $uQueryCopy->fetch()) {
-                    $this->options[$t . '_' . $uRec->id ]->title = $uRec->{$part};
+                    $this->options[$t . '_' . $uRec->id ]->title = core_Users::getVerbal($uRec, $part);
                     $this->options[$t . '_' . $uRec->id]->value = $uRec->id;
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
