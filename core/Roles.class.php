@@ -88,6 +88,16 @@ class core_Roles extends core_Manager
     }
     
     
+	/**
+     * При изтриване инвалидираме кешовете
+     */
+    static function on_BeforeDelete($mvc, &$id, $rec)
+    {
+        self::$rolesArr = NULL;
+        core_Cache::remove('core_Roles', 'allRoles');
+    }
+    
+    
     /**
      * Зарежда ролите, ако все още не са заредени
      */
@@ -235,7 +245,7 @@ class core_Roles extends core_Manager
      */
     static function on_AfterSave($mvc, $id, $rec)
     {
-        self::$rolesArr = NULL;
+//        self::$rolesArr = NULL;
     }
     
     
@@ -244,21 +254,7 @@ class core_Roles extends core_Manager
      */
     static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
-        self::$rolesArr = NULL;
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    function on_AfterInputEditForm($mvc, &$form)
-    {
-        //Всички типове на ролите
-        $rolesByTypeArr = static::getRolesTypeArr($form->rec->inherit);
-        
-        if ($rolesByTypeArr['rang'] > 1) {
-            $form->setError('inherit', 'Не може да създадете роля с повече от един ранг.');    
-        }
+//        self::$rolesArr = NULL;
     }
     
     
@@ -328,7 +324,7 @@ class core_Roles extends core_Manager
      * При подготвяне на заявката, задава да не се показват ролити от тип ранг.
      * Използва се при създаване на роля, да няма възможност за наследяване на роли от тип ранг.
      */
-    function removeRangsInQuery($mvc, $query)
+    static function removeRangsInQuery($mvc, $query)
     {
         $query->where("#type != 'rang'");    
     }
