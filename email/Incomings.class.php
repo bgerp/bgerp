@@ -202,8 +202,8 @@ class email_Incomings extends core_Master
             $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
                     'port' => $accRec->port,
                     'user' => $accRec->user,
-                    'pass' => $accRec->password,
-                    'subHost' => $accRec->subHost,
+                    'pass' => core_Crypt::decodeVar($accRec->password),
+            		'subHost' => $accRec->subHost,
                     'folder' => "INBOX",
                     'ssl' => $accRec->ssl));
             

@@ -198,6 +198,7 @@ class email_Inboxes extends core_Master
     
     /**
      * Преди вкарване на запис в модела, проверява дали има вече регистрирана корица
+     * и криптира паролата
      */
     static function on_BeforeSave($mvc, $id, &$rec)
     {
@@ -208,6 +209,8 @@ class email_Inboxes extends core_Master
         }
         
         $rec->email = "{$name}@{$domain}";
+        
+        $rec->password = core_Crypt::encodeVar($rec->password);
     }
     
     
