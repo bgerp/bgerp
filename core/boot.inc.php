@@ -23,9 +23,12 @@
  *                                                                                          *
  ********************************************************************************************/
 
-require EF_EF_PATH . '/core/exception/Expect.class.php';
+if (PHP_VERSION_ID < 50300) {
+	echo ('Необходимо е php 5.3+!');
+	die;	
+}
 
-expect(PHP_VERSION_ID >= 50300);
+require EF_EF_PATH . '/core/exception/Expect.class.php';
 
 require EF_EF_PATH . '/core/App.class.php';
 
