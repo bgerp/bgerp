@@ -27,7 +27,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодиране чрез размяна
      */
-    function enChange(&$pack, $md5)
+    static function enChange(&$pack, $md5)
     {
         for ($i = 0; $i < 32; $i += 2) {
             $a = hexdec($md5{$i});
@@ -42,7 +42,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодиране на 'размяна'
      */
-    function deChange(&$pack, $md5)
+    static function deChange(&$pack, $md5)
     {
         for ($i = 30; $i >= 0; $i -= 2) {
             $a = hexdec($md5{$i});
@@ -57,7 +57,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодиране чрез 'добавяне'
      */
-    function enAdd(&$pack, $md5)
+    static function enAdd(&$pack, $md5)
     {
         for ($i = 0; $i < 32; $i += 2) {
             $a = hexdec(substr($md5, $i, 2));
@@ -70,7 +70,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодиране на 'добавяне'
      */
-    function deAdd(&$pack, $md5)
+    static function deAdd(&$pack, $md5)
     {
         for ($i = 30; $i >= 0; $i -= 2) {
             $a = hexdec(substr($md5, $i, 2));
@@ -83,7 +83,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодиране на 16 знаков пакет
      */
-    function encode16(&$pack, $md5, $len = 6)
+    static function encode16(&$pack, $md5, $len = 6)
     {
         $k = $md5;
         
@@ -103,7 +103,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодиране на 16 знаков пакет
      */
-    function decode16(&$pack, $md5, $len = 6)
+    static function decode16(&$pack, $md5, $len = 6)
     {
         $k = $md5;
         
@@ -127,7 +127,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Обработка на събитие за бинарно кодиране
      */
-    function encode(&$res, $str, $key, $minRand)
+    static function encode(&$res, $str, $key, $minRand)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
 /*        if (static::invoke('beforeEncode', array(
@@ -179,7 +179,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Обработка на събитие за бинарно декодиране
      */
-    function decode(&$res, $str, $key)
+    static function decode(&$res, $str, $key)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
 /*        if ($this->invoke('beforeDecode', array(
@@ -233,7 +233,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Определя разделителя между хедър-а на кодираната част и данните
      */
-    function getDivStr($key)
+    static function getDivStr($key)
     {
         $crc32 = crc32($key);
         $div .= chr($crc32 % 256);
@@ -251,7 +251,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодира стринг
      */
-    function encodeStr($str, $key, $minRand = NULL)
+    static function encodeStr($str, $key, $minRand = NULL)
     {
         self::encode($res, $str, $key, $minRand);
         
@@ -262,7 +262,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодира стринг
      */
-    function decodeStr($str, $key)
+    static function decodeStr($str, $key)
     {
         self::decode($res, $str, $key);
         
@@ -273,7 +273,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодира променливи, масиви и обекти
      */
-    function encodeVar($var, $code = EF_CRYPT_CODE)
+    static function encodeVar($var, $code = EF_CRYPT_CODE)
     {
         $var = serialize($var);
         $var = gzcompress($var);
@@ -287,7 +287,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодира променливи, масиви и обекти
      */
-    function decodeVar($var, $code = EF_CRYPT_CODE)
+    static function decodeVar($var, $code = EF_CRYPT_CODE)
     {
         $var = base64_decode($var);
         
