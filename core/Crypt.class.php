@@ -89,11 +89,11 @@ class core_Crypt extends core_BaseClass
         
         for ($i = 0; $i < $len; $i++) {
             if ($md5{$i} < '8') {
-                $this->enChange($pack, $k);
-                $this->enAdd($pack, $k);
+                self::enChange($pack, $k);
+                self::enAdd($pack, $k);
             } else {
-                $this->enAdd($pack, $k);
-                $this->enChange($pack, $k);
+                self::enAdd($pack, $k);
+                self::enChange($pack, $k);
             }
             $k = md5($k);
         }
@@ -114,11 +114,11 @@ class core_Crypt extends core_BaseClass
         
         for ($i = $len - 1; $i >= 0; $i--) {
             if ($md5{$i} < '8') {
-                $this->deAdd($pack, $md5Arr[$i]);
-                $this->deChange($pack, $md5Arr[$i]);
+                self::deAdd($pack, $md5Arr[$i]);
+                self::deChange($pack, $md5Arr[$i]);
             } else {
-                $this->deChange($pack, $md5Arr[$i]);
-                $this->deAdd($pack, $md5Arr[$i]);
+                self::deChange($pack, $md5Arr[$i]);
+                self::deAdd($pack, $md5Arr[$i]);
             }
         }
     }
@@ -130,16 +130,16 @@ class core_Crypt extends core_BaseClass
     function encode(&$res, $str, $key, $minRand)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
-        if ($this->invoke('beforeEncode', array(
+/*        if (static::invoke('beforeEncode', array(
                     &$res,
                     &$str,
                     &$key,
                     &$minRand
                 )) === FALSE)
         return;
-        
+*/        
         // Установяваме стринга-разделител
-        $div = $this->getDivStr($key);
+        $div = self::getDivStr($key);
         
         // Поставяме символ-разделител преди стринга
         $str = $div . $str;
@@ -163,16 +163,16 @@ class core_Crypt extends core_BaseClass
         // Кодираме последователно всеки един от пакетите и ги съединяваме
         for ($i = 0; $i < $countPacks; $i++) {
             $pack = substr($str, $i * 16, 16);
-            $this->encode16($pack, md5($key . $res));
+            self::encode16($pack, md5($key . $res));
             $res .= $pack;
         }
         
         // Генерираме събитие след кодирането, с цел за бъдещо разширение
-        $this->invoke('afterEncode', array(
+/*        $this->invoke('afterEncode', array(
                 &$res,
                 $str,
                 $key
-            ));
+            )); */
     }
     
     
@@ -182,12 +182,12 @@ class core_Crypt extends core_BaseClass
     function decode(&$res, $str, $key)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
-        if ($this->invoke('beforeDecode', array(
+/*        if ($this->invoke('beforeDecode', array(
                     &$res,
                     $str,
                     $key
                 )) === FALSE)
-        return;
+        return; */
         
         // Ако дължината не е кратна на 16 връщаме грешка
         if (strlen($str) % 16) {
@@ -202,12 +202,12 @@ class core_Crypt extends core_BaseClass
         for ($i = $countPacks - 1; $i >= 0; $i--) {
             $pack = substr($str, $i * 16, 16);
             $rest = substr($str, 0, $i * 16);
-            $this->decode16($pack, md5($key . $rest));
+            self::decode16($pack, md5($key . $rest));
             $res = $pack . $res;
         }
         
         // Установяваме стринга-разделител
-        $div = $this->getDivStr($key);
+        $div = self::getDivStr($key);
         
         $divPos = strpos($res, $div);
         
@@ -222,11 +222,11 @@ class core_Crypt extends core_BaseClass
         $res = substr($res, $divPos + strlen($div));
         
         // Генерираме събитие след разкодирането, с цел бъдещо разширение
-        $this->invoke('afterDecode', array(
+/*        $this->invoke('afterDecode', array(
                 &$res,
                 $str,
                 $key
-            ));
+            )); */
     }
     
     
@@ -253,7 +253,7 @@ class core_Crypt extends core_BaseClass
      */
     function encodeStr($str, $key, $minRand = NULL)
     {
-        $this->encode($res, $str, $key, $minRand);
+        self::encode($res, $str, $key, $minRand);
         
         return $res;
     }
@@ -264,7 +264,7 @@ class core_Crypt extends core_BaseClass
      */
     function decodeStr($str, $key)
     {
-        $this->decode($res, $str, $key);
+        self::decode($res, $str, $key);
         
         return $res;
     }
@@ -277,7 +277,7 @@ class core_Crypt extends core_BaseClass
     {
         $var = serialize($var);
         $var = gzcompress($var);
-        $var = $this->encodeStr($var, $code . 'encodeVar');
+        $var = self::encodeStr($var, $code . 'encodeVar');
         $var = base64_encode($var);
         
         return $var;
@@ -294,7 +294,7 @@ class core_Crypt extends core_BaseClass
         if (!$var)
         return FALSE;
         
-        $var = $this->decodeStr($var, $code . 'encodeVar');
+        $var = self::decodeStr($var, $code . 'encodeVar');
         
         if (!$var)
         return FALSE;
