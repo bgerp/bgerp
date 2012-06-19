@@ -426,7 +426,7 @@ class core_Mvc extends core_FieldSet
      */
     function getVerbal_($rec, $fieldName)
     {
-        if(is_int($rec)) $rec = $this->fetch($rec);
+        if(is_numeric($rec) && ($rec > 0)) $rec = $this->fetch($rec);
 
         if(!is_object($rec)) return "?????";
 
