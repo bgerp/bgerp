@@ -392,6 +392,9 @@ class email_Outgoings extends core_Master
         // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
         doc_Threads::requireRightFor('single', $data->rec->threadId);
         
+        // Задаване на кутиите, от които е позволено изпращането на писма за текущия потребител
+        $data->form->getField('boxFrom')->type->options = email_Inboxes::getAllowed();
+        
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
@@ -430,7 +433,6 @@ class email_Outgoings extends core_Master
         }
         $data->form->setDefault('emailsTo', $data->rec->email);
         
-
         // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
         $toSuggestions = doc_Threads::getExternalEmails($data->rec->threadId);
         unset($toSuggestions[$data->rec->email]);

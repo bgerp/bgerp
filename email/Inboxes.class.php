@@ -461,4 +461,35 @@ class email_Inboxes extends core_Master
         //Връщаме inCharge id' то
         return $rec->inCharge;
     }
+    
+    
+    /**
+     * Кутиите, от които е позволено на даден потребител да изпраща писма
+     * 
+     * По дефиниция, това са активните кутии, които или са собственост на потребителя или са
+     * споделени с него.
+     * 
+     * @param int $userId key(mvc=core_Users) ако е NULL - текущия потребител
+     * @return array ключ - PK на кутия, стойност - имейл адреса на кутия. Този масив е готов за
+     *                      използване като $options на полета от тип type_Key.
+     */
+    static function getAllowed($userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#inCharge = {$userId} OR #shared LIKE '%|{$userId}|%'");
+        $query->where("#state = 'active'");
+
+        $result = array();
+        
+        while ($rec = $query->fetch()) {
+            $result[$rec->id] = $rec->email;
+        }
+        
+        return $result;
+    }
 }
