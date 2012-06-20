@@ -164,6 +164,7 @@ class drdata_Vats extends core_Manager
             $status = $rec->status;
             $rec->lastUsed = dt::verbal2mysql();
         } else {
+            $rec = new stdClass();
             $status = $this->checkStatus($canonocalVat);
             $rec->vat = $canonocalVat;
             $rec->status = $status;
