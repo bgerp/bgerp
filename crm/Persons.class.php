@@ -583,7 +583,7 @@ class crm_Persons extends core_Master
         $cYear = date("Y");
         $years = array($cYear, $cYear + 1, $cYear + 2);
 
-        if (($rec->birthday) && (stripos($rec->birthday, '?') !== FALSE)) {
+        if (($rec->birthday) && (stripos($rec->birthday, '?') === FALSE)) {
             list($d, $m, $y) = explode('-', $rec->birthday);
             foreach($years as $year) {
                 $calRec = new stdClass();
