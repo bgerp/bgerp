@@ -473,7 +473,7 @@ class email_Inboxes extends core_Master
      * @return array ключ - PK на кутия, стойност - имейл адреса на кутия. Този масив е готов за
      *                      използване като $options на полета от тип type_Key.
      */
-    static function getAllowed($userId = NULL)
+    static function getAllowedFrom($userId = NULL)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
