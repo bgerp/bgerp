@@ -37,6 +37,12 @@ class core_Roles extends core_Manager
     
     
     /**
+     * Наследените роли, преди да редактираме формата
+     */
+    var $oldInheritRecs;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -75,26 +81,6 @@ class core_Roles extends core_Manager
         $Roles->save($rec);
         
         return !isset($id);
-    }
-    
-    
-    /**
-     * При запис инвалидираме кешовете
-     */
-    static function on_BeforeSave($mvc, &$id, $rec)
-    {
-        self::$rolesArr = NULL;
-        core_Cache::remove('core_Roles', 'allRoles');
-    }
-    
-    
-	/**
-     * При изтриване инвалидираме кешовете
-     */
-    static function on_BeforeDelete($mvc, &$id, $rec)
-    {
-        self::$rolesArr = NULL;
-        core_Cache::remove('core_Roles', 'allRoles');
     }
     
     
@@ -241,24 +227,6 @@ class core_Roles extends core_Manager
     
     
     /**
-     * Изпълнява се след запис/промяна на роля
-     */
-    static function on_AfterSave($mvc, $id, $rec)
-    {
-//        self::$rolesArr = NULL;
-    }
-    
-    
-    /**
-     * Изпълнява се след изтриване на роля/роли
-     */
-    static function on_AfterDelete($mvc, &$res, $query, $cond)
-    {
-//        self::$rolesArr = NULL;
-    }
-    
-    
-    /**
      * Връща масив с броя на всички типове, които се срещат
      * 
      * @paramt keyList $roles - id' тата на ролите
@@ -327,5 +295,274 @@ class core_Roles extends core_Manager
     static function removeRangsInQuery($mvc, $query)
     {
         $query->where("#type != 'rang'");    
+    }
+
+    
+    /**
+     * 
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {
+        // Ако формата е субмитната и редактираме запис
+        if ($form->isSubmitted() && ($form->rec->id)) {
+            
+            // Всички наследени роли на съответния запис
+            $mvc->oldInheritRecs = $mvc->fetchField($form->rec->id, 'inherit');
+        }
+    }
+    
+    
+    /**
+     * При запис инвалидираме кешовете
+     */
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+        // Ако добавяме нов запис
+        if (!$rec->id) {
+            
+            // Всички наследени роли ги преобразуваме в масив
+            $recInhArr = type_Keylist::toArray($rec->inherit);
+            
+            // Масив с наследените роли
+            $inhArr = array();
+            
+            // Обхождаме масива с наследените роли
+            foreach ($recInhArr as $inhId) {
+                
+                // Добавяме в масива всички наследени роли на съответната наследена роля
+                $inhArr += self::getRolesArr($inhId);
+            }
+            
+            // Променяма записа за наследените роли
+            $rec->inherit = type_Keylist::fromArray($inhArr);
+        }
+        
+        // Нулираме статичната променлива
+        self::$rolesArr = NULL;
+        
+        // Изтриваме кеша
+        core_Cache::remove('core_Roles', 'allRoles');
+    }
+    
+    
+    /**
+     * Изпълнява се след запис/промяна на роля
+     */
+    static function on_AfterSave($mvc, $id, $rec)
+    {
+        // Ако има промени
+        if ($mvc->oldInheritRecs != $rec->inherit) {
+            
+            // Масив с наследените роли, преди промяната
+            $oldInheritRecsArr = type_Keylist::toArray($mvc->oldInheritRecs);
+            
+            // Масив с наследените роли и техните наследници преди промяната
+            $oldInheritRecsArrExt = array();
+            
+            // Масив с наследените роли и техните наследници след промяната
+            $newInheritRecsArrExt = array();
+            
+            // Обхождаме всички наследени роли преди промяната
+            foreach ($oldInheritRecsArr as $oldInhRecId) {
+                
+                // Проверяваме дали имат наследници
+                $oldInheritRecsArrExt += self::getRolesArr($oldInhRecId);
+            }
+            
+            // Масив с наследениете роли, след промяната 
+            $newInheritRecsArr = type_Keylist::toArray($rec->inherit);
+            
+            // Обхождаме всички наследени роли след промяната
+            foreach ($newInheritRecsArr as $newInhRecId) {
+                
+                // Проверяваме дали имат наследници
+                $newInheritRecsArrExt += self::getRolesArr($newInhRecId);
+            }
+
+            // Масив с изтритите роли
+            $delInheritRecsArr = array_diff($oldInheritRecsArrExt, $newInheritRecsArrExt);
+            
+            // Масив с добавените роли
+            $addInheritRecsArr = array_diff($newInheritRecsArrExt, $oldInheritRecsArrExt);
+            
+            // Заявка към таблицата с потребители
+            $query = core_Users::getQuery();
+
+            // Да се вземата потребителите, които имат съответната роля
+            $query->where("#roles LIKE '%|{$rec->id}|%'");
+            
+            // Обикаля всички потребители, които имат от съответната роля
+            while ($uRec = $query->fetch()) {
+                
+                // Ролите на съответния потребител
+                $uRolesArr = type_Keylist::toArray($uRec->roles);
+                
+                // Обикаляме ролите, които трябва да се изтрият
+                foreach ($delInheritRecsArr as $delVal) {
+                    
+                    // Изтриваме ролята
+                    unset($uRolesArr[$delVal]);
+                }
+                
+                // Обикаляме ролите, които трябва да се добавят
+                foreach ($addInheritRecsArr as $addVal) {
+                    
+                    // Добавяме ролята
+                    $uRolesArr[$addVal] = $addVal;
+                }
+    
+                $nRec = new stdClass();
+                
+                // id' то на потребителя, който ще обновим
+                $nRec->id = $uRec->id;
+                
+                // Новите роли на потребителя
+                $nRec->roles = type_Keylist::fromArray($uRolesArr);
+                
+                // Обновяваме записа
+                core_Users::save($nRec);
+            }    
+        }
+        
+        // Нулираме статичната променлива
+        self::$rolesArr = NULL;
+        
+        // Изтриваме кеша
+        core_Cache::remove('core_Roles', 'allRoles');
+    }
+    
+    
+	/**
+     * Изпълнява се преди изтриване на роля/роли
+     */
+    static function on_BeforeDelete($mvc, &$res, $query, $cond)
+    {
+        // Нулираме статичната променлива
+        self::$rolesArr = NULL;
+        
+        // Изтриваме кеша
+        core_Cache::remove('core_Roles', 'allRoles');
+        
+        // Ако заявката е празна, кода не се изпъклнява
+        if (!$cond) return ;
+        
+        // Масив с всички роли, които ще се изтриват
+        $delRecsArr = self::getRolesArr($cond);
+
+        // Заяка към таблицата с потребителите
+        $query = core_Users::getQuery();
+        
+        // Вземаме всички потребители, използват текущата роля
+        $query->where("#roles LIKE '%|{$cond}|%'");
+        
+        // Обикаляме всички открити потребители
+        while ($uRec = $query->fetch()) {
+
+            // Ролите, които има потребителя
+            $uRolesArr = type_Keylist::toArray($uRec->roles);
+            
+            // Обикаляме всички роли, които ще се изтриват
+            foreach ($delRecsArr as $delVal) {
+                
+                // Изтриваме съответната роля
+                unset($uRolesArr[$delVal]);
+            }
+            
+            $nRec = new stdClass();
+            
+            // id' то на потребителя, който ще обновим
+            $nRec->id = $uRec->id;
+            
+            // Новите роли на потребителя
+            $nRec->roles = type_Keylist::fromArray($uRolesArr);
+            
+            // Обновяваме записа
+            core_Users::save($nRec);
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след изтриване на роля/роли
+     */
+    static function on_AfterDelete($mvc, &$res, $query, $cond)
+    {
+        // Нулираме статичната променлива
+        self::$rolesArr = NULL;
+        
+        // Изтриваме кеша
+        core_Cache::remove('core_Roles', 'allRoles');
+    }
+    
+    
+    /**
+     * Връща масив с всички роли (наследени роли + текущата роля), на подаденото id
+     * 
+     * @param integer $id - id' то на ролята, за която ще се търсят наследените роли
+     * 
+     * @return array $allRolesArr - Масив с всички роли
+     */
+    static function getRolesArr($id) 
+    {
+        // Масив с всички наследени роли
+        $allRolesArr = array();
+
+        // Вземаме всички наследени роли и текущата роля под формата на стринг
+        $res = self::getInheritRoles($id);
+        
+        // Разделяме ролите в масив
+        $resArr = (explode('|', $res));
+        
+        // Обхождаме масива
+        foreach ($resArr as $r) {
+            
+            // Ако има запис
+            if ($r) {
+                
+                // Добавяме го в масива с всички роли
+                $allRolesArr[$r] = $r;    
+            }
+        }
+        
+        return $allRolesArr;
+    }
+    
+    
+    /**
+     * Рекурсивна функция за отркриване на всички наследени роли, в дадена роля
+     * 
+     * @param integer $id - id' то на ролята, за която ще се търсят наследените роли
+     * 
+     * @return string $ - Стринг с всички роли, включително и зададената
+     */
+    static function getInheritRoles($id)
+    {
+        // Вземаме записа за съответната роля
+        $roleRec = core_Roles::fetch($id);//bp(core_Roles::fetch(81), $roleRec);
+        
+        // Ако няма запис, връщаме
+        if (!$roleRec) return ;
+        
+        // Ако има наследени роли
+        if ($roleRec->inherit) {
+            
+            //Преобразуваме в масив всички наследени роли
+            $inhArr = type_Keylist::toArray($roleRec->inherit);
+            
+            // Обхождаме масива
+            foreach ($inhArr as $inh) {
+                
+                // Ако някоя функция наследява себе си. За да не се получи "безкраен" цикъл
+                if ($id == $inh) continue; 
+                
+                // Извикваме рекурсивно функцията, за да може да вземем наследените роли на наследниците
+                $allRoles .= self::getInheritRoles($inh);
+            }
+        }
+        
+        // Добавяме текущото id, към стринга
+        $allRoles .= $id . '|';
+        
+        return $allRoles;
     }
 }
