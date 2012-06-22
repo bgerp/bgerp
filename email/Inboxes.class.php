@@ -210,7 +210,9 @@ class email_Inboxes extends core_Master
         
         $rec->email = "{$name}@{$domain}";
         
-        $rec->password = core_Crypt::encodeVar($rec->password);
+        if (isset($rec->password)) {
+            $rec->password = core_Crypt::encodeVar($rec->password);    
+        }
     }
     
     
