@@ -11,7 +11,7 @@
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.11
+ * @since     v 0.12
  * @title     Физически лица
  */
 class crm_Persons extends core_Master
@@ -149,6 +149,7 @@ class crm_Persons extends core_Master
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 
             'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData');
+        $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData');
         $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Имейл,class=contactData');
         $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,class=contactData');
         $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,class=contactData');
