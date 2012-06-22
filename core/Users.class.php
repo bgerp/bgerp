@@ -408,18 +408,7 @@ class core_Users extends core_Manager
         
         // Изчисляваме останалите роли на потребителя
         foreach($rolesArr as $roleId => $dummy) {
-            
-            $rolesArr[$roleId] = TRUE;
-            
-            $roleRec = $mvc->core_Roles->fetch($roleId);
-            
-            $inheritArr = type_Keylist::toArray($roleRec->inherit);
-            
-            if(count($inheritArr)) {
-                foreach($inheritArr as $rId) {
-                    $rolesArr[$rId] = TRUE;
-                }
-            }
+            $rolesArr += core_Roles::getRolesArr($roleId);
         }
         
         // Правим масива от изчислени роли към keylist
