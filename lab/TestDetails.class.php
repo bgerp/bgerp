@@ -83,6 +83,8 @@ class lab_TestDetails extends core_Detail
         $Methods = cls::get('lab_Methods');
         $queryAllMethods = $Methods->getQuery();
         
+        $allMethodsArr = array();
+        
         while($mRec = $queryAllMethods->fetch("1=1")) {
             $allMethodsArr[$mRec->id] = $mRec->name;
         }
