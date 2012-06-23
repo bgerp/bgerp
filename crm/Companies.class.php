@@ -159,7 +159,7 @@ class crm_Companies extends core_Master
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
         $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
@@ -716,7 +716,7 @@ class crm_Companies extends core_Master
         $conf = core_Packs::getConfig('crm');
         
         if (!static::fetch($conf->BGERP_OWN_COMPANY_ID)){
-            
+
             $rec = new stdClass();
             $rec->id = $conf->BGERP_OWN_COMPANY_ID;
             $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
