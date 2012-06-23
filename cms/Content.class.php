@@ -57,6 +57,8 @@ class cms_Content extends core_Manager
         $this->FLD('order', 'order', 'caption=Подредба,mandatory');
         $this->FLD('menu', 'varchar(64)', 'caption=Меню,mandatory');
         $this->FLD('source', 'class(interface=cms_ContentSourceIntf,select=title)', 'caption=Източник');
+        $this->FLD('layout', 'html', 'caption=Лейаут');
+
         $this->setDbUnique('menu');
     }
     
