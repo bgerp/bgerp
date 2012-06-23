@@ -221,10 +221,10 @@ class email_Outgoings extends core_Master
             $success  = $failure = array(); // списъци с изпратени и проблеми получатели
             
             foreach ($emailsTo as $emailTo) {
-                doc_Log::pushAction(
+                log_Documents::pushAction(
                     array(
                         'containerId' => $data->rec->containerId,
-                        'action'      => doc_Log::ACTION_SEND, 
+                        'action'      => log_Documents::ACTION_SEND, 
                         'data'        => (object)array(
                             'from' => $data->rec->boxFrom,
                             'to'   => $emailTo,
@@ -278,10 +278,20 @@ class email_Outgoings extends core_Master
                     $failure[] = $emailTo;
                 }
                 
-                doc_Log::popAction();
+                log_Documents::popAction();
             }
-                
-            $msg = empty($failure) ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото до ' . implode(', ', $failure);
+
+            // Създаваме съобщение, в зависимост от състоянието на изпращане
+            if (empty($failure)) {
+                $msg = 'Успешно изпратено до: ' . implode(', ', $success);
+                $statusType = 'notice';
+            } else {
+                $msg = 'Грешка при изпращане до: ' . implode(', ', $failure);
+                $statusType = 'warning';
+            }
+            
+            // Добавяме статус
+            core_Statuses::add($msg, $statusType);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -289,7 +299,7 @@ class email_Outgoings extends core_Master
             $this->prepareRetUrl($data);
             
             // $msg е съобщение за статуса на изпращането
-            return new Redirect($data->retUrl, $msg);
+            return new Redirect($data->retUrl);
         } else {
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -311,7 +321,7 @@ class email_Outgoings extends core_Master
     }
     
     
-    protected static function getAttachedDocuments($rec)
+    static function getAttachedDocuments($rec)
     {
         $docs     = array();
         $docNames = type_Set::toArray($rec->documentsSet);
@@ -382,9 +392,23 @@ class email_Outgoings extends core_Master
         // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
         doc_Threads::requireRightFor('single', $data->rec->threadId);
         
+        // Задаване на кутиите, от които е позволено изпращането на писма за текущия потребител
+        $allowedFrom = email_Inboxes::getAllowedFrom();
+        expect(count($allowedFrom) > 0, 'Няма права за изпращане на имейли.');
+        
+        // Определяне на изходящата кутия по подразбиране - $boxFromId: key(mvc=email_Inboxes)
+        $boxFromId = NULL;
+        $boxFrom = static::getDefaultBoxFrom($data->rec, $allowedFrom);
+        
+        if (!empty($boxFrom)) {
+            $boxFromId = array_search($boxFrom, $allowedFrom);
+        }
+        
+        $data->form->getField('boxFrom')->type->options = $allowedFrom;
+        
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
-        $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
+        $data->form->setDefault('boxFrom', $boxFromId);
         
         // Добавяне на предложения на свързаните документи
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
@@ -420,7 +444,6 @@ class email_Outgoings extends core_Master
         }
         $data->form->setDefault('emailsTo', $data->rec->email);
         
-
         // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
         $toSuggestions = doc_Threads::getExternalEmails($data->rec->threadId);
         unset($toSuggestions[$data->rec->email]);
@@ -750,13 +773,15 @@ class email_Outgoings extends core_Master
      */
     function getFooter()
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         //Вземаме езика
         $lg = core_Lg::getCurrent();
         
         //Зареждаме класа, за да имаме достъп до променливите
         cls::load('crm_Companies');
         
-        $companyId = BGERP_OWN_COMPANY_ID;
+        $companyId = $conf->BGERP_OWN_COMPANY_ID;
         
         //Вземаме данните за нашата фирма
         $myCompany = crm_Companies::fetch($companyId);
@@ -907,6 +932,111 @@ class email_Outgoings extends core_Master
         
         return $files;
     }
+
+
+    /**
+     * Адреса на изпращач по подразбиране.
+     * 
+     * Прави опит да установи кутията по подразбиране, от която да се изпрати писмото. Това е 
+     * първия от серия имейл адреси, който при това е наличен в списъка с допустими имейл 
+     * адреси (параметъра $allowed).
+     * 
+     * Споменатата серия от имейл адреси се генерира според следните правила:
+     *  
+     *  - Ако документа, породил това изходящо писмо (origin) е входящо писмо - адреса на
+     *    получателя му;
+     *    
+     *  - Ако първия документ в нишката на това изходящо писмо е входящо писмо - адреса на
+     *    получателя му
+     *    
+     *  - Ако корицата на папката на това изходящо писмо е email_Inboxes - полето #email на 
+     *    тази корица
+     *    
+     *  - Имейл адреса на текущия потребител
+     *
+     * @param $rec запис на модела email_Outgoings
+     * @param $allowed масив [email_Inboxes.id] => email_Inboxes.email
+     * @return int key(mvc=email_Inboxes) или NULL
+     */
+    protected static function getDefaultBoxFrom($rec, $allowed)
+    {
+        // Първо правило - адреса на получателя на origin входящия имейла
+        if (!empty($rec->originId)) {
+            $boxFrom = static::getContainerRecipients($rec->originId, $allowed);
+        }
+        
+        if (isset($boxFrom)) {
+            // първото правилото сработи
+            return $boxFrom;
+        }
+        
+        // Второ правило - адреса на получателя на откриващия нишката входящ имейл
+        $threadRec = doc_Threads::fetch($rec->threadId);
+        
+        if ($threadRec && $threadRec->firstContainerId) {
+            $boxFrom = static::getContainerRecipients($threadRec->firstContainerId, $allowed);
+        }
+        
+        if (isset($boxFrom)) {
+            // второто правилото сработи
+            return $boxFrom;
+        }
+        
+        // Трето правило - имейла на корицата, в случай че корицата е email_Inboxes
+        $folderRec = doc_Folders::fetch($rec->folderId);
+        
+        if ($folderRec && $folderRec->coverClass == email_Inboxes::getClassId()) {
+            $inboxesRec = email_Inboxes::fetch($folderRec->coverId);
+            
+            if (!empty($inboxesRec->email) && in_array($inboxesRec->email, $allowed)) {
+                $boxFrom = $inboxesRec->email;
+            }
+        }
+        
+        if (isset($boxFrom)) {
+            // третото правилото сработи
+            return $boxFrom;
+        }
+        
+        // Четвърто правило - имейл адреса на текущия потребител
+        $userEmail = email_Inboxes::getUserEmail();
+        
+        if (!empty($userEmail) && in_array($userEmail, $allowed)) {
+            $boxFrom = $userEmail;
+        }
+        
+        if (isset($boxFrom)) {
+            // четвъртото правилото сработи
+            return $boxFrom;
+        }
+        
+        
+        // никое правило не сработи
+        return NULL;
+    }
+    
+    
+    private static function getContainerRecipients($containerId, $allowed)
+    {
+        $result       = NULL;
+        $containerRec = doc_Containers::fetch($containerId);
+        
+        if ($containerRec->docClass == email_Incomings::getClassId()) {
+            // документа е от искания клас
+            $incomingsRec = email_Incomings::fetch($containerRec->docId);
+        
+            if ($incomingsRec) {
+                if (!empty($incomingsRec->toEml) && in_array($incomingsRec->toEml, $allowed)) {
+                    $result = $incomingsRec->toEml;
+                } elseif (!empty($incomingsRec->toBox) && in_array($incomingsRec->toBox, $allowed)) {
+                    $result = $incomingsRec->toBox;
+                }
+            }
+        }
+        
+        return $result;
+    }
+    
     
     /******************************************************************************************
      *
@@ -939,19 +1069,6 @@ class email_Outgoings extends core_Master
     public function getDefaultEmailTo($id)
     {
         return static::fetchField($id, 'email');
-    }
-    
-    
-    /**
-     * Адреса на изпращач по подразбиране за документите от този тип.
-     *
-     * @param int $id ид на документ
-     * @return int key(mvc=email_Inboxes) пощенска кутия от нашата система
-     */
-    public function getDefaultBoxFrom($id)
-    {
-        // Няма смислена стойност по подразбиране
-        return NULL;
     }
     
     
@@ -1034,7 +1151,7 @@ class email_Outgoings extends core_Master
         
         return $contrData;
     }
-    
+            
     
     /**
      * Добавя бутон за Изпращане в единичен изглед
@@ -1048,6 +1165,10 @@ class email_Outgoings extends core_Master
             if ($mvc->haveRightFor('email')) {
                 $retUrl = array($mvc, 'single', $data->rec->id);
                 $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+            }
+            if ($mvc->haveRightFor('fax')) {
+                $retUrl = array($mvc, 'single', $data->rec->id);
+                $data->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-fax');    
             }
         }
     }

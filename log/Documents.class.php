@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_Log extends core_Manager
+class log_Documents extends core_Manager
 {
     
     
@@ -69,13 +69,13 @@ class doc_Log extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper,  plg_Created';
+    var $loadList = 'log_Wrapper,  plg_Created';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $listFields = 'createdOn=Кога, createdBy=Кой/Какво, containerId=Кое, actionText=Резултат';
+    var $listFields = 'userNdate=Кой/кога, action=Какво, containerId=Кое, data=Обстоятелства';
     
     /**
      * Масов-кеш за историите на контейнерите по нишки
@@ -130,7 +130,7 @@ class doc_Log extends core_Manager
         // MID на документа
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
         
-        $this->FLD('parentId', 'key(mvc=doc_Log, select=action)', 'input=none,caption=Основание');
+        $this->FLD('parentId', 'key(mvc=log_Documents, select=action)', 'input=none,caption=Основание');
         
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
         $this->FLD("data", "blob", 'caption=Обстоятелства,column=none');
@@ -145,7 +145,7 @@ class doc_Log extends core_Manager
      * 
      * @param string $action
      * @param int    $cid key(mvc=doc_Containers)
-     * @param int    $parentId key(mvc=doc_Log)
+     * @param int    $parentId key(mvc=log_Documents)
      * @param mixed  $details
      * @return string|boolean MID на новосъздадения запис или FALSE при неуспех
      */
@@ -274,137 +274,6 @@ class doc_Log extends core_Manager
         
         return $rec;
     }
-    
-    
-    /**
-     * Отразява факта, че споделен документ е видян от текущия потребител.
-     *
-     * Ако документа е споделен с текущия потребител, метода отразява виждането му в историята.
-     *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param int $threadId key(mvc=doc_Threads)
-     */
-    public static function viewed($containerId, $threadId = NULL)
-    {
-        expect($containerId);
-        
-        // Отбелязваме като видяни само документи, които не са чернови (state != draft)
-        if (doc_Containers::getDocState($containerId) == 'draft') {
-            return;
-        }
-        
-        // С кои потребители е споделен документа
-        $sharedWith = doc_Containers::getShared($containerId);
-        $currentUserId = core_Users::getCurrent();
-        
-        if (!type_Keylist::isIn($currentUserId, $sharedWith)) {
-            // Документа не е споделен с текущия потребител - не правим нищо
-            return;
-        }
-        
-        if (empty($threadId)) {
-            // Извличаме $threadId, в случай, че не е подадено като параметър
-            $threadId = doc_Containers::fetchField($containerId, 'threadId');
-        }
-        
-        expect($threadId);
-        
-        if (static::isViewedBefore($threadId, $containerId, $currentUserId)) {
-            // Документа е бил виждан преди от текущия потребител и това е отразено в историята
-            // Не правим нищо.
-            return;
-        }
-        
-        // Правим запис, за да отразим факта, че текущия потребител вижда посочения документ
-        // за първи път.
-        
-        $rec = new stdClass();
-        
-        $rec->action      = 'viewed';
-        $rec->containerId = $containerId;
-        $rec->threadId    = $threadId;
-        
-        /*
-         * Забележка: plg_Created ще попълни полетата createdBy (кой е видял документа) и 
-         *               createdOn (кога е станало това)
-         */
-        
-        return static::save($rec);
-    }
-    
-    /**
-     * Помощен метод за проверка дали даден потребител е виждал този документ и преди
-     *
-     * (... и това вече е отразено в историята). Целта е в историята да се отразява само
-     * първото виждане на даден документ от даден потребител.
-     *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param int $threadId key(mvc=doc_Threads)
-     * @param int $userId key(mvc=core_Users) NULL означава текущия потребител
-     * @return boolean TRUE - документът вече е маркиран като видян от потребителя;
-     *                           FALSE - в противен случай.
-     *
-     */
-    protected static function isViewedBefore($threadId, $containerId, $userId = NULL)
-    {
-        if (!isset($userId)) {
-            // не е зададен потребител - вземаме текущия
-            $userId = core_Users::getCurrent();
-        }
-        
-        // Първо проверяваме кешираната история
-        if (isset(static::$histories[$threadId])) {
-            if ($histRecs = static::$histories[$threadId][$containerId]->recs) {
-                // Имаме кеширана история на документа
-                foreach ($histRecs as $r) {
-                    if ($r->action == 'viewed' && $r->createdBy == $userId) {
-                        // Документа е бил виждан преди от този потребител
-                        return TRUE;
-                    }
-                }
-            }
-        } else {
-            // Няма кешинара история - проверяваме директно в БД
-            // Това (предполагам) ще се изпълнява само за документи, които са първи в 
-            // нишката си и при това са споделени с $userId
-            if (static::fetch(
-                    "#containerId = {$containerId} 
-                    AND #action = 'viewed' 
-                    AND #createdBy = {$userId}")) {
-                // Документа е бил виждан преди от този потребител
-                return TRUE;
-            }
-        }
-        
-        // Няма данни в историята, че зададения потребител е виждал този документ
-        return FALSE;
-    }
-    
-    
-    /**
-     * Отразява факта, че документ е отпечатан
-     *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return string MID
-     */
-    public static function printed($containerId, $threadId = NULL)
-    {
-        return static::add(self::ACTION_PRINT, $containerId);
-    }
-    
-
-    /**
-     * Отразява факта, че документ е изпратен по имейл
-     *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param mixed $data допълнителни данни свързани с изпращането
-     * @return string MID
-     */
-    public static function sent($containerId, $data = NULL)
-    {
-        return static::add(self::ACTION_SEND, $containerId);
-    }
 
 
     public static function returned($mid, $date = NULL)
@@ -525,8 +394,8 @@ class doc_Log extends core_Manager
     /**
      * Изпълнява се след всеки запис в модела
      *
-     * @param doc_Log $mvc
-     * @param int $id key(mvc=doc_Log)
+     * @param log_Documents $mvc
+     * @param int $id key(mvc=log_Documents)
      * @param stdClass $rec запис на модела, който е бил записан в БД
      */
     static function on_AfterSave($mvc, $id, $rec)
@@ -547,45 +416,21 @@ class doc_Log extends core_Manager
      * @param int $threadId key(mvc=doc_Threads)
      * @return array ключ е contanerId, стойност - историята на този контейнер
      */
-    public static function prepareThreadHistory($threadId)
+    protected static function prepareThreadHistory($threadId)
     {
         if (!isset(static::$histories[$threadId])) {
-            static::$histories[$threadId] = static::loadHistory($threadId);
+            $cacheKey = static::getHistoryCacheKey($threadId);
+        
+            if (($history = core_Cache::get(static::CACHE_TYPE, $cacheKey)) === FALSE) {
+                // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
+                $history = static::buildThreadHistory($threadId);
+                core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, '2 дена');
+            }
+            
+            static::$histories[$threadId] = $history;
         }
         
         return static::$histories[$threadId];
-    }
-    
-    /**
-     * Зарежда историята на нишка. Проверява в кеша, ако я няма - преизчислява записва в кеша.
-     *
-     * @see core_Cache
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return array историята на нишката, във вида в който я връща @link doc_Log::prepareThreadHistory()
-     */
-    protected static function loadHistory($threadId)
-    {
-        $cacheKey = static::getHistoryCacheKey($threadId);
-        
-        if (($history = core_Cache::get(static::CACHE_TYPE, $cacheKey)) === FALSE) {
-            // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
-            $history = static::buildThreadHistory($threadId);
-            core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, '2 дена');
-        }
-        
-        // Прибавяме историята на изпращанията / получаванията / връщанията
-        $sentHistory = email_Sent::loadHistory($threadId, $history);
-        
-        foreach ($sentHistory as $containerId => $h) {
-            if (isset($history[$containerId]->summary)) {
-                $history[$containerId]->summary = array_merge($history[$containerId]->summary, $h->summary);
-            } else {
-                $history[$containerId] = $h;
-            }
-        }
-        
-        return $history;
     }
     
     
@@ -621,17 +466,13 @@ class doc_Log extends core_Manager
      * @return array масив с ключ $containerId (на контейнерите от $threadId, за които има запис
      *                  в историята) и стойности - обекти (stdClass) със следната структура:
      *
-     *     ->summary => array(
-     *         'returned' => {брой връщания}, // след изпращане на документа по имейл
-     *         'received' => {брой получавания},
-     *         'sent'     => {брой изпращания}, // колко пъти документа е бил изпратен по имейл
-     *         'printed'  => {брой отпечатвания},
-     *         'viewed'   => {брой виждания}, // брои се само първото виждане за всеки потребител
+     *  ->summary => array(
+     *         [ACTION1] => брой,
+     *         [ACTION2] => брой,
+     *         ...
      *     )
-     *
+     *         
      *  ->containerId - контейнера, чиято история се съдържа в обекта (за удобство)
-     *
-     *  ->recs - масив от всички записи на този модел за контейнера $containerId
      */
     protected static function buildThreadHistory($threadId)
     {
@@ -643,26 +484,6 @@ class doc_Log extends core_Manager
         
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
-            switch ($rec->action) {
-                case 'sent' :
-                    $rec->data = unserialize($rec->data);
-                    
-                    if (isset($rec->returnedOn)) {
-                        $data[$rec->containerId]->summary['returned'] += 1;
-                    }
-                    
-                    if (isset($rec->receivedOn)) {
-                        $data[$rec->containerId]->summary['received'] += 1;
-                    }
-                    break;
-                case 'viewed' :
-                    break;
-                case 'printed' :
-                    break;
-                default :
-                //expect(FALSE, "Неочаквана стойност: {$rec->action}");
-            }
-            
             $data[$rec->containerId]->summary[$rec->action] += 1;
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
@@ -677,63 +498,13 @@ class doc_Log extends core_Manager
      * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Threads)
      */
-    public static function prepareContainerHistory($containerId, $threadId)
+    protected static function prepareContainerHistory($containerId, $threadId)
     {
         $threadHistory = static::prepareThreadHistory($threadId);
         
         return $threadHistory[$containerId];
     }
-    
-    
-    /**
-     * Шаблон (@link core_ET) с историята на документ.
-     *
-     * @param stdClass $data обект, който вече е бил подготвен чрез @link doc_Log::prepareHistory()
-     * @return core_ET
-     * @deprecated
-     */
-    public static function renderHistory($data)
-    {
-        $tpl = new core_ET();
-        
-        $tplString = <<<EOT
-              <ul class="history detailed">
-                <!--ET_BEGIN ROW-->
-                    <li class="row [#action#]">
-                        <span class="verbal">На</span>
-                        <span class="date">[#date#]</span> 
-                        <span class="user">[#createdBy#]</span>
-                        <span class="action">[#actionText#]</span>
-                    </li>
-                <!--ET_END ROW-->
-            </ul>
-EOT;
-        
-        $tpl = new core_ET($tplString);
-        
-        // recToVerbal
-        $rows = array();
-        
-        if ($data->recs) {
-            foreach ($data->recs as $i=>$rec) {
-                static::formatAction($rec, $rows[$i]);
-            }
-        } else {
-            return '';
-        }
-        
-        $rowTpl = $tpl->getBlock('ROW');
-        
-        foreach ($rows as $i=>$row) {
-            $rowTpl->placeObject($row);
-            $rowTpl->append2Master();
-        }
-        
-        $tpl->removeBlocks();
-        
-        return $tpl;
-    }
-    
+
     
     /**
      * @todo Чака за документация...
@@ -742,82 +513,38 @@ EOT;
     {
         static $wordings = NULL;
         
-        $tplString = <<<EOT
-              <ul class="history summary">
-                <!--ET_BEGIN sent-->
-                    <li class="sent"><b>[#sent#]</b> <span>[#sentVerbal#]</span></li>
-                <!--ET_END sent-->
-                <!--ET_BEGIN received-->
-                    <li class="received"><b>[#received#]</b> <span>[#receivedVerbal#]</span></li>
-                <!--ET_END received-->
-                <!--ET_BEGIN returned-->
-                    <li class="returned"><b>[#returned#]</b> <span>[#returnedVerbal#]</span></li>
-                <!--ET_END returned-->
-                <!--ET_BEGIN printed-->
-                    <li class="printed"><b>[#printed#]</b> <span>[#printedVerbal#]</span></li>
-                <!--ET_END printed-->
-                <!--ET_BEGIN shared-->
-                    <li class="shared"><b>[#shared#]</b> <span>[#sharedVerbal#]</span></li>
-                <!--ET_END shared-->
-                <!--ET_BEGIN detailed-->
-                    <li class="detailed"><b>&nbsp;&nbsp;</b> [#detailed#]</li>
-                <!--ET_END detailed-->
-            </ul>
-EOT;
-        
-        $tpl = new core_ET($tplString);
+        if (empty($data->summary)) {
+            return '';
+        }
         
         if (!isset($wordings)) {
             $wordings = array(
-                'sent'     => array('изпращане', 'изпращания'),
-                'received' => array('получаване', 'получавания'),
-                'returned' => array('връщане', 'връщания'),
-                'printed'  => array('отпечатване', 'отпечатвания'),
-                'shared'   => array('споделяне', 'споделяния'),
+                static::ACTION_SEND    => array('изпращане', 'изпращания'),
+                static::ACTION_RECEIVE => array('получаване', 'получавания'),
+                static::ACTION_RETURN  => array('връщане', 'връщания'),
+                static::ACTION_PRINT   => array('отпечатване', 'отпечатвания'),
+                static::ACTION_OPEN   => array('показване', 'показвания'),
             );
         }
         
-        if (isset($data->summary['sent'])) {
-            $data->summary["sentVerbal"] = ht::createLink(
-                tr($wordings['sent'][intval($data->summary['sent'] > 1)]),
-                array(
-                    'email_Sent', 'list', 'containerId' => $data->containerId
-                )
+        $html = '';
+        
+        foreach ($data->summary as $action=>$count) {
+            $actionVerbal = $action;
+            if (isset($wordings[$action])) {
+                $actionVerbal = $wordings[$action][intval($count > 1)];
+            }
+            
+            $link = ht::createLink(
+                "<b>{$count}</b> <span>{$actionVerbal}</span>", 
+                array(get_called_class(), 'list', 'containerId'=>$data->containerId)
             );
+            $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
         
-        if (isset($data->summary['received'])) {
-            $data->summary["receivedVerbal"] = ht::createLink(
-                tr($wordings['received'][intval($data->summary['received'] > 1)]),
-                array(
-                    'email_Sent', 'list', 'containerId' => $data->containerId
-                )
-            );
-        }
+        $html = "<ul class=\"history summary\">{$html}</ul>";
         
-        if (isset($data->summary['returned'])) {
-            $data->summary["returnedVerbal"] = ht::createLink(
-                tr($wordings['returned'][intval($data->summary['returned'] > 1)]),
-                array(
-                    'email_Sent', 'list', 'containerId' => $data->containerId
-                )
-            );
-        }
-        
-        if (isset($data->summary['printed'])) {
-            $data->summary["printedVerbal"] = ht::createLink(
-                tr($wordings['printed'][intval($data->summary['printed'] > 1)]),
-                array(
-                    'doc_Log', 'list', 'containerId' => $data->containerId
-                )
-            );
-        }
-        
-        $tpl->placeObject($data->summary);
-        
-        $tpl->removeBlocks();
-        
-        return $tpl;
+        return $html;
     }
     
     
@@ -958,62 +685,15 @@ EOT;
         $row->createdBy = static::getVerbal($rec, 'createdBy');
         $row->action    = $rec->action;
         
-        switch ($rec->action) {
-            case 'sent' :
-                $row->createdBy .= ' '
-                . '<span class="verbal">'
-                . tr('изпрати до')
-                . '</span>'
-                . ' '
-                . '<span class="email">'
-                . $rec->data['toEml']
-                . '</span>';
-                
-                if ($rec->receivedOn) {
-                    $row->actionText .=
-                    '<b class="received">'
-                    . '<span class="verbal">'
-                    . tr('получено')
-                    . '</span>'
-                    . ': '
-                    . '<span class="date">'
-                    . static::getVerbal($rec, 'receivedOn')
-                    . '</span>'
-                    . '</b>';
-                }
-                
-                if ($rec->returnedOn) {
-                    $row->actionText .=
-                    '<b class="returned">'
-                    . '<span class="verbal">'
-                    . tr('върнато')
-                    . '</span>'
-                    . ': '
-                    . '<span class="date">'
-                    . static::getVerbal($rec, 'returnedOn')
-                    . '</span>'
-                    . '</b>';
-                }
-                break;
-            case 'viewed' :
-                $row->createdBy .= ' '
-                . '<span class="verbal">'
-                . tr('видя')
-                . '</span>';
-                break;
-            case 'printed' :
-                $row->createdBy .= ' '
-                . '<span class="print action">'
-                . '<span class="verbal">'
-                . tr('отпечата')
-                . '</span>'
-                . '</span>';
-                break;
-            default :
-            expect(FALSE, "Неочаквана стойност: {$rec->action}");
-        }
+        $row->createdBy = '<div>' . $row->createdBy . '</div>';
         
-        $row->createdBy = '<div style="text-align: right;">' . $row->createdBy . '</div>';
+        $row->userNdate = $row->createdBy . $row->createdOn;
+        
+        ob_start();
+        print_r($rec->data);
+        $dataStr = ob_get_clean();
+        
+        $row->data = "<pre>{$dataStr}</pre>";
     }
     
     
@@ -1048,9 +728,12 @@ EOT;
      */
     static function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
-        if ($data->doc) {
-            $row = $data->doc->getDocumentRow();
-            $tpl = '<div class="listTitle">История на документ "<b>' . $row->title . '</b>"</div>';
+        /* @var $doc doc_DocumentIntf */
+        $doc = $data->doc;
+        
+        if ($doc) {
+            $row = $doc->getDocumentRow();
+            $tpl = '<div class="listTitle">' . $doc->getLink() . '</div>';
         }
     }
     

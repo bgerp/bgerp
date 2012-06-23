@@ -1131,17 +1131,22 @@ ul.history b {
 	font-weight: bold;
 }
 
-ul.history .sent b {
+ul.history .action.send b {
     background-color:green;	
 }
-ul.history .received b {
+ul.history .action._received b {
     background-color:blue;
 }
-ul.history .returned b {
+ul.history .action._returned b {
     background-color:red !important;
 }
-ul.history .printed b {
+ul.history .action.print b {
     background-color:#777;
+}
+
+ul.history .action.open b {
+    background-color:#ccc;
+	color: #333;
 }
 
 ul.history .detailed b {

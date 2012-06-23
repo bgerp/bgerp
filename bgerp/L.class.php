@@ -149,7 +149,7 @@ class bgerp_L extends core_Manager
             $history = array();
 
             if ($mid) {
-                $parent = doc_Log::fetchHistoryFor($cid, $mid);
+                $parent = log_Documents::fetchHistoryFor($cid, $mid);
             }
             
             if (!empty($parent)) {
@@ -158,10 +158,10 @@ class bgerp_L extends core_Manager
                 
                 $details = array(); // @TODO попълване с IP и пр.
                 
-                doc_Log::pushAction(
+                log_Documents::pushAction(
                     array(
                         'containerId' => $cid,
-                        'action'      => doc_Log::ACTION_OPEN, 
+                        'action'      => log_Documents::ACTION_OPEN, 
                         'parentId'    => $parent->id, 
                         'details'     => $details
                     )
@@ -169,7 +169,7 @@ class bgerp_L extends core_Manager
                 
                 $html   = $doc->getDocumentBody('xhtml');
                 
-                doc_Log::popAction();
+                log_Documents::popAction();
                 
                 Mode::set('wrapper', 'page_External');
                 

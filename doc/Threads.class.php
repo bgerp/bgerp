@@ -1008,7 +1008,7 @@ class doc_Threads extends core_Manager
         $className = $oDoc->className;
         
         //Вземаме записите на класа
-        $classRec = $className::fetch($firstContId);
+        $classRec = $className::fetch($oDoc->that);
         
         //Връщаме езика
         return $classRec->lg;

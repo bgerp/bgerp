@@ -85,9 +85,9 @@ class doc_DocumentPlg extends core_Plugin
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->singleIcon, '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         
         if (Request::get('Printing') && empty($data->__MID__)) {
-            $data->__MID__ = doc_Log::saveAction(
+            $data->__MID__ = log_Documents::saveAction(
                 array(
-                    'action'      => doc_Log::ACTION_PRINT, 
+                    'action'      => log_Documents::ACTION_PRINT, 
                     'containerId' => $data->rec->containerId,
                 )
             );
@@ -826,10 +826,10 @@ class doc_DocumentPlg extends core_Plugin
         
         // MID се генерира само ако :
         //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
-        //     o има зададен екшън - doc_Log::hasAction()
-        if (!Mode::is('text', 'html') && doc_Log::hasAction()) {
+        //     o има зададен екшън - log_Documents::hasAction()
+        if (!Mode::is('text', 'html') && log_Documents::hasAction()) {
             if (!isset($options->__mid)) {
-                $data->__MID__ = doc_Log::saveAction(
+                $data->__MID__ = log_Documents::saveAction(
                     array('containerId' => $data->rec->containerId)
                 );
                 if (is_object($options)) {
@@ -1000,16 +1000,16 @@ class doc_DocumentPlg extends core_Plugin
         
         switch (strtolower($type)) {
             case 'pdf':
-                doc_Log::pushAction(
+                log_Documents::pushAction(
                     array(
-                        'action' => doc_Log::ACTION_PDF,
+                        'action' => log_Documents::ACTION_PDF,
                         'containerId' => $mvc->getContainer($id)->id,
                     )
                 );
                 
                 $html = $mvc->getDocumentBody($id, 'xhtml');
                 
-                doc_Log::popAction();
+                log_Documents::popAction();
                 
                 //Манипулатора на новосъздадения pdf файл
                 $res = doc_PdfCreator::convert($html, $fileName);

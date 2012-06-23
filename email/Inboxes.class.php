@@ -161,7 +161,7 @@ class email_Inboxes extends core_Master
         $this->FLD('ssl', 'varchar', 'caption=Сертификат');
         
         // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
-        $this->FLD('applyRouting', 'enum(yes=Да, no=Не)', 'notNull,caption=Сортиране на писмата');
+        $this->FLD('applyRouting', 'enum(yes=Да, no=Не)', 'notNull,caption=Общ (екипен)');
         
         // Поле, показващо, кога за последен път е имало пълно синхронизиране със сметката
         $this->FLD('lastFetchAll', 'datetime', 'caption=Последно източване,input=none');
@@ -198,6 +198,7 @@ class email_Inboxes extends core_Master
     
     /**
      * Преди вкарване на запис в модела, проверява дали има вече регистрирана корица
+     * и криптира паролата
      */
     static function on_BeforeSave($mvc, $id, &$rec)
     {
@@ -208,6 +209,10 @@ class email_Inboxes extends core_Master
         }
         
         $rec->email = "{$name}@{$domain}";
+        
+        if (isset($rec->password)) {
+            $rec->password = core_Crypt::encodeVar($rec->password);    
+        }
     }
     
     
@@ -302,7 +307,7 @@ class email_Inboxes extends core_Master
             $eRec->access = "private";
             $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
             $eRec->type = 'internal';
-            $eRec->applyRouting = 'yes';
+            $eRec->applyRouting = 'no';
             $eRec->email = $email;
             $eRec->name = $nick;
             
@@ -322,7 +327,7 @@ class email_Inboxes extends core_Master
     {
         $rec = static::fetch("#email LIKE '%{$domain}' AND #applyRouting = 'yes'");
 
-        return $domain;
+        return $rec;
     }
     
     
@@ -457,5 +462,36 @@ class email_Inboxes extends core_Master
         
         //Връщаме inCharge id' то
         return $rec->inCharge;
+    }
+    
+    
+    /**
+     * Кутиите, от които е позволено на даден потребител да изпраща писма
+     * 
+     * По дефиниция, това са активните кутии, които или са собственост на потребителя или са
+     * споделени с него.
+     * 
+     * @param int $userId key(mvc=core_Users) ако е NULL - текущия потребител
+     * @return array ключ - PK на кутия, стойност - имейл адреса на кутия. Този масив е готов за
+     *                      използване като $options на полета от тип type_Key.
+     */
+    static function getAllowedFrom($userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#inCharge = {$userId} OR #shared LIKE '%|{$userId}|%'");
+        $query->where("#state = 'active'");
+
+        $result = array();
+        
+        while ($rec = $query->fetch()) {
+            $result[$rec->id] = $rec->email;
+        }
+        
+        return $result;
     }
 }

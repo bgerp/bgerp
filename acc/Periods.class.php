@@ -89,13 +89,16 @@ class acc_Periods extends core_Manager
      * Изчислява полето 'title'
      */
     static function on_CalcTitle($mvc, $rec) {
+    	
+    	$conf = core_Packs::getConfig('core');
+    	
         $title = array();
         
         if (!isset($rec->start)) {
             $mvc->on_CalcStart($mvc, $rec);
         }
         
-        $format = Mode::is('screenMode', 'narrow') ? EF_DATE_NARROW_FORMAT : EF_DATE_FORMAT;
+        $format = Mode::is('screenMode', 'narrow') ? $conf->EF_DATE_NARROW_FORMAT : $conf->EF_DATE_FORMAT;
         
         if ($rec->start) {
             $title[] = 'от ' . dt::mysql2verbal($rec->start, $format);

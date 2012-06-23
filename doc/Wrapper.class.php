@@ -88,8 +88,6 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Search', 'Търсене');
         
-        $tabs->TAB('doc_Log', 'История');
-        
         $tabs->TAB('doc_UnsortedFolders', 'Кюпове', doc_UnsortedFolders::haveRightFor('list') ? NULL : array());
         
         $tabs->TAB('doc_Tasks', 'Задачи');

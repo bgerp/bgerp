@@ -56,6 +56,9 @@
 		    <!--ET_BEGIN buzCompanyId-->
 		    <div><b>[#buzCompanyId#]</b></div>
 		    <!--ET_END buzCompanyId-->
+		    <!--ET_BEGIN buzPosition-->
+		    <div>|Длъжност|*:&nbsp;<b>[#buzPosition#]</b></div>
+		    <!--ET_END buzPosition-->
 		    <!--ET_BEGIN buzTel-->
 		    <div>|Тел.|*:&nbsp;<b>[#buzTel#]</b></div>
 		    <!--ET_END buzTel-->

@@ -92,7 +92,7 @@ class bgerp_Setup {
         // Пакети, които ще се инсталират при инсталацията на bgERP
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,acc,currency,doc,cms,
                   email,cat,catpr,crm,blast,rfid,hr,trz,catering,lab,store,trans,cash,bank,
-                  budget,purchase,sales,accda,sens,cams,hclean,cal,fax,markdown";
+                  budget,purchase,sales,accda,sens,cams,hclean,cal,fax,markdown,log";
 
         if(defined('EF_PRIVATE_PATH')) {
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));

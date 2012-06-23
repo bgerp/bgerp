@@ -183,7 +183,7 @@ class doc_Comments extends core_Master
             $tpl = new ET('|*' . getFileContent('doc/tpl/SingleLayoutComments.txt'));
         } else {
             //Ако не сме в текстов режим показваме (ако има) с кого е споделен файла
-            $tpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
+            $tpl->replace(log_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
         }
     }
     

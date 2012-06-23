@@ -105,11 +105,15 @@ class email_Setup
             'email_Inboxes',
             'email_Router',
             'email_Addresses',
+            'email_FaxSent',
         );
         
         // Роля ръководител на организация 
         // Достъпни са му всички папки и документите в тях
         $role = 'email';
+        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        
+        $role = 'fax';
         $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();

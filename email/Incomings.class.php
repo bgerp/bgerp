@@ -181,12 +181,11 @@ class email_Incomings extends core_Master
     /**
      * Взема записите от пощенската кутия и ги вкарва в модела
      *
-     * @param number $oneMailId - Потребителя, за когото ще се проверяват записите.
-     * Ако е празен, тогава ще се проверяват за всички.
-     * @param boolean $deleteFetched TRUE - изтрива писмото от IMAP при успешно изтегляне
-     * @return boolean
+     * @param string $htmlRes
+     *
+     * @return string $logMsg - Съобщение с броя на новите имейли
      */
-    function getMailInfo($oneMailId = FALSE, $deleteFetched = FALSE, &$htmlRes = NULL)
+    function getMailInfo(&$htmlRes = NULL)
     {
     	$conf = core_Packs::getConfig('email');
     	
@@ -194,17 +193,17 @@ class email_Incomings extends core_Master
         
         $accQuery = email_Inboxes::getQuery();
         
-        // Нулираме броячите за различните получени писма
-        $skipedEmails = $skipedServiceEmails = $errorEmails = $newEmails = 0;
-        
         while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
+            
+            // Нулираме броячите за различните получени писма
+            $skipedEmails = $skipedServiceEmails = $errorEmails = $newEmails = 0;
             
             /* @var $imapConn email_Imap */
             $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
                     'port' => $accRec->port,
                     'user' => $accRec->user,
-                    'pass' => $accRec->password,
-                    'subHost' => $accRec->subHost,
+                    'pass' => core_Crypt::decodeVar($accRec->password),
+            		'subHost' => $accRec->subHost,
                     'folder' => "INBOX",
                     'ssl' => $accRec->ssl));
             
@@ -356,7 +355,7 @@ class email_Incomings extends core_Master
      * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
      *
      * Вдига флага $rec->isServiceMail в случай, че $rec съдържа служебно писмо.Обработката на
-     * служебни писма включва запис в doc_Log.
+     * служебни писма включва запис в log_Documents.
      *
      * @param stdClass $rec запис на модел email_Incomings
      * @return boolean TRUE ако писмото е служебно
@@ -367,10 +366,10 @@ class email_Incomings extends core_Master
         
         if ($mid = static::isReturnedMail($toEml)) {
             // Върнато писмо
-            $isServiceMail = doc_Log::returned($mid, $date);
+            $isServiceMail = log_Documents::returned($mid, $date);
         } elseif ($mid = static::isReceipt($toEml)) {
             // Разписка
-            $isServiceMail = doc_Log::received($mid, $date, $fromIp);
+            $isServiceMail = log_Documents::received($mid, $date, $fromIp);
         } else {
             // Не служебна поща
         }
@@ -583,18 +582,7 @@ class email_Incomings extends core_Master
     {
         requireRole('admin');
         
-        $mailInfo = $this->getMailInfo(FLASE, FALSE, $htmlRes);
-        
-        return $htmlRes;
-    }
-    
-    
-    /**
-     * Сваля и изтрива от IMAP свалените имейли.
-     */
-    function act_DownloadAndDelete()
-    {
-        $mailInfo = $this->getMailInfo(NULL, TRUE /* изтриване след изтегляне */, $htmlRes);
+        $mailInfo = $this->getMailInfo($htmlRes);
         
         return $htmlRes;
     }

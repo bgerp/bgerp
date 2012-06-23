@@ -11,7 +11,7 @@
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.11
+ * @since     v 0.12
  * @title     Физически лица
  */
 class crm_Persons extends core_Master
@@ -149,6 +149,7 @@ class crm_Persons extends core_Master
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 
             'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData');
+        $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData');
         $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Имейл,class=contactData');
         $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,class=contactData');
         $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,class=contactData');
@@ -298,12 +299,14 @@ class crm_Persons extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         $form = $data->form;
 
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" . BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+            $form->setDefault('country', $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
         }
 
         $mvrQuery = drdata_Mvr::getQuery();
@@ -581,7 +584,7 @@ class crm_Persons extends core_Master
         $cYear = date("Y");
         $years = array($cYear, $cYear + 1, $cYear + 2);
 
-        if($rec->birthday) {
+        if (($rec->birthday) && (stripos($rec->birthday, '?') === FALSE)) {
             list($d, $m, $y) = explode('-', $rec->birthday);
             foreach($years as $year) {
                 $calRec = new stdClass();

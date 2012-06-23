@@ -127,11 +127,13 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         $pQuery = crm_Persons::getQuery();
         
         cls::load('crm_Companies');
         
-        while($pRec = $pQuery->fetch("#buzCompanyId = " . BGERP_OWN_COMPANY_ID)) {
+        while($pRec = $pQuery->fetch("#buzCompanyId = " . $conf->BGERP_OWN_COMPANY_ID)) {
             $options[$pRec->id] = crm_Persons::getVerbal($pRec, 'name');
         }
         
@@ -159,6 +161,8 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         $row = $data->row;
         
         $rec = $data->rec;
@@ -169,7 +173,7 @@ class hr_EmployeeContracts extends core_Master
         
         $row->employeeRec = crm_Persons::fetch($rec->personId);
         
-        $row->employerRec = crm_Companies::fetch(BGERP_OWN_COMPANY_ID);
+        $row->employerRec = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
         
         $row->managerRec = crm_Persons::fetch($rec->managerId);
         
