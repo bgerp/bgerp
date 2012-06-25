@@ -871,9 +871,9 @@ class crm_Persons extends core_Master
                 // името на фирмата
                 if ($rec->buzCompanyId) {
                     crm_Companies::createRoutingRules($rec->buzEmail, $rec->buzCompanyId);
+                } else {
+                    static::createRoutingRules($rec->buzEmail, $rec->id);
                 }
-
-                static::createRoutingRules($rec->buzEmail, $rec->id);
             }
 
             if ($rec->email) {

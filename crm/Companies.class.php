@@ -583,7 +583,7 @@ class crm_Companies extends core_Master
         
         foreach ($query->getDeletedRecs() as $rec) {
             // изтриваме всички правила за рутиране, свързани с визитката
-            email_Router::removeRules('person', $rec->id);
+            email_Router::removeRules('company', $rec->id);
         }
     }
     
