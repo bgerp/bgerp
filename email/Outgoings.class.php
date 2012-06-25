@@ -16,9 +16,9 @@ class email_Outgoings extends core_Master
 {
     
     /**
-     * Папката по подразбиране да е inbox' а на текущия потребител
+     * Папката по подразбиране да е inbox'-а на текущия потребител
      */
-    var $defaultFolder='inbox';
+    var $defaultFolder = 'inbox';
     
 
     /**

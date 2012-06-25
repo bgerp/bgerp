@@ -49,7 +49,7 @@ class email_Inboxes extends core_Master
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, doc_FolderPlg, plg_RowTools';
+    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, doc_FolderPlg, plg_RowTools, plg_CryptStore';
     
     
     /**
@@ -152,7 +152,7 @@ class email_Inboxes extends core_Master
         $this->FLD("type", "enum(internal=Вътрешен, pop3=POP3, imap=IMAP)", 'caption=Тип');
         $this->FLD("server", "varchar", 'caption=Сървър');
         $this->FLD('user', 'varchar', 'caption=Потребителско име');
-        $this->FLD('password', 'password(64)', 'caption=Парола');
+        $this->FLD('password', 'password(64)', 'caption=Парола,crypt');
         $this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Статус');
         $this->FLD('period', 'int', 'caption=Период');
         
@@ -211,7 +211,7 @@ class email_Inboxes extends core_Master
         $rec->email = "{$name}@{$domain}";
         
         if (isset($rec->password)) {
-            $rec->password = core_Crypt::encodeVar($rec->password);    
+            $rec->password = $rec->password;    
         }
     }
     
