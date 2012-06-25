@@ -299,4 +299,18 @@ class email_Router extends core_Manager
         
         return $priority;
     }
+    
+    static function act_TestDateToPriority()
+    {
+        $date = dt::now();
+        
+        ob_start();
+        
+        echo "<pre>";
+        echo "PHP_INT_MAX = " . PHP_INT_MAX . '<br/>';
+        echo "dateToPriority('{$date}', 'low', 'desc') = " . static::dateToPriority($date, 'low', 'desc') . '<br/>';
+        echo "</pre>";
+        
+        return ob_get_clean();
+    }
 }
