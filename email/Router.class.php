@@ -83,7 +83,7 @@ class email_Router extends core_Manager
         $this->FLD('key' , 'varchar(64)', 'caption=Ключ');
         $this->FLD('objectType' , 'enum(person, company, document)');
         $this->FLD('objectId' , 'int', 'caption=Обект');
-        $this->FLD('priority' , 'varchar(12)', 'caption=Приоритет');
+        $this->FLD('priority' , 'varchar(21)', 'caption=Приоритет');
     }
     
     
@@ -299,6 +299,7 @@ class email_Router extends core_Manager
         
         return $priority;
     }
+    
     
     static function act_TestDateToPriority()
     {
