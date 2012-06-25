@@ -107,7 +107,7 @@ class core_Users extends core_Manager
             $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory');
         }
         
-        $this->FLD('ps5Enc', 'varchar(32)', 'caption=Ключ,column=none,input=none');
+        $this->FLD('ps5Enc', 'varchar(38)', 'caption=Ключ,column=none,input=none');
         $this->FNC('password', 'password(autocomplete=on)', 'caption=Парола,column=none,input');
         
         $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=100%');

@@ -27,8 +27,8 @@ class page_Html extends core_ET {
                 "<!DOCTYPE html PUBLIC \"-//WAPFORUM//DTD XHTML Mobile 1.0//EN\" \"http://www.wapforum.org/DTD/xhtml-mobile10.dtd\">" .
                 "\n<html xmlns=\"http://www.w3.org/1999/xhtml\">" :
                 
-                "\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n \"http://www.w3.org/TR/html4/strict.dtd\">" .
-                "<html>") .
+                "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n \"http://www.w3.org/TR/html4/strict.dtd\">" .
+                "\n<html>") .
             
             "\n<head>" .
             "\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=[#ENCODING#]\">" .
