@@ -1169,6 +1169,8 @@ class blast_Emails extends core_Master
     {
         $rec = $this->fetch($id);
         
+        $row = new stdClass();
+        
         $subject = $this->getVerbal($rec, 'subject');
         
         //Ако заглавието е празно, тогава изписва съответния текст
