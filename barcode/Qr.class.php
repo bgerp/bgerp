@@ -2,12 +2,6 @@
 
 
 /**
- * Вкарваме файловете необходими за работа с програмата.
- */
-require_once 'phpqrcode1.1.4/qrlib.php';
-
-
-/**
  * @todo Чака за документация...
  */
 defIfNot('BARCODE_SALT', EF_SALT . '_BARCODE');
@@ -63,11 +57,18 @@ class barcode_Qr extends core_Manager
         // Изпращане на подходящ хедър
         header("Content-Type: image/png");
         
-        //Генерира QR изображение
-        QRcode::png($text, $outFileName, $quality, $pixelPerPoint, $outerFrame);
+        // Параметри за генериране на QR изображение
+        $params = array(
+            'pixelPerPoint' => $pixelPerPoint,
+            'outFileName' => $outFileName,
+            'quality' => $quality,
+            'outerFrame' => $outerFrame,
+        );
         
+        //Генерира QR изображение
+        barcode_Generator::printImg('qr',$text, NULL, $params);
         // След извеждане на баркода, трябва да прекратим скрипта
-        shutdown();
+        //shutdown();
     }
     
     
