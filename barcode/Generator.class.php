@@ -55,19 +55,19 @@ class barcode_Generator extends core_Manager
         $type = strtolower($type);
         
         // Разрешените типове за баркодове
-        $permittedType = array();
-        $permittedType['codabar'] = 'codabar';
-        $permittedType['code11'] = 'code11';
-        $permittedType['code39'] = 'code39';
-        $permittedType['code93'] = 'code93';
-        $permittedType['code128'] = 'code128';
-        $permittedType['ean8'] = 'ean8';
-        $permittedType['ean13'] = 'ean13';
-        $permittedType['std25'] = 'std25';
-        $permittedType['int25'] = 'int25';
-        $permittedType['msi'] = 'msi';
-        $permittedType['datamatrix'] = 'datamatrix';
-        $permittedType['qr'] = 'qr';
+        $permittedType = array( 
+            'codabar',
+            'code11',
+            'code39',
+            'code93',
+            'code128',
+            'ean8',
+            'ean13',
+            'std25',
+            'int25',
+            'msi',
+            'datamatrix',
+            'qr');
         
         // Очакваме да е подаден един от разрешените типове баркод
         expect(in_array($type, $permittedType), "Не се поддържа '{$type}' баркод.");
