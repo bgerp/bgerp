@@ -98,7 +98,11 @@ class email_Services extends core_Manager
         // Ако нещо е останало ...
         if (count($emails) > 0) {
             // ... то се приема за реалния адрес на изпращача на писмото
-            $rec->emailFrom = $emails[0];
+            if (strpos($rec->fromName, $emails[0]) === FALSE) {
+                $rec->fromName .= ' ' . $emails[0];
+            }
+            $rec->fromName .= ' през ' . $serviceRec->title;
+            $rec->fromEml = $emails[0];
         }
     }
     
@@ -137,15 +141,16 @@ class email_Services extends core_Manager
     
     protected static function filterServiceEmails($emails, $serviceRec)
     {
-        return array_filter($emails, function ($email) use ($serviceRec) {
-            return static::isServiceEmail($email, $serviceRec);
+        $self = get_called_class();
+        
+        return array_filter($emails, function ($email) use ($serviceRec, $self) {
+            return !$self::isServiceEmail($email, $serviceRec);
         });
     }
     
     
-    protected static function isServiceEmail($email, $serviceRec)
+    public static function isServiceEmail($email, $serviceRec)
     {
-        bp($email);
         return FALSE; // @TODO
     }
 }
