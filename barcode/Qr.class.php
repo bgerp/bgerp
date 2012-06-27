@@ -55,7 +55,7 @@ class barcode_Qr extends core_Manager
     static function getImg($text, $pixelPerPoint = 3, $outerFrame = 0, $quality = 'L', $outFileName = NULL)
     {
         // Изпращане на подходящ хедър
-        header("Content-Type: image/png");
+        // header("Content-Type: image/png");
         
         // Параметри за генериране на QR изображение
         $params = array(
