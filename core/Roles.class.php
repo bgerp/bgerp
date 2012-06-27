@@ -303,11 +303,50 @@ class core_Roles extends core_Manager
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
+        $id = $form->rec->id;
+        
         // Ако формата е субмитната и редактираме запис
-        if ($form->isSubmitted() && ($form->rec->id)) {
+        if ($form->isSubmitted() && ($id)) {
             
             // Всички наследени роли на съответния запис
             $mvc->oldInheritRecs = $mvc->fetchField($form->rec->id, 'inherit');
+            
+            if ($mvc->oldInheritRecs == $form->rec->inherit) return ;
+
+            // Проверява роля да не наследява себе си
+            if (type_Keylist::isIn($id, $form->rec->inherit)) {
+                $role = $mvc->getVerbal($form->rec, 'role');
+                $form->setError('inherit', "|Не може да се наследи ролята, която редактирате:|* '{$role}'");
+            }
+            
+            // Проверяваме роля да не наследява роля, на която е родител
+            if (!$form->gotErrors()) {
+                
+                // Масив с наследените роли
+                $inheritArr = type_Keylist::toArray($form->rec->inherit);
+                
+                // За всяка наследена роля
+                foreach ($inheritArr as $inhertId) {
+                    
+                    // Намираме вземаме всички роли, на които е родител
+                    $rolesArr = self::getRolesArr($inhertId);
+                    
+                    // Ако текущата роля, е родител
+                    if ($rolesArr[$id]) {
+                        
+                        // Показваме съобщение за грешка
+                        $role = core_Roles::getVerbal($inhertId, 'role');
+                        
+                        // Записваме всички наследници
+                        $errorInh .= ($errorInh) ? ', ' . $role : $role;
+                    }
+                }
+                
+                // Ако има грешки
+                if ($errorInh) {
+                    $form->setError('inherit', "|Не може да се наследи роля, която наслядава текущата роля:|* '{$errorInh}'");  
+                }    
+            }
         }
     }
     
@@ -421,7 +460,10 @@ class core_Roles extends core_Manager
                 
                 // Обновяваме записа
                 core_Users::save($nRec);
-            }    
+            }
+            
+            // Обновява всички роли при промяна на избраната, която се явява родител
+            self::updateAllRolesDuringEdit($rec->id, $mvc->oldInheritRecs);
         }
         
         // Нулираме статичната променлива
@@ -479,6 +521,9 @@ class core_Roles extends core_Manager
             // Обновяваме записа
             core_Users::save($nRec);
         }
+        
+        // Изтрива всички роли при промяна на избраната, която се явява родител
+        self::updateAllRolesDuringDel($cond);
     }
     
     
@@ -533,7 +578,7 @@ class core_Roles extends core_Manager
      * 
      * @param integer $id - id' то на ролята, за която ще се търсят наследените роли
      * 
-     * @return string $ - Стринг с всички роли, включително и зададената
+     * @return string $allRoles - Стринг с всички роли, включително и зададената
      */
     static function getInheritRoles($id)
     {
@@ -564,5 +609,113 @@ class core_Roles extends core_Manager
         $allRoles .= $id . '|';
         
         return $allRoles;
+    }
+    
+    
+    /**
+     * Изтрива всички роли при промяна на избраната, която се явява родител
+     * 
+     * @param integer $id - id' то на записа, който се изтрива
+     * 
+     * @access private
+     */
+    static function updateAllRolesDuringDel($id)
+    {
+        // Записа, който ще се изтрие /родител/
+        $deletingRec = core_Roles::fetch($id);
+        
+        // Масив с всички наследени роли
+        $inhDeletingRec = type_Keylist::toArray($deletingRec->inherit);
+        
+        // Заяка към таблицата с ролите
+        $query = core_Roles::getQuery();
+        
+        // Вземаме всички роли, които наследяват текущата
+        $query->where("#inherit LIKE '%|{$id}|%'");
+        
+        // Обикаляме всички открити роли /наследници/
+        while ($rolesRec = $query->fetch()) {
+            
+            // Масив с ролите, които наследява
+            $inheritArr = type_Keylist::toArray($rolesRec->inherit);
+            
+            // Обикаляме всички наследени роли на ролята, която се изтрива
+            foreach ($inhDeletingRec as $inhRecId) {
+                
+                // Премахваме ролята от масива на наследниците
+                unset($inheritArr[$inhRecId]);
+            }
+            
+            // Премахваме ролята на родителя от масива с наследените роли на наследниците
+            unset($inheritArr[$id]);
+            
+            // Записваме редактираните данние
+            $nRec = new stdClass();
+            $nRec->id = $rolesRec->id;
+            $nRec->inherit = type_Keylist::fromArray($inheritArr); 
+
+            core_Roles::save($nRec);
+        }
+    }
+    
+    
+    /**
+     * Обновява всички роли при промяна на избраната, която се явява родител
+     * 
+     * @param integer $id - id' то на записа, който се променя
+     * @param type_Keylist $oldInheritRecs - Наследените роли преди да се запишат данните
+     * 
+     * @access private
+     */
+    static function updateAllRolesDuringEdit($id, $oldInheritRecs)
+    {
+        // Роля, която се редактира
+        $editingRec = core_Roles::fetch($id);
+        
+        // Масив с наследениете роли, след промяната 
+        $newInheritRecsArr = type_Keylist::toArray($editingRec->inherit);
+
+        // Масив с наследените роли, преди промяната
+        $oldInheritRecsArr = type_Keylist::toArray($oldInheritRecs);
+        
+        // Масив с изтритите роли
+        $delInheritRecsArr = array_diff($oldInheritRecsArr, $newInheritRecsArr);
+        
+        // Масив с добавените роли
+        $addInheritRecsArr = array_diff($newInheritRecsArr, $oldInheritRecsArr);
+        
+        // Заяка към таблицата с ролите
+        $query = core_Roles::getQuery();
+        
+        // Вземаме всички роли, които наследяват текущата
+        $query->where("#inherit LIKE '%|{$id}|%'");
+        
+        // Обикаляме всички открити роли /наследници/
+        while ($rolesRec = $query->fetch()) {
+            
+            // Ролите на съответния потребител
+            $uRolesArr = type_Keylist::toArray($rolesRec->inherit);
+            
+            // Обикаляме ролите, които трябва да се изтрият
+            foreach ($delInheritRecsArr as $delVal) {
+                
+                // Изтриваме ролята
+                unset($uRolesArr[$delVal]);
+            }
+            
+            // Обикаляме ролите, които трябва да се добавят
+            foreach ($addInheritRecsArr as $addVal) {
+                
+                // Добавяме ролята
+                $uRolesArr[$addVal] = $addVal;
+            }
+            
+            // Записваме редактираните данние
+            $nRec = new stdClass();
+            $nRec->id = $rolesRec->id;
+            $nRec->inherit = type_Keylist::fromArray($uRolesArr); 
+
+            core_Roles::save($nRec);
+        }
     }
 }
