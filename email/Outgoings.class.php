@@ -1167,8 +1167,15 @@ class email_Outgoings extends core_Master
                 $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
             }
             if ($mvc->haveRightFor('fax')) {
-                $retUrl = array($mvc, 'single', $data->rec->id);
-                $data->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-fax');    
+                
+                //Броя на класовете, които имплементират интерфейса email_SentFaxIntf
+                $clsCount = core_Classes::getInterfaceCount('email_SentFaxIntf');
+        
+                //Ако нито един клас не имплементира интерфейса
+                if ($clsCount) {
+                    $retUrl = array($mvc, 'single', $data->rec->id);
+                    $data->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-fax');      
+                }
             }
         }
     }
