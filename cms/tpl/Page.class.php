@@ -49,26 +49,28 @@ class cms_tpl_Page extends page_Html {
                 [#PAGE_HEADER#]
             </div>
             <div id=\"menu\" class='menuRow'>
-                [#cms_Content::getMenu#]
+                [#CMS_MENU#]
             </div>
             <div id=\"maincontent\" {$minHeighStyle}>
                 <div class='statuses' id='statuses' style='margin: 0 auto;'>
                     [#STATUSES#]
                 </div>
-                <div class='row'>
-                    <div class='fourcol' id='navigation' style='padding-top:20px;padding-left:20px;'>
-                        [#NAVIGATION#]
-                    </div>
-                    <div class='sevencol'  style='padding-top:20px;'>
-                        [#PAGE_CONTENT#]                    
-                     </div>
-                </div>
+                 [#CMS_LAYOUT#]
              </div>
             [#cms_Content::getFooter#] 
          </div>"), 
         'PAGE_CONTENT');
+
+        // Добавка за разпознаване на браузъра
         $Browser = cls::get('core_Browser');
         $this->append($Browser->renderBrowserDetectingCode());
+
+        // Добавяме основното меню
+        $this->replace(cms_Content::getMenu(), 'CMS_MENU');
+        
+        // Добавяме лейаута
+        $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
+
     }
 
     

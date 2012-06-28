@@ -89,7 +89,7 @@ class cms_Articles extends core_Master
         $cQuery = cms_Content::getQuery();
         
         $selfClassId = core_Classes::fetchIdByName($mvc->className);
-        $cQuery->where("#source = {$selfClassId}");
+
         while($cRec = $cQuery->fetch()) {
             $options[$cRec->id] = $cRec->menu;
         } 
@@ -115,39 +115,42 @@ class cms_Articles extends core_Master
     }
 
 
+
+    /**
+     *
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->title = ht::createLink($row->title, array($mvc, 'Article', $rec->vid ? $rec->vid : $rec->id));
+    }
+
+
     function act_Article()
     {   
         Mode::set('wrapper', 'cms_tpl_Page');
-
+ 
         $id = Request::get('id', 'int');
         
         if(!$id) { 
-            $menuId = Request::get('menuId', 'int');
-            expect($menuId);
-            $query = self::getQuery();
-            $query->where("#menuId = {$menuId}");
-            $query->orderBy("#createdOn=DESC");
-            $rec = $query->fetch();
+            $menuId =  Mode::get('cMenuId');
+            expect($menuId, $menuId);
         } else {
             // Ако има, намира записа на страницата
-            $rec = $this->fetch($id);
+            $rec = self::fetch($id);
         }
         
         if($rec) {
 
             $menuId = $rec->menuId;
 
-            $lArr = explode('.', $this->getVerbal($rec, 'level'));
+            $lArr = explode('.', self::getVerbal($rec, 'level'));
 
-            $content = new ET('[#1#]', $this->getVerbal($rec, 'body'));
+            $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
 
-            $title   = $this->getVerbal($rec, 'title') . " » ";
+            $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
-
-            $content->prepend($title, 'PAGE_TITLE');
+            $content->prepend($ptitle, 'PAGE_TITLE');
         }
-        
-        Mode::set('cms_MenuId', $menuId);
 
         if(!$content) $content = new ET();
 
@@ -160,14 +163,38 @@ class cms_Articles extends core_Master
 
         while($rec1 = $query->fetch()) {
             
-            $lArr1 = explode('.', $this->getVerbal($rec1, 'level'));
+            $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
 
-            if($lArr1[2] && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) continue;
+            if($lArr) {
+                if($lArr1[2] && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) continue;
+            }
 
-            $title = $this->getVerbal($rec1, 'title');
+            $title = self::getVerbal($rec1, 'title');
+
+
+            if(!$rec && $rec1->body) {
+
+                // Това е първата срещната статия
+
+                $id = $rec1->id;
+
+                $rec = self::fetch($id);
+
+                $menuId = $rec->menuId;
+
+                $lArr = explode('.', self::getVerbal($rec, 'level'));
+
+                $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
+
+                $ptitle   = self::getVerbal($rec, 'title') . " » ";
+
+                $content->prepend($ptitle, 'PAGE_TITLE');
+
+            }
 
             $class = ($rec->id == $rec1->id) ? $class = 'sel_page' : '';
- 
+
+
             if($lArr1[2]) {
                 $class .= ' level3';
             } elseif($lArr1[1]) {
@@ -178,34 +205,34 @@ class cms_Articles extends core_Master
 
             $navTpl->append("<div class='nav_item {$class}'>");
             if(trim($rec1->body)) {
-                $navTpl->append(ht::createLink($title, array($this, 'Article', $rec1->vid ? $rec1->vid : $rec1->id)));
+                $navTpl->append(ht::createLink($title, array('cms_Articles', 'Article', $rec1->vid ? $rec1->vid : $rec1->id)));
             } else {
                $navTpl->append($title);
             }
             
-            if($this->haveRightFor('edit', $rec1)) {
+            if(self::haveRightFor('edit', $rec1)) {
                 $navTpl->append('&nbsp;');
                 $navTpl->append(ht::createLink( '<img src=' . sbf("img/16/edit.png") . ' width="12" height="12">', 
-                    array($this, 'Edit', $rec1->id, 'ret_url' => array($this, 'Article', $rec1->id)))); 
+                    array('cms_Articles', 'Edit', $rec1->id, 'ret_url' => array('cms_Articles', 'Article', $rec1->id)))); 
             }
 
             $navTpl->append("</div>");
 
         }
         
-        if($this->haveRightFor('add')) {
+        if(self::haveRightFor('add')) {
             $navTpl->append( "<div style='padding:2px; border:solid 1px #ccc; background-color:#eee; margin-top:10px;font-size:0.7em'>");
-            $navTpl->append(ht::createLink( tr('+ добави страница'), array($this, 'Add', 'menuId' => $menuId, 'ret_url' => array($this, 'Article', 'menuId' => $menuId))));
+            $navTpl->append(ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId))));
             $navTpl->append( "</div>");
         }
 
+        Mode::set('cMenuId', $menuId);
 
         $content->append($navTpl, 'NAVIGATION');
 
         $content->replace($title, 'META_KEYWORDS');
 
         return $content;
-
     }
     
     
