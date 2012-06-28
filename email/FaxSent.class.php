@@ -91,11 +91,11 @@ class email_FaxSent extends core_Manager
     {
         $this->requireRightFor('send');
         
-        //Класове, които имплементират интерфейса email_SentFaxIntf
-        $intf = core_Classes::getOptionsByInterface('email_SentFaxIntf');
+        //Броя на класовете, които имплементират интерфейса email_SentFaxIntf
+        $clsCount = core_Classes::getInterfaceCount('email_SentFaxIntf');
 
         //Ако нито един клас не имплементира интерфейса
-        if (!count($intf)) {
+        if (!$clsCount) {
             core_Statuses::add('Нямате инсталирана факс услуга.', 'warning');   
             
             redirect(getRetUrl());
@@ -255,7 +255,7 @@ class email_FaxSent extends core_Manager
         
         //Добавяме към шаблона
         $preview->append($faxHtml, 'FAX_HTML');
-        $preview->append($faxText, 'FAX_TEXT');
+        $preview->append(core_Type::escape($faxText), 'FAX_TEXT');
         
         //Добавяме изгледа към главния шаблон
         $tpl->append($preview);
