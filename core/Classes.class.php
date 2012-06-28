@@ -163,6 +163,35 @@ class core_Classes extends core_Manager
     
     
     /**
+     * Връща броя на класовете, които имплементират интерфейса
+     * 
+     * @param $interface - Името или id' то на интерфейса
+     * 
+     * @return integer - Броя на класовете, които имплементират интерфейса
+     */
+    static function getInterfaceCount($interface)
+    {   
+        if (!is_numeric($interface)) {
+            // Вземаме инстанция на core_Interfaces
+            $Interfaces = cls::get('core_Interfaces');
+            
+            // id' то на интерфейса
+            $interfaceId = $Interfaces->fetchByName($interface);    
+        } else {
+            $interfaceId = $interface;
+        }
+
+        // Очакваме валиден интерфeйс
+        expect($interfaceId);
+        
+        $query = core_Classes::getQuery();
+        $query->where("#state = 'active' AND #interfaces LIKE '%|{$interfaceId}|%'");
+        
+        return $query->count();
+    }
+    
+    
+    /**
      * Връща ид на клас по (име | инстанция | ид)
      *
      * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
