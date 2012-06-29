@@ -47,6 +47,28 @@ foreach($requiredApacheModules as $requiredA){
  */
 $filename = '/var/www/ef_root/conf/bgerp.cfg.php';
 
+/**
+ * Път до конфигурационния файл на php
+ */
+$filePhp =  '/etc/php5/apache2/php.ini';
+
+if(file_exists($filename)){
+	
+	$soap = file_get_contents($filePhp);
+	
+	if(strpos($soap, 'extension=php_soap.dll') === FALSE && 
+	   strpos($soap, ';extension=php_soap.dll') === FALSE) {
+	   	
+	   	halt('Error: Missing SoapClient');
+	   	
+	   } else {
+	   	
+	   	echo "File php.ini is correct"."<br>";
+	   	
+	   }
+	
+}
+
 if(file_exists($filename)){
 	
 	echo "Configuration file $filename exists"."<br>";
