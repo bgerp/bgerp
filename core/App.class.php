@@ -300,14 +300,21 @@ class core_App
         } else {
             header("Content-Length: " . filesize($file));
         }
-
+ 
         // Изпращаме съдържанието към браузъра
         readfile($file);
         
+        flush();
+
         // Копираме файла за директно сервиране от Apache
         // @todo: Да се минимализират .js и .css
         if(!isDebug()) {
             $sbfPath = EF_SBF_PATH . '/' . $name;
+
+            $sbfDir = dirname($sbfPath);
+
+            mkdir($sbfDir, 0777, TRUE);
+
             @copy($file, $sbfPath);
         }
 
