@@ -29,19 +29,13 @@ class page_Wrapper extends core_BaseClass {
         // Зареждаме опаковката 
         $wrapperTpl = cls::get($tplName);
         
-        // Изпращаме на изхода опаковано съдържанието
-        $wrapperTpl->replace($content, 'PAGE_CONTENT');
         
         // Вземаме плейсхолдерите
         $placeHolders = $wrapperTpl->getPlaceHolders();
 
         
-        // Отново вземаме плейсхолдерите
-        $placeHoldersNew = $wrapperTpl->getPlaceHolders();
-        
         // Заместваме специалните плейсхолдери, със съдържанието към което те сочат
-        foreach($placeHoldersNew as $place) {
-            if(!in_array($place, $placeHolders)) continue;
+        foreach($placeHolders as $place) {
             
             $method = explode('::', $place);
 
@@ -53,6 +47,8 @@ class page_Wrapper extends core_BaseClass {
             $wrapperTpl->replace($html, $place);
         }
         
+        // Изпращаме на изхода опаковано съдържанието
+        $wrapperTpl->replace($content, 'PAGE_CONTENT');
 
         $wrapperTpl->output();
     }
