@@ -133,6 +133,10 @@ class cms_Articles extends core_Master
         
         if(!$id) { 
             $menuId =  Mode::get('cMenuId');
+
+            if(!$menuId) {
+                $menuId = Request::get('menuId');
+            }
             expect($menuId, $menuId);
         } else {
             // Ако има, намира записа на страницата
@@ -212,8 +216,9 @@ class cms_Articles extends core_Master
             
             if(self::haveRightFor('edit', $rec1)) {
                 $navTpl->append('&nbsp;');
-                $navTpl->append(ht::createLink( '<img src=' . sbf("img/16/edit.png") . ' width="12" height="12">', 
-                    array('cms_Articles', 'Edit', $rec1->id, 'ret_url' => array('cms_Articles', 'Article', $rec1->id)))); 
+                $navTpl->append(
+                    ht::createLink( '<img src=' . sbf("img/16/edit.png") . ' width="12" height="12">', 
+                                    array('cms_Articles', 'Edit', $rec1->id, 'ret_url' => array('cms_Articles', 'Article', $rec1->id) ))); 
             }
 
             $navTpl->append("</div>");
