@@ -49,23 +49,31 @@ class email_Services extends core_Manager
      */
     function description()
     {
-        $this->FLD('title' , 'varchar', 'caption=Услугата');
+        $this->FLD('title' , 'varchar', 'caption=Заглавие');
         $this->FLD('email' , 'email', 'caption=Имейл на услугата');
-        $this->FLD('convertPatterns' , 'text', 'caption=Шаблони за конвертиране');
+        $this->FLD('subject' , 'varchar', 'caption=Събджект');
+        $this->FLD('body' , 'text', 'caption=Текст');
+        $this->FLD('action' , 'enum(email=По имейл,folder=В папка,spam=Спам)', 'caption=Действие');
+        $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка');
     }
     
     
     /**
-     * Проверява дали входящото писмо е от известна публична услуга
+     * Проверява дали входящото писмо се прихваща от един от записаните в този модел филтри.
      * 
-     * Когато имейла на изпращача ($rec->fromEml) съвпадне с полето #email на модела 
-     * email_Services, се прави опит за определяне на имейла на реалния изпращач. Това става 
-     * като от събджекта ($rec->subject) и текста ($rec->textPart) писмото първо се извлекат
-     * всички имейл адреси, а след това от този списък се премахнат:
+     * В случай, че някой от филтрите сработи, се прави описаното в него действие. Действието 
+     * може да е едно от:
      * 
-     *  o нашите имейл адреси (имейл адресите в домейна BGERP_DEFAULT_EMAIL_DOMAIN)
-     *  o имейл адресите, които е много вероятно да са на доставчика на публичната услуга
-     *  
+     *     o По имейл : имейла на изпращача се подменя с други мейл, намерен в писмото
+     *                  (@see email_Services::prerouteByEmail()) 
+     *     o В папка  : писмото се рутира директно в зададената папка.
+     *     o Спам     : писмото се маркира като спам
+     *     
+     *     
+     * Забележка: Този метод е част от процедурата за рутиране на входяща поща. Той се изпълнява
+     *            веднага след (неуспешен) опит за рутиране директно в нишка 
+     *            (@see email_Incomings::routeByThread()).
+     * 
      * @param stdClass $rec запис от модела email_Incomings
      */
     public static function preroute($rec)
@@ -78,6 +86,34 @@ class email_Services extends core_Manager
             return;
         }
         
+        switch ($rec->action) {
+            case 'email':
+                static::prerouteByEmail($rec, $serviceRec);
+                break;
+            case 'folder':
+                $rec->folderId = $serviceRec->folderId;
+                break;
+            case 'spam':
+                $rec->isSpam = TRUE;
+                break;
+        }
+    }
+    
+    
+    /**
+     * Опит за определяне на имейла на реалния изпращач
+     * 
+     * Това става като от събджекта ($rec->subject) и текста ($rec->textPart) писмото първо се 
+     * извлекат всички имейл адреси, а след това от този списък се премахнат:
+     * 
+     *  o нашите имейл адреси (имейл адресите в домейна BGERP_DEFAULT_EMAIL_DOMAIN)
+     *  o имейл адресите, които е много вероятно да са на доставчика на публичната услуга
+     *  
+     * @param stdClass $rec запис от модела email_Incomings
+     * @param stdClass $serviceRec запис от модела email_Services
+     */
+    protected static function prerouteByEmail($rec, $serviceRec)
+    {
         // Приговяме "супа" от избрани полета на входящото писмо
         $soup = implode(' ',
             array(
@@ -115,7 +151,28 @@ class email_Services extends core_Manager
      */
     protected static function detect($rec)
     {
-        $serviceRec = static::fetch(array("#email = '[#1#]'", $rec->fromEml));
+        $fieldsMap = array(
+            'fromEml'  => 'email',
+            'subject'  => 'subject', 
+            'textPart' => 'body', 
+        ); 
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        
+        foreach ($fieldsMap as $emailField => $patternField) {
+            $query->where(
+                array(
+                    "#{$patternField} IS NULL OR #{$patternField} = ''" .
+                    " OR '[#1#]' LIKE CONCAT('%', #{$patternField}, '%')",
+                    $rec->{$emailField}
+                )
+            );
+        }
+        
+        $query->limit(1);
+        
+        $serviceRec = $query->fetch();
         
         return $serviceRec ? $serviceRec : FALSE;
     }

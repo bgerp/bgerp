@@ -831,20 +831,19 @@ class email_Incomings extends core_Master
         // Правилата за рутиране, подредени по приоритет. Първото правило, след което съобщението
         // има нишка и/или папка прекъсва процеса - рутирането е успешно.
         $rules = array(
-            'ByThread',
-            'ByFromTo',
-            'ByFrom',
-            'Spam',
-            'ByDomain',
-            'ByPlace',
-            'ByTo',
+            'self::routeByThread',
+            'email_Services::preroute',
+            'self::routeByFromTo',
+            'self::routeByFrom',
+            'self::routeSpam',
+            'self::routeByDomain',
+            'self::routeByPlace',
+            'self::routeByTo',
         );
         
         foreach ($rules as $rule) {
-            $ruleMethod = 'route' . $rule;
-            
-            if (method_exists($this, $ruleMethod)) {
-                $this->{$ruleMethod}($rec);
+            if (is_callable($rule)) {
+                call_user_func($rule, $rec);
                 
                 if ($rec->folderId || $rec->threadId) {
                     break;
@@ -864,7 +863,7 @@ class email_Incomings extends core_Master
      *
      * @param stdClass $rec
      */
-    function routeByThread($rec)
+    static function routeByThread($rec)
     {
         $rec->threadId = static::extractThreadFromReplyTo($rec);
         
@@ -875,6 +874,9 @@ class email_Incomings extends core_Master
         if ($rec->threadId) {
             // Премахване на манипулатора на нишката от събджекта
             static::stripThreadHandle($rec);
+            
+            // Зануляваме папката - тя е еднозначно определена от вече намерената нишка.
+            $rec->folderId = NULL;
         }
     }
     
@@ -882,7 +884,7 @@ class email_Incomings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function routeByFromTo($rec)
+    static function routeByFromTo($rec)
     {
         if (!static::isGenericRecipient($rec)) {
             // Това правило не се прилага за "общи" имейли
@@ -894,7 +896,7 @@ class email_Incomings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function routeByFrom($rec)
+    static function routeByFrom($rec)
     {
         if (static::isGenericRecipient($rec)) {
             // Това правило се прилага само за "общи" имейли
@@ -906,9 +908,9 @@ class email_Incomings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function routeSpam($rec)
+    static function routeSpam($rec)
     {
-        if ($this->isSpam($rec)) {
+        if (static::isSpam($rec)) {
             $rec->isSpam = TRUE;
         }
     }
@@ -917,7 +919,7 @@ class email_Incomings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function routeByDomain($rec)
+    static function routeByDomain($rec)
     {
         if (static::isGenericRecipient($rec) && !$rec->isSpam) {
             $rec->folderId = static::routeByRule($rec, email_Router::RuleDomain);
@@ -928,7 +930,7 @@ class email_Incomings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function routeByPlace($rec) {
+    static function routeByPlace($rec) {
         if (static::isGenericRecipient($rec) && !$rec->isSpam && $rec->country) {
             $rec->folderId = $this->forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */);
         }
@@ -1042,7 +1044,7 @@ class email_Incomings extends core_Master
      * @param int $countryId key(mvc=drdata_Countries)
      * @return int key(mvc=doc_Folders)
      */
-    function forceCountryFolder($countryId)
+    static function forceCountryFolder($countryId)
     {
         $folderId = NULL;
         
@@ -1063,7 +1065,7 @@ class email_Incomings extends core_Master
          * 'правилното' място.
          */
         
-        $countryName = $this->getCountryName($countryId);
+        $countryName = static::getCountryName($countryId);
         
 
         if (!empty($countryName)) {
@@ -1081,7 +1083,7 @@ class email_Incomings extends core_Master
     /**
      * Връща името на държавата от която е пратен имейл-а
      */
-    protected function getCountryName($countryId)
+    protected static function getCountryName($countryId)
     {
         if ($countryId) {
             $countryName = drdata_Countries::fetchField($countryId, 'commonName');
