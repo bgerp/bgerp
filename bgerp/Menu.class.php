@@ -188,7 +188,9 @@ class bgerp_Menu extends core_Manager
         
         if(Mode::is('screenMode', 'narrow')) {
             
-            $menuLink = ht::createLink(EF_APP_TITLE, array($this, 'Show'));
+        	$conf = core_Packs::getConfig('core');
+        	
+            $menuLink = ht::createLink($core->EF_APP_TITLE, array($this, 'Show'));
             
             $tpl->append($menuLink , "MENU_ROW");
             

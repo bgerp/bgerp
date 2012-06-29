@@ -16,6 +16,8 @@ class page_External extends page_Html
      */
     function __construct()
     {
+    	$conf = core_Packs::getConfig('core');
+    	
         parent::__construct();
 
         $this->replace("UTF-8", 'ENCODING');
@@ -24,7 +26,7 @@ class page_External extends page_Html
         $this->push(Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css', 'CSS');
         $this->push('js/efCommon.js', 'JS');
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");
-        $this->prepend(EF_APP_TITLE, 'PAGE_TITLE');
+        $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
         $this->replace(new ET("<div class='external'>[#PAGE_CONTENT#]</div>"), "PAGE_CONTENT");
     }
