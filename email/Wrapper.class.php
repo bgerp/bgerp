@@ -38,6 +38,8 @@ class email_Wrapper extends core_Plugin
         }
         
         $tabs->TAB('email_Sent', 'Изпращания');
+
+        $tabs->TAB('email_Services', 'Услуги');
         
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
         
