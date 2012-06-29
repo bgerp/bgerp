@@ -39,38 +39,37 @@ class cms_tpl_Page extends page_Html {
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
         $this->appendOnce("\n<link  rel=\"icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
-        
+    
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
-
-        // $bgImg = sbf('cms/img/bgerp_header.png', '');
-        $bgImg = 'http://printed-bags.net/uploads/bgERP_header_644.jpg';
         
         $this->replace(new ET(
         "<div class='clearfix21' id='all'>
-            <div id=\"framecontentTop\"  class=\"container\" style=\"background-image:url('{$bgImg}');\"> 
+            <div id=\"framecontentTop\"  class=\"container\"> 
                 [#PAGE_HEADER#]
             </div>
             <div id=\"menu\" class='menuRow'>
-                [#cms_Content::getMenu#]
+                [#CMS_MENU#]
             </div>
             <div id=\"maincontent\" {$minHeighStyle}>
                 <div class='statuses' id='statuses' style='margin: 0 auto;'>
                     [#STATUSES#]
                 </div>
-                <div class='row'>
-                    <div class='fourcol' id='navigation' style='padding-top:20px;padding-left:20px;'>
-                        [#NAVIGATION#]
-                    </div>
-                    <div class='sevencol'  style='padding-top:20px;'>
-                        [#PAGE_CONTENT#]                    
-                     </div>
-                </div>
+                 [#CMS_LAYOUT#]
              </div>
             [#cms_Content::getFooter#] 
          </div>"), 
         'PAGE_CONTENT');
+
+        // Добавка за разпознаване на браузъра
         $Browser = cls::get('core_Browser');
         $this->append($Browser->renderBrowserDetectingCode());
+
+        // Добавяме основното меню
+        $this->replace(cms_Content::getMenu(), 'CMS_MENU');
+        
+        // Добавяме лейаута
+        $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
+
     }
 
     

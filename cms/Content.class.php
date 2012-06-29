@@ -56,7 +56,6 @@ class cms_Content extends core_Manager
     {   
         $this->FLD('order', 'order', 'caption=Подредба,mandatory');
         $this->FLD('menu', 'varchar(64)', 'caption=Меню,mandatory');
-        $this->FLD('source', 'class(interface=cms_ContentSourceIntf,select=title)', 'caption=Източник');
         $this->FLD('layout', 'html', 'caption=Лейаут');
 
         $this->setDbUnique('menu');
@@ -82,16 +81,7 @@ class cms_Content extends core_Manager
         
         $query->orderBy('#order');
 
-        while($rec = $query->fetch("#state = 'active'")) {
-            
-            try {
-                unset($cls);
-                $cls = cls::get($rec->source);
-                $rec->url = $cls->getContentUrl($rec->id);
-            } catch (core_Exception_Expect $expect) {}
-
-            $data->items[] = $rec;
-        }
+        $data->items = $query->fetchAll("#state = 'active'");
     }
 
     
@@ -102,20 +92,28 @@ class cms_Content extends core_Manager
     {   
         $tpl = new ET();
         
-        $cmsSelMenuId = Mode::get('cms_MenuId');
+        $cMenuId = Mode::get('cMenuId');
 
         if (is_array($data->items)) {
             foreach($data->items as $rec) {
                 $attr = array();
-                if( ($cmsSelMenuId == $rec->id) || (!$flag && !$cmsSelMenuId)) {
+                if( ($cMenuId == $rec->id)) {
                     $attr['class'] = 'selected';
                 }  
-                $tpl->append(ht::createLink($rec->menu, $rec->url, NULL, $attr));
-                $flag = TRUE;
+                $tpl->append(ht::createLink($rec->menu, array('cms_Content', 'show', $rec->id), NULL, $attr));
             }    
         }
  
         return $tpl;
+    }
+    
+    
+    /**
+     *
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->menu = ht::createLink($row->menu, array($mvc, 'Show',  $rec->vid ? $rec->vid : $rec->id));
     }
 
     
@@ -142,5 +140,53 @@ class cms_Content extends core_Manager
                  </div>';
     }
     
+     
+    /**
+     * Връща футера на страницата
+     */
+    static function getLayout()
+    {
+        $cMenuId = Mode::get('cMenuId');
+        
+        if($cMenuId) {
+
+            $l = self::fetchField($cMenuId, 'layout');
+            
+            if($l) $tpl = new ET($l);
+
+        } 
+
+        if(!$tpl) {
+            $tpl = new ET("<div class='row'>
+                    <!--ET_BEGIN NAVIGATION-->
+                    <div class='fourcol' id='navigation' style='padding-top:20px;padding-left:20px;'>
+                        [#NAVIGATION#]
+                    </div>
+                    <!--ET_END NAVIGATION-->
+                    <div class='sevencol'  style='padding-top:20px;'>
+                        [#PAGE_CONTENT#]
+                     </div>
+                </div>");
+        }
+
+        return $tpl;
+    }
+
+
+    
+    /**
+     *
+     */
+    function act_Show()
+    {  
+        expect($menuId = Request::get('id'));
+
+        Mode::set('cMenuId', $menuId);
+        
+        Request::push(array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => 0));
+       
+        return Request::forward();
+    }
+   
     
  }

@@ -32,12 +32,6 @@ class doc_RichTextPlg extends core_Plugin
     
     
     /**
-     * Масив с всички абревиатури и съответните им класове
-     */
-    static $abbrArr = NULL;
-    
-    
-    /**
      * Обработваме елементите линковете, които сочат към докъментната система
      */
     function on_AfterCatchRichElements($mvc, &$html)
@@ -70,12 +64,12 @@ class doc_RichTextPlg extends core_Plugin
         
         //id' то на файла
         $id = $match['id'];
-
-        //Вземаме всички класове и техните абревиатури от документната система
-        self::setAbbr();
         
+        // Вземаме всички класове и техните абревиатури от документната система
+        $abbrArr = doc_Containers::getAbbr();
+
         //Името на класа
-        $className = self::$abbrArr[$abbr];
+        $className = $abbrArr[$abbr];
         
         //Проверяваме дали дали сме открили клас или имаме права за single. Ако нямаме - връщаме името без да го заместваме
         if ((!$className) || (!$className::haveRightFor('single', $id))) return $match[0];
@@ -120,19 +114,6 @@ class doc_RichTextPlg extends core_Plugin
 
 
     /**
-     * Сетва всички класове и техните абревиатури от документната система
-     */
-    static function setAbbr()
-    {
-        //Ако не е сетната
-        if (!self::$abbrArr) {
-            //Вземаме всички класове и техните абревиатури от документната система
-            self::$abbrArr = doc_Containers::getAbrr();
-        }
-    }
-
-
-    /**
      * Намира всички документи към системата.
      *
      * @param string $rt - Стринг, в който ще търсим.
@@ -147,17 +128,17 @@ class doc_RichTextPlg extends core_Plugin
         //Ако сме открили нещо
         if (count($matches['dsName'])) {
             
-            //Вземаме всички класове и техните абревиатури от документната система
-            self::setAbbr();
-            
             //Обхождаме всички намерени думи
             foreach ($matches['abbr'] as $key => $abbr) {
                 
                 //Преобразуваме абревиатурата от намерения стринг в главни букви
                 $abbr = strtoupper($abbr);
                 
+                // Вземаме всички класове и техните абревиатури от документната система
+                $abbrArr = doc_Containers::getAbbr();
+                
                 //Името на класа
-                $className = self::$abbrArr[$abbr];
+                $className = $abbrArr[$abbr];
                 
                 //id' то на класа
                 $id = $matches['id'][$key];
@@ -191,14 +172,14 @@ class doc_RichTextPlg extends core_Plugin
         //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
         preg_match("/(?'name'(?'abbr'[a-z]+)(?'id'[0-9]+))/i", $fileName, $matches);
         
-        //Вземаме всички класове и техните абревиатури от документната система
-        self::setAbbr();
-        
         //Преобразуваме абревиатурата от намерения стринг в главни букви
         $abbr = strtoupper($matches['abbr']);
         
+        // Вземаме всички класове и техните абревиатури от документната система
+        $abbrArr = doc_Containers::getAbbr();
+        
         //Името на класа
-        $className = self::$abbrArr[$abbr];
+        $className = $abbrArr[$abbr];
         
         //id' то на класа
         $id = $matches['id'];

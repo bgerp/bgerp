@@ -66,6 +66,12 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Масив с всички абревиатури и съответните им класове
+     */
+    static $abbrArr = NULL;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -636,7 +642,20 @@ class doc_Containers extends core_Manager
     /**
      * Връща абревиатурата на всички класов, които имплементират doc_DocumentIntf
      */
-    static function getAbrr()
+    static function getAbbr()
+    {
+        if (!self::$abbrArr) {
+            self::setAbrr();
+        }
+        
+        return self::$abbrArr;
+    }
+    
+    
+    /**
+     * Задава абревиатурата на всички класов, които имплементират doc_DocumentIntf
+     */
+    static function setAbrr()
     {
         //Проверяваме дали записа фигурира в кеша
         $abbr = core_Cache::get('abbr', 'allClass', 1440, array('core_Classes', 'core_Interfaces'));
@@ -668,8 +687,7 @@ class doc_Containers extends core_Manager
             core_Cache::set('abbr', 'allClass', $abbr, 1440, array('core_Classes', 'core_Interfaces'));
         }
         
-        //Връщаме резултата
-        return $abbr;
+        self::$abbrArr = $abbr;
     }
     
     
