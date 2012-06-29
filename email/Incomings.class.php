@@ -808,14 +808,6 @@ class email_Incomings extends core_Master
     }
     
     
-    function on_BeforeRoute($mvc, &$res, $rec)
-    {
-        $res = $rec;
-        
-        email_Services::preroute($res);
-    }
-    
-    
     /**
      * Рутиране на писмо още преди записването му.
      *

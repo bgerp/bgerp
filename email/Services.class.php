@@ -86,7 +86,7 @@ class email_Services extends core_Manager
             return;
         }
         
-        switch ($rec->action) {
+        switch ($serviceRec->action) {
             case 'email':
                 static::prerouteByEmail($rec, $serviceRec);
                 break;
