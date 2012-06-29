@@ -26,6 +26,8 @@ class cms_tpl_Page extends page_Html {
      */
     function cms_tpl_Page()
     {
+    	$conf = core_Packs::getConfig('core');
+    	
         $this->page_Html();
 
         $this->replace("UTF-8", 'ENCODING');
@@ -38,7 +40,7 @@ class cms_tpl_Page extends page_Html {
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
         $this->appendOnce("\n<link  rel=\"icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
         
-        $this->prepend(EF_APP_TITLE, 'PAGE_TITLE');
+        $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
 
         // $bgImg = sbf('cms/img/bgerp_header.png', '');
         $bgImg = 'http://printed-bags.net/uploads/bgERP_header_644.jpg';
