@@ -344,7 +344,7 @@ class core_Roles extends core_Manager
                 
                 // Ако има грешки
                 if ($errorInh) {
-                    $form->setError('inherit', "|Не може да се наследи роля, която наслядава текущата роля:|* '{$errorInh}'");  
+                    $form->setError('inherit', "|Не може да се наследи роля, която наследява текущата роля:|* '{$errorInh}'");  
                 }    
             }
         }
