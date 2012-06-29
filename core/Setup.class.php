@@ -2,6 +2,12 @@
 
 
 /**
+ * Вербално заглавие на приложението
+ */
+DEFINE('EF_APP_TITLE', 'This Application Title');
+
+
+/**
  * Дали да се презаписват .htaccess файловете?
  * Може да се зададе друга стойност в конфигурационния файл (напр. conf/bgerp.cfg.php)
  */
@@ -86,6 +92,8 @@ class core_Setup {
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int'), 
 
            'EF_DEFAULT_LANGUAGE'   => array ('varchar'),
+    
+           'EF_APP_TITLE'   => array ('varchar'),
            
     
         );
