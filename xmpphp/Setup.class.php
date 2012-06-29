@@ -81,11 +81,11 @@ class xmpphp_Setup
     var $configDescription = array(
         
                
-           'XMPPHP_SERVER'   => array ('varchar', 'mandatory'),
+           'XMPPHP_SERVER'   => array ('varchar'),
     
-           'XMPPHP_PORT'   => array ('int', 'mandatory'),
+           'XMPPHP_PORT'   => array ('int'),
      
-           'XMPPHP_DOMAIN'   => array ('varchar', 'mandatory'),
+           'XMPPHP_DOMAIN'   => array ('varchar'),
     
            'XMPPHP_USER'   => array ('identifier', 'mandatory'),
     

@@ -53,7 +53,7 @@ class prosms_Setup
     var $configDescription = array (
         'PROSMS_URL' => array('url', 'mandatory'),
         'PROSMS_USER' => array('identifier', 'mandatory'),
-        'PROSMS_PASS' => array('password', ''),
+        'PROSMS_PASS' => array('password', 'mandatory'),
         );
     
     /**
