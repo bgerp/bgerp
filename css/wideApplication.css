@@ -1297,6 +1297,7 @@ select {
 	padding-left:3px;
 	padding-right:3px;
 	display: inline-block;
+	border:solid 1px transparent;
 }
 
 #cmsNavigation .level1 {
