@@ -135,9 +135,7 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        return '<div id="framecontentBottom" class="container">
-                    <small>&nbsp; Copyright © 1997-2012 Experta OOD</small>
-                 </div>';
+        return '<small>&nbsp; Copyright © 1997-2012 Experta OOD</small>';
     }
     
      
@@ -159,7 +157,7 @@ class cms_Content extends core_Manager
         if(!$tpl) {
             $tpl = new ET("<div class='row'>
                     <!--ET_BEGIN NAVIGATION-->
-                    <div class='fourcol' id='navigation' style='padding-top:20px;padding-left:20px;'>
+                    <div class='fourcol' id='cmsNavigation' style='padding-top:20px;padding-left:20px;'>
                         [#NAVIGATION#]
                     </div>
                     <!--ET_END NAVIGATION-->

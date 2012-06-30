@@ -8,280 +8,76 @@ body{
 	text-align:center;
 }
 
-#framecontentTop {
-	background-repeat:no-repeat;
-	display:block;
-	width:1000px;
-	height:287px;
-	-moz-border-radius-topright:10px;
-	-moz-border-radius-topleft:10px;
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
+#cmsTop {
 	background-image: url('../img/bgERP.jpg');
 }
 
-.narrow #framecontentTop {
+.narrow #cmsTop {
 	background-image: url('../img/bgERP.jpg') !important;
 }
 
-#menu {
+#cmsMenu {
 	  background-color:#333;
 	  color:#333 !important;
-	  padding-top:10px;
-	  padding-bottom:10px;
-	  text-align:center;
-	  -webkit-touch-callout: none;
-	  -webkit-user-select: none;
-	  -khtml-user-select: none;
-	  -moz-user-select: none;
-	  -ms-user-select: none;
-	  user-select: none;
 }
 
-#menu a {
+#cmsMenu a {
 	color:#ddd;
-	font-size:1.2em;
-	padding:4px;
-	margin-left:20px;
-	margin-right:20px;
+	border:solid 1px #333;
 	text-shadow:2px 2px 2px #000;
 	-moz-border-radius:5px;
 	border-radius: 5px;
-	border:solid 1px #333;
-	white-space:nowrap;
 }
 
-#menu a:hover {
+#cmsMenu a:hover {
   color:#fff;
 }
 
-#menu a.selected {
+#cmsMenu a.selected {
   color:#fff;
   background-color:#99f;
 }
 
 
-#framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
-	display:block;
- 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
+#cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
 	background-color:#ccc;
 	color: white;
 }
 
 
-#framecontentBottom {
+#cmsBottom {
 	background-color: #333;
-	font-size:1.2em;
-	padding:0px;
-	padding-top:10px;
-	padding-bottom:10px;
-	border: solid 0px red;
-	display:block;
-	width:1000px;
 }
 
 #all {
-	width:1000px;
-	display:block;
 	border: solid 1px #777;
-	margin-left: auto ;
-	margin-right: auto ;
-	margin-top: 10px ;
 	border-bottom: solid 1px #000;
-	text-align:left;
-	-moz-border-radius-topright:10px;
-	-moz-border-radius-topleft:10px;
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
-	margin-bottom:10px;
 }
 
-#maincontent{
+#maincontent {
 	background-color:white;
 }
 
-
-#navigation div.nav_item {
-	padding:1px;
-	font-family:Trebuchet MS, Geneva, Tahoma,sans-serif;
-}
-
-
-
-#navigation   a {
+ 
+#cmsNavigation a {
 	color:#336;
-	-moz-border-radius:3px;
-	border-radius: 3px;
-	padding-left:1px;
-	padding-right:1px;
 }
 
-#navigation .sel_page a {
+#cmsNavigation .sel_page a {
 	color:#334;
 	background:#ddf;
 	border:solid 1px #ccf;
 }
 
-#navigation .level1 {
-	font-size:16px;
-	font-weight:bold;
-	margin-top:10px;
-	margin-bottom:2px;
+#cmsNavigation .level1 {
 	color:#333;
 }
 
-#navigation div:first-child {
-	margin-top:0px !important;
+#cmsNavigation div:first-child {
 }
 
-#navigation .level2 {
-	margin-top:0px;
-	margin-bottom:2px;
-	font-size:15px;
-	margin-left:10px;
+#cmsNavigation .level2 {
 }
 
-#navigation .level3 {
-	margin-top:1px;
-	margin-bottom:2px;
-	font-size:14px;
-	margin-left:20px;
-}
-
-
-
-
-/* ==================================================================================================================== */
-/* ! The 1140px Grid V2 by Andy Taylor \ http://cssgrid.net \ http://www.twitter.com/andytlr \ http://www.andytlr.com   */
-/* ==================================================================================================================== */
-
-.container {
-	padding-left: 20px;
-	padding-right: 20px;
-}
-
-.row {
-	width: 100%;
-	max-width: 1024px;
-	min-width: 755px;
-	margin: 0 auto;
-	overflow: hidden;
-}
-
-.onecol, .twocol, .threecol, .fourcol, .fivecol, .sixcol, .sevencol, .eightcol, .ninecol, .tencol, .elevencol {
-	margin-right: 3.8%;
-	float: left;
-	min-height: 1px;
-}
-
-.row .onecol {
-	width: 4.85%;
-}
-
-.row .twocol {
-	width: 13.45%;
-}
-
-.row .threecol {
-	width: 22.05%;
-}
-
-.row .fourcol {
-	width: 30.73%;
-}
-
-.row .fivecol {
-	width: 39.45%;
-}
-
-.row .sixcol {
-	width: 48%;
-}
-
-.row .sevencol {
-	width: 56.75%;
-}
-
-.row .eightcol {
-	width: 65.3%;
-}
-
-.row .ninecol {
-	width: 74.05%;
-}
-
-.row .tencol {
-	width: 82.7%;
-}
-
-.row .elevencol {
-	width: 91.35%;
-}
-
-.row .twelvecol {
-	width: 100%;
-	float: left;
-}
-
-.last {
-	margin-right: 0px;
-}
-
-img, object, embed {
-	max-width: 100%;
-}
-
-img {
-	height: auto;
-}
-
-@media handheld, only screen and (max-width: 1000px) {
-
-	#framecontentTop {
-		-moz-border-radius-topright:0px;
-		-moz-border-radius-topleft:0px;
-		border-top-left-radius: 0px;
-		border-top-right-radius: 0px;
-	}
-
-	#all {
-		margin-top:0px;
-		margin-bottom:0px;
-	}
-	
-}
-
-/* Mobile */
-
-@media handheld, only screen and (max-width: 767px) {
-
-	body {
-	font-size: 16px;
-		-webkit-text-size-adjust: none;
-	}
-
-
-	#framecontentTop, #all, #row, #framecontentBottom { width: 100% !important; } 
-
-	.row, body, .container {
-		width: 100%;
-		min-width: 0;
-		margin-left: 0px;
-		margin-right: 0px;
-		padding-left: 0px;
-		padding-right: 0px;
-	}
-	
-	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol, .row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol {
-		width: auto;
-		float: none;
-		margin-left: 0px;
-		margin-right: 0px;
-		padding-left: 20px;
-		padding-right: 20px;
-	}
-	
-	#menu a {margin-left:2px; margin-right:2px; font-size:0.8em;)
-
-
+#cmsNavigation .level3 {
 }
