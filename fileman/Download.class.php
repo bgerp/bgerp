@@ -345,23 +345,26 @@ class fileman_Download extends core_Manager {
         //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
-            $gUrl = "http://docs.google.com/viewer?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
-            $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Google viewer' src=" . sbf('fileman/img/google.png', '"', $isAbsolute) . '>'; 
-            $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
-        }
-        
-        if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) { 
-            $gUrl = "https://viewer.zoho.com/docs/urlview.do?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
-            $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Zoho viewer' src=" . sbf('fileman/img/zoho.png', '"', $isAbsolute) . '>'; 
-            $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
-        }
-        
-        if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) { 
-            $gUrl = "http://pixlr.com/editor/?s=c&image=" .urlencode( static::getDownloadUrl($fh, 1)  ) . "&title=" . urlencode($fRec->name) . "&target=" . '' . "&exit=" . '' . ""; 
-            $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Pixlr' src=" . sbf('fileman/img/pixlr.png', '"', $isAbsolute) . '>'; 
-            $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
-        }
+        try {
+            if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
+                $gUrl = "http://docs.google.com/viewer?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
+                $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Google viewer' src=" . sbf('fileman/img/google.png', '"', $isAbsolute) . '>'; 
+                $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
+            }
+            
+            if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) { 
+                $gUrl = "https://viewer.zoho.com/docs/urlview.do?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
+                $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Zoho viewer' src=" . sbf('fileman/img/zoho.png', '"', $isAbsolute) . '>'; 
+                $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
+            }
+            
+            if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) { 
+                $gUrl = "http://pixlr.com/editor/?s=c&image=" .urlencode( static::getDownloadUrl($fh, 1)  ) . "&title=" . urlencode($fRec->name) . "&target=" . '' . "&exit=" . '' . ""; 
+                $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Pixlr' src=" . sbf('fileman/img/pixlr.png', '"', $isAbsolute) . '>'; 
+                $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
+            }
+        } core_Exception_Expect $expect) {}
+
         
         if($tools) {
             $link = "<div class='rowtools'><div class='l'>$link</div>{$tools}</div>";
