@@ -697,12 +697,12 @@ input.contactData {
 /* ! The 1140px Grid V2 by Andy Taylor \ http://cssgrid.net \ http://www.twitter.com/andytlr \ http://www.andytlr.com   */
 /* ==================================================================================================================== */
 
-.container {
+.cms-container {
 	padding-left: 20px;
 	padding-right: 20px;
 }
 
-.row {
+.cms-row {
 	width: 100%;
 	max-width: 1024px;
 	min-width: 755px;
@@ -716,31 +716,31 @@ input.contactData {
 	min-height: 1px;
 }
 
-.row .onecol {
+.cms-row .onecol {
 	width: 4.85%;
 }
 
-.row .twocol {
+.cms-row .twocol {
 	width: 13.45%;
 }
 
-.row .threecol {
+.cms-row .threecol {
 	width: 22.05%;
 }
 
-.row .fourcol {
+.cms-row .fourcol {
 	width: 30.73%;
 }
 
-.row .fivecol {
+.cms-row .fivecol {
 	width: 39.45%;
 }
 
-.row .sixcol {
+.cms-row .sixcol {
 	width: 48%;
 }
 
-.row .sevencol {
+.cms-row .sevencol {
 	width: 56.75%;
 }
 
@@ -748,11 +748,11 @@ input.contactData {
 	width: 65.3%;
 }
 
-.row .ninecol {
+.cms-row .ninecol {
 	width: 74.05%;
 }
 
-.row .tencol {
+.cms-row .tencol {
 	width: 82.7%;
 }
 
@@ -760,12 +760,12 @@ input.contactData {
 	width: 91.35%;
 }
 
-.row .twelvecol {
+.cms-row .twelvecol {
 	width: 100%;
 	float: left;
 }
 
-.last {
+.cms-last {
 	margin-right: 0px;
 }
 
@@ -795,10 +795,9 @@ img {
 
 /* Mobile */
 
-@media handheld, only screen and (max-width: 767px) {
+@media handheld, only screen and (max-width: 950px) {
 
 	body {
-		font-size: 16px;
 		-webkit-text-size-adjust: none;
 	}
 
@@ -827,9 +826,41 @@ img {
 	}
 	
 	#cmsMenu a {
+		margin-left:8px;
+		margin-right:8px;
+		font-size:1.1em;
+	)
+}
+
+
+@media handheld, only screen and (max-width: 800px) {
+	#cmsMenu a {
+		margin-left:5px;
+		margin-right:5px;
+		font-size:1em;
+	)
+}
+
+@media handheld, only screen and (max-width: 760px) {
+	#cmsMenu a {
+		margin-left:3px;
+		margin-right:3px;
+		font-size:0.90em;
+	)
+}
+
+@media handheld, only screen and (max-width: 700px) {
+	#cmsMenu a {
+		margin-left:2px;
+		margin-right:2px;
+		font-size:0.85em;
+	)
+}
+
+@media handheld, only screen and (max-width: 600px) {
+	#cmsMenu a {
 		margin-left:2px;
 		margin-right:2px;
 		font-size:0.8em;
 	)
 }
-

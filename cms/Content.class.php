@@ -155,7 +155,7 @@ class cms_Content extends core_Manager
         } 
 
         if(!$tpl) {
-            $tpl = new ET("<div class='row'>
+            $tpl = new ET("<div class='cms-row'>
                     <!--ET_BEGIN NAVIGATION-->
                     <div class='fourcol' id='cmsNavigation' style='padding-top:20px;padding-left:20px;'>
                         [#NAVIGATION#]

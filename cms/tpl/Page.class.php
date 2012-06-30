@@ -44,7 +44,7 @@ class cms_tpl_Page extends page_Html {
         
         $this->replace(new ET(
         "<div class='clearfix21' id='all'>
-            <div id=\"cmsTop\"  class=\"container\"> 
+            <div id=\"cmsTop\"> 
                 [#PAGE_HEADER#]
             </div>
             <div id=\"cmsMenu\" class='menuRow'>
@@ -56,7 +56,7 @@ class cms_tpl_Page extends page_Html {
                 </div>
                  [#CMS_LAYOUT#]
              </div>
-             <div id=\"cmsBottom\" class=\"container\">
+             <div id=\"cmsBottom\">
                 [#cms_Content::getFooter#]
              </div>
          </div>"), 
