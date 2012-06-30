@@ -190,7 +190,7 @@ class bgerp_Menu extends core_Manager
             
         	$conf = core_Packs::getConfig('core');
         	
-            $menuLink = ht::createLink($core->EF_APP_TITLE, array($this, 'Show'));
+            $menuLink = ht::createLink($conf->EF_APP_TITLE, array($this, 'Show'));
             
             $tpl->append($menuLink , "MENU_ROW");
             
