@@ -22,6 +22,8 @@ class fileman_DialogWrapper extends core_Plugin
      */
     function on_afterRenderDialog($invoker, &$tpl)
     {
+    	$conf = core_Packs::getConfig('core');
+    	
         if(strtolower(Request::get('Act')) == 'dialog') {
             
             Mode::set('wrapper', 'fileman_view_DialogWrapper');
@@ -77,7 +79,7 @@ class fileman_DialogWrapper extends core_Plugin
             
             $tpl->prepend('<br>');
             
-            $tpl->prepend(tr($this->info->title) . " « " . EF_APP_TITLE, 'PAGE_TITLE');
+            $tpl->prepend(tr($this->info->title) . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
             
             return TRUE;
         }
