@@ -363,7 +363,7 @@ class fileman_Download extends core_Manager {
                 $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Pixlr' src=" . sbf('fileman/img/pixlr.png', '"', $isAbsolute) . '>'; 
                 $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
             }
-        } core_Exception_Expect $expect) {}
+        } catch (core_Exception_Expect $expect) {}
 
         
         if($tools) {
