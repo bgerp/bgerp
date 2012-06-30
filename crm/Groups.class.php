@@ -32,7 +32,7 @@ class crm_Groups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected';
+    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected, doc_FolderPlg';
     
     
     /**
@@ -40,13 +40,17 @@ class crm_Groups extends core_Manager
      */
     var $listFields = 'order,title=Заглавие,companiesCnt,personsCnt';
     
-    // Поле за инструментите
+    
+    /**
+     * Поле за инструментите
+     */
     var $rowToolsField = 'order';
+    
     
     /**
      * Права
      */
-    var $canWrite = 'crm,admin';
+    var $canWrite = 'user';
     
     
     /**

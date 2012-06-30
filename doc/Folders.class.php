@@ -187,7 +187,7 @@ class doc_Folders extends core_Master
         $fromTeam = strpos($teamMembers, '|' . $rec->inCharge . '|') !== FALSE;
         
         // Ако папката е екипна, и е на член от екипа на потребителя, и потребителя е manager или officer - има достъп
-        if($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer', $userId)) return TRUE;
+        if($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer,executive', $userId)) return TRUE;
         
         // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
         if(core_Users::haveRole('manager,ceo', $rec->inCharge)) return FALSE;

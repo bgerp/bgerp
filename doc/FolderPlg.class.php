@@ -53,7 +53,9 @@ class doc_FolderPlg extends core_Plugin
         if($mvc->className == 'doc_Folders') return;
         
         // Полета за Достъп
-        $data->form->setDefault('inCharge', core_Users::getCurrent());
+        if(!$data->form->rec->inCharge) {
+            $data->form->setDefault('inCharge', core_Users::getCurrent());
+        }
     }
     
     
