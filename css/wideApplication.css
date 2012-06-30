@@ -1411,57 +1411,25 @@ img {
 
 @media handheld, only screen and (max-width: 1000px) {
 
-	#cmsTop {
+	#cmsTop, #all {
 		-moz-border-radius-topright:0px;
 		-moz-border-radius-topleft:0px;
 		border-top-left-radius: 0px;
 		border-top-right-radius: 0px;
+		border-top:none;
+		margin-top:0px;
+	}
+	
+	#cmsTop, #all, #cmsBottom { 
+		width: 100% !important;
 	}
 
 	#all {
 		margin-top:0px;
 		margin-bottom:0px;
 	}
+
 	
 }
 
-/* Mobile */
-
-@media handheld, only screen and (max-width: 767px) {
-
-	body {
-		font-size: 16px;
-		-webkit-text-size-adjust: none;
-	}
-
-
-	#cmsTop, #all, #cmsBottom { 
-		width: 100% !important;
-	} 
-
-	.row, body, .container {
-		width: 100%;
-		min-width: 0;
-		margin-left: 0px;
-		margin-right: 0px;
-		padding-left: 0px;
-		padding-right: 0px;
-	}
-	
-	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol, 
-	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol {
-		width: auto;
-		float: none;
-		margin-left: 0px;
-		margin-right: 0px;
-		padding-left: 20px;
-		padding-right: 20px;
-	}
-	
-	#cmsMenu a {
-		margin-left:2px;
-		margin-right:2px;
-		font-size:0.8em;
-	)
-}
-
+ 
