@@ -22,6 +22,8 @@ class page_Print extends page_Html {
      */
     function page_Print()
     {
+    	$conf = core_Packs::getConfig('core');
+    	
         $this->page_Html();
         $this->replace("UTF-8", 'ENCODING');
         
@@ -41,7 +43,7 @@ class page_Print extends page_Html {
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");
         
-        $this->prepend(EF_APP_TITLE, 'PAGE_TITLE');
+        $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
         $this->replace(new ET("<div class='printing'>[#PAGE_CONTENT#]</div>"), "PAGE_CONTENT");
     }

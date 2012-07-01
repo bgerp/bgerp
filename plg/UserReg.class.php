@@ -1,7 +1,7 @@
 <?php
 
 
-
+$conf = core_Packs::getConfig('core');
 /**
  * Каква е минималната дължина за паролата?
  */
@@ -21,7 +21,7 @@ defIfNot('USERREG_THANK_FOR_REG_MSG',
     "Благодарим ви за регистрациятa|*!" .
     "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Access activation\"|*." .
     "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|* " .
-    EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
+    $conf->EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
 
 
 /**
@@ -31,7 +31,7 @@ defIfNot('USERREG_THANK_FOR_RESET_PASS_MSG',
     "Заявката за смяната на паролата е приета|*!" .
     "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Reset Your password\"|*." .
     "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* " .
-    EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
+    $conf->EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
 
 
 /**
@@ -112,6 +112,8 @@ class plg_UserReg extends core_Plugin
      */
     function on_BeforeAction($mvc, &$content, &$act)
     {
+    	$conf = core_Packs::getConfig('core');
+    	
         if ($act == 'registernewuser') {
             $form = $mvc->getForm();
             
@@ -181,7 +183,7 @@ class plg_UserReg extends core_Plugin
             
             $form->toolbar->addSbBtn('Регистрирай');
             
-            $form->title = "Регистриране на нов потребител в|* \"" . EF_APP_TITLE . "\"";
+            $form->title = "Регистриране на нов потребител в|* \"" . $conf->EF_APP_TITLE . "\"";
             
             if (!$form->gotErrors()) {
                 $form->info = tr("След като попълните полетата по-долу натиснете бутона \"Регистрирай\".|*<br>|" .
@@ -338,7 +340,7 @@ class plg_UserReg extends core_Plugin
             
             $form->toolbar->addSbBtn('Изпрати заявка');
             
-            $form->title = "Възстановяване на забравена парола за|*" . " \"" . EF_APP_TITLE . "\"";
+            $form->title = "Възстановяване на забравена парола за|*" . " \"" . $conf->EF_APP_TITLE . "\"";
             
             if (!$form->gotErrors())
             $form->info = tr("Попълнете полетата и натиснете бутона за изпращане.|*<br>|" .

@@ -193,6 +193,8 @@ class core_Users extends core_Manager
      */
     function act_Login()
     {
+    	$conf = core_Packs::getConfig('core');
+    	
         if (Request::get('popup')) {
             Mode::set('wrapper', 'page_Empty');
         }
@@ -212,7 +214,7 @@ class core_Users extends core_Manager
         $currentUserRec = Mode::get('currentUserRec');
         $retUrl = getRetUrl();
         $form = $this->getForm(array(
-                'title' => "|*<img src=" . sbf('img/signin.png') . " align='top'>&nbsp;|Вход в|* " . EF_APP_TITLE,
+                'title' => "|*<img src=" . sbf('img/signin.png') . " align='top'>&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
                 'name' => 'login'
             ));
         
