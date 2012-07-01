@@ -54,29 +54,52 @@ class bgerp_Menu extends core_Manager
      * Връща обект - меню
      */
     function getMenuObject()
-    {
-        $ctr = Request::get('Ctr');
+    { Debug::log('Menu start');
+         $menuObj = core_Cache::get('Menu', 'menuObj');
+
+        if(!is_array($menuObj)) {
         
-        $query = $this->getQuery();
-        
-        $query->orderBy("#id", "ASC");
-        
-        while($rec = $query->fetch()) {
-            $rec->menuTr = tr($rec->menu);
-            $rec->subMenuTr = tr($rec->subMenu);
-            $ctrArr = explode('_', $rec->ctr);
-            $rec->pack = $ctrArr[0];
-            $rec->act = $rec->act ? $rec->act : 'default';
-            $manuObj[$rec->menu . ':' . $rec->subMenu] = $rec;
-        }
+            $query = $this->getQuery();
+            
+            $query->orderBy("#id", "ASC");
+             
+            while($rec = $query->fetch()) {
+                $rec->menuTr = tr($rec->menu);
+                $rec->subMenuTr = tr($rec->subMenu);
+                $ctrArr = explode('_', $rec->ctr);
+                $rec->pack = $ctrArr[0];
+                $rec->act = $rec->act ? $rec->act : 'default';
+                $menuObj[$rec->menu . ':' . $rec->subMenu] = $rec;
+            }
+
+            core_Cache::set('Menu', 'menuObj', $menuObj, 1400);
+        } 
         
         // Ако няма нито един запис в Менюто, но имаме права за администратор, 
-        // и текущия контролер не е core_Packs, редирекваме към core_Packs
-        if(!count($manuObj) && (strpos(Request::get('Ctr'), 'core_') === FALSE)) {
+        // и текущия контролер не е core_*, редирекваме към core_Packs
+        if(!count($menuObj) && (strpos(Request::get('Ctr'), 'core_') === FALSE)) {
             redirect(array('core_Packs'));
-        }
-        
-        return $manuObj;
+        }  
+        Debug::log('Menu stop');
+        return $menuObj;
+    }
+
+    
+    /**
+     * Изтриване на кеша
+     */
+    function on_AfterSave($mvc, $id, $rec)
+    {
+        core_Cache::remove('Menu', 'menuObj');
+    }
+    
+
+    /**
+     * Изтриване на кеша
+     */
+    function on_AfterDelete($mvc, $id, $rec)
+    {
+        core_Cache::remove('Menu', 'menuObj');
     }
     
     
