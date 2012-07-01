@@ -104,15 +104,15 @@ class crm_Persons extends core_Master
 
 
     /**
-     * Права за писане
+     * Кой  може да пише?
      */
-    var $canWrite = 'crm,admin, officer, ceo, manager';
-
-
+    var $canWrite = 'user';
+    
+    
     /**
-     * Права за четене
+     * Кой има право да чете?
      */
-    var $canRead = 'crm,admin, officer, ceo, manager';
+    var $canRead = 'user';
 
 
     /**
