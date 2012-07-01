@@ -118,11 +118,11 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Премахва от резултатите скритите
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
+    function on_AfterGetQuery($mvc, &$query)
+    { 
         if(!haveRole('ceo')) {
             $cu = core_Users::getCurrent();
-            $data->query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%'))");
+            $query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%'))");
         }
     }
     

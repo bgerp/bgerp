@@ -67,25 +67,25 @@ class email_Inboxes extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, email';
+    var $canEdit = 'user';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, email';
+    var $canAdd = 'ceo,manager,';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin, email';
+    var $canView = 'ceo,manager,officer,executive';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'ceo,manager,officer,executive';
     
     
     /**
@@ -97,7 +97,7 @@ class email_Inboxes extends core_Master
     /**
      * Кой има права за
      */
-    var $canEmail = 'admin, email';
+    var $canEmail = 'ceo,manager,officer,executive';
     
     
     /**
@@ -148,7 +148,7 @@ class email_Inboxes extends core_Master
      */
     function description()
     {
-        $this->FLD("email", "email", "caption=Имейл");
+        $this->FLD("email", "email(link=no)", "caption=Имейл");
         $this->FLD("type", "enum(internal=Вътрешен, pop3=POP3, imap=IMAP)", 'caption=Тип');
         $this->FLD("server", "varchar", 'caption=Сървър');
         $this->FLD('user', 'varchar', 'caption=Потребителско име');

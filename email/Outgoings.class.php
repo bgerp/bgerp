@@ -160,6 +160,19 @@ class email_Outgoings extends core_Master
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData');
     }
+
+
+    /**
+     * Филтрира само собсвеноръчно създадените изходящи имейли
+     */
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        if(!haveRole('ceo')) {
+            $cu = core_Users::getCurrent();
+            $data->query->where("#createdBy = {$cu}");
+        }
+        
+     }
     
     
     /**

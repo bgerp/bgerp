@@ -159,8 +159,8 @@ class email_Incomings extends core_Master
         $this->FLD("subject", "varchar", "caption=Тема");
         $this->FLD("fromEml", "email", 'caption=От->Имейл');
         $this->FLD("fromName", "varchar", 'caption=От->Име');
-        $this->FLD("toEml", "email", 'caption=До->Имейл');
-        $this->FLD("toBox", "email", 'caption=До->Кутия');
+        $this->FLD("toEml", "email(link=no)", 'caption=До->Имейл');
+        $this->FLD("toBox", "email(link=no)", 'caption=До->Кутия');
         $this->FLD("headers", "text", 'caption=Хедъри');
         $this->FLD("textPart", "richtext", 'caption=Текстова част');
         $this->FLD("spam", "int", 'caption=Спам');
@@ -951,7 +951,7 @@ class email_Incomings extends core_Master
      */
     static function routeByRule($rec, $type)
     {
-        return email_Router::route($rec->fromEml, $rec->toEml, $type);
+        return email_Router::route($rec->fromEml, $rec->toBox, $type);
     }
     
     /**

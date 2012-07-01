@@ -683,7 +683,7 @@ class doc_DocumentPlg extends core_Plugin
                 //id' то на папката
                 $rec->folderId = email_Inboxes::forceCoverAndFolder($currUserId);   
             } else {
-                $rec->folderId = $mvc->GetUnsortedFolder();
+                $rec->folderId = $mvc->getUnsortedFolder();
             }
         }
         

@@ -545,60 +545,6 @@ class doc_Containers extends core_Manager
     }
     
     
-    /**
-     * @todo Чака за документация...
-     */
-    function act_Send()
-    {
-        $containerId = Request::get('containerId');
-        
-        //Очакваме да име
-        expect($containerId);
-        
-        //Документна
-        $document = doc_Containers::getDocument($containerId);
-        $class = $document->className;
-        
-        // Очакваме да има такъв запис
-        expect($rec = $class::fetch("#containerId='{$containerId}'"));
-        
-        // Очакваме потребителя да има права за активиране
-        $class::haveRightFor('send', $rec);
-        
-        //Ако нямаме въведен имейл, тогава се редиректва в страницата за изпращане, където можем да въведем съответното поле
-        if (!$rec->email) {
-            
-            $link = array('email_Sent', 'send', 'containerId' => $rec->id);
-            
-            return new Redirect($link);
-        }
-        
-        //id' то на пощенската кутия на потребителя, който е логнат
-        $boxFrom = email_Inboxes::getUserEmailId();
-        
-        $tpl = '<div style="padding: 1em;">';
-        
-        //Опциите при изпращане
-        $options = NULL;
-        
-        $Send = cls::get('email_Sent');
-        
-        //Изпращане на имейл-а
-        if ($id = $Send->send($rec->containerId, $rec->email, $rec->subject, $boxFrom, $options)) {
-            $tpl = "Успешно изпращане до {$rec->email}";
-        } else {
-            $tpl = "Проблем при изпращане до {$rec->email}";
-        }
-        
-        $tpl .= ''
-        . '<div style="margin-top: 1em;">'
-        .    '<input type="button" value="Затваряне" onclick="window.close();" />'
-        . '</div>';
-        
-        $tpl .= '</div>';
-        
-        return $tpl;
-    }
     
     
     /**
