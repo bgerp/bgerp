@@ -16,18 +16,15 @@
  * @since     v 0.1
  * @link
  */
-class doc_Wrapper extends core_Plugin
+class doc_Wrapper extends bgerp_ProtoWrapper
 {
     
-    
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на опаковката от табове
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
-    {
-        $tabs = cls::get('core_Tabs');
-        
-        $tabs->TAB('doc_Folders', 'Папки');
+    function description()
+    {        
+        $this->TAB('doc_Folders', 'Папки');
         
         // Зареждаме няколко променливи, определящи треда и папката от рекуеста
         $originId    = request::get('originId', 'int');
@@ -73,7 +70,7 @@ class doc_Wrapper extends core_Plugin
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
         }
         
-        $tabs->TAB('doc_Threads', 'Теми', $threadsUrl);
+        $this->TAB($threadsUrl, 'Теми');
         
         $containersUrl = array();
         
@@ -84,31 +81,21 @@ class doc_Wrapper extends core_Plugin
             }
         }
         
-        $tabs->TAB('doc_Containers', 'Нишка', $containersUrl);
+        $this->TAB($containersUrl, 'Нишка');
         
-        $tabs->TAB('doc_Search', 'Търсене');
+        $this->TAB('doc_Search', 'Търсене');
         
-        $tabs->TAB('doc_UnsortedFolders', 'Кюпове', doc_UnsortedFolders::haveRightFor('list') ? NULL : array());
+        $this->TAB('doc_UnsortedFolders', 'Кюпове');
         
-        $tabs->TAB('doc_Tasks', 'Задачи');
+        $this->TAB('doc_Tasks', 'Задачи');
         
         // Показва таба за коментари, само ако имаме права за листване
-        if (doc_Comments::haveRightFor('list')) {
-            $tabs->TAB('doc_Comments', 'Коментари');
-        }
+        $this->TAB('doc_Comments', 'Коментари', 'admin');
+
+        // Показва таба генерирани PDF файлове, ако имаме права
+        $this->TAB('doc_PdfCreator', 'PDF файлове', 'admin');
         
         // Показва таба генерирани PDF файлове, ако имаме права
-        if (doc_PdfCreator::haveRightFor('list')) {
-            $tabs->TAB('doc_PdfCreator', 'PDF файлове');
-        }
-        
-        // Показва таба генерирани PDF файлове, ако имаме права
-        if (doc_ThreadUsers::haveRightFor('list')) {
-            $tabs->TAB('doc_ThreadUsers', 'Отношения');
-        }
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « " , 'PAGE_TITLE');
+        $this->TAB('doc_ThreadUsers', 'Отношения', 'admin');
     }
 }

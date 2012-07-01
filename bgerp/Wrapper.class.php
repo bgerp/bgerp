@@ -16,23 +16,16 @@
  * @since     v 0.1
  * @link
  */
-class bgerp_Wrapper extends core_Plugin
+class bgerp_Wrapper extends bgerp_ProtoWrapper
 {
-    
-    
+
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на опаковката
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
-        
-        $tabs->TAB('bgerp_Menu', 'Меню');
-        $tabs->TAB('bgerp_Portal', 'Портал');
-        $tabs->TAB('bgerp_Notifications', 'Известия');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « " , 'PAGE_TITLE');
-    }
+        $this->TAB('bgerp_Menu', 'Меню', 'admin');
+        $this->TAB('bgerp_Portal', 'Портал', 'admin');
+        $this->TAB('bgerp_Notifications', 'Известия', 'admin');         
+     }
 }

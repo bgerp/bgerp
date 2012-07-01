@@ -13,38 +13,26 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class email_Wrapper extends core_Plugin
+class email_Wrapper extends bgerp_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на опаковката
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
-        
-        $tabs->TAB('email_Incomings', 'Входящи');
-        
+   
         //Показва таба за постинги, само ако имаме права за листване
-        if (email_Outgoings::haveRightFor('list', core_Users::getCurrent())) {
-            $tabs->TAB('email_Outgoings', 'Изходящи');
-        }
+        $this->TAB('email_Outgoings', 'Изходящи');
+       
+        $this->TAB('email_Inboxes', 'Кутии', 'ceo,manager,officer,executive');
+ 
+        $this->TAB('email_Incomings', 'Входящи', 'admin,ceo');
+        $this->TAB('email_Router', 'Рутиране', 'admin,ceo');
+        $this->TAB('email_Sent', 'Изпращания', 'admin,ceo');
+        $this->TAB('email_Services', 'Услуги', 'admin,ceo');       
         
-        $tabs->TAB('email_Inboxes', 'Кутии');
-        
-        if(haveRole('admin')) {
-            $tabs->TAB('email_Router', 'Рутиране');
-        }
-        
-        $tabs->TAB('email_Sent', 'Изпращания');
-
-        $tabs->TAB('email_Services', 'Услуги');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
-        
-        $invoker->menuPage = 'Имейли';
+        $this->title = 'Имейли';
     }
 }
