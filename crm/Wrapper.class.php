@@ -16,24 +16,18 @@
  * @since     v 0.1
  * @link
  */
-class crm_Wrapper extends core_Plugin
+class crm_Wrapper extends bgerp_ProtoWrapper
 {
-    
-    
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на опаковката с табове
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => $invoker->className));
-        
-        $tabs->TAB('crm_Companies', 'Фирми');
-        $tabs->TAB('crm_Persons', 'Лица');
-        $tabs->TAB('crm_Groups', 'Групи');
-        $tabs->TAB('crm_Locations', 'Локации');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->TAB('crm_Companies', 'Фирми');
+        $this->TAB('crm_Persons', 'Лица');
+        $this->TAB('crm_Groups', 'Групи');
+        $this->TAB('crm_Locations', 'Локации', 'ceo');
+
+        $this->title = 'Контакти';
     }
 }

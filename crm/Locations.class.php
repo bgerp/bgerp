@@ -43,8 +43,9 @@ class crm_Locations extends core_Master {
     /**
      * Кой може да чете и записва локации?
      */
-    var $canRead  = 'crm,location,admin';
-    var $canWrite = 'crm,location,admin';
+    var $canRead  = 'ceo';
+    var $canWrite = 'user';
+    var $canSingle = 'user';
 
 
     /**
@@ -206,5 +207,18 @@ class crm_Locations extends core_Master {
         }
         
         return $tpl;
+    }
+
+
+
+    /**
+     *
+     */
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($rec->contragentCls) {
+            $contragent = cls::get($rec->contragentCls);
+            $requiredRoles = $contragent->getRequiredRoles($action, $rec->contragentId, $userId);
+        }
     }
 }
