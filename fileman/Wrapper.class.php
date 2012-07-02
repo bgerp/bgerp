@@ -14,27 +14,26 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_Wrapper extends core_Plugin
+class fileman_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
-        $tabs->TAB('fileman_Files', 'Файлове');
-        $tabs->TAB('fileman_Versions', 'Версии');
-        $tabs->TAB('fileman_Buckets', 'Кофи');
-        $tabs->TAB('fileman_Download', 'Сваляния');
-        $tabs->TAB('fileman_Data', 'Данни');
         
-        // $tabs->TAB('fileman_Get', 'Вземания');
-        $tabs->TAB('fileman_Mime2Ext', 'MIME');
+        $this->TAB('fileman_Files', 'Файлове');
+        $this->TAB('fileman_Versions', 'Версии');
+        $this->TAB('fileman_Buckets', 'Кофи');
+        $this->TAB('fileman_Download', 'Сваляния');
+        $this->TAB('fileman_Data', 'Данни');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
-        $tpl->prepend(tr($invoker->title) . " « " . tr('Хранилище') . " » ", 'PAGE_TITLE');
+        $this->TAB('fileman_Mime2Ext', 'MIME');
+        
+        $this->title = 'Файлове';
+       
     }
 }

@@ -16,21 +16,19 @@
  * @since     v 0.1
  * @link
  */
-class recently_Wrapper extends core_Plugin
+class recently_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('recently_Values', 'Последно използвани');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
+        $this->TAB('recently_Values', 'Последно използвани');
         
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Подсказки за инпут полетата';
     }
 }

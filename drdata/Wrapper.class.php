@@ -16,28 +16,26 @@
  * @since     v 0.1
  * @link
  */
-class drdata_Wrapper extends core_Plugin
+class drdata_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('drdata_Countries', 'Страни');
-        $tabs->TAB('drdata_Domains', 'Домейни');
-        $tabs->TAB('drdata_Holidays', 'Празници');
-        $tabs->TAB('drdata_IpToCountry', 'IP-to-Country');
-        $tabs->TAB('drdata_DialCodes', 'Тел. кодове');
-        $tabs->TAB('drdata_Vats', 'ЗДДС №');
-        $tabs->TAB('drdata_Mvr', 'МВР');
-        $tabs->TAB('drdata_DistrictCourts', 'Съдилища');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
+        $this->TAB('drdata_Countries', 'Страни');
+        $this->TAB('drdata_Domains', 'Домейни', 'admin');
+        $this->TAB('drdata_Holidays', 'Празници');
+        $this->TAB('drdata_IpToCountry', 'IP-to-Country');
+        $this->TAB('drdata_DialCodes', 'Тел. кодове');
+        $this->TAB('drdata_Vats', 'ЗДДС №');
+        $this->TAB('drdata_Mvr', 'МВР', 'admin, common');
+        $this->TAB('drdata_DistrictCourts', 'Съдилища', 'admin, common');
         
-        $tpl->prepend(tr($invoker->title) . " » Данни » ", 'PAGE_TITLE');
+        $this->title = 'Адресни данни';
     }
 }

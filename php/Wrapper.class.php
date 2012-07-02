@@ -18,9 +18,20 @@
  */
 class php_Wrapper extends bgerp_ProtoWrapper
 {
-    
-    var $tabMenu = 'Форматер = php_Formater::Process, 
-                    Константи = php_Const, Интерфейси = php_Interfaces,  
-                    Тест система = php_Test';
 
+    /**
+     * Описание на табовете
+     */
+    function description()
+    {
+        
+        
+        $this->TAB('php_Formater', 'Форматер');
+        $this->TAB('php_Const', 'Константи');
+        $this->TAB('php_Interfaces', 'Интерфейси');
+        $this->TAB('php_Test', 'Тест система');
+        
+        $this->title = 'Програма за форматиране на кода';
+    }
+    
 }

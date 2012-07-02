@@ -16,21 +16,20 @@
  * @since     v 0.1
  * @link
  */
-class vislog_Wrapper extends core_Plugin
+class vislog_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
-        $tabs->TAB('vislog_History', 'История');
-        $tabs->TAB('vislog_Refferer', 'Рефериране');
-        $tabs->TAB('vislog_HistoryResources', 'Ресурси');
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->TAB('vislog_History', 'История');
+        $this->TAB('vislog_Refferer', 'Рефериране');
+        $this->TAB('vislog_HistoryResources', 'Ресурси');
+      
+        $this->title = 'История';
     }
 }
