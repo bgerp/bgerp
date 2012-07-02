@@ -121,7 +121,7 @@ class doc_FolderPlg extends core_Plugin
     function on_AfterGetQuery($mvc, &$query)
     { 
         if(!haveRole('ceo') && ($cu = core_Users::getCurrent())) {
-            $query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%'))");
+            $query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)");
         }
     }
     
@@ -245,6 +245,8 @@ class doc_FolderPlg extends core_Plugin
      */
     static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
+        expect($id);
+
         if($mvc->className == 'doc_Folders') return;
         
         if(!$rec->folderId) {
