@@ -28,6 +28,11 @@ class acc_Lists extends core_Manager {
      */
     var $canAdmin = 'admin,acc';
     
+    
+    /**
+     * Активен таб на менюто
+     */
+    var $menuPage = 'Счетоводство:Настройки';
 
     /**
      * Заглавие

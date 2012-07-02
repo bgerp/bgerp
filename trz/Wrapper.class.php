@@ -13,28 +13,25 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class trz_Wrapper extends core_Plugin
+class trz_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
+             
+        $this->TAB('trz_Salaries', 'Заплати', 'admin,trz');
+        $this->TAB('trz_Bonuses', 'Бонуси', 'admin,trz');
+        $this->TAB('trz_Sickdays', 'Болнични', 'admin,trz');
+        $this->TAB('trz_Leaves', 'Отпуски', 'admin,trz');
+        $this->TAB('trz_Fines', 'Премии и глоби', 'admin,trz');
+        $this->TAB('trz_Payrolls', 'Ведомости (за заплати)', 'admin,trz');
         
-        $tabs->TAB('trz_Salaries', 'Заплати');
-        $tabs->TAB('trz_Bonuses', 'Бонуси');
-        $tabs->TAB('trz_Sickdays', 'Болнични');
-        $tabs->TAB('trz_Leaves', 'Отпуски');
-        $tabs->TAB('trz_Fines', 'Премии и глоби');
-        $tabs->TAB('trz_Payrolls', 'Ведомости (за заплати)');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
-        
-        $invoker->menuPage = 'Персонал:ТРЗ';
+              
+        $this->title = 'ТРЗ « Персонал';
+        Mode::set('menuPage', 'Персонал:ТРЗ');
     }
 }

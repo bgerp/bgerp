@@ -16,26 +16,25 @@
  * @since     v 0.1
  * @link
  */
-class cal_Wrapper extends core_Plugin
+class cal_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => $invoker->className));
         
-        $tabs->TAB('cal_Agenda', 'Списък');
-        $tabs->TAB('cal_Day', 'Ден');
-        $tabs->TAB('cal_Week', 'Седмица');
-        $tabs->TAB('cal_Month', 'Месец');
-        $tabs->TAB('cal_Year', 'Година');
-        $tabs->TAB('cal_Tasks', 'Задачи');
+        
+        $this->TAB('cal_Agenda', 'Списък', 'cal,admin');
+        $this->TAB('cal_Day', 'Ден');
+        $this->TAB('cal_Week', 'Седмица');
+        $this->TAB('cal_Month', 'Месец');
+        $this->TAB('cal_Year', 'Година');
+        $this->TAB('cal_Tasks', 'Задачи', 'admin,doc');
+        
+        $this->title = 'Календар';
 
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
     }
 }

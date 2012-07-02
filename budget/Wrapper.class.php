@@ -13,26 +13,24 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class budget_Wrapper extends core_Plugin
+class budget_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
+       
         
-        $tabs->TAB('budget_Assets', 'Парични средства');
-        $tabs->TAB('budget_IncomeExpenses', 'Приходи / Разходи');
-        $tabs->TAB('budget_Balances', 'Баланс');
-        $tabs->TAB('budget_Reports', 'По подразделения / Дейности');
+        $this->TAB('budget_Assets', 'Парични средства', 'admin,budget');
+        $this->TAB('budget_IncomeExpenses', 'Приходи / Разходи', 'admin,budget');
+        $this->TAB('budget_Balances', 'Баланс', 'admin,budget');
+        $this->TAB('budget_Reports', 'По подразделения / Дейности', 'admin,budget');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
-        
-        $invoker->menuPage = 'Финанси:Бюджетиране';
+       
+        $this->title = 'Бюджетиране « Финанси';
+        Mode::set('menuPage', 'Финанси:Бюджетиране');
     }
 }

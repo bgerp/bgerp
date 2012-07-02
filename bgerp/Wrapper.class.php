@@ -20,7 +20,7 @@ class bgerp_Wrapper extends plg_ProtoWrapper
 {
 
     /**
-     * Описание на опаковката
+     * Описание на табовете
      */
     function description()
     {

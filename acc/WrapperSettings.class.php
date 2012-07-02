@@ -16,27 +16,23 @@
  * @since     v 0.1
  * @link
  */
-class acc_WrapperSettings extends core_Plugin
+class acc_WrapperSettings extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('acc_Periods', 'Периоди');
-        $tabs->TAB('acc_Lists', 'Номенклатури');
-        $tabs->TAB('acc_Items', 'Пера');
-        $tabs->TAB('acc_Accounts', 'Сметки');
-        $tabs->TAB('acc_Limits', 'Лимити');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
-        
-        $invoker->menuPage = 'Счетоводство:Настройки';
+        $this->TAB('acc_Periods', 'Периоди', 'admin,acc');
+        $this->TAB('acc_Lists', 'Номенклатури', 'admin,acc');
+        $this->TAB('acc_Items', 'Пера', 'admin,acc');
+        $this->TAB('acc_Accounts', 'Сметки', 'admin,acc,broker,designer');
+        $this->TAB('acc_Limits', 'Лимити', 'admin,acc');
+            
+        $this->title = 'Настройки « Счетоводство';
+        Mode::set('menuPage','Счетоводство:Настройки');
     }
 }

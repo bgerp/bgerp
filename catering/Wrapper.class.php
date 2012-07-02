@@ -13,25 +13,24 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class catering_Wrapper extends core_Plugin
+class catering_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'catering'));
         
-        $tabs->TAB('catering_Menu', 'Меню');
-        $tabs->TAB('catering_Companies', 'Фирми');
-        $tabs->TAB('catering_EmployeesList', 'Столуващи');
-        $tabs->TAB('catering_Requests', 'Заявки');
-        $tabs->TAB('catering_Orders', 'Поръчки');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
+        $this->TAB('catering_Menu', 'Меню', 'admin, catering');
+        $this->TAB('catering_Companies', 'Фирми', 'catering,admin');
+        $this->TAB('catering_EmployeesList', 'Столуващи', 'catering, admin');
+        $this->TAB('catering_Requests', 'Заявки', 'catering, admin, user');
+        $this->TAB('catering_Orders', 'Поръчки', 'catering, admin');
         
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Кетаринг';
+       
     }
 }

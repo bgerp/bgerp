@@ -16,29 +16,23 @@
  * @since     v 0.1
  * @link
  */
-class cat_Wrapper extends core_Plugin
+class cat_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'cat'));
+           
+        $this->TAB('cat_Products', 'Списък', 'admin,user');
+        $this->TAB('cat_Groups', 'Групи', 'admin,user');
+        $this->TAB('cat_Categories', 'Категории', 'admin,user');
+        $this->TAB('cat_Packagings', 'Опаковки', 'admin,user');
+        $this->TAB('cat_Params', 'Параметри', 'admin,user');
+        $this->TAB('cat_UoM', 'Мерки');
         
-        $tabs->TAB('cat_Products', 'Списък');
-        $tabs->TAB('cat_Groups', 'Групи');
-        $tabs->TAB('cat_Categories', 'Категории');
-        $tabs->TAB('cat_Packagings', 'Опаковки');
-        $tabs->TAB('cat_Params', 'Параметри');
-        $tabs->TAB('cat_UoM', 'Мерки');
-        
-        if (haveRole("admin,cat")) {
-        }
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Продукти';
     }
 }

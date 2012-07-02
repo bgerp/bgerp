@@ -13,22 +13,21 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_Wrapper extends core_Plugin
+class sales_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('sales_Deals', 'Сделки');
-        $tabs->TAB('sales_Invoices', 'Фактури');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
+        $this->TAB('sales_Deals', 'Сделки', 'admin,sales');
+        $this->TAB('sales_Invoices', 'Фактури', 'admin,sales');
         
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Покупки';
+        
     }
 }

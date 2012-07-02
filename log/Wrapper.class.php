@@ -14,21 +14,19 @@
  * @since     v 0.1
  * @link
  */
-class log_Wrapper extends core_Plugin
+class log_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
+       
         
-        $tabs->TAB('log_Documents', 'Документи');
+        $this->TAB('log_Documents', 'Документи', 'admin, doc');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « " , 'PAGE_TITLE');
+        $this->title = 'История';
     }
 }

@@ -16,25 +16,22 @@
  * @since     v 0.1
  * @link
  */
-class acc_Wrapper extends core_Plugin
+class acc_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
+       
         
-        $tabs->TAB('acc_Balances', 'Оборотни ведомости');
-        $tabs->TAB('acc_Articles', 'Мемориални Ордери');
-        $tabs->TAB('acc_Journal', 'Журнал');
+        $this->TAB('acc_Balances', 'Оборотни ведомости', 'admin,acc');
+        $this->TAB('acc_Articles', 'Мемориални Ордери', 'acc,admin');
+        $this->TAB('acc_Journal', 'Журнал', 'admin,acc');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
-        
-        $invoker->menuPage = 'Счетоводство:Книги';
+        $this->title = 'Книги « Счетоводство';
+        Mode::set('menuPage','Счетоводство:Книги');
     }
 }

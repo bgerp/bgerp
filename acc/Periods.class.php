@@ -29,6 +29,11 @@ class acc_Periods extends core_Manager
 
 
     /**
+     * Активен таб на менюто
+     */
+    var $menuPage = 'Счетоводство:Настройки';
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, acc_WrapperSettings, plg_State, plg_Sorting';

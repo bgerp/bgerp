@@ -16,30 +16,23 @@
  * @since     v 0.1
  * @link
  */
-class sens_Wrapper extends core_Plugin
+class sens_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        Mode::set('pageMenu', 'Наблюдение');
         
-        $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('sens_Sensors', 'Сензори');
-        $tabs->TAB('sens_IndicationsLog', 'Показания');
-        $tabs->TAB('sens_MsgLog', 'Съобщения');
-        $tabs->TAB('sens_Params', 'Параметри');
-        $tabs->TAB('sens_Overviews', 'Мениджър изгледи');
+        $this->TAB('sens_Sensors', 'Сензори', 'sens, admin');
+        $this->TAB('sens_IndicationsLog', 'Показания', 'sens, admin');
+        $this->TAB('sens_MsgLog', 'Съобщения', 'sens, admin');
+        $this->TAB('sens_Params', 'Параметри','sens, admin');
+        $this->TAB('sens_Overviews', 'Мениджър изгледи');
         
-        // $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
-        
-        $tpl->replace('', 'NAV_BAR');
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Наблюдение';
     }
 }

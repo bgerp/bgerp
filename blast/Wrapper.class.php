@@ -13,31 +13,30 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class blast_Wrapper extends core_Plugin
+class blast_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('blast_Lists', 'Списъци');
-        $tabs->TAB('blast_Emails', 'Имейли');
-        $tabs->TAB('blast_Sms', 'SMS-и');
-        $tabs->TAB('blast_Faxes', 'Факсове');
-        $tabs->TAB('blast_Letters', 'Писма');
-        $tabs->TAB('blast_Labels', 'Етикети');
         
-        //$tabs->TAB('blast_ListSend', 'Лог на изпращаните писма');
-        $tabs->TAB('blast_Blocked', 'Блокирани');
+        $this->TAB('blast_Lists', 'Списъци', 'blast,admin');
+        $this->TAB('blast_Emails', 'Имейли', 'admin, blast');
+        $this->TAB('blast_Sms', 'SMS-и');
+        $this->TAB('blast_Faxes', 'Факсове');
+        $this->TAB('blast_Letters', 'Писма', 'admin, blast');
+        $this->TAB('blast_Labels', 'Етикети');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
         
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->TAB('blast_Blocked', 'Блокирани', 'admin, blast');
         
-        $invoker->menuPage = 'Разпращане';
+      
+        
+        $this->title = 'Масово разпращане';
+        Mode::set('menuPage', 'Разпращане');
     }
 }

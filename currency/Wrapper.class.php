@@ -13,24 +13,22 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class currency_Wrapper extends core_Plugin
+class currency_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на опаковката с табове
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'currency'));
         
-        $tabs->TAB('currency_Currencies', 'Списък');
-        $tabs->TAB('currency_CurrencyGroups', 'Групи валути');
-        $tabs->TAB('currency_CurrencyRates', 'Валутни курсове');
-        $tabs->TAB('currency_FinIndexes',    'Индекси');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
+        $this->TAB('currency_Currencies', 'Списък');
+        $this->TAB('currency_CurrencyGroups', 'Групи валути');
+        $this->TAB('currency_CurrencyRates', 'Валутни курсове');
+        $this->TAB('currency_FinIndexes',    'Индекси');
         
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Валути « Финанси';
     }
 }

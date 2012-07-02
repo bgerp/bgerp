@@ -33,6 +33,11 @@ class acc_Items extends core_Manager
     
     
     /**
+     * Активен таб на менюто
+     */
+    var $menuPage = 'Счетоводство:Настройки';
+    
+    /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin,acc';

@@ -15,21 +15,17 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_Wrapper extends core_Plugin
+class trans_Wrapper extends plg_ProtoWrapper
 {
     
-    
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'trans'));
-        
-        $tabs->TAB('trans_DeliveryTerms', 'Условия на доставка');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+               
+        $this->TAB('trans_DeliveryTerms', 'Условия на доставка');
+   
+        $this->title = 'Логистика';
     }
 }

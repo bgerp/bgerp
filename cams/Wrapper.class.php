@@ -16,28 +16,22 @@
  * @since     v 0.1
  * @link
  */
-class cams_Wrapper extends core_Plugin
+class cams_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        Mode::set('pageMenu', 'Наблюдение');
+     
         
-        $tabs = cls::get('core_Tabs');
+        $this->TAB('cams_Cameras', 'Камери', 'cams, admin');
+        $this->TAB('cams_Records', 'Записи', 'cams, admin');
+        $this->TAB('cams_Positions', 'Позиции', 'cams, admin');
         
-        $tabs->TAB('cams_Cameras', 'Камери');
-        $tabs->TAB('cams_Records', 'Записи');
-        $tabs->TAB('cams_Positions', 'Позиции');
-        
-        // $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
-        
-        $tpl->replace('', 'NAV_BAR');
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Камери';
+    
     }
 }

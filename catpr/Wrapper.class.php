@@ -16,24 +16,22 @@
  * @since     v 0.1
  * @link
  */
-class catpr_Wrapper extends core_Plugin
+class catpr_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'catpr'));
+      
         
-        $tabs->TAB('catpr_Costs', 'Себестойност');
-        $tabs->TAB('catpr_Pricegroups', 'Групи продукти');
-        $tabs->TAB('catpr_Discounts', 'Класове клиенти');
-        $tabs->TAB('catpr_Pricelists', 'Ценоразписи');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->TAB('catpr_Costs', 'Себестойност', 'admin,user');
+        $this->TAB('catpr_Pricegroups', 'Групи продукти', 'admin,user');
+        $this->TAB('catpr_Discounts', 'Класове клиенти', 'admin,user');
+        $this->TAB('catpr_Pricelists', 'Ценоразписи', 'admin,user');
+      
+        $this->title = 'Цени « Продукти';
     }
 }

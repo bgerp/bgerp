@@ -16,26 +16,23 @@
  * @since     v 0.1
  * @link
  */
-class hr_Wrapper extends core_Plugin
+class hr_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на опаковката с табове
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
+                
+        $this->TAB('hr_EmployeeContracts', 'Назначения', 'admin,hr');
+        $this->TAB('hr_Positions', 'Длъжности', 'admin,hr');
+        $this->TAB('hr_Departments', 'Отдели', 'admin,hr');
+        $this->TAB('hr_Shifts', 'Смени','admin,hr');
+        $this->TAB('hr_WorkingCycles', 'Цикли', 'admin,dma');
+        $this->TAB('hr_ContractTypes', 'Шаблони', 'admin,hr');
         
-        $tabs->TAB('hr_EmployeeContracts', 'Назначения');
-        $tabs->TAB('hr_Positions', 'Длъжности');
-        $tabs->TAB('hr_Departments', 'Отдели');
-        $tabs->TAB('hr_Shifts', 'Смени');
-        $tabs->TAB('hr_WorkingCycles', 'Цикли');
-        $tabs->TAB('hr_ContractTypes', 'Шаблони');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Персонал';
     }
 }

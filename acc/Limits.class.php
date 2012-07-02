@@ -22,6 +22,10 @@ class acc_Limits extends core_Manager
      */
     var $title = "Лимити";
     
+    /**
+     * Активен таб на менюто
+     */
+    var $menuPage = 'Счетоводство:Настройки';
     
     /**
      * Плъгини за зареждане

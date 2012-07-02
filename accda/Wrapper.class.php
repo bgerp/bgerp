@@ -15,25 +15,23 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class accda_Wrapper extends core_Plugin
+class accda_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
+      
         
-        $tabs->TAB('accda_Da', 'Инвентарна книга');
-        $tabs->TAB('accda_Groups', 'Групи');
-        $tabs->TAB('accda_Documents', 'Документи');
+        $this->TAB('accda_Da', 'Инвентарна книга', 'admin,accda');
+        $this->TAB('accda_Groups', 'Групи', 'admin,accda');
+        $this->TAB('accda_Documents', 'Документи', 'admin,accda');
+      
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
-        
-        $invoker->menuPage = 'Счетоводство:ДА';
+        $this->title = 'ДА « Счетоводство';
+        Mode::set('menuPage', 'Счетоводство:ДА');
     }
 }

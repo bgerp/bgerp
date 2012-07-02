@@ -13,23 +13,21 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class lab_Wrapper extends core_Plugin
+class lab_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'lab'));
         
-        $tabs->TAB('lab_Tests', 'Тестове');
-        $tabs->TAB('lab_Methods', 'Методи');
-        $tabs->TAB('lab_Parameters', 'Параметри');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
+        $this->TAB('lab_Tests', 'Тестове', 'lab,admin');
+        $this->TAB('lab_Methods', 'Методи', 'lab,admin');
+        $this->TAB('lab_Parameters', 'Параметри', 'lab,admin');
         
-        $tpl->prepend(tr($invoker->title) . ' « ', 'PAGE_TITLE');
+        $this->title = 'Лаборатория';
     }
 }

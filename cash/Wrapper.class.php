@@ -13,22 +13,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cash_Wrapper extends core_Plugin
+class cash_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'case'));
+       
         
-        $tabs->TAB('cash_Cases', 'Каси');
-        $tabs->TAB('cash_Documents', 'Документи');
+        $this->TAB('cash_Cases', 'Каси', 'cash, admin');
+        $this->TAB('cash_Documents', 'Документи', 'cash, admin');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Фирмени каси';
     }
 }

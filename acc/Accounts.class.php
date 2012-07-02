@@ -30,6 +30,11 @@ class acc_Accounts extends core_Manager
     
     
     /**
+     * Активен таб на менюто
+     */
+    var $menuPage = 'Счетоводство:Настройки';
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,acc,broker,designer';

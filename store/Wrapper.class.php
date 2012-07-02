@@ -15,35 +15,31 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_Wrapper extends core_Plugin
+class store_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
-        
-        // проверка за избран склад
-        $selectedStoreId = store_Stores::getCurrent();
+      
         
         if ($selectedStoreId) {
-            $tabs->TAB('store_Movements', 'Движения');
-            $tabs->TAB('store_Pallets', 'Палети');
-            $tabs->TAB('store_Racks', 'Стелажи');
-            $tabs->TAB('store_Zones', 'Зони');
-            $tabs->TAB('store_Products', 'Продукти');
-            $tabs->TAB('store_Stores', 'Складове');
-            $tabs->TAB('store_PalletTypes', 'Видове палети');
-            $tabs->TAB('store_Documents', 'Документи');
+            $this->TAB('store_Movements', 'Движения', 'admin,store');
+            $this->TAB('store_Pallets', 'Палети', 'admin,store');
+            $this->TAB('store_Racks', 'Стелажи', 'admin,store');
+            $this->TAB('store_Zones', 'Зони', 'admin,store');
+            $this->TAB('store_Products', 'Продукти', 'admin,store');
+            $this->TAB('store_Stores', 'Складове', 'admin,store');
+            $this->TAB('store_PalletTypes', 'Видове палети', 'admin,store');
+            $this->TAB('store_Documents', 'Документи');
         } else {
-            $tabs->TAB('store_Stores', 'Складове');
+            $this->TAB('store_Stores', 'Складове', 'admin,store');
         }
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+            $this->title = 'Склад';
+       
     }
 }

@@ -16,25 +16,22 @@
  * @since     v 0.1
  * @link
  */
-class rfid_Wrapper extends core_Plugin
+class rfid_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
+              
+        $this->TAB('rfid_Events', 'Събития', 'admin,rfid');
+        $this->TAB('rfid_Tags', 'Карти', 'admin,rfid');
+        $this->TAB('rfid_Readers', 'Четци', 'admin,rfid');
+        $this->TAB('rfid_Holders', 'Обекти', 'admin,rfid');
+        $this->TAB('rfid_Ownerships', 'Собственици','admin,rfid');
         
-        $tabs->TAB('rfid_Events', 'Събития');
-        $tabs->TAB('rfid_Tags', 'Карти');
-        $tabs->TAB('rfid_Readers', 'Четци');
-        $tabs->TAB('rfid_Holders', 'Обекти');
-        $tabs->TAB('rfid_Ownerships', 'Собственици');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->title = 'Мониторинг';
     }
 }

@@ -13,25 +13,23 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_Wrapper extends core_Plugin
+class purchase_Wrapper extends plg_ProtoWrapper
 {
     
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('purchase_Offers', 'Оферти');
-        $tabs->TAB('purchase_Requests', 'Заявки');
-        $tabs->TAB('purchase_Debt', 'Задължения');
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
+        $this->TAB('purchase_Offers', 'Оферти', 'admin,purchase');
+        $this->TAB('purchase_Requests', 'Заявки', 'admin,purchase');
+        $this->TAB('purchase_Debt', 'Задължения', 'admin,purchase');
+  
         
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
-        
-        $invoker->menuPage = 'Доставки:Покупки';
+        $this->title = 'Покупки « Доставки';
+        Mode::set('menuPage', 'Доставки:Покупки');
     }
 }
