@@ -1,6 +1,27 @@
 <?php
 /**
- * Мениджър на онлайн услуги, които изпращат имейли
+ * Ръчно задаване на правила за рутиране на имейли
+ * 
+ * Всеки имейл филтър дефинира шаблон за входящо писмо и действие, което да бъде изпълнено ако
+ * когато входящо писмо отговаря на шаблона. Това филтриране на входящата поща се изпълнява
+ * точно след опита за рутиране на писмото по номер на нишка (зададен в събджекта на писмото)
+ * 
+ * Шаблоните се задават като MySQL LIKE изрази, за полетата:
+ *  
+ *   o изпращач, 
+ *   o събджект и 
+ *   o текст на писмото
+ *   
+ * (`%` - произволна последователност от нула или повече символи, `_` - произволен символ.
+ * Шаблоните не зависят от големи и малки букви (case insensitive).
+ * 
+ * Действието, при разпознаване на шаблон може да е едно от:
+ * 
+ *  o по имейл - това действие подменя реалния изпращач на писмото с имейл адрес намерен някъде 
+ *               вътре в събджекта или текста (@see email_Filters::prerouteByEmail())
+ *  о в папка  - писмата, отговарящи на шаблона попадат директно в папката зададена в правилото
+ *  o спам     - писмата, отговарящи на шаблона се маркират като спам 
+ * 
  *
  * @category  bgerp
  * @package   email
@@ -17,7 +38,7 @@ class email_Filters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,email_Wrapper, plg_RowTools';
+    var $loadList = 'plg_Created, plg_State, email_Wrapper, plg_RowTools';
     
     
     /**
@@ -50,11 +71,12 @@ class email_Filters extends core_Manager
     function description()
     {
         $this->FLD('title' , 'varchar', 'caption=Заглавие');
-        $this->FLD('email' , 'email', 'caption=Имейл на услугата');
+        $this->FLD('email' , 'email', 'caption=Изпращач');
         $this->FLD('subject' , 'varchar', 'caption=Събджект');
         $this->FLD('body' , 'text', 'caption=Текст');
         $this->FLD('action' , 'enum(email=По имейл,folder=В папка,spam=Спам)', 'caption=Действие');
         $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка');
+        $this->FLD('state' , 'enum(active=Активен,stopped=Спрян)', 'caption=Състояние');
     }
     
     
@@ -144,7 +166,7 @@ class email_Filters extends core_Manager
     
     
     /**
-     * Определя дали и от коя услуга е изпратено писмо
+     * Определя дали писмото отговаря на някой от зададените шаблони
      * 
      * @param stdClass $rec запис от модела email_Incomings
      * @return stdClass запис от модела email_Filters или FALSE ако не е разпозната услуга
@@ -160,11 +182,14 @@ class email_Filters extends core_Manager
         /* @var $query core_Query */
         $query = static::getQuery();
         
+        // Търсим само активни филтри
+        $query->where("#state = 'active'");
+        
         foreach ($fieldsMap as $emailField => $patternField) {
             $query->where(
                 array(
                     "#{$patternField} IS NULL OR #{$patternField} = ''" .
-                    " OR '[#1#]' LIKE CONCAT('%', #{$patternField}, '%')",
+                    " OR LOWER('[#1#]') LIKE CONCAT('%', LOWER(#{$patternField}), '%')",
                     $rec->{$emailField}
                 )
             );
