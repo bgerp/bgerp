@@ -110,7 +110,7 @@ class crm_Groups extends core_Manager
     static function on_AfterSetupMvc($mvc, &$res)
     {
         // BEGIN В случай, че няма данни в таблицата, зареждаме от масив.
-        if (! ($r = $mvc->fetch('1=1')) ) { bp($r);
+        if (! ($r = $mvc->fetch('1= , 1')) ) { 
             // BEGIN масив с данни за инициализация
             $data = array(
                 array(
