@@ -1,0 +1,75 @@
+<script type="text/javascript">
+	function onmouseUp()
+	{
+		if (document.selection) {
+			var range = document.body.createTextRange();
+			range.moveToElementText(document.getElementById('selectable'));
+			range.select();
+		}
+		else if (window.getSelection) {
+			var range = document.createRange();
+			range.selectNode(document.getElementById('selectable'));
+			window.getSelection().addRange(range);
+		}
+	}
+</script>
+
+[#SingleToolbar#]
+
+<div class='filesContainer' style='margin: 5px;'>
+	<table class='top-table' width='100%' cellspacing='5' style='width:auto;'>
+	
+		<tr><td colspan='2'><h2><!--ET_BEGIN _fileName-->[#_fileName#]<!--ET_END _fileName--></h2></td></tr>
+		
+		<!--ET_BEGIN _link-->          
+			<tr>
+			    <td align='right' width='auto' >|Линк|*:</td>
+			    <td><span id='selectable' onmouseUp='onmouseUp()'> [#_link#] </span></td>
+			</tr>
+		<!--ET_END _link-->
+		
+		<!--ET_BEGIN _type-->          
+			<tr>
+			    <td align='right' width='auto' >|Тип|*:</td>
+			    <td>[#_type#]</td>
+			</tr>
+		<!--ET_END _type-->
+		
+		<!--ET_BEGIN _size-->          
+			<tr>
+			    <td align='right' width='auto' >|Размер|*:</td>
+			    <td>[#_size#]</td>
+			</tr>
+		<!--ET_END _size-->
+		
+		<!--ET_BEGIN createdOn-->          
+			<tr>
+			    <td align='right' width='auto' >|Създаден на|*:</td>
+			    <td>[#createdOn#]</td>
+			</tr>
+		<!--ET_END createdOn-->
+		
+		<!--ET_BEGIN createdBy-->          
+			<tr>
+			    <td align='right' width='auto' >|Създаден от|*:</td>
+			    <td>[#createdBy#]</td>
+			</tr>
+		<!--ET_END createdBy-->
+		
+		<!--ET_BEGIN _info-->          
+			<tr>
+			    <td align='right' width='auto' >|Информация|*:</td>
+			    <td>[#_info#]</td>
+			</tr>
+		<!--ET_END _info-->
+		
+		<!--ET_BEGIN _versions-->          
+			<tr>
+			    <td align='right' width='auto' >|Версии|*:</td>
+			    <td>[#_versions#]</td>
+			</tr>
+		<!--ET_END _versions-->
+		
+	</table>
+	
+</div>
