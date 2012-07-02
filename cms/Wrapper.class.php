@@ -15,24 +15,18 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cms_Wrapper extends core_Plugin
+class cms_Wrapper extends plg_ProtoWrapper
 {
     
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'cms'));
-        
-        $tabs->TAB('cms_Content', 'Съдържание');
-        $tabs->TAB('cms_Articles', 'Статии');
-        $tabs->TAB('cms_Categories', 'Категории');
-        $tabs->TAB('cms_Comments', 'Коментари');
-        $tabs->TAB('cms_RSS', 'RSS');
-         
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $this->TAB('cms_Content', 'Съдържание', 'cms,ceo');
+        $this->TAB('cms_Articles', 'Статии', 'cms,ceo');
+        $this->TAB('cms_Categories', 'Категории', 'cms,ceo');
+        $this->TAB('cms_Comments', 'Коментари', 'cms,ceo');
+        $this->TAB('cms_RSS', 'RSS', 'cms,ceo');
     }
 }

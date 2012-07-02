@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class email_Wrapper extends bgerp_ProtoWrapper
+class email_Wrapper extends plg_ProtoWrapper
 {
     
     

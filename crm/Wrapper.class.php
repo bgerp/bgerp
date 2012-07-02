@@ -16,7 +16,7 @@
  * @since     v 0.1
  * @link
  */
-class crm_Wrapper extends bgerp_ProtoWrapper
+class crm_Wrapper extends plg_ProtoWrapper
 {
     /**
      * Описание на опаковката с табове

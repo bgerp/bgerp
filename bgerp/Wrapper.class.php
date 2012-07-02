@@ -16,7 +16,7 @@
  * @since     v 0.1
  * @link
  */
-class bgerp_Wrapper extends bgerp_ProtoWrapper
+class bgerp_Wrapper extends plg_ProtoWrapper
 {
 
     /**
