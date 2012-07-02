@@ -25,9 +25,34 @@ defIfNot('FILEMAN_HANDLER_LEN', strlen(FILEMAN_HANDLER_PTR));
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_Files extends core_Manager {
+class fileman_Files extends core_Master 
+{
     
     
+    /**
+     * Детайла, на модела
+     */
+    var $details = 'fileman_FileDetails';
+    
+    
+    /**
+     * 
+     */
+    var $canEdit = 'no_one';
+    
+    
+    /**
+     * 
+     */
+    var $canDelete = 'no_one';
+    
+    
+    /**
+     * 
+     */
+     var $singleLayoutFile = 'fileman/tpl/SingleLayoutFile.shtml';
+    
+     
     /**
      * Заглавие на модула
      */
@@ -484,5 +509,131 @@ class fileman_Files extends core_Manager {
         }
         
         return $newArr;
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_BeforeRenderSingle($mvc, $tpl, &$data)
+    {
+        // Проверяваме за права
+        $mvc->requireRightFor('single', $data->rec->id);
+        
+        $row = &$data->row;
+        $rec = $data->rec;
+        
+        // Вербалното име на файла
+        $row->_fileName = $mvc->getVerbal($rec,'name');
+        
+        // Линк за сваляне на файла
+        $row->_link = toUrl(array('fileman_Download', 'Download', 'fh' => $rec->fileHnd), TRUE);
+        
+        // Типа на файла
+        $row->_type = $mvc->getType($rec->name);
+        
+        // Вербалния размер на файла
+        $row->_size = fileman_Data::getFileSize($rec->dataId);
+        
+        // Информация за файла
+        $row->_info = self::getFileInfo($rec->dataId);
+        
+        // Версиите на файла
+        $row->_versions = self::getFileVersionsString($rec->id);
+    }
+    
+    
+    /**
+     * Връща типа на файла
+     * 
+     * @param string $fileName - Името на файла
+     * 
+     * @return string - mime типа на файла
+     */
+    static function getType($fileName)
+    {
+        if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+            
+            // Файл за mime типове
+            include(dirname(__FILE__) . '/data/mimes.inc.php');
+            
+            // Разширение на файла
+            $ext = mb_substr($fileName, $dotPos + 1);
+        
+            return $mimetypes["{$ext}"];
+        }
+    }
+    
+    
+    /**
+     * Връща информация за файла
+     * 
+     * @param $dataId - id' то на файла, с данните
+     * 
+     * @return string $fileInfo - Информация за файла
+     * @access private
+     * @todo Временно решение
+     */
+    static function getFileInfo($dataId)
+    {
+        // Пътя до файла
+        $path = fileman_Data::getFilePath($dataId);
+
+        // TODO временно решени
+        // Ще се промени
+        $fileInfo = exec("file {$path}");
+        
+        $fileInfo = str_ireplace($path . ':', '', $fileInfo);
+        
+        $fileInfo = str::trim($fileInfo);
+        
+        return $fileInfo;
+    }
+    
+    
+    /**
+     * Връща стринг с всички версии на файла, който търсим
+     */
+    static function getFileVersionsString($id)
+    {
+        // Масив с всички версии на файла
+        $fileVersionsArr = fileman_FileDetails::getFileVersionsArr($id);
+        
+        foreach ($fileVersionsArr as $fileId => $fileInfo) {
+            
+            // Линк към single' а на файла
+            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileId), FALSE, array('title' => $fileInfo['versionInfo']));
+            
+            // Всеки линк за файла да е на нов ред
+            $text .= ($text) ? '<br />' . $link : $link;
+        }
+        
+        return $text;
+    }
+    
+
+	/**
+     * 
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        // Ако имаме права за сваляне
+        if ($mvc->haveRightFor('download', $data->rec)) {
+            
+            // Добавяме бутон за сваляне
+            $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd), FALSE);
+            $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-save,class=btn-save', array('target'=>'_blank'));
+        
+        
+            // Ако файла има зададена услуга за преглед или редактиране, добавяме линк към приложението
+            if ($reviewBtnArr = fileman_Download::getReviewBtnData($data->rec)) {
+                
+                // Добавяме бутона
+                $data->toolbar->addBtn('Преглед', $reviewBtnArr['url'], 
+                	"id='btn-review',class='btn-review', style=background-image: url(" . $reviewBtnArr['img'] . ");", 
+                    array('target'=>'_blank')
+                );    
+            }
+        }
     }
 }

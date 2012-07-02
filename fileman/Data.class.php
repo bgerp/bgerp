@@ -86,7 +86,7 @@ class fileman_Data extends core_Manager {
         $rec->id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
         if(!$rec->id) {
-            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
+            $path = self::getFilePath($rec);
             
             if(@copy($file, $path)) {
                 $rec->links = 0;
@@ -114,7 +114,7 @@ class fileman_Data extends core_Manager {
         
         if(!$rec->id) {
             
-            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
+            $path = self::getFilePath($rec);
             
             expect(FALSE !== @file_put_contents($path, $string));
             
@@ -131,7 +131,7 @@ class fileman_Data extends core_Manager {
      */
     static function on_CalcPath($mvc, $rec)
     {
-        $rec->path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
+        $rec->path = self::getFilePath($rec);
     }
     
     
@@ -223,5 +223,46 @@ class fileman_Data extends core_Manager {
         $res .= "\n<li style='color:green'> Преименуването завърши. </li>";
         
         return $res;
+    }
+    
+    
+    /**
+     * Връща размера на файла във вербален вид
+     * 
+     * @param numeric $id - id' то на файла
+     * 
+     * @return string $verbalSize - Вербалното представяне на файла
+     */
+    static function getFileSize($id)
+    {
+        // Размера в битове
+        $sizeBytes = fileman_Data::fetchField($id, 'fileLen');
+        
+        // Инстанция на класа за определяне на размера
+        $FileSize = cls::get('fileman_FileSize');
+        
+        // Вербалното представяне на файла
+        $verbalSize = $FileSize->toVerbal($sizeBytes);
+        
+        return $verbalSize;
+    }
+    
+    
+    /**
+     * Връща пътя до файла на съответния запис
+     * 
+     * @param mixed $rec - id' на файла или записа на файла
+     * 
+     * @return string $path - Пътя на файла
+     */
+    static function getFilePath($rec)
+    {
+        if (is_numeric($rec)) {
+            $rec = self::fetch($rec);
+        }
+        
+        $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
+        
+        return $path;
     }
 }
