@@ -120,8 +120,7 @@ class doc_FolderPlg extends core_Plugin
      */
     function on_AfterGetQuery($mvc, &$query)
     { 
-        if(!haveRole('ceo')) {
-            $cu = core_Users::getCurrent();
+        if(!haveRole('ceo') && ($cu = core_Users::getCurrent())) {
             $query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%'))");
         }
     }
