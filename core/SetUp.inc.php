@@ -7,7 +7,7 @@
 $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
 							'exif', 'filter', 'ftp', 'gd', 'iconv', 'json',
 							'mbstring', 'mysql', 'pcre', 'session', 'SimpleXML',
-							'SPL', 'standard', 'tokenizer', 'xml', 'zlib');
+							'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap');
 
 /**
  * Масив съдържащ всички активни apach модули, необходими за правилна работа на ситемата

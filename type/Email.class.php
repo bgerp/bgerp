@@ -114,7 +114,11 @@ class type_Email extends type_Varchar {
     {
         if(empty($value)) return NULL;
         
-        return $this->addHyperlink($value);
+        if($this->params['link'] != 'no') {
+            $value = $this->addHyperlink($value);
+        } 
+
+        return $value;
     }
     
     

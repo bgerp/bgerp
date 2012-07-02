@@ -901,7 +901,9 @@ class core_Form extends core_FieldSet
         
         if (count($arr)) {
             foreach ($arr as $name => $value) {
-                $this->rec->{$name} = $value;
+                if(!$this->rec->{$name}) {
+                    $this->rec->{$name} = $value;
+                }
             }
         }
     }
@@ -913,7 +915,9 @@ class core_Form extends core_FieldSet
     function setDefault($var, $value)
     {
         expect($var, '$var не може да бъде празно');
-        $this->rec->{$var} = $value;
+        if(!$this->rec->{$var}) {
+            $this->rec->{$var} = $value;
+        }
     }
     
     

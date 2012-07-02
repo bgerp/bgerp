@@ -69,11 +69,10 @@ class page_InternalFooter extends core_ET {
                 $this->append('&nbsp;|&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
                 
                 $this->append('<div id="debug_info" style="margin:5px; display:none;">');
-                $this->append(" Време за изпълнение: " . DEBUG::getExecutionTime());
+                $this->append(" Време за изпълнение: [#DEBUG::getExecutionTime#]");
                 
                 // Вкарваме съдържанието на дебъгера
-                $this->append(Debug::getLog());
-                $this->append('</div>');
+                $this->append('[#Debug::getLog#]</div>');
             }
         }
     }

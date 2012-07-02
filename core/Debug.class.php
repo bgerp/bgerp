@@ -81,7 +81,7 @@ class core_Debug
     {
         // Функцията работи само в режим DEBUG
         if(!isDebug()) return;
-        
+
         self::init();
         
         self::$debugTime[] = number_format((dt::getMicrotime() - self::$startMicroTime), 5) . ": " . $name;
