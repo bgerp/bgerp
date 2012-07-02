@@ -44,7 +44,7 @@ class email_Filters extends core_Manager
     /**
      * Заглавие
      */
-    var $title    = "Имейл услуги";
+    var $title    = "Имейл филтри";
     
     
     /**
@@ -70,12 +70,12 @@ class email_Filters extends core_Manager
      */
     function description()
     {
-        $this->FLD('title' , 'varchar', 'caption=Заглавие');
-        $this->FLD('email' , 'email', 'caption=Изпращач');
-        $this->FLD('subject' , 'varchar', 'caption=Събджект');
-        $this->FLD('body' , 'text', 'caption=Текст');
-        $this->FLD('action' , 'enum(email=По имейл,folder=В папка,spam=Спам)', 'caption=Действие');
-        $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка');
+        $this->FLD('title' , 'varchar', 'caption=Име на филтъра');
+        $this->FLD('email' , 'email', 'caption=Шаблон->Изпращач');
+        $this->FLD('subject' , 'varchar', 'caption=Шаблон->Събджект');
+        $this->FLD('body' , 'text', 'caption=Шаблон->Текст');
+        $this->FLD('action' , 'enum(email=По имейл,folder=В папка,spam=Спам)', 'caption=Действие->Действие');
+        $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Действие->Папка');
         $this->FLD('state' , 'enum(active=Активен,stopped=Спрян)', 'caption=Състояние');
     }
     
