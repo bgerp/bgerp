@@ -14,33 +14,26 @@
  * @since     v 0.1
  * @link
  */
-class plg_SystemWrapper extends core_Plugin
+class plg_SystemWrapper extends plg_ProtoWrapper
 {
     
-    
     /**
-     * Извиква се след рендирането на 'опаковката' на мениджъра
+     * Описание на табовете
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
+    function description()
     {
-        Mode::set('pageMenu', 'Система');
+        $this->pageMenu = 'Система';
         
-        $tabs = CLS::get('core_Tabs');
-        
-        $tabs->TAB('core_Packs', 'Пакети');
-        $tabs->TAB('core_Users', 'Потребители');
-        $tabs->TAB('core_Roles', 'Роли');
-        $tabs->TAB('core_Classes', 'Класове');
-        $tabs->TAB('core_Interfaces', 'Интерфейси');
-        $tabs->TAB('core_Lg', 'Превод');
-        $tabs->TAB('core_Logs', 'Логове');
-        $tabs->TAB('core_Cron', 'Крон');
-        $tabs->TAB('core_Plugins', 'Плъгини');
-        $tabs->TAB('core_Cache', 'Кеш');
-        $tabs->TAB('core_Locks', 'Заключвания');
-        
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        
-        $tpl->prepend(tr($invoker->title) . ' « ' . tr('Ядро') . ' « ', 'PAGE_TITLE');
+        $this->TAB('core_Packs', 'Пакети', 'admin');
+        $this->TAB('core_Users', 'Потребители', 'admin');
+        $this->TAB('core_Roles', 'Роли', 'admin');
+        $this->TAB('core_Classes', 'Класове', 'admin');
+        $this->TAB('core_Interfaces', 'Интерфейси', 'admin');
+        $this->TAB('core_Lg', 'Превод', 'admin');
+        $this->TAB('core_Logs', 'Логове', 'admin');
+        $this->TAB('core_Cron', 'Крон');
+        $this->TAB('core_Plugins', 'Плъгини', 'admin');
+        $this->TAB('core_Cache', 'Кеш', 'admin');
+        $this->TAB('core_Locks', 'Заключвания', 'admin');
     }
 }
