@@ -126,7 +126,8 @@ class currency_Currencies extends core_Manager {
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $currDefs = array("АВСТРАЛИЙСКИ ДОЛАР|AUD",
+        $currDefs = array("БЪЛГАРСКИ ЛЕВ|BGN",
+        	"АВСТРАЛИЙСКИ ДОЛАР|AUD",
             "БРАЗИЛСКИ РЕАЛ|BRL",
             "КАНАДСКИ ДОЛАР|CAD",
             "ШВЕЙЦАРСКИ ФРАНК|CHF",
