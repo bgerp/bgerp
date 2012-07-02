@@ -50,6 +50,9 @@ class plg_ProtoWrapper extends core_Plugin
         } else {
             expect(empty($url), $url);
         }
+        
+        $rec = new stdClass();
+        
         $rec->url = $url;
         $rec->roles = $roles;
         $this->tabs[$name] = $rec;
