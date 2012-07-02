@@ -15,6 +15,11 @@ $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
 $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_php5', 'mod_rewrite');
 
 /**
+ * Масив с липсващите php и/или apache модули, 
+ * без които системата не работи коректно
+ */
+$error = array();
+/**
  * Масив с всички активни php модули
  */
 $activePhpModules = get_loaded_extensions();
@@ -24,7 +29,7 @@ foreach($requiredPhpModules as $required){
 	
 	if(!in_array($required, $activePhpModules)){
 		
-		$systemInfo['phpModules']['no'] = $required;
+		$error['phpModules'][$required] = $required;
 	}
 }
 
@@ -38,36 +43,15 @@ foreach($requiredApacheModules as $requiredA){
 	
 	if(!in_array($requiredA, $activeApacheModules)){
 		
-		$systemInfo['apacheModules']['no'] = $requiredA;
+		$error['apacheModules'][$requiredA] = $requiredA;
 	}
 }
 
 /**
  * Път до конфигурационния файл
  */
-$filename = '/var/www/ef_root/conf/bgerp.cfg.php';
+$filename = EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
 
-/**
- * Път до конфигурационния файл на php
- */
-$filePhp =  '/etc/php5/apache2/php.ini';
-
-if(file_exists($filename)){
-	
-	$soap = file_get_contents($filePhp);
-	
-	if(strpos($soap, 'extension=php_soap.dll') === FALSE && 
-	   strpos($soap, ';extension=php_soap.dll') === FALSE) {
-	   	
-	   	halt('Error: Missing SoapClient');
-	   	
-	   } else {
-	   	
-	   	echo "File php.ini is correct"."<br>";
-	   	
-	   }
-	
-}
 
 if(file_exists($filename)){
 	
@@ -93,14 +77,15 @@ if(file_exists($filename)){
 	
 
 
-if (count($systemInfo) > 0){
+if (count($error) > 0){
 	
-	print_r($systemInfo)."/n";
+	print_r($error)."/n";
 	halt('Error: Missing modules');
 	
 } else {
+	$location = 'http://'.$_SERVER['SERVER_NAME'].'/core_Users/login/';
 	
-	echo "<button onclick=\"window.location='http://127.0.0.1/core_Users/login/'\">Начало</button>";
+	echo "<button onclick=\"window.location='$location'\">Начало</button>";
     halt('Everything is OK');
     
  	}
