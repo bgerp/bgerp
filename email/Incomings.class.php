@@ -824,7 +824,7 @@ class email_Incomings extends core_Master
         // има нишка и/или папка прекъсва процеса - рутирането е успешно.
         $rules = array(
             'self::routeByThread',
-            'email_Services::preroute',
+            'email_Filters::preroute',
             'self::routeByFromTo',
             'self::routeByFrom',
             'self::routeSpam',

@@ -106,7 +106,7 @@ class email_Setup
             'email_Router',
             'email_Addresses',
             'email_FaxSent',
-            'email_Services',
+            'email_Filters',
         );
         
         // Роля ръководител на организация 

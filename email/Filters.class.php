@@ -10,7 +10,7 @@
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/253
  */
-class email_Services extends core_Manager
+class email_Filters extends core_Manager
 {
     
     
@@ -65,7 +65,7 @@ class email_Services extends core_Manager
      * може да е едно от:
      * 
      *     o По имейл : имейла на изпращача се подменя с други мейл, намерен в писмото
-     *                  (@see email_Services::prerouteByEmail()) 
+     *                  (@see email_Filterss::prerouteByEmail()) 
      *     o В папка  : писмото се рутира директно в зададената папка.
      *     o Спам     : писмото се маркира като спам
      *     
@@ -110,7 +110,7 @@ class email_Services extends core_Manager
      *  o имейл адресите, които е много вероятно да са на доставчика на публичната услуга
      *  
      * @param stdClass $rec запис от модела email_Incomings
-     * @param stdClass $serviceRec запис от модела email_Services
+     * @param stdClass $serviceRec запис от модела email_Filters
      */
     protected static function prerouteByEmail($rec, $serviceRec)
     {
@@ -147,7 +147,7 @@ class email_Services extends core_Manager
      * Определя дали и от коя услуга е изпратено писмо
      * 
      * @param stdClass $rec запис от модела email_Incomings
-     * @return stdClass запис от модела email_Services или FALSE ако не е разпозната услуга
+     * @return stdClass запис от модела email_Filters или FALSE ако не е разпозната услуга
      */
     protected static function detect($rec)
     {
