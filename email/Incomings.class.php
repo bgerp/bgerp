@@ -140,7 +140,7 @@ class email_Incomings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,subject,date,fromEml=От,toEml=До,accId,boxIndex,country';
+    var $listFields = 'id,subject,date,fromEml=От,toBox=До,accId,boxIndex,country';
     
     
     /**
@@ -159,8 +159,14 @@ class email_Incomings extends core_Master
         $this->FLD("subject", "varchar", "caption=Тема");
         $this->FLD("fromEml", "email", 'caption=От->Имейл');
         $this->FLD("fromName", "varchar", 'caption=От->Име');
+        
+        // Първия наш имейл от MIME-хедъра "To:"
         $this->FLD("toEml", "email(link=no)", 'caption=До->Имейл');
+        
+        // Наша пощенска кутия (email_Inboxes) до която е адресирано писмото.
+        // Това поле се взема предвид при рутиране и създаване на правила за рутиране.
         $this->FLD("toBox", "email(link=no)", 'caption=До->Кутия');
+        
         $this->FLD("headers", "text", 'caption=Хедъри');
         $this->FLD("textPart", "richtext", 'caption=Текстова част');
         $this->FLD("spam", "int", 'caption=Спам');
@@ -470,7 +476,7 @@ class email_Incomings extends core_Master
             $mime->parts[1]->headersArr = $mime->parseHeaders($headers);
             
             // Извличаме информация за получателя (към кого е насочено писмото)
-            $toEml = $mime->getToEmail();
+            $toEml = $mime->getToBox();
             
             // Намираме датата на писмото
             $date = $mime->getDate();
@@ -1090,7 +1096,7 @@ class email_Incomings extends core_Master
      */
     static function isGenericRecipient($rec)
     {
-        return email_Inboxes::isGeneric($rec->toEml);
+        return email_Inboxes::isGeneric($rec->toBox);
     }
     
     
@@ -1125,7 +1131,7 @@ class email_Incomings extends core_Master
      */
     static function on_AfterSave($mvc, $id, $rec)
     {
-        static::needFields($rec, 'fromEml, toEml, date, containerId,threadId');
+        static::needFields($rec, 'fromEml, toBox, date, containerId,threadId');
         
         if ($rec->state == 'rejected') {
             $mvc->removeRouterRules($rec);
@@ -1234,7 +1240,7 @@ class email_Incomings extends core_Master
     static function makeFromToRule($rec)
     {
         if (!static::isGenericRecipient($rec)) {
-            $key = email_Router::getRoutingKey($rec->fromEml, $rec->toEml, email_Router::RuleFromTo);
+            $key = email_Router::getRoutingKey($rec->fromEml, $rec->toBox, email_Router::RuleFromTo);
             
             // Най-висок приоритет, нарастващ с времето
             $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
