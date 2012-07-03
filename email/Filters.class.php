@@ -70,13 +70,13 @@ class email_Filters extends core_Manager
      */
     function description()
     {
-        $this->FLD('title' , 'varchar', 'caption=Име на филтъра');
-        $this->FLD('email' , 'email', 'caption=Шаблон->Изпращач');
-        $this->FLD('subject' , 'varchar', 'caption=Шаблон->Събджект');
-        $this->FLD('body' , 'text', 'caption=Шаблон->Текст');
+        $this->FLD('email' , 'email', 'caption=Шаблон->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
+        $this->FLD('subject' , 'varchar', 'caption=Шаблон->Относно', array('attr'=>array('style'=>'width: 350px;')));
+        $this->FLD('body' , 'varchar', 'caption=Шаблон->Текст', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('action' , 'enum(email=По имейл,folder=В папка,spam=Спам)', 'caption=Действие->Действие');
         $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Действие->Папка');
         $this->FLD('state' , 'enum(active=Активен,stopped=Спрян)', 'caption=Състояние');
+        $this->FLD('note' , 'text', 'caption=Още->Забележка', array('attr'=>array('style'=>'width: 350px;', 'rows'=>4)));
     }
     
     
