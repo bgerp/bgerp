@@ -38,7 +38,7 @@ class email_Filters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State, email_Wrapper, plg_RowTools';
+    var $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools';
     
     
     /**
@@ -65,17 +65,19 @@ class email_Filters extends core_Manager
     var $canReject = 'admin';
     
     
+    var $listFields = 'state=С, id, email, subject, body, action, folderId, note=Забележка';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('email' , 'email', 'caption=Шаблон->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
+        $this->FLD('email' , 'varchar', 'caption=Шаблон->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('subject' , 'varchar', 'caption=Шаблон->Относно', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('body' , 'varchar', 'caption=Шаблон->Текст', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('action' , 'enum(email=По имейл,folder=В папка,spam=Спам)', 'caption=Действие->Действие');
         $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Действие->Папка');
-        $this->FLD('state' , 'enum(active=Активен,stopped=Спрян)', 'caption=Състояние');
         $this->FLD('note' , 'text', 'caption=Още->Забележка', array('attr'=>array('style'=>'width: 350px;', 'rows'=>4)));
     }
     
