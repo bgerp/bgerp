@@ -23,13 +23,13 @@ class email_Router extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, email_Wrapper';
+    var $loadList = 'plg_Created, email_Wrapper, email_router_Wrapper';
     
     
     /**
      * Заглавие
      */
-    var $title    = "Рутер на ел. поща";
+    var $title    = "Автоматични правила за рутиране";
     
     
     /**

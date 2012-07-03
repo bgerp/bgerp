@@ -31,7 +31,6 @@ class email_Wrapper extends plg_ProtoWrapper
         $this->TAB('email_Incomings', 'Входящи', 'admin,ceo');
         $this->TAB('email_Router', 'Рутиране', 'admin,ceo');
         $this->TAB('email_Sent', 'Изпращания', 'admin,ceo');
-        $this->TAB('email_Filters', 'Филтри', 'admin,ceo');       
         
         $this->title = 'Имейли';
     }

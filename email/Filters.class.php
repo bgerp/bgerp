@@ -38,13 +38,13 @@ class email_Filters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools';
+    var $loadList = 'plg_Created, plg_State2, email_Wrapper, email_router_Wrapper, plg_RowTools';
     
     
     /**
      * Заглавие
      */
-    var $title    = "Имейл филтри";
+    var $title    = "Потребителски правила за рутиране";
     
     
     /**
