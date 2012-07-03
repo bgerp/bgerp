@@ -73,19 +73,21 @@ class plg_ProtoWrapper extends core_Plugin
         // Генерираме титлата на страницата         
         $tpl->prepend(tr($invoker->title) . ' « ' . tr($this->title) . ' « ', 'PAGE_TITLE');
         
-        
-        // Определяме, кой е текущия таб
-        if($invoker->currentTab && isset($this->tabs[$invoker->currentTab])) {
+        // Проверяваме дали текущия таб не е изрично зададен
+        if ($isCurrentTabSet = $invoker->currentTab && isset($this->tabs[$invoker->currentTab])) {
             $currentTab = $invoker->currentTab;
-        } else {
-            $ctr = cls::getClassName(Request::get('Ctr'));
-            $act = Request::get('Act');
-            $id  = Request::get('id');
-            
-            // Масимално добрата оценка за подходящ таб
-            $maxScore = 0;
+        }  
+        
+        $ctr = cls::getClassName(Request::get('Ctr'));
+        $act = Request::get('Act');
+        $id  = Request::get('id');
+        
+        // Масимално добрата оценка за подходящ таб
+        $maxScore = 0;
 
-            foreach($this->tabs as $name => $rec) {
+        foreach($this->tabs as $name => $rec) {
+            if (!$isCurrentTabSet) {
+                // Ако текущия таб не е изрично зададен, опитваме да го определим евристично
                 $score = 0;
                 if($rec->url['Ctr'] == $ctr && !empty($ctr)) {
                     $score = 1;
@@ -101,20 +103,21 @@ class plg_ProtoWrapper extends core_Plugin
                     $currentTab = $name; 
                     $maxScore   = $score;
                 }
-
-                if($rec->haveRight = haveRole($rec->roles)) {
-                    $act = strtolower($rec->url['Act']);
-                    try {
-                        if($act == 'list' || $act == 'default' || empty($act)) {
-                            $tabCtr = cls::get($rec->url['Ctr']);
-                            if($tabCtr instanceof core_Manager) {
-                                $rec->haveRight = $tabCtr->haveRightFor('list');
-                            }
-                        }
-                    } catch (core_Exception_Expect $expect) {}
-                }
-
             }
+
+            // Контрол да достъпа до табовете
+            if($rec->haveRight = haveRole($rec->roles)) {
+                $act = strtolower($rec->url['Act']);
+                try {
+                    if($act == 'list' || $act == 'default' || empty($act)) {
+                        $tabCtr = cls::get($rec->url['Ctr']);
+                        if($tabCtr instanceof core_Manager) {
+                            $rec->haveRight = $tabCtr->haveRightFor('list');
+                        }
+                    }
+                } catch (core_Exception_Expect $expect) {}
+            }
+
         }
         
         // Създаваме рендер на табове
@@ -129,7 +132,7 @@ class plg_ProtoWrapper extends core_Plugin
                  $tabs->TAB($name, $name, array());
             }
         }
-
+        
         $tpl = $tabs->renderHtml($tpl, $currentTab);
 
     }
