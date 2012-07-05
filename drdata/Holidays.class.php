@@ -19,7 +19,7 @@ class drdata_Holidays extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper, plg_RowTools';
+    var $loadList = 'drdata_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
     
 
     /**
@@ -28,6 +28,11 @@ class drdata_Holidays extends core_Manager
     var $title = 'Данни за празниците в календара';
     
 
+    /**
+     * полета от БД по които ще се търси
+     */
+    var $searchFields = 'day, title, type, year, info';
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -50,7 +55,8 @@ class drdata_Holidays extends core_Manager
                                  CEST=Кат. Великден)', 'caption=База,export');
         $this->FLD('year', 'int', 'caption=Година,export');
         $this->FLD('title', 'varchar', 'caption=Празник->Заглавие,export');
-        $this->FLD('type', 'enum(holiday=Празник,
+        $this->FLD('type', 'enum(0=&nbsp;,
+        								holiday=Празник,
                                         non-working=Неработен,
                                         workday=Отработване,
                                         nameday=Имен ден,
@@ -585,6 +591,21 @@ class drdata_Holidays extends core_Manager
         if (strpos(" ,$cites,", ",$city,") > 0) return true;
         
         return false;
+    }
+    
+    /**
+     * Форма за търсене по дадена ключова дума
+     */
+    static function on_AfterPrepareListFilter($mvs, &$res, $data)
+    {
+        $data->listFilter->showFields = 'search, type';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->input('search, type', 'silent');
+        
+        if($type = $data->listFilter->rec->type){
+            $data->query->where("#type = '{$type}'");
+        }
     }
 }
 
