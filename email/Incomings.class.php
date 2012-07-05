@@ -476,7 +476,7 @@ class email_Incomings extends core_Master
             $mime->parts[1]->headersArr = $mime->parseHeaders($headers);
             
             // Извличаме информация за получателя (към кого е насочено писмото)
-            $toEml = $mime->getToBox();
+            $toEml = $mime->getToEmail();
             
             // Намираме датата на писмото
             $date = $mime->getDate();
