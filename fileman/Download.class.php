@@ -155,7 +155,13 @@ class fileman_Download extends core_Manager {
     {
         $fh = Request::get('fh');
         
+        expect($fh, 'Липсва манупулатора на файла');
+        
+        $fh = $this->db->escape($fh);
+        
         $fRec = $this->Files->fetchByFh($fh);
+        
+        expect($fRec, 'Няма такъв запис.');
         
         $this->Files->requireRightFor('download', $fRec);
         
@@ -507,5 +513,93 @@ class fileman_Download extends core_Manager {
         } catch (core_Exception_Expect $expect) {}
         
         return $reviewBtnArr;
+    }
+    
+    
+    /**
+     * Екшън за генериране на линк за сваляне на файла
+     */
+    function act_GenerateLink()
+    {
+        //Права за работа с екшън-а
+        requireRole('user');
+        
+        // Манипулатора на файла
+        $fh = Request::get('fh');
+        
+        // Очакваме да има подаден манипулатор на файла
+        expect($fh, 'Липсва манупулатора на файла');
+        
+        // Ескейпваме манипулатора
+        $fh = $this->db->escape($fh);
+
+        // Записа за съответния файл
+        $fRec = $this->Files->fetchByFh($fh);
+        
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+        
+        // Проверяваме за права за сваляне на файла
+        $this->Files->requireRightFor('download', $fRec);
+        
+        
+        $this->FNC('activeMinutes', 'int', 'caption=Активност, unit=час, mandatory');
+        
+        //URL' то където ще се редиректва при отказ
+        $retUrl = getRetUrl();
+        $retUrl = ($retUrl) ? ($retUrl) : (array('fileman_Files', 'single', $fRec->id));
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        // Въвеждаме съдържанието на полетата
+        $form->input('activeMinutes');
+
+        // Ако формата е изпратена без грешки, показваме линка за сваляне
+        if($form->isSubmitted()) {
+            
+            // Линка за сваляне, който е активен, толкова часа, колкото сме въвели
+            $link = self::getDownloadUrl($fRec->fileHnd, $form->rec->activeMinutes);
+            
+            $backBtn = ht::createBtn('Назад', $retUrl, NULL, NULL, array('class'=>'btn-back'));
+            
+            // Шаблон за показване на линка
+            $tpl = new ET("Линк: <span id='selectable' onmouseUp='onmouseUpSelect()'> {$link} </span><div>$backBtn</div>");
+            
+            // Скрипт за маркиране на линка при натискане с мишката
+            $tpl->append("function onmouseUpSelect()
+                        	{
+                        		if (document.selection) {
+                        			var range = document.body.createTextRange();
+                        			range.moveToElementText(document.getElementById('selectable'));
+                        			range.select();
+                        		}
+                        		else if (window.getSelection) {
+                        			var range = document.createRange();
+                        			range.selectNode(document.getElementById('selectable'));
+                        			window.getSelection().addRange(range);
+                        		}
+                        	}", 'SCRIPTS');
+
+            // Връщаме шаблона
+            return $this->renderWrapping($tpl);    
+        }
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'activeMinutes';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+
+        $fileName = fileman_Files::getVerbal($fRec, 'name');
+        
+        // Добавяме титлата на формата
+        $form->title = tr("Генериране на линк за {$fileName}");
+        
+        return $this->renderWrapping($form->renderHtml());
     }
 }

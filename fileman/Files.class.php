@@ -526,9 +526,6 @@ class fileman_Files extends core_Master
         // Вербалното име на файла
         $row->_fileName = $mvc->getVerbal($rec,'name');
         
-        // Линк за сваляне на файла
-        $row->_link = toUrl(array('fileman_Download', 'Download', 'fh' => $rec->fileHnd), TRUE);
-        
         // Типа на файла
         $row->_type = $mvc->getType($rec->name);
         
@@ -622,7 +619,7 @@ class fileman_Files extends core_Master
             
             // Добавяме бутон за сваляне
             $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd), FALSE);
-            $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-save,class=btn-save', array('target'=>'_blank'));
+            $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-save,class=btn-save', array('target'=>'_blank'), 'order=8');
         
             // Ако файла има зададена услуга за преглед или редактиране, добавяме линк към приложението
             if ($reviewBtnArr = fileman_Download::getReviewBtnData($data->rec)) {
@@ -634,9 +631,12 @@ class fileman_Files extends core_Master
                 );    
             }
             
-            $createDocUrl = toUrl(array('doc_Incomings', 'add', 'fh' => $data->rec->fileHnd), FALSE);
+            //
+            $createLinkUrl = toUrl(array('fileman_Download', 'GenerateLink', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
+            $data->toolbar->addBtn('Линк', $createLinkUrl, 'id=btn-createLink,class=btn-createLink', 'order=40');
             
             // Добавяме бутон за създаване на входящ документ
+            $createDocUrl = toUrl(array('doc_Incomings', 'add', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
             $data->toolbar->addBtn('Документ', $createDocUrl, 'id=btn-docIncomings,class=btn-docIncomings', 'order=50');
         }
     }
