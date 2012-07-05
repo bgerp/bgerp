@@ -624,7 +624,6 @@ class fileman_Files extends core_Master
             $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd), FALSE);
             $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-save,class=btn-save', array('target'=>'_blank'));
         
-        
             // Ако файла има зададена услуга за преглед или редактиране, добавяме линк към приложението
             if ($reviewBtnArr = fileman_Download::getReviewBtnData($data->rec)) {
                 
@@ -634,6 +633,11 @@ class fileman_Files extends core_Master
                     array('target'=>'_blank')
                 );    
             }
+            
+            $createDocUrl = toUrl(array('doc_Incomings', 'add', 'fh' => $data->rec->fileHnd), FALSE);
+            
+            // Добавяме бутон за създаване на входящ документ
+            $data->toolbar->addBtn('Документ', $createDocUrl, 'id=btn-docIncomings,class=btn-docIncomings', 'order=50');
         }
     }
 }
