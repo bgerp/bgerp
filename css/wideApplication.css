@@ -421,6 +421,14 @@ a img {
 	background-image:url('../img/16/page_white_vector.png');
 }
 
+.btn-back {
+    background-image:url('../img/16/red-back.png');
+}
+
+.btn-createLink {
+    background-image:url('../img/16/link.png');
+}
+
 .btn-email-send {
 	background-image:url('../img/16/email_go.png');
 }
