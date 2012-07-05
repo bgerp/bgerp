@@ -208,103 +208,8 @@ class email_Outgoings extends core_Master
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
-                        
-            //Вземаме всички избрани файлове
-            $data->rec->attachmentsFh = type_Set::toArray($data->form->rec->attachmentsSet);
-            
-            //Ако имамем прикачени файлове
-            if (count($data->rec->attachmentsFh)) {
-                
-                //Вземаме id'тата на файловете вместо манупулатора име
-                $attachments = fileman_Files::getIdFromFh($data->rec->attachmentsFh);
 
-                //Записваме прикачените файлове
-                $data->rec->attachments = type_KeyList::fromArray($attachments);
-            }
-            
-            // Генерираме списък с документи, избрани за прикачане
-            $docsArr = static::getAttachedDocuments($data->form->rec);
-            
-            //
-            // Изпращане на писма до всеки от изброените получатели
-            //
-            
-            $emailsTo = type_Emails::toArray($data->form->rec->emailsTo);
-            $emailCss = getFileContent('css/email.css');
-            $success  = $failure = array(); // списъци с изпратени и проблеми получатели
-            
-            foreach ($emailsTo as $emailTo) {
-                log_Documents::pushAction(
-                    array(
-                        'containerId' => $data->rec->containerId,
-                        'action'      => log_Documents::ACTION_SEND, 
-                        'data'        => (object)array(
-                            'from' => $data->rec->boxFrom,
-                            'to'   => $emailTo,
-                        )
-                    )
-                );
-                
-                // Подготовка на текста на писмото (HTML & plain text)
-                $data->rec->__mid = NULL;
-                $data->rec->html = $this->getEmailHtml($data->rec, $lg, $emailCss);
-                $data->rec->text = $this->getEmailText($data->rec, $lg);
-                
-                // Генериране на прикачените документи
-                $data->rec->documentsFh = array();
-                foreach ($docsArr as $attachDoc) {
-                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                    // файл със съдържанието на документа в желания формат
-                    $fh = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                    
-                    if (!empty($fh)) {
-                        $data->rec->documentsFh[$fh] = $fh;
-                    }
-                }
-                
-                // .. ако имаме прикачени документи ...
-                if (count($data->rec->documentsFh)) {
-                    //Вземаме id'тата на файловете вместо манипулаторите
-                    $documents = fileman_Files::getIdFromFh($data->rec->documentsFh);
-                
-                    //Записваме прикачените файлове
-                    $data->rec->documents = type_KeyList::fromArray($documents);
-                }
-                
-                // ... и накрая - изпращане. 
-                $status = email_Sent::sendOne(
-                    $data->form->rec->boxFrom,
-                    $emailTo,
-                    $data->rec->subject,
-                    $data->rec,
-                    array(
-                        'encoding' => $data->form->rec->encoding
-                    )
-                );
-                
-                if ($status) {
-                    // Правим запис в лога
-                    $this->log('Send to ' . $emailTo, $data->rec->id);
-                    $success[] = $emailTo;
-                } else {
-                    $this->log('Unable to send to ' . $emailTo, $data->rec->id);
-                    $failure[] = $emailTo;
-                }
-                
-                log_Documents::popAction();
-            }
-
-            // Създаваме съобщение, в зависимост от състоянието на изпращане
-            if (empty($failure)) {
-                $msg = 'Успешно изпратено до: ' . implode(', ', $success);
-                $statusType = 'notice';
-            } else {
-                $msg = 'Грешка при изпращане до: ' . implode(', ', $failure);
-                $statusType = 'warning';
-            }
-            
-            // Добавяме статус
-            core_Statuses::add($msg, $statusType);
+            static::_send($data->rec, $data->form->rec, $lg);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -331,6 +236,106 @@ class email_Outgoings extends core_Master
         $tpl->append($preview);
 
         return static::renderWrapping($tpl);
+    }
+    
+    
+    protected static function _send($rec, $options, $lg)
+    {
+        //Вземаме всички избрани файлове
+        $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
+        
+        //Ако имамем прикачени файлове
+        if (count($rec->attachmentsFh)) {
+        
+            //Вземаме id'тата на файловете вместо манупулатора име
+            $attachments = fileman_Files::getIdFromFh($rec->attachmentsFh);
+        
+            //Записваме прикачените файлове
+            $rec->attachments = type_KeyList::fromArray($attachments);
+        }
+        
+        // Генерираме списък с документи, избрани за прикачане
+        $docsArr = static::getAttachedDocuments($options);
+        
+        //
+        // Изпращане на писма до всеки от изброените получатели
+        //
+        $emailsTo = type_Emails::toArray($options->emailsTo);
+        $emailCss = getFileContent('css/email.css');
+        $success  = $failure = array(); // списъци с изпратени и проблеми получатели
+        
+        foreach ($emailsTo as $emailTo) {
+            log_Documents::pushAction(
+                array(
+                    'containerId' => $rec->containerId,
+                    'action'      => log_Documents::ACTION_SEND,
+                    'data'        => (object)array(
+                        'from' => $options->boxFrom,
+                        'to'   => $emailTo,
+                    )
+                )
+            );
+        
+            // Подготовка на текста на писмото (HTML & plain text)
+            $rec->__mid = NULL;
+            $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
+            $rec->text = static::getEmailText($rec, $lg);
+        
+            // Генериране на прикачените документи
+            $rec->documentsFh = array();
+            foreach ($docsArr as $attachDoc) {
+                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                // файл със съдържанието на документа в желания формат
+                $fh = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+            
+                if (!empty($fh)) {
+                    $rec->documentsFh[$fh] = $fh;
+                }
+            }
+        
+            // .. ако имаме прикачени документи ...
+            if (count($rec->documentsFh)) {
+            //Вземаме id'тата на файловете вместо манипулаторите
+                $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+            
+                //Записваме прикачените файлове
+                $rec->documents = type_KeyList::fromArray($documents);
+            }
+            
+            // ... и накрая - изпращане.
+            $status = email_Sent::sendOne(
+                $options->boxFrom,
+                $emailTo,
+                $rec->subject,
+                $rec,
+                array(
+                   'encoding' => $options->encoding
+                )
+            );
+            
+            if ($status) {
+                // Правим запис в лога
+                static::log('Send to ' . $emailTo, $rec->id);
+                $success[] = $emailTo;
+            } else {
+                static::log('Unable to send to ' . $emailTo, $rec->id);
+                $failure[] = $emailTo;
+            }
+            
+            log_Documents::popAction();
+        }
+        
+        // Създаваме съобщение, в зависимост от състоянието на изпращане
+        if (empty($failure)) {
+            $msg = 'Успешно изпратено до: ' . implode(', ', $success);
+            $statusType = 'notice';
+        } else {
+            $msg = 'Грешка при изпращане до: ' . implode(', ', $failure);
+            $statusType = 'warning';
+        }
+        
+        // Добавяме статус
+        core_Statuses::add($msg, $statusType);
     }
     
     
@@ -516,23 +521,31 @@ class email_Outgoings extends core_Master
     {
         if ($mvc->flagSendIt) {
             $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
-            $body = (object)array(
-                'html' => $mvc->getEmailHtml($rec, $lg, getFileContent('css/email.css')),
-                'text' => $mvc->getEmailText($rec, $lg),
-                //Ако изпращаме имейла директно от формата, документите и файловете не се прикачват
+            
+            // Определяме от чие име (коя кутия) ще излезе това писмо
+            $allowedFrom = email_Inboxes::getAllowedFrom();
+            expect(count($allowedFrom) > 0, 'Няма права за изпращане на имейли.');
+            
+            // Определяне на изходящата кутия по подразбиране - $boxFromId: key(mvc=email_Inboxes)
+            $boxFromId = NULL;
+            $boxFrom = static::getDefaultBoxFrom($rec, $allowedFrom);
+            
+            if (!empty($boxFrom)) {
+                $boxFromId = array_search($boxFrom, $allowedFrom);
+            }
+            
+            if (empty($boxFromId)) {
+                $boxFromId = email_Inboxes::getUserEmailId();
+            }
+            
+            
+            $options = (object)array(
+                'boxFrom'  => $boxFromId,
+                'encoding' => 'utf-8',
+                'emailsTo' => $rec->email
             );
             
-            $mvc->sendStatus = email_Sent::send(
-                $rec->containerId,
-                $rec->threadId,
-                email_Inboxes::getUserEmailId(),
-                $rec->email,
-                $rec->subject,
-                $body,
-                array(
-                    'encoding' => 'utf-8'
-                )
-            );
+            static::_send($rec, $options, $lg);
         }
     }
     
@@ -540,7 +553,7 @@ class email_Outgoings extends core_Master
     /**
      * Връща plain-текста на писмото
      */
-    function getEmailText($oRec, $lg)
+    static function getEmailText($oRec, $lg)
     {
         core_Lg::push($lg);
         
@@ -556,7 +569,7 @@ class email_Outgoings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function getEmailHtml($rec, $lg, $css = '')
+    static function getEmailHtml($rec, $lg, $css = '')
     {
         core_Lg::push($lg);
 
