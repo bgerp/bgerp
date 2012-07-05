@@ -1135,7 +1135,7 @@ class email_Incomings extends core_Master
         
         if ($rec->state == 'rejected') {
             $mvc->removeRouterRules($rec);
-        } else {
+        } elseif (empty($rec->_skipRouterRules)) {
             $mvc->makeRouterRules($rec);
         }
     }

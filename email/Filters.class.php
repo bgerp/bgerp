@@ -116,9 +116,11 @@ class email_Filters extends core_Manager
                 break;
             case 'folder':
                 $rec->folderId = $serviceRec->folderId;
+                $rec->_skipRouterRules = TRUE;
                 break;
             case 'spam':
                 $rec->isSpam = TRUE;
+                $rec->_skipRouterRules = TRUE;
                 break;
         }
     }
