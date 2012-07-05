@@ -192,7 +192,7 @@ class email_Filters extends core_Manager
                 array(
                     "#{$patternField} IS NULL OR #{$patternField} = ''" .
                     " OR LOWER('[#1#]') LIKE CONCAT('%', LOWER(#{$patternField}), '%')",
-                    $rec->{$emailField}
+                    (string)($rec->{$emailField})
                 )
             );
         }
