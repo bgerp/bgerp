@@ -417,6 +417,10 @@ a img {
 	background-image:url('../img/16/sheduled-task-icon.png');
 }
 
+.btn-docIncomings  {
+	background-image:url('../img/16/page_white_vector.png');
+}
+
 .btn-email-send {
 	background-image:url('../img/16/email_go.png');
 }

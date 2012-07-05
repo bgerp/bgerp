@@ -121,6 +121,7 @@ class doc_Setup
             'doc_Folders',
             'doc_Threads',
             'doc_Containers',
+            'doc_Incomings',
             'doc_Search',
             'doc_Folders',
             'doc_Tasks',

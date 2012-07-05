@@ -91,6 +91,9 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         // Показва таба за коментари, само ако имаме права за листване
         $this->TAB('doc_Comments', 'Коментари', 'admin');
+        
+        // Показва таба за входящите документи, само ако имаме права за листване
+        $this->TAB('doc_Incomings', 'Входящи', 'admin');
 
         // Показва таба генерирани PDF файлове, ако имаме права
         $this->TAB('doc_PdfCreator', 'PDF файлове', 'admin');

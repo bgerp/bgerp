@@ -1,0 +1,54 @@
+[#SingleToolbar#]
+
+<!-- BEGIN container -->
+	<div class='document'>
+		<!--ET_BEGIN blank-->
+			[#blank#]
+		<!--ET_END blank-->
+		
+		<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#];'>|Входящ документ|* <b>[#ident#]</b> ([#state#]) </div>
+		</div>
+		
+		<div  class='clearfix21 antetka'>
+			<small>  
+				<b>[#title#]</b>
+			</small>
+			
+			<!--ET_BEGIN shareLog-->
+			<div class='sharing-history clearfix21'>
+				<span class='sharing-history-title'>|Споделяне|*</span>
+				[#shareLog#]
+			</div>
+			<!--ET_END shareLog-->   
+		</div>
+		
+		<div style='margin-left: 10px; margin-top: 5px;'>
+			<!--ET_BEGIN type--> 
+				<div>
+					<div>|Тип:|* [#type#]</div>
+				</div>
+			<!--ET_END type--> 
+			
+			<!--ET_BEGIN fileId--> 
+				<div>
+					<div>|Файл:|* [#fileId#]</div>
+				</div>
+			<!--ET_END fileId--> 
+			
+			<!--ET_BEGIN date--> 
+				<div>
+					<div>|Дата:|* [#date#]</div>
+				</div>
+			<!--ET_END date-->
+			
+			<!--ET_BEGIN total--> 
+				<div>
+					<div>|Сума:|* [#total#]</div>
+				</div>
+			<!--ET_END total--> 
+		</div>
+	</div>
+<!-- END container -->
+     
+<div style='clear: both;'></div>
