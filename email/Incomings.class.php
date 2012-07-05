@@ -1096,7 +1096,7 @@ class email_Incomings extends core_Master
      */
     static function isGenericRecipient($rec)
     {
-        return email_Inboxes::isGeneric($rec->toBox);
+        return empty($rec->toBox) || email_Inboxes::isGeneric($rec->toBox);
     }
     
     
