@@ -601,7 +601,7 @@ class drdata_Holidays extends core_Manager
         $data->listFilter->showFields = 'search, type';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->input('search, type', 'silent');
+        $data->listFilter->input('type', 'silent');
         
         if($type = $data->listFilter->rec->type){
             $data->query->where("#type = '{$type}'");
