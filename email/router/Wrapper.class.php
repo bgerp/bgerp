@@ -1,7 +1,7 @@
 <?php
 class email_router_Wrapper extends email_Wrapper
 {
-    function on_AfterRenderWrapping($mvc, $tpl, $data = NULL)
+    function on_AfterRenderWrapping($mvc, &$tpl)
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
 
