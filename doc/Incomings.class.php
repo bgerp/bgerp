@@ -129,7 +129,7 @@ class doc_Incomings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, date, total, sharedUsers=Споделяне, createdOn, createdBy';
+    var $listFields = 'id, title, date, total, createdOn, createdBy';
     
     
     /**
@@ -145,17 +145,17 @@ class doc_Incomings extends core_Master
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory');
         $this->FLD('type', 'enum(
-        						invoice=Фактура,
-        						payment order=Платежно нареждане,
-        						waybill=Товарителница,
-        						other=Друг)', 
+        							empty=&nbsp;,
+            						invoice=Фактура,
+            						payment order=Платежно нареждане,
+            						waybill=Товарителница
+        						)', 
             'caption=Тип, width=50%, mandatory'
         ); //TODO може да се реализира да е key към отделен модел за типове на документи
         $this->FLD('fileId', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
         $this->FLD('date', 'date', 'caption=Дата, width=50%');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума, width=50%');
-        $this->FLD('keywords', 'text', 'caption=Ключови думи, width=100%');
-        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
+        $this->FLD('keywords', 'text', 'caption=Описание, width=100%');
     } 
 
     
@@ -239,18 +239,6 @@ class doc_Incomings extends core_Master
         $row->state = $rec->state;
 
         return $row;
-    }
-    
-    
-    /**
-     * Потребителите, с които е споделен този документ
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    static function getShared($id)
-    {
-        return static::fetchField($id, 'sharedUsers');
     }
     
     
