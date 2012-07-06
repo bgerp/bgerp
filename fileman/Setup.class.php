@@ -70,6 +70,10 @@ class fileman_Setup extends core_Manager {
         $Files = cls::get('fileman_Files');
         $html .= $Files->setupMVC();
         
+        // Установяване на детайлите на файловете
+        $FileDetails = cls::get('fileman_FileDetails');
+        $html .= $FileDetails->setupMVC();
+        
         // Установяваме версиите;
         $Versions = cls::get('fileman_Versions');
         $html .= $Versions->setupMVC();
