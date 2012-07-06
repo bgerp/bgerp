@@ -60,6 +60,12 @@ class crm_Groups extends core_Manager
     
     
     /**
+     * Достъпа по подразбиране до папката, съответсваща на групата
+     */
+    var $defaultAccess = 'public';
+
+
+    /**
      * Описание на модела
      */
     function description()
