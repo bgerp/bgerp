@@ -930,7 +930,7 @@ class email_Incomings extends core_Master
      */
     static function routeByPlace($rec) {
         if (static::isGenericRecipient($rec) && !$rec->isSpam && $rec->country) {
-            $rec->folderId = $this->forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */);
+            $rec->folderId = static::forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */);
         }
     }
     
