@@ -428,14 +428,26 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', $boxFromId);
         
+        // Масив, който ще съдърща прикачените файлове
+        $filesArr = array();  
+        
+        // Добавяне на предложения за прикачени файлове
+        $filesArr += $mvc->getAttachments($data->rec);
+        
         // Добавяне на предложения на свързаните документи
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
         
         if(count($docHandlesArr) > 0) {
             $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4'); 
-              
+            
             //Вземаме всички документи
             foreach ($docHandlesArr as $name => $checked) {
+                
+                // Масив, с информация за документа
+                $documentInfoArr = doc_RichTextPlg::getFileInfo($name);
+                
+                // Вземаме прикачените файлове от линковете към други документи в имейла
+                $filesArr += $documentInfoArr['className']::getAttachments($documentInfoArr['id']);
                 
                 //Проверяваме дали документа да се избира по подразбиране
                 if ($checked == 'on') {
@@ -447,19 +459,21 @@ class email_Outgoings extends core_Master
                 $suggestion[$name] = $name;
             }
             
-            //Задаваме на формата да се покажат полетата
+            // Задаваме на формата да се покажат полетата
             $data->form->setSuggestions('documentsSet', $suggestion);
             
-            //Задаваме, кои полета да са избрани по подразбиране
+            // Задаваме, кои полета да са избрани по подразбиране
             $data->form->setDefault('documentsSet', $setDef); 
         }
         
-        // Добавяне на предложения за прикачени файлове
-        $filesArr = $mvc->getAttachments($data->rec);
+        // Ако има прикачени файлове
         if(count($filesArr) > 0) {
+            
+            // Задаваме на формата да се покажат полетата
             $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,columns=4');
             $data->form->setSuggestions('attachmentsSet', $filesArr);   
         }
+        
         $data->form->setDefault('emailsTo', $data->rec->email);
         
         // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
