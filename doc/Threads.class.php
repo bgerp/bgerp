@@ -413,8 +413,17 @@ class doc_Threads extends core_Manager
                 $selArr[] = $threadId;
             }
             
+            // Брояч на успешните премествания
+            $successCnt = 0;
+
+            // Брояч на грешките при преместване
+            $errCnt = 0;
+
             foreach($selArr as $threadId) {
-                $this->move($threadId, $folderId);
+                try {
+                    $this->move($threadId, $folderId);
+                    $successCnt++;
+                } catch ( core_Exception_Expect $expect ) { $errCnt++; }
             }
             
             // Изходяща папка
@@ -425,7 +434,13 @@ class doc_Threads extends core_Manager
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
             
-            $exp->message = count($selArr) . " нишки от {$folderFromRow->title} са преместени в {$folderToRow->title}";
+            $message = "|*{$successCnt} |нишки от|* {$folderFromRow->title} |са преместени в|* {$folderToRow->title}";
+
+            if($errCnt) {
+                $message .= "<br> |възникнаха|* {$errCnt} |грешки";
+            }
+
+            $exp->message = tr($message);
         }
         
         // Поставя  под формата, първия постинг в треда
@@ -468,6 +483,7 @@ class doc_Threads extends core_Manager
         $query->show('id, docId, docClass');
         
         while ($rec = $query->fetch()) {
+
             $doc = doc_Containers::getDocument($rec->id);
 
             /*
@@ -602,6 +618,10 @@ class doc_Threads extends core_Manager
             }
             
             doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy');
+            
+            // Първия документ 
+            if($firstDcRec->state == 'rejected' && $rec->state != 'rejected') {
+            }
 
         } else {
             $this->delete($id);
@@ -872,7 +892,7 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Изчислява точките на подадения масив
+     * Изчислява точките (рейтинга) на подадения масив
      */
     static function calcPoints($data)
     {

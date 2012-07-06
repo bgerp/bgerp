@@ -33,9 +33,13 @@ class doc_FolderPlg extends core_Plugin
                 $mvc->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
             }
             
+            // Определя достъпа по подразбиране за новите папки
+            setIfNot($defaultAccess, $mvc->defaultAccess, 'public');
+
+
             // Достъп
             $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник');
-            $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп');
+            $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Права->Споделяне');
         }
         
@@ -56,6 +60,10 @@ class doc_FolderPlg extends core_Plugin
         if(!$data->form->rec->inCharge) {
             $data->form->setDefault('inCharge', core_Users::getCurrent());
         }
+        if(!$data->form->rec->access) {
+            $data->form->setDefault('access', $mvc->defaultAccess ? $mvc->defaultAccess : 'team');
+        }
+
     }
     
     
@@ -116,15 +124,33 @@ class doc_FolderPlg extends core_Plugin
     
     
     /**
-     * Премахва от резултатите скритите
+     * Премахва от резултатите скритите от менютата за избор
      */
-    function on_AfterGetQuery($mvc, &$query)
+    function on_BeforeMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
     { 
-        if(!haveRole('ceo') && ($cu = core_Users::getCurrent())) {
-            $query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)");
+        $cu = core_Users::getCurrent();
+
+        if(!haveRole('ceo') && $cu >0) {
+            $add = "NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)";
+            if($where) {
+                $where = "($where) AND " . $add;
+            } else {
+                $where = $add;
+            }
         }
     }
-    
+
+
+    /**
+     * Предпазва от листване скритите папки
+     */
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    { 
+        if(!haveRole('ceo') && ($cu = core_Users::getCurrent())) {
+            $data->query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)");
+        }
+    }
+
     
     /**
      * Дефолт имплементация на метод, която форсира създаването на обект - корица
