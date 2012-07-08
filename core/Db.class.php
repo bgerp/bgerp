@@ -659,9 +659,12 @@ class core_Db extends core_BaseClass
                     $Packs = cls::get('core_Packs');
                     
                     self::$noAutoSetup = TRUE;
-                    $res = $Packs->setupPack('core');
+                    
+                    if(strpos($error, 'core_') !== FALSE) {
+                        $res = $Packs->setupPack('core');
+                    }
 
-                    if(strpos($error, 'core_') === FALSE) {
+                    if(strpos($error, EF_APP_CODE_NAME . '_') !== FALSE) {
                         $res .= $Packs->setupPack(EF_APP_CODE_NAME);
                         $app = 'и пакета `' . EF_APP_CODE_NAME . '`';
                     }

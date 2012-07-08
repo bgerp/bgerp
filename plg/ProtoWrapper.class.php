@@ -64,14 +64,19 @@ class plg_ProtoWrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     { 
+        $tpl= new ET($tpl);
+
         $this->description();
  
         if($this->pageMenu && !Mode::get('pageMenu')) {
             Mode::set('pageMenu', $this->pageMenu);
         }
         
-        // Генерираме титлата на страницата         
-        $tpl->prepend(tr($invoker->title) . ' « ' . tr($this->title) . ' « ', 'PAGE_TITLE');
+        // Генерираме титлата на страницата
+        if($this->title) {
+            $title = ' « ' . tr($this->title);
+        }
+        $tpl->prepend(tr($invoker->title) . $title . ' « ', 'PAGE_TITLE');
         
         // Проверяваме дали текущия таб не е изрично зададен
         if ($isCurrentTabSet = $invoker->currentTab && isset($this->tabs[$invoker->currentTab])) {

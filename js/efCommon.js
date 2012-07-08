@@ -655,14 +655,14 @@ function flashDoc(docId, i)
 
 	var y = col.toString(16);
 
-	var color = '#' + y + 'ff' + y;
+	var color = '#' + 'ff' + 'ff' + y;
 
 	cells[0].style.backgroundColor = color;
 	cells[1].style.backgroundColor = color;
 
 	if(i<20) {
 		i++;
-		setTimeout( "flashDoc('" + docId + "', " + i + ")", 120);
+		setTimeout( "flashDoc('" + docId + "', " + i + ")", 220);
 	} else {
 		cells[0].style.backgroundColor = 'transparent';
 		cells[1].style.backgroundColor = 'transparent';
