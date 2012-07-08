@@ -200,6 +200,8 @@ class core_Setup {
 	    
 		    closedir($handle);
 		}
+
+        $html .= core_Classes::rebuild();
 		     
         return $html;
     }

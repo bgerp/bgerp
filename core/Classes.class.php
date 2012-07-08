@@ -245,9 +245,12 @@ class core_Classes extends core_Manager
             if(!cls::load($rec->name, TRUE)) {
                 $rec->state = 'closed';
                 self::save($rec);
+                $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
             } else {
                 core_Classes::add($rec->name);
             }
         }
+
+        return $res;
     }
 }
