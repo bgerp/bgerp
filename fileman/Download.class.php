@@ -93,7 +93,7 @@ class fileman_Download extends core_Manager {
         
         //Ако имаме линк към файла, тогава използваме същия линк
         $dRec = static::fetch("#fileId = '{$fRec->id}'");
-        
+
         if ($dRec) {
             $dRec->expireOn = $time;
             
@@ -519,7 +519,16 @@ class fileman_Download extends core_Manager {
         $this->Files->requireRightFor('download', $fRec);
         
         
-        $this->FNC('activeMinutes', 'int', 'caption=Активност, unit=час, mandatory');
+        $this->FNC('activeMinutes', 'enum(
+    										0.5 = Половин час, 
+    										1=1 час,
+    										3=3 часа,
+    										5=5 часа,
+    										12=12 часа,
+    										24=1 ден,
+    										168=1 седмица
+    								 	  )', 'caption=Валидност, mandatory');
+        
         
         //URL' то където ще се редиректва при отказ
         $retUrl = getRetUrl();
@@ -533,7 +542,7 @@ class fileman_Download extends core_Manager {
         
         // Въвеждаме съдържанието на полетата
         $form->input('activeMinutes');
-
+        
         // Ако формата е изпратена без грешки, показваме линка за сваляне
         if($form->isSubmitted()) {
             
@@ -563,6 +572,9 @@ class fileman_Download extends core_Manager {
             // Връщаме шаблона
             return $this->renderWrapping($tpl);    
         }
+        
+        // По подразбиране 12 часа да е активен
+        $form->setDefault('activeMinutes', 12);
         
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = 'activeMinutes';
