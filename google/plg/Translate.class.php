@@ -35,11 +35,21 @@ EOT;
     float: right;
     margin: 0.1em 0.5em;
 }
+@media print {
+.goog-trans-control, .goog-te-sectional-gadget-checkbox-text, .goog-te-sectional-gadget-link-text {
+    display:none !important;
+}
+}
+
 EOT;
 
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
-        if ($rec->lg != core_Lg::getCurrent()) {
+        if ($rec->lg != core_Lg::getCurrent() && 
+            !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
+            !Mode::is('text', 'plain')  
+             ) {
+
             $row->textPart = new core_ET(
                 sprintf(static::$markupTpl, $row->textPart)
             );
