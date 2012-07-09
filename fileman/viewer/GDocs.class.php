@@ -35,7 +35,7 @@ class fileman_viewer_GDocs extends core_Plugin
                     $img = sbf('fileman/img/google.png');
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn('Преглед', $url, 
+                    $data->toolbar->addBtn('Docs', $url, 
                     	"id='btn-review',class='btn-review', style=background-image: url(" . $img . ");", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 

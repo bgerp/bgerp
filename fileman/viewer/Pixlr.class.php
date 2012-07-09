@@ -35,7 +35,7 @@ class fileman_viewer_Pixlr extends core_Plugin
                     $img = sbf('fileman/img/pixlr.png');
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn('Преглед', $url, 
+                    $data->toolbar->addBtn('Pixlr', $url, 
                     	"id='btn-review',class='btn-review', style=background-image: url(" . $img . ");", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
