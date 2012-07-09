@@ -797,6 +797,10 @@ class doc_DocumentPlg extends core_Plugin
                     $requiredRoles = 'user';    
                 } else {
                     $requiredRoles = 'no_one';
+                } 
+            } elseif ($action == 'single') { 
+                if (doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                    $requiredRoles = 'user';
                 }
             }
         }
