@@ -153,19 +153,50 @@ class fileman_Download extends core_Manager {
      */
     function act_Download()
     {
+        // Манипулатора на файла
         $fh = Request::get('fh');
         
+        // Очакваме да има подаден манипулатор
         expect($fh, 'Липсва манупулатора на файла');
         
+        // Ескейпваме манупулатора
         $fh = $this->db->escape($fh);
         
+        // Вземаме записа на манипулатора
         $fRec = $this->Files->fetchByFh($fh);
         
+        // Очакваме да има такъв запис
         expect($fRec, 'Няма такъв запис.');
         
+        // Очакваме да има права за сваляне
         $this->Files->requireRightFor('download', $fRec);
         
-        redirect($this->getDownloadUrl($fh, 1));
+        // Генерираме линк за сваляне
+        $link = $this->getDownloadUrl($fh, 1);
+        
+        // Ако искам да форсираме свалянето
+        if (Request::get('forceDownload')) {
+            
+            // Задаватам хедърите
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename='.basename($link));
+            header('Content-Transfer-Encoding: binary');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($link));
+            
+            // Предизвикваме сваляне на файла
+            readfile($link);  
+            
+            // Прекратяваме изпълнението на скрипта
+            shutdown(); 
+        } else {
+            
+            // Редиректваме към линка
+            redirect($link);  
+        }
     }
     
     
