@@ -44,10 +44,11 @@ EOT;
 EOT;
 
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
-    {
+    { 
         if ($rec->lg != core_Lg::getCurrent() && 
             !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
-            !Mode::is('text', 'plain')  
+            !Mode::is('text', 'plain')  &&
+            $fields['-single']
              ) {
 
             $row->textPart = new core_ET(
