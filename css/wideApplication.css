@@ -1141,11 +1141,13 @@ ul.history b {
 ul.history .action.send b {
     background-color:green;	
 }
-ul.history .action._received b {
+.action._received b {
     background-color:blue;
+    color: white;
 }
-ul.history .action._returned b {
+.action._returned b {
     background-color:red !important;
+    color: white;
 }
 ul.history .action.print b {
     background-color:#777;

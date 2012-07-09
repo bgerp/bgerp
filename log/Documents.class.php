@@ -650,6 +650,26 @@ class log_Documents extends core_Manager
     
     
     /**
+     * 
+     * @param log_Documents $mvc
+     * @param core_Query $query
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $mvc::restrictListedActions($data->query);
+    }
+    
+    
+    /**
+     * @param core_Query $query
+     */
+    static function restrictListedActions($query)
+    {
+        $query->where("LEFT(#action, 1) != '_'");
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     static function on_AfterPrepareListRows($mvc, $data)
@@ -683,17 +703,52 @@ class log_Documents extends core_Manager
     {
         $row->createdOn = static::getVerbal($rec, 'createdOn');
         $row->createdBy = static::getVerbal($rec, 'createdBy');
-        $row->action    = $rec->action;
+//         $row->action    = $rec->action;
         
         $row->createdBy = '<div>' . $row->createdBy . '</div>';
         
         $row->userNdate = $row->createdBy . $row->createdOn;
         
-        ob_start();
-        print_r($rec->data);
-        $dataStr = ob_get_clean();
+        $formatMethod = 'formatAction' . ucfirst($rec->action);
         
-        $row->data = "<pre>{$dataStr}</pre>";
+        if (method_exists(get_called_class(), $formatMethod)) {
+            static::$formatMethod($rec, $row);
+        } else {
+            ob_start();
+            var_dump($rec->data);
+            $dataStr = ob_get_clean();
+            
+            $row->data = "<pre>{$dataStr}</pre>";
+        }
+    }
+    
+    protected static function formatActionSend($rec, &$row) 
+    {
+        if (!empty($rec->data->from)) {
+            $inbox = email_Inboxes::fetchField($rec->data->from, 'email');
+        }
+        
+        if (!isset($inbox)) {
+            $inbox = 'неизвестен';
+        }
+        
+        $row->data = 'от ' . $inbox . ' до ' . $rec->data->to;
+        
+        if (!empty($rec->data->returnedOn)) {
+            $row->data .= '<br/><b>върнато на ' . type_Datetime::toVerbal($rec->data->returnedOn) . '</b>';
+            $row->ROW_ATTR['class'] .= ' action _returned';
+        }
+        
+        if (!empty($rec->data->receivedOn)) {
+            $row->data .= '<br/><b>получено на ' . type_Datetime::toVerbal($rec->data->receivedOn) . '</b>';
+            $row->ROW_ATTR['class'] .= ' action _received';
+        }
+
+//         ob_start();
+//         print_r($rec->data);
+//         $dataStr = ob_get_clean();
+        
+//         $row->data .= "<pre>{$dataStr}</pre>";
     }
     
     
