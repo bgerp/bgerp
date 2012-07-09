@@ -337,7 +337,14 @@ class doc_Containers extends core_Manager
             } elseif ($rec->state == 'rejected') {
                 doc_ThreadUsers::removeContainer($rec->containerId);
             }
-
+            
+            if($rec->threadId && $rec->docId) {
+                // Предизвиква обновяване на треда, след всяко обновяване на контейнера
+                doc_Threads::updateThread($rec->threadId);
+            }
+            
+            
+            // Нотификации на абонираните и споделените потребители
             if($flagJustActived) {
                 // Подготвяме няколко стринга, за употреба по-после
                 $docSingleTitle = mb_strtolower($docMvc->singleTitle);  
@@ -376,17 +383,6 @@ class doc_Containers extends core_Manager
                     }
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * Предизвиква обновяване на треда, след всяко обновяване на контейнера
-     */
-    static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
-    {
-        if($rec->threadId && $rec->docId) {
-            doc_Threads::updateThread($rec->threadId);
         }
     }
     
