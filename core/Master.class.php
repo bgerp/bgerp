@@ -50,10 +50,7 @@ class core_Master extends core_Manager
      * Връща единичния изглед на обекта
      */
     function act_Single()
-    {
-        // Имаме ли въобще права за единичен изглед?
-        $this->requireRightFor('single');
-        
+    {        
         // Създаваме обекта $data
         $data = new stdClass();
         
@@ -61,7 +58,13 @@ class core_Master extends core_Manager
         expect($id = Request::get('id'));
         
         // Трябва да има $rec за това $id
-        expect($data->rec = $this->fetch($id));
+        if(!($data->rec = $this->fetch($id))) { 
+            // Имаме ли въобще права за единичен изглед?
+            $this->requireRightFor('single');
+            
+        }
+        
+        expect($data->rec);
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
         $this->requireRightFor('single', $data->rec);
