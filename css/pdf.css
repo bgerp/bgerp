@@ -5,3 +5,7 @@
 .docBgIcon {
     background-position: 3px 7px !important;
 }
+
+div.richtextHide {
+	display:block !important;
+}

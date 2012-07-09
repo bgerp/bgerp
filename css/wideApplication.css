@@ -69,11 +69,11 @@ body{
 	color:#997;
 }
 
-A.menuItem:first-child {
+a.menuItem:first-child {
 }
 
 
-#mainMenu A  {
+#mainMenu a  {
 	padding:1px; 
 	text-decoration:none; 
 	font-weight:bold; 
@@ -81,7 +81,7 @@ A.menuItem:first-child {
 	border:solid 1px transparent;
 }
 
-#subMenu A  {
+#subMenu a  {
 	padding:2px;
 	padding-left:3px;
 	padding-right:3px;
@@ -89,26 +89,26 @@ A.menuItem:first-child {
 	border:solid 2px transparent;
 }
 
-#subMenu A.selected:hover  {
+#subMenu a.selected:hover  {
     color:#f90;
 } 
 
-A.menuItem:link, A.menuItem:visited {
+a.menuItem:link, a.menuItem:visited {
 	color:#048;
 	text-decoration:none; 
 }
  
-A.menuItem:hover, A.menuItem:active, A.menuItem:focus  { 
+a.menuItem:hover, a.menuItem:active, a.menuItem:focus  { 
 	color:white;
 	background-color:#f90;
 }
 
-#mainMenu A.selected, #mainMenu A.selected:visited, #mainMenu A.selected:link { 
+#mainMenu a.selected, #mainMenu a.selected:visited, #mainMenu a.selected:link { 
 	color:white; 
 	background-color:#048;
 }
 
-#subMenu A.selected, #subMenu A.selected:visited, #subMenu A.selected:link {
+#subMenu a.selected, #subMenu a.selected:visited, #subMenu a.selected:link {
 	border:solid 2px #048;
 	background-color:#ddd;
 	border-top:solid 2px transparent;
@@ -131,30 +131,27 @@ A.menuItem:hover, A.menuItem:active, A.menuItem:focus  {
 
 
 /* Общи стилове за елементите */
-A:link, A:visited {
+a:link, a:visited {
 	text-decoration:none; 
 	color:#048;
 }
 
 
 /* Общи стилове за елементите */
-A:link, A:visited {
+a:link, a:visited {
 	text-decoration:none; 
 	color:#048;
 }
 
-A:hover {
+a:hover {
 	color:#f90; 
 }
 
-A.out {
+a.out {
 	color:#0066ff; 
-	font-weight:bold;
-	text-decoration:underline;
 }
 
-A.out:visited {
-	font-weight:bold;
+a.out:visited {
 	color:#6600cc
 }
 
@@ -345,8 +342,6 @@ div.mobile {
 	color:black;
 	font-weight:bold;
 }
-
-
 
 .formTitle {
 	background-color:#99f !important;
@@ -721,7 +716,7 @@ DIV.folder-cover .block_right {
 /* ENDOF стилове за 'contacts/tpl/ViewSingleLayout' */
 
 /* стилове за 'cat/tpl/SingleProduct' */
-DIV.products-single {
+div.products-single {
     display: block;
     border: solid 1px #bbbbbb; 
     -moz-border-radius: 5px; 
@@ -752,7 +747,7 @@ DIV.products-single .block_title {
     border-bottom: solid 1px #dddddd; padding-bottom: 5px;
 }
 
-DIV.products-single .block_left {
+div.products-single .block_left {
     clear: left;
     font-size: 12px;     
     padding: 0 10px 10px 0;
@@ -761,7 +756,7 @@ DIV.products-single .block_left {
     position: relative;
 }
 
-DIV.products-single .block_right {
+div.products-single .block_right {
     min-width: 100px;
     font-size: 12px; 
     padding: 10px 0 10px 10px;
@@ -1066,11 +1061,11 @@ div.attachments .aHeader {
 	border-bottom:solid 1px #e0e0e0;
 }
 
-.thread-opened DIV.attachments .aHeader {
+.thread-opened div.attachments .aHeader {
 	background-color:#e0f0e0;
 }
 
-div.attachments A {
+div.attachments a {
 	display:block;
 	margin-bottom:2px;
 }
@@ -1413,13 +1408,6 @@ select {
 	margin-right: 0px;
 }
 
-img, object, embed {
-	max-width: 100%;
-}
-
-img {
-	height: auto;
-}
 
 @media handheld, only screen and (max-width: 1000px) {
 

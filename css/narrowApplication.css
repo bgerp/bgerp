@@ -66,53 +66,53 @@ input, select {
 	font-weight:bold; 
 }
 
-.menuPage A{
+.menuPage a {
 	margin: 2px;
 	display:block;
  	border:solid 1px transparent;
 }
 
-.menuRow A:link, .menuRow A:visited {
+.menuRow a:link, .menuRow a:visited {
 	color:#048;
 	text-decoration:none; 
 	border:solid 1px transparent;
 }
  
-.menuRow A:hover, .menuRow A:focus { 
+.menuRow a:hover, .menuRow a:focus { 
 	color:white;
 	background-color:#f90;
 	border:solid 1px #c60;
 }
 
-A.selected { 
+a.selected { 
 	color:white !important; 
 	background-color:#048;
 	-moz-border-radius:2px; 
 	-webkit-border-radius:2px;
 }
 
-A.selected:hover {
+a.selected:hover {
 	color:#fdc;
 }
  
 
 /* Общи стилове за елементите */
-A:link, A:visited {
+a:link, a:visited {
 	text-decoration:none; 
 	color:#048;
 }
 
-A:hover {
+a:hover {
 	color:#cc0000; 
 }
 
-A.out {
+a.out {
 	color:#0066ff; 
 	font-weight:bold;
 	text-decoration:underline;
 }
 
-A.out:visited {
+a.out:visited {
 	font-weight:bold;
 	color:#6600cc
 } 
@@ -168,12 +168,12 @@ div.tab-control div.tab-row .tab.selected {
 	border-right:solid 1px #bbb;
 }
 
-OPTION.team {
+option.team {
 	background:black;
 	color: #fc0;
 }
 
-A IMG {
+a img {
 	border: none;
 }
 
@@ -200,7 +200,7 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 .future td { background-color: #9ec; }
 
 /*Стилове за acc*/
-DIV.acc-detail {
+div.acc-detail {
  font-size:0.8em;
  margin:3px;
  padding:3px;
@@ -237,7 +237,7 @@ DIV.acc-detail {
 	margin-top:0px;
 }
 
-OPTION.team {
+option.team {
 	background:black;
 	color:#fc0;
 }
@@ -269,14 +269,19 @@ OPTION.team {
 	padding:1px;
 }
 
-DIV.folder-cover .label {color: #777777;    font-size: 13px; width: 70px; float: left;} 
+div.folder-cover .label {
+	color: #777777;
+	font-size: 13px;
+	width: 70px; 
+	float: left;
+} 
                      
-DIV.folder-cover A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.folder-cover A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.folder-cover A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.folder-cover A.sky:hover      {font-size: 13px; color: #4a66b0; text-decoration: underline;}
+div.folder-cover A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
+div.folder-cover A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
+div.folder-cover A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
+div.folder-cover A.sky:hover      {font-size: 13px; color: #4a66b0; text-decoration: underline;}
                               
-DIV.folder-cover .fancybox IMG {
+div.folder-cover .fancybox img {
 	background: #f0f0f0; 
     border: solid 1px #dddddd; 
     padding: 3px; 
@@ -769,13 +774,6 @@ input.contactData {
 	margin-right: 0px;
 }
 
-img, object, embed {
-	max-width: 100%;
-}
-
-img {
-	height: auto;
-}
 
 @media handheld, only screen and (max-width: 1000px) {
 
