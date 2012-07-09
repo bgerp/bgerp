@@ -517,8 +517,8 @@ function js2php(obj, path, new_path)
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id)
 { 
-	var el = document.getElementById(id);
-	if (el.style.display=='none') el.style.display='block';
+	var el = document.getElementById(id);  
+	if (el.style.display == 'none' || el.style.display == '') el.style.display='block';
 		else el.style.display='none';
 }
 

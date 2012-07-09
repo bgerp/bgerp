@@ -340,8 +340,14 @@ class type_Richtext extends type_Text {
         $url = core_Url::escape($match[2]);
         
         $this->_htmlBoard[$place] = $url;
+         
+        if(core_Url::isLocal($url)) {
+           $link = "<a href=\"__{$place}__\">{$title}</a>";
+        } else {
+            $link = "<a href=\"__{$place}__\" target='_blank' class='out'>{$title}</a>";
+        }
         
-        return "<a href=\"__{$place}__\">{$title}</a>";
+        return $link;
     }
     
     
@@ -356,8 +362,8 @@ class type_Richtext extends type_Text {
         
         $id = 'hide' . rand(1, 1000000);
         
-        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  style=\"font-weight:bold; background-image:url('http://www.unlimited-films.net/charte/plus.png');\" 
-                   class=\"linkWithIcon\">{$title}</a><div class='clearfix21' id='{$id}' style='display:none;margin-left:4px;border-left:dotted 1px #ccc; padding:10px; backgroud-color:#f0f0f0;'>";
+        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  style=\"font-weight:bold; background-image:url(" . sbf('img/16/plus.png', "'") . ");\" 
+                   class=\"linkWithIcon\">{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>";
         
         $this->_htmlBoard[$place] =  $html;
         
@@ -438,11 +444,14 @@ class type_Richtext extends type_Text {
         $url = core_Url::escape($html[0]);
         
         if(!Mode::is('text', 'plain')) {
-            $tpl = ht::createLink($url, $url);
-            $url = $tpl->getContent();
+            if(core_Url::isLocal($url)) {
+               $link = "<a href=\"{$url}\">{$url}</a>";
+            } else {
+                $link = "<a href=\"{$url}\" target='_blank' class='out'>{$url}</a>";
+            }
         }
         
-        return $url;
+        return $link;
     }
 
 

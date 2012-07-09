@@ -79,11 +79,18 @@ pre.richtext {
     border:solid 1px #ccc;
 }
 
-DIV.richtext LI {
+div.richtext li {
     margin:0px;
     padding:0px;
     margin-left:1.5em;
     padding-top:0.2em;
+}
+
+div.richtextHide {
+	display:none;
+	margin-left:4px;
+	border-left:dotted 1px #ccc;
+	padding:10px; 
 }
 
 a.rtbutton {

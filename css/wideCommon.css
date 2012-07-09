@@ -91,7 +91,7 @@ span.richEdit div.richedit-toolbar {
 	margin-top:-1px;
 }
 
-.richEdit TEXTAREA {
+.richEdit textarea {
 	border-bottom: 1px solid white;
 	margin-bottom:0px;
 	overflow:auto;
@@ -108,11 +108,11 @@ p.richtext {
 	line-height: 1.4em;
 }
 
-.richtext H3 {
+.richtext h3 {
     margin:5px;
 }
 
-PRE.richtext {
+pre.richtext {
     font-family: Courier New,monospace;
     padding:10px;
     background-color:#ffe;
@@ -121,11 +121,18 @@ PRE.richtext {
     border:solid 1px #ccc;
 }
 
-DIV.richtext LI {
+div.richtext li {
     margin:0px;
     padding:0px;
     margin-left:1.5em;
     padding-top:0.2em;
+}
+
+div.richtextHide {
+	display:none;
+	margin-left:4px;
+	border-left:dotted 1px #ccc;
+	padding:10px; 
 }
 
 a.rtbutton {

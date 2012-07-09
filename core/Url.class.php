@@ -702,4 +702,13 @@ class core_Url
         return $url;
     }
 
+    
+    /**
+     * Дали посоченото URL е локално?
+     */
+    static function isLocal($url)
+    {
+        return (strpos($url, getBoot(TRUE)) === 0);
+    }
+
 }
