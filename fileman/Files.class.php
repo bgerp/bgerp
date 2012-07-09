@@ -620,24 +620,10 @@ class fileman_Files extends core_Master
             // Добавяме бутон за сваляне
             $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd), FALSE);
             $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-save,class=btn-save', array('target'=>'_blank'), 'order=8');
-        
-            // Ако файла има зададена услуга за преглед или редактиране, добавяме линк към приложението
-            if ($reviewBtnArr = fileman_Download::getReviewBtnData($data->rec)) {
-                
-                // Добавяме бутона
-                $data->toolbar->addBtn('Преглед', $reviewBtnArr['url'], 
-                	"id='btn-review',class='btn-review', style=background-image: url(" . $reviewBtnArr['img'] . ");", 
-                    array('target'=>'_blank')
-                );    
-            }
             
-            //
+            // Генериране на линк сваляне на файла от sbf директорията
             $createLinkUrl = toUrl(array('fileman_Download', 'GenerateLink', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
             $data->toolbar->addBtn('Линк', $createLinkUrl, 'id=btn-createLink,class=btn-createLink', 'order=40');
-            
-            // Добавяме бутон за създаване на входящ документ
-            $createDocUrl = toUrl(array('doc_Incomings', 'add', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
-            $data->toolbar->addBtn('Документ', $createDocUrl, 'id=btn-docIncomings,class=btn-docIncomings', 'order=50');
         }
     }
 }

@@ -122,6 +122,18 @@ class fileman_Setup extends core_Manager {
         $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
         $html .= "<li>Закачане на fileman_RichTextPlg към полетата за RichEdit - (Активно)";
         
+        // Плъгин за добавяне на бутон за разглеждане на файлове чрез google
+        $Plugins->installPlugin('Преглед с docs.google.com', 'fileman_viewer_GDocs', 'fileman_Files', 'private');
+        $html .= "<li>Закачане на fileman_viewer_GDocs към полетата за fileman_Files - (Активно)";
+        
+        // Плъгин за добавяне на бутон за разглеждане на файлове чрез zoho
+        $Plugins->installPlugin('Преглед с viewer.zoho.com', 'fileman_viewer_Zoho', 'fileman_Files', 'private');
+        $html .= "<li>Закачане на fileman_viewer_Zoho към полетата за fileman_Files - (Активно)";
+        
+        // Плъгин за добавяне на бутон за разглеждане на файлове чрез pixlr
+        $Plugins->installPlugin('Преглед с pixlr.com', 'fileman_viewer_Pixlr', 'fileman_Files', 'private');
+        $html .= "<li>Закачане на fileman_viewer_Pixlr към полетата за fileman_Files - (Активно)";
+        
         return $html;
     }
     

@@ -457,42 +457,6 @@ class fileman_Download extends core_Manager {
     
     
     /**
-     * Определя услугата за преглед на съответния файла
-     * 
-     * @param object $rec - Обект, за който ще се върне линк за сваляне
-     * 
-     * @return array $reviewBtnArr - Масив с линка и изображението за съответната услуга
-     */
-    static function getReviewBtnData($rec)
-    {
-        //Разширението на файла
-        $ext = self::getExt($rec->name);
-        
-        $reviewBtnArr = array();
-        
-        try {
-            
-            if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
-                $reviewBtnArr['url'] = "http://docs.google.com/viewer?url=" . static::getDownloadUrl($rec->fileHnd, 1); 
-                $reviewBtnArr['img'] = sbf('fileman/img/google.png');
-            }
-            
-            if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) { 
-                $reviewBtnArr['url'] = "https://viewer.zoho.com/docs/urlview.do?url=" . static::getDownloadUrl($rec->fileHnd, 1); 
-                $reviewBtnArr['img'] = sbf('fileman/img/zoho.png');
-            }
-            
-            if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) {
-                $reviewBtnArr['url'] = "http://pixlr.com/editor/?s=c&image=" . static::getDownloadUrl($rec->fileHnd, 1) . "&title=" . urlencode($rec->name) . "&target=" . '' . "&exit=" . '' . ""; 
-                $reviewBtnArr['img'] = sbf('fileman/img/pixlr.png');
-            }
-        } catch (core_Exception_Expect $expect) {}
-        
-        return $reviewBtnArr;
-    }
-    
-    
-    /**
      * Екшън за генериране на линк за сваляне на файла
      */
     function act_GenerateLink()
