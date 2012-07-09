@@ -149,6 +149,10 @@ class doc_Setup
         $Plugins->installPlugin('Вътрешни линкове в RichText', 'bgerp_plg_InternalLinkReplacement', 'type_Richtext', 'private');
         $html .= "<li>Закачане на bgerp_plg_InternalLinkReplacement към полетата за RichEdit - (Активно)";
         
+        // Добавяне на плъгина за създаване на входящи документи
+        $Plugins->installPlugin('Създаване на входящ документ', 'doc_IncomingCreatePlg', 'fileman_Files', 'private');
+        $html .= "<li>Закачане на doc_IncomingCreatePlg към полетата за filema_Files - (Активно)";
+        
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Общи', 'doc_Folders', 'default', "user");
         
