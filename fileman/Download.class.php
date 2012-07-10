@@ -336,7 +336,7 @@ class fileman_Download extends core_Manager {
         
         //Атрибути на линка
         $attr['class'] = 'linkWithIcon';
-        $attr['target'] = '_blank';
+//        $attr['target'] = '_blank';
         $attr['style'] = 'background-image:url(' . sbf($icon, '"', $isAbsolute) . ');';
         
         //Инстанция на класа
