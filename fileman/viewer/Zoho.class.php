@@ -36,7 +36,7 @@ class fileman_viewer_Zoho extends core_Plugin
                     
                     // Добавяме бутона
                     $data->toolbar->addBtn('Zoho', $url, 
-                    	"id='btn-review',class='btn-review', style=background-image: url(" . $img . ");", 
+                    	"id='btn-zoho',class='btn-zoho', style=background-image: url(" . $img . ");", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }

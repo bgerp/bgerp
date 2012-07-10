@@ -36,7 +36,7 @@ class fileman_viewer_GDocs extends core_Plugin
                     
                     // Добавяме бутона
                     $data->toolbar->addBtn('Docs', $url, 
-                    	"id='btn-review',class='btn-review', style=background-image: url(" . $img . ");", 
+                    	"id='btn-gdocs',class='btn-gdocs', style=background-image: url(" . $img . ");", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }

@@ -36,7 +36,7 @@ class fileman_viewer_Pixlr extends core_Plugin
                     
                     // Добавяме бутона
                     $data->toolbar->addBtn('Pixlr', $url, 
-                    	"id='btn-review',class='btn-review', style=background-image: url(" . $img . ");", 
+                    	"id='btn-pixlr',class='btn-pixlr', style=background-image: url(" . $img . ");", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }
