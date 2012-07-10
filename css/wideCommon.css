@@ -464,6 +464,10 @@ form[method=post] input[type=submit] {
     background-image:url('../img/16/disk.png');
 }
 
+.btn-download {
+    background-image:url('../img/16/down16.png');
+}
+
 .btn-send {
     background-image:url('../img/16/arrow_right.png');
 }
