@@ -118,6 +118,33 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Сингъла на файловете
+     */
+    function act_Single()
+    {
+        // Манипулатора на файла
+        $fh = Request::get('id');
+        
+        // Очакваме да има подаден манипулатор на файла
+        expect($fh, 'Липсва манупулатора на файла');
+        
+        // Ескейпваме манипулатора
+        $fh = $this->db->escape($fh);
+
+        // Записа за съответния файл
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+        
+        // Задаваме id' то на файла да е самото id, а не манупулатора на файла
+        Request::push(array('id' => $fRec->id));
+        
+        return parent::act_Single();
+    }
+    
+    
+    /**
      * Задава файла с посоченото име в посочената кофа
      */
     function setFile($path, $bucket, $fname = NULL, $force = FALSE)
@@ -613,10 +640,10 @@ class fileman_Files extends core_Master
         // Масив с всички версии на файла
         $fileVersionsArr = fileman_FileDetails::getFileVersionsArr($id);
         
-        foreach ($fileVersionsArr as $fileId => $fileInfo) {
+        foreach ($fileVersionsArr as $fileHnd => $fileInfo) {
             
             // Линк към single' а на файла
-            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileId), FALSE, array('title' => $fileInfo['versionInfo']));
+            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileHnd), FALSE, array('title' => $fileInfo['versionInfo']));
             
             // Всеки линк за файла да е на нов ред
             $text .= ($text) ? '<br />' . $link : $link;

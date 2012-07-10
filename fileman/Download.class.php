@@ -371,7 +371,7 @@ class fileman_Download extends core_Manager {
             
             //Генерираме връзката 
 //            $url  = toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute);
-            $url  = toUrl(array('fileman_Files', 'Single', $fRec->id), $isAbsolute);
+            $url  = toUrl(array('fileman_Files', 'Single', $fh), $isAbsolute);
             $link = ht::createLink($name, $url, NULL, $attr);
         } else {
             //Генерираме името с иконата
@@ -527,7 +527,7 @@ class fileman_Download extends core_Manager {
         
         //URL' то където ще се редиректва при отказ
         $retUrl = getRetUrl();
-        $retUrl = ($retUrl) ? ($retUrl) : (array('fileman_Files', 'single', $fRec->id));
+        $retUrl = ($retUrl) ? ($retUrl) : (array('fileman_Files', 'single', $fh));
         
         // Вземаме формата към този модел
         $form = $this->getForm();
@@ -545,7 +545,7 @@ class fileman_Download extends core_Manager {
             $link = self::getDownloadUrl($fRec->fileHnd, $form->rec->activeMinutes);
             
 //            Redirect(array('fileman_Files', 'single', $fh));
-            Redirect(array('fileman_Files', 'single', $fRec->id));
+            Redirect(array('fileman_Files', 'single', $fh));
         }
         
         // По подразбиране 12 часа да е активен
