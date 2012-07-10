@@ -24,7 +24,7 @@
 		<!--ET_BEGIN _link-->          
 			<tr>
 			    <td align='right' width='auto' >|Линк|*:</td>
-			    <td><span id='selectable' onmouseUp='onmouseUpSelect()'> [#_link#] </span> <small>(|Изтича:|* [#_expireOn#])</small></td>
+			    <td><span id='selectable' onmouseUp='onmouseUpSelect()'>[#_link#]</span> <small>(|Изтича:|* [#_expireOn#])</small></td>
 			</tr>
 		<!--ET_END _link-->
 		
