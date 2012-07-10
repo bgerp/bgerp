@@ -95,7 +95,11 @@ class fileman_Download extends core_Manager {
         $dRec = static::fetch("#fileId = '{$fRec->id}'");
 
         if ($dRec) {
-            $dRec->expireOn = $time;
+            
+            // Ако времето, за което е активен линка е по малко от времето, което искаме да зададем
+            if ($dRec->expireOn < $time) {
+                $dRec->expireOn = $time;
+            }
             
             $link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
             
