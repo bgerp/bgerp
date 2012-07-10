@@ -522,6 +522,23 @@ class fileman_Files extends core_Master
         
         $row = &$data->row;
         $rec = $data->rec;
+
+        // Ако има активен линк за сваляне
+        if (($dRec = fileman_Download::fetch("#fileId = {$rec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
+
+            // Името на файла
+            $fileName = fileman_Download::getVerbal($dRec, 'fileName');
+            
+            // Линка на файла
+            $link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $fileName, '', TRUE);
+            
+            // До кога е активен линка
+            $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
+
+            // Задаваме шаблоните 
+            $row->_expireOn = $expireOn; 
+            $row->_link = $link;
+        }
         
         // Вербалното име на файла
         $row->_fileName = $mvc->getVerbal($rec,'name');
@@ -619,7 +636,7 @@ class fileman_Files extends core_Master
             
             // Добавяме бутон за сваляне
             $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
-            $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-save,class=btn-save', array('order=8'));
+            $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download,class=btn-download', array('order=8'));
             
             // Генериране на линк сваляне на файла от sbf директорията
             $createLinkUrl = toUrl(array('fileman_Download', 'GenerateLink', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);

@@ -541,31 +541,11 @@ class fileman_Download extends core_Manager {
         // Ако формата е изпратена без грешки, показваме линка за сваляне
         if($form->isSubmitted()) {
             
-            // Линка за сваляне, който е активен, толкова часа, колкото сме въвели
+            // Вземаме линка, за да може да се запише новото време до когато е активен линка
             $link = self::getDownloadUrl($fRec->fileHnd, $form->rec->activeMinutes);
             
-            $backBtn = ht::createBtn('Назад', $retUrl, NULL, NULL, array('class'=>'btn-back'));
-            
-            // Шаблон за показване на линка
-            $tpl = new ET("Линк: <span id='selectable' onmouseUp='onmouseUpSelect()'> {$link} </span><div>$backBtn</div>");
-            
-            // Скрипт за маркиране на линка при натискане с мишката
-            $tpl->append("function onmouseUpSelect()
-                        	{
-                        		if (document.selection) {
-                        			var range = document.body.createTextRange();
-                        			range.moveToElementText(document.getElementById('selectable'));
-                        			range.select();
-                        		}
-                        		else if (window.getSelection) {
-                        			var range = document.createRange();
-                        			range.selectNode(document.getElementById('selectable'));
-                        			window.getSelection().addRange(range);
-                        		}
-                        	}", 'SCRIPTS');
-
-            // Връщаме шаблона
-            return $this->renderWrapping($tpl);    
+//            Redirect(array('fileman_Files', 'single', $fh));
+            Redirect(array('fileman_Files', 'single', $fRec->id));
         }
         
         // По подразбиране 12 часа да е активен
