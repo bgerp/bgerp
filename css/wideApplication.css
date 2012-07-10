@@ -413,7 +413,11 @@ a img {
 }
 
 .btn-docIncomings  {
-	background-image:url('../img/16/page_white_vector.png');
+	background-image:url('../img/16/documents16.png');
+}
+
+.btn-docIncomingsNew  {
+	background-image:url('../img/16/documents16-new.png');
 }
 
 .btn-back {

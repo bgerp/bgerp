@@ -135,7 +135,7 @@ class doc_Incomings extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, type, fileId, date, total, keywords';
+    var $searchFields = 'title, type, fileHnd, date, total, keywords';
     
     
     /**
@@ -150,12 +150,15 @@ class doc_Incomings extends core_Master
             						payment order=Платежно нареждане,
             						waybill=Товарителница
         						)', 
-            'caption=Тип, width=50%, mandatory'
+            'caption=Тип, width=50%'
         ); //TODO може да се реализира да е key към отделен модел за типове на документи
-        $this->FLD('fileId', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
         $this->FLD('date', 'date', 'caption=Дата, width=50%');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума, width=50%');
         $this->FLD('keywords', 'text', 'caption=Описание, width=100%');
+        $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни, input=none');
+        
+        $this->setDbUnique('dataId');
     } 
 
     
@@ -166,7 +169,7 @@ class doc_Incomings extends core_Master
     {   
         $tpl->replace(log_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
     }
-
+    
     
     /**
      * 
@@ -190,7 +193,7 @@ class doc_Incomings extends core_Master
             $data->form->setDefault('keywords', self::getKeywords($fileHnd));    
             
             // Файла да е избран по подразбиране
-            $data->form->setDefault('fileId', $fileHnd);
+            $data->form->setDefault('fileHnd', $fileHnd);
         }
         
         // Ако създаваме нов
@@ -203,6 +206,65 @@ class doc_Incomings extends core_Master
                 // Задаваме id' то на текущата папка
                 $data->form->rec->folderId = $currFolderId;
             }
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterInputEditForm($mvc, $form)
+    {
+        // Ако формата е изпратена
+        if ($form->isSubmitted()) {
+            
+            // id от fileman_Data
+            $dataId = fileman_Files::fetchByFh($form->rec->fileHnd, 'dataId');
+            
+            // Проверяваме да няма създаден документ за съответния запис
+            if ($dRec = static::fetch("#dataId = '{$dataId}'")) {
+                
+                // Съобщение за грешка
+                $error = "|Има създаден документ за файла|*";
+                
+                // Ако имаме права за single на документа
+                if ($mvc->haveRightFor('single', $dRec)) {
+                    
+                    // Заглавието на документа
+                    $title = static::getVerbal($dRec, 'title');
+                    
+                    // Създаваме линк към single'a на документа
+                    $link = ht::createLink($title, array($mvc, 'single', $dRec->id));    
+                    
+                    // Добавяме към съобщението за грешка самия линк
+                    $error .= ": {$link}";
+                }
+                
+                // Задаваме съобщението за грешка
+                $form->setError('fileHnd', $error);    
+            }
+        }
+    }
+
+    
+    /**
+     * 
+     */
+    function on_BeforeSave(&$invoker, &$id, &$rec)
+    {
+        // id от fileman_Data
+        $dataId = fileman_Files::fetchByFh($rec->fileHnd, 'dataId');
+        $rec->dataId = $dataId;
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_BeforeRenderSingle($mvc, $tpl, &$data)
+    {
+        if ($data->rec->type == 'empty') {
+            unset($data->row->type);
         }
     }
     

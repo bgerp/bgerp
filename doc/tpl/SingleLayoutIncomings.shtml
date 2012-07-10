@@ -16,31 +16,45 @@
 			</small>
 		</div>
 		
-		<div style='margin-left: 10px; margin-top: 5px;'>
-			<!--ET_BEGIN type--> 
-				<div>
-					<div>|Тип:|* [#type#]</div>
-				</div>
-			<!--ET_END type--> 
+		<table class='top-table' width='100%' cellspacing='5' style='width:auto;'>
+		
+			<!--ET_BEGIN type-->          
+				<tr>
+				    <td align='right' width='auto' >|Тип|*:</td>
+				    <td>[#type#]</td>
+				</tr>
+			<!--ET_END type-->
 			
-			<!--ET_BEGIN fileId--> 
-				<div>
-					<div>|Файл:|* [#fileId#]</div>
-				</div>
-			<!--ET_END fileId--> 
+			<!--ET_BEGIN fileHnd-->          
+				<tr>
+				    <td align='right' width='auto' >|Файл|*:</td>
+				    <td>[#fileHnd#]</td>
+				</tr>
+			<!--ET_END fileHnd-->
 			
-			<!--ET_BEGIN date--> 
-				<div>
-					<div>|Дата:|* [#date#]</div>
-				</div>
+			<!--ET_BEGIN date-->          
+				<tr>
+				    <td align='right' width='auto' >|Дата|*:</td>
+				    <td>[#date#]</td>
+				</tr>
 			<!--ET_END date-->
 			
-			<!--ET_BEGIN total--> 
-				<div>
-					<div>|Сума:|* [#total#]</div>
-				</div>
-			<!--ET_END total--> 
-		</div>
+			<!--ET_BEGIN total-->          
+				<tr>
+				    <td align='right' width='auto' >|Сума|*:</td>
+				    <td>[#total#]</td>
+				</tr>
+			<!--ET_END total-->
+			
+			<!--ET_BEGIN keywords-->          
+				<tr>
+				    <td align='right' width='auto' >|Описание|*:</td>
+				    <td>[#keywords#]</td>
+				</tr>
+			<!--ET_END keywords-->
+			
+		
+		</table>
 	</div>
 <!-- END container -->
      
