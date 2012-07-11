@@ -181,13 +181,15 @@ class bgerp_Menu extends core_Manager
                 
                 // Първоначално задаваме 'нормално' състояние на елемента от менюто
                 $rec->state = 2;
-                
+                $rec->link = TRUE;
+
                 if(!haveRole($rec->accessByRoles)) {
                     
                     // Менютата, които се скриват при недостатъчно права, не се обработват
                     if($rec->autoHide == 'yes') continue;
                     
                     $rec->state = 1;     //disabled
+                    $rec->link  = FALSE;
                 }
                 
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
@@ -206,7 +208,7 @@ class bgerp_Menu extends core_Manager
                 }
             }
         }
-        
+         
         // До тук имаме определени два списъка $menus (с главните менюта) и $subMenus (с под-менютата);
         
         if(Mode::is('screenMode', 'narrow')) {
@@ -297,12 +299,16 @@ class bgerp_Menu extends core_Manager
      */
     static function createLink($title, $rec)
     {
-        if($rec->state == 3) {
+        if($rec->state == 3 ) {
             $attr['class'] = 'menuItem selected';
-            $url = array($rec->ctr, $rec->act);
-        } elseif ($rec->state == 2) {
+            if($rec->link) {
+                $url = array($rec->ctr, $rec->act);
+            }
+        } elseif ($rec->state == 2 ) {
             $attr['class'] = 'menuItem';
-            $url = array($rec->ctr, $rec->act);
+            if($rec->link) {
+                $url = array($rec->ctr, $rec->act);
+            }
         } else {
             $attr['class'] = 'menuItem';
         }
