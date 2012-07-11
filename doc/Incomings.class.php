@@ -111,7 +111,7 @@ class doc_Incomings extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/page_white_vector.png';
+    var $singleIcon = 'img/16/page_attach.png';
     
     
     /**
