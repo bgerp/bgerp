@@ -180,7 +180,10 @@ class fileman_Download extends core_Manager {
         
         // Ако искам да форсираме свалянето
         if (Request::get('forceDownload')) {
-            
+
+            // Големина на файла
+            $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
+
             // Задаватам хедърите
             header('Content-Description: File Transfer');
             header('Content-Type: application/octet-stream');
@@ -189,7 +192,7 @@ class fileman_Download extends core_Manager {
             header('Expires: 0');
             header('Cache-Control: must-revalidate');
 //            header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
-            header('Content-Length: ' . filesize($link));
+            header('Content-Length: ' . $fileLen);
             
             // Предизвикваме сваляне на файла
             readfile($link);  
