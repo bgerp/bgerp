@@ -188,7 +188,7 @@ class fileman_Download extends core_Manager {
             header('Content-Transfer-Encoding: binary');
             header('Expires: 0');
             header('Cache-Control: must-revalidate');
-            header('Pragma: public');
+//            header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
             header('Content-Length: ' . filesize($link));
             
             // Предизвикваме сваляне на файла
