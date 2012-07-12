@@ -186,7 +186,7 @@ class doc_Incomings extends core_Master
             $fileHnd = $mvc->db->escape($fileHnd);
             
             // Попълваме откритите ключови думи
-            $data->form->setDefault('keywords', self::getKeywords($fileHnd));    
+            $data->form->setDefault('keywords', static::getKeywords($fileHnd));    
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);
@@ -297,5 +297,51 @@ class doc_Incomings extends core_Master
         // Инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
+    }
+    
+    
+    /**
+     * Създава документ от сканиран файл
+     * 
+     * @param fileHnd $fh - Манупулатора на файла, за който ще се създаде документ
+     * @param integer $containerId - doc_Containers id' то на файла
+     * 
+     * @return integer $id - id' то на записания документ
+     */
+    static function createFromScannedFile($fh, $containerId)
+    {
+        // Записите за файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // id' то на данните на докуемента
+        $dataId = $fRec->dataId;
+
+        // Ако има документ със същото id
+        if (doc_Incomings::fetch("#dataId = '{$dataId}'")) {
+
+            return ;
+        }
+        
+        // Вземаме записите на документа, от който е изпратен файла
+        $docProxy = doc_Containers::getDocument($containerId);
+        $docRow = $docProxy->getDocumentRow();
+        
+        // Вземаме данните законтейнера
+        $cRec = doc_Containers::fetch($containerId);
+        
+        // Създаваме, записа който ще запишем
+        $rec = new stdClass();
+        $rec->title = "Сканиран \"{$docRow->title}\"";
+        $rec->fileHnd = $fh;
+        $rec->keywords = static::getKeywords($fh);
+        $rec->dataId = $dataId;
+        $rec->folderId = $cRec->folderId;
+        $rec->threadId = $cRec->threadId;
+        $rec->state = 'closed';
+        
+        // Създаваме документа
+        $id = doc_Incomings::save($rec);
+        
+        return $id;
     }
 }
