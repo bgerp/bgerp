@@ -713,16 +713,12 @@ class fileman_Files extends core_Master
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        // Ако имаме права за сваляне
-        if ($mvc->haveRightFor('download', $data->rec)) {
-            
-            // Добавяме бутон за сваляне
-            $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
-            $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download,class=btn-download', array('order=8'));
-            
-            // Генериране на линк сваляне на файла от sbf директорията
-            $createLinkUrl = toUrl(array('fileman_Download', 'GenerateLink', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
-            $data->toolbar->addBtn('Линк', $createLinkUrl, 'id=btn-createLink,class=btn-createLink', 'order=40');
-        }
+        // Добавяме бутон за сваляне
+        $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
+        $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download,class=btn-download', array('order=8'));
+        
+        // Генериране на линк сваляне на файла от sbf директорията
+        $createLinkUrl = toUrl(array('fileman_Download', 'GenerateLink', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
+        $data->toolbar->addBtn('Линк', $createLinkUrl, 'id=btn-createLink,class=btn-createLink', 'order=40');
     }
 }
