@@ -135,24 +135,17 @@ class doc_Incomings extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, type, fileHnd, date, total, keywords';
-    
+    var $searchFields = 'title, fileHnd, date, total, keywords';
+
     
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory');
-        $this->FLD('type', 'enum(
-        							empty=&nbsp;,
-            						invoice=Фактура,
-            						payment order=Платежно нареждане,
-            						waybill=Товарителница
-        						)', 
-            'caption=Тип, width=50%'
-        ); //TODO може да се реализира да е key към отделен модел за типове на документи
+        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
         $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
+        $this->FLD('number', 'varchar', 'caption=Номер, width=50%');
         $this->FLD('date', 'date', 'caption=Дата, width=50%');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума, width=50%');
         $this->FLD('keywords', 'text', 'caption=Описание, width=100%');
@@ -177,6 +170,12 @@ class doc_Incomings extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Предложения в полето Заглавие
+        $titleSuggestions['Фактура'] = 'Фактура';
+        $titleSuggestions['Платежно нареждане'] = 'Платежно нареждане';
+        $titleSuggestions['Товарителница'] = 'Товарителница';
+        $data->form->setSuggestions('title', $titleSuggestions);
+        
         // Манупулатора на файла
         $fileHnd = Request::get('fh');
         
@@ -252,17 +251,6 @@ class doc_Incomings extends core_Master
         // id от fileman_Data
         $dataId = fileman_Files::fetchByFh($rec->fileHnd, 'dataId');
         $rec->dataId = $dataId;
-    }
-    
-    
-    /**
-     * 
-     */
-    function on_BeforeRenderSingle($mvc, $tpl, &$data)
-    {
-        if ($data->rec->type == 'empty') {
-            unset($data->row->type);
-        }
     }
     
     
