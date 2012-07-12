@@ -186,9 +186,6 @@ class doc_Incomings extends core_Master
             // Ескейпваме файл хендлъра
             $fileHnd = $mvc->db->escape($fileHnd);
             
-            // Изискаваме да има права за сваляне
-            fileman_Files::requireRightFor('download', $fileHnd);
-            
             // Попълваме откритите ключови думи
             $data->form->setDefault('keywords', self::getKeywords($fileHnd));    
             
