@@ -425,41 +425,4 @@ class barcode_Generator extends core_Manager
         expect($size['width'] >= $minWidthAndHeightArr['width'], "Минималната широчина за баркода е {$minWidthAndHeightArr['width']}");
         expect($size['height'] >= $minWidthAndHeightArr['height'], "Минималната височина за баркода е {$minWidthAndHeightArr['height']}");
     }
-    
-    
-	/**
-     * Връща баркодовете във файла
-     * 
-     * @param fileHnd - Манупулатор на файла, в който ще се търсят баркодове
-     * 
-     * @return array $barcodesArr - Масив с типовете и баркодовете във файла
-     */
-    static function getBarcodesFromFile($fh)
-    {
-        // Генерираме URL за сваляне на файл
-        $downloadUrl = fileman_Download::getDownloadUrl($fh);
-
-        // Изпълняваме командата за намиране на баркодове
-        exec("zbarimg {$downloadUrl}", $allBarcodesArr);
-        
-        // Масива с намерените баркодове
-        $barcodesArr = array();
-        
-        // Ако има окрит баркод
-        if (count($allBarcodesArr)) {
-            
-            // Обикаляме намерените баркодове
-            foreach ($allBarcodesArr as $key => $barcode) {
-                
-                // Разделяме типа на баркода от съдържанието му
-                $explodeBarcodeArr = explode(':', $barcode);
-                
-                // Записваме намерените резултатис
-                $barcodesArr[$key]->type = $explodeBarcodeArr[0];
-                $barcodesArr[$key]->code = $explodeBarcodeArr[1];
-            }
-        }
-        
-        return $barcodesArr;
-    }
 }
