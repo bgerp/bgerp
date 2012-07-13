@@ -344,4 +344,31 @@ class doc_Incomings extends core_Master
         
         return $id;
     }
+    
+    
+    /**
+     * Връща прикачения файл в документа
+     * 
+     * @param mixed $rec - id' то на записа или самия запис, в който ще се търси
+     * 
+     * @return arrray - Масив името на файла и манипулатора му (ключ на масива)
+     */
+    function getAttachments($rec)
+    {
+        // Ако не е обект, тогава вземаме записите за съответния документ
+        if (!is_object($rec)) {
+            $rec = static::fetch($rec);
+        }
+        
+        // Маниппулатора на файла
+        $fh = $rec->fileHnd;
+        
+        // Вземаме записа на файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // Масив с манипулатора и името на файла
+        $file[$fh] = $fRec->name;
+        
+        return $file;
+    }
 }

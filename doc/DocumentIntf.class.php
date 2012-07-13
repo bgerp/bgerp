@@ -172,4 +172,17 @@ class doc_DocumentIntf
     {
         return $this->class->convertTo($type, $fileName);
     }
+    
+    /**
+     * Връша прикачените файлове в документите
+     * 
+     * @param mixed $rec - id' то на документа или записа на документа
+     * 
+     * @return array $files - Масив с ключ манипулатора на файла и стойност	името на файла
+     */
+    function getAttachments($rec)
+    {
+        
+        return $this->class->getAttachments($rec);
+    }
 }
