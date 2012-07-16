@@ -190,7 +190,9 @@ class core_FieldSet extends core_BaseClass
         if(is_string($suggestions)) {
             $suggestions = arr::make($suggestions, TRUE);
         }
-        $this->fields[$name]->type->suggestions = $suggestions;
+        
+        // Ако имаме suggestions, които се въвеждат от няколко, последния да не презаписва първите, а да се добави преди тях
+        $this->fields[$name]->type->suggestions = (array)$suggestions + (array)$this->fields[$name]->type->suggestions;
     }
     
     
