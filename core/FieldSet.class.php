@@ -183,7 +183,7 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
-     * Вкарва  множество от стойности-предложения за дадено поле
+     * Вкарва множество от стойности-предложения за дадено поле
      */
     function setSuggestions($name, $suggestions)
     {
@@ -191,8 +191,45 @@ class core_FieldSet extends core_BaseClass
             $suggestions = arr::make($suggestions, TRUE);
         }
         
-        // Ако имаме suggestions, които се въвеждат от няколко, последния да не презаписва първите, а да се добави преди тях
-        $this->fields[$name]->type->suggestions = (array)$suggestions + (array)$this->fields[$name]->type->suggestions;
+        $this->fields[$name]->type->suggestions = $suggestions;
+    }
+    
+    
+	/**
+     * Добавя множество от стойности-предложения за дадено поле в края
+     */
+    function appendSuggestions($name, $suggestions)
+    {
+        if (count($suggestions)) {
+            foreach ($suggestions as $key => $value) {
+                $this->fields[$name]->type->suggestions[$key] = $value;
+            }
+        }
+    }
+    
+    
+	/**
+     * Добавя множество от стойности-предложения за дадено поле в началото
+     */
+    function prependSuggestions($name, $suggestions)
+    {
+        $getSuggestions = $this->getSuggestions($name);
+        if (count($getSuggestions)) {
+            foreach ($getSuggestions as $key => $value) {
+                $suggestions[$key] = $value;
+            }
+        }
+        $this->fields[$name]->type->suggestions = $suggestions;
+    }
+    
+    
+	/**
+     * Ако има зададени връща масив със стойности
+     * val => verbal за даденото поле
+     */
+    function getSuggestions($name)
+    {
+        return $this->fields[$name]->type->suggestions;
     }
     
     
