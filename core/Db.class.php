@@ -694,7 +694,7 @@ class core_Db extends core_BaseClass
         if (!$this->link) {
             $this->connect();
         }
-        expect(is_scalar($value), $value);
+        expect(is_scalar($value) || !$value, $value);
         
         return mysql_real_escape_string($value, $this->link);
     }

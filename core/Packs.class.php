@@ -419,7 +419,7 @@ class core_Packs extends core_Manager
     function setupPack($pack, $version = 0, $force = TRUE)
     {
         // Максиламно време за инсталиране на пакет
-        set_time_limit(300);
+        set_time_limit(400);
         
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         

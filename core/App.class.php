@@ -602,11 +602,12 @@ class core_App
         }
 
         // Махаме префикса на пакета по подразбиране
-        $appPref = EF_APP_NAME . '_';
+        $appPref = EF_APP_CODE_NAME . '_';
 
         // Очакваме името на контролера да е стринг
         expect(is_string($params['Ctr']), $appPref, $Request, $params);
-
+        
+        // Маха префикса, ако той съвпада с името на кода 
         if (strpos($params['Ctr'], $appPref) === 0) {
             $params['Ctr'] = substr($params['Ctr'], strlen($appPref));
         }
