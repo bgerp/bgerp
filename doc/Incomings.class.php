@@ -135,24 +135,17 @@ class doc_Incomings extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, type, fileHnd, date, total, keywords';
-    
+    var $searchFields = 'title, fileHnd, date, total, keywords';
+
     
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory');
-        $this->FLD('type', 'enum(
-        							empty=&nbsp;,
-            						invoice=Фактура,
-            						payment order=Платежно нареждане,
-            						waybill=Товарителница
-        						)', 
-            'caption=Тип, width=50%'
-        ); //TODO може да се реализира да е key към отделен модел за типове на документи
+        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
         $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
+        $this->FLD('number', 'varchar', 'caption=Номер, width=50%');
         $this->FLD('date', 'date', 'caption=Дата, width=50%');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума, width=50%');
         $this->FLD('keywords', 'text', 'caption=Описание, width=100%');
@@ -177,6 +170,12 @@ class doc_Incomings extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Предложения в полето Заглавие
+        $titleSuggestions['Фактура'] = 'Фактура';
+        $titleSuggestions['Платежно нареждане'] = 'Платежно нареждане';
+        $titleSuggestions['Товарителница'] = 'Товарителница';
+        $data->form->setSuggestions('title', $titleSuggestions);
+        
         // Манупулатора на файла
         $fileHnd = Request::get('fh');
         
@@ -186,11 +185,8 @@ class doc_Incomings extends core_Master
             // Ескейпваме файл хендлъра
             $fileHnd = $mvc->db->escape($fileHnd);
             
-            // Изискаваме да има права за сваляне
-            fileman_Files::requireRightFor('download', $fileHnd);
-            
             // Попълваме откритите ключови думи
-            $data->form->setDefault('keywords', self::getKeywords($fileHnd));    
+            $data->form->setDefault('keywords', static::getKeywords($fileHnd));    
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);
@@ -259,17 +255,6 @@ class doc_Incomings extends core_Master
     
     
     /**
-     * 
-     */
-    function on_BeforeRenderSingle($mvc, $tpl, &$data)
-    {
-        if ($data->rec->type == 'empty') {
-            unset($data->row->type);
-        }
-    }
-    
-    
-    /**
      * Връща ключовите думи на документа
      * @todo Да се реализира
      * 
@@ -312,5 +297,78 @@ class doc_Incomings extends core_Master
         // Инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
+    }
+    
+    
+    /**
+     * Създава документ от сканиран файл
+     * 
+     * @param fileHnd $fh - Манупулатора на файла, за който ще се създаде документ
+     * @param integer $containerId - doc_Containers id' то на файла
+     * 
+     * @return integer $id - id' то на записания документ
+     */
+    static function createFromScannedFile($fh, $containerId)
+    {
+        // Записите за файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // id' то на данните на докуемента
+        $dataId = $fRec->dataId;
+
+        // Ако има документ със същото id
+        if (doc_Incomings::fetch("#dataId = '{$dataId}'")) {
+
+            return ;
+        }
+        
+        // Вземаме записите на документа, от който е изпратен файла
+        $docProxy = doc_Containers::getDocument($containerId);
+        $docRow = $docProxy->getDocumentRow();
+        
+        // Вземаме данните законтейнера
+        $cRec = doc_Containers::fetch($containerId);
+        
+        // Създаваме, записа който ще запишем
+        $rec = new stdClass();
+        $rec->title = "Сканиран \"{$docRow->title}\"";
+        $rec->fileHnd = $fh;
+        $rec->keywords = static::getKeywords($fh);
+        $rec->dataId = $dataId;
+        $rec->folderId = $cRec->folderId;
+        $rec->threadId = $cRec->threadId;
+        $rec->state = 'closed';
+        
+        // Създаваме документа
+        $id = doc_Incomings::save($rec);
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Връща прикачения файл в документа
+     * 
+     * @param mixed $rec - id' то на записа или самия запис, в който ще се търси
+     * 
+     * @return arrray - Масив името на файла и манипулатора му (ключ на масива)
+     */
+    function getAttachments($rec)
+    {
+        // Ако не е обект, тогава вземаме записите за съответния документ
+        if (!is_object($rec)) {
+            $rec = static::fetch($rec);
+        }
+        
+        // Маниппулатора на файла
+        $fh = $rec->fileHnd;
+        
+        // Вземаме записа на файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // Масив с манипулатора и името на файла
+        $file[$fh] = $fRec->name;
+        
+        return $file;
     }
 }

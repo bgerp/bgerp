@@ -12,18 +12,11 @@
 		
 		<div  class='clearfix21 antetka'>
 			<small>  
-				<b>[#title#]</b>
+				<b>[#title#]<!--ET_BEGIN number--> - [#number#]<!--ET_END number--></b>
 			</small>
 		</div>
 		
 		<table class='top-table' width='100%' cellspacing='5' style='width:auto;'>
-		
-			<!--ET_BEGIN type-->          
-				<tr>
-				    <td align='right' width='auto' >|Тип|*:</td>
-				    <td>[#type#]</td>
-				</tr>
-			<!--ET_END type-->
 			
 			<!--ET_BEGIN fileHnd-->          
 				<tr>
