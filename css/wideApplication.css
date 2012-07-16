@@ -1081,11 +1081,11 @@ div.attachments a {
 	border-radius:0.3em;
 }
 
-.thread-opened TABLE.listTable>TBODY>TR>TD {
+.thread-opened table.listTable>tbody>tr>td {
 	border:solid 1px green !important;
 }
 
-.thread-opened TH  {
+.thread-opened th  {
 	border:solid 1px green !important;
 	background-color:#aea  !important;
 }
@@ -1427,7 +1427,7 @@ select {
 	}
 	
 	#cmsTop, #all, #cmsBottom { 
-		width: 100% !important;
+		1width: 100% !important;
 	}
 
 	#all {
