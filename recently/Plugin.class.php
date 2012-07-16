@@ -41,7 +41,7 @@ class recently_Plugin extends core_Plugin
                         unset($suggetions['']);
                     }
                     
-                    $form->setSuggestions($name, $suggetions);
+                    $form->appendSuggestions($name, $suggetions);
                 }
             }
         }
