@@ -111,7 +111,7 @@ class doc_Incomings extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/page_white_vector.png';
+    var $singleIcon = 'img/16/page_attach.png';
     
     
     /**
@@ -135,27 +135,23 @@ class doc_Incomings extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, type, fileId, date, total, keywords';
-    
+    var $searchFields = 'title, fileHnd, date, total, keywords';
+
     
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory');
-        $this->FLD('type', 'enum(
-        							empty=&nbsp;,
-            						invoice=Фактура,
-            						payment order=Платежно нареждане,
-            						waybill=Товарителница
-        						)', 
-            'caption=Тип, width=50%, mandatory'
-        ); //TODO може да се реализира да е key към отделен модел за типове на документи
-        $this->FLD('fileId', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
+        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
+        $this->FLD('number', 'varchar', 'caption=Номер, width=50%');
         $this->FLD('date', 'date', 'caption=Дата, width=50%');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума, width=50%');
         $this->FLD('keywords', 'text', 'caption=Описание, width=100%');
+        $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни, input=none');
+        
+        $this->setDbUnique('dataId');
     } 
 
     
@@ -166,7 +162,7 @@ class doc_Incomings extends core_Master
     {   
         $tpl->replace(log_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
     }
-
+    
     
     /**
      * 
@@ -174,6 +170,12 @@ class doc_Incomings extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Предложения в полето Заглавие
+        $titleSuggestions['Фактура'] = 'Фактура';
+        $titleSuggestions['Платежно нареждане'] = 'Платежно нареждане';
+        $titleSuggestions['Товарителница'] = 'Товарителница';
+        $data->form->prependSuggestions('title', $titleSuggestions);
+
         // Манупулатора на файла
         $fileHnd = Request::get('fh');
         
@@ -183,14 +185,11 @@ class doc_Incomings extends core_Master
             // Ескейпваме файл хендлъра
             $fileHnd = $mvc->db->escape($fileHnd);
             
-            // Изискаваме да има права за сваляне
-            fileman_Files::requireRightFor('download', $fileHnd);
-            
             // Попълваме откритите ключови думи
-            $data->form->setDefault('keywords', self::getKeywords($fileHnd));    
+            $data->form->setDefault('keywords', static::getKeywords($fileHnd));    
             
             // Файла да е избран по подразбиране
-            $data->form->setDefault('fileId', $fileHnd);
+            $data->form->setDefault('fileHnd', $fileHnd);
         }
         
         // Ако създаваме нов
@@ -204,6 +203,54 @@ class doc_Incomings extends core_Master
                 $data->form->rec->folderId = $currFolderId;
             }
         }
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterInputEditForm($mvc, $form)
+    {
+        // Ако формата е изпратена
+        if ($form->isSubmitted()) {
+            
+            // id от fileman_Data
+            $dataId = fileman_Files::fetchByFh($form->rec->fileHnd, 'dataId');
+            
+            // Проверяваме да няма създаден документ за съответния запис
+            if ($dRec = static::fetch("#dataId = '{$dataId}'")) {
+                
+                // Съобщение за грешка
+                $error = "|Има създаден документ за файла|*";
+                
+                // Ако имаме права за single на документа
+                if ($mvc->haveRightFor('single', $dRec)) {
+                    
+                    // Заглавието на документа
+                    $title = static::getVerbal($dRec, 'title');
+                    
+                    // Създаваме линк към single'a на документа
+                    $link = ht::createLink($title, array($mvc, 'single', $dRec->id));    
+                    
+                    // Добавяме към съобщението за грешка самия линк
+                    $error .= ": {$link}";
+                }
+                
+                // Задаваме съобщението за грешка
+                $form->setError('fileHnd', $error);    
+            }
+        }
+    }
+
+    
+    /**
+     * 
+     */
+    function on_BeforeSave(&$invoker, &$id, &$rec)
+    {
+        // id от fileman_Data
+        $dataId = fileman_Files::fetchByFh($rec->fileHnd, 'dataId');
+        $rec->dataId = $dataId;
     }
     
     
@@ -250,5 +297,78 @@ class doc_Incomings extends core_Master
         // Инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
+    }
+    
+    
+    /**
+     * Създава документ от сканиран файл
+     * 
+     * @param fileHnd $fh - Манупулатора на файла, за който ще се създаде документ
+     * @param integer $containerId - doc_Containers id' то на файла
+     * 
+     * @return integer $id - id' то на записания документ
+     */
+    static function createFromScannedFile($fh, $containerId)
+    {
+        // Записите за файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // id' то на данните на докуемента
+        $dataId = $fRec->dataId;
+
+        // Ако има документ със същото id
+        if (doc_Incomings::fetch("#dataId = '{$dataId}'")) {
+
+            return ;
+        }
+        
+        // Вземаме записите на документа, от който е изпратен файла
+        $docProxy = doc_Containers::getDocument($containerId);
+        $docRow = $docProxy->getDocumentRow();
+        
+        // Вземаме данните законтейнера
+        $cRec = doc_Containers::fetch($containerId);
+        
+        // Създаваме, записа който ще запишем
+        $rec = new stdClass();
+        $rec->title = "Сканиран \"{$docRow->title}\"";
+        $rec->fileHnd = $fh;
+        $rec->keywords = static::getKeywords($fh);
+        $rec->dataId = $dataId;
+        $rec->folderId = $cRec->folderId;
+        $rec->threadId = $cRec->threadId;
+        $rec->state = 'closed';
+        
+        // Създаваме документа
+        $id = doc_Incomings::save($rec);
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Връща прикачения файл в документа
+     * 
+     * @param mixed $rec - id' то на записа или самия запис, в който ще се търси
+     * 
+     * @return arrray - Масив името на файла и манипулатора му (ключ на масива)
+     */
+    function getAttachments($rec)
+    {
+        // Ако не е обект, тогава вземаме записите за съответния документ
+        if (!is_object($rec)) {
+            $rec = static::fetch($rec);
+        }
+        
+        // Маниппулатора на файла
+        $fh = $rec->fileHnd;
+        
+        // Вземаме записа на файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // Масив с манипулатора и името на файла
+        $file[$fh] = $fRec->name;
+        
+        return $file;
     }
 }

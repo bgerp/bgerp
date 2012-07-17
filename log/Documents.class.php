@@ -850,4 +850,114 @@ class log_Documents extends core_Manager
             $tpl->append($data->doc->getDocumentBody());
         }
     }
+    
+    
+    /**
+     * Връща cid' а на документа от URL.
+     * 
+     * Проверява URL' то дали е от нашата система.
+     * Проверява дали cid' а и mid'а си съвпадат.
+     * Ако открие записа на документа проверява дали има родител.
+     * Ако има родител връща cid'а на родителя. 
+     * 
+     * @param URL $url - URL от системата, в който ще се търси
+     * 
+     * @return integer $cid - Container id на документа
+     */
+    static function getDocumentCidFromURL($url)
+    {
+        // Проверяваме дали URL' то е от нашата система
+        if (!static::isOurURL($url)) {
+            
+            return ;
+        }
+        
+        // Вземаме cid'a и mid' а от URL' то
+        $cidAndMidArr = static::getCidAndMidFromUrl($url);
+        
+        // Ако няма cid или мид
+        if (!count($cidAndMidArr)) {
+            
+            return ;
+        }
+        
+        // Вземам записа за съответния документ в лога
+        $rec = log_Documents::fetchHistoryFor($cidAndMidArr['cid'], $cidAndMidArr['mid']);
+        
+        // Ако няма запис - mid' а не е правилен
+        if (!$rec) {
+            
+            return ;
+        }
+        
+        // Ако записа има parentId
+        if ($rec->parentId) {
+            
+            // Задаваме cid'a да е containerId' то на родителския документ
+            $cid = log_Documents::fetchField($rec->parentId, 'containerId');
+        } else {
+            
+            $cid = $rec->containerId;
+        }
+        
+        return $cid;
+    }
+    
+    
+    /**
+     * Проверява подаденото URL далу е от системата.
+     * 
+     * @param URL $url - Линка, който ще се проверява
+     * 
+     * @return boolean - Ако открие съвпадение връща TRUE
+     */
+    static function isOurURL($url)
+    {
+        // Изчистваме URL' то от празни символи
+        $url = str::trim($url);
+        
+        // Ако открием търсенто URL в позиция 0
+        if (stripos($url, core_App::getBoot(TRUE)) === 0) {
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща cid' а и mid' а от подаденото URL
+     * 
+     * @param URL $URL - Линка, в който ще се търси
+     * 
+     * @return array $res - Масив с ['cid'] и ['mid']
+     */
+    static function getCidAndMidFromUrl($url)
+    {
+        $bootUrl = core_App::getBoot(TRUE);
+        
+        // Ескейпваме името на директорията. Също така, допълнително ескейпваме и '/'
+        $bootUrlEsc = preg_quote($bootUrl, '/');
+        
+        // Шаблон за намиране на mid'a и cid'а в URL
+        // Шаблона работи само ако:
+        // Класа е L
+        // Екшъна е B или S
+        // Веднага след тях следва ?m= за мида
+        $pattern = "/(?'boot'{$bootUrlEsc}{1})\/(?'ctr'[L]{1})\/(?'act'[B|S]{1})\/(?'cid'[^\/]+)\/\?m\=(?'mid'[^$]+)/i";
+
+        // Проверявама дали има съвпадение
+        preg_match($pattern, $url, $matches);
+        
+        $res = array();
+        
+        // Ако намери cid и mid
+        if (($matches['cid']) && ($matches['mid'])) {
+            
+            $res['cid'] = $matches['cid'];
+            $res['mid'] = $matches['mid'];
+        }
+
+        return $res;
+    }
 }

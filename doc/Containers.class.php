@@ -337,7 +337,14 @@ class doc_Containers extends core_Manager
             } elseif ($rec->state == 'rejected') {
                 doc_ThreadUsers::removeContainer($rec->containerId);
             }
-
+            
+            if($rec->threadId && $rec->docId) {
+                // Предизвиква обновяване на треда, след всяко обновяване на контейнера
+                doc_Threads::updateThread($rec->threadId);
+            }
+            
+            
+            // Нотификации на абонираните и споделените потребители
             if($flagJustActived) {
                 // Подготвяме няколко стринга, за употреба по-после
                 $docSingleTitle = mb_strtolower($docMvc->singleTitle);  
@@ -376,17 +383,6 @@ class doc_Containers extends core_Manager
                     }
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * Предизвиква обновяване на треда, след всяко обновяване на контейнера
-     */
-    static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
-    {
-        if($rec->threadId && $rec->docId) {
-            doc_Threads::updateThread($rec->threadId);
         }
     }
     
@@ -609,18 +605,10 @@ class doc_Containers extends core_Manager
         //Ако няма
         if (!$abbr) {
             
-            //id' то на интерфейса doc_DocumentIntf
-            $docIntfId = core_Interfaces::fetchField("#name='doc_DocumentIntf'");
-            
-            $query = core_Classes::getQuery();
-            
+            $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
+
             //Обикаляме всички записи, които имплементират doc_DocumentInrf
-            while ($allClasses = $query->fetch("#interfaces LIKE '%|{$docIntfId}|%'")) {
-                //Името на класа
-                $className = $allClasses->name;
-                
-                //id' то на класа
-                $id = $allClasses->id;
+            foreach ($docClasses as $id => $className) {
                 
                 //Създаваме инстанция на класа в масив
                 $instanceArr[$id] = cls::get($className);
