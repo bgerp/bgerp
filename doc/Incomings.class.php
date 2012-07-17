@@ -174,8 +174,8 @@ class doc_Incomings extends core_Master
         $titleSuggestions['Фактура'] = 'Фактура';
         $titleSuggestions['Платежно нареждане'] = 'Платежно нареждане';
         $titleSuggestions['Товарителница'] = 'Товарителница';
-        $data->form->setSuggestions('title', $titleSuggestions);
-        
+        $data->form->prependSuggestions('title', $titleSuggestions);
+
         // Манупулатора на файла
         $fileHnd = Request::get('fh');
         
