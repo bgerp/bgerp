@@ -176,51 +176,7 @@ class log_Documents extends core_Manager
 			$rec->returnedOn = $rec->data->returnedOn;
 		}
     }
-    
-    
-    /**
-     * Добавя запис в историята на документ
-     * 
-     * @param string $action
-     * @param int    $cid key(mvc=doc_Containers)
-     * @param int    $parentId key(mvc=log_Documents)
-     * @param mixed  $details
-     * @return string|boolean MID на новосъздадения запис или FALSE при неуспех
-     */
-    public static function add($action, $cid, $parentId = NULL, $details = NULL)
-    {
-        bp('deprecated');
-        $tid = doc_Containers::fetchField($cid, 'threadId');
-        
-        // Валидация на $parentId - трябва да е ключ на запис в историята или NULL
-        expect(!isset($parentId) || static::fetch($parentId));
-        
 
-        // Създаваме нов запис 
-        $rec = new stdClass();
-        
-        $rec->action      = $action;
-        $rec->containerId = $cid;
-        $rec->threadId    = $tid;
-        $rec->parentId    = $parentId;
-        $rec->details     = serialize($details);
-        
-        if (!in_array($action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
-            $rec->mid = static::generateMid();
-        }
-        
-        /*
-         * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и
-         *             createdOn (кога е станало това)
-         */
-        
-        if (static::save($rec)) {
-            return $rec->mid;
-        }
-        
-        return FALSE;
-        
-    }
     
     public static function saveAction($actionData)
     {
