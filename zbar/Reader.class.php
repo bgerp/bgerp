@@ -40,7 +40,7 @@ class zbar_Reader
             foreach ($allBarcodesArr as $key => $barcode) {
                 
                 // Разделяме типа на баркода от съдържанието му
-                $explodeBarcodeArr = explode(':', $barcode);
+                $explodeBarcodeArr = explode(':', $barcode, 2);
                 
                 // Записваме намерените резултатис
                 $barcodesArr[$key]->type = $explodeBarcodeArr[0];
