@@ -210,7 +210,17 @@ class doc_Comments extends core_Master
         return $row;
     }
     
-    
+
+    /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     * Добавянето на коментар не променя състоянието на треда
+     */
+    static function getThreadState($id)
+    {
+        return NULL;
+    }
+
+
     /**
      * Потребителите, с които е споделен този документ
      *
