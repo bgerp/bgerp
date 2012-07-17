@@ -78,7 +78,7 @@ class log_Documents extends core_Manager
     var $listFields = 'createdBy, createdOn, action=Какво, containerId=Кое, dataBlob';
     
     var $listFieldsSet = array(
-        self::ACTION_SEND  => 'createdBy=Потребител, createdOn=Дата, containerId=Кое, toEmail=До, received=Получено, returned=Върнато',
+        self::ACTION_SEND  => 'createdBy=Потребител, createdOn=Дата, containerId=Кое, toEmail=До, receivedOn=Получено, returnedOn=Върнато',
         self::ACTION_PRINT => 'createdBy=Потребител, createdOn=Дата, containerId=Кое, action=Действие, seenOn=Видяно',
     );
     
@@ -144,6 +144,8 @@ class log_Documents extends core_Manager
         
         $this->FNC('data', 'text', 'input=none');
         $this->FNC('seenOnTime', 'datetime(format=smartTime)', 'input=none');
+        $this->FNC('receivedOn', 'datetime(format=smartTime)', 'input=none');
+        $this->FNC('returnedOn', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('seenFromIp', 'ip', 'input=none');
         
         $this->setDbIndex('containerId');
@@ -157,6 +159,22 @@ class log_Documents extends core_Manager
         if (empty($rec->data)) {
             $rec->data = new StdClass();
         }
+    }
+    
+
+    function on_CalcReceivedOn($mvc, $rec)
+    {
+		if ($rec->action == static::ACTION_SEND && !empty($rec->data->receivedOn)) {
+			$rec->receivedOn = $rec->data->receivedOn;
+		}
+    }
+    
+
+    function on_CalcReturnedOn($mvc, $rec)
+    {
+		if ($rec->action == static::ACTION_SEND && !empty($rec->data->returnedOn)) {
+			$rec->returnedOn = $rec->data->returnedOn;
+		}
     }
     
     
@@ -738,7 +756,7 @@ class log_Documents extends core_Manager
         if (empty($data->recs)) {
             return;
         }
-        
+
         foreach ($recs as $i=>$rec) {
             $row = $rows[$i];
         
@@ -746,17 +764,9 @@ class log_Documents extends core_Manager
                 $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
             }
 
-            $row->createdOn = static::getVerbal($rec, 'createdOn');
-            $row->createdBy = '<div>' . static::getVerbal($rec, 'createdBy') . '</div>';
-            $row->userNdate = $row->createdBy . $row->createdOn;
             $row->toEmail   = $rec->data->to;
-            
-            if ($rec->data->receivedOn) {
-                $row->received = type_Datetime::toVerbal($rec->data->receivedOn);
-            }
-            if ($rec->data->returnedOn) {
-                $row->returned = type_Datetime::toVerbal($rec->data->returnedOn);
-            }
+			$row->receivedOn = static::getVerbal($rec, 'receivedOn');
+			$row->returnedOn = static::getVerbal($rec, 'returnedOn');
         }
     }
     
@@ -777,9 +787,6 @@ class log_Documents extends core_Manager
                 $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
             }
 
-            $row->createdOn = static::getVerbal($rec, 'createdOn');
-            $row->createdBy = static::getVerbal($rec, 'createdBy');
-            
             $open = static::ACTION_OPEN;
             $row->seenOn = '';
             if (is_array($rec->data->{$open})) {
