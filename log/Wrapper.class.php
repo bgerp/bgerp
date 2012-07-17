@@ -23,10 +23,17 @@ class log_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-       
+        $url = array('log_Documents');
         
-        $this->TAB('log_Documents', 'Документи', 'admin, doc');
+        if ($containerId = Request::get('containerId')) {
+            $url['containerId'] = $containerId;
+        }
+        
+        $this->TAB(array_merge($url, array('action'=>'send')), 'Изпращания', 'admin, doc');
+        $this->TAB(array_merge($url, array('action'=>'print')), 'Отпечатвания', 'admin, doc');
         
         $this->title = 'История';
     }
+    
+    
 }

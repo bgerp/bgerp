@@ -75,7 +75,12 @@ class log_Documents extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $listFields = 'userNdate=Кой/кога, action=Какво, containerId=Кое, data=Обстоятелства';
+    var $listFields = 'createdBy, createdOn, action=Какво, containerId=Кое, dataBlob';
+    
+    var $listFieldsSet = array(
+        self::ACTION_SEND  => 'createdBy=Потребител, createdOn=Дата, containerId=Кое, toEmail=До, received=Получено, returned=Върнато',
+        self::ACTION_PRINT => 'createdBy=Потребител, createdOn=Дата, containerId=Кое, action=Действие, seenOn=Видяно',
+    );
     
     /**
      * Масов-кеш за историите на контейнерите по нишки
@@ -108,7 +113,7 @@ class log_Documents extends core_Manager
     function description()
     {
         $actionsEnum = array(
-            self::ACTION_SEND    . '=изпращане',
+            self::ACTION_SEND    . '=имейл',
             self::ACTION_RETURN  . '=връщане',
             self::ACTION_RECEIVE . '=получаване',
             self::ACTION_OPEN    . '=показване',
@@ -132,11 +137,26 @@ class log_Documents extends core_Manager
         
         $this->FLD('parentId', 'key(mvc=log_Documents, select=action)', 'input=none,caption=Основание');
         
+//         $this->FLD('baseParentId', 'key(mvc=log_Documents, select=action)', 'input=none,caption=Основание');
+        
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
-        $this->FLD("data", "blob", 'caption=Обстоятелства,column=none');
+        $this->FLD("dataBlob", "blob", 'caption=Обстоятелства,column=none,oldFieldName=data');
+        
+        $this->FNC('data', 'text', 'input=none');
+        $this->FNC('seenOnTime', 'datetime(format=smartTime)', 'input=none');
+        $this->FNC('seenFromIp', 'ip', 'input=none');
         
         $this->setDbIndex('containerId');
         $this->setDbUnique('mid');
+    }
+    
+    
+    function on_CalcData($mvc, $rec)
+    {
+        $rec->data = @unserialize($rec->dataBlob);
+        if (empty($rec->data)) {
+            $rec->data = new StdClass();
+        }
     }
     
     
@@ -203,9 +223,6 @@ class log_Documents extends core_Manager
         if (!in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
             $rec->mid = static::generateMid();
         }
-        
-        
-        $rec->data     = serialize($rec->data);
         
         /*
          * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и
@@ -283,12 +300,6 @@ class log_Documents extends core_Manager
             return FALSE;
         }
     
-        $sendRec->data = @unserialize($sendRec->data);
-        
-        if (!$sendRec->data) {
-            $sendRec->data = new stdClass;
-        }
-    
         if (!empty($sendRec->data->returnedOn)) {
             // Връщането на писмото вече е било отразено в историята; не правим нищо
             return TRUE;
@@ -301,7 +312,6 @@ class log_Documents extends core_Manager
         expect(is_object($sendRec->data), $sendRec);
     
         $sendRec->data->returnedOn = $date;
-        $sendRec->data = serialize($sendRec->data);
     
         static::save($sendRec);
     
@@ -333,12 +343,6 @@ class log_Documents extends core_Manager
             return FALSE;
         }
     
-        $sendRec->data = @unserialize($sendRec->data);
-        
-        if (!$sendRec->data) {
-            $sendRec->data = new stdClass;
-        }
-    
         if (!empty($sendRec->data->receivedOn)) {
             // Връщането на писмото вече е било отразено в историята; не правим нищо
             return TRUE;
@@ -351,7 +355,6 @@ class log_Documents extends core_Manager
         expect(is_object($sendRec->data), $sendRec);
         
         $sendRec->data->receivedOn = $date;
-        $sendRec->data = serialize($sendRec->data);
     
         static::save($sendRec);
     
@@ -389,7 +392,20 @@ class log_Documents extends core_Manager
     
         return $mid;
     }
-
+    
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+        if (empty($rec->data)) {
+            $rec->dataBlob = NULL;
+        } else {
+            if (is_array($rec->data)) {
+                $rec->data = (object)$rec->data;
+            }
+        
+            $rec->dataBlob = serialize($rec->data);
+        }
+    }
+    
     
     /**
      * Изпълнява се след всеки запис в модела
@@ -656,23 +672,65 @@ class log_Documents extends core_Manager
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        $mvc::restrictListedActions($data->query);
+        $mvc->restrictListedActions($data->query);
     }
     
     
     /**
      * @param core_Query $query
      */
-    static function restrictListedActions($query)
+    function restrictListedActions($query)
     {
-        $query->where("LEFT(#action, 1) != '_'");
+        switch (static::getCurrentSubset()) {
+            case static::ACTION_SEND:
+                $query->where(sprintf("#action = '%s' OR #action = '%s'", static::ACTION_SEND, static::ACTION_FAX));
+                break;
+            case static::ACTION_PRINT:
+                $query->where(sprintf("#action = '%s' OR #action = '%s'", static::ACTION_PRINT, static::ACTION_PDF));
+                break;
+        }
+    }
+    
+    
+    static function getCurrentSubset()
+    {
+        if (!$action = Request::get('action')) {
+            $action = static::ACTION_SEND;
+        }
+        
+        expect($action == static::ACTION_SEND || $action == static::ACTION_PRINT);
+        
+        return $action;
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterPrepareListRows($mvc, $data)
+    static function on_AfterPrepareListRows(log_Documents $mvc, $data)
+    {
+        switch ($mvc::getCurrentSubset()) {
+            case $mvc::ACTION_SEND:
+                $mvc->currentTab = 'Изпращания';
+                $mvc::prepareSendSubset($data);
+                break;
+            case $mvc::ACTION_PRINT:
+                $mvc->currentTab = 'Отпечатвания';
+                $mvc::preparePrintSubset($data);
+                break;
+            default:
+                expect(FALSE);
+        }
+
+        $data->listFields = arr::make($mvc->listFieldsSet[$mvc::getCurrentSubset()], TRUE);
+        
+        if (Request::get('containerId', 'int') && isset($data->listFields['containerId'])) {
+            unset($data->listFields['containerId']);
+        }
+    }
+    
+    
+    static function prepareSendSubset($data)
     {
         $rows = $data->rows;
         $recs = $data->recs;
@@ -683,72 +741,62 @@ class log_Documents extends core_Manager
         
         foreach ($recs as $i=>$rec) {
             $row = $rows[$i];
-            
-            if ($row->containerId) {
-                $row->containerId = ht::createLink($row->containerId, array($mvc, 'list', 'containerId'=>$rec->containerId));
+        
+            if (!$data->doc) {
+                $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
             }
-            $rec->data = @unserialize($rec->data);
-            $mvc->formatAction($rec, $row);
-        }
-    }
-    
-    
-    /**
-     * Форматира запис от историята в лесно четим вид.
-     *
-     * @param stdClass $rec запис от този модел
-     * @param stdClass $row резултата
-     */
-    static function formatAction($rec, &$row)
-    {
-        $row->createdOn = static::getVerbal($rec, 'createdOn');
-        $row->createdBy = static::getVerbal($rec, 'createdBy');
-//         $row->action    = $rec->action;
-        
-        $row->createdBy = '<div>' . $row->createdBy . '</div>';
-        
-        $row->userNdate = $row->createdBy . $row->createdOn;
-        
-        $formatMethod = 'formatAction' . ucfirst($rec->action);
-        
-        if (method_exists(get_called_class(), $formatMethod)) {
-            static::$formatMethod($rec, $row);
-        } else {
-            ob_start();
-            var_dump($rec->data);
-            $dataStr = ob_get_clean();
-            
-            $row->data = "<pre>{$dataStr}</pre>";
-        }
-    }
-    
-    protected static function formatActionSend($rec, &$row) 
-    {
-        if (!empty($rec->data->from)) {
-            $inbox = email_Inboxes::fetchField($rec->data->from, 'email');
-        }
-        
-        if (!isset($inbox)) {
-            $inbox = 'неизвестен';
-        }
-        
-        $row->data = 'от ' . $inbox . ' до ' . $rec->data->to;
-        
-        if (!empty($rec->data->returnedOn)) {
-            $row->data .= '<br/><b>върнато на ' . type_Datetime::toVerbal($rec->data->returnedOn) . '</b>';
-            $row->ROW_ATTR['class'] .= ' action _returned';
-        }
-        
-        if (!empty($rec->data->receivedOn)) {
-            $row->data .= '<br/><b>получено на ' . type_Datetime::toVerbal($rec->data->receivedOn) . '</b>';
-            $row->ROW_ATTR['class'] .= ' action _received';
-        }
 
-//         ob_start();
-//         print_r($rec->data);
-//         $dataStr = ob_get_clean();
+            $row->createdOn = static::getVerbal($rec, 'createdOn');
+            $row->createdBy = '<div>' . static::getVerbal($rec, 'createdBy') . '</div>';
+            $row->userNdate = $row->createdBy . $row->createdOn;
+            $row->toEmail   = $rec->data->to;
+            
+            if ($rec->data->receivedOn) {
+                $row->received = type_Datetime::toVerbal($rec->data->receivedOn);
+            }
+            if ($rec->data->returnedOn) {
+                $row->returned = type_Datetime::toVerbal($rec->data->returnedOn);
+            }
+        }
+    }
+    
+    
+    static function preparePrintSubset($data)
+    {
+        $rows = $data->rows;
+        $recs = $data->recs;
         
-//         $row->data .= "<pre>{$dataStr}</pre>";
+        if (empty($data->recs)) {
+            return;
+        }
+        
+        foreach ($recs as $i=>$rec) {
+            $row = $rows[$i];
+        
+            if (!$data->doc) {
+                $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
+            }
+
+            $row->createdOn = static::getVerbal($rec, 'createdOn');
+            $row->createdBy = static::getVerbal($rec, 'createdBy');
+            
+            $open = static::ACTION_OPEN;
+            $row->seenOn = '';
+            if (is_array($rec->data->{$open})) {
+                foreach($rec->data->{$open} as $hr) {
+                    $rec->seenOnTime = $hr['on'];
+                    $rec->seenFromIp = $hr['ip'];
+                    $row->seenOn .= '<tr>';
+                    $row->seenOn .= '<td>' . static::getVerbal($rec, 'seenOnTime') . '</td>';
+                    $row->seenOn .= '<td>' . static::getVerbal($rec, 'seenFromIp') . '</td>';
+                    $row->seenOn .= '</tr>';
+                }
+            }
+            
+            if (!empty($row->seenOn)) {
+                $row->seenOn = "<table>{$row->seenOn}</table>";
+            }
+        }
     }
     
     
@@ -772,23 +820,23 @@ class log_Documents extends core_Manager
      */
     static function on_AfterPrepareListTitle($mvc, $data)
     {
-        if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
+        if (!$containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             $data->title = "История";
         }
     }
     
-    
+
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterRenderListTitle($mvc, &$tpl, $data)
+    static function on_AfterRenderListTitle(log_Documents $mvc, &$tpl, $data)
     {
         /* @var $doc doc_DocumentIntf */
         $doc = $data->doc;
         
         if ($doc) {
             $row = $doc->getDocumentRow();
-            $tpl = '<div class="listTitle">' . $doc->getLink() . '</div>';
+            $tpl = new ET('<div class="listTitle">' . $doc->getLink() . '</div>');
         }
     }
     
