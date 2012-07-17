@@ -56,6 +56,7 @@ class cms_Content extends core_Manager
     {   
         $this->FLD('order', 'order', 'caption=Подредба,mandatory');
         $this->FLD('menu', 'varchar(64)', 'caption=Меню,mandatory');
+        $this->FLD('url',  'varchar(128)', 'caption=URL,mandatory');
         $this->FLD('layout', 'html', 'caption=Лейаут');
 
         $this->setDbUnique('menu');
@@ -93,14 +94,24 @@ class cms_Content extends core_Manager
         $tpl = new ET();
         
         $cMenuId = Mode::get('cMenuId');
+        
+        if(!$cMenuId) {
+            $cMenuId = Request::get('cMenuId');
+            Mode::set('cMenuId', $cMenuId);
+        }
 
         if (is_array($data->items)) {
             foreach($data->items as $rec) {
                 $attr = array();
                 if( ($cMenuId == $rec->id)) {
                     $attr['class'] = 'selected';
-                }  
-                $tpl->append(ht::createLink($rec->menu, array('cms_Content', 'show', $rec->id), NULL, $attr));
+                } 
+
+                if($rec->url) {
+                    $tpl->append(ht::createLink($rec->menu, arr::make($rec->url), NULL, $attr));
+                } else {
+                    $tpl->append(ht::createLink($rec->menu, array('cms_Content', 'show', $rec->id), NULL, $attr));
+                }
             }    
         }
  
@@ -145,6 +156,7 @@ class cms_Content extends core_Manager
     static function getLayout()
     {
         $cMenuId = Mode::get('cMenuId');
+
         
         if($cMenuId) {
 
