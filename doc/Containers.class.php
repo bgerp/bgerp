@@ -605,18 +605,10 @@ class doc_Containers extends core_Manager
         //Ако няма
         if (!$abbr) {
             
-            //id' то на интерфейса doc_DocumentIntf
-            $docIntfId = core_Interfaces::fetchField("#name='doc_DocumentIntf'");
-            
-            $query = core_Classes::getQuery();
-            
+            $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
+
             //Обикаляме всички записи, които имплементират doc_DocumentInrf
-            while ($allClasses = $query->fetch("#interfaces LIKE '%|{$docIntfId}|%'")) {
-                //Името на класа
-                $className = $allClasses->name;
-                
-                //id' то на класа
-                $id = $allClasses->id;
+            foreach ($docClasses as $id => $className) {
                 
                 //Създаваме инстанция на класа в масив
                 $instanceArr[$id] = cls::get($className);
