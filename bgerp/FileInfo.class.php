@@ -1,5 +1,31 @@
 <?php
 
+// TODO Да се преместят в Setup.class.php
+/**
+ * Лимита при извличане на данни от базата
+ */
+defIfNot('FILEINFO_MAX_FETCHING_LIMIT', 1000);
+
+
+/**
+ * Лимита на стартиранете на оперции в едно стартиране
+ */
+defIfNot('FILEINFO_MAX_COUNT_PROCESS', 10);
+
+
+/**
+ * Минималната дължина на файла, до която ще се търси баркод
+ * 15kB
+ */
+defIfNot(FILEINFO_MIN_FILE_LEN_BARCODE, 15360);
+
+
+/**
+ * Максималната дължина на файла, до която ще се търси баркод
+ * 15kB
+ */
+defIfNot(FILEINFO_MAX_FILE_LEN_BARCODE, 1048576);
+//TODO end
 
 /**
  * Информация за всички файлове във fileman_Files
@@ -69,30 +95,544 @@ class bgerp_FileInfo extends core_Manager
     
     
     /**
+     * Брояч за стартираните операции за всяка сесия
+     */
+    static $counter=0;
+    
+    
+    /**
      * 
      */
     function description()
     {
         $this->FLD('fileId', 'key(mvc=fileman_Files)', 'caption=Файлове');
-        $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
+        $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни,notNull');
         $this->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На');
         $this->FLD('barcodes', 'blob', 'caption=Баркодове');
-        $this->FLD('keywords', 'blob', 'caption=Ключови думи');
+        $this->FLD('content', 'text', 'caption=Съдържание');
         $this->FLD('images', 'blob', 'caption=Изображения');
+        $this->FLD('metaInfo', 'blob', 'caption=Мета информация');
+        
+        $this->setDbUnique('dataId');
     }
     
     
+    /**
+     * Стартираме обработването на файловете
+     */
+    static function startProcess()
+    {
+        // Определяме времето на създаване на последния обработен документ
+        $lastFetchFileTime = static::getLastFetchTime();
+        
+        // Вземаме FILEINFO_MAX_FETCHING_LIMIT на броя запис от fileman_Files,
+        // които са по нови от последния запис в модела
+        $query = fileman_Files::getQuery();
+        $query->where("#createdOn >= '{$lastFetchFileTime}'");
+        $query->limit(FILEINFO_MAX_FETCHING_LIMIT);
+        $qCount = $query->count();
+        
+        // Обикаляме всички открити записи докато не свършат или не сме надвиши броя за стартираните операции в сесията
+        while (($rec = $query->fetch()) && (static::$counter < FILEINFO_MAX_COUNT_PROCESS)) {
+            
+            // Проверяваме дали намерения файл има данни
+            if (!$rec->dataId) continue;
+            
+            // Променлива, която държи последния запис
+            $lastRec = $rec;
+            
+            // Вземаме разширението на файла
+            $ext = static::getExtension($rec->name);
+            
+            // Проверяваме дали разширението, е в допустимите, които ще се конвертират
+            if (in_array($ext, array('pdf'))) {
+                
+                // Данните, които ще запишем
+                $nRec = new stdClass();
+                $nRec->fileId = $rec->id;
+                $nRec->dataId = $rec->dataId;
+                $nRec->createdOn = $rec->createdOn;
+                
+                // Ако записа мине успешно
+                if ($fileInfoId = bgerp_FileInfo::save($nRec, NULL, 'IGNORE')) {
+
+                    // Увеличаваме брояча за броя на стартираните процеси
+                    static::$counter++;
+                    
+                    // Стартираме обработката на файловете
+                    static::startFileProcessing($rec->fileHnd, $fileInfoId, $ext);
+                }    
+            }
+        }
+        
+        // Ако не можем да открием файл, който да обработим
+        if ((!static::$counter) && ($lastRec->dataId) && ($qCount >= FILEINFO_MAX_FETCHING_LIMIT)) {
+            
+            // Записваме данните за последния файл, за да може следващия път да продължим от него
+            $nRec = new stdClass();
+            $nRec->fileId = $lastRec->id;
+            $nRec->dataId = $lastRec->dataId;
+            $nRec->createdOn = $lastRec->createdOn;
+            bgerp_FileInfo::save($nRec, NULL, 'IGNORE');
+        }
+    }
     
     
+    /**
+     * Стартира обработката на файла
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param string $ext - Разширението на файла
+     * 
+     * @access protected
+     */
+    static function startFileProcessing($fh, $fileInfoId, $ext)
+    {
+        // Ако разширението е от допустимите
+        if (in_array($ext, array('pdf'))) {
+            
+            // Опитваме се да определим съдържанието на файла
+            static::getContent($fh, $fileInfoId, $ext);    
+        }
+    }
     
     
+    /**
+     * Функиция за определяне на начина за извличане на съдъжанието на файла
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param string $ext - Разширението на файла
+     * 
+     * @access protected
+     */
+    static function getContent($fh, $fileInfoId, $ext)
+    {
+        // Ако разширението е pdf
+        if (in_array($ext, array('pdf'))) {
+            
+            // Стартираме функцията за определяне на разширението на файла
+            static::getContentFromPdf($fh, $fileInfoId, $ext);
+        }
+    }
     
     
+	/**
+     * Определя на съдържанието на pdf документите
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param string $ext - Разширението на файла
+     * 
+     * @access protected
+     */
+    static function getContentFromPdf($fh, $fileInfoId, $ext)
+    {
+        // Инстанция на класа
+        $Script = cls::get(fconv_Script);
+        
+        // Пътя до файла, в който ще се записва получения текст
+        $outFilePath = $Script->tempDir . $Script->id . '.txt';
+        
+        // Задаваме placeHolder' и за входящия и изходящия файл
+        $Script->setFile('INPUTF', $fh);
+        $Script->setFile('OUTPUTF', $outFilePath);
+        
+        // Скрипта, който ще конвертира
+        $Script->lineExec('pdftotext -nopgbrk [#INPUTF#] [#OUTPUTF#]');
+        
+        // Функцията, която ще се извика след приключване на операцията
+        $Script->callBack('bgerp_FileInfo::afterGetContentFrom');
+        
+        // Други необходими променливи
+        $Script->_ext = $ext;
+        $Script->_fileInfoId = $fileInfoId;
+        $Script->_outFilePath = $outFilePath;
+        $Script->_fh = $fh;
+
+        // Стартираме скрипта, и връщаме управлението
+        $Script->run();
+    }
     
     
+    /**
+     * Функция, която получава управлението след записване на съдържанието на файла във временен файл
+     * 
+     * @param object $script - Обект със стойности
+     * 
+     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+     * и записа от таблицата fconv_Process
+     * 
+     * @access protected
+     */
+    static function afterGetContentFrom($script)
+    {
+        // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
+        $text = file_get_contents($script->_outFilePath);
+        
+        // Записваме получения текс в модела
+        $rec = new stdClass();
+        $rec->id = $script->_fileInfoId;
+        $rec->content = $text;
+        bgerp_FileInfo::save($rec);
+
+        // Ако разширението е едно от посочените
+        if (in_array($script->_ext, array('pdf'))) {
+            
+            // Стартираме конвертирането на файла
+            static::convertFileToJpg($script->_fh, $script->_fileInfoId, $script->_ext);
+        }
+        
+        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+        // и записа от таблицата fconv_Process
+        return TRUE;
+    }
     
     
+    /**
+     * Функиция за определяне на начина за конвертиране към JPG
+     * 
+     * @param object $script - Обект със стойности
+     * 
+     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+     * и записа от таблицата fconv_Process
+     * 
+     * @access protected
+     */
+    static function convertFileToJpg($fh, $fileInfoId, $ext)
+    {
+        // Ако типа разширението е pdf
+        if (in_array($ext, array('pdf'))) {
+            
+            // Стартираме конвертирането от PDF в JPG формат
+            static::convertPdfToJpg($fh, $fileInfoId, $ext);
+        }
+    }
     
     
+    /**
+     * Конвертира PDF файл, в JPG формат
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param string $ext - Разширението на файла
+     * 
+     * @access protected
+     */
+    static function convertPdfToJpg($fh, $fileInfoId, $ext)
+    {
+        // Инстанция на класа
+        $Script = cls::get(fconv_Script);
+        
+        // Вземаме името на файла без разширението
+        $name = static::getFileName($fh);
+        
+        // Задаваме пътя до изходния файла
+        $outFilePath = $Script->tempDir . $name . '-%d.jpg';
+        
+        // Задаваме placeHolder' ите за входния и изходния файл
+        $Script->setFile('INPUTF', $fh);
+        $Script->setFile('OUTPUTF', $outFilePath);
+        
+        // Скрипта, който ще конвертира файла от PDF в JPG формат
+        $Script->lineExec('convert -density 100 [#INPUTF#] [#OUTPUTF#]');
+        
+        // Функцията, която ще се извика след приключване на обработката на файла
+        $Script->callBack('bgerp_FileInfo::afterConvertFileToJpg');
+        
+        // Други допълнителни променливи
+        $Script->_ext = $ext;
+        $Script->_fileInfoId = $fileInfoId;
+        $Script->_fName = $name;        
+        
+        // Стартираме изпълнението на скрипта
+        $Script->run();
+    }
     
+    
+    /**
+     * 
+     * 
+     * @param object $script - Обект със стойности
+     * 
+     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+     * и записа от таблицата fconv_Process
+     * 
+     * @access protected
+     */
+    static function afterConvertFileToJpg($script)
+    {
+        // Вземаме всички файлове във временната директория
+        $files = scandir($script->tempDir);
+        
+        // Инстанция на класа
+        $Fileman = cls::get('fileman_Files');
+        
+        // Брояч за файла
+        $i=0;
+        
+        // Генерираме името на файла след конвертиране
+        $fn = $script->_fName . '-' .$i . '.jpg';
+        
+        // Докато има файл
+        while (in_array($fn, $files)) {
+            
+            // Качваме файла в кофата и му вземаме манипулатора
+            $fileHnd = $Fileman->addNewFile($script->tempDir . $fn, 'fileInfo'); 
+            
+            // Ако се качи успешно записваме манипулатора в масив
+            if ($fileHnd) {
+                $fileHndArr[$fileHnd] = $fileHnd;    
+            }
+            
+            // Генерираме ново предположение за конвертирания файл, като добавяме единица
+            $fn = $script->_fName . '-' . ++$i . '.jpg';
+        }
+        
+        // Ако има генерирани файлове, които са качени успешно
+        if (count($fileHndArr)) {
+            
+            // Сериализираме масива и обновяваме данните за записа в bgerp_FileInfo
+            $rec = new stdClass();
+            $rec->id = $script->_fileInfoId;
+            $rec->images = serialize($fileHndArr);
+            
+            bgerp_FileInfo::save($rec);    
+        }
+        
+        // Ако разширението на оригиналния файл е в допустимите
+        if (in_array($script->_ext, array('pdf'))) {
+            
+            // Сканираме получените файлове за наличие на баркод
+            static::getBarcodes($fileHndArr, $script->_fileInfoId, $script->_ext);
+        }
+        
+        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+        // и записа от таблицата fconv_Process
+        return TRUE;
+    }
+    
+    
+    /**
+     * Намира баркодовете във подадените файлове
+     * 
+     * @param mixed $fh - Манипулатор на файла или масив от манипулатори на файла
+     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param string $originFileExt - Разширението на оригиналния файл
+     * 
+     * @access protected
+     */
+    static function getBarcodes($fileHnd, $fileInfoId, $originFileExt)
+    {
+        // Проверяваме дали оригиналния файл е с допустимите размери и разширение за определяне на баркод
+        if (!static::canReadBarcodes($fileInfoId, $originFileExt)) {
+            
+            return ;
+        }
+        
+        // Ако е подаден манипулатор, а не масив
+        if (!is_array($fileHnd)) {
+            
+            // Създаваме масива
+            $fileHndArr[$fileHnd] = $fileHnd;  
+        } else {
+            $fileHndArr = $fileHnd;
+        }
+        
+        // Обхождаме масива с манупулаторите
+        foreach ($fileHndArr as $fh) {
+            
+            // Определяме баркодовете във файла
+            $barcodes = zbar_Reader::getBarcodesFromFile($fh);
+            
+            // Ако няма открит баркод прескачаме
+            if (!count($barcodes)) continue;
+            
+            // Обикаляме всеки открит баркод
+            foreach ($barcodes as $barcode) {
+                
+                // Вземаме cid'a на баркода
+                $cid = log_Documents::getDocumentCidFromURL($barcode->code);
+                
+                // Ако не може да се намери cid, прескачаме
+                if (!$cid) continue;
+
+                // Вземаме записа за оригиналния файла в bgerp_FileInfo таблицата
+                $fRec = bgerp_FileInfo::fetch($fileInfoId);
+                
+                // Ако има открито съдържание на файла
+                if (str::trim($fRec->content)) continue;
+                
+                // Вземаме манипулатора на оригиналния файл
+                $fhOriginal = fileman_Files::fetchField($fRec->fileId, 'fileHnd');
+                
+                // Създава документ на оригиналния файл
+                $newDocId = doc_Incomings::createFromScannedFile($fhOriginal, $cid);
+                
+                // Ако създадем файл, прекъсваме изпълнението на цикъла
+                if ($newDocId) break;
+            }
+            
+            // Масив с всички баркодове
+            $barcodesArr[] = $barcodes;
+        }
+        
+        // Ако има открити баркодове
+        if (count($barcodesArr)) {
+            
+            // Сериализираме масива и обновяваме данните за записа в bgerp_FileInfo
+            $rec = new stdClass();
+            $rec->id = $fileInfoId;
+            $rec->barcodes = serialize($barcodesArr);
+            
+            bgerp_FileInfo::save($rec);    
+        }
+    }
+    
+    
+	/**
+     * Връща createdOn полето на последния запис в модела
+     */
+    static function getLastFetchTime()
+    {
+        $query = bgerp_FileInfo::getQuery();
+        $query->limit(1);
+        $query->orderBy('createdOn', 'DESC');
+        
+        $rec = $query->fetch();
+        
+        return $rec->createdOn;
+    }
+    
+    
+    /**
+     * Връща разширението на файла
+     * 
+     * @param string $fileName - Името на файла
+     * 
+     * @return string $ext - Разширението на файла, в долен регистър
+     */
+    static function getExtension($fileName)
+    {
+        if(($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+            $ext = mb_substr($fileName, $dotPos + 1);
+            $ext = mb_strtolower($ext);
+        } else {
+            $ext = '';
+        }
+        
+        return $ext;
+    }
+    
+    
+	/**
+     * Връща името на файла
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * 
+     * @retun string $name - Името на файла, без разширението
+     */
+    static function getFileName($fh)
+    {
+        // Вземаме името на файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        $fname = $fRec->name;
+        
+        // Ако има разширение
+        if(($dotPos = mb_strrpos($fname, '.')) !== FALSE) {
+            $name = mb_substr($fname, 0, $dotPos);
+        } else {
+            $name = $fname;
+        }
+        
+        return $name;
+    }
+
+    
+    /**
+     * Проверяваме дали оригиналния файл е с допустимите размери за определяне на баркод
+     */
+    static function canReadBarcodes($fileInfoId, $ext)
+    {
+        // Проверяваме разширението на оригиналния файл, дали е допустим за създаване на баркод
+        if (!in_array($ext, array('pdf'))) {
+            
+            return FALSE;
+        }
+        
+        // Вземаме записа за оригиналния файла
+        $fRec = bgerp_FileInfo::fetch($fileInfoId);
+        
+        // Вземаме размера на файла
+        $dRec = fileman_Data::fetch($fRec->dataId);
+        $fLen = $dRec->fileLen;
+        
+        // По голям или равен на 15kB
+        // По малък или равен на 1mB
+        // Проверяваме дали е в допустимите граници
+        if (($fLen >= FILEINFO_MIN_FILE_LEN_BARCODE) && (($fLen <= FILEINFO_MAX_FILE_LEN_BARCODE))) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+	/**
+     * Сваляне на информция за файловете
+     * 
+     * @todo Временно - За тестове
+     * 
+     */
+    function act_startProcess()
+    {
+        $this->startProcess();
+        
+        return 'OK';
+    }
+    
+    
+    /**
+     * Сваляне на информция за файловете по cron
+     */
+    function cron_startProcess()
+    {
+        $this->startProcess();
+        
+        return 'Свалянето на информацията приключи.';
+    }
+    
+    
+	/**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+//        //Данни за работата на cron
+//        $rec = new stdClass();
+//        $rec->systemId = 'startFileProcessing';
+//        $rec->description = 'Изпращане на много имейли';
+//        $rec->controller = $mvc->className;
+//        $rec->action = 'startProcess';
+//        $rec->period = 3;
+//        $rec->offset = 0;
+//        $rec->delay = 0;
+//        $rec->timeLimit = 100;
+//        
+//        $Cron = cls::get('core_Cron');
+//        
+//        if ($Cron->addOnce($rec)) {
+//            $res .= "<li><font color='green'>Задаване на крон да извлича информация от файловете.</font></li>";
+//        } else {
+//            $res .= "<li>Отпреди Cron е бил нагласен да извлича информция от файловете.</li>";
+//        }
+        
+        //Създаваме, кофа, където ще държим всички генерирани файлове
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('fileInfo', 'Информация за файлове', NULL, '104857600', 'user', 'user');
+    }
 }
