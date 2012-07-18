@@ -667,7 +667,28 @@ class email_Mime extends core_BaseClass
                     $charset = lang_Encoding::canonizeCharset($value->charset);
                     
                     if($charset && ($charset != 'UTF-8')) {
-                        $decoded .= iconv($charset, "UTF-8", $value->text);
+                        
+                        $d = iconv($charset, "UTF-8", $value->text);
+
+                        if($charset == 'ISO-8859-1' && ($len = mb_strlen($d)) > 2) {
+                            // Дали не е грешка?
+                            $badAlpha = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕ×ÖÜÚÞßàáâãäåæçèéêëìíîïðñòóôõ÷öüúþÿ';
+                            $bad = 0;
+
+                            for($i = 0; $i < $len; $i++) {
+                                if(strpos($badAlpha, mb_substr($d, $i, 1)) !== FALSE) {
+                                    $bad++;
+                                }
+                            }
+
+                            if($bad > $len/2) {
+                                $d  = iconv('CP1251', "UTF-8", $value->text);
+                            }
+
+                        }
+
+                        $decoded .= $d;
+
                     } else {
                         $decoded .= $value->text;
                     }

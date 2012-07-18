@@ -447,7 +447,7 @@ class email_Outgoings extends core_Master
                 $documentInfoArr = doc_RichTextPlg::getFileInfo($name);
                 
                 // Вземаме прикачените файлове от линковете към други документи в имейла
-                $filesArr += $documentInfoArr['className']::getAttachments($documentInfoArr['id']);
+                $filesArr += (array)$documentInfoArr['className']::getAttachments($documentInfoArr['id']);
                 
                 //Проверяваме дали документа да се избира по подразбиране
                 if ($checked == 'on') {
@@ -953,24 +953,6 @@ class email_Outgoings extends core_Master
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->handle = $mvc->getHandle($rec->id);
-    }
-    
-    
-    /**
-     * Прикачените към документ файлове
-     *
-     * @param mixed $rec int - ид на документ или stdClass - запис на модела
-     * @return array
-     */
-    public function getAttachments($rec)
-    {
-        if (!is_object($rec)) {
-            $rec = self::fetch($rec);
-        }
-        
-        $files = fileman_RichTextPlg::getFiles($rec->body);
-        
-        return $files;
     }
 
 

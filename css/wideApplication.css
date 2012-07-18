@@ -413,7 +413,11 @@ a img {
 }
 
 .btn-docIncomings  {
-	background-image:url('../img/16/page_white_vector.png');
+	background-image:url('../img/16/page_attach.png');
+}
+
+.btn-docIncomingsNew  {
+	background-image:url('../img/16/page_lightning-new.png');
 }
 
 .btn-back {
@@ -1077,11 +1081,11 @@ div.attachments a {
 	border-radius:0.3em;
 }
 
-.thread-opened TABLE.listTable>TBODY>TR>TD {
+.thread-opened table.listTable>tbody>tr>td {
 	border:solid 1px green !important;
 }
 
-.thread-opened TH  {
+.thread-opened th  {
 	border:solid 1px green !important;
 	background-color:#aea  !important;
 }
@@ -1141,11 +1145,13 @@ ul.history b {
 ul.history .action.send b {
     background-color:green;	
 }
-ul.history .action._received b {
+.action._received b {
     background-color:blue;
+    color: white;
 }
-ul.history .action._returned b {
+.action._returned b {
     background-color:red !important;
+    color: white;
 }
 ul.history .action.print b {
     background-color:#777;
@@ -1409,6 +1415,10 @@ select {
 }
 
 
+h2 {
+ margin-top:0px;
+}
+
 @media handheld, only screen and (max-width: 1000px) {
 
 	#cmsTop, #all {
@@ -1421,7 +1431,7 @@ select {
 	}
 	
 	#cmsTop, #all, #cmsBottom { 
-		width: 100% !important;
+		1width: 100% !important;
 	}
 
 	#all {

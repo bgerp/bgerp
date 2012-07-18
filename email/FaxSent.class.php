@@ -164,7 +164,7 @@ class email_FaxSent extends core_Manager
                 log_Documents::pushAction(
                     array(
                         'containerId' => $data->rec->containerId,
-                        'action'      => doc_Log::ACTION_FAX, 
+                        'action'      => log_Documents::ACTION_FAX, 
                         'data'        => (object)array(
                             'service' => $service,
                             'faxTo'   => $faxTo,

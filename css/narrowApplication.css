@@ -787,6 +787,10 @@ input.contactData {
 	#all {
 		margin-top:0px;
 		margin-bottom:0px;
+    	-moz-border-radius-topright:0px;
+		-moz-border-radius-topleft:0px;
+		border-top-left-radius: 0px;
+		border-top-right-radius: 0px;
 	}
 	
 }

@@ -145,9 +145,8 @@ class bgerp_L extends core_Manager
             //
             
             // Вземаме манипулатора на записа от този модел (bgerp_L)
-            $mid     = Request::get('m');
-            $history = array();
-
+            $mid = Request::get('m');
+            
             if ($mid) {
                 $parent = log_Documents::fetchHistoryFor($cid, $mid);
             }
@@ -156,14 +155,23 @@ class bgerp_L extends core_Manager
                 // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на 
                 // документа за показване
                 
-                $details = array(); // @TODO попълване с IP и пр.
+                $openAction = log_Documents::ACTION_OPEN;
+                $parent->data->{$openAction}[] = array(
+                    'on' => dt::now(true),
+                    'ip' => core_Users::getRealIpAddr(),
+                );
+                log_Documents::save($parent);
+                
+                $details = array(
+                    'ip' => core_Users::getRealIpAddr()
+                ); // @TODO попълване с IP и пр.
                 
                 log_Documents::pushAction(
                     array(
                         'containerId' => $cid,
                         'action'      => log_Documents::ACTION_OPEN, 
                         'parentId'    => $parent->id, 
-                        'details'     => $details
+                        'data'        => $details
                     )
                 );
                 
