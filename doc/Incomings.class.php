@@ -371,4 +371,13 @@ class doc_Incomings extends core_Master
         
         return $file;
     }
+    
+    
+	/**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     */
+    static function getThreadState($id)
+    {
+        return 'opened';
+    }
 }
