@@ -118,6 +118,33 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Сингъла на файловете
+     */
+    function act_Single()
+    {
+        // Манипулатора на файла
+        $fh = Request::get('id');
+        
+        // Очакваме да има подаден манипулатор на файла
+        expect($fh, 'Липсва манупулатора на файла');
+        
+        // Ескейпваме манипулатора
+        $fh = $this->db->escape($fh);
+
+        // Записа за съответния файл
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+        
+        // Задаваме id' то на файла да е самото id, а не манупулатора на файла
+        Request::push(array('id' => $fRec->id));
+        
+        return parent::act_Single();
+    }
+    
+    
+    /**
      * Задава файла с посоченото име в посочената кофа
      */
     function setFile($path, $bucket, $fname = NULL, $force = FALSE)
@@ -522,12 +549,26 @@ class fileman_Files extends core_Master
         
         $row = &$data->row;
         $rec = $data->rec;
+
+        // Ако има активен линк за сваляне
+        if (($dRec = fileman_Download::fetch("#fileId = {$rec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
+
+            // Името на файла
+            $fileName = fileman_Download::getVerbal($dRec, 'fileName');
+            
+            // Линка на файла
+            $link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $fileName, '', TRUE);
+            
+            // До кога е активен линка
+            $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
+
+            // Задаваме шаблоните 
+            $row->_expireOn = $expireOn; 
+            $row->_link = $link;
+        }
         
         // Вербалното име на файла
         $row->_fileName = $mvc->getVerbal($rec,'name');
-        
-        // Линк за сваляне на файла
-        $row->_link = toUrl(array('fileman_Download', 'Download', 'fh' => $rec->fileHnd), TRUE);
         
         // Типа на файла
         $row->_type = $mvc->getType($rec->name);
@@ -540,6 +581,61 @@ class fileman_Files extends core_Master
         
         // Версиите на файла
         $row->_versions = self::getFileVersionsString($rec->id);
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterRenderSingle($mvc, &$tpl, &$data)
+    {
+        // Манипулатора на файла
+        $fh = $data->rec->fileHnd;
+        
+        // Разширението на файла
+        $ext = fileman_Download::getExt($data->rec->name);
+
+        // Проверяваме дали разширението, предлага preview на файла
+        if (!in_array($ext, array('jpg', 'jpeg', 'png', 'gif', 'bmp'))) {
+
+            return ;
+        }
+        
+        //Вземема конфигурационните константи
+        $conf = core_Packs::getConfig('fileman');
+        
+        // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
+        if (mode::is('screenMode', 'narrow')) {
+            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH_NARROW;
+            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT_NARROW;
+        } else {
+            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH;
+            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
+        }
+        
+        // Атрибути на thumbnail изображението
+        $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '');
+            
+        //Размера на thumbnail изображението
+        $size = array($thumbWidth, $thumbHeight);
+        
+        //Създаваме тумбнаил с параметрите
+        $thumbnailImg = thumbnail_Thumbnail::getImg($fh, $size, $attr);
+        
+        if ($thumbnailImg) {
+            
+            // Background' а на preview' то
+            $bgImg = sbf('fileman/img/Preview_background.jpg');
+        
+            // Създаваме шаблон за preview на изображението
+            $preview = new ET("<fieldset><legend>Преглед</legend><div style='background-image:url(" . $bgImg . "); padding:10px 0; '><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div></fieldset>");
+            
+            // Добавяме към preview' то генерираното изображение
+            $preview->append($thumbnailImg, 'THUMB_IMAGE');
+            
+            // Добаваме preview' то към шаблона
+            $tpl->append($preview);    
+        }
     }
     
     
@@ -599,10 +695,10 @@ class fileman_Files extends core_Master
         // Масив с всички версии на файла
         $fileVersionsArr = fileman_FileDetails::getFileVersionsArr($id);
         
-        foreach ($fileVersionsArr as $fileId => $fileInfo) {
+        foreach ($fileVersionsArr as $fileHnd => $fileInfo) {
             
             // Линк към single' а на файла
-            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileId), FALSE, array('title' => $fileInfo['versionInfo']));
+            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileHnd), FALSE, array('title' => $fileInfo['versionInfo']));
             
             // Всеки линк за файла да е на нов ред
             $text .= ($text) ? '<br />' . $link : $link;
@@ -617,23 +713,12 @@ class fileman_Files extends core_Master
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        // Ако имаме права за сваляне
-        if ($mvc->haveRightFor('download', $data->rec)) {
-            
-            // Добавяме бутон за сваляне
-            $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd), FALSE);
-            $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-save,class=btn-save', array('target'=>'_blank'));
+        // Добавяме бутон за сваляне
+        $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
+        $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download,class=btn-download', array('order=8'));
         
-        
-            // Ако файла има зададена услуга за преглед или редактиране, добавяме линк към приложението
-            if ($reviewBtnArr = fileman_Download::getReviewBtnData($data->rec)) {
-                
-                // Добавяме бутона
-                $data->toolbar->addBtn('Преглед', $reviewBtnArr['url'], 
-                	"id='btn-review',class='btn-review', style=background-image: url(" . $reviewBtnArr['img'] . ");", 
-                    array('target'=>'_blank')
-                );    
-            }
-        }
+        // Генериране на линк сваляне на файла от sbf директорията
+        $createLinkUrl = toUrl(array('fileman_Download', 'GenerateLink', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
+        $data->toolbar->addBtn('Линк', $createLinkUrl, 'id=btn-createLink,class=btn-createLink', 'order=40');
     }
 }

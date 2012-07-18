@@ -1,11 +1,35 @@
 <?php
 
+
 /**
  * Минималната големина на файла в байтове, за който ще се показва размера на файла след името му
  * в narrow режим. По подразбиране е 100KB
  */
 defIfNot('LINK_NARROW_MIN_FILELEN_SHOW', 102400);
 
+
+/**
+ * Широчината на preview' то
+ */
+defIfNot(FILEMAN_PREVIEW_WIDTH, 800);
+
+
+/**
+ * Височината на preview' то
+ */
+defIfNot(FILEMAN_PREVIEW_HEIGHT, 1200);
+
+
+/**
+ * Широчината на preview' то в мобилен режим
+ */
+defIfNot(FILEMAN_PREVIEW_WIDTH_NARROW, 600);
+
+
+/**
+ * Височината на preview' то в мобилен режим
+ */
+defIfNot(FILEMAN_PREVIEW_HEIGHT_NARROW, 900);
 
 
 /**
@@ -70,6 +94,10 @@ class fileman_Setup extends core_Manager {
         $Files = cls::get('fileman_Files');
         $html .= $Files->setupMVC();
         
+        // Установяване на детайлите на файловете
+        $FileDetails = cls::get('fileman_FileDetails');
+        $html .= $FileDetails->setupMVC();
+        
         // Установяваме версиите;
         $Versions = cls::get('fileman_Versions');
         $html .= $Versions->setupMVC();
@@ -117,6 +145,18 @@ class fileman_Setup extends core_Manager {
         // Инсталираме плъгина за качване на файлове в RichEdit
         $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
         $html .= "<li>Закачане на fileman_RichTextPlg към полетата за RichEdit - (Активно)";
+        
+        // Плъгин за добавяне на бутон за разглеждане на файлове чрез google
+        $Plugins->installPlugin('Преглед с docs.google.com', 'fileman_viewer_GDocs', 'fileman_Files', 'private');
+        $html .= "<li>Закачане на fileman_viewer_GDocs към полетата за fileman_Files - (Активно)";
+        
+        // Плъгин за добавяне на бутон за разглеждане на файлове чрез zoho
+        $Plugins->installPlugin('Преглед с viewer.zoho.com', 'fileman_viewer_Zoho', 'fileman_Files', 'private');
+        $html .= "<li>Закачане на fileman_viewer_Zoho към полетата за fileman_Files - (Активно)";
+        
+        // Плъгин за добавяне на бутон за разглеждане на файлове чрез pixlr
+        $Plugins->installPlugin('Преглед с pixlr.com', 'fileman_viewer_Pixlr', 'fileman_Files', 'private');
+        $html .= "<li>Закачане на fileman_viewer_Pixlr към полетата за fileman_Files - (Активно)";
         
         return $html;
     }

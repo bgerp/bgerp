@@ -93,9 +93,13 @@ class fileman_Download extends core_Manager {
         
         //Ако имаме линк към файла, тогава използваме същия линк
         $dRec = static::fetch("#fileId = '{$fRec->id}'");
-        
+
         if ($dRec) {
-            $dRec->expireOn = $time;
+            
+            // Ако времето, за което е активен линка е по малко от времето, което искаме да зададем
+            if ($dRec->expireOn < $time) {
+                $dRec->expireOn = $time;
+            }
             
             $link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
             
@@ -153,13 +157,53 @@ class fileman_Download extends core_Manager {
      */
     function act_Download()
     {
+        // Манипулатора на файла
         $fh = Request::get('fh');
         
+        // Очакваме да има подаден манипулатор
+        expect($fh, 'Липсва манупулатора на файла');
+        
+        // Ескейпваме манупулатора
+        $fh = $this->db->escape($fh);
+        
+        // Вземаме записа на манипулатора
         $fRec = $this->Files->fetchByFh($fh);
         
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+        
+        // Очакваме да има права за сваляне
         $this->Files->requireRightFor('download', $fRec);
         
-        redirect($this->getDownloadUrl($fh, 1));
+        // Генерираме линк за сваляне
+        $link = $this->getDownloadUrl($fh, 1);
+        
+        // Ако искам да форсираме свалянето
+        if (Request::get('forceDownload')) {
+
+            // Големина на файла
+            $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
+
+            // Задаватам хедърите
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename='.basename($link));
+            header('Content-Transfer-Encoding: binary');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+//            header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
+            header('Content-Length: ' . $fileLen);
+            
+            // Предизвикваме сваляне на файла
+            readfile($link);  
+            
+            // Прекратяваме изпълнението на скрипта
+            shutdown(); 
+        } else {
+            
+            // Редиректваме към линка
+            redirect($link);  
+        }
     }
     
     
@@ -299,7 +343,7 @@ class fileman_Download extends core_Manager {
         
         //Атрибути на линка
         $attr['class'] = 'linkWithIcon';
-        $attr['target'] = '_blank';
+//        $attr['target'] = '_blank';
         $attr['style'] = 'background-image:url(' . sbf($icon, '"', $isAbsolute) . ');';
         
         //Инстанция на класа
@@ -334,7 +378,7 @@ class fileman_Download extends core_Manager {
             
             //Генерираме връзката 
 //            $url  = toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute);
-            $url  = toUrl(array('fileman_Files', 'Single', $fRec->id), $isAbsolute);
+            $url  = toUrl(array('fileman_Files', 'Single', $fh), $isAbsolute);
             $link = ht::createLink($name, $url, NULL, $attr);
         } else {
             //Генерираме името с иконата
@@ -346,30 +390,6 @@ class fileman_Download extends core_Manager {
         //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        try {
-            if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
-                $gUrl = "http://docs.google.com/viewer?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
-                $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Google viewer' src=" . sbf('fileman/img/google.png', '"', $isAbsolute) . '>'; 
-                $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
-            }
-            
-            if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) { 
-                $gUrl = "https://viewer.zoho.com/docs/urlview.do?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
-                $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Zoho viewer' src=" . sbf('fileman/img/zoho.png', '"', $isAbsolute) . '>'; 
-                $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
-            }
-            
-            if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) { 
-                $gUrl = "http://pixlr.com/editor/?s=c&image=" .urlencode( static::getDownloadUrl($fh, 1)  ) . "&title=" . urlencode($fRec->name) . "&target=" . '' . "&exit=" . '' . ""; 
-                $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Pixlr' src=" . sbf('fileman/img/pixlr.png', '"', $isAbsolute) . '>'; 
-                $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
-            }
-        } catch (core_Exception_Expect $expect) {}
-
-        
-        if($tools) {
-            $link = "<div class='rowtools'><div class='l'>$link</div>{$tools}</div>";
-        }
        
         return $link;
     }
@@ -475,37 +495,81 @@ class fileman_Download extends core_Manager {
     
     
     /**
-     * Определя услугата за преглед на съответния файла
-     * 
-     * @param object $rec - Обект, за който ще се върне линк за сваляне
-     * 
-     * @return array $reviewBtnArr - Масив с линка и изображението за съответната услуга
+     * Екшън за генериране на линк за сваляне на файла
      */
-    static function getReviewBtnData($rec)
+    function act_GenerateLink()
     {
-        //Разширението на файла
-        $ext = self::getExt($rec->name);
+        //Права за работа с екшън-а
+        requireRole('user');
         
-        $reviewBtnArr = array();
+        // Манипулатора на файла
+        $fh = Request::get('fh');
         
-        try {
-            
-            if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
-                $reviewBtnArr['url'] = "http://docs.google.com/viewer?url=" . static::getDownloadUrl($rec->fileHnd, 1); 
-                $reviewBtnArr['img'] = sbf('fileman/img/google.png');
-            }
-            
-            if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) { 
-                $reviewBtnArr['url'] = "https://viewer.zoho.com/docs/urlview.do?url=" . static::getDownloadUrl($rec->fileHnd, 1); 
-                $reviewBtnArr['img'] = sbf('fileman/img/zoho.png');
-            }
-            
-            if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) {
-                $reviewBtnArr['url'] = "http://pixlr.com/editor/?s=c&image=" . static::getDownloadUrl($rec->fileHnd, 1) . "&title=" . urlencode($rec->name) . "&target=" . '' . "&exit=" . '' . ""; 
-                $reviewBtnArr['img'] = sbf('fileman/img/pixlr.png');
-            }
-        } catch (core_Exception_Expect $expect) {}
+        // Очакваме да има подаден манипулатор на файла
+        expect($fh, 'Липсва манупулатора на файла');
         
-        return $reviewBtnArr;
+        // Ескейпваме манипулатора
+        $fh = $this->db->escape($fh);
+
+        // Записа за съответния файл
+        $fRec = $this->Files->fetchByFh($fh);
+        
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+        
+        // Проверяваме за права за сваляне на файла
+        $this->Files->requireRightFor('download', $fRec);
+        
+        
+        $this->FNC('activeMinutes', 'enum(
+    										0.5 = Половин час, 
+    										1=1 час,
+    										3=3 часа,
+    										5=5 часа,
+    										12=12 часа,
+    										24=1 ден,
+    										168=1 седмица
+    								 	  )', 'caption=Валидност, mandatory');
+        
+        
+        //URL' то където ще се редиректва при отказ
+        $retUrl = getRetUrl();
+        $retUrl = ($retUrl) ? ($retUrl) : (array('fileman_Files', 'single', $fh));
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        // Въвеждаме съдържанието на полетата
+        $form->input('activeMinutes');
+        
+        // Ако формата е изпратена без грешки, показваме линка за сваляне
+        if($form->isSubmitted()) {
+            
+            // Вземаме линка, за да може да се запише новото време до когато е активен линка
+            $link = self::getDownloadUrl($fRec->fileHnd, $form->rec->activeMinutes);
+            
+//            Redirect(array('fileman_Files', 'single', $fh));
+            Redirect(array('fileman_Files', 'single', $fh));
+        }
+        
+        // По подразбиране 12 часа да е активен
+        $form->setDefault('activeMinutes', 12);
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'activeMinutes';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+
+        $fileName = fileman_Files::getVerbal($fRec, 'name');
+        
+        // Добавяме титлата на формата
+        $form->title = tr("Генериране на линк за {$fileName}");
+        
+        return $this->renderWrapping($form->renderHtml());
     }
 }

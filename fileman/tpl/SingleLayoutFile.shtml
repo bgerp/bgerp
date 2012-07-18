@@ -1,5 +1,5 @@
 <script type="text/javascript">
-	function onmouseUp()
+	function onmouseUpSelect()
 	{
 		if (document.selection) {
 			var range = document.body.createTextRange();
@@ -24,9 +24,10 @@
 		<!--ET_BEGIN _link-->          
 			<tr>
 			    <td align='right' width='auto' >|Линк|*:</td>
-			    <td><span id='selectable' onmouseUp='onmouseUp()'> [#_link#] </span></td>
+			    <td><span id='selectable' onmouseUp='onmouseUpSelect()'>[#_link#]</span> <small>(|Изтича:|* [#_expireOn#])</small></td>
 			</tr>
 		<!--ET_END _link-->
+		
 		
 		<!--ET_BEGIN _type-->          
 			<tr>

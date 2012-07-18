@@ -85,6 +85,8 @@ class fileman_FileDetails extends core_Detail
         $this->FLD('fileId', 'key(mvc=fileman_Files, select=name)', 'column=none,input=hidden,silent');
         $this->FLD('firstFileVersionId', 'key(mvc=fileman_Files, select=name)', 'column=none,input=hidden,silent');
         $this->FLD('versionInfo', 'varchar(64)', 'column=none,input=hidden,silent');
+        
+        $this->setDbUnique('fileId, firstFileVersionId');
     }
     
     
@@ -119,21 +121,27 @@ class fileman_FileDetails extends core_Detail
         // Обикаляме всички версии на файла
         while ($rec = $query->fetch()) {
             
+            // Манипулатора на файла
+            $fh = fileman_Files::fetchField($rec->fileId, 'fileHnd');
+            
             // Информация за версията
-            $fileVersionsArr[$rec->fileId]['versionInfo'] = self::getVerbal($rec,'versionInfo');  
+            $fileVersionsArr[$fh]['versionInfo'] = self::getVerbal($rec,'versionInfo');  
 
             // Вербалното име на файла
-            $fileVersionsArr[$rec->fileId]['fileName'] = fileman_Files::getVerbal($rec->fileId,'name');
+            $fileVersionsArr[$fh]['fileName'] = fileman_Files::getVerbal($rec->fileId,'name');
         }
         
         // Ако текущия файл е версия на друг
         if ($cRec) {
             
+            // Манипулатора на файла
+            $fh = fileman_Files::fetchField($cRec->firstFileVersionId, 'fileHnd');
+            
             // Информация за файла
-            $fileVersionsArr[$cRec->firstFileVersionId]['versionInfo'] = "Оригинален файл"; 
+            $fileVersionsArr[$fh]['versionInfo'] = "Оригинален файл"; 
 
             // Вербалното име на файла
-            $fileVersionsArr[$cRec->firstFileVersionId]['fileName'] = fileman_Files::getVerbal($cRec->firstFileVersionId,'name');
+            $fileVersionsArr[$fh]['fileName'] = fileman_Files::getVerbal($cRec->firstFileVersionId,'name');
         }
 
         return $fileVersionsArr;
