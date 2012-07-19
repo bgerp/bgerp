@@ -676,11 +676,7 @@ class drdata_Holidays extends core_Master
         $data->listFilter->showFields = 'search, base, type';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-<<<<<<< HEAD
-        $data->listFilter->input('search, base, type', 'silent');
-=======
-        $data->listFilter->input('type', 'silent');
->>>>>>> refs/remotes/origin/master
+        $data->listFilter->input('type, base', 'silent');
         
         if($type = $data->listFilter->rec->type){
             $data->query->where("#type = '{$type}'");
