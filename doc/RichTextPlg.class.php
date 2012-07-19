@@ -99,7 +99,19 @@ class doc_RichTextPlg extends core_Plugin
             
             //Създаваме линк в html формат
             $style = 'background-image:url(' . sbf($mvc->singleIcon, '"', $isAbsolute) . ');';
-            $href = ht::createLink(substr($docName, 1), $link, NULL, array('target'=>'_blank', 'class' => 'linkWithIcon', 'style' => $style));
+            
+            // Атрибути на линка
+            $attr['class'] = 'linkWithIcon';
+            $attr['style'] = $style;
+            
+            // Ако изпращаме или принтираме документа
+            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                
+                // Линка да се отваря на нова страница
+                $attr['target'] = '_blank';    
+            }
+            
+            $href = ht::createLink(substr($docName, 1), $link, NULL, $attr);
             
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
             $this->mvc->_htmlBoard[$place] = $href->getContent();
