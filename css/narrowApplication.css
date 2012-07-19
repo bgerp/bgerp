@@ -749,7 +749,7 @@ input.contactData {
 	width: 56.75%;
 }
 
-.row .eightcol {
+.cms-row .eightcol {
 	width: 65.3%;
 }
 
@@ -761,7 +761,7 @@ input.contactData {
 	width: 82.7%;
 }
 
-.row .elevencol {
+.cms-row .elevencol {
 	width: 91.35%;
 }
 
@@ -808,7 +808,7 @@ input.contactData {
 		width: 100% !important;
 	} 
 
-	.row, body, .container {
+	.cms-row, body, .cms-container {
 		width: 100%;
 		min-width: 0;
 		margin-left: 0px;

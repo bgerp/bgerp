@@ -146,7 +146,7 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        return '<small>&nbsp; Copyright © 1997-2012 Experta OOD</small>';
+        return '<div style="float:right;font-size:0.8em;">задвижвано от <b>bgERP</b>&nbsp;</div>';
     }
     
      
