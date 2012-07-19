@@ -140,7 +140,7 @@ class log_Documents extends core_Manager
 //         $this->FLD('baseParentId', 'key(mvc=log_Documents, select=action)', 'input=none,caption=Основание');
         
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
-        $this->FLD("dataBlob", "blob", 'caption=Обстоятелства,column=none,oldFieldName=data');
+        $this->FLD("dataBlob", "blob", 'caption=Обстоятелства,column=none');
         
         $this->FNC('data', 'text', 'input=none');
         $this->FNC('seenOnTime', 'datetime(format=smartTime)', 'input=none');
