@@ -45,17 +45,10 @@
 		
 		<!--ET_BEGIN createdOn-->          
 			<tr>
-			    <td align='right' width='auto' >|Създаден на|*:</td>
-			    <td>[#createdOn#]</td>
+			    <td align='right' width='auto' >|Добавен на|*:</td>
+			    <td>[#createdOn#] |от|* [#createdBy#]</td>
 			</tr>
 		<!--ET_END createdOn-->
-		
-		<!--ET_BEGIN createdBy-->          
-			<tr>
-			    <td align='right' width='auto' >|Създаден от|*:</td>
-			    <td>[#createdBy#]</td>
-			</tr>
-		<!--ET_END createdBy-->
 		
 		<!--ET_BEGIN _info-->          
 			<tr>
