@@ -1,13 +1,13 @@
 <?php
 
 
-cls::load('php_Token');
+//cls::load('php_Token');
 
 
 /**
  * Обща директория на bgerp, vendors, ef. Използва се за едновременно форматиране на трите пакета.
  */
-defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
+//defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 
 
 /**
@@ -233,6 +233,36 @@ class php_Test extends core_Manager
      	}
       }
 
+       $arr = $this->generateModules();
+       $new = $this->modules();
+     	//bp($new);
+     	// Сравняваме ключовете на двата масива, ако има съответствие взимаме името на функцията 
+     	// и записваме като стойност модула й
+     	foreach ($arr as $f=>$v){
+     		foreach ($info as $func=>$mode){
+     			if(trim($f) === trim($func)){
+     				$ourFun[$f] = $mode;
+     				     				
+     				// Записваме в БД
+     				$rec = new stdClass();
+     				$rec->functionName = $f;
+                    $rec->modulName = $mode;
+                    //$rec->modul = $m;
+                    
+     			}
+     		}
+     	}
+     	 //bp($mods);
+     	
+     	 php_Test::save($rec, NULL, 'IGNORE');
+     	 
+     	 return new Redirect(array($this));
+     	//return $mods;
+    }
+
+    function generateModules(){
+   	
+ 
     // Зареждаме клас  php_Formater
     $formater = cls::load(php_Formater);
           
@@ -294,38 +324,45 @@ class php_Test extends core_Manager
      		}	
 
      	}
+     
+    	return $this->arrF;
+    }
+    
+    function modules(){
+    	
+     // Намираме всички активни модули	
+     $modules = get_loaded_extensions();
+     
+     foreach ($modules as $mod){
      	
-     	// Сравняваме ключовете на двата масива, ако има съответствие взимаме името на функцията 
+     	// За всеки модул търсим, кои функции спадат към него
+     	$functions = get_extension_funcs($mod);
+    
+     	if (is_array($functions)) {
+	     	foreach ($functions as $fun){
+	     		
+	     		// Масив с ключ името на функцията и стойност модула му
+	     		$info[$fun] = $mod;
+	     	}	
+     	}
+      }
+    	
+        // Сравняваме ключовете на двата масива, ако има съответствие взимаме името на функцията 
      	// и записваме като стойност модула й
-     	foreach ($this->arrF as $f=>$v){
+       	$arrMod = $this->generateModules();
+     	foreach ($arrMod as $f=>$v){
      		foreach ($info as $func=>$mode){
      			if(trim($f) === trim($func)){
      				$ourFun[$f] = $mode;
      				$mods[] = $mode; 
-     				asort($mods);
-     				/*$i=0;
-     				if($mods[$i] === $mods[$i+1]){
-     					unset($mods[$i]);
-     					$i++;
-     				}*/
-     				
-     				// Записваме в БД
-     				$rec = new stdClass();
-     				$rec->functionName = $f;
-                    $rec->modulName = $mode;
-                    //$rec->modul = $m;
-                    
+     				$mods = array_unique($mods);
+     			                    
      			}
      		}
      	}
-     	 //bp($mods);
-     	
-     	 php_Test::save($rec, NULL, 'IGNORE');
-     	 
-     	 return new Redirect(array($this));
+   bp($mods);
+     	return $mods;
     }
-
-    
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед

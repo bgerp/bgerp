@@ -245,7 +245,7 @@ class php_Const extends core_Manager
             }
             
             //Константите, които не искаме да се показват
-            if($rec->name == "'EF_APP_NAME'" ||
+            if ($rec->name == "'EF_APP_NAME'" ||
                 $rec->name == "'EF_DB_NAME'" ||
                 $rec->name == "'EF_DB_USER'" ||
                 $rec->name == "'EF_DB_PASS'" ||
@@ -302,8 +302,7 @@ class php_Const extends core_Manager
             }
             
             //Константите, които не искаме да се показват
-            if($rec->name == "BGERP_COMPANY_LOGO" ||
-                $rec->name == "'BGERP_DEFAULT_EMAIL_FROM'" ||
+            if($rec->name == "'BGERP_DEFAULT_EMAIL_FROM'" ||
                 $rec->name == "'BGERP_DEFAULT_EMAIL_DOMAIN'" ||
                 $rec->name == "'BGERP_DEFAULT_EMAIL_USER'" ||
                 $rec->name == "'BGERP_DEFAULT_EMAIL_HOST'" ||
@@ -379,7 +378,7 @@ class php_Const extends core_Manager
         }
         
         //Заглавието на файла
-        $title = TITLE . "\n" . "\n" . "\n";
+        $title = '<?php '. "\n" .TITLE . "\n" . "\n" . "\n";
         fwrite($handle, $title);
         
         //Каре с надпис "Задължително..."

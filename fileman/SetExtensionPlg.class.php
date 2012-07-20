@@ -62,6 +62,7 @@ class fileman_SetExtensionPlg extends core_Plugin
         
         if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
             $ext = mb_substr($name, $dotPos + 1);
+            $ext = mb_strtolower($ext);
         } else {
             $ext = '';
         }

@@ -2,19 +2,19 @@
 
 
 /**
- * Клас 'fileman_viewer_GDocs'
+ * Клас 'zoho_Plugin'
  *
- * Плъгин за добавяне на бутона за преглед на документи в google docs
- * Разширения: doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar
+ * Плъгин за добавяне на бутона за преглед на документи в zoho.com
+ * Разширения: pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv
  *
  * @category  vendors
- * @package   fileman
+ * @package   zoho
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_viewer_GDocs extends core_Plugin
+class zoho_Plugin extends core_Plugin
 {
     
     
@@ -30,13 +30,13 @@ class fileman_viewer_GDocs extends core_Plugin
                 //Разширението на файла
                 $ext = fileman_Download::getExt($rec->name);
             
-                if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
-                    $url = "http://docs.google.com/viewer?url=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1); 
-                    $img = sbf('fileman/img/google.png');
+                if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) {
+                    $url = "https://viewer.zoho.com/docs/urlview.do?url=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1);  
+                    $img = sbf('zoho/img/zoho.png');
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn('Docs', $url, 
-                    	"id='btn-gdocs',class='btn-gdocs', style=background-image: url(" . $img . ");", 
+                    $data->toolbar->addBtn('Zoho', $url, 
+                    	"id='btn-zoho',class='btn-zoho', style=background-image: url(" . $img . ");", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }

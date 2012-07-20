@@ -2,19 +2,19 @@
 
 
 /**
- * Клас 'fileman_viewer_GDocs'
+ * Клас 'pixlr_Plugin'
  *
- * Плъгин за добавяне на бутона за преглед на документи в google docs
- * Разширения: pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv
+ * Плъгин за добавяне на бутона за преглед на документи в pixlr.com
+ * Разширения: jpg,jpeg,bmp,gif,png,psd,pxd
  *
  * @category  vendors
- * @package   fileman
+ * @package   pixlr
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_viewer_Zoho extends core_Plugin
+class pixlr_Plugin extends core_Plugin
 {
     
     
@@ -30,13 +30,13 @@ class fileman_viewer_Zoho extends core_Plugin
                 //Разширението на файла
                 $ext = fileman_Download::getExt($rec->name);
             
-                if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) {
-                    $url = "https://viewer.zoho.com/docs/urlview.do?url=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1);  
-                    $img = sbf('fileman/img/zoho.png');
+                if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) { 
+                    $url = "http://pixlr.com/editor/?s=c&image=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1) . "&title=" . urlencode($rec->name) . "&target=" . '' . "&exit=" . '' . "";
+                    $img = sbf('pixlr/img/pixlr.png');
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn('Zoho', $url, 
-                    	"id='btn-zoho',class='btn-zoho', style=background-image: url(" . $img . ");", 
+                    $data->toolbar->addBtn('Pixlr', $url, 
+                    	"id='btn-pixlr',class='btn-pixlr', style=background-image: url(" . $img . ");", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }

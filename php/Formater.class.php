@@ -54,6 +54,20 @@ class php_Formater extends core_Manager
      */
     var $searchFields = 'fileName, name, type, oldComment';
     
+        
+    /**
+     * Масив с всички дефинирани функции
+     * @var array
+     */
+    var $arr;
+    
+    
+    /**
+     * Масив с всички използвани функции
+     * @var array
+     */
+    var $arrF;
+    
     
     /**
      * Описание на модела
@@ -117,6 +131,7 @@ class php_Formater extends core_Manager
         if($form->isSubmitted()) {
             
             $src = $form->rec->src . '/';
+           
             $dst = rtrim($form->rec->dst, '/') . '/';
             
             if(!is_dir($dst)) {
@@ -176,7 +191,7 @@ class php_Formater extends core_Manager
                 
                 foreach($files->files as $f) {
                     
-                   // if(stripos($f, 'php/Formater') === FALSE) continue;
+                    if(stripos($f, 'email/Sent') === FALSE) continue;
                     
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
@@ -258,12 +273,14 @@ class php_Formater extends core_Manager
                         $res .= $beautifier->file($src . $f, $destination);
                         
                         if (is_array($beautifier->arr)) {
+                        	
                             foreach ($beautifier->arr as $key => $value) {
                                 $arr[$key] = $arr[$key] + $value;
                             }
                         }
                         
                         if (is_array($beautifier->arrF)) {
+                        	//bp($beautifier->arrF);
                             foreach ($beautifier->arrF as $key => $value) {
                                 $arrF[$key] = $arrF[$key] + $value;
                             }
@@ -274,14 +291,14 @@ class php_Formater extends core_Manager
                 }
                 
                 // fclose($handle);
-                
-                foreach ($arr as $key => $value){
+               // bp($arr);
+                /*foreach ($arr as $key => $value){
                     
                     if(($value && !$arrF[$key])){
                         
                         $onlyDef[$key] = $key;
                     }
-                }
+                }*/
                 
                 //  bp($onlyDef,$arr,$arrF);
                 // die;
@@ -396,7 +413,7 @@ class php_Formater extends core_Manager
             $rec->name = $name;
             $rec->newComment = $classComment;
             
-            php_Formater::save($rec);
+            php_Formater::save($rec, NULL, 'IGNORE');
         }
         
         return new Redirect(array($this, '?id=&Cmd[default]=1&search=&search=&type=class&Cmd[default]=Филтрирай'));

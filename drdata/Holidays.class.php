@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class drdata_Holidays extends core_Manager
+class drdata_Holidays extends core_Master
 {
 
     /**
@@ -31,7 +31,30 @@ class drdata_Holidays extends core_Manager
     /**
      * полета от БД по които ще се търси
      */
-    var $searchFields = 'day, title, type, year, info';
+    var $searchFields = 'day, title, base, type, year, info';
+    
+    
+    /**
+     * Полетата, които ще се показват в единичния изглед
+     */
+    var $singleFields = 'day, base, year, id, title, type, info';
+    
+    
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = "Събитие";
+    
+         
+    /**
+     * Икона по подразбиране за единичния обект
+     */
+    var $singleIcon = 'img/16/calendar_1.png';
+    
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'drdata/tpl/SingleLayoutHolidays.shtml';
     
     /**
      * Описание на модела (таблицата)
@@ -39,15 +62,16 @@ class drdata_Holidays extends core_Manager
     function description()
     {
         $this->FLD('day', 'int', 'caption=Ден,export');
-        $this->FLD('base', 'enum(01=Януари,
-                                 02=Февруари,
-                                 03=Март,
-                                 04=Април,
-                                 05=Май,
-                                 06=Юни,
-                                 07=Юли,
-                                 08=Август,
-                                 09=Септември,
+        $this->FLD('base', 'enum(0=&nbsp;,
+        						 1=Януари,
+                                 2=Февруари,
+                                 3=Март,
+                                 4=Април,
+                                 5=Май,
+                                 6=Юни,
+                                 7=Юли,
+                                 8=Август,
+                                 9=Септември,
                                  10=Октомври,
                                  11=Ноември,
                                  12=Декември,
@@ -63,105 +87,201 @@ class drdata_Holidays extends core_Manager
                                         orthodox=Православен,
                                         muslim=Мюсюлмански,
                                         foreign=Чуждестранен,
-                                        AD=Андора,
-                                        AE=Обединени арабски емирства,
-                                        AF=Афганистан,
-                                        AL=Албания,
-                                        AM=Армения,
-                                        AO=Ангола,
-                                        AR=Аржентина,
-                                        AT=Австрия,
+                                        international=Международен,
                                         AU=Австралия,
-                                        AZ=Азербайджан,
-                                        AМ=Армения,
-                                        BA=Босна и Херциговина,
-                                        BE=Белгия,
-                                        BG=България,
-                                        BR=Бразилия,
-                                        BR=Бразилия,
-                                        BY=Беларус,
-                                        CA=Канада,
-                                        CH=Швейцария,
-                                        CH-holiday=Швейцария,
-                                        CL=Чили,
-                                        CN=Китай,
-                                        CU=Куба,
-                                        CY=Кипър,
-                                        CZ=Чехия,
-                                        DE=Германия,
-                                        DK=Дания,
-                                        DZ=Алжир,
-                                        EE=Естония,
-                                        EG=Египет,
-                                        ES=Испания ,
-                                        FI=Финландия,
-                                        FR=Франция,
-                                        GB=Великобритания ,
-                                        GE=Грузия,
-                                        GR=Гърция,
-                                        HK=Хонконг ,
-                                        HR=Хърватия,
-                                        HU=Унгария,
-                                        ID=Индонезия,
-                                        IE=Ирландия,
-                                        IE=Ирландия,
-                                        IL=Израел,
-                                        IN=Индия,
-                                        IN=Индия,
-                                        IQ=Ирак,
-                                        IR=Иран,
-                                        IS=Исландия,
-                                        IT=Италия,
-                                        JO=Йордания,
-                                        JP=Япония,
-                                        KR=Корея,
-                                        KW=Кувейт,
-                                        KZ=Казахстан,
-                                        LI=Лихтенщайн ,
-                                        LT=Литва,
-                                        LU=Люксембург ,
-                                        LV=Латвия,
-                                        LY=Либия,
-                                        MA=Мароко,
-                                        MC=Монако,
-                                        MD=Молдова,
-                                        MK=Македония,
-                                        MN=Монголия,
-                                        MT=Малта,
-                                        MX=Мексико,
-                                        MY=Малайзия,
-                                        NL=Холандия,
-                                        NO=Норвегия,
-                                        NZ=Нова Заландия,
-                                        PE=Перу,
-                                        PK=Пакистан,
-                                        PO=Полша,
-                                        PT=Португалия,
-                                        QA=Катар,
-                                        RO=Румъния,
-                                        RU=Русия,
-                                        SA=Саудитска Арабия,
-                                        SE=Швеция,
-                                        SE=Швеция,
-                                        SG=Сингапур,
-                                        SI=Словения,
-                                        SK=Словакия,
-                                        SM=Сан Марино,
-                                        RU=Русия,
-                                        TH=Тайланд,
-                                        TR=Турция,
-                                        TW=Тайван,
-                                        UA=Украйна,
-                                        US=САЩ,
-                                        VE=Венецуела,
-                                        VN=Виетнам,
-                                        ZA=ЮАР,
-                                        АТ=Ангуила,
-                                        ВА=Босна и Херцеговина)', 'caption=Празник->Тип,export');
+										AT=Австрия,
+										AZ=Азербайджан,
+										AL=Албания,
+										DZ=Алжир,
+										AO=Ангола,
+										АТ=Ангуила,
+										AD=Андора,
+										AR=Аржентина,
+										AM=Армения,
+										AF=Афганистан,
+										BD=Бангладеш,
+										BB=Барбадос,
+										BS=Бахамските острови,
+										BY=Беларус,
+										BE=Белгия,
+										BZ=Белиз,
+										BJ=Бенин,
+										BO=Боливия,
+										BA=Босна и Херцеговина,
+										BR=Бразилия,
+										BF=Буркина Фасо,
+										BI=Бурунди,
+										BG=България,
+										GB=Великобритания,
+										VE=Венецуела,
+										VN=Виетнам, 
+										GM=Гамбия,
+										GH=Гана,
+										GT=Гватемала,  
+										GY=Гвиана,                                 
+										DE=Германия,
+										GE=Грузия,
+										GR=Гърция,                                     
+										DK=Дания, 
+										CD=Демократична република Конго,
+										DJ=Джибути,
+										DO=Доминиканската република,                                     
+										EG=Египет,
+										EC=Еквадор,
+										EE=Естония,
+										ET=Етиопия,
+										IL=Израел,
+										IN=Индия,  
+										ID=Индонезия,
+										IQ=Ирак,
+										IR=Иран,
+										IE=Ирландия,
+										IS=Исландия,
+										ES=Испания,
+										IT=Италия,                                                                          
+										JO=Йордания, 
+										KZ=Казахстан, 
+										KH=Камбоджа,                                                                 
+										CA=Канада,
+										QA=Катар,
+										KE=Кения,
+										CY=Кипър,
+										KG=Киргизстан,
+										CN=Китай,
+										CR=Коста Рика,
+										CI=Кот дИвоар,
+										CO=Колумбия,
+										KM=Коморските острови,
+										KR=Корея,
+										CU=Куба,
+										KW=Кувейт,                                                            
+										LV=Латвия,
+										LR=Либерия,
+										LY=Либия,
+										LB=Ливан,
+										LT=Литва,
+										LI=Лихтенщайн,
+										LU=Люксембург,
+										MU=Мавриций, 
+										MG=Мадагаскар,                                   
+										MK=Македония,
+										MY=Малайзия,
+										MV=Малдиви,
+										ML=Мали,
+										MT=Малта,
+										MA=Мароко,
+										MX=Мексико,
+										MZ=Мозамбик,
+										MD=Молдова,
+										MC=Монако,
+										MN=Монголия,
+										NA=Намибия,
+										NR=Науру,
+										NP=Непал,
+										NE=Нигер, 
+										NG=Нигерия,                         
+										NZ=Нова Заландия,
+										NO=Норвегия,                                                                  
+										AE=Обединени арабски емирства,                                                                            
+										PK=Пакистан,
+										PW=Палау,
+										PA=Панама,
+										PY=Парагвай,
+										PE=Перу,
+										PO=Полша,
+										PT=Португалия,
+										CG=Република Конго, 
+										RO=Румъния,
+										RU=Русия,         
+										SM=Сан Марино,
+										SA=Саудитска Арабия,
+										US=САЩ,
+										SG=Сингапур,
+										SK=Словакия,
+										SI=Словения,
+										RS=Сърбия,
+										TJ=Таджикистан,
+										TW=Тайван,
+										TH=Тайланд,
+										TM=Туркменистан,
+										TR=Турция,
+										UZ=Узбекистан,
+										UA=Украйна,
+										HU=Унгария,
+										UY=Уругвай,
+										FJ=Фиджи,
+										PH=Филипини,
+										FI=Финландия,
+										FR=Франция,                
+										NL=Холандия,
+										HN=Хондурас,
+										HK=Хонконг,
+										HR=Хърватия,
+										CF=Централноафриканската република,
+										TD=Чад,
+										ME=Черна гора,                                                                                                         
+										CZ=Чехия,
+										CL=Чили,
+										CH=Швейцария,
+										SE=Швеция,                                   
+										ZA=ЮАР,
+										JM=Ямайка,
+										JP=Япония)', 'caption=Празник->Тип,export');
         $this->FLD('info', 'text', 'caption=Празник->Данни,export');
         
-        $this->setDbUnique('day, base, type');
+        //$this->setDbUnique('day, base, type');
     }
+    
+    
+    
+    /**
+     * Зареждане на началните празници в базата данни
+     */
+    static function loadData()
+    {
+        $csvFile = self::getCsvFile();
+        
+        $created = $updated = 0;
+        
+        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
+            while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                
+                $rec = new stdClass();
+              
+                $rec->day = $csvRow[0];
+                $rec->base = $csvRow[1];
+                
+                if($csvRow[2] != ''){
+                	$rec->year = $csvRow[2];
+                }
+                
+                $rec->title = $csvRow[3];
+                $rec->type = $csvRow[4];
+                $rec->info = $csvRow[5];
+     
+                
+                // Ако има запис с това 'id'
+               
+                if ($rec->id = drdata_Holidays::fetchField(array("#day = '[#1#]' AND #base = '[#2#]' AND #type = '[#3#]'", $rec->day, $rec->base, $rec->type), 'id')) {
+                    $updated++;
+                } else {
+                    $created++;
+                }
+                
+                drdata_Holidays::save($rec, NULL, 'IGNORE');
+            }
+            
+            fclose($handle);
+            
+            $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
+            $res .= "Създадени {$created} нови празника, обновени {$updated} съществуващи празника.</li>";
+        } else {
+            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+        }
+        
+        return $res;
+    }
+    
     
     
     /**
@@ -270,6 +390,7 @@ class drdata_Holidays extends core_Manager
                     $base = static::getEaster($year);
                     $delta = 0;
                 } else {
+                	//? expects parameter 4 to be long, string given ?
                     $base = mktime(0, 0, 0, $rec->base, 1, $year);
                     $delta = -1;
                 }
@@ -280,11 +401,12 @@ class drdata_Holidays extends core_Manager
                 $calRec->allDay = 'yes';
                 $calRec->title = $rec->title;
                 $calRec->users = '';
+                $calRec->url = toUrl(array('drdata_Holidays', 'single', $rec->id), 'local');
                 
                 $calEvents[] = $calRec;
             }
         }
-
+        
         $key = 'drdata_Holidays';
 
         $res = (object) cal_Agenda::mergeEvents($key, $calEvents);
@@ -311,8 +433,13 @@ class drdata_Holidays extends core_Manager
         return $event;
     }
     
+    static function on_AfterPrepareSingle($mvc, $data)
+    {
+    	$data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+    	
+    }
     
- 
+   
     
     
     /**
@@ -320,82 +447,9 @@ class drdata_Holidays extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $holidays =
-        "01|01|Нова година|Честита Нова [#year#] Година, [#name#]!
-         01|02|Втори ден на Нова Година|Много Здраве, Щастие и Успехи през [#year#] година, [#name#]!
-         03|03|Деня на Освобождението|Поздрави за Деня на Освобождението на България, [#name#]!
-         03|08|Международен ден на жената|Честит 8-ми Март, [#name#]!
-         05|01|Деня на Труда|Поздрави за Деня на Труда, [#name#]!
-         05|06|Гергьовден|Поздрави за Деня на Храбростта, [#name#]!
-         05|24|Деня на Славянската Писменост|Поздрави за Деня на Славянската Писменост, [#name#]!
-         09|06|Деня на Съединението|Поздрави за Деня на Съединението, [#name#]!
-         09|22|Деня на Независимостта|Поздрави за Деня на Независимостта, [#name#]!
-         11|01|Деня на народните будители|Поздрави за Деня на Народните Будители, [#name#]!
-         12|24|Бъдни вечер|Бъдни вечер наближава, чудеса на всеки подарява, [#name#]!
-         12|25|Коледа|Честито Рождество Христово, [#name#]!
-         12|26|Втори ден на Коледа|Честита Коледа, [#name#]!
-         EST|-2|Велики петък|
-         EST|-1|Велика събота|
-         EST|0|Великден|Христос Воскресе, [#name#]";
-        
-        $rows = explode("\n", $holidays);
-        
-        foreach($rows as $row) {
-            
-            $parts = explode("|", trim($row));
-            
-            $rec = new stdClass();
-
-            $rec->base = $parts[0];
-            $rec->day = $parts[1];
-            $rec->title = $parts[2];
-            $rec->info = $parts[3];
-            $rec->type = 'holiday';
-            
-            if($mvc->save($rec, NULL, 'IGNORE')) {
-                $new++;
-            } else {
-                $updated++;
-            }
-        }
-        
+    	
+    	drdata_Holidays::loadData();
            
-        // Добавяме именните дни
-        foreach($mvc->fixedNamedays as $date => $names)
-        {
-            list($day, $month) = explode("-", $date);
-            
-            $rec = new stdClass();
-            
-            $rec->base = $month;
-            $rec->day = $day;
-            $data = explode("|", $names);
-            
-            if(count($data) == 2) {
-                $rec->title = trim($data[0]);
-                $rec->info = trim($data[1]);
-            } else {
-                $rec->title = "Имен ден";
-                $rec->info = $names;
-            }
-
-            $rec->type = 'nameday';
-            
-            if($mvc->save($rec, NULL, 'IGNORE')) {
-                $new++;
-            } else {
-                $updated++;
-            }
-        }
- 
-        if($new) {
-            $res .= "<li style='color:green;'>Добавени {$new} празника</li>";
-        }
-        
-        if($updated) {
-            $res .= "<li style='color:#660000;'>Обновени {$updated} празника</li>";
-        }
-       
     }
     
     
@@ -598,14 +652,28 @@ class drdata_Holidays extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvs, &$res, $data)
     {
-        $data->listFilter->showFields = 'search, type';
+        $data->listFilter->showFields = 'search, base, type';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->input('type', 'silent');
+        $data->listFilter->input('type, base', 'silent');
         
         if($type = $data->listFilter->rec->type){
             $data->query->where("#type = '{$type}'");
         }
+        
+        if($base = $data->listFilter->rec->base){
+            $data->query->where("#base = '{$base}'");
+        }
     }
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    static private function getCsvFile()
+    {
+        return __DIR__ . "/csv/Holidays.csv";
+    }
+    
 }
 

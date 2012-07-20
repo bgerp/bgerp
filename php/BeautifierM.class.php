@@ -17,19 +17,7 @@ cls::load('php_Token');
 class php_BeautifierM
 {
     
-    
-    /**
-     * Масив с всички дефинирани функции
-     * @var array
-     */
-    var $arr;
-    
-    
-    /**
-     * Масив с всички използвани функции
-     * @var array
-     */
-    var $arrF;
+
     
     
     /**
@@ -73,7 +61,8 @@ class php_BeautifierM
      * @todo Чака за документация...
      */
     function parse($str)
-    { $this->str = $str;
+    { 
+    	$this->str = $str;
         $tokens = token_get_all($str);
         
         expect(is_array($tokens));
@@ -83,7 +72,7 @@ class php_BeautifierM
             $token = $tokens[$i];
             
             if(is_array($tokens[$i])) {
-                $this->tokenArr[] = new php_Token($token[0], $token[1]);     //?
+                $this->tokenArr[] = new php_Token($token[0], $token[1]);  
             } else {
                 $this->tokenArr[] = new php_Token($token, $token);
             }
@@ -413,7 +402,7 @@ class php_BeautifierM
                         foreach($lines as $l) {
                             $l = trim($l);
                             
-                            if($l == '*  @todo Чака за документация...') continue;
+                          //  if($l == '*  @todo Чака за документация...') continue;
                             
                             if(($l != '/**') && ($l != '*/')) {
                                 $singleComm .=  ltrim($l, " *") . "\n";
