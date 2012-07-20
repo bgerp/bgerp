@@ -40,6 +40,10 @@ class fileman_Files extends core_Master
      */
     var $canEdit = 'no_one';
     
+    /**
+     * Всички потребители могат да разглеждат файлове
+     */
+    var $canSingle = 'user';
     
     /**
      * 
