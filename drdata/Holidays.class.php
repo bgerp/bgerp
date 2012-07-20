@@ -37,7 +37,7 @@ class drdata_Holidays extends core_Master
     /**
      * Полетата, които ще се показват в единичния изглед
      */
-    var $singleFields = 'day, base, id, title, type, info';
+    var $singleFields = 'day, base, year, id, title, type, info';
     
     
     /**
@@ -54,7 +54,7 @@ class drdata_Holidays extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'cal/tpl/SingleLayoutHolidays.shtml';
+    var $singleLayoutFile = 'drdata/tpl/SingleLayoutHolidays.shtml';
     
     /**
      * Описание на модела (таблицата)
@@ -63,15 +63,15 @@ class drdata_Holidays extends core_Master
     {
         $this->FLD('day', 'int', 'caption=Ден,export');
         $this->FLD('base', 'enum(0=&nbsp;,
-        						 01=Януари,
-                                 02=Февруари,
-                                 03=Март,
-                                 04=Април,
-                                 05=Май,
-                                 06=Юни,
-                                 07=Юли,
-                                 08=Август,
-                                 09=Септември,
+        						 1=Януари,
+                                 2=Февруари,
+                                 3=Март,
+                                 4=Април,
+                                 5=Май,
+                                 6=Юни,
+                                 7=Юли,
+                                 8=Август,
+                                 9=Септември,
                                  10=Октомври,
                                  11=Ноември,
                                  12=Декември,
@@ -229,8 +229,59 @@ class drdata_Holidays extends core_Master
 										JP=Япония)', 'caption=Празник->Тип,export');
         $this->FLD('info', 'text', 'caption=Празник->Данни,export');
         
-        $this->setDbUnique('day, base, type');
+        //$this->setDbUnique('day, base, type');
     }
+    
+    
+    
+    /**
+     * Зареждане на началните празници в базата данни
+     */
+    static function loadData()
+    {
+        $csvFile = self::getCsvFile();
+        
+        $created = $updated = 0;
+        
+        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
+            while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                
+                $rec = new stdClass();
+              
+                $rec->day = $csvRow[0];
+                $rec->base = $csvRow[1];
+                
+                if($csvRow[2] != ''){
+                	$rec->year = $csvRow[2];
+                }
+                
+                $rec->title = $csvRow[3];
+                $rec->type = $csvRow[4];
+                $rec->info = $csvRow[5];
+     
+                
+                // Ако има запис с това 'id'
+               
+                if ($rec->id = drdata_Holidays::fetchField(array("#day = '[#1#]' AND #base = '[#2#]' AND #type = '[#3#]'", $rec->day, $rec->base, $rec->type), 'id')) {
+                    $updated++;
+                } else {
+                    $created++;
+                }
+                
+                drdata_Holidays::save($rec, NULL, 'IGNORE');
+            }
+            
+            fclose($handle);
+            
+            $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
+            $res .= "Създадени {$created} нови празника, обновени {$updated} съществуващи празника.</li>";
+        } else {
+            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+        }
+        
+        return $res;
+    }
+    
     
     
     /**
@@ -339,6 +390,7 @@ class drdata_Holidays extends core_Master
                     $base = static::getEaster($year);
                     $delta = 0;
                 } else {
+                	//? expects parameter 4 to be long, string given ?
                     $base = mktime(0, 0, 0, $rec->base, 1, $year);
                     $delta = -1;
                 }
@@ -395,82 +447,9 @@ class drdata_Holidays extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $holidays =
-        "01|01|Нова година|Честита Нова [#year#] Година, [#name#]!
-         01|02|Втори ден на Нова Година|Много Здраве, Щастие и Успехи през [#year#] година, [#name#]!
-         03|03|Деня на Освобождението|Поздрави за Деня на Освобождението на България, [#name#]!
-         03|08|Международен ден на жената|Честит 8-ми Март, [#name#]!
-         05|01|Деня на Труда|Поздрави за Деня на Труда, [#name#]!
-         05|06|Гергьовден|Поздрави за Деня на Храбростта, [#name#]!
-         05|24|Деня на Славянската Писменост|Поздрави за Деня на Славянската Писменост, [#name#]!
-         09|06|Деня на Съединението|Поздрави за Деня на Съединението, [#name#]!
-         09|22|Деня на Независимостта|Поздрави за Деня на Независимостта, [#name#]!
-         11|01|Деня на народните будители|Поздрави за Деня на Народните Будители, [#name#]!
-         12|24|Бъдни вечер|Бъдни вечер наближава, чудеса на всеки подарява, [#name#]!
-         12|25|Коледа|Честито Рождество Христово, [#name#]!
-         12|26|Втори ден на Коледа|Честита Коледа, [#name#]!
-         EST|-2|Велики петък|
-         EST|-1|Велика събота|
-         EST|0|Великден|Христос Воскресе, [#name#]";
-        
-        $rows = explode("\n", $holidays);
-        
-        foreach($rows as $row) {
-            
-            $parts = explode("|", trim($row));
-            
-            $rec = new stdClass();
-
-            $rec->base = $parts[0];
-            $rec->day = $parts[1];
-            $rec->title = $parts[2];
-            $rec->info = $parts[3];
-            $rec->type = 'holiday';
-            
-            if($mvc->save($rec, NULL, 'IGNORE')) {
-                $new++;
-            } else {
-                $updated++;
-            }
-        }
-        
+    	
+    	drdata_Holidays::loadData();
            
-        // Добавяме именните дни
-        foreach($mvc->fixedNamedays as $date => $names)
-        {
-            list($day, $month) = explode("-", $date);
-            
-            $rec = new stdClass();
-            
-            $rec->base = $month;
-            $rec->day = $day;
-            $data = explode("|", $names);
-            
-            if(count($data) == 2) {
-                $rec->title = trim($data[0]);
-                $rec->info = trim($data[1]);
-            } else {
-                $rec->title = "Имен ден";
-                $rec->info = $names;
-            }
-
-            $rec->type = 'nameday';
-            
-            if($mvc->save($rec, NULL, 'IGNORE')) {
-                $new++;
-            } else {
-                $updated++;
-            }
-        }
- 
-        if($new) {
-            $res .= "<li style='color:green;'>Добавени {$new} празника</li>";
-        }
-        
-        if($updated) {
-            $res .= "<li style='color:#660000;'>Обновени {$updated} празника</li>";
-        }
-       
     }
     
     
@@ -686,5 +665,15 @@ class drdata_Holidays extends core_Master
             $data->query->where("#base = '{$base}'");
         }
     }
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    static private function getCsvFile()
+    {
+        return __DIR__ . "/csv/Holidays.csv";
+    }
+    
 }
 
