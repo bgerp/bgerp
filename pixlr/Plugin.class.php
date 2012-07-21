@@ -28,7 +28,7 @@ class pixlr_Plugin extends core_Plugin
                 $rec = $data->rec;
                 
                 //Разширението на файла
-                $ext = fileman_Download::getExt($rec->name);
+                $ext = fileman_Files::getExt($rec->name);
             
                 if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) { 
                     $url = "http://pixlr.com/editor/?s=c&image=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1) . "&title=" . urlencode($rec->name) . "&target=" . '' . "&exit=" . '' . "";

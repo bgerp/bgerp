@@ -28,7 +28,7 @@ class gdocs_Plugin extends core_Plugin
                 $rec = $data->rec;
                 
                 //Разширението на файла
-                $ext = fileman_Download::getExt($rec->name);
+                $ext = fileman_Files::getExt($rec->name);
             
                 if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
                     $url = "http://docs.google.com/viewer?url=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1); 

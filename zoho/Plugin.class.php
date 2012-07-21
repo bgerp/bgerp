@@ -28,7 +28,7 @@ class zoho_Plugin extends core_Plugin
                 $rec = $data->rec;
                 
                 //Разширението на файла
-                $ext = fileman_Download::getExt($rec->name);
+                $ext = fileman_Files::getExt($rec->name);
             
                 if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) {
                     $url = "https://viewer.zoho.com/docs/urlview.do?url=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1);  
