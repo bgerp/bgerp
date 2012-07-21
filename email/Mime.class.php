@@ -987,6 +987,7 @@ class email_Mime extends core_BaseClass
         setIfNot($fileName, $p->filename, $p->name);
         
         if(!$fileName || !strpos($fileName, '.')) {
+            
             $fileName = $partIndex . '_' . substr($this->getHash(), 0, 6);
             
             // Опитваме се да определим разширението от 'Content-Type'
@@ -995,9 +996,7 @@ class email_Mime extends core_BaseClass
             
             $mimeT = strtolower($ctParts[0]);
             
-            if($ext = fileman_Mime2Ext::fetchField(array("#mime = '[#1#]' AND #priority = 'yes'", $mimeT), 'ext')) {
-                $fileName .= '.' . $ext;
-            }
+            $fileName = fileman_mimes::addCorrectFileExt($fileName, $mimeT);
         }
         
         return $fileName;

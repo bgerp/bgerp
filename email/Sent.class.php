@@ -847,10 +847,7 @@ class email_Sent extends core_Manager
         
         //Ако сме открили съвпадение
         if (count($matches[1])) {
-            
-            //Сетваме файловете, от които определяме mime типа
-            self::setMimes();
-            
+                        
             //Обхождаме всички открите изображения
             foreach ($matches[1] as $imgPath) {
                                 
@@ -873,10 +870,10 @@ class email_Sent extends core_Manager
                 $cidPath = "cid:" . $cidName;
                 
                 //Вземаме mimeType' а на файла
-                $mimeType = self::getMimeType($imgPathInfo['extension']);
+                $mimeType = fileman_Mimes::getMimeByExt($imgPathInfo['extension']);
                 
                 //Шаблона, за намиране на URL' то на файла
-                $pattern = "/".preg_quote($imgPath, '/')."/im";
+                $pattern = "/" . preg_quote($imgPath, '/') . "/im";
                 
                 //Заместваме URL' то на файла със съответния cid
                 $PML->Body = preg_replace($pattern, $cidPath, $PML->Body, 1);
@@ -888,34 +885,6 @@ class email_Sent extends core_Manager
                 $i++;
             }
         }
-    }
-    
-    
-    /**
-     * Сетваме масив, който съдържа разширението на файла и mime типа, който му съответства
-     */
-    static function setMimes()
-    {
-        //Ако не сме сетнали
-        if (!self::$mimes) {
-            //Вземаме цялото име на файла
-            $mimes = getFullPath('fileman/data/mimes.inc.php');
-            
-            //Инклудваме го, за да можем да му използваме променливите
-            include($mimes);
-            
-            //Сетваме $mimes
-            self::$mimes = $mimetypes;
-        }
-    }
-    
-    
-    /**
-     * Връща mime типа, по зададено разширение
-     */
-    static function getMimeType($ext)
-    {
-        return self::$mimes[$ext];
     }
     
     

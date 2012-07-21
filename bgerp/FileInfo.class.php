@@ -142,7 +142,7 @@ class bgerp_FileInfo extends core_Manager
             $lastRec = $rec;
             
             // Вземаме разширението на файла
-            $ext = static::getExtension($rec->name);
+            $ext = fileman_Files::getExt($rec->name);
             
             // Проверяваме дали разширението, е в допустимите, които ще се конвертират
             if (in_array($ext, array('pdf'))) {
@@ -504,29 +504,9 @@ class bgerp_FileInfo extends core_Manager
         
         return $rec->createdOn;
     }
-    
-    
+
+
     /**
-     * Връща разширението на файла
-     * 
-     * @param string $fileName - Името на файла
-     * 
-     * @return string $ext - Разширението на файла, в долен регистър
-     */
-    static function getExtension($fileName)
-    {
-        if(($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
-            $ext = mb_substr($fileName, $dotPos + 1);
-            $ext = mb_strtolower($ext);
-        } else {
-            $ext = '';
-        }
-        
-        return $ext;
-    }
-    
-    
-	/**
      * Връща името на файла
      * 
      * @param fileHnd $fh - Манипулатор на файла
