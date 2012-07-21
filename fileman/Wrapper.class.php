@@ -23,15 +23,12 @@ class fileman_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        
         $this->TAB('fileman_Files', 'Файлове');
         $this->TAB('fileman_Versions', 'Версии');
         $this->TAB('fileman_Buckets', 'Кофи');
         $this->TAB('fileman_Download', 'Сваляния');
         $this->TAB('fileman_Data', 'Данни');
         
-        
-        $this->TAB('fileman_Mime2Ext', 'MIME');
         
         $this->title = 'Файлове';
        

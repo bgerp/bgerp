@@ -328,7 +328,7 @@ class fileman_Download extends core_Manager {
         $name = $fRec->name;
         
         //Разширението на файла
-        $ext = self::getExt($fRec->name);
+        $ext = fileman_Files::getExt($fRec->name);
         
         //Иконата на файла, в зависимост от разширението на файла
         $icon = "fileman/icons/{$ext}.png";
@@ -377,7 +377,6 @@ class fileman_Download extends core_Manager {
             }
             
             //Генерираме връзката 
-//            $url  = toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute);
             $url  = toUrl(array('fileman_Files', 'Single', $fh), $isAbsolute);
             $link = ht::createLink($name, $url, NULL, $attr);
         } else {
@@ -385,7 +384,7 @@ class fileman_Download extends core_Manager {
             $link = "<span class='linkWithIcon' style=" . $attr['style'] . "> {$name} </span>";
         }
 
-        $ext = static::getExt($fRec->name);
+        $ext = fileman_Files::getExt($fRec->name);
 
         //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
@@ -404,23 +403,8 @@ class fileman_Download extends core_Manager {
         
         return fileman_Download::getDownloadLink($fh);
     }
-    
-    
-    /**
-     * Връща разширението на файла
-     */
-    static function getExt($name)
-    {
-        if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
-            $ext = mb_substr($name, $dotPos + 1);
-        } else {
-            $ext = '';
-        }
-        
-        return $ext;
-    }
-    
-    
+
+
     /**
      * Проверява mime типа на файла. Ако е text/html добавя htaccess файл, който посочва charset'а с който да се отвори.
      * Ако не може да се извлече charset, тогава се указва на сървъра да не изпраща default charset' а си.
@@ -429,19 +413,20 @@ class fileman_Download extends core_Manager {
     static function createHtaccess($fileName, $prefix)
     {
         $folderPath = EF_DOWNLOAD_DIR . '/' . $prefix;
+
         $filePath = $folderPath . '/' . $fileName;
         
-        $ext = static::getExt($fileName);
+        $ext = fileman_Files::getExt($fileName);
         
         if (strlen($ext)) {
-            include(dirname(__FILE__) . '/data/mimes.inc.php');
             
-            $mime = strtolower($mimetypes["{$ext}"]);
+            $mime = fileman_Mimes::getMimeByExt($ext);
             
             $mimeExplode = explode('/', $mime);
             
             if ($mimeExplode[0] == 'text') {
                 if ($mimeExplode[1] == 'html') {
+                    
                     $charset = static::findCharset($filePath);
                     
                     if ($charset) {

@@ -575,7 +575,7 @@ class fileman_Files extends core_Master
         $row->_fileName = $mvc->getVerbal($rec,'name');
         
         // Типа на файла
-        $row->_type = $mvc->getType($rec->name);
+        $row->_type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($rec->name));
         
         // Вербалния размер на файла
         $row->_size = fileman_Data::getFileSize($rec->dataId);
@@ -597,7 +597,7 @@ class fileman_Files extends core_Master
         $fh = $data->rec->fileHnd;
         
         // Разширението на файла
-        $ext = fileman_Download::getExt($data->rec->name);
+        $ext = self::getExt($data->rec->name);
 
         // Проверяваме дали разширението, предлага preview на файла
         if (!in_array($ext, array('jpg', 'jpeg', 'png', 'gif', 'bmp'))) {
@@ -642,6 +642,21 @@ class fileman_Files extends core_Master
         }
     }
     
+    
+    /**
+     * Връща разширението на файла, от името му
+     */
+    static function getExt($name)
+    {
+        if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
+            $ext = mb_substr($name, $dotPos + 1);
+        } else {
+            $ext = '';
+        }
+        
+        return $ext;
+    }
+
     
     /**
      * Връща типа на файла

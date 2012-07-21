@@ -175,11 +175,37 @@ class fileman_Get extends core_Manager {
      */
     function act_Dialog()
     {
-        $form = $this->getForm('name=Download,method=GET');
-        
-        if($rec = $form->input('url,bucetId,calback')) {
+        $form = cls::get('core_Form', array('name' => 'Download', 'method' => 'GET'));
+        $form->FNC('bucketId', 'int', 'input=none,silent');
+        $form->FNC('callback', 'varchar', 'input=none,silent');
+        $form->FNC('url', 'url', 'caption=URL,mandatory');
+
+        $rec = $form->input('bucketId,callback,url', TRUE);
+ 
+        if($rec->url ) {
             
-            bp($rec);
+            // Определяне на името на файла
+            // 1. От URL-to , ако има след интервал нещо друго
+            // 2. От Хедърите
+            // 3. От URL-то ако в него има стринг, приличащ на име на файл
+
+            // Име на временния файл
+            $tmpFile = str::getRand('********') . '_' . time();
+            
+            // Вземаме данните от посоченото URL
+            $data = file_get_contents($rec->url);
+            
+            foreach($http_response_header as $l) {
+                $hArr = explode(':', $l, 2);
+                if(isset($hArr[1])) {
+                    $headers[strtolower(trim($hArr[0]))] = strtolower(trim($hArr[1]));
+                }
+            }
+bp($headers);
+            // Записваме данните в посочения файл
+            file_put_contents($data, $tmpFile);
+
+         //   bp($rec, $bucketId, $callback);
             
             // Казваме на класа Files , че искаме в него да добавим нов обект,
             // който да се казва примерно по определен начин
@@ -205,7 +231,7 @@ class fileman_Get extends core_Manager {
             <!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->
             <!--ET_BEGIN FORM_WARNING--><div class=\"formWarning\">[#FORM_WARNING#]</div><!--ET_END FORM_WARNING-->
 
-            Линк за сваляне:<p>
+            Линк към файла за вземане:<p>
             <!--ET_BEGIN FORM_FIELDS--><div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->
             <p>[#FORM_TOOLBAR#]</p>
             <input name='Protected' type='hidden' value='[#Protected#]'/>

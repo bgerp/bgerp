@@ -33,6 +33,11 @@ defIfNot(FILEMAN_PREVIEW_HEIGHT_NARROW, 900);
 
 
 /**
+ * Път до gnu командата 'file'
+ */
+defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWin32/bin/file.exe"' : 'file');
+
+/**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
@@ -76,8 +81,9 @@ class fileman_Setup extends core_Manager {
     var $configDescription = array(
         
                
-           'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int')
-    
+           'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int'), 
+           'FILEMAN_FILE_COMMAND'   => array ('varchar')
+
     
         );
     
@@ -113,11 +119,7 @@ class fileman_Setup extends core_Manager {
         // Установяваме вземанията от URL;
         // $Get = cls::get('fileman_Get');
         // $html .= $Get->setupMVC();
-        
-        // Установяваме MIME-типовете;
-        $Mime2Ext = cls::get('fileman_Mime2Ext');
-        $html .= $Mime2Ext->setupMVC();
-        
+                
         // Конвертира старите имена, които са на кирилица
         if(Request::get('Full')) {
             $query = $Files->getQuery();
