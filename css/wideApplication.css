@@ -1443,3 +1443,11 @@ h2 {
 }
 
  
+.badge {
+	border-radius: 9px;
+	-moz-border-radius: 9px;
+    color: #fff;
+    background-color: #999;
+    font-size: 0.84em;
+    padding: 1px 7px 2px;
+}
