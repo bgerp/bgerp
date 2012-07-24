@@ -928,9 +928,26 @@ class email_Incomings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    static function routeByPlace($rec) {
+    static function routeByPlace($rec)
+    {
+        if (empty($rec->toBox)) {
+            $rec->toBox = email_Inboxes::fetchField($rec->accId, 'email');
+        }
+        
         if (static::isGenericRecipient($rec) && !$rec->isSpam && $rec->country) {
+            //
+            // Ако се наложи създаване на папка за несортирани писма от държава, отговорника
+            // трябва да е отговорника на кутията, до която е изпратено писмото.
+            //
+            if ($inChargeUserId = email_Inboxes::getEmailInCharge($rec->toBox)) {
+                core_Users::sudo($inChargeUserId);
+            }
+            
             $rec->folderId = static::forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */);
+
+            if ($inChargeUserId) {
+                core_Users::exitSudo();
+            }
         }
     }
     
@@ -940,13 +957,7 @@ class email_Incomings extends core_Master
      */
     function routeByTo($rec)
     {
-        if (empty($rec->toBox)) {
-            $email = email_Inboxes::fetchField($rec->accId, 'email');
-        } else {
-            $email = $rec->toBox;
-        }
-        
-        $rec->folderId = email_Inboxes::forceFolder($email);
+        $rec->folderId = email_Inboxes::forceFolder($rec->toBox);
         
         expect($rec->folderId);
     }

@@ -720,9 +720,9 @@ class log_Documents extends core_Manager
                 $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
             }
 
-            $row->toEmail   = $rec->data->to;
-			$row->receivedOn = static::getVerbal($rec, 'receivedOn');
-			$row->returnedOn = static::getVerbal($rec, 'returnedOn');
+            $row->toEmail    = $rec->data->to;
+            $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
+            $row->returnedOn = static::getVerbal($rec, 'returnedOn');
         }
     }
     
@@ -743,23 +743,41 @@ class log_Documents extends core_Manager
                 $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
             }
 
-            $open = static::ACTION_OPEN;
-            $row->seenOn = '';
-            if (is_array($rec->data->{$open})) {
-                foreach($rec->data->{$open} as $hr) {
-                    $rec->seenOnTime = $hr['on'];
-                    $rec->seenFromIp = $hr['ip'];
-                    $row->seenOn .= '<tr>';
-                    $row->seenOn .= '<td>' . static::getVerbal($rec, 'seenOnTime') . '</td>';
-                    $row->seenOn .= '<td>' . static::getVerbal($rec, 'seenFromIp') . '</td>';
-                    $row->seenOn .= '</tr>';
-                }
-            }
-            
-            if (!empty($row->seenOn)) {
-                $row->seenOn = "<table>{$row->seenOn}</table>";
-            }
+            $row->seenOn = static::renderOpenActions($rec);
         }
+    }
+    
+    
+    /**
+     * Помощен метод - рендира историята на разглежданията на документ
+     * 
+     * @param stdClass $rec
+     * @param string $date
+     * @return string HTML 
+     */
+    private static function renderOpenActions($rec, $date = NULL, $brief = TRUE)
+    {
+        $openActionName = static::ACTION_OPEN;
+        $html = '';
+        
+        $_r = $rec->receivedOn;
+        
+        if (!empty($rec->data->{$openActionName}) && (empty($date) || $rec->data->{$openActionName}[0]['on'] < $date)) {
+            $rec->receivedOn = $rec->data->open[0]['on'];
+        } else {
+            $rec->receivedOn = $date;
+        }
+        
+        $html .= static::getVerbal($rec, 'receivedOn');
+        
+        if (!empty($rec->data->{$openActionName})) {
+            $html .= ' (' . $rec->data->{$openActionName}[0]['ip'] . ')';
+            $html .= ' <span class="badge">' . count($rec->data->{$openActionName}) . '</span>';
+        }
+        
+        $rec->receivedOn = $_r;
+        
+        return $html;
     }
     
     

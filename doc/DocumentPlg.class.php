@@ -841,6 +841,10 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+        if (!isset($data->__MID__) && isset($options->__mid)) {
+            $data->__MID__ = $options->__mid;
+        }
     }
     
     

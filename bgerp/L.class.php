@@ -162,22 +162,7 @@ class bgerp_L extends core_Manager
                 );
                 log_Documents::save($parent);
                 
-                $details = array(
-                    'ip' => core_Users::getRealIpAddr()
-                ); // @TODO попълване с IP и пр.
-                
-                log_Documents::pushAction(
-                    array(
-                        'containerId' => $cid,
-                        'action'      => log_Documents::ACTION_OPEN, 
-                        'parentId'    => $parent->id, 
-                        'data'        => $details
-                    )
-                );
-                
-                $html   = $doc->getDocumentBody('xhtml');
-                
-                log_Documents::popAction();
+                $html = $doc->getDocumentBody('xhtml', (object)array('__mid'=>$parent->mid));
                 
                 Mode::set('wrapper', 'page_External');
                 
