@@ -67,6 +67,10 @@ div.tab-control div.tab-page {
     border-radius: 5px;
 }
 
+div.tab-control .tab-title {
+	font-weight: bold;
+}
+
 .noSelect, div.richedit-toolbar, #mainMenu, #subMenu, div.tab-row {
 	-webkit-user-select: none;
 	-khtml-user-select: none;

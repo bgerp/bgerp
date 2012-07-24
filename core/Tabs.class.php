@@ -49,7 +49,7 @@ class core_Tabs extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function TAB($tab, $caption = NULL, $url = NULL)
+    function TAB($tab, $caption = NULL, $url = NULL, $class = NULL)
     {
         if ($url === NULL) {
             if (!$tab) {
@@ -67,6 +67,7 @@ class core_Tabs extends core_BaseClass
         
         $this->tabs[$tab] = $url;
         $this->captions[$tab] = $caption ? $caption : $tab;
+        $this->classes[$tab] = $class;
     }
     
     
@@ -100,6 +101,8 @@ class core_Tabs extends core_BaseClass
             }
             
             $title = tr($this->captions[$tab]);
+
+            $tabClass = $this->classes[$tab];
             
             if (Mode::is('screenMode', 'narrow')) {
                 if(!$url) continue;
@@ -108,9 +111,9 @@ class core_Tabs extends core_BaseClass
                 $head .= "<div class='tab {$selected}'>";
                 
                 if ($url) {
-                    $head .= "<a href='{$url}'><B>{$title}</B></a>";
+                    $head .= "<a href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
                 } else {
-                    $head .= "<b>{$title}</b>";
+                    $head .= "<span class='tab-title  {$tabClass}'>{$title}</span>";
                 }
                 
                 $head .= "</div>\n";

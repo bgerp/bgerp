@@ -21,7 +21,7 @@ class core_Url
     /**
      * @todo Чака за документация...
      */
-    function parseUrl(&$url)
+    static function parseUrl(&$url)
     {
         if (strlen($url) <= 300) {
             $r = "(?:([a-z0-9+-._]+)://)?";
