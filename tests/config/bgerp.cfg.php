@@ -36,6 +36,8 @@ DEFINE('EF_DB_HOST', 'localhost');
 // Кодировка на забата данни
 DEFINE('EF_DB_CHARSET', 'utf8');
 
+DEFINE('CORE_OVERWRITE_HTAACCESS', FALSE);
+
 
 
 /***************************************************
