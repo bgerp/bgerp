@@ -544,7 +544,7 @@ class fileman_Files extends core_Master
     
     
     /**
-     * 
+     * Изпълнява се преди подготовката на single изглед
      */
     function on_BeforeRenderSingle($mvc, $tpl, &$data)
     {

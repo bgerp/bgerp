@@ -68,19 +68,33 @@ class fileman_DialogWrapper extends core_Plugin
                 $title = $params['caption'];
                 
                 if($params['icon'] && !Mode::is('screenMode', 'narrow')) {
-                    $src = sbf($params['icon'], '');
-                    $title = "|*<img src='{$src}' style='margin-right:1px;border:none;'>|$title";
+                    $title = "$title";
                 }
                 
-                $tabs->TAB($name, $title, $url);
+                $tabs->TAB($name, $title, $url, $name);
             }
             
+            $tabs->htmlClass = 'filemanUpload';
+
             $tpl = $tabs->renderHtml($tpl, $invoker->className);
             
             $tpl->prepend('<br>');
             
             $tpl->prepend(tr($this->info->title) . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
             
+            $tpl->prepend("<style> 
+            .filemanUpload .tab-title {
+                    padding-left:20px;  
+                    background-repeat:no-repeat;
+                    background-position: 0px center;
+                    font-size:1.1em;
+            }
+            .fileman_Buckets { background-image:url('" . sbf('img/16/database.png', '') . "');}
+            .fileman_Upload { background-image:url('" . sbf('img/16/upload.png', '') . "');}
+            .fileman_Get { background-image:url('" . sbf('img/16/world_link.png', '') . "');}
+            .empty { background-image:url('" . sbf('img/16/new.png', '') . "');}
+
+            </style>");
             return TRUE;
         }
     }
@@ -94,7 +108,7 @@ class fileman_DialogWrapper extends core_Plugin
         $tabs = array(
             'fileman_Upload' => 'caption=Качване,Ctr=fileman_Upload,Act=Dialog,icon=fileman/img/upload.gif',
             'fileman_Get' => 'caption=От URL,Ctr=fileman_Get,Act=Dialog,icon=fileman/img/url.gif',
-            'fileman_Buckets' => 'caption=Кофи,Ctr=fileman_Buckets,Act=Browse,icon=fileman/img/folder.gif',
+            'fileman_Buckets' => 'caption=Кофи,Ctr=fileman_Buckets,Act=Browse,icon=img/16/database.png',
             'empty' => 'caption=Нов,Ctr=fileman_Empty,Act=CreateNewFile,icon=fileman/img/new.gif'
         );
         

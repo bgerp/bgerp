@@ -11,25 +11,25 @@ defIfNot('LINK_NARROW_MIN_FILELEN_SHOW', 102400);
 /**
  * Широчината на preview' то
  */
-defIfNot(FILEMAN_PREVIEW_WIDTH, 800);
+defIfNot('FILEMAN_PREVIEW_WIDTH', 800);
 
 
 /**
  * Височината на preview' то
  */
-defIfNot(FILEMAN_PREVIEW_HEIGHT, 1200);
+defIfNot('FILEMAN_PREVIEW_HEIGHT', 1200);
 
 
 /**
  * Широчината на preview' то в мобилен режим
  */
-defIfNot(FILEMAN_PREVIEW_WIDTH_NARROW, 600);
+defIfNot('FILEMAN_PREVIEW_WIDTH_NARROW', 600);
 
 
 /**
  * Височината на preview' то в мобилен режим
  */
-defIfNot(FILEMAN_PREVIEW_HEIGHT_NARROW, 900);
+defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 900);
 
 
 /**
@@ -79,9 +79,12 @@ class fileman_Setup extends core_Manager {
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        
                
            'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int'), 
+           'FILEMAN_PREVIEW_WIDTH'   => array ('int'), 
+           'FILEMAN_PREVIEW_HEIGHT'   => array ('int'), 
+           'FILEMAN_PREVIEW_WIDTH_NARROW'   => array ('int'), 
+           'FILEMAN_PREVIEW_HEIGHT_NARROW'   => array ('int'), 
            'FILEMAN_FILE_COMMAND'   => array ('varchar')
 
     
