@@ -214,12 +214,14 @@ class cal_Agenda extends core_Master
     	$row = parent::recToVerbal($rec);
         
     
-          $row->date = dt::mysql2verbal($rec->date, "d-M-Y, D");
-          $row->type = drdata_Holidays::getVerbal($rec, 'type');
-          if($row->type == 'birthday?'){
-          	$row->type = 'Рожден ден';
-          }
-          $row->title = $rec->title.'&nbsp;'.'('.$row->type.')';
+        $row->date = dt::mysql2verbal($rec->date, "d-M-Y, D");
+        $row->type = drdata_Holidays::getVerbal($rec, 'type');
+        if($row->type == 'birthday?'){
+            $row->type = 'Рожден ден';
+        }
+        if(strlen($rec->type) == 2) {
+            $row->title =  $row->type . ":&nbsp;" . $rec->title;
+        }
     	$lowerType = strtolower($rec->type);
         $url = getRetUrl($rec->url);
         $attr['class'] = 'linkWithIcon';
