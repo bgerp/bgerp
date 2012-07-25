@@ -326,7 +326,7 @@ class bgerp_FileInfo extends core_Manager
         $Script = cls::get(fconv_Script);
         
         // Вземаме името на файла без разширението
-        $name = static::getFileName($fh);
+        $name = fileman_Files::getFileNameWithoutExt($fh);
         
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '-%d.jpg';
@@ -503,30 +503,6 @@ class bgerp_FileInfo extends core_Manager
         $rec = $query->fetch();
         
         return $rec->createdOn;
-    }
-
-
-    /**
-     * Връща името на файла
-     * 
-     * @param fileHnd $fh - Манипулатор на файла
-     * 
-     * @retun string $name - Името на файла, без разширението
-     */
-    static function getFileName($fh)
-    {
-        // Вземаме името на файла
-        $fRec = fileman_Files::fetchByFh($fh);
-        $fname = $fRec->name;
-        
-        // Ако има разширение
-        if(($dotPos = mb_strrpos($fname, '.')) !== FALSE) {
-            $name = mb_substr($fname, 0, $dotPos);
-        } else {
-            $name = $fname;
-        }
-        
-        return $name;
     }
 
     
