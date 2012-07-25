@@ -169,7 +169,7 @@ class fconv_Script
     /**
      * изпълнява скрипта, като му дава време за изпълнение
      */
-    function run($time = 2, $timeoutCallback = '')
+    function run($time = 2, $timeoutCallback = '', $asynch=TRUE)
     {
         
         if (!stristr(PHP_OS, 'WIN')) {
@@ -213,7 +213,13 @@ class fconv_Script
             
             chmod($shellName, 0777);
             
-            $shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();
+            // Ако е зададено да се стартира асинхронно
+            if ($asynch) {
+                $shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();    
+            } else {
+                $shell = $shellName;    
+            }
+            
             pclose(popen($shell, "r"));
         }
     }
