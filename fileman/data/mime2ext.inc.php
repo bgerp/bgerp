@@ -575,6 +575,7 @@ $mime2ext = array(
     "text/calendar" => "ics ifb",
     "text/css" => "css",
     "text/csv" => "csv",
+    "text/rtf" => "rtf",
     "text/html" => "html htm",
     "text/plain" => "txt text conf def list log in csv html py",
     "text/x-mail" => "eml",
