@@ -116,9 +116,12 @@ class fileman_Mimes extends core_BaseClass {
             $extArr = self::getExtByMime($mime);
 
             $ext = fileman_Files::getExt($fileName);
-
-            if(!$ext || !in_array($ext, $extArr)) {
-                $fileName .= '.' . $extArr[0];
+            
+            // Проверяваме дали има стойности в масива
+            if (count($extArr)) {
+                if(!$ext || !in_array($ext, $extArr)) {
+                    $fileName .= '.' . $extArr[0];
+                }    
             }
         }
 
