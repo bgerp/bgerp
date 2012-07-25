@@ -99,11 +99,10 @@ class fconv_Script
         
         if (count($this->params)) {
             foreach ($this->params as $placeHolder => $value) {
-                $value = $this->setParam($placeHolder, $value, TRUE);
                 $cmdLine = str_replace("[#{$placeHolder}#]", $value, $cmdLine);
             }
         }
-        
+
         $this->script .= $this->nl($cmdLine);
     }
     
@@ -169,7 +168,7 @@ class fconv_Script
     /**
      * изпълнява скрипта, като му дава време за изпълнение
      */
-    function run($time = 2, $timeoutCallback = '', $asynch=TRUE)
+    function run($asynch=TRUE, $time = 2, $timeoutCallback = '')
     {
         
         if (!stristr(PHP_OS, 'WIN')) {
