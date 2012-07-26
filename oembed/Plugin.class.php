@@ -200,11 +200,22 @@ class oembed_Plugin extends core_Plugin
     protected static function processResponse($response)
     {
         if (!isset($response['html'])) {
-            //
-            // @TODO за някои ресурси (напр. снимките) може да не се върне HTML за вграждане, 
-            //         но той може да се  построи тук на базата на полетата нa $response
-            $response['html'] = '<p class="embed">' . $response['orig_url'] . ' (TODO)</p>';
-            $response['cache_age'] = 0;
+            if ($response['type'] == 'photo') {
+                $response['html'] = sprintf(
+                    '<a href="%s" target="_blank" title="%s"><img height="%s" width="%s" src="%s" /></a>',
+                    $response['orig_url'],
+                    $response['title'],
+                    $response['height'],
+                    $response['width'],
+                    $response['url']
+                );
+            } else {
+                //
+                // @TODO за някои ресурси (напр. снимките) може да не се върне HTML за вграждане, 
+                //         но той може да се  построи тук на базата на полетата нa $response
+                $response['html'] = '<p class="embed">' . $response['orig_url'] . ' (TODO)</p>';
+                $response['cache_age'] = 0;
+            }
         }
         
         return $response;
