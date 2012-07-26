@@ -13,9 +13,17 @@ class core_exception_Expect extends Exception
         $this->errorTitle = $errorTitle;
     }
 
-    public function args()
+    public function args($i = NULL)
     {
-        return $this->args;
+        if (!isset($i)) {
+            return $this->debug;
+        }
+        
+        if (isset($this->debug[$i])) {
+            return $this->debug[$i];
+        }
+        
+        return NULL;
     }
 
     public function getAsHtml()
