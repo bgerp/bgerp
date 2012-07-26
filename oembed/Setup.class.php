@@ -32,6 +32,11 @@ class oembed_Setup
      */
     function install()
     {
+        $html = '';
+        
+        $Cache = cls::get('oembed_Cache');
+        $html .= $Cache->setupMVC();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

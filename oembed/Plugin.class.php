@@ -109,9 +109,10 @@ class oembed_Plugin extends core_Plugin
      */
     public static function getEmbedHtml($url)
     {
-        //
-        // @TODO търсене в кеша: $url => $html
-        //
+        if (($html = oembed_Cache::getCachedHtml($url)) !== FALSE) {
+            // Попадение в кеша!
+            return $html;
+        }
         
         if (!$apiUrl = static::getOembedServer($url)) {
             return FALSE;
@@ -123,8 +124,23 @@ class oembed_Plugin extends core_Plugin
         }
         
         //
-        // @TODO запис в кеша: $url => $html
+        // запис в кеша: $url => $html
         //
+        
+        if (!isset($response['cache_age'])) {
+            $response['cache_age'] = oembed_Cache::DEFAULT_CACHE_AGE;
+        }
+        
+        if ($response['cache_age'] !== 0) {
+            $cacheRec = array(
+                'url' => $url,
+                'html' => $response['html'],
+                'provider' => $apiUrl,
+                'expires' => $response['cache_age'],
+            );
+            
+            oembed_Cache::save((object)$cacheRec);
+        }
         
         return $response['html'];
     }
@@ -188,6 +204,7 @@ class oembed_Plugin extends core_Plugin
             // @TODO за някои ресурси (напр. снимките) може да не се върне HTML за вграждане, 
             //         но той може да се  построи тук на базата на полетата нa $response
             $response['html'] = '<p class="embed">' . $response['orig_url'] . ' (TODO)</p>';
+            $response['cache_age'] = 0;
         }
         
         return $response;
