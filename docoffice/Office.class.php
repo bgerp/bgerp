@@ -10,7 +10,7 @@ defIfNot('OFFICE_PACKET_PATH', '/usr/lib/openoffice/program/soffice.bin');
 /**
  * Броя на конвертиранията, след които офис пакета ще се ресартира
  */
-defIfNot('MAX_OFFICE_PACKET_CONVERT_COUNT', 250);
+defIfNot('MAX_OFFICE_PACKET_CONVERT_COUNT', 100);
 
 
 /**
@@ -42,6 +42,8 @@ class docoffice_Office
             // Нулираме брояча за конвертиранията
             static::emptyConvertCount();
             
+            core_Logs::Log(OFFICE_PACKET_PATH . tr('| е стартиран.|*'));
+            
             return TRUE;
         }
         
@@ -56,7 +58,7 @@ class docoffice_Office
     {
         // Броя на направените обработки след последното нулиране на брояча
         $count = static::getConvertedCount();
-        
+        //TODO Ако if'а не сработи остава заключен
         // Ако броя име е по голям или равен на максимално допустимия
         if ($count >= MAX_OFFICE_PACKET_CONVERT_COUNT) {
             
@@ -105,6 +107,8 @@ class docoffice_Office
             // Отключваме процеса
             static::unlockOffice();
             
+            core_Logs::Log(OFFICE_PACKET_PATH . tr('| е спрян.|*'));
+            
             return TRUE;
         }
         
@@ -121,7 +125,7 @@ class docoffice_Office
         $baseName = basename(OFFICE_PACKET_PATH);
         
         // Намираме process id' то на офис пакета
-        $sh = "ps aux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
+        $sh = "ps ux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
         $pid = exec($sh);
         
         return $pid;
