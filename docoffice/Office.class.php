@@ -58,7 +58,7 @@ class docoffice_Office
     {
         // Броя на направените обработки след последното нулиране на брояча
         $count = static::getConvertedCount();
-        //TODO Ако if'а не сработи остава заключен
+
         // Ако броя име е по голям или равен на максимално допустимия
         if ($count >= MAX_OFFICE_PACKET_CONVERT_COUNT) {
             

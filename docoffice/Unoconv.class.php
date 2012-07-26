@@ -95,10 +95,10 @@ class docoffice_Unoconv extends core_Manager
         }
 
         // Други необходими променливи
-        $Script->_ext = $params['ext'];
-        $Script->_fileInfoId = $params['fileInfoId'];
-        $Script->_outFilePath = $outFilePath;
-        $Script->_fh = $fileHnd;
+        $Script->ext = $params['ext'];
+        $Script->fileInfoId = $params['fileInfoId'];
+        $Script->outFilePath = $outFilePath;
+        $Script->fh = $fileHnd;
         
         // Увеличаваме броя на направените конвертирания с единица
         docoffice_Office::increaseConvertCount();
