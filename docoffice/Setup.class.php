@@ -2,9 +2,21 @@
 
 
 /**
- * 
+ * Класа, който ще се използва за конвертиране
  */
 defIfNot('OFFICE_CONVERTER_CLASS', 'docoffice_Unoconv');
+
+
+/**
+ * Пътя до python' a, който искаме да използваме
+ */
+defIfNot('OFFICE_CONVERTER_PYTHON', '');
+
+
+/**
+ * Пътя до unoconv' a, който искаме да използваме
+ */
+defIfNot('OFFICE_CONVERTER_UNOCONV', 'unoconv');
 
 
 /**
@@ -39,6 +51,12 @@ class docoffice_Setup
     
         // Кой клас да се използва за конвертиране на офис документи
         'OFFICE_CONVERTER_CLASS' => array ('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory'),
+    
+        // Коя програма да се използва за конвертиране
+        'OFFICE_CONVERTER_UNOCONV' => array ('varchar', 'mandatory'),
+        
+        // Кой python да се използва
+    	'OFFICE_CONVERTER_PYTHON' => array ('varchar', ''),
     );
     
         

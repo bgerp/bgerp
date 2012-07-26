@@ -57,6 +57,11 @@ class docoffice_Unoconv extends core_Manager
             docoffice_Office::checkRestartOffice();
         }
         
+        // Константите, които ще използваме
+        $conf = core_Packs::getConfig('docoffice');
+        $pythonPath = $conf->OFFICE_CONVERTER_PYTHON;
+        $unoconv = $conf->OFFICE_CONVERTER_UNOCONV;
+        
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
         
@@ -66,15 +71,29 @@ class docoffice_Unoconv extends core_Manager
         // Задаваме файловете и параметрите
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setParam('TOEXT', $toExt, TRUE);
-
+        $Script->setParam('UNOCONV', $unoconv, TRUE);
+        
+        // Добавяме към изпълнимия скрипт
+        $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] [#INPUTF#]";
+        
+        // Ако е дефиниранеп пътя до PYTHON
+        if ($pythonPath) {
+            
+            // Задаваме параметъра за питон
+            $Script->setParam('PYTHON', $pythonPath, TRUE);
+            
+            // Добавяме в началото на изпълнимия скрипт placeHolder за питон
+            $lineExecStr = "[#PYTHON#] {$lineExecStr}";
+        }
+        
         // Скрипта, който ще конвертира
-        $Script->lineExec("unoconv -f [#TOEXT#] [#INPUTF#]");
+        $Script->lineExec($lineExecStr);
 
         // Функцията, която ще се извика след приключване на операцията
         if ($params['callBack']) {
             $Script->callBack($params['callBack']);    
         }
-        
+
         // Други необходими променливи
         $Script->_ext = $params['ext'];
         $Script->_fileInfoId = $params['fileInfoId'];
