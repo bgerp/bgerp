@@ -20,14 +20,6 @@ defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
  */
 class email_UserInboxPlg extends core_Plugin
 {
-    
-    
-    /**
-     * id на потребителя, който е inCharge в модела
-     */
-    var $inCharge = FALSE;
-    
-    
     /**
      * Извиква се след вкарване на запис в таблицата на модела users
      */
@@ -76,13 +68,9 @@ class email_UserInboxPlg extends core_Plugin
             if(!core_Users::fetch('1=1')) {
                 $rec->first = TRUE;
             }
-            $this->checkFolderCharge($rec);
             
             //Проверяваме дали имаме папка със същото име и дали някой е собственик
-            if ($this->inCharge) {
-                
-                core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'page_Error', NULL, array('core_Users', 'add'));
-            }
+            expect (!$this->checkFolderCharge($rec), "Моля въведете друг Ник. Папката е заета от друг потребител.");
         }
     } 
     
@@ -110,16 +98,14 @@ class email_UserInboxPlg extends core_Plugin
             }
             
             //Ако редактираме данните във формата
-            if ($form->rec->id) {
-                $this->checkFolderCharge($form->rec);
+            $inCharge = $this->checkFolderCharge($form->rec);
+            
+            //Ако имаме inCharge
+            if ($inCharge) {
                 
-                //Ако имаме inCharge
-                if ($this->inCharge) {
-                    
-                    //Ако потребителя не е собственик на новата папка показваме грешка
-                    if ($form->rec->id != $this->inCharge) {
-                        $form->setError('nick', "Моля въведете друг '{$form->fields['nick']->caption}'. Папката е заета от друг потребител.");
-                    }
+                //Ако потребителя не е собственик на новата папка показваме грешка
+                if ($form->rec->id != $inCharge) {
+                    $form->setError('nick', "Моля въведете друг '{$form->fields['nick']->caption}'. Папката е заета от друг потребител.");
                 }
             }
         }
@@ -131,8 +117,6 @@ class email_UserInboxPlg extends core_Plugin
      */
     function checkFolderCharge($rec)
     {
-        if ($this->inCharge !== FALSE) return;
-        
         $nick = $rec->nick;
         
         if (EF_USSERS_EMAIL_AS_NICK) {
@@ -143,8 +127,6 @@ class email_UserInboxPlg extends core_Plugin
         $folderTitle = email_Inboxes::getUserEmail($nick);
         
         //Вземаме id' то на потребителя, който е inCharge
-        $this->inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
-        
-        return ;
+        return $inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
     }
 }
