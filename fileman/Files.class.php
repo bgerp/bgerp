@@ -726,6 +726,30 @@ class fileman_Files extends core_Master
         return $text;
     }
     
+    
+    /**
+     * Връща името на файла без разширението му
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * 
+     * @retun string $name - Името на файла, без разширението
+     */
+    static function getFileNameWithoutExt($fh)
+    {
+        // Вземаме името на файла
+        $fRec = static::fetchByFh($fh);
+        $fname = $fRec->name;
+        
+        // Ако има разширение
+        if(($dotPos = mb_strrpos($fname, '.')) !== FALSE) {
+            $name = mb_substr($fname, 0, $dotPos);
+        } else {
+            $name = $fname;
+        }
+        
+        return $name;
+    }
+    
 
 	/**
      * 

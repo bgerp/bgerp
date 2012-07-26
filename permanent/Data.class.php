@@ -132,7 +132,7 @@ class permanent_Data extends core_Manager {
      *
      * @param varchar $key
      */
-    function remove($key)
+    static function remove($key)
     {
         permanent_Data::delete("#key = '{$key}'");
     }
