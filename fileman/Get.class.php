@@ -260,7 +260,7 @@ class fileman_Get extends core_Manager {
 
                 preg_match($fPattern, $rec->url, $matches);
 
-                $fileName = $matches[0];
+                $fileName = urldecode($matches[0]);
             }
             // bp($headers, $matches, $fPattern, $rec->url);
 
