@@ -160,7 +160,6 @@ class oembed_Plugin extends core_Plugin
     {
         foreach (static::$oembedMap as $entry) {
             if (preg_match($entry['regex'], $url)) {
-                echo "<li>" . $entry['api'];
                 return $entry['api'];
             }
         }
