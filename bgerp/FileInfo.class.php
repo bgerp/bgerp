@@ -145,7 +145,7 @@ class bgerp_FileInfo extends core_Manager
             $ext = fileman_Files::getExt($rec->name);
             
             // Проверяваме дали разширението, е в допустимите, които ще се конвертират
-            if (in_array($ext, array('pdf'))) {
+            if (in_array($ext, array('pdf', 'rtf', 'odt'))) {
                 
                 // Данните, които ще запишем
                 $nRec = new stdClass();
@@ -190,7 +190,7 @@ class bgerp_FileInfo extends core_Manager
     static function startFileProcessing($fh, $fileInfoId, $ext)
     {
         // Ако разширението е от допустимите
-        if (in_array($ext, array('pdf'))) {
+        if (in_array($ext, array('pdf', 'rtf', 'odt'))) {
             
             // Опитваме се да определим съдържанието на файла
             static::getContent($fh, $fileInfoId, $ext);    
@@ -215,6 +215,13 @@ class bgerp_FileInfo extends core_Manager
             // Стартираме функцията за определяне на разширението на файла
             static::getContentFromPdf($fh, $fileInfoId, $ext);
         }
+        
+        // Ако разширението е pdf
+        if (in_array($ext, array('rtf', 'odt'))) {
+            
+            // Стартираме функцията за определяне на разширението на файла
+            static::getContentFromDoc($fh, $fileInfoId, $ext);
+        }
     }
     
     
@@ -229,32 +236,42 @@ class bgerp_FileInfo extends core_Manager
      */
     static function getContentFromPdf($fh, $fileInfoId, $ext)
     {
-        // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => 'bgerp_FileInfo::afterGetContentFrom',
+            'ext' => $ext,
+            'fileInfoId' => $fileInfoId,
+        	'asynch' => FALSE,
+        );
         
-        // Пътя до файла, в който ще се записва получения текст
-        $outFilePath = $Script->tempDir . $Script->id . '.txt';
-        
-        // Задаваме placeHolder' и за входящия и изходящия файл
-        $Script->setFile('INPUTF', $fh);
-        $Script->setFile('OUTPUTF', $outFilePath);
-        
-        // Скрипта, който ще конвертира
-        $Script->lineExec('pdftotext -nopgbrk [#INPUTF#] [#OUTPUTF#]');
-        
-        // Функцията, която ще се извика след приключване на операцията
-        $Script->callBack('bgerp_FileInfo::afterGetContentFrom');
-        
-        // Други необходими променливи
-        $Script->_ext = $ext;
-        $Script->_fileInfoId = $fileInfoId;
-        $Script->_outFilePath = $outFilePath;
-        $Script->_fh = $fh;
-
-        // Стартираме скрипта, и връщаме управлението
-        $Script->run();
+        // Стартираме конвертирането
+        docoffice_Pdf::convertPdfToTxt($fh, $params);
     }
     
+    
+    /**
+     * 
+     */
+    static function getContentFromDoc($fh, $fileInfoId, $ext)
+    {
+        // Конфигурационните константи
+        $conf = core_Packs::getConfig('docoffice');
+        
+        // Класа, който ще конвертира
+        $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
+        
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => 'bgerp_FileInfo::afterGetContentFrom',
+            'ext' => $ext,
+            'fileInfoId' => $fileInfoId,
+        	'asynch' => FALSE,
+        );
+        
+        // Стартираме конвертирането
+        $ConvClass::convertDoc($fh, 'txt', $params);
+    }
+
     
     /**
      * Функция, която получава управлението след записване на съдържанието на файла във временен файл
@@ -269,19 +286,26 @@ class bgerp_FileInfo extends core_Manager
     static function afterGetContentFrom($script)
     {
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
-        $text = file_get_contents($script->_outFilePath);
+        $text = file_get_contents($script->outFilePath);
         
         // Записваме получения текс в модела
         $rec = new stdClass();
-        $rec->id = $script->_fileInfoId;
+        $rec->id = $script->fileInfoId;
         $rec->content = $text;
         bgerp_FileInfo::save($rec);
 
         // Ако разширението е едно от посочените
-        if (in_array($script->_ext, array('pdf'))) {
+        if (in_array($script->ext, array('pdf'))) {
             
             // Стартираме конвертирането на файла
-            static::convertFileToJpg($script->_fh, $script->_fileInfoId, $script->_ext);
+            static::convertFileToJpg($script->fh, $script->fileInfoId, $script->ext);
+        }
+        
+        // Ако разширението е едно от посочените
+        if (in_array($script->ext, array('rtf', 'doc'))) {
+            
+            // Отключваме офис пакета
+            docoffice_Office::unlockOffice();
         }
         
         // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
@@ -322,32 +346,16 @@ class bgerp_FileInfo extends core_Manager
      */
     static function convertPdfToJpg($fh, $fileInfoId, $ext)
     {
-        // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => 'bgerp_FileInfo::afterGetContentFrom',
+            'ext' => $ext,
+            'fileInfoId' => $fileInfoId,
+        	'asynch' => FALSE,
+        );
         
-        // Вземаме името на файла без разширението
-        $name = static::getFileName($fh);
-        
-        // Задаваме пътя до изходния файла
-        $outFilePath = $Script->tempDir . $name . '-%d.jpg';
-        
-        // Задаваме placeHolder' ите за входния и изходния файл
-        $Script->setFile('INPUTF', $fh);
-        $Script->setFile('OUTPUTF', $outFilePath);
-        
-        // Скрипта, който ще конвертира файла от PDF в JPG формат
-        $Script->lineExec('convert -density 100 [#INPUTF#] [#OUTPUTF#]');
-        
-        // Функцията, която ще се извика след приключване на обработката на файла
-        $Script->callBack('bgerp_FileInfo::afterConvertFileToJpg');
-        
-        // Други допълнителни променливи
-        $Script->_ext = $ext;
-        $Script->_fileInfoId = $fileInfoId;
-        $Script->_fName = $name;        
-        
-        // Стартираме изпълнението на скрипта
-        $Script->run();
+        // Стартираме конвертирането
+        docoffice_Pdf::convertPdfToJpg($fh, $params);
     }
     
     
@@ -373,8 +381,8 @@ class bgerp_FileInfo extends core_Manager
         $i=0;
         
         // Генерираме името на файла след конвертиране
-        $fn = $script->_fName . '-' .$i . '.jpg';
-        
+        $fn = $script->fName . '-' .$i . '.jpg';
+
         // Докато има файл
         while (in_array($fn, $files)) {
             
@@ -387,7 +395,7 @@ class bgerp_FileInfo extends core_Manager
             }
             
             // Генерираме ново предположение за конвертирания файл, като добавяме единица
-            $fn = $script->_fName . '-' . ++$i . '.jpg';
+            $fn = $script->fName . '-' . ++$i . '.jpg';
         }
         
         // Ако има генерирани файлове, които са качени успешно
@@ -395,17 +403,17 @@ class bgerp_FileInfo extends core_Manager
             
             // Сериализираме масива и обновяваме данните за записа в bgerp_FileInfo
             $rec = new stdClass();
-            $rec->id = $script->_fileInfoId;
+            $rec->id = $script->fileInfoId;
             $rec->images = serialize($fileHndArr);
             
             bgerp_FileInfo::save($rec);    
         }
         
         // Ако разширението на оригиналния файл е в допустимите
-        if (in_array($script->_ext, array('pdf'))) {
+        if (in_array($script->ext, array('pdf'))) {
             
             // Сканираме получените файлове за наличие на баркод
-            static::getBarcodes($fileHndArr, $script->_fileInfoId, $script->_ext);
+            static::getBarcodes($fileHndArr, $script->fileInfoId, $script->ext);
         }
         
         // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
@@ -503,30 +511,6 @@ class bgerp_FileInfo extends core_Manager
         $rec = $query->fetch();
         
         return $rec->createdOn;
-    }
-
-
-    /**
-     * Връща името на файла
-     * 
-     * @param fileHnd $fh - Манипулатор на файла
-     * 
-     * @retun string $name - Името на файла, без разширението
-     */
-    static function getFileName($fh)
-    {
-        // Вземаме името на файла
-        $fRec = fileman_Files::fetchByFh($fh);
-        $fname = $fRec->name;
-        
-        // Ако има разширение
-        if(($dotPos = mb_strrpos($fname, '.')) !== FALSE) {
-            $name = mb_substr($fname, 0, $dotPos);
-        } else {
-            $name = $fname;
-        }
-        
-        return $name;
     }
 
     
