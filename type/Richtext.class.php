@@ -342,15 +342,40 @@ class type_Richtext extends type_Text {
         $this->_htmlBoard[$place] = $url;
          
         if(core_Url::isLocal($url)) {
-           $link = "<a href=\"__{$place}__\">{$title}</a>";
+            $link = $this->converInternalLink($url, $title);
         } else {
-            $link = "<a href=\"__{$place}__\" target='_blank' class='out'>{$title}</a>";
+            $link = $this->converExternalLink($url, $title);
         }
         
         return $link;
     }
+
+    /**
+     * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL-та
+     */
+    function converExternalLink_($url, $title)
+    {
+        $bgPlace = $this->getPlace();
+        $urlArr = core_Url::parseUrl($url);
+        $domain = $urlArr['host'];
+        $this->_htmlBoard[$bgPlace] = "background-image:url(\"http://www.google.com/s2/u/0/favicons?domain={$domain}\");";
+        $link = "<a href=\"__{$place}__\" target='_blank' class='out linkWithIcon' style='__{$bgPlace}__'>{$title}</a>";
+
+        return $link;
+    }
+
     
-    
+    /**
+     * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL-та
+     */
+    function converInternalLink_($url, $title)
+    {
+        $link = "<a href=\"__{$place}__\">{$title}</a>";
+
+        return $link;
+    }
+
+
     /**
      * Заменя елементите [hide=?????]......[/hide]
      */
