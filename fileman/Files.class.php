@@ -551,24 +551,13 @@ class fileman_Files extends core_Master
 //        // Проверяваме за права
 //        $mvc->requireRightFor('single', $data->rec->id);
         
-        $dataId = $data->rec->dataId;
-        $fileHnd = $data->rec->fileHnd;
-        
-        expect($dataId, 'Няма данни за файла');
-
-        $iRec = bgerp_FileInfo::getFileInfo($data->rec);
-        
-        bp($data->rec, $iRec);
-        
-        bp($dataId);
-        
-        
-        
-        
-        
         $row = &$data->row;
         $rec = $data->rec;
 
+        expect($rec->dataId, 'Няма данни за файла');
+
+        $iRec = bgerp_FileInfo::getFileInfo($rec);
+        
         // Ако има активен линк за сваляне
         if (($dRec = fileman_Download::fetch("#fileId = {$rec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
 
@@ -737,7 +726,7 @@ class fileman_Files extends core_Master
             // Всеки линк за файла да е на нов ред
             $text .= ($text) ? '<br />' . $link : $link;
         }
-        
+
         return $text;
     }
     

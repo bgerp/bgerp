@@ -19,29 +19,29 @@
 <div class='filesContainer' style='margin: 5px;'>
 	<table class='top-table' width='100%' cellspacing='5' style='width:auto;'>
 	
-		<tr><td colspan='2'><h2><!--ET_BEGIN _fileName-->[#fileName#]<!--ET_END _fileName--></h2></td></tr>
+		<tr><td colspan='2'><h2><!--ET_BEGIN fileName-->[#fileName#]<!--ET_END fileName--></h2></td></tr>
 		
-		<!--ET_BEGIN _link-->          
+		<!--ET_BEGIN link-->          
 			<tr>
 			    <td align='right' width='auto' >|Линк|*:</td>
 			    <td><span id='selectable' onmouseUp='onmouseUpSelect()'>[#link#]</span> <small>(|Изтича:|* [#expireOn#])</small></td>
 			</tr>
-		<!--ET_END _link-->
+		<!--ET_END link-->
 		
 		
-		<!--ET_BEGIN _type-->          
+		<!--ET_BEGIN type-->          
 			<tr>
 			    <td align='right' width='auto' >|Тип|*:</td>
 			    <td>[#type#]</td>
 			</tr>
-		<!--ET_END _type-->
+		<!--ET_END type-->
 		
-		<!--ET_BEGIN _size-->          
+		<!--ET_BEGIN size-->          
 			<tr>
 			    <td align='right' width='auto' >|Размер|*:</td>
 			    <td>[#size#]</td>
 			</tr>
-		<!--ET_END _size-->
+		<!--ET_END size-->
 		
 		<!--ET_BEGIN createdOn-->          
 			<tr>
@@ -50,19 +50,19 @@
 			</tr>
 		<!--ET_END createdOn-->
 		
-		<!--ET_BEGIN _info-->          
+		<!--ET_BEGIN info-->          
 			<tr>
 			    <td align='right' width='auto' >|Информация|*:</td>
 			    <td>[#info#]</td>
 			</tr>
-		<!--ET_END _info-->
+		<!--ET_END info-->
 		
-		<!--ET_BEGIN _versions-->          
+		<!--ET_BEGIN versions-->          
 			<tr>
 			    <td align='right' width='auto' >|Версии|*:</td>
 			    <td>[#versions#]</td>
 			</tr>
-		<!--ET_END _versions-->
+		<!--ET_END versions-->
 		
 	</table>
 	
