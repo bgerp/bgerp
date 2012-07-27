@@ -4,7 +4,7 @@ class oembed_Cache extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created';
+    var $loadList = 'plg_Created,plg_RowTools';
     
     
     /**
