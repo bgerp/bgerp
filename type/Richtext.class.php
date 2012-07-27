@@ -148,6 +148,9 @@ class type_Richtext extends type_Text {
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
         
+        // Обработваме [gread=http://????] ... [/gread] елементите, които представят картинки с надписи под тях
+        $html = preg_replace_callback("/\[gread(=([^\]]*)|)\](.*?)\[\/gread\]/is", array($this, '_catchGread'), $html);
+        
         // Обработваме [link=http://????] ... [/link] елементите, които задават фон за буквите на текста между тях
         $html = preg_replace_callback("/\[link(=([^\]]*)|)\](.*?)\[\/link\]/is", array($this, '_catchLink'), $html);
         
@@ -302,6 +305,22 @@ class type_Richtext extends type_Text {
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
         $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" style='max-width:750px;' alt=\"{$title}\"><br><small>";
+        
+        return "__{$place}__{$title}</small></div>";
+    }
+    
+    
+    /**
+     * Заменя [gread=????] ... [/gread]
+     */
+    function _catchGread($match)
+    {
+        $place = $this->getPlace();
+        $url = urlencode(core_Url::escape($match[2]));
+        
+        $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
+        
+        $this->_htmlBoard[$place] = "<iframe src=\"http://docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe><br><small>";
         
         return "__{$place}__{$title}</small></div>";
     }
