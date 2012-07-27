@@ -80,6 +80,7 @@ class bgerp_Setup {
             'bgerp_Portal',
             'bgerp_Notifications',
             'bgerp_Recently',
+            'bgerp_FileInfo',
         );
         
         $instances = array();

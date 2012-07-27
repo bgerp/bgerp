@@ -27,5 +27,6 @@ class bgerp_Wrapper extends plg_ProtoWrapper
         $this->TAB('bgerp_Menu', 'Меню', 'admin');
         $this->TAB('bgerp_Portal', 'Портал', 'admin');
         $this->TAB('bgerp_Notifications', 'Известия', 'admin');         
+        $this->TAB('bgerp_FileInfo', 'Инфо за файл', 'ceo');         
      }
 }
