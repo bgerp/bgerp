@@ -567,24 +567,24 @@ class fileman_Files extends core_Master
             $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
 
             // Задаваме шаблоните 
-            $row->_expireOn = $expireOn; 
-            $row->_link = $link;
+            $row->expireOn = $expireOn; 
+            $row->link = $link;
         }
         
         // Вербалното име на файла
-        $row->_fileName = $mvc->getVerbal($rec,'name');
+        $row->fileName = $mvc->getVerbal($rec,'name');
         
         // Типа на файла
-        $row->_type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($rec->name));
+        $row->type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($rec->name));
         
         // Вербалния размер на файла
-        $row->_size = fileman_Data::getFileSize($rec->dataId);
+        $row->size = fileman_Data::getFileSize($rec->dataId);
         
         // Информация за файла
-        $row->_info = self::getFileInfo($rec->dataId);
+        $row->info = self::getFileInfo($rec->dataId);
         
         // Версиите на файла
-        $row->_versions = self::getFileVersionsString($rec->id);
+        $row->versions = self::getFileVersionsString($rec->id);
     }
     
     
