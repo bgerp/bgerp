@@ -22,13 +22,17 @@ class bgerp_Index extends core_Manager
      * @todo Чака за документация...
      */
     function act_Default()
-    {
-        if(Mode::is('screenMode', 'narrow')) {
-            
-            return new Redirect(array('bgerp_Menu', 'Show'));
+    {   
+        if(core_Users::getCurrent()) {
+            if(Mode::is('screenMode', 'narrow')) {
+                
+                return new Redirect(array('bgerp_Menu', 'Show'));
+            } else {
+                
+                return new Redirect(array('bgerp_Portal', 'Show'));
+            }
         } else {
-            
-            return new Redirect(array('bgerp_Portal', 'Show'));
+            return new Redirect(array('cms_Content', 'Show'));
         }
     }
 }

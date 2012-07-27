@@ -189,7 +189,11 @@ class cms_Content extends core_Manager
      */
     function act_Show()
     {  
-        expect($menuId = Request::get('id'));
+        $menuId = Request::get('id');
+        
+        if(!$menuId) {
+            $menuId = 1;
+        }
 
         Mode::set('cMenuId', $menuId);
         
