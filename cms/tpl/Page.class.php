@@ -37,9 +37,8 @@ class cms_tpl_Page extends page_Html {
         $this->push( 'cms/css/Wide.css', 'CSS');
         $this->push('js/efCommon.js', 'JS');
         
-        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
-        $this->appendOnce("\n<link  rel=\"icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
-    
+        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
+     
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
         $this->replace(new ET(
