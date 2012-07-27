@@ -555,9 +555,11 @@ class fileman_Files extends core_Master
         $rec = $data->rec;
 
         expect($rec->dataId, 'Няма данни за файла');
-
-        $iRec = bgerp_FileInfo::getFileInfo($rec);
         
+        // TODO Трябва да се промени
+        // vendors не бива да знае за bgerp'a
+        $iRec = bgerp_FileInfo::getFileInfo($rec);
+
         // Ако има активен линк за сваляне
         if (($dRec = fileman_Download::fetch("#fileId = {$rec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
 
@@ -585,10 +587,10 @@ class fileman_Files extends core_Master
         $row->size = fileman_Data::getFileSize($rec->dataId);
         
         // Информация за файла
-        $row->info = self::getFileInfo($rec->dataId);
+        $row->info = unserialize($iRec->metaInfo);
         
         // Версиите на файла
-        $row->versions = self::getFileVersionsString($rec->id);
+        $row->versions = static::getFileVersionsString($rec->id);
     }
     
     
@@ -687,14 +689,16 @@ class fileman_Files extends core_Master
     /**
      * Връща информация за файла
      * 
-     * @param $dataId - id' то на файла, с данните
+     * @param $fh - id' то на файла, с данните
      * 
      * @return string $fileInfo - Информация за файла
-     * @access private
      * @todo Временно решение
      */
-    static function getFileInfo($dataId)
+    static function findDefMetaInfo($fh)
     {
+        // Намираме dataId' то на файла
+        $dataId = fileman_Files::fetchByFh($fh, 'dataId');
+        
         // Пътя до файла
         $path = fileman_Data::getFilePath($dataId);
 

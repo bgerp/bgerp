@@ -34,7 +34,6 @@ class docoffice_Unoconv extends core_Manager
      * @param string $toExt - Разширението, в което ще се конвертира
      * @param array $params - Други параметри
      * 				$params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
-     * 				$params['ext'] - Разширението, от което се конвертира /Разширението на файла/
      * 				$params['fileInfoId'] - id към bgerp_FileInfo
      * 				$params['asynch'] - Дали скрипта да се стартира асинхронно или не
      */
@@ -95,7 +94,6 @@ class docoffice_Unoconv extends core_Manager
         }
 
         // Други необходими променливи
-        $Script->ext = $params['ext'];
         $Script->fileInfoId = $params['fileInfoId'];
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fileHnd;

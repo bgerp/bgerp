@@ -44,7 +44,6 @@ class docoffice_Pdf
         $Script->callBack('bgerp_FileInfo::afterGetContentFrom');
         
         // Други необходими променливи
-        $Script->ext = $params['ext'];
         $Script->fileInfoId = $params['fileInfoId'];
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fileHnd;
@@ -86,7 +85,6 @@ class docoffice_Pdf
         $Script->callBack('bgerp_FileInfo::afterConvertFileToJpg');
         
         // Други необходими променливи
-        $Script->ext = $params['ext'];
         $Script->fileInfoId = $params['fileInfoId'];
         $Script->fName = $name;
         $Script->fh = $fileHnd;

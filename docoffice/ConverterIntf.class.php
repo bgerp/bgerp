@@ -22,7 +22,6 @@ class docoffice_ConverterIntf
      * @param string $toExt - Разширението, в което ще се конвертира
      * @param array $params - Други параметри
      * 				$params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
-     * 				$params['ext'] - Разширението, от което се конвертира /Разширението на файла/
      * 				$params['fileInfoId'] - id към bgerp_FileInfo
      * 				$params['asynch'] - Дали скрипта да се стартира асинхронно или не
      */
