@@ -342,9 +342,9 @@ class type_Richtext extends type_Text {
         $this->_htmlBoard[$place] = $url;
          
         if(core_Url::isLocal($url)) {
-            $link = $this->converInternalLink($url, $title);
+            $link = $this->converInternalLink($url, $title, $place);
         } else {
-            $link = $this->converExternalLink($url, $title);
+            $link = $this->converExternalLink($url, $title, $place);
         }
         
         return $link;
@@ -353,7 +353,7 @@ class type_Richtext extends type_Text {
     /**
      * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL-та
      */
-    function converExternalLink_($url, $title)
+    function converExternalLink_($url, $title, $place)
     {
         $bgPlace = $this->getPlace();
         $urlArr = core_Url::parseUrl($url);
@@ -368,7 +368,7 @@ class type_Richtext extends type_Text {
     /**
      * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL-та
      */
-    function converInternalLink_($url, $title)
+    function converInternalLink_($url, $title, $place)
     {
         $link = "<a href=\"__{$place}__\">{$title}</a>";
 
