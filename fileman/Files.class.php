@@ -548,8 +548,23 @@ class fileman_Files extends core_Master
      */
     function on_BeforeRenderSingle($mvc, $tpl, &$data)
     {
-        // Проверяваме за права
-        $mvc->requireRightFor('single', $data->rec->id);
+//        // Проверяваме за права
+//        $mvc->requireRightFor('single', $data->rec->id);
+        
+        $dataId = $data->rec->dataId;
+        $fileHnd = $data->rec->fileHnd;
+        
+        expect($dataId, 'Няма данни за файла');
+
+        $iRec = bgerp_FileInfo::getFileInfo($data->rec);
+        
+        bp($data->rec, $iRec);
+        
+        bp($dataId);
+        
+        
+        
+        
         
         $row = &$data->row;
         $rec = $data->rec;
@@ -730,15 +745,24 @@ class fileman_Files extends core_Master
     /**
      * Връща името на файла без разширението му
      * 
-     * @param fileHnd $fh - Манипулатор на файла
+     * @param mixed $fh - Манипулатор на файла или пътя до файла
      * 
      * @retun string $name - Името на файла, без разширението
      */
     static function getFileNameWithoutExt($fh)
     {
-        // Вземаме името на файла
-        $fRec = static::fetchByFh($fh);
-        $fname = $fRec->name;
+        // Ако е подаден път до файла
+        if (strstr($fh, '/')) {
+            
+            // Вземаме името на файла
+            $fname = basename($fh);
+        } else {
+            
+            // Ако е подаден манипулатор на файл
+            // Вземаме името на файла
+            $fRec = static::fetchByFh($fh);
+            $fname = $fRec->name;
+        }
         
         // Ако има разширение
         if(($dotPos = mb_strrpos($fname, '.')) !== FALSE) {
