@@ -109,7 +109,7 @@ class vislog_History extends core_Manager {
             $rec->HistoryResourceId = $mvc->HistoryResources->save($sRec);
         }
         
-        $this->Refferer->add($rec->HistoryResourceId);
+        $mvc->Refferer->add($rec->HistoryResourceId);
         
         // Ако имаме такъв запис - връщаме ИСТИНА, за да не продължи обработката
         if($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId}")) {
