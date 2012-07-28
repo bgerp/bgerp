@@ -23,7 +23,7 @@ class bgerp_Index extends core_Manager
      */
     function act_Default()
     {   
-        if(core_Users::getCurrent()) {
+        if(core_Users::getCurrent() || !cms_Content::fetch('1=1')) {
             if(Mode::is('screenMode', 'narrow')) {
                 
                 return new Redirect(array('bgerp_Menu', 'Show'));

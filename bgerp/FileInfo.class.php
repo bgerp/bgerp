@@ -92,7 +92,7 @@ class bgerp_FileInfo extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'bgerp_Wrapper';
+    var $loadList = 'bgerp_Wrapper,plg_RowTools';
     
     
     /**
