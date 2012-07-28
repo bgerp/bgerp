@@ -154,6 +154,8 @@ class cms_Articles extends core_Master
             $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
             $content->prepend($ptitle, 'PAGE_TITLE');
+            
+            
         }
 
         if(!$content) $content = new ET();
@@ -236,6 +238,12 @@ class cms_Articles extends core_Master
         $content->append($navTpl, 'NAVIGATION');
 
         $content->replace($title, 'META_KEYWORDS');
+
+        if($rec) {
+            if(core_Packs::fetch("#name = 'vislog'")) {
+                vislog_History::add($rec->title);
+            }
+        }
 
         return $content;
     }
