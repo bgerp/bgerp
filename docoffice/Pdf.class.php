@@ -38,7 +38,7 @@ class docoffice_Pdf
         $Script->setFile('OUTPUTF', $outFilePath);
         
         // Скрипта, който ще конвертира
-        $Script->lineExec('pdftotext -nopgbrk [#INPUTF#] [#OUTPUTF#]');
+        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]');
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('bgerp_FileInfo::afterGetContentFrom');
