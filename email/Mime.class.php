@@ -902,6 +902,11 @@ class email_Mime extends core_BaseClass
                     if($this->getHeader('X-Bgerp-Thread')) {
                         $textRate = $textRate * 1.5;
                     }
+
+                    // Ако обаче, текст часта съдържа значително количество HTML елементи,
+                    // ние не я предпочитаме
+                    $k = (mb_strlen(strip_tags($text)) + 1) / (mb_strlen($text) + 1);
+                    $textRate = $textRate * $k * $k;
                 }
                 
                 // Ако нямаме никакъв текст в тази текстова част, не записваме данните
