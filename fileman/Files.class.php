@@ -548,9 +548,6 @@ class fileman_Files extends core_Master
      */
     function on_BeforeRenderSingle($mvc, $tpl, &$data)
     {
-//        // Проверяваме за права
-//        $mvc->requireRightFor('single', $data->rec->id);
-        
         $row = &$data->row;
         $rec = $data->rec;
 
@@ -577,8 +574,22 @@ class fileman_Files extends core_Master
             $row->link = $link;
         }
         
+        //Разширението на файла
+        $ext = fileman_Files::getExt($rec->name);
+        
+        //Иконата на файла, в зависимост от разширението на файла
+        $icon = "fileman/icons/{$ext}.png";
+        
+        //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
+        if (!is_file(getFullPath($icon))) {
+            $icon = "fileman/icons/default.png";
+        }
+        
+        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+         
         // Вербалното име на файла
-        $row->fileName = $mvc->getVerbal($rec,'name');
+        $row->fileName = "<span class='linkWithIcon' style='margin-left:-15px;background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
         
         // Типа на файла
         $row->type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($rec->name));
@@ -606,46 +617,63 @@ class fileman_Files extends core_Master
         $ext = self::getExt($data->rec->name);
 
         // Проверяваме дали разширението, предлага preview на файла
-        if (!in_array($ext, array('jpg', 'jpeg', 'png', 'gif', 'bmp'))) {
+        if (in_array($ext, array('jpg', 'jpeg', 'png', 'gif', 'bmp'))) {
 
-            return ;
+         
+        
+            //Вземема конфигурационните константи
+            $conf = core_Packs::getConfig('fileman');
+            
+            // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
+            if (mode::is('screenMode', 'narrow')) {
+                $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH_NARROW;
+                $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT_NARROW;
+            } else {
+                $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH;
+                $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
+            }
+            
+            // Атрибути на thumbnail изображението
+            $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '');
+                
+            //Размера на thumbnail изображението
+            $size = array($thumbWidth, $thumbHeight);
+            
+            //Създаваме тумбнаил с параметрите
+            $thumbnailImg = thumbnail_Thumbnail::getImg($fh, $size, $attr);
+            
+            if ($thumbnailImg) {
+                
+                // Background' а на preview' то
+                $bgImg = sbf('fileman/img/Preview_background.jpg');
+            
+                // Създаваме шаблон за preview на изображението
+                $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><div style='background-image:url(" . $bgImg . "); padding:10px 0; '><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div></fieldset>");
+                
+                // Добавяме към preview' то генерираното изображение
+                $preview->append($thumbnailImg, 'THUMB_IMAGE');
+                
+                 
+            }
+        
+        } elseif( in_array($ext, array('html', 'htm')) ) { 
+            $dUrl = fileman_Download::getDownloadUrl($data->rec->fileHnd);
+            $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><iframe src='{$dUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' style='width:100%; min-height:600px;border:solid 0px transparent;'></iframe></fieldset>");
+        } elseif( in_array($ext, array('txt', 'text')) ) { 
+            $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><pre>" . type_Varchar::escape(self::getContent($data->rec->fileHnd)) . "</pre></fieldset>");
+        } elseif( in_array($ext, array('eml')) ) {
+            // Тук парсираме писмото и проверяваме дали не е системно
+            $mime = new email_Mime();
+            
+            $emlRec = $mime->getEmail(self::getContent($data->rec->fileHnd));
+            $emlRec->textPart = str_replace("\n\n\n", "\n\n", $emlRec->textPart);
+            $richText = new type_Richtext();
+
+            $preview = new ET("<fieldset style='max-width:900px;padding:10px;'><legend>Преглед</legend><br>" . $richText->toVerbal($emlRec->textPart) . "</fieldset>");
         }
         
-        //Вземема конфигурационните константи
-        $conf = core_Packs::getConfig('fileman');
-        
-        // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
-        if (mode::is('screenMode', 'narrow')) {
-            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH_NARROW;
-            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT_NARROW;
-        } else {
-            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH;
-            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
-        }
-        
-        // Атрибути на thumbnail изображението
-        $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '');
-            
-        //Размера на thumbnail изображението
-        $size = array($thumbWidth, $thumbHeight);
-        
-        //Създаваме тумбнаил с параметрите
-        $thumbnailImg = thumbnail_Thumbnail::getImg($fh, $size, $attr);
-        
-        if ($thumbnailImg) {
-            
-            // Background' а на preview' то
-            $bgImg = sbf('fileman/img/Preview_background.jpg');
-        
-            // Създаваме шаблон за preview на изображението
-            $preview = new ET("<fieldset><legend>Преглед</legend><div style='background-image:url(" . $bgImg . "); padding:10px 0; '><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div></fieldset>");
-            
-            // Добавяме към preview' то генерираното изображение
-            $preview->append($thumbnailImg, 'THUMB_IMAGE');
-            
-            // Добаваме preview' то към шаблона
-            $tpl->append($preview);    
-        }
+        // Добаваме preview' то към шаблона
+        $tpl->append($preview);   
     }
     
     

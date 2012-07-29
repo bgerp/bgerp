@@ -16,15 +16,15 @@
 
 [#SingleToolbar#]
 
-<div class='filesContainer' style='margin: 5px;'>
+<div class='filesContainer' style='margin: 5px; margin-top:10px;'>
 	<table class='top-table' width='100%' cellspacing='5' style='width:auto;'>
 	
-		<tr><td colspan='2'><h2><!--ET_BEGIN fileName-->[#fileName#]<!--ET_END fileName--></h2></td></tr>
+		<!--ET_BEGIN fileName--><tr><td colspan='2'><b>[#fileName#]</b></td></tr><!--ET_END fileName-->
 		
 		<!--ET_BEGIN link-->          
 			<tr>
 			    <td align='right' width='auto' >|Линк|*:</td>
-			    <td><span id='selectable' onmouseUp='onmouseUpSelect()'>[#link#]</span> <small>(|Изтича:|* [#expireOn#])</small></td>
+			    <td><span id='selectable' onmouseUp='onmouseUpSelect();'>[#link#]</span> <small>(|Изтича:|* [#expireOn#])</small></td>
 			</tr>
 		<!--ET_END link-->
 		
