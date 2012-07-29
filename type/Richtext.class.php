@@ -320,7 +320,7 @@ class type_Richtext extends type_Text {
         
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
-        $this->_htmlBoard[$place] = "<iframe src=\"http://docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe><br><small>";
+        $this->_htmlBoard[$place] = "<div><iframe src=\"http://docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe><br><small>";
         
         return "__{$place}__{$title}</small></div>";
     }
