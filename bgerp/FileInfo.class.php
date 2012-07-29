@@ -102,14 +102,14 @@ class bgerp_FileInfo extends core_Manager
     
     
     /**
-     * 
+     * Описание на модела
      */
     function description()
     {
         $this->FLD('fileId', 'key(mvc=fileman_Files)', 'caption=Файлове');
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни,notNull');
         $this->FLD('barcodes', 'blob', 'caption=Баркодове');
-        $this->FLD('content', 'text', 'caption=Съдържание');
+        $this->FLD('content', 'text(1000000)', 'caption=Съдържание');
         $this->FLD('images', 'blob', 'caption=Изображения');
         $this->FLD('metaInfo', 'blob', 'caption=Мета информация');
         
