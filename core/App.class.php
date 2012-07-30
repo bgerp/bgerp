@@ -697,7 +697,7 @@ class core_App
             $slashPos = strpos($_SERVER["SERVER_PROTOCOL"], '/');
             $protocol = substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0, $slashPos) . $s;
 
-            return $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']);
+            $boot = $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']);
         } else {
 
             $scriptName = $_SERVER['SCRIPT_NAME'];
@@ -707,8 +707,12 @@ class core_App
                 if ($relativeWebRoot == '/') $relativeWebRoot = '';
             }
 
-            return $relativeWebRoot;
+            $boot = $relativeWebRoot;
         }
+        
+        $boot = rtrim($boot, '/');
+
+        return $boot;
     }
 
 
