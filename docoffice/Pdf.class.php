@@ -41,7 +41,7 @@ class docoffice_Pdf
         $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]');
         
         // Функцията, която ще се извика след приключване на операцията
-        $Script->callBack('bgerp_FileInfo::afterGetContentFrom');
+        $Script->callBack($params['callBack']);
         
         // Други необходими променливи
         $Script->fileInfoId = $params['fileInfoId'];
@@ -82,7 +82,7 @@ class docoffice_Pdf
         $Script->lineExec('convert -density 100 [#INPUTF#] [#OUTPUTF#]');
         
         // Функцията, която ще се извика след приключване на обработката на файла
-        $Script->callBack('bgerp_FileInfo::afterConvertFileToJpg');
+        $Script->callBack($params['callBack']);
         
         // Други необходими променливи
         $Script->fileInfoId = $params['fileInfoId'];
