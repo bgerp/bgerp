@@ -58,6 +58,10 @@ class type_Url extends type_Varchar {
      */
     function fromVerbal($value)
     {
+        if(strpos($value, '://') === FALSE) {
+            $value = 'http://' . $value;
+        }
+
         $res = self::isValid($value);
         
         return $value;
@@ -121,7 +125,7 @@ class type_Url extends type_Varchar {
     
     
     /**
-     * Ако е зададен параметър, тогава валидираме имейл-а
+     * Ако е зададен параметър, тогава валидираме URL-to
      */
     function validate($url, &$result)
     {
