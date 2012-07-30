@@ -141,9 +141,10 @@ class core_Db extends core_BaseClass
             // Избираме указаната база от данни на сървъра ако я няма я създаваме
             if (!mysql_select_db($this->dbName)) {
 				$this->query("CREATE DATABASE IF NOT EXISTS {$this->dbName}");
-				$Packs = cls::get('core_Packs');
-				self::$noAutoSetup = TRUE;
-				$Packs->checkSetup();
+				// Не се прави сетъп - трябва да става само от 1 място!
+				// $Packs = cls::get('core_Packs');
+				// self::$noAutoSetup = TRUE;
+				// $Packs->checkSetup();
 			}
         }
         
