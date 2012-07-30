@@ -185,16 +185,60 @@ class doc_Incomings extends core_Master
             // Ескейпваме файл хендлъра
             $fileHnd = $mvc->db->escape($fileHnd);
             
-            // Попълваме откритите ключови думи
-            $data->form->setDefault('keywords', static::getKeywords($fileHnd));    
+            // Вземаме записите за файла            
+            $iRec = fileman_Info::getFileInfo($fileHnd);
+
+            // Масив с баркодовете
+            $barcodesArr = unserialize($iRec->barcodes);
+
+            foreach ($barcodesArr as $barcodesArrPage) {
+                
+                foreach ($barcodesArrPage as $barcodeObj) {
+                    
+                    // Вземаме cid'a на баркода
+                    $cid = log_Documents::getDocumentCidFromURL($barcodeObj->code);
+                
+                    // Ако не може да се намери cid, прескачаме
+                    if (!$cid) continue;
+
+                    // TODO това може и да се промени след направата на OCR
+                    // Ако има открито съдържание на файла
+                    if (str::trim($iRec->content)) continue;
+                    
+                    // Попълваме описанието за файла
+                    $data->form->setDefault('title', "Сканиран");    
+                    
+                    // Вземаме данните за контейнера
+                    $cRec = doc_Containers::fetch($cid);
+
+                    //
+                    $data->form->rec->folderId = $cRec->folderId;
+                    $data->form->rec->threadId = $cRec->threadId;
+                    
+                    // Ако открием съвпадение
+                    $scanned = TRUE;
+                    
+                    // Прекъсваме цикъла
+                    break;
+                }
+                
+                // Ако сме открили съвпадение, прекъсваме цикъла
+                if ($scanned) break;
+            }
+            
+            // Попълваме описанието за файла
+            $data->form->setDefault('keywords', $iRec->content);    
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);
+            
+            // Файла да е само за четене
+//            $data->form->setReadOnly('fileHnd'); // TODO след като се промени core_FieldSet
         }
         
-        // Ако създаваме нов
-        if (!$data->form->rec->id) {
-            
+        // Ако създаваме нов и не е сканиран
+        if ((!$data->form->rec->id) && (!$scanned)) {
+
             // Вземаме от сесията id' то на текущата папка
             $currFolderId = Mode::get('lastfolderId');
             if ($currFolderId) {
@@ -265,39 +309,6 @@ class doc_Incomings extends core_Master
         
         return "test {$fileHnd}";
     }  
-    
-    
-    /**
-     * 
-     */
-    function getDocumentRow($id)
-    {
-        // Вземаме записите
-        $rec = $this->fetch($id);
-        
-        $row = new stdClass();
-        
-        $row->title = $this->getVerbal($rec, 'title');
-
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        
-        $row->authorId = $rec->createdBy;
-        
-        $row->state = $rec->state;
-
-        return $row;
-    }
-    
-    
-    /**
-     * Изпълнява се след създаването на модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        // Инсталиране на кофата
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
-    }
     
     
     /**
@@ -379,5 +390,38 @@ class doc_Incomings extends core_Master
     static function getThreadState($id)
     {
         return 'opened';
+    }
+    
+    
+    /**
+     * 
+     */
+    function getDocumentRow($id)
+    {
+        // Вземаме записите
+        $rec = $this->fetch($id);
+        
+        $row = new stdClass();
+        
+        $row->title = $this->getVerbal($rec, 'title');
+
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        $row->authorId = $rec->createdBy;
+        
+        $row->state = $rec->state;
+
+        return $row;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        // Инсталиране на кофата
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
     }
 }
