@@ -58,6 +58,8 @@ class type_Url extends type_Varchar {
      */
     function fromVerbal($value)
     {
+        if(!trim($value)) return NULL;
+
         if(strpos($value, '://') === FALSE) {
             $value = 'http://' . $value;
         }

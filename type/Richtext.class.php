@@ -161,7 +161,10 @@ class type_Richtext extends type_Text {
         $this->invoke('AfterCatchRichElements', array(&$html));
         
         // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
+        $html = preg_replace_callback("#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
+        
+        // Обработваме имейлите, зададени в явен вид
+        $html = preg_replace_callback("/(\S+@\S+\.\S+)/i", array($this, '_catchEmails'), $html);
         
         // H!..6
         $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]/is", array($this, '_catchHeaders'), $html);
@@ -484,19 +487,20 @@ class type_Richtext extends type_Text {
      * Прави субституция на хипервръзките
      */
     function _catchHyperlinks($html)
-    {
-        $url = core_Url::escape($html[0]);
+    {   
+        $url = $html[0];
+
+        if(!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
+            $url = 'http://' . $url;
+        }
+
+        $url = core_Url::escape($url);
         
         if(!Mode::is('text', 'plain')) {
             if(core_Url::isLocal($url)) {
-               $link = "<a href=\"{$url}\">{$url}</a>";
+                $link = "<a href=\"{$url}\">{$html[0]}</a>";
             } else {
-                
-                $link = self::getLinkByUrl($url);
-
-
-
-
+                $link = self::getLinkByUrl($url, $html[0]);
             }
         }
         
@@ -505,9 +509,27 @@ class type_Richtext extends type_Text {
 
 
     /**
+     * Прави субституция на имейлите
+     */
+    function _catchEmails($match)
+    {
+        $email = $match[0];
+        
+        $emlType = cls::get('type_Email');
+
+        if($emlType->isValidEmail($email)) { 
+            $email = $emlType->toVerbal($email);
+        }
+
+        return $email;
+    }
+
+
+
+    /**
      * Заменя URL-to с подходяща хипервръзка
      */
-    function getLinkByUrl_($url)
+    function getLinkByUrl_($url, $title)
     {
         
         $vbox = "http://vbox7.com/play:";
@@ -525,7 +547,7 @@ class type_Richtext extends type_Text {
                 <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" style="padding-bottom:5px;" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="450" height="403"><param name="movie" value="http://i47.vbox7.com/player/ext.swf?vid='.$vid.'"><param name="quality" value="high"><embed src="http://i47.vbox7.com/player/ext.swf?vid='.$vid.'" quality="high" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" width="450" height="403"></embed></object>';
             }
 	    } else { 
-            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$url}</a>";
+            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
         }
 
         return $link;        
