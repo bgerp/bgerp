@@ -98,7 +98,14 @@ class fileman_Info extends core_Manager
      * @return stdObject $rec - Обект със запис от fileman_Info
      */
     static function getFileInfo($fileRec)
-    {    
+    {   
+        // Ако не е обкет, трябва да е fileHandler
+        if (!is_object($fileRec)) {
+            
+            // Записите за файла
+            $fileRec = fileman_Files::fetchByFh($fileRec);
+        } 
+        
         // Проверяваме дали има вече извлечени данни за съответния файл
         if (!($rec = static::fetch("#dataId = '{$fileRec->dataId}'"))) {
             
