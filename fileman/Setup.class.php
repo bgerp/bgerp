@@ -37,6 +37,39 @@ defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 900);
  */
 defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWin32/bin/file.exe"' : 'file');
 
+
+/**
+ * Разширения на файлове, от които е допустимо да се извлече съдържание
+ */
+defIfNot('FILEINFO_GET_CONTENT_EXT', 'pdf, rtf, odt');
+
+
+/**
+ * Разширения на файлове, от които  е допустимо да се създаде JPG файлове
+ */
+defIfNot('FILEINFO_CONVERT_JPG_EXT', 'pdf, rtf, odt');
+
+
+/**
+ * Разширения на файлове, от които е допустимо да се извлече баркод
+ */
+defIfNot('FILEINFO_GET_BARCODES_EXT', 'pdf');
+
+
+/**
+ * Минималната дължина на файла, до която ще се търси баркод
+ * 15kB
+ */
+defIfNot(FILEINFO_MIN_FILE_LEN_BARCODE, 15360);
+
+
+/**
+ * Максималната дължина на файла, до която ще се търси баркод
+ * 15kB
+ */
+defIfNot(FILEINFO_MAX_FILE_LEN_BARCODE, 1048576);
+
+
 /**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
@@ -80,15 +113,20 @@ class fileman_Setup extends core_Manager {
      */
     var $configDescription = array(
                
-           'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int'), 
-           'FILEMAN_PREVIEW_WIDTH'   => array ('int'), 
-           'FILEMAN_PREVIEW_HEIGHT'   => array ('int'), 
-           'FILEMAN_PREVIEW_WIDTH_NARROW'   => array ('int'), 
-           'FILEMAN_PREVIEW_HEIGHT_NARROW'   => array ('int'), 
-           'FILEMAN_FILE_COMMAND'   => array ('varchar')
+       'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int'), 
+       'FILEMAN_PREVIEW_WIDTH'   => array ('int'), 
+       'FILEMAN_PREVIEW_HEIGHT'   => array ('int'), 
+       'FILEMAN_PREVIEW_WIDTH_NARROW'   => array ('int'), 
+       'FILEMAN_PREVIEW_HEIGHT_NARROW'   => array ('int'), 
+       'FILEMAN_FILE_COMMAND'   => array ('varchar'),
 
+       'FILEINFO_GET_CONTENT_EXT'   => array ('varchar'),
+       'FILEINFO_CONVERT_JPG_EXT'   => array ('varchar'),
+       'FILEINFO_GET_BARCODES_EXT'   => array ('varchar'),
+       'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('int'),
+       'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('int'),
     
-        );
+    );
     
     /**
      * Инсталиране на пакета
@@ -118,6 +156,10 @@ class fileman_Setup extends core_Manager {
         // Установяваме свалянията;
         $Download = cls::get('fileman_Download');
         $html .= $Download->setupMVC();
+        
+        // Установяваме свалянията;
+        $Info = cls::get('fileman_Info');
+        $html .= $Info->setupMVC();
         
         // Установяваме вземанията от URL;
         // $Get = cls::get('fileman_Get');

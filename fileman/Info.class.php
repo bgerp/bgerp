@@ -1,44 +1,17 @@
 <?php
 
-// TODO Да се преместят в Setup.class.php
-// TODO Да се добавят и позволените разширения
-/**
- * Лимита при извличане на данни от базата
- */
-defIfNot('FILEINFO_MAX_FETCHING_LIMIT', 1000);
-
-
-/**
- * Лимита на стартиранете на оперции в едно стартиране
- */
-defIfNot('FILEINFO_MAX_COUNT_PROCESS', 10);
-
-
-/**
- * Минималната дължина на файла, до която ще се търси баркод
- * 15kB
- */
-defIfNot(FILEINFO_MIN_FILE_LEN_BARCODE, 15360);
-
-
-/**
- * Максималната дължина на файла, до която ще се търси баркод
- * 15kB
- */
-defIfNot(FILEINFO_MAX_FILE_LEN_BARCODE, 1048576);
-//TODO end
 
 /**
  * Информация за всички файлове във fileman_Files
  *
- * @category  bgerp
- * @package   bgerp
+ * @category  vendors
+ * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class bgerp_FileInfo extends core_Manager
+class fileman_Info extends core_Manager
 {
     
     /**
@@ -92,7 +65,7 @@ class bgerp_FileInfo extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'bgerp_Wrapper,plg_RowTools';
+    var $loadList = 'fileman_Wrapper,plg_RowTools';
     
     
     /**
@@ -122,10 +95,17 @@ class bgerp_FileInfo extends core_Manager
      * 
      * @param stdObject $fileRec - Обект със запис за файла от fileman_Files
      * 
-     * @return stdObject $rec - Обект със запис от bgerp_FileInfo
+     * @return stdObject $rec - Обект със запис от fileman_Info
      */
     static function getFileInfo($fileRec)
-    {    
+    {   
+        // Ако не е обкет, трябва да е fileHandler
+        if (!is_object($fileRec)) {
+            
+            // Записите за файла
+            $fileRec = fileman_Files::fetchByFh($fileRec);
+        } 
+        
         // Проверяваме дали има вече извлечени данни за съответния файл
         if (!($rec = static::fetch("#dataId = '{$fileRec->dataId}'"))) {
             
@@ -142,41 +122,60 @@ class bgerp_FileInfo extends core_Manager
      * 
      * @param stdObject $fileRec - Обект със запис за файла от fileman_Files
      * 
-     * @return stdObject $rec - Обект със запис от bgerp_FileInfo
+     * @return stdObject $rec - Обект със запис от fileman_Info
      */
     static function startFileProcessing($fileRec)
     {
         // Разширението на файла
         $ext = fileman_Files::getExt($fileRec->name);
         
-        //TODO само за допустимите разширения
+        // Вземаме конфигурационнуте константи
+        $conf = core_Packs::getConfig('fileman');
+        $contentExt = $conf->FILEINFO_GET_CONTENT_EXT;
+        $convertExt = $conf->FILEINFO_CONVERT_JPG_EXT;
+        $barcodesExt = $conf->FILEINFO_GET_BARCODES_EXT;
+        
+        // Преобразуваме в масив конфигурационните константи
+        $contentExtArr = core_Packs::toArray($contentExt);
+        $convertExtArr = core_Packs::toArray($convertExt);
+        $barcodesExtArr = core_Packs::toArray($barcodesExt);
+
         // Данните, които ще запишем
         $nRec = new stdClass();
         $nRec->fileId = $fileRec->id;
         $nRec->dataId = $fileRec->dataId;
         
         // Записваме данните и вземаме id' то на записа
-        $fileInfoId = bgerp_FileInfo::save($nRec);
-        
-        // Ако разширението е от допустимите
-        if (in_array($ext, array('pdf', 'rtf', 'odt'))) {
+        $fileInfoId = fileman_Info::save($nRec);
+
+        // Ако разширението на оригиналния файл е в допустимите за вземане на съдържанието
+        if (in_array($ext, $contentExtArr)) {
             
             // Опитваме се да определим съдържанието на файла
             static::getContent($fileRec->fileHnd, $fileInfoId, $ext);  
         }
         
-        // Ако разширението е едно от посочените
-        if (in_array($ext, array('pdf', 'rtf', 'odt'))) {
+        // Ако разширението на оригиналния файл е в допустимите за генериране на JPG
+        if (in_array($ext, $convertExtArr)) {
             
             // Стартираме конвертирането на файла
             static::convertFileToJpg($fileRec->fileHnd, $fileInfoId, $ext);
+            
         }
         
-        // Ако разширението на оригиналния файл е в допустимите
-        if (in_array($ext, array('pdf'))) {
+        // Ако разширението на оригиналния файл е в допустимите за генериране на баркод
+        if (in_array($ext, $barcodesExtArr)) {
             
-            // Вземаме генерираните изображения
-            $fileHndArr = unserialize(static::fetchField("#dataId = '{$fileRec->dataId}'", 'images'));
+            // Ако разширението е в допустимите за генериране на JPG
+            if (in_array($ext, $convertExtArr)) {
+                
+                // Вземаме генерираните изображения
+                $fileHndArr = unserialize(static::fetchField("#dataId = '{$fileRec->dataId}'", 'images'));
+            } else {
+                
+                // Вземаме манупулатора на файла
+                $fileHndArr[$fileRec->fileHnd] = $fileRec->fileHnd;
+            }
             
             // Сканираме получените файлове за наличие на баркод
             static::getBarcodes($fileHndArr, $fileInfoId);
@@ -196,22 +195,19 @@ class bgerp_FileInfo extends core_Manager
      * Функиция за определяне на начина за извличане на съдъжанието на файла
      * 
      * @param fileHnd $fh - Манипулатор на файла
-     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
      * @param string $ext - Разширението на файла
      */
     static function getContent($fh, $fileInfoId, $ext)
     {
         // Ако разширението е pdf
-        if (in_array($ext, array('pdf'))) {
+        if ($ext == 'pdf') {
             
-            // Стартираме функцията за определяне на разширението на файла
+            // Стартираме функцията за определяне на текстовата част на файла
             static::getContentFromPdf($fh, $fileInfoId);
-        }
-        
-        // Ако разширението е pdf
-        if (in_array($ext, array('rtf', 'odt'))) {
+        } else {
             
-            // Стартираме функцията за определяне на разширението на файла
+            // Стартираме функцията за определяне на текстовата част на файла
             static::getContentFromDoc($fh, $fileInfoId);
         }
     }
@@ -221,13 +217,13 @@ class bgerp_FileInfo extends core_Manager
      * Определя на съдържанието на pdf документите
      * 
      * @param fileHnd $fh - Манипулатор на файла
-     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
      */
     static function getContentFromPdf($fh, $fileInfoId)
     {
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'bgerp_FileInfo::afterGetContentFrom',
+            'callBack' => 'fileman_Info::afterGetContentFrom',
             'fileInfoId' => $fileInfoId,
         	'asynch' => FALSE,
         );
@@ -241,7 +237,7 @@ class bgerp_FileInfo extends core_Manager
      * Определя на съдържанието на офис документите
      * 
      * @param fileHnd $fh - Манипулатор на файла
-     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
      * 
      * @access protected
      */
@@ -255,7 +251,7 @@ class bgerp_FileInfo extends core_Manager
         
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'bgerp_FileInfo::afterGetContentFrom',
+            'callBack' => 'fileman_Info::afterGetContentFrom',
             'fileInfoId' => $fileInfoId,
         	'asynch' => FALSE,
         );
@@ -284,7 +280,7 @@ class bgerp_FileInfo extends core_Manager
         $rec = new stdClass();
         $rec->id = $script->fileInfoId;
         $rec->content = $text;
-        bgerp_FileInfo::save($rec);
+        fileman_Info::save($rec);
         
         // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
         // и записа от таблицата fconv_Process
@@ -296,22 +292,19 @@ class bgerp_FileInfo extends core_Manager
      * Функиция за определяне на начина за конвертиране към JPG
      * 
      * @param fileHnd $fh - Манипулатор на файла
-     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
      * @param string $ext - Разширението на файла
      */
     static function convertFileToJpg($fh, $fileInfoId, $ext)
     {
         // Ако типа на разширението е pdf
-        if (in_array($ext, array('pdf'))) {
+        if ($ext == 'pdf') {
             
             // Стартираме конвертирането от PDF в JPG формат
             static::convertPdfToJpg($fh, $fileInfoId);
-        }
-        
-        // 
-        if (in_array($ext, array('odt', 'rtf'))) {
+        } else {
             
-            // Стартираме конвертирането от PDF в JPG формат
+            // Стартираме конвертирането от DOC в JPG формат
             static::convertDocToJpg($fh, $fileInfoId);
         }
     }    
@@ -321,13 +314,13 @@ class bgerp_FileInfo extends core_Manager
      * Конвертира PDF файл, в JPG формат
      * 
      * @param fileHnd $fh - Манипулатор на файла
-     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
      */
     static function convertPdfToJpg($fh, $fileInfoId)
     {
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'bgerp_FileInfo::afterConvertFileToJpg',
+            'callBack' => 'fileman_Info::afterConvertFileToJpg',
             'fileInfoId' => $fileInfoId,
         	'asynch' => FALSE,
         );
@@ -341,13 +334,13 @@ class bgerp_FileInfo extends core_Manager
      * Конвертира DOC файл, в JPG формат
      * 
      * @param fileHnd $fh - Манипулатор на файла
-     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
      */
     static function convertDocToJpg($fh, $fileInfoId)
     {
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'bgerp_FileInfo::afterConvertDocToPdf',
+            'callBack' => 'fileman_Info::afterConvertDocToPdf',
             'fileInfoId' => $fileInfoId,
         	'asynch' => FALSE,
         ); 
@@ -377,7 +370,7 @@ class bgerp_FileInfo extends core_Manager
     {
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'bgerp_FileInfo::afterConvertFileToJpg',
+            'callBack' => 'fileman_Info::afterConvertFileToJpg',
             'fileInfoId' => $script->fileInfoId,
         	'asynch' => FALSE,
         );
@@ -447,12 +440,12 @@ class bgerp_FileInfo extends core_Manager
         // Ако има генерирани файлове, които са качени успешно
         if (count($fileHndArr)) {
             
-            // Сериализираме масива и обновяваме данните за записа в bgerp_FileInfo
+            // Сериализираме масива и обновяваме данните за записа в fileman_Info
             $rec = new stdClass();
             $rec->id = $script->fileInfoId;
             $rec->images = serialize($fileHndArr);
             
-            bgerp_FileInfo::save($rec);    
+            fileman_Info::save($rec);    
         }
         
         // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
@@ -465,7 +458,7 @@ class bgerp_FileInfo extends core_Manager
      * Намира баркодовете във подадените файлове
      * 
      * @param mixed $fh - Манипулатор на файла или масив от манипулатори на файла
-     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
      * 
      * @access protected
      */
@@ -505,8 +498,8 @@ class bgerp_FileInfo extends core_Manager
 //                // Ако не може да се намери cid, прескачаме
 //                if (!$cid) continue;
 //
-//                // Вземаме записа за оригиналния файла в bgerp_FileInfo таблицата
-//                $fRec = bgerp_FileInfo::fetch($fileInfoId);
+//                // Вземаме записа за оригиналния файла в fileman_Info таблицата
+//                $fRec = fileman_Info::fetch($fileInfoId);
 //                
 //                // Ако има открито съдържание на файла
 //                if (str::trim($fRec->content)) continue;
@@ -525,12 +518,12 @@ class bgerp_FileInfo extends core_Manager
         // Ако има открити баркодове
         if (count($barcodesArr)) {
             
-            // Сериализираме масива и обновяваме данните за записа в bgerp_FileInfo
+            // Сериализираме масива и обновяваме данните за записа в fileman_Info
             $rec = new stdClass();
             $rec->id = $fileInfoId;
             $rec->barcodes = serialize($barcodesArr);
             
-            bgerp_FileInfo::save($rec);    
+            fileman_Info::save($rec);    
         }
     }
 
@@ -539,7 +532,7 @@ class bgerp_FileInfo extends core_Manager
      * Функиция за определяне на мета информацията за файла
      * 
      * @param fileHnd $fh - Манипулатор на файла
-     * @param integer $fileInfoId - id' то на записа от bgerp_FileInfo, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
      * @param string $ext - Разширението на файла
      */
     static function findMetaInfo($fh, $fileInfoId, $ext)
@@ -560,7 +553,7 @@ class bgerp_FileInfo extends core_Manager
         $rec = new stdClass();
         $rec->id = $fileInfoId;
         $rec->metaInfo = serialize($metaInfo);
-        bgerp_FileInfo::save($rec);
+        fileman_Info::save($rec);
     }
     
     
@@ -570,23 +563,26 @@ class bgerp_FileInfo extends core_Manager
     static function canReadBarcodes($fileInfoId)
     {
         // Вземаме записа за оригиналния файла
-        $fRec = bgerp_FileInfo::fetch($fileInfoId);
+        $fRec = fileman_Info::fetch($fileInfoId);
         
         // Вземаме размера на файла
         $dRec = fileman_Data::fetch($fRec->dataId);
         $fLen = $dRec->fileLen;
         
+        // Вземаме конфигурационните константи
+        $conf = core_Packs::getConfig('fileman');
+        
         // По голям или равен на 15kB
         // По малък или равен на 1mB
         // Проверяваме дали е в допустимите граници
-        if (($fLen >= FILEINFO_MIN_FILE_LEN_BARCODE) && (($fLen <= FILEINFO_MAX_FILE_LEN_BARCODE))) {
+        if (($fLen >= $conf->FILEINFO_MIN_FILE_LEN_BARCODE) && (($fLen <= $conf->FILEINFO_MAX_FILE_LEN_BARCODE))) {
             
             return TRUE;
         }
         
         return FALSE;
     }
-
+    
     
 	/**
      * Изпълнява се след създаването на модела
