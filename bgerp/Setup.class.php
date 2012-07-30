@@ -57,15 +57,12 @@ class bgerp_Setup {
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        
            
-           'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)'),
+       'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)'),
+
+       'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)'),
     
-         
-           'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)'),
-    
-       
-        );
+    );
     
     
     /**
@@ -78,7 +75,6 @@ class bgerp_Setup {
             'bgerp_Portal',
             'bgerp_Notifications',
             'bgerp_Recently',
-            'bgerp_FileInfo',
         );
         
         $instances = array();
