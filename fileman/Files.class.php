@@ -184,7 +184,7 @@ class fileman_Files extends core_Master
         
         $bucketId = $Buckets->fetchByName($bucket);
         
-        if($dataId = $this->Data->absorbFile($osFile, FALSE)) {
+        if($dataId = $this->Data->absorbFile($path, FALSE)) {
             if($fh = self::fetchField(array("#name = '[#1#]' AND #bucketId = {$bucketId} AND #dataId = {$dataId}", $fname), 'fileHnd' ) ) {
                 return $fh;
             }
@@ -567,9 +567,8 @@ class fileman_Files extends core_Master
 
         expect($rec->dataId, 'Няма данни за файла');
         
-        // TODO Трябва да се промени
-        // vendors не бива да знае за bgerp'a
-        $iRec = bgerp_FileInfo::getFileInfo($rec);
+        // Информация за файла
+        $iRec = fileman_Info::getFileInfo($rec);
 
         // Ако има активен линк за сваляне
         if (($dRec = fileman_Download::fetch("#fileId = {$rec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
