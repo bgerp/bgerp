@@ -184,6 +184,12 @@ class fileman_Files extends core_Master
         
         $bucketId = $Buckets->fetchByName($bucket);
         
+        if($dataId = $this->Data->absorbFile($osFile, FALSE)) {
+            if($fh = self::fetchField(array("#name = '[#1#]' AND #bucketId = {$bucketId} AND #dataId = {$dataId}", $fname), 'fileHnd' ) ) {
+                return $fh;
+            }
+        }        
+        
         $fh = $this->createDraftFile($fname, $bucketId);
         
         $this->setContent($fh, $path);
@@ -205,6 +211,14 @@ class fileman_Files extends core_Master
         
         $bucketId = $Buckets->fetchByName($bucket);
         
+        if($dataId = $this->Data->absorbString($string, FALSE)) {
+
+            if($fh = self::fetchField(array("#name = '[#1#]' AND #bucketId = {$bucketId} AND #dataId = {$dataId}", $fname), 'fileHnd' ) ) {
+
+                return $fh;
+            }
+        }        
+
         $fh = $me->createDraftFile($fname, $bucketId);
         
         $me->setContentFromString($fh, $string);
@@ -297,7 +311,7 @@ class fileman_Files extends core_Master
             
             $fn = $firstName . '_' . $i . $ext;
         }
-        
+
         return $fn;
     }
     

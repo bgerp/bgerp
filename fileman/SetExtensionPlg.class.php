@@ -53,8 +53,10 @@ class fileman_SetExtensionPlg extends core_Plugin
         $fileMimeType = mb_substr($fileType, $spacePos);
         
         $newName = fileman_mimes::addCorrectFileExt($name, $fileMimeType);
-                
-        $newName = $mvc->getPossibleName($newName, $bucket);
+        
+        if($newName != $name) {
+            $newName = $mvc->getPossibleName($newName, $bucket);
+        }
 
         $rec->name = $newName;
     }

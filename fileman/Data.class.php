@@ -77,20 +77,20 @@ class fileman_Data extends core_Manager {
      * Абсорбира данните от указания файл и
      * и връща ИД-то на съхранения файл
      */
-    function absorbFile($file)
+    static function absorbFile($file, $create = TRUE)
     {
         $rec = new stdClass();
         $rec->fileLen = filesize($file);
         $rec->md5 = md5_file($file);
         
-        $rec->id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
-        if(!$rec->id) {
+        if(!$rec->id && $create) {
             $path = self::getFilePath($rec);
             
             if(@copy($file, $path)) {
                 $rec->links = 0;
-                $status = $this->save($rec);
+                $status = static::save($rec);
             } else {
                 error("Не може да бъде копиран файла", array($file, $dir));
             }
@@ -104,22 +104,22 @@ class fileman_Data extends core_Manager {
      * Абсорбира данните от от входния стринг и
      * връща ИД-то на съхранения файл
      */
-    function absorbString($string)
+    static function absorbString($string, $create = TRUE)
     {
         $rec = new stdClass();
         $rec->fileLen = strlen($string);
         $rec->md5 = md5($string);
         
-        $rec->id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
-        if(!$rec->id) {
+        if(!$rec->id && $create) {
             
             $path = self::getFilePath($rec);
             
             expect(FALSE !== @file_put_contents($path, $string));
             
             $rec->links = 0;
-            $status = $this->save($rec);
+            $status = static::save($rec);
         }
         
         return $rec->id;
