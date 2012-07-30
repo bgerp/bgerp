@@ -26,6 +26,21 @@ class type_Emails extends type_Varchar {
     
     
     /**
+     * Превръща вербална стойност на списък имейли към вътрешно представяне
+     */
+    function fromVerbal($value)
+    {
+        $value = trim($value);
+        
+        $value = type_Email::replaceEscaped($value);
+
+        if(empty($value)) return NULL;
+  
+        return $value;
+    }
+
+
+    /**
      * Проверява зададената стойност дали е допустима за този тип.
      */
     function isValid($value)

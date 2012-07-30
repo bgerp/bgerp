@@ -42,23 +42,12 @@ class type_Email extends type_Varchar {
      */
     function fromVerbal($value)
     {
-        //        $value = strtolower(trim($value));
         $value = trim($value);
         
+        $value = static::replaceEscaped($value);
+
         if(empty($value)) return NULL;
-        
-        $from = array('<at>', '[at]', '(at)', '{at}', ' at ', ' <at> ',
-            ' [at] ', ' (at) ', ' {at} ');
-        $to = array('@', '@', '@', '@', '@', '@', '@', '@', '@');
-        
-        $value = str_replace($from, $to, $value);
-        
-        $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
-            ' <dot> ', ' [dot] ', ' (dot) ', ' {dot} ');
-        $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
-        
-        $value = str_replace($from, $to, $value);
-        
+                
         if(!$this->isValidEmail($value)) {
             $this->error = 'Некоректен имейл';
             
@@ -67,6 +56,28 @@ class type_Email extends type_Varchar {
             
             return $value;
         }
+    }
+
+
+
+    /**
+     * Замества низове, които се използват за скриване на ймейл адресите от ботовете
+     */
+    static function replaceEscaped($value)
+    {
+        $from = array('<at>', '[at]', '(at)', '{at}', ' at ', ' <at> ',
+            ' [at] ', ' (at) ', ' {at} ');
+        $to = array('@', '@', '@', '@', '@', '@', '@', '@', '@');
+        
+        $value = str_ireplace($from, $to, $value);
+        
+        $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
+            ' <dot> ', ' [dot] ', ' (dot) ', ' {dot} ');
+        $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
+        
+        $value = str_ireplace($from, $to, $value);
+
+        return $value;
     }
     
     
