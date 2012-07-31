@@ -97,7 +97,7 @@ class oembed_Plugin extends core_Plugin
     );
     
     
-    public static function on_AfterGetLinkByUrl($host, &$htmlString, $url)
+    public static function on_AfterExternalUrl($host, &$htmlString, $url)
     {
         if (($html = static::getEmbedHtml($url)) !== FALSE) {
             $htmlString = $html;
