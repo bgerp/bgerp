@@ -506,7 +506,7 @@ class type_Richtext extends type_Text {
             $url = 'http://' . $url;
         }
 
-        $url = core_Url::escape($url);
+        $result = core_Url::escape($url);
         
         if(!Mode::is('text', 'plain')) {
             if(core_Url::isLocal($url)) {
