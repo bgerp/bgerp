@@ -1,496 +1,353 @@
 1,1,,"Нова година","holiday","Честита Нова [#year#] Година, [#name#]!
-Други държави:Армения, Аржентина, Антигуа и Барбуда, Ангола, Андора, Австрия, Австралия, Азербайджан, Бахамските острови, Барбадос, Беларус, Белгия, Белиз, Бенин, Бермудите, Боливия, Босна и Херцеговина, Ботсуана, Бразилия, Буркина Фасо, Бурунди, Камбоджа, Камерун, Канада, Кабо Верде, Чад, Чили, Китайската народна република, Хонконг, Макао, Република Китай (Тайван), Централноафриканската република, Колумбия, Демократична република Конго, Република Конго, островите Кук, Коста Рика, Кот д'Ивоар, Хърватия, Кипър, Чехия, Дания, Джибути, Доминиканската република, Еквадор, Еритрея, Естония, Финландия, Франция, Гамбия, Грузия, Германия, Гана, Гърция, Гренландия, Гватемала, Гвиана, Хондурас, Унгария, Исландия, Индонезия, Република Ирландия, Италия, Ямайка, Япония, Йордания, Казахстан, Кения, Кирибати, Северна Корея, Южна Корея, Киргизстан, Латвия, Ливан, Либерия, Лихтенщайн, Литва, Люксембург, Македония, Мадагаскар, Малайзия, Сабах, Мали, Малта, Маршаловите острови, Мавриций, Мексико, Федерални щати Микронезия, Молдова, Монголия, Черна гора, Мозамбик, Намибия, Науру, Непал, Холандия, Нова Зеландия, Никарагуа, Нигер, Нигерия, Норвегия, Палестина, Палау, Панама, Папуа Нова Гвинея, Парагвай, Перу, Филипини, Полша, Португалия, Зимбабве, Ромъния, Русия, Руанда, Самоа, Сърбия, Словения, Соломоновите острови, Сомалия, Южна Африка, Испания, Суринам, Швеция, Швейцария, Сирия, Сао Томе и Принсипи, Таджикистан, Танзания, Тайланд, Тринидад и Тобаго, Турция, Туркменистан, Тувалу, Уганда, Украйна, Обединеното кралство, САЩ, Уругвай, Узбекистан, Венецуела, Виетнам, Замбия, Зимбабве"
+Други държави:Армения, Аржентина, Антигуа и Барбуда, Ангола, Андора, Австрия, Австралия, Азербайджан, Бахамските острови, Барбадос, Беларус, Белгия, Белиз, Бенин, Бермудите, Боливия, Босна и Херцеговина, Ботсуана, Бразилия, Буркина Фасо, Бурунди, Камбоджа, Камерун, Канада, Кабо Верде, Чад, Чили, Китайската народна република, Хонконг, Макао, Република Китай (Тайван), Централноафриканската република, Колумбия, Демократична република Конго, Република Конго, островите Кук, Коста Рика, Кот д'Ивоар, Хърватия, Кипър, Чехия, Дания, Джибути, Доминиканската република, Еквадор, Еритрея, Естония, Финландия, Франция, Гамбия, Грузия, Германия, Гана, Гърция, Гренландия, Гватемала, Гвиана, Хондурас, Унгария, Исландия, Индонезия, Република Ирландия, Италия, Ямайка, Япония, Йордания, Казахстан, Кения, Кирибати, Северна Корея, Южна Корея, Киргизстан, Латвия, Ливан, Либерия, Лихтенщайн, Литва, Люксембург, Македония, Мадагаскар, Малайзия, Сабах, Мали, Малта, Маршаловите острови, Мавриций, Мексико, Федерални щати Микронезия, Молдова, Монголия, Черна гора, Мозамбик, Намибия, Науру, Непал, Холандия, Нова Зеландия, Никарагуа, Нигер, Нигерия, Норвегия, Палестина, Палау, Панама, Папуа Нова Гвинея, Парагвай, Перу, Филипини, Полша, Португалия, Зимбабве, Ромъния, Русия, Руанда, Самоа, Сърбия, Словения, Соломоновите острови, Сомалия, Южна Африка, Испания, Суринам, Швеция, Швейцария, Сирия, Сао Томе и Принсипи, Таджикистан, Танзания, Тайланд, Тринидад и Тобаго, Турция, Туркменистан, Тувалу, Уганда, Украйна, Обединеното кралство, САЩ, Уругвай, Узбекистан, Венецуела, Виетнам, Замбия, Зимбабве",
 2,1,,"Втори ден на Нова Година","holiday","Много Здраве, Щастие и Успехи през [#year#] година, [#name#]!
 
 Други държави: 
-Азербайджан"
-3,3,,"Деня на Освобождението","holiday","Поздрави за Деня на Освобождението на България, [#name#]!"
+Азербайджан",
+3,3,,"Деня на Освобождението","holiday","Поздрави за Деня на Освобождението на България, [#name#]!",
 8,3,,"Международен ден на жената","holiday","Честит 8-ми Март, [#name#]!
 
-Други държави: Ангола, Азербайджан"
+Други държави: Ангола, Азербайджан",
 1,5,,"Деня на Труда","holiday","Поздрави за Деня на Труда, [#name#]!
-Други държави: Афганистан, Алжир, Ангола, Аржентина, Армения, Австрия, Бангладеш, Беларус, Белгия, Белиз, Бенин, Боливия, Босна и Херцеговина, Ботсуана, Бразилия, Буркина Фасо, Бирма, Бурунди, Камбоджа, Камерун, Кабо Верде, Чад, Чили, Народна република Китай, Хонконг, Макао, Централноафриканската република, Колумбия, Демократична република Конго, Република Конго, Коста Рика, Кот д'Ивоар, Хърватия, Куба, Кипър, Северен Кипър, Чехия, Джибути, Доминиканската република, Еквадор, Египет, Етиопия, Франция, Гамбия, Германия, Гана, Гърция, Гватемала, Гвиана, Хаити, Хондурас, Унгария, Исландия, Индия, Ирак, Италия, Кения, Северна Корея, Киргизстан, Латвия, Ливан, Ливан, Люксембург, Македония, Мадагаскар, Малайзия, Мали, Мавриций, Мексико, Молдова, Черна гора, Мароко, Мозамбик, Намибия, Никарагуа, Нигер, Нигерия, Норвегия, Палестина, Пакистан, Панама, Парагвай, Перу, Филипини, Полша, Португалия, Румъния, Руанда, Сърбия, Сингапур, Словакия, Словения, Сомалия, Сомалиленд, Южна Африка, Испания, Суринам, Швеция, Швейцария, Сирия, Сао Томе и Принсипи, Таджикистан, Танзания, Турция, Уганда, Украйна, Уругвай, Венецуела, Виетнам, Замбия, Зимбабве"
-6,5,,"Гергьовден","holiday","Поздрави за Деня на Храбростта, [#name#]!"
-24,5,,"Деня на Славянската Писменост","holiday","Поздрави за Деня на Славянската Писменост, [#name#]!"
-6,9,,"Деня на Съединението","holiday","Поздрави за Деня на Съединението, [#name#]!"
-22,9,,"Деня на Независимостта","holiday","Поздрави за Деня на Независимостта, [#name#]!"
-1,11,,"Деня на народните будители","holiday","Поздрави за Деня на Народните Будители, [#name#]!"
-24,12,,"Бъдни вечер","holiday","Бъдни вечер наближава, чудеса на всеки подарява, [#name#]!"
+Други държави: Афганистан, Алжир, Ангола, Аржентина, Армения, Австрия, Бангладеш, Беларус, Белгия, Белиз, Бенин, Боливия, Босна и Херцеговина, Ботсуана, Бразилия, Буркина Фасо, Бирма, Бурунди, Камбоджа, Камерун, Кабо Верде, Чад, Чили, Народна република Китай, Хонконг, Макао, Централноафриканската република, Колумбия, Демократична република Конго, Република Конго, Коста Рика, Кот д'Ивоар, Хърватия, Куба, Кипър, Северен Кипър, Чехия, Джибути, Доминиканската република, Еквадор, Египет, Етиопия, Франция, Гамбия, Германия, Гана, Гърция, Гватемала, Гвиана, Хаити, Хондурас, Унгария, Исландия, Индия, Ирак, Италия, Кения, Северна Корея, Киргизстан, Латвия, Ливан, Ливан, Люксембург, Македония, Мадагаскар, Малайзия, Мали, Мавриций, Мексико, Молдова, Черна гора, Мароко, Мозамбик, Намибия, Никарагуа, Нигер, Нигерия, Норвегия, Палестина, Пакистан, Панама, Парагвай, Перу, Филипини, Полша, Португалия, Румъния, Руанда, Сърбия, Сингапур, Словакия, Словения, Сомалия, Сомалиленд, Южна Африка, Испания, Суринам, Швеция, Швейцария, Сирия, Сао Томе и Принсипи, Таджикистан, Танзания, Турция, Уганда, Украйна, Уругвай, Венецуела, Виетнам, Замбия, Зимбабве",
+6,5,,"Гергьовден","holiday","Поздрави за Деня на Храбростта, [#name#]! , Св. вмчк Георги Победоносец",
+24,5,,"Деня на Славянската Писменост","holiday","Поздрави за Деня на Славянската Писменост, [#name#]!",
+6,9,,"Деня на Съединението","holiday","Поздрави за Деня на Съединението, [#name#]!",
+22,9,,"Деня на Независимостта","holiday","Поздрави за Деня на Независимостта, [#name#]!",
+1,11,,"Деня на народните будители","holiday","Поздрави за Деня на Народните Будители, [#name#]!",
+24,12,,"Бъдни вечер","holiday","Бъдни вечер наближава, чудеса на всеки подарява, [#name#]!",
 25,12,,"Коледа","holiday","Честито Рождество Христово, [#name#]!
-Други държави: Аржентина, Андора, Ангола, Антигуа  и Барбуда, Австралия, Австрия, Бахамските острови"
-26,12,,"Втори ден на Коледа","holiday","Честита Коледа, [#name#]!"
--2,"EST",,"Велики петък","holiday",
--1,"EST",,"Велика събота","holiday",
-0,"EST",,"Великден","holiday","Христос Воскресе, [#name#]"
-1,1,,"Васильовден","nameday","vasil, vasilka, veselin, veselina, vesela, vesel, vesela, veselin, veselina, veselka, vesi, veska, vesko, veso, vessela, vesselin, vesselina, vesso, vessy, vesy, vasi, vasia, vasil, vasilena, vasilka, vaska, vasko, vaso, vassil, vasya"
-2,1,,"Имен ден","nameday","goran, goritsa, goriza, silvestar, silvester, sylvester, silvia, silvya, silva, silvana, silvina, silveto, silvi, silvija, silvina, silviq, silviya, ognian, ognyan, ogi, ogy, ognyana, ogniana, ognjan, ognqn, ognyan, plam, plama, plame, plamen, plamena, plamenka, plamenna, plami, plamka, plamcho, plamencho, serafim"
-4,1,,"Имен ден","nameday","tihomir, tisho, tihomira, tihomi, tixomir, tixomira"
-6,1,,"Имен ден","nameday","jordan, jordanka, yordan, yordanka, iordan, iordanka, dancho, dan4o, danka, bogoljub, bogoljuba, bojan, boyan, bojana, boyana, bozhan, bozhana, dana, bojan, bogomil, bojana, bogdan, bogdana, najden, naiden, nayden, teodosi, teodosii, teodosiy"
-7,1,,"Св. Йоан Кръстител (Ивановден)","nameday","ivan, ivana, ivancho, ivanela, ivanina, ivanka, vani, vania, vanina, vanio, vanja, vanka, vankata, vanko, vanq, vanya, vanyo, jan, jana, jane, janet, janeta, jani, janko, ioan, ioana, ioanna, yoan, yoana, yoanna, iovka, iovko, yovka, yovko, jovka, jovko, ivanichka, ivayla, ivaylo, ivailo, ivajlo, ivalin, ivalina, ivam, ivalyn, ivalyna, ivelin, ivelina, ivo, joncho, yoncho, ioncho, jonka, yonka, ionka, ionka, jonka, yonka, jonko, ionko, yonko, yoto, joto"
-11,1,,"Преп. Теодосий Велики","nameday","bogdan, bogdana, bogomila, teodosi, teodosyi, teodosii"
-12,1,,"Света Татяна","nameday","tatjana, tatyana, tatiana, tania, tanq, tatqna"
-14,1,,"Преп. Отци,избити в Синай и Раита. Св.Нина (Отдание на Богоявление)","nameday","adam"
-17,1,,"Преп. Антоний Велики (Антоновден)","nameday","anton, antoni, antonia, antonina, antonio, antoniq, antoniy, antoniya, antony, toncho, toni, tonia, tonislav, tonka, tonko, tony, tonya, andon, doncho, donka, donika"
-18,1,,"Атанасовден","nameday","atanas, atanaska, atnas, nasco, nasi, naska, nasko, naso, tinka, nacho, tinka, tinko, tanio, tanjo, tanyo"
-20,1,,"Св. Евтимий, патриарх Търновски","nameday","evtim, eftim, evtimii"
-21,1,,"Преп.Максим Изповедник; Мчк.Неофит","nameday","agnesa, agnes, maskim, max, maxi, maxim, valera, valeri, valeria, valeriq, valeriy, valeriya, valery"
-22,1,,"Имен ден","nameday","timotei, timotey"
-23,1,,"Имен ден","nameday","kristofar, hristofor, xristofor, hristofora, hrristofer, kristofera"
-24,1,,"Имен ден","nameday","aksenia, aksinia, ksenia, oksana"
-25,1,,"Св. Григорий Богослов, архиепископ на Цариград","nameday","grigo, grigor, grigorena"
-26,1,,"Имен ден","nameday","jivko, zhivko, jivka, zhivka, zoya, zoja, zoia"
-1,2,,"Имен ден","nameday","trifon, trifonka, lozan, lozana, lozka, triffon"
-3,2,,"Имен ден","nameday","mona, simo, simeon, moni, mony, simeona, simon, simona"
-4,2,,"Имен ден","nameday","jeko, zheko, zhelyazko, zhelqzko, zhechka, zhechko, zheko, jechka, jechko, jelyazko, jelyazko"
-5,2,,"Имен ден","nameday","agata, dobrinka"
-6,2,,"Имен ден","nameday","doroteya, doroteia, doroteq, svetla, svetlozar, svetlozara, fotij, fotyi, ognian, ognyan, ogi, ogy, ognyana, ogniana, ognjan, ognqn, ognyan, plam, plama, plame, plamen, plamena, plamenka, plamenna, plami, plamka, plamcho, plamencho"
-9,2,,"Имен ден","nameday","hristina, xristina"
-10,2,,"Имен ден","nameday","haralambi, haralampi, xaralambi, xaralampi, lambi, valentin, valentina, valia, valq"
-13,2,,"Имен ден","nameday","evlogi, zoq, zoya, zoia"
-14,2,,"Св. Валентин","nameday","valenti, valentin, valentina, valentino"
-21,2,,"Имен ден","nameday","evstati, ewstati, evstatija, evstatya, evstatiq"
-1,3,,"Имен ден","nameday","mart, marti, martina, martini, marto, evdokia"
-4,3,,"Имен ден","nameday","gerasim, gera, gercho"
-6,3,,"Имен ден","nameday","krasi, krasimir, krasimi, krasimira"
-9,3,,"Имен ден","nameday","mladen, mladenka, mladena"
-10,3,,"Имен ден","nameday","galia, galin, galina, genoveva"
-13,3,,"Имен ден","nameday","nikifor"
-20,3,,"Имен ден","nameday","svetlozar, svetlozara"
-21,3,,"Имен ден","nameday","jakov, iakov, yakov"
-23,3,,"Имен ден","nameday","lidia, lidija, lidiya"
-24,3,,"Имен ден","nameday","zahari, zaharin, zaharina, hari, xari, zaxari, zaxarin, zaxarina"
-25,3,,"Благовещение","nameday","blago, blagovest, blagovesta, blagoi, blagoj, blagoy, evangelina, vangel, mariana, marijana, marian, marijan"
-26,3,,"Имен ден","nameday","gavrail, gavril, gabriela"
-28,3,,"Имен ден","nameday","albena, beni, boyan, boian, boycho, boicho, boyana, boiana, boyko, boiko, boika, boyka, bojka, boncho"
-6,4,,"Имен ден","nameday","strahil, straxil, ctrahil, ctraxil"
-14,4,,"Имен ден","nameday","martin, martina"
-18,4,,"Имен ден","nameday","viktor, viktoria, victor, victoria"
-21,4,,"Имен ден","nameday","zhelio, jelio, jelyo, zhelyo"
-25,4,,"Имен ден","nameday","mark, marko"
-28,4,,"Имен ден","nameday","vitali, vitalyi, vitan"
-1,5,,"Имен ден","nameday","maia, maya, ermena, ermelina, ermenko, tamara"
-2,5,,"Имен ден","nameday","boris, borisla, borislav, borislava, boryana, boriana, borian"
-5,5,,"Имен ден","nameday","iren, irin, irina, irena, mira, miroslav, miroslava"
-6,5,,"Гергьовден","nameday","georgi, gergana, ginka, galia, gancho, galin, galina, genko, genoveva, gergin, gergina, giuro, zhordz, zhoro, joro"
-9,5,,"Имен ден","nameday","hristofor, christofor"
-11,5,,"Имен ден","nameday","kiril, metodi, metodii, metody"
-17,5,,"Имен ден","nameday","alexii, alexy"
-21,5,,"Св. Св. Константин и Елена","nameday","konstantin, koicho, koycho, kosta, kostadin, kostadina, dinka, dinko, elena, eli, elin, elka, ilona, kuncho, lenko, stamen, stoil, stoyan, stoian, stoyanka, traiko"
-26,5,,"Имен ден","nameday","karp, karpo"
-30,5,,"Имен ден","nameday","emil, emilia, emilian, emiliana"
-4,6,,"Имен ден","nameday","marta"
-7,6,,"Имен ден","nameday","valeri, valerii, valeria"
-10,6,,"Имен ден","nameday","antonina"
-15,6,,"Имен ден","nameday","avgustin, augustin, vitan, vitomir"
-20,6,,"Имен ден","nameday","biser, bisera, naum"
-21,6,,"Имен ден","nameday","iavor, iasen"
-24,6,,"Еньовден","nameday","enio, iasen, encho, enjo, yani, iani, ianislav"
-28,6,,"Имен ден","nameday","david"
-29,6,,"Имен ден","nameday","petar, petra, pavlin, pavlina, petrana, peco, petso, petia, petja, polina, kamen, pavel, peio, penka, pencho"
-30,6,,"Събор на Светите 12 апостоли","nameday","apostol"
-1,7,,"Имен ден","nameday","kozma, kuzman, dame, damian, krasimir, krasimira, krasina"
-3,7,,"Имен ден","nameday","anatoli, anatolii, anatoliy, anatoly"
-6,7,,"Имен ден","nameday","avakum"
-7,7,,"Имен ден","nameday","nedialko, nedyalko, nedialka, nedyalka, neda, delcho, deljo, delio, nedelcho, dedelia, nedelya, neshka, ianka, yanka, yanko, ianko"
-11,7,,"Имен ден","nameday","oleg, olga, olia, olya"
-15,7,,"Имен ден","nameday","vlada, vladimira, vladimir, vitomir, gospodin, gospodinka"
-16,7,,"Имен ден","nameday","juli, julia, julya, julka, iulia, iuliana, iulian, julian, julianka, youli, youlianka, yulian, iuli, iulia, iuli, iulian, iuliana, djuli, djulia, djuliana, juli, julia, julian, juliana, juliane, julie"
-17,7,,"Имен ден","nameday","marin, marina, marincho, marinka"
-20,7,,"Имен ден","nameday","ilia, iliya, ilian, ilyan, iliana, iliyana, ilko, ilka, lilo, ilianka"
-22,7,,"Имен ден","nameday","magda, magdalena, magdalen, magdalina, magi, magie, magito, magity, magy, manda, meglena, miglena"
-25,7,,"Успение на Св. Анна","nameday","ana, ani, anitsa, anna"
-26,7,,"Имен ден","nameday","paraskev, paraskeva, parashkev, parashkeva"
-29,7,,"Имен ден","nameday","goran, kalin"
-26,8,,"Мчц-и Адриан и Наталия","nameday","adrian, adriana"
-30,8,,"Св. Александър, Йоан и Павел-патриарси Цариградски","nameday","aleko,alexander,aleksandar,alexandra,aleksandra"
-14,9,,"Кръстовден","nameday","Кръстьо, Кръстина, Кръстил, Кръстила, Кръстилена, Кръстена, Кръстан, Кръстана"
-16,9,,"Св. Людмила Чешка","nameday","Людмил, Людмила"
-17,9,,"Вяра, Надежда и Любов","nameday","Вяра, Надежда, Любов, София, Софица, Софка, Софиян, Софияна, Люба, Любомир, Любчо, Любомил, Любослав, Любена, Верина, Верослав, Верослава, Нада, Надя, Надка, Надко, Надина"
-1,10,,"Покров Богородичен","nameday","Анани, Анания"
-6,10,,"св. Тома","nameday","Тома, Томислав, Томислава"
-9,10,,"Св. Ап.Иаков Алфеев. Преп. Андроник и Атанасия","nameday","avram"
-14,10,,"Петковден","nameday","Петко, Петка, Петкан, Петра, Петрана, Петрина, Петрия, Петричка, Петкана, Пенко, Пенка, Параскев, Параскева, Парашкев, Парашкева, Паруш, Кева"
-30,11,,"Св. Ап. Андрей Първозвани (Андреевден)","nameday","andrej, andrei, andrey"
-8,11,,"Събор на Св. Арх.Михаил; (Архангеловден)","nameday","angel, angelina, radka, radko"
-6,12,,"Никулден","nameday","Никола, Николай, Николина, Ненка, Нина, Натали"
-27,12,,"Стефановден","nameday","stanimir, stanimira,Стефан, Стефана, Стефания, Стефи, Фани, Венцислав, Венцислава, Запрян, Стамен, Стамена, Станимир, Станимира, Стоил, Стоилка, Станка, Станчо, Стоян, Стоянка, Таня"
-2,2,,"Имен ден","nameday","Ванеса, Момчил, Радост, Радостин, Радостина, Драго, Драгомир, Ралин, Радина, Радослав, Радислава, Средко, Средка, Сретен, Сретен (Петльовден по стар стил)"
-15,3,,"Имен ден","nameday","Божан, Божил, Божко, Емануил, Манол, Манчо, Тотьо"
-16,3,,"ЖельоВильов Ден","nameday","Велизар, Желяз"
-17,3,,"Св. преподобни Алексий","nameday","Алекси"
-19,3,,"Имен ден","nameday","Дария, Найден"
-29,4,,"Имен ден","nameday","Пенчо, Пенка, Пеньо, Пенко"
-12,5,,"Имен ден","nameday","Герана, Герасим, Герда, Герман, Геро, Джерман, Искра, Искрен"
-24,7,,"Св. великомъченица Христина","nameday","Христина"
-27,7,,"Имен ден","nameday","Панчо, Панка, Пантелей"
-8,8,,"Имен ден","nameday","Емил, Емилия"
-10,8,,"Имен ден","nameday","Ивайло"
-15,8,,"Успение Богородично, Голяма Богородица","nameday","Мария, Мара, Марийка, Мима, Мими, Марио, Панайот и др."
-20,8,,"св. Самуил","nameday","Самуил"
-23,8,,"Имен ден","nameday","Вълко, Витан"
-29,8,,"Св. Анастасий Струмишки","nameday","Анастас, Анастасия и др."
-31,8,,"Имен ден","nameday","Гено, Гена, Генчо, Генади"
-1,9,,"Симеоновден, св. Симеон Стълпник","nameday","Симеон"
-5,9,,"Св. пророк Захарий и праведна Елисавета","nameday","Захари и Елисавета, Зарко, Светлозар, Светлозара, Ели , Изабел и др."
-20,9,,"Имен ден","nameday","Евстати"
-22,9,,"Имен ден","nameday","Гълъбин(а)"
-18,10,,"Св. Злата Мъгленска","nameday","Злата, Златка, Златина, Златинка, Златко, Златан, Златомир, Златозария, Лука, Лукан и др."
-27,10,,"Имен ден","nameday","Нестор"
-11,11,,"Св. мъченици Мина, Виктор и Викентий","nameday","Виктор, Виктория, Мина, Милена, Минка, Минчо и др. "
-14,11,,"Коледни заговезни","nameday","Филип, Управда, Юстиниан"
-16,11,,"Имен ден","nameday","Матей"
-23,11,,"Православен","orthodox","Св. Амфилохий, епископ Иконийски, Св. Григорий, епископ Акрагантийски (V-VI), Св. благоверен княз Александър Невски"
-24,11,,"Св. великомъченица Екатерина","nameday","Екатерина, Катерина, Катя, Катрин и др. "
-26,11,,"Имен ден","nameday","Стилиян, Стелян, Стела, Стилян и др."
-4,12,,"Св. великомъченица Варвара","nameday","Варвара, Барбара и др."
-5,12,,"Св. преподобни Сава Освещени","nameday","Сава, Савина, Савка, Савчо, Светослав, Владислав(а),Станислав, Станислава, Венцислав(а), Десислава, Слав(чо), Съби, Сабина, Събина, Слави, Слава, Славка и др."
-9,12,,"зачатие на св. Анна – баба на Исус Христос","nameday","Ана, Анна, Анка, Анета, Анелия и др."
-15,12,,"Имен ден","nameday","Свобода"
-17,12,,"Св. пророк Даниил","nameday","Данаил, Даниел, Даниела,Данислав и др."
-20,12,,"Игнажден","nameday","Игнат, Искра, Искрен, Пламен, Пламена, Огнян, Огняна, Светла,"
-21,12,,"Св. мъченица Юлияния","nameday","Юлия, Юлиян, Юлияна"
-22,12,,"Св. великомъченица Анастасия","nameday","Анастасия"
-24,12,,"Света Евгения","nameday","Женя, Бистра и др"
-25,12,,"Рождество Христово","nameday","Божидар, Емил, Христо, Християн, Христин, Кристиян, Кристиан, Христа, Христина, Радослав, Кристина, Кристиана, Кристин, Младен, Радомир, Радостин(а),Радина, Радослава, Емануил и др."
-26,12,,"Св. Йосиф Обручник и Цар Давид","nameday","Йосиф и Давид
+Други държави: Аржентина, Андора, Ангола, Антигуа  и Барбуда, Австралия, Австрия, Бахамските острови",
+26,12,,"Втори ден на Коледа","holiday","Честита Коледа, [#name#]!",
+-2,"EST",,"Велики петък","holiday",,
+-1,"EST",,"Велика събота","holiday",,
+0,"EST",,"Великден","holiday","Христос Воскресе, [#name#]",
+1,1,,"Васильовден","nameday",,"vasil, vasilka, veselin, veselina, vesela, vesel, vesela, veselin, veselina, veselka, vesi, veska, vesko, veso, vessela, vesselin, vesselina, vesso, vessy, vesy, vasi, vasia, vasil, vasilena, vasilka, vaska, vasko, vaso, vassil, vasya"
+2,1,,"свети Силвестър","nameday","Почитаме свети Силвестър, роден в началото на ІV в. в Рим. Той управлявал цели 21 години Римската църква и покръстил самия император Константин Велики. ","goran, goritsa, goriza, silvestar, silvester, sylvester, silvia, silvya, silva, silvana, silvina, silveto, silvi, silvija, silvina, silviq, silviya, ognian, ognyan, ogi, ogy, ognyana, ogniana, ognjan, ognqn, ognyan, plam, plama, plame, plamen, plamena, plamenka, plamenna, plami, plamka, plamcho, plamencho, serafim"
+4,1,,"Събор на св. 70 апостоли. Прпмчк Онуфрий Габровски. Преп. Теоктист ","nameday",," tihomir, tisho, tihomira, tihomi, tixomir, tixomira"
+6,1,,"Св. Богоявление. Кръщение Господне (Йордановден) ","nameday",,"jordan, jordanka, yordan, yordanka, iordan, iordanka, dancho, dan4o, danka, bogoljub, bogoljuba, bojan, boyan, bojana, boyana, bozhan, bozhana, dana, bojan, bogomil, bojana, bogdan, bogdana, najden, naiden, nayden, teodosi, teodosii, teodosiy"
+7,1,,"Св. Йоан Кръстител (Ивановден)","nameday",,"ivan, ivana, ivancho, ivanela, ivanina, ivanka, vani, vania, vanina, vanio, vanja, vanka, vankata, vanko, vanq, vanya, vanyo, jan, jana, jane, janet, janeta, jani, janko, ioan, ioana, ioanna, yoan, yoana, yoanna, iovka, iovko, yovka, yovko, jovka, jovko, ivanichka, ivayla, ivaylo, ivailo, ivajlo, ivalin, ivalina, ivam, ivalyn, ivalyna, ivelin, ivelina, ivo, joncho, yoncho, ioncho, jonka, yonka, ionka, ionka, jonka, yonka, jonko, ionko, yonko, yoto, joto"
+11,1,,"Преп. Теодосий Велики","nameday",,"bogdan, bogdana, bogomila, teodosi, teodosyi, teodosii"
+12,1,,"Света Татяна","nameday",,"tatjana, tatyana, tatiana, tania, tanq, tatqna"
+14,1,,"Преп. Отци,избити в Синай и Раита. Св.Нина (Отдание на Богоявление)","nameday",,"adam"
+17,1,,"Преп. Антоний Велики (Антоновден)","nameday",,"anton, antoni, antonia, antonina, antonio, antoniq, antoniy, antoniya, antony, toncho, toni, tonia, tonislav, tonka, tonko, tony, tonya, andon, doncho, donka, donika"
+18,1,,"Атанасовден","nameday",,"atanas, atanaska, atnas, nasco, nasi, naska, nasko, naso, tinka, nacho, tinka, tinko, tanio, tanjo, tanyo"
+20,1,,"Св. Евтимий, патриарх Търновски","nameday",,"evtim, eftim, evtimii"
+21,1,,"Преп.Максим Изповедник; Мчк.Неофит","nameday",,"agnesa, agnes, maskim, max, maxi, maxim, valera, valeri, valeria, valeriq, valeriy, valeriya, valery"
+22,1,,"Св. апостол Тимотей. Св. преподобномъченик Атанасий Перски. Св. свещеномъченик Петър Български, мъченик Сионий Български ","nameday",,"timotei, timotey"
+23,1,,"Св. свщмчк Климент, еп. Анкирски. Св. мчк Агатангел. Св. Павлин, еп. Нолански","nameday",,"kristofar, hristofor, xristofor, hristofora, hrristofer, kristofera"
+24,1,,"Преп. Ксения Римлянка ","nameday",,"aksenia, aksinia, ksenia, oksana"
+25,1,,"Св. Григорий Богослов, архиепископ на Цариград","nameday",,"grigo, grigor, grigorena"
+26,1,,"Св. преподобни Ксенофонт, Мария и синовете им. Св. преподобни Теодосий, игумен Студийски ","nameday",,"jivko, zhivko, jivka, zhivka, zoya, zoja, zoia"
+1,2,,"Св. мъченик Трифон (Трифоновден). Св. мъченица Фивия Перпетуа (Предпразненство на Сретение Господне) ","nameday",,"trifon, trifonka, lozan, lozana, lozka, triffon"
+3,2,,"Св. Симеон Богоприимец и Анна пророчица","nameday",,"mona, simo, simeon, moni, mony, simeona, simon, simona"
+4,2,,"Преп. Исидор Пелусиотски. Св. мчк Иадор Преп. Исидор Пелусиотски. Св. мчк Иадор ","nameday",,"jeko, zheko, zhelyazko, zhelqzko, zhechka, zhechko, zheko, jechka, jechko, jelyazko, jelyazko"
+5,2,,"Св. мчца Агатия ","nameday",,"agata, dobrinka"
+6,2,,"Преп. Вукол, еп. Смирненски. Преп. Варсануфий Велики. Св. Фотий, патр. Константинополски ","nameday",,"doroteya, doroteia, doroteq, svetla, svetlozar, svetlozara, fotij, fotyi, ognian, ognyan, ogi, ogy, ognyana, ogniana, ognjan, ognqn, ognyan, plam, plama, plame, plamen, plamena, plamenka, plamenna, plami, plamka, plamcho, plamencho"
+9,2,,"Св. мъченик Никифор. (Отдание на Сретение Господне) ","nameday",,"hristina, xristina"
+10,2,,"Св. свщмчк Харалампий Чудотворец. 
+Св. мчца Валентина ","nameday",,"haralambi, haralampi, xaralambi, xaralampi, lambi, valentin, valentina, valia, valq"
+13,2,,"Преп. Мартиниан. Св. Евлогий, архиеп. Александрийски. Преп. Зоя (Живка) и Фотина (Светлана) ","nameday",,"evlogi, zoq, zoya, zoia"
+14,2,,"Св. Валентин","nameday",,"valenti, valentin, valentina, valentino"
+21,2,,"Преп. Тимотей. Св. Евстатий, архиеп. Антиохийски ","nameday",,"evstati, ewstati, evstatija, evstatya, evstatiq"
+1,3,,"Св. прпмчца Евдокия ","nameday",,"mart, marti, martina, martini, marto, evdokia"
+4,3,,"Православна. реп. Герасим Йордански","nameday",,"gerasim, gera, gercho"
+6,3,,"Св. 42 мчци в Амория ","nameday",,"krasi, krasimir, krasimi, krasimira"
+9,3,,"Св. 40 мчци Севастийски. Св. мчк Исихий Доростолски","nameday",,"mladen, mladenka, mladena"
+10,3,,"Св. мчци Кодрат и Галина, Ника (Виктория), Леонид","nameday",,"galia, galin, galina, genoveva"
+13,3,,"Св. Никифор, 3 патр. Константинополски.","nameday"," ","nikifor"
+20,3,,"Преп. отци, избити в манастира „Св. Сава“. ","nameday",,"svetlozar, svetlozara"
+21,3,,"Преп.Йоан Лествичник. Св. преподобни Иаков Изповедник ","nameday",,"jakov, iakov, yakov"
+23,3,,"Св. прпмчци Никон. Препмчк Лука Одрински","nameday",,"lidia, lidija, lidiya"
+24,3,,"Св. преподобни Захария. Св. Артемий, епископ Селевкия.Св. Артемий, епископ Солунски","nameday",,"zahari, zaharin, zaharina, hari, xari, zaxari, zaxarin, zaxarina"
+25,3,,"Благовещение","nameday",,"blago, blagovest, blagovesta, blagoi, blagoj, blagoy, evangelina, vangel, mariana, marijana, marian, marijan"
+26,3,,"Събор на св. архангел Гавриил.Мчци Алла и Лариса. Св. мчк Георги Софийски, Стари (1473)","nameday",,"gavrail, gavril, gabriela"
+28,3,,"Преп. Иларион Нови и Стефан чудотворец изп. Свщмчци Георги, еп. Зографски и Петър, презв. Мъгленски. Св. мчк Енравота-Боян, княз Български (|833)","nameday",,"albena, beni, boyan, boian, boycho, boicho, boyana, boiana, boyko, boiko, boika, boyka, bojka, boncho"
+6,4,,"Успение на св. Методий Славянобългарски, архиеп. Моравски (|855). Св. Евтихий, патр. Цариградски. Св. мчци Тимотей и Диоген ","nameday"," ","strahil, straxil, ctrahil, ctraxil"
+14,4,,"Св. Мартин, папа Римски ","nameday",,"martin, martina"
+18,4,,"Светла сряда. Преп. Йоан. Св. мчк. Виктор ","nameday",,"viktor, viktoria, victor, victoria"
+21,4,,"Св. свщмчци Януарий и Теодор в Пергия ","nameday",,"zhelio, jelio, jelyo, zhelyo"
+25,4,,"Св. ап. и ев. Марк. ","nameday",,"mark, marko"
+28,4,,"Свв. апп. от 70-те: Иасон и Сосипатър","nameday",,"vitali, vitalyi, vitan"
+1,5,,"Св. прор. Иеремия. Прпмчк Акакий Серски. Св. Тамара царица Грузинска. ","nameday",,"maia, maya, ermena, ermelina, ermenko, tamara"
+2,5,,"Св. благоверен и равноап. цар Борис, в кръщение -Михаил 
+","nameday",,"boris, borisla, borislav, borislava, boryana, boriana, borian"
+5,5,,"Св. вмчца Ирина ","nameday",,"iren, irin, irina, irena, mira, miroslav, miroslava"
+6,5,,"Гергьовден","nameday",,"georgi, gergana, ginka, galia, gancho, galin, galina, genko, genoveva, gergin, gergina, giuro, zhordz, zhoro, joro"
+9,5,,"Св. прор. Исаия. Св. мчк Христофор. Пренасяне мощите на св. Николай Мирликийски чудотворец ","nameday",,"hristofor, christofor"
+11,5,,"Св. равноапостолни Методий и Кирил. Св. свщмчк Мокий ","nameday",,"kiril, metodi, metodii, metody"
+17,5,,"Св. ап. Андроник и св. Иуния. Св. мчк Николай Софийски","nameday",,"alexii, alexy"
+21,5,,"Св. Св. Константин и Елена","nameday",,"konstantin, koicho, koycho, kosta, kostadin, kostadina, dinka, dinko, elena, eli, elin, elka, ilona, kuncho, lenko, stamen, stoil, stoyan, stoian, stoyanka, traiko"
+26,5,,"Св. ап Карп. Св. мчк Георги Софийски","nameday",,"karp, karpo"
+30,5,,"Преп. Исакий Далматски. Св. Емилия ","nameday",,"emil, emilia, emilian, emiliana"
+4,6,,"Свети Дух. Св. Митрофан, патр. Константинополски. Св. мчци Фронтасий, Северин и др. Св. свщмчк Астий, еп. Дирахийски","nameday",,"marta"
+7,6,,"Св. свщмчк Теодот, еп. Анкирски. Св. мчца Валерия ","nameday",,"valeri, valerii, valeria"
+10,6,,"Св. свщмчк Тимотей, еп. Брусенски ","nameday",,"antonina"
+15,6,,"Св. прор. Амос. Св. мчк Исихий Доростолски.","nameday",,"avgustin, augustin, vitan, vitomir"
+20,6,,"Преп. Наум Охридски. Св. свщмчк Методий, еп. Патарски","nameday",,"biser, bisera, naum"
+21,6,,"Св. мчк Юлиан Тарсийски. Преп. Юлий презвитер и Юлиан дякон","nameday",,"iavor, iasen"
+24,6,,"Еньовден","nameday",,"enio, iasen, encho, enjo, yani, iani, ianislav"
+28,6,,"Пренасяне мощите на св. безсребреници и чудотворци Кир и Йоан. ","nameday"," ","david"
+29,6,,"Св. първовърховни апли Петър и Павел. (Петровден) ","nameday",,"petar, petra, pavlin, pavlina, petrana, peco, petso, petia, petja, polina, kamen, pavel, peio, penka, pencho"
+30,6,,"Събор на Светите 12 апостоли","nameday",,"apostol"
+1,7,,"в. безсребр. Козма и Дамян. Възвръщане честните мощи на преп. Йоан Рилски чудотворец ","nameday",,"kozma, kuzman, dame, damian, krasimir, krasimira, krasina"
+3,7,,"Св. мчк Иакинт. Св. Анатолий, патр. Константинополски","nameday",,"anatoli, anatolii, anatoliy, anatoly"
+6,7,,"Преп. Сисой Велики. Св. свщмчк Валентин, презвитер Римски","nameday",,"avakum"
+7,7,,"Св. вмчца Неделя. Преп. Тома Малейски и Акакий","nameday",,"nedialko, nedyalko, nedialka, nedyalka, neda, delcho, deljo, delio, nedelcho, dedelia, nedelya, neshka, ianka, yanka, yanko, ianko"
+11,7,,"Св. мчца Евфемия Всехвална. Св. равноап. княгиня Олга. Преп. Никодим Албански ","nameday",,"oleg, olga, olia, olya"
+15,7,,"Св. мчци Кирик и Юлита. Св. равноап. велик княз Владимир","nameday",,"vlada, vladimira, vladimir, vitomir, gospodin, gospodinka"
+16,7,,"Св. свщмчк Атиноген и 10-те му ученици. Св. мчца Юлия девица. Св. мчк Йоан Търновски ","nameday",,"juli, julia, julya, julka, iulia, iuliana, iulian, julian, julianka, youli, youlianka, yulian, iuli, iulia, iuli, iulian, iuliana, djuli, djulia, djuliana, juli, julia, julian, juliana, juliane, julie"
+17,7,,"Св. вмчца Марина. Възхвала на Пресвета Богородица","nameday",," marin, marina, marincho, marinka"
+20,7,,"Св. пророк Илия (Илинден)","nameday",,"ilia, iliya, ilian, ilyan, iliana, iliyana, ilko, ilka, lilo, ilianka"
+22,7,,"в. мироносица и равноапостолна Мария Магдалина. Възвръщане честните мощи на св. свщмчк Фока","nameday",,"magda, magdalena, magdalen, magdalina, magi, magie, magito, magity, magy, manda, meglena, miglena"
+25,7,,"Успение на Св. Анна","nameday",,"ana, ani, anitsa, anna"
+26,7,,"Св. свщмчк Ермолай и другарите му. Св. прпмчца Параскева","nameday",,"paraskev, paraskeva, parashkev, parashkeva"
+29,7,,"Св. мчк Калиник. Св. мчца Серафима девица","nameday",,"goran, kalin"
+26,8,,"Мчц-и Адриан и Наталия","nameday",,"adrian, adriana"
+30,8,,"Св. Александър, Йоан и Павел-патриарси Цариградски","nameday",,"aleko,alexander,aleksandar,alexandra,aleksandra"
+14,9,,"Кръстовден","nameday","Въздвижение на Св. Кръст Господен ","Кръстьо, Кръстина, Кръстил, Кръстила, Кръстилена, Кръстена, Кръстан, Кръстана"
+16,9,,"Св. Людмила Чешка","nameday",,"Людмил, Людмила"
+17,9,,"Вяра, Надежда и Любов","nameday",,"Вяра, Надежда, Любов, София, Софица, Софка, Софиян, Софияна, Люба, Любомир, Любчо, Любомил, Любослав, Любена, Верина, Верослав, Верослава, Нада, Надя, Надка, Надко, Надина"
+1,10,,"Покров Богородичен","nameday",,"Анани, Анания"
+6,10,,"св. Тома","nameday",,"Тома, Томислав, Томислава"
+9,10,,"Св. Ап.Иаков Алфеев. Преп. Андроник и Атанасия","nameday",,"avram"
+14,10,,"Петковден","nameday",,"Петко, Петка, Петкан, Петра, Петрана, Петрина, Петрия, Петричка, Петкана, Пенко, Пенка, Параскев, Параскева, Парашкев, Парашкева, Паруш, Кева"
+30,11,,"Св. Ап. Андрей Първозвани (Андреевден)","nameday",,"andrej, andrei, andrey"
+8,11,,"Събор на Св. Арх.Михаил; (Архангеловден)","nameday",,"angel, angelina, radka, radko"
+6,12,,"Св. Николай, архиеп. Мирликийски, Чудотворец (Никулден)","nameday",,"Никола, Николай, Николина, Ненка, Нина, Натали"
+27,12,,"Стефановден","nameday",,"stanimir, stanimira,Стефан, Стефана, Стефания, Стефи, Фани, Венцислав, Венцислава, Запрян, Стамен, Стамена, Станимир, Станимира, Стоил, Стоилка, Станка, Станчо, Стоян, Стоянка, Таня"
+2,2,,"Сретение Господне от праведния Симеон ","nameday",,"Ванеса, Момчил, Радост, Радостин, Радостина, Драго, Драгомир, Ралин, Радина, Радослав, Радислава, Средко, Средка, Сретен, Сретен (Петльовден по стар стил)"
+15,3,,"Св. мчк Агапий и 7 мчци","nameday",,"Божан, Божил, Божко, Емануил, Манол, Манчо, Тотьо"
+16,3,,"ЖельоВильов Ден","nameday",,"Велизар, Желяз"
+17,3,,"Св. преподобни Алексий","nameday",,"Алекси"
+19,3,,"Св. мчци Хрисант и Дария. Мчца Илария","nameday",,"Дария, Найден"
+29,4,,"Св. Св. 9 мчци в Кизик. Преп. Мемнон Чудотворец ","nameday",,"Пенчо, Пенка, Пеньо, Пенко"
+12,5,,"Св. Епифаний, еп. Кипърски и св. Герман, патр. Константинополски. Св. мчк Панкратий","nameday",,"Герана, Герасим, Герда, Герман, Геро, Джерман, Искра, Искрен"
+24,7,,"Св. великомъченица Христина","nameday",,"Христина"
+27,7,,"Св. вмчк Пантелеймон. Св. Седмочисленици. Успение на св. Климент, архиеп. Охридски ","nameday",,"Панчо, Панка, Пантелей"
+8,8,,"Св. Емилиан изповедник, еп. Кизически. Св. Мирон чудотворец, еп. Критски. Св. Трендафил Старозагорски ","nameday",,"Емил, Емилия"
+10,8,,"Св. мчк и архидякон Лаврентий","nameday",,"Ивайло"
+15,8,,"Успение Богородично, Голяма Богородица","nameday",,"Мария, Мара, Марийка, Мима, Мими, Марио, Панайот и др."
+20,8,,"св. Самуил","nameday",,"Самуил"
+23,8,,"Св. мчк Луп. Св. Ириней, еп. Лионски. Преп. Флорентий ","nameday",,"Вълко, Витан"
+29,8,,"Св. Анастасий Струмишки","nameday",,"Анастас, Анастасия и др."
+31,8,,"Полагане честния пояс на Пресвета Богородица. Св. свщмчк Киприан, еп. Картагенски. Св. Генадий, патриарх Константинополски","nameday",," Гено, Гена, Генчо, Генади"
+1,9,,"Симеоновден, св. Симеон Стълпник","nameday",,"Симеон"
+5,9,,"Св. пророк Захарий и праведна Елисавета","nameday",,"Захари и Елисавета, Зарко, Светлозар, Светлозара, Ели , Изабел и др."
+20,9,,"Св. вмчк Евстатий Плакида и семейството му","nameday",,"Евстати"
+22,9,,"Св. свщмчк Фока, еп. Синопийски. Св. прор. Йона. Преп. Йона. Преп. Козма Зографски ","nameday",,"Гълъбин(а)"
+18,10,,"Св. Злата Мъгленска","nameday",,"Злата, Златка, Златина, Златинка, Златко, Златан, Златомир, Златозария, Лука, Лукан и др."
+27,10,,"Св. мчк Нестор. Преп. Димитрий Басарабовски","nameday",,"Нестор"
+11,11,,"Св. мъченици Мина, Виктор и Викентий","nameday",,"Виктор, Виктория, Мина, Милена, Минка, Минчо и др. "
+14,11,,"Коледни заговезни","nameday",,"Филип, Управда, Юстиниан"
+16,11,,"Свети апостол и евангелист Матей ","nameday",,"Матей"
+23,11,,"Православен","orthodox","Св. Амфилохий, епископ Иконийски, Св. Григорий, епископ Акрагантийски (V-VI), Св. благоверен княз Александър Невски",
+24,11,,"Св. великомъченица Екатерина","nameday",,"Екатерина, Катерина, Катя, Катрин и др. "
+26,11,,"Преп. Алипий Стълпник. Преп. Яков Отшелник. Св. Стилиан Пафлагонийски ","nameday",,"Стилиян, Стелян, Стела, Стилян и др."
+4,12,,"Св. великомъченица Варвара","nameday",,"Варвара, Барбара и др."
+5,12,,"Св. преподобни Сава Освещени","nameday",,"Сава, Савина, Савка, Савчо, Светослав, Владислав(а),Станислав, Станислава, Венцислав(а), Десислава, Слав(чо), Съби, Сабина, Събина, Слави, Слава, Славка и др."
+9,12,,"зачатие на св. Анна – баба на Исус Христос","nameday",,"Ана, Анна, Анка, Анета, Анелия и др."
+15,12,,"Св. свщмчк Елевтерий. Преп. Павел Латрийски","nameday",,"Свобода"
+17,12,,"Св. пророк Даниил","nameday",,"Данаил, Даниел, Даниела,Данислав и др."
+20,12,,"Игнажден","nameday",,"Игнат, Искра, Искрен, Пламен, Пламена, Огнян, Огняна, Светла,"
+21,12,,"Св. мъченица Юлияния","nameday",,"Юлия, Юлиян, Юлияна"
+22,12,,"Св. великомъченица Анастасия","nameday",,"Анастасия"
+24,12,,"Света Евгения","nameday",,"Женя, Бистра и др"
+25,12,,"Рождество Христово","nameday",,"Божидар, Емил, Христо, Християн, Христин, Кристиян, Кристиан, Христа, Христина, Радослав, Кристина, Кристиана, Кристин, Младен, Радомир, Радостин(а),Радина, Радослава, Емануил и др."
+26,12,,"Св. Йосиф Обручник и Цар Давид","nameday","
 
-В Австрия: St Stephen's Day"
-1,1,,"Василовден","orthodox","Обрезание Господне. Св. Василий Велики"
-6,1,,"Йордановден","orthodox","Св. Богоявление"
-7,1,,"Ивановден","orthodox","Св. Йоан Кръстител"
-1,2,,"Трифоновден","orthodox","Св. мчк Трифон"
-2,2,,"Църковен празник","orthodox","Сретение Господне "
-25,3,,"Църковен празник","orthodox","Благовещение "
-6,5,,"Гергьовден","orthodox","Св. вмчк Георги Победоносец"
-11,5,,"Църковен празник","orthodox","Св. равноапостолни Методий и Кирил"
-24,5,,"Църковен празник","orthodox","Ден на Българската просвета и култура и на славянската писменост"
-29,6,,"Петровден","orthodox","Св. първовърховни апли Петър и Павел"
-20,7,,"Илинден","orthodox","Св. прор. Илия"
-6,8,,"Църковен празник","orthodox","Преображение Господне"
-15,8,,"Църковен празник","orthodox","Успение на Пресвета Богородица"
-8,9,,"Църковен празник","orthodox","Рождество на Пресвета Богородица"
-14,9,,"Кръстовден","orthodox","Въздвижение на Св. Кръст Господен"
-19,10,,"Църковен празник","orthodox","Преп. Йоан Рилски Чудотворец"
-8,11,,"Архангеловден","orthodox","Събор на св. архангел Михаил"
-21,11,,"Ден на православната християнска младеж и семейство","orthodox","Въведение Богородично"
-6,12,,"Никулден","orthodox","Св. Николай, архиеп. Мирликийски, Чудотворец"
-11,1,,"Международен ден на думата ""Благодаря""","international","International Thank You Day"
-21,1,,"Международен ден на прегръдката","international","International Hug Day"
-26,1,,"Световен ден на Митниците","international"," Международния ден на Митническият служител или Световен ден на Митниците
-International Customs Day"
-2,2,,"Световният ден на влажните зони","international","World Wetlands Day"
-4,2,,"Световен ден за борба с рака","international"," World Cancer Day"
-6,2,,"Световен ден на бармана","international"," Световен ден на бармана /St. Amand или Amandus
-
-International Bartender's Day"
-9,2,,"Световният ден на стоматолога","international","Световният ден на стоматолога"
-11,2,,"Световен ден на болните","international","World Day of the Sick"
-14,2,,"Деня на влюбените","international","Свети Валентин"
-17,2,,"Ден на спонтанните актове на доброта","international","Random Acts of Kindness Day"
-21,2,,"Световен ден на майчиния език","international","International Mother Language Day"
-1,3,,"Световен ден на гражданската защита","international","World Civil Defence Day"
-14,3,,"Световен ден на числото Пи","international","Световен ден на числото Пи (International Pi Day) / Световен ден на реките (Day of Action for Rivers)"
-15,3,,"Световния ден на потребителите","international","World Consumer Rights Day"
-23,3,,"Световен ден на метеорологията","international","World Meteorological Day"
-7,4,,"Световен ден на здравето","international","World Health Day"
-12,4,,"Деня на авиацията и космонавтиката","international","Space Probe Day"
-22,4,,"Ден на Земята","international","Earth Day"
-8,5,,"Международнен празник","holiday","Международен ден на Червения кръст и Червения полумесец"
-12,5,,"Световен ден на медицинските сестри","international","International Nurses Day"
-1,6,,"Ден на детето","international","Ден на детето
-
-Други държави: Ангола"
-5,6,,"Световен ден на околната среда","international","World Environment Day"
-8,6,,"Световен ден на океаните","international","World Oceans Day"
-14,6,,"Световен ден на кръводарителя","international","World Blood Donor Day"
-26,1,,"Ден на основаването на Австралия","AU","пристигането на първите заселници през 1788 г."
-26,10,,"Декларация Парламента за неутралитет на Австрия","AT","залегнал в конституцията, 1955 г."
-28,5,,"Ден на републиката","AZ","Ден на републиката, 1918 г."
-28,11,,"Ден на независимостта","AL","от Турция, 1912 г."
-1,11,,"Ден на революцията","DZ","от Франция, 1962 г."
-23,4,,"Ден на Свети Георги","GB","патрон на нацията"
-11,11,,"Ден на независимостта","AO","от Португалия, 1975 г."
-30,5,,"Ден на Ангуила","АТ","по повод въвеждането на самостоятелна полиция през 1967 г."
-8,9,,"Ден на независимостта","AD","от Франция и Испания, 1993 г."
-1,11,,"Антигуа и Барбуда","foreign","Ден на независимостта — от Великобритания, 1981 г."
-25,5,,"Ден на въстанието за независимост","AR","срещу Испания, 1810 г."
-28,5,,"Ден на независимостта","AM","от СССР, 1991 г."
-1,,,"Аруба","foreign","Ден на националния флаг — 1976 г."
-19,8,,"Ден на независимостта","AF","от Великобритания, 1919 г."
-3,7,,"Ден на освобождението","BY","от Хитлеристка Германия, 1944 г."
-21,7,,"Коронация Леополд I","BE","първи крал на Белгия — 1831 г."
-10,9,,"Ден на Св. Джордж Кайе","BZ","Ден на Св. Джордж Кайе — патрон на държавата"
-21,9,,"Ден на независимостта","BZ","Ден на независимостта — от Великобритания, 1981 г."
-26,3,,"Ден на независимостта","BD","Ден на независимостта — от Пакистан, 1971 г."
-30,11,,"Ден на независимостта","BB","Ден на независимостта — от Великобритания, 1966 г."
-10,7,,"Ден на независимостта","BS","Ден на независимостта — от Великобритания, 1973 г."
-16,12,,"Бахрейн","foreign","Ден на нацията - получаване на пълна независимост и отпадане статута на протекторат на Великобритания, 1971 г."
-1,8,,"Ден на независимостта","BJ","Ден на независимостта — от Франция, 1960 г."
-24,5,,"Бермуда","foreign","Ден на националните герои — първоначално е честван като Ден на кралица Виктория"
-6,8,,"Ден на независимостта","BO","Ден на независимостта — от Испания, 1825 г."
-1,3,,"Ден на независимостта","BA","от Югославия, 1992 г"
-25,11,,"Ден на държавността","BA","възстановяване на държавата от марионетната на Италия Независима държава Хърватска, 1943 г."
-30,9,,"Ботсвана","foreign","Ден на независимостта — от Великобритания, 1966 г."
-7,9,,"Ден на независимостта","BR","от Португалия, обявена през 1822 г.; призната 3 години по-късно"
-23,2,,"Бруней","foreign","Национален ден на Бруней — от 1984 г."
-4,8,,"Ден на независимостта","BF","Годишнина от революцията — 1984 г. и Ден на независимостта — от Франция, 1960 г."
-1,7,,"Ден на независимостта","BI","Ден на независимостта — от Белгия, 1962 г."
-17,12,,"Бутан","foreign","Начало на управление на династията Вангчук — 1907 г."
-30,7,,"Вануату","foreign","Ден на независимостта — от Франция и Великобритания, 1980 г."
-11,2,,"Ватикан","foreign","Ден на суверенитета — от Италия, 1929 г."
-6,,,"втората събота на Юни","GB","Официално честване на рожднния ден на кралица Елизабет II"
-5,7,,"Декларация за независимост","VE","от Испания, 1811 г."
-2,9,,"Декларация за независимост","VN","от Франция, 1945 г."
-17,8,,"Габон","foreign","Ден на независимостта — от Франция, 1960 г."
-18,2,,"Ден на независимостта","GM","Ден на независимостта — от Великобритания, 1965 г."
-6,3,,"Ден на независимостта","GH","Ден на независимостта — от Великобритания, 1957 г."
-15,9,,"Ден на независимостта","GT","Ден на независимостта — от Испания, 1821 г."
-2,10,,"Гвинея","foreign","Ден на независимостта — от Франция, 1958 г."
-24,9,,"Гвинея-Бисау","foreign","Ден на независимостта — от Португалия, 1973 г."
-23,2,,"Ден на републиката","GY","Празник Машрамани по повод Ден на републиката — 1972 г."
-3,10,,"Ден на германското единство","DE","Ден на германското единство — 1990 г."
-10,9,,"Гибралтар","foreign","Празник на Гибралтар"
-7,2,,"Гренада","foreign","Ден на независимостта — от Великобритания, 1973 г."
-26,5,,"Ден на независимостта","GE","Ден на независимостта — от Болшевишка Русия, 1918 г."
-21,7,,"Гуам","foreign","Ден на свободата — от японска окупация, 1944 г."
-25,3,,"Ден на независимостта","GR","от Османската империя, декларирана на същата дата през 1821 г., което е начало на войната за независимост"
-5,6,,"Ден на конституцията","DK","Ден на конституцията — 1848 г."
-27,6,,"Ден на независимостта","DJ","Ден на независимостта — от Франция, 1977 г."
-9,5,,"Джърси(Великобритания)","foreign","Ден на свободата, край на окупацията на Ла Манш с края на Втората световна война 1945 г."
-3,11,,"Доминика","foreign","Ден на независимостта — от Великобритания, 1978 г."
-27,2,,"Ден на независимостта","DO","Ден на независимостта — от Хаити, 1844 г."
-16,8,,"Възстановяване на националната независимост","DO","Възстановяване на националната независимост — от Испания, 1865 г."
-23,7,,"Ден на революцията","EG","1952 г."
-10,8,,"Ден на независимостта","EC","Ден на независимостта — от Испания, 1809 г. — окончателно извоювана на 24 май 1822 г."
-12,10,,"Екваториална Гвинея","foreign","Ден на независимостта — от Испания, 1968 г."
-24,2,,"Ден на независимостта","EE","от Болшевишка Русия, 1918 г., същият ден се празнува и като Ден на републиката"
-28,5,,"Възстановяване на демокрацията","ET","Възстановяване на демокрацията — сваляне на диктатурата на Менгисту Хайле Мариам, 1991 г."
-24,10,,"Замбия","foreign","Декларация за независимост — от Великобритания, 1964 г."
-18,4,,"Зимбабве","foreign","екларация за независимост — от Великобритания, 1980 г."
-14,5,,"Ден на независимостта","IL","с прекратяване на мандата на Великобритания, 1948 г. върху територията на Палестина"
-20,5,,"Източен Тимор","foreign","Ден на независимостта — от Индонезия, 2002 г."
-26,1,,"Ден на републиката","IN","Ден на републиката — 1950 г.)"
-15,8,,"Ден на независимостта","IN","от Великобритания, 1947 г."
-2,10,,"Годишнина от рождението на Махатма Ганди","IN","Годишнина от рождението на Махатма Ганди — 1869 г."
-17,8,,"Ден на независимостта","ID"," от Нидерландия, 1945 г."
-1,4,,"Ден на ислямската република","IR","Ден на ислямската република — 1979 г."
-17,7,,"Ден на ислямската република","IQ","Ден на ислямската република"
-17,3,,"Ден на Свети Патрик","IE","Ден на Свети Патрик"
-17,6,,"Ден на независимостта","IS","от Дания, 1944 г."
-12,10,,"Годишнина от откриването на Америка","ES","Годишнина от откриването на Америка, 1492 г."
-2,6,,"Ден на републиката","IT","Ден на републиката — 1946 г."
-22,5,,"Йемен","foreign","Ден на обединението — на Северен Йемен и Южен Йемен, 1990 г."
-25,5,,"Ден на независимостта","JO","от Великобритания, 1946 г."
-12,9,,"Кабо Верде","foreign","Ден на нацията"
-25,10,,"Ден на републиката","KZ","Ден на републиката и на държавния суверенитет — 1990 г."
-7,,,"Кайманови острови","foreign","1-ви понеделник на юли"
-9,11,,"Ден на независимостта","KH","Ден на независимостта — от Франция, 1953 г."
-1,7,,"Ден на Канада","CA","Ден на Канада — 1867 г."
-3,9,,"Ден на независимостта","QA","от Великобритания, 1971 г."
-24,6,,"Квебек (Канада)","foreign","Ден на патрона на областта Йоан Кръстител"
-12,12,,"Кения","foreign","Ден на независимостта — от Великобритания, 1963 г.; същият ден се празнува и като Ден на републиката"
-31,8,,"Ден на независимостта","KG","Ден на независимостта — от СССР, 1991 г."
-1,10,,"Ден на независимостта","CY","от Великобритания, 1960 г."
-12,7,,"Кирибати","foreign","Ден на независимостта — от Великобритания, 1979 г."
-1,10,,"Ден на Китайската народна република","CN","Ден на Китайската народна република — 1949 г."
-20,7,,"Обявяване на независимост","CO","Обявяване на независимост — от Испания, 1810 г."
-7,8,,"Признаване на независимостта","CO","Признаване на независимостта — от Испания, 1819 г."
-15,8,,"Ден на независимостта","CG","Ден на независимостта — от Франция, 1960 г."
-6,7,,"Ден на независимостта","KM","Ден на независимостта — от Франция, 1975 г."
-15,9,,"Ден на независимостта","CR","Ден на независимостта — от Испания, 1821 г."
-7,8,,"Ден на независимостта","CI","Ден на независимостта — от Франция, 1960 г."
-1,1,,"Ден на свободата","CU","Ден на свободата, 1959 г."
-25,2,,"Ден на нацията","KW","Ден на нацията"
-2,12,,"Лаос","foreign","Ден на републиката — 1975 г."
-18,11,,"Ден на независимостта","LV","Ден на независимостта — от Болшевишка Русия, 1918 г."
-4,10,,"Лесото","foreign","Ден на независимостта — от Великобритания, 1966 г."
-26,7,,"Ден на независимостта","LR","Ден на независимостта — от САЩ, 1847 г."
-1,9,,"Ден на революцията","LY","държавен преврат под ръководството на Муамар Кадафи, 1969 г."
-22,11,,"Ден на независимостта","LB","Ден на независимостта — от Франция, 1943 г."
-15,8,,"Ден на Лихтенщайн","LI","Ден на Лихтенщайн"
-16,2,,"Ден на независимостта","LT","от Русия, 1918 г."
-23,6,,"Рожден ден на Великия херцог","LU","празнува се като национален празник от 1947 г. и от 1961 г. няма връзка с истинския рожден ден на херцога"
-28,11,,"Мавритания","foreign","Ден на независимостта — от Франция, 1960 г."
-12,3,,"Ден на независимостта","MU","Ден на независимостта — от Великобритания, 1968 г."
-26,6,,"Ден на независимостта","MG","Ден на независимостта — от Франция, 1960 г."
-8,9,,"Ден на независимостта","MK","от Югославия, 1991 г."
-6,7,,"Малави","foreign","Ден на независимостта — от Великобритания, 1964 г."
-31,8,,"Ден на независимостта","MY","от Великобритания, 1957 г."
-26,7,,"Ден на независимостта","MV","Ден на независимостта — от САЩ, 1965 г."
-22,9,,"Ден на независимостта","ML","Ден на независимостта — от Франция, 1960 г."
-21,9,,"Ден на независимостта","MT","от Великобритания, 1964 г."
-2,3,,"Ден на независимостта","MA","от Франция и Испания, 1956 г."
-1,5,,"Маршалски острови","foreign","Ден на независимостта (реално от 21 октомври 1986 г., от САЩ) и Ден на конституцията (1979 г.)"
-16,9,,"Ден на независимостта","MX","от Испания, обявена на същата дата през 1810 г., извоювана окончателно на 27 септември 1821 г."
-4,1,,"Мианмар","foreign","Ден на независимостта — от Великобритания, 1948 г."
-14,11,,"Мианмар","foreign","Ден на нацията"
-10,5,,"Микронезия","foreign","Ден на конституцията — 1979 г."
-25,6,,"Мозамбик","foreign","Ден на независимостта — от Португалия, 1975 г."
-27,8,,"Ден на независимостта","MD","от СССР, 1991 г."
-19,11,,"Ден на принца","MC","Ден на принца"
-11,7,,"Ден на революцията и независимостта","MN","от Китай, 1921 г."
-21,3,,"Ден на независимостта","NA","Ден на независимостта — от ЮАР, 1990 г."
-31,1,,"Ден на независимостта","NR","Ден на обявяване на независимостта — от Великобритания, Австралия и Нова Зеландия, 1968 г."
-18,2,,"Ден на мъчениците","NP","Ден на мъчениците"
-28,12,,"Ден на републиката","NP","Рожден ден на краля и Ден на републиката — 2007 г."
-18,12,,"Ден на републиката","NE","Ден на републиката, 1958 г."
-1,10,,"Ден на независимостта","NG","Ден на независимостта — от Великобритания, 1960 г."
-30,4,,"Национален празник","NL","Официално честване на рожденния ден на кралица Беатрикс"
-6,2,,"Ниуе","foreign","Годишнина на договора Вайтанга — 1840 г."
-6,2,,"Годишнина на договора Вайтанга","NZ","Годишнина на договора Вайтанга — 1840 г."
-17,5,,"Ден на конституцията","NO","Ден на конституцията — 1814 г."
-2,12,,"Годишнина от създаването на федерацията","AE","Годишнина от създаването на федерацията — 1971 г."
-4,8,,"Острови Кук","foreign","Ден на конституцията — 1981 г."
-5,7,,"Остров Ман (Великобритания)","foreign","Ден на парламента Тинвалд — по повод на първото заседание на същата дата през 1417 г."
-18,11,,"Оман","foreign","Рожден ден на султан Кабус бен-Саид ал-Саид, 1940 г."
-23,3,,"Ден на републиката","PK","първата ислямска република в света през 1956 г.) и 14 август (Ден на независимостта — от Великобритания и отделянето на държавата от Индия през 1947 г."
-9,7,,"Ден на конституцията","PW","Ден на конституцията — 1981 г."
-3,11,,"Отделяне на държавата като самостоятелна","PA","Отделяне на държавата като самостоятелна от Колумбия, 1903 г."
-16,9,,"Папуа Нова Гвинея","foreign","Ден на независимостта — от Австралия, 1975 г."
-15,5,,"Ден на независимостта","PY","Ден на независимостта — от Испания, 1811 г."
-28,7,,"Ден на независимостта","PE","от Испания, 1821 г."
-3,5,,"Ден на конституцията","PO","Ден на конституцията"
-11,11,,"Ден на независимостта","PO","от Австро-Унгария, Германия и Русия, 1918 г."
-10,6,,"Ден на Португалия","PT","по повод деня в памет на националния поет Луиш ди Камоинш, 1850 г."
-2,9,,"Приднестровие (Русия)","foreign","Ден на независимостта — от СССР, обявена през 1990 г., не е международно призната държава"
-25,7,,"Пуерто Рико (САЩ)","foreign","Ден на конституцията — 1952 г."
-1,7,,"Руанда","foreign","Ден на независимостта — от Белгия, 1962 г."
-1,12,,"Годишнина","RO","Годишнина от възвръщането на Трансилвания и обединението на Румъния, 1918 г."
-12,6,,"Ден на Русия","RU","празнува се от 1990 г."
-1,6,,"Самоа","foreign","Ден на независимостта — от Нова Зеландия, 1962 г.; забележка: Държавата получава независимостта си на 1 януари с.г., но празникът е изместен на 1 юни по причини от климатичен характер"
-3,9,,"Ден на републиката","SM","най-старата република в света, 301 г."
-23,9,,"Празник на обединението на кралството","SA","Празник на обединението на кралството — 1923 г."
-6,9,,"Свазиленд","foreign","Ден на независимостта — от Великобритания, 1968 г."
-15,11,,"Северен Кипър","foreign","Ден на независимостта — от Кипър, 1983 г., призната само от Турция"
-8,9,,"Северна Корея","KR","Създаване на Корейската народно-демократична република през 1948 г."
-8,12,,"Северни Мариански острови","foreign","Ден на конституцията — 1977 г."
-19,9,,"Сейнт Китс и Невис","foreign","Ден на независимостта — от Великобритания, 1983 г."
-22,2,,"Сейнт Лусия","foreign","Ден на независимостта — от Великобритания, 1979 г."
-27,10,,"Сейнт Винсент и Гренадини","foreign","Ден на независимостта — от Великобритания, 1979 г."
-18,6,,"Сейшелски острови","foreign","Ден на конституцията — 1993 г."
-4,4,,"Сенегал","foreign","Ден на суверенитета — 1960 г."
-27,4,,"Сиера Леоне","foreign","Ден на републиката, 1961 г."
-9,8,,"Ден на Сингапур","SG","отделяне от Малайзия като самостоятелна държава през 1965 г."
-17,4,,"Сирия","foreign","Ден на независимостта — от Франция, 1946 г."
-29,8,,"Словашко национално въстание","SK","Словашко национално въстание, срещу окупацията на Хитлеристка Германия, 1944 г."
-1,9,,"Ден на конституцията","SK","Ден на конституцията — 1992 г."
-25,6,,"Ден на независимостта","SI","от Югославия, 1991 г."
-7,7,,"Соломонови острови","foreign","Ден на независимостта — от Великобритания, 1978 г."
-26,6,,"Сомалия","foreign","Ден на независимостта — от Великобритания, 1960 г."
-1,1,,"Судан","foreign","Ден на независимостта — от Франция и Египет, 1956 г."
-25,11,,"Суринам","foreign","Ден на независимостта — от Нидерландия, 1975 г."
-4,7,,"Декларация независимост от Великобритания","US","Декларация независимост от Великобритания, 1776 г."
-15,2,,"Избухване на Първото сръбско въстание","RS","Избухване на Първото сръбско въстание за независимост от Османската империя — 1804 г."
-9,9,,"Ден на независимостта","TJ","Ден на независимостта — от СССР, 1991 г."
-10,10,,"Ден на републиката","TW","по повод създаването на Китайска република през 1911 г."
-5,12,,"Рожден ден на краля","TH","Рожден ден на краля, 1927 г."
-26,4,,"Танзания","foreign","Ден на обединението — на Танганика и Занзибар в държавата Танзания, 1964 г."
-30,8,,"Татарстан","foreign","Ден на суверенитета — от СССР, обявена независимост през 1990 г., непризната спрямо Руска федерация на референдум през 1992 г., има статут на автономия"
-27,4,,"Того","holiday","Ден на независимостта — от Франция, 1960 г."
-4,6,,"Тонга","foreign","Ден на независимостта — от Великобритания, 1970 г."
-31,8,,"Тринидад и Тобаго","foreign","Ден на независимостта — от Великобритания, 1962 г."
-1,10,,"Тувалу","foreign","Ден на независимостта — от Кирибати, 1975 г."
-20,3,,"Тунис","foreign","Ден на независимостта — (декларация) от Франция, 1956 г."
-27,10,,"Ден на независимостта","TM","Ден на независимостта — от СССР, 1991 г."
-29,10,,"Ден на републиката","TR","отказване от статута на Османска империя, 1923 г."
-9,10,,"Уганда","foreign","Ден на независимостта — от Великобритания, 1962 г."
-1,3,,"Уелс (Великобритания)","foreign","Ден на Свети Давид"
-24,8,,"Ден на независимостта","UA","от СССР, 1991 г."
-15,3,,"Ден на революцията","HU","Ден на революцията, 1848 г."
-20,8,,"Ден на Свети Ищван I","HU","Ден на Свети Ищван I — първи крал и основател на държавата"
-23,10,,"Ден на републиката и революцията","HU","Ден на републиката и революцията, 1956 г."
-25,8,,"Декларация за независимост","UY","Декларация за независимост — от Бразилия, 1825 г."
-1,9,,"Ден на независимостта","UZ","Ден на независимостта — от СССР, 1991 г."
-10,10,,"Ден на независимостта","FJ","Ден на независимостта — от Великобритания, 1970 г."
-12,6,,"Ден на независимостта","PH","Ден на независимостта — от Испания, 1898 г."
-6,12,,"Ден на независимостта","FI","от Русия, 1917 г."
-11,7,,"Фландрия","foreign","Годишнина от битката при Куртре — 1302 г., начало на борбата за независимост от Франция"
-14,7,,"Годишнина от превземането на Бастилията","FR","начало на Френската революция, 1789 г."
-25,9,,"Хондурас","foreign","Ден на независимостта — от Испания, 1821 г."
-25,6,,"Ден на независимостта","HR","от Югославия, 1991 г."
-1,12,,"Ден на републиката","CF","Ден на републиката — 1958 г., получена автономия от Франция"
-11,8,,"Ден на независимостта","TD","Ден на независимостта — от Франция, 1960 г."
-13,7,,"Международно призната за независима държава","ME","Международно призната за независима държава — Берлински конгрес, 1878 г. и Годишнина от антифашисткото въстание — 1941 г."
-28,10,,"Ден на въстановената независимост","CZ","от Австро-Унгария, 1918 г."
-18,9,,"Ден на първото правителство на Чили","CL","Ден на първото правителство на Чили от 1810 г., което дава началото на борбата за независимост от Испания през 1818 г."
-6,6,,"Ден на независимостта","SE","от анексията на Дания, 1523 г."
-1,8,,"Ден на федерацията","CH","Ден на федерацията срещу Свещената Римска империя, 1291 г."
-30,11,,"Шотландия (Великобритания)","foreign",
-27,4,,"Ден на свободата","ZA","отбелязва се първото участие на чернокожото население в избори през 1994 г., след политиката на апартейд"
-15,8,,"Южна Корея","KR","Ден на независимостта — от Япония, 1945 г."
-11,2,,"Възникване на нацията","JP","по повод изкачването на първия император на трона, 660 пр.н.е."
-3,5,,"Ден на конституцията","JP","Ден на конституцията — 1947 г."
-8,,,"Ден на независимостта","JM","първият понеделник на август - Ден на независимостта — от Великобритания, 1962 г."
-8,1,,"Български професионален празник","holiday","Бабинден - акушери, гинеколози"
-13,1,,"Български професионален празник","holiday","кинодейци"
-16,1,,"Български професионален празник","holiday","растителнозащитници"
-25,1,,"Български професионален празник","holiday","геодезисти"
-1,2,,"Български професионален празник","holiday","лозари"
-10,2,,"Български професионален празник","holiday","пчелари, градинари, овощари"
-4,4,,"Български професионален празник","holiday","психолози"
-11,4,,"Български професионален празник","holiday","зъболекари"
-16,4,,"Български професионален празник","holiday","ден на Конституцията и юриста, съдебни служители"
-30,4,,"Български професионален празник","holiday","лесовъди"
-17,5,,"Български професионален празник","holiday","спортисти"
-11,6,,"Български професионален празник","holiday","икономисти"
-21,6,,"Български професионален празник","holiday","енергетици"
-24,6,,"Български професионален празник","holiday","аптекари, фармацевти"
-27,7,,"Български професионален празник","holiday","системни администратори"
-9,8,,"Български професионален празник","holiday","военни моряци"
-18,8,,"Български професионален празник","holiday","миньори"
-14,9,,"Български професионален празник","holiday","пожарникари"
-30,9,,"Български професионален празник","holiday","преводачи"
-4,10,,"Български професионален празник","holiday","информатици"
-10,10,,"Български професионален празник","holiday","архивари"
-18,10,,"Български професионален празник","holiday","парашутисти, живописци, художници"
-4,11,,"Български професионален празник","holiday","корабостроители"
-8,11,,"Български професионален празник","holiday","месари, колбасари, полицаи"
-22,11,,"Български професионален празник","holiday","адвокати"
-6,12,,"Български професионален празник","holiday","моряци, рибари, търговци, банкери"
-8,12,,"Български професионален празник","holiday","Студентски празник"
-12,12,,"Български професионален празник","holiday","текстилни работници"
-14,12,,"Български професионален празник","holiday","ветеринари"
-22,12,,"Български професионален празник","holiday","граничари"
-1,11,,"Ден на Вси Светии","AT","Ден на Вси Светии"
-15,2,,"Ден на освобождението","AF","Liberation Day"
-21,3,,"Нова Година в Афганистан","AF","New Year's Day"
-28,4,,"Победа на муджахидините","AF","Mujahideen Victory Day"
-5,7,,"Ден на независимостта","DZ",1962
-9,12,,"Антигуа и Барбуда","foreign","Ден на националния герой.
-Commemorated with speeches as well as family gatherings."
-3,7,,"Антигуа и Барбуда","foreign","Ден на Карибската общност"
-24,3,,"Национален ден на памет за истина и справедливост","AR","Национален ден на памет за истина и справедливост"
-2,4,,"Ден на ветераните и Мемориал в Фолклендската война","AR","Ден на ветераните и Мемориал в Фолклендската война"
--3,"CEST",,"Велики четвъртък","AR","Четвъртъка преди Великден"
--2,"CEST",,"Разпети петък","AR","Петъкът преди Великден"
-9,7,,"Декларация за независимост","AR","Годишнина от Декларацията за независимост"
-20,11,,"Ден на националния суверенитет","AR","Ден на националния суверенитет. Годишнина от битката на Vuelta de Obligado"
-8,12,,"Непорочно зачятие на Мария","AR","Непорочното зачатие на Мария"
-24,4,,"Ден за възпоменание на геноцида","AM","Арменски Ден за възпоменание на геноцида"
-4,1,,"Ден на мъчениците","AO","Colonial Repression Martyrs' Day"
-25,1,,"Ден на Луанда","AO","Ден на Луанда / Luanda's Day"
-4,2,,"Ден на въоръжената борба","AO","Ден на въоръжената борба в памет на бунта на Baixa de Cassanje"
-4,4,,"Ден на мира и помирението","AO","Ден на мира и помирението. Край на Гражданската война в Ангола"
-25,5,,"Ден на Африка","AO","Ден на Африка"
-17,9,,"Ден на Agostinho Neto","AO","Ден на Agostinho Neto  и Националната Ден на героите"
-2,11,,"Ден на всички души","AO","Ден на всички души"
-6,1,,"Богоявление","AM","Богоявление"
-9,5,,"Ден на мира",,"Ден на мира"
-5,7,,"Ден на Конституцията","AM","Ден на Конституцията"
-21,9,,"Ден на независимостта","AM","Ден на независимостта"
-25,4,,"Ден на армията на Австралия и Нова Зеландия","AU","Ден на армията на Австралия и Нова Зеландия"
-6,1,,"Богоявление","AT","Богоявление"
-1,"CEST",,"Велики понеделник","AT","Велики понеделник или  Egg Nyte"
-39,"CEST",,"Празник на възнесението","AT","Празникът на Възнесение Господне, известен още като Възнесение четвъртък, Велики четвъртък или Възнесение Господне. Чества телесна възнесението на Исус в небето"
-49,"CEST",,"Петдесетница","AT","Петдесетница (също Петдесетница, Петдесетница неделя или Петдесетница)"
-60,"CEST",,"Празникът на Корпус Кристи","AT","Тайната вечеря. Четвъртък, след Троица неделя (60 дни след Великден)"
-15,8,,"Успение на Пресвета Богородица","AT","Успение на Пресвета Богородица"
-8,12,,"Празник на непорочното зачатие","AT","Празник на непорочното зачатие. Магазините отварят за Коледно пазаруване"
-20,1,,"Черен януари","AZ","Ден на мъчениците"
-15,6,,"Ден на национално спасение","AZ","Ден на национално спасение"
-26,6,,"Ден на армията и флота","AZ","Ден на армията и флота"
-12,11,,"Ден на конституцията","AZ","Ден на конституцията"
-31,12,,"Ден на международната солидарност","AZ","Ден на международната солидарност"
-4,5,,"Ден на труда","BS","Ден на труда"
-11,10,,"Ден на Колумб","BS","Ден на Колумб / Ден на откривателя"
-26,10,,"Димитровден","nameday","Димитър, Димитрина, Деметра, Димо, Дима, Димка, Димитричка, Димчо, Димана, Драган, Митко, Митка, Митра, Митрана, Мита"
+В Австрия: St Stephen's Day","Йосиф и Давид"
+1,1,,"Василовден","orthodox","Обрезание Господне. Св. Василий Велики",
+24,5,,"Църковен празник","orthodox","Ден на Българската просвета и култура и на славянската писменост",
+6,8,,"Църковен празник","orthodox","Преображение Господне",
+8,9,,"Църковен празник","orthodox","Рождество на Пресвета Богородица",
+19,10,,"Църковен празник","orthodox","Преп. Йоан Рилски Чудотворец",
+21,11,,"Ден на православната християнска младеж и семейство","orthodox","Въведение Богородично",
+26,1,,"Ден на основаването на Австралия","AU","пристигането на първите заселници през 1788 г.",
+26,10,,"Декларация Парламента за неутралитет на Австрия","AT","залегнал в конституцията, 1955 г.",
+28,5,,"Ден на републиката","AZ","Ден на републиката, 1918 г.",
+28,11,,"Ден на независимостта","AL","от Турция, 1912 г.",
+1,11,,"Ден на революцията","DZ","от Франция, 1962 г.",
+23,4,,"Ден на Свети Георги","GB","патрон на нацията",
+11,11,,"Ден на независимостта","AO","от Португалия, 1975 г.",
+30,5,,"Ден на Ангуила","АТ","по повод въвеждането на самостоятелна полиция през 1967 г.",
+8,9,,"Ден на независимостта","AD","от Франция и Испания, 1993 г.",
+25,5,,"Ден на въстанието за независимост","AR","срещу Испания, 1810 г.",
+28,5,,"Ден на независимостта","AM","от СССР, 1991 г.",
+19,8,,"Ден на независимостта","AF","от Великобритания, 1919 г.",
+3,7,,"Ден на освобождението","BY","от Хитлеристка Германия, 1944 г.",
+21,7,,"Коронация Леополд I","BE","първи крал на Белгия — 1831 г.",
+10,9,,"Ден на Св. Джордж Кайе","BZ","Ден на Св. Джордж Кайе — патрон на държавата",
+21,9,,"Ден на независимостта","BZ","Ден на независимостта — от Великобритания, 1981 г.",
+26,3,,"Ден на независимостта","BD","Ден на независимостта — от Пакистан, 1971 г.",
+30,11,,"Ден на независимостта","BB","Ден на независимостта — от Великобритания, 1966 г.",
+10,7,,"Ден на независимостта","BS","Ден на независимостта — от Великобритания, 1973 г.",
+1,8,,"Ден на независимостта","BJ","Ден на независимостта — от Франция, 1960 г.",
+6,8,,"Ден на независимостта","BO","Ден на независимостта — от Испания, 1825 г.",
+1,3,,"Ден на независимостта","BA","от Югославия, 1992 г",
+25,11,,"Ден на държавността","BA","възстановяване на държавата от марионетната на Италия Независима държава Хърватска, 1943 г.",
+7,9,,"Ден на независимостта","BR","от Португалия, обявена през 1822 г.; призната 3 години по-късно",
+4,8,,"Ден на независимостта","BF","Годишнина от революцията — 1984 г. и Ден на независимостта — от Франция, 1960 г.",
+1,7,,"Ден на независимостта","BI","Ден на независимостта — от Белгия, 1962 г.",
+6,,,"втората събота на Юни","GB","Официално честване на рожднния ден на кралица Елизабет II",
+5,7,,"Декларация за независимост","VE","от Испания, 1811 г.",
+2,9,,"Декларация за независимост","VN","от Франция, 1945 г.",
+18,2,,"Ден на независимостта","GM","Ден на независимостта — от Великобритания, 1965 г.",
+6,3,,"Ден на независимостта","GH","Ден на независимостта — от Великобритания, 1957 г.",
+15,9,,"Ден на независимостта","GT","Ден на независимостта — от Испания, 1821 г.",
+23,2,,"Ден на републиката","GY","Празник Машрамани по повод Ден на републиката — 1972 г.",
+3,10,,"Ден на германското единство","DE","Ден на германското единство — 1990 г.",
+26,5,,"Ден на независимостта","GE","Ден на независимостта — от Болшевишка Русия, 1918 г.",
+25,3,,"Ден на независимостта","GR","от Османската империя, декларирана на същата дата през 1821 г., което е начало на войната за независимост",
+5,6,,"Ден на конституцията","DK","Ден на конституцията — 1848 г.",
+27,6,,"Ден на независимостта","DJ","Ден на независимостта — от Франция, 1977 г.",
+27,2,,"Ден на независимостта","DO","Ден на независимостта — от Хаити, 1844 г.",
+16,8,,"Възстановяване на националната независимост","DO","Възстановяване на националната независимост — от Испания, 1865 г.",
+23,7,,"Ден на революцията","EG","1952 г.",
+10,8,,"Ден на независимостта","EC","Ден на независимостта — от Испания, 1809 г. — окончателно извоювана на 24 май 1822 г.",
+24,2,,"Ден на независимостта","EE","от Болшевишка Русия, 1918 г., същият ден се празнува и като Ден на републиката",
+28,5,,"Възстановяване на демокрацията","ET","Възстановяване на демокрацията — сваляне на диктатурата на Менгисту Хайле Мариам, 1991 г.",
+14,5,,"Ден на независимостта","IL","с прекратяване на мандата на Великобритания, 1948 г. върху територията на Палестина",
+26,1,,"Ден на републиката","IN","Ден на републиката — 1950 г.)",
+15,8,,"Ден на независимостта","IN","от Великобритания, 1947 г.",
+2,10,,"Годишнина от рождението на Махатма Ганди","IN","Годишнина от рождението на Махатма Ганди — 1869 г.",
+17,8,,"Ден на независимостта","ID"," от Нидерландия, 1945 г.",
+1,4,,"Ден на ислямската република","IR","Ден на ислямската република — 1979 г.",
+17,7,,"Ден на ислямската република","IQ","Ден на ислямската република",
+17,3,,"Ден на Свети Патрик","IE","Ден на Свети Патрик",
+17,6,,"Ден на независимостта","IS","от Дания, 1944 г.",
+12,10,,"Годишнина от откриването на Америка","ES","Годишнина от откриването на Америка, 1492 г.",
+2,6,,"Ден на републиката","IT","Ден на републиката — 1946 г.",
+25,5,,"Ден на независимостта","JO","от Великобритания, 1946 г.",
+25,10,,"Ден на републиката","KZ","Ден на републиката и на държавния суверенитет — 1990 г.",
+9,11,,"Ден на независимостта","KH","Ден на независимостта — от Франция, 1953 г.",
+1,7,,"Ден на Канада","CA","Ден на Канада — 1867 г.",
+3,9,,"Ден на независимостта","QA","от Великобритания, 1971 г.",
+31,8,,"Ден на независимостта","KG","Ден на независимостта — от СССР, 1991 г.",
+1,10,,"Ден на независимостта","CY","от Великобритания, 1960 г.",
+1,10,,"Ден на Китайската народна република","CN","Ден на Китайската народна република — 1949 г.",
+20,7,,"Обявяване на независимост","CO","Обявяване на независимост — от Испания, 1810 г.",
+7,8,,"Признаване на независимостта","CO","Признаване на независимостта — от Испания, 1819 г.",
+15,8,,"Ден на независимостта","CG","Ден на независимостта — от Франция, 1960 г.",
+6,7,,"Ден на независимостта","KM","Ден на независимостта — от Франция, 1975 г.",
+15,9,,"Ден на независимостта","CR","Ден на независимостта — от Испания, 1821 г.",
+7,8,,"Ден на независимостта","CI","Ден на независимостта — от Франция, 1960 г.",
+1,1,,"Ден на свободата","CU","Ден на свободата, 1959 г.",
+25,2,,"Ден на нацията","KW","Ден на нацията",
+18,11,,"Ден на независимостта","LV","Ден на независимостта — от Болшевишка Русия, 1918 г.",
+26,7,,"Ден на независимостта","LR","Ден на независимостта — от САЩ, 1847 г.",
+1,9,,"Ден на революцията","LY","държавен преврат под ръководството на Муамар Кадафи, 1969 г.",
+22,11,,"Ден на независимостта","LB","Ден на независимостта — от Франция, 1943 г.",
+15,8,,"Ден на Лихтенщайн","LI","Ден на Лихтенщайн",
+16,2,,"Ден на независимостта","LT","от Русия, 1918 г.",
+23,6,,"Рожден ден на Великия херцог","LU","празнува се като национален празник от 1947 г. и от 1961 г. няма връзка с истинския рожден ден на херцога",
+12,3,,"Ден на независимостта","MU","Ден на независимостта — от Великобритания, 1968 г.",
+26,6,,"Ден на независимостта","MG","Ден на независимостта — от Франция, 1960 г.",
+8,9,,"Ден на независимостта","MK","от Югославия, 1991 г.",
+31,8,,"Ден на независимостта","MY","от Великобритания, 1957 г.",
+26,7,,"Ден на независимостта","MV","Ден на независимостта — от САЩ, 1965 г.",
+22,9,,"Ден на независимостта","ML","Ден на независимостта — от Франция, 1960 г.",
+21,9,,"Ден на независимостта","MT","от Великобритания, 1964 г.",
+2,3,,"Ден на независимостта","MA","от Франция и Испания, 1956 г.",
+16,9,,"Ден на независимостта","MX","от Испания, обявена на същата дата през 1810 г., извоювана окончателно на 27 септември 1821 г.",
+27,8,,"Ден на независимостта","MD","от СССР, 1991 г.",
+19,11,,"Ден на принца","MC","Ден на принца",
+11,7,,"Ден на революцията и независимостта","MN","от Китай, 1921 г.",
+21,3,,"Ден на независимостта","NA","Ден на независимостта — от ЮАР, 1990 г.",
+31,1,,"Ден на независимостта","NR","Ден на обявяване на независимостта — от Великобритания, Австралия и Нова Зеландия, 1968 г.",
+18,2,,"Ден на мъчениците","NP","Ден на мъчениците",
+28,12,,"Ден на републиката","NP","Рожден ден на краля и Ден на републиката — 2007 г.",
+18,12,,"Ден на републиката","NE","Ден на републиката, 1958 г.",
+1,10,,"Ден на независимостта","NG","Ден на независимостта — от Великобритания, 1960 г.",
+30,4,,"Национален празник","NL","Официално честване на рожденния ден на кралица Беатрикс",
+6,2,,"Годишнина на договора Вайтанга","NZ","Годишнина на договора Вайтанга — 1840 г.",
+17,5,,"Ден на конституцията","NO","Ден на конституцията — 1814 г.",
+2,12,,"Годишнина от създаването на федерацията","AE","Годишнина от създаването на федерацията — 1971 г.",
+23,3,,"Ден на републиката","PK","първата ислямска република в света през 1956 г.) и 14 август (Ден на независимостта — от Великобритания и отделянето на държавата от Индия през 1947 г.",
+9,7,,"Ден на конституцията","PW","Ден на конституцията — 1981 г.",
+3,11,,"Отделяне на държавата като самостоятелна","PA","Отделяне на държавата като самостоятелна от Колумбия, 1903 г.",
+15,5,,"Ден на независимостта","PY","Ден на независимостта — от Испания, 1811 г.",
+28,7,,"Ден на независимостта","PE","от Испания, 1821 г.",
+3,5,,"Ден на конституцията","PO","Ден на конституцията",
+11,11,,"Ден на независимостта","PO","от Австро-Унгария, Германия и Русия, 1918 г.",
+10,6,,"Ден на Португалия","PT","по повод деня в памет на националния поет Луиш ди Камоинш, 1850 г.",
+1,12,,"Годишнина","RO","Годишнина от възвръщането на Трансилвания и обединението на Румъния, 1918 г.",
+12,6,,"Ден на Русия","RU","празнува се от 1990 г.",
+3,9,,"Ден на републиката","SM","най-старата република в света, 301 г.",
+23,9,,"Празник на обединението на кралството","SA","Празник на обединението на кралството — 1923 г.",
+8,9,,"Северна Корея","KR","Създаване на Корейската народно-демократична република през 1948 г.",
+9,8,,"Ден на Сингапур","SG","отделяне от Малайзия като самостоятелна държава през 1965 г.",
+29,8,,"Словашко национално въстание","SK","Словашко национално въстание, срещу окупацията на Хитлеристка Германия, 1944 г.",
+1,9,,"Ден на конституцията","SK","Ден на конституцията — 1992 г.",
+25,6,,"Ден на независимостта","SI","от Югославия, 1991 г.",
+4,7,,"Декларация независимост от Великобритания","US","Декларация независимост от Великобритания, 1776 г.",
+15,2,,"Избухване на Първото сръбско въстание","RS","Избухване на Първото сръбско въстание за независимост от Османската империя — 1804 г.",
+9,9,,"Ден на независимостта","TJ","Ден на независимостта — от СССР, 1991 г.",
+10,10,,"Ден на републиката","TW","по повод създаването на Китайска република през 1911 г.",
+5,12,,"Рожден ден на краля","TH","Рожден ден на краля, 1927 г.",
+27,10,,"Ден на независимостта","TM","Ден на независимостта — от СССР, 1991 г.",
+29,10,,"Ден на републиката","TR","отказване от статута на Османска империя, 1923 г.",
+24,8,,"Ден на независимостта","UA","от СССР, 1991 г.",
+15,3,,"Ден на революцията","HU","Ден на революцията, 1848 г.",
+20,8,,"Ден на Свети Ищван I","HU","Ден на Свети Ищван I — първи крал и основател на държавата",
+23,10,,"Ден на републиката и революцията","HU","Ден на републиката и революцията, 1956 г.",
+25,8,,"Декларация за независимост","UY","Декларация за независимост — от Бразилия, 1825 г.",
+1,9,,"Ден на независимостта","UZ","Ден на независимостта — от СССР, 1991 г.",
+10,10,,"Ден на независимостта","FJ","Ден на независимостта — от Великобритания, 1970 г.",
+12,6,,"Ден на независимостта","PH","Ден на независимостта — от Испания, 1898 г.",
+6,12,,"Ден на независимостта","FI","от Русия, 1917 г.",
+14,7,,"Годишнина от превземането на Бастилията","FR","начало на Френската революция, 1789 г.",
+25,6,,"Ден на независимостта","HR","от Югославия, 1991 г.",
+1,12,,"Ден на републиката","CF","Ден на републиката — 1958 г., получена автономия от Франция",
+11,8,,"Ден на независимостта","TD","Ден на независимостта — от Франция, 1960 г.",
+13,7,,"Международно призната за независима държава","ME","Международно призната за независима държава — Берлински конгрес, 1878 г. и Годишнина от антифашисткото въстание — 1941 г.",
+28,10,,"Ден на въстановената независимост","CZ","от Австро-Унгария, 1918 г.",
+18,9,,"Ден на първото правителство на Чили","CL","Ден на първото правителство на Чили от 1810 г., което дава началото на борбата за независимост от Испания през 1818 г.",
+6,6,,"Ден на независимостта","SE","от анексията на Дания, 1523 г.",
+1,8,,"Ден на федерацията","CH","Ден на федерацията срещу Свещената Римска империя, 1291 г.",
+27,4,,"Ден на свободата","ZA","отбелязва се първото участие на чернокожото население в избори през 1994 г., след политиката на апартейд",
+15,8,,"Южна Корея","KR","Ден на независимостта — от Япония, 1945 г.",
+11,2,,"Възникване на нацията","JP","по повод изкачването на първия император на трона, 660 пр.н.е.",
+3,5,,"Ден на конституцията","JP","Ден на конституцията — 1947 г.",
+8,,,"Ден на независимостта","JM","първият понеделник на август - Ден на независимостта — от Великобритания, 1962 г.",
+1,11,,"Ден на Вси Светии","AT","Ден на Вси Светии",
+15,2,,"Ден на освобождението","AF","Liberation Day",
+21,3,,"Нова Година в Афганистан","AF","New Year's Day",
+28,4,,"Победа на муджахидините","AF","Mujahideen Victory Day",
+5,7,,"Ден на независимостта","DZ",1962,
+24,3,,"Национален ден на памет за истина и справедливост","AR","Национален ден на памет за истина и справедливост",
+2,4,,"Ден на ветераните и Мемориал в Фолклендската война","AR","Ден на ветераните и Мемориал в Фолклендската война",
+-3,"CEST",,"Велики четвъртък","AR","Четвъртъка преди Великден",
+-2,"CEST",,"Разпети петък","AR","Петъкът преди Великден",
+9,7,,"Декларация за независимост","AR","Годишнина от Декларацията за независимост",
+20,11,,"Ден на националния суверенитет","AR","Ден на националния суверенитет. Годишнина от битката на Vuelta de Obligado",
+8,12,,"Непорочно зачятие на Мария","AR","Непорочното зачатие на Мария",
+24,4,,"Ден за възпоменание на геноцида","AM","Арменски Ден за възпоменание на геноцида",
+4,1,,"Ден на мъчениците","AO","Colonial Repression Martyrs' Day",
+25,1,,"Ден на Луанда","AO","Ден на Луанда / Luanda's Day",
+4,2,,"Ден на въоръжената борба","AO","Ден на въоръжената борба в памет на бунта на Baixa de Cassanje",
+4,4,,"Ден на мира и помирението","AO","Ден на мира и помирението. Край на Гражданската война в Ангола",
+25,5,,"Ден на Африка","AO","Ден на Африка",
+17,9,,"Ден на Agostinho Neto","AO","Ден на Agostinho Neto  и Националната Ден на героите",
+2,11,,"Ден на всички души","AO","Ден на всички души",
+6,1,,"Богоявление","AM","Богоявление",
+9,5,,"Ден на мира",,"Ден на мира",
+5,7,,"Ден на Конституцията","AM","Ден на Конституцията",
+21,9,,"Ден на независимостта","AM","Ден на независимостта",
+25,4,,"Ден на армията на Австралия и Нова Зеландия","AU","Ден на армията на Австралия и Нова Зеландия",
+6,1,,"Богоявление","AT","Богоявление",
+1,"CEST",,"Велики понеделник","AT","Велики понеделник или  Egg Nyte",
+39,"CEST",,"Празник на възнесението","AT","Празникът на Възнесение Господне, известен още като Възнесение четвъртък, Велики четвъртък или Възнесение Господне. Чества телесна възнесението на Исус в небето",
+49,"CEST",,"Петдесетница","AT","Петдесетница (също Петдесетница, Петдесетница неделя или Петдесетница)",
+60,"CEST",,"Празникът на Корпус Кристи","AT","Тайната вечеря. Четвъртък, след Троица неделя (60 дни след Великден)",
+15,8,,"Успение на Пресвета Богородица","AT","Успение на Пресвета Богородица",
+8,12,,"Празник на непорочното зачатие","AT","Празник на непорочното зачатие. Магазините отварят за Коледно пазаруване",
+20,1,,"Черен януари","AZ","Ден на мъчениците",
+15,6,,"Ден на национално спасение","AZ","Ден на национално спасение",
+26,6,,"Ден на армията и флота","AZ","Ден на армията и флота",
+12,11,,"Ден на конституцията","AZ","Ден на конституцията",
+31,12,,"Ден на международната солидарност","AZ","Ден на международната солидарност",
+4,5,,"Ден на труда","BS","Ден на труда",
+11,10,,"Ден на Колумб","BS","Ден на Колумб / Ден на откривателя",
+26,10,,"Димитровден","nameday",,
+,,,,,,"Димитър, Димитрина, Деметра, Димо, Дима, Димка, Димитричка, Димчо, Димана, Драган, Митко, Митка, Митра, Митрана, Мита"

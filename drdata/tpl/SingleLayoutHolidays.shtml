@@ -24,6 +24,10 @@
                      <td class=\"quiet\" align=\"right\">Описание:</td>
                      <td>[#info#]</td>
                  </tr>
+                 <tr>
+                     <td class=\"quiet\" align=\"right\">Именници:</td>
+                     <td>[#nameday#]</td>
+                 </tr>
                  
                 
              </table>

@@ -19,7 +19,7 @@ class drdata_Holidays extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
+    var $loadList = 'drdata_Wrapper, plg_RowTools, plg_Sorting, plg_Search, plg_State';
     
 
     /**
@@ -37,7 +37,7 @@ class drdata_Holidays extends core_Master
     /**
      * Полетата, които ще се показват в единичния изглед
      */
-    var $singleFields = 'day, base, year, id, title, type, info';
+    var $singleFields = 'day, base, year, id, title, type, info, nameday';
     
     
     /**
@@ -77,6 +77,22 @@ class drdata_Holidays extends core_Master
                                  12=Декември,
                                  EST=Великден,
                                  CEST=Кат. Великден)', 'caption=База,export');
+        $this->FLD('weekday', 'enum(0=&nbsp;,
+        						 first-monday=Първи понеделник,
+                                 last-monday=Последен понеделник,
+                                 first-tuesday=Първи вторник,
+                                 last-tuesday=Последен вторник,
+                                 first-wednesday=Първа сряда,
+                                 last-wednesday=Последна сряда,
+                                 first-thursday=Първи четвъртък,
+                                 last-thursday=Последен четвъртък,
+                                 first-friday=Първи петък,
+                                 last-friday=Последен петък,
+                                 first-saturday=Първа събота,
+                                 last-saturday=Последна събота,
+                                 first-sunday=Първа неделя,
+                                 last-sunday=Последна неделя,
+                                 )', 'caption=Ден от седмицата,export');
         $this->FLD('year', 'int', 'caption=Година,export');
         $this->FLD('title', 'varchar', 'caption=Празник->Заглавие,export');
         $this->FLD('type', 'enum(0=&nbsp;,
@@ -229,6 +245,8 @@ class drdata_Holidays extends core_Master
 										JP=Япония)', 'caption=Празник->Тип,export');
         $this->FLD('info', 'text', 'caption=Празник->Данни,export');
         
+        $this->FLD('nameday', 'text', 'caption=Именници,export');
+        
         //$this->setDbUnique('day, base, type');
     }
     
@@ -258,6 +276,7 @@ class drdata_Holidays extends core_Master
                 $rec->title = $csvRow[3];
                 $rec->type = $csvRow[4];
                 $rec->info = $csvRow[5];
+                $rec->nameday = $csvRow[6];
      
                 
                 // Ако има запис с това 'id'
@@ -389,8 +408,47 @@ class drdata_Holidays extends core_Master
                 } elseif($rec->base == 'CEST') {
                     $base = static::getEaster($year);
                     $delta = 0;
+                } elseif($rec->weekday !== NULL && $rec->base !== 0) {
+                    $month = $rec->base;
+                    $day = $rec->day;
+                    // bp($rec->weekday, $month, $this->firstDayOfMounth($month, $year, 'first-thursday'));
+                   		 $monday = $this->firstDayOfMounth($month, $year, 'first-monday');
+                   		 $thursday = $this->firstDayOfMounth($month, $year, 'first-tuesday');
+                   		 $wednesday = $this->firstDayOfMounth($month, $year, 'first-wednesday');
+                   		 $thursday = $this->firstDayOfMounth($month, $year, 'first-thursday');
+                   		 $friday = $this->firstDayOfMounth($month, $year, 'first-friday');
+                   		 $saturday = $this->firstDayOfMounth($month, $year, 'first-saturday');
+                   		 $sunday = $this->firstDayOfMounth($month, $year, 'first-sunday');
+                   
+                   		 if($rec->weekday == 'first-monday'){
+                   		 	$base = mktime(0, 0, 0, $month, $monday, $year);
+                   		 	$delta = 0;
+                   		 } elseif($rec->weekday == 'first-tuesday'){
+                   		 	$base = mktime(0, 0, 0, $month, $tuesday, $year);
+                   		 	$delta = 0;
+                   		 }elseif($rec->weekday == 'first-wednesday'){
+                   		 	$base = mktime(0, 0, 0, $month, $wednesday, $year);
+                   		 	$delta = 0;
+                   		 }elseif($rec->weekday == 'first-thursday'){
+                   		 	$base = mktime(0, 0, 0, $month, $thursday, $year);
+                   		 	$delta = 0;
+                   		 }elseif($rec->weekday == 'first-friday'){
+                   		 	$base = mktime(0, 0, 0, $month, $friday, $year);
+                   		 	$delta = 0;
+                   		 }elseif($rec->weekday == 'first-saturday'){
+                   		 	$base = mktime(0, 0, 0, $month, $saturday, $year);
+                   		 	//bp($saturday, $rec->weekday, $fSaturday);
+                   		 	$delta = 0;
+                   		 }elseif($rec->weekday == 'first-sunday'){
+                   		 	$base = mktime(0, 0, 0, $month, $sunday, $year);
+                   		 	$delta = 0;
+                   		 }
+         
                 } else {
+                	
+                	
                 	//? expects parameter 4 to be long, string given ?
+                	
                     $base = mktime(0, 0, 0, $rec->base, 1, $year);
                     $delta = -1;
                 }
@@ -675,5 +733,92 @@ class drdata_Holidays extends core_Master
         return __DIR__ . "/csv/Holidays.csv";
     }
     
+    
+    function firstDayOfMounth ($month, $year, $wDay)
+    {
+  	
+    				//Определяме първия ден от месеца, какъв ден от седмиата е, като резултата е в
+                    // числов вид: 0-неделя ... 6-събота
+                    $firstDayM = date("w", mktime(0, 0, 0, $month, 1, $year));
+                   
+                    if($firstDayM > 1){
+
+                    	//Първият понеделни на месеца
+                    	$fMonday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(8-$firstDayM)));
+                        
+                    	$fSaturday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(6-$firstDayM)));
+		                $fSunday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(7-$firstDayM)));
+                    	
+                    	if($fMonday == 7){
+                    		$fTuesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(2-$firstDayM)));
+                    	} else {
+                    		$fTuesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(9-$firstDayM)));
+                    	}
+                    	
+                    	if($fMonday == 3){
+                    		$fFriday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(12-$firstDayM)));
+                    	} else {
+                    		$fFriday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(5-$firstDayM)));
+                    	}
+                    	
+	                    //Проверяваме дали понеделника е 7-ми ден от месеца. Ако е - вторник е 1
+	                    if($fMonday == 7 || $fMonday == 6){
+                    	
+		                    $fWednesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(3-$firstDayM)));
+		                	$fThursday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(4-$firstDayM)));
+		                	
+		                   // bp($fMonday, $fTuesday, $fWednesday, $fThursday, $fFriday, $fSaturday, $fSunday);
+		                    	
+                    	 } elseif ($fMonday == 5) {
+                    	
+		                    $fWednesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(10-$firstDayM)));
+		                    $fThursday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(4-$firstDayM)));
+		                	
+		                	// bp($fMonday, $fTuesday, $fWednesday, $fThursday, $fFriday, $fSaturday, $fSunday);
+		                	 
+                   	     } elseif ($fMonday == 4 || $fMonday == 3) {
+                    	
+		                    $fWednesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(10-$firstDayM)));
+		                    $fThursday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(11-$firstDayM)));
+		                	
+		                	//bp($fMonday, $fTuesday, $fWednesday, $fThursday, $fFriday, $fSaturday, $fSunday);
+                   	     } 
+                  
+                     //Първия ден от месеца е точно първият понеделник
+                     //или първият ден от месеца е неделя, следователно 2-ри ще е първият понеделник
+                    } elseif ($firstDayM == 1 || $firstDayM == 0){
+                    	
+	                	$fMonday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(1-$firstDayM)));
+	                	$fTuesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(2-$firstDayM)));
+	                	$fWednesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(3-$firstDayM)));
+	                	$fThursday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(4-$firstDayM)));
+	                	$fFriday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(5-$firstDayM)));
+	                	$fSaturday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(6-$firstDayM)));
+	                		if($firstDayM == 1){
+	                			$fSunday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(7-$firstDayM)));
+	                		} else {
+	                			$fSunday = date("d", mktime(0,0,0,$month,1,$year)+(86400*($firstDayM)));
+	                		}
+	                	//bp($fMonday, $fTuesday, $fWednesday, $fThursday, $fFriday, $fSaturday, $fSunday);
+	                
+                    } 
+                    
+                    if($wDay == 'first-monday'){
+                    	return $fMonday;
+                    } elseif($wDay == 'first-tuesday'){
+                    	return $fTuesday;
+                    }elseif($wDay == 'first-wednesday'){
+                    	return $fWednesday;
+                    }elseif($wDay == 'first-thursday'){
+                    	return $fThursday;
+                    }elseif($wDay == 'first-friday'){
+                    	return $fFriday;
+                    }elseif($wDay == 'first-saturday'){
+                    	return $fSaturday;
+                    }elseif($wDay == 'first-sunday'){
+                    	return $fSunday;
+                    }
+                  
+    }
 }
 
