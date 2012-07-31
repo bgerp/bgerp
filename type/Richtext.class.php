@@ -364,18 +364,25 @@ class type_Richtext extends type_Text {
         $this->_htmlBoard[$place] = $url;
          
         if(core_Url::isLocal($url)) {
-            $link = $this->converInternalLink($url, $title, $place);
+            $link = static::internalLink($url, $title, $place);
         } else {
-            $link = $this->converExternalLink($url, $title, $place);
+            $link = static::externalLink($url, $title, $place);
         }
         
         return $link;
     }
 
     /**
-     * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL-та
+     * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL
+     * 
+     * Може да бъде прихванат в плъгин на `type_Richtext` с on_AfterExternalLink()
+     * 
+     * @param string $url URL, къдетo трябва да сочи връзката
+     * @param string $text текст под връзката
+     * @param string $place
+     * @return string HTML елемент <a href="...">...</a>
      */
-    function converExternalLink_($url, $title, $place)
+    public static function externalLink_($url, $title, $place)
     {
         $bgPlace = $this->getPlace();
         $urlArr = core_Url::parseUrl($url);
@@ -388,9 +395,14 @@ class type_Richtext extends type_Text {
 
     
     /**
-     * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL-та
+     * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL
+     * 
+     * @param string $url URL, къдетo трябва да сочи връзката
+     * @param string $text текст под връзката
+     * @param string $place
+     * @return string HTML елемент <a href="...">...</a>
      */
-    function converInternalLink_($url, $title, $place)
+    public static function internalLink_($url, $title, $place)
     {
         $link = "<a href=\"__{$place}__\">{$title}</a>";
 
@@ -498,16 +510,24 @@ class type_Richtext extends type_Text {
         
         if(!Mode::is('text', 'plain')) {
             if(core_Url::isLocal($url)) {
-                $result = static::internalHyperlink($url, $html[0]);
+                $result = static::internalUrl($url, $html[0]);
             } else {
-                $result = static::getLinkByUrl($url, $html[0]);
+                $result = static::externalUrl($url, $html[0]);
             }
         }
         
         return $result;
     }
     
-    public static function internalHyperlink_($url, $title)
+    
+    /**
+     * Конвертира вътрешен URL към подходящо HTML представяне.
+     * 
+     * @param string $url
+     * @param string $title
+     * @return string HTML елемент <a href="...">...</a>
+     */
+    public static function internalUrl_($url, $title)
     {
         return "<a href=\"{$url}\">{$title}</a>";
     }
@@ -531,9 +551,13 @@ class type_Richtext extends type_Text {
 
 
     /**
-     * Заменя URL-to с подходяща хипервръзка
+     * Конвертира въшнен URL към подходящо HTML представяне
+     * 
+     * @param string $url
+     * @param string $title
+     * @param string HTML код
      */
-    function getLinkByUrl_($url, $title)
+    public static function externalUrl_($url, $title)
     {
         
         $vbox = "http://vbox7.com/play:";
