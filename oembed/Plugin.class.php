@@ -144,7 +144,7 @@ class oembed_Plugin extends core_Plugin
             $cacheRec = array(
                 'url' => $url,
                 'html' => $response['html'],
-                'provider' => $apiUrl,
+                'provider' => $api['api'],
                 'expires' => $response['cache_age'],
             );
             
