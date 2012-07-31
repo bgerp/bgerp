@@ -498,16 +498,20 @@ class type_Richtext extends type_Text {
         
         if(!Mode::is('text', 'plain')) {
             if(core_Url::isLocal($url)) {
-                $link = "<a href=\"{$url}\">{$html[0]}</a>";
+                $result = static::internalHyperlink($url, $html[0]);
             } else {
-                $link = self::getLinkByUrl($url, $html[0]);
+                $result = static::getLinkByUrl($url, $html[0]);
             }
         }
         
-        return $link;
+        return $result;
     }
-
-
+    
+    public static function internalHyperlink_($url, $title)
+    {
+        return "<a href=\"{$url}\">{$title}</a>";
+    }
+    
     /**
      * Прави субституция на имейлите
      */
