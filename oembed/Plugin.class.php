@@ -102,10 +102,13 @@ class oembed_Plugin extends core_Plugin
     );
     
     
-    public static function on_AfterExternalUrl($host, &$htmlString, $url)
+    public static function on_AfterExternalUrl($hostObj, &$htmlString, $url)
     {
         if (($html = static::getEmbedHtml($url)) !== FALSE) {
-            $htmlString = $html;
+            $link = core_Html::createLink($url, $url); 
+            $link = core_Html::createElement('div', 'class=orig', $link, TRUE);
+            
+            $htmlString = core_Html::createElement('div', 'class=embedded', $html . $link, TRUE);
         }
     }
     
