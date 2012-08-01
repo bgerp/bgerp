@@ -118,6 +118,11 @@ class oembed_Plugin extends core_Plugin
      */
     public static function getEmbedHtml($url)
     {
+        if (Mode::is('text', 'xhtml')) {
+            // В режим X-HTML ресурсите зад линковете никога не се вграждат!
+            return FALSE;
+        }
+        
         if (($html = oembed_Cache::getCachedHtml($url)) !== FALSE) {
             // Попадение в кеша!
             return $html;
