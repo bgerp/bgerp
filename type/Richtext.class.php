@@ -364,13 +364,14 @@ class type_Richtext extends type_Text {
         $this->_htmlBoard[$place] = $url;
          
         if(core_Url::isLocal($url)) {
-            $link = static::internalLink($url, $title, $place);
+            $link = $this->internalLink($url, $title, $place);
         } else {
-            $link = static::externalLink($url, $title, $place);
+            $link = $this->externalLink($url, $title, $place);
         }
         
         return $link;
     }
+
 
     /**
      * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL
@@ -382,7 +383,7 @@ class type_Richtext extends type_Text {
      * @param string $place
      * @return string HTML елемент <a href="...">...</a>
      */
-    public static function externalLink_($url, $title, $place)
+    public function externalLink_($url, $title, $place)
     {
         $bgPlace = $this->getPlace();
         $urlArr = core_Url::parseUrl($url);
@@ -402,7 +403,7 @@ class type_Richtext extends type_Text {
      * @param string $place
      * @return string HTML елемент <a href="...">...</a>
      */
-    public static function internalLink_($url, $title, $place)
+    public function internalLink_($url, $title, $place)
     {
         $link = "<a href=\"__{$place}__\">{$title}</a>";
 
@@ -510,9 +511,9 @@ class type_Richtext extends type_Text {
         
         if(!Mode::is('text', 'plain')) {
             if(core_Url::isLocal($url)) {
-                $result = static::internalUrl($url, $html[0]);
+                $result = $this->internalUrl($url, $html[0]);
             } else {
-                $result = static::externalUrl($url, $html[0]);
+                $result = $this->externalUrl($url, $html[0]);
             }
         }
         
@@ -527,7 +528,7 @@ class type_Richtext extends type_Text {
      * @param string $title
      * @return string HTML елемент <a href="...">...</a>
      */
-    public static function internalUrl_($url, $title)
+    public function internalUrl_($url, $title)
     {
         return "<a href=\"{$url}\">{$title}</a>";
     }
@@ -557,7 +558,7 @@ class type_Richtext extends type_Text {
      * @param string $title
      * @param string HTML код
      */
-    public static function externalUrl_($url, $title)
+    public function externalUrl_($url, $title)
     {
         $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
         
