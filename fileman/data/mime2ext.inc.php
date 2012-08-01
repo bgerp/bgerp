@@ -634,4 +634,12 @@ $mime2ext = array(
     "video/x-ms-wvx" => "wvx",
     "video/x-msvideo" => "avi",
     "video/x-sgi-movie" => "movie",
-    "x-conference/x-cooltalk" => "ice");
+    "x-conference/x-cooltalk" => "ice",
+    "application/cdr" => "cdr",
+    "application/coreldraw" => "cdr",
+    "application/x-cdr" => "cdr",
+    "application/x-coreldraw" => "cdr",
+    "image/cdr" => "cdr",
+    "image/x-cdr" => "cdr",
+    "zz-application/zz-winassoc-cdr" => "cdr",
+);
