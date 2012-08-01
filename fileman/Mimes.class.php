@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_Mimes' - Поддръжка на съответствие между mime и разширение на файл
  *
@@ -117,16 +116,21 @@ class fileman_Mimes extends core_BaseClass {
             
             if(count($extArr)) {
                 $ext = fileman_Files::getExt($fileName);
-
+                
+                $ext = mb_strtolower($ext);
                 if(!$ext || !in_array($ext, $extArr)) {
-                    $fileName .= '.' . $extArr[0];
+                    
+                    //Масив с разширенията, на които вярваме и няма да се променят на bin
+                    $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx');
+                    
+                    if (($mime != 'application/octet-stream') || (!in_array($ext, $trustExtArr)) ) {
+                        
+                        $fileName .= '.' . $extArr[0];    
+                    }
                 }
             }
         }
 
         return $fileName;
     }
-
-
-
- }
+}
