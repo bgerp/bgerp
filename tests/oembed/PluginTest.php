@@ -42,4 +42,26 @@ class oembed_PluginTest extends framework_TestCase
         $result = oembed_Plugin::getEmbedHtml('http://nonembedable.example.org');
         $this->assertFalse($result, $result);
     }
+    
+    /**
+     * Когато се генерира външен HTML, плъгина реагира както когато не може да вгради нищо
+     * 
+     * Най-очевидните примери са:
+     * 
+     *  o изпращане на изходящ имейл
+     *  o прикачане на документ към изходящ имейл
+     * 
+     */
+    function testEmbedInExternalHtml()
+    {
+        Mode::push('text', 'xhtml');
+        
+        $url = 'http://www.youtube.com/watch?v=NWYOlMWmJbE&feature=fvst';
+        
+        $result = oembed_Plugin::getEmbedHtml($url);
+        
+        $this->assertFalse($result);
+        
+        Mode::pop('text');
+    }
 }
