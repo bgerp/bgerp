@@ -21,7 +21,7 @@ class catpr_Costs extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Себестойност';
+    var $title = 'Себестойности';
     
     
     /**
