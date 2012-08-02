@@ -27,7 +27,7 @@ class catpr_Wrapper extends plg_ProtoWrapper
     {
       
         
-        $this->TAB('catpr_Costs', 'Себестойност', 'admin,user');
+        $this->TAB('catpr_Costs', 'Себестойности', 'admin,user');
         $this->TAB('catpr_Pricegroups', 'Групи продукти', 'admin,user');
         $this->TAB('catpr_Discounts', 'Класове клиенти', 'admin,user');
         $this->TAB('catpr_Pricelists', 'Ценоразписи', 'admin,user');
