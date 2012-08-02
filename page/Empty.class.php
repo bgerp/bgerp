@@ -23,7 +23,7 @@ class page_Empty extends page_Html
     /**
      * Генериране на изход, съдържащ само $content, без никакви доп. елементи
      */
-    function output($content)
+    function output($content = '', $place = "CONTENT")
     {
         $this->replace("UTF-8", 'ENCODING');
         
@@ -35,6 +35,6 @@ class page_Empty extends page_Html
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");
         
-        parent::output($content, 'PAGE_CONTENT');
+        parent::output($content, 'CONTENT');
     }
 }
