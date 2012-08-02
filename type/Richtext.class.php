@@ -239,14 +239,12 @@ class type_Richtext extends type_Text {
             $html = $st1;
         }
         
+        $html =  new ET("<div class=\"richtext\">{$html}</div>");
+
         if(count($this->_htmlBoard)) {
-            foreach($this->_htmlBoard as $place => $txt) {
-                $html = str_replace("__{$place}__", $txt, $html);
-            }
+           $html->placeArray($this->_htmlBoard);
         }
-        
-        $html =  "<div class=\"richtext\">{$html}</div>";
-        
+
          
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
@@ -273,7 +271,7 @@ class type_Richtext extends type_Text {
         } else {
             $place = $this->getPlace();
             $this->_htmlBoard[$place] = hclean_Purifier::clean($match[1], 'UTF-8');
-            $res = "__{$place}__";
+            $res = "[#{$place}#]";
         }
         
         return $res;
@@ -309,7 +307,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" style='max-width:750px;' alt=\"{$title}\"><br><small>";
         
-        return "__{$place}__{$title}</small></div>";
+        return "[#{$place}#]{$title}</small></div>";
     }
     
     
@@ -325,7 +323,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = "<div><iframe src=\"http://docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe><br><small>";
         
-        return "__{$place}__{$title}</small></div>";
+        return "[#{$place}#]{$title}</small></div>";
     }
     
     
@@ -348,7 +346,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = $code1;
         
-        return "__{$place}__";
+        return "[#{$place}#]";
     }
     
     
@@ -389,7 +387,7 @@ class type_Richtext extends type_Text {
         $urlArr = core_Url::parseUrl($url);
         $domain = $urlArr['host'];
         $this->_htmlBoard[$bgPlace] = "background-image:url(\"http://www.google.com/s2/u/0/favicons?domain={$domain}\");";
-        $link = "<a href=\"__{$place}__\" target='_blank' class='out linkWithIcon' style='__{$bgPlace}__'>{$title}</a>";
+        $link = "<a href=\"[#{$place}#]\" target='_blank' class='out linkWithIcon' style='[#{$bgPlace}#]'>{$title}</a>";
 
         return $link;
     }
@@ -405,7 +403,7 @@ class type_Richtext extends type_Text {
      */
     public function internalLink_($url, $title, $place)
     {
-        $link = "<a href=\"__{$place}__\">{$title}</a>";
+        $link = "<a href=\"[#{$place}#]\">{$title}</a>";
 
         return $link;
     }
@@ -427,7 +425,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] =  $html;
         
-        return "__{$place}__{$text}</div>";
+        return "[#{$place}#]{$text}</div>";
     }
     
     
