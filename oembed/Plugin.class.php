@@ -102,10 +102,13 @@ class oembed_Plugin extends core_Plugin
     );
     
     
-    public static function on_AfterExternalUrl($host, &$htmlString, $url)
+    public static function on_AfterExternalUrl($hostObj, &$htmlString, $url)
     {
         if (($html = static::getEmbedHtml($url)) !== FALSE) {
-            $htmlString = $html;
+            $link = core_Html::createLink($url, $url); 
+            $link = core_Html::createElement('div', array('class'=>'orig'), $link, TRUE);
+            
+            $htmlString = core_Html::createElement('div', array('class'=>'embedded'), $html . $link, TRUE);
         }
     }
     
@@ -118,6 +121,11 @@ class oembed_Plugin extends core_Plugin
      */
     public static function getEmbedHtml($url)
     {
+        if (Mode::is('text', 'xhtml')) {
+            // В режим X-HTML ресурсите зад линковете никога не се вграждат!
+            return FALSE;
+        }
+        
         if (($html = oembed_Cache::getCachedHtml($url)) !== FALSE) {
             // Попадение в кеша!
             return $html;
