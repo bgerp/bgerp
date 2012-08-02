@@ -70,7 +70,7 @@ class markdown_RichTextPlg extends core_Plugin
             $this->mvc->_htmlBoard[$place] = $text;
             
             //Кое да се замести
-            $res = "__{$place}__";
+            $res = "[#{$place}#]";
             
             return $res;
         }

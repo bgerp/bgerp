@@ -58,6 +58,6 @@ class gallery_RichTextPlg extends core_Plugin
 
         $this->mvc->_htmlBoard[$place] = $res;
 
-        return "__{$place}__";
+        return "[#{$place}#]";
     }
 }

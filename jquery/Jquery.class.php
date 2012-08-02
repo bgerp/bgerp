@@ -1,19 +1,6 @@
 <?php
 
 
-
-/**
- * @todo Чака за документация...
- */
-DEFINE('JQUERY_VER', '1.4.2');
-
-
-/**
- * @todo Чака за документация...
- */
-DEFINE('JQUERY_UI_VER', '1.8.2');
-
-
 /**
  * Клас 'jquery_Jquery' -
  *

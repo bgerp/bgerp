@@ -92,7 +92,7 @@ class fileman_RichTextPlg extends core_Plugin
                 $content = $link;
             }
             $this->mvc->_htmlBoard[$place] = $content;
-            $res = "__{$place}__";
+            $res = "[#{$place}#]";
         }
         
         return  $res;
