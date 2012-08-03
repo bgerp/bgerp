@@ -83,6 +83,30 @@ class lang_Encoding {
     
     
     /**
+     * @todo
+     */
+    static function analyze2Charsets($text)
+    {
+        // TODO
+        $charsets = array('ISO-8859-1::CP1251', 'UTF-8::UTF-8');
+        foreach($charsets as $charset) {
+            list($charset1, $charset2) = explode('::', $charset);
+            $convText = (iconv("UTF-8", "{$charset1}//IGNORE", $text));
+            $convText = (iconv("{$charset2}//IGNORE", 'UTF-8', $convText));
+            
+            $lgRates = self::getLgRates($convText);
+            
+            if(count($lgRates)) {
+                $res->rates[$charset] = array_sum($lgRates);
+            }
+            $downCharsetCnt--;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
      * Резултат - aSCII, 8bit-non-latin, 8bit-latin, utf8
      */
     function getPossibleEncodings($text)
