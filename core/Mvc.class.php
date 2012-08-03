@@ -316,7 +316,7 @@ class core_Mvc extends core_FieldSet
 
         $query = $me->getQuery();
         
-  		$cnt = $query->cond($cond);
+  		$cnt = $query->count($cond);
     	
 
         return $cnt;
