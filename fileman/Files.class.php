@@ -724,7 +724,7 @@ class fileman_Files extends core_Master
             $ext = '';
         }
         
-        return $ext;
+        return strtolower($ext);
     }
 
     
