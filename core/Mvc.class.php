@@ -306,7 +306,23 @@ class core_Mvc extends core_FieldSet
         return $deletedRecsCnt;
     }
 
+    
+    /**
+     * Преброява всички записи отговарящи на условието
+     */
+    static function count($cond)
+    {
+        $me = cls::get(get_called_class());
 
+        $query = $me->getQuery();
+        
+  		$cnt = $query->count($cond);
+    	
+
+        return $cnt;
+    }
+
+    
     /**
      * Връща времето на последната модификация на MySQL-ската таблица на модела
      */

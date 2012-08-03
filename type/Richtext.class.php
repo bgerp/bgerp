@@ -136,11 +136,15 @@ class type_Richtext extends type_Text {
         // Задаваме достатъчно голям буфер за обработка на регулярните изрази
         ini_set('pcre.backtrack_limit', '2M');
         
+       
+        
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
         $html = preg_replace_callback("/\[html](.*?)\[\/html\]/is", array($this, '_catchHtml'), $html);
         
         // Премахваме всичкото останало HTML форматиране
         $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
+        
+        $html = core_Et::escape($html);
         
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);

@@ -73,9 +73,12 @@ class core_Locks extends core_Manager
      * Заключва обект с посоченото $objectId за максимално време $maxDuration,
      * като за това прави $maxTrays опити, през интервал от 1 секунда
      */
-    static function get($objectId, $maxDuration = 10, $maxTrays = 5)
+    static function get($objectId, $maxDuration = 10, $maxTrays = 5, $delOnShutDown = TRUE)
     {
         $Locks = cls::get('core_Locks');
+        
+        // Дали да се изтрие преди излизане от хита - за асинхронни процеси
+        $Locks->delOnShutDown = $delOnShutDown;
         
         // Санитаризираме данните
         $maxTrays = max($maxTrays, 0);
@@ -161,10 +164,32 @@ class core_Locks extends core_Manager
      */
     static function on_Shutdown($mvc)
     {
-        if(count($mvc->locks)) {
+        if((count($mvc->locks)) && ($mvc->delOnShutDown)) {
             foreach($mvc->locks as $rec) {
                 $mvc->delete($rec->id);
             }
         }
+    }
+    
+    
+    /**
+     * Проверява дали обекта е заключен
+     * 
+     * @param string $objectId - Стринга, за който се проверява дали не е заключен
+     * 
+     * @return boolean - Връща TRUE, ако обекта е заключен
+     */
+    static function isLocked($objectId)
+    {
+        // Сегашното време
+        $now = time();
+        
+        // Проверяваме дали обекта не е заключен
+        if (core_Locks::fetch("#objectId = '{$objectId}' AND #lockExpire >= '{$now}'")) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
     }
 }
