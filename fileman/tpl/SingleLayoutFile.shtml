@@ -66,4 +66,8 @@
 		
 	</table>
 	
+	<!--ET_BEGIN fileDetail-->          
+		    <div>[#fileDetail#]</div>
+	<!--ET_END fileDetail-->
+	
 </div>

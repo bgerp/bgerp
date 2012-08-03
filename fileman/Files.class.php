@@ -621,10 +621,35 @@ class fileman_Files extends core_Master
     /**
      * 
      */
+    function on_AfterPrepareSingle($mvc, &$tpl, $data)
+    {
+        // Манипулатора на файла
+        $fh = $data->rec->fileHnd;
+        
+        // Подготвяме данните
+        fileman_Info1::prepare($data, $fh);
+    }
+    
+    
+    /**
+     * 
+     */
     function on_AfterRenderSingle($mvc, &$tpl, &$data)
     {
         // Манипулатора на файла
         $fh = $data->rec->fileHnd;
+        
+        // Текущия таб
+        $data->currentTab = Request::get('currentTab');
+        
+        // Рендираме табовете
+        $fileInfo = fileman_Info1::render($data);
+        
+        // Добавяме табовете в шаблона
+        $tpl->append($fileInfo, 'fileDetail');
+        
+//        return ;
+        
         
         // Разширението на файла
         $ext = self::getExt($data->rec->name);
@@ -632,8 +657,6 @@ class fileman_Files extends core_Master
         // Проверяваме дали разширението, предлага preview на файла
         if (in_array($ext, array('jpg', 'jpeg', 'png', 'gif', 'bmp'))) {
 
-         
-        
             //Вземема конфигурационните константи
             $conf = core_Packs::getConfig('fileman');
             
