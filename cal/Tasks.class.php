@@ -25,7 +25,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, doc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
+    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
     
     
     /**
