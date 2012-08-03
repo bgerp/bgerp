@@ -124,7 +124,6 @@ class doc_Setup
             'doc_Incomings',
             'doc_Search',
             'doc_Folders',
-            'doc_Tasks',
             'doc_Comments',
             'doc_PdfCreator',
             'doc_ThreadUsers',
