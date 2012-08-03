@@ -617,5 +617,45 @@ class core_Packs extends core_Manager
 
     }
 
+    
+    /**
+     * Функция за преобразуване на стринга в константите в масив
+     * 
+     * @param string $conf - Данните, които ще се преобразуват
+     * 
+     * @return array $resArr - Масив с дефинираните константи
+     */
+    static function toArray($conf)
+    {
+        // Ако е масив
+        if (is_array($conf)) {
+            
+            return $conf;
+        }
+        
+        // Ако е празен стринг
+        if (empty($conf)) {
+            
+            return array();
+        }
+        
+        // Масив с всички стойности
+        $cArr = explode(',', $conf);
+        
+        // Обхождаме масива
+        foreach($cArr as $conf) {
+            
+            // Изчистваме празните интервали
+            $conf = str::trim($conf);
+            
+            // Ако стринга не е празен
+            if($conf !== '') {
 
+                // Добавяме в масива
+                $resArr[$conf] = $conf;
+            }
+        }
+        
+        return $resArr;
+    }
 }

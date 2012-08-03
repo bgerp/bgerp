@@ -161,7 +161,10 @@ class type_Richtext extends type_Text {
         $this->invoke('AfterCatchRichElements', array(&$html));
         
         // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
+        $html = preg_replace_callback("#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
+        
+        // Обработваме имейлите, зададени в явен вид
+        $html = preg_replace_callback("/(\S+@\S+\.\S+)/i", array($this, '_catchEmails'), $html);
         
         // H!..6
         $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]/is", array($this, '_catchHeaders'), $html);
@@ -236,14 +239,12 @@ class type_Richtext extends type_Text {
             $html = $st1;
         }
         
+        $html =  new ET("<div class=\"richtext\">{$html}</div>");
+
         if(count($this->_htmlBoard)) {
-            foreach($this->_htmlBoard as $place => $txt) {
-                $html = str_replace("__{$place}__", $txt, $html);
-            }
+           $html->placeArray($this->_htmlBoard);
         }
-        
-        $html =  "<div class=\"richtext\">{$html}</div>";
-        
+
          
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
@@ -270,7 +271,7 @@ class type_Richtext extends type_Text {
         } else {
             $place = $this->getPlace();
             $this->_htmlBoard[$place] = hclean_Purifier::clean($match[1], 'UTF-8');
-            $res = "__{$place}__";
+            $res = "[#{$place}#]";
         }
         
         return $res;
@@ -306,7 +307,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" style='max-width:750px;' alt=\"{$title}\"><br><small>";
         
-        return "__{$place}__{$title}</small></div>";
+        return "[#{$place}#]{$title}</small></div>";
     }
     
     
@@ -322,7 +323,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = "<div><iframe src=\"http://docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe><br><small>";
         
-        return "__{$place}__{$title}</small></div>";
+        return "[#{$place}#]{$title}</small></div>";
     }
     
     
@@ -345,7 +346,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = $code1;
         
-        return "__{$place}__";
+        return "[#{$place}#]";
     }
     
     
@@ -361,35 +362,48 @@ class type_Richtext extends type_Text {
         $this->_htmlBoard[$place] = $url;
          
         if(core_Url::isLocal($url)) {
-            $link = $this->converInternalLink($url, $title, $place);
+            $link = $this->internalLink($url, $title, $place);
         } else {
-            $link = $this->converExternalLink($url, $title, $place);
+            $link = $this->externalLink($url, $title, $place);
         }
         
         return $link;
     }
 
+
     /**
-     * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL-та
+     * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL
+     * 
+     * Може да бъде прихванат в плъгин на `type_Richtext` с on_AfterExternalLink()
+     * 
+     * @param string $url URL, къдетo трябва да сочи връзката
+     * @param string $text текст под връзката
+     * @param string $place
+     * @return string HTML елемент <a href="...">...</a>
      */
-    function converExternalLink_($url, $title, $place)
+    public function externalLink_($url, $title, $place)
     {
         $bgPlace = $this->getPlace();
         $urlArr = core_Url::parseUrl($url);
         $domain = $urlArr['host'];
         $this->_htmlBoard[$bgPlace] = "background-image:url(\"http://www.google.com/s2/u/0/favicons?domain={$domain}\");";
-        $link = "<a href=\"__{$place}__\" target='_blank' class='out linkWithIcon' style='__{$bgPlace}__'>{$title}</a>";
+        $link = "<a href=\"[#{$place}#]\" target='_blank' class='out linkWithIcon' style='[#{$bgPlace}#]'>{$title}</a>";
 
         return $link;
     }
 
     
     /**
-     * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL-та
+     * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL
+     * 
+     * @param string $url URL, къдетo трябва да сочи връзката
+     * @param string $text текст под връзката
+     * @param string $place
+     * @return string HTML елемент <a href="...">...</a>
      */
-    function converInternalLink_($url, $title, $place)
+    public function internalLink_($url, $title, $place)
     {
-        $link = "<a href=\"__{$place}__\">{$title}</a>";
+        $link = "<a href=\"[#{$place}#]\">{$title}</a>";
 
         return $link;
     }
@@ -411,7 +425,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] =  $html;
         
-        return "__{$place}__{$text}</div>";
+        return "[#{$place}#]{$text}</div>";
     }
     
     
@@ -484,50 +498,68 @@ class type_Richtext extends type_Text {
      * Прави субституция на хипервръзките
      */
     function _catchHyperlinks($html)
-    {
-        $url = core_Url::escape($html[0]);
+    {   
+        $url = $html[0];
+
+        if(!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
+            $url = 'http://' . $url;
+        }
+
+        $result = core_Url::escape($url);
         
         if(!Mode::is('text', 'plain')) {
             if(core_Url::isLocal($url)) {
-               $link = "<a href=\"{$url}\">{$url}</a>";
+                $result = $this->internalUrl($url, $html[0]);
             } else {
-                
-                $link = self::getLinkByUrl($url);
-
-
-
-
+                $result = $this->externalUrl($url, $html[0]);
             }
         }
         
-        return $link;
+        return $result;
+    }
+    
+    
+    /**
+     * Конвертира вътрешен URL към подходящо HTML представяне.
+     * 
+     * @param string $url
+     * @param string $title
+     * @return string HTML елемент <a href="...">...</a>
+     */
+    public function internalUrl_($url, $title)
+    {
+        return "<a href=\"{$url}\">{$title}</a>";
+    }
+    
+    /**
+     * Прави субституция на имейлите
+     */
+    function _catchEmails($match)
+    {
+        $email = $match[0];
+        
+        $emlType = cls::get('type_Email');
+
+        if($emlType->isValidEmail($email)) { 
+            $email = $emlType->toVerbal($email);
+        }
+
+        return $email;
     }
 
 
+
     /**
-     * Заменя URL-to с подходяща хипервръзка
+     * Конвертира въшнен URL към подходящо HTML представяне
+     * 
+     * @param string $url
+     * @param string $title
+     * @param string HTML код
      */
-    function getLinkByUrl_($url)
+    public function externalUrl_($url, $title)
     {
+        $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
         
-        $vbox = "http://vbox7.com/play:";
-	    $vboxw = "http://www.vbox7.com/play:";
-
-
-        if( ( strtolower(substr($url, 0, strlen($vbox))) == $vbox ) ||
-			  ( strtolower(substr($url, 0, strlen($vboxw))) == $vboxw ) ) {
-		
-            $vid = str_replace($vbox, '', $url);
-            $vid = str_replace($vboxw, '', $vid);
-
-            if($vid) {
-                $link = '
-                <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" style="padding-bottom:5px;" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="450" height="403"><param name="movie" value="http://i47.vbox7.com/player/ext.swf?vid='.$vid.'"><param name="quality" value="high"><embed src="http://i47.vbox7.com/player/ext.swf?vid='.$vid.'" quality="high" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" width="450" height="403"></embed></object>';
-            }
-	    } else { 
-            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$url}</a>";
-        }
-
         return $link;        
     }
 
