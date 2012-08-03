@@ -44,6 +44,8 @@ class gallery_RichTextPlg extends core_Plugin
         $vid = $match[2];
         
         $imgRec = gallery_Images::fetch(array("#vid = '[#1#]'", $vid));
+        
+        if(!$imageRec) return "[img=#{$vid}]";
 
         $groupRec =  gallery_Groups::fetch($imgRec->groupId);
         
