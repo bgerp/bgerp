@@ -170,4 +170,26 @@ class core_Locks extends core_Manager
             }
         }
     }
+    
+    
+    /**
+     * Проверява дали обекта е заключен
+     * 
+     * @param string $objectId - Стринга, за който се проверява дали не е заключен
+     * 
+     * @return boolean - Връща TRUE, ако обекта е заключен
+     */
+    static function isLocked($objectId)
+    {
+        // Сегашното време
+        $now = time();
+        
+        // Проверяваме дали обекта не е заключен
+        if (core_Locks::fetch("#objectId = '{$objectId}' AND #lockExpire >= '{$now}'")) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
 }
