@@ -323,8 +323,10 @@ class doc_Threads extends core_Manager
         
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
-                                                newPerson=Нова папка на лице)', 'maxRadio=4,columns=1', 'value=exFolder');
+                                                newPerson=Нова папка на лице)', 'maxRadio=4,columns=1', '');
         
+        $exp->ASSUME('#dest', "'exFolder'");
+
         if(count($selArr) > 1) {
             $exp->question("#dest", "Моля, посочете къде да бъдат преместени нишките:", TRUE, 'title=Преместване на нишки от документи');
         } else {
@@ -342,16 +344,16 @@ class doc_Threads extends core_Manager
         $exp->DEF('#names', 'varchar', 'caption=Лице,width=100%,mandatory,remember=info');
         
         // Адресни данни
-        $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
+        $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember,notNull');
         $exp->DEF('#pCode', 'varchar(255)', 'caption=П. код,recently');
         $exp->DEF('#place', 'varchar(255)', 'caption=Град,width=100%');
         $exp->DEF('#address', 'varchar(255)', 'caption=Адрес,width=100%');
         
         // Комуникации
-        $exp->DEF('#email', 'emails', 'caption=Имейл,width=100%');
-        $exp->DEF('#tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
-        $exp->DEF('#fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
-        $exp->DEF('#website', 'url', 'caption=Web сайт,width=100%');
+        $exp->DEF('#email', 'emails', 'caption=Имейл,width=100%,notNull');
+        $exp->DEF('#tel', 'drdata_PhoneType', 'caption=Телефони,width=100%,notNull');
+        $exp->DEF('#fax', 'drdata_PhoneType', 'caption=Факс,width=100%,notNull');
+        $exp->DEF('#website', 'url', 'caption=Web сайт,width=100%,notNull');
         
         // Стойности по подразбиране при нова папка на фирма или лице
         $exp->ASSUME('#email', "getContragentData(#threadId, 'email')", "#dest == 'newCompany' || #dest == 'newPerson'");
@@ -362,7 +364,7 @@ class doc_Threads extends core_Manager
         $exp->ASSUME('#pCode', "getContragentData(#threadId, 'pCode')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#place', "getContragentData(#threadId, 'place')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#address', "getContragentData(#threadId, 'address')", "#dest == 'newCompany' || #dest == 'newPerson'");
-        $exp->ASSUME('#web', "getContragentData(#threadId, 'web')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#website', "getContragentData(#threadId, 'web')", "#dest == 'newCompany' || #dest == 'newPerson'");
         
         $exp->SUGGESTIONS('#company', "getContragentData(#threadId, 'companyArr')", "#dest == 'newCompany' || #dest == 'newPerson'");
         
@@ -372,7 +374,7 @@ class doc_Threads extends core_Manager
         // Допълнителна информация
         $exp->DEF('#info', 'richtext', 'caption=Бележки,height=150px');
         
-        $exp->question("#company,#country,#pCode,#place,#address,#email,#tel,#fax,#website,#vatId,#website", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Преместване на нишка с документи');
+        $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Преместване на нишка с документи');
         
         $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId)", TRUE);
         
@@ -383,7 +385,7 @@ class doc_Threads extends core_Manager
         // От какъв клас е корицата на папката където е изходния тред?
         $exp->DEF('#moveRest=Преместване на всички', 'enum(yes=Да,no=Не)');
         $exp->rule('#askMoveRest', "getQuestionForMoveRest(#threadId)", TRUE);
-        $exp->question("#moveRest", "=#askMoveRest", '#askMoveRest', 'title=Групово преместване');
+        $exp->question("#moveRest", "=#askMoveRest", '#askMoveRest && #folderId', 'title=Групово преместване');
         $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');
         $exp->rule("#moveRest", "'no'", '#Selected');
         

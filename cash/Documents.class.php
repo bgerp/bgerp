@@ -67,12 +67,16 @@ class cash_Documents extends core_Manager {
             
             $tpl->append(expert_Expert::getButton('Разход', array($this, 'Credit', 'ret_url' => TRUE)));
             
+            $tpl->prepend('<br>');
+
             expert_Expert::enableAjax($tpl);
             
             return FALSE;
         } else {
             $tpl = ht::createBtn('Приход', array($this, 'Debit', 'ret_url' => TRUE));
             
+            $tpl->prepend('<br>');
+
             $tpl->append(ht::createBtn('Разход', array($this, 'Credit', 'ret_url' => TRUE)));
             
             return FALSE;

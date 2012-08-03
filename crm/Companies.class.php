@@ -886,7 +886,7 @@ class crm_Companies extends core_Master
         $Companies = cls::get('crm_Companies');
         
         $folderId = $Companies->forceCoverAndFolder($rec);
-        
+         
         return $folderId;
     }
 }

@@ -119,7 +119,7 @@ class doc_RichTextPlg extends core_Plugin
 
         //Стойността, която ще заместим в регулярния израз
         //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
-        $res = $match['begin'] . "__{$place}__" . $match['end'];
+        $res = $match['begin'] . "[#{$place}#]" . $match['end'];
 
         return  $res;
     }

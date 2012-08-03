@@ -152,7 +152,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         }
         
         //Линка със символа в началото
-        $res = $match['begin'] . "__{$place}__"; 
+        $res = $match['begin'] . "[#{$place}#]"; 
          
         //Връщаме линка
         return $res;
@@ -223,7 +223,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         }
         
         //Линка със символа в началото
-        $res = $match['begin'] . "__{$place}__";
+        $res = $match['begin'] . "[#{$place}#]";
          
         //Връщаме линка
         return $res;
@@ -316,7 +316,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             }
             
             //Линка със символа в началото
-            $res = $match['begin'] . "__{$place}__";
+            $res = $match['begin'] . "[#{$place}#]";
              
             //Връщаме линка
             return $res;
