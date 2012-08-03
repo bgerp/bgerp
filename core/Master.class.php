@@ -262,7 +262,7 @@ class core_Master extends core_Manager
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
-            $layoutText = "[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
+            $layoutText = "[#SingleToolbar#]<br><div class='{$class}'><h2>[#SingleTitle#]</h2>" .
             "<table class='listTable'>{$fieldsHtml}</table>" .
             "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>";
         }
