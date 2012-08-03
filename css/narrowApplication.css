@@ -866,3 +866,9 @@ input.contactData {
 		font-size:0.8em;
 	)
 }
+	
+.webdrvIframe {
+	max-width: 600px;
+	min-width: 400px;
+	min-height: 300px;
+}

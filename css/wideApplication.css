@@ -1451,3 +1451,9 @@ h2 {
     font-size: 0.84em;
     padding: 1px 7px 2px;
 }
+
+.webdrvIframe {
+	max-width: 900px;
+	min-width: 800px;
+	min-height: 600px;
+}
