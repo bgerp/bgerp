@@ -64,7 +64,7 @@ class gallery_Images extends core_Manager {
         $Fancybox = cls::get('fancybox_Fancybox');
 
         $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr);
-bp($row->src);
+
         $row->vid = "[img=#" . $rec->vid . "]";
     }
 
