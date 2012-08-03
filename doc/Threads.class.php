@@ -645,7 +645,13 @@ class doc_Threads extends core_Manager
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn,class=btn-list');
         } else {
             $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd,class=btn-add');
-            $data->toolbar->addBtn('Кош', array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+
+            $data->rejectedCnt = $mvc->count("#folderId = {$data->folderId} AND #state = 'rejected'");
+            
+            $rejectedCntVerb = $data->rejectedCnt ? "|* ({$data->rejectedCnt})" : '';
+            
+            $data->toolbar->addBtn('Кош' . $rejectedCntVerb , 
+                array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
         }
     }
     
