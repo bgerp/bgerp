@@ -103,23 +103,4 @@ class hr_Departments extends core_Master
         }
     }
 
-    function act_DateTest()
-    {
-        $d = date_parse('Sat, 4 Aug 2012 14:50:37 +0300');
-
-        $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'] , $d['year']);
-            
-        if($d['is_localtime']) {
-            $time = $time + $d['zone'] * 60 + (date("O") / 100 * 60 * 60);
-        }
-            
-        $res = dt::timestamp2Mysql($time);
- 
-        $html .= "<li> $res";
-        $html .= "<li>" . date_offset_get(new DateTime) / 60;
-        $html .= "<li>" . date("O") / 100 * 60 * 60;
-        
-        return $html;
-    }
-
 }
