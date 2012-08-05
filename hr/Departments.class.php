@@ -115,7 +115,11 @@ class hr_Departments extends core_Master
             
         $res = dt::timestamp2Mysql($time);
  
-        bp($res, date_offset_get(new DateTime) / 60, date("O") / 100 * 60 * 60);
+        $html .= "<li> $res";
+        $html .= "<li>" . date_offset_get(new DateTime) / 60;
+        $html .= "<li>" . date("O") / 100 * 60 * 60);
+        
+        return $html;
     }
 
 }
