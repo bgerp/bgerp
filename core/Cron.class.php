@@ -305,7 +305,7 @@ class core_Cron extends core_Manager
                 'forced' => 'yes'
             ), 'absolute');
         
-        $row->systemId = ht::createLink("<b>{$row->systemId}</b>", $url, NULL, array('target' => 'null'));
+        $row->systemId = ht::createLink("<b>{$row->systemId}</b>", $url, NULL, array('target' => 'cronjob'));
         
         $row->title = "<p>" . $row->systemId . "</p><p><i>{$row->description}</i></p>";
         
