@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class crm_Groups extends core_Manager
+class crm_Groups extends groups_Manager
 {
     
     
@@ -65,6 +65,21 @@ class crm_Groups extends core_Manager
     var $defaultAccess = 'public';
 
 
+    /**
+     * Допустими екстендери
+     * 
+     * @var array
+     * @see getEx
+     */
+    protected $extendersArr = array(
+        'bankAccount' => array(
+            'className' => 'bank_Accounts',
+            'prefix' => 'ContragentBankAccounts',
+            'title' => 'Банкови сметки',
+        ),
+    );
+    
+    
     /**
      * Описание на модела
      */

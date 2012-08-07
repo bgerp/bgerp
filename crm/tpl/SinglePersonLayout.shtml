@@ -96,6 +96,7 @@
 		 </div>
 	      </fieldset>
       <!--ET_END info-->
-      <div style="clear:both;"></div>
+        [#DETAILS#]
+        <div style="clear:both;"></div>
    </div>
 </div>
