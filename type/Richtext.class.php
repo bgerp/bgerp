@@ -144,7 +144,7 @@ class type_Richtext extends type_Text {
         // Премахваме всичкото останало HTML форматиране
         $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
         
-        $html = core_Et::escape($html);
+        $html = core_ET::escape($html);
         
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
