@@ -1,0 +1,30 @@
+<?php
+
+
+/**
+ * Клас 'page_Waiting' - Страница за изчакване. Показва съобщение и анимация за изчакване.
+ *
+ * @category  ef
+ * @package   page
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @link
+ */
+class page_Waiting extends page_Empty
+{
+    
+    
+    /**
+     * Показва съобщения за изчакване
+     */
+    function output($content = '', $place = "PAGE_CONTENT")
+    {
+        $this->appendOnce('Моля изчакайте...', 'PAGE_CONTENT');
+        
+        $this->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
+        
+        parent::output($content, $place);
+    }
+}

@@ -19,10 +19,10 @@ class page_PreText extends page_Empty
     /**
      * Генериране на изход, съдържащ само $content, без никакви доп. елементи с подреден текст
      */
-    function output($content = '', $place = "CONTENT")
+    function output($content = '', $place = "PAGE_CONTENT")
     {
         $this->appendOnce('body{white-space: pre;}', 'STYLES');
         
-        parent::output($content, 'CONTENT');
+        parent::output($content, $place);
     }
 }
