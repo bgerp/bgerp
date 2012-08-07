@@ -2,7 +2,7 @@
 
 
 /**
- * Родителски клас на всички изображения. Съдържа методите по подразбиране.
+ * Драйвер за работа с .doc файлове.
  * 
  * @category  vendors
  * @package   fileman
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Image extends fileman_webdrv_Generic
+class fileman_webdrv_Doc extends fileman_webdrv_Office
 {
     
 }

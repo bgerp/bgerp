@@ -2,6 +2,7 @@
 
 
 /**
+ * Родителски клас на всички офис документа. Съдържа методите по подразбиране.
  *
  * @category  vendors
  * @package   fileman
@@ -26,11 +27,11 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function getTabs($fRec)
     {
-        // Масив с всички табове
-        $tabsArr = array();
+        // Вземаме табовете от родителя
+        $tabsArr = parent::getTabs($fRec);
         
         // URL за показване на преглед на файловете
-        $previewUrl = toUrl(array('fileman_webdrv_Pdf', 'show', $fRec->fileHnd), TRUE);
+        $previewUrl = toUrl(array('fileman_webdrv_Pdf', 'preview', $fRec->fileHnd), TRUE);
         
         // Таб за преглед
         $tabsArr['preview']->title = 'Преглед';
@@ -43,7 +44,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Таб за текстовата част
         $tabsArr['text']->title = 'Текст';
         $tabsArr['text']->html = "<div> <iframe src='{$textPart}' class='webdrvIframe'> </iframe> </div>";
-        $tabsArr['text']->order = 1;
+        $tabsArr['text']->order = 2;
         
         // URL за показване на информация за файла
         $infoUrl = toUrl(array('fileman_webdrv_Pdf', 'info', $fRec->fileHnd), TRUE);
@@ -51,7 +52,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Таб за информация
         $tabsArr['info']->title = 'Информация';
         $tabsArr['info']->html = "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>";
-        $tabsArr['info']->order = 2;
+        $tabsArr['info']->order = 4;
 
         return $tabsArr;
     }
@@ -79,7 +80,43 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function extractText($fRec)
     {
-        return ;
+        /*
+         * @todo
+         * @see https://github.com/dagwieers/unoconv/issues/73
+           Версия на unoconv 0.3-6
+           Има проблвем с конвертирането на файлове, които съдържат латиница.
+		   Когато се конвертира от .odt или .doc към .txt формат вместо текста се изписват въпросителни.
+		   При конвертиране към .pdf формат или някой друг всичко си работи коректно.
+		   Временно решение може да е да се конвертира към .pdf и от него да се извлече текстовата част.
+         */
+        
+        
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => 'fileman_webdrv_Office::afterExtractText',
+            'dataId' => $fRec->dataId,
+        	'asynch' => TRUE,
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'text',
+        );
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($params)) return ;
+        
+        // Заключваме процеса за определено време
+        core_Locks::get($params['lockId'], 40, 0, FALSE);
+
+        // Конфигурационните константи
+        $conf = core_Packs::getConfig('docoffice');
+        
+        // Класа, който ще конвертира
+        $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
+        
+        // Стартираме конвертирането
+        $ConvClass::convertDoc($fRec->fileHnd, 'txt', $params);
     }
     
     
@@ -97,6 +134,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
     {
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
         $text = file_get_contents($script->outFilePath);
+        
+        // TODO $text трябва да се направи проверка дали е енкоднат коректно
         
         // Десериализираме нужните помощни данни
         $params = unserialize($script->params);
@@ -125,7 +164,80 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function convertToJpg($fRec)
     {
-        return ;
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => 'fileman_webdrv_Office::afterConvertDocToPdf',
+            'dataId' => $fRec->dataId,
+        	'asynch' => TRUE,
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'docToPdf',
+        );
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($params)) return ;
+        
+        // Параметри за проверка дали е стартиран процеса на конвертиране на получения pdf документ към jpg
+        $paramsJpg = $params;
+        $paramsJpg['type'] = 'jpg';
+        $paramsJpg['lockId'] = static::getLockId($paramsJpg['type'], $fRec->dataId);
+        
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($paramsJpg)) return ;
+
+        // Заключваме процеса за определено време
+        core_Locks::get($params['lockId'], 40, 0, FALSE);
+
+        // Конфигурационните константи
+        $conf = core_Packs::getConfig('docoffice');
+        
+        // Класа, който ще конвертира
+        $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
+        
+        // Стартираме конвертирането
+        $ConvClass::convertDoc($fRec->fileHnd, 'pdf', $params);
+    }
+    
+    
+    /**
+     * Функция, която получава управлението след конвертирането на офис докуемнта към PDF
+     * 
+     * @param object $script - Обект със стойности
+     * 
+     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+     * и записа от таблицата fconv_Process
+     * 
+     * @access protected
+     */
+    static function afterConvertDocToPdf($script)
+    {
+        // Десериализираме параметрите
+        $params = unserialize($script->params);
+        
+        // Параметри необходими за конвертирането
+        $params['callBack'] = 'fileman_webdrv_Office::afterConvertToJpg';
+        $params['type'] = 'jpg';
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
+
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($params)) return ;
+        
+        // Заключваме процеса за определно време
+        core_Locks::get($params['lockId'], 100, 0, FALSE);
+
+        // Стартираме конвертирането
+        static::convertPdfToJpg($script->outFilePath, $params);
+
+        // Отключваме заключения процес за конвертиране от офис към pdf формат
+        core_Locks::release($params['lockId']);
+        
+        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+        // и записа от таблицата fconv_Process
+        return TRUE;
     }
     
     
@@ -145,7 +257,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fileHnd);
-        
+
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '-%d.jpg';
         
@@ -164,8 +276,10 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $Script->fName = $name;
         $Script->fh = $fileHnd;
 
-        // Стартираме скрипта синхронно
-        $Script->run($params['asynch']);
+        // Стартираме скрипта Aсинхронно
+        // За да не се изтрие файла
+        // Също така този метод би трябвало да е стартиран асинхронно
+        $Script->run(FALSE);
     }
     
     
@@ -173,13 +287,14 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      * Функция, която получава управлението след конвертирането на файл в JPG формат
      * 
      * @param object $script - Обект със стойности
+     * @param output $fileHndArr - Масив, в който след обработката ще се запишат получените файлове
      * 
      * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
      * и записа от таблицата fconv_Process
      * 
      * @access protected
      */
-    static function afterConvertToJpg($script)
+    static function afterConvertToJpg($script, &$fileHndArr=array())
     {
         // Вземаме всички файлове във временната директория
         $files = scandir($script->tempDir);

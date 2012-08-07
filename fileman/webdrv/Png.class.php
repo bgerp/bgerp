@@ -1,7 +1,8 @@
 <?php
 
 /**
- *
+ * Драйвер за работа с .png файлове.
+ * 
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>

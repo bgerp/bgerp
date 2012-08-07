@@ -94,7 +94,7 @@ class docoffice_Unoconv extends core_Manager
         }
 
         // Други необходими променливи
-        $Script->fileInfoId = $params['fileInfoId'];
+        $Script->params = serialize($params);
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fileHnd;
         
