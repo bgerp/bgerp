@@ -30,10 +30,10 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        $pdfUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), TRUE);
+        $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), TRUE);
         
         $tabsArr['barcodes']->title = 'Баркодове';
-        $tabsArr['barcodes']->html = "<div> <iframe src='{$pdfUrl}' class='webdrvIframe'> </iframe> </div>";
+        $tabsArr['barcodes']->html = "<div> <iframe src='{$barcodeUrl}' class='webdrvIframe'> </iframe> </div>";
         $tabsArr['barcodes']->order = 3;
 
         return $tabsArr;
@@ -162,32 +162,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
 
             // Това е нужно за да вземем всички баркодове
             
-            // Десериализираме нужните помощни данни
-            $params = unserialize($script->params);
-            
-            // Променливата, с която ще заключим процеса
-            $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
-            $params['type'] = 'barcodes';
-            
-            // Проверявама дали няма извлечена информация или не е заключен
-            if (static::isProcessStarted($params)) return ;
-
-            // Заключваме процеса за определно време
-            core_Locks::get($params['lockId'], 15, 0, FALSE);
-            
-            $barcodesArr = static::getBarcodes($fileHndArr, $params['dataId']);
-            
-            // Сериализираме масива и обновяваме данните за записа в fileman_Info
-            $rec = new stdClass();
-            $rec->dataId = $params['dataId'];
-            $rec->type = 'barcodes';
-            $rec->createdBy = $params['createdBy'];
-            $rec->content = serialize($barcodesArr);
-            
-            fileman_Info1::save($rec);    
-            
-            // Отключваме процеса
-            core_Locks::release($params['lockId']);
+            static::saveBarcodes($script, $fileHndArr);
             
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process

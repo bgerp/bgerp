@@ -37,7 +37,7 @@ class fileman_webdrv_Generic extends core_Manager
      */
     static function startProcessing($fRec)
     {
-        
+
         return ;
     }
     
@@ -114,7 +114,7 @@ class fileman_webdrv_Generic extends core_Manager
             $bgImg = sbf('fileman/img/Preview_background.jpg');
             
             // Създаваме шаблон за preview на изображението
-            $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0;'><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div>");
+            $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div>");
             
             foreach ($jpgArr as $jpgFh) {
                 
@@ -324,5 +324,36 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         return FALSE;
+    }
+    
+    
+    static function saveBarcodes($script, $fileHndArr)
+    {
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+        
+        // Променливата, с която ще заключим процеса
+        $params['type'] = 'barcodes';
+        $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
+        
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($params)) return ;
+
+        // Заключваме процеса за определно време
+        core_Locks::get($params['lockId'], 15, 0, FALSE);
+        
+        $barcodesArr = static::getBarcodes($fileHndArr, $params['dataId']);
+        
+        // Сериализираме масива и обновяваме данните за записа в fileman_Info
+        $rec = new stdClass();
+        $rec->dataId = $params['dataId'];
+        $rec->type = 'barcodes';
+        $rec->createdBy = $params['createdBy'];
+        $rec->content = serialize($barcodesArr);
+    
+        fileman_Info1::save($rec);    
+        
+        // Отключваме процеса
+        core_Locks::release($params['lockId']);
     }
 }

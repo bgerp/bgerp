@@ -64,7 +64,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      * @param object $fRec - Записите за файла
      * 
      * @Override
-     * @see fileman_webdrv_Generic::getTabs
+     * @see fileman_webdrv_Generic::startProcessing
      */
     static function startProcessing($fRec) 
     {
@@ -219,6 +219,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Параметри необходими за конвертирането
         $params['callBack'] = 'fileman_webdrv_Office::afterConvertToJpg';
         $params['type'] = 'jpg';
+        $params['runSync'] = TRUE;
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
@@ -275,11 +276,14 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $Script->params = serialize($params);
         $Script->fName = $name;
         $Script->fh = $fileHnd;
-
-        // Стартираме скрипта Aсинхронно
-        // За да не се изтрие файла
-        // Също така този метод би трябвало да е стартиран асинхронно
-        $Script->run(FALSE);
+        
+        // Ако е подаден параметър за стартиране синхронно
+        // Когато се геририра от офис документи PDF, и от полученич файл
+        // се генерира JPG тогава трябва да се стартира синхронно
+        // В другите случаи трябва да е асинхронно за да не чака потребителя
+        $aSync = $params['runSync'] ? FALSE : TRUE;
+        
+        $Script->run($aSync);
     }
     
     
