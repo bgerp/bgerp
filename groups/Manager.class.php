@@ -65,7 +65,7 @@ class groups_Manager extends core_Manager
      */
     public static function on_AfterPrepareEditForm(groups_Manager $mvc, $data)
     {
-        if (!static::haveRightFor('extend', $data->rec)) {
+        if (!$mvc->haveRightFor('extend', $data->rec)) {
             // Текущия потребител няма право да пипа екстендерите тази група
             return;
         }
@@ -80,6 +80,7 @@ class groups_Manager extends core_Manager
                 $suggestions[$key] = $ext['title'];
             }
             $form->getField('extenders')->type->suggestions = $suggestions;
+            $form->setField('extenders', 'input');
         } else {
             $form->setField('extenders', 'input=none');
         }
