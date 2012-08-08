@@ -51,7 +51,7 @@ class groups_Manager extends core_Manager
     /**
      * Базово описание на модела; наследниците ще добавят собствени полета
      */
-    public function on_AfterDescription(groups_Manager $mvc)
+    public static function on_AfterDescription(groups_Manager $mvc)
     {
         $mvc->FLD('extenders', 'set', 'caption=Разширения, input=none');
     }
