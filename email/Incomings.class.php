@@ -939,15 +939,12 @@ class email_Incomings extends core_Master
             // Ако се наложи създаване на папка за несортирани писма от държава, отговорника
             // трябва да е отговорника на кутията, до която е изпратено писмото.
             //
-            if ($inChargeUserId = email_Inboxes::getEmailInCharge($rec->toBox)) {
-                core_Users::sudo($inChargeUserId);
-            }
+            $inChargeUserId = email_Inboxes::getEmailInCharge($rec->toBox);
             
-            $rec->folderId = static::forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */);
-
-            if ($inChargeUserId) {
-                core_Users::exitSudo();
-            }
+            $rec->folderId = static::forceCountryFolder(
+                $rec->country /* key(mvc=drdata_Countries) */,
+                $inChargeUserId
+            );
         }
     }
     
@@ -1053,7 +1050,7 @@ class email_Incomings extends core_Master
      * @param int $countryId key(mvc=drdata_Countries)
      * @return int key(mvc=doc_Folders)
      */
-    static function forceCountryFolder($countryId)
+    static function forceCountryFolder($countryId, $inCharge)
     {
         $folderId = NULL;
         
@@ -1080,7 +1077,8 @@ class email_Incomings extends core_Master
         if (!empty($countryName)) {
             $folderId = doc_UnsortedFolders::forceCoverAndFolder(
                 (object)array(
-                    'name' => sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $countryName)
+                    'name'     => sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $countryName),
+                    'inCharge' => $inCharge
                 )
             );
         }
