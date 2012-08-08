@@ -65,7 +65,7 @@ class groups_Manager extends core_Manager
      */
     public static function on_AfterPrepareEditForm(groups_Manager $mvc, $data)
     {
-        if (!$this->haveRightFor('extend', $data->rec)) {
+        if (!static::haveRightFor('extend', $data->rec)) {
             // Текущия потребител няма право да пипа екстендерите тази група
             return;
         }
