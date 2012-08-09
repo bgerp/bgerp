@@ -287,14 +287,14 @@ FORM {
 
 
 /* Стилове за страньора 'hlp_Pager' */
-A.pager {
+a.pager {
     padding: 3px;
     cursor:pointer;
     color:#444444; 
     font-weight:bold;
 }
 
-A.pager:hover {
+a.pager:hover {
     border:solid  1px #aaaaaa; 
     -moz-border-radius:4px; 
     -webkit-border-radius: 4px;
@@ -304,7 +304,7 @@ A.pager:hover {
     text-decoration: none;
 }
 
-A.pagerSelected {
+a.pagerSelected {
     border:solid 1px #aaaaaa;
     -moz-border-radius:4px;
     -webkit-border-radius: 4px;
@@ -315,13 +315,23 @@ A.pagerSelected {
     font-weight:bold;
 }
 
-INPUT, SELECT, TEXTAREA {
+input, select, textarea {
     -ms-box-sizing:border-box;
     box-sizing:border-box;
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
     border: solid 1px #9999ff;
     font-size:1.06em;
+}
+
+.formFields input:focus, textarea:focus, select:focus {
+    outline: 0px none;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
+}
+
+.formFields input, textarea, select {
+    -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
 }
 
 input[type=checkbox] + label {
