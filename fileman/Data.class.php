@@ -27,7 +27,7 @@ class fileman_Data extends core_Manager {
      */
     var $title = 'Данни';
     
-    var $loadList = 'plg_Created,fileman_Wrapper,row_Tools';
+    var $loadList = 'plg_Created,fileman_Wrapper,plg_RowTools';
     
     /**
      * Описание на модела (таблицата)
