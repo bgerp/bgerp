@@ -23,7 +23,7 @@ class email_Router extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, email_Wrapper, email_router_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, email_Wrapper, email_router_Wrapper';
     
     
     /**
@@ -41,19 +41,25 @@ class email_Router extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead   = 'admin,email';
+    var $canRead   = 'admin';
     
     
     /**
      * Кой има право да пише?
      */
-    var $canWrite  = 'admin,email';
+    var $canWrite  = 'no_one';
     
+    
+    /**
+     * Кой има право да пише?
+     */
+    var $canAdd  = 'no_one';
+
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin,email';
+    var $canReject = 'no_one';
     
     
     /**

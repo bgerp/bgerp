@@ -43,20 +43,8 @@ class email_DocumentIntf extends doc_DocumentIntf
     {
         return $this->class->getEmailHtml($id, $emailTo, $boxFrom);
     }
-    
-    
-    /**
-     * Прикачените към документ файлове
-     *
-     * @param int $id ид на документ
-     * @return array
-     */
-    public function getEmailAttachments($id)
-    {
-        return $this->class->getEmailAttachments($id);
-    }
-    
-    
+
+
     /**
      * Какъв да е събджекта на писмото по подразбиране
      *
@@ -71,37 +59,4 @@ class email_DocumentIntf extends doc_DocumentIntf
     }
     
     
-    /**
-     * До кой имейл или списък с имейли трябва да се изпрати писмото
-     *
-     * @param int $id ид на документ
-     */
-    public function getDefaultEmailTo($id)
-    {
-        return $this->class->getDefaultEmailTo($id);
-    }
-    
-    
-    /**
-     * Адреса на изпращач по подразбиране за документите от този тип.
-     *
-     * @param int $id ид на документ
-     * @return int key(mvc=email_Inboxes) пощенска кутия от нашата система
-     */
-    public function getDefaultBoxFrom($id)
-    {
-        return $this->class->getDefaultBoxFrom($id);
-    }
-    
-    
-    /**
-     * Писмото (ако има такова), в отговор на което е направен този постинг
-     *
-     * @param int $id ид на документ
-     * @return int key(email_Incomings) NULL ако документа не е изпратен като отговор
-     */
-    public function getInReplayTo($id)
-    {
-        return $this->class->getInReplayTo($id);
-    }
 }

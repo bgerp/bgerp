@@ -65,7 +65,7 @@ class email_Filters extends core_Manager
     var $canReject = 'admin';
     
     
-    var $listFields = 'state=С, id, email, subject, body, action, folderId, note=Забележка';
+    var $listFields =  'id, email, subject, body, action, folderId, note,state';
     
     
     /**
@@ -73,12 +73,12 @@ class email_Filters extends core_Manager
      */
     function description()
     {
-        $this->FLD('email' , 'varchar', 'caption=Шаблон->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
-        $this->FLD('subject' , 'varchar', 'caption=Шаблон->Относно', array('attr'=>array('style'=>'width: 350px;')));
-        $this->FLD('body' , 'varchar', 'caption=Шаблон->Текст', array('attr'=>array('style'=>'width: 350px;')));
-        $this->FLD('action' , 'enum(email=По имейл,folder=В папка,spam=Спам)', 'caption=Действие->Действие');
+        $this->FLD('email' , 'varchar', 'caption=Условие->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
+        $this->FLD('subject' , 'varchar', 'caption=Условие->Относно', array('attr'=>array('style'=>'width: 350px;')));
+        $this->FLD('body' , 'varchar', 'caption=Условие->Текст', array('attr'=>array('style'=>'width: 350px;')));
+        $this->FLD('action' , 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка,spam=Маркиране като спам)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull');
         $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Действие->Папка');
-        $this->FLD('note' , 'text', 'caption=Още->Забележка', array('attr'=>array('style'=>'width: 350px;', 'rows'=>4)));
+        $this->FLD('note' , 'text', 'caption=@Забележка', array('attr'=>array('style'=>'width: 100%;', 'rows'=>4)));
     }
     
     

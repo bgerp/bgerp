@@ -25,12 +25,11 @@ class email_Wrapper extends plg_ProtoWrapper
    
         //Показва таба за постинги, само ако имаме права за листване
         $this->TAB('email_Outgoings', 'Изходящи');
-       
-        $this->TAB('email_Inboxes', 'Кутии', 'ceo,manager,officer,executive');
- 
         $this->TAB('email_Incomings', 'Входящи', 'admin,ceo');
-        $this->TAB('email_Router', 'Рутиране', 'admin,ceo');
-        $this->TAB('email_Sent', 'Изпращания', 'admin,ceo');
+        $this->TAB('email_Inboxes', 'Кутии', 'ceo,manager,officer,executive');
+        $this->TAB('email_Accounts', 'Сметки', 'admin');
+        $this->TAB('email_Router', 'Рутиране', 'admin');
+        $this->TAB('email_Sent', 'Изпращания', 'admin');
         
         $this->title = 'Имейли';
     }

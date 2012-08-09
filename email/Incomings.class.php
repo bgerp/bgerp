@@ -154,7 +154,7 @@ class email_Incomings extends core_Master
      */
     function description()
     {
-        $this->FLD('accId', 'key(mvc=email_Inboxes,select=email)', 'caption=Акаунт');
+        $this->FLD('accId', 'key(mvc=email_Accounts,select=email)', 'caption=Акаунт');
         $this->FLD("messageId", "varchar", "caption=Съобщение ID");
         $this->FLD("subject", "varchar", "caption=Тема");
         $this->FLD("fromEml", "email", 'caption=От->Имейл');
@@ -179,7 +179,8 @@ class email_Incomings extends core_Master
         $this->FLD('emlFile', 'key(mvc=fileman_Files)', 'caption=eml файл, input=none');
         $this->FLD('htmlFile', 'key(mvc=fileman_Files)', 'caption=html файл, input=none');
         $this->FLD('boxIndex', 'int', 'caption=Индекс');
-        
+        $this->FLD('uid', 'int', 'caption=Imap UID');
+
         $this->setDbUnique('hash');
     }
     
@@ -195,30 +196,49 @@ class email_Incomings extends core_Master
     {
     	$conf = core_Packs::getConfig('email');
     	
+        set_time_limit(300);
+
         ini_set('memory_limit', $conf->EMAIL_MAX_ALLOWED_MEMORY);
-        
-        $accQuery = email_Inboxes::getQuery();
-        
-        while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
+
+        // Максималната продължителност за теглене на писма
+        $maxFetchingTime = $conf->EMAIL_MAX_FETCHING_TIME;
+    
             
+        // До коя секунда в бъдещето максимално да се теглят писма?
+        $maxTime = time() + $maxFetchingTime;
+            
+        // даваме достатъчно време за изпълнението на PHP скрипта
+        set_time_limit($maxFetchingTime + 60);
+        
+        $accQuery = email_Accounts::getQuery();
+        $accQuery->XPR('order', 'double', 'RAND()');
+        $accQuery->orderBy('#order');
+
+        while ($accRec = $accQuery->fetch("#state = 'active'")) {
+            
+            // Заключваме тегленето от тази пощенска кутия
+            $lockKey = 'Inbox:' . $accRec->id;
+            
+            if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
+                $htmlRes .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
+                $logMsg  .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
+                continue;
+            }
+
             // Нулираме броячите за различните получени писма
             $skipedEmails = $skipedServiceEmails = $errorEmails = $newEmails = 0;
             
             /* @var $imapConn email_Imap */
-            $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
-                    'port' => $accRec->port,
-                    'user' => $accRec->user,
-                    'pass' => $accRec->password,
-            		'subHost' => $accRec->subHost,
-                    'folder' => "INBOX",
-                    'ssl' => $accRec->ssl));
+            $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
             
             $logMsg .= ($logMsg ? "<br>" : "") . "{$accRec->user} ({$accRec->server}): ";
+            
             $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
             
             // Логването и генериране на съобщение при грешка е винаги в контролерната част
             if ($imapConn->connect() === FALSE) {
-                
+                           
+
                 $this->log("Не може да се установи връзка с пощенската кутия на <b>\"{$accRec->user} ({$accRec->server})\"</b>. " .
                     "Грешка: " . $imapConn->getLastError());
                 
@@ -229,119 +249,94 @@ class email_Incomings extends core_Master
                 continue;
             }
             
+
             // Получаваме броя на писмата в INBOX папката
             $numMsg = $imapConn->getStatistic('messages');
             
-            // Ако акаунта не е теглен на цяло - сега е момента да го направим
-            if(!$accRec->lastFetchAll || ($accRec->lastFetchAll < $accRec->modifiedOn)) {
-                $step  = 1;
-                $start = 1;
-                $flagFetchAll = TRUE;
-                $maxFetchingTime = $numMsg * 10;
-                
-                // За да не правим друг път пак пълно извличане на писмата
-                $accRec->lastFetchAll = dt::verbal2mysql();
-                email_Inboxes::save($accRec, 'lastFetchAll');
-            } else {
-                $step  = -1;
-                $start = $numMsg;
-                $flagFetchAll = FALSE;
-                $maxFetchingTime = $conf->EMAIL_MAX_FETCHING_TIME;
-            }
-            
-            // До коя секунда в бъдещето максимално да се теглят писма?
-            $maxTime = time() + $maxFetchingTime;
-            
-            // даваме достатъчно време за изпълнението на PHP скрипта
-            set_time_limit($maxFetchingTime + 60);
-            
-            // Заключваме тегленето от тази пощенска кутия
-            $lockKey = 'Inbox:' . $accRec->id;
-            
-            if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
-                $htmlRes .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
-                $logMsg  .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
-                continue;
-            }
-            
-            // Правим цикъл по всички съобщения в пощенската кутия
-            // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
-            // Реверсивно изтегляне: 
-            // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
-            for ($i = $start; ($i <= $numMsg) && ($i >= 1) && ($maxTime > time()); $i += $step) {
-                
-                if(($i % 100) == 1) {
-                    $this->log("Fetching message {$i}");
-                }
-                
-                $rec = $this->fetchSingleMessage($i, $imapConn);
-                
-                if ($rec->isDublicate) {
-                    // Писмото вече е било извличано и е записано в БД. $rec съдържа данните му.
-                    // Debug::log("Е-имейл MSG_NUM = $i е вече при нас, пропускаме го");
-                    $htmlRes .= "\n<li> Skip: {$rec->hash}</li>";
-                    $skipedEmails++;
-                } elseif($rec->isService) {
-                    $htmlRes .= "\n<li> Skip service mail: {$rec->hash}</li>";
-                    $skipedServiceEmails++;
-                } elseif($rec->error) {
-                    // Възникнала е грешка при извличането на това писмо
-                    // Debug::log("Е-имейл MSG_NUM = $i е вече при нас, пропускаме го");
-                    $htmlRes .= "\n<li> Error: msg = {$i} ({$rec->error})</li>";
-                    $errorEmails++;
-                } else {
-                    // Ново писмо. 
-                    $htmlRes .= "\n<li style='color:green'> Get: {$rec->hash}</li>";
-                    $rec->accId = $accRec->id;
-                    $newEmails++;
-                    
-                    /**
-                     * Служебните писма не подлежат на рутинно рутиране. Те се рутират по други
-                     * правила.
-                     *
-                     * Забележка 1: Не вграждаме логиката за рутиране на служебни писма в процеса
-                     *              на рутиране, защото той се задейства след запис на писмото
-                     *              което означава, че писмото трябва все пак да бъде записано.
-                     *
-                     *              По този начин запазваме възможността да не записваме
-                     *              служебните писма.
-                     *
-                     * Забележка 2: Въпреки "Забележка 1", все пак може да записваме и служебните
-                     *              писма (при условие че подсигурим, че те няма да се рутират
-                     *              стандартно). Докато не изтриваме писмата от сървъра след
-                     *              сваляне е добра идея да ги записваме в БД, иначе няма как да
-                     *              знаем дали вече не са извършени (еднократните) действия
-                     *              свързани с обработката на служебно писмо. Т.е. бихме
-                     *              добавяли в лога на писмата по един запис за върнато писмо
-                     *              (например) всеки път след изтегляне на писмата от сървъра.
-                     *
-                     *
-                     */
-                    
-                    // Когато правим начално фетчване, датата на документа е датата на писмото
-                    if($flagFetchAll) {
-                        $rec->createdOn = $rec->date;
-                    }
-                    
 
-                    $saved = email_Incomings::save($rec);
+            $start = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
+
+            if($start > 0) {
+            
+                // Правим цикъл по всички съобщения в пощенската кутия
+                // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
+                // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
+                for ($i = $start; $i <= $numMsg && ($maxTime > time()); $i++) {
                     
-                    // Задава вербални (човешки) имена на файловете .html и .eml
-                    $this->setEmlAndHtmlFileNames($rec);
+                    if(($i % 100) == 1) {
+                        $this->log("Fetching message {$i}");
+                    }
                     
-                    // Ако парсера е издал предупреждения - добавяме ги и към двете статусни съобщения
-                    if($rec->parserWarning) {
-                        $logMsg  .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>"  . $rec->parserWarning;
-                        $htmlRes .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>" . $rec->parserWarning;
+                    $rec = $this->fetchSingleMessage($i, $imapConn);
+                    
+                    if ($rec->isDublicate) {
+                        // Писмото вече е било извличано и е записано в БД. $rec съдържа данните му.
+                        // Debug::log("Е-имейл MSG_NUM = $i е вече при нас, пропускаме го");
+                        $htmlRes .= "\n<li> Skip: {$rec->hash}</li>";
+                        $skipedEmails++;
+                    } elseif($rec->isService) {
+                        $htmlRes .= "\n<li> Skip service mail: {$rec->hash}</li>";
+                        $skipedServiceEmails++;
+                    } elseif($rec->error) {
+                        // Възникнала е грешка при извличането на това писмо
+                        // Debug::log("Е-имейл MSG_NUM = $i е вече при нас, пропускаме го");
+                        $htmlRes .= "\n<li> Error: msg = {$i} ({$rec->error})</li>";
+                        $errorEmails++;
+                    } else {
+                        // Ново писмо. 
+                        $htmlRes .= "\n<li style='color:green'> Get: {$rec->hash}</li>";
+                        $rec->accId = $accRec->id;
+                        $newEmails++;
+                        $rec->uid = $imapConn->getUid($i);
+
+                        /**
+                         * Служебните писма не подлежат на рутинно рутиране. Те се рутират по други
+                         * правила.
+                         *
+                         * Забележка 1: Не вграждаме логиката за рутиране на служебни писма в процеса
+                         *              на рутиране, защото той се задейства след запис на писмото
+                         *              което означава, че писмото трябва все пак да бъде записано.
+                         *
+                         *              По този начин запазваме възможността да не записваме
+                         *              служебните писма.
+                         *
+                         * Забележка 2: Въпреки "Забележка 1", все пак може да записваме и служебните
+                         *              писма (при условие че подсигурим, че те няма да се рутират
+                         *              стандартно). Докато не изтриваме писмата от сървъра след
+                         *              сваляне е добра идея да ги записваме в БД, иначе няма как да
+                         *              знаем дали вече не са извършени (еднократните) действия
+                         *              свързани с обработката на служебно писмо. Т.е. бихме
+                         *              добавяли в лога на писмата по един запис за върнато писмо
+                         *              (например) всеки път след изтегляне на писмата от сървъра.
+                         *
+                         *
+                         */
+                        
+                        // Когато правим начално фетчване, датата на документа е датата на писмото
+                        if($flagFetchAll) {
+                            $rec->createdOn = $rec->date;
+                        }
+                        
+
+                        $saved = email_Incomings::save($rec);
+                        
+                        // Задава вербални (човешки) имена на файловете .html и .eml
+                        $this->setEmlAndHtmlFileNames($rec);
+                        
+                        // Ако парсера е издал предупреждения - добавяме ги и към двете статусни съобщения
+                        if($rec->parserWarning) {
+                            $logMsg  .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>"  . $rec->parserWarning;
+                            $htmlRes .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>" . $rec->parserWarning;
+                        }
+                    }
+                    
+                    if ($accRec->deleteAfterRetrieval == 'yes') {
+                        $imapConn->delete($i);
                     }
                 }
-                
-                if ($accRec->deleteAfterRetrieval == 'yes') {
-                    $imapConn->delete($i);
-                }
-            }
             
-            $imapConn->expunge();
+                $imapConn->expunge();
+            }
             
             $imapConn->close();
             
@@ -356,6 +351,103 @@ class email_Incomings extends core_Master
         return $logMsg;
     }
     
+
+    /**
+     * Връща поредния номер на първото не-четено писмо
+     */
+    function getFirstUnreadMsgNo($imapConn, $maxMsgNo)
+    {
+        // Няма никакви съобщения за сваляне?
+        if(!$maxMsgNo) {
+            return NULL;
+        }
+
+        $query = self::getQuery();
+        $query->XPR('maxUid', 'int', 'max(#uid)');
+        $maxRec = $query->fetch("#accId = {$imapConn->accRec->id}");
+
+        if(!$maxRec->maxUid) {
+            
+            // Горен указател
+            $t = $maxMsgNo; 
+            
+            $i = 1;
+            
+            // Долен указател
+            $b = $maxMsgNo - $i;
+            
+            $isDownT = $this->isDownloaded($imapConn, $t);
+
+            // Дали всички съобщения са прочетени?
+            if($isDownT) {
+                return NULL;
+            }
+
+            $isDownB = $this->isDownloaded($imapConn, $b);
+
+
+            do {
+                
+                $i = $i * 2;
+
+                // Ако и двете не са свалени; Изпълнява се няколко пъти последователно в началото
+                if(!$isDownB && !$isDownT) {
+                    $t = $b;
+                    $b = $maxMsgNo - $i;
+                    $isDownB = $this->isDownloaded($imapConn, $b);
+                } elseif($isDownB && !$isDownT) {
+                    // Условие, при което $t е първото не-свалено писмо
+                    if($t - $b == 1) {
+
+                        return $t;
+                    }
+                    $m = round(($t + $b) / 2);
+                    $isDownM = $this->isDownloaded($imapConn, $m);
+                    if($isDownM) {
+                        $b = $m;
+                    } else {
+                        $t = $m;
+                    }
+                }
+                
+            } while($i < 500000);
+
+        } else {
+            $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid) + 1;
+            
+            if($maxReadMsgNo > $maxMsgNo) {
+                $maxReadMsgNo = NULL;
+            }
+
+            return $maxReadMsgNo;
+        }
+    }
+
+
+    function isDownloaded($imapConn, $msgNum)
+    {
+        static $isDown = array();
+
+        if(!isset($isDown[$imapConn->accRec->id][$msgNum])) {
+
+            $headers = $imapConn->getHeaders($msgNum);
+            
+            // Ако няма хедъри, значи има грешка
+            if(!$headers) {
+                return TRUE;
+            }
+            
+            $mimeParser = new email_Mime();
+            
+            $hash    = $mimeParser->getHash($headers);
+            
+            $res = $isDown[$imapConn->accRec->id][$msgNum] = TRUE && $this->fetchField("#hash = '{$hash}'", 'id');
+        }
+
+        return $res;
+    }
+
+
     
     /**
      * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
@@ -466,7 +558,7 @@ class email_Incomings extends core_Master
         
         $hash    = $mimeParser->getHash($headers);
         
-        if ((!$rec = $this->fetch("#hash = '{$hash}'"))) {
+        if ((!$rec = $this->fetchField("#hash = '{$hash}'", 'id'))) {
             
             // Тук парсираме писмото и проверяваме дали не е системно
             $mime = new email_Mime();
@@ -692,24 +784,8 @@ class email_Incomings extends core_Master
     {
         return static::fetchField($id, 'textPart');
     }
-    
-    
-    /**
-     * Прикачените към документ файлове
-     *
-     * @param int $id ид на документ
-     * @return array
-     */
-    public function getEmailAttachments($id)
-    {
-        
-        /**
-         * @TODO
-         */
-        return array();
-    }
-    
-    
+
+
     /**
      * Какъв да е събджекта на писмото по подразбиране
      *
@@ -723,45 +799,6 @@ class email_Incomings extends core_Master
         return 'FW: ' . static::fetchField($id, 'subject');
     }
     
-    
-    /**
-     * До кой имейл или списък с етрябва да се изпрати писмото
-     *
-     * @param int $id ид на документ
-     */
-    public function getDefaultEmailTo($id)
-    {
-        return '';
-    }
-    
-    
-    /**
-     * Адреса на изпращач по подразбиране за документите от този тип.
-     *
-     * @param int $id ид на документ
-     * @return int key(mvc=email_Inboxes) пощенска кутия от нашата система
-     */
-    public function getDefaultBoxFrom($id)
-    {
-        
-        /**
-         * @TODO Това вероятно трябва да е inbox-а на текущия потребител.
-         */
-        return 'me@here.com';
-    }
-    
-    
-    /**
-     * Писмото (ако има такова), в отговор на което е направен този постинг
-     *
-     * @param int $id ид на документ
-     * @return int key(email_Incomings) NULL ако документа не е изпратен като отговор
-     */
-    public function getInReplayTo($id)
-    {
-        
-        return NULL;
-    }
     
     /****************************************************************************************
      *                                                                                      *

@@ -13,15 +13,7 @@
  * @since     v 0.1
  */
 class email_Imap extends core_BaseClass
-{
-    
-    
-    /**
-     * Пощенската кутия
-     */
-    var $mailBox = NULL;
-    
-    
+{    
     /**
      * Ресурс с връзката към пощенската кутия
      */
@@ -29,75 +21,102 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Хоста, където се намира пощенската кутия
+     * Информация за сметката, към която ще се свързваме
      */
-    var $host = NULL;
-    
-    
-    /**
-     * Порта, от който ще се свързваме
-     */
-    var $port = NULL;
-    
-    
-    /**
-     * име за връзка
-     */
-    var $user = NULL;
-    
-    /**
-     * Паролата за връзка
-     */
-    protected $pass = NULL;
-    
-    
-    /**
-     * ако има такъв
-     */
-    var $subHost = NULL;
-    
-    
-    /**
-     * Папката, от където ще се четата
-     */
-    var $folder = "INBOX";
-    
-    
-    /**
-     * SSL връзката, ако има такава
-     */
-    var $ssl = NULL;
+    var $accRec;
     
     
     /**
      * Създава стринг с пощенската кутия
      */
-    protected function getMailbox()
+    protected function getServerString()
     {
-        if ($this->ssl) {
-            $this->ssl = '/' . ltrim($this->ssl, '/');
+        $accRec = $this->accRec;
+
+        // Определяне на хоста и евентуално порта
+        $hostArr = explode(':', $accRec->server);
+        
+        if(count($hostArr) == 2) {
+            $host = $hostArr[0];
+            $port = $hostArr[1];
         } else {
-            $this->ssl = '/novalidate-cert';
+            $host = $hostArr[0];
+        }
+
+        expect($host);
+        
+        // Определяне на порта, ако не е зададен в хоста
+        if(!$port) {
+            if($accRec->protocol == 'imap') {
+                if($accRec->security == 'ssl') {
+                    $port = '993';
+                } else {
+                    $port = '143';
+                }
+            }
+            if($accRec->protocol == 'pop3') {
+                if($accRec->security == 'ssl') {
+                    $port = '995';
+                } else {
+                    $port = '110';
+                }
+            }
+        }
+            
+        expect($port);
+
+        $portArr = explode('/', $port, 2);
+
+        if(count($portArr) == 2) {
+            $port = $portArr[0];
+            $params = $portArr[1];
         }
         
-        if ($this->subHost) {
-            $this->subHost = '/' . ltrim($this->subHost, '/');
+        if(!$params) {
+            $params = $this->getParams($accRec);
         }
+
+        $str =  '{' . "{$host}:{$port}/{$params}" . '}' . $accRec->folder;
         
-        if ($this->port) {
-            $this->port = ':' . ltrim($this->port, ':');
-        }
-        
-        return "{" . "{$this->host}{$this->port}{$this->subHost}{$this->ssl}" . "}{$this->folder}";
+        return $str;
     }
     
     
     /**
+     * Връща стринга с допълнителни параметри за IPAM/POP3 връзката
+     *
+     */
+    protected function getParams($accRec)
+    {
+        expect(in_array($protocol = $accRec->protocol, array('imap', 'pop3')));
+        expect(in_array($security = $accRec->security, array('default', 'tls', 'notls', 'ssl')));
+        expect(in_array($cert = $accRec->cert, array('noValidate', 'validate')));
+
+        if($cert == 'noValidate' || $security == 'notls') {
+            $cert = '/novalidate-cert';
+        } else {
+            $cert = '';
+        }
+        
+        // Стринг за метода за аутенти
+        if($security == 'default') {
+            $security = '';
+        } else {
+            $security = "/{$security}";
+        }
+
+        $params = $protocol . $security . $cert;
+
+        return $params;
+    }
+    
+
+    /**
      * Свързва се към пощенската кутия
      */
-    function connect()
+    public function connect()
     {
-        $this->connection = imap_open($this->getMailbox(), $this->user, $this->pass);
+        $this->connection = imap_open($this->getServerString(), $this->accRec->user, $this->accRec->password);
         
         return $this->connection;
     }
@@ -121,12 +140,32 @@ class email_Imap extends core_BaseClass
      */
     function getStatistic($varName = 'messages')
     {
-        $this->statistic = imap_status($this->connection, $this->getMailbox(), SA_ALL);
+        $this->statistic = imap_status($this->connection, $this->getServerString(), SA_ALL);
         
         return $this->statistic->{$varName};
     }
+
+
+    /**
+     * Еръща UID на съобщението с пореден номер $msgNo
+     * Не работи с POP3 сървери
+     */
+    function getUid($msgNo)
+    {
+        return imap_uid($this->connection, $msgNo);
+    }
     
     
+    /**
+     * Еръща UID на съобщението с пореден номер $msgId
+     * Не работи с POP3 сървери
+     */
+    function getMsgNo($uid)
+    {
+        return imap_msgno($this->connection, $uid);
+    }
+    
+
     /**
      * Връща състоянието на писмата или посоченото писмо
      *
@@ -251,4 +290,5 @@ class email_Imap extends core_BaseClass
         
         return $partData;
     }
+
 }

@@ -16,9 +16,10 @@ class email_Outgoings extends core_Master
 {
     
     /**
-     * Папката по подразбиране да е inbox'-а на текущия потребител
+     * Име на папката по подразбиране при създаване на нови документи от този тип.
+     * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
-    var $defaultFolder = 'inbox';
+    var $defaultFolder = FALSE;
     
 
     /**
@@ -406,23 +407,11 @@ class email_Outgoings extends core_Master
     static function on_AfterPrepareSendForm($mvc, $data)
     {
         expect($data->rec = $mvc->fetch($data->form->rec->id));
-        
+     
         // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
         doc_Threads::requireRightFor('single', $data->rec->threadId);
         
-        // Задаване на кутиите, от които е позволено изпращането на писма за текущия потребител
-        $allowedFrom = email_Inboxes::getAllowedFrom();
-        expect(count($allowedFrom) > 0, 'Няма права за изпращане на имейли.');
-        
-        // Определяне на изходящата кутия по подразбиране - $boxFromId: key(mvc=email_Inboxes)
-        $boxFromId = NULL;
-        $boxFrom = static::getDefaultBoxFrom($data->rec, $allowedFrom);
-        
-        if (!empty($boxFrom)) {
-            $boxFromId = array_search($boxFrom, $allowedFrom);
-        }
-        
-        $data->form->getField('boxFrom')->type->options = $allowedFrom;
+        $data->form->fields['boxFrom']->type->params['folderId'] = $data->rec->folderId;
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
@@ -536,22 +525,9 @@ class email_Outgoings extends core_Master
         if ($mvc->flagSendIt) {
             $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
             
-            // Определяме от чие име (коя кутия) ще излезе това писмо
-            $allowedFrom = email_Inboxes::getAllowedFrom();
-            expect(count($allowedFrom) > 0, 'Няма права за изпращане на имейли.');
+            $fromEmailOptions = email_Inboxes::getFromEmailOptions($rec->folderId);
             
-            // Определяне на изходящата кутия по подразбиране - $boxFromId: key(mvc=email_Inboxes)
-            $boxFromId = NULL;
-            $boxFrom = static::getDefaultBoxFrom($rec, $allowedFrom);
-            
-            if (!empty($boxFrom)) {
-                $boxFromId = array_search($boxFrom, $allowedFrom);
-            }
-            
-            if (empty($boxFromId)) {
-                $boxFromId = email_Inboxes::getUserEmailId();
-            }
-            
+            $boxFromId = $fromEmailOptions[key($array)];
             
             $options = (object)array(
                 'boxFrom'  => $boxFromId,
@@ -730,8 +706,22 @@ class email_Outgoings extends core_Master
         
         //Данни необходими за създаване на хедър-а на съобщението
         $contragentDataHeader['name'] = $contragentData->name;
-        $contragentDataHeader['salutation'] = $contragentData->salutation;
+        if($s = $contragentDataHeader['salutation'] = $contragentData->salutation) {
+            if($s != 'Г-н') {
+                $hello = "Уважаема";
+            } else {
+                $hello = "Уважаеми";
+            }
+        }
         
+        if($contragentData->name) {
+            setIfNot($hello, 'Здравейте');
+        } else {
+            setIfNot($hello, 'Уважаеми колеги');
+        }
+
+        $contragentDataHeader['hello'] = $hello;
+ 
         //Създаваме тялото на постинга
         $rec->body = $mvc->createDefaultBody($contragentDataHeader, $originId);
         
@@ -776,12 +766,13 @@ class email_Outgoings extends core_Master
      */
     function getHeader($data)
     {
-        $tpl = new ET(tr(getFileContent("email/tpl/OutgoingHeader.shtml")));
+        $tpl = new ET(getFileContent("email/tpl/OutgoingHeader.shtml"));
         
         //Заместваме шаблоните
+        $tpl->replace(tr($data['hello']), 'hello');
         $tpl->replace(tr($data['salutation']), 'salutation');
         $tpl->replace(tr($data['name']), 'name');
-        
+
         return $tpl->getContent();
     }
     
@@ -956,108 +947,6 @@ class email_Outgoings extends core_Master
     }
 
 
-    /**
-     * Адреса на изпращач по подразбиране.
-     * 
-     * Прави опит да установи кутията по подразбиране, от която да се изпрати писмото. Това е 
-     * първия от серия имейл адреси, който при това е наличен в списъка с допустими имейл 
-     * адреси (параметъра $allowed).
-     * 
-     * Споменатата серия от имейл адреси се генерира според следните правила:
-     *  
-     *  - Ако документа, породил това изходящо писмо (origin) е входящо писмо - адреса на
-     *    получателя му;
-     *    
-     *  - Ако първия документ в нишката на това изходящо писмо е входящо писмо - адреса на
-     *    получателя му
-     *    
-     *  - Ако корицата на папката на това изходящо писмо е email_Inboxes - полето #email на 
-     *    тази корица
-     *    
-     *  - Имейл адреса на текущия потребител
-     *
-     * @param $rec запис на модела email_Outgoings
-     * @param $allowed масив [email_Inboxes.id] => email_Inboxes.email
-     * @return int key(mvc=email_Inboxes) или NULL
-     */
-    protected static function getDefaultBoxFrom($rec, $allowed)
-    {
-        // Първо правило - адреса на получателя на origin входящия имейла
-        if (!empty($rec->originId)) {
-            $boxFrom = static::getContainerRecipients($rec->originId, $allowed);
-        }
-        
-        if (isset($boxFrom)) {
-            // първото правилото сработи
-            return $boxFrom;
-        }
-        
-        // Второ правило - адреса на получателя на откриващия нишката входящ имейл
-        $threadRec = doc_Threads::fetch($rec->threadId);
-        
-        if ($threadRec && $threadRec->firstContainerId) {
-            $boxFrom = static::getContainerRecipients($threadRec->firstContainerId, $allowed);
-        }
-        
-        if (isset($boxFrom)) {
-            // второто правилото сработи
-            return $boxFrom;
-        }
-        
-        // Трето правило - имейла на корицата, в случай че корицата е email_Inboxes
-        $folderRec = doc_Folders::fetch($rec->folderId);
-        
-        if ($folderRec && $folderRec->coverClass == email_Inboxes::getClassId()) {
-            $inboxesRec = email_Inboxes::fetch($folderRec->coverId);
-            
-            if (!empty($inboxesRec->email) && in_array($inboxesRec->email, $allowed)) {
-                $boxFrom = $inboxesRec->email;
-            }
-        }
-        
-        if (isset($boxFrom)) {
-            // третото правилото сработи
-            return $boxFrom;
-        }
-        
-        // Четвърто правило - имейл адреса на текущия потребител
-        $userEmail = email_Inboxes::getUserEmail();
-        
-        if (!empty($userEmail) && in_array($userEmail, $allowed)) {
-            $boxFrom = $userEmail;
-        }
-        
-        if (isset($boxFrom)) {
-            // четвъртото правилото сработи
-            return $boxFrom;
-        }
-        
-        
-        // никое правило не сработи
-        return NULL;
-    }
-    
-    
-    private static function getContainerRecipients($containerId, $allowed)
-    {
-        $result       = NULL;
-        $containerRec = doc_Containers::fetch($containerId);
-        
-        if ($containerRec->docClass == email_Incomings::getClassId()) {
-            // документа е от искания клас
-            $incomingsRec = email_Incomings::fetch($containerRec->docId);
-        
-            if ($incomingsRec) {
-                if (!empty($incomingsRec->toEml) && in_array($incomingsRec->toEml, $allowed)) {
-                    $result = $incomingsRec->toEml;
-                } elseif (!empty($incomingsRec->toBox) && in_array($incomingsRec->toBox, $allowed)) {
-                    $result = $incomingsRec->toBox;
-                }
-            }
-        }
-        
-        return $result;
-    }
     
     
     /******************************************************************************************

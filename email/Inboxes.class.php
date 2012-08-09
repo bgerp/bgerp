@@ -32,7 +32,7 @@ defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '');
 
 
 /**
- * Email адреси
+ * Имейл кутии
  *
  *
  * @category  bgerp
@@ -135,7 +135,7 @@ class email_Inboxes extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, email, type, applyRouting=Общ, folderId, inCharge, access, shared, createdOn, createdBy';
+    var $listFields = 'id, email, accountId, inCharge, access, shared, createdOn, createdBy';
     
     /**
      * Всички пощенски кутии
@@ -149,27 +149,8 @@ class email_Inboxes extends core_Master
     function description()
     {
         $this->FLD("email", "email(link=no)", "caption=Имейл");
-        $this->FLD("type", "enum(internal=Вътрешен, pop3=POP3, imap=IMAP)", 'caption=Тип');
-        $this->FLD("server", "varchar", 'caption=Сървър');
-        $this->FLD('user', 'varchar', 'caption=Потребителско име');
-        $this->FLD('password', 'password(64)', 'caption=Парола,crypt');
-        $this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Статус');
-        $this->FLD('period', 'int', 'caption=Период');
-        
-        $this->FLD('port', 'int', 'caption=Порт');
-        $this->FLD('subHost', 'varchar', 'caption=Суб Хост');
-        $this->FLD('ssl', 'varchar', 'caption=Сертификат');
-        
-        // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
-        $this->FLD('applyRouting', 'enum(yes=Да, no=Не)', 'notNull,caption=Общ (екипен)');
-        
-        // Поле, показващо, кога за последен път е имало пълно синхронизиране със сметката
-        $this->FLD('lastFetchAll', 'datetime', 'caption=Последно източване,input=none');
-        
-        // Колко минути след свалянето от акаунта, това писмо да бъде изтрито
-        $this->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)',
-            'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
-        
+        $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка');
+         
         $this->setDbUnique('email');
     }
     
@@ -194,28 +175,8 @@ class email_Inboxes extends core_Master
     {
         return $rec->email;
     }
-    
-    
-    /**
-     * Преди вкарване на запис в модела, проверява дали има вече регистрирана корица
-     * и криптира паролата
-     */
-    static function on_BeforeSave($mvc, $id, &$rec)
-    {
-        list($name, $domain) = explode('@', $rec->email, 2);
-        
-        if (empty($domain)) {
-            $domain = BGERP_DEFAULT_EMAIL_DOMAIN;
-        }
-        
-        $rec->email = "{$name}@{$domain}";
-        
-        if (isset($rec->password)) {
-            $rec->password = $rec->password;    
-        }
-    }
-    
-    
+
+
     /**
      * Преди рендиране на формата за редактиране
      */
@@ -226,16 +187,16 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Връща масив с ключове - кутите (имейлите) и стойности - id-тата на сметките към които са
      */
-    static function getInboxes()
+    static function getAllInboxes()
     {
         if (!self::$allBoxes) {
             $query = static::getQuery();
-            $query->show('id, email, type');
+            $query->show('id, email, accountId');
             
             while ($rec = $query->fetch()) {
-                self::$allBoxes[$rec->email] = $rec->type;
+                self::$allBoxes[$rec->email] = $rec->accountId;
             }
         }
         
@@ -247,88 +208,84 @@ class email_Inboxes extends core_Master
      * Намира първия имейл в стринга, който е записан в системата
      */
     static function findFirstInbox($str)
-    {
+    {   
         //Всички пощенски кутии
-        $allBoxes = static::getInboxes();
+        $allBoxes = static::getAllInboxes();
         
         //Вземаме всички имейли
         $emailsArr = email_Mime::extractEmailsFrom(strtolower($str));
         
         //Ако има имейли
         if (is_array($emailsArr) && count($emailsArr)) {
+
+            // Търсим във всички съществуващи кутии
             foreach ($emailsArr as  $eml) {
                 
                 //Намираме първото съвпадение на имейл, който е 'internal'
-                if ($allBoxes[$eml] == 'internal') {
+                if ($allBoxes[$eml]) {
                     
                     return $eml;
                 }
             }
             
-            //Намираме имейла, за който има активен потребител и домейна е общ
+            // Вземаме масив от PowerUsers, като индекса е ника на потребителя
+            $powerUsers = static::getPowerUsers();
+            
+            // Ако имейла е съставен от ник на потребител и домейн на корпоративна сметка
+            // тогава създаваме кутия за този имейл, вързана към съответния потребител
             foreach ($emailsArr as $eml) {
                 
-                //Ако намери съвпадение връща имейла
-                if (static::findAlternativeEmail($eml)) {
+                list($nick, $domain) = explode('@', $eml);
+                
+                // Намираме потребител, съответстващ на емейл адреса
+                $userRec = $powerUsers[$nick];
+                
+                // Ако няма такъв потребител - прекратяваме обработката
+                if(!$userRec) break;
 
-                    return $eml;
+                // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
+                $corpAccRec = email_Accounts::getCorporateAcc();
+                
+                // Ако няма такава сметка - прекратяваме обработката
+                if(!$corpAccRec) break;
+                
+                // Ако домейна на имейла  корпоративния домейн, то 
+                // Създаваме кутия (основна) на потребителя, към този домейн
+                // и връщаме имейла на тази кутия
+                if($corpAccRec->domain == $domain)  {
+
+                    $rec = new stdClass();
+                    $rec->email = $eml;
+                    $rec->accountId = $corpAccRec->id;
+                    $rec->inCharge  = $userRec->id;
+                    $rec->access    = "private";
+                    
+                    self::save($rec);
+
+                    return $rec->email;
                 }
             }
         }
         
         return NULL;
     }
-    
-    
-    /**
-     * Проверява дали има вероятноста да има такъв потребител в системата
-     */
-    static function findAlternativeEmail($email)
-    {
-        //Разделяме имейла на акаунт и домейн
-        $emailArr = explode('@', $email);
-        
-        $domain = '@' . $emailArr[1];
-        
-        $nick = $emailArr[0];
-        
-        //Ако домейна е общ и има активен потребител
-        if ((static::isGroupDomain($domain)) && ($user = core_Users::isActiveUser($nick))) {
-            
-            //Създаваме папка
-            $nick = $user->nick;
-            if (EF_USSERS_EMAIL_AS_NICK) {
-                $nick = type_Nick::parseEmailToNick($rec->nick);
-            }
-            
-            //Запис необходим за създаване на папка
-            $eRec = new stdClass();
-            $eRec->inCharge = $user->id;
-            $eRec->access = "private";
-            $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
-            $eRec->type = 'internal';
-            $eRec->applyRouting = 'no';
-            $eRec->email = $email;
-            $eRec->name = $nick;
-            
-            email_Inboxes::forceCoverAndFolder($eRec);
-            
-            return $email;
-        }
-        
-        return FALSE;
-    }
-    
-    
-    /**
-     * Проверява дали домейна е общ
-     */
-    static function isGroupDomain($domain)
-    {
-        $rec = static::fetch("#email LIKE '%{$domain}' AND #applyRouting = 'yes'");
 
-        return $rec;
+    
+    /**
+     * При създаването на вербалния ред, добавя линк и икона в заглавието на сметката
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    { 
+        if(($fields['-list'] || $fields['-single']) && $rec->accountId) {
+            
+            $accRec = email_Accounts::fetch($rec->accountId);
+            
+            $accRow = email_Accounts::recToVerbal($accRec, 'id,email,-list');
+
+            $row->accountId = $accRow->email;
+        }
     }
+
     
     
     /**
@@ -337,27 +294,7 @@ class email_Inboxes extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        if(defined('BGERP_DEFAULT_EMAIL_FROM') && BGERP_DEFAULT_EMAIL_FROM != '') {
-            if(!$mvc->fetch(array("#email = '[#1#]'", BGERP_DEFAULT_EMAIL_FROM))) {
-                $rec = new stdClass();
-                $rec->email = BGERP_DEFAULT_EMAIL_FROM;
-                $rec->server = BGERP_DEFAULT_EMAIL_HOST;
-                $rec->user = BGERP_DEFAULT_EMAIL_USER;
-                $rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
-                $rec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
-                $rec->period = 1;
-                $rec->port = 143;
-                $rec->type = 'imap';
-                $rec->applyRouting = "yes";
-                
-                $mvc->save($rec, NULL, 'IGNORE');
-                
-                //Създаваме папка на новата кутия
-                $mvc->forceCoverAndFolder($rec);
-                
-                $res .= "<li>Добавен имейл по подразбиране: " . BGERP_DEFAULT_EMAIL_FROM;
-            }
-        }
+
     }
     
     
@@ -369,28 +306,56 @@ class email_Inboxes extends core_Master
      */
     public static function isGeneric($email)
     {
-        $rec = static::fetch("#email = '{$email}'");
+        $rec = email_Accounts::fetch("#email = '{$email}'");
         
         return (boolean)$rec && ($rec->applyRouting == 'yes');
     }
     
     
     /**
-     * Форсира папката, асоциирана с тази наша пощенска кутия. Ако няма такава кутия не прави нищо.
+     * Форсира папката, с име този имейл. Ако папката липсва, но това е валиден 
+     * имайл на PowerUser 
      *
      * @param string $email
      * @return int key(mvc=doc_Folders)
      */
     public static function forceFolder($email)
     {
+        $folderId = NULL;
+
+        $email = strtolower(trim($email));
+
         $rec = static::fetch("#email = '{$email}'");
         
         if (!$rec) {
+            // Ако това е корпоративен имейл - създава кутията и папката към нея
             
-            return NULL;
+            // Вземаме корпоративната сметка
+            $corpAccRec = email_Accounts::getCorporateAcc();
+        
+            // Ако няма корпоративна сметка - връщаме FALSE
+            if(!$corpAccRec) return FALSE;
+            
+            list($user, $domain) = explode('@', $email);
+            
+            if($domain == $corpAccRec->domain) {
+                $powerUsers = email_Inboxes::getPowerUsers();
+                if($userRec = $powerUsers[$user]) {
+
+                    $rec = new stdClass();
+                    $rec->email = $email;
+                    $rec->accountId = $corpAccRec;
+                    $rec->inCharge = $userRec->id;
+                    $rec->access = 'private';
+
+                    $folderId = static::forceCoverAndFolder($rec->id);
+                }
+            }
+        } else {
+            $folderId = static::forceCoverAndFolder($rec->id);
         }
         
-        return static::forceCoverAndFolder($rec->id);
+        return $folderId;
     }
     
     
@@ -398,7 +363,7 @@ class email_Inboxes extends core_Master
      * Връща id'то на кутия на потребителя, който сме подали.
      * Ако не сме подали параметър тогава връща на текущия потребител
      */
-    static function getUserEmailId($userId = NULL)
+    static function getUserInboxId($userId = NULL)
     {
         //Ако не сме подали параметър, вземаме ник-а на текущия потребител
         if (!$userId) {
@@ -407,6 +372,9 @@ class email_Inboxes extends core_Master
         
         $email = email_Inboxes::getUserEmail($userId);
         
+        // Ако потребителя няма корпоративен емейл, връшаме FALSE
+        if(!$email) return FALSE;
+
         $id = email_Inboxes::fetchField("#email = '{$email}'");
         
         return $id;
@@ -419,23 +387,24 @@ class email_Inboxes extends core_Master
      */
     static function getUserEmail($userId = NULL)
     {
-        //Ако не сме подали параметър, вземаме ник-а на текущия потребител
+        // Ако не сме подали параметър, вземаме id-то на текущия потребител
         if (!$userId) {
-            $userId = core_Users::getCurrent('nick');
+            $userId = core_Users::getCurrent();
         }
+                
+        // Вземаме nick' а на потребителя
+        $nick = core_Users::fetchField($userId, 'nick');
         
-        $nick = $userId;
+        // Вземаме корпоративната сметка
+        $corpAccRec = email_Accounts::getCorporateAcc();
         
-        //Ако сме подали id' тогава намира потребителя с това id
-        if (is_numeric($userId)) {
-            //Вземаме nick' а на потребителя
-            $nick = core_Users::fetchField($userId, 'nick');
-        }
+        // Ако няма корпоративна сметка - връщаме FALSE
+        if(!$corpAccRec) return FALSE;
         
-        //генерираме имейл-а
-        $email = $nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
+        // Генерираме имейл-а
+        $email = $nick . '@' . $corpAccRec->domain;
         
-        //Превръщаме имейл-а в малки букви
+        // Превръщаме имейл-а в малки букви
         $email = strtolower($email);
         
         return $email;
@@ -463,35 +432,106 @@ class email_Inboxes extends core_Master
         //Връщаме inCharge id' то
         return $rec->inCharge;
     }
-    
-    
-    /**
-     * Кутиите, от които е позволено на даден потребител да изпраща писма
-     * 
-     * По дефиниция, това са активните кутии, които или са собственост на потребителя или са
-     * споделени с него.
-     * 
-     * @param int $userId key(mvc=core_Users) ако е NULL - текущия потребител
-     * @return array ключ - PK на кутия, стойност - имейл адреса на кутия. Този масив е готов за
-     *                      използване като $options на полета от тип type_Key.
-     */
-    static function getAllowedFrom($userId = NULL)
-    {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        $query->where("#inCharge = {$userId} OR #shared LIKE '%|{$userId}|%'");
-        $query->where("#state = 'active'");
+   
 
-        $result = array();
-        
-        while ($rec = $query->fetch()) {
-            $result[$rec->id] = $rec->email;
+
+    /**
+     *  Един документ ги изпращаме от:
+     *
+     *  1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
+     *  2. Корпоративния общ имейл, ако корпоративната сметка може да изпраща писма
+     *  3. Корпоративния имейл на потребителя, ако корпоративната сметка може да изпраща писма
+     *  4. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
+     *  5. Всички инбокс-имейли, за които е отбелязано, че могат да се използват за изпращане на писма от всички потребители
+     *
+     */
+    function on_BeforePrepareKeyOptions($mvc, &$options, $type)
+    {  
+        if($folderId = $type->params['folderId']) {
+            
+            $options = $mvc->getFromEmailOptions($folderId);
         }
+    }
+
+    
+
+    /**
+     * Връща списък с [id на кутия] => имейл от които текущия потребител може да изпраща писма от папката
+     * Първия имейл е най-предпочитания
+     */
+    function getFromEmailOptions($folderId)
+    {
+        $options = array();
+
+         // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
+         $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
+         if($rec && email_Accounts::canSendEmail($rec->accountId)) {
+             $options[$rec->id] = $rec->email;
+         }
+
+         
+          
+         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
+         $corpAccRec = email_Accounts::getCorporateAcc();
+         
+         if(email_Accounts::canSendEmail($corpAccRec->id)) {
+             
+             // 2. Корпоративния общ имейл, ако корпоративната сметка може да изпраща писма
+             $rec = self::fetch("#email = '{$corpAccRec->email}' && #state = 'active'");
+                            
+             if($rec) {
+                 $options[$rec->id] = $rec->email;
+             }
+
+             $userEmail = email_Inboxes::getUserEmail();
+
+             if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' && #state = 'active'"))) {
+                 $options[$rec->id] = $rec->email;
+             }
+         }
+
+         // 4. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
+         $cu = core_Users::getCurrent();
+         $query = $this->getQuery();
+         $query->where("#inCharge = {$cu} OR #shared LIKE '%|{$cu}|%'");
+         $query->where("#state = 'active'");
+ 
+         while($rec = $query->fetch()) {
+             if(email_Accounts::canSendEmail($rec->accountId)) {
+                 if(!$options[$rec->id]) {
+                     $options[$rec->id] = $rec->email;
+                 }
+             }
+         }
+ 
+         // 5. TODO
+
+         if(!count($options)) {
+             error('Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
+         }
+
+         return $options;
+    }
+
+
+    /**
+     * Връща потребителите с ранг на корпоративен потребител: ceo, manager, officer, executive
+     */
+    static function getPowerUsers()
+    {
+        // Масив за съхранение на потребителите имащи право на пощенска кутия в системата
+        static $powerUsers;
         
-        return $result;
+        // Намираме масив с потребителите, които имат право на вътрешен имейл
+        if(!$powerUsers) {
+            $userQuery = core_Users::getQuery();
+            $powerRoles = core_Roles::keylistFromVerbal('executive,officer,manager,ceo');
+            $userQuery->likeKeylist('roles', $roles);
+            while($uRec = core_Users::fetch()) {
+                $powerUsers[$userRec->nick] = $uRec;
+            }
+        }
+
+        return $powerUsers;
     }
 }
