@@ -308,7 +308,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме папка - форсираме папката по подразбиране за този клас
         if(!$rec->folderId) {
-            $rec->folderId = $mvc->getUnsortedFolder();
+            $rec->folderId = $mvc->getDefaultFolder();
         }
         
         // Ако нямаме тред - създаваме нов тред в тази папка
@@ -325,17 +325,25 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Дефолт имплементация на метода $doc->getUnsortedFolder()
+     * Дефолт имплементация на метода $doc->getDefaultFolder()
      *
-     * Връща или съсдава папка от тип "Кюп", която има име -
-     * заглавието на мениджъра на документите
+     * Ако $mvc->defaultFolder != FALSE, тогава връща папка 'куп' с име - $mvc->defaultDolder или заглавието на класа
+     * Ако $mvc->defaultFolder === FALSE или нямаме достъп до папката 'куп', тогава се връща основната папка за всеки потребител
      */
-    function on_AfterGetUnsortedFolder($mvc, &$res)
+    function on_AfterGetDefaultFolder($mvc, &$folderId, $userId = NULL)
     {
-        if (!$res) {
-            $unRec = new stdClass();
-            $unRec->name = $mvc->title;
-            $res = doc_UnsortedFolders::forceCoverAndFolder($unRec);
+        if (!$folderId) {
+            if($mvc->unsortedFolder) {
+                $unRec = new stdClass();
+                $unRec->name = $mvc->defaultFolder ? $mvc->defaultFolder : $mvc->title;
+                $folderId = doc_UnsortedFolders::forceCoverAndFolder($unRec);
+            }
+
+            // Ако текущия потребител няма права за тази папка, или тя не е определена до сега,
+            // То 'Unsorted' папката е дефолт папката на потребителя
+            if(!$folderId || !doc_Folders::haveRightFor('single', $folderId)) {
+                $folderId = doc_Folders::getDefaultFolder($userId);
+            }
         }
     }
     
@@ -610,8 +618,7 @@ class doc_DocumentPlg extends core_Plugin
             
             //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейл-а на текущия потребител
             if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
-                $user->email = email_Inboxes::getUserEmail();
-                $folderId = email_Inboxes::forceCoverAndFolder($user);
+                $folderId = doc_Folders::getDefaultFolder();
             }
             
             //Ако копираме първия запис в треда, тогава създаваме нов тред
@@ -673,24 +680,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if(!$rec->folderId) {
-            
-            //Ако сме задали папката по подразбиране да е текущата папка
-            if ($mvc->defaultFolder == 'inbox') {
-                
-                //id' то на текущия потребител
-                $currUserId = email_Inboxes::getUserEmailId();
-                
-                //id' то на папката
-                $rec->folderId = email_Inboxes::forceCoverAndFolder($currUserId);   
-            } else {
-                $rec->folderId = $mvc->getUnsortedFolder();
-            }
-        }
-        
-        //Ако нямаме права, тогава използваме папката на потребителя
-        if (!doc_Folders::haveRightFor('single', $rec->folderId)) {
-            $user->email = email_Inboxes::getUserEmail();
-            $rec->folderId = email_Inboxes::forceCoverAndFolder($user);
+            $rec->folderId = $mvc->getDefaultFolder();
         }
     }
 
@@ -861,7 +851,7 @@ class doc_DocumentPlg extends core_Plugin
             $tpl->removePlaces();
             
             if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
-                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  1 : 24 * 60 * 3);
+                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  1 : 5);
             }
         } else {
             $tpl = $data->threadCachedView;

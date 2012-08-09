@@ -535,7 +535,8 @@ class doc_Threads extends core_Manager
         $folderRec = doc_Folders::fetch($threadRec->folderId);
         $coverClassName = cls::getClassName($folderRec->coverClass);
         
-        if($coverClassName == 'doc_UnsortedFolders' || $coverClassName == 'email_Inboxes') {
+        if($coverClassName == 'doc_UnsortedFolders' || TRUE) {
+            
             $doc = doc_Containers::getDocument($threadRec->firstContainerId);
             
             if($doc->className == 'email_Incomings') {

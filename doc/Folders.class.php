@@ -524,4 +524,38 @@ class doc_Folders extends core_Master
             }
         }
     }
+
+
+    /**
+     * Връща папката по подразбиране за текущия потребител
+     * Ако има дефинирана 'корпоративна' сметка за имейли, то папката е корпоративната имейл-кутия на потребителя
+     * В противен случай, се връща куп със заглавие 'Документите на {Names}'
+     */
+    function getDefaultFolder($userId = NULL)
+    {   
+        if(!$userId) {
+            $names = core_Users::getCurrent('names');
+            $nick  = core_Users::getCurrent('nick');
+        } else {
+            $names = core_Users::fetchField($userId, 'names');
+            $nick  = core_Users::fetchField($userId, 'nick');
+        }
+        
+        $rec = new stdClass();
+        $rec->inCharge = $userId;
+        $rec->access = 'private';
+
+        $corpAccRec = email_Accounts::getCorporateAcc();
+
+        if($corpAccRec) {
+            $rec->email = "{$nick}@{$corpAccRec->domain}";
+            $rec->accountId = $corpAccRec->id;
+            $folderId = email_Inboxes::forceCoverAndFolder($rec);
+        } else {
+            $rec->name = "Документите на {$nick}";
+            $folderId = doc_UnsortedFolders::forceCoverAndFolder($rec);
+        }
+
+        return $folderId;
+    }
 }
