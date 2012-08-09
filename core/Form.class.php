@@ -286,7 +286,7 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
                     "\n" .
-                    "<!--ET_BEGIN FORM_FIELDS--><div style='float:left;'>[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->\n" .
+                    "<!--ET_BEGIN FORM_FIELDS--><div style='float:left;' class='formFields'>[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->\n" .
                     "<!--ET_BEGIN FORM_TOOLBAR--><div style='float:left;width:5px;'>&nbsp;</div><div style='float:left;'>[#FORM_TOOLBAR#]</div><!--ET_END FORM_TOOLBAR-->\n" .
                     "</div></form>\n" .
                     "\n"
@@ -508,6 +508,10 @@ class core_Form extends core_FieldSet
                 // вземаме стойността от Request-а
                 if ($this->gotErrors($field->name)) {
                     $value = $attr['value'] = Request::get($field->name);
+                }
+                
+                if (!isset($value) && $field->value && $field->notNull) {
+                    $value = $attr['value'] = $field->value;
                 }
                 
                 // Ако полето има свойството да поема фокуса
