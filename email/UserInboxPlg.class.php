@@ -102,7 +102,6 @@ class email_UserInboxPlg extends core_Plugin
             
             //Ако имаме inCharge
             if ($inCharge) {
-                
                 //Ако потребителя не е собственик на новата папка показваме грешка
                 if ($form->rec->id != $inCharge) {
                     $form->setError('nick', "Моля въведете друг '{$form->fields['nick']->caption}'. Папката е заета от друг потребител.");
@@ -125,8 +124,11 @@ class email_UserInboxPlg extends core_Plugin
 
         $userId = core_Users::fetchField("#nick = '{$nick}'", 'id');
 
+        if(!$userId) return FALSE;
+        
         //Името на папката
         $folderTitle = email_Inboxes::getUserEmail($userId);
+
         
         //Вземаме id' то на потребителя, който е inCharge
         return $inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
