@@ -27,6 +27,7 @@ class fileman_Data extends core_Manager {
      */
     var $title = 'Данни';
     
+    var $loadList = 'plg_Created,fileman_Wrapper';
     
     /**
      * Описание на модела (таблицата)
@@ -69,7 +70,6 @@ class fileman_Data extends core_Manager {
         
         $this->setDbUnique('fileLen,md5', 'DNA');
         
-        $this->load('plg_Created,fileman_Wrapper');
     }
     
     
