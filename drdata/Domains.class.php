@@ -92,7 +92,7 @@ class drdata_Domains extends core_Manager
     
     
     /**
-     * Проверка дали един домейн е публичен или не
+     * Проверка дали един домейн е публичен имейл доставчик или не
      *
      * @param string $domain
      * @return boolean TRUE - публичен, FALSE - не е публичен
