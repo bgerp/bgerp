@@ -44,7 +44,7 @@ class email_UserInboxPlg extends core_Plugin
             }
             
             //Добавяме полето имейл, необходима за създаване на корица
-            $eRec->email = email_Inboxes::getUserEmail($nick);
+            $eRec->email = email_Inboxes::getUserEmail($rec->id);
             $eRec->name = $nick;
             
             email_Inboxes::forceCoverAndFolder($eRec);
@@ -122,9 +122,11 @@ class email_UserInboxPlg extends core_Plugin
         if (EF_USSERS_EMAIL_AS_NICK) {
             $nick = type_Nick::parseEmailToNick($rec->nick);
         }
-        
+
+        $userId = core_Users::fetchField("#nick = '{$nick}'", 'id');
+
         //Името на папката
-        $folderTitle = email_Inboxes::getUserEmail($nick);
+        $folderTitle = email_Inboxes::getUserEmail($userId);
         
         //Вземаме id' то на потребителя, който е inCharge
         return $inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
