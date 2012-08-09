@@ -310,7 +310,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Преброява всички записи отговарящи на условието
      */
-    static function count($cond)
+    static function count($cond = '1=1')
     {
         $me = cls::get(get_called_class());
 
