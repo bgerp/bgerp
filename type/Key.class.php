@@ -145,9 +145,7 @@ class type_Key extends type_Int {
                 $field = $this->params['select'];
             }
             
-            if($this->params['allowEmpty']) {
-                $options = array('' => '');
-            }
+
             
             if ($this->params['where']) {
                 $where = $this->params['where'];
@@ -159,8 +157,12 @@ class type_Key extends type_Int {
             
             $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
 
-            if(!$options) {
-
+            if(!count($options)) {
+                
+                if($this->params['allowEmpty']) {
+                    $options = array('' => '');
+                }
+                
                 if (!is_array($this->options)) {
                     foreach($mvc->makeArray4select($field, $where) as $id => $v) {
                         $options[$id] = $v;
