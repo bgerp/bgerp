@@ -506,6 +506,22 @@ class doc_Containers extends core_Manager
         
         return $row->state;
     }
+
+
+
+    /**
+     * Връща заглавието на документ
+     */
+    function getDocTitle($id) 
+    {
+        $doc = static::getDocument($id, 'doc_DocumentIntf');
+
+        $docRow = $doc->getDocumentRow();
+
+        $title = $docRow->title;
+
+        return $title;
+    }
     
     
     /**
