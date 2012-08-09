@@ -10,7 +10,7 @@ defIfNot('OFFICE_PACKET_PATH', '/usr/lib/openoffice/program/soffice.bin');
 /**
  * Броя на конвертиранията, след които офис пакета ще се ресартира
  */
-defIfNot('MAX_OFFICE_PACKET_CONVERT_COUNT', 100);
+defIfNot('MAX_OFFICE_PACKET_CONVERT_COUNT', 50);
 
 
 /**

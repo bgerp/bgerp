@@ -17,7 +17,7 @@ defIfNot('FILEMAN_PREVIEW_WIDTH', 800);
 /**
  * Височината на preview' то
  */
-defIfNot('FILEMAN_PREVIEW_HEIGHT', 1200);
+defIfNot('FILEMAN_PREVIEW_HEIGHT', 1000);
 
 
 /**
@@ -29,7 +29,7 @@ defIfNot('FILEMAN_PREVIEW_WIDTH_NARROW', 600);
 /**
  * Височината на preview' то в мобилен режим
  */
-defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 900);
+defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 800);
 
 
 /**

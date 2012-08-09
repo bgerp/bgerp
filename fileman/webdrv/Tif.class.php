@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Драйвер за работа с .png файлове.
+ * Драйвер за работа с .tif файлове.
  * 
  * @category  vendors
  * @package   fileman
@@ -10,7 +10,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Png extends fileman_webdrv_Image
+class fileman_webdrv_Tif extends fileman_webdrv_Image
 {
     
     
@@ -29,8 +29,8 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        $barcodeUrl = toUrl(array('fileman_webdrv_Png', 'barcodes', $fRec->fileHnd), TRUE);
-        
+        $barcodeUrl = toUrl(array('fileman_webdrv_Tif', 'barcodes', $fRec->fileHnd), TRUE);
+
         $tabsArr['barcodes']->title = 'Баркодове';
         $tabsArr['barcodes']->html = "<div> <iframe src='{$barcodeUrl}' class='webdrvIframe'> </iframe> </div>";
         $tabsArr['barcodes']->order = 3;
@@ -49,7 +49,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
      */
     static function convertToJpg($fRec)
     {
-        parent::convertToJpg($fRec, 'fileman_webdrv_Png::afterConvertToJpg');
+        parent::convertToJpg($fRec, 'fileman_webdrv_Tif::afterConvertToJpg');
     }
     
     
@@ -71,7 +71,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
             // Това е нужно за да вземем всички баркодове
             
             static::saveBarcodes($script, $fileHndArr);
-            
+
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;

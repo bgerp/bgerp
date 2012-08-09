@@ -2,7 +2,8 @@
 
 
 /**
- *
+ * Драйвер за работа с .pdf файлове.
+ * 
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -29,11 +30,11 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        //TODO само за тест
-        $pdfUrl = toUrl(array('fileman_webdrv_Pdf', 'pdf', $fRec->fileHnd), TRUE);
-        $tabsArr['pdf']->title = 'PDF';
-        $tabsArr['pdf']->html = "<div> <iframe src='{$pdfUrl}'> </iframe> </div>";
-        $tabsArr['pdf']->order = 2;
+        $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), TRUE);
+        
+        $tabsArr['barcodes']->title = 'Баркодове';
+        $tabsArr['barcodes']->html = "<div> <iframe src='{$barcodeUrl}' class='webdrvIframe'> </iframe> </div>";
+        $tabsArr['barcodes']->order = 3;
 
         return $tabsArr;
     }
@@ -59,10 +60,10 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         );
         
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = $params['type'] . $fRec->dataId;
+        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($fRec, $params)) return ;
+        if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определно време
         core_Locks::get($params['lockId'], 30, 0, FALSE);
@@ -131,15 +132,41 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         );
         
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec);
+        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($fRec, $params)) return ;
+        if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определно време
         core_Locks::get($params['lockId'], 100, 0, FALSE);
 
         // Стартираме конвертирането
         static::convertPdfToJpg($fRec->fileHnd, $params);
+    }
+    
+    
+    /**
+     * Функция, която получава управлението след конвертирането на файл в JPG формат
+     * 
+     * @param object $script - Обект със стойности
+     * 
+     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+     * и записа от таблицата fconv_Process
+     * 
+     * @access protected
+     */
+    static function afterConvertToJpg($script)
+    {
+        // Извикваме родутелския метод
+        if (parent::afterConvertToJpg($script, $fileHndArr)) {
+
+            // Това е нужно за да вземем всички баркодове
+            
+            static::saveBarcodes($script, $fileHndArr);
+            
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        }
     }
 }

@@ -135,7 +135,7 @@ class fileman_Info1 extends core_Manager
             } else {
                 
                 // Създаваме таб
-                $tabs->TAB($name, $rec->title, array('currentTab' => $name, 'id' => $data->rec->fileHnd));
+                $tabs->TAB($name, $rec->title, array('currentTab' => $name, 'id' => $data->rec->fileHnd, '#' => 'fileDetail'));
             }
         }
         
