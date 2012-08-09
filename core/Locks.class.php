@@ -77,9 +77,6 @@ class core_Locks extends core_Manager
     {
         $Locks = cls::get('core_Locks');
         
-        // Дали да се изтрие преди излизане от хита - за асинхронни процеси
-        $Locks->delOnShutDown = $delOnShutDown;
-        
         // Санитаризираме данните
         $maxTrays = max($maxTrays, 0);
         $maxDuration = max($maxDuration , 0);
@@ -97,6 +94,9 @@ class core_Locks extends core_Manager
                 $rec->lockExpire = $lockExpire;
                 $Locks->save($rec);
                 $Locks->locks[$objectId] = $rec;
+                
+                // Дали да се изтрие преди излизане от хита - за асинхронни процеси
+                $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
             }
             
             return TRUE;
@@ -118,6 +118,9 @@ class core_Locks extends core_Manager
             $rec->user = core_Users::getCurrent();
             $Locks->save($rec);
             $Locks->locks[$objectId] = $rec;
+            
+            // Дали да се изтрие преди излизане от хита - за асинхронни процеси
+            $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
             
             return TRUE;
         }
@@ -164,9 +167,13 @@ class core_Locks extends core_Manager
      */
     static function on_Shutdown($mvc)
     {
-        if((count($mvc->locks)) && ($mvc->delOnShutDown)) {
+        if (count($mvc->locks)) {
             foreach($mvc->locks as $rec) {
-                $mvc->delete($rec->id);
+                
+                // Дали да се изтрие преди излизане от хита - за асинхронни процеси
+                if ($rec->_delOnShutDown) {
+                    $mvc->delete($rec->id);    
+                }
             }
         }
     }
