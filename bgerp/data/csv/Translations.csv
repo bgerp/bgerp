@@ -363,7 +363,10 @@ en|Изпращане на и_4908a|Email sending
 en|Изпрати|Send
 en|Известия|Notifications
 en|Знаци|Chars
-en|Здравейте|"Dear Sirs"
+en|Здравейте|"Hello"
+en|Здравейте колеги|"Dear sirs"
+en|Уважаеми|"Dear"
+en|Уважаема|"Dear"
 en|Запис|Save
 en|Заключвания|Lockings
 en|Задачи|Tasks
@@ -383,6 +386,9 @@ en|Град/с|Place
 en|Г-ца|Mrs.
 en|Г-н|Mr.
 en|Г-жа|Ms.
+bg|Г-ца|г-ца
+bg|Г-н|г-н
+bg|Г-жа|г-жа
 en|Входящо писмо|Incoming mail
 en|Входящи|Incoming
 en|Входящ имейл|Incoming email
