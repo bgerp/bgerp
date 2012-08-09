@@ -43,11 +43,15 @@ class email_UserInboxPlg extends core_Plugin
                 $nick = type_Nick::parseEmailToNick($rec->nick);
             }
             
-            //Добавяме полето имейл, необходима за създаване на корица
-            $eRec->email = email_Inboxes::getUserEmail($rec->id);
-            $eRec->name = $nick;
+            if($corpAccRec = email_Accounts::getCorporateAcc()) {
             
-            email_Inboxes::forceCoverAndFolder($eRec);
+                //Добавяме полето имейл, необходима за създаване на корица
+                $eRec->email = email_Inboxes::getUserEmail($rec->id);
+                $eRec->name = $nick;
+                $eRec->accountId = $corpAccRec;
+            
+                email_Inboxes::forceCoverAndFolder($eRec);
+            }
         }
         
         if($rec->first && $rec->id) {
