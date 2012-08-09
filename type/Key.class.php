@@ -133,8 +133,6 @@ class type_Key extends type_Int {
         
         $mvc = cls::get($this->params['mvc']);
         
-        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
-        
         if(!$value) {
             $value = $attr['value'];
         }
@@ -157,18 +155,31 @@ class type_Key extends type_Int {
             
             Debug::startTimer('prepareOPT ' . $this->params['mvc']);
             
-            if (!is_array($this->options)) {
-                foreach($mvc->makeArray4select($field, $where) as $id => $v) {
-                    $options[$id] = $v;
+            $options = array();
+            
+            $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
+
+            if(!$options) {
+
+                if (!is_array($this->options)) {
+                    foreach($mvc->makeArray4select($field, $where) as $id => $v) {
+                        $options[$id] = $v;
+                    }
+                    $handler = md5($field . $where . $this->params['mvc']);
+                } else {
+                    foreach($this->options as $id => $v) {
+                        $options[$id] = $v;
+                    }
                 }
-                $handler = md5($field . $where . $this->params['mvc']);
-            } else {
-                foreach($this->options as $id => $v) {
-                    $options[$id] = $v;
-                }
-                $handler = md5(json_encode($options[$id]));
             }
             
+            $mvc->invoke('AfterPrepareKeyOptions', array(&$options, $this));
+
+            setIfNot($handler, md5(json_encode($options[$id])));
+            
+            
+            setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
+
             Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
             
             // Ако трябва да показваме combo-box
