@@ -427,7 +427,10 @@ class email_Incomings extends core_Master
     function isDownloaded($imapConn, $msgNum)
     {
         static $isDown = array();
-
+        
+        // Номерата почват от 1
+        if($msgNum < 1) return TRUE;
+        
         if(!isset($isDown[$imapConn->accRec->id][$msgNum])) {
 
             $headers = $imapConn->getHeaders($msgNum);
