@@ -121,8 +121,12 @@ class type_Nick extends type_Varchar {
      */
     static function parseEmailToNick($value)
     {
-        //Ако не е валиден имейл връща false
-        if (!type_Email::isValidEmail($value)) return FALSE;   //?
+        //Ако не е валиден имейл връща FALSE
+        if (!type_Email::isValidEmail($value)) {
+
+            return FALSE;
+        }
+
         //Разделяме имейл-а на локална част и домейн
         $arr = explode('@', $value);
         
