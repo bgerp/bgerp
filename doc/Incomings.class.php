@@ -256,7 +256,7 @@ class doc_Incomings extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {
         // Ако формата е изпратена
-        if ($form->isSubmitted()) {
+        if (($form->isSubmitted()) && (!$form->rec->id)) {
             
             // id от fileman_Data
             $dataId = fileman_Files::fetchByFh($form->rec->fileHnd, 'dataId');
