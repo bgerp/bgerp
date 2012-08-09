@@ -527,7 +527,7 @@ class email_Inboxes extends core_Master
             $userQuery = core_Users::getQuery();
             $powerRoles = core_Roles::keylistFromVerbal('executive,officer,manager,ceo');
             $userQuery->likeKeylist('roles', $roles);
-            while($uRec = core_Users::fetch()) {
+            while($uRec = $userQuery->fetch()) {
                 $powerUsers[$userRec->nick] = $uRec;
             }
         }
