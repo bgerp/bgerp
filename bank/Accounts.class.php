@@ -90,8 +90,8 @@ class bank_Accounts extends core_Master {
         $rec = $data->form->rec;
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
-        $details = arr::make($Contragents->details);
-        expect($details['ContragentBankAccounts'] == 'bank_Accounts');
+//         $details = arr::make($Contragents->details);
+//         expect($details['ContragentBankAccounts'] == 'bank_Accounts');
         
         // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
         $contragentRec = $Contragents->fetch($rec->contragentId);

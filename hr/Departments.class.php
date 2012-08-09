@@ -102,4 +102,5 @@ class hr_Departments extends core_Master
             }
         }
     }
+
 }

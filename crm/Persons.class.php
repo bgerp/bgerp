@@ -70,7 +70,7 @@ class crm_Persons extends core_Master
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_LastUsedKeys, plg_Select,
                      crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext, plg_Rejected, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Importer';
+                     bgerp_plg_Importer, groups_Extendable';
 
 
     /**
@@ -123,6 +123,23 @@ class crm_Persons extends core_Master
 
     var $doWithSelected = 'export=Експортиране';
 
+
+    /**
+     * Име на полето, указващо в коя група/групи е записа
+     * 
+     * @var string
+     * @see groups_Extendable
+     */
+    public $groupsField = 'groupList';
+
+    
+    /**
+     * Детайли на този мастър обект
+     * 
+     * @var string|array
+     */
+    public $details = 'ContragentLocations=crm_Locations';
+    
 
     /**
      * Описание на модела (таблицата)
