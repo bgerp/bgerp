@@ -255,7 +255,9 @@ class blast_Emails extends core_Master
         }
         
         $form = $data->form;
-        
+
+        $form->fields['from']->type->params['folderId'] = $form->rec->folderId;
+
         if (!$form->rec->id) {
             
             //Ако не създаваме копие
@@ -265,7 +267,7 @@ class blast_Emails extends core_Master
                 $data->form->setDefault('attachments','files,documents');  
                 
                 //По подразбиране да е избран текущия имейл на потребителя
-                $form->setDefault('from', email_Inboxes::getUserEmailId());  
+                $form->setDefault('from', email_Inboxes::getUserInboxId());  
             }
             
             //Слага state = draft по default при нов запис
@@ -1192,17 +1194,8 @@ class blast_Emails extends core_Master
         
         return $row;
     }
-    
-    
-    /**
-     * Взема прикрепените файлове
-     */
-    function getEmailAttachments($id)
-    {
-        return NULL;
-    }
-    
-    
+
+
     /**
      * Връща заглавието по подразбиране без да се заменят placeholder' ите
      */
@@ -1212,31 +1205,4 @@ class blast_Emails extends core_Master
     }
     
     
-    /**
-     * До кой имейл или списък ще се изпраща
-     */
-    function getDefaultEmailTo($id)
-    {
-        
-        return NULL;
-    }
-    
-    
-    /**
-     * Връща id' то на пощенската кутия от нашата система
-     */
-    function getDefaultBoxFrom($id)
-    {
-        return NULL;
-    }
-    
-    
-    /**
-     * msgId на писмото на което в отговор е направен този постинг
-     */
-    function getInReplayTo($id)
-    {
-        
-        return NULL;
-    }
 }
