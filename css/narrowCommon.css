@@ -29,7 +29,8 @@ span.richEdit div.richedit-toolbar {
     padding: 5px; 
     font-size: 0.85em; 
     text-align: left;
-    padding-top:10px; 
+    padding-top:8px;
+    padding-bottom:6px; 
 	font-family: Verdana, Geneva, sans-serif;
 	color:#333;
     font-size:0.9em;
@@ -40,13 +41,18 @@ span.richEdit div.richedit-toolbar {
 	-ms-user-select: none;
 	-o-user-select: none;
 	user-select: none;
+	margin-top:-4px;
 }
 
-.richEdit TEXTAREA {
+span.richEdit {
+	display:table;
+}
+
+.richEdit textarea {
 	border-bottom: 1px solid white;
 	margin-bottom:0px;
 	overflow:auto;
-	width:100%;
+	width:600px;
 }
 
 

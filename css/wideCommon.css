@@ -92,11 +92,15 @@ span.richEdit div.richedit-toolbar {
 	font-family: Verdana, Geneva, sans-serif;
 	color:#333;
     font-size:0.9em;
-	margin-top:-1px;
+	margin-top:-4px;
+}
+
+span.richEdit {
+	display:table;
 }
 
 .richEdit textarea {
-	border-bottom: 1px solid white;
+	border-bottom: 1px solid transparent;
 	margin-bottom:0px;
 	overflow:auto;
 	width:100%;
