@@ -297,11 +297,13 @@ class log_Documents extends core_Manager
         );
     
         static::save($retRec);
+
+        $msg = "Върнато писмо: " . doc_Containers::getDocTitle($sendRec->containerId);
     
         // Нотификация за връщането на писмото до изпращача му
         bgerp_Notifications::add(
-            'Върнати писма', // съобщение
-            array('doc_Containers', 'list', 'threadId'=>$sendRec->threadId, 'containerId'=>$sendRec->containerId), // URL
+            $msg, // съобщение
+            array('log_Documents', 'list', 'containerId' => $sendRec->containerId), // URL
             $sendRec->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
@@ -341,7 +343,7 @@ class log_Documents extends core_Manager
     
         static::save($rcvRec);
     
-        // Нотификация за връщането на писмото до изпращача му
+        // Нотификация за получаването на писмото
         bgerp_Notifications::add(
             'Получени писма', // съобщение
             array('doc_Containers', 'list', 'threadId'=>$sendRec->threadId, 'containerId'=>$sendRec->containerId), // URL
@@ -786,10 +788,10 @@ class log_Documents extends core_Manager
      */
     static function on_AfterPrepareListFields($mvc, $data)
     {
-        if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
+        if ($data->containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             unset($data->listFields['containerId']);
-            $data->query->where("#containerId = {$containerId}");
-            $data->doc = doc_Containers::getDocument($containerId, 'doc_DocumentIntf');
+            $data->query->where("#containerId = {$data->containerId}");
+            $data->doc = doc_Containers::getDocument($data->containerId, 'doc_DocumentIntf');
         }
         
         $data->query->orderBy('#createdOn', 'DESC');
@@ -801,9 +803,14 @@ class log_Documents extends core_Manager
      */
     static function on_AfterPrepareListTitle($mvc, $data)
     {
-        if (!$containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
+        if (!$data->containerId) {
             $data->title = "История";
         }
+        
+        // Изчистване на нотификации за отворени теми в тази папка
+        $url = array('log_Documents', 'list', 'containerId' => $data->containerId);
+        
+        bgerp_Notifications::clear($url);
     }
     
 
