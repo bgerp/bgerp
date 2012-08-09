@@ -83,13 +83,13 @@ class crm_Companies extends core_Master
     /**
      * Полетата, които ще видим в таблицата
      */
-    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,id=№,name=';
+    var $listFields = 'id=№,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,tools=Пулт,name=';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    var $rowToolsField = 'tools';
     
     
     /**
@@ -184,7 +184,7 @@ class crm_Companies extends core_Master
         $this->FLD('regCompanyFileYear', 'int', 'caption=Фирмено дело->Година');
         
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember,silent');
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -271,7 +271,12 @@ class crm_Companies extends core_Master
         // на модела ще се появят
         $data->listFilter->showFields = 'users,search,order,groupId';
         
-        $rec = $data->listFilter->input('alpha,users,search,order,groupId', 'silent'); 
+        $rec = $data->listFilter->input('alpha,users,search,order,groupId', 'silent');
+        
+        // Ако се подреждат по последно, се добавя полето Създаване
+        if($data->listFilter->rec->order == 'last') {
+            $data->listFields['createdOn'] = 'Създаване';
+        }
     }
     
     
@@ -285,9 +290,11 @@ class crm_Companies extends core_Master
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if($data->toolbar->removeBtn('btnAdd')) {
-            $data->toolbar->addBtn('Нова фирма',
-                array('Ctr' => $this, 'Act'=>'Add'),
-                'id=btnAdd,class=btn-add');
+            if($groupId = $data->listFilter->rec->groupId) {
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd,class=btn-add');
+            } else {
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd,class=btn-add');
+            }
         }
     }
     

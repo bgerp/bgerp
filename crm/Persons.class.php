@@ -173,7 +173,7 @@ class crm_Persons extends core_Master
         $this->FLD('idCardIssuedBy', 'varchar(64)', 'caption=Лична карта->Издадена от');
 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember,silent');
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -270,6 +270,11 @@ class crm_Persons extends core_Master
         $data->listFilter->showFields = 'search,order,groupId';
 
         $data->listFilter->input('alpha,search,order,groupId', 'silent');
+        
+        // Ако се подреждат по последно, се добавя полето Създаване
+        if($data->listFilter->rec->order == 'last') {
+            $data->listFields['createdOn'] = 'Създаване';
+        }
     }
 
 
@@ -283,7 +288,11 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if($data->toolbar->removeBtn('btnAdd')) {
-            $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd,class=btn-add');
+            if($groupId = $data->listFilter->rec->groupId) {
+                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd,class=btn-add');
+            } else {
+                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd,class=btn-add');
+            }
         }
 
         $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport,class=btn-import');
@@ -451,7 +460,6 @@ class crm_Persons extends core_Master
 
         $tpl = $tabs->renderHtml($tpl, $selected);
 
-        //$tpl->prepend('<br>');
 
         return $tpl;
     }
