@@ -10,8 +10,9 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_Info1 extends core_Manager
+class fileman_Indexes extends core_Manager
 {
+    
     
     /**
      * Заглавие на таблицата

@@ -33,6 +33,12 @@ defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 800);
 
 
 /**
+ * Максималната разрешена памет за използване
+ */
+defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '800M');
+
+
+/**
  * Път до gnu командата 'file'
  */
 defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWin32/bin/file.exe"' : 'file');
