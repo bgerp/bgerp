@@ -163,7 +163,11 @@ class fileman_Setup extends core_Manager {
         $Download = cls::get('fileman_Download');
         $html .= $Download->setupMVC();
         
-        // Установяваме свалянията;
+        // Установяваме индексите на файловете
+        $Info = cls::get('fileman_Indexes');
+        $html .= $Info->setupMVC();
+        
+        // TODO remove
         $Info = cls::get('fileman_Info');
         $html .= $Info->setupMVC();
         
