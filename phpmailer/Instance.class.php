@@ -49,7 +49,7 @@ defIfNot('SENDMAIL_PATH', '/usr/sbin/sendmail');
 /**
  * Дефинираме пътя до кода на PHP_Mailer
  */
-defIfNot('PML_CLASS', '5.2.2/class.phpmailer.php');
+defIfNot('PML_CLASS', '5.2/class.phpmailer.php');
 
 
 /**
