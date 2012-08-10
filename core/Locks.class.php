@@ -88,6 +88,14 @@ class core_Locks extends core_Manager
         
         // Ако този обект е заключен от текущия хит, връщаме TRUE
         if($rec) {
+            
+            // Не всеки път в текущич хит искаме да презапишем крайния срок
+            if (!$delOnShutDown) {
+                
+                // Изчакваме ако обекта е заключен в текущия хит
+                if (static::waitForLock($objectId, $maxDuration, $maxTrays)) return TRUE;    
+            }
+            
             // Ако имаме промяна в крайния срок за заключването
             // отразяваме я в модела
             if($rec->lockExpire < $lockExpire) {
@@ -126,17 +134,7 @@ class core_Locks extends core_Manager
         }
         
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
-        while($maxTrays>0) {
-            
-            sleep(1);
-            
-            if(static::get($objectId, $maxDuration, 0)) {
-                
-                return TRUE;
-            }
-            
-            $maxTrays--;
-        }
+        if (static::waitForLock($objectId, $maxDuration, $maxTrays)) return TRUE;    
         
         return FALSE;
     }
@@ -198,5 +196,31 @@ class core_Locks extends core_Manager
         }
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Правим последователно няколко опита да заключим обекта, през интервал 1 сек
+     * 
+     * @param string $objectId - Стринга, за който се проверява дали не е заключен 
+     * @param integer $maxDuration - За колко време да заключим
+     * @param integer $maxTrays - Колко опита да се направи за заключване
+     * 
+     * @return boolean
+     */
+    static function waitForLock($objectId, $maxDuration = 10, $maxTrays = 5)
+    {
+        // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
+        while($maxTrays>0) {
+            
+            sleep(1);
+            
+            if(static::get($objectId, $maxDuration, 0)) {
+                
+                return TRUE;
+            }
+            
+            $maxTrays--;
+        }
     }
 }
