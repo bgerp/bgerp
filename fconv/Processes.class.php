@@ -30,6 +30,12 @@ class fconv_Processes extends core_Manager
     
     
     /**
+     * 
+     */
+    var $loadList = 'fconv_Wrapper';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
