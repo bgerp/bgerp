@@ -875,7 +875,7 @@ class lang_Encoding {
         list($charset1, $charset2) = explode('::', $charset);
         
         // Ако са равни и енкодинга е UTF-8
-        if (($charset1 == $charset2) && ($charset1 = 'UTF-8')) {
+        if (($charset1 == $charset2) && ($charset1 == 'UTF-8')) {
             
             // Не се правят обработки
             return $text;
