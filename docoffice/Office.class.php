@@ -33,6 +33,9 @@ class docoffice_Office
      */
     static function startOffice()
     {
+        // Заключваме офис пакета
+        static::lockOffice(20, 10);
+        
 //        pclose(popen(OFFICE_PACKET_PATH . "2>&1 >/dev/null &", "r"));
         $srated = pclose(popen(OFFICE_PACKET_PATH . ' &', "r"));
 
@@ -43,6 +46,9 @@ class docoffice_Office
             static::emptyConvertCount();
             
             core_Logs::Log(OFFICE_PACKET_PATH . tr('| е стартиран.|*'));
+            
+            // Отключваме процеса
+            static::unlockOffice();
             
             return TRUE;
         }
@@ -92,7 +98,7 @@ class docoffice_Office
         if (!$pid) return ;
         
         // Заключваме офис пакета
-        static::lockOffice(10, 50);
+        static::lockOffice(100, 50);
 
         // Убиваме процеса
         $sh = "kill {$pid}";
@@ -121,12 +127,18 @@ class docoffice_Office
      */
     static function getStartedOfficePid()
     {
+        // Заключваме офис пакета
+        static::lockOffice(20, 10);
+        
         // Определяме името на офис пакета
         $baseName = basename(OFFICE_PACKET_PATH);
         
         // Намираме process id' то на офис пакета
         $sh = "ps ux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
         $pid = exec($sh);
+        
+        // Отключваме процеса
+        static::unlockOffice();
         
         return $pid;
     }
@@ -173,7 +185,7 @@ class docoffice_Office
      */
     static function lockOffice($maxDuration=20, $maxTray=10)
     {
-        core_Locks::get('OfficePacket', $maxDuration, $maxTray);
+        core_Locks::get('OfficePacket', $maxDuration, $maxTray, FALSE);
     }
     
     
