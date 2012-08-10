@@ -83,17 +83,25 @@ class lang_Encoding {
     
     
     /**
-     * @todo
+     * Определя каква е потенциално знаковата кодировка на даден текст
+     * В допълнение връща и предполагаемия език
      */
     static function analyze2Charsets($text)
     {
-        // TODO
+        // Предполагаеми знакови кодировки
         $charsets = array('ISO-8859-1::CP1251', 'UTF-8::UTF-8');
+        
+        // Обхождаме масива
         foreach($charsets as $charset) {
+            
+            // Разделяме стойностите на променливите
             list($charset1, $charset2) = explode('::', $charset);
+            
+            // Конжвертираме текста
             $convText = (iconv("UTF-8", "{$charset1}//IGNORE", $text));
             $convText = (iconv("{$charset2}//IGNORE", 'UTF-8', $convText));
             
+            // Определяме рейтинга
             $lgRates = self::getLgRates($convText);
             
             if(count($lgRates)) {
@@ -842,5 +850,55 @@ class lang_Encoding {
         }
         
         uksort(self::$encodingsMatchs, 'lang_Encoding::sort');
+    }
+    
+	
+	/**
+     * Поправяме текста, ако не е четим
+     * 
+     * @param string $text - Текста, който ще се поправя
+     * 
+     * @return string $text - Поправения текст
+     */
+    static function repairText($text)
+    {
+        // Промяняме лимита на паметта за големи файлове
+        ini_set("memory_limit", '200M');
+        
+        // Анализирам
+        $res = static::analyze2Charsets($text);
+        
+        // С най - голяма рейтинг
+        $charset = arr::getMaxValueKey($res->rates);
+        
+        // Разделяме в 2 различни стойности
+        list($charset1, $charset2) = explode('::', $charset);
+        
+        // Ако са равни и енкодинга е UTF-8
+        if (($charset1 == $charset2) && ($charset1 = 'UTF-8')) {
+            
+            // Не се правят обработки
+            return $text;
+        }
+
+        // Ако са равни, но енкодинга не е UTF-8
+        if (($charset1 == $charset2) && ($charset1 != 'UTF-8')) {
+            
+            // Конвертираме в UTF-8
+            $convText = (iconv("$charset2", 'UTF-8//IGNORE', $text));
+            
+            // Връщаме текста
+            return $convText;
+        } 
+        
+        // Ако не са равни
+        if ($charset1 != $charset2) {
+            
+            // Пробваме да поправим текста в UTF-8
+            $convText = (iconv("UTF-8", "$charset1//IGNORE", $text));
+            $convText = (iconv("$charset2", 'UTF-8//IGNORE', $convText));
+            
+            return $convText;
+        }
     }
 }
