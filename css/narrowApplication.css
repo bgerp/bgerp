@@ -599,6 +599,114 @@ input.contactData {
 }
 
 
+ul.history {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+ul.history.summary {
+    width: 85%;
+    margin: 0 auto;
+    font-size: 0.75em;
+}
+
+ul.history li {
+	margin: 3px 0;
+	padding: 2px 0;
+	line-height: 1.2;
+}
+
+ul.history.summary li span {
+    color: #333;
+}
+
+ul.history b {
+    color: white;
+	padding: 1px 5px;
+	-webkit-border-radius: 3px;
+	display: inline;
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+ul.history .action.send b {
+    background-color:green;	
+}
+
+.action._received b {
+    background-color:blue;
+    color: white;
+}
+.action._returned b {
+    background-color:red !important;
+    color: white;
+}
+ul.history .action.print b {
+    background-color:#777;
+}
+
+ul.history .action.open b {
+    background-color:#ccc;
+	color: #333;
+}
+
+ul.history .detailed b {
+    background-color:#ccc;
+}
+
+div.sharing-history {
+	border: none;
+	border-top: 1px solid #ccc;
+	padding: 5px;
+	margin-left:0px;
+	margin-right:0px;
+	margin-top:10px;
+	position: relative;
+	color: #555;
+    font-size: 0.9em;
+	clear: both;
+}
+
+span.sharing-history-title {
+	padding: 2px 5px;
+	padding-left: 23px;
+	background: #eee url(../img/share.png) no-repeat 3px center;
+	position: absolute;
+	display: block;
+	top: 0;
+	right: 0;
+	border: 1px solid #ccc;
+	border-top: none;
+    color: #777;
+}
+
+fieldset.sharing-history ul {
+	margin: 0;
+	padding: 0;
+	list-style-position: inside;
+}
+
+fieldset.sharing-history ul li .user {
+	color: #333;
+}
+
+fieldset.sharing-history ul li.seen {
+    list-style-type: disc;
+    color: green;
+}
+
+fieldset.sharing-history ul li.unseen {
+    list-style-type: circle;
+    color: red;
+}
+
+fieldset.sharing-history i {
+	color: #888;
+	font-size: 0.9em;
+}
+
+
 /* CMS */
 
 #cmsTop {
@@ -872,3 +980,4 @@ input.contactData {
 	min-width: 400px;
 	min-height: 300px;
 }
+
