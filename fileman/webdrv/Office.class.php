@@ -142,6 +142,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
         $text = file_get_contents($script->outFilePath);
         
+        // Поправяме текста, ако има нужда
+        $text = lang_Encoding::repairText($text);
         // TODO $text трябва да се направи проверка дали е енкоднат коректно
         
         // Десериализираме нужните помощни данни
