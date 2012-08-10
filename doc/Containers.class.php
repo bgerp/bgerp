@@ -232,15 +232,17 @@ class doc_Containers extends core_Manager
             $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail);
         }
 
-        $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
-                                            <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
-                                            <div style='margin:10px;'>[#2#]</div></center>",
+        $row->created = ucfirst($row->created);
+
+        $row->created = new ET("<div style='text-align:center;'><div style='text-align:left;display:inline-block;'><div style='font-size:0.8em;margin-top:5px;margin-left:10px;'>[#3#]</div>
+                                            <div style='font-size:0.8em;margin:5px;margin-bottom:10px;margin-left:10px;'>[#1#]</div>
+                                            <div style='margin:10px;'>[#2#]</div>[#4#]</div></div>",
             $mvc->getVerbal($rec, 'createdOn'),
             $avatar,
             $row->created);
             
         // визуализиране на обобщена информация от лога
-        $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId));
+        $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), '4');
                 
     }
     
