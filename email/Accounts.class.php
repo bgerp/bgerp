@@ -93,7 +93,7 @@ class email_Accounts extends core_Master
         $this->FLD('cert', 'enum(noValidate=Без валидиране,validate=С валидиране)', 'caption=Получаване->Сертификат,notNull');
         $this->FLD('folder', 'identifier(64)', 'caption=Получаване->IMAP папка,value=INBOX');
         $this->FLD('user', 'varchar', 'caption=Получаване->Потребител,width=100%');
-        $this->FLD('password', 'password(64)', 'caption=Получаване->Парола,crypt');
+        $this->FLD('password', 'password(64)', 'caption=Получаване->Парола,width=100%,crypt');
         
         // Изтегляне
         $this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Изтегляне->Статус');
@@ -104,10 +104,11 @@ class email_Accounts extends core_Master
         
         // Изпращане
         $this->FLD('smtp', 'varchar', 'caption=Изпращане->SMTP сървър,width=100%');
-        $this->FLD('smtpAuth', 'enum(no=Не се изисква,yes=Изисква се)', 'caption=Изпращане->Аутентикация');
+        $this->FLD('smtpAuth', 'enum(no=Не се изисква,LOGIN=Изисква се,NTLM=MS NTLM)', 'caption=Изпращане->Аутентикация');
         $this->FLD('smtpUser', 'varchar', 'caption=Изпращане->Потребител,width=100%');
-        $this->FLD('smtpPassword', 'password(64)', 'caption=Изпращане->Парола,crypt');
-       
+        $this->FLD('smtpPassword', 'password(64)', 'caption=Изпращане->Парола,width=100%,crypt');
+        $this->FLD('smtpSecure', 'enum(no=Без криптиране,tls=TLS,ssl=SSL)', 'caption=Изпращане->Сигурност');
+
         $this->setDbUnique('email');
     }
 
