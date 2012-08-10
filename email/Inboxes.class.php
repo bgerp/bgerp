@@ -459,7 +459,7 @@ class email_Inboxes extends core_Master
      * Връща списък с [id на кутия] => имейл от които текущия потребител може да изпраща писма от папката
      * Първия имейл е най-предпочитания
      */
-    function getFromEmailOptions($folderId)
+    static function getFromEmailOptions($folderId)
     {
         $options = array();
 
@@ -492,7 +492,7 @@ class email_Inboxes extends core_Master
 
          // 4. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
          $cu = core_Users::getCurrent();
-         $query = $this->getQuery();
+         $query = self::getQuery();
          $query->where("#inCharge = {$cu} OR #shared LIKE '%|{$cu}|%'");
          $query->where("#state = 'active'");
  

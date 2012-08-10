@@ -67,7 +67,7 @@ class email_Accounts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, email, type, applyRouting=Рутиране, protocol, server, user, smtp, smtpUser, createdOn, createdBy';
+    var $listFields = 'id, email, type, applyRouting=Рутиране, protocol, server, user, smtpServer, smtpUser, createdOn, createdBy';
     
     
     /**
@@ -103,11 +103,11 @@ class email_Accounts extends core_Master
             'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
         
         // Изпращане
-        $this->FLD('smtp', 'varchar', 'caption=Изпращане->SMTP сървър,width=100%');
+        $this->FLD('smtpServer', 'varchar', 'caption=Изпращане->SMTP сървър,width=100%,oldFieldName=smtp');
+        $this->FLD('smtpSecure', 'enum(no=Без криптиране,tls=TLS,ssl=SSL)', 'caption=Изпращане->Сигурност');
         $this->FLD('smtpAuth', 'enum(no=Не се изисква,LOGIN=Изисква се,NTLM=MS NTLM)', 'caption=Изпращане->Аутентикация');
         $this->FLD('smtpUser', 'varchar', 'caption=Изпращане->Потребител,width=100%');
         $this->FLD('smtpPassword', 'password(64)', 'caption=Изпращане->Парола,width=100%,crypt');
-        $this->FLD('smtpSecure', 'enum(no=Без криптиране,tls=TLS,ssl=SSL)', 'caption=Изпращане->Сигурност');
 
         $this->setDbUnique('email');
     }
@@ -133,7 +133,7 @@ class email_Accounts extends core_Master
     {
         $rec = self::fetch($id);
 
-        return ($rec->smtp != '' && $rec->state == 'active');
+        return ($rec->smtpServer != '' && $rec->state == 'active');
     }
 
     /**
@@ -290,6 +290,12 @@ class email_Accounts extends core_Master
             $corpAccRec = static::getCorporateAcc();
             
             if($corpAccRec) {
+                
+                // Добавка за да има SMTP сървър
+                if(!$corpAccRec->smtpServer) {
+                    $corpAccRec->smtpServer = 'localhost';
+                    self::save($corpAccRec);
+                }
                 while($oldRec = $oldQuery->fetch()) {
                     if($oldRec->type == 'internal') {
                         
@@ -317,6 +323,16 @@ class email_Accounts extends core_Master
                 }
             }
         }
+
+
+        $corpAccRec = static::getCorporateAcc();
+            
+        // Добавка за да има SMTP сървър
+        if(!$corpAccRec->smtpServer) {
+            list($corpAccRec->smtpServer) = explode(':', $corpAccRec->server);
+            self::save($corpAccRec);
+        }
+
     }
     
     
@@ -333,6 +349,77 @@ class email_Accounts extends core_Master
         return (boolean)$rec && ($rec->applyRouting == 'yes');
     }
     
-    
+
+    /**
+     * @return  PHPMailer
+     */
+    static function getPML($emailFrom)
+    {   
+        expect($accId = email_Inboxes::fetchField("#email = '{$emailFrom}'", 'accountId'));
+        
+        expect($rec = self::fetch($accId));
+
+        $params = array();
+        
+        // Метода за изпращане на писма ще е SMTP
+        $params['Mailer'] = 'smtp';
+        
+        // Определяне на хоста и порта
+        $hostArr = explode(':', $rec->smtpServer, 2);
+        
+        $params['Host'] = $hostArr[0];
+        
+        if(stripos($params['Host'], 'ssl://') === 0) {
+            $params['Host'] = substr($params['Host'], 6);
+            $rec->smtpSecure = 'ssl';
+        }
+        
+        if(stripos($params['Host'], 'tls://') === 0) {
+            $params['Host'] = substr($params['Host'], 6);
+            $rec->smtpSecure = 'tls';
+        }
+
+        if(count($hostArr) == 2) {
+            $params['Port'] = $hostArr[1];
+        } else {
+            if($rec->smtpSecure == 'tls') {
+                $params['Port'] = 587;
+            } elseif($rec->smtpSecure == 'ssl') {
+                $params['Port'] = 465;
+            } else {
+                $params['Port'] = 25;
+            }
+        }
+        
+        // Дали да се използва криптиране по време на сесията?
+        $params['SMTPSecure'] = ($rec->smtpSecure == 'no') ? '' : $rec->smtpSecure;
+        
+        // Дали да се прави аутентикация на потребителя и каква да е тя?
+        if($rec->smtpAuth != 'no') {
+            $params['SMTPAuth'] = TRUE;
+            $params['AuthType'] = $rec->smtpAuth;
+            
+            if($rec->smtpUser) {
+                $params['Username'] = $rec->smtpUser;
+            } else {
+                $params['Username'] = $rec->user;
+            }
+            
+            if($rec->smtpPassword) {
+                $params['Password'] = $rec->smtpPassword;
+            } else {
+                $params['Password'] = $rec->password;
+            }
+
+        } else {
+            $params['SMTPAuth'] = FALSE;
+        }
+
+        $params['XMailer'] = 'bgERP using PML';
+
+        $pml = cls::get('phpmailer_Instance', $params);
+
+        return $pml;
+    }
 
 }

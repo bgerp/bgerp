@@ -288,7 +288,7 @@ class email_Sent extends core_Manager
         expect($message->html || $message->text);
         
         /** @var $PML PHPMailer */
-        $PML = static::getMailer();
+        $PML = email_Accounts::getPML($message->emailFrom);
         
         $PML->AddAddress($emailTo);
         $PML->SetFrom($message->emailFrom);
@@ -345,17 +345,8 @@ class email_Sent extends core_Manager
         
         return $PML->Send();
     }
-    
-    
-    /**
-     * @return  PHPMailer
-     */
-    static function getMailer()
-    {
-        return cls::get('phpmailer_Instance');
-    }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
