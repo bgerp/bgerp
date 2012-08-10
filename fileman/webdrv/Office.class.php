@@ -107,16 +107,20 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определено време
-        core_Locks::get($params['lockId'], 40, 0, FALSE);
-
-        // Конфигурационните константи
-        $conf = core_Packs::getConfig('docoffice');
-        
-        // Класа, който ще конвертира
-        $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
-        
-        // Стартираме конвертирането
-        $ConvClass::convertDoc($fRec->fileHnd, 'txt', $params);
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            // Конфигурационните константи
+            $conf = core_Packs::getConfig('docoffice');
+            
+            // Класа, който ще конвертира
+            $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
+            
+            // Стартираме конвертирането
+            $ConvClass::convertDoc($fRec->fileHnd, 'txt', $params);    
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
     
     
@@ -132,6 +136,9 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function afterExtractText($script)
     {
+        // 
+//        docoffice_Office::unlockOffice();
+        
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
         $text = file_get_contents($script->outFilePath);
         
@@ -144,16 +151,23 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
         $rec->type = $params['type'];
-        $rec->content = serialize($text);
+        $rec->content = static::prepareContent($text);
         $rec->createdBy = $params['createdBy'];
-        fileman_Info1::save($rec);
+        $saveId = fileman_Indexes::save($rec);
         
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
-        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-        // и записа от таблицата fconv_Process
-        return TRUE;
+        if ($saveId) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        } else {
+
+            // 
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }   
     
     
@@ -188,16 +202,20 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         if (static::isProcessStarted($paramsJpg)) return ;
 
         // Заключваме процеса за определено време
-        core_Locks::get($params['lockId'], 40, 0, FALSE);
-
-        // Конфигурационните константи
-        $conf = core_Packs::getConfig('docoffice');
-        
-        // Класа, който ще конвертира
-        $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
-        
-        // Стартираме конвертирането
-        $ConvClass::convertDoc($fRec->fileHnd, 'pdf', $params);
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            // Конфигурационните константи
+            $conf = core_Packs::getConfig('docoffice');
+            
+            // Класа, който ще конвертира
+            $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
+            
+            // Стартираме конвертирането
+            $ConvClass::convertDoc($fRec->fileHnd, 'pdf', $params);    
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
     
     
@@ -216,6 +234,9 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Десериализираме параметрите
         $params = unserialize($script->params);
         
+        // Отключваме предишния процес
+        core_Locks::release($params['lockId']);
+        
         // Параметри необходими за конвертирането
         $params['callBack'] = 'fileman_webdrv_Office::afterConvertToJpg';
         $params['type'] = 'jpg';
@@ -228,17 +249,25 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определно време
-        core_Locks::get($params['lockId'], 100, 0, FALSE);
-
-        // Стартираме конвертирането
-        static::convertPdfToJpg($script->outFilePath, $params);
-
-        // Отключваме заключения процес за конвертиране от офис към pdf формат
-        core_Locks::release($params['lockId']);
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Стартираме конвертирането
+            $started = static::convertPdfToJpg($script->outFilePath, $params);
+    
+            // Отключваме заключения процес за конвертиране от офис към pdf формат
+            core_Locks::release($params['lockId']);
+        }
         
-        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-        // и записа от таблицата fconv_Process
-        return TRUE;
+        if ($started) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        } else {
+
+            // Записваме грешката в лога
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
     
     
@@ -284,6 +313,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $aSync = $params['runSync'] ? FALSE : TRUE;
         
         $Script->run($aSync);
+        
+        return TRUE;
     }
     
     
@@ -337,17 +368,24 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
             $rec->type = $params['type'];
-            $rec->content = serialize($fileHndArr);
+            $rec->content = static::prepareContent($fileHndArr);
             $rec->createdBy = $params['createdBy'];
             
-            fileman_Info1::save($rec);    
+            $savedId = fileman_Indexes::save($rec);    
         }
         
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
-        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-        // и записа от таблицата fconv_Process
-        return TRUE;
+        if ($savedId) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        } else {
+
+            // Записваме грешката в лога
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
 }

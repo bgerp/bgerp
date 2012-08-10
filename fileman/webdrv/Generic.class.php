@@ -61,7 +61,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             return ;
         }
-        
+
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_Empty'); // Тук може и да се използва page_PreText за подреден текст
         
@@ -226,10 +226,38 @@ class fileman_webdrv_Generic extends core_Manager
     static function isProcessStarted($params)
     {
         // Проверяваме дали файла е заключен или има запис в БД
-        if ((fileman_Info1::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) 
+        if ((fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) 
             || (core_Locks::isLocked($params['lockId']))) return TRUE;
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Подготвяме content частта за по добър запис
+     * 
+     * @param string $text - Текста, който да променяме
+     * 
+     * @return string $text - Променения текст
+     */
+    static function prepareContent($text)
+    {
+        // Вземаме конфигурацията
+        $conf = core_Packs::getConfig('fileman');
+        
+        // Променяме мемори лимита
+        ini_set("memory_limit", $conf->FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT);
+
+        // Сериализираме
+        $text = serialize($text);
+        
+        // Компресираме
+        $text = gzcompress($text);
+        
+        // Енкодваме
+        $text = base64_encode($text);    
+                
+        return $text;
     }
     
     
@@ -247,15 +275,68 @@ class fileman_webdrv_Generic extends core_Manager
         $dataId = fileman_Files::fetchByFh($fileHnd, 'dataId');
         
         // Вземаме текстовата част за съответното $dataId
-        $rec = fileman_Info1::fetch("#dataId = '{$dataId}' AND #type = '{$type}'");
+        $rec = fileman_Indexes::fetch("#dataId = '{$dataId}' AND #type = '{$type}'");
 
         // Ако няма такъв запис
         if (!$rec) return FALSE;
+
+        // Декодваме
+        $content = base64_decode($rec->content);
+        
+        // Декомпресираме
+        $content = gzuncompress($content);
         
         // Десериализираме съдържанието
-        $content = unserialize($rec->content);
+        $content = unserialize($content);        
         
         return $content;
+    }
+    
+    
+    /**
+     * Намира баркода и ги записва в базата
+     * 
+     * @param fconv_Script $script - 
+     * @param array $fileHndArr - Масив от манипулатори
+     * 
+     * @return integet $savedId - fileman_Indexes id' то на записа в  
+     */
+    static function saveBarcodes($script, $fileHndArr)
+    {
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+        
+        // Променливата, с която ще заключим процеса
+        $params['type'] = 'barcodes';
+        $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
+        
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($params)) return ;
+
+        // Заключваме процеса за определно време
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Вземаме баркодовете
+            $barcodesArr = static::getBarcodes($fileHndArr, $params['dataId']);
+        
+            // Сериализираме масива и обновяваме данните за записа в fileman_Info
+            $rec = new stdClass();
+            $rec->dataId = $params['dataId'];
+            $rec->type = 'barcodes';
+            $rec->createdBy = $params['createdBy'];
+            $rec->content = static::prepareContent($barcodesArr);
+        
+            $savedId = fileman_Indexes::save($rec);   
+
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
+        
+        return $savedId;
     }
     
     
@@ -289,7 +370,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Определяме баркодовете във файла
             $barcodes = zbar_Reader::getBarcodesFromFile($fh);
-            
+
             // Ако няма открит баркод прескачаме
             if (!count($barcodes)) continue;
             
@@ -327,33 +408,14 @@ class fileman_webdrv_Generic extends core_Manager
     }
     
     
-    static function saveBarcodes($script, $fileHndArr)
+    /**
+     * Записва в лога ако възникне греша при асинхронното обработване на даден файл
+     * 
+     * @param fileman_Data $dataId - id' то на данните на файла
+     * @param string $type - Типа на файла
+     */
+    static function createErrorLog($dataId, $type)
     {
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
-        
-        // Променливата, с която ще заключим процеса
-        $params['type'] = 'barcodes';
-        $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
-        
-        // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
-
-        // Заключваме процеса за определно време
-        core_Locks::get($params['lockId'], 15, 0, FALSE);
-        
-        $barcodesArr = static::getBarcodes($fileHndArr, $params['dataId']);
-        
-        // Сериализираме масива и обновяваме данните за записа в fileman_Info
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = 'barcodes';
-        $rec->createdBy = $params['createdBy'];
-        $rec->content = serialize($barcodesArr);
-    
-        fileman_Info1::save($rec);    
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
+        core_Logs::log(tr("|Възникна грешка при обработката на файла с данни|* {$dataId} |в тип|* {$type}"));
     }
 }

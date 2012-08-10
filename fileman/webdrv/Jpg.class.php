@@ -63,13 +63,18 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
         if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определено време
-        core_Locks::get($params['lockId'], 50, 0, FALSE);
-        
-        $script = new stdClass();
-        $script->params = serialize($params);
-        
-        // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
-        static::afterConvertToJpg($script);
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            $script = new stdClass();
+            $script->params = serialize($params);
+            
+            // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
+            static::afterConvertToJpg($script);    
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
     
 	
@@ -97,19 +102,26 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
         $rec->type = $params['type'];
-        $rec->content = serialize($fileHndArr);
+        $rec->content = static::prepareContent($fileHndArr);
         $rec->createdBy = $params['createdBy'];
         
-        fileman_Info1::save($rec);    
+        fileman_Indexes::save($rec);    
         
         // Записваме извличаме и записваме баркодовете
-        static::saveBarcodes($script, $fileHndArr);
+        $saveId = static::saveBarcodes($script, $fileHndArr);
         
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
-        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-        // и записа от таблицата fconv_Process
-        return TRUE;
+        if ($saveId) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        } else {
+
+            // 
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
 }

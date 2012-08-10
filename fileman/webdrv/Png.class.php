@@ -70,11 +70,20 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
 
             // Това е нужно за да вземем всички баркодове
             
-            static::saveBarcodes($script, $fileHndArr);
+            $savedId = static::saveBarcodes($script, $fileHndArr);
             
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
+            if ($savedId) {
+    
+                // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+                // и записа от таблицата fconv_Process
+                return TRUE;
+            } else {
+                
+                $params = unserialize($script);
+                
+                // Записваме грешката в лога
+                static::createErrorLog($params['dataId'], $params['type']);
+            }
         }
     }
 }

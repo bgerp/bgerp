@@ -66,10 +66,15 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определно време
-        core_Locks::get($params['lockId'], 30, 0, FALSE);
-        
-        // Стартираме конвертирането
-        static::convertPdfToTxt($fRec->fileHnd, $params);
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Стартираме конвертирането
+            static::convertPdfToTxt($fRec->fileHnd, $params);   
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
     
     
@@ -138,10 +143,15 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определно време
-        core_Locks::get($params['lockId'], 100, 0, FALSE);
-
-        // Стартираме конвертирането
-        static::convertPdfToJpg($fRec->fileHnd, $params);
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Стартираме конвертирането
+            static::convertPdfToJpg($fRec->fileHnd, $params);    
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
     
     
@@ -162,11 +172,20 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
 
             // Това е нужно за да вземем всички баркодове
             
-            static::saveBarcodes($script, $fileHndArr);
+            $savedId = static::saveBarcodes($script, $fileHndArr);
             
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
+            if ($savedId) {
+    
+                // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+                // и записа от таблицата fconv_Process
+                return TRUE;
+            } else {
+                
+                $params = unserialize($script);
+                
+                // Записваме грешката в лога
+                static::createErrorLog($params['dataId'], $params['type']);
+            }
         }
     }
 }

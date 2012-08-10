@@ -96,13 +96,18 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определено време
-        core_Locks::get($params['lockId'], 50, 0, FALSE);
-        
-        $script = new stdClass();
-        $script->params = serialize($params);
-
-        // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
-        static::afterExtractText($script);
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            $script = new stdClass();
+            $script->params = serialize($params);
+    
+            // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
+            static::afterExtractText($script);    
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
     
     
@@ -128,16 +133,24 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
         $rec->type = $params['type'];
-        $rec->content = serialize($text);
+        $rec->content = static::prepareContent($text);
         $rec->createdBy = $params['createdBy'];
-        fileman_Info1::save($rec);
+        $saveId = fileman_Indexes::save($rec);
         
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
-        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-        // и записа от таблицата fconv_Process
-        return TRUE;
+        if ($saveId) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        } else {
+
+            // 
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
+
     }
     
     
@@ -164,9 +177,15 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         if (static::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определено време
-        core_Locks::get($params['lockId'], 50, 0, FALSE);
-
-        static::startConvertingToJpg($fRec, $params);
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Стартираме конвертирането към JPG
+            static::startConvertingToJpg($fRec, $params);    
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
     
     
@@ -239,17 +258,24 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
             $rec->type = $params['type'];
-            $rec->content = serialize($fileHndArr);
+            $rec->content = static::prepareContent($fileHndArr);
             $rec->createdBy = $params['createdBy'];
             
-            fileman_Info1::save($rec);      
+            $saveId = fileman_Indexes::save($rec);      
         }
             
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
-        // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-        // и записа от таблицата fconv_Process
-        return TRUE;
+        if ($saveId) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        } else {
+
+            // 
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
     }
 }
