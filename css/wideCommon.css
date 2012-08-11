@@ -196,6 +196,11 @@ TABLE.listTable>THEAD>TR>TH {
 	margin-top:10px;
 } 
 
+.toolbar{
+	display:block;
+	width:100%;
+}
+
 .listFilter {
 	padding-bottom:5px; 
 	float:left;
