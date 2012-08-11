@@ -26,7 +26,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Несортирани папки";
+    var $title = "Проекти";
     
     
     /**
@@ -44,7 +44,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Кюп';
+    var $singleTitle = 'Проект';
     
     
     /**

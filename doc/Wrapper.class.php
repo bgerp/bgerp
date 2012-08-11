@@ -85,7 +85,7 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         $this->TAB('doc_Search', 'Търсене');
         
-        $this->TAB('doc_UnsortedFolders', 'Кюпове');
+        $this->TAB('doc_UnsortedFolders', 'Проекти');
                 
         // Показва таба за коментари, само ако имаме права за листване
         $this->TAB('doc_Comments', 'Коментари', 'admin');
