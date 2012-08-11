@@ -273,6 +273,8 @@ class sales_Invoices extends core_Master
     {
         $rec = $this->fetch($id);
         
+		$row = new stdClass();
+
         $row->title = $this->getHandle($rec->id);   //TODO може да се премени
         //        $row->title = $this->getVerbal($rec, 'contragentId');
         
