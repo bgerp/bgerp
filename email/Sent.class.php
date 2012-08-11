@@ -220,7 +220,7 @@ class email_Sent extends core_Manager
         );
         
         $message = (object)$messageBase;
-    
+     
         static::prepareMessage($message, $sentRec, $options['is_fax']);
     
         return static::doSend($message, $emailTo);
@@ -233,19 +233,26 @@ class email_Sent extends core_Manager
      * @param stdClass $sentRec @see email_Sent::send()
      * @return stdClass обект с попълнени полета според очакванията на @link email_Sent::doSend()
      */
-    protected static function prepareMessage($message, $sentRec, $isFax=NULL)
+    protected static function prepareMessage($message, $sentRec, $isFax = NULL)
     {
         $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
         
-        list($senderName,) = explode('@', $message->emailFrom, 2);
+        list($senderName, $senderDomain) = explode('@', $message->emailFrom, 2);
         
         expect(is_array($message->headers));
         
+        // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
+        $corpAccRec = email_Accounts::getCorporateAcc();
+
+        if($corpAccRec->domain == $senderDomain && !$isFax) {
+            $message->headers['Return-Path'] = "{$senderName}+returned={$sentRec->mid}@{$senderDomain}";
+        }
+        
         $message->headers += array(
-            'Return-Path'                 => ($isFax) ? "{$senderName}@{$myDomain}" : "{$senderName}+returned={$sentRec->mid}@{$myDomain}",
-            'X-Confirm-Reading-To'        => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
-            'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
-            'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
+            
+            'X-Confirm-Reading-To'        => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
+            'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
+            'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
         );
         
         $message->messageId = email_util_ThreadHandle::makeMessageId($sentRec->mid);
