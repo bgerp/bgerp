@@ -128,7 +128,7 @@ class core_Tabs extends core_BaseClass
         $html .= "<div class='tab-row'>\n";
         $html .= "[#1#]\n";
         $html .= "</div>\n";
-        $html .= "<div class=\"tab-page clearfix21\">[#2#]</div>\n";
+        $html .= "<div class=\"tab-page clearfix21\" id='{$this->htmlId}'>[#2#]</div>\n";
         $html .= "</div>\n";
         
         $tabsTpl = new ET($html, $head, $body);
