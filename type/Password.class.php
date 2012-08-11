@@ -30,6 +30,9 @@ class type_Password extends type_Varchar {
     {
         $attr['type'] = 'password';
         
+        // Само за дебъг
+        // !isDebug() || $attr['title'] = $value;
+
         if($value) $value = EF_PASS_NO_CHANGE;
         
         if(! ($this->params['autocomplete'] == 'autocomplete' || $this->params['autocomplete'] == 'on') || !isDebug()) {
