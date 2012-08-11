@@ -489,10 +489,8 @@ class crm_Persons extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        $row->nameList = $row->name;
-
         $row->numb = $rec->id;
 
         // Fancy ефект за картинката
@@ -512,24 +510,34 @@ class crm_Persons extends core_Master
         $place = $mvc->getVerbal($rec, 'place');
         $address = $mvc->getVerbal($rec, 'address');
 
-        $row->addressBox = $country;
-        $row->addressBox .= ($pCode || $place) ? "<br>" : "";
 
-        $row->addressBox .= $pCode ? "{$pCode} " : "";
-        $row->addressBox .= $place;
+        if($fields['-list']) {
+            $row->nameList = $row->name;
 
-        $row->addressBox .= $address ? "<br/>{$address}" : "";
+            $row->addressBox = $country;
+            $row->addressBox .= ($pCode || $place) ? "<br>" : "";
 
-        $mob = $mvc->getVerbal($rec, 'mobile');
-        $tel = $mvc->getVerbal($rec, 'tel');
-        $fax = $mvc->getVerbal($rec, 'fax');
-        $eml = $mvc->getVerbal($rec, 'email');
+            $row->addressBox .= $pCode ? "{$pCode} " : "";
+            $row->addressBox .= $place;
 
-        // phonesBox
-        $row->phonesBox .= $mob ? "<div class='mobile'>{$mob}</div>" : "";
-        $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
-        $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
-        $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+            $row->addressBox .= $address ? "<br/>{$address}" : "";
+
+            // Мобилен телефон
+            $mob = $mvc->getVerbal($rec, 'mobile');
+            $row->phonesBox .= $mob ? "<div class='mobile'>{$mob}</div>" : "";
+            
+            // Телефон
+            $tel = $mvc->getVerbal($rec, $rec->buzTel ? 'buzTel' : 'tel');
+            $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
+            
+            // Факс
+            $fax = $mvc->getVerbal($rec, $rec->buzFax ? 'buzFax' : 'fax');
+            $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
+            
+            // Email
+            $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
+            $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+        }
 
         $row->title = $row->name;
 
