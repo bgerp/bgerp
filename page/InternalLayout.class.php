@@ -25,18 +25,11 @@ class page_InternalLayout extends core_ET
      */
     function page_InternalLayout()
     {
-        // Ако сме определили височината на прозореца, задаваме мин. височина на съдържанието 
-        if(Mode::get('windowHeight') && !Mode::is('screenMode', 'narrow')) {
-            $minHeighStyle = "style='min-height:" . (Mode::get('windowHeight') - 150) . "px;'";
-        } else {
-            $minHeighStyle = '';
-        }
-        
-        // Задаваме лейаута на страницата
+         // Задаваме лейаута на страницата
         $this->core_ET("<div class='clearfix21' style='display: inline-block; min-width:100%;'><div id=\"framecontentTop\"  class=\"container\">" .
             "[#bgerp_Menu::renderMenu#]" .
             "</div>" .
-            "<div id=\"maincontent\" {$minHeighStyle}><div>" .
+            "<div id=\"maincontent\"><div>" .
             "<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:10px;'></div>" .
             " <!--ET_BEGIN STATUSES-->[#STATUSES#]<!--ET_END STATUSES-->" .
             "[#PAGE_CONTENT#]" .
@@ -44,5 +37,12 @@ class page_InternalLayout extends core_ET
             "<div id=\"framecontentBottom\" class=\"container\">" .
             "[#PAGE_FOOTER#]" .
             "</div></div>");
+
+        // Опаковките и главното съдържание заемат екрана до долу
+        if(!Mode::is('screenMode', 'narrow')) {
+            $this->append("runOnLoad(setMinHeight);", "JQRUN");
+        }
     }
+            
+
 }

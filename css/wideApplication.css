@@ -383,9 +383,15 @@ div.mobile {
 	-moz-border-radius: 5px;
     -webkit-border-radius: 5px;
 	border-radius:5px;
-	-moz-box-shadow: 3px 3px 10px 3px #aaa;
-	-webkit-box-shadow: 3px 3px 10px 3px #aaa;
-    box-shadow: 3px 3px 10px 3px #aaa;
+	-moz-box-shadow: 3px 3px 8px 3px #aaa;
+	-webkit-box-shadow: 3px 3px 8px 3px #aaa;
+    box-shadow: 3px 3px 8px 3px #aaa;
+}
+
+.listTopContainer .formTable {
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
 }
 
 a img {
