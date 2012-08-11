@@ -77,9 +77,6 @@ class core_Locks extends core_Manager
     {
         $Locks = cls::get('core_Locks');
         
-        // Дали да се изтрие преди излизане от хита - за асинхронни процеси
-        $Locks->delOnShutDown = $delOnShutDown;
-        
         // Санитаризираме данните
         $maxTrays = max($maxTrays, 0);
         $maxDuration = max($maxDuration , 0);
@@ -91,12 +88,23 @@ class core_Locks extends core_Manager
         
         // Ако този обект е заключен от текущия хит, връщаме TRUE
         if($rec) {
+            
+            // Не всеки път в текущич хит искаме да презапишем крайния срок
+            if (!$delOnShutDown) {
+                
+                // Изчакваме ако обекта е заключен в текущия хит
+                if (static::waitForLock($objectId, $maxDuration, $maxTrays)) return TRUE;    
+            }
+            
             // Ако имаме промяна в крайния срок за заключването
             // отразяваме я в модела
             if($rec->lockExpire < $lockExpire) {
                 $rec->lockExpire = $lockExpire;
                 $Locks->save($rec);
                 $Locks->locks[$objectId] = $rec;
+                
+                // Дали да се изтрие преди излизане от хита - за асинхронни процеси
+                $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
             }
             
             return TRUE;
@@ -119,21 +127,14 @@ class core_Locks extends core_Manager
             $Locks->save($rec);
             $Locks->locks[$objectId] = $rec;
             
+            // Дали да се изтрие преди излизане от хита - за асинхронни процеси
+            $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
+            
             return TRUE;
         }
         
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
-        while($maxTrays>0) {
-            
-            sleep(1);
-            
-            if(static::get($objectId, $maxDuration, 0)) {
-                
-                return TRUE;
-            }
-            
-            $maxTrays--;
-        }
+        if (static::waitForLock($objectId, $maxDuration, $maxTrays)) return TRUE;    
         
         return FALSE;
     }
@@ -164,9 +165,13 @@ class core_Locks extends core_Manager
      */
     static function on_Shutdown($mvc)
     {
-        if((count($mvc->locks)) && ($mvc->delOnShutDown)) {
+        if (count($mvc->locks)) {
             foreach($mvc->locks as $rec) {
-                $mvc->delete($rec->id);
+                
+                // Дали да се изтрие преди излизане от хита - за асинхронни процеси
+                if ($rec->_delOnShutDown) {
+                    $mvc->delete($rec->id);    
+                }
             }
         }
     }
@@ -191,5 +196,31 @@ class core_Locks extends core_Manager
         }
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Правим последователно няколко опита да заключим обекта, през интервал 1 сек
+     * 
+     * @param string $objectId - Стринга, за който се проверява дали не е заключен 
+     * @param integer $maxDuration - За колко време да заключим
+     * @param integer $maxTrays - Колко опита да се направи за заключване
+     * 
+     * @return boolean
+     */
+    static function waitForLock($objectId, $maxDuration = 10, $maxTrays = 5)
+    {
+        // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
+        while($maxTrays>0) {
+            
+            sleep(1);
+            
+            if(static::get($objectId, $maxDuration, 0)) {
+                
+                return TRUE;
+            }
+            
+            $maxTrays--;
+        }
     }
 }
