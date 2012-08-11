@@ -63,8 +63,6 @@ class fconv_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Документи', 'Конвертирания', 'fconv_Processes', 'default', "admin");
         
         return $html;
     }
