@@ -83,8 +83,15 @@ class core_Html
         }
 
         unset($attr['onblur']);
+        
+        // За да няма аутокомплит на този тип полета
+        if(! ($attr['autocomplete'] == 'autocomplete' || $attr['autocomplete'] == 'on')) {
+            $attr['autocomplete'] = 'off';
+        }
 
         $tpl->append(ht::createElement('input', $attr));
+        
+        unset($attr['autocomplete']);
 
         $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$suffix}');";
 
@@ -359,12 +366,6 @@ class core_Html
 
         if (isset($value)) {
             $attr['value'] = $value;
-        }
-
-        // Ако не се намираме в тестов режим, то изключваме по подразбиране
-        // autocomplete за всички INPUT полета
-        if(!isDebug()) {
-            setIfNot($attr['autocomplete'], 'off');
         }
 
         $input = ht::createElement("input", $attr);
