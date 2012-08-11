@@ -126,9 +126,12 @@ class plg_ProtoWrapper extends core_Plugin
         }
         
         // Създаваме рендер на табове
-        $tabs = CLS::get('core_Tabs');
-
+        $tabs = cls::get('core_Tabs');
  
+ 
+        $tabs->htmlId = 'packWrapper';
+    
+
         foreach($this->tabs as $name => $rec) {
            
             if($rec->haveRight) {
