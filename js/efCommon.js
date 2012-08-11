@@ -1,3 +1,24 @@
+function runOnLoad(functionName)
+{
+	if(window.attachEvent) {
+		window.attachEvent('onload', functionName);
+	} else {
+		if(window.onload) {
+			var curronload = window.onload;
+			var newonload = function() {
+				curronload();
+				functionName();
+			};
+			window.onload = newonload;
+		} else {
+			window.onload = functionName;
+		}
+	} 
+}
+
+
+
+
 // Функция за лесно селектиране на елементи
 function get$() {
 	var elements = new Array();
@@ -666,5 +687,30 @@ function flashDoc(docId, i)
 	} else {
 		cells[0].style.backgroundColor = 'transparent';
 		cells[1].style.backgroundColor = 'transparent';
+	}
+}
+
+
+/**
+ * Задава максиналната височина на опаковката и основното съдържание
+ */
+function setMinHeight()
+{  
+	var ch = document.documentElement.clientHeight;
+                    
+	if(document.getElementById('framecontentTop')) {
+		var fct = document.getElementById('framecontentTop').offsetHeight;
+                        
+		if(document.getElementById('maincontent')) {
+			var mc = document.getElementById('maincontent');
+			var h = (ch - fct - 40) + 'px';
+			mc.style.minHeight = h;
+		}
+
+		if(document.getElementById('packWrapper')) {
+			var pw = document.getElementById('packWrapper');
+			var h = (ch - fct - 116) + 'px';
+			pw.style.minHeight = h;
+		}
 	}
 }
