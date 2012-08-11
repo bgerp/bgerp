@@ -27,7 +27,6 @@ if (PHP_VERSION_ID < 50300) {
 	echo ('Необходимо е php 5.3+!');
 	die;	
 }
-
 require EF_EF_PATH . '/core/exception/Expect.class.php';
 
 require EF_EF_PATH . '/core/App.class.php';
@@ -220,7 +219,10 @@ if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
 @include EF_CONF_PATH . '/_common.cfg.php';
 
 // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
-ob_clean();
+//ob_clean();
+
+// PHP5.4 bugFix
+ini_set('zlib.output_compression', 'Off');
 
 // Стартира записа в буфера, като по възможност компресира съдържанието
 ob_start();
