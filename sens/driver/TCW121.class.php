@@ -59,10 +59,10 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     function prepareSettingsForm($form)
     {
         
-        $form->FNC('ip', new type_Ip(), 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
+        $form->FNC('ip', 'ip', 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
-        $form->FNC('user', 'varchar(10)', 'caption=User,hint=Потребител, input, mandatory,value=admin');
-        $form->FNC('password', 'varchar(10)', 'caption=Password,hint=Парола, input, mandatory,value=admin');
+        $form->FNC('user', 'varchar(10)', 'caption=User,hint=Потребител, input, mandatory, value=admin, notNull');
+        $form->FNC('password', 'password', 'caption=Password,hint=Парола, input, value=admin, notNull');
         
         // Добавя и стандартните параметри
         $this->getSettingsForm($form);

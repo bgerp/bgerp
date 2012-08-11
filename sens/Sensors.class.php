@@ -86,9 +86,9 @@ class sens_Sensors extends core_Master
                 'objCls' => $data->form->rec->driver,
                 'objId' => $data->form->rec->id,
                 'wrapper' => 'sens_Sensors',
-                'ret_url' => toUrl($data->retUrl)
+                'ret_url' => toUrl($data->retUrl, 'local')
             );
-            $data->retUrl = $url;
+            $data->retUrl = $url;  
             Request::setProtected('objCls, objId, wrapper');
         }
     }
