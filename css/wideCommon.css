@@ -162,24 +162,24 @@ a.rtbutton:hover {
 
 
 /* Стилове за елемента 'list Table' */
-TABLE.listTable { 
+table.listTable { 
     margin:0px;
     border: 1px solid #999;
     border-collapse: collapse;
 }
 
-TABLE.listTable>TBODY>TR:hover  {
+table.listTable>tbody>tr:hover  {
     background-color:#ffc !important;
 }
 
-TABLE.listTable>TBODY>TR>TD {
+table.listTable>tbody>tr>td {
     border: 1px solid #999;
     padding: 3px; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
 }
 
-TABLE.listTable>THEAD>TR>TH {
+table.listTable>thead>tr>th {
     border: 1px solid #999;
     padding: 3px;
     background-color:#ddd;
@@ -224,7 +224,7 @@ TABLE.listTable>THEAD>TR>TH {
 
 /* Стилове за показване на формите */
 
-FORM {
+form {
     display:table;
     margin: 0px;
  }

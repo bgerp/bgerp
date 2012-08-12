@@ -17,22 +17,17 @@
 class core_Tabs extends core_BaseClass
 {
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function core_Tabs()
-    {
-        $this->description();
-    }
-    
-    
-    /**
-     * Описание на модела (таблицата)
-     */
-    function description()
-    {
-    }
+	/**
+	 * Максимален брой сиволи в заглавията на табовете в широк режим
+	 * Ако този брой е надвишен, генерира се комбо-бокс
+	 */
+	var $maxTabsWide = 140;
+
+	/**
+	 * Максимален брой сиволи в заглавията на табовете в широк режим
+	 * Ако този брой е надвишен - генерира се комбо-бокс
+	 */
+	var $maxTabsNarrow = 30;
     
     
     /**
@@ -47,7 +42,7 @@ class core_Tabs extends core_BaseClass
     
     
     /**
-     * @todo Чака за документация...
+     * Задаване на нов таб
      */
     function TAB($tab, $caption = NULL, $url = NULL, $class = NULL)
     {
@@ -76,6 +71,18 @@ class core_Tabs extends core_BaseClass
      */
     function renderHtml_($body, $selectedTab = NULL)
     {
+		// Изчисляване сумата от символите на всички табове
+		foreach($this->captions as $tab => $caption) {
+			$sumLen += mb_strlen(strip_tags(trim($caption))) + 1;
+		}
+
+		if(Mode::is('screenMode', 'narrow')) {
+			$isOptionList = $this->maxTabsNarrow < $sumLen;
+		} else {
+			$isOptionList = $this->maxTabsWide < $sumLen;
+		}
+
+
         //         
         if (!count($this->tabs)) {
             return $body;
@@ -104,11 +111,11 @@ class core_Tabs extends core_BaseClass
 
             $tabClass = $this->classes[$tab];
             
-            if (Mode::is('screenMode', 'narrow')) {
+            if ($isOptionList) {
                 if(!$url) continue;
                 $options[$url] = $title;
             } else {
-                $head .= "<div class='tab {$selected}'>";
+                $head .= "<div onclick='document.location=\"{$url}\"' style='cursor:pointer;' class='tab {$selected}'>";
                 
                 if ($url) {
                     $head .= "<a href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
@@ -120,7 +127,7 @@ class core_Tabs extends core_BaseClass
             }
         }
         
-        if (Mode::is('screenMode', 'narrow')) {
+        if ($isOptionList) {
             $head = new ET("<div class='tab selected'>[#1#]</div>\n", ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control")));
         }
         
