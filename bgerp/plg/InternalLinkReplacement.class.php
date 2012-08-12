@@ -242,6 +242,11 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         //Превръщаме линка в масив   
         $linkArr = explode('/', $match['link']);
 
+		$ptr = toUrl(array("([a-zA-Z0-9]{1,64})", "single"), 'absolute') . "([0-9]{1,10})";
+
+		$ptr = str_replace("/", "\\/", $ptr) . "\i";
+
+
         //Търсим в масива 'single'
         foreach ($linkArr as $key => $value) {
             
@@ -257,10 +262,12 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             //Създаваме инстанция на класа
             $Class = core_Cls::createObject($className);
 
-            if (!$Class) continue;
+            if (!$Class)  return $match['0'];
             
+			$rec = $Class->fetch($id);
+
             //Проверяваме за права
-            if (!$Class->haveRightFor('single', $id)) continue;
+            if (!$rec || !$Class->haveRightFor('single', $rec))  return $match['0'];
             
             //Кое поле е избрано да се показва, като текст
             $field = $Class->rowToolsSingleField;
