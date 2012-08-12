@@ -48,7 +48,7 @@ class hclean_Purifier
      *
      * @return $clear string - HTML файла, с inline CSS елементи
      */
-    function clean($html, $charset = NULL, $css = NULL, $force = NULL)
+    static function clean($html, $charset = NULL, $css = NULL, $force = NULL)
     {
         //Ако няма charset тогава го определяме
         if(!$charset) {
