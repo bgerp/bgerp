@@ -128,7 +128,7 @@ class type_Richtext extends type_Text {
         //}
         
         // Място, където съхраняваме нещата за субституция
-        $this->htmlBoard = array();
+        $this->_htmlBoard = array();
         
         // Уникален маркер, който ще се използва за временните плейсхолдери
         $this->randMark = rand(1, 2000000000);
@@ -145,6 +145,16 @@ class type_Richtext extends type_Text {
         $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
         
         $html = core_ET::escape($html);
+
+		if(count($this->_htmlBoard)) {
+			foreach($this->_htmlBoard as $place => $cnt) {
+				$replaceFrom[] = core_ET::escape("[#$place#]");
+				$replaceTo[] = "[#$place#]";
+			}
+			
+			// Възстановяваме началното състояние
+			$html = str_replace($replaceFrom, $replaceTo, $html);
+		}
         
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
@@ -276,9 +286,10 @@ class type_Richtext extends type_Text {
             $place = $this->getPlace();
             $this->_htmlBoard[$place] = hclean_Purifier::clean($match[1], 'UTF-8');
             $res = "[#{$place}#]";
+			$this->_htmlBoard['html1'] = TRUE;
         }
-        
-        return $res;
+
+		return $res;
     }
     
     
