@@ -284,7 +284,7 @@ class type_Richtext extends type_Text {
             $res = html2text_Converter::toRichText($match[1]);
         } else {
             $place = $this->getPlace();
-            $this->_htmlBoard[$place] = hclean_Purifier::clean($match[1], 'UTF-8');
+            $this->_htmlBoard[$place] = $match[1];
             $res = "[#{$place}#]";
 			$this->_htmlBoard['html1'] = TRUE;
         }
