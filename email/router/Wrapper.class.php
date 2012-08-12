@@ -5,8 +5,8 @@ class email_router_Wrapper extends email_Wrapper
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
 
-        $tabs->TAB('email_Router', 'Автоматично');
-        $tabs->TAB('email_Filters', 'Ръчно (филтри)');
+        $tabs->TAB('email_Filters', 'Потребителски правила');
+        $tabs->TAB('email_Router', 'Автоматично рутиране');
 
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
         
