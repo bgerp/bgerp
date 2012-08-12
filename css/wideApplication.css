@@ -220,42 +220,48 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 }
  
 div.alphavit div.tab-row .tab {
-    background:     #ffffee;
+    background:     #ddd;
 	font-size:      8pt;
 	padding:        5px;
-    border:         1px solid #ccc;
+    border:         1px solid #aaa;
 	margin: 2px;
 	-moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     border-radius: 5px;
     display: table;
     float: left;
+	margin-bottom: 10px;
 }
 
-div.alphavit div.tab-row .tab {
- 
-	margin-bottom: 10px;
- }
+div.alphavit div.tab-row .tab:hover {
+	margin-top:-1px;
+	margin-bottom:13px;
 
+	background-color: #ffffcc !important;
+}
+
+div.alphavit div.tab-row .tab:hover a {
+	color:red !important;
+}
 
 div.alphavit  div.tab-row .tab.selected {
-    background:     #afa;
-	color:          green;
-    border:         1px solid #393;
+    background:     #ffffcc;
+    border:         1px solid #aaa;
     top:            0px;
 	margin:         2px;
 	padding:        5px;
+    box-shadow: 0px 0px 2px 0px  #ccc;
+	margin-top:-1px;
+	margin-bottom:13px;
+	box-shadow: 0px 0px 3px 1px  #ccc;
 }
 
+ 
 div.alphavit div.tab-page {
     border:         none;
     background:     transparent;
 	margin: 0px; 
 	padding:0px;
-}
-
-div.alphavit div.tab:hover {
-    background-color:#ffff66 !important;
 }
 
 div.crmImage {
@@ -385,7 +391,7 @@ div.mobile {
 	border-radius:5px;
 	-moz-box-shadow: 3px 3px 8px 3px #aaa;
 	-webkit-box-shadow: 3px 3px 8px 3px #aaa;
-    box-shadow: 3px 3px 8px 3px #aaa;
+    box-shadow: 2px 2px 8px 3px #aab;
 }
 
 .listTopContainer .formTable {
