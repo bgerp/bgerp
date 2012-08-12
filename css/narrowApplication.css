@@ -117,9 +117,13 @@ a.out:visited {
 	color:#6600cc
 } 
 
-div.tab-control div.tab-row .tab.selected {
-	border-top: 3px solid #048;
-}
+
+
+
+
+
+
+
 
 .ListTitle { 
 	font-size:1.2em;
@@ -192,6 +196,103 @@ div.crm_Persons  div.tab-page,  div.crm_Persons div.tab-row .tab.selected {
 div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
     background:#ffffe8;
 }
+
+
+
+/* Стилове за елемента 'tab' */
+div.tab-control div.tab-row .tab {
+    font-family:    arial;
+    display:        inline;
+    margin:         1px -16px -3px 18px;
+    float:          left; 
+    padding:        3px 5px 5px 5px;
+    background:     #ddd;
+    border:         1px solid #bbb;
+    border-bottom:  none;
+    z-index:        1;
+    white-space:    nowrap;
+    position:       relative;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
+    border-top:		2px solid #048;
+}
+
+
+
+div.tab-control div.tab-row .tab.selected {
+    background:     #ffffff;
+    border:         1px solid #bbb;
+    border-top:     2px solid #048;
+    border-bottom:  none;
+    z-index:        3;
+    padding:        5px 5px 4px 5px; 
+    margin:         1px -16px -3px 18px;
+    top:            -1px;
+    font-weight:    bold;
+}
+
+div.tab-control div.tab-page {
+    clear:          both;
+    border:         1px solid #bbb;
+    background:     #ffffff;
+    position:       relative;
+    top:            1px;
+    padding:        1em;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+	z-index:        2;
+}
+
+div.alphavit div.tab-row .tab {
+    background:     #ddd;
+	font-size:      8pt;
+	padding:        5px;
+    border:         1px solid #aaa;
+	margin: 2px;
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    display: table;
+    float: left;
+	margin-bottom: 10px;
+}
+
+div.alphavit div.tab-row .tab:hover {
+	margin-top:-1px;
+	margin-bottom:13px;
+
+	background-color: #ffffcc !important;
+}
+
+div.alphavit div.tab-row .tab:hover a {
+	color:red !important;
+}
+
+div.alphavit  div.tab-row .tab.selected {
+    background:     #ffffcc;
+    border:         1px solid #aaa;
+    top:            0px;
+	margin:         2px;
+	padding:        5px;
+    box-shadow: 0px 0px 2px 0px  #ccc;
+	margin-top:-1px;
+	margin-bottom:13px;
+	box-shadow: 0px 0px 3px 1px  #ccc;
+}
+
+ 
+div.alphavit div.tab-page {
+    border:         none;
+    background:     transparent;
+	margin: 0px; 
+	padding:0px;
+}
+
 
 .quiet { color: #888; }
 .red { color: #800; }
@@ -288,7 +389,7 @@ div.folder-cover .fancybox img {
     padding: 10px;
 }
 
-DIV.folder-cover .block_title {
+div.folder-cover .block_title {
     border-bottom: solid 1px #dddddd; 
     padding: 7px;
 	font-size: 1.4em;
@@ -296,7 +397,7 @@ DIV.folder-cover .block_title {
 	text-shadow: 1px 1px 1px #ddd;
 }
 
-DIV.folder-cover .block_left {
+div.folder-cover .block_left {
     clear: left;
     background: #ffffff;
     font-size: 12px;     
@@ -307,12 +408,12 @@ DIV.folder-cover .block_left {
     position: relative;    
 }
 
-DIV.folder-cover .block_left .address {
+div.folder-cover .block_left .address {
     max-width: 240px;
     margin-bottom: 15px;	
 }	
 
-DIV.folder-cover .block_right {
+div.folder-cover .block_right {
 	background: #ffffff;
 	min-width: 100px;
 	font-size: 12px; 
@@ -325,13 +426,13 @@ DIV.folder-cover .block_right {
 	white-space:nowrap;
 }
 
-DIV.attachments {
+div.attachments {
 	display:inline-block; 
 	float: left; 
 	margin:2px;
  }
 
-DIV.attachments .aHeader {
+div.attachments .aHeader {
 	background-color:#e0e0e0;
 	padding:3px;
 	padding-left:26px;
@@ -341,7 +442,7 @@ DIV.attachments .aHeader {
 	border-bottom:solid 1px #e0e0e0;
 }
 
-DIV.attachments A {
+div.attachments A {
 	display:block;
 	margin-bottom:2px;
 }
@@ -498,7 +599,7 @@ table.mc-header a {
 	margin-top: 10px;
 }
 
-.listTable>TBODY>TR>TD DIV.document {
+.listTable>tbody>tr>td div.document {
 	border: none; 
 	background: transparent;
     -moz-box-shadow: none;
@@ -511,24 +612,24 @@ table.mc-header a {
 	margin-top: 0px;
 }
 
-.doc_Containers TABLE.listTable TD  {
+.doc_Containers table.listTable TD  {
     vertical-align:top !important;
 }
 
-.doc_Containers TABLE.listTable.listTable>TBODY>TR:hover  {
+.doc_Containers table.listTable.listTable>tbody>tr:hover  {
     background-color:transparent !important;
 }
 
-.doc_Containers TABLE.listTable.listTable>TBODY>TR  {
+.doc_Containers table.listTable.listTable>tbody>tr  {
     background-color:transparent !important;
 }
 
 
-.doc_Containers .thread-opened TABLE.listTable>TBODY>TR:hover  {
+.doc_Containers .thread-opened table.listTable>tbody>tr:hover  {
     background-color:#f4fff4 !important;
 }
 
- .doc_Containers .thread-opened TABLE.listTable>TBODY>TR  {
+ .doc_Containers .thread-opened table.listTable>tbody>tr  {
     background-color:#f4fff4 !important;
 }
 
@@ -557,11 +658,11 @@ table.mc-header a {
 	background-color:#eeffee !important;
 }
 
-.thread-opened DIV.attachments .aHeader {
+.thread-opened div.attachments .aHeader {
 	background-color:#e0f0e0;
 }
 
-.thread-opened TABLE.listTable>TBODY>TR>TD {
+.thread-opened table.listTable>tbody>tr>td {
 	border:solid 1px green !important;
 }
 
@@ -590,7 +691,7 @@ table.mc-header a {
 	border-radius:3px;
 }
 
-LEGEND IMG {
+legend img {
 	vertical-align:middle; 
 }
 
@@ -881,6 +982,7 @@ fieldset.sharing-history i {
 .cms-last {
 	margin-right: 0px;
 }
+
 
 
 @media handheld, only screen and (max-width: 1000px) {

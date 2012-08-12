@@ -453,7 +453,7 @@ class crm_Companies extends core_Master
     {
         $mvc = $this;
         
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit', 'maxTabsNarrow' => 1000));
         
         $alpha = Request::get('alpha');
         

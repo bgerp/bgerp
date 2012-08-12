@@ -458,7 +458,7 @@ class crm_Persons extends core_Master
      */
     function renderWrapping_($tpl, $data = NULL)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit', 'maxTabsNarrow' => 1000));
 
         $alpha = Request::get('alpha');
 
