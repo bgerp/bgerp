@@ -204,7 +204,10 @@ class log_Documents extends core_Manager
          */
         
         if (static::save($rec)) {
-            static::getAction()->id = $rec->id;
+			// Milen: Това какво прави? Супер неясно глобално предаване на параметри!!!
+			if(static::getAction()) {
+				static::getAction()->id = $rec->id;
+			}
             
             return $rec->mid;
         }
