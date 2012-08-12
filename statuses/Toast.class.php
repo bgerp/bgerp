@@ -157,7 +157,7 @@ class statuses_Toast extends core_Plugin
                                 stayTime        : 10000,
                                 inEffectDuration: 1800,
                                 type            : type,
-                    			position        :'bottom-right',
+                    			position        :'bottom-right'
                             });
                             
                         });

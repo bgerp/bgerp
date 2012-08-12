@@ -225,33 +225,33 @@ class thumbnail_Thumbnail extends core_Manager {
      * $quality is only used for jpegs.
      * Author: mthorn.net
      */
-    function saveImage($im, $fileName, $quality = 90)
+    static function saveImage($im, $fileName, $quality = 90)
     {
         if (!$im || file_exists($fileName)) {
             return false;
         }
         
-        $ext = strtolower(mb_substr($fileName, mb_strrpos($fileName, '.')));
-        
+        $ext = fileman_Files::getExt($fileName);
+      
         switch ($ext) {
-            case '.gif' :
-                imagegif($im, $fileName);
+            case 'gif' :
+                $res = imagegif($im, $fileName);
                 break;
-            case '.jpg' :
-            case '.jpeg' :
-                imagejpeg($im, $fileName, $quality);
+            case 'jpg' :
+            case 'jpeg' :
+                $res = imagejpeg($im, $fileName, $quality);
                 break;
-            case '.png' :
-                imagepng($im, $fileName);
+            case 'png' :
+                $res = imagepng($im, $fileName);
                 break;
-            case '.bmp' :
-                imagewbmp($im, $fileName);
+            case 'bmp' :
+                $res = imagewbmp($im, $fileName);
                 break;
             default :
-            return false;
+            $res = FALSE;
         }
-        
-        return true;
+
+        return $res;
     }
     
     
@@ -275,7 +275,7 @@ class thumbnail_Thumbnail extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function fastimagecopyresampled(&$dst_image, $src_image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h, $quality = 3)
+    static function fastimagecopyresampled(&$dst_image, $src_image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h, $quality = 3)
     {
         // Plug-and-Play fastimagecopyresampled function replaces much slower imagecopyresampled.
         // Just include this function and change all "imagecopyresampled" references to "fastimagecopyresampled".

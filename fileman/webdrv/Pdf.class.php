@@ -32,9 +32,12 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         
         $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), TRUE);
         
-        $tabsArr['barcodes']->title = 'Баркодове';
-        $tabsArr['barcodes']->html = "<div> <iframe src='{$barcodeUrl}' class='webdrvIframe'> </iframe> </div>";
-        $tabsArr['barcodes']->order = 3;
+        $tabsArr['barcodes'] = (object) 
+			array(
+				'title' => 'Баркодове',
+				'html'  => "<div> <iframe src='{$barcodeUrl}' class='webdrvIframe'> </iframe> </div>",
+				'order' => 3,
+			);
 
         return $tabsArr;
     }
@@ -165,9 +168,9 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * 
      * @access protected
      */
-    static function afterConvertToJpg($script)
+    static function afterConvertToJpg($script, &$fileHndArr=array())
     {
-        // Извикваме родутелския метод
+        // Извикваме родiтелския метод
         if (parent::afterConvertToJpg($script, $fileHndArr)) {
 
             // Това е нужно за да вземем всички баркодове

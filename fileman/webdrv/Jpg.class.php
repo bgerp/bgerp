@@ -31,6 +31,7 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
         
         $barcodeUrl = toUrl(array('fileman_webdrv_Jpg', 'barcodes', $fRec->fileHnd), TRUE);
         
+		$tabsArr['barcodes'] = new stdClass();
         $tabsArr['barcodes']->title = 'Баркодове';
         $tabsArr['barcodes']->html = "<div> <iframe src='{$barcodeUrl}' class='webdrvIframe'> </iframe> </div>";
         $tabsArr['barcodes']->order = 3;
@@ -44,7 +45,7 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
      * 
      * @param object $fRec - Записите за файла
      */
-    static function convertToJpg($fRec)
+    static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
     {
         // Параметри необходими за конвертирането
         $params = array(

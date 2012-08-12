@@ -34,25 +34,35 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $previewUrl = toUrl(array('fileman_webdrv_Pdf', 'preview', $fRec->fileHnd), TRUE);
         
         // Таб за преглед
-        $tabsArr['preview']->title = 'Преглед';
-        $tabsArr['preview']->html = "<div> <iframe src='{$previewUrl}' class='webdrvIframe'> </iframe> </div>";
-        $tabsArr['preview']->order = 1;
+		$tabsArr['preview'] = (object) 
+			array(
+				'title'   => 'Преглед',
+				'html'    => "<div> <iframe src='{$previewUrl}' class='webdrvIframe'> </iframe> </div>",
+				'preview' => 1,
+			);
         
         // URL за показване на текстовата част на файловете
         $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
         
         // Таб за текстовата част
-        $tabsArr['text']->title = 'Текст';
-        $tabsArr['text']->html = "<div> <iframe src='{$textPart}' class='webdrvIframe'> </iframe> </div>";
-        $tabsArr['text']->order = 2;
+        $tabsArr['text'] = (object) 
+			array(
+				'title' => 'Текст',
+				'html'  => "<div> <iframe src='{$textPart}' class='webdrvIframe'> </iframe> </div>",
+				'order' => 2,
+			);
         
         // URL за показване на информация за файла
         $infoUrl = toUrl(array('fileman_webdrv_Pdf', 'info', $fRec->fileHnd), TRUE);
         
         // Таб за информация
-        $tabsArr['info']->title = 'Информация';
-        $tabsArr['info']->html = "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>";
-        $tabsArr['info']->order = 4;
+        $tabsArr['info'] = (object) 
+			array(
+				'title' => 'Информация',
+				'html'  => "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>",
+				'order' => 4,
+			);
+
 
         return $tabsArr;
     }

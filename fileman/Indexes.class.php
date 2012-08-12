@@ -114,15 +114,17 @@ class fileman_Indexes extends core_Manager
     {
         // Масив с всички табове
         $tabsArr = $data->tabs;
-        
+
+        if(! count($data->tabs)) return FALSE;
+
         // Подреждаме масивити според order
         $tabsArr = static::orderTabs($tabsArr);
         
         // Текущия таб, ако не е зададен или ако няма такъв е първия
-        $currentTab = $tabsArr[$data->currentTab] ? $data->currentTab : array_shift(array_keys($tabsArr));
+        $currentTab = $tabsArr[$data->currentTab] ? $data->currentTab : key($tabsArr);
 
         // Създаваме рендер на табове
-        $tabs = CLS::get('core_Tabs');
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
         
         // Обикаляме всички табове
         foreach($data->tabs as $name => $rec) {
@@ -142,6 +144,8 @@ class fileman_Indexes extends core_Manager
         
         // Рендираме съдържанието на таба
         $tpl = $tabs->renderHtml($body, $currentTab);
+		
+		$tpl->prepend("<br>");
 
         return $tpl;
     }

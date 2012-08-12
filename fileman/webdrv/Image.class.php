@@ -34,6 +34,8 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $previewUrl = toUrl(array('fileman_webdrv_Pdf', 'preview', $fRec->fileHnd), TRUE);
         
         // Таб за преглед
+		$tabsArr = array();
+		$tabsArr['preview'] = new stdClass();
         $tabsArr['preview']->title = 'Преглед';
         $tabsArr['preview']->html = "<div> <iframe src='{$previewUrl}' class='webdrvIframe'> </iframe> </div>";
         $tabsArr['preview']->order = 1;
@@ -42,6 +44,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
         
         // Таб за текстовата част
+		$tabsArr['text'] = new stdClass();
         $tabsArr['text']->title = 'Текст';
         $tabsArr['text']->html = "<div> <iframe src='{$textPart}' class='webdrvIframe'> </iframe> </div>";
         $tabsArr['text']->order = 2;
@@ -50,6 +53,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $infoUrl = toUrl(array('fileman_webdrv_Pdf', 'info', $fRec->fileHnd), TRUE);
         
         // Таб за информация
+		$tabsArr['info'] = new stdClass();
         $tabsArr['info']->title = 'Информация';
         $tabsArr['info']->html = "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>";
         $tabsArr['info']->order = 4;
@@ -159,7 +163,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      * 
      * @param object $fRec - Записите за файла
      */
-    static function convertToJpg($fRec, $callBack='fileman_webdrv_Image::afterConvertToJpg')
+    static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
     {
         // Параметри необходими за конвертирането
         $params = array(

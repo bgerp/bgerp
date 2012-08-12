@@ -69,6 +69,10 @@ class permanent_Data extends core_Manager {
         
         $rec = permanent_Data::fetch("#key = '{$key}'");
         
+		if(!$rec) {
+			$rec = new stdClass();
+		}
+
         $rec->key = $key;
         
         if (is_object($data) || is_array($data)) {

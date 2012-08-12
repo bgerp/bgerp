@@ -451,7 +451,9 @@ class fileman_Files extends core_Master
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
         try {
-            $row->name = $mvc->Download->getDownloadLink($rec->fileHnd);
+		
+			$row->name = $mvc->Download->getDownloadLink($rec->fileHnd);
+		
         } catch(core_Exception_Expect $e) {
              
         }
@@ -701,7 +703,7 @@ class fileman_Files extends core_Master
             // Тук парсираме писмото и проверяваме дали не е системно
             $mime = new email_Mime();
             
-            $emlRec = $mime->getEmail(self::getContent($data->rec->fileHnd));
+            expect($emlRec = $mime->getEmail(self::getContent($data->rec->fileHnd)));
             $emlRec->textPart = str_replace("\n\n\n", "\n\n", $emlRec->textPart);
             $richText = new type_Richtext();
 
@@ -719,12 +721,12 @@ class fileman_Files extends core_Master
     static function getExt($name)
     {
         if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
-            $ext = mb_substr($name, $dotPos + 1);
+            $ext =  mb_strtolower(mb_substr($name, $dotPos + 1));
         } else {
             $ext = '';
         }
         
-        return strtolower($ext);
+        return $ext;
     }
 
     

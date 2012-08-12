@@ -324,6 +324,9 @@ class fileman_Download extends core_Manager {
         //Проверяваме дали сме отркили записа
         if(!$fRec) return FALSE;
         
+		// Дали файла го има? Ако го няма, вместо линк, връщаме името му
+		$path = fileman_Files::fetchByFh($fh, 'path');
+
         //Името на файла
         $name = $fRec->name;
         
@@ -344,13 +347,13 @@ class fileman_Download extends core_Manager {
         //Атрибути на линка
         $attr['class'] = 'linkWithIcon';
 //        $attr['target'] = '_blank';
-        $attr['style'] = 'background-image:url(' . sbf($icon, '"', $isAbsolute) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($icon, "'", $isAbsolute) . ');';
         
         //Инстанция на класа
         $FileSize = cls::get('fileman_FileSize');
         
         //Ако имаме права за сваляне на файла
-        if (fileman_Files::haveRightFor('download', $fRec) && ($fRec->dataId)) {
+        if (fileman_Files::haveRightFor('download', $fRec) && ($fRec->dataId) && file_exists($path)) {
             
             //Големината на файла в байтове
             $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
@@ -373,15 +376,19 @@ class fileman_Download extends core_Manager {
                 $size =  str_ireplace('&nbsp;', ' ', $size);
                 
                 //Добавяме към атрибута на линка информация за размера
-                $attr['title'] = tr("|Размер:|* {$size}");    
+                $attr['title'] = tr("|Размер:|* {$size}");
+				
             }
             
             //Генерираме връзката 
             $url  = toUrl(array('fileman_Files', 'Single', $fh), $isAbsolute);
             $link = ht::createLink($name, $url, NULL, $attr);
         } else {
+			if(!file_exists($path)) {
+				$attr['style'] .= ' color:red;';
+			}
             //Генерираме името с иконата
-            $link = "<span class='linkWithIcon' style=" . $attr['style'] . "> {$name} </span>";
+            $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$name} </span>";
         }
 
         $ext = fileman_Files::getExt($fRec->name);
