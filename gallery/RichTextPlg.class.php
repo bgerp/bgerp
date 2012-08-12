@@ -29,6 +29,8 @@ class gallery_RichTextPlg extends core_Plugin
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         // Обработваме елементите [images=????]  
         $html = preg_replace_callback("/\[img(=\#([^\]]*)|)\]\s*/si", array($this, 'catchImages'), $html);
+
+		
     }
     
     
@@ -43,9 +45,10 @@ class gallery_RichTextPlg extends core_Plugin
     {
         $vid = $match[2];
         
+		
         $imgRec = gallery_Images::fetch(array("#vid = '[#1#]'", $vid));
         
-        if(!$imageRec) return "[img=#{$vid}]";
+        if(!$imgRec) return "[img=#{$vid}]";
 
         $groupRec =  gallery_Groups::fetch($imgRec->groupId);
         
