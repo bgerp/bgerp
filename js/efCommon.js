@@ -209,7 +209,7 @@ function comboBoxInit(id, suffix)
 	selCombo.style.width = (width + 0) + 'px'; 
 	txtCombo.style.width = (width -  arrow + 2) + 'px';
 	txtCombo.style.marginRight = (arrow+2) + 'px';
-	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow) + 'px)';
+	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow - 3) + 'px)';
 	txtCombo.style.paddingRight = '2px';
 
 	if(txtCombo.offsetHeight != selCombo.offsetHeight) {
