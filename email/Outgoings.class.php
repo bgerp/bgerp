@@ -527,7 +527,7 @@ class email_Outgoings extends core_Master
             
             $fromEmailOptions = email_Inboxes::getFromEmailOptions($rec->folderId);
             
-            $boxFromId = $fromEmailOptions[key($array)];
+            $boxFromId = $fromEmailOptions[key($fromEmailOptions)];
             
             $options = (object)array(
                 'boxFrom'  => $boxFromId,
