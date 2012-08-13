@@ -219,7 +219,7 @@ if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
 @include EF_CONF_PATH . '/_common.cfg.php';
 
 // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
-//ob_clean();
+ob_clean();
 
 // PHP5.4 bugFix
 ini_set('zlib.output_compression', 'Off');
