@@ -134,7 +134,9 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         }
         
         $state['RPM'] = round(($state['InA1']/4.2)*100);
-        $state['P'] = (($state['InA2'] - 1)/0.2)*0.5;
+        if ($state['InA2'] >= 1) {
+        	$state['P'] = (($state['InA2'] - 1)/0.2)*0.5;
+        }
         
         $this->stateArr = $state;
         
