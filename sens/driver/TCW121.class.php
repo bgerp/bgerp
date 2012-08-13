@@ -30,7 +30,8 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         'InA1' => array('unit'=>'InA1', 'param'=>'Аналогов вход 1', 'details'=>'V', 'xmlPath'=>'/Entry[3]/Value[1]'),
         'InA2' => array('unit'=>'InA2', 'param'=>'Аналогов вход 2', 'details'=>'V', 'xmlPath'=>'/Entry[4]/Value[1]'),
         'RPM' => array('unit'=>'RPM', 'param'=>'Удари в минута', 'details'=>'rpm'),
-    	// Oписваме и изходите за да можем да ги следим в логовете
+        'P' => array('unit'=>'P', 'param'=>'Налягане', 'details'=>'BAR'),
+    // Oписваме и изходите за да можем да ги следим в логовете
         'Out1' => array('unit'=>'Out1', 'param'=>'Състояние изход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[9]/Value[1]'),
         'Out2' => array('unit'=>'Out2', 'param'=>'Състояние изход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[10]/Value[1]')
     
@@ -133,6 +134,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         }
         
         $state['RPM'] = round(($state['InA1']/4.2)*100);
+        $state['P'] = (($state['InA2'] - 1)/0.2)*0.5;
         
         $this->stateArr = $state;
         
