@@ -530,9 +530,12 @@ class log_Documents extends core_Manager
                 $actionVerbal = $wordings[$action][intval($count > 1)];
             }
             
+            $tab = in_array($action, array(static::ACTION_PRINT, static::ACTION_PDF)) ?
+                static::ACTION_PRINT : static::ACTION_SEND;
+            
             $link = ht::createLink(
                 "<b>{$count}</b> <span>{$actionVerbal}</span>", 
-                array(get_called_class(), 'list', 'containerId'=>$data->containerId)
+                array(get_called_class(), 'list', 'containerId'=>$data->containerId, 'action' => $tab)
             );
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
