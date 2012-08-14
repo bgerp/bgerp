@@ -196,9 +196,16 @@ class plg_Select extends core_Plugin
         $url = toUrl(array($mvc, 'DoWithSelected'));
         
         $tpl->prepend("\n<form action='{$url}' 1method='post'>\n");
-        
-        $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-with-selected,id=with_selected');
     }
+
+
+	/**
+	 * Добавя бутон "С избраните"
+	 */
+	function on_AfterPrepareListToolbar($mvc, $data)
+	{
+	    $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-with-selected,id=with_selected', array('order' => 11));
+	}
     
     
     /**
