@@ -67,8 +67,8 @@ class crm_Persons extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_LastUsedKeys, plg_Select,
-                     crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext, plg_Rejected, plg_State,
+    var $loadList = 'plg_Created, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
+                     crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,  plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Importer, groups_Extendable';
 
@@ -311,8 +311,6 @@ class crm_Persons extends core_Master
                 $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd,class=btn-add');
             }
         }
-
-        $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport,class=btn-import');
     }
 
 
@@ -489,7 +487,7 @@ class crm_Persons extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
         $row->numb = $rec->id;
 
