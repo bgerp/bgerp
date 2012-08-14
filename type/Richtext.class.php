@@ -122,10 +122,9 @@ class type_Richtext extends type_Text {
         
         $md5 = md5($html) . $textMode;
 
-        //if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
-            
-            //    return $ret;
-        //}
+        // if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
+        //     return $ret;
+        // }
         
         // Място, където съхраняваме нещата за субституция
         $this->_htmlBoard = array();
