@@ -108,6 +108,9 @@ class bgerp_Notifications extends core_Manager
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
+        if(empty($userId)) {
+            return;
+        }
         $url = toUrl($urlArr, 'local');
         $query = bgerp_Notifications::getQuery();
         

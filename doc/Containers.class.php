@@ -412,7 +412,8 @@ class doc_Containers extends core_Manager
             $rec = $id;
         }
         
-        expect($rec, $id);
+        expect($rec->docClass);
+        expect($rec->docId);
         
         return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
     }
