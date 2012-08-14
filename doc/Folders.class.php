@@ -531,7 +531,7 @@ class doc_Folders extends core_Master
      * Ако има дефинирана 'корпоративна' сметка за имейли, то папката е корпоративната имейл-кутия на потребителя
      * В противен случай, се връща куп със заглавие 'Документите на {Names}'
      */
-    function getDefaultFolder($userId = NULL)
+    static function getDefaultFolder($userId = NULL)
     {   
         if(!$userId) {
             $names = core_Users::getCurrent('names');
