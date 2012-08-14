@@ -80,22 +80,14 @@ class plg_Rejected extends core_Plugin
         } else {
             $data->toolbar->addBtn('Кош', array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
         }
-    }
-    
-    
-    /**
-     * Добавя към титлата на списъчния изглед "[оттеглени]"
-     */
-    function on_AfterPrepareListTitle($mvc, &$res, $data)
-    {
         if(Request::get('Rejected')) {
-            $data->title = new ET('[#1#]', tr($data->title));
-            $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>");
-        }
+            $data->title = new ET('[#1#]', tr($data->title ? $data->title : $mvc->title));
+            $data->title->append("&nbsp;<font class='state-rejected stateIndicator'>&nbsp;" . tr('оттеглени') . "&nbsp;</font>");
+        } 
     }
-    
-    
-    /**
+
+
+	/**
      * Смяна статута на 'rejected'
      *
      * @return core_Redirect
