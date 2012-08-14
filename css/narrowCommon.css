@@ -234,6 +234,11 @@ form {
 .formSection {
     padding:2px;
     color:black;
+    background-color:#ffe;
+	background-image:url('../img/yellow.png');
+    vertical-align:top;
+}
+
 }
 
 .formToolbar {
