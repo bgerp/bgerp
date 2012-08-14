@@ -708,7 +708,17 @@ class core_Url
      */
     static function isLocal($url)
     {
-        return (strpos($url, getBoot(TRUE)) === 0);
+		$httpBoot = getBoot(TRUE);
+
+		$app = Request::get('App');
+		
+		if (EF_APP_NAME_FIXED !== TRUE) {
+            $httpBoot .= '/' . ($app ? $app : EF_APP_NAME);
+        }
+
+		$httpsBoot = str_replace("http://", "https://", $httpBoot);
+
+        return (strpos($url, $httpBoot) === 0 || strpos($url, $httpsBoot) === 0);
     }
 
 }
