@@ -325,7 +325,7 @@ class legalact_Acts extends core_Master
                     } elseif (is_file($file)) {
                         $files['files'][] = str_replace('\\', '/', str_replace($root, "", $file));
 
-                        if(count($files['files']) > 1000) return $files;
+                        // if(count($files['files']) > 1000) return $files;
                     }
                 }
                 closedir($handle);
