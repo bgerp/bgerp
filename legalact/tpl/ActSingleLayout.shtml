@@ -1,0 +1,23 @@
+[#SingleToolbar#]
+<!-- BEGIN container -->
+<div class='document'>
+
+            <h3>[#actKind#] на [#court#] <!--ET_BEGIN actNumber-->[#actNumber#]/<!--ET_END actNumber-->[#actYear#] г.</h3>
+			<!--ET_BEGIN caseKind--><div>По [#caseKind#]
+						<!--ET_BEGIN caseNumber-->[#caseNumber#]/<!--ET_END caseNumber-->[#startDate#] г.
+			</div><!--ET_END caseKind-->
+			<!--ET_BEGIN judge--><div>Съдия: [#judge#]</div><!--ET_END judge-->			
+			
+			<!--ET_BEGIN legalDate--><div class='legalDate'>Даден ход на [#legalDate#]</div><!--ET_END legalDate-->
+
+
+			
+			<!--ET_BEGIN actTextPath--><div style='margin-top:15px;'>Съдебен акт:</div> 
+			<div style='border: solid 1px #ccc; padding:10px;margin-top:10px;'>[#actTextPath#]</div><!--ET_END actTextPath-->
+		 
+			<!--ET_BEGIN motiveTextPath-->
+			<div class='motive' style='margin-top:15px;'>Мотиви [#motiveDate#]</div>
+			<div style='border: solid 1px #ccc; padding:10px;margin-top:10px;'>
+			[#motiveTextPath#]
+			</div><!--ET_END motiveTextPath-->
+</div>
