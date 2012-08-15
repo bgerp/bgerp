@@ -216,7 +216,7 @@ class legalact_Acts extends core_Master
         $searchKeywords =  implode(' ', array_keys(array_flip(explode(' ', $searchKeywords))));
 
         $searchKeywords = $rec->actNumber . '/' . $rec->actYear . ' ' . $searchKeywords;
-bp($text, $searchKeywords);
+
         return $searchKeywords;
     }
     
@@ -233,7 +233,7 @@ bp($text, $searchKeywords);
 
     
     /**
-	 * 
+	 * Импортиране съдържанието на файловете
 	 */
 	function act_Import()
 	{
@@ -247,9 +247,7 @@ bp($text, $searchKeywords);
         
         core_Debug::$isLogging = FALSE;
 
-       // $dirContent = $this->readAllFiles($root);
-
-       $dirContent['files'][] = '2012/07/2329411_a.txt';
+        $dirContent = $this->readAllFiles($root);
 
  		foreach($dirContent['files'] as $i => $fn)
         {
@@ -327,7 +325,7 @@ bp($text, $searchKeywords);
                     } elseif (is_file($file)) {
                         $files['files'][] = str_replace('\\', '/', str_replace($root, "", $file));
 
-                       // if(count($files['files']) > 10000) return $files;
+                        if(count($files['files']) > 1000) return $files;
                     }
                 }
                 closedir($handle);
