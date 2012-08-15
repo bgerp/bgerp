@@ -237,6 +237,8 @@ class legalact_Acts extends core_Master
 	 */
 	function act_Import()
 	{
+        requireRole('admin');
+
         $cfg = core_Packs::getConfig('legalact');
 
 		$root = $cfg->LEGALACT_DOCS_ROOT;
