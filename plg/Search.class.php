@@ -39,7 +39,17 @@ class plg_Search extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec)
     {
-        $rec->searchKeywords = static::getKeywords($mvc, $rec);
+        $rec->searchKeywords = $mvc->getSearchKeywords($rec);
+    }
+    
+    /**
+     * @todo Чака за документация...
+     */
+    static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        if($searchKeywords) return;
+        
+        $searchKeywords = self::getKeywords($mvc, $rec);
     }
     
     /**
@@ -53,13 +63,17 @@ class plg_Search extends core_Plugin
             $fieldsArr = $mvc->selectFields("", $mvc->searchFields);
             
             foreach($fieldsArr as $field => $fieldObj) {
-                $searchKeywords .= ' ' . static::normalizeText(strip_tags($mvc->getVerbal($rec, $field)));
+                if(get_class($fieldObj->type) == 'type_Text') {
+                    $searchKeywords .= ' ' . static::normalizeText($rec->{$field});
+                } else {
+                    $searchKeywords .= ' ' . static::normalizeText(strip_tags($mvc->getVerbal($rec, $field)));
+                }
             }
         }
         
         return $searchKeywords;
     }
-    
+
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -142,9 +156,10 @@ class plg_Search extends core_Plugin
     static function normalizeText($str)
     {
         $str = str::utf2ascii($str);
+        
         $str = strtolower($str);
         $str = preg_replace('/[^a-zа-я0-9]+/', ' ', " {$str} ");
-        
+
         return trim($str);
     }
     
