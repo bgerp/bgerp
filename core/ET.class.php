@@ -507,7 +507,7 @@ class core_ET extends core_BaseClass
     function sub($content, $placeHolder, $once, $mode, $global = TRUE)
     {
         
-        if ($content === NULL) return;
+        if ($content === NULL) return $this;
         
         if ($once) {
             if ($content instanceof core_Et) {
@@ -520,7 +520,7 @@ class core_ET extends core_BaseClass
             
             if ($this->once[$md5]) {
                 
-                return  FALSE;
+                return $this;
             }
         }
         
@@ -577,6 +577,8 @@ class core_ET extends core_BaseClass
                 }
             }
         }
+
+        return $this;
     }
     
     
@@ -693,6 +695,8 @@ class core_ET extends core_BaseClass
                 $empty->replace2master();
             }
         }
+
+        return $this;
     }
     
     
@@ -731,6 +735,8 @@ class core_ET extends core_BaseClass
         if ($holderBlock) {
             $tpl->replace2master();
         }
+
+        return $this;
     }
     
     
@@ -741,6 +747,8 @@ class core_ET extends core_BaseClass
     function placeObject($data, $holderBlock = NULL, $prefix = NULL)
     {
         $this->placeArray($data, $holderBlock, $prefix);
+
+        return $this;
     }
     
     
