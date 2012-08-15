@@ -17,10 +17,19 @@
 class core_Debug
 {
 	static $startMicroTime;
+
 	static $lastMicroTime;
+
     static $debugTime = array();
+
     static $timers = array();
     
+    /**
+     * Дали дебъгера да записва
+     * Това е един начин, да се изключат логовете на дебъгера
+     */
+    static $isLogging = TRUE;
+
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
@@ -80,7 +89,7 @@ class core_Debug
     static function log($name)
     {
         // Функцията работи само в режим DEBUG
-        if(!isDebug()) return;
+        if(!isDebug() || !core_Debug::$isLogging) return;
 
         self::init();
         
