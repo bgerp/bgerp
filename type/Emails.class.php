@@ -79,7 +79,7 @@ class type_Emails extends type_Varchar {
         if (empty($str)) return NULL;
         
         //Вземаме всички имейли
-        $emails = self::splitEmails($str);
+        $emails = self::toArray($str);
         
         //Инстанция към type_Email
         $TypeEmail = cls::get('type_Email');
@@ -107,24 +107,9 @@ class type_Emails extends type_Varchar {
     static function toArray($str)
     {
         //Масив с всички имейли
-        $emailsArr = self::splitEmails($str);
-        
-        return $emailsArr;
-    }
-    
-    
-    /**
-     * Разделяме имейлите в масив
-     */
-    static function splitEmails($str)
-    {
-        //Всички имейли в малък регистър
-        //$str = strtolower($str);  
-        
-        //Масив с всикчи имейли
         $emailsArr = preg_split(self::$pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
-        
-        return  $emailsArr;
+                
+        return $emailsArr;
     }
     
     
@@ -134,7 +119,7 @@ class type_Emails extends type_Varchar {
     static function getInvalidEmails($str) {
         
         //Масив с всички имейли
-        $emailsArr = self::splitEmails($str);
+        $emailsArr = self::toArray($str);
         
         //Невалидни имейли
         $invalidEmailsArr = array(); 
