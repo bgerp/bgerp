@@ -253,9 +253,8 @@ class email_Incomings extends core_Master
             // Получаваме броя на писмата в INBOX папката
             $numMsg = $imapConn->getStatistic('messages');
             
-
             $start = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
-
+            
             if($start > 0) {
             
                 // Правим цикъл по всички съобщения в пощенската кутия
@@ -343,7 +342,7 @@ class email_Incomings extends core_Master
             // Махаме заключването от кутията
             core_Locks::release($lockKey);
             
-            $msg = "Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
+            $msg = "Total: {$numMsg}, Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
             $logMsg .= $msg;
             $htmlRes .= $msg;
         }
@@ -358,13 +357,15 @@ class email_Incomings extends core_Master
     function getFirstUnreadMsgNo($imapConn, $maxMsgNo)
     {
         // Няма никакви съобщения за сваляне?
-        if(!$maxMsgNo) {
+        if(!($maxMsgNo > 0)) {
             return NULL;
         }
-
-        $query = self::getQuery();
-        $query->XPR('maxUid', 'int', 'max(#uid)');
-        $maxRec = $query->fetch("#accId = {$imapConn->accRec->id}");
+        
+        if($imapConn->accRec->protocol == 'imap') {
+            $query = self::getQuery();
+            $query->XPR('maxUid', 'int', 'max(#uid)');
+            $maxRec = $query->fetch("#accId = {$imapConn->accRec->id}");
+        }
 
         if(!$maxRec->maxUid) {
             
@@ -374,7 +375,7 @@ class email_Incomings extends core_Master
             $i = 1;
             
             // Долен указател
-            $b = $maxMsgNo - $i;
+            $b = max(1, $maxMsgNo - $i);
             
             $isDownT = $this->isDownloaded($imapConn, $t);
 
@@ -385,15 +386,15 @@ class email_Incomings extends core_Master
 
             $isDownB = $this->isDownloaded($imapConn, $b);
 
-
             do {
-                
-                $i = $i * 2;
-
                 // Ако и двете не са свалени; Изпълнява се няколко пъти последователно в началото
                 if(!$isDownB && !$isDownT) {
+                    if($t == $b) {
+                        return $t;
+                    }
                     $t = $b;
-                    $b = $maxMsgNo - $i;
+                    $i = $i * 2;
+                    $b = max(1, $maxMsgNo - $i);
                     $isDownB = $this->isDownloaded($imapConn, $b);
                 } elseif($isDownB && !$isDownT) {
                     // Условие, при което $t е първото не-свалено писмо
@@ -409,8 +410,14 @@ class email_Incomings extends core_Master
                         $t = $m;
                     }
                 }
+
+                $change = ($t != $tLast || $b != $bLast);
+
+                $tLast = $t;
+
+                $bLast = $b;
                 
-            } while($i < 500000);
+            } while($change);
 
         } else {
             $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid) + 1;
