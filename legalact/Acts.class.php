@@ -34,7 +34,7 @@ class legalact_Acts extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin,legalact';
+    var $canRead = 'ceo,admin,legal';
     
     
     /**
@@ -46,12 +46,6 @@ class legalact_Acts extends core_Master
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'legalact/tpl/ActSingleLayout.shtml';    
-
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'ceo,admin,legalact';
     
 	var $listFields = 'act=Акт,case=Дело,motiveDate=,highCourt=Висш съд,caseKind=,caseNumber=,
         startDate=,judge=,legalDate=,actKind=,actNumber=,actYear=,court=,typeOfDocument=,yearHigherCourt=,

@@ -27,8 +27,8 @@ class legalact_Wrapper extends plg_ProtoWrapper
     {
        
         
-        $this->TAB('legalact_Acts', 'Актове', 'ceo,admin,legalact');
+        $this->TAB('legalact_Acts', 'Актове', 'ceo,admin,legal');
          
-        $this->title = 'Актове « Счетоводство';
+        $this->title = 'Актове « Производство';
     }
 }
