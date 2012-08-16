@@ -166,5 +166,18 @@ class bgerp_plg_Importer extends core_Plugin
     function on_AfterPrepareImportToolbar($mvc, &$res, $data)
     {
     }
+    
+	
+	/**
+     * Добавяне на бутон за Импорт
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport,class=btn-import', array('order' => 19));
+    }
 
 }

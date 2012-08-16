@@ -408,6 +408,10 @@ a img {
 	background-image:url('../img/16/comment_add.png');
 }
 
+.btn-export  {
+	background-image:url('../img/16/table_export.png');
+}
+
 .btn-fax  {
 	background-image:url('../img/16/fax.png');
 }
@@ -1081,7 +1085,7 @@ div.attachments .aHeader {
 	background-color:#e0f0e0;
 }
 
-div.attachments a {
+div.attachments a,  div.attachments span{
 	display:block;
 	margin-bottom:2px;
 }
