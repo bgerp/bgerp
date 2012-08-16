@@ -931,7 +931,7 @@ class crm_Persons extends core_Master
 
             // Нормализираме параметъра $emails - да стане масив от имейл адреси
         if (!is_array($emails)) {
-            $emails = type_Emails::splitEmails($emails);
+            $emails = type_Emails::toArray($emails);
         }
 
         foreach ($emails as $email) {

@@ -651,9 +651,9 @@ class crm_Companies extends core_Master
         // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
         $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
 
-        // Нормализираме параметъра $emails - да стане масив от имейл адреси
+        // Нормализираме параметъра $emails - да стане масив от валидни имейл адреси
         if (!is_array($emails)) {
-            $emails = type_Emails::splitEmails($emails);
+            $emails = type_Emails::toArray($emails);
         }
         
         foreach ($emails as $email) {
