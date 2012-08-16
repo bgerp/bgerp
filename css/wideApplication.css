@@ -1178,6 +1178,11 @@ ul.history .action.open b {
 	color: #333;
 }
 
+ul.history .action.pdf b {
+    background-color:#888;
+	color: #fff;
+}
+
 ul.history .detailed b {
     background-color:#ccc;
 }

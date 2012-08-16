@@ -18,8 +18,17 @@
  *                                                                           *
  *****************************************************************************/ 
 
-// Името на приложението. Използва се за определяне на други константи
-   defIfNot('EF_APP_NAME', '[#EF_APP_NAME#]');
+/*****************************************************************************
+ *                                                                           *
+ * Параметри за връзка с базата данни                                        *
+ *                                                                           *
+ *****************************************************************************/ 
+
+// Сървъра за на базата данни
+   defIfNot('EF_DB_HOST', 'localhost');
+ 
+// Кодировка на базата данни
+   defIfNot('EF_DB_CHARSET', 'utf8');
 
 // Име на базата данни. По подразбиране е същото, като името на приложението
    defIfNot('EF_DB_NAME', '[#EF_DB_NAME#]');
@@ -40,34 +49,30 @@
 // "Подправка" за кодиране на паролите
    defIfNot('EF_USERS_PASS_SALT', '[#EF_USERS_PASS_SALT#]');
    
-// Имейла по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
+// Името на приложението. Използва се за определяне на други константи
+   defIfNot('EF_APP_NAME', '[#EF_APP_NAME#]');
+
+
+// Вербално заглавие на приложението
+   defIfNot('EF_APP_TITLE', '[#EF_APP_TITLE#]');
+   
+   // Имейла по подразбиране
+// defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
 
 // Домейн  по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', '[#BGERP_DEFAULT_EMAIL_DOMAIN#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', '[#BGERP_DEFAULT_EMAIL_DOMAIN#]');
 
 // Пощенска кутия по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_USER', '[#BGERP_DEFAULT_EMAIL_USER#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_USER', '[#BGERP_DEFAULT_EMAIL_USER#]');
 
 // Хост по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_HOST', '[#BGERP_DEFAULT_EMAIL_HOST#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_HOST', '[#BGERP_DEFAULT_EMAIL_HOST#]');
 
 // Парола по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '[#BGERP_DEFAULT_EMAIL_PASSWORD#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '[#BGERP_DEFAULT_EMAIL_PASSWORD#]');
    
 
 
-/*****************************************************************************
- *                                                                           *
- * Параметри за връзка с базата данни                                        *
- *                                                                           *
- *****************************************************************************/ 
-
-// Сървъра за на базата данни
-   defIfNot('EF_DB_HOST', 'localhost');
- 
-// Кодировка на базата данни
-   defIfNot('EF_DB_CHARSET', 'utf8');
 
 /*****************************************************************************
  *                                                                           *

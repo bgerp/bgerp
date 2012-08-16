@@ -530,7 +530,7 @@ class log_Documents extends core_Manager
                 $actionVerbal = $wordings[$action][intval($count > 1)];
             }
             
-            $tab = in_array($action, array(static::ACTION_PRINT, static::ACTION_PDF)) ?
+            $tab = in_array($action, array(static::ACTION_PRINT, static::ACTION_PDF, static::ACTION_OPEN)) ?
                 static::ACTION_PRINT : static::ACTION_SEND;
             
             $link = ht::createLink(

@@ -186,7 +186,7 @@ class bgerp_L extends core_Manager
             
         // Няма достъп по MID - липсва или е невалиден
         // Пренасочваме към документа и оставяме контрола на достъпа на документната система 
-        redirect($docUrl);
+        requireRole('user');
     }
 
 

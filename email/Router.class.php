@@ -205,6 +205,10 @@ class email_Router extends core_Manager
         
         $keys = array();
         
+        // Нормализация на имейлите - само малки букви
+        $fromEmail = strtolower($fromEmail);
+        $toEmail   = strtolower($toEmail);
+        
         if ($type[self::RuleFromTo]) {
             $keys[self::RuleFromTo] = str::convertToFixedKey($fromEmail . '|' . $toEmail);
         }
