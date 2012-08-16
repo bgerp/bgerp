@@ -209,6 +209,10 @@ class doc_Containers extends core_Manager
             $row->ROW_ATTR['id'] = $document->getHandle();
             $row->document = $document->renderDocument($data);
             
+            if($q = Request::get('Q')) {
+                $row->document = plg_Search::highlight($row->document, $q);
+            }
+
             $row->created = str::limitLen($docRow->author, 32);
         } else {
             if(isDebug()) {

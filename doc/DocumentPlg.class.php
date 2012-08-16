@@ -400,7 +400,7 @@ class doc_DocumentPlg extends core_Plugin
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     $hnd = $mvc->getHandle($rec->id);
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, '#' => $hnd);
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, 'Q' => Request::get('Q'), '#' => $hnd);
                     
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;
@@ -553,10 +553,14 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Връща линк към документа
      */
-    function on_AfterGetLink($mvc, &$link, $id, $maxLength = FALSE)
+    function on_AfterGetLink($mvc, &$link, $id, $maxLength = FALSE, $attr = array())
     {
         $iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
         $url       = array($mvc, 'single', $id);
+        if($attr['Q']) {
+            $url['Q'] = $attr['Q'];
+            unset($attr['Q']);
+        }
         $row       = $mvc->getDocumentRow($id);
         $handle    = $mvc->getHandle($id);
         $type      = mb_strtolower($mvc->singleTitle);
@@ -572,7 +576,10 @@ class doc_DocumentPlg extends core_Plugin
             $url =  array();
         }
         
-        $link = ht::createLink("{$row->title}", $url, NULL, 'class=linkWithIcon,style=' . $iconStyle);
+        $attr['class'] .= ' linkWithIcon';
+        $attr['style'] .= $iconStyle;
+
+        $link = ht::createLink("{$row->title}", $url, NULL, $attr);
     }
     
     

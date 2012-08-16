@@ -176,7 +176,7 @@ class doc_Search extends core_Manager
             
 
             $doc = doc_Containers::getDocument($rec->id);
-            $row->docLink = $doc->getLink(64);
+            $row->docLink = $doc->getLink(64, array('Q' => $data->listFilter->rec->search));
         }
     }
     
