@@ -105,7 +105,7 @@ class legalact_Acts extends core_Master
 	function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
 	{
         if($fields['-list']) {
-            $url = toUrl(array($mvc, 'single', $rec->id, 'highlight' => Request::get('search')));
+            $url = toUrl(array($mvc, 'single', $rec->id, 'q' => Request::get('search')));
             $actTpl = new ET("
             <div class='actKind'><a href='{$url}'><b>[#actKind#]</b></a></div>
             <div class='court'><div class='court'>[#court#]</div><!--ET_END court-->
@@ -154,16 +154,13 @@ class legalact_Acts extends core_Master
                  $row->motiveDate = NULL;
              }
 
-             if($h = Request::get('highlight')) {
-                 $color = '#ffff66';
-                 $h = preg_quote($h);
-                 if($row->actTextPath) {
-                    $row->actTextPath = preg_replace("|($h)|ui" , "<span style=\"background:".$color.";\"><b>$1</b></span>" , $row->actTextPath);
-                 }
+             if($q = Request::get('q')) {
+                if($row->actTextPath) {
+                    $row->actTextPath =  plg_Search::highlight($row->actTextPath, $q);
+                }
                 if($row->motiveTextPath) {
-                    $row->motiveTextPath = preg_replace("|($h)|ui" , "<span style=\"background:".$color.";\"><b>$1</b></span>" , $row->motiveTextPath);
+                    $row->motiveTextPath =  plg_Search::highlight($row->motiveTextPath, $q);
                  }
-
              }
 
         }
