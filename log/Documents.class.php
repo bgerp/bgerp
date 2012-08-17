@@ -357,6 +357,25 @@ class log_Documents extends core_Manager
         return TRUE;
     }
     
+    public static function opened($parent)
+    {
+        $openAction = log_Documents::ACTION_OPEN;
+        $parent->data->{$openAction}[] = array(
+            'on' => dt::now(true),
+            'ip' => core_Users::getRealIpAddr(),
+        );
+        
+        static::save($parent);
+        // Нотификация за получаването на писмото
+        
+        bgerp_Notifications::add(
+            'Видяни документи', // съобщение
+            array('doc_Containers', 'list', 'threadId'=>$parent->threadId, 'containerId'=>$parent->containerId), // URL
+            $parent->createdBy, // получател на нотификацията
+            'alert' // Важност (приоритет)
+        );
+    }
+    
 
     /**
      * Случаен уникален идентификатор на документ

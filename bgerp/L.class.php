@@ -113,14 +113,53 @@ class bgerp_L extends core_Manager
      */
     function act_S()
     {
-        //Вземаме номера на контейнера
-        $cid = Request::get('id', 'int');
         
-        //Вземаме документа
         try {
-            $doc = doc_Containers::getDocument($cid);
+            //Вземаме номера на контейнера
+            expect($cid = Request::get('id', 'int'));
+            
+            // Вземаме документа
+            expect($doc = doc_Containers::getDocument($cid));
+            
+            //Инстанцията на документа
+            $instance = $doc->instance;
+                    
+            //id' то на документа
+            $that = $doc->that;
+            
+            //Подготвяме URL' то където ще редиректнем
+            $docUrl = array($doc->instance, 'single', $doc->that);
+            
+            //Спираме режима за принтиране
+            Mode::set('printing', FALSE); // @todo Необходимо ли е?
+            
+            //Проверяваме дали имаме права за разглеждане на документа
+            if ($instance->haveRightFor('single', $that)) {
+                //Редиректваме към single' a на документа
+                redirect($docUrl);
+            }
+            
+            //
+            // Проверка за право на достъп според MID
+            //
+            
+            // Вземаме манипулатора на записа от този модел (bgerp_L)
+            expect($mid = Request::get('m'));
+            expect($parent = log_Documents::fetchHistoryFor($cid, $mid));
+            
+            // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на 
+            // документа за показване
+            
+            log_Documents::opened($parent);
+            
+            $html = $doc->getDocumentBody('xhtml', (object)array('__mid'=>$parent->mid));
+            
+            Mode::set('wrapper', 'page_External');
+            
+            return $html;
+            
         } catch (core_exception_Expect $ex) {
-            // Опит за зареждане на несъществуващ документ.
+            // Опит за зареждане на несъществуващ документ или документ с невалиден MID.
             
             // Нелогнатите потребители не трябва да могат да установят наличието / липсата на
             // документ. За тази цел системата трябва да реагира както когато документа е 
@@ -131,62 +170,12 @@ class bgerp_L extends core_Manager
                                  // Ако няма - това ще форсира потребителя да се логне и ако
                                  // логинът е успешен, управлението ще се върне отново тук
             
-            // До тук се стига ако логнат потребител заяви липсващ документ. 
+            // До тук се стига ако логнат потребител заяви липсващ документ или документ с 
+            // невалиден MID. 
             
             expect(FALSE); // Същото се случва и ако документа съществува, но потребителя няма 
                            // достъп до него.
         }
-        
-        //Инстанцията на документа
-        $instance = $doc->instance;
-                
-        //id' то на документа
-        $that = $doc->that;
-        
-        //Подготвяме URL' то където ще редиректнем
-        $docUrl = array($doc->instance, 'single', $doc->that);
-        
-        //Спираме режима за принтиране
-        Mode::set('printing', FALSE); // @todo Необходимо ли е?
-        
-        //Проверяваме дали имаме права за разглеждане на документа
-        if ($instance->haveRightFor('single', $that)) {
-            //Редиректваме към single' a на документа
-            redirect($docUrl);
-        }
-        
-        //
-        // Проверка за право на достъп според MID
-        //
-        
-        // Вземаме манипулатора на записа от този модел (bgerp_L)
-        $mid = Request::get('m');
-        
-        if ($mid) {
-            $parent = log_Documents::fetchHistoryFor($cid, $mid);
-        }
-        
-        if (!empty($parent)) {
-            // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на 
-            // документа за показване
-            
-            $openAction = log_Documents::ACTION_OPEN;
-            $parent->data->{$openAction}[] = array(
-                'on' => dt::now(true),
-                'ip' => core_Users::getRealIpAddr(),
-            );
-            log_Documents::save($parent);
-            
-            $html = $doc->getDocumentBody('xhtml', (object)array('__mid'=>$parent->mid));
-            
-            Mode::set('wrapper', 'page_External');
-            
-            return $html;
-        }
-            
-        // Няма достъп по MID - липсва или е невалиден
-        // Пренасочваме към документа и оставяме контрола на достъпа на документната система 
-        requireRole('user');
     }
 
 
