@@ -440,7 +440,9 @@ class email_Incomings extends core_Master
         static $isDown = array();
         
         // Номерата почват от 1
-        if($msgNum < 1) return TRUE;
+        if($msgNum < 1) {
+            return TRUE;
+        }
         
         if(!isset($isDown[$imapConn->accRec->id][$msgNum])) {
 
@@ -455,7 +457,7 @@ class email_Incomings extends core_Master
             
             $hash    = $mimeParser->getHash($headers);
             
-            $res = $isDown[$imapConn->accRec->id][$msgNum] = TRUE && $this->fetchField("#hash = '{$hash}'", 'id');
+            $res = $isDown[$imapConn->accRec->id][$msgNum] = $this->fetchField("#hash = '{$hash}'", 'id');
         }
 
         return $res;
