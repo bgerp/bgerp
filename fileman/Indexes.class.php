@@ -131,7 +131,7 @@ class fileman_Indexes extends core_Manager
             
             // Ако е текущия таб таб
             if($name == $currentTab) {
-                 $tabs->TAB($name, $rec->title, array());
+                 $tabs->TAB($name, $rec->title,  array('currentTab' => $name, 'id' => $data->rec->fileHnd, '#' => 'fileDetail'));
                  
                  // Вземаме съдържанеито на тялот
                  $body = $rec->html;

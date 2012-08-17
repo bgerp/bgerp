@@ -31,6 +31,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
         
         $barcodeUrl = toUrl(array('fileman_webdrv_Png', 'barcodes', $fRec->fileHnd), TRUE);
         
+        $tabsArr['barcodes'] = new stdClass();
         $tabsArr['barcodes']->title = 'Баркодове';
         $tabsArr['barcodes']->html = "<div> <iframe src='{$barcodeUrl}' class='webdrvIframe'> </iframe> </div>";
         $tabsArr['barcodes']->order = 3;
@@ -47,7 +48,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
      * @Override
      * @see fileman_webdrv_Image::convertToJpg
      */
-    static function convertToJpg($fRec)
+    static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
     {
         parent::convertToJpg($fRec, 'fileman_webdrv_Png::afterConvertToJpg');
     }
@@ -63,7 +64,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
      * 
      * @access protected
      */
-    static function afterConvertToJpg($script)
+    static function afterConvertToJpg($script, &$fileHndArr = array())
     {
         // Извикваме родутелския метод
         if (parent::afterConvertToJpg($script, $fileHndArr)) {

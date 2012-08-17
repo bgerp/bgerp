@@ -32,12 +32,15 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         // URL за показване на преглед на файловете
         $previewUrl = toUrl(array('fileman_webdrv_Pdf', 'preview', $fRec->fileHnd), TRUE);
+    
+        $url = fileman_Download::getDownloadUrl($fRec->fileHnd);;
         
+        $img = "<img src='{$url}' alt=''>";
+
         // Таб за преглед
-		$tabsArr = array();
 		$tabsArr['preview'] = new stdClass();
         $tabsArr['preview']->title = 'Преглед';
-        $tabsArr['preview']->html = "<div> <iframe src='{$previewUrl}' class='webdrvIframe'> </iframe> </div>";
+        $tabsArr['preview']->html = "<div style='padding:10px; border:solid 1px #ccc; background-color:#eee;min-height:600px;'> {$img} </div>";
         $tabsArr['preview']->order = 1;
         
         // URL за показване на текстовата част на файловете
@@ -282,4 +285,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             static::createErrorLog($params['dataId'], $params['type']);
         }
     }
+
+
+
 }
