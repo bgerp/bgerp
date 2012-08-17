@@ -441,6 +441,7 @@ class email_Incomings extends core_Master
         
         // Номерата почват от 1
         if($msgNum < 1) {
+             $this->log('TRUE: $msgNum < 1');
             return TRUE;
         }
         
@@ -450,6 +451,7 @@ class email_Incomings extends core_Master
             
             // Ако няма хедъри, значи има грешка
             if(!$headers) {
+                $this->log('TRUE: !$headers');
                 return TRUE;
             }
             
@@ -458,6 +460,8 @@ class email_Incomings extends core_Master
             $hash    = $mimeParser->getHash($headers);
             
             $res = $isDown[$imapConn->accRec->id][$msgNum] = $this->fetchField("#hash = '{$hash}'", 'id');
+            $this->log(($res ? 'TRUE' : 'FALSE' ) . ": $hash");
+
         }
 
         return $res;
