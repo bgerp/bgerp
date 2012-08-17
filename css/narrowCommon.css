@@ -239,11 +239,20 @@ form {
     vertical-align:top;
 }
 
+.formToolbar {
+    padding:2px;
+    background-color:#ffe;
+	background-image:url('../img/yellow.png');
 }
 
-.formToolbar {
-    padding:2px; 
+
+
+
+form[method=post] input[type=submit] { 
+	background-color:#99f !important;
+	color:white;
 }
+
 
 .formToolbar INPUT {
     margin-right:5px;
