@@ -460,7 +460,7 @@ class email_Incomings extends core_Master
             $hash    = $mimeParser->getHash($headers);
             
             $res = $isDown[$imapConn->accRec->id][$msgNum] = $this->fetchField("#hash = '{$hash}'", 'id');
-            $this->log(($res ? 'TRUE' : 'FALSE' ) . ": $hash");
+            $this->log(($res ? 'TRUE' : 'FALSE' ) . ": $res $hash");
 
         }
 
