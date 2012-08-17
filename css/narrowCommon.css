@@ -248,7 +248,7 @@ form {
 
 
 
-form[method=post] input[type=submit] { 
+form[method=post] input[type=submit]:first-child { 
 	background-color:#99f !important;
 	color:white;
 }
