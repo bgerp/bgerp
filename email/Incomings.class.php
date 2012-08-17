@@ -231,7 +231,7 @@ class email_Incomings extends core_Master
             /* @var $imapConn email_Imap */
             $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
             
-            $logMsg .= ($logMsg ? "<br>" : "") . "{$accRec->user} ({$accRec->server}): ";
+            $logMsg .= ($logMsg ? "<br>" : "") . "{$accRec->email}: ";
             
             $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
             
@@ -253,14 +253,16 @@ class email_Incomings extends core_Master
             // Получаваме броя на писмата в INBOX папката
             $numMsg = $imapConn->getStatistic('messages');
             
-            $start = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
+            $firstUnreadMsg = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
             
-            if($start > 0) {
+            $startTime = time();
+
+            if($firstUnreadMsg > 0) {
             
                 // Правим цикъл по всички съобщения в пощенската кутия
                 // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
                 // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
-                for ($i = $start; $i <= $numMsg && ($maxTime > time()); $i++) {
+                for ($i = $firstUnreadMsg; $i <= $numMsg && ($maxTime > time()); $i++) {
                     
                     if(($i % 100) == 1) {
                         $this->log("Fetching message {$i}");
@@ -342,7 +344,9 @@ class email_Incomings extends core_Master
             // Махаме заключването от кутията
             core_Locks::release($lockKey);
             
-            $msg = "Total: {$numMsg}, Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
+            $duration = time() - $startTime;
+
+            $msg = "($duration) s; Total: {$numMsg}, Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
             $logMsg .= $msg;
             $htmlRes .= $msg;
         }

@@ -420,6 +420,8 @@ class email_Outgoings extends core_Master
         // Масив, който ще съдърща прикачените файлове
         $filesArr = array();  
         
+        expect(is_array($mvc->getAttachments($data->rec)), $mvc->getAttachments($data->rec), $data->rec);
+
         // Добавяне на предложения за прикачени файлове
         $filesArr += $mvc->getAttachments($data->rec);
         
