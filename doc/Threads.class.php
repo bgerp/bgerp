@@ -181,9 +181,7 @@ class doc_Threads extends core_Manager
         doc_Folders::requireRightFor('single', $folderRec);
         
         $mvc::applyFilter($data->listFilter->rec, $data->query);
-        
-        $data->query->orderBy('#state=ASC,#last=DESC');
-        
+                
         // Показваме или само оттеглените или всички останали нишки
         if(Request::get('Rejected')) {
             $data->query->where("#state = 'rejected'");
@@ -224,22 +222,22 @@ class doc_Threads extends core_Manager
         
         // Подредба - @TODO
         switch ($filter->order) {
+        	default:
             case 'open':
                 $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
-                $query->orderBy('#isOpened');
+                $query->orderBy('#isOpened,#state=ASC,#last=DESC,#id=DESC');
                 break;
             case 'recent':
-                $query->orderBy('#last=DESC');
+                $query->orderBy('#last=DESC,#id=DESC');
                 break;
             case 'create':
-                $query->orderBy('#createdOn=DESC');
+                $query->orderBy('#createdOn=DESC,#state=ASC,#last=DESC,#id=DESC');
                 break;
             case 'numdocs':
-                $query->orderBy('#allDocCnt=DESC');
+                $query->orderBy('#allDocCnt=DESC,#state=ASC,#last=DESC,#id=DESC');
                 break;
         }
         
-        $query->orderBy('#state=ASC,#last=DESC');
     }
     
     
