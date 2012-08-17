@@ -25,6 +25,34 @@ class type_Emails extends type_Varchar {
     static $pattern = '/[\s,;]/';
     
     
+    /*
+     * Константи за филтриране на списък с имейли
+     */
+    
+    /**
+     * Само валидни имейли
+     * 
+     * @var int
+     */
+    const VALID   = 1;
+    
+    
+    /**
+     * Само невалидни имейли
+     * 
+     * @var int
+     */
+    const INVALID = 2;
+    
+    
+    /**
+     * Всички "имейли" - валидни + невалидни
+     * 
+     * @var int
+     */
+    const ALL     = 0;
+    
+    
     /**
      * Превръща вербална стойност на списък имейли към вътрешно представяне
      */
@@ -79,74 +107,59 @@ class type_Emails extends type_Varchar {
         if (empty($str)) return NULL;
         
         //Вземаме всички имейли
-        $emails = self::splitEmails($str);
+        $emails = self::toArray($str, self::ALL);
         
         //Инстанция към type_Email
         $TypeEmail = cls::get('type_Email');
         
+        $links = array();
+        
         foreach ($emails as $email) {
-            
-            //Линковете на имейлите
-            $link = $TypeEmail->addHyperlink($email);
-            
-            //Резултата, който ще се върне
-            $res .= ($res) ? ', '. $link : $link;
-            
+            if (type_Email::isValidEmail($email)) {
+                $links[] = $TypeEmail->addHyperlink($email);
+            } else {
+                $links[] = $email;
+            }
         }
         
-        return $res;
+        return implode(', ', $links);
     }
     
     
     /**
-     * Преобразува стринг, съдържащ имейли към масив от валидни имейли.
+     * Преобразува стринг, съдържащ имейли към масив от имейли.
      *
      * @param string $str
+     * @param int $only - кои "имейли" да върне:
+     *         o ALL     - всички; 
+     *         o VALID   - само валидните;
+     *         o INVALID - само невалидните 
      * @return array масив от валидни имейли
      */
-    static function toArray($str)
+    static function toArray($str, $only = self::VALID)
     {
         //Масив с всички имейли
-        $emailsArr = self::splitEmails($str);
-        
-        return $emailsArr;
-    }
-    
-    
-    /**
-     * Разделяме имейлите в масив
-     */
-    static function splitEmails($str)
-    {
-        //Всички имейли в малък регистър
-        //$str = strtolower($str);  
-        
-        //Масив с всикчи имейли
         $emailsArr = preg_split(self::$pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
         
-        return  $emailsArr;
+        if ($only != self::ALL) {
+            foreach ($emailsArr as $i=>$email) {
+                if (type_Email::isValidEmail($email) != ($only == self::VALID)) {
+                    unset($emailsArr[$i]);
+                }
+            }
+            
+            $emailsArr = array_values($emailsArr);
+        }
+                
+        return $emailsArr;
     }
     
     
     /**
      * Връща всички невалидни имейли в стринга
      */
-    static function getInvalidEmails($str) {
-        
-        //Масив с всички имейли
-        $emailsArr = self::splitEmails($str);
-        
-        //Невалидни имейли
-        $invalidEmailsArr = array(); 
-        
-        foreach ($emailsArr as $email) {
-            
-            //Ако стойността не е валиден имейл, тогава го добавяме в масива с невалидни имейли
-            if (!type_Email::isValidEmail($email)) {
-                $invalidEmailsArr[] = parent::escape($email);
-            }
-        }  
-        
-        return $invalidEmailsArr;
+    static function getInvalidEmails($str)
+    {
+        return self::toArray($str, self::INVALID);
     }
 }
