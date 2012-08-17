@@ -945,7 +945,7 @@ class core_Users extends core_Manager
     /**
      * Връща реалното IP на потребителя
      */
-    function getRealIpAddr()
+    static function getRealIpAddr()
     {
         if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
             
