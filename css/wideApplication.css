@@ -351,6 +351,7 @@ div.mobile {
 
 .formTitle {
 	background-color:#99f !important;
+	background-image:url('http://printed-bags.net/uploads/bg99F_945.jpg');
 	border:solid 1px #88e;
 	border-bottom:none;
 	padding:8px;
@@ -378,6 +379,8 @@ div.mobile {
     border-bottom-right-radius:5px;
 	border:solid 1px #bbb;
 	border-top:none;
+	background-image:url('http://printed-bags.net/uploads/bgCCC_796.jpg');
+
 }
 
 .formSection {
