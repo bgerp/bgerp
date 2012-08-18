@@ -65,8 +65,10 @@ class vislog_History extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function add($query)
+    static function add($query)
     {
+        $rec = new stdClass();
+
         $rec->query = $query;
         
         $History = cls::get('vislog_History');

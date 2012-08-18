@@ -45,11 +45,12 @@ class vislog_Refferer extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
+     * Добавя запис за страницата от която идва посетителя
      */
     function add($resource)
     {
-        
+        $rec = new stdClass();
+
         $rec->refferer = $_SERVER['HTTP_REFERER'];
         
         if($rec->refferer) {
