@@ -251,6 +251,17 @@ class doc_Folders extends core_Master
             $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
         }
     }
+
+
+    /**
+     * Добавя бутони за нова фирма, лице и проект
+     */
+    static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+        $data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add'), 'ef_icon=img/16/group.png');
+        $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add'), 'ef_icon=img/16/vcard.png');
+        $data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add'), 'ef_icon=img/16/basket.png');
+    }
     
     
     /**
