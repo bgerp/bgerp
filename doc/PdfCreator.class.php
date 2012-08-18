@@ -94,6 +94,12 @@ class doc_PdfCreator extends core_Manager
         
         //Проверяваме дали файла със същото име съществува в кофата
         $fileHnd = doc_PdfCreator::fetchField("#md5='{$md5}'", 'fileHnd');
+
+        if($fileHnd && isDebug()) {
+            doc_PdfCreator::delete("#fileHnd = '{$fileHnd}'");
+            // TODO:: да се махне и от fileman
+            unset($fileHnd);
+        }
         
         //Ако не съществува
         if (!$fileHnd) {
@@ -112,7 +118,7 @@ class doc_PdfCreator extends core_Manager
             $html = str::cut($html, '<div id="begin">', '<div id="end">');
             
             $name = self::createPdfName($name);
-            
+
             // Генерираме PDF и му вземаме файловия манипулатор
             if($conf->BGERP_PDF_GENERATOR == 'dompdf') {
                 $fileHnd = dompdf_Converter::convert($html, $name, self::PDF_BUCKET);

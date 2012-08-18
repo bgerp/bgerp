@@ -1112,7 +1112,7 @@ class doc_DocumentPlg extends core_Plugin
      * Метод по подразбиране, за намиране на прикачените файлове в документите.
      * Извиква се само ако метода getAttachments($id) не съществува в класа
      */
-    function on_AfterGetAttachments($mvc, $res, $rec)
+    function on_AfterGetAttachments($mvc, &$res, $rec)
     {
         // Ако не е обект, тогава вземаме записите за съответния документ
         if (!is_object($rec)) {

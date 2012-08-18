@@ -9,3 +9,6 @@
 div.richtextHide {
 	display:block !important;
 }
+
+
+.richtext { font-family: default; }
