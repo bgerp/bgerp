@@ -35,8 +35,8 @@ class gdocs_Plugin extends core_Plugin
                     $img = sbf('gdocs/img/google.png');
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn('Docs', $url, 
-                    	"id='btn-gdocs',class='btn-gdocs', style=background-image: url(" . $img . ");", 
+                    $data->toolbar->addBtn('gDocs', $url, 
+                    	"id='btn-gdocs',ef_icon=gdocs/img/google.png", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }
