@@ -20,7 +20,7 @@ class dompdf_Converter extends core_Manager
     /**
      * Конвертира към PDF използвайки пакета DOMPDF
      */
-    function convert($html, $fileName, $bucketName)
+    static function convert($html, $fileName, $bucketName)
     {
     	$conf = core_Packs::getConfig('dompdf');
     	
@@ -47,7 +47,7 @@ class dompdf_Converter extends core_Manager
         $dompdf->load_html($html);
         $dompdf->set_paper('A4');
         $dompdf->render();
-        
+         
         file_put_contents($pdfPath, $dompdf->output());
         
         // Записва новосъздадения PDF файл в посочената кофа
