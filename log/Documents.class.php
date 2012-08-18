@@ -75,11 +75,11 @@ class log_Documents extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $listFields = 'createdBy, createdOn, action=Какво, containerId=Кое, dataBlob';
+    var $listFields = 'createdOn, createdBy, action=Какво, containerId=Кое, dataBlob';
     
     var $listFieldsSet = array(
-        self::ACTION_SEND  => 'createdBy=Потребител, createdOn=Дата, containerId=Кое, toEmail=До, receivedOn=Получено, returnedOn=Върнато',
-        self::ACTION_PRINT => 'createdBy=Потребител, createdOn=Дата, containerId=Кое, action=Действие, seenOn=Видяно',
+        self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, receivedOn=Получено, returnedOn=Върнато',
+        self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOn=Видяно',
     );
     
     /**
@@ -708,7 +708,7 @@ class log_Documents extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterPrepareListRows(log_Documents $mvc, $data)
+    static function on_AfterPrepareListRows(log_Documents $mvc, &$data)
     {
         switch ($mvc::getCurrentSubset()) {
             case $mvc::ACTION_SEND:
