@@ -31,6 +31,9 @@ class log_Wrapper extends plg_ProtoWrapper
         
         $this->TAB(array_merge($url, array('action'=>'send')), 'Изпращания', 'admin, doc');
         $this->TAB(array_merge($url, array('action'=>'print')), 'Отпечатвания', 'admin, doc');
+        if (!empty($url['containerId'])) {
+            $this->TAB(array_merge($url, array('action'=>'open')), 'Виждания', 'admin, doc');
+        }
         
         $this->title = 'История';
     }

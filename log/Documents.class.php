@@ -80,6 +80,7 @@ class log_Documents extends core_Manager
     var $listFieldsSet = array(
         self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, receivedOn=Получено, returnedOn=Върнато',
         self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOn=Видяно',
+        self::ACTION_OPEN => 'date=Дата, ip=IP, reason=Основание',
     );
     
     /**
@@ -704,7 +705,11 @@ class log_Documents extends core_Manager
             $action = static::ACTION_SEND;
         }
         
-        expect($action == static::ACTION_SEND || $action == static::ACTION_PRINT);
+        expect(
+               $action == static::ACTION_SEND 
+            || $action == static::ACTION_PRINT 
+            || $action == static::ACTION_OPEN
+        );
         
         return $action;
     }
@@ -715,7 +720,7 @@ class log_Documents extends core_Manager
      */
     static function on_AfterPrepareListRows(log_Documents $mvc, &$data)
     {
-        switch ($mvc::getCurrentSubset()) {
+        switch ($subset = $mvc::getCurrentSubset()) {
             case $mvc::ACTION_SEND:
                 $mvc->currentTab = 'Изпращания';
                 $mvc::prepareSendSubset($data);
@@ -724,11 +729,15 @@ class log_Documents extends core_Manager
                 $mvc->currentTab = 'Отпечатвания';
                 $mvc::preparePrintSubset($data);
                 break;
+            case $mvc::ACTION_OPEN:
+                $mvc->currentTab = 'Виждания';
+                $mvc::prepareOpenSubset($data);
+                break;
             default:
                 expect(FALSE);
         }
 
-        $data->listFields = arr::make($mvc->listFieldsSet[$mvc::getCurrentSubset()], TRUE);
+        $data->listFields = arr::make($mvc->listFieldsSet[$subset], TRUE);
         
         if (Request::get('containerId', 'int') && isset($data->listFields['containerId'])) {
             unset($data->listFields['containerId']);
@@ -751,7 +760,7 @@ class log_Documents extends core_Manager
             if (!$data->doc) {
                 $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
             }
-
+            
             $row->toEmail    = $rec->data->to;
             $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
             $row->returnedOn = static::getVerbal($rec, 'returnedOn');
@@ -780,6 +789,55 @@ class log_Documents extends core_Manager
     }
     
     
+    static function prepareOpenSubset($data)
+    {
+        $recs = $data->recs;
+        
+        if (empty($data->recs)) {
+            return;
+        }
+
+        $open = static::ACTION_OPEN;
+        $rows = array();
+        
+        foreach ($recs as $i=>$rec) {
+            
+            if (count($rec->data->{$open}) == 0) {
+                continue;
+            }
+            
+            foreach ($rec->data->{$open} as $o) {
+            
+                $row = (object)array(
+                    'date' => $o['on'],
+                    'ip' => $o['ip'],
+                    'reason' => static::formatViewReason($rec)
+                );
+                
+                $rows[] = $row;
+            }
+        }
+        
+        $data->rows = $rows; 
+    }
+    
+    protected static function formatViewReason($rec)
+    {
+        switch ($rec->action) {
+            case self::ACTION_SEND:
+                return 'Имейл от ' . $rec->createdOn;
+            case self::ACTION_PRINT:
+                return 'Отпечатване от ' . $rec->createdOn;
+            default:
+                return $rec->action . ' от ' . $rec->createdOn;
+        }
+        
+        
+//         bp('TODO')
+    }
+    
+    
+    
     /**
      * Помощен метод - рендира историята на разглежданията на документ
      * 
@@ -803,8 +861,19 @@ class log_Documents extends core_Manager
         $html .= static::getVerbal($rec, 'receivedOn');
         
         if (!empty($rec->data->{$openActionName})) {
-            $html .= ' (' . $rec->data->{$openActionName}[0]['ip'] . ')';
-            $html .= ' <span class="badge">' . count($rec->data->{$openActionName}) . '</span>';
+            $html .= ' (' . $rec->data->{$openActionName}[0]['ip'] . ') ';
+            $html .= ht::createLink(
+                count($rec->data->{$openActionName}),
+                array(
+                    get_called_class(),
+                    'containerId' => $rec->containerId,
+                    'action' => static::ACTION_OPEN
+                ),
+                FALSE,
+                array(
+                    'class' => 'badge',
+                )
+            );
         }
         
         $rec->receivedOn = $_r;
