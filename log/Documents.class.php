@@ -80,7 +80,7 @@ class log_Documents extends core_Manager
     var $listFieldsSet = array(
         self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, receivedOn=Получено, returnedOn=Върнато',
         self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOn=Видяно',
-        self::ACTION_OPEN => 'date=Дата, ip=IP, reason=Основание',
+        self::ACTION_OPEN => 'seenOnTime=Дата, seenFromIp=IP, reason=Основание',
     );
     
     /**
@@ -148,6 +148,7 @@ class log_Documents extends core_Manager
         $this->FNC('receivedOn', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('returnedOn', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('seenFromIp', 'ip', 'input=none');
+        $this->FNC('reason', 'html', 'input=none');
         
         $this->setDbIndex('containerId');
         $this->setDbUnique('mid');
@@ -817,10 +818,12 @@ class log_Documents extends core_Manager
             foreach ($rec->data->{$open} as $o) {
             
                 $row = (object)array(
-                    'date' => $o['on'],
-                    'ip' => $o['ip'],
+                    'seenOnTime' => $o['on'],
+                    'seenFromIp' => $o['ip'],
                     'reason' => static::formatViewReason($rec)
                 );
+                
+                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
                 
                 $rows[] = $row;
             }
