@@ -825,10 +825,12 @@ class log_Documents extends core_Manager
                 
                 $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
                 
-                $rows[] = $row;
+                $rows[$o['on']] = $row;
+                
             }
         }
         
+        ksort($rows);
         $data->rows = $rows; 
     }
     
@@ -904,7 +906,7 @@ class log_Documents extends core_Manager
             $data->doc = doc_Containers::getDocument($data->containerId, 'doc_DocumentIntf');
         }
         
-        $data->query->orderBy('#createdOn', 'DESC');
+        $data->query->orderBy('#createdOn');
     }
     
     
