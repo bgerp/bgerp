@@ -79,7 +79,7 @@ class log_Documents extends core_Manager
     
     var $listFieldsSet = array(
         self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, receivedOn=Получено, returnedOn=Върнато',
-        self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOn=Видяно',
+        self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOnTime=Видяно',
         self::ACTION_OPEN => 'seenOnTime=Дата, seenFromIp=IP, reason=Основание',
     );
     
@@ -511,9 +511,12 @@ class log_Documents extends core_Manager
         $query->where("#threadId = {$threadId}");
         $query->orderBy('#createdOn');
         
+        $open = self::ACTION_OPEN;
+        
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
             $data[$rec->containerId]->summary[$rec->action] += 1;
+            $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
         
@@ -542,6 +545,8 @@ class log_Documents extends core_Manager
     {
         static $wordings = NULL;
         
+        static $actionToTab = NULL;
+        
         if (empty($data->summary)) {
             return '';
         }
@@ -552,7 +557,19 @@ class log_Documents extends core_Manager
                 static::ACTION_RECEIVE => array('получаване', 'получавания'),
                 static::ACTION_RETURN  => array('връщане', 'връщания'),
                 static::ACTION_PRINT   => array('отпечатване', 'отпечатвания'),
-                static::ACTION_OPEN   => array('показване', 'показвания'),
+                static::ACTION_OPEN   => array('виждане', 'виждания'),
+            );
+        }
+
+        if (!isset($actionToTab)) {
+            $actionToTab = array(
+                static::ACTION_SEND    => static::ACTION_SEND,
+                static::ACTION_FAX     => static::ACTION_SEND,
+                static::ACTION_RECEIVE => static::ACTION_SEND,
+                static::ACTION_RETURN  => static::ACTION_SEND,
+                static::ACTION_PRINT   => static::ACTION_PRINT,
+                static::ACTION_PDF     => static::ACTION_PRINT,
+                static::ACTION_OPEN    => static::ACTION_OPEN,
             );
         }
         
@@ -564,12 +581,14 @@ class log_Documents extends core_Manager
                 $actionVerbal = $wordings[$action][intval($count > 1)];
             }
             
-            $tab = in_array($action, array(static::ACTION_PRINT, static::ACTION_PDF, static::ACTION_OPEN)) ?
-                static::ACTION_PRINT : static::ACTION_SEND;
-            
             $link = ht::createLink(
                 "<b>{$count}</b> <span>{$actionVerbal}</span>", 
-                array(get_called_class(), 'list', 'containerId'=>$data->containerId, 'action' => $tab)
+                array(
+                    get_called_class(), 
+                    'list', 
+                    'containerId'=>$data->containerId, 
+                    'action' => $actionToTab[$action]
+                )
             );
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
@@ -793,7 +812,7 @@ class log_Documents extends core_Manager
                 $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
             }
 
-            $row->seenOn = static::renderOpenActions($rec);
+            $row->seenOnTime = static::renderOpenActions($rec);
         }
     }
     
@@ -834,19 +853,17 @@ class log_Documents extends core_Manager
         $data->rows = $rows; 
     }
     
+    
     protected static function formatViewReason($rec)
     {
         switch ($rec->action) {
             case self::ACTION_SEND:
-                return 'Имейл от ' . $rec->createdOn;
+                return 'Имейл до ' . $rec->data->to . ' / ' . static::getVerbal($rec, 'createdOn');
             case self::ACTION_PRINT:
-                return 'Отпечатване от ' . $rec->createdOn;
+                return 'Отпечатване / ' . static::getVerbal($rec, 'createdOn');
             default:
-                return $rec->action . ' от ' . $rec->createdOn;
+                return strtoupper($rec->action) . ' / ' . static::getVerbal($rec, 'createdOn');
         }
-        
-        
-//         bp('TODO')
     }
     
     
@@ -863,18 +880,22 @@ class log_Documents extends core_Manager
         $openActionName = static::ACTION_OPEN;
         $html = '';
         
+        if (!empty($rec->data->{$openActionName})) {
+            $firstOpen = reset($rec->data->{$openActionName});
+        }
+        
         $_r = $rec->receivedOn;
         
-        if (!empty($rec->data->{$openActionName}) && (empty($date) || $rec->data->{$openActionName}[0]['on'] < $date)) {
-            $rec->receivedOn = $rec->data->open[0]['on'];
+        if (!empty($firstOpen) && (empty($date) || $firstOpen['on'] < $date)) {
+            $rec->receivedOn = $firstOpen['on'];
         } else {
             $rec->receivedOn = $date;
         }
         
         $html .= static::getVerbal($rec, 'receivedOn');
         
-        if (!empty($rec->data->{$openActionName})) {
-            $html .= ' (' . $rec->data->{$openActionName}[0]['ip'] . ') ';
+        if (!empty($firstOpen)) {
+            $html .= ' (' . $firstOpen['ip'] . ') ';
             $html .= ht::createLink(
                 count($rec->data->{$openActionName}),
                 array(
