@@ -1,5 +1,5 @@
-﻿<?php
-
+<?php
+echo ("<h2>Първоначално установяване на основните параметри</h2>");
 
 /**
  * Масив съдържащ всички активни php модули, необходими за правилна работа на ситемата
@@ -24,12 +24,16 @@ $error = array();
  */
 $activePhpModules = get_loaded_extensions();
 
+echo ("<h3>Проверка за PHP модули ...</h3>");
 
 foreach($requiredPhpModules as $required){
 	
 	if(!in_array($required, $activePhpModules)){
-		
-		$error['phpModules'][$required] = $required;
+		echo ("<li style='color: red;'> модул: $required - не е инсталиран!</li>");
+		flush();
+	} else {
+		echo ("<li style='color: green;'> модул: $required - OK!</li>");
+		flush();
 	}
 }
 
@@ -38,40 +42,45 @@ foreach($requiredPhpModules as $required){
  */
 $activeApacheModules = apache_get_modules();
 
+echo ("<h3>Проверка за Apache модули ...</h3>");
 
 foreach($requiredApacheModules as $requiredA){
 	
 	if(!in_array($requiredA, $activeApacheModules)){
-		
-		$error['apacheModules'][$requiredA] = $requiredA;
+		echo ("<li style='color: red;'> модул: $requiredA - не е инсталиран!</li>");
+		flush();
+	} else {
+		echo ("<li style='color: green;'> модул: $requiredA - OK!</li>");
+		flush();
 	}
 }
 
 /**
  * Път до конфигурационния файл
  */
-$filename = EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
+
+$filename = EF_ROOT_PATH . '/conf/' . EF_APP_NAME . '.cfg.php';
 
 
 if(file_exists($filename)){
 	
-	echo "Configuration file $filename exists"."<br>";
+	echo "<li style='color: green;'> Конфигурационния файл $filename съществува.</li>";
 	
 	$str = file_get_contents($filename);
 	
 	if(strpos($str, '[#') === FALSE){
 		
-		echo "All constants are defined"."<br>";
+		echo "<li style='color: green;'> All constants are defined.</li>";
 		
 	} else {
 		
-		echo "Some constants are not defined"."<br>";
+		echo "<li style='color: red;'>Some constants are not defined.</li>";
 		
 	}
 	
 } else {
 	
-   		echo "Error: Missing configuration file $filename"."<br>";
+   		echo "<li style='color: red;'>Error: Missing configuration file $filename</li>";
     
 	}
 	
@@ -79,14 +88,13 @@ if(file_exists($filename)){
 
 if (count($error) > 0){
 	
-	print_r($error)."/n";
-	halt('Error: Missing modules');
+	print_r($error)."\n";
+	die('Error: Missing modules');
 	
 } else {
 	$location = 'http://'.$_SERVER['SERVER_NAME'].'/core_Users/login/';
 	
 	echo "<button onclick=\"window.location='$location'\">Начало</button>";
-    halt('Everything is OK');
+    die('Everything is OK');
     
- 	}
-	
+}

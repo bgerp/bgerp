@@ -153,12 +153,13 @@ defIfNot('EF_SBF', 'sbf');
 
 
 /**
- * Проверка за SetUp файл
+ * Стартира Setup, ако се изисква
  */
-	if ($_GET['SetUp']) {
-		require_once(EF_EF_PATH . "/core/SetUp.inc.php");
-    	die;	
-	}
+
+if (isset($_GET['SETUP'])) {
+	require_once(EF_EF_PATH . "/core/Setup.inc.php");
+   	die;	
+}
     
 
 // Параметрите от виртуалното URL за зареждат в $_GET
