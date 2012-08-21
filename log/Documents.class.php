@@ -345,11 +345,13 @@ class log_Documents extends core_Manager
         );
     
         static::save($rcvRec);
-    
-        // Нотификация за получаването на писмото
+        
+        $msg = "Потвърдено получаване: " . doc_Containers::getDocTitle($sendRec->containerId);
+        
+        // Нотификация за получаване на писмото до адресата.
         bgerp_Notifications::add(
-            'Получени писма', // съобщение
-            array('doc_Containers', 'list', 'threadId'=>$sendRec->threadId, 'containerId'=>$sendRec->containerId), // URL
+            $msg, // съобщение
+            array('log_Documents', 'list', 'containerId' => $sendRec->containerId), // URL
             $sendRec->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
@@ -366,11 +368,14 @@ class log_Documents extends core_Manager
         );
         
         static::save($parent);
+
         // Нотификация за получаването на писмото
+        $msg = "Видян документ: " . doc_Containers::getDocTitle($parent->containerId);
         
+        // Нотификация за връщането на писмото до изпращача му
         bgerp_Notifications::add(
-            'Видяни документи', // съобщение
-            array('doc_Containers', 'list', 'threadId'=>$parent->threadId, 'containerId'=>$parent->containerId), // URL
+            $msg, // съобщение
+            array('log_Documents', 'list', 'containerId' => $parent->containerId), // URL
             $parent->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
