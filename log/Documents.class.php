@@ -363,9 +363,17 @@ class log_Documents extends core_Manager
     public static function opened($parent)
     {
         $openAction = log_Documents::ACTION_OPEN;
-        $parent->data->{$openAction}[] = array(
+
+        $ip = core_Users::getRealIpAddr();
+        
+        if (isset($parent->data->{$openAction}[$ip])) {
+            // Вече имаме регистрирано виждане от това IP
+            return;
+        }
+        
+        $parent->data->{$openAction}[$ip] = array(
             'on' => dt::now(true),
-            'ip' => core_Users::getRealIpAddr(),
+            'ip' => $ip 
         );
         
         static::save($parent);
