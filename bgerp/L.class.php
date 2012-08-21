@@ -133,12 +133,6 @@ class bgerp_L extends core_Manager
             //Спираме режима за принтиране
             Mode::set('printing', FALSE); // @todo Необходимо ли е?
             
-            //Проверяваме дали имаме права за разглеждане на документа
-            if ($instance->haveRightFor('single', $that)) {
-                //Редиректваме към single' a на документа
-                redirect($docUrl);
-            }
-            
             //
             // Проверка за право на достъп според MID
             //
