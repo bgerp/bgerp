@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Драйвери на сензори
  */
-class sens_driver_TCW121 extends sens_driver_IpDevice
+class sens_driver_TCW121D1516 extends sens_driver_IpDevice
 {
     
     
