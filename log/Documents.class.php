@@ -576,6 +576,9 @@ class log_Documents extends core_Manager
         $html = '';
         
         foreach ($data->summary as $action=>$count) {
+            if ($count == 0) {
+                continue;
+            }
             $actionVerbal = $action;
             if (isset($wordings[$action])) {
                 $actionVerbal = $wordings[$action][intval($count > 1)];
