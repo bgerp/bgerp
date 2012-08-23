@@ -792,6 +792,19 @@ class log_Documents extends core_Manager
             $row->toEmail    = $rec->data->to;
             $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
             $row->returnedOn = static::getVerbal($rec, 'returnedOn');
+            
+            $stateClass = 'state-closed';
+            
+            switch (true) {
+                case !empty($row->receivedOn):
+                    $stateClass = 'state-active';
+                    break;
+                case !empty($row->returnedOn):
+                    $stateClass = 'state-rejected';
+                    break;
+            }
+            
+            $row->ROW_ATTR['class'] .= ' ' . $stateClass;
         }
     }
     
@@ -811,8 +824,10 @@ class log_Documents extends core_Manager
             if (!$data->doc) {
                 $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
             }
-
+            
             $row->seenOnTime = static::renderOpenActions($rec);
+            
+            $row->ROW_ATTR['class'] .= ' ' . (empty($row->seenOnTime) ? 'state-closed' : 'state-active');
         }
     }
     
