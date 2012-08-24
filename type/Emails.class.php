@@ -84,8 +84,7 @@ class type_Emails extends type_Varchar {
 
         //
         if (count($invalidEmails = self::getInvalidEmails($value))) {
-            
-            $res['error'] = "Стойността не е валиден имейл: " . implode(', ', $invalidEmails);
+            $res['error'] = parent::escape("Стойността не е валиден имейл: " . implode(', ', $invalidEmails));
         }
         
         return $res;
