@@ -15,19 +15,7 @@
 		<b>[#subject#]</b>
 		</small>
 		</div>
-
-		<!--ET_BEGIN shareLog-->
-		<div class='sharing-history clearfix21'>
-			<span class='sharing-history-title'>|Споделяне|*</span>
-			[#shareLog#]
-		</div>
-		<!--ET_END shareLog-->    
-
 	</div>
-
-
-
-
 
 	<!--ET_BEGIN body--> 
 	<div style='padding:10px;'>
@@ -35,6 +23,13 @@
 	</div>
 	<!--ET_END body--> 
  
+    <!--ET_BEGIN shareLog-->
+    <div class='sharing-history clearfix21'>
+        <span class='sharing-history-title'>|Споделяне|*</span>
+        [#shareLog#]
+    </div>
+    <!--ET_END shareLog-->    
+
 </div>
 <!-- END container -->
      

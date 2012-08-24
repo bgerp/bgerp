@@ -56,6 +56,7 @@ class doc_ThreadUsers extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers,select=id)', 'caption=Контейнер, mandatory');
         $this->FLD('userId', 'key(mvc=core_Users,select=nick)', 'caption=Потребител, mandatory');
         $this->FLD('relation', 'enum(shared=Споделен, subscribed=Абониран)', 'caption=Отношение');
+        $this->FLD('seenOn', 'datetime', 'caption=Видян на');
         
         // Индекси 
         $this->setDbIndex('threadId');
@@ -156,4 +157,109 @@ class doc_ThreadUsers extends core_Manager
     }
     
     
+    /**
+     * Маркира всичко споделени, с потребител контейнери от нишка като видяни
+     * 
+     * Маркирането става като се запише текущата дата за всички контейнери, които не са били
+     * виждани до сега. За преди-видяните контейнери не се записва нищо.  
+     * 
+     * @param int $threadId
+     * @param int $userId текущия потребител по подразбиране 
+     * @return boolean
+     */
+    public static function markViewed($threadId, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent('id');
+        }
+        
+        expect($userId);
+        
+        $now = dt::now();
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+
+        /* @var $db core_Db */ 
+        $db  = $query->mvc->db;
+        
+        $result = $db->query("
+            UPDATE `{$query->mvc->dbTableName}`
+               SET `seen_on` = IFNULL(`seen_on`, '{$now}')
+             WHERE `thread_id` = {$threadId}
+               AND `user_id`   = {$userId}
+               AND `relation`  = 'shared'
+        ");
+        
+        return $result !== FALSE;
+    }
+    
+    
+    protected static function getThreadSharing($threadId)
+    {
+        static $shared = NULL;
+        
+        if (!isset($shared[$threadId])) {
+            /* @var $query core_Query */
+            $query = static::getQuery();
+            
+            $query->where("#threadId = {$threadId}");
+            $query->where("#relation = 'shared'");
+            
+            $query->show('userId, containerId, seenOn');
+            
+            $shared[$threadId] = array();
+            
+            while ($rec = $query->fetch()) {
+                $shared[$threadId][$rec->containerId][$rec->userId] = $rec->seenOn; 
+            }
+        }
+        
+        return $shared[$threadId];
+    }
+
+
+    /**
+     * Споделянията на контейнер
+     *
+     * @param int $container key(mvc=doc_Containers)
+     * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера
+     * @return array ['userId' => datetime] 
+     */
+    public static function prepareSharingHistory($containerId, $threadId)
+    {
+        $sharedWith = self::getThreadSharing($threadId);
+    
+        $result = !empty($sharedWith[$containerId]) ? $sharedWith[$containerId] : array();
+    
+        return $result;
+    }
+    
+    
+    /**
+     * Помощен метод: рендира историята на споделянията и вижданията
+     *
+     * @param array $sharedWith масив с ключ ИД на потребител и стойност - дата
+     * @return string
+     */
+    public static function renderSharedHistory($sharedWith)
+    {
+        expect(is_array($sharedWith), $sharedWith);
+        
+        $html = array();
+        
+        foreach ($sharedWith as $userId => $seenDate) {
+            $userRec = core_Users::fetch($userId);
+            $nick = mb_convert_case(core_Users::getVerbal($userRec, 'nick'), MB_CASE_TITLE, "UTF-8");
+            
+            if (!empty($seenDate)) {
+                $seenDate = mb_strtolower(core_DateTime::mysql2verbal($seenDate, 'smartTime'));
+                $seenDate = " ({$seenDate})";
+            }
+
+            $html[] = "<span style='color:black;'>" . $nick . "</span>{$seenDate}";
+        }
+        
+        return implode(', ', $html);
+    }
 }

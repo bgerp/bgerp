@@ -182,8 +182,21 @@ class doc_Comments extends core_Master
             //Ако сме в текстов режим, използваме txt файла
             $tpl = new ET('|*' . getFileContent('doc/tpl/SingleLayoutComments.txt'));
         } else {
+            if ($data->rec->state == 'draft') {
+                $klist = doc_Containers::getShared($data->rec->containerId);
+                $klist = type_Keylist::toArray($klist);
+                $history = array();
+                foreach (array_keys($klist) as $userId) {
+                    $history[$userId] = NULL;
+                }
+            } else {
+                $history = doc_ThreadUsers::prepareSharingHistory($data->rec->containerId, $data->rec->threadId);
+            }
+            
             //Ако не сме в текстов режим показваме (ако има) с кого е споделен файла
-            $tpl->replace(log_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
+            if (!empty($history)) {
+                $tpl->replace(doc_ThreadUsers::renderSharedHistory($history), 'shareLog');
+            }
         }
     }
     
