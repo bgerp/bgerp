@@ -49,8 +49,7 @@ class zoho_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-        $Plugins->forcePlugin('Преглед на документи с Zoho', 'zoho_Plugin', 'fileman_Files', 'private');
-        $html .= "<li>Закачане на zoho_Plugin към fileman_Files (Активно)";
+        $html .= $Plugins->forcePlugin('Преглед на документи с Zoho', 'zoho_Plugin', 'fileman_Files', 'private');
         
         return $html;
     }

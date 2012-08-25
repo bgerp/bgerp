@@ -59,16 +59,8 @@ class mobio_Setup
         $Plugins = cls::get('core_Plugins');
      
         // Инсталираме плъгина и за изпращане през Mobio - по подразбиране
-        $status = $Plugins->forcePlugin('SMS изпращане', 'mobio_SmsPlugin', 'sms_Sender', 'private');
-        
-        if($status >0) {
-            $html .= "<li >Закачане на Mobio като изпращач на SMS-и";
-        } elseif($status == 0) {
-            $html .= "<li >Mobio е бил и до сега изпращач на SMS-и";
-        } else {
-            $html .= "<li >Mobio не е закачен за изпращач на SMS-и, защото има друг";
-        }
-        
+        $html .= $Plugins->forcePlugin('SMS изпращане', 'mobio_SmsPlugin', 'sms_Sender', 'private');
+                
         return $html;
     }
     

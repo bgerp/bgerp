@@ -71,8 +71,7 @@ class oembed_Setup
         
         // Инсталираме плъгина за работа с документи от системата
         // Замества handle' ите на документите с линк към документа
-        $Plugins->installPlugin('oEmbed връзки', 'oembed_Plugin', 'type_Richtext', 'private');
-        $html .= "<li>Закачане на oembed_Plugin към полетата за RichEdit - (Активно)";
+        $html .= $Plugins->installPlugin('oEmbed връзки', 'oembed_Plugin', 'type_Richtext', 'private');
         
         return $html;
     }

@@ -50,8 +50,7 @@ class statuses_Setup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за показване на статусите като toast съобщения
-        $Plugins->installPlugin('Toast messages', 'statuses_Toast', 'core_Statuses', 'private');
-        $html .= "<li>Закачане на statuses_Toast към полетата за core_Statuses - (Активно)";
+        $html .= $Plugins->installPlugin('Toast messages', 'statuses_Toast', 'core_Statuses', 'private');
         
         return $html;
     }

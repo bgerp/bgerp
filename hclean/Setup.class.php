@@ -54,8 +54,7 @@ class hclean_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-        $Plugins->installPlugin('HClean', 'hclean_HtmlPurifyPlg', 'type_Html', 'private');
-        $html .= "<li>Изчистване на HTML полетата - type_Html (Активно)";
+        $html .= $Plugins->installPlugin('HClean', 'hclean_HtmlPurifyPlg', 'type_Html', 'private');
         
         return $html;
     }

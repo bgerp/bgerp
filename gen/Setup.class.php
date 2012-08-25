@@ -51,7 +51,7 @@ class gen_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за аватари
-        $Plugins->installPlugin('Родословно дърво', 'gen_Plugin', 'crm_Persons', 'private');
+        $html .= $Plugins->installPlugin('Родословно дърво', 'gen_Plugin', 'crm_Persons', 'private');
         
         $Persons = cls::get('crm_Persons');
         

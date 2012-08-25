@@ -76,15 +76,7 @@ class prosms_Setup
         $Plugins = cls::get('core_Plugins');
      
         // Инсталираме плъгина и за изпращане през prosms - по подразбиране
-        $status = $Plugins->forcePlugin('SMS изпращане', 'prosms_Plugin', 'sms_Sender', 'private');
-        
-        if($status >0) {
-            $html .= "<li >Закачане на Prosms като изпращач на SMS-и";
-        } elseif($status == 0) {
-            $html .= "<li >Prosms е бил и до сега изпращач на SMS-и";
-        } else {
-            $html .= "<li >Prosms не е закачен за изпращач на SMS-и, защото има друг";
-        }
+        $html .= $Plugins->forcePlugin('SMS изпращане', 'prosms_Plugin', 'sms_Sender', 'private');
         
         return $html;
     }

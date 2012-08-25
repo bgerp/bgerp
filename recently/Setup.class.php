@@ -78,8 +78,7 @@ class recently_Setup {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме recently към формите
-        $Plugins->installPlugin('Recently', 'recently_Plugin', 'core_Form', 'private');
-        $html .= "<li>Закачане към формите (Активно)";
+        $html .= $Plugins->installPlugin('Recently', 'recently_Plugin', 'core_Form', 'private');
         
         return $html;
     }

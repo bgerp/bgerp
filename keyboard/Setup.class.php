@@ -64,12 +64,10 @@ class keyboard_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        $Plugins->installPlugin('Pass VKB', 'keyboard_Plugin', 'type_Password', 'private');
-        $html .= "<li>Закачане към полетата за пароли - type_Password (Активно)";
+        $html .= $Plugins->installPlugin('Pass VKB', 'keyboard_Plugin', 'type_Password', 'private');
         
         // Инсталиране към всички полета, но без активиране
-        $Plugins->installPlugin('All VKB', 'keyboard_Plugin', 'core_Type', 'family', 'stopped');
-        $html .= "<li>Закачане към всички инпут полета - type_Password (Спряно)";
+        $html .= $Plugins->installPlugin('All VKB', 'keyboard_Plugin', 'core_Type', 'family', 'stopped');
         
         return $html;
     }

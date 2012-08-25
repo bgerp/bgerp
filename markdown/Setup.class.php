@@ -38,8 +38,7 @@ class markdown_Setup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за конвертиране от markdown
-        $Plugins->installPlugin('Markdown', 'markdown_RichTextPlg', 'type_Richtext', 'private');
-        $html .= "<li>Закачане на markdown_RichTextPlg към полетата за RichEdit - (Активно)";
+        $html .= $Plugins->installPlugin('Markdown', 'markdown_RichTextPlg', 'type_Richtext', 'private');
         
         return $html;
     }

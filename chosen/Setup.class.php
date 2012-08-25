@@ -64,8 +64,7 @@ class chosen_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-        $Plugins->forcePlugin('Chosen', 'chosen_Plugin', 'type_Keylist', 'private');
-        $html .= "<li>Закачане към полетата за данни - type_Keylist (Активно)";
+        $html .= $Plugins->forcePlugin('Chosen', 'chosen_Plugin', 'type_Keylist', 'private');
         
         return $html;
     }

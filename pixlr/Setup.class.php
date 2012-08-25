@@ -48,8 +48,7 @@ class pixlr_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-        $Plugins->forcePlugin('Преглед на документи с Pixlr', 'pixlr_Plugin', 'fileman_Files', 'private');
-        $html .= "<li>Закачане на pixlr_Plugin към fileman_Files (Активно)";
+        $html .= $Plugins->forcePlugin('Преглед на документи с Pixlr', 'pixlr_Plugin', 'fileman_Files', 'private');
         
         return $html;
     }

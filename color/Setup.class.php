@@ -49,8 +49,7 @@ class color_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        $Plugins->installPlugin('Избор на цвят', 'jqcolorpicker_Plugin', 'color_Type', 'private');
-        $html .= "<li>Закачане към полетата за RGB цвят - color_Type (Активно)";
+        $html .= $Plugins->installPlugin('Избор на цвят', 'jqcolorpicker_Plugin', 'color_Type', 'private');
         
         return $html;
     }

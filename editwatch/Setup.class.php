@@ -72,8 +72,7 @@ class editwatch_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталиране към всички полета, но без активиране
-        $Plugins->installPlugin('Editwatch', 'editwatch_Plugin', 'core_Manager', 'family', 'active');
-        $html .= "<li>Закачане към всички core_Manager към формата за редактиране (Активно)";
+        $html .= $Plugins->installPlugin('Editwatch', 'editwatch_Plugin', 'core_Manager', 'family', 'active');
         
         return $html;
     }

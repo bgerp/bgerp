@@ -195,25 +195,20 @@ class fileman_Setup extends core_Manager {
         
         // Инсталираме
         if(defined('EF_EXTENSION_FILE_PROGRAM')) {
-            $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
-            $html .= "<li>Закачане на SetExtension към полетата за данни - fileman_Files (Активно)";
+            $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
         }
         
         // Инсталираме плъгина за качване на файлове в RichEdit
-        $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
-        $html .= "<li>Закачане на fileman_RichTextPlg към полетата за RichEdit - (Активно)";
+        $html .= $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
         
         // Плъгин за добавяне на бутон за разглеждане на файлове чрез google
-        $Plugins->installPlugin('Преглед с docs.google.com', 'fileman_viewer_GDocs', 'fileman_Files', 'private');
-        $html .= "<li>Закачане на fileman_viewer_GDocs към полетата за fileman_Files - (Активно)";
+        $html .= $Plugins->installPlugin('Преглед с docs.google.com', 'fileman_viewer_GDocs', 'fileman_Files', 'private');
         
         // Плъгин за добавяне на бутон за разглеждане на файлове чрез zoho
-        $Plugins->installPlugin('Преглед с viewer.zoho.com', 'fileman_viewer_Zoho', 'fileman_Files', 'private');
-        $html .= "<li>Закачане на fileman_viewer_Zoho към полетата за fileman_Files - (Активно)";
+        $html .= $Plugins->installPlugin('Преглед с viewer.zoho.com', 'fileman_viewer_Zoho', 'fileman_Files', 'private');
         
         // Плъгин за добавяне на бутон за разглеждане на файлове чрез pixlr
-        $Plugins->installPlugin('Преглед с pixlr.com', 'fileman_viewer_Pixlr', 'fileman_Files', 'private');
-        $html .= "<li>Закачане на fileman_viewer_Pixlr към полетата за fileman_Files - (Активно)";
+        $html .= $Plugins->installPlugin('Преглед с pixlr.com', 'fileman_viewer_Pixlr', 'fileman_Files', 'private');
         
         return $html;
     }
