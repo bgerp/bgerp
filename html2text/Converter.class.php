@@ -136,7 +136,7 @@ class html2text_Converter
      * @see $replace
      */
     var $search = array(
-        '/<pre[^>]*>(.*?)<\/pre>/sie',           // <pre>
+        '/<pre[^>]*>(.*?)<\/pre>/si',           // <pre>
         "/\r/",                                  // Non-legal carriage return
         "/[\n\t]+/",                             // Newlines and tabs
         '/[ ]{2,}/',                             // Runs of spaces, pre-handling
@@ -188,7 +188,7 @@ class html2text_Converter
      * @see $search
      */
     var $replace = array(
-        '$this->pre("\\1")',                     // <pre>
+        '[pre]"\\1"[/pre]',                     // <pre>
         '',                                     // Non-legal carriage return
         ' ',                                    // Newlines and tabs
         ' ',                                    // Runs of spaces, pre-handling
@@ -436,9 +436,6 @@ class html2text_Converter
         $text = trim(stripslashes($this->html));
         
         // Run our defined search-and-replace
-        if(isDebug()) {
-            bp($this->search, $this->replace, $text);
-        }
         $text = preg_replace($this->search, $this->replace, $text);
         
         // Strip any other HTML tags
