@@ -64,17 +64,38 @@ class core_Plugins extends core_Manager
      */
     static function forcePlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
     {
-        return static::installPlugin($name, $plugin, $class, $cover, $state, TRUE);
+        $res = static::installPlugin($name, $plugin, $class, $cover, $state, TRUE);
+
     }
     
 
     /**
-     * Инсталира нов плъгин, към определен клас
+     * Не-форсирано инсталиране на плъгин. Ако има други със същотот име, те ще бъдат останат, а зададения няма да се закачи
      */
     static function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = FALSE)
+    {
+        $status = static::setupPlugin($name, $plugin, $class, $cover, $state, $force);
+
+        if($status === 0) {
+            $res = "<li><b>{$name}</b>: Плъгинът <b>{$plugin}</b> и до сега е бил закачен към <b>{$class}</b> ({$cover}, {$state}) </li>";
+        } elseif($status === -1) {
+            $res = "<li style='color:#660000;'>Друг плъгин изпълнява ролята <b>{$name}</b>, затова <b>{$plugin}</b> не е закачен към <b>{$class}</b> ({$cover}, {$state}) </li>";
+        } else {
+            $res = "<li style='color:green;'><b>{$name}</b>: Плъгинът <b>{$plugin}</b> беше закачен към <b>{$class}</b> ({$cover}, {$state}) </li>";
+        }
+
+        return $res;
+
+    }
+
+
+    /**
+     * Инсталира нов плъгин, към определен клас
+     */
+    static function setupPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = FALSE)
     {   
         // Ако плъгина е вече инсталиран - на правим нищо
-        if(static::fetch(array("#name = '[#1#]' AND #state = 'active' AND #plugin = '{$plugin}' AND #class = '{$class}' AND #cover = '{$cover}'", $name))) {
+        if(static::fetch(array("#name = '[#1#]' AND #state = '{$state}' AND #plugin = '{$plugin}' AND #class = '{$class}' AND #cover = '{$cover}'", $name))) {
 
             return 0;
         }
