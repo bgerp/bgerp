@@ -208,10 +208,12 @@ class core_Master extends core_Manager
     /**
      * Рендираме общия изглед за 'List'
      */
-    function renderSingle_($data)
+    function renderSingle_($data, $tpl = NULL)
     {
         // Рендираме общия лейаут
-        $tpl = $this->renderSingleLayout($data);
+        if(!$tpl) {
+            $tpl = $this->renderSingleLayout($data);
+        }
         
         // Рендираме заглавието
         $data->row->SingleTitle = $this->renderSingleTitle($data);
@@ -256,14 +258,14 @@ class core_Master extends core_Manager
         } else {
             if(count($data->singleFields)) {
                 foreach($data->singleFields as $field => $caption) {
-                    $fieldsHtml .= "<tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr>";
+                    $fieldsHtml .= "\n<tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr>";
                 }
             }
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
-            $layoutText = "<div style='display:inline-block' class='singleView'>[#SingleToolbar#]<br><div class='{$class}'><h2>[#SingleTitle#]</h2>" .
-            "<table class='listTable'>{$fieldsHtml}</table>" .
+            $layoutText = "\n<div style='display:inline-block' class='singleView'>[#SingleToolbar#]<br><div class='{$class}'><h2>[#SingleTitle#]</h2>" .
+            "\n<table class='listTable'>{$fieldsHtml}\n</table>\n" .
             "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>";
         }
         
