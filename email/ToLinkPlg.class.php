@@ -22,7 +22,7 @@ class email_ToLinkPlg extends core_Plugin
      */
     function on_BeforeAddHyperlink($mvc, &$res, $email)
     {
-        if(Mode::is('text', 'html') || !Mode::is('text')) {
+        if(haveRole('ceo,manager,officer,executive') && (Mode::is('text', 'html') || !Mode::is('text'))) {
             //Променяме полето от 'emailto:' в линк към email_Outgoings/add/
             $res = Ht::createLink($email, array('email_Outgoings', 'add', 'emailto' => $email));
             
