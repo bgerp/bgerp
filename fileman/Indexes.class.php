@@ -124,7 +124,7 @@ class fileman_Indexes extends core_Manager
         $currentTab = $tabsArr[$data->currentTab] ? $data->currentTab : key($tabsArr);
 
         // Създаваме рендер на табове
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
         
         // Обикаляме всички табове
         foreach($data->tabs as $name => $rec) {
