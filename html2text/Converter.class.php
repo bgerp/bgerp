@@ -201,7 +201,7 @@ class html2text_Converter
         "\n",                                   // <DIV>
         "\n",                                   // <br>
         '$this->bold("\\1")',                  // <b>
-        '[***]',                  // <strong>
+        '$this->bold("\\1")',                  // <strong>
         '[i]\\1[/i]',                           // <i>
         '[b]\\1[/b]',                           // <em>
         "\n\n",                                 // <ul> and </ul>
@@ -436,6 +436,9 @@ class html2text_Converter
         $text = trim(stripslashes($this->html));
         
         // Run our defined search-and-replace
+        if(isDebug()) {
+            bp($this->search, $this->replace, $text);
+        }
         $text = preg_replace($this->search, $this->replace, $text);
         
         // Strip any other HTML tags
