@@ -136,7 +136,7 @@ class html2text_Converter
      * @see $replace
      */
     var $search = array(
-        '/<pre[^>]*>(.*?)<\/pre>/si',           // <pre>
+        //'/<pre[^>]*>(.*?)<\/pre>/sei',           // <pre>
         "/\r/",                                  // Non-legal carriage return
         "/[\n\t]+/",                             // Newlines and tabs
         '/[ ]{2,}/',                             // Runs of spaces, pre-handling
@@ -188,7 +188,7 @@ class html2text_Converter
      * @see $search
      */
     var $replace = array(
-        '[pre]"\\1"[/pre]',                     // <pre>
+        // '$this->pre("\\1")',                     // <pre>
         '',                                     // Non-legal carriage return
         ' ',                                    // Newlines and tabs
         ' ',                                    // Runs of spaces, pre-handling
@@ -436,6 +436,8 @@ class html2text_Converter
         $text = trim(stripslashes($this->html));
         
         // Run our defined search-and-replace
+        $text = preg_replace_callback("/<pre[^>]*>(.*?)<\/pre>/si", array($this, 'pre'), $text);
+
         $text = preg_replace($this->search, $this->replace, $text);
         
         // Strip any other HTML tags
@@ -462,7 +464,7 @@ class html2text_Converter
         }
         
         $this->text = $text;
-        
+
         $this->_converted = true;
     }
     
@@ -572,11 +574,11 @@ class html2text_Converter
     /**
      * ������� ������� �� ��������������� �����
      */
-    function pre($text)
+    static function pre($matches)
     {
-        $text = str_replace(array("\r\n", "\n\r", "\n", "\r"), array('<br>', '<br>', '<br>', '<br>'), $text);
-        
-        return $text;
+        $text = str_replace(array("\r\n", "\n\r", "\n", "\r"), array("<br>", "<br>\n", "<br>\n", "<br>\n"), $matches[1]);
+         
+        return '[code]' . $text . '[/code]';
     }
     
     
