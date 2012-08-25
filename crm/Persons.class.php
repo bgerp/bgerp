@@ -68,7 +68,7 @@ class crm_Persons extends core_Master
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
     var $loadList = 'plg_Created, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
-                     crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,  plg_Printing, plg_State,
+                     crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,  plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Importer, groups_Extendable';
 
@@ -445,38 +445,6 @@ class crm_Persons extends core_Master
                 $rec->place = drdata_Address::canonizePlace($rec->place);
             }
         }
-    }
-
-
-    /**
-     * Добавяне на табове
-     *
-     * @param core_Et $tpl
-     * @return core_et $tpl
-     */
-    function renderWrapping_($tpl, $data = NULL)
-    {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit', 'maxTabsNarrow' => 1000));
-
-        $alpha = Request::get('alpha');
-
-        $selected = 'none';
-
-        $letters = arr::make('0-9,А-A,Б-B,В-V=В-V-W,Г-G,Д-D,Е-E,Ж-J,З-Z,И-I,Й-J,К-Q=К-K-Q-C,' .
-            'Л-L,М-M,Н-N,О-O,П-P,Р-R,С-S,Т-T,У-U,Ф-F,Х-H=Х-X-H,Ц-Ч,Ш-Щ,Ю-Я', TRUE);
-
-        foreach($letters as $a => $set) {
-            $tabs->TAB($a, '|*' . str_replace('-', '<br>', $a), array($this, 'list', 'alpha' => $set));
-
-            if($alpha == $set) {
-                $selected = $a;
-            }
-        }
-
-        $tpl = $tabs->renderHtml($tpl, $selected);
-
-
-        return $tpl;
     }
 
 

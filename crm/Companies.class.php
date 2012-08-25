@@ -74,8 +74,8 @@ class crm_Companies extends core_Master
     /**
      * Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State,
-                     Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
+    var $loadList = 'plg_Created, plg_RowTools, plg_State, 
+                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected, plg_Printing,
                      acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select';
     
@@ -443,39 +443,6 @@ class crm_Companies extends core_Master
     }
     
     
-    /**
-     * Добавяне на табове
-     *
-     * @param core_Et $tpl
-     * @return core_et $tpl
-     */
-    function renderWrapping_($tpl, $data = NULL)
-    {
-        $mvc = $this;
-        
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit', 'maxTabsNarrow' => 1000));
-        
-        $alpha = Request::get('alpha');
-        
-        $selected = 'none';
-        
-        $letters = arr::make('0-9,А-A,Б-B,В-V=В-V-W,Г-G,Д-D,Е-E,Ж-J,З-Z,И-I,Й-J,К-Q=К-K-Q-C,' .
-            'Л-L,М-M,Н-N,О-O,П-P,Р-R,С-S,Т-T,У-U,Ф-F,Х-H=Х-X-H,Ц-Ч,Ш-Щ,Ю-Я', TRUE);
-        
-        foreach($letters as $a => $set) {
-            $tabs->TAB($a, '|*' . str_replace('-', '<br>', $a), array($mvc, 'list', 'alpha' => $set));
-            
-            if($alpha == $set) {
-                $selected = $a;
-            }
-        }
-        
-        $tpl = $tabs->renderHtml($tpl, $selected);
-        
-        //$tpl->prepend('<br>');
-        
-        return $tpl;
-    }
     
     
     /**
