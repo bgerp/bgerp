@@ -201,7 +201,7 @@ class html2text_Converter
         "\n",                                   // <DIV>
         "\n",                                   // <br>
         '$this->bold("\\1")',                  // <b>
-        '$this->bold("\\1")',                  // <strong>
+        '[***]',                  // <strong>
         '[i]\\1[/i]',                           // <i>
         '[b]\\1[/b]',                           // <em>
         "\n\n",                                 // <ul> and </ul>
