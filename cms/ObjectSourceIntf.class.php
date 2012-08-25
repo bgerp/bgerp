@@ -35,7 +35,7 @@ class cms_ObjectSourceIntf
     /**
      * Връща HTML кода на обекта, като рендира данните
      */
-    function renderCmsObject($data)
+    function renderCmsObject($data, $tpl)
     {
         return $this->class->renderCmsObject($data, $tpl);
     }

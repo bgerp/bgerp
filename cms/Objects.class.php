@@ -84,30 +84,40 @@ class cms_Objects extends core_Manager
         $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
         
         $data = new stdClass();
-        $data->cmsObjectId = $rec->objectId;
-        $data->cmsGroupId  = $rec->groupId;
-
-        $rec->tpl = $source->getDefaultCmsTpl($data);
+        $data->cmsObjectId = $rec->sourceId;
+        $data->cmsType  = $rec->type;
+        
+        if(!$rec->tpl) {
+            $source->prepareCmsObject($data);
+             
+            $rec->tpl = $source->getDefaultCmsTpl($data)->content;
+        }
     }
 
 
     /**
      *  Връща html съдържанието на обекта
      */
-    function getObjectByTag($tag)
+    static function getObjectByTag($tag)
     {
-         $rec = self::fetch("#tag = {$tag}");
+         $rec = self::fetch("#tag = '{$tag}'");
+        
+        if(!$rec) {
+
+            return "[obj={$tag}]";
+        }
 
          $data = new stdClass();
-         $data->cmsObjectId = $rec->objectId;
-         $data->cmsGroupId  = $rec->groupId;
+         $data->cmsObjectId = $rec->sourceId;
+         $data->cmsType  = $rec->type;
 
          $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
 
          $source->prepareCmsObject($data);
 
-         $res = $source->prepareCmsObject($data, $rec->tpl);
+         $res = $source->renderCmsObject($data, new ET($rec->tpl));
 
+         return $res;
     }
     
     

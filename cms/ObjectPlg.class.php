@@ -15,18 +15,60 @@
  */
 class cms_ObjectPlg extends core_Plugin
 {
+
+    function on_AfterDescription($mvc)
+    {
+        $mvc->interfaces = arr::combine($mvc->interfaces, 'cms_ObjectSourceIntf');
+    }
     
     /**
      * Прихваща рендирането на главната опаковка (страницата)
      */
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if(cls::haveInterface('cms_ObjectSourceIntf', $mvc) && haveRole('ceo,admin,cms')) {
+        if(haveRole('cms,admin,ceo') {
             $data->toolbar->addBtn('Публикувай', 
-                array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id),
-                'ef_icon=img/16/control_play_blue.png');
+                    array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id),
+                    'ef_icon=img/16/control_play_blue.png');
 
             Request::setProtected('sourceClass,type,sourceId');
         }
     }
+
+
+    // Реализация по подразбиране на интерфейсните методи
+
+    /**
+     *
+     */
+     function on_AfterPrepareCmsObject($mvc, &$res, &$data)
+    {
+        if($data->cmsType == 'object') { 
+            $data->rec = $mvc->fetch($data->cmsObjectId);
+            $mvc->prepareSingle($data);  
+        }
+    }
+    
+    
+    /**
+     *
+     */
+    function on_AfterRenderCmsObject($mvc, &$res, $data, $tpl)
+    {
+        if(!$res) {
+            $res = $mvc->renderSingle($data, $tpl);
+        }
+    }
+    
+    
+    /**
+     *
+     */
+    function on_AfterGetDefaultCmsTpl($mvc, &$res, $data)
+    {
+       if(!$res) {
+            $res = $mvc->renderSingleLayout($data);
+       }
+    }
+
 }

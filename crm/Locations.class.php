@@ -208,6 +208,7 @@ class crm_Locations extends core_Master {
         
         return $tpl;
     }
+    
 
 
 
@@ -223,10 +224,5 @@ class crm_Locations extends core_Master {
     }
 
 
-    // Интерфейс
 
-    function getDefaultCmsTpl($data)
-    {
-        return "wewe";
-    }
 }

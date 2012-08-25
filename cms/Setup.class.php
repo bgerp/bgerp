@@ -71,9 +71,11 @@ class cms_Setup
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
      
-        // Инсталираме плъгина и за изпращане през Mobio - по подразбиране
-        $status = $Plugins->forcePlugin('Публична страница', 'cms_PagePlg', 'page_Wrapper', 'private');
+        // Инсталираме плъгина  
+        $html .= $Plugins->forcePlugin('Публична страница', 'cms_PagePlg', 'page_Wrapper', 'private');
+        $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_RichText', 'private');
 
+        
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3, 'Обслужване', 'CMS', 'cms_Content', 'default', "{$role}, admin");
         
