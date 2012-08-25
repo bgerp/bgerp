@@ -186,7 +186,7 @@ class core_App
     public static function isDebug()
     {
         // Временно решение за форсиране на debug mode чрез роля 'tester'
-        if(class_exists('core_Roles') && haveRole('tester')) {
+        if(class_exists('core_Roles', FALSE) && haveRole('tester')) {
 
             return TRUE;
         }
