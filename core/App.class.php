@@ -185,6 +185,12 @@ class core_App
      */
     public static function isDebug()
     {
+        // Временно решение за форсиране на debug mode чрез роля 'tester'
+        if(class_exists('core_Roles') && haveRole('tester')) {
+
+            return TRUE;
+        }
+
         if(defined('EF_DEBUG')) return EF_DEBUG;
 
         static $noDebugIp = FALSE;
