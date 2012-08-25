@@ -180,7 +180,7 @@ class crm_Persons extends core_Master
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData');
 
         // Допълнителна информация
-        $this->FLD('info', 'richtext', 'caption=Информация->Бележки,height=150px,class=contactData');
+        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Информация->Бележки,height=150px,class=contactData');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
 
         // Лична карта

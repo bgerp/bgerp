@@ -171,7 +171,7 @@ class crm_Companies extends core_Master
         $this->FLD('vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,class=contactData');
         
         // Допълнителна информация
-        $this->FLD('info', 'richtext', 'caption=Бележки,height=150px,class=contactData');
+        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого');
         
         // Данни за съдебната регистрация
