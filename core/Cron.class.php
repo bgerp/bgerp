@@ -69,7 +69,8 @@ class core_Cron extends core_Manager
         $data->toolbar->addBtn('Логове на Cron', array(
                 'core_Logs',
                 'className' => $mvc->className
-            ));
+            ),
+            array('class' => 'btn-logs'));
     }
     
     

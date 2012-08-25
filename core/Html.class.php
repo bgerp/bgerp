@@ -84,11 +84,6 @@ class core_Html
 
         unset($attr['onblur']);
         
-        // За да няма аутокомплит на този тип полета
-        if(! ($attr['autocomplete'] == 'autocomplete' || $attr['autocomplete'] == 'on')) {
-            $attr['autocomplete'] = 'off';
-        }
-
         $tpl->append(ht::createElement('input', $attr));
         
         unset($attr['autocomplete']);
@@ -456,6 +451,15 @@ class core_Html
 
         $attr['type'] = 'button';
         $attr['value'] = $title;
+        
+        // Добавяме икона на бутона, ако има
+        if($img = $attr['ef_icon']) {
+            if (!Mode::is('screenMode', 'narrow') ) { 
+                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
+                $attr['class'] .= ' linkWithIcon';  
+            }
+            unset($attr['ef_icon']);
+        }
 
         return ht::createElement('input', $attr);
     }

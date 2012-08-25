@@ -79,6 +79,10 @@ class plg_Sorting extends core_Plugin
     {
         if(count($data->recs) && count($data->plg_Sorting->fields)) {
             foreach($data->plg_Sorting->fields as $field => $direction) {
+                
+                // Ако няма такова поле, в тези, които трябва да показваме - преминаваме към следващото
+                if(!$data->listFields[$field]) continue;
+
                 switch($direction) {
                     case 'none' :
                         $img = 'img/icon_sort.gif';

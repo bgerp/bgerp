@@ -500,6 +500,10 @@ form[method=post] input[type=submit] {
     background-image:url('../img/16/save_and_new.png');
 }
 
+.btn-logs {
+	background-image:url('../img/16/action_log.png');
+}
+
 .btn-next,  input.btn-prev {
     float: right;
 }
