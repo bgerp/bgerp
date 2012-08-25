@@ -18,7 +18,7 @@ class crm_Locations extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    // var $interfaces = 'acc_RegisterIntf';
+    var $interfaces = 'cms_ObjectSourceIntf';
     
     
     
@@ -220,5 +220,13 @@ class crm_Locations extends core_Master {
             $contragent = cls::get($rec->contragentCls);
             $requiredRoles = $contragent->getRequiredRoles($action, $rec->contragentId, $userId);
         }
+    }
+
+
+    // Интерфейс
+
+    function getDefaultCmsTpl($data)
+    {
+        return "wewe";
     }
 }

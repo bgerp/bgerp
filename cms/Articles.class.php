@@ -48,17 +48,6 @@ class cms_Articles extends core_Master
     var $canRead = 'cms,admin';
     
  
-    
-    /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    var $interfaces = array(
-        // Интерфейс на всички счетоводни пера, които представляват контрагенти
-        'cms_ContentSourceIntf',
-    );
-
-    
-    
     /**
      * Описание на модела (таблицата)
      */

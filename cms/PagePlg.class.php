@@ -21,6 +21,8 @@ class cms_PagePlg extends core_Plugin
      */
     function on_BeforeRender($wrapper, &$content)
     {
+        expect($wrapper instanceof page_Wrapper);
+
         if (!($tplName = Mode::get('wrapper')) && !Mode::is('printing')) {
             if(!haveRole('admin,ceo,manager,officer,executive')) {
                 Mode::set('wrapper', 'cms_tpl_Page');

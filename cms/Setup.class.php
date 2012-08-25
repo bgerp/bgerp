@@ -51,7 +51,7 @@ class cms_Setup
     {
         $managers = array(
             'cms_Content',
-            'cms_Categories',
+            'cms_Objects',
             'cms_Articles',
          //   'cms_Comments',
          //   'cms_RSS',
