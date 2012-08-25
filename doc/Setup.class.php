@@ -141,16 +141,13 @@ class doc_Setup
         
         // Инсталираме плъгина за работа с документи от системата
         // Замества handle' ите на документите с линк към документа
-        $Plugins->installPlugin('Документи в RichEdit', 'doc_RichTextPlg', 'type_Richtext', 'private');
-        $html .= "<li>Закачане на doc_RichTextPlg към полетата за RichEdit - (Активно)";
+        $html .= $Plugins->installPlugin('Документи в RichEdit', 'doc_RichTextPlg', 'type_Richtext', 'private');
         
         // Замества абсолютните линкове с титлата на документа
-        $Plugins->installPlugin('Вътрешни линкове в RichText', 'bgerp_plg_InternalLinkReplacement', 'type_Richtext', 'private');
-        $html .= "<li>Закачане на bgerp_plg_InternalLinkReplacement към полетата за RichEdit - (Активно)";
+        $html .= $Plugins->installPlugin('Вътрешни линкове в RichText', 'bgerp_plg_InternalLinkReplacement', 'type_Richtext', 'private');
         
         // Добавяне на плъгина за създаване на входящи документи
-        $Plugins->installPlugin('Създаване на входящ документ', 'doc_IncomingCreatePlg', 'fileman_Files', 'private');
-        $html .= "<li>Закачане на doc_IncomingCreatePlg към полетата за filema_Files - (Активно)";
+        $html .= $Plugins->installPlugin('Създаване на входящ документ', 'doc_IncomingCreatePlg', 'fileman_Files', 'private');
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Общи', 'doc_Folders', 'default', "user");

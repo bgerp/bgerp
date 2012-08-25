@@ -137,12 +137,10 @@ class email_Setup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-        $Plugins->installPlugin('UserInbox', 'email_UserInboxPlg', 'core_Users', 'private');
-        $html .= "<li>Закачане на UserInbox към полетата за данни - core_Users (Активно)";
+        $html .= $Plugins->installPlugin('UserInbox', 'email_UserInboxPlg', 'core_Users', 'private');
         
         // Инсталираме плъгина за преобразуване на имейлите в линкове
-        $Plugins->installPlugin('EmailToLink', 'email_ToLinkPlg', 'type_Email', 'private');
-        $html .= "<li>Закачане на EmailToLink към полетата за имейли - (Активно)";
+        $html .= $Plugins->installPlugin('EmailToLink', 'email_ToLinkPlg', 'type_Email', 'private');
         
         return $html;
     }
