@@ -28,7 +28,7 @@ class crm_AlphabetWrapper extends core_Plugin
     {
         if($data->action != 'list') return;
 
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit', 'maxTabsNarrow' => 1000));
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'maxTabsNarrow' => 1000));
          
         $alpha = Request::get('alpha');
         

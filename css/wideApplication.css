@@ -219,7 +219,7 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
     background:#ffffe8;
 }
  
-div.alphavit div.tab-row .tab {
+div.alphabet div.tab-row .tab {
     background:     #ddd;
 	font-size:      8pt;
 	padding:        5px;
@@ -233,18 +233,18 @@ div.alphavit div.tab-row .tab {
 	margin-bottom: 10px;
 }
 
-div.alphavit div.tab-row .tab:hover {
+div.alphabet div.tab-row .tab:hover {
 	margin-top:-1px;
 	margin-bottom:13px;
 
 	background-color: #ffffcc !important;
 }
 
-div.alphavit div.tab-row .tab:hover a {
+div.alphabet div.tab-row .tab:hover a {
 	color:red !important;
 }
 
-div.alphavit  div.tab-row .tab.selected {
+div.alphabet  div.tab-row .tab.selected {
     background:     #ffffcc;
     border:         1px solid #aaa;
     top:            0px;
@@ -257,7 +257,7 @@ div.alphavit  div.tab-row .tab.selected {
 }
 
  
-div.alphavit div.tab-page {
+div.alphabet div.tab-page {
     border:         none;
     background:     transparent;
 	margin: 0px; 
