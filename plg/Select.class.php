@@ -204,7 +204,9 @@ class plg_Select extends core_Plugin
 	 */
 	function on_AfterPrepareListToolbar($mvc, $data)
 	{
-	    $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-with-selected,id=with_selected', array('order' => 11));
+        if(count($data->rows)) {
+	        $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-with-selected,id=with_selected', array('order' => 11));
+        }
 	}
     
     
