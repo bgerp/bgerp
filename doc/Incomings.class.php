@@ -160,7 +160,7 @@ class doc_Incomings extends core_Master
      */
     static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {   
-        $tpl->replace(log_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
+        // $tpl->replace(log_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
     }
     
     
