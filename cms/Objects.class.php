@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cms_Objects extends core_Manager
+class cms_Objects extends core_Master
 {
     
     
@@ -30,13 +30,6 @@ class cms_Objects extends core_Manager
 
 
     /**
-     * Полета, които ще се показват в листов изглед
-     */
-    // var $listFields = ' ';
-    
-     
-    
-    /**
      * Кой може да пише?
      */
     var $canWrite = 'cms,admin';
@@ -46,6 +39,15 @@ class cms_Objects extends core_Manager
      * Кой има право да чете?
      */
     var $canRead = 'cms,admin';
+    
+
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id,tag,sourceClass,type,sourceId';
+
+    
+    var $singleFields = 'id,tag,sourceClass,type,sourceId,createdOn,createdBy,view=Изглед';
 
 
     /**
@@ -54,7 +56,7 @@ class cms_Objects extends core_Manager
     function description()
     {   
         // Таг за показване на обекта
-        $this->FLD('tag', 'varchar', 'caption=Tag');
+        $this->FLD('tag', 'varchar', 'caption=Tag,width=100%');
 
         // Мениджър-източник на обекта
         $this->FLD('sourceClass', 'class(interface=cms_ObjectSourceIntf)', 'caption=Източник,input=hidden,silent');
@@ -63,10 +65,10 @@ class cms_Objects extends core_Manager
         $this->FLD('type', 'enum(group=Група,object=Обект)', 'caption=Тип,input=hidden,silent');
 
         // Параметри на обекта, $data
-        $this->FLD('sourceId', 'int', 'caption=Ид на източника,input=hidden,silent');
+        $this->FLD('sourceId', 'int', 'caption=Ид,input=hidden,silent');
 
         // Шаблон на обекта
-        $this->FLD('tpl', 'html', 'caption=Шаблон');
+        $this->FLD('tpl', 'html', 'caption=Шаблон,width=100%');
 
         $this->setDbUnique('tag');
          
@@ -83,16 +85,60 @@ class cms_Objects extends core_Manager
 
         $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
         
-        $data = new stdClass();
-        $data->cmsObjectId = $rec->sourceId;
-        $data->cmsType  = $rec->type;
+        $objData = new stdClass();
+        $objData->cmsObjectId = $rec->sourceId;
+        $objData->cmsType  = $rec->type;
         
         if(!$rec->tpl) {
-            $source->prepareCmsObject($data);
+            $source->prepareCmsObject($objData);
              
-            $rec->tpl = $source->getDefaultCmsTpl($data)->content;
+            $rec->tpl = $source->getDefaultCmsTpl($objData)->content;
+        }
+
+        if(!$rec->id) {
+            $query = self::getQuery();
+
+            $query->where("#sourceClass = {$rec->sourceClass} AND #sourceId = {$rec->sourceId} AND #type = '{$rec->type}'");
+
+            while($exRec = $query->fetch()) {
+ 
+                if(!$data->form->info) {
+                    $data->form->info = "<div style='background-color:#ffff99;border:solid 1px #ffcc66;padding:10px;margin-bottom:15px;'>Съществуващи публикации:<ul>";
+                }
+
+                $data->form->info .= '<li>' . $exRec->tag . '</li>';
+            }
+
+            if(!$data->form->info) {
+                 $data->form->info .= '</div>';
+            }
+
         }
     }
+
+
+    /**
+     *
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
+    {
+        $row->tag = "[obj={$rec->tag}]";
+
+        if($fields['-single']) {
+            $richText = cls::get('type_Richtext');
+
+            $text = "[obj={$rec->tag}]";
+
+            $row->view = $richText->toVerbal($text);
+        }
+    }
+
+    
+    function on_AfterPrepareSingleTitle($mvc, $data)
+    {
+        $data->title = $data->rec->tag;
+    }
+
 
 
     /**
