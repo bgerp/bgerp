@@ -58,6 +58,32 @@ class doc_SharablePlg extends core_Plugin
      */
     public static function on_AfterRenderDocument(core_Mvc $mvc, &$tpl, $id, $data)
     {
+        static::markViewed($mvc, $data);
+    }
+
+    
+    /**
+     * След рендиране на документ отбелязва акта на виждането му от тек. потребител
+     * 
+     * @param core_Mvc $mvc
+     * @param core_ET $tpl
+     * @param unknown_type $data
+     */
+    public static function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
+    {
+        if (Request::get('Printing')) {
+            static::markViewed($mvc, $data);
+        }
+    }
+
+    
+    /**
+     * Помощен метод: маркиране на споделен док. като видян от тек. потребител
+     * 
+     * @param stdClass $data
+     */
+    protected static function markViewed($mvc, $data)
+    {
         $rec = $data->rec;
         
         if ($rec->state == 'draft' || $rec->state == 'rejected') {
@@ -65,21 +91,9 @@ class doc_SharablePlg extends core_Plugin
             return;
         }
         
-        if (static::markViewed($rec->containerId)) {
+        if (doc_ThreadUsers::markContainerViewed($rec->containerId)) {
             core_Cache::remove($mvc->className, $data->cacheKey . '%');
         }
-    }
-    
-    
-    /**
-     * Помощен метод: маркиране на споделен док. като видян от тек. потребител
-     * 
-     * @param int $containerId key(mvc=doc_Containers)_
-     * @return boolean TRUE - има промени в БД (първо виждане), FALSE в противен случай
-     */
-    protected static function markViewed($containerId)
-    {
-        return doc_ThreadUsers::markContainerViewed($containerId);
     }
     
     
