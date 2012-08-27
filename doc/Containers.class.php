@@ -521,7 +521,7 @@ class doc_Containers extends core_Manager
     /**
      * Връща заглавието на документ
      */
-    function getDocTitle($id) 
+    static function getDocTitle($id) 
     {
         $doc = static::getDocument($id, 'doc_DocumentIntf');
 
