@@ -295,7 +295,7 @@ class cams_Records extends core_Master
     /**
      * Рендиране на плеъра
      */
-    function renderSingle_($data)
+    function renderSingle_($data, $tpl = NULL)
     {
         
         $data->playerTpl = flvplayer_Embedder::render($data->url,
