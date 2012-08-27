@@ -27,9 +27,9 @@ class cms_ObjectPlg extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if(haveRole('cms,admin,ceo')) {
-            $data->toolbar->addBtn('Публикувай', 
+            $data->toolbar->addBtn('Публикуване', 
                     array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id),
-                    'ef_icon=img/16/control_play_blue.png');
+                    'ef_icon=img/16/control_play_blue.png,order=19');
 
             Request::setProtected('sourceClass,type,sourceId');
         }

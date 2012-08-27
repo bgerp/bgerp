@@ -106,7 +106,7 @@ class cms_Objects extends core_Master
                     $data->form->info = "<div style='background-color:#ffff99;border:solid 1px #ffcc66;padding:10px;margin-bottom:15px;'>Съществуващи публикации:<ul>";
                 }
 
-                $data->form->info .= '<li>' . $exRec->tag . '</li>';
+                $data->form->info .= '<li>' . ht::createLink($exRec->tag, array($this, 'single', $exRec->id)) .  ' [obj=' . $exRec->tag . ']</li>';
             }
 
             if(!$data->form->info) {
@@ -146,24 +146,31 @@ class cms_Objects extends core_Master
      */
     static function getObjectByTag($tag)
     {
-         $rec = self::fetch("#tag = '{$tag}'");
+        static $used = array();
         
-        if(!$rec) {
+        
+        $rec = self::fetch("#tag = '{$tag}'");
+        
+        if(!$rec || $used[$tag]) {
 
             return "[obj={$tag}]";
         }
 
-         $data = new stdClass();
-         $data->cmsObjectId = $rec->sourceId;
-         $data->cmsType  = $rec->type;
+        $used[$tag] = TRUE;
 
-         $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
+        $data = new stdClass();
+        $data->cmsObjectId = $rec->sourceId;
+        $data->cmsType  = $rec->type;
 
-         $source->prepareCmsObject($data);
+        $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
 
-         $res = $source->renderCmsObject($data, new ET($rec->tpl));
+        $source->prepareCmsObject($data);
 
-         return $res;
+        $res = $source->renderCmsObject($data, new ET($rec->tpl));
+        
+        unset($used[$tag]);
+
+        return $res;
     }
     
     
