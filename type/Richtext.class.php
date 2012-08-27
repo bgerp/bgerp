@@ -39,13 +39,13 @@ class type_Richtext extends type_Text {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $tpl = new ET("<span class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar'>[#TBL_GROUP1#]&nbsp;[#TBL_GROUP2#]&nbsp;[#TBL_GROUP3#]</div></span>");
+        $tpl = new ET("<span class='richEdit' style='width:100%;'>[#TEXTAREA#]<div class='richedit-toolbar'>[#TBL_GROUP1#]&nbsp;[#TBL_GROUP2#]&nbsp;[#TBL_GROUP3#]</div></span>");
         
         if(Mode::is('screenMode', 'narrow')) {
-            $attr['style'] .= 'min-width:380px;';
+            $attr['style'] .= 'min-width:380px;width:100%;';
             setIfNot($attr['rows'], $this->params['rows'], 7);
         } else {
-            $attr['style'] .= 'min-width:520px;';
+            $attr['style'] .= 'width:100%;';
             setIfNot($attr['rows'], $this->params['rows'], 10);
         }
         
