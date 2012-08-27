@@ -80,9 +80,9 @@ class vislog_History extends core_Manager {
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->orderBy("createdOn=DESC");
+        $data->query->orderBy("#createdOn=DESC");
     }
     
     
