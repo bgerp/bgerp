@@ -40,10 +40,10 @@ class fileman_Buckets extends core_Manager {
         $this->FLD("maxSize", "fileman_FileSize", 'caption=Макс. размер');
 
         // Потребители с какви роли могат да добавят в кофата?
-        $this->FLD("rolesForAdding", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за добавяне');
+        $this->FLD("rolesForAdding", "keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Роли->за добавяне');
 
         // Потребители с какви роли могат да свалят от кофата?
-        $this->FLD("rolesForDownload", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за сваляне');
+        $this->FLD("rolesForDownload", "keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Роли->за сваляне');
 
         // Колко време след последната си употреба, файла ще живее в кофата?
         $this->FLD("lifetime", "int", 'caption=Живот');
