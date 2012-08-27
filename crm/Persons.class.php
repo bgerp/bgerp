@@ -458,17 +458,20 @@ class crm_Persons extends core_Master
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
         $row->numb = $rec->id;
+        
+        if($fields['-single']) {
 
-        // Fancy ефект за картинката
-        $Fancybox = cls::get('fancybox_Fancybox');
+            // Fancy ефект за картинката
+            $Fancybox = cls::get('fancybox_Fancybox');
 
-        $tArr = array(200, 150);
-        $mArr = array(600, 450);
+            $tArr = array(200, 150);
+            $mArr = array(600, 450);
 
-        if($rec->photo) {
-            $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
-        } elseif(!Mode::is('screenMode', 'narrow')) {
-                $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif') . " alt='no image'>";
+            if($rec->photo) {
+                $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
+            } elseif(!Mode::is('screenMode', 'narrow')) {
+                    $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif') . " alt='no image'>";
+            }
         }
 
         $country = tr($mvc->getVerbal($rec, 'country'));
@@ -572,20 +575,28 @@ class crm_Persons extends core_Master
         }
     }
 
-
+    
+    /**
+     * Обновява информацията за рожденните дни на посочения човек
+     */
     function updateCalendarEvents($id)
     {
         $key = 'Person' . $id;
 
         $rec = static::fetch($id);
+        list($d, $m, $y) = explode('-', $rec->birthday);
 
         $events = array();
         $cYear = date("Y");
         $years = array($cYear, $cYear + 1, $cYear + 2);
 
-        if (($rec->birthday) && (stripos($rec->birthday, '?') === FALSE)) {
-            list($d, $m, $y) = explode('-', $rec->birthday);
+        if ($d > 0 && $m > 0) {
+            
             foreach($years as $year) {
+
+                // Родените в бъдещето, да си празнуват рождения ден там
+                if($y && $y > $year) continue;
+
                 $calRec = new stdClass();
                 $calRec->date = date('Y-m-d', mktime(0, 0, 0, $m, $d, $year) );
                 $calRec->type = 'birthday';
@@ -599,8 +610,35 @@ class crm_Persons extends core_Master
         }
 
         // Обновяваме рождените дни
-        cal_Agenda::mergeEvents($key, $events);
+        if(count($events)) {
+            cal_Agenda::mergeEvents($key, $events);
+        }
 
+        return count($events);
+    }
+
+
+    /**
+     *
+     */
+    function updateBirthdays()
+    {
+        $query = static::getQuery();
+        while($rec = $query->fetch()) {
+            $kBid += $this->updateCalendarEvents($rec->id);
+            $kPer++;
+        }
+
+        return "Информация за {$kBid} рожденни дни на {$kPer} души беше обновена";
+    }
+
+    
+    /**
+     * Обновяване на рожденните дни по разписание
+     */
+    function cron_UpdateBirthdays()
+    {
+        return $this->updateBirthdays();
     }
 
 
