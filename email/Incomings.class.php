@@ -578,7 +578,7 @@ class email_Incomings extends core_Master
         
         $hash    = $mimeParser->getHash($headers);
         
-        if ((!$rec = $this->fetchField("#hash = '{$hash}'", 'id'))) {
+        if ((!$rec = $this->fetch("#hash = '{$hash}'"))) {
             
             // Тук парсираме писмото и проверяваме дали не е системно
             $mime = new email_Mime();
