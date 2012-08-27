@@ -85,7 +85,7 @@ class type_Combodate extends type_Varchar {
 
         // Премахваме от зададения формат форматиращите елементи които съответстват на непопълнен
         // компонент на датата.
-        foreach ($formatsMap as $part=>$formats) {
+        foreach ($formatsMap as $part => $formats) {
             if (${$part} <= 0) {
                 foreach ($formats as $f) {
                     if (isset($format[$f])) {
@@ -100,7 +100,12 @@ class type_Combodate extends type_Varchar {
             return NULL;
         }
 
+       
         $dateFormat = implode($div, $format);
+        
+        if(!intval($m)) $m = 1;
+
+        if(!intval($d)) $d = 1; 
 
         return date($dateFormat, mktime(0, 0, 0, intval($m), intval($d), intval($y)));
     }
