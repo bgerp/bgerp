@@ -111,6 +111,30 @@ class crm_Setup
         // Кофа за crm файлове
         $html .= $Bucket->createBucket('crmFiles', 'CRM Файлове', NULL, '300 MB', 'user', 'user');
 
+
+        // Нагласяване на Cron        
+        $rec = new stdClass();
+        $rec->systemId    = 'Update Birthdays';
+        $rec->description = "Обновяване на рожденните дни в календара";
+        $rec->controller  = 'crm_Persons';
+        $rec->action      = 'UpdateBirthdays';
+        $rec->period      = 24*60*60;
+        $rec->offset      = 16;
+        $rec->delay       = 0;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $html .= "<li style='color:green;'>Cron: Обновяване на рожденните дни в календара</li>";
+        } else {
+            $html .= "<li>Cron от преди е бил нагласен: Обновяване на рожденните дни в календара</li>";
+        }
+
+
+
+
+
+
         return $html;
     }
     
