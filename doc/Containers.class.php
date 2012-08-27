@@ -171,9 +171,6 @@ class doc_Containers extends core_Manager
         $url = array('doc_Containers', 'list', 'threadId' => $data->threadRec->id);
         bgerp_Notifications::clear($url);
         
-        // Маркираме споделеното в този тред с текущия потребител като видяно
-        doc_ThreadUsers::markViewed($data->threadRec->id);
-
         $tpl->appendOnce("flashHashDoc();", 'ON_LOAD');
     }
     
