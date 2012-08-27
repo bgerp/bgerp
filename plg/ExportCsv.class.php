@@ -125,7 +125,7 @@ class plg_ExportCsv extends core_Plugin
                         $value = '"' . str_replace('"', '""', $value) . '"';
                     }
                     
-                    $rCsv .= ($rCsv ? "," : "") . $value;
+                    $rCsv .= "," . $value;
                 }
                 
                 /* END за всяка колона */
