@@ -228,9 +228,10 @@ class cal_Agenda extends core_Master
         $attr['style'] = 'background-image:url(' . sbf("drdata/icons/{$lowerType}.png") . ');';
         $row->event = ht::createLink($row->title, $url, NULL, $attr);
      
-        $today = date('Y-m-d');
-        $tommorow = date('Y-m-d', time() + 24 * 60 * 60);
+        $today     = date('Y-m-d');
+        $tommorow  = date('Y-m-d', time() + 24 * 60 * 60);
         $dayAT = date('Y-m-d', time() + 48 * 60 * 60);
+        $yesterday = date('Y-m-d', time() - 24 * 60 * 60);
       
         if($rec->date == $today) {
             $row->ROW_ATTR['style'] .= 'background-color:#ffcc99;';
@@ -240,11 +241,13 @@ class cal_Agenda extends core_Master
             $row->date = 'Утре'.'&nbsp;'.$row->date;
         } elseif($rec->date == $dayAT) {
             $row->ROW_ATTR['style'] .= 'background-color:#ccffcc;';
-        } elseif($rec->date < $today) {
-            $row->ROW_ATTR['style'] .= 'background-color:#ccc;';
+        } elseif($rec->date == $yesterday) {
+            $row->ROW_ATTR['style'] .= 'background-color:#ddd;';
             $row->date = 'Вчера'.'&nbsp;'.$row->date;
         } elseif($rec->date > $today) {
             $row->ROW_ATTR['style'] .= 'background-color:#00cc66;';
+        } elseif($rec->date < $yesterday) {
+            $row->ROW_ATTR['style'] .= 'background-color:#ccc;';
         }
         
         return $row;
