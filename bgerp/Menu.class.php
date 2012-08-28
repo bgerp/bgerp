@@ -43,7 +43,7 @@ class bgerp_Menu extends core_Manager
         $this->FLD('ctr', 'varchar(128)', 'caption=Контролер,mandatory');
         $this->FLD('act', 'varchar(128)', 'caption=Екшън');
         $this->FLD('autoHide', 'enum(no=Не,yes=Да)', 'caption=Авто скриване');
-        $this->FLD('accessByRoles', 'keylist(mvc=core_Roles,select=role)', 'caption=Роли');
+        $this->FLD('accessByRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли');
         
         $this->setDbUnique('menu,subMenu');
         $this->setDbUnique('ctr,act');
