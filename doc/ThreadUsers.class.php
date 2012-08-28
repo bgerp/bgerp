@@ -195,6 +195,38 @@ class doc_ThreadUsers extends core_Manager
     }
     
     
+    public function markContainerViewed($containerId, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent('id');
+        }
+        
+        expect($userId);
+        
+        $now = dt::now();
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+
+        /* @var $db core_Db */ 
+        $db  = $query->mvc->db;
+        
+        $result = $db->query("
+            UPDATE `{$query->mvc->dbTableName}`
+               SET `seen_on` = IFNULL(`seen_on`, '{$now}')
+             WHERE `container_id` IN (" . implode(',', (array)$containerId) . ")
+               AND `user_id`   = {$userId}
+               AND `relation`  = 'shared'
+        ");
+        
+        if ($result !== FALSE) {
+            $result = $db->affectedRows();
+        }
+        
+        return $result;
+    }
+    
+    
     protected static function getThreadSharing($threadId)
     {
         static $shared = NULL;
@@ -229,37 +261,9 @@ class doc_ThreadUsers extends core_Manager
     public static function prepareSharingHistory($containerId, $threadId)
     {
         $sharedWith = self::getThreadSharing($threadId);
-    
+        
         $result = !empty($sharedWith[$containerId]) ? $sharedWith[$containerId] : array();
     
         return $result;
-    }
-    
-    
-    /**
-     * Помощен метод: рендира историята на споделянията и вижданията
-     *
-     * @param array $sharedWith масив с ключ ИД на потребител и стойност - дата
-     * @return string
-     */
-    public static function renderSharedHistory($sharedWith)
-    {
-        expect(is_array($sharedWith), $sharedWith);
-        
-        $html = array();
-        
-        foreach ($sharedWith as $userId => $seenDate) {
-            $userRec = core_Users::fetch($userId);
-            $nick = mb_convert_case(core_Users::getVerbal($userRec, 'nick'), MB_CASE_TITLE, "UTF-8");
-            
-            if (!empty($seenDate)) {
-                $seenDate = mb_strtolower(core_DateTime::mysql2verbal($seenDate, 'smartTime'));
-                $seenDate = " ({$seenDate})";
-            }
-
-            $html[] = "<span style='color:black;'>" . $nick . "</span>{$seenDate}";
-        }
-        
-        return implode(', ', $html);
     }
 }

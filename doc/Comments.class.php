@@ -83,7 +83,7 @@ class doc_Comments extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, doc_DocumentPlg, plg_RowTools, 
+    var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
     
     
@@ -181,22 +181,6 @@ class doc_Comments extends core_Master
         if (Mode::is('text', 'plain')) {
             //Ако сме в текстов режим, използваме txt файла
             $tpl = new ET('|*' . getFileContent('doc/tpl/SingleLayoutComments.txt'));
-        } else {
-            if ($data->rec->state == 'draft') {
-                $klist = doc_Containers::getShared($data->rec->containerId);
-                $klist = type_Keylist::toArray($klist);
-                $history = array();
-                foreach (array_keys($klist) as $userId) {
-                    $history[$userId] = NULL;
-                }
-            } else {
-                $history = doc_ThreadUsers::prepareSharingHistory($data->rec->containerId, $data->rec->threadId);
-            }
-            
-            //Ако не сме в текстов режим показваме (ако има) с кого е споделен файла
-            if (!empty($history)) {
-                $tpl->replace(doc_ThreadUsers::renderSharedHistory($history), 'shareLog');
-            }
         }
     }
     
