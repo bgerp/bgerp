@@ -385,7 +385,12 @@ class log_Documents extends core_Manager
         // Нотификация за връщането на писмото до изпращача му
         bgerp_Notifications::add(
             $msg, // съобщение
-            array('log_Documents', 'list', 'containerId' => $parent->containerId), // URL
+            array(
+                'log_Documents', 
+                'list', 
+                'containerId'=>$parent->containerId,
+                'action' => log_Documents::ACTION_OPEN 
+            ), // URL
             $parent->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
