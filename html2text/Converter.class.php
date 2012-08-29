@@ -576,7 +576,8 @@ class html2text_Converter
      */
     static function pre($matches)
     {
-        $text = str_replace(array("\r\n", "\n\r", "\n", "\r"), array("<br>", "<br>\n", "<br>\n", "<br>\n"), $matches[1]);
+        $text = str_replace(array("\r\n", "\n\r", "\n", "\r", '<', '>', '&'), 
+                array("<br>", "<br>\n", "<br>\n", "<br>\n", '&lt;', '&gt;', '&amp;'), $matches[1]);
          
         return '[code]' . $text . '[/code]';
     }
