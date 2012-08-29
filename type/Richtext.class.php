@@ -513,7 +513,7 @@ class type_Richtext extends type_Text {
      */
     function _catchHyperlinks($html)
     {   
-        $url = $html[0];
+        $url = rtrim($html[0], ',.;';
 
         if(!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
             $url = 'http://' . $url;
