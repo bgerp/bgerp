@@ -713,7 +713,7 @@ class core_Mvc extends core_FieldSet
                                 str_replace("'", "''", $opt) . "</span>";
                             }
 
-                            $comma = ",";
+                            $comma = ", ";
                         }
                     }
 
