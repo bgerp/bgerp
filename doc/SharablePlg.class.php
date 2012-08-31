@@ -30,15 +30,19 @@ class doc_SharablePlg extends core_Plugin
     
     
     /**
-     * След рендиране на лейаута добавя историята на споделянията и вижданията им
+     * След рендиране на документ отбелязва акта на виждането му от тек. потребител
      * 
      * @param core_Mvc $mvc
      * @param core_ET $tpl
-     * @param stdClass $data
+     * @param unknown_type $data
      */
-    public function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
+    public function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
     {
-        if (!Request::get('Printing') && !Mode::is('text', 'xhtml')) {
+        if (Request::get('Printing')) {
+            // В режим на печат, маркираме документа като видян.
+            // Ако не сме в режим печат, маркирането става в on_AfterRenderDocument() 
+            static::markViewed($mvc, $data);
+        } elseif (!Mode::is('text', 'xhtml')) {
             $history = static::prepareHistory($data->rec);
                 
             // показваме (ако има) с кого е споделен файла
@@ -59,21 +63,6 @@ class doc_SharablePlg extends core_Plugin
     public static function on_AfterRenderDocument(core_Mvc $mvc, &$tpl, $id, $data)
     {
         static::markViewed($mvc, $data);
-    }
-
-    
-    /**
-     * След рендиране на документ отбелязва акта на виждането му от тек. потребител
-     * 
-     * @param core_Mvc $mvc
-     * @param core_ET $tpl
-     * @param unknown_type $data
-     */
-    public static function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
-    {
-        if (Request::get('Printing')) {
-            static::markViewed($mvc, $data);
-        }
     }
 
     
