@@ -202,9 +202,8 @@ class fileman_Get extends core_Manager {
                         "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:14.0) Gecko/20100101 Firefox/14.0.1\r\n" .
                         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8\r\n" .
                         "Accept-Language: bg,en-us;q=0.7,en;q=0.3\r\n" .
-                        "Accept-Encoding: gzip, deflate\r\n" .
                         "DNT: 1\r\n" .
-                        "Connection: keep-alive\r\n" 
+                        "Connection: close\r\n" 
                     ), 
                 )
             );
@@ -214,12 +213,12 @@ class fileman_Get extends core_Manager {
 
 
             // Вземаме данните от посоченото URL
-            $data = @file_get_contents($rec->url, FALSE, $context);
-            
-            if(!$data) {
-                $data = @file_get_contents($rec->url);
-            }
+            $data = file_get_contents($rec->url, FALSE, $context);
 
+            if(!$data) {
+                $data = file_get_contents($rec->url);
+
+            }
             foreach($http_response_header as $l) {
                 $hArr = explode(':', $l, 2);
                 if(isset($hArr[1])) {
@@ -265,7 +264,7 @@ class fileman_Get extends core_Manager {
             // bp($headers, $matches, $fPattern, $rec->url);
 
             if(!$fileName) {
-                $urlArr = core_Url::parseUrl($rec->url);
+                $urlArr = parse_url($rec->url);
                 $fileName = $urlArr['host'];
             }
 
