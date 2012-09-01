@@ -129,10 +129,8 @@ class fileman_Download extends core_Manager {
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
         
         // Създаваме хард-линк или копираме
-        if(!function_exists('link') || !@link($originalPath, $downloadPath)) {
-            if(!@copy($originalPath, $downloadPath)) {
-                error("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$downloadPath}'");
-            }
+        if(!@copy($originalPath, $downloadPath)) {
+            error("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$downloadPath}'");
         }
         
         // Задаваме id-то на файла
