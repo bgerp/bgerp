@@ -78,7 +78,11 @@ class plg_Rejected extends core_Plugin
             $data->toolbar->removeBtn('*');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn,class=btn-list');
         } else {
-            $data->toolbar->addBtn('Кош', array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+            $rejCnt = $data->rejQuery->count();
+
+            if($rejCnt) {
+                $data->toolbar->addBtn("Кош|* ({$rejCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+            }
         }
         if(Request::get('Rejected')) {
             $data->title = new ET('[#1#]', tr($data->title ? $data->title : $mvc->title));
@@ -150,7 +154,9 @@ class plg_Rejected extends core_Plugin
             if(Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } else {
+                $data->rejQuery = clone($data->query);
                 $data->query->where("#state != 'rejected' || #state IS NULL");
+                $data->rejQuery->where("#state = 'rejected'");
             }
         }
     }
