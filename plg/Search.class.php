@@ -66,7 +66,9 @@ class plg_Search extends core_Plugin
                 if(get_class($fieldObj->type) == 'type_Text') {
                     $searchKeywords .= ' ' . static::normalizeText($rec->{$field});
                 } else {
+                    Mode::push('text', 'plain');
                     $searchKeywords .= ' ' . static::normalizeText(strip_tags($mvc->getVerbal($rec, $field)));
+                    Mode::pop('text');
                 }
             }
         }
@@ -224,13 +226,14 @@ class plg_Search extends core_Plugin
         return $words;
     }
 
+
     /**
      * Maркира текста, отговарящ на заявката
      */
     static function highlight($text, $query, $color = '#ffff66')
-    {
+    {  
         $words = self::parseQuery($query, FALSE);
-        
+       // echo "<li> $text";
         $rand = str::getRand();
 
         $startMark = 's' . str::getRand();
@@ -245,11 +248,11 @@ class plg_Search extends core_Plugin
                     continue;
                 }  
                  
-                $min = max(5 -  strlen($w), 0);
+                $min = max(3 -  strlen($w), 0);
                 
                 $end = "[\\pL]{{$min},32}";
                 
-                $mask = "|(" . preg_quote($w) . $end . ")|ui";
+                $mask = "/(" . preg_quote($w) . $end . ")(?=[^><]*<|.$)/ui";
 
                 $text = preg_replace($mask , "{$startMark}$1{$endMark}" , $text);
             }
@@ -261,4 +264,7 @@ class plg_Search extends core_Plugin
         
         return $text;
     }
+
+
+   
 }
