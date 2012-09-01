@@ -132,7 +132,7 @@ class bgerp_L extends core_Manager
             
             //Спираме режима за принтиране
             Mode::set('printing', FALSE); // @todo Необходимо ли е?
-            
+
             //
             // Проверка за право на достъп според MID
             //
@@ -146,7 +146,7 @@ class bgerp_L extends core_Manager
             
             log_Documents::opened($parent);
             
-            $html = $doc->getDocumentBody('xhtml', (object)array('__mid'=>$parent->mid));
+            $html = $doc->getDocumentBody('xhtml', (object) array('__mid'=>$parent->mid));
             
             Mode::set('wrapper', 'page_External');
             
@@ -166,6 +166,15 @@ class bgerp_L extends core_Manager
             
             // До тук се стига ако логнат потребител заяви липсващ документ или документ с 
             // невалиден MID. 
+
+            // Ако потребителя има права до треда на документа, то той му се показва
+            if($instance && $doc) {
+                $rec = $doc->fetch();
+                if($instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
+
+                    return new Redirect(array($instance, 'single', $rec->id));
+                }
+            }
             
             expect(FALSE); // Същото се случва и ако документа съществува, но потребителя няма 
                            // достъп до него.
