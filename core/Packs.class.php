@@ -646,7 +646,7 @@ class core_Packs extends core_Manager
         foreach($cArr as $conf) {
             
             // Изчистваме празните интервали
-            $conf = str::trim($conf);
+            $conf = trim($conf);
             
             // Ако стринга не е празен
             if($conf !== '') {

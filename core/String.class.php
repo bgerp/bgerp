@@ -339,27 +339,6 @@ class core_String
     
     
     /**
-     * По-добро премахване на white space
-     */
-    static function trim($s)
-    {   
-        $s = str_replace("&nbsp;", ' ', $s);
-
-        $len = mb_strlen($s);
-
-        for($i = 0; $i < $len; $i++) {
-
-            $c = mb_substr($s, $i, 1); 
-
-            if($c == chr(194) || $c == chr(160)) $c = ' ';
-
-            $s1 .= $c;
-        }
-        return trim($s1);
-    }
-    
-    
-    /**
      * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
      */
     static function limitLen($str, $maxLen)

@@ -34,7 +34,7 @@ class core_Statuses extends core_Manager
     static function add($text, $type='notice')
     {
         //Очакваме съобщението да не е празен стринг
-        expect(str::trim($text), 'Няма въведено съобщение.');
+        expect(trim($text), 'Няма въведено съобщение.');
         
         //Всички статус съобщения
         $statusArr = mode::get('statusArr');
