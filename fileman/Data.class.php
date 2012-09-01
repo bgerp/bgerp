@@ -177,55 +177,9 @@ class fileman_Data extends core_Manager {
                 $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . FILEMAN_UPLOADS_PATH . '"</font>';
             }
         }
-        
-        //TODO да се премахне
-        $res .= $mvc->renameFilesInUploadPath();
     }
-    
-    
-    /**
-     * Преименува всички файлове в директорията на fileman, които са с грешно име ($md5.space_.$len) на ($md5._.$len)
-     * TODO да се премахне
-     */
-    function renameFilesInUploadPath()
-    {
-        if(!Request::get('Full')) return;
-        
-        $files = scandir(FILEMAN_UPLOADS_PATH);
-        
-        $query = fileman_Data::getQuery();
-        $query->where("1=1");
-        $i = 0;
-        
-        while ($rec = $query->fetch()) {
-            
-            $oldName = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . " _" . $rec->fileLen;
-            $newName = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
-            
-            if (is_file($oldName)) {
-                if (rename($oldName, $newName)) {
-                    $res .= "\n<li> Успешно преименуване на файла с id: {$rec->id} на {$newName}</li>";
-                } else {
-                    $res .= "\n<li style='color:red'> Не може да се преименува файла {$oldName} с id: {$rec->id}</li>";
-                }
-            } else {
-                if (!is_file($newName)) {
-                    $i++;
-                    $res .= "\n<li style='color:red'> Внимание! Файлът липсва. Файлът с id {$rec->id} липсва.</li>";
-                }
-            }
-        }
-        
-        if ($i) {
-            $res .= "\n<li style='background-color:red'> Внимание! Имате {$i} записа в модела, които нямат аналог във файловата система.</li>";
-        }
-        
-        $res .= "\n<li style='color:green'> Преименуването завърши. </li>";
-        
-        return $res;
-    }
-    
-    
+
+
     /**
      * Връща размера на файла във вербален вид
      * 
