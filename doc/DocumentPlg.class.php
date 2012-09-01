@@ -171,7 +171,12 @@ class doc_DocumentPlg extends core_Plugin
             $data->toolbar->removeBtn('*');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn,class=btn-list');
         } else {
-            $data->toolbar->addBtn('Кош', array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+
+            $data->rejectedCnt = $data->rejQuery->count();
+            
+            if($data->rejectedCnt) {
+                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+            }
         }
     }
     
@@ -223,7 +228,9 @@ class doc_DocumentPlg extends core_Plugin
             if(Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } else {
+                $data->rejQuery = clone($data->query);
                 $data->query->where("#state != 'rejected' || #state IS NULL");
+                $data->rejQuery->where("#state = 'rejected'");
             }
         }
         

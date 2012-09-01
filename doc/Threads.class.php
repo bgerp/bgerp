@@ -647,10 +647,10 @@ class doc_Threads extends core_Manager
 
             $data->rejectedCnt = $mvc->count("#folderId = {$data->folderId} AND #state = 'rejected'");
             
-            $rejectedCntVerb = $data->rejectedCnt ? "|* ({$data->rejectedCnt})" : '';
-            
-            $data->toolbar->addBtn('Кош' . $rejectedCntVerb , 
-                array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+            if($data->rejectedCnt) {
+                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})" . $rejectedCntVerb , 
+                    array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+            }
         }
     }
     
