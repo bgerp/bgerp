@@ -706,19 +706,26 @@ class core_Url
     /**
      * Дали посоченото URL е локално?
      */
-    static function isLocal($url)
+    static function isLocal($url, &$rest = NULL)
     {
 		$httpBoot = getBoot(TRUE);
-
-		$app = Request::get('App');
 		
 		if (EF_APP_NAME_FIXED !== TRUE) {
+            $app = Request::get('App');
             $httpBoot .= '/' . ($app ? $app : EF_APP_NAME);
         }
 
-		$httpsBoot = str_replace("http://", "https://", $httpBoot);
+		$httpBoot = str_ireplace("https://", "http://", $httpBoot);
+		$url      = str_ireplace("https://", "http://", $url);
 
-        return (strpos($url, $httpBoot) === 0 || strpos($url, $httpsBoot) === 0);
+        if (stripos($url, $httpBoot) === 0) {
+            $result = TRUE;
+            $rest   = substr($url, strlen($httpBoot));
+        } else {
+            $result = FALSE;
+        }
+
+        return $result;
     }
 
 }
