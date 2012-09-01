@@ -502,7 +502,7 @@ class fileman_Info extends core_Manager
 //                $fRec = fileman_Info::fetch($fileInfoId);
 //                
 //                // Ако има открито съдържание на файла
-//                if (str::trim($fRec->content)) continue;
+//                if (trim($fRec->content)) continue;
 //                
 //                // Вземаме манипулатора на оригиналния файл
 //                $fhOriginal = fileman_Files::fetchField($fRec->fileId, 'fileHnd');

@@ -774,7 +774,7 @@ class fileman_Files extends core_Master
         
         $fileInfo = str_ireplace($path . ':', '', $fileInfo);
         
-        $fileInfo = str::trim($fileInfo);
+        $fileInfo = trim($fileInfo);
         
         return $fileInfo;
     }
