@@ -66,6 +66,8 @@ class core_Plugins extends core_Manager
     {
         $res = static::installPlugin($name, $plugin, $class, $cover, $state, TRUE);
 
+        return $res;
+
     }
     
 
