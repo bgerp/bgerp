@@ -339,18 +339,16 @@ class fileman_Download extends core_Manager {
             $icon = "fileman/icons/default.png";
         }
         
-        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        //Атрибути на линка
-        $attr['class'] = 'linkWithIcon';
-//        $attr['target'] = '_blank';
-        $attr['style'] = 'background-image:url(' . sbf($icon, "'", $isAbsolute) . ');';
-        
+        // Икона на линка
+        $attr['ef_icon'] = $icon;
+         
         //Инстанция на класа
         $FileSize = cls::get('fileman_FileSize');
         
-        //Ако имаме права за сваляне на файла
+        // Ако имаме права за сваляне на файла
         if (fileman_Files::haveRightFor('download', $fRec) && ($fRec->dataId) && file_exists($path)) {
             
             //Големината на файла в байтове
