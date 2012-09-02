@@ -189,8 +189,7 @@ class sens_driver_IpDevice extends core_BaseClass
             $Params->save($rec);
         }
     }
-    
-    
+
     /**
      * Добавя във формата за настройки на сензора
      * стандартните параметри и условията
@@ -202,11 +201,39 @@ class sens_driver_IpDevice extends core_BaseClass
         
         foreach($this->params as $p => $pArr) {
             if ($pArr['onChange']) $onChange = ' или при промяна';
-            $form->FLD('logPeriod_' . $p,
-                'int(4)',
-                'caption=Параметри - периоди на следене->' . $pArr['param'] .
-                ',hint=На колко минути да се записва стойността на параметъра,unit=мин.' . $onChange . ',input');
-            
+            if (strpos($p,'InA') === FALSE) {
+	            $form->FLD('logPeriod_' . $p,
+	                'int(4)',
+	                'caption=Параметри - периоди на следене->' . $pArr['param'] .
+	                ',hint=На колко минути да се записва стойността на параметъра,unit=мин.' . $onChange . ',input');
+            } else {
+            	// Входа е аналогов
+	            $form->FLD('logPeriod_' . $p,
+	                'int(4)',
+	                'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->' . "Период на следене" .
+	                ',hint=На колко минути да се записва стойността на параметъра,unit=мин.' . $onChange . ',input');
+	            
+	            // Подготвяме масива за setOptions
+	            $queryParams = sens_Params::getQuery();
+	            $queryParams->show("unit, param, details");
+	            while ($res = $queryParams->fetch()) {
+	            	$arrRes["{$res->unit}"] = $res->param . " " . $res->details;
+	            }
+
+	            $arrRes = array('empty' => '') + $arrRes;
+	            $form->FLD('name_' . $p,
+	                'enum',
+	                'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Наименование,hint=Наименование' . $onChange . ',input');
+
+	            $form->setOptions("name_{$p}", $arrRes);
+	            
+	            $form->FLD('angular_' . $p,
+	                'double(decimals=2)',
+	                'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Ъглов коефициент,hint=Коефициент на линейното уравнение,input');
+	            $form->FLD('linear_' . $p,
+	                'double(decimals=2)',
+	                'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Линеен коефициент,hint=отстояние на линейната функция,input');
+            }            
             $paramArr[$p] = $pArr['param'];
         }
         
@@ -266,6 +293,20 @@ class sens_driver_IpDevice extends core_BaseClass
         $settingsArr = (array) $this->getSettings();
         
         foreach ($this->params as $param => $arr) {
+        	// Дали параметъра е аналогов вход? И дали е изчисляем /тоест да зависи линейно от измерения резултат/?
+        	if (strpos($param, 'InA') !== FALSE) {
+        		if ($settingsArr['name_'.$param] != 'empty') {
+        			// Лог периода на новия параметър става като на аналоговия вход
+        			$settingsArr["logPeriod_{$settingsArr['name_'.$param]}"] = $settingsArr["logPeriod_{$param}"];
+        			// Изчисляваме новата стойност по линейната зависимост
+        			$paramValue = $settingsArr['angular_' . $param] * $this->stateArr["$param"] + $settingsArr['linear_' . $param];
+        			// Аналоговия параметър приема идентичността на новия, като вече си има и период на логване
+        			$param = $settingsArr['name_'.$param];
+        			$this->stateArr["$param"] = $paramValue;
+        			//bp($this->stateArr);
+        		}
+        		
+        	} 
             // Дали параметъра е зададен да се логва при промяна?
             if ($arr['onChange']) {
                 // Дали има промяна? Ако - ДА записваме в лог-а

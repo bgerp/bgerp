@@ -168,7 +168,7 @@ class sens_Sensors extends core_Master
         $querySensors->where("#state='active'");
         $querySensors->show("id");
         
-        while ($sensorRec = $querySensors->fetch($where)) {
+        while ($sensorRec = $querySensors->fetch()) {
             $url = toUrl(array($this->className, 'Process', str::addHash($sensorRec->id)), 'absolute');
             
             //return file_get_contents($url,FALSE,NULL,0,2);
@@ -203,7 +203,7 @@ class sens_Sensors extends core_Master
         
         $id = str::checkHash(Request::get('id', 'varchar'));
         
-        //        $id = 6;
+//        $id = 5;
         if (FALSE === $id) {
             
             /**

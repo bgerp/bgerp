@@ -34,10 +34,10 @@ class sens_driver_Mockup extends sens_driver_IpDevice
         'Dst' => array('unit'=>'Dst', 'param'=>'Запрашеност', 'details'=>'%'),
         'Chm' => array('unit'=>'Chm', 'param'=>'Хим. замърсяване', 'details'=>'%'),
         'avgHr' => array('unit'=>'avgHr', 'param'=>'Средна влажност', 'details'=>'%'),
-        // Ако искаме описваме и изходите за да можем да ги следим в логовете
+        'InA1' => array('unit'=>'InA1', 'param'=>'Аналогов вход 1', 'details'=>'V'),
+    	// Ако искаме описваме и изходите за да можем да ги следим в логовете
         'OutD1' => array('unit'=>'Out1', 'param'=>'Изход 1', 'details'=>'(ON/OFF)'),
-        'OutD2' => array('unit'=>'Out2', 'param'=>'Изход 2', 'details'=>'(ON/OFF)'),
-        'OutA1' => array('unit'=>'Out3', 'param'=>'Изход 3', 'details'=>'(1..10)')
+        'OutD2' => array('unit'=>'Out2', 'param'=>'Изход 2', 'details'=>'(ON/OFF)')
     );
     
     
@@ -47,8 +47,7 @@ class sens_driver_Mockup extends sens_driver_IpDevice
      */
     var $outs = array(
         'OutD1' => array('digital' => array('0', '1')),
-        'OutD2' => array('digital' => array('0', '1')),
-        'OutA1' => array('analog' => array('0', '10'))
+        'OutD2' => array('digital' => array('0', '1'))
     );
     
     
@@ -73,13 +72,14 @@ class sens_driver_Mockup extends sens_driver_IpDevice
     
     }
     
-    
+   
     /**
      * Подготвя формата за настройки на сензора
      * и алармите в зависимост от параметрите му
      */
     function prepareSettingsForm($form)
     {
+    	
         $this->getSettingsForm($form);
     }
     
@@ -97,14 +97,24 @@ class sens_driver_Mockup extends sens_driver_IpDevice
         foreach ($this->params as $param => $dummy) {
             switch ($param) {
                 case 'T' :
-                    $state[$param] = $stateOld[$param] + rand(-2, 2);
+                    $state['T'] = $stateOld['T'] + rand(-2, 2);
                     
-                    if (date("H") > "08" && date("H") < "19") $state[$param] += 0.1;
+                    if (date("H") > "08" && date("H") < "19") $state['T'] += 0.1;
                     
-                    if (date("H") < "08" || date("H") > "19") $state[$param] -= 0.1;
+                    if (date("H") < "08" || date("H") > "19") $state['T'] -= 0.1;
+                    // Ако е включен изход 1 - предполагаме че е климатик и температурата се охлажда
+                    if ($stateOld['OutD1'] == 1) {
+                    	$state['T'] -= 2;
+                    }
                     break;
                 case 'Hr' :
-                    $state[$param] = rand(0, 100);
+                    $state['Hr'] = rand(0, 100);
+                    break;
+                case 'InA1' :
+                    $stateOld['InA1'] += rand(-1, 1);
+                    if ($stateOld['InA1'] < 0) $stateOld['InA1'] = 0;
+                    if ($stateOld['InA1'] > 10) $stateOld['InA1'] = 10;
+                    $state['InA1'] = $stateOld['InA1'];
                     break;
                 case 'avgHr' :
                     // Тук взимаме историята на влажностите за изчисляването на средната стойност
@@ -112,7 +122,7 @@ class sens_driver_Mockup extends sens_driver_IpDevice
                     
                     $ndx = ((int)time() / 60) % $this->avgCnt;
                     $state['avgHrArr'][$ndx] = $state['Hr'];
-                    $state[$param] = array_sum($state['avgHrArr']) / count($state['avgHrArr']);
+                    $state['avgHr'] = array_sum($state['avgHrArr']) / count($state['avgHrArr']);
                     break;
                 default :
                 if (!isset($this->outs[$param])) {

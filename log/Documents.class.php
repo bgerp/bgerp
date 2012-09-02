@@ -887,14 +887,17 @@ class log_Documents extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterPrepareListTitle($mvc, $data)
+    static function on_AfterPrepareListTitle(log_Documents $mvc, $data)
     {
         if (!$data->containerId) {
             $data->title = "История";
         }
         
-        // Изчистване на нотификации за отворени теми в тази папка
         $url = array('log_Documents', 'list', 'containerId' => $data->containerId);
+        
+        if (($subset = $mvc::getCurrentSubset()) != $mvc::ACTION_SEND) {
+            $url += array('action' => $subset);
+        }
         
         bgerp_Notifications::clear($url);
     }
