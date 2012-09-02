@@ -17,6 +17,7 @@
 class core_Array
 {
 
+    static $rand;
 
     /**
      * Конкатенира към стойностите от първия масив, стойностите от втория със
@@ -90,19 +91,19 @@ class core_Array
              * Ескейпваме двойния сепаратор
              * @todo: Необходимо ли е?
              */
-            static $rand;
+            
 
-            if (!$rand) {
-                $rand = "[" . rand(-2000000000, 2000000000) . rand(-2000000000, 2000000000) . "]";
+            if (!static::$rand) {
+                static::$rand = "[" . rand(-2000000000, 2000000000) . rand(-2000000000, 2000000000) . "]";
             }
-            $mixed = str_replace($sep . $sep, $rand, $mixed);
+            $mixed = str_replace($sep . $sep, static::$rand, $mixed);
 
             $mixed = explode($sep, $mixed);
             $p = array();
 
             if (count($mixed > 0)) {
                 foreach ($mixed as $index => $value) {
-                    $value = str_replace($rand, $sep, $value);
+                    $value = str_replace(static::$rand, $sep, $value);
 
                     if (strpos($value, "=") > 0) {
                         list($key, $val) = explode("=", $value);
