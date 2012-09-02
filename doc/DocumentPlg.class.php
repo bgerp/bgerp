@@ -433,8 +433,44 @@ class doc_DocumentPlg extends core_Plugin
             
             if($rec->state != 'rejected') {
                 
-                $mvc->reject($rec->id);
+                $res = $mvc->reject($rec->id);
                 
+            }
+            
+            return FALSE;
+        }
+        
+        if($action == 'restore') {
+            
+            $id = Request::get('id', 'int');
+            
+            $rec = $mvc->fetch($id);
+            
+            if (isset($rec->id) && $mvc->haveRightFor('reject', $rec) && ($rec->state == 'rejected')) {
+                
+                $res = $mvc->reject($rec->id, 'restore');
+                
+            }             
+            
+            return FALSE;
+        }
+    }
+    
+    
+    /**
+     * документа. Реализация пона метода на модела
+     */
+    function on_AfterReject($mvc, &$res, $id, $mode = 'reject')
+    {
+        if(!$res) {
+            $rec = $mvc->fetch($id);
+            
+            if($mode == 'reject') {
+                if($rec->state != 'rejected') {
+                    $rec->brState = $rec->state;
+                    $rec->state = 'rejected';
+                }
+
                 // Ако оттегляме първия постинг на нишката, то цялата ниша се оттегля
                 $tRec = doc_Threads::fetch($rec->threadId);
                 
@@ -460,22 +496,23 @@ class doc_DocumentPlg extends core_Plugin
                     doc_Folders::updateFolderByContent($tRec->folderId);
                     
                     $res = new Redirect(array('doc_Threads', 'folderId' => $tRec->folderId));
+
+                    // Премахваме този документ от нотификациите
+                    $keyUrl = array('doc_Threads', 'list', 'threadId' => $rec->threadId);
+                    bgerp_Notifications::setHidden($keyUrl, 'yes');
+    
                 }
-            }
-            
-            return FALSE;
-        }
-        
-        if($action == 'restore') {
-            
-            $id = Request::get('id', 'int');
-            
-            $rec = $mvc->fetch($id);
-            
-            if (isset($rec->id) && $mvc->haveRightFor('reject', $rec) && ($rec->state == 'rejected')) {
                 
-                $mvc->reject($rec->id, 'restore');
+                // Премахваме документа от "Последно"
+                bgerp_Recently::setHidden('document', $rec->containerId, 'yes');
+
+            } else {
+                expect($mode == 'restore');
                 
+                if($rec->state == 'rejected') {
+                    $rec->state = ($rec->brState == 'rejected') ? 'closed' : $rec->brState;
+                }
+
                 // Ако възстановяваме първия постинг на нишката, то цялата ниша се възстановява
                 $tRec = doc_Threads::fetch($rec->threadId);
                 
@@ -495,43 +532,28 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $tRec->state = 'closed';
                     doc_Threads::save($tRec);
+
+                    // Показваме този документ в нотификациите
+                    $keyUrl = array('doc_Threads', 'list', 'threadId' => $rec->threadId);
+                    bgerp_Notifications::setHidden($keyUrl, 'no');
+
                 }
                 
+                // Ако документа е скрит в 'posledno' -> показваме го
+                bgerp_Recently::setHidden('document', $rec->containerId, 'no');
+
                 // Обновяваме съдържанието на папката
                 doc_Threads::updateThread($rec->threadId);
-            }
-            
-            $res = new Redirect(array($mvc, 'single', $rec->id));
-            
-            return FALSE;
-        }
-    }
-    
-    
-    /**
-     * документа. Реализация пона метода на модела
-     */
-    function on_AfterReject($mvc, &$res, $id, $mode = 'reject')
-    {
-        if(!$res) {
-            $rec = $mvc->fetch($id);
-            
-            if($mode == 'reject') {
-                if($rec->state != 'rejected') {
-                    $rec->brState = $rec->state;
-                    $rec->state = 'rejected';
-                }
-            } else {
-                expect($mode == 'restore');
-                
-                if($rec->state == 'rejected') {
-                    $rec->state = ($rec->brState == 'rejected') ? 'closed' : $rec->brState;
-                }
+
             }
             
             $mvc->save($rec, 'state,brState');
             
             $mvc->log($mode, $rec->id);
+
+            if(!$res) {
+                $res = new Redirect(array($mvc, 'single', $rec->id));
+            }
             
             return TRUE;
         }
@@ -865,7 +887,7 @@ class doc_DocumentPlg extends core_Plugin
             $tpl->removePlaces();
             
             if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
-                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  1 : 5);
+                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  0.1 : 5);
             }
         } else {
             $tpl = $data->threadCachedView;
@@ -1019,8 +1041,12 @@ class doc_DocumentPlg extends core_Plugin
                     )
                 );
                 
+                Mode::push('pdf', TRUE);
+
                 $html = $mvc->getDocumentBody($id, 'xhtml');
                 
+                Mode::pop('pdf');
+
                 log_Documents::popAction();
                 
                 //Манипулатора на новосъздадения pdf файл

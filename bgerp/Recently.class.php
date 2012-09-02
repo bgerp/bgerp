@@ -51,7 +51,8 @@ class bgerp_Recently extends core_Manager
         $this->FLD('objectId', 'int', 'caption=Id');
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Потребител');
         $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
-        
+        $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
+
         $this->setDbUnique('type, objectId, userId');
     }
     
@@ -76,6 +77,24 @@ class bgerp_Recently extends core_Manager
         
         bgerp_Recently::save($rec);
     }
+
+    
+    /**
+     * Скрива посочените записи
+     * Обикновено след Reject
+     */
+    static function setHidden($type, $objectId, $hidden = 'yes') 
+    {
+        $query = self::getQuery();
+
+        $query->where("#type = '{$type}'  AND #objectId = $objectId");
+
+        while($rec = $query->fetch()) {
+            $rec->hidden = $hidden;
+            self::save($rec);
+        }
+    }
+   
     
     
     /**
@@ -131,7 +150,7 @@ class bgerp_Recently extends core_Manager
         // Подготвяме формата за филтриране
         // $this->prepareListFilter($data);
         
-        $data->query->where("#userId = {$userId}");
+        $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
         $data->query->orderBy("last=DESC");
         
         // Подготвяме навигацията по страници
