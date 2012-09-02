@@ -32,8 +32,7 @@ class gdocs_Plugin extends core_Plugin
             
                 if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
                     $url = "http://docs.google.com/viewer?url=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1); 
-                    $img = sbf('gdocs/img/google.png');
-                    
+                     
                     // Добавяме бутона
                     $data->toolbar->addBtn('gDocs', $url, 
                     	"id='btn-gdocs',ef_icon=gdocs/img/google.png", 

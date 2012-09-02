@@ -32,11 +32,10 @@ class pixlr_Plugin extends core_Plugin
             
                 if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) { 
                     $url = "http://pixlr.com/editor/?s=c&image=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1) . "&title=" . urlencode($rec->name) . "&target=" . '' . "&exit=" . '' . "";
-                    $img = sbf('pixlr/img/pixlr.png');
-                    
+                     
                     // Добавяме бутона
                     $data->toolbar->addBtn('Pixlr', $url, 
-                    	"id='btn-pixlr',class='btn-pixlr', style=background-image: url(" . $img . ");", 
+                    	"id='btn-pixlr',ef_icon=pixlr/img/pixlr.png", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }
