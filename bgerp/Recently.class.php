@@ -27,7 +27,7 @@ class bgerp_Recently extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Напоследък';
+    var $title = 'Последни';
     
     
     /**
