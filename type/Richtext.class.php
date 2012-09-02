@@ -170,11 +170,9 @@ class type_Richtext extends type_Text {
         // Обработваме [hide=caption] ... [/hide] елементите, които скриват/откриват текст
         $html = preg_replace_callback("/\[hide(=([^\]]*)|)\](.*?)\[\/hide\]/is", array($this, '_catchHide'), $html);
         
-        // Даваме възможност други да правят обработки на текста
-        $this->invoke('AfterCatchRichElements', array(&$html));
         
         // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback("#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
+        $html = preg_replace_callback("#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i", array($this, '_catchUrls'), $html);
         
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/(\S+@\S+\.\S+)/i", array($this, '_catchEmails'), $html);
@@ -182,6 +180,9 @@ class type_Richtext extends type_Text {
         // H!..6
         $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]/is", array($this, '_catchHeaders'), $html);
         
+        // Даваме възможност други да правят обработки на текста
+        $this->invoke('AfterCatchRichElements', array(&$html));
+
         // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
         
         
@@ -234,6 +235,8 @@ class type_Richtext extends type_Text {
             
             $st1 = '';
             
+            $our = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $out);
+
             $lines = explode("<br>", $out);
             $empty = 0;
             
@@ -375,12 +378,28 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = $url;
          
-        if(core_Url::isLocal($url)) {
-            $link = $this->internalLink($url, $title, $place);
+        if(core_Url::isLocal($url, $rest)) {
+            $link = $this->internalLink($url, $title, $place, $rest);
         } else {
             $link = $this->externalLink($url, $title, $place);
         }
         
+        return $link;
+    }
+    
+    
+    /**
+     * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL
+     * 
+     * @param string $url URL, къдетo трябва да сочи връзката
+     * @param string $text текст под връзката
+     * @param string $place
+     * @return string HTML елемент <a href="...">...</a>
+     */
+    public function internalLink_($url, $title, $place, $rest)
+    {
+        $link = "<a href=\"[#{$place}#]\">{$title}</a>";
+
         return $link;
     }
 
@@ -398,26 +417,10 @@ class type_Richtext extends type_Text {
     public function externalLink_($url, $title, $place)
     {
         $bgPlace = $this->getPlace();
-        $urlArr = core_Url::parseUrl($url);
+        $urlArr = parse_url($url);
         $domain = $urlArr['host'];
         $this->_htmlBoard[$bgPlace] = "background-image:url(\"http://www.google.com/s2/u/0/favicons?domain={$domain}\");";
         $link = "<a href=\"[#{$place}#]\" target='_blank' class='out linkWithIcon' style='[#{$bgPlace}#]'>{$title}</a>";
-
-        return $link;
-    }
-
-    
-    /**
-     * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL
-     * 
-     * @param string $url URL, къдетo трябва да сочи връзката
-     * @param string $text текст под връзката
-     * @param string $place
-     * @return string HTML елемент <a href="...">...</a>
-     */
-    public function internalLink_($url, $title, $place)
-    {
-        $link = "<a href=\"[#{$place}#]\">{$title}</a>";
 
         return $link;
     }
@@ -511,7 +514,7 @@ class type_Richtext extends type_Text {
     /**
      * Прави субституция на хипервръзките
      */
-    function _catchHyperlinks($html)
+    function _catchUrls($html)
     {   
         $url = rtrim($html[0], ',.;');
 
@@ -522,10 +525,10 @@ class type_Richtext extends type_Text {
         $result = core_Url::escape($url);
         
         if(!Mode::is('text', 'plain')) {
-            if(core_Url::isLocal($url)) {
-                $result = $this->internalUrl($url, $html[0]);
+            if( core_Url::isLocal($url, $rest) ) {
+                $result = $this->internalUrl($url, str::limitLen($url,120), $rest);
             } else {
-                $result = $this->externalUrl($url, $html[0]);
+                $result = $this->externalUrl($url, str::limitLen($url,120));
             }
         }
         
@@ -540,11 +543,27 @@ class type_Richtext extends type_Text {
      * @param string $title
      * @return string HTML елемент <a href="...">...</a>
      */
-    public function internalUrl_($url, $title)
+    public function internalUrl_($url, $title, $rest)
     {
-        return "<a href=\"{$url}\">{$title}</a>";
+        return "<a href=\"{$url}\">{$rest}</a>";
     }
     
+
+    /**
+     * Конвертира въшнен URL към подходящо HTML представяне
+     * 
+     * @param string $url
+     * @param string $title
+     * @param string HTML код
+     */
+    public function externalUrl_($url, $title)
+    {
+        $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
+        
+        return $link;        
+    }
+
+
     /**
      * Прави субституция на имейлите
      */
@@ -559,22 +578,6 @@ class type_Richtext extends type_Text {
         }
 
         return $email;
-    }
-
-
-
-    /**
-     * Конвертира въшнен URL към подходящо HTML представяне
-     * 
-     * @param string $url
-     * @param string $title
-     * @param string HTML код
-     */
-    public function externalUrl_($url, $title)
-    {
-        $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
-        
-        return $link;        
     }
 
 
