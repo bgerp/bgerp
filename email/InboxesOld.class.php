@@ -354,10 +354,7 @@ class email_InboxesOld extends core_Master
                 $rec->applyRouting = "yes";
                 
                 $mvc->save($rec, NULL, 'IGNORE');
-                
-                //Създаваме папка на новата кутия
-                $mvc->forceCoverAndFolder($rec);
-                
+                                
                 $res .= "<li>Добавен имейл по подразбиране: " . BGERP_DEFAULT_EMAIL_FROM;
             }
         }
@@ -455,7 +452,7 @@ class email_InboxesOld extends core_Master
     static function getEmailInCharge($email) 
     {
         //Тримваме имейла
-        $email = str::trim($email);
+        $email = trim($email);
         
         //Да е с малки букви
         $email = mb_strtolower($email);

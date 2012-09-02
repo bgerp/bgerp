@@ -201,7 +201,7 @@ class doc_Incomings extends core_Master
     
                         // TODO това може и да се промени след направата на OCR
                         // Ако има открито съдържание на файла
-                        if (str::trim($iRec->content)) continue;
+                        if (trim($iRec->content)) continue;
                         
                         // Попълваме описанието за файла
                         $data->form->setDefault('title', "Сканиран");    

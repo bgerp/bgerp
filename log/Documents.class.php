@@ -988,7 +988,7 @@ class log_Documents extends core_Manager
     static function isOurURL($url)
     {
         // Изчистваме URL' то от празни символи
-        $url = str::trim($url);
+        $url = trim($url);
         
         // Ако открием търсенто URL в позиция 0
         if (stripos($url, core_App::getBoot(TRUE)) === 0) {

@@ -538,7 +538,7 @@ class email_Mime extends core_BaseClass
         $text = str_replace('&nbsp;', ' ', $text);
         $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
         
-        if(str::trim($text)) {
+        if(trim($text, " \n\r\t" . chr(194) . chr(160))) {
             $textRate += 1;
             $words = preg_replace('/[^\pL\p{Zs}\d]+/u', ' ', $text);
             
@@ -885,7 +885,7 @@ class email_Mime extends core_BaseClass
             }
             
             // Конвертиране към UTF-8 
-            if($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML')) {
+            if($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') && !$p->attachment) {
                 
                 $text = $this->convertToUtf8($data[1], $p->charset, $p->subType);
                 

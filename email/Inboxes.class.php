@@ -420,8 +420,8 @@ class email_Inboxes extends core_Master
      */
     static function getEmailInCharge($email) 
     {
-        //Тримваме имейла
-        $email = str::trim($email);
+        // Тримваме имейла
+        $email = trim($email);
         
         //Да е с малки букви
         $email = mb_strtolower($email);

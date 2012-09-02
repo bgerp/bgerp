@@ -183,8 +183,8 @@ class email_Incomings extends core_Master
 
         $this->setDbUnique('hash');
     }
-    
-    
+
+
     /**
      * Взема записите от пощенската кутия и ги вкарва в модела
      *
@@ -219,6 +219,10 @@ class email_Incomings extends core_Master
             // Заключваме тегленето от тази пощенска кутия
             $lockKey = 'Inbox:' . $accRec->id;
             
+            $logMsg .= ($logMsg ? "<br>" : "") . "{$accRec->email}: ";
+            
+            $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
+            
             if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
                 $htmlRes .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
                 $logMsg  .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
@@ -230,10 +234,6 @@ class email_Incomings extends core_Master
             
             /* @var $imapConn email_Imap */
             $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
-            
-            $logMsg .= ($logMsg ? "<br>" : "") . "{$accRec->email}: ";
-            
-            $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
             
             // Логването и генериране на съобщение при грешка е винаги в контролерната част
             if ($imapConn->connect() === FALSE) {
@@ -603,7 +603,26 @@ class email_Incomings extends core_Master
                 $rawEmail = $conn->getEml($msgNum);
                 
                 // Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
-                $rec = $mimeParser->getEmail($rawEmail);
+                try {
+                    if(empty($rawEmail)) {
+                        $rec = new stdClass();
+                        $rec->error = 'Липсва сорса на имейла';
+                        
+                        return;
+                    }
+
+                    $rec = $mimeParser->getEmail($rawEmail);
+
+                } catch (Exception $exc) {
+                    // Не можем да парсираме е-мейла
+
+                    email_Unparsable::add($rawEmail);
+                    
+                    $rec = new stdClass();
+                    $rec->error = 'Не може да се парсира имейла';
+                        
+                    return;
+                }
                 
                 // Ако не е получен запис, значи има грешка
                 if(!$rec) {
@@ -620,6 +639,7 @@ class email_Incomings extends core_Master
                 $rec->isService =  TRUE;
             }
         } else {
+            $rec = new stdClass();
             $rec->isDublicate = TRUE;
         }
         
@@ -688,7 +708,7 @@ class email_Incomings extends core_Master
         $row->files .= $row->emlFile . $row->htmlFile;
         
         if($fields['-list']) {
-            $row->textPart = mb_Substr($row->textPart, 0, 100);
+           // $row->textPart = mb_Substr($row->textPart, 0, 100);
         }
     }
     
