@@ -1,0 +1,16 @@
+<dl>
+    <dt>Ник</dt>
+    <dd>[#nick#]</dd>
+
+    <dt>Имена</dt>
+    <dd>[#names#]</dd>
+
+    <dt>Роли</dt>
+    <dd>[#roles#]</dd>
+
+    <dt>Създаден на</dt>
+    <dd>[#createdOn#]</dd>
+
+    <dt>Парола</dt>
+    <dd>[#password#]</dd>
+</dl>
