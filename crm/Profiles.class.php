@@ -255,4 +255,24 @@ class crm_Profiles extends core_Master
         return crm_Groups::fetch("#name = '{$profilesGroup}'");
     }
     
+    
+    /**
+     * Визитката, асоциирана с потребителски акаунт
+     * 
+     * @param int $userId
+     * @return stdClass
+     */
+    public static function getProfile($userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent('id');
+        }
+        
+        if (!$profile = static::fetch("#userId = {$userId}")) {
+            return NULL;
+        }
+        
+        return crm_Persons::fetch($profile->personId);
+    }
+    
 }
