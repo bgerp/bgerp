@@ -218,7 +218,7 @@ class crm_Profiles extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $profilesGroup = 'Потребителски профили';
+        $profilesGroup = 'Потребителски профили';  // @TODO да се изнесе като клас-променлива или в конфиг.
         
         core_Users::forceSystemUser();
         
@@ -242,4 +242,12 @@ class crm_Profiles extends core_Master
         
         core_Users::cancelSystemUser();
     }
+    
+    public static function fetchCrmGroup()
+    {
+        $profilesGroup = 'Потребителски профили'; // @TODO да се изнесе като клас-променлива или в конфиг.
+        
+        return crm_Groups::fetch("#name = '{$profilesGroup}'");
+    }
+    
 }
