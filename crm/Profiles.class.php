@@ -208,18 +208,38 @@ class crm_Profiles extends core_Master
 
     
     /**
+     * След инсталиране на пакета CRM:
+     * 
+     *  о Създаване на CRM-група за потребителски профили (ако няма)
+     *  o Конфигуриране на групата за профили с екстендер 'profile'
      *
      * @param crm_Profiles $mvc
      * @param stdClass $res
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        /*
-         * @TODO:
-         * 
-         * 1. Създаване на група "Потребителски профили" в crm_Groups. Създателя да е system user!
-         * 2. Добавяне на екстендер "crm_Profiles" към групата "Потребителски профили".
-         */
+        $profilesGroup = 'Потребителски профили';
+        
+        core_Users::forceSystemUser();
+        
+        // Създаване (ако няма) на група в crm_Groups за потребителските профили. 
+        if (!$profiles = crm_Groups::fetch("#name = '{$profilesGroup}'")) {
+            $profiles = (object)array(
+                'name' => $profilesGroup,
+                'extenders' => 'profile',
+            );
+            crm_Groups::save($profiles);
+        }
+        
+        // Добавяме (ако няма) екстендер 'profiles' на групата за потребителски профили 
+        $extenders = type_Keylist::toArray($profiles->extenders);
+        
+        if (!isset($extenders['profile'])) {
+            $profiles->extenders['profile'] = 'profile';
+            $profiles->extenders = type_Keylist::fromArray($profiles->extenders);
+            crm_Groups::save($profiles);
+        }
+        
+        core_Users::cancelSystemUser();
     }
-    
 }
