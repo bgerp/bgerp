@@ -178,11 +178,16 @@ class crm_Profiles extends core_Master
         if ($data->profile) {
             $profileTpl = new ET(getFileContent('crm/tpl/Profile.shtml'));
             $userRow = core_Users::recToVerbal($data->profile->userRec);
-            $changePasswordBtn = ht::createBtn(
-                tr('Смяна'), array($this, 'changePassword', 'ret_url'=>TRUE), FALSE, FALSE,
-                'class=btn-edit,title=' . tr('Смяна на парола')
-            );
-            $profileTpl->append($changePasswordBtn, 'password');
+            
+            if ($data->profile->userRec->id == core_Users::getCurrent('id')) {
+                $changePasswordBtn = ht::createBtn(
+                    tr('Смяна'), array($this, 'changePassword', 'ret_url'=>TRUE), FALSE, FALSE,
+                    'class=btn-edit,title=' . tr('Смяна на парола')
+                );
+                $profileTpl->append($changePasswordBtn, 'password');
+            } else {
+                $profileTpl->append(str_repeat('*', rand(5,10)), 'password');
+            }
             $profileTpl->placeObject($userRow);
             $tpl->append($profileTpl, 'content');
         } else {
