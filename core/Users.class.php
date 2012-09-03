@@ -1037,4 +1037,23 @@ class core_Users extends core_Manager
         
         return $user;
     }
+
+    
+    /**
+     * Промяна на паролата на съществуващ потребител
+     * 
+     * @param unknown_type $newPassword
+     * @param unknown_type $userId
+     */
+    public static function setPassword($newPassword, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = static::getCurrent('id');
+        }
+        
+        expect($rec = static::fetch($userId));
+        $rec->password = $newPassword;
+        
+        return static::save($rec);
+    }
 }
