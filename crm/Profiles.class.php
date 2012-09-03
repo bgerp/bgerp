@@ -248,6 +248,46 @@ class crm_Profiles extends core_Master
         core_Users::cancelSystemUser();
     }
     
+    public static function on_AfterMasterSave(core_Mvc $mvc, $rec, core_Master $master)
+    {
+        if (get_class($master) != 'crm_Persons') {
+            return;
+            expect(get_class($master) != 'crm_Person'); // дали не е по-добре така?
+        }
+        
+        $personRec = $rec; // псевдоним за яснота
+        
+        $profile = static::fetch("#personId = {$personRec->id}");
+        
+        if (!$profile) {
+            return;
+            expect($profile); // дали не е по-добре така?
+        }
+        
+        // Обновяване на записа на потребителя след промяна на асоциираната му визитка
+        $userRec = core_Users::fetch($profile->userId);
+        
+        if (!empty($personRec->email)) {
+            $userRec->email = $personRec->email;
+        }
+        if (!empty($personRec->name)) {
+            $userRec->names = $personRec->name;
+        }
+        
+        core_Users::save($userRec);
+        
+        // Обновяване на граватара на потребителя след промяна на асоциираната му визитка
+        
+        // @TODO ...
+        
+    }
+    
+    
+    /**
+     * Извилича служебната CRM-група в която се записват потребителските профили
+     * 
+     * @return stdClass
+     */
     public static function fetchCrmGroup()
     {
         $profilesGroup = 'Потребителски профили'; // @TODO да се изнесе като клас-променлива или в конфиг.
