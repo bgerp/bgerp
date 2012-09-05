@@ -38,7 +38,7 @@ class crm_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created';
+    var $loadList = 'plg_Created,crm_Wrapper,plg_RowTools';
 
 
     /**
@@ -58,8 +58,8 @@ class crm_Profiles extends core_Master
      */
     function description()
     {
-        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител');
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent');
+        $this->FLD('userId', 'key(mvc=core_Users, select=nick, allowEmpty)', 'caption=Потребител');
+        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,caption=Визитка');
         
         $this->setDbUnique('userId,personId');
     }
@@ -141,8 +141,37 @@ class crm_Profiles extends core_Master
     
         return $form->isSubmitted();
     }
-
     
+
+    /**
+     *
+     */
+    function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $usersQuery = core_Users::getQuery();
+
+        $opt = array('' => '&nbsp;');
+
+        $query = self::getQuery();
+
+        $used = array();
+
+        while($rec = $query->fetch()) {
+            if($rec->id != $data->form->rec->id) {
+                $used[$rec->userId] = TRUE;
+            }
+        }
+ 
+        while($uRec = $usersQuery->fetch("#state = 'active'")) {
+            if(!$used[$uRec->id]) {
+                $opt[$uRec->id] = $uRec->nick;
+            }
+        }
+
+        $data->form->setOptions('userId', $opt);
+    }
+    
+
     /*
      * Методи за подготовка и показване на потребителски профил като детайл на визитка
      * 
@@ -159,10 +188,18 @@ class crm_Profiles extends core_Master
         expect($data->masterId);
 
         $data->profile = static::fetch("#personId = {$data->masterId}");
+
+        if($data->profile->userId) {
+            if ($data->profile) {
+                $data->profile->userRec = core_Users::fetch($data->profile->userId);
+            }
         
-        if ($data->profile) {
-            $data->profile->userRec = core_Users::fetch($data->profile->userId);
+            if($data->profile->userRec->id == core_Users::getCurrent('id') || haveRole('admin')) {
+                $data->changePassUrl =  array($this, 'changePassword', 'ret_url'=>TRUE);
+            }
         }
+
+        $data->canChange = haveRole('admin');
     }
     
     
@@ -175,36 +212,49 @@ class crm_Profiles extends core_Master
         
         $tpl->append(tr('Потребителски профил'), 'title');
         
-        if ($data->profile) {
+        if ($data->profile->userId) {
             $profileTpl = new ET(getFileContent('crm/tpl/Profile.shtml'));
             $userRow = core_Users::recToVerbal($data->profile->userRec);
             
-            if ($data->profile->userRec->id == core_Users::getCurrent('id')) {
-                $changePasswordBtn = ht::createBtn(
-                    tr('Смяна'), array($this, 'changePassword', 'ret_url'=>TRUE), FALSE, FALSE,
-                    'class=btn-edit,title=' . tr('Смяна на парола')
+            $profileTpl->append(str_repeat('*', 7), 'password');
+
+            if ($data->changePassUrl) {
+                $changePasswordBtn = ht::createLink(
+                    '(' . tr('cмяна' . ')'), $data->changePassUrl, FALSE, 
+                    'title=' . tr('Смяна на парола')
                 );
                 $profileTpl->append($changePasswordBtn, 'password');
-            } else {
-                $profileTpl->append(str_repeat('*', rand(5,10)), 'password');
             }
+
             $profileTpl->placeObject($userRow);
+
             $tpl->append($profileTpl, 'content');
-        } else {
-            $tpl->append('<p>' . tr("Няма профил") . '</p>', 'content');
-            if(!Mode::is('printing')) {
-                if($this->haveRightFor('write')) {
-                    // Добавяне на бутон за създаване на профил
-                    $url = array($this, 'edit', 'personId'=>$data->masterId, 'ret_url' => TRUE);
-                    $tpl->append(
-                        ht::createBtn(
-                            tr('Създаване'), $url, FALSE, FALSE, 
-                            'class=btn-add button,title=' . tr('Създаване на профил')
-                        ), 
-                        'content'
-                    );
-                }
-                
+        } 
+ 
+        if($data->canChange && !Mode::is('printing')) {
+            if(!$data->profile->userId) {
+                $tpl->append('<p>' . tr("Няма профил") . '</p>', 'content');
+            }
+            if(!$data->profile) {
+                $url = array($this, 'edit', 'personId' => $data->masterId, 'ret_url' => TRUE);
+                $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
+                $tpl->append(
+                    ht::createLink(
+                        $img, $url, FALSE, 
+                        'title=' . tr('Асоцииране с потребител')
+                    ), 
+                    'title'
+                );
+            } else {
+                $url = array($this, 'edit', $data->profile->id, 'ret_url' => TRUE);
+                $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
+                $tpl->append(
+                    ht::createLink(
+                        $img, $url, FALSE, 
+                        'title=' . tr('Смяна на потребител')
+                    ), 
+                    'title'
+                );
             }
         }
         
