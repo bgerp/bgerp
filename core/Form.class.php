@@ -606,7 +606,7 @@ class core_Form extends core_FieldSet
         // Стойността на полето
         $value = isset($this->rec->{$name}) ? $this->rec->{$name} : $field->value;
         
-        // Ако нямаме стойност и има грешка за полето, 
+        // Ако има грешка за полето, 
         // вземаме стойността от Request-а
         if ($this->gotErrors($field->name)) {
             $value = $attr['value'] = Request::get($field->name);
