@@ -121,25 +121,30 @@ class type_Email extends type_Varchar {
     /**
      * Преобразува имейл-а в човешки вид
      */
-    function toVerbal($value)
+    function toVerbal($email)
     {
-        if(empty($value)) return NULL;
+        if(empty($email)) return NULL;
+
+        $verbal = str_replace('@', " [аt] ", $email);
         
         if($this->params['link'] != 'no') {
-            $value = $this->addHyperlink($value);
+            $verbal = $this->addHyperlink($email, $verbal);
         } 
+        
 
-        return $value;
+        return $verbal;
     }
     
     
     /**
      * Превръща имейлите в препратка за изпращане на имейл
      */
-    function addHyperlink_($value)
+    function addHyperlink_($email, $verbal)
     {
         if(Mode::is('text', 'html') || !Mode::is('text')) {
-            $value = "<a href='mailto:{$value}'>{$value}</a>";
+            list($user, $domain) = explode('@', $email);
+            $domain = '@' . $domain;
+            $value = "<script>document.write(\"<a href='mailto:{$user}\" + \"{$domain}'><span style='display:none;'>\");</script> {$verbal}<script>document.write(\"</span>\" + \"{$user}\" + \"{$domain}</a>\");</script>";
         }
         
         return $value;
