@@ -117,7 +117,7 @@ class type_Emails extends type_Varchar {
             
             $verbal = str_replace('@', " [аt] ", $email);
             
-            if ((type_Email::isValidEmail($email)) || ($this->params['link'] != 'no')) {
+            if ((type_Email::isValidEmail($email)) && ($this->params['link'] != 'no')) {
                 $links[] = $TypeEmail->addHyperlink($email, $verbal);
             } else {
                 $links[] = $verbal;
