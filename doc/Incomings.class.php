@@ -186,7 +186,7 @@ class doc_Incomings extends core_Master
             $fileHnd = $mvc->db->escape($fileHnd);
             
             // Масив с баркодовете
-            $barcodesArr = fileman_webdrv_Generic::getInfoContentByFh($fileHnd, 'barcodes');
+            $barcodesArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
 
             if (is_array($barcodesArr)) {
                 foreach ($barcodesArr as $barcodesArrPage) {
