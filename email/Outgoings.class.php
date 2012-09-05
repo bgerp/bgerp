@@ -618,6 +618,10 @@ class email_Outgoings extends core_Master
         $folderId = $rec->folderId;
         $emailTo = Request::get('emailto');
         
+        $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
+        $emailTo = str_replace('mailto:', '', $emailTo);
+
+
         // Определяме треда от originId
         if($originId && !$threadId) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');

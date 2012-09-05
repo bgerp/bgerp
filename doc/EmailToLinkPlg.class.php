@@ -20,11 +20,13 @@ class doc_EmailToLinkPlg extends core_Plugin
     /**
      * Преобразуваме имейл-а на потребителя към вътрешен линк към постинг.
      */
-    function on_BeforeAddHyperlink($mvc, &$row, $rec)
-    {
-        //Променяме полето от 'emailto:' в линк към email_Outgoings/add/
-        $row = Ht::createLink($rec, array('email_Outgoings', 'add', 'emailto' => $rec), NULL, array('target'=>'_blank'));
+    function on_BeforeAddHyperlink($mvc, &$result, $email, $verbal)
+    {   
+        if(haveRole('ceo,manager,officer,executive')) {
+            //Променяме полето от 'emailto:' в линк към email_Outgoings/add/
+            $row = Ht::createLink($verbal, array('email_Outgoings', 'add', 'emailto' => str_replace('$54', '#', $email)), NULL, array('target'=>'_blank'));
         
-        return FALSE;
+            return FALSE;
+        }
     }
 }
