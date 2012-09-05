@@ -37,7 +37,9 @@ class fileman_webdrv_Generic extends core_Manager
      */
     static function startProcessing($fRec)
     {
-
+        // Извличане на мета информцията за всички файлове
+        static::getMetaData($fRec);
+        
         return ;
     }
     
@@ -68,7 +70,7 @@ class fileman_webdrv_Generic extends core_Manager
         // Връщаме съдържанието
         return $content;
     }
-    
+
     
 	/**
      * Екшън за показване превю
@@ -184,15 +186,57 @@ class fileman_webdrv_Generic extends core_Manager
     
      /**
      * Екшън за визуализране на информация
-     * 
-     * @todo
      */
     function act_Info()
     {
+        // Манупулатора на файла
+        $fileHnd = Request::get('id'); 
+        
+        // Вземаме текста
+        $content = static::getInfoContentByFh($fileHnd, 'metadata');
+        
+        // Ако нама такъв запис
+        if ($content === FALSE) {
+            
+            // Сменяме мода на page_Waiting
+            Mode::set('wrapper', 'page_Waiting');
+            
+            return ;
+        }
+
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
         
-        return 'TODO: Apache Tika';
+        // Връщаме съдържанието
+        return $content;
+    }
+	
+	
+	/**
+     * Екшън за показване HTML частта на файла
+     */
+    function act_Html()
+    {
+        // Манупулатора на файла
+        $fileHnd = Request::get('id'); 
+        
+        // Вземаме текста
+        $content = static::getInfoContentByFh($fileHnd, 'html');
+        
+        // Ако нама такъв запис
+        if ($content === FALSE) {
+            
+            // Сменяме мода на page_Waiting
+            Mode::set('wrapper', 'page_Waiting');
+            
+            return ;
+        }
+
+        // Сменяма wrapper'а да е празна страница
+        Mode::set('wrapper', 'page_Html');
+        
+        // Връщаме съдържанието
+        return $content;
     }
     
     
@@ -418,4 +462,79 @@ class fileman_webdrv_Generic extends core_Manager
     {
         core_Logs::log(tr("|Възникна грешка при обработката на файла с данни|* {$dataId} |в тип|* {$type}"));
     }
+    
+    
+    /**
+     * Извлича мета информацията
+     * 
+     * @param object $fRec - Записите за файла
+     */
+    static function getMetaData($fRec)
+    {
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => 'fileman_webdrv_Generic::aftergetMetaData',
+            'dataId' => $fRec->dataId,
+        	'asynch' => TRUE,
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'metadata',
+        );
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($params)) return ;
+
+        // Заключваме процеса за определено време
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Извличаме мета информцията с Apache Tika
+            apachetika_Detect::extract($fRec->fileHnd, $params);
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
+    }
+    
+    
+    /**
+     * Получава управеленито след извличане на мета информцията
+     * 
+     * @param fconv_Script $script - Обект с нужните данни
+     * 
+     * @return boolean - Дали е изпълнен успешно
+     */
+    static function aftergetMetaData($script)
+    {
+        
+        // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
+        $text = file_get_contents($script->outFilePath);
+        
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+
+        // Записваме получения текс в модела
+        $rec = new stdClass();
+        $rec->dataId = $params['dataId'];
+        $rec->type = $params['type'];
+        $rec->content = static::prepareContent($text);
+        $rec->createdBy = $params['createdBy'];
+        $saveId = fileman_Indexes::save($rec);
+        
+        // Отключваме процеса
+        core_Locks::release($params['lockId']);
+        
+        if ($saveId) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        } else {
+
+            // 
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
+    }   
 }
