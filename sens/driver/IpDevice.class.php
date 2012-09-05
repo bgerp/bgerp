@@ -138,7 +138,7 @@ class sens_driver_IpDevice extends core_BaseClass
         if(!$this->settings && $this->id) {
             permanent_Settings::setObject($this);
         }
-        
+
         return $this->settings;
     }
     
@@ -291,22 +291,14 @@ class sens_driver_IpDevice extends core_BaseClass
         // Обикаляме всички параметри на драйвера и всичко с префикс logPeriod от настройките
         // и ако му е времето го записваме в indicationsLog-а
         $settingsArr = (array) $this->getSettings();
-        
+		//bp($this);
+
         foreach ($this->params as $param => $arr) {
-        	// Дали параметъра е аналогов вход? И дали е изчисляем /тоест да зависи линейно от измерения резултат/?
-        	if (strpos($param, 'InA') !== FALSE) {
-        		if ($settingsArr['name_'.$param] != 'empty') {
-        			// Лог периода на новия параметър става като на аналоговия вход
-        			$settingsArr["logPeriod_{$settingsArr['name_'.$param]}"] = $settingsArr["logPeriod_{$param}"];
-        			// Изчисляваме новата стойност по линейната зависимост
-        			$paramValue = $settingsArr['angular_' . $param] * $this->stateArr["$param"] + $settingsArr['linear_' . $param];
-        			// Аналоговия параметър приема идентичността на новия, като вече си има и период на логване
-        			$param = $settingsArr['name_'.$param];
-        			$this->stateArr["$param"] = $paramValue;
-        			//bp($this->stateArr);
-        		}
-        		
-        	} 
+        	// Ако в сетингите е зададено че параметъра е изчисляем
+        	if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
+        		$settingsArr["logPeriod_{$settingsArr["name_{$param}"]}"] = $settingsArr["logPeriod_{$param}"];
+        		$param = $settingsArr["name_{$param}"];
+        	}
             // Дали параметъра е зададен да се логва при промяна?
             if ($arr['onChange']) {
                 // Дали има промяна? Ако - ДА записваме в лог-а
@@ -329,7 +321,7 @@ class sens_driver_IpDevice extends core_BaseClass
                 }
             }
         }
-        
+		
         // Ред е да задействаме аларми ако има.
         // Започваме цикъл всички идентификатори на формата
         for($i = 1; $i <= $this->alarmCnt; $i++) {
@@ -382,12 +374,12 @@ class sens_driver_IpDevice extends core_BaseClass
                 }
             }   // if ($cond)
         }
-        
+       //         bp($this->stateArr);
+
         if (is_array($newOuts)) {
             $this->setOuts($newOuts);
             $this->updateState();
         }
-        
         // Добавяме последните аларми към състоянието ако е имало такива
         $this->stateArr = array_merge((array)$this->stateArr, (array)$lastMsgArr);
         
@@ -436,7 +428,7 @@ class sens_driver_IpDevice extends core_BaseClass
     function renderHtml()
     {
         
-        $this->loadState();
+        $this->loadState(); //bp($this);
         
         foreach ($this->params as $param => $properties) {
             

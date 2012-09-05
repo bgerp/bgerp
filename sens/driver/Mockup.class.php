@@ -89,7 +89,8 @@ class sens_driver_Mockup extends sens_driver_IpDevice
      */
     function updateState()
     {
-        
+        $settingsArr = (array) $this->getSettings();
+    	
         $stateOld = $this->loadState();
         
         $state = array();
@@ -102,7 +103,7 @@ class sens_driver_Mockup extends sens_driver_IpDevice
                     if (date("H") > "08" && date("H") < "19") $state['T'] += 0.1;
                     
                     if (date("H") < "08" || date("H") > "19") $state['T'] -= 0.1;
-                    // Ако е включен изход 1 - предполагаме че е климатик и температурата се охлажда
+                    // Ако е включен изход 1 - предполагаме че включва климатик и температурата пада
                     if ($stateOld['OutD1'] == 1) {
                     	$state['T'] -= 2;
                     }
@@ -115,6 +116,18 @@ class sens_driver_Mockup extends sens_driver_IpDevice
                     if ($stateOld['InA1'] < 0) $stateOld['InA1'] = 0;
                     if ($stateOld['InA1'] > 10) $stateOld['InA1'] = 10;
                     $state['InA1'] = $stateOld['InA1'];
+                    // Проверяваме в сетингите на драйвера, дали има зададено преизчисляване на аналоговия вход
+                    if (!empty($settingsArr['name_InA1']) && $settingsArr['name_InA1'] != 'empty') {
+                    	// Имаме зададено линейно преизчислване
+                    	// Лог периода на новия параметър става като на аналоговия вход
+//	        			$settingsArr["logPeriod_{$settingsArr['name_InA1']}"] = $settingsArr["logPeriod_InA1"];
+	        			// При зададен параметър функция от аналоговия вход - той не се следи
+//	        			unset($settingsArr["logPeriod_InA1"]);
+    	    			// Изчисляваме новата стойност по линейната зависимост
+       		 			$paramValue = $settingsArr['angular_InA1'] * $state['InA1'] + $settingsArr['linear_InA1'];
+        				// Присвояваме стойността на новия параметър
+        				$state["{$settingsArr['name_InA1']}"] = $paramValue;// bp($settingsArr['angular_InA1'], $state['InA1'], $settingsArr['linear_InA1']);
+                    }
                     break;
                 case 'avgHr' :
                     // Тук взимаме историята на влажностите за изчисляването на средната стойност
@@ -135,6 +148,8 @@ class sens_driver_Mockup extends sens_driver_IpDevice
         $outs = permanent_Data::read('sens_driver_mockupOuts');
         
         $this->stateArr = array_merge((array)$outs, $state);
+        // Записваме състоянието като обект а не масив
+//        $this->setSettings(json_decode(json_encode($settingsArr)));
         
         // Връщаме TRUE при успешно четене
         return TRUE;
