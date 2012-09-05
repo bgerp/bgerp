@@ -23,6 +23,12 @@ class doc_Comments extends core_Master
     
     
     /**
+     * Полета, които ще се клонират
+     */
+    var $cloneFields = 'subject, body';
+    
+    
+    /**
      * Заглавие
      */
     var $title = "Коментари";
