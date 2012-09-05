@@ -79,81 +79,90 @@ class cal_Agenda extends core_Master
         $this->FLD('allDay', 'enum(yes=Да,no=Не)', 'caption=Цял ден?');
         
         // Индекси
-        // $this->setDbUnique('date,url,type,key');
-        $this->setDbIndex('key');
+         $this->setDbUnique('key');
+        //$this->setDbIndex('key');
 
     }
     
-    
     /**
-     * Добавя или обновява информация за събитие
+     * Добавяне или обновяване на празниците от drdata_Holidays  в календара
      */
-    static function mergeEvents($key, $events = array())
+    function act_PullEventsFromHolidays()
     {
-        // Днешна MySql дата, към началото на деня
+    	// Днешна MySql дата, към началото на деня
         $today = date('Y-m-d');
-        
-        // Инициализираме резултатния масив
-        $res = array(
+    	
+    	// Инициализираме резултатния масив
+        $events = array(
             'new' => 0,
             'updated' => 0,
             'rejected' => 0, 
             'deleted' => 0
             );
-        
-        // Правим ключа с подходяща максиламна дължина
-        $key = str::convertToFixedKey($key, 24, 8);
-        
-        $query = static::getQuery();
+    	
+    	$res = drdata_Holidays::eventsForCalendar();
+    	
+	    $query = static::getQuery();
+	
+	    // Извличаме съществуващите записи за този ключ
+	    while($rec = $query->fetch()) {
 
-        $query->where("#key = '{$key}'");
-        
-        // Извличаме съществуващите записи за този ключ
-        while($rec = $query->fetch()) {
-            $exRecs[$rec->date . '|' . $rec->type. "|" . $rec->url] = $rec;
-        }
-       
-        if(count($events)) {
+	      $id = $rec->id;
+	      $exRecs[$rec->date . '|' . $rec->type. "|" . $rec->url] = $rec;
+	     
+	    }
+    	
+    	if(count($res)) {
             // Циклим по новите събития, за да определим, кои от тях са съществуващи до сега
-            foreach($events as &$rec) {
-                $hnd = $rec->date . '|' . $rec->type . "|" . $rec->url;
-                
-                // Ако събитието е съществуващо - то отива за обновяване
+	    	foreach($res as $rec){
+	    		$hnd = $rec->date . '|' . $rec->type . "|" . $rec->url;
+	    	}
+	   
+	    	 // Ако събитието е съществуващо - то отива за обновяване
                 if($exRecs[$hnd]) {
-                    $rec->id = $exRecs[$hnd]->id;
+               
+                    $id = $exRecs[$hnd]->id;
                     unset($exRecs[$hnd]);
  
                 } 
-            }
-             // Добавяме или обновяваме новите събития
-            foreach($events as $rec) {
-                $rec->key = $key;
-                if($rec->id) {
-                    $res['updated']++;
-                } else {
-                    $res['new']++;
-                }
-                static::save($rec);
-            }
-        }
-
-        // Изтриваме или оттегляме старите събития
-        if(count($exRecs)) {
-            foreach($exRecs as $rec) {
-                if($rec->date < $today) {
-                    if($rec->state != 'rejected') {
-                        $rec->state = 'rejected';
-                        static::save($rec);
-                        $res['rejected']++;
-                    }
-                } else {
-                    static::delete($rec->id);
-                    $res['deleted']++;
-                }
-            }
-        }
+    	
+	        // Добавяме новите събития
+	        foreach($res as $rec) {
+	
+	          // Обновяваме новите събития
+			
+	          if ($id) {
+	            $events['updated']++;
+	           } else {
+	        	
+	              $events['new']++;
+	           }      
+	           static::save($rec, NULL, "IGNORE");
+	        }
+    	}
+          // Изтриваме или оттегляме старите събития
+	       if(count($exRecs)) {
+	            foreach($exRecs as $rec) {
+	            	
+	                if($rec->date < $today) {
+	                    if($rec->state != 'rejected') {
+	                        $rec->state = 'rejected';
+	                      
+	                        $events['rejected']++;
+	                        static::save($rec);
+	                        
+	                    } else {
+		                	
+		                    static::delete($rec->id);
+		                    $events['deleted']++;
+		                }
+	                } 
+	            }
+	        }
+	        
+            return "Добавени {$events['new']}, обновени {$events['updated']}, оттеглени {$events['rejected']}, изтрити {$events['deleted']}";
     }
-    
+
     
     /**
      * Предизвиква изтриване на информацията за посоченото от ключа събитие
