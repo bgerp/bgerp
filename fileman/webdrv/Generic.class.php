@@ -53,7 +53,7 @@ class fileman_webdrv_Generic extends core_Manager
         $fileHnd = Request::get('id'); 
         
         // Вземаме текста
-        $content = static::getInfoContentByFh($fileHnd, 'text');
+        $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'text');
         
         // Ако нама такъв запис
         if ($content === FALSE) {
@@ -81,7 +81,7 @@ class fileman_webdrv_Generic extends core_Manager
         $fileHnd = Request::get('id');
         
         // Вземаме масива с изображенията
-        $jpgArr = static::getInfoContentByFh($fileHnd, 'jpg');
+        $jpgArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'jpg');
 
         // Ако няма такъв запис
         if ($jpgArr === FALSE) {
@@ -149,7 +149,7 @@ class fileman_webdrv_Generic extends core_Manager
         $fileHnd = Request::get('id'); 
         
         // Вземаме баркодовете
-        $barcodes = static::getInfoContentByFh($fileHnd, 'barcodes');
+        $barcodes = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
 
         // Ако нама такъв запис
         if ($barcodes === FALSE) {
@@ -193,7 +193,7 @@ class fileman_webdrv_Generic extends core_Manager
         $fileHnd = Request::get('id'); 
         
         // Вземаме текста
-        $content = static::getInfoContentByFh($fileHnd, 'metadata');
+        $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'metadata');
         
         // Ако нама такъв запис
         if ($content === FALSE) {
@@ -221,7 +221,7 @@ class fileman_webdrv_Generic extends core_Manager
         $fileHnd = Request::get('id'); 
         
         // Вземаме текста
-        $content = static::getInfoContentByFh($fileHnd, 'html');
+        $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'html');
         
         // Ако нама такъв запис
         if ($content === FALSE) {
@@ -302,38 +302,6 @@ class fileman_webdrv_Generic extends core_Manager
         $text = base64_encode($text);    
                 
         return $text;
-    }
-    
-    
-    /**
-     * Връща десериализараната информация за съответния файл и съответния тип
-     * 
-     * @param fileHandler $fileHnd - Манипулатор на файла
-     * @param string $type - Типа на файла
-     * 
-     * @return mixed $content - Десериализирания стринг
-     */
-    static function getInfoContentByFh($fileHnd, $type)
-    {
-        // Определяме dataId от манупулатора
-        $dataId = fileman_Files::fetchByFh($fileHnd, 'dataId');
-        
-        // Вземаме текстовата част за съответното $dataId
-        $rec = fileman_Indexes::fetch("#dataId = '{$dataId}' AND #type = '{$type}'");
-
-        // Ако няма такъв запис
-        if (!$rec) return FALSE;
-
-        // Декодваме
-        $content = base64_decode($rec->content);
-        
-        // Декомпресираме
-        $content = gzuncompress($content);
-        
-        // Десериализираме съдържанието
-        $content = unserialize($content);        
-        
-        return $content;
     }
     
     
