@@ -195,7 +195,7 @@ class doc_ThreadUsers extends core_Manager
     }
     
     
-    public function markContainerViewed($containerId, $userId = NULL)
+    public static function markContainerViewed($containerId, $userId = NULL)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent('id');

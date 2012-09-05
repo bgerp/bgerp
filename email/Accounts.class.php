@@ -120,7 +120,9 @@ class email_Accounts extends core_Master
     {
         $rec = self::fetch("#type = 'corporate'");
         
-        list($rec->user, $rec->domain) = explode('@', $rec->email);
+        if($rec) {
+            list($rec->user, $rec->domain) = explode('@', $rec->email);
+        }
 
         return $rec;
     }

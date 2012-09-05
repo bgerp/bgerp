@@ -1,9 +1,15 @@
-<?php
+ <?php
 
 
 /**
  * Замества абсолютните линкове в richText полетата, които сочат към системата с тяхното заглавие и икона на файла
  *
+ * Замества следните URL-та:
+ *
+ *     o doc_Containers/list/?threadId=??????
+ *     o doc_Threads/list/?folderId=??????
+ *     o [mvc]/single/[id]
+ *     
  *
  * @category  bgerp
  * @package   bgerp
@@ -16,36 +22,14 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
 {
     
     
-    /**
-     * Шаблон за намиране на URL' та към single' а на документите.
-     * Шаблона трябва да не започва с буква и/или цифра.
-     * Шаблона трябва да завършва с празен символ.
-     * 
-     * @param begin - Символа преди шаблона
-     * @param link  - Целия линк
-     * @param get   - GET параметрите след линка, (ако има такива)
-     */
-    static $patternSinle = "/(?'begin'[^a-z0-9а-я]|^){1}(?'link'(http|https):\/\/([^\s]*\/single\/[^(\s)|(\/\?)]*))((\/\?(?'get'[^\s]*))|\/)?/iu";
+     
     
-    
-    /**
-     * Шаблон за намиране на URL' та към folderId и threadId на документите.
-     * Шаблона трябва да не започва с буква и/или цифра.
-     * Шаблона трябва да завършва с празен символ.
-     * 
-     * @param begin - Символа преди шаблона
-     * @param link  - Целия линк
-     * @param get   - GET параметрите след линка, (ако има такива)
-     * @param type  - Типа на първия get параметър (threadid или folderid)
-     * @param id    - id' то на съответния документ
-     */
-    static $patternGet = "/(?'begin'[^a-z0-9а-я]|^){1}(?'link'(http|https):\/\/([^\s]*\/doc_[^(\s)|(\?)]*))(\?(?'get'((?'type'threadid|folderid)=(?'id'[0-9]*))[^\s]*)|\/)?/iu";
-    
+     
     
     /**
      * Заместваме абсолютните линкове, които сочат към системата, с титлата на документа
      */
-    function on_AfterCatchRichElements($mvc, &$html)
+    function on_AfterCatchRichElements1($mvc, &$html)
     {
         $this->mvc = $mvc;
         $html = preg_replace_callback(array(self::$patternSinle, self::$patternGet), array($this, '_catchUrl'), $html);
@@ -59,7 +43,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
      *
      * @return string $res - Ресурса, който ще се замества
      */
-    function _catchUrl($match)
+    function _1catchUrl($match)
     {
         //Ако регулярния израз е открил поле type
         if ($match['type']) {
@@ -90,7 +74,61 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         return $link;
     }
     
-    
+
+    function on_BeforeInternalUrl($rt, &$res, $url, $title, $rest)
+    {
+         // bp($rt, $res, $url, $title, $rest);
+
+        $rest = trim($rest, '/');
+        
+        $restArr = explode('/', $rest);
+
+        $params = array();
+        
+        $lastPart = $restArr[count($restArr)-1];
+
+        if($lastPart{0} == '?') {
+           $lastPart = ltrim($lastPart, '?'); 
+           $lastPart = str_replace('&amp;', '&', $lastPart);
+           parse_str($lastPart, $params);
+           unset($restArr[count($restArr)-1]);
+        }
+
+        setIfNot($params['Ctr'], $restArr[0]);
+
+        setIfNot($params['Act'], $restArr[1], 'default');
+
+        if(count($restArr) % 2) {
+            setIfNot($params['id'], $restArr[2]);
+            $pId = 3;
+        } else {
+            $pId = 2;
+        }
+        
+        // Добавяме останалите параметри, които са в часта "път"
+        while($restArr[$pId]) {
+            $params[$restArr[$pId]] = $params[$restArr[$pId+1]];
+            $pId++;
+        }
+
+        // Папки
+        if($params['Ctr'] == 'doc_Threads' && ($params['Act'] == 'list' || $params['Act'] == 'default')) {
+
+        }
+
+        // Нишки
+        // Сингле
+
+       // $res = ' #EML1 ';
+        $img = sbf('img/16/folder.png', '');
+        
+       // $res = ht::createLink('Papka', array('doc_Folders'), NULL, 'ef_icon=img/16/folder.png');
+
+       // return FALSE;
+    }
+
+
+
     /**
      * Връща линка на папката във вербален вид
      * 

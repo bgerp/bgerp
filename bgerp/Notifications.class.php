@@ -52,9 +52,10 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Отговорник');
         $this->FLD('priority', 'enum(normal, warning, alert)', 'caption=Приоритет');
         $this->FLD('cnt', 'int', 'caption=Брой');
-        $this->FLD('url', 'varchar', 'caption=URL');
-        $this->FLD('customUrl', 'varchar', 'caption=URL');
-      
+        $this->FLD('url', 'varchar', 'caption=URL->Ключ');
+        $this->FLD('customUrl', 'varchar', 'caption=URL->Обект');
+        $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
+
         $this->setDbUnique('url, userId');
     }
     
@@ -130,6 +131,25 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Скрива посочените записи
+     * Обикновено след Reject
+     */
+    static function setHidden($urlArr, $hidden = 'yes') 
+    {
+        $url = toUrl($urlArr, 'local');
+        
+        $query = self::getQuery();
+
+        $query->where("#url = '{$url}'");
+
+        while($rec = $query->fetch()) {
+            $rec->hidden = $hidden;
+            self::save($rec);
+        }
+    }
+
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Manager $mvc
@@ -176,7 +196,7 @@ class bgerp_Notifications extends core_Manager
         // Подготвяме формата за филтриране
         // $this->prepareListFilter($data);
         
-        $data->query->where("#userId = {$userId}");
+        $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
         $data->query->orderBy("state,modifiedOn=DESC");
         
         // Подготвяме навигацията по страници

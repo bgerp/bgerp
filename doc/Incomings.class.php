@@ -186,7 +186,7 @@ class doc_Incomings extends core_Master
             $fileHnd = $mvc->db->escape($fileHnd);
             
             // Масив с баркодовете
-            $barcodesArr = fileman_webdrv_Generic::getInfoContentByFh($fileHnd, 'barcodes');
+            $barcodesArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
 
             if (is_array($barcodesArr)) {
                 foreach ($barcodesArr as $barcodesArrPage) {
@@ -201,7 +201,7 @@ class doc_Incomings extends core_Master
     
                         // TODO това може и да се промени след направата на OCR
                         // Ако има открито съдържание на файла
-                        if (str::trim($iRec->content)) continue;
+                        if (trim($iRec->content)) continue;
                         
                         // Попълваме описанието за файла
                         $data->form->setDefault('title', "Сканиран");    
