@@ -86,7 +86,7 @@ class docoffice_Unoconv extends core_Manager
         }
         
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr);
+        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8'));
 
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('docoffice_Unoconv::afterConvertDoc');
