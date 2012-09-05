@@ -107,21 +107,16 @@ class type_Emails extends type_Varchar {
         
         //Вземаме всички имейли
         $emails = self::toArray($str, self::ALL);
-        
-        //Инстанция към type_Email
-        $TypeEmail = cls::get('type_Email');
-        
+                
         $links = array();
+
+        //Инстанция към type_Email
+        $typeEmail = cls::get('type_Email', array('params' => $this->params));
         
         foreach ($emails as $email) {
-            
-            $verbal = str_replace('@', " [аt] ", $email);
-            
-            if ((type_Email::isValidEmail($email)) && ($this->params['link'] != 'no')) {
-                $links[] = $TypeEmail->addHyperlink($email, $verbal);
-            } else {
-                $links[] = $verbal;
-            }
+            if (($typeEmail->isValidEmail($email))) {
+                $links[] = $typeEmail->toVerbal($email);
+            } 
         }
         
         return implode(', ', $links);
