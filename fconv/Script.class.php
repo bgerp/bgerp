@@ -104,6 +104,11 @@ class fconv_Script
         }
 
         $this->script .= $this->nl($cmdLine);
+        
+        // Ако е подаден параметър език, тогава се добавя в началото на скрипта
+        if ($params['LANG']) {
+            $this->script = "LANG='{$params['LANG']}' " . $this->script;
+        }
     }
     
     
