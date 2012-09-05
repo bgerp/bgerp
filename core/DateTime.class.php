@@ -350,13 +350,6 @@ class core_DateTime
             
             return $date2;
             
-            if ($date1 == $date2) {
-                
-                return $date1;
-            } else {
-                
-                return FALSE;
-            }
         } else {
             if ($full) {
                 
