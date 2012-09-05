@@ -200,16 +200,7 @@ class fileman_Setup extends core_Manager {
         
         // Инсталираме плъгина за качване на файлове в RichEdit
         $html .= $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
-        
-        // Плъгин за добавяне на бутон за разглеждане на файлове чрез google
-        $html .= $Plugins->installPlugin('Преглед с docs.google.com', 'fileman_viewer_GDocs', 'fileman_Files', 'private');
-        
-        // Плъгин за добавяне на бутон за разглеждане на файлове чрез zoho
-        $html .= $Plugins->installPlugin('Преглед с viewer.zoho.com', 'fileman_viewer_Zoho', 'fileman_Files', 'private');
-        
-        // Плъгин за добавяне на бутон за разглеждане на файлове чрез pixlr
-        $html .= $Plugins->installPlugin('Преглед с pixlr.com', 'fileman_viewer_Pixlr', 'fileman_Files', 'private');
-        
+
         return $html;
     }
     
