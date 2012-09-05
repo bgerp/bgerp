@@ -50,13 +50,6 @@
 			</tr>
 		<!--ET_END createdOn-->
 		
-		<!--ET_BEGIN info-->          
-			<tr>
-			    <td align='right' width='auto' >|Информация|*:</td>
-			    <td>[#info#]</td>
-			</tr>
-		<!--ET_END info-->
-		
 		<!--ET_BEGIN versions-->          
 			<tr>
 			    <td align='right' width='auto' >|Версии|*:</td>

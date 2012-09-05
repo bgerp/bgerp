@@ -569,9 +569,6 @@ class fileman_Files extends core_Master
 
         expect($rec->dataId, 'Няма данни за файла');
         
-        // Информация за файла
-        $iRec = fileman_Info::getFileInfo($rec);
-
         // Ако има активен линк за сваляне
         if (($dRec = fileman_Download::fetch("#fileId = {$rec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
 
@@ -611,9 +608,6 @@ class fileman_Files extends core_Master
         
         // Вербалния размер на файла
         $row->size = fileman_Data::getFileSize($rec->dataId);
-        
-        // Информация за файла
-        $row->info = unserialize($iRec->metaInfo);
         
         // Версиите на файла
         $row->versions = static::getFileVersionsString($rec->id);
@@ -749,34 +743,6 @@ class fileman_Files extends core_Master
         
             return $mimetypes["{$ext}"];
         }
-    }
-    
-    
-    /**
-     * Връща информация за файла
-     * 
-     * @param $fh - id' то на файла, с данните
-     * 
-     * @return string $fileInfo - Информация за файла
-     * @todo Временно решение
-     */
-    static function findDefMetaInfo($fh)
-    {
-        // Намираме dataId' то на файла
-        $dataId = fileman_Files::fetchByFh($fh, 'dataId');
-        
-        // Пътя до файла
-        $path = fileman_Data::getFilePath($dataId);
-
-        // TODO временно решени
-        // Ще се промени
-        $fileInfo = exec("file {$path}");
-        
-        $fileInfo = str_ireplace($path . ':', '', $fileInfo);
-        
-        $fileInfo = trim($fileInfo);
-        
-        return $fileInfo;
     }
     
     
