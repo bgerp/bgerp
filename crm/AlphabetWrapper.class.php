@@ -44,9 +44,15 @@ class crm_AlphabetWrapper extends core_Plugin
                 $selected = $a;
             }
         }
+
+        if(Mode::is('screenMode', 'narrow')) {
+            $tabs->headerBreak = 13;
+        }
         
-        $tpl = $tabs->renderHtml($content, $selected);
+        $tpl = $tabs->renderHtml('', $selected);
         
+        $tpl->append($content);
+
         //$tpl->prepend('<br>');
         
     }
