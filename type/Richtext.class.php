@@ -419,8 +419,8 @@ class type_Richtext extends type_Text {
         $bgPlace = $this->getPlace();
         $urlArr = parse_url($url);
         $domain = $urlArr['host'];
-        $this->_htmlBoard[$bgPlace] = "background-image:url(\"http://www.google.com/s2/u/0/favicons?domain={$domain}\");";
-        $link = "<a href=\"[#{$place}#]\" target='_blank' class='out linkWithIcon' style='[#{$bgPlace}#]'>{$title}</a>";
+        $this->_htmlBoard[$bgPlace] = "background-image:url('http://www.google.com/s2/u/0/favicons?domain={$domain}');";
+        $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">{$title}</a>";
 
         return $link;
     }
