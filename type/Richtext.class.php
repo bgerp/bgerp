@@ -135,10 +135,9 @@ class type_Richtext extends type_Text {
         // Задаваме достатъчно голям буфер за обработка на регулярните изрази
         ini_set('pcre.backtrack_limit', '2M');
         
-       
         
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
-        $html = preg_replace_callback("/\[html](.*?)\[\/html\]/is", array($this, '_catchHtml'), $html);
+        $html = preg_replace_callback("/\[html](.*?)\[\/html\]([\r\n]{0,2})/is", array($this, '_catchHtml'), $html);
         
         // Премахваме всичкото останало HTML форматиране
         $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
@@ -156,7 +155,7 @@ class type_Richtext extends type_Text {
 		}
         
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
-        $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
+        $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]([\r\n]{0,2})/is", array($this, '_catchCode'), $html);
         
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
@@ -178,7 +177,7 @@ class type_Richtext extends type_Text {
         $html = preg_replace_callback("/(\S+@\S+\.\S+)/i", array($this, '_catchEmails'), $html);
         
         // H!..6
-        $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]/is", array($this, '_catchHeaders'), $html);
+        $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]([\r\n]{0,2})/is", array($this, '_catchHeaders'), $html);
         
         // Даваме възможност други да правят обработки на текста
         $this->invoke('AfterCatchRichElements', array(&$html));
@@ -234,8 +233,6 @@ class type_Richtext extends type_Text {
             }
             
             $st1 = '';
-            
-            $our = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $out);
 
             $lines = explode("<br>", $out);
             $empty = 0;
@@ -253,8 +250,11 @@ class type_Richtext extends type_Text {
             }
             
             $html = $st1;
+            
+            $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $html);
         }
         
+
         $html =  new ET("<div class=\"richtext\">{$html}</div>");
 
         if(count($this->_htmlBoard)) {
@@ -497,7 +497,7 @@ class type_Richtext extends type_Text {
      * Обработва хедъри-те [h1..6] ... [/h..]
      */
     function _catchHeaders($matches)
-    {
+    { 
         $text  = $matches[2];
         $level = $matches[1];
         

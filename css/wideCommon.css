@@ -120,6 +120,12 @@ p.richtext {
     margin:5px;
 }
 
+.richtext h2 {
+	margin-bottom:5px;
+	padding:5px;
+	background-color: #ddf;
+}
+
 pre.richtext {
     font-family: Courier New,monospace;
     padding:10px;

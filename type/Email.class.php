@@ -143,7 +143,7 @@ class type_Email extends type_Varchar {
     {
         if(Mode::is('text', 'html') || !Mode::is('text')) {
             list($user, $domain) = explode('@', $email);
-            $domain = '@' . $domain;
+            $domain = '&#64;' . $domain;
             $value = "<script>document.write(\"<a href='mailto:{$user}\" + \"{$domain}'><span style='display:none;'>\");</script> {$verbal}<script>document.write(\"</span>\" + \"{$user}\" + \"{$domain}</a>\");</script>";
         }
         
