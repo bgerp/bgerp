@@ -118,9 +118,11 @@ p.richtext {
 
 .richtext h3 {
     margin:5px;
+    margin-left:0px;
 }
 
 .richtext h2 {
+	margin-left:0px;
 	margin-bottom:5px;
 	padding:5px;
 	background-color: #ddf;
