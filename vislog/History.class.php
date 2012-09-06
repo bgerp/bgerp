@@ -107,6 +107,7 @@ class vislog_History extends core_Manager {
         $rec->HistoryResourceId = $mvc->HistoryResources->fetchField(array("#query = '[#1#]'", $rec->query), 'id');
         
         if(!$rec->HistoryResourceId) {
+            $sRec = new stdClass();
             $sRec->query = $rec->query;
             $rec->HistoryResourceId = $mvc->HistoryResources->save($sRec);
         }
