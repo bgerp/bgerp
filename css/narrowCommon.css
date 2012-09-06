@@ -145,7 +145,7 @@ table.listTable>tbody>tr>td {
 	vertical-align:middle;
 }
 
-table.listTable>THEAD>TR>TH {
+table.listTable>thead>tr>th {
     border: 1px solid #999;
     padding: 3px;
     background-color:#ddd;
@@ -216,36 +216,49 @@ form {
     margin-bottom:3px;
 }
 
-.formGroup {
-    padding:2px;
-    background-color: #ccccff;
+.vertical .formGroup {
+    padding:4px;
+    background-color: #99f;
+	color:white;
+    border-radius: 3px;
 }
 
-.formTitle {
+.vertical .formTitle {
     padding:    4px;
     font-size:  1.2em;
     font-family: Verdana;
+    padding:    10px;
+    font-size:  20px;
+	background-color:blue;
+	color:white;
 }
 
 .formAll {
     display:table;
 }
 
-.formSection {
+.vertical .formSection {
     padding:2px;
     color:black;
     background-color:#ffe;
-	background-image:url('../img/yellow.png');
     vertical-align:top;
 }
 
-.formToolbar {
+.vertical .formToolbar {
     padding:2px;
     background-color:#ffe;
-	background-image:url('../img/yellow.png');
 }
 
+.vertical .formToolbar input {
+    margin-right:5px;
+}
 
+.horizontal .formFields {
+}
+
+.horizontal .formFields div {
+	margin-bottom:5px;
+}
 
 
 form[method=post] input[type=submit]:first-child { 
@@ -253,13 +266,7 @@ form[method=post] input[type=submit]:first-child {
 	color:white;
 }
 
-
-.formToolbar INPUT {
-    margin-right:5px;
-}
-
- 
-A.pager {
+a.pager {
 	font-size: 0.9em;
 	margin:5px;
 	margin-left:0px;
@@ -268,9 +275,11 @@ A.pager {
 	padding:1px;
 }
 
-A.pagerSelected {
+a.pagerSelected {
 	border:solid 1px #aaaaaa;
 	-moz-border-radius:4px;
+	-webkit-border-radius: 4px;
+    border-radius: 4px;
 	padding:2px;
 	background-color:#ffffee;
  	color:#994444;
@@ -375,12 +384,6 @@ input[type=radio]:checked + LABEL {
 	color:red;
 }
 
-.formTitle {
-    padding:    10px;
-    font-size:  20px;
-	background-color:blue;
-	color:white;
-}
 
 DIV.rowtools {
 	display:inline;

@@ -251,40 +251,62 @@ form {
 
 .formFields TABLE {
 	width:100%;
-
 }
 
-.formFieldCaption {
+
+/* ХОРИЗОНТАЛНА ФОРМА */
+
+.horizontal .formFields {
+	float:left;
+}
+
+.horizontal .formFields div {
+	float:left;
+	margin-right:7px;
+	margin-bottom:2px;
+}
+
+.horizontal .formToolbar {
+	float:left;
+	margin-left:7px;
+}
+
+
+/* ВЕРТИКАЛНА ФОРМА */
+
+.vertical .formFieldCaption {
 	padding-top:5px;
 	white-space: nowrap;
 	width:1px;
 }
 
-.formGroup {
-    padding:5px;
-    background-color: #ccccff;
+.vertical .formGroup {
+    padding:4px;
+    background-color: #99f;
+	color:white;
+    border-radius: 3px;
 }
 
-.formTitle {
+.vertical .formTitle {
     padding:    10px;
     font-size:  20px;
     background-color:blue;
     color:white;
 }
 
-.formAll {
+.vertical .formAll {
     background-color:blue;
     color:white;
 }
 
-.formSection {  
+.vertical .formSection {  
     padding:15px;
     background-color:#ffe;
     color:black;
     vertical-align:top;
 }
 
-.formToolbar {
+.vertical .formToolbar {
     padding:5px; 
     background-color:#ccc; 
     border:solid 1px #aaa;
