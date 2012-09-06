@@ -133,6 +133,7 @@ pre.richtext {
     color:#000;
     line-height:120%;
     border:solid 1px #ccc;
+    overflow: auto;
 }
 
 div.richtext li {
