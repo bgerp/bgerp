@@ -188,6 +188,38 @@ class fileman_Indexes extends core_Manager
         return $res;
     }
     
+
+    /**
+     * Връща десериализараната информация за съответния файл и съответния тип
+     * 
+     * @param fileHandler $fileHnd - Манипулатор на файла
+     * @param string $type - Типа на файла
+     * 
+     * @return mixed $content - Десериализирания стринг
+     */
+    static function getInfoContentByFh($fileHnd, $type)
+    {
+        // Определяме dataId от манупулатора
+        $dataId = fileman_Files::fetchByFh($fileHnd, 'dataId');
+        
+        // Вземаме текстовата част за съответното $dataId
+        $rec = fileman_Indexes::fetch("#dataId = '{$dataId}' AND #type = '{$type}'");
+
+        // Ако няма такъв запис
+        if (!$rec) return FALSE;
+
+        // Декодваме
+        $content = base64_decode($rec->content);
+        
+        // Декомпресираме
+        $content = gzuncompress($content);
+        
+        // Десериализираме съдържанието
+        $content = unserialize($content);        
+        
+        return $content;
+    }
+    
     
     /**
      * Подреждане на табовете в зависимост от order

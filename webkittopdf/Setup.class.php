@@ -1,9 +1,6 @@
 <?php
 
 
-
-
-
 /**
  * Изпълнимия файл на програмата
  */
@@ -35,15 +32,12 @@ defIfNot('WEBKIT_TO_PDF_SCREEN_BIT', "16");
 
 
 /**
- * class sms_Setup
- *
  * Инсталиране/Деинсталиране на
- * мениджъри свързани със СМС-и
- *
+ * мениджъри за конвертиране в pdf
  *
  * @category  bgerp
- * @package   sms
- * @author    Dimitar Minekov <mitko@extrapack.com>
+ * @package   webkittopdf
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1

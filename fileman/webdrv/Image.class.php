@@ -75,6 +75,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      */
     static function startProcessing($fRec) 
     {
+        parent::startProcessing($fRec);
         static::extractText($fRec);
         static::convertToJpg($fRec);
     }

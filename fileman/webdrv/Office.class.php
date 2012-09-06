@@ -31,7 +31,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $tabsArr = parent::getTabs($fRec);
         
         // URL за показване на преглед на файловете
-        $previewUrl = toUrl(array('fileman_webdrv_Pdf', 'preview', $fRec->fileHnd), TRUE);
+        $previewUrl = toUrl(array('fileman_webdrv_Office', 'preview', $fRec->fileHnd), TRUE);
         
         // Таб за преглед
 		$tabsArr['preview'] = (object) 
@@ -42,7 +42,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 			);
         
         // URL за показване на текстовата част на файловете
-        $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
+        $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), TRUE);
         
         // Таб за текстовата част
         $tabsArr['text'] = (object) 
@@ -53,13 +53,23 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 			);
         
         // URL за показване на информация за файла
-        $infoUrl = toUrl(array('fileman_webdrv_Pdf', 'info', $fRec->fileHnd), TRUE);
+        $infoUrl = toUrl(array('fileman_webdrv_Office', 'info', $fRec->fileHnd), TRUE);
         
         // Таб за информация
         $tabsArr['info'] = (object) 
 			array(
 				'title' => 'Информация',
 				'html'  => "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>",
+				'order' => 4,
+			);
+			
+		$htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);	
+			
+		// Таб за информация
+        $tabsArr['html'] = (object) 
+			array(
+				'title' => 'HTML',
+				'html'  => "<div> <iframe src='{$htmlUrl}' class='webdrvIframe'> </iframe> </div>",
 				'order' => 4,
 			);
 
@@ -78,8 +88,10 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function startProcessing($fRec) 
     {
+        parent::startProcessing($fRec);
         static::extractText($fRec);
         static::convertToJpg($fRec);
+        static::convertToHtml($fRec);
     }
     
     
@@ -118,14 +130,16 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
             // Конфигурационните константи
-            $conf = core_Packs::getConfig('docoffice');
-            
+//            $conf = core_Packs::getConfig('docoffice');
             // Класа, който ще конвертира
-            $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
-            
+//            $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
             // Стартираме конвертирането
-            $ConvClass::convertDoc($fRec->fileHnd, 'txt', $params);    
+//            $ConvClass::convertDoc($fRec->fileHnd, 'txt', $params); 
+
+            // Извличаме текстовата част с Apache Tika
+            apachetika_Detect::extract($fRec->fileHnd, $params);
         } else {
             
             // Записваме грешката
@@ -146,15 +160,11 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function afterExtractText($script)
     {
-        // 
-//        docoffice_Office::unlockOffice();
-        
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
         $text = file_get_contents($script->outFilePath);
         
         // Поправяме текста, ако има нужда
         $text = lang_Encoding::repairText($text);
-        // TODO $text трябва да се направи проверка дали е енкоднат коректно
         
         // Десериализираме нужните помощни данни
         $params = unserialize($script->params);
@@ -177,7 +187,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             return TRUE;
         } else {
 
-            // 
+            // Записваме в лога съобщението за грешка
             static::createErrorLog($params['dataId'], $params['type']);
         }
     }   
@@ -400,4 +410,90 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             static::createErrorLog($params['dataId'], $params['type']);
         }
     }
+    
+    
+    /**
+     * Конвертираме в HTML
+     * 
+     * @param object $fRec - Записите за файла
+     */
+    static function convertToHtml($fRec)
+    {
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => 'fileman_webdrv_Office::afterConvertToHtml',
+            'dataId' => $fRec->dataId,
+        	'asynch' => TRUE,
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'html',
+        );
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($params)) return ;
+
+        // Заключваме процеса за определено време
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Извличаме HTML частта с Apache Tika
+            apachetika_Detect::extract($fRec->fileHnd, $params);
+        } else {
+            
+            // Записваме грешката
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
+    }
+    
+    
+    /**
+     * Получава управлението след извличане на HTML' а
+     * 
+     * @param fconv_Script $script - Данни необходими за извличането и записването на текста
+     */
+    static function afterConvertToHtml($script)
+    {
+        
+        // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
+        $html = file_get_contents($script->outFilePath);
+        
+        // Ако енкодинга е ascii /За htmlentites/
+        if (strtolower(mb_detect_encoding($html)) == 'ascii') {
+            
+            // Конвертираме текста в UTF-8
+            $html = mb_convert_encoding($html, 'UTF-8','HTML-ENTITIES');    
+        } 
+        
+        // Вземаме тялото на HTML' а
+        $html = str::cut($html, '<body>', '</body>');
+
+        // Поправяме текста, ако има нужда
+        $html = lang_Encoding::repairText($html);
+
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+
+        // Записваме получения текс в модела
+        $rec = new stdClass();
+        $rec->dataId = $params['dataId'];
+        $rec->type = $params['type'];
+        $rec->content = static::prepareContent($html);
+        $rec->createdBy = $params['createdBy'];
+        $saveId = fileman_Indexes::save($rec);
+        
+        // Отключваме процеса
+        core_Locks::release($params['lockId']);
+        
+        if ($saveId) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        } else {
+
+            // Записваме грешката в лога
+            static::createErrorLog($params['dataId'], $params['type']);
+        }
+    }  
 }
