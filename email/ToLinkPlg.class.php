@@ -21,7 +21,7 @@ class email_ToLinkPlg extends core_Plugin
     /**
      * Преобразуваме имейл-а на потребителя към вътрешен линк към постинг.
      */
-    function on_BeforeAddHyperlink($mvc, &$res, $email)
+    function on_BeforeAddHyperlink($mvc, &$res, $email, $verbal)
     {
         if(haveRole('ceo,manager,officer,executive') && (Mode::is('text', 'html') || !Mode::is('text'))) {
             //Променяме полето от 'emailto:' в линк към email_Outgoings/add/
