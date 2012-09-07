@@ -1,7 +1,7 @@
 [#SingleToolbar#]
                  
 	<div class='document'>
-		<div class='header [#STATE_CLASS#]'>
+		<div class='header'>
 			<span style='[#iconStyle#]'>[#title#]</span>
 		</div>
 

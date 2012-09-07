@@ -19,7 +19,7 @@ class cal_Holidays extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cal_Wrapper, plg_RowTools, plg_Sorting, plg_Search, plg_State';
+    var $loadList = 'cal_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
     
 
     /**
