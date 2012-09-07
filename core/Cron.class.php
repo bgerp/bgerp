@@ -372,4 +372,33 @@ class core_Cron extends core_Manager
         $preffix = $pack . "_";
         $query->delete(array("#controller LIKE '[#1#]%'", $preffix));
     }
+    
+
+    /**
+     * Премахва методите, за които не съществуват входни точки
+     */
+    static function cleanRecords()
+    {
+        $query = self::getQuery();
+
+        while($rec = $query->fetch()) {
+            if(cls::load($rec->controller, TRUE)) {
+                $ctr = cls::get($rec->controller);
+                if(method_exists($ctr, 'cron_' . $rec->action)) {
+                    continue;
+                }
+            }
+            
+            $class = cls::getClassName($rec->controller);
+
+            self::delete($rec->id);
+
+            $res .= ($res ? ', ' : '') . "{$class}::{$rec->action}";
+        }
+
+        if($res) {
+
+            return "<li style='color:green;'>Премахнати бяха липсващите входни точки за Cron: {$res}</li>";
+        }
+    }
 }
