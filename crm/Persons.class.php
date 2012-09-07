@@ -875,7 +875,7 @@ class crm_Persons extends core_Master
         while($rec = $query->fetch()) { ;
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = self::recToVerbal($rec, 'name');
-            $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id), NULL, "ef_icon={$self->singleIcon}");
+            $row->name = ht::createLink($row->name, array($self, 'Single', $rec->id), NULL, "ef_icon={$self->singleIcon}");
 
             if(!$row->buzTel) $row->buzTel = $row->tel;
 
@@ -903,7 +903,7 @@ class crm_Persons extends core_Master
  
             $tpl->append("<span style='font-weight:bold;'>{$row->name}</span>{$comma} ", 'persons');
             
-            $comma = ',';
+            $comma = Mode::is('screenMode', 'narrow') ? '<br>' : ',';
         }
 
         return $tpl;
