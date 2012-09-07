@@ -65,7 +65,7 @@ class cal_Calendar extends core_Master
         $this->FLD('key', 'varchar(32)', 'caption=Ключ');
 
         // Дата на събититието
-        $this->FLD('time', new type_DateTime(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Време');
+        $this->FLD('time', new type_Datetime(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Време');
 
         // Тип на събититето. Той определя и иконата на събититето
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
