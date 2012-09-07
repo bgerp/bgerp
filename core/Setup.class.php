@@ -202,7 +202,9 @@ class core_Setup {
 		}
 
         $html .= core_Classes::rebuild();
-		     
+		
+        $html .= core_Cron::cleanRecords();
+
         return $html;
     }
 }
