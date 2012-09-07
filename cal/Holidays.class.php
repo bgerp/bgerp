@@ -55,6 +55,8 @@ class cal_Holidays extends core_Master
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'cal/tpl/SingleLayoutHolidays.shtml';
+
+    var $canWrite = 'no_one';
     
     /**
      * Описание на модела (таблицата)
@@ -362,7 +364,6 @@ class cal_Holidays extends core_Master
                 
                 // Ако събитието има година и тя не е текъщата разглеждана, то пропускаме
                 if($rec->year && ($rec->year != $year)) continue;
-
                            
                 if($rec->base == 'EST') {
                     $base = static::getOrthodoxEaster($year);
@@ -377,9 +378,6 @@ class cal_Holidays extends core_Master
 					$base = mktime(0, 0, 0, $month, $day, $year);
 					$delta = 0;  
                 } else {              	
-                	
-                	//? expects parameter 4 to be long, string given ?
-                	//echo "<li> $rec->base";
                     $base = mktime(0, 0, 0, $rec->base, 1, $year);
                     $delta = -1;
                 }
@@ -431,46 +429,6 @@ class cal_Holidays extends core_Master
         return $event;
     }
     
-    static function on_AfterPrepareSingle($mvc, $data)
-    {
-    	//Намираме id-то на текущия потребител
-    	$idCurrentPerson = core_Users::getCurrent('id');
-    	
-    	$data->row->iconStyle = 'background-image:url(' . sbf('cal/icons/' . $data->rec->type . '.png') . ');';
-    	
-    	  	
-    	$queryHoliday = parent::getQuery();
-    	
-    	while ($nameday = $queryHoliday->fetch("#nameday != '' AND  #day = '{$data->rec->day}' AND #base = '{$data->rec->base}'")){
-    		
-    		//Правим масив от списъка с имена записани в полето nameday
-    		$personNameday = split(",", $nameday->nameday);
-    		
-    		//Вземаме всички визитки принадлежащи на текущия потребител
-	    	$query = crm_Persons::getQuery();
-	    	
-	    	while ($person = $query->fetch("#inCharge = '{$idCurrentPerson}'")){
-	    		
-	    		//Взимаме само първото име на човека
-	    		$name = strstr($person->name, " ", TRUE);
-	    		$nameCyrillic = strtolower(core_String::utf2ascii($name));
-			
-	    		foreach($personNameday as $pn){
-	    		
-	    			$pn = strtolower(core_String::utf2ascii($pn));
-	    			$pn = strtolower(trim($pn));
-	    			$name = strtolower(trim($name));
-	    			$nameCyrillic = strtolower(trim($nameCyrillic));
-	    			
-	    			if(($pn == $name) || ($pn == $nameCyrillic)){
-	    			
-	    				$data->row->urlPerson .= ht::createLink($person->name,array('crm_Persons', 'single', $person->id)) . "<br>";
-	    				
-	    			}
-	    		}
-	    	}
-    	}
-    }
 
 
     /**
@@ -520,25 +478,16 @@ class cal_Holidays extends core_Master
                 $rec->title = $csvRow[5];
                 $rec->type = $csvRow[6];
                 $rec->info = str_replace('\"', '"', $csvRow[7]);
-                $rec->nameday = $csvRow[8];
-    
-               
-                // Ако има запис с това 'id'
-               
-                if ($rec->id = static::fetchField(array("#day = '[#1#]' AND #base = '[#2#]' AND #type = '[#3#]'", $rec->day, $rec->base, $rec->type), 'id')) {
-                    $updated++;
-                } else {
-                    $created++;
-                }
+                $rec->nameday = $csvRow[8];             
                 
-                
-                static::save($rec, NULL, 'IGNORE');
+                static::save($rec);
+
+                $ins++;
             }
             
             fclose($handle);
             
-            $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
-            $res .= "Създадени {$created} нови празника, обновени {$updated} съществуващи празника.</li>";
+            $res .= "<li style='color:green;'>Създадени са записи за {$ins} празници или специални дни</li>";
         } else {
             $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }
@@ -548,7 +497,7 @@ class cal_Holidays extends core_Master
     
 
     /**
-     *
+     * Доподготвя вербалните стойности
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fileds)
     {
@@ -566,6 +515,12 @@ class cal_Holidays extends core_Master
             $row->nameday = new ET($row->nameday);
 
             $row->nameday->append($tpl);
+        }
+        
+        $row->iconStyle = 'background-image:url(' . sbf('cal/icons/' . $rec->type . '.png') . ');';
+
+        if(strlen($rec->type) == 2) {
+            $row->type = tr('Национален празник на') . ' <b>' . $row->type . '</b>';
         }
     }
 

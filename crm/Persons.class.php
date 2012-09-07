@@ -901,9 +901,9 @@ class crm_Persons extends core_Master
 
         foreach($data->rows as $row) {
  
-            $tpl->append("<span style='font-weight:bold;'>{$row->name}</span>{$comma} ", 'persons');
+            $tpl->append("{$comma}<span style='font-weight:bold;'>{$row->name}</span>", 'persons');
             
-            $comma = Mode::is('screenMode', 'narrow') ? '<br>' : ',';
+            $comma = Mode::is('screenMode', 'narrow') ? '<br>' : ', ';
         }
 
         return $tpl;
