@@ -309,9 +309,9 @@ class cal_Calendar extends core_Master
                 if($d = $weekArr[$wd]) { 
                     if($data[$d]->type == 'holiday') {  
                         $class = 'mc-holiday';
-                    } elseif($wd == 6 && ($data[$d]->type != 'workday')) {
+                    } elseif(($wd == 6 || ($data[$d]->type == 'non-working' && $wd >= 4) ) && ($data[$d]->type != 'workday')) {
                         $class = 'mc-saturday';
-                    } elseif(($wd == 7 || $data[$d]->type == 'non-working')&& ($data[$d]->type != 'workday')) {
+                    } elseif(($wd == 7 || ($data[$d]->type == 'non-working' && $wd < 4) ) && ($data[$d]->type != 'workday')) {
                         $class = 'mc-sunday';
                     } else {
                         $class = '';
