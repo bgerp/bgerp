@@ -190,6 +190,10 @@ class core_TableView extends core_BaseClass
             foreach ($rows as $r) {
                 $rowTpl = $tpl->getBlock("ROW");
                 
+                if($r instanceof core_Et) {
+                    $rowTpl->replace($r);
+                }
+
                 if (is_object($r))
                 $r = get_object_vars($r);
                 
