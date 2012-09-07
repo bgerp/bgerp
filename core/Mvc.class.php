@@ -251,22 +251,22 @@ class core_Mvc extends core_FieldSet
 
         switch(strtolower($mode)) {
             case 'replace' :
-                $query = "REPLACE `$table` SET $query";
+                $query = "REPLACE `{$table}` SET {$query}";
                 break;
 
             case 'ignore' :
-                $query = "INSERT IGNORE `$table` SET $query";
+                $query = "INSERT IGNORE `{$table}` SET {$query}";
                 break;
 
             case 'delayed' :
-                $query = "INSERT DELAYED `$table` SET $query";
+                $query = "INSERT DELAYED `{$table}` SET {$query}";
                 break;
 
             default :
             if ($rec->id > 0) {
-                $query = "UPDATE `$table` SET $query WHERE id = {$rec->id}";
+                $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
             } else {
-                $query = "INSERT  INTO `$table` SET $query";
+                $query = "INSERT  INTO `{$table}` SET {$query}";
             }
         }
 
