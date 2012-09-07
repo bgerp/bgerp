@@ -115,10 +115,10 @@ class crm_Setup
 
         // Нагласяване на Cron        
         $rec = new stdClass();
-        $rec->systemId    = 'Update Birthdays';
-        $rec->description = "Обновяване на рожденните дни в календара";
+        $rec->systemId    = 'PersonsToCalendarEvents';
+        $rec->description = "Обновяване на събитията за хората";
         $rec->controller  = 'crm_Persons';
-        $rec->action      = 'UpdateBirthdays';
+        $rec->action      = 'UpdateCalendarEvents';
         $rec->period      = 24*60*60;
         $rec->offset      = 16;
         $rec->delay       = 0;
@@ -126,15 +126,10 @@ class crm_Setup
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $html .= "<li style='color:green;'>Cron: Обновяване на рожденните дни в календара</li>";
+            $html .= "<li style='color:green;'>Cron: Обновяване на събитията за хората в календара</li>";
         } else {
-            $html .= "<li>Cron от преди е бил нагласен: Обновяване на рожденните дни в календара</li>";
+            $html .= "<li>Cron от преди е бил нагласен: Обновяване на събитията за хората в календара</li>";
         }
-
-
-
-
-
 
         return $html;
     }

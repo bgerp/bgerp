@@ -35,8 +35,7 @@ class crm_Persons extends core_Master
         'doc_FolderIntf',
 
         //Интерфейс за данните на контрагента
-        'doc_ContragentDataIntf'
-
+        'doc_ContragentDataIntf',
     );
 
 
@@ -100,7 +99,7 @@ class crm_Persons extends core_Master
     /**
      * Полета по които се правитърсене от плъгина plg_Search
      */
-    var $searchFields = 'name,egn,birthday,country,place';
+    var $searchFields = 'name,egn,country,place,email,info';
 
 
     /**
@@ -558,92 +557,7 @@ class crm_Persons extends core_Master
 
 
     /**
-     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
-     */
-    static function on_Shutdown($mvc)
-    {
-        if($mvc->updateGroupsCnt) {
-            $mvc->updateGroupsCnt();
-        }
-
-        if(count($mvc->updatedRecs)) {
-            foreach($mvc->updatedRecs as $id => $rec) {
-
-                static::updateCalendarEvents($id);
-
-            }
-        }
-    }
-
-    
-    /**
-     * Обновява информацията за рожденните дни на посочения човек
-     */
-    function updateCalendarEvents($id)
-    {
-        $key = 'Person' . $id;
-
-        $rec = static::fetch($id);
-        list($d, $m, $y) = explode('-', $rec->birthday);
-
-        $events = array();
-        $cYear = date("Y");
-        $years = array($cYear, $cYear + 1, $cYear + 2);
-
-        if ($d > 0 && $m > 0) {
-            
-            foreach($years as $year) {
-
-                // Родените в бъдещето, да си празнуват рождения ден там
-                if($y && $y > $year) continue;
-
-                $calRec = new stdClass();
-                $calRec->date = date('Y-m-d', mktime(0, 0, 0, $m, $d, $year) );
-                $calRec->type = 'birthday';
-                $calRec->allDay = 'yes';
-                $calRec->title = 'Рожден ден на ' . $rec->name;
-                $calRec->users = '';
-                $calRec->url = toUrl(array('crm_Persons', 'Single', $id), 'local');
-
-                $events[] = $calRec;
-            }
-        }
-
-        // Обновяваме рождените дни
-        if(count($events)) {
-            cal_Agenda::mergeEvents($key, $events);
-        }
-
-        return count($events);
-    }
-
-
-    /**
-     *
-     */
-    function updateBirthdays()
-    {
-        $query = static::getQuery();
-        while($rec = $query->fetch()) {
-            $kBid += $this->updateCalendarEvents($rec->id);
-            $kPer++;
-        }
-
-        return "Информация за {$kBid} рожденни дни на {$kPer} души беше обновена";
-    }
-
-    
-    /**
-     * Обновяване на рожденните дни по разписание
-     */
-    function cron_UpdateBirthdays()
-    {
-        return $this->updateBirthdays();
-    }
-
-
-    /**
-     * @todo Чака за документация...
+     * След изтриване на запис
      */
     static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
@@ -655,6 +569,109 @@ class crm_Persons extends core_Master
             // изтриваме всички правила за рутиране, свързани с визитката
             email_Router::removeRules('person', $rec->id);
         }
+    }
+    
+    
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    static function on_Shutdown($mvc)
+    { 
+        if($mvc->updateGroupsCnt) {
+            $mvc->updateGroupsCnt();
+        }
+
+        if(count($mvc->updatedRecs)) {
+            // Обновяване на информацията за рожденните дни, за променените лица            
+            foreach($mvc->updatedRecs as $id => $rec) {
+                static::updateBirthdaysToCalendar($id);
+            }
+        }
+    }
+
+
+    /**
+     * Обновяване на рожденните дни по разписание
+     * (Еженощно)
+     */
+    function cron_UpdateCalendarEvents()
+    {
+        $query = self::getQuery();
+
+        while($rec = $query->fetch()) {
+            $res = static::updateBirthdaysToCalendar($rec->id);
+            $new += $res['new'];
+            $deleted += $res['deleted'];
+            $updated += $res['updated'];
+        }
+
+        $status = "В календара са добавени {$new}, обновени {$updated} и изтрити {$deleted} рожденни дни";
+
+        return $status;
+    }
+
+ 
+    
+    /**
+     * Обновява информацията за рожденните дни на посочения
+     * човек за текущата и следващите три години
+     */
+    static function updateBirthdaysToCalendar($id)
+    {
+        if(($rec = static::fetch($id)) && ($rec->state != 'rejected')) {
+            list($d, $m, $y) = explode('-', $rec->birthday);
+        }
+
+        $events = array();
+        
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+
+        // Масив с години, за които ще се вземат рожденните дни
+        $years = array($cYear, $cYear + 1, $cYear + 2);
+
+        // Префикс на клучовете за рожденните дни на това лице
+        $prefix = "BD-{$id}";
+ 
+        if ($d > 0 && $m > 0) {
+            
+            foreach($years as $year) {
+
+                // Родените в бъдещето, да си празнуват рождения ден там
+                if($y && ($y > $year)) continue;
+                
+                $calRec = new stdClass();
+                
+                // Ключ на събитието
+                $calRec->key = $prefix . '-' . $year;
+                
+                // TODO да се проверява за високосна година
+                $calRec->time = date('Y-m-d 00:00:00', mktime(0, 0, 0, $m, $d, $year) );
+
+                $calRec->type = 'birthday';
+                $calRec->allDay = 'yes';
+                
+                $calRec->title = "ЧРД {$rec->name}";
+
+                if($y > 0) {
+                    $calRec->title .= " на " . ($year - $y) . " г.";
+                }
+                
+                $calRec->users = '';
+
+                $calRec->url = toUrl(array('crm_Persons', 'Single', $id), 'local');
+
+                $events[] = $calRec;
+            }
+        }
+ 
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
 
 
@@ -681,67 +698,6 @@ class crm_Persons extends core_Master
                 crm_Groups::save($groupsRec, 'personsCnt');
             }
         }
-    }
-
-
-    /**
-     * Връща масив със събития за посочения човек
-     */
-    function getCalendarEvents_($objectId, $years = array())
-    {
-        // Ако липсва, подготвяме масива с годините, за които ще се запише събитието
-        if(!count($years)) {
-            $cYear = date("Y");
-            $years = array($cYear, $cYear + 1, $cYear + 2);
-        }
-
-        $rec = $this->fetch($objectId);
-
-        // Добавяме рождените дни, ако са посочени
-        list($d, $m, $y) = explode('-', $rec->birthday);
-
-        if($d>0 && $m>0) {
-            foreach($years as $y) {
-                $calRec = new stdClass();
-                $calRec->date = "{$y}-{$m}-{$d}";
-                $calRec->type = 'birthday';
-                $res[] = $calRec;
-            }
-        }
-
-        // Добавяме изтичанията на личните документи....
-
-        return $res;
-    }
-
-
-    /**
-     * Връща вербалното име на посоченото събитие за посочения обект
-     */
-    function getVerbalCalendarEvent($type, $objectId, $date)
-    {
-        $rec = $this->fetch($objectId);
-
-        if($rec) {
-            switch($type) {
-                case 'birthday' :
-                    list($d, $m, $y) = explode('-', $rec->birthday);
-
-                    if($y>0) {
-                        $old = dt::mysql2verbal($date, 'Y') - $y;
-                    }
-                    $person = ht::createLink($rec->name, array($this, 'single', $objectId));
-
-                    if($old>70) {
-                        $event = new ET("$old г. от рождението на [#1#]", $person);
-                    } else {
-                        $event = new ET("ЧРД [#1#] на $old г.", $person);
-                    }
-                    break;
-            }
-        }
-
-        return $event;
     }
 
 
@@ -822,22 +778,26 @@ class crm_Persons extends core_Master
         // @todo!
     }
 
+
     /****************************************************************************************
      *                                                                                      *
      *  Реализиране на интерфейса crm_CompanyExpandIntf                                     *
      *                                                                                      *
      ****************************************************************************************/
 
-
     /**
      * Подготвя (извлича) данните за представителите на фирмата
      */
     function prepareCompanyExpandData(&$data)
-    {
-        $query = $this->getQuery();
-        $query->where("#buzCompanyId = {$data->masterId}");
+    {   
+        if(!$data->query) {
+            $query = $this->getQuery();
+            $query->where("#buzCompanyId = {$data->masterId}");
+        } else {
+            $query = $data->query;
+        }
 
-        while($rec = $query->fetch()) {
+        while($rec = $query->fetch()) { ;
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel');
             $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
@@ -890,6 +850,65 @@ class crm_Persons extends core_Master
 
         return $tpl;
     }
+
+
+
+    /****************************************************************************************
+     *                                                                                      *
+     *  Подготвя и рендира именниците                                                       *
+     *                                                                                      *
+     ****************************************************************************************/
+
+    /**
+     * Подготвя (извлича) данните за именниците
+     */
+    static function prepareNamedays(&$data)
+    {   
+        $query = self::getQuery();
+        
+        foreach($data->namesArr as $name) { 
+            $query->orWhere("#searchKeywords LIKE ' {$name} %'");
+        }
+        
+        $self = cls::get('crm_Persons');
+
+        while($rec = $query->fetch()) { ;
+            $data->recs[$rec->id] = $rec;
+            $row = $data->rows[$rec->id] = self::recToVerbal($rec, 'name');
+            $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id), NULL, "ef_icon={$self->singleIcon}");
+
+            if(!$row->buzTel) $row->buzTel = $row->tel;
+
+            if(!$row->buzEmail) $row->buzEmail = $row->email;
+        }
+    }
+
+
+    /**
+     * Рендира данните
+     */
+    static function renderNamedays($data)
+    {
+        if(!count($data->rows)) return '';
+
+        $tpl = new ET("<fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr('От визитника') . "</legend>
+                                <div class='groupList,clearfix21'>
+                                 [#persons#]
+                            </div>
+                            <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt-->
+                         </fieldset>");
+
+        foreach($data->rows as $row) {
+ 
+            $tpl->append("<span style='font-weight:bold;'>{$row->name}</span>{$comma} ", 'persons');
+            
+            $comma = ',';
+        }
+
+        return $tpl;
+    }
+
 
 
     /**
