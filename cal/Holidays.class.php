@@ -517,7 +517,7 @@ class cal_Holidays extends core_Master
             $row->nameday->append($tpl);
         }
         
-        $row->iconStyle = 'background-image:url(' . sbf('cal/icons/' . $rec->type . '.png') . ');';
+        $row->iconStyle = 'background-image:url(' . sbf('cal/icons/' . strtolower($rec->type) . '.png') . ');';
 
         if(strlen($rec->type) == 2) {
             $row->type = tr('Национален празник на') . ' <b>' . $row->type . '</b>';
