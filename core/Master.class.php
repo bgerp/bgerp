@@ -258,7 +258,7 @@ class core_Master extends core_Manager
         } else {
             if(count($data->singleFields)) {
                 foreach($data->singleFields as $field => $caption) {
-                    $fieldsHtml .= "\n<tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr>";
+                    $fieldsHtml .= "\n<!--ET_BEGIN {$field}--><tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr><!--ET_END {$field}-->";
                 }
             }
             
