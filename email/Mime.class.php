@@ -884,8 +884,13 @@ class email_Mime extends core_BaseClass
                 default :
             }
             
-            // Конвертиране към UTF-8 
-            if($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') && !$p->attachment) {
+            // Ако часта e текстова и не е атачмънт, то по подразбиране, този текст е PLAIN
+            if($p->attachment != 'attachment' && $p->type == 'TEXT' && !trim($p->subType)) {
+                $p->subType = 'PLAIN';
+            }
+
+            // Конвертиране към UTF-8
+            if($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') && ($p->attachment != 'attachment')) {
                 
                 $text = $this->convertToUtf8($data[1], $p->charset, $p->subType);
                 
