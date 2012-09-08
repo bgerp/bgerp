@@ -506,6 +506,12 @@ tr.zebra1 {
     background-color:#fff;
 }
 
+
+.btn-disabled {
+	color:#bbb !important;
+	cursor:default !important;
+}
+
 .btn-with-selected[type=submit] {
 }
 
