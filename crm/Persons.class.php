@@ -468,8 +468,20 @@ class crm_Persons extends core_Master
 
             if($rec->photo) {
                 $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
-            } elseif(!Mode::is('screenMode', 'narrow')) {
-                    $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif') . " alt='no image'>";
+            } else {
+                if($rec->email) {
+                    $emlArr = type_Emails::toArray($rec->email);
+                    $imgUrl = avatar_Gravatar::getUrl($emlArr[0], 120);
+                } elseif($rec->buzEmail) {
+                    $imgUrl = avatar_Gravatar::getUrl($rec->buzEmail, 120);
+                } elseif(!Mode::is('screenMode', 'narrow')) {
+                    $imgUrl = sbf('img/noimage120.gif');
+                }
+                
+                if($imgUrl) {
+                    $row->image = "<img class=\"hgsImage\" src=" . $imgUrl . " alt='no image'>";
+                }
+
             }
         }
 
