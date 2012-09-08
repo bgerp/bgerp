@@ -581,9 +581,9 @@ class core_Packs extends core_Manager
             $attr = arr::make($params[1], TRUE);
             $attr['input'] = 'input';
             if(defined($field)) {
-                $attr['hint'] = 'Стойност по подразбиране: ' . constant($field);
+                $attr['hint'] = 'Стойност по подразбиране|*: ' . constant($field);
             }
-            $form->FNC($field, $params[0], $attr);
+            $form->FNC('|*' . $field, $params[0], $attr);
             $form->setDefault($field, $data[$field]); 
         }
 

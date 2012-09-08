@@ -100,9 +100,11 @@ class plg_ExportCsv extends core_Plugin
         if (Request::get('Export') == 'csv') {
             
             $mvc->requireRightFor('export');
+
+            $conf = core_Packs::getConfig('core');
             
-            if(count($data->recs) > EF_MAX_EXPORT_CNT) {
-                error("Броят на заявените записи за експорт надвишава максимално разрешения|* - " . EF_MAX_EXPORT_CNT);
+            if(count($data->recs) > $conf->EF_MAX_EXPORT_CNT) {
+                error("Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT);
             }
             
             /* за всеки ред */

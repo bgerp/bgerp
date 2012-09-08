@@ -95,6 +95,7 @@ class core_Setup {
     
            'EF_APP_TITLE'   => array ('varchar'),
            
+           'EF_MAX_EXPORT_CNT' => array ('int'),
     
         );
     
