@@ -657,10 +657,11 @@ class crm_Persons extends core_Master
                 $calRec->type = 'birthday';
                 $calRec->allDay = 'yes';
                 
-                $calRec->title = "ЧРД {$rec->name}";
 
                 if($y > 0) {
-                    $calRec->title .= " на " . ($year - $y) . " г.";
+                    $calRec->title = $rec->name . " на " . ($year - $y) . " г.";
+                } else {
+                    $calRec->title = "ЧРД: {$rec->name}";
                 }
                 
                 $calRec->users = '';

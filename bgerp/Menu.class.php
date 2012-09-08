@@ -54,8 +54,10 @@ class bgerp_Menu extends core_Manager
      * Връща обект - меню
      */
     function getMenuObject()
-    { Debug::log('Menu start');
-         $menuObj = core_Cache::get('Menu', 'menuObj');
+    {
+        $cacheKey = 'menuObj_' . core_Lg::getCurrent();
+
+        $menuObj = core_Cache::get('Menu', $cacheKey);
 
         if(!is_array($menuObj)) {
         
@@ -72,7 +74,7 @@ class bgerp_Menu extends core_Manager
                 $menuObj[$rec->menu . ':' . $rec->subMenu] = $rec;
             }
 
-            core_Cache::set('Menu', 'menuObj', $menuObj, 1400);
+            core_Cache::set('Menu', $cacheKey, $menuObj, 1400);
         } 
         
         // Ако няма нито един запис в Менюто, но имаме права за администратор, 
@@ -80,7 +82,7 @@ class bgerp_Menu extends core_Manager
         if(!count($menuObj) && (strpos(Request::get('Ctr'), 'core_') === FALSE)) {
             redirect(array('core_Packs'));
         }  
-        Debug::log('Menu stop');
+
         return $menuObj;
     }
 

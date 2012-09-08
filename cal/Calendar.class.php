@@ -26,9 +26,15 @@ class cal_Calendar extends core_Master
     /**
      * Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State';
+    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, bgerp_plg_GroupByDate';
     
+
+    /**
+     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     */
+    var $groupByDateField = 'time';
     
+
     /**
      * Полетата, които ще видим в таблицата
      */
@@ -123,7 +129,8 @@ class cal_Calendar extends core_Master
         // Обновяваме информацията за новопостъпилите събития
         if(count($events)) {
             foreach($events as $e) {
-                if($e->id = $exEvents[$e->key]->id) {
+                if(($e->id = $exEvents[$e->key]->id) ||
+                   ($e->id = self::fetchField("#key = '{$e->key}'", 'id')) ) {
                     unset($exEvents[$e->key]);
                     $res['updated']++;
                 } else {
@@ -155,36 +162,6 @@ class cal_Calendar extends core_Master
             $data->query->where("#time >= date('$from')");
         }
     }
-
-
-    static function on_AfterPrepareListRows($mvc, &$res, $data)
-    {   
-        $exDate = '0000-00-00';
-
-        foreach($data->recs as $id => $rec) {
-
-             
-            if($rec->date != $exDate) {
-                $rows[$id . ' '] = new ET("<tr><td style='padding-top:7px;padding-left:5px;" . 
-                    $data->rows[$id]->ROW_ATTR['style'] . "' colspan='2'><b style='color:#666;'>" . 
-                    $data->rows[$id]->time . "</b></td></tr>"); 
-                $exDate = $rec->date;
-            }
-            $rows[$id] = $data->rows[$id];
-            
-            list($d, $t) = explode(' ', $rec->time);
-            
-            if($t != '00:00:00') {
-                list($h, $m, $s) = explode(':', $t);
-                $rows[$id]->time = "{$h}:{$m}";
-            } else {
-                $rows[$id]->time = '';
-            }
-        }
-
-        $data->rows = $rows;
-    }
-
     
     
     /**
@@ -239,23 +216,18 @@ class cal_Calendar extends core_Master
 
         if($rec->date == $today) {
             $row->ROW_ATTR['style'] .= 'background-color:#ffc;';
-            $row->date = "<font color='#663333'>Днес" . '&nbsp;' . $row->date . '</font>';
         } elseif($rec->date == $tommorow) {
             $row->ROW_ATTR['style'] .= 'background-color:#efc;';
-            $row->date = 'Утре'.'&nbsp;'.$row->date;
         } elseif($rec->date == $dayAT) {
             $row->ROW_ATTR['style'] .= 'background-color:#dfc;';
-            $row->date = 'Вдругиден'.'&nbsp;'.$row->date;
         } elseif($rec->date == $yesterday) {
             $row->ROW_ATTR['style'] .= 'background-color:#eee;';
-            $row->date = 'Вчера'.'&nbsp;'.$row->date;
         } elseif($rec->date > $today) {
             $row->ROW_ATTR['style'] .= 'background-color:#cfc;';
         } elseif($rec->date < $yesterday) {
             $row->ROW_ATTR['style'] .= 'background-color:#ddd;';
         }
 
-        $row->time = $row->date;
         
         return $row;
     }

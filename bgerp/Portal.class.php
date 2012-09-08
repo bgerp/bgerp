@@ -81,7 +81,7 @@ class bgerp_Portal extends core_Manager
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
         
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
-            <div class="legend" style="background-color:#efe;">Календар</div>
+            <div class="legend" style="background-color:#efe;">' . tr('Календар') . '</div>
             [#CALENDAR_DETAILS#]
             </div>');
         

@@ -21,9 +21,15 @@ class bgerp_Notifications extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools';
+    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, bgerp_plg_GroupByDate';
     
-    
+
+    /**
+     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     */
+    var $groupByDateField = 'modifiedOn';
+
+
     /**
      * Заглавие
      */
@@ -222,8 +228,8 @@ class bgerp_Notifications extends core_Manager
         
         return $tpl;
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */

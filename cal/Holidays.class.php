@@ -252,83 +252,8 @@ class cal_Holidays extends core_Master
         
         $this->setDbUnique('key');
     }
-    
-
-    /**
-     * Връща датата на православния Великден за указаната година
-     */
-    static function getOrthodoxEaster($year)
-    {
-        $r1 = $year % 19;
-        $r2 = $year % 4;
-        $r3 = $year % 7;
-        $ra = 19 * $r1 + 16;
-        $r4 = $ra % 30;
-        $rb = 2 * $r2 + 4 * $r3 + 6 * $r4;
-        $r5 = $rb % 7;
-        $rc = $r4 + $r5;
-        
-        // Православния Великден за тази година се пада $rc дни след 3-ти Април
-        return strtotime("3 April $year + $rc days");
-    }
-    
-
-    /**
-     * Връща датата на западния Великден за указаната година
-     */
-    static function getEaster($year)
-    {
-        return strtotime("{$year}-03-21 +".easter_days($year)." days");
-    }
 
 
-    
-    /**
-     * Връща списък с имената, които имат именен ден за тази дата
-     */
-    function getNamedays($date)
-    {
-        $year = date("Y", $date);
-        $day = date("d-m", $date);
-        
-        // Не поддържаме информация за преди 2000 год
-        if($year<2000) return FALSE;
-
-        $names = $this->fixedNamedays[$day];
-
-        $easter = $this->getOrthodoxEaster($year);
-        foreach($this->movableNamedays as $days => $n) {
-            if (date("d-m", $easter + 24 * 3600 * $days) == $day) {
-                $names .= ($names ? "," : "") . $n;
-            }
-        }
-        
-        return $names;
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function isIslamicName($name)
-    {
-        if(!$name) return false;
-        
-        return strpos(" ,{$this->islamicNames},", ",$name,") > 0;
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function isWomenName($name)
-    {
-        if(!$name) return false;
-        
-        return strpos(" ,{$this->womenNames},", ",$name,") > 0;
-    }
-
-    
     /**
      * Обновява празниците в календара
      */
@@ -366,16 +291,14 @@ class cal_Holidays extends core_Master
                 if($rec->year && ($rec->year != $year)) continue;
                            
                 if($rec->base == 'EST') {
-                    $base = static::getOrthodoxEaster($year);
+                    $base = dt::getOrthodoxEasterTms($year);
                     $delta = 0;
                 } elseif($rec->base == 'CEST') {
-                    $base = static::getEaster($year);
+                    $base = dt::getEasterTms($year);
                     $delta = 0;
                 } elseif($rec->weekday && $rec->base) {
                     $month = $rec->base;
-               
-					$day = static::firstDayOfMounth($month, $year, $rec->weekday);  
-					$base = mktime(0, 0, 0, $month, $day, $year);
+					$base = dt::firstDayOfMounthTms($month, $year, $rec->weekday);  
 					$delta = 0;  
                 } else {              	
                     $base = mktime(0, 0, 0, $rec->base, 1, $year);
@@ -409,27 +332,7 @@ class cal_Holidays extends core_Master
 
         return $status;
     }
-    
-    
-    /**
-     * Връща вербалното име на посоченото събитие за посочения обект
-     */
-    function getVerbalCalendarEvent($type, $objectId, $date)
-    {
-        $rec = $this->fetch($objectId);
         
-        if($rec->holidayType == 'bulgarian') {
-            $event = "<div style='color:green'><b>{$rec->holidayName}</b></div>";
-        } elseif($rec->holidayType == 'nameday') {
-            $event = "<a 1style='color:blue' href='" .
-            toUrl(array('crm_Persons', 'list', 'names' => $rec->holidayData, 'date' => $date)) .
-            "'>{$rec->holidayName}</a>";
-        }
-        
-        return $event;
-    }
-    
-
 
     /**
      * Извиква се след SetUp-а на таблицата за модела
@@ -450,7 +353,7 @@ class cal_Holidays extends core_Master
     static function loadData()
     {
     	
-        $csvFile = self::getCsvFile();
+        $csvFile = __DIR__ . "/data/Holidais.csv";
         
         $created = $updated = 0;
         
@@ -467,7 +370,6 @@ class cal_Holidays extends core_Master
                 } else {
                 	$rec->base = $csvRow[2];
                 }
-                
                 
                 $rec->weekday = $csvRow[3]; 
                 
@@ -541,80 +443,7 @@ class cal_Holidays extends core_Master
         return $res;
     }
 
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function extractName($name) {
-        $textEncoding = getInstance("TextEncoding");
-        $name = trim(mb_strtolower($name));
-        $name = $textEncoding->utf2ascii($name);
-        $name = str_replace(
-            array("4", "6", "w", "ja", "jq", "yq", "iq", "q" , "tz", "iya", "ya", "yu", "ce", "co", "ci", "ca", "cu", "cv", "th"),
-            array("ch", "sh", "v", "ia", "ia", "ia", "ia", "ia", "ts", "ia", "ia", "ju", "tse", "tso", "tsi", "tsa", "tsu", "tsv", "t"),
-            $name);
-        $name = str_replace(
-            array("aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh" , "ii", "jj", "kk", "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv", "ww", "xx", "yy", "zz"),
-            array("a", "b", "c", "d", "e", "f", "g", "h" , "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"),
-            $name);
-        $name = preg_replace('/[^a-zа-я]+/u', ' ', $name);
-        $nameArr = explode(" ", $name);
-        
-        if(mb_strlen($nameArr[0]) > 2 && $nameArr[0] != "eng") {
-            return $nameArr[0];
-        } elseif(mb_strlen($nameArr[1]) > 2) {
-            return $nameArr[1];
-        }
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function extractCity($name) {
-        $textEncoding = getInstance("TextEncoding");
-        $name = trim(mb_strtolower($name));
-        $name = "#" . $textEncoding->utf2ascii($name);
-        $name = str_replace(
-            array("#grad", "#gr.", "4", "6", "w", "ja", "jq", "yq", "iq", "q" , "tz", "iya", "ya", "yu", "ce", "co", "ci", "ca", "cu", "cv", "th"),
-            array("", "", "ch", "sh", "v", "ia", "ia", "ia", "ia", "ia", "ts", "ia", "ia", "ju", "tse", "tso", "tsi", "tsa", "tsu", "tsv", "t"),
-            $name);
-        $name = str_replace(
-            array("aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh" , "ii", "jj", "kk", "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv", "ww", "xx", "yy", "zz"),
-            array("a", "b", "c", "d", "e", "f", "g", "h" , "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"),
-            $name);
-        $name = preg_replace('/[^a-zа-я]+/u', ' ', $name);
-        $name = trim($name);
-        
-        return $name;
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function getCorrectCityName($city) {
-        
-        $c = $this->goodCityNames[$city];
-        
-        if($c) return $c;
-        
-        return ucwords($city);
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function isCityFeast($city, $date, $year) {
-        if(!$city) return false;
-        $cites = $this->cityDay[$date];
-        
-        if (strpos(" ,$cites,", ",$city,") > 0) return true;
-        
-        return false;
-    }
-    
+
     /**
      * Форма за търсене по дадена ключова дума
      */
@@ -633,102 +462,5 @@ class cal_Holidays extends core_Master
             $data->query->where("#base = '{$base}'");
         }
     }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static private function getCsvFile()
-    {
-        return __DIR__ . "/data/Holidais.csv";
-    }
-    
-    
-    static function firstDayOfMounth ($month, $year, $wDay)
-    {
-  	
-    				//Определяме първия ден от месеца, какъв ден от седмиата е, като резултата е в
-                    // числов вид: 0-неделя ... 6-събота
-                    $firstDayM = date("w", mktime(0, 0, 0, $month, 1, $year));
-                   
-                    if($firstDayM > 1){
 
-                    	//Първият понеделни на месеца
-                    	$fMonday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(8-$firstDayM)));
-                        
-                    	$fSaturday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(6-$firstDayM)));
-		                $fSunday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(7-$firstDayM)));
-                    	
-                    	if($fMonday == 7){
-                    		$fTuesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(2-$firstDayM)));
-                    	} else {
-                    		$fTuesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(9-$firstDayM)));
-                    	}
-                    	
-                    	if($fMonday == 3){
-                    		$fFriday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(12-$firstDayM)));
-                    	} else {
-                    		$fFriday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(5-$firstDayM)));
-                    	}
-                    	
-	                    //Проверяваме дали понеделника е 7-ми ден от месеца. Ако е - вторник е 1
-	                    if($fMonday == 7 || $fMonday == 6){
-                    	
-		                    $fWednesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(3-$firstDayM)));
-		                	$fThursday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(4-$firstDayM)));
-		                	
-		                   // bp($fMonday, $fTuesday, $fWednesday, $fThursday, $fFriday, $fSaturday, $fSunday);
-		                    	
-                    	 } elseif ($fMonday == 5) {
-                    	
-		                    $fWednesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(10-$firstDayM)));
-		                    $fThursday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(4-$firstDayM)));
-		                	
-		                	// bp($fMonday, $fTuesday, $fWednesday, $fThursday, $fFriday, $fSaturday, $fSunday);
-		                	 
-                   	     } elseif ($fMonday == 4 || $fMonday == 3) {
-                    	
-		                    $fWednesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(10-$firstDayM)));
-		                    $fThursday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(11-$firstDayM)));
-		                	
-		                	//bp($fMonday, $fTuesday, $fWednesday, $fThursday, $fFriday, $fSaturday, $fSunday);
-                   	     } 
-                  
-                     //Първия ден от месеца е точно първият понеделник
-                     //или първият ден от месеца е неделя, следователно 2-ри ще е първият понеделник
-                    } elseif ($firstDayM == 1 || $firstDayM == 0){
-                    	
-	                	$fMonday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(1-$firstDayM)));
-	                	$fTuesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(2-$firstDayM)));
-	                	$fWednesday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(3-$firstDayM)));
-	                	$fThursday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(4-$firstDayM)));
-	                	$fFriday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(5-$firstDayM)));
-	                	$fSaturday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(6-$firstDayM)));
-	                		if($firstDayM == 1){
-	                			$fSunday = date("d", mktime(0,0,0,$month,1,$year)+(86400*(7-$firstDayM)));
-	                		} else {
-	                			$fSunday = date("d", mktime(0,0,0,$month,1,$year)+(86400*($firstDayM)));
-	                		}
-	                	//bp($fMonday, $fTuesday, $fWednesday, $fThursday, $fFriday, $fSaturday, $fSunday);
-	                
-                    } 
-                    
-                    if($wDay == 'first-monday'){
-                    	return $fMonday;
-                    } elseif($wDay == 'first-tuesday'){
-                    	return $fTuesday;
-                    }elseif($wDay == 'first-wednesday'){
-                    	return $fWednesday;
-                    }elseif($wDay == 'first-thursday'){
-                    	return $fThursday;
-                    }elseif($wDay == 'first-friday'){
-                    	return $fFriday;
-                    }elseif($wDay == 'first-saturday'){
-                    	return $fSaturday;
-                    }elseif($wDay == 'first-sunday'){
-                    	return $fSunday;
-                    }
-                  
-    }
 }
-
