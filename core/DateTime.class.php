@@ -67,6 +67,53 @@ class core_DateTime
     
     
     /**
+     * Намира първия или последния именован седмичен ден от посочения месец/година
+     *
+     * @param $month int
+     * @param $year int
+     * @param $wDay string например 'first-monday', 'last-friday', ....
+     *
+     * @return string mysql форматирана дата, напр. '2011-02-23'
+     */
+    static function firstDayOfMounthTms($month, $year, $wDay)
+    {
+        list($base, $dayName) = explode('-', $wDay);
+        
+        expect(in_array($base, array('first', 'last')));
+        
+        $weekDayNames = array(
+            'monday'    => 1,
+            'tuesday'   => 2,
+            'wednesday' => 3,
+            'thursday'  => 4,
+            'friday'    => 5,
+            'saturday'  => 6,
+            'sunday'    => 7);
+
+        expect($dayNumb = $weekDayNames[$dayName]);
+        
+        for($i = 1; $i <= 7; $i++) {
+            if($base == 'first') {
+                $curDay = mktime(0, 0, 0, $month, $i, $year);
+            } else {
+                $curDay = mktime(12, 59, 59, $month + 1, 1 - $i, $year);
+            }
+
+            $curWeekDay = date("w", $curDay);
+
+            if($curWeekDay == $dayNumb) {
+                $res =$curDay;
+                break;
+            }
+        }
+
+        expect($res);
+
+        return $res;
+    }
+
+    
+    /**
      * Превръща mySql дата във дни от началото на UNIX ерата
      */
     static function mysql2UnixDays($date)
@@ -126,7 +173,7 @@ class core_DateTime
             }
         }
         
-        if (($year == $yearNow) && Mode::is('screenMode', 'narrow')) {
+        if (($year == $yearNow)) {
             $mask = str_replace('-YEAR', '', $mask);
             $mask = str_replace('-year', '', $mask);
         }
@@ -162,54 +209,18 @@ class core_DateTime
         $montsShortBg = array("Яну", "Фев", "Мар", "Апр", "Май", "Юни", "Юли", "Авг", "Сеп", "Окт", "Ное", "Дек");
         
         if ($lg == "bg") {
-            $verbDate = str_replace($weekDaysLongEn, $weekDaysLongBg, $verbDate);
-            $verbDate = str_replace($weekDaysShortEn, $weekDaysShortBg, $verbDate);
-            $verbDate = str_replace($montsLongEn, $montsLongBg, $verbDate);
-            $verbDate = str_replace($montsShortEn, $montsShortBg, $verbDate);
+            $verbDate = str_ireplace($weekDaysLongEn, $weekDaysLongBg, $verbDate);
+            $verbDate = str_ireplace($weekDaysShortEn, $weekDaysShortBg, $verbDate);
+            $verbDate = str_ireplace($montsLongEn, $montsLongBg, $verbDate);
+            $verbDate = str_ireplace($montsShortEn, $montsShortBg, $verbDate);
         }
         
         if($addColor) {
+            
             $dist = time() - $time;
             
-            if($dist < 0) {
-                $color = '080';
-            } else {
-                
-                if($dist < 20) $dist = 20;
-                
-                $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
-                
-                if($dist <= 255) {
-                    $g = 255 - $dist;
-                    $b = $dist;
-                    $r = $b / 3;
-                    $b = $b - $r;
-                } elseif($dist <= 511) {
-                    $b = 256 - round($dist / 2);
-                    $r = $b / 3;
-                    $g = 0;
-                    $b = $b - $r;
-                } else {
-                    $color = '000000';
-                }
-                
-                $r = $r / 1.2; $b = $b / 1.2; $g = $g / 1.5;
-                
-                $g1 = $g;
-                $g = $r;
-                $r = $g1;
-                
-                if(!$color) {
-                    $r = dechex($r<0 ? 0 : ($r>255 ? 255 : $r));
-                    $g = dechex($g<0 ? 0 : ($g>255 ? 255 : $g));
-                    $b = dechex($b<0 ? 0 : ($b>255 ? 255 : $b));
-                    
-                    $color = (strlen($r) < 2 ? '0' : '') . $r;
-                    $color .= (strlen($g) < 2 ? '0' : '') . $g;
-                    $color .= (strlen($b) < 2 ? '0' : '') . $b;
-                }
-            }
-            
+            $color = static::getColorByTime($dist);
+          
             $title = dt::mysql2verbal($mysqlDate, "d-M-Y H:i (l)");
             $title = "  title='{$title}'";
             
@@ -218,8 +229,110 @@ class core_DateTime
         
         return $verbDate;
     }
+
+
+    /**
+     * Връща релативното име на деня, спрямо текущото време
+     *
+     * @param $date     mixed   mysql дата или timestamp
+     * @param $format   string  'mysql' или 'timestamp'
+     * @param $lg       string  двубуквен код на език
+     *
+     * @return string ('Днес', 'Tommorow' ..., или NULL)
+     */
+    static function getRelativeDayName($date, $format = 'mysql', $lg = NULL)
+    {
+        // Ако не е зададен език, избираме текущия
+        if(!$lg) {
+            $lg = core_Lg::getCurrent();
+        }
+        
+        // Според езика, конструираме масивите за релативни дати
+        if($lg == 'bg') {
+            $relNames = array(
+                -2 => 'Завчера',
+                -1 => 'Вчера',
+                 0 => 'Днес',
+                 1 => 'Утре',
+                 2 => 'Вдругиден',
+                );
+        } else {
+            $relNames = array(
+                -2 => 'Ereyesterday',
+                -1 => 'Yesterday',
+                 0 => 'Today',
+                 1 => 'Tommorow',
+                 2 => 'Overmorrow',
+                );
+        }
+
+        if($format == 'mysql') {
+            $date = explode(' ', $date);
+            $date = $date[0];
+        } else {
+            expect($format == 'timestamp');
+            $date = date('Y-m-d', $date);
+        }
+
+        for($i = -2; $i <= 2; $i++) {
+            if(date('Y-m-d', time() + $i * 24 * 60 * 60) == $date) {
+                
+                return $relNames[$i];
+            }
+        }
+    }
     
-    
+
+    /**
+     * Връща цвят, според разтояние в секунди
+     */
+    static function getColorByTime($dist)
+    {
+        if($dist < 0) {
+            $dist = round(pow(log(-$dist, 1.85) - log(20, 1.85), 1.85));
+            $g = round(max(4, 8 - $dist/50));
+            $color = "0{$g}0";
+        } else {
+            
+            if($dist < 20) $dist = 20;
+            
+            $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
+            
+            if($dist <= 255) {
+                $g = 255 - $dist;
+                $b = $dist;
+                $r = $b / 3;
+                $b = $b - $r;
+            } elseif($dist <= 511) {
+                $b = 256 - round($dist / 2);
+                $r = $b / 3;
+                $g = 0;
+                $b = $b - $r;
+            } else {
+                $color = '000000';
+            }
+            
+            $r = $r / 1.2; $b = $b / 1.2; $g = $g / 1.5;
+            
+            $g1 = $g;
+            $g = $r;
+            $r = $g1;
+            
+            if(!$color) {
+                $r = dechex($r<0 ? 0 : ($r>255 ? 255 : $r));
+                $g = dechex($g<0 ? 0 : ($g>255 ? 255 : $g));
+                $b = dechex($b<0 ? 0 : ($b>255 ? 255 : $b));
+                
+                $color = (strlen($r) < 2 ? '0' : '') . $r;
+                $color .= (strlen($g) < 2 ? '0' : '') . $g;
+                $color .= (strlen($b) < 2 ? '0' : '') . $b;
+            }
+        }
+
+        return $color;
+    }
+
+
     /**
      * @todo Чака за документация...
      */
@@ -487,4 +600,33 @@ class core_DateTime
         
         return ((float) $usec + (float) $sec);
     }
+
+
+    /**
+     * Връща датата на православния Великден за указаната година
+     */
+    static function getOrthodoxEasterTms($year)
+    {
+        $r1 = $year % 19;
+        $r2 = $year % 4;
+        $r3 = $year % 7;
+        $ra = 19 * $r1 + 16;
+        $r4 = $ra % 30;
+        $rb = 2 * $r2 + 4 * $r3 + 6 * $r4;
+        $r5 = $rb % 7;
+        $rc = $r4 + $r5;
+        
+        // Православния Великден за тази година се пада $rc дни след 3-ти Април
+        return strtotime("3 April $year + $rc days");
+    }
+    
+
+    /**
+     * Връща датата на западния Великден за указаната година
+     */
+    static function getEasterTms($year)
+    {
+        return strtotime("{$year}-03-21 +".easter_days($year)." days");
+    }
+
 }
