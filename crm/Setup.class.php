@@ -107,7 +107,7 @@ class crm_Setup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg,png', '3MB', 'user', 'every_one');
         
         // Кофа за crm файлове
         $html .= $Bucket->createBucket('crmFiles', 'CRM Файлове', NULL, '300 MB', 'user', 'user');
