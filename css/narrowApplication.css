@@ -444,7 +444,7 @@ div.attachments .aHeader {
 	border-bottom:solid 1px #e0e0e0;
 }
 
-div.attachments a, div.attachments span {
+div.attachments .file {
 	display:block;
 	margin-bottom:2px;
 }
