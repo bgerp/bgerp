@@ -156,7 +156,7 @@ class cal_Calendar extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        $data->query->orderBy("#time");
+        $data->query->orderBy("#time=ASC,#type=DESC");
         
         if($from = $data->listFilter->rec->from) {
             $data->query->where("#time >= date('$from')");
@@ -378,7 +378,7 @@ class cal_Calendar extends core_Master
         $state = new stdClass();
         $state->query = self::getQuery();
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
-        $state->query->orderBy("#time=ASC");
+        $state->query->orderBy("#time=ASC,#type=DESC");
 
         $Calendar = cls::get('cal_Calendar');
         $Calendar->prepareListFields($state);
@@ -428,7 +428,7 @@ class cal_Calendar extends core_Master
         $state = new stdClass();
         $state->query = self::getQuery();
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
-        $state->query->orderBy("#time=ASC");
+        $state->query->orderBy("#time=ASC,#type=DESC");
 
         $Calendar->prepareListFields($state);
         $Calendar->prepareListRecs($state);
