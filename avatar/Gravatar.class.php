@@ -49,17 +49,15 @@ class avatar_Gravatar extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
+     * Връща URL към аватара на посочения имейл
      */
-    static function getLink($email, $width = 100)
+    static function getUrl($email, $width = 100)
     {
         $md5 = md5(strtolower(trim($email)));
         
-        $imgLink = "http://www.gravatar.com/avatar/{$md5}?d=wavatar&s={$width}";
+        $imgUrl = "http://www.gravatar.com/avatar/{$md5}?d=wavatar&s={$width}";
         
-        // $imgLink = toUrl(array('avatar_Gravatar', 'avatarco', 'name' => 'a' . $md5, 'width' => $width));
-        
-        return $imgLink;
+        return $imgUrl;
     }
     
     

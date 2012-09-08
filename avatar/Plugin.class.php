@@ -87,7 +87,7 @@ class avatar_Plugin extends core_Plugin
     {
         if($userId < 0) {
             // Ако става дума за системния потребител
-            $imgLink = sbf('img/100/system.png', '');
+             $imgUrl = sbf('img/100/system.png', '');
         } elseif($userId > 0) {
             // Ако се търси аватара на потребител на системата
             $userRec = core_Users::fetch($userId);
@@ -96,20 +96,20 @@ class avatar_Plugin extends core_Plugin
                 $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";
                 $attr['baseName'] = $key;
                 $Thumbnail = cls::get('thumbnail_Thumbnail');
-                $imgLink = $Thumbnail->getLink($userRec->avatar, array($width, round($width * 1.5)), $attr);
+                $imgUrl = $Thumbnail->getLink($userRec->avatar, array($width, round($width * 1.5)), $attr);
             } else {
-                $imgLink = avatar_Gravatar::getLink($userRec->email, $width);
+                 $imgUrl = avatar_Gravatar::getUrl($userRec->email, $width);
             }
         } elseif($email = strtolower(trim($email))) {
-            $imgLink = avatar_Gravatar::getLink($email, $width);
+            $imgUrl = avatar_Gravatar::getUrl($email, $width);
         }
         
-        if(!$imgLink) {
-            $imgLink = sbf('img/100/noavatar.png', '');
+        if(!$imgUrl) {
+            $imgUrl = sbf('img/100/noavatar.png', '');
         }
         
         $attr['width'] = $width;
-        $attr['src']   = $imgLink;
+        $attr['src']   =  $imgUrl;
         unset($attr['baseName']);
         
         $img = ht::createElement('img', $attr);
