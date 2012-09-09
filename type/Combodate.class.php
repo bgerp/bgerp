@@ -20,13 +20,22 @@ class type_Combodate extends type_Varchar {
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = 10;     // XX-XX-XXXX
+    var $dbFieldLen = 10;     // XXXX-XX-XX
 
     /**
      * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
      */
     var $cellAttr = 'align="right"';
 
+    /**
+     * Разделител във вътрешното представяне на датата
+     */
+    const DIV = '-';
+    
+    /**
+     * Символ за запълване на неизвестните части на датата
+     */
+    const UNKNOWN = '?';
 
     /**
      * Получава дата от трите входни стойности
@@ -34,11 +43,63 @@ class type_Combodate extends type_Varchar {
     function fromVerbal($value)
     {
         if(count($value) == 3) {
-            $date = $value[0] . '-' . $value[1] . '-' . $value[2];
+            
+            $y = $value[2];
+            $m = $value[1];
+            $d = $value[0];
 
-            if($value[2] && $value[1] && $value[0]) {
-                // TODO
+            $this->prepareOpt();
+
+            if(!isset($this->days[$d]) ||
+                !isset($this->months[$m]) ||
+                !isset($this->years[$y]) ) {
+
+                $this->error = 'Недопустими данни';
+                
+                return FALSE;
             }
+
+            $date = self::create($y, $m, $d);
+            
+            // Ако имаме всички данни
+            if($d>0 && $m>0 && $y>0) {
+                
+                if(!checkdate($m, $d, $y)) {
+
+                    $this->error = 'Няма толкова дни в посочения месец/година';
+
+                    return FALSE;
+                }
+            
+            // Ако имаме само месеца и годината
+            } elseif($m>0 && $y>0) {
+                
+
+            // Ако имаме само деня и месеца
+            } elseif($d>0 && $m>0) {
+                
+                if(!checkdate($m, $d, '2004')) {
+
+                    $this->error = 'Няма толкова дни в посочения месец';
+
+                    return FALSE;
+                }
+
+            // Ако имаме само годината, но без деня, това е ОК
+            } elseif($y>0 && $d <= 0) {
+            
+            // Ако нямаме нито една от частите на датата, това е NULL
+            } elseif($y <= 0 && $m <= 0 && $d <= 0) {
+            
+                return NULL;
+            // Недостатъчно дани. Генерираме съобщение за грешка
+            } else {
+
+                $this->error = 'Недостатъчни данни за датата';
+
+                return FALSE;
+            }
+
 
             return $date;
         }
@@ -53,61 +114,110 @@ class type_Combodate extends type_Varchar {
      *                     ден, месец и година
      *
      */
-    function toVerbal($value, $format = NULL)
+    function toVerbal($value)
     {
-        static $formatsMap = array(
-            'd'  => array('d', 'D', 'j', 'l', 'N', 'S', 'w', 'z', 'W'),
-            'm'  => array('F', 'm', 'M', 'n', 't'),
-            'y'  => array('L', 'o', 'Y', 'y'),
-        );
-
         if(empty($value)) return NULL;
+        
+        list($y, $m, $d) = self::toArray($value);
 
-        if (!isset($format)) {
-            if (!empty($this->params['format'])) {
-                $format = $this->params['format'];
-            } else {
-                $format = 'd,m,Y';
-            }
+        // Ако имаме всички данни
+        if($d>0 && $m>0 && $y>0) {
+
+            $res = "{$d}-{$m}-{$y}";
+        
+        // Ако имаме само месеца и годината
+        } elseif($m>0 && $y>0) {
+            
+            $m = dt::getMonth($m, 'FM');
+
+            $res = "{$m}, {$y}";
+
+        // Ако имаме само деня и месеца
+        } elseif($d>0 && $m>0) {
+            
+            $m = dt::getMonth($m, 'FM');
+
+            $res = "{$d} {$m}";
+
+        // Ако имаме само годината
+        } elseif($y>0) {
+            
+            $res = "{$y} " . tr('г.');
+        } else {
+
+            $res = NULL;
         }
+ 
+        return $res;
+    }
 
-        $div = $this->params['div'] ? $this->params['div'] : '-';
 
-        list($d, $m, $y) = explode($div, $value);
+    /**
+     * Създава дата от посочените части
+     *
+     * @param $y int Година
+     * @param $m int Месец
+     * @param $d int Ден
+     * 
+     * @return string
+     */
+    static function create($y, $m, $d)
+    {
+        $d = str_pad($d, 2, '0', STR_PAD_LEFT);
+        $m = str_pad($m, 2, '0', STR_PAD_LEFT);
+        $y = str_pad($y, 4, '0', STR_PAD_LEFT);
+
+        $div = self::DIV;
+
+        $date = "{$y}{$div}{$m}{$div}{$d}";
+        
+        // Очакваме, че датата е получена във вътрешния ни формат
+        expect(preg_match("/^[\?0-9]{4}{$div}[\?0-9]{2}{$div}[\?0-9]{2}$/", $date), $date);
+
+        return $date;
+    }
+
+
+    /**
+     * Парсира вътрешното представяне на Combodate
+     *
+     * @param $cDate string Дата от вида ????-02-23, 2003-02-??, 2003-02-23
+     *
+     * @return array подреден масив (година, месец, ден)
+     */
+    static function toArray($cDate)
+    {
+        $div = self::DIV;
+        
+        if($cDate) {
+            list($y, $m, $d) = explode($div, $cDate);
+        }
 
         if(strlen($d) > 2) {
             $t = $d;
             $d = $y;
             $y = $t;
         }
-
-        $format = arr::make($format, TRUE);
-
-        // Премахваме от зададения формат форматиращите елементи които съответстват на непопълнен
-        // компонент на датата.
-        foreach ($formatsMap as $part => $formats) {
-            if (${$part} <= 0) {
-                foreach ($formats as $f) {
-                    if (isset($format[$f])) {
-                        unset($format[$f]);
-                    }
-                }
-            }
-        }
-
-        if (empty($format)) {
-            // Нито една от видимите компоненти на датата не е зададена
-            return NULL;
-        }
-
-       
-        $dateFormat = implode($div, $format);
         
-        if(!intval($m)) $m = 1;
+        if($d>0) {
+            $d = str_pad($d, 2, '0', STR_PAD_LEFT);
+        } else {
+            $d = str_pad('', 2, self::UNKNOWN, STR_PAD_LEFT);
+        }
 
-        if(!intval($d)) $d = 1; 
+        if($m>0) {
+            $m = str_pad($m, 2, '0', STR_PAD_LEFT);
+        } else {
+            $m = str_pad('', 2, self::UNKNOWN, STR_PAD_LEFT);
+        }
+        
+        if($y>0) {
+            $y = str_pad($y, 4, '0', STR_PAD_LEFT);
+        } else {
+            $y = str_pad('', 4, self::UNKNOWN, STR_PAD_LEFT);
+        }
 
-        return date($dateFormat, mktime(0, 0, 0, intval($m), intval($d), intval($y)));
+        return array($y, $m, $d);
     }
 
 
@@ -117,35 +227,53 @@ class type_Combodate extends type_Varchar {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $div = $this->params['div'] ? $this->params['div'] : '-';
+        $div = self::DIV;
 
-        if($value) {
-            list($d, $m, $y) = explode($div, $value);
-
-            if(strlen($d) > 2) {
-                $t = $d;
-                $d = $y;
-                $y = $t;
-            }
+        if(is_array($value)) {
+            list($d, $m, $y) = $value;
+        } else {
+            list($y, $m, $d) = self::toArray($value);
         }
 
-        $days = array('??' => '');
+        $this->prepareOpt();
 
-        for($i = 1; $i <= 31; $i++) $days[$i] = $i;
-
-        $months = array('??' => '') + dt::getMonthOptions();
-
-        $years = array('????' => '');
-        $min = $this->params['minYear'] ? $this->params['minYear'] : 1900;
-        $max = $this->params['maxYear'] ? $this->params['maxYear'] : 2030;
-
-        for($i = $min; $i < $max; $i++) $years[$i] = $i;
-
-        $tpl = ht::createSelect($name . '[]', $days, $d, $attr);
-        $tpl->append(ht::createSelect($name . '[]', $months, $m, $attr));
-        $tpl->append(ht::createSelect($name . '[]', $years, $y, $attr));
+        $tpl = ht::createSelect($name . '[]', $this->days, $d, $attr);
+        $tpl->append(ht::createSelect($name . '[]', $this->months, $m, $attr));
+        $tpl->append(ht::createSelect($name . '[]', $this->years, $y, $attr));
         $tpl = new ET("<span style=\"white-space:nowrap;\">[#1#]</span>", $tpl);
 
         return $tpl;
+    }
+
+
+    /**
+     * Подготвя опциите за дните, месеците и годините
+     */
+    function prepareOpt()
+    {
+        if($this->days) {
+            return;
+        }
+
+        // Подготовка на дните
+        $this->days = array('??' => '');
+        for($i = 1; $i <= 31; $i++) {
+            $this->days[$i] = $i;
+        }
+        
+        // Подготовка на месеците
+        $this->months = array('??' => '') + dt::getMonthOptions('FM');
+        
+        // Подготовка на годините
+        $min = $this->params['minYear'] ? $this->params['minYear'] : 1900;
+        $max = $this->params['maxYear'] ? $this->params['maxYear'] : 2030;
+        $cur = date('Y');
+        for($i = $max; $i > $cur; $i--) {
+            $this->years[$i] = $i;
+        }
+        $this->years['????'] = '';
+        for($i = $cur; $i >= $min; $i--) {
+            $this->years[$i] = $i;
+        }
     }
 }

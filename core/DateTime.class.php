@@ -21,9 +21,80 @@ class core_DateTime
     static $weekDays = array('Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед');
 
 
-    // Имената на месеците 
+    // Имената на месеците на български
     static $months = array("Януари", "Февруари", "Март", "Април", "Май", "Юни",
             "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември");
+
+    // Кратки имена на месеците на български
+    static $monthsShort = array("Яну", "Фев", "Мар", "Апр", "Май", "Юни", 
+        "Юли", "Авг", "Сеп", "Окт", "Ное", "Дек");
+    
+    // Имената на месеците на английски
+    static $monthsEn = array("January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December");
+    
+    // Кратки имена на месеците на английски
+    static $monthsShortEn = array("Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+
+     
+    /**
+     * Връща посочения месец в посочения формат и език
+     */
+    static function getMonth($m, $format = 'm', $lg =  NULL)
+    {
+        if(!$lg) {
+            $lg = core_Lg::getCurrent();
+        }
+
+        if($format == 'FM') {
+            $format = Mode::is('screenMode', 'narrow') ? 'M' : 'F';
+        }
+
+        switch($format) {
+            case 'F':
+                if($lg == 'bg') {
+                    $res =  self::$months[$m-1];
+                } elseif($lg == 'en') {
+                    $res = self::$monthsEn[$m-1];
+                } else {
+                    $res = tr(self::$monthsEn[$m-1]);
+                }
+                break;
+
+            case 'M':
+                if($lg == 'bg') {
+                    $res =  self::$monthsShort[$m-1];
+                } elseif($lg == 'en') {
+                    $res = self::$monthsShortEn[$m-1];
+                } else {
+                    $res = tr(self::$monthsShortEn[$m-1]);
+                }
+                break;
+
+            case 'm':
+                $res = str_pad($m, 2, '0', STR_PAD_LEFT);
+                break;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща месеците на годината, като опции
+     */
+    static function getMonthOptions($format = 'm', $lg = NULL)
+    {
+        $months = array();
+
+        for($i = 1; $i <= 12; $i++) {
+            $months[$i] = self::getMonth($i, $format, $lg);
+        }
+        
+        return $months;
+    }
+
 
     /**
      * Превръща MySQL-ска data/време UNIX timestamp
@@ -333,30 +404,6 @@ class core_DateTime
     }
 
 
-    /**
-     * @todo Чака за документация...
-     */
-    static function getMonthOptions()
-    {
-        $months = array(
-            1 => tr("Януари"),
-            2 => tr("Февруари"),
-            3 => tr("Март"),
-            4 => tr("Април"),
-            5 => tr("Май"),
-            6 => tr("Юни"),
-            7 => tr("Юли"),
-            8 => tr("Август"),
-            9 => tr("Септември"),
-            10 => tr("Октомври"),
-            11 => tr("Ноември"),
-            12 => tr("Декември")
-        );
-        
-        return $months;
-    }
-    
-    
     /**
      * Превръща вербална дата/време вкъм MySQL-ска data.
      * Ако няма параметър, връща текущото време, в страната, където е часовата зона.
