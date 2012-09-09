@@ -771,7 +771,13 @@ class crm_Persons extends core_Master
                 
                 list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
                 
-                $rec->birthday = type_Combodate::create($y, $m, $d);
+                if($y>0 || $m>0 || $d >0) {
+                    $rec->birthday = type_Combodate::create($y, $m, $d);
+                } else {
+                    $rec->birthday = NULL;
+                }
+
+                $res .= "<li style=''> $rec->name =>  $rec->birthday";
 
                 $mvc->save($rec, 'state,birthday');
             }
