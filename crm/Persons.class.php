@@ -66,7 +66,7 @@ class crm_Persons extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
+    var $loadList = 'plg_Created, plg_Modified, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,  plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Importer, groups_Extendable';
@@ -154,7 +154,7 @@ class crm_Persons extends core_Master
         $this->FLD('egn', 'drdata_EgnType', 'caption=ЕГН');
 
         // Дата на раждане
-        $this->FLD('birthday', 'combodate', 'caption=Рожден ден');
+        $this->FLD('birthday', 'combodate(minYear=1850,maxYear=' . date('Y') . ')', 'caption=Рожден ден');
 
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember,class=contactData');
@@ -208,12 +208,25 @@ class crm_Persons extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Подредба
-        if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
-            $data->query->orderBy('#name');
-        } elseif($data->listFilter->rec->order == 'last') {
-            $data->query->orderBy('#createdOn=DESC');
+        switch($data->listFilter->rec->order) {
+            case 'last':
+                $data->query->orderBy('#createdOn=DESC');
+                break;
+            case 'modified':
+                $data->query->orderBy('#modifiedOn=DESC');
+                break;
+            case 'website':
+                $data->query->orderBy('#website=ASC');
+                break;
+            case 'birthday':
+                $data->query->orderBy('#birthday=ASC');
+                break;
+            default:
+            case 'alphabetic':
+                $data->query->orderBy('#name');
         }
-
+        
+ 
         if($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
                 $cond = "#name NOT REGEXP '^[a-zA-ZА-Яа-я]'";
@@ -273,7 +286,12 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)', 'caption=Подредба,input,silent');
+        $data->listFilter->FNC('order', 'enum( alphabetic=Азбучно,
+                                               last=Последно добавени,
+                                               modified=Последно модифицирани,
+                                               birthday=Рожденден,
+                                               website=Сайт/Блог)',
+                                         'caption=Подредба,input,silent');
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
 
@@ -287,11 +305,25 @@ class crm_Persons extends core_Master
 
         $data->listFilter->input('alpha,search,order,groupId', 'silent');
         
-        // Ако се подреждат по последно, се добавя полето Създаване
-        if($data->listFilter->rec->order == 'last') {
-            $data->listFields['createdOn'] = 'Създаване';
+        // Според заявката за сортиране, показваме различни полета
+        switch($data->listFilter->rec->order) {
+            case 'last' :
+                $data->listFields['createdOn'] = 'Създаване->На';
+                $data->listFields['createdBy'] = 'Създаване->От';
+                break;
+            case 'website':
+                $data->listFields['website'] = 'Сайт/Блог';
+                break;
+            case 'modified':
+                $data->listFields['modifiedOn'] = 'Модифициране->На';
+                $data->listFields['modifiedBy'] = 'Модифициране->От';
+                break;
+            case 'birthday':
+                $data->listFields['birthday'] = 'Рожденден';
+                break;
         }
-    }
+
+     }
 
 
     /**
@@ -378,8 +410,10 @@ class crm_Persons extends core_Master
     static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
+        
+        list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
 
-        if(isset($rec->egn) && ($rec->birthday == '??-??-????')) {
+        if(isset($rec->egn) && !($y>0 || $m>0 || $d>0)) {
             try {
                 $Egn = new drdata_BulgarianEGN($rec->egn);
             } catch(Exception $e) {
@@ -387,7 +421,7 @@ class crm_Persons extends core_Master
             }
 
             if(!$err) {
-                $rec->birthday = $Egn->birth_day . "-" . $Egn->birth_month . "-" . $Egn->birth_year;
+                $rec->birthday = type_Combodate::create($Egn->birth_year, $Egn->birth_month, $Egn->birth_day);
             }
         }
 
@@ -631,7 +665,7 @@ class crm_Persons extends core_Master
     static function updateBirthdaysToCalendar($id)
     {
         if(($rec = static::fetch($id)) && ($rec->state != 'rejected')) {
-            list($d, $m, $y) = explode('-', $rec->birthday);
+            list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
         }
 
         $events = array();
@@ -656,7 +690,7 @@ class crm_Persons extends core_Master
             foreach($years as $year) {
 
                 // Родените в бъдещето, да си празнуват рождения ден там
-                if($y && ($y > $year)) continue;
+                if(($y > 0) && ($y > $year)) continue;
                 
                 $calRec = new stdClass();
                 
@@ -1261,10 +1295,10 @@ class crm_Persons extends core_Master
             // Опит за конвертиране на рожденната дата във формат YYYY-mm-dd. Това не винаги
             // е възможно, за стойности от тип 'combodate', но от друга страна формата vCard
             // изисква пълна дата - ден, месец, година.
-            $birthday = static::instance()->getField('birthday')->type->toVerbal($rec->birthday, 'Y,m,d');
-            if (strlen($birthday) == 10) {
+            list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
+            if ($y>0 && $m>0 && $d>0) {
                 // Всички компоненти на датата са зададени
-                $vcard->setBday($birthday);
+                $vcard->setBday("{$y}-{$m}-{$d}");
             }
         }
 
