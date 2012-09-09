@@ -35,7 +35,7 @@ class type_Combodate extends type_Varchar {
     /**
      * Символ за запълване на неизвестните части на датата
      */
-    const UNKNOWN = '?';
+    const UNKNOWN = '*';
 
     /**
      * Получава дата от трите входни стойности
