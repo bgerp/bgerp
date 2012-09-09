@@ -147,6 +147,19 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Предефинирани подредби на листовия изглед
+     */
+    var $listOrderBy = array(
+        'alphabetic'    => array('Азбучно', '#name=ASC'),
+        'last'          => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
+        'modified'      => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
+        'vatId'      => array('Данъчен №', '#vatId=DESC', 'vatId=Данъчен №'),
+        'pCode'      => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
+        'website'       => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
+        );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -203,11 +216,12 @@ class crm_Companies extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Подредба
-        if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
-            $data->query->orderBy('#name');
-        } elseif($data->listFilter->rec->order == 'last') {
-            $data->query->orderBy('#createdOn=DESC');
+        setIfNot($data->listFilter->rec->order, 'alphabetic');
+        $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
+        if($orderCond) {
+            $data->query->orderBy($orderCond);
         }
+
         
         if($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
@@ -256,9 +270,16 @@ class crm_Companies extends core_Master
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
-
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
-            'caption=Подредба,input,silent');
+        
+        // Подготовка на полето за подредба
+        foreach($mvc->listOrderBy as $key => $attr) {
+            $options[$key] = $attr[0];
+        }
+        $orderType = cls::get('type_Enum');
+        $orderType->options = $options;
+        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent');
+        
+        // Филтриране по група
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)',
             'placeholder=Всички групи,caption=Група,input,silent');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
@@ -273,9 +294,14 @@ class crm_Companies extends core_Master
         
         $rec = $data->listFilter->input('alpha,users,search,order,groupId', 'silent');
         
-        // Ако се подреждат по последно, се добавя полето Създаване
-        if($data->listFilter->rec->order == 'last') {
-            $data->listFields['createdOn'] = 'Създаване';
+        // Според заявката за сортиране, показваме различни полета
+        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
+
+        if($showColumns) {
+            $showColumns = arr::make($showColumns, TRUE);
+            foreach($showColumns as $field => $title) {
+                $data->listFields[$field] = $title;
+            }
         }
     }
     

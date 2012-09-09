@@ -141,6 +141,18 @@ class crm_Persons extends core_Master
     
 
     /**
+     * Предефинирани подредби на листовия изглед
+     */
+    var $listOrderBy = array(
+        'alphabetic'    => array('Азбучно', '#name=ASC'),
+        'last'          => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
+        'modified'      => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
+        'birthday'      => array('Рожден ден', '#birthday=DESC'),
+        'website'       => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
+        );
+
+
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -208,25 +220,12 @@ class crm_Persons extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Подредба
-        switch($data->listFilter->rec->order) {
-            case 'last':
-                $data->query->orderBy('#createdOn=DESC');
-                break;
-            case 'modified':
-                $data->query->orderBy('#modifiedOn=DESC');
-                break;
-            case 'website':
-                $data->query->orderBy('#website=ASC');
-                break;
-            case 'birthday':
-                $data->query->orderBy('#birthday=ASC');
-                break;
-            default:
-            case 'alphabetic':
-                $data->query->orderBy('#name');
+        setIfNot($data->listFilter->rec->order, 'alphabetic');
+        $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
+        if($orderCond) {
+            $data->query->orderBy($orderCond);
         }
-        
- 
+         
         if($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
                 $cond = "#name NOT REGEXP '^[a-zA-ZА-Яа-я]'";
@@ -269,6 +268,16 @@ class crm_Persons extends core_Master
                 $data->title = "Именници";
             }
         }
+        
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->users) {
+            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+        }
+        
+        if(!$data->listFilter->rec->search) {
+            $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
+            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+        }
 
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
             $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
@@ -286,12 +295,17 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('order', 'enum( alphabetic=Азбучно,
-                                               last=Последно добавени,
-                                               modified=Последно модифицирани,
-                                               birthday=Рожденден,
-                                               website=Сайт/Блог)',
-                                         'caption=Подредба,input,silent');
+        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
+        
+        // Подготовка на полето за подредба
+        foreach($mvc->listOrderBy as $key => $attr) {
+            $options[$key] = $attr[0];
+        }
+        $orderType = cls::get('type_Enum');
+        $orderType->options = $options;
+
+        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent');
+                                         
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
 
@@ -301,28 +315,19 @@ class crm_Persons extends core_Master
 
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $data->listFilter->showFields = 'search,order,groupId';
+        $data->listFilter->showFields = 'users,search,order,groupId';
 
-        $data->listFilter->input('alpha,search,order,groupId', 'silent');
+        $data->listFilter->input('users,alpha,search,order,groupId', 'silent');
         
         // Според заявката за сортиране, показваме различни полета
-        switch($data->listFilter->rec->order) {
-            case 'last' :
-                $data->listFields['createdOn'] = 'Създаване->На';
-                $data->listFields['createdBy'] = 'Създаване->От';
-                break;
-            case 'website':
-                $data->listFields['website'] = 'Сайт/Блог';
-                break;
-            case 'modified':
-                $data->listFields['modifiedOn'] = 'Модифициране->На';
-                $data->listFields['modifiedBy'] = 'Модифициране->От';
-                break;
-            case 'birthday':
-                $data->listFields['birthday'] = 'Рожденден';
-                break;
-        }
+        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
 
+        if($showColumns) {
+            $showColumns = arr::make($showColumns, TRUE);
+            foreach($showColumns as $field => $title) {
+                $data->listFields[$field] = $title;
+            }
+        }
      }
 
 
@@ -762,11 +767,13 @@ class crm_Persons extends core_Master
             $query = $mvc->getQuery();
 
             while($rec = $query->fetch()) {
-                if($rec->state == 'active') {
-                    $rec->state = 'closed';
-                }
+                $rec->state = 'active';
+                
+                list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
+                
+                $rec->birthday = type_Combodate::create($y, $m, $d);
 
-                $mvc->save($rec, 'state');
+                $mvc->save($rec, 'state,birthday');
             }
         }
     }
