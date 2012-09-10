@@ -2,12 +2,6 @@
     <dt>Ник</dt>
     <dd>[#nick#]</dd>
 
-    <dt>Имена</dt>
-    <dd>[#names#]</dd>
-    
-	<dt>Имейл</dt>
-    <dd>[#email#]</dd>
-
     <dt>Роли</dt>
     <dd>[#roles#]</dd>
 
