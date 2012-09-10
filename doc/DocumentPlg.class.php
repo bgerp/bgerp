@@ -334,13 +334,13 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Дефолт имплементация на метода $doc->getDefaultFolder()
      *
-     * Ако $mvc->defaultFolder != FALSE, тогава връща папка 'куп' с име - $mvc->defaultDolder или заглавието на класа
+     * Ако $mvc->defaultFolder != FALSE, тогава връща папка 'куп' с име - $mvc->defaultFolder или заглавието на класа
      * Ако $mvc->defaultFolder === FALSE или нямаме достъп до папката 'куп', тогава се връща основната папка за всеки потребител
      */
     function on_AfterGetDefaultFolder($mvc, &$folderId, $userId = NULL)
     {
         if (!$folderId) {
-            if($mvc->unsortedFolder) {
+            if($mvc->defaultFolder !== FALSE) {
                 $unRec = new stdClass();
                 $unRec->name = $mvc->defaultFolder ? $mvc->defaultFolder : $mvc->title;
                 $folderId = doc_UnsortedFolders::forceCoverAndFolder($unRec);
