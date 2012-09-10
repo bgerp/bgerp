@@ -75,6 +75,29 @@ class docoffice_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
+        
+        // Проверяваме дали офис пакета е инсталиран и работи коректно
+        if (docoffice_Office::startOffice()) {
+            $html .= "<li style='color:green'>Офис пакета работи коректно.";  
+        } else {
+            $html .= "<li style='color:red'>Не може да бъде стартиране офис пакета.";
+        }
+        
+        // Конфигурационните константи
+        $conf = core_Packs::getConfig('docoffice');
+        $unoconv = $conf->OFFICE_CONVERTER_UNOCONV;
+        exec($unoconv, $dummy, $errorCode);
+        
+        // Ако програмата не е инсталирана
+        if ($errorCode == 127) {
+            $html .= "<li style='color:red'>Програмата '{$unoconv}' не е инсталирана.";  
+        } else {
+            $html .= "<li style='color:green'>Програмата '{$unoconv}' работи коректно.";
+        }
+        
+        // Убиваме офис пакета
+        docoffice_Office::killOffice();
+        
         return $html;
     }
     
