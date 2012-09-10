@@ -60,9 +60,14 @@ class email_UserInboxPlg extends core_Plugin
         }
     }
     
-    static function on_AfterCreate($mvc, $rec)
+    public static function on_AfterCreate($mvc, $rec)
     {
-        static::createProfile($rec);
+        crm_Profiles::createProfile($rec);
+    }
+    
+    public static function on_AfterUpdate($mvc, $rec)
+    {
+        crm_Profiles::updatePerson($rec);
     }
     
     
@@ -142,38 +147,4 @@ class email_UserInboxPlg extends core_Plugin
         //Вземаме id' то на потребителя, който е inCharge
         return $inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
     }
-    
-    /**
-     * Създаване на потребителски профил за потребител
-     * 
-     *  o Създава визитка на потребителя с частен достъп
-     *  о Добавя визитката в системната CRM-група за профили
-     *  o Свързва (чрез crm_Profiles) новата визитка с потребителя
-     * 
-     * @param stdClass $userRec
-     * @return boolean
-     */
-    protected static function createProfile($userRec)
-    {
-        expect($profilesGroup = crm_Profiles::fetchCrmGroup());
-        
-        $personRec = (object)array(
-            'name' => $userRec->names,
-            'email' => $userRec->email,
-            'groupList' => type_Keylist::fromArray(array($profilesGroup->id=>$profilesGroup->id)),
-            'access' => 'private',
-            'inCharge' => $userRec->id,
-        );
-        
-        if (!crm_Persons::save($personRec)) {
-            return FALSE;
-        }
-            
-        $profileRec = (object)array(
-            'userId'   => $userRec->id,
-            'personId' => $personRec->id,
-        );
-        
-        return crm_Profiles::save($profileRec) !== FALSE;
-    } 
 }

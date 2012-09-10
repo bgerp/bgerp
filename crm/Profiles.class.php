@@ -298,6 +298,14 @@ class crm_Profiles extends core_Master
         core_Users::cancelSystemUser();
     }
     
+    
+    /**
+     * Промяна на данните на асоциирания потребител след запис на визитка
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param core_Master $master
+     */
     public static function on_AfterMasterSave(core_Mvc $mvc, $rec, core_Master $master)
     {
         if (get_class($master) != 'crm_Persons') {
@@ -305,31 +313,7 @@ class crm_Profiles extends core_Master
             expect(get_class($master) != 'crm_Person'); // дали не е по-добре така?
         }
         
-        $personRec = $rec; // псевдоним за яснота
-        
-        $profile = static::fetch("#personId = {$personRec->id}");
-        
-        if (!$profile) {
-            return;
-            expect($profile); // дали не е по-добре така?
-        }
-        
-        // Обновяване на записа на потребителя след промяна на асоциираната му визитка
-        $userRec = core_Users::fetch($profile->userId);
-        
-        if (!empty($personRec->email)) {
-            $userRec->email = $personRec->email;
-        }
-        if (!empty($personRec->name)) {
-            $userRec->names = $personRec->name;
-        }
-        
-        core_Users::save($userRec);
-        
-        // Обновяване на граватара на потребителя след промяна на асоциираната му визитка
-        
-        // @TODO ...
-        
+        static::updateUser($rec);
     }
     
     
@@ -365,4 +349,117 @@ class crm_Profiles extends core_Master
         return crm_Persons::fetch($profile->personId);
     }
     
+    
+    /**
+     * Създаване на потребителски профил за потребител
+     * 
+     *  o Създава визитка на потребителя с частен достъп
+     *  о Добавя визитката в системната CRM-група за профили
+     *  o Свързва (чрез crm_Profiles) новата визитка с потребителя
+     * 
+     * @param stdClass $userRec
+     * @return boolean
+     */
+    public static function createProfile($userRec)
+    {
+        expect($profilesGroup = static::fetchCrmGroup());
+        
+        $personRec = (object)array(
+            'name' => $userRec->names,
+            'email' => $userRec->email,
+            'groupList' => type_Keylist::fromArray(array($profilesGroup->id=>$profilesGroup->id)),
+            'access' => 'private',
+            'inCharge' => $userRec->id,
+            '_skipUserUpdate' => TRUE, // Флаг за предотвратяване на безкраен цикъл след 
+                                       // създаване на потребител!
+        );
+        
+        if (!crm_Persons::save($personRec)) {
+            return FALSE;
+        }
+            
+        $profileRec = (object)array(
+            'userId'   => $userRec->id,
+            'personId' => $personRec->id,
+        );
+        
+        return static::save($profileRec) !== FALSE;
+    }
+    
+    /**
+     * Синхронизиране на данните (имена, имейл) на профилната визитка с тези на потребител
+     * 
+     * @param stdClass $userRec
+     * @return boolean
+     */
+    public static function updatePerson($userRec)
+    {
+        if ($userRec->_skipPersonUpdate) {
+            // След запис на визитка се обновяват данните (имена, имейл) на асоциирания с нея 
+            // потребител. Ако сме стигнали до тук по този път, не обновяваме отново данните
+            // на визитката след промяна на потребителя, защото това води до безкраен цикъл!
+            return;
+        }
+        
+        $profileRec = static::fetch("#userId = {$userRec->id}");
+        
+        if (!$profileRec) {
+            // Току що променения потребител няма профил - създаваме му.
+            return static::createProfile($userRec);
+        }
+        
+        expect($personRec = crm_Persons::fetch($profileRec->personId));
+        
+        $personRec->email = type_Emails::prepend($personRec->email, $userRec->email);
+        $personRec->name  = $userRec->names;
+        
+        // Флаг за предотвратяване на безкрайния цикъл: промяна на визитка -> потребител -> 
+        // визитка -> ...
+        $personRec->_skipUserUpdate  = TRUE;
+        
+        return crm_Persons::save($personRec);
+    }
+    
+    
+    /**
+     * Обновяване на данните на асоциирания потребител след промяна във визитка
+     * 
+     * @param stdClass $personRec
+     */
+    public static function updateUser($personRec)
+    {
+        if ($personRec->_skipUserUpdate) {
+            return;
+        }
+        
+        $profile = static::fetch("#personId = {$personRec->id}");
+        
+        if (!$profile) {
+            return;
+            expect($profile); // дали не е по-добре така?
+        }
+        
+        // Обновяване на записа на потребителя след промяна на асоциираната му визитка
+        expect($userRec = core_Users::fetch($profile->userId));
+        
+        if (!empty($personRec->email)) {
+            // Вземаме първия (валиден!) от списъка с лични имейли на лицето
+            $emails = type_Emails::toArray($personRec->email);
+            if (!empty($emails)) {
+                $userRec->email = reset($emails);
+            }
+        }
+        if (!empty($personRec->name)) {
+            $userRec->names = $personRec->name;
+        }
+        
+        // Флаг за предотвратяване на безкраен цикъл след промяна на визитка
+        $userRec->_skipPersonUpdate = TRUE;
+        
+        core_Users::save($userRec);
+        
+        // Обновяване на граватара на потребителя след промяна на асоциираната му визитка
+        
+        // @TODO ...
+    }
 }
