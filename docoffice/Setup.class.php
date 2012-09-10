@@ -95,15 +95,6 @@ class docoffice_Setup
             $html .= "<li style='color:green'>Програмата '{$unoconv}' работи коректно.";
         }
         
-        //Test
-        exec('ps', $dummy, $errorCodePs);
-        // Ако програмата не е инсталирана
-        if ($errorCodePs == 127) {
-            $html .= "<li style='color:red'>Програмата 'ps' не е инсталирана.";  
-        } else {
-            $html .= "<li style='color:green'>Програмата 'ps' работи коректно.";
-        }
-        
         // Убиваме офис пакета
         docoffice_Office::killOffice();
         
