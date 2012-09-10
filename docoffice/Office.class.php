@@ -107,9 +107,9 @@ class docoffice_Office
         // Убиваме процеса
         $sh = "kill {$pid}";
         exec($sh, $dummy, $res);
-        
+
         // Ако всичко е минало както трябва
-        if ($res == 0) {
+        if ($res === 0) {
             
             // Премахваме от перманентните данни
             permanent_Data::remove('countOfficeProccess');
