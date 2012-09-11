@@ -532,17 +532,19 @@ class crm_Profiles extends core_Master
                 $userRec->email = reset($emails);
             }
         }
+        
         if (!empty($personRec->name)) {
             $userRec->names = $personRec->name;
         }
+        
+        if (!empty($personRec->photo)) {
+            $userRec->avatar = $personRec->photo; 
+        }
+        
         
         // Флаг за предотвратяване на безкраен цикъл след промяна на визитка
         $userRec->_skipPersonUpdate = TRUE;
         
         core_Users::save($userRec);
-        
-        // Обновяване на граватара на потребителя след промяна на асоциираната му визитка
-        
-        // @TODO ...
     }
 }
