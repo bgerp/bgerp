@@ -253,6 +253,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function afterConvertDocToPdf($script)
     {
+
         // Десериализираме параметрите
         $params = unserialize($script->params);
         
@@ -266,7 +267,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
-
+core_Logs::log('afterConvertDocToPdf: ' . $params['type']. $params['dataId'] . $params['lockId']);
         // Проверявама дали няма извлечена информация или не е заключен
         if (static::isProcessStarted($params)) return ;
         
@@ -355,7 +356,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
     {
         // Вземаме всички файлове във временната директория
         $files = scandir($script->tempDir);
-       
+core_Logs::log('afterConvertToJpg: ' . $script->tempDir);
         // Инстанция на класа
         $Fileman = cls::get('fileman_Files');
         
