@@ -277,7 +277,7 @@ class crm_Profiles extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $profilesGroup = 'Потребителски профили';  // @TODO да се изнесе като клас-променлива или в конфиг.
+        $profilesGroup = $mvc::profilesGroupName();
         
         core_Users::forceSystemUser();
         
@@ -317,6 +317,7 @@ class crm_Profiles extends core_Master
             expect(get_class($master) == 'crm_Person'); // дали не е по-добре така?
         }
         
+        // След промяна на профилна визитка, променяме името и имейла на асоциирания потребител
         static::updateUser($rec);
     }
     
@@ -389,6 +390,48 @@ class crm_Profiles extends core_Master
          *        
          *        Ако има такава визитка профил не се създава!
          */
+        // Извличаме списък на всички визитки, в чиито лични имейли се среща имейла на 
+        // новосъздадения потребител.
+        //
+        // Ако този списък е празен - създаваме нова визитка и я асоциираме с потребителя.
+        // 
+        // Ако списъка не е празен, търсим в него първата визитка, за която имейла на 
+        // потребителя е на първо място в списъка с лични имейли. Ако намерим такава - 
+        // асоциираме нея с потребителя (тя е неасоциирана - иначе потребителя й би бил със 
+        // същия имейл както на току-що създадения. Това е невъзможно - имейлите на потебителите 
+        // са уникални).
+        
+        /* @var $personQuery core_Query */
+        $personQuery = crm_Persons::getQuery();
+        $personQuery->where("#email LIKE '%{$userRec->email}%'");
+        $personQuery->show("id, name, email, groupList");
+        
+        while ($personRec = $personQuery->fetch()) {
+            if (strpos(trim($personRec->email), trim($userRec->email)) === 0) {
+                // Намерихме визитка, чийто първи личен имейл е същия като на новия потребител
+                break;
+            }
+        }
+        
+        if (!$personRec && $personQuery->numRec() == 0) {
+            // Няма "готова" визитка за профила, но няма и опасност от дублиране - създаваме 
+            // нова профилна визитка за новия потребител
+            $personRec = (object)array(
+                'name' => '', // name, email и groupList се попълват по-долу
+                'email' => '',
+                'groupList' => '',
+                'access' => 'private',
+                'inCharge' => $userRec->id,
+            );
+        }
+        
+        if (!$personRec) {
+            // Поради вероятност или от дублиране на визитки, или от асоцииране с неподходяща 
+            // визитка не създаваме профил на потребителя - оставяме администратора да създаде
+            // профила ръчно
+            return;
+        }
+        
         expect($profilesGroup = static::fetchCrmGroup());
         
         $personRec = (object)array(
