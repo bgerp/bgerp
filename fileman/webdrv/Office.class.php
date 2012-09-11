@@ -279,12 +279,12 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Отключваме заключения процес за конвертиране от офис към pdf формат
             core_Locks::release($params['lockId']);
         }
-        
+core_Logs::log('Out File Path: ' . $script->outFilePath);
         if ($started) {
 
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
-            return TRUE;
+//            return TRUE;
         } else {
 
             // Записваме грешката в лога
@@ -362,7 +362,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Генерираме името на файла след конвертиране
         $fn = $script->fName . '-' .$i . '.jpg';
-core_Logs::log($fn . serialize($files));
+
         // Докато има файл
         while (in_array($fn, $files)) {
             
