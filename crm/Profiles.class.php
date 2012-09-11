@@ -314,7 +314,7 @@ class crm_Profiles extends core_Master
     {
         if (get_class($master) != 'crm_Persons') {
             return;
-            expect(get_class($master) != 'crm_Person'); // дали не е по-добре така?
+            expect(get_class($master) == 'crm_Person'); // дали не е по-добре така?
         }
         
         static::updateUser($rec);
@@ -328,9 +328,20 @@ class crm_Profiles extends core_Master
      */
     public static function fetchCrmGroup()
     {
-        $profilesGroup = 'Потребителски профили'; // @TODO да се изнесе като клас-променлива или в конфиг.
+        $profilesGroup = self::profilesGroupName(); 
         
         return crm_Groups::fetch("#name = '{$profilesGroup}'");
+    }
+    
+    
+    /**
+     * Името на група на визитника в която са всички визитки асоцииран с потребител
+     * 
+     * @return string
+     */
+    public static function profilesGroupName()
+    {
+        return 'Потребителски профили'; // @TODO да се изнесе като клас-променлива или в конфиг.
     }
     
     
@@ -371,6 +382,13 @@ class crm_Profiles extends core_Master
             return;
         }
 
+        /*
+         * @TODO: Когато се създава профил, да се проверява дали във визитника няма визитка
+         *        на човек, един от личните имейли на която е същия като на току що създадения
+         *        потребител. 
+         *        
+         *        Ако има такава визитка профил не се създава!
+         */
         expect($profilesGroup = static::fetchCrmGroup());
         
         $personRec = (object)array(
