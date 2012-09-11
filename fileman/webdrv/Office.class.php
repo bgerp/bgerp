@@ -377,13 +377,13 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Генерираме ново предположение за конвертирания файл, като добавяме единица
             $fn = $script->fName . '-' . ++$i . '.jpg';
         }
-        
+core_Logs::log(serialize($fileHndArr));
         // Ако има генерирани файлове, които са качени успешно
         if (count($fileHndArr)) {
             
             // Десериализираме нужните помощни данни
             $params = unserialize($script->params);
-core_Logs::log($script->params);
+
             // Сериализираме масива и обновяваме данните за записа в fileman_Info
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
