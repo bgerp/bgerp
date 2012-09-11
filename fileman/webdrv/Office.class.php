@@ -253,7 +253,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function afterConvertDocToPdf($script)
     {
-
         // Десериализираме параметрите
         $params = unserialize($script->params);
         
@@ -263,11 +262,11 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Параметри необходими за конвертирането
         $params['callBack'] = 'fileman_webdrv_Office::afterConvertToJpg';
         $params['type'] = 'jpg';
-        $params['runSync'] = TRUE;
+        $params['asynch'] = FALSE;
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
-core_Logs::log('afterConvertDocToPdf: ' . $params['type']. $params['dataId'] . $params['lockId']);
+
         // Проверявама дали няма извлечена информация или не е заключен
         if (static::isProcessStarted($params)) return ;
         
@@ -333,9 +332,7 @@ core_Logs::log('afterConvertDocToPdf: ' . $params['type']. $params['dataId'] . $
         // Когато се геририра от офис документи PDF, и от полученич файл
         // се генерира JPG тогава трябва да се стартира синхронно
         // В другите случаи трябва да е асинхронно за да не чака потребителя
-        $aSync = $params['runSync'] ? FALSE : TRUE;
-        
-        $Script->run($aSync);
+        $Script->run($params['asynch']);
         
         return TRUE;
     }
@@ -356,7 +353,7 @@ core_Logs::log('afterConvertDocToPdf: ' . $params['type']. $params['dataId'] . $
     {
         // Вземаме всички файлове във временната директория
         $files = scandir($script->tempDir);
-core_Logs::log('afterConvertToJpg: ' . $script->tempDir);
+       
         // Инстанция на класа
         $Fileman = cls::get('fileman_Files');
         
@@ -386,7 +383,7 @@ core_Logs::log('afterConvertToJpg: ' . $script->tempDir);
             
             // Десериализираме нужните помощни данни
             $params = unserialize($script->params);
-            
+core_Logs::log($script->params);
             // Сериализираме масива и обновяваме данните за записа в fileman_Info
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
