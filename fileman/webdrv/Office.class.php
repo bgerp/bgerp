@@ -362,7 +362,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Генерираме името на файла след конвертиране
         $fn = $script->fName . '-' .$i . '.jpg';
-
+core_Logs::log($fn . serialize($files));
         // Докато има файл
         while (in_array($fn, $files)) {
             
@@ -377,7 +377,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Генерираме ново предположение за конвертирания файл, като добавяме единица
             $fn = $script->fName . '-' . ++$i . '.jpg';
         }
-core_Logs::log(serialize($fileHndArr));
+
         // Ако има генерирани файлове, които са качени успешно
         if (count($fileHndArr)) {
             
