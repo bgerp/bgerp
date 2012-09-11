@@ -177,8 +177,13 @@ class doc_Incomings extends core_Master
         $data->form->prependSuggestions('title', $titleSuggestions);
 
         // Манупулатора на файла
-        $fileHnd = Request::get('fh');
+        $fileHnd = $mvc->db->escape(Request::get('fh'));
         
+        // Вземаме текстовата част
+        // TODO може и да се направи форматиране - Интервалите да се заменят с един
+        // може и повтарящите думи да се премахнат
+        $content = trim(fileman_Indexes::getInfoContentByFh($fileHnd, 'text'));
+
         // Ако създаваме документа от файл
         if (($fileHnd) && (!$data->form->rec->id)) {
             
@@ -201,7 +206,7 @@ class doc_Incomings extends core_Master
     
                         // TODO това може и да се промени след направата на OCR
                         // Ако има открито съдържание на файла
-                        if (trim($iRec->content)) continue;
+                        if ($content) continue;
                         
                         // Попълваме описанието за файла
                         $data->form->setDefault('title', "Сканиран");    
@@ -209,7 +214,7 @@ class doc_Incomings extends core_Master
                         // Вземаме данните за контейнера
                         $cRec = doc_Containers::fetch($cid);
     
-                        //
+                        // Задаваме папката и нишката
                         $data->form->rec->folderId = $cRec->folderId;
                         $data->form->rec->threadId = $cRec->threadId;
                         
@@ -224,9 +229,9 @@ class doc_Incomings extends core_Master
                     if ($scanned) break;
                 }    
             }
-            
+
             // Попълваме описанието за файла
-            $data->form->setDefault('keywords', $iRec->content);    
+            $data->form->setDefault('keywords', $content);    
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);
