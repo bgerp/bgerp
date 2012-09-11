@@ -159,4 +159,40 @@ class type_Emails extends type_Varchar {
     {
         return self::toArray($str, self::INVALID);
     }
+    
+    
+    /**
+     * Добавя нов имейл в края на списък с имейли. Ако новия е в списъка - не го дублира.
+     * 
+     * @param string $str
+     * @param string $email
+     * @return string
+     */
+    public static function append($str, $email)
+    {
+        $emails = static::toArray($str, self::ALL);
+        $emails[] = $email;
+        
+        $emails = array_unique($emails);
+        
+        return implode(', ', $emails);
+    }
+    
+    
+    /**
+     * Добавя нов имейл към началото списък с имейли. Ако новия е в списъка - не го дублира.
+     * 
+     * @param string $str
+     * @param string $email
+     * @return string
+     */
+    public static function prepend($str, $email)
+    {
+        $emails = static::toArray($str, self::ALL);
+        array_unshift($emails, $email);
+        
+        $emails = array_unique($emails);
+        
+        return implode(', ', $emails);
+    }
 }
