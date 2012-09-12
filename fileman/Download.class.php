@@ -344,7 +344,10 @@ class fileman_Download extends core_Manager {
         
         // Икона на линка
         $attr['ef_icon'] = $icon;
-         
+        
+        // Клас на връзката
+        $attr['class'] = 'file';
+
         //Инстанция на класа
         $FileSize = cls::get('fileman_FileSize');
         

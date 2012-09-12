@@ -45,12 +45,16 @@ class docoffice_Office
             // Нулираме брояча за конвертиранията
             static::emptyConvertCount();
             
-            core_Logs::Log(OFFICE_PACKET_PATH . tr('| е стартиран.|*'));
+            core_Logs::log(OFFICE_PACKET_PATH . tr('| е стартиран.|*'));
             
             // Отключваме процеса
             static::unlockOffice();
             
             return TRUE;
+        } else {
+            
+            // Ако има грешка при стартирането
+            core_Logs::log(tr('|Грешка при стартирането на |*') . OFFICE_PACKET_PATH);
         }
         
         return FALSE;
@@ -103,9 +107,9 @@ class docoffice_Office
         // Убиваме процеса
         $sh = "kill {$pid}";
         exec($sh, $dummy, $res);
-        
+
         // Ако всичко е минало както трябва
-        if ($res == 0) {
+        if ($res === 0) {
             
             // Премахваме от перманентните данни
             permanent_Data::remove('countOfficeProccess');
@@ -116,6 +120,10 @@ class docoffice_Office
             core_Logs::Log(OFFICE_PACKET_PATH . tr('| е спрян.|*'));
             
             return TRUE;
+        } else {
+            
+            // Ако има грешка при спирането
+            core_Logs::Log(tr('|Грешка при спирането на |*') . OFFICE_PACKET_PATH);
         }
         
         return FALSE;

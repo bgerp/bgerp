@@ -137,7 +137,7 @@ class fileman_Buckets extends core_Manager {
             if(($dotPos = strrpos($fileName, '.')) !== FALSE) {
                 $ext = strtolower(mb_substr($fileName, $dotPos + 1));
 
-                if(!$extensions[$ext]) {
+                if($ext && !$extensions[$ext]) {
                     $err[] = "File extension|*<b> {$ext} </b>|is not allowed";
                 }
             }

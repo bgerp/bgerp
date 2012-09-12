@@ -262,7 +262,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Параметри необходими за конвертирането
         $params['callBack'] = 'fileman_webdrv_Office::afterConvertToJpg';
         $params['type'] = 'jpg';
-        $params['runSync'] = TRUE;
+        $params['asynch'] = FALSE;
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
@@ -279,7 +279,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Отключваме заключения процес за конвертиране от офис към pdf формат
             core_Locks::release($params['lockId']);
         }
-        
+
         if ($started) {
 
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
@@ -332,9 +332,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Когато се геририра от офис документи PDF, и от полученич файл
         // се генерира JPG тогава трябва да се стартира синхронно
         // В другите случаи трябва да е асинхронно за да не чака потребителя
-        $aSync = $params['runSync'] ? FALSE : TRUE;
-        
-        $Script->run($aSync);
+        $Script->run($params['asynch']);
         
         return TRUE;
     }
@@ -379,13 +377,13 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Генерираме ново предположение за конвертирания файл, като добавяме единица
             $fn = $script->fName . '-' . ++$i . '.jpg';
         }
-        
+
         // Ако има генерирани файлове, които са качени успешно
         if (count($fileHndArr)) {
             
             // Десериализираме нужните помощни данни
             $params = unserialize($script->params);
-            
+
             // Сериализираме масива и обновяваме данните за записа в fileman_Info
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];

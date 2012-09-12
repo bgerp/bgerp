@@ -72,7 +72,6 @@ class drdata_Setup extends core_Manager {
             'drdata_IpToCountry',
             'drdata_DialCodes',
             'drdata_Vats',
-            'drdata_Holidays',
             'drdata_Mvr',
             'drdata_DistrictCourts',
             'drdata_Domains',
