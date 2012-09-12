@@ -451,10 +451,21 @@ class core_Packs extends core_Manager
         // Започваме самото инсталиране
         if($setup->startCtr) {
             $res .= "<h2>Инсталиране на пакета \"<a href=\"" .
-            toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"</h2>";
+            toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"&nbsp;";
         } else {
-            $res .= "<h2>Инсталиране на пакета \"<b>{$pack}</b>\"</h2>";
+            $res .= "<h2>Инсталиране на пакета \"<b>{$pack}</b>\"&nbsp;";
         }
+
+        try {
+            $conf = self::getConfig($pack);
+            if($conf->getConstCnt()) {  
+               $res .= ht::createBtn("Конфигуриране", array('core_Packs', 'config', 'pack' => $pack), NULL, NULL, 'class=btn-settings');
+            }
+        } catch (core_exception_Expect $e) {
+        }
+
+        $res .= '</h2>';
+        
         
         $res .= "<ul>";
         
