@@ -45,13 +45,13 @@ class type_Datetime extends type_Date {
     function renderInput_($name, $value = "", &$attr = array())
     {
         setIfNot($value, $attr['value']);
-        
+
         if($value) {
             if(count($value) == 2) {
                 $date = $value['d'];
                 $time = $value['t'];
             } else {
-                list($date, $time) = explode(' ', $this->toVerbal($value, FALSE));
+                list($date, $time) = explode(' ', dt::mysql2verbal($value, 'd-m-Y G:i:s'));
             }
         }
         
@@ -79,12 +79,13 @@ class type_Datetime extends type_Date {
         
         $value = dt::verbal2mysql(trim(trim($value['d']) . ' ' . trim($value['t'])));
         
-        if($value) {
+        $val = dt::verbal2mysql(dt::mysql2verbal($value));
+
+        if($value == $val) {
             
             return $value;
         } else {
-            $now = $this->toVerbal(dt::verbal2mysql('', !empty($this->timePart)));
-            $this->error = "Не е в допустимите формати, като например|*: '<B>" . parent::escape($now) . "</B>'";
+             $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y G:i') . "</B>'";
             
             return FALSE;
         }

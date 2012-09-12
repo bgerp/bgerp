@@ -74,8 +74,7 @@ class type_Date extends core_Type {
             
             return $value;
         } else {
-            $now = $this->toVerbal(dt::verbal2mysql('', !empty($this->timePart)));
-            $this->error = "Не е в допустимите формати, като например|*: '<B>" . parent::escape($now) . "</B>'";
+            $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y') . "</B>'";
             
             return FALSE;
         }
@@ -91,8 +90,8 @@ class type_Date extends core_Type {
         
         setIfNot($attr['size'], 20);
         
-        if($value) {
-            $value = $this->toVerbal($value);
+        if($value && !$this->error) {
+            $value = dt::mysql2verbal($value, 'd-m-Y');
         } else {
             $value = $attr['value'];
         }

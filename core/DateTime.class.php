@@ -208,6 +208,10 @@ class core_DateTime
      */
     static function mysql2verbal($mysqlDate, $mask = "d-m-y H:i", $lg = NULL)
     {
+        if($mysqlDate === NULL) {
+            $mysqlDate = self::verbal2mysql();
+        }
+
         if (!$mysqlDate || $mysqlDate == '0000-00-00' || $mysqlDate == '0000-00-00 00:00:00') {
             
             return FALSE;

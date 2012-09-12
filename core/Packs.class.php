@@ -583,7 +583,8 @@ class core_Packs extends core_Manager
             if(defined($field)) {
                 $attr['hint'] = 'Стойност по подразбиране|*: ' . constant($field);
             }
-            $form->FNC('|*' . $field, $params[0], $attr);
+            $attr['caption'] = '|*' . $field;
+            $form->FNC($field, $params[0], $attr);
             $form->setDefault($field, $data[$field]); 
         }
 
@@ -600,7 +601,7 @@ class core_Packs extends core_Manager
             }
 
             $rec->configData = serialize($data);
- 
+   
             // Записваме данните
             $id = $this->save($rec);
         
