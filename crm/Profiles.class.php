@@ -50,7 +50,13 @@ class crm_Profiles extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    var $canRead = 'user';
+    
+    
+    /**
+     * Кой има право да листва всички профили?
+     */
+    var $canList = 'admin';
 
 
     /**
@@ -62,6 +68,45 @@ class crm_Profiles extends core_Master
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,caption=Визитка');
         
         $this->setDbUnique('userId,personId');
+    }
+    
+    
+    /**
+     * Подготовка за рендиране на единичния изглед
+     * 
+     * Използва crm_Persons::prepareSingle() за да подготви данните и за асоциирата визитка.
+     *  
+     * @param crm_Profiles $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingle(crm_Profiles $mvc, $data)
+    {
+        if ($data->rec->personId) {
+            $data->rec->Person->rec = crm_Persons::fetch($data->rec->personId);
+            crm_Persons::prepareSingle($data->rec->Person);
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     * 
+     * Използва crm_Persons::renderSingle() за да рендира асоциирата визитка така, както тя
+     * би се показала във визитника.
+     * 
+     * По този начин използваме визитника (crm_Persons) за подготовка и рендиране на визитка, но
+     * ефективно заобикаляме неговите ограничения за достъп. Целта е да осигурим достъп до 
+     * всички профилни визитки
+     * 
+     * @param crm_Profiles $mvc
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    public static function on_AfterRenderSingle(crm_Profiles $mvc, &$tpl, $data)
+    {
+        if ($data->rec->Person) {
+            $tpl = crm_Persons::renderSingle($data->rec->Person);
+        }
     }
     
     
