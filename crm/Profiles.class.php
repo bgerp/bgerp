@@ -361,7 +361,12 @@ class crm_Profiles extends core_Master
      * @return boolean
      */
     public static function createProfile($userRec)
-    {
+    {   
+        // Ако липсват данните за профил - нищо не правим
+        if(!$userRec->names || !$userRec->email) {
+            return;
+        }
+
         expect($profilesGroup = static::fetchCrmGroup());
         
         $personRec = (object)array(
@@ -404,14 +409,23 @@ class crm_Profiles extends core_Master
         $profileRec = static::fetch("#userId = {$userRec->id}");
         
         if (!$profileRec) {
-            // Току що променения потребител няма профил - създаваме му.
-            return static::createProfile($userRec);
+            // Нищо не правим, ако потребителя няма профил
+            return;
         }
         
-        expect($personRec = crm_Persons::fetch($profileRec->personId));
+        $personRec = crm_Persons::fetch($profileRec->personId);
+
+        // Ако профила сочи към несъществуваща визитка, нищо не правим
+        // Може би трябва да изтрием профиля?
+        if(!$personRec) {
+            return;
+        }
         
-        $personRec->email = type_Emails::prepend($personRec->email, $userRec->email);
-        $personRec->name  = $userRec->names;
+        $fullUserRec = core_Users::fetch($userRec->id);
+        $personRec->email = type_Emails::prepend($personRec->email, $fullUserRec->email);
+        if($fullUserRec->names) {
+            $personRec->name  = $userRec->names;
+        }
         
         // Флаг за предотвратяване на безкрайния цикъл: промяна на визитка -> потребител -> 
         // визитка -> ...
