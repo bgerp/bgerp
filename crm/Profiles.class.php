@@ -663,4 +663,28 @@ class crm_Profiles extends core_Master
         
         return $link;
     }
+
+
+    /**
+     * След подготовката на редовете на списъчния изглед
+     * 
+     * Прави ника и името линкове към профилната визитка (в контекста на crm_Profiles)
+     * 
+     * @param crm_Profiles $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListRows(crm_Profiles $mvc, $data)
+    {
+        $rows = &$data->rows;
+        $recs = &$data->recs;
+    
+        foreach ($rows as $i=>&$row) {
+            $rec = &$recs[$i];
+    
+            if ($url = $mvc::getProfileUrl($rec->userId)) {
+                $row->personId = ht::createLink($row->personId, $url);
+                $row->userId   = ht::createLink($row->userId, $url);
+            }
+        }
+    }
 }
