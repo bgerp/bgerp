@@ -10,4 +10,8 @@
 
     <dt>Парола</dt>
     <dd>[#password#]</dd>
+
+	<dt>Последно</dt>
+    <dd>[#lastLoginTime#] от [#lastLoginIp#]</dd>
+
 </dl>

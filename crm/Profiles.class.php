@@ -192,6 +192,10 @@ class crm_Profiles extends core_Master
         if($data->profile->userId) {
             if ($data->profile) {
                 $data->profile->userRec = core_Users::fetch($data->profile->userId);
+                if(core_Users::getCurrent() == $data->profile->userId) {
+                    $data->profile->userRec->lastLoginTime = core_Users::getCurrent('lastLoginTime');
+                    $data->profile->userRec->lastLoginIp = core_Users::getCurrent('lastLoginIp');
+                }
             }
         
             if($data->profile->userRec->id == core_Users::getCurrent('id') || haveRole('admin')) {
@@ -420,12 +424,14 @@ class crm_Profiles extends core_Master
         if(!$personRec) {
             return;
         }
-        
-        $fullUserRec = core_Users::fetch($userRec->id);
-        $personRec->email = type_Emails::prepend($personRec->email, $fullUserRec->email);
-        if($fullUserRec->names) {
-            $personRec->name  = $userRec->names;
+
+        if(!$userRec->names || !$userRec->email) {
+            return;
         }
+
+        
+        $personRec->email = type_Emails::prepend($personRec->email, $userRec->email);
+        $personRec->name  = $userRec->names;
         
         // Флаг за предотвратяване на безкрайния цикъл: промяна на визитка -> потребител -> 
         // визитка -> ...
@@ -450,11 +456,13 @@ class crm_Profiles extends core_Master
         
         if (!$profile) {
             return;
-            expect($profile); // дали не е по-добре така?
         }
         
         // Обновяване на записа на потребителя след промяна на асоциираната му визитка
-        expect($userRec = core_Users::fetch($profile->userId));
+        $userRec = core_Users::fetch($profile->userId);
+        if(!$userRec) {
+            return;
+        }
         
         if (!empty($personRec->email)) {
             // Вземаме първия (валиден!) от списъка с лични имейли на лицето
