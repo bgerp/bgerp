@@ -40,6 +40,8 @@ class type_Key extends type_Int {
                 
                 $rec = $mvc->fetch($value);
                 
+                if(!$rec) return '??????????????';
+
                 $v = $mvc->getVerbal($rec, $part);
                 
                 return $v;
@@ -47,6 +49,9 @@ class type_Key extends type_Int {
                 if($this->params['title']) {
                     $field = $this->params['title'];
                     $value = $mvc->fetchField($value, $field);
+                    
+                    if(!$value) return '??????????????';
+
                     $value = $mvc->fields[$field]->type->toVerbal($value);
                 } else {
                     $value = $mvc->getTitleById($value);

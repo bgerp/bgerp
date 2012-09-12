@@ -523,6 +523,7 @@ class core_Mvc extends core_FieldSet
 
         if ($id > 0) {
             $rec = $me->fetch($id);
+            if(!$rec) return '??????????????';
         } else {
             $rec->id = $id;
         }
