@@ -656,8 +656,6 @@ class fileman_Files extends core_Master
         } elseif( in_array($ext, array('html', 'htm')) ) { 
             $dUrl = fileman_Download::getDownloadUrl($data->rec->fileHnd);
             $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><iframe src='{$dUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' style='width:100%; min-height:600px;border:solid 0px transparent;'></iframe></fieldset>");
-        } elseif( in_array($ext, array('txt', 'text')) ) { 
-            $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><pre>" . type_Varchar::escape(self::getContent($data->rec->fileHnd)) . "</pre></fieldset>");
         } elseif( in_array($ext, array('eml')) ) {
             // Тук парсираме писмото и проверяваме дали не е системно
             $mime = new email_Mime();
