@@ -56,7 +56,7 @@ class core_Tabs extends core_BaseClass
             if(count($url)) {
                 $url = toUrl($url);
             } else {
-                $url == FALSE;
+                $url = FALSE;
             }
         }
         
@@ -115,11 +115,11 @@ class core_Tabs extends core_BaseClass
                 if(!$url) continue;
                 $options[$url] = $title;
             } else {
-                $head .= "<div onclick='document.location=\"{$url}\"' style='cursor:pointer;' class='tab {$selected}'>";
-                
                 if ($url) {
+                    $head .= "<div onclick='document.location=\"{$url}\"' style='cursor:pointer;' class='tab {$selected}'>";
                     $head .= "<a href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
                 } else {
+                    $head .= "<div class='tab {$selected}'>";
                     $head .= "<span class='tab-title  {$tabClass}'>{$title}</span>";
                 }
                 
