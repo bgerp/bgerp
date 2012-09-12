@@ -77,12 +77,8 @@ class fileman_webdrv_Txt extends fileman_webdrv_Office
         // Масива с параметрите
         $params = unserialize($script->params);
         
-        // Пътя до файла
-//        expect($path = fileman_Files::fetchByFh($params['fileHnd'], 'path'));
-        expect($path = fileman_Download::getDownloadUrl($params['fileHnd']));
-        
         // Вземаме съдържанието на файла
-        $text = file_get_contents($path);
+        $text = static::getContent($params['fileHnd']);
         
         // Сериализираме масива и обновяваме данните за записа в fileman_Info
         $rec = new stdClass();
