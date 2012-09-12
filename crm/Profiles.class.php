@@ -585,4 +585,82 @@ class crm_Profiles extends core_Master
         
         core_Users::save($userRec);
     }
+    
+    
+    /**
+     * URL към профилната визитка на потребител
+     * 
+     * @param string|int $user ако е числова стойност се приема за ид на потребител; иначе - ник
+     * @return array URL към визитка; FALSE ако няма такъв потребител или той няма профилна визитка
+     */
+    public static function getProfileUrl($user)
+    {
+        if (is_numeric($user)) {
+            // $user е ид на потребител
+            $userId = intval($user);
+        } else {
+            // $user е nick на потребител
+            $userId = core_Users::fetchField(array("#nick = '[#1#]'", $user), 'id');
+        }
+        
+        // Извличаме профила (връзката м/у потребител и визитка)
+        $personId = static::fetchField("#userId = {$userId}", 'id');
+
+        if (!personId) {
+            // Няма профил или не е асоцииран с визитка
+            return FALSE;
+        }
+        
+        return array(get_called_class(), 'single', $personId);
+    }
+    
+    
+    /**
+     * URL към профилната визитка на потребител
+     * 
+     * @param string|int $user ако е числова стойност се приема за ид на потребител; иначе - ник
+     * @return array URL към визитка; FALSE ако няма такъв потребител или той няма профилна визитка
+     */
+    public static function getUrl($user)
+    {
+        if (is_numeric($user)) {
+            // $user е ид на потребител
+            $userId = intval($user);
+        } else {
+            // $user е nick на потребител
+            $userId = core_Users::fetchField(array("#nick = '[#1#]'", $user), 'id');
+        }
+        
+        // Извличаме профила (връзката м/у потребител и визитка)
+        $personId = static::fetchField("#userId = {$userId}", 'id');
+
+        if (!personId) {
+            // Няма профил или не е асоцииран с визитка
+            return FALSE;
+        }
+        
+        return array(get_called_class(), 'single', $personId);
+    }
+    
+    
+    /**
+     * Метод за удобство при генерирането на линкове към потребителски профили
+     * 
+     * @param string $title    @see core_Html::createLink()
+     * @param string|int $user @see crm_Profiles::getUrl()
+     * @param string $warning  @see core_Html::createLink()
+     * @param array $attr      @see core_Html::createLink()
+     */
+    public static function createLink($title, $user, $warning = FALSE, $attr = array())
+    {
+        $link = $title;
+        
+        $url  = static::getUrl($user);
+        
+        if ($url) {
+            $link = ht::createLink($title, $url, $warning, $attr);
+        }
+        
+        return $link;
+    }
 }
