@@ -38,18 +38,22 @@ class bgerp_plg_GroupByDate extends core_Plugin
             list($d, $t) = explode(' ', $rec->{$field});
 
             if($d != $exDate) {
+                
+                $res = new stdClass();
 
-                $day = dt::getRelativeDayName($rec->{$field});
-                if($day) $day .= ', ';
-                $day .= dt::mysql2verbal($rec->{$field}, 'd F-YEAR, l');
+                $res->day = dt::getRelativeDayName($rec->{$field});
 
-                $color = dt::getColorByTime(time() - dt::mysql2timestamp($rec->{$field}));
+                if($res->day) $res->day .= ', ';
+                
+                $res->day .= dt::mysql2verbal($rec->{$field}, 'd F-YEAR, l');
 
-                $style = $data->rows[$id]->ROW_ATTR['style'];
-
+                $res->color = dt::getColorByTime(time() - dt::mysql2timestamp($rec->{$field}));
+                
+                $mvc->invoke('AfterPrepareGroupDate', array(&$res, $d));
+ 
                 $rows[$id . ' '] = ht::createElement('tr', 
                     $data->rows[$id]->ROW_ATTR, 
-                    new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'><i style='color:#{$color};'>" . $day . "</i></td>")); 
+                    new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'><i style='color:#{$res->color};'>" . $res->day . "</i></td>")); 
                     
                 $exDate = $d;
             }
