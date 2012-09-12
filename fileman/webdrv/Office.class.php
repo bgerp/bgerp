@@ -314,7 +314,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $outFilePath = $Script->tempDir . $name . '-%d.jpg';
         
         // Задаваме placeHolder' ите за входния и изходния файл
-        $Script->setFile('INPUTF', $fileHnd);
+        $Script->setFile('INPUTF', $fileHnd, TRUE);
         $Script->setFile('OUTPUTF', $outFilePath);
         
         // Скрипта, който ще конвертира файла от PDF в JPG формат
