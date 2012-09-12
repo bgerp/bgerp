@@ -593,34 +593,6 @@ class crm_Profiles extends core_Master
      * @param string|int $user ако е числова стойност се приема за ид на потребител; иначе - ник
      * @return array URL към визитка; FALSE ако няма такъв потребител или той няма профилна визитка
      */
-    public static function getProfileUrl($user)
-    {
-        if (is_numeric($user)) {
-            // $user е ид на потребител
-            $userId = intval($user);
-        } else {
-            // $user е nick на потребител
-            $userId = core_Users::fetchField(array("#nick = '[#1#]'", $user), 'id');
-        }
-        
-        // Извличаме профила (връзката м/у потребител и визитка)
-        $personId = static::fetchField("#userId = {$userId}", 'id');
-
-        if (!personId) {
-            // Няма профил или не е асоцииран с визитка
-            return FALSE;
-        }
-        
-        return array(get_called_class(), 'single', $personId);
-    }
-    
-    
-    /**
-     * URL към профилната визитка на потребител
-     * 
-     * @param string|int $user ако е числова стойност се приема за ид на потребител; иначе - ник
-     * @return array URL към визитка; FALSE ако няма такъв потребител или той няма профилна визитка
-     */
     public static function getUrl($user)
     {
         if (is_numeric($user)) {
@@ -681,7 +653,7 @@ class crm_Profiles extends core_Master
         foreach ($rows as $i=>&$row) {
             $rec = &$recs[$i];
     
-            if ($url = $mvc::getProfileUrl($rec->userId)) {
+            if ($url = $mvc::getUrl($rec->userId)) {
                 $row->personId = ht::createLink($row->personId, $url);
                 $row->userId   = ht::createLink($row->userId, $url);
             }
