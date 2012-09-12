@@ -1461,8 +1461,6 @@ h2 {
 		margin-top:0px;
 		margin-bottom:0px;
 	}
-
-	
 }
 
  
@@ -1479,4 +1477,195 @@ h2 {
 	max-width: 900px;
 	min-width: 800px;
 	min-height: 600px;
+}
+
+#blog-article-details .listTable th{
+	display:none;
+}
+
+#blog-article-details .listTable .blog-comment-new-table .comment-header{
+	background:rgba(229,229,229,1) 100%;
+	//#ACA9A9
+}
+
+#blog-single-article{
+	//position:absolute;
+	border:1px solid white;
+	min-height:500px;
+    width: 740px ;
+    margin-left: auto ;
+    margin-right: auto ;
+    margin-top:0px;
+    background-color:#FFFFFF;
+    -moz-box-shadow:    0px 0px 11px 9px #A6A7A7;
+    -webkit-box-shadow: 0px 0px 11px 9px #A6A7A7;
+    box-shadow:         0px 0px 11px 9px #A6A7A7;
+}
+
+#blog-single-article-body{
+	margin-left:auto;
+    margin-right:auto;
+	margin-top:20px;
+	//border:1px solid red;
+	width: 700px ;
+    -moz-box-shadow:    0px 0px 1px 1px #646465;
+    -webkit-box-shadow: 0px 0px 1px 1px #646465;
+    box-shadow:         0px 0px 1px 1px #646465;
+	background: rgb(255,255,255); /* Old browsers */
+background: -moz-linear-gradient(top,  rgba(229,229,229,1) 70%, rgba(229,229,229,1) 100%); /* FF3.6+ */
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(229,229,229,1))); /* Chrome,Safari4+ */
+background: -webkit-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* Chrome10+,Safari5.1+ */
+background: -o-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* Opera 11.10+ */
+background: -ms-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* IE10+ */
+background: linear-gradient(to bottom,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-9 */
+
+}
+
+#blog-single-article-body #title-text{
+	margin-left:20px;
+	font-size:24px;
+}
+
+#blog-single-article-body #author-label{
+	margin-top:10px;
+	margin-left:20px;
+	font-weight:bold;
+	font-size:12px;
+	font-family:Arial;
+	color:darkgreen;
+}
+
+#blog-single-article-body #author-text{
+	margin-left:10px;
+	color:darkblue;
+	font-weight:bold;
+	font-family:Ariel;
+	font-size:12px;
+}
+
+#blog-single-article-body #article-body{
+	width:680px;
+	margin-top:75px;
+	min-height:110px;
+	padding-left:20px;
+	padding-top:30px;
+	padding-bottom:30px;
+	background:white;
+	font-style:italic;
+	color:#472265;
+}
+
+#blog-single-article-body #modified-label{
+	margin-left:240px;
+	font-size:12px;
+	color:#3B3559;
+	font-weight:bold;
+}
+
+#blog-single-article-body #cat{
+	width:150px;
+	border:1px solid green;
+	margin-left:20px;
+	//float:left;
+}
+
+#blog-single-article-body  .cat-label, .blog-article-list-table .article-list-comment{
+	font-size:12px;
+	color:#3B3559;
+	font-weight:bold;
+	margin-left:20px;
+}
+
+#blog-single-article-body #created-text{
+	font-size:12px;
+	color:darkgreen;
+	font-weight:bold;
+	margin-left:10px;
+}
+
+#blog-article-details{
+	width:95%;
+	margin-left:auto;
+    margin-right:auto;
+	margin-top:20px;
+	
+}
+
+#blog-article-details  td .comment-body{
+	background:white;
+}
+
+ #blog-article-details  .comment-header{
+	font-weight:bold;
+	//border:1px solid orange;
+}
+
+#blog-article-details .comment-table-row{
+	padding:0;
+}
+
+.blog-comment-new-table td .comment-title{
+	margin-left:5px;
+	font-size:12px;
+	color:#000000;
+}
+
+.blog-comment-new-table td .comment-author, .blog-article-list-table .article-list-author{
+	margin-left:20px;
+	font-size:12px;
+	color:darkred;
+}
+
+.blog-comment-new-table td .comment-grade{
+	margin-top:-20px;
+	float:left;
+	margin-left:495px;
+	font-size:12px;
+	color:#000000;
+}
+
+.blog-comment-new-table{
+	margin-top:-3px;
+}
+
+.blog-comment-new-table td .createdon, .blog-article-list-table .article-list-createdon{
+	margin-left:20px;
+	font-size:12px;
+	font-weight:bold;
+}
+
+.blog-article-list-table .list-table-body{
+	vertical-align:top;
+	padding-top:10px;
+	padding-bottom:10px;
+	background:#FFFFFF;
+	text-indent:15px;
+	padding-left:10px;
+}
+
+.blog-article-list-table .article-list-title{
+	margin-left:10px;
+	font-weight:bold;
+}
+
+.blog-article-list-table .article-list-commentnumber{
+	float:right;
+	margin-right:10px;
+	color:#2e3366;
+	font-size:15px;
+	font-weight:bold;
+}
+
+.blog-article-list-table .list-table-header{
+	background:#C7C6C6  ;
+	//rgba(229,229,229,1) 100%
+}
+
+.blog-article-list-table .article-list-average{
+	color:darkred;
+	font-size:12px;
+	font-weight:bold;
+	margin-left:60px;
+}
 }
