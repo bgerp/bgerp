@@ -127,6 +127,8 @@ class type_Email extends type_Varchar {
         
         if(!haveRole('user')) {
             $verbal = str_replace('@', " [аt] ", $email);
+        } else {
+            $verbal =  $email;
         }
         
         if($this->params['link'] != 'no') {
