@@ -55,9 +55,28 @@ class fconv_Script
     /**
      * Задаване на входен файл
      */
-    function setFile($placeHolder, $file)
+    function setFile($placeHolder, $file, $checkFile = FALSE)
     {
         $this->files[$placeHolder] = $file;
+        
+        // Ако е зададен параметър, файла да се валидира
+        if ($checkFile) {
+            
+            // Ако е файл в директория
+            if (strstr($file, '/')) {
+                
+                $isValid = is_file($file);
+            } else {
+                
+                // Ако е манупулатор на файл
+                $isValid = fileman_Files::fetchField("#fileHnd='{$file}'");
+            }
+            
+            // Ако не е валиден файл, изписваме съобщение за грешка в лога
+            if (!$isValid) {
+                core_Logs::log("core_Script: Файлът не съществува: '{$file}'" );
+            }
+        }
     }
     
     
