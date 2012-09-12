@@ -3,7 +3,7 @@
 
 
 /**
- * Календар - регистър за датите
+ * Календар - всички събития
  *
  *
  * @category  bgerp
@@ -13,27 +13,35 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cal_Agenda extends core_Master
+class cal_Calendar extends core_Master
 {
     
     
     /**
      * Заглавие
      */
-    var $title = "Календар";
+    var $title = "Календар на събития и празници";
     
     
     /**
      * Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State';
+    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, bgerp_plg_GroupByDate';
     
+
+    /**
+     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     */
+    var $groupByDateField = 'time';
     
+
     /**
      * Полетата, които ще видим в таблицата
      */
-    var $listFields = 'date,event=Събитие';
-    //var $listFields = 'date,event=Събитие,type,url';
+    var $listFields = 'time,event=Събитие';
+    
+    // var $listFields = 'date,event=Събитие,type,url';
+    
     
     /**
      *  @todo Чака за документация...
@@ -51,7 +59,7 @@ class cal_Agenda extends core_Master
     /**
      * Кой може да чете
      */
-    var $canRead = 'cal,admin';
+    var $canRead = 'user,cal,admin';
     
     
     /**
@@ -60,10 +68,10 @@ class cal_Agenda extends core_Master
     function description()
     {
         // Уникален ключ за събитието
-        $this->FLD('key', 'varchar(24)', 'caption=Ключ');
+        $this->FLD('key', 'varchar(32)', 'caption=Ключ');
 
         // Дата на събититието
-        $this->FLD('date', new type_Date(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Дата');
+        $this->FLD('time', new type_Datetime(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Време');
 
         // Тип на събититето. Той определя и иконата на събититето
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
@@ -71,109 +79,87 @@ class cal_Agenda extends core_Master
         // За кои потребители се отнася събитието. Празно => за всички
         $this->FLD('users', 'keylist(mvc=core_Users,title=nick)', 'caption=Потребители');
 
-        // Информация за събитието
-
+        // Заглавие на събитието
         $this->FLD('title', 'varchar', 'caption=Заглавие');
+
+        // Локално URL към обект, даващ повече информация за събитието
         $this->FLD('url',  'varchar', 'caption=Url,column=none');
-        $this->FLD('html', 'html', 'caption=HTML допълнение,column=none');
+        
+        // Дали събитието се отнася за целия ден
         $this->FLD('allDay', 'enum(yes=Да,no=Не)', 'caption=Цял ден?');
         
         // Индекси
-        // $this->setDbUnique('date,url,type,key');
-        $this->setDbIndex('key');
-
+         $this->setDbUnique('key');
     }
-    
-    
+
+
     /**
-     * Добавя или обновява информация за събитие
+     * Обновява събитията в календара
+     *
+     * @param $events   array   Масив със събития
+     * @param $fromDate date    Начало на периода за който се отнасят събитията
+     * @param $fromDate date    Край на периода за който се отнасят събитията
+     * @param $prefix   string  Префикс на ключовете за събитията от този източник
+     * 
+     * @return $status array Статус на операцията, който съдържа:
+     *      о ['updated'] броя на обновените събития
+     * 
      */
-    static function mergeEvents($key, $events = array())
+    static function updateEvents($events, $fromDate, $toDate, $prefix)
     {
-        // Днешна MySql дата, към началото на деня
-        $today = date('Y-m-d');
+        $query    = self::getQuery();
+        $fromTime = $fromDate . ' 00:00:00';
+        $toTime   = $toDate   . ' 23:59:59';
+
+        $query->where("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND #key LIKE '{$prefix}%'");
         
+        // Извличаме съществуващите събития за този префикс
+        $exEvents = array();
+        while($rec = $query->fetch()) {
+            $exEvents[$rec->key] = $rec;
+        }
+ 
         // Инициализираме резултатния масив
         $res = array(
             'new' => 0,
             'updated' => 0,
-            'rejected' => 0, 
             'deleted' => 0
             );
-        
-        // Правим ключа с подходяща максиламна дължина
-        $key = str::convertToFixedKey($key, 24, 8);
-        
-        $query = static::getQuery();
 
-        $query->where("#key = '{$key}'");
-        
-        // Извличаме съществуващите записи за този ключ
-        while($rec = $query->fetch()) {
-            $exRecs[$rec->date . '|' . $rec->type. "|" . $rec->url] = $rec;
-        }
-       
+        // Обновяваме информацията за новопостъпилите събития
         if(count($events)) {
-            // Циклим по новите събития, за да определим, кои от тях са съществуващи до сега
-            foreach($events as &$rec) {
-                $hnd = $rec->date . '|' . $rec->type . "|" . $rec->url;
-                
-                // Ако събитието е съществуващо - то отива за обновяване
-                if($exRecs[$hnd]) {
-                    $rec->id = $exRecs[$hnd]->id;
-                    unset($exRecs[$hnd]);
- 
-                } 
-            }
-             // Добавяме или обновяваме новите събития
-            foreach($events as $rec) {
-                $rec->key = $key;
-                if($rec->id) {
+            foreach($events as $e) {
+                if(($e->id = $exEvents[$e->key]->id) ||
+                   ($e->id = self::fetchField("#key = '{$e->key}'", 'id')) ) {
+                    unset($exEvents[$e->key]);
                     $res['updated']++;
                 } else {
                     $res['new']++;
                 }
-                static::save($rec);
+
+                self::save($e);
             }
         }
 
-        // Изтриваме или оттегляме старите събития
-        if(count($exRecs)) {
-            foreach($exRecs as $rec) {
-                if($rec->date < $today) {
-                    if($rec->state != 'rejected') {
-                        $rec->state = 'rejected';
-                        static::save($rec);
-                        $res['rejected']++;
-                    }
-                } else {
-                    static::delete($rec->id);
-                    $res['deleted']++;
-                }
-            }
+        // Изтриваме старите записи, които не са обновени
+        foreach($exEvents as $e) {
+            self::delete("#key = '{$e->key}'");
+            $res['deleted']++;
         }
+        
+        return $res;
     }
-    
-    
-    /**
-     * Предизвиква изтриване на информацията за посоченото от ключа събитие
-     */
-    static function deleteEvent($key)
-    {        
-        // Изтриване на събитията до момента
-        cal_Agenda::delete("#key = {$key}");
-    }
-    
+        
     
     /**
      * Прилага филтъра, така че да се показват записите след посочената дата
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        $data->query->orderBy("#date");
+        $data->query->orderBy("#time=ASC,#type=DESC");
         
         if($from = $data->listFilter->rec->from) {
-            $data->query->where("#date >= date('$from')");
+            $data->query->where("#time >= date('$from')");
         }
     }
     
@@ -212,20 +198,11 @@ class cal_Agenda extends core_Master
     {
     	
     	$row = parent::recToVerbal($rec);
-        
-    
-        $row->date = dt::mysql2verbal($rec->date, "d-M-Y, D");
-        $row->type = drdata_Holidays::getVerbal($rec, 'type');
-        if($row->type == 'birthday?'){
-            $row->type = 'Рожден ден';
-        }
-        if(strlen($rec->type) == 2) {
-            $row->title =  $row->type . ":&nbsp;" . $rec->title;
-        }
+
     	$lowerType = strtolower($rec->type);
         $url = getRetUrl($rec->url);
         $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf("drdata/icons/{$lowerType}.png") . ');';
+        $attr['style'] = 'background-image:url(' . sbf("cal/icons/{$lowerType}.png") . ');';
         $row->event = ht::createLink($row->title, $url, NULL, $attr);
      
         $today     = date('Y-m-d');
@@ -233,36 +210,29 @@ class cal_Agenda extends core_Master
         $dayAT = date('Y-m-d', time() + 48 * 60 * 60);
         $yesterday = date('Y-m-d', time() - 24 * 60 * 60);
       
+        list($rec->date,) = explode(' ', $rec->time);
+
+        $row->date = dt::mysql2verbal($rec->time, 'd-m-Y');        
+
         if($rec->date == $today) {
-            $row->ROW_ATTR['style'] .= 'background-color:#ffcc99;';
-            $row->date = 'Днес'.'&nbsp;'.$row->date;
+            $row->ROW_ATTR['style'] .= 'background-color:#ffc;';
         } elseif($rec->date == $tommorow) {
-            $row->ROW_ATTR['style'] .= 'background-color:#ccffff;';
-            $row->date = 'Утре'.'&nbsp;'.$row->date;
+            $row->ROW_ATTR['style'] .= 'background-color:#efc;';
         } elseif($rec->date == $dayAT) {
-            $row->ROW_ATTR['style'] .= 'background-color:#ccffcc;';
+            $row->ROW_ATTR['style'] .= 'background-color:#dfc;';
         } elseif($rec->date == $yesterday) {
-            $row->ROW_ATTR['style'] .= 'background-color:#ddd;';
-            $row->date = 'Вчера'.'&nbsp;'.$row->date;
+            $row->ROW_ATTR['style'] .= 'background-color:#eee;';
         } elseif($rec->date > $today) {
-            $row->ROW_ATTR['style'] .= 'background-color:#00cc66;';
+            $row->ROW_ATTR['style'] .= 'background-color:#cfc;';
         } elseif($rec->date < $yesterday) {
-            $row->ROW_ATTR['style'] .= 'background-color:#ccc;';
+            $row->ROW_ATTR['style'] .= 'background-color:#ddd;';
         }
+
         
         return $row;
     }
-    
-    
-    /**
-     * Добавяне на официалните празници от drdata_Holidays след инсталиране на календара
-     */
-    static function on_AfterSetupMvc($mvc, &$html)
-    {
-        // $html .= drdata_Holidays::addHolidaysToCalendar();
-    }
 
-            
+
     /**
      * Рендира календар за посочения месец
      *
@@ -309,11 +279,11 @@ class cal_Agenda extends core_Master
             $html .= "<td class='mc-week-nb'>$weekNum</td>";
             for($wd = 1; $wd <= 7; $wd++) {
                 if($d = $weekArr[$wd]) { 
-                    if($data[$d]->isHoliday) {  
+                    if($data[$d]->type == 'holiday') {  
                         $class = 'mc-holiday';
-                    } elseif($wd == 6) {
+                    } elseif(($wd == 6 || ($data[$d]->type == 'non-working' && $wd >= 4) ) && ($data[$d]->type != 'workday')) {
                         $class = 'mc-saturday';
-                    } elseif($wd == 7) {
+                    } elseif(($wd == 7 || ($data[$d]->type == 'non-working' && $wd < 4) ) && ($data[$d]->type != 'workday')) {
                         $class = 'mc-sunday';
                     } else {
                         $class = '';
@@ -351,14 +321,17 @@ class cal_Agenda extends core_Master
     static function renderPortal()
     {
         $month = Request::get('cal_month', 'int');
+        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
         $year  = Request::get('cal_year', 'int');
 
         if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
             $year = date('Y');
             $month = date('n');
         }
+
         // Добавяне на първия хедър
-        $currentMonth = tr(dt::$months[$month-1]) . ", " .$year;
+        $currentMonth = tr(dt::$months[$month-1]) . ", " . $year;
+
         $pm = $month-1;
         if($pm == 0) {
             $pm = 12;
@@ -369,7 +342,7 @@ class cal_Agenda extends core_Master
         $prevMonth = tr(dt::$months[$pm-1]) . ", " .$py;
 
         $nm = $month+1;
-        if($nm == 12) {
+        if($nm == 13) {
             $nm = 1;
             $ny = $year+1;
         } else {
@@ -390,60 +363,43 @@ class cal_Agenda extends core_Master
             </table>";
         
         
-        // Съдържание на календара
-        
-        // Таймстамп на първия ден на месеца
-       // $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
-        
-        // От първия ден за месеца
-       // $from = dt::timestamp2mysql($firstDayTms);
-       
-	       // Таймстамп на вчерашния ден 
-	       $previousDayTms = mktime(0, 0, 0, $month, date('j')-1, $year);
+        // Съдържание на клетките на календара 
 	       
-	       // Таймстамп на днешния ден + 2 дни 
-	       $afterTwoDays = mktime(0, 0, 0, $month, date('j')+2, $year);
-	       
-	       //От вчерашния ден 
-	       $from = dt::timestamp2mysql($previousDayTms);
-      
-         
+        //От началото на месеца
+        $from = "{$year}-{$month}-01 00:00:00";
+        
         // До последния ден за месеца
-       // $to = date('Y-m-t 23:59:59', $firstDayTms);
+        $lastDay = date('d', mktime(12, 59, 59, $month + 1, 0, $year));
+        $to = "{$year}-{$month}-{$lastDay} 23:59:59";
        
-		    // До два дни след днешния   
-	       	$to = dt::timestamp2mysql($afterTwoDays);
-       
+        // Подготвяме заглавието на таблицата
+        //$state->title = tr("Календар");
+
         $state = new stdClass();
         $state->query = self::getQuery();
-        $state->query->where("#date >= '{$from}' AND #date <= '{$to}'");
-        $state->query->orderBy("#date=ASC");
+        $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
+        $state->query->orderBy("#time=ASC,#type=DESC");
 
-        $Calendar = cls::get('cal_Agenda');
+        $Calendar = cls::get('cal_Calendar');
         $Calendar->prepareListFields($state);
         $Calendar->prepareListRecs($state);
         $Calendar->prepareListRows($state);
-         
-
-        // Подготвяме заглавието на таблицата
-        //$state->title = tr("Календар");
         
         // Подготвяме лентата с инструменти
         $Calendar->prepareListToolbar($state);
 
         if (is_array($state->recs)) {
             foreach($state->recs as $id => $rec) {
-                if($rec->type == 'holiday' || $rec->type == 'non-working') {
-                    $time = dt::mysql2timestamp($rec->date);
+                if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
+                    $time = dt::mysql2timestamp($rec->time);
                     $i = (int) date('j', $time);
                     if(!isset($data[$i])) {
                         $data[$i] = new stdClass();
                     }
-                    $data[$i]->isHoliday = TRUE;
+                    $data[$i]->type = $rec->type;
+                } elseif($rec->type == 'workday') {
                 }
-                if( date('Y-m-d', $time) < date('Y-m-d') ) {
-                    // unset($state->rows[$id]);  
-                }
+                
             }    
         }
         
@@ -451,12 +407,33 @@ class cal_Agenda extends core_Master
             if(!isset($data[$i])) {
                 $data[$i] = new stdClass();
             }
-            $data[$i]->url = toUrl(array('cal_Agenda', 'list', 'from' => "{$i}-{$month}-{$year}"));;
+            $data[$i]->url = toUrl(array('cal_Calendar', 'list', 'from' => "{$i}-{$month}-{$year}"));;
         }
 
         $tpl = new ET("[#MONTH_CALENDAR#] <br> [#AGENDA#]");
 
         $tpl->replace(static::renderCalendar($year, $month, $data, $header), 'MONTH_CALENDAR');
+
+
+        // Съдържание на списъка със събития
+
+        // От вчера 
+        $previousDayTms = mktime(0, 0, 0, date('m'), date('j')-1, date('Y'));
+        $from = dt::timestamp2mysql($previousDayTms);
+
+        // До вдругиден
+        $afterTwoDays = mktime(0, 0, -1, date('m'), date('j')+3, date('Y'));
+        $to = dt::timestamp2mysql($afterTwoDays);
+       
+        $state = new stdClass();
+        $state->query = self::getQuery();
+        $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
+        $state->query->orderBy("#time=ASC,#type=DESC");
+
+        $Calendar->prepareListFields($state);
+        $Calendar->prepareListRecs($state);
+        $Calendar->prepareListRows($state);
+
         $tpl->replace($Calendar->renderListTable($state), 'AGENDA');
 
         return $tpl;

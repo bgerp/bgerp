@@ -135,15 +135,15 @@ class sens_Sensors extends core_Master
         }
         
         // Инициализираме драйвера
-        $driver = cls::get($rec->driver, array('id'=>$rec->id));
+        $driver = cls::get($rec->driver, array('id'=>$rec->id)); //if ($rec->id==5) bp($driver->stateArr);
         
-        $settingsArr = (array)$driver->settings;
+        $settingsArr = (array)$driver->settings; 
         
         foreach ($settingsArr as $name =>$value) {
             $row->settings .= $name . " = " . $value . "<br>";
         }
         
-        $row->indications = $driver->renderHtml();
+        $row->indications = $driver->renderHtml();   //bp($settingsArr);
     }
     
     
@@ -189,7 +189,7 @@ class sens_Sensors extends core_Master
         
         // Следващият ред генерира notice,
         // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
-        @ob_end_clean();
+/*        @ob_end_clean();
         
         header("Connection: close\r\n");
         header("Content-Encoding: none\r\n");
@@ -203,7 +203,7 @@ class sens_Sensors extends core_Master
         
         $id = str::checkHash(Request::get('id', 'varchar'));
         
-//        $id = 5;
+*/      $id = 5;
         if (FALSE === $id) {
             
             /**

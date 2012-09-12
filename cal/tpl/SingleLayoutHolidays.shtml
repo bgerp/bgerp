@@ -1,8 +1,8 @@
 [#SingleToolbar#]
                  
 	<div class='document'>
-		<div class='header [#STATE_CLASS#]'>
-			<span style='[#iconStyle#]'>Събитие </span>
+		<div class='header'>
+			<span style='[#iconStyle#]'>[#title#]</span>
 		</div>
 
         <!-- BEGIN Блок ляво -->
@@ -10,19 +10,35 @@
         
             <br/>
 			 <table cellspacing='1' class='top-table'>
-			     <tr>
-                     <td class=\"quiet\" align=\"right\">Име:</td>
-                     <td>[#title#]</td>			     
-			     </tr>
-	           
+			     
 	             <tr>
-	                 <td class=\"quiet\" align=\"right\">Тип:</td>
+	                 <td class="quiet" align="right" width='1%'>Дата:</td>
+	                 <td>[#day#] &nbsp; [#base#] &nbsp; [#year#]</td>
+	             </tr>
+	            
+	             <tr>
+	                 <td class="quiet" align="right" width='1%'>Тип:</td>
 	                 <td>[#type#]</td>
 	             </tr>
-                 <tr>
-                     <td class=\"quiet\" align=\"right\">Описание:</td>
-                     <td>[#info#]</td>
+				
+				<!--ET_BEGIN info-->
+				<tr>
+					<td class="quiet" colspan="2" style='padding-top:10px;'>Описание:</td>
+				</tr>
+				<tr>
+					<td colspan="2">[#info#]</td>
+				</tr>
+				<!--ET_END info-->
+
+				<!--ET_BEGIN nameday-->
+				<tr>
+                     <td class="quiet" colspan="2" style='padding-top:10px;'>Именници:</td>
                  </tr>
+
+                 <tr>
+                     <td colspan="2">[#nameday#]</td>
+                 </tr>
+				<!--ET_END nameday-->
                  
                 
              </table>

@@ -81,15 +81,15 @@ class bgerp_Portal extends core_Manager
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
         
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
-            <div class="legend" style="background-color:#efe;">Календар</div>
+            <div class="legend" style="background-color:#efe;">' . tr('Календар') . '</div>
             [#CALENDAR_DETAILS#]
             </div>');
         
         $d  = new type_Date();
         $d->load('calendarpicker_Plugin');
-        $calendarHeader->replace($d->renderInput('date', dt::verbal2mysql(),  array('class' => 'calsel', 'onchange' => "document.location.href='" . toUrl(array('cal_Agenda')) . "?Cmd%5Bdefault%5D=1&from=' + this.value;") ), 'CALENDAR_SELECTOR'); 
+        $calendarHeader->replace($d->renderInput('date', dt::verbal2mysql(),  array('class' => 'calsel', 'onchange' => "document.location.href='" . toUrl(array('cal_Calendar')) . "?Cmd%5Bdefault%5D=1&from=' + this.value;") ), 'CALENDAR_SELECTOR'); 
 
-        $calendarHeader->append(cal_Agenda::renderPortal(), 'CALENDAR_DETAILS');
+        $calendarHeader->append(cal_Calendar::renderPortal(), 'CALENDAR_DETAILS');
 
         $tpl->replace($calendarHeader, 'RIGHT_COLUMN');
         

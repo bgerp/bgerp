@@ -60,6 +60,16 @@ class email_UserInboxPlg extends core_Plugin
         }
     }
     
+    public static function on_AfterCreate($mvc, $rec)
+    {
+        crm_Profiles::createProfile($rec);
+    }
+    
+    public static function on_AfterUpdate($mvc, $rec)
+    {
+        crm_Profiles::updatePerson($rec);
+    }
+    
     
     /**
      * Преди записване на данните

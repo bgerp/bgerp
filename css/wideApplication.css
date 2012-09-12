@@ -349,7 +349,7 @@ div.mobile {
 	font-weight:bold;
 }
 
-.formTitle {
+.vertical .formTitle {
 	background-color:#99f !important;
 	background-image:url('../img/form.jpg');
 	border:solid 1px #88e;
@@ -367,7 +367,7 @@ div.mobile {
     margin-top:10px;
 }
 
-.formToolbar {
+.vertical .formToolbar {
 	padding:8px;
 	-moz-border-radius-bottomleft: 5px;
     -moz-border-radius-bottomright: 5px;
@@ -381,13 +381,13 @@ div.mobile {
 
 }
 
-.formSection {
+.vertical .formSection {
 	border-left:solid 1px #cca;
 	border-right:solid 1px #cca;
 	background-image:url('../img/yellow.png');
 }
 
-.formTable {
+.vertical .formTable {
 	-moz-border-radius: 5px;
     -webkit-border-radius: 5px;
 	border-radius:5px;
@@ -1087,7 +1087,7 @@ div.attachments .aHeader {
 	background-color:#e0f0e0;
 }
 
-div.attachments a,  div.attachments span{
+div.attachments .file {
 	display:block;
 	margin-bottom:2px;
 }

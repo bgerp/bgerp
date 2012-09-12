@@ -16,15 +16,16 @@
 class email_ToLinkPlg extends core_Plugin
 {
     
+    const AT_ESCAPE = '*';
     
     /**
      * Преобразуваме имейл-а на потребителя към вътрешен линк към постинг.
      */
-    function on_BeforeAddHyperlink($mvc, &$res, $email)
+    function on_BeforeAddHyperlink($mvc, &$res, $email, $verbal)
     {
         if(haveRole('ceo,manager,officer,executive') && (Mode::is('text', 'html') || !Mode::is('text'))) {
             //Променяме полето от 'emailto:' в линк към email_Outgoings/add/
-            $res = Ht::createLink($email, array('email_Outgoings', 'add', 'emailto' => $email));
+            $res = Ht::createLink($email, array('email_Outgoings', 'add', 'emailto' => str_replace('@', self::AT_ESCAPE, $email)));
             
             return FALSE;
         }

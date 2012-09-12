@@ -891,11 +891,12 @@ class blast_Emails extends core_Master
         //Вземаме тялото на имейла и заместваме шаблоните
         $data->rec = $rec;
         
+        // Заместваме данните в тялото на имейла
+        $data->rec->body = $this->replaceEmailData($data->rec->body, $rec->listId, $emailTo, !$sending);
+        
         //Подготвяме данните за имейла
         $this->prepareSingle($data);
         
-        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, !$sending);
-
         //Рендираме шаблона
         $res = $this->renderSingle($data);
         
@@ -938,10 +939,11 @@ class blast_Emails extends core_Master
         //Вземаме тялото на имейла и заместваме шаблоните
         $data->rec = $rec;
         
+        // Заместваме данните в тялото на имейла
+        $data->rec->body = $this->replaceEmailData($data->rec->body, $rec->listId, $emailTo, !$sending);
+        
         //Подготвяме данните за имейла
         $this->prepareSingle($data);
-        
-        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, !$sending);
         
         //Рендираме шаблона
         $res = $this->renderSingle($data);

@@ -83,4 +83,15 @@ class groups_Extendable extends core_Plugin
     {
         return !empty($master->groupsField) ? $master->groupsField : 'groupsId';
     }
+    
+    
+    public static function on_AfterSave(core_Master $master, &$id, $rec)
+    {
+        $extenders = static::getExtenders($master, $rec);
+        
+        foreach ($extenders as $ext) {
+            $extender = cls::get($ext['className']);
+            $extender->invoke('afterMasterSave', array($rec, $master));
+        }
+    }
 }

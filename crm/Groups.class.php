@@ -77,6 +77,12 @@ class crm_Groups extends groups_Manager
             'prefix' => 'ContragentBankAccounts',
             'title' => 'Банкови сметки',
         ),
+        'profile' => array(
+            'className' => 'crm_Profiles',
+            'prefix'    => 'Profile',
+            'title'     => 'Потребителски Профил',
+            'visible'   => FALSE,  // @TODO
+        )
     );
     
     

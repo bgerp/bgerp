@@ -21,7 +21,13 @@ class bgerp_Recently extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'bgerp_Wrapper, plg_RowTools';
+    var $loadList = 'bgerp_Wrapper, plg_RowTools, bgerp_plg_GroupByDate';
+
+
+    /**
+     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     */
+    var $groupByDateField = 'last';
     
     
     /**
@@ -125,8 +131,8 @@ class bgerp_Recently extends core_Manager
                 NULL, $attr);
         }
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */

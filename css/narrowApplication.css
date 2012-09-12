@@ -136,7 +136,7 @@ a.out:visited {
 	margin-top: 10px;
 }
 
-.formTitle {
+.vertical .formTitle {
 	background-color:#99f !important;
 	border:solid 1px #88e;
 	border-bottom:none;
@@ -149,13 +149,11 @@ a.out:visited {
     border-top-right-radius:5px;
 }
 
-
 .formGroup {
     margin-top:10px;
 }
 
-
-.formToolbar {
+.vertical .formToolbar {
 	padding:8px;
 	-moz-border-radius-bottomleft: 5px;
     -moz-border-radius-bottomright: 5px;
@@ -293,7 +291,11 @@ div.alphabet div.tab-page {
 	padding:0px;
 }
 
+div.alphabet   {
+	width: 325px;	
+}
 
+ 
 .quiet { color: #888; }
 .red { color: #800; }
 .green { color: #080; }
@@ -442,7 +444,7 @@ div.attachments .aHeader {
 	border-bottom:solid 1px #e0e0e0;
 }
 
-div.attachments a, div.attachments span {
+div.attachments .file {
 	display:block;
 	margin-bottom:2px;
 }

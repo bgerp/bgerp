@@ -26,7 +26,7 @@ class cal_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'cal_Agenda';
+    var $startCtr = 'cal_Calendar';
     
     
     /**
@@ -53,8 +53,9 @@ class cal_Setup
     function install()
     {
         $managers = array(
-            'cal_Agenda',
+            'cal_Calendar',
             'cal_Tasks',
+            'cal_Holidays',
         );
         
         // Роля за power-user на този модул
@@ -69,7 +70,7 @@ class cal_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Визитник', 'Календар', 'cal_Agenda', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(1, 'Визитник', 'Календар', 'cal_Calendar', 'default', "{$role}, admin");
         
         return $html;
     }
