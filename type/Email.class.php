@@ -124,8 +124,10 @@ class type_Email extends type_Varchar {
     function toVerbal($email)
     {
         if(empty($email)) return NULL;
-
-        $verbal = str_replace('@', " [аt] ", $email);
+        
+        if(!haveRole('user')) {
+            $verbal = str_replace('@', " [аt] ", $email);
+        }
         
         if($this->params['link'] != 'no') {
             $verbal = $this->addHyperlink($email, $verbal);
