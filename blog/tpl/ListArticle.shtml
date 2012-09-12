@@ -1,0 +1,27 @@
+[#SingleToolbar#]
+<h2>Article Preview</h2>
+<hr />
+<h1>[#title#]</h1><br>
+    
+    <table border="1" style='border: 3px solid red'>
+        <tr>
+            <td>[#id#]</td>
+        </tr>
+        <tr>
+            <td>[#author#]</td>
+        </tr>
+        <tr>
+            <td>[#createdOn#]</td>
+        </tr>
+        <tr>
+            <td>[#modifiedOn#]</td>
+        </tr>
+        <tr>
+            <td>[#state#]</td>
+        </tr>
+        <tr>
+            <td>[#body#]</td>
+        </tr>
+        
+    </table>
+    [#DETAILS#]

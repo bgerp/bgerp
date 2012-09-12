@@ -1,0 +1,40 @@
+<!--  [#SingleToolbar#]-->
+
+	
+	<div id='blog-single-article'>
+		<table border='0' id='blog-single-article-body'>
+			<tr>
+				<td height='70px'>
+					<div id='title'>
+				       <span id='title-text'>[#title#]</span>
+				   </div>
+			       <div id='author'>
+			           <span id='author-label'>Публикувано от:</span>
+				       <span id='author-text'>[#author#]</span>
+				       <span id='created-text'>на:&nbsp;&nbsp;&nbsp;&nbsp;[#createdOn#]</span>
+				   </div>
+			       
+				</td>
+			</tr>
+			<tr>
+				<td id='article-body'>
+					[#body#]
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span class='cat-label'>Категории:&nbsp;&nbsp;</span>
+				    <span id='cat-text'>[#cat#]</span>
+			        <span id='modified-label'>Последно редактирана:&nbsp;&nbsp;</span>
+				    <span id='modified-text'>[#modifiedOn#]</span>
+			    </td>
+			</tr>
+		</table>
+ <div id='blog-article-details' name='an'>
+    <!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS-->
+    </div>
+ </div>
+    
+   
+  
+    
