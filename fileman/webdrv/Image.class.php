@@ -52,15 +52,6 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $tabsArr['text']->html = "<div> <iframe src='{$textPart}' class='webdrvIframe'> </iframe> </div>";
         $tabsArr['text']->order = 2;
         
-        // URL за показване на информация за файла
-        $infoUrl = toUrl(array('fileman_webdrv_Pdf', 'info', $fRec->fileHnd), TRUE);
-        
-        // Таб за информация
-		$tabsArr['info'] = new stdClass();
-        $tabsArr['info']->title = 'Информация';
-        $tabsArr['info']->html = "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>";
-        $tabsArr['info']->order = 4;
-
         return $tabsArr;
     }
     

@@ -651,48 +651,11 @@ class fileman_Files extends core_Master
         $ext = self::getExt($data->rec->name);
 
         // Проверяваме дали разширението, предлага preview на файла
-        if (in_array($ext, array('gif'))) {
+        if (in_array($ext, array(''))) {
 
-            //Вземема конфигурационните константи
-            $conf = core_Packs::getConfig('fileman');
-            
-            // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
-            if (mode::is('screenMode', 'narrow')) {
-                $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH_NARROW;
-                $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT_NARROW;
-            } else {
-                $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH;
-                $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
-            }
-            
-            // Атрибути на thumbnail изображението
-            $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '');
-                
-            //Размера на thumbnail изображението
-            $size = array($thumbWidth, $thumbHeight);
-            
-            //Създаваме тумбнаил с параметрите
-            $thumbnailImg = thumbnail_Thumbnail::getImg($fh, $size, $attr);
-            
-            if ($thumbnailImg) {
-                
-                // Background' а на preview' то
-                $bgImg = sbf('fileman/img/Preview_background.jpg');
-            
-                // Създаваме шаблон за preview на изображението
-                $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><div style='background-image:url(" . $bgImg . "); padding:10px 0; '><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div></fieldset>");
-                
-                // Добавяме към preview' то генерираното изображение
-                $preview->append($thumbnailImg, 'THUMB_IMAGE');
-                
-                 
-            }
-        
         } elseif( in_array($ext, array('html', 'htm')) ) { 
             $dUrl = fileman_Download::getDownloadUrl($data->rec->fileHnd);
             $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><iframe src='{$dUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' style='width:100%; min-height:600px;border:solid 0px transparent;'></iframe></fieldset>");
-        } elseif( in_array($ext, array('txt', 'text')) ) { 
-            $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><pre>" . type_Varchar::escape(self::getContent($data->rec->fileHnd)) . "</pre></fieldset>");
         } elseif( in_array($ext, array('eml')) ) {
             // Тук парсираме писмото и проверяваме дали не е системно
             $mime = new email_Mime();

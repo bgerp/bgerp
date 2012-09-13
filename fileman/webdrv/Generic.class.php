@@ -26,6 +26,16 @@ class fileman_webdrv_Generic extends core_Manager
         // Масив с всички табове
         $tabsArr = array();
         
+        // URL за показване на информация за файла
+        $infoUrl = toUrl(array('fileman_webdrv_Office', 'info', $fRec->fileHnd), TRUE);
+        // Таб за информация
+        $tabsArr['info'] = (object) 
+			array(
+				'title' => 'Информация',
+				'html'  => "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>",
+				'order' => 4,
+			);
+        
         return $tabsArr;
     }
     
@@ -66,6 +76,9 @@ class fileman_webdrv_Generic extends core_Manager
 
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_Empty'); // Тук може и да се използва page_PreText за подреден текст
+        
+        // Ескейпваме текстовата част
+        $content = type_Varchar::escape($content);
         
         // Връщаме съдържанието
         return $content;
@@ -504,5 +517,18 @@ class fileman_webdrv_Generic extends core_Manager
             // 
             static::createErrorLog($params['dataId'], $params['type']);
         }
-    }   
+    }  
+
+    
+	/**
+     * Връща данните на един файл като стринг
+     */
+    static function getContent($fileHnd)
+    {
+        // Пътя до файла
+//        expect($path = fileman_Files::fetchByFh($fileHnd, 'path'));
+        expect($path = fileman_Download::getDownloadUrl($fileHnd));        
+        
+        return file_get_contents($path);
+    }
 }

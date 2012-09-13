@@ -52,17 +52,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 				'order' => 2,
 			);
         
-        // URL за показване на информация за файла
-        $infoUrl = toUrl(array('fileman_webdrv_Office', 'info', $fRec->fileHnd), TRUE);
-        
-        // Таб за информация
-        $tabsArr['info'] = (object) 
-			array(
-				'title' => 'Информация',
-				'html'  => "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>",
-				'order' => 4,
-			);
-			
 		$htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);	
 			
 		// Таб за информация
@@ -314,7 +303,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $outFilePath = $Script->tempDir . $name . '-%d.jpg';
         
         // Задаваме placeHolder' ите за входния и изходния файл
-        $Script->setFile('INPUTF', $fileHnd);
+        $Script->setFile('INPUTF', $fileHnd, TRUE);
         $Script->setFile('OUTPUTF', $outFilePath);
         
         // Скрипта, който ще конвертира файла от PDF в JPG формат
