@@ -149,6 +149,8 @@ class type_Email extends type_Varchar {
             list($user, $domain) = explode('@', $email);
             $domain = '&#64;' . $domain;
             $value = "<script>document.write(\"<a href='mailto:{$user}\" + \"{$domain}'><span style='display:none;'>\");</script> {$verbal}<script>document.write(\"</span>\" + \"{$user}\" + \"{$domain}</a>\");</script>";
+        } else {
+            $value = $verbal;
         }
         
         return $value;
