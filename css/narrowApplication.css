@@ -195,6 +195,10 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
     background:#ffffe8;
 }
 
+div.crmImage {
+	padding:18px  8px  8px 0px;float:left;
+}
+
 
 
 /* Стилове за елемента 'tab' */
