@@ -239,8 +239,7 @@ class doc_Containers extends core_Manager
         
         if ($rec->createdBy > 0) {
             $row->created = crm_Profiles::createLink($row->created, $rec->createdBy);
-            $avatar = crm_Profiles::createLink($avatar, $rec->createdBy);
-        }
+         }
         
         $row->created = new ET("<div style='text-align:center;'><div style='text-align:left;display:inline-block;'><div style='font-size:0.8em;margin-top:5px;margin-left:10px;'>[#3#]</div>
                                             <div style='font-size:0.8em;margin:5px;margin-bottom:10px;margin-left:10px;'>[#1#]</div>

@@ -82,6 +82,9 @@ class crm_Profiles extends core_Master
     public static function on_AfterPrepareSingle(crm_Profiles $mvc, $data)
     {
         if ($data->rec->personId) {
+            if(!$data->rec->Person) {
+                $data->rec->Person = new stdClass();
+            }
             $data->rec->Person->rec = crm_Persons::fetch($data->rec->personId);
             crm_Persons::prepareSingle($data->rec->Person);
         }
@@ -593,20 +596,13 @@ class crm_Profiles extends core_Master
      * @param string|int $user ако е числова стойност се приема за ид на потребител; иначе - ник
      * @return array URL към визитка; FALSE ако няма такъв потребител или той няма профилна визитка
      */
-    public static function getUrl($user)
+    public static function getUrl($userId)
     {
-        if (is_numeric($user)) {
-            // $user е ид на потребител
-            $userId = intval($user);
-        } else {
-            // $user е nick на потребител
-            $userId = core_Users::fetchField(array("#nick = '[#1#]'", $user), 'id');
-        }
         
         // Извличаме профила (връзката м/у потребител и визитка)
         $personId = static::fetchField("#userId = {$userId}", 'id');
 
-        if (!personId) {
+        if (!$personId) {
             // Няма профил или не е асоцииран с визитка
             return FALSE;
         }
@@ -624,12 +620,33 @@ class crm_Profiles extends core_Master
      * @param array $attr      @see core_Html::createLink()
      */
     public static function createLink($title, $user, $warning = FALSE, $attr = array())
-    {
+    {   
+        if (is_numeric($user)) {
+            // $user е ид на потребител
+            $userId = intval($user);
+        } else {
+            // $user е nick на потребител
+            $userId = core_Users::fetchField(array("#nick = '[#1#]'", $user), 'id');
+        }
+
         $link = $title;
         
-        $url  = static::getUrl($user);
+        $url  = static::getUrl($userId);
+
+       
         
-        if ($url) {
+        if ($url) { 
+            if(core_Users::haveRole('ceo', $userId)) {
+                $attr['style'] .= 'background-color:#66a;color:white;padding:2px;border-radius:2px;'; 
+            } elseif(core_Users::haveRole('manager', $userId)) {
+                $attr['style'] .= 'background-color:#ffc;padding:2px;border-radius:2px;';    
+            } elseif(core_Users::haveRole('officer', $userId)) {
+               $attr['style'] .= 'background-color:#dfd;padding:2px;border-radius:2px;';
+            } elseif(core_Users::haveRole('executive', $userId)) {
+                 $attr['style'] .= 'background-color:#ddd;padding:2px;border-radius:2px;';
+            } elseif(core_Users::haveRole('contractor', $userId)) {
+                $attr['style'] .= 'background-color:#922;color:white;padding:2px;border-radius:2px;';  
+            }
             $link = ht::createLink($title, $url, $warning, $attr);
         }
         
