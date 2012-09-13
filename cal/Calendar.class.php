@@ -26,7 +26,7 @@ class cal_Calendar extends core_Master
     /**
      * Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, bgerp_plg_GroupByDate';
+    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, bgerp_plg_GroupByDate, cal_View';
     
 
     /**
@@ -437,6 +437,51 @@ class cal_Calendar extends core_Master
         $tpl->replace($Calendar->renderListTable($state), 'AGENDA');
 
         return $tpl;
+    }
+
+    
+    /**
+     *
+     */
+    function act_Day()
+    {
+        $res = '1';
+
+        return $this->renderWrapping($res);
+    }
+
+
+    /**
+     *
+     */
+    function act_Week()
+    {
+        $res = '1';
+
+        return $this->renderWrapping($res);
+    }
+
+
+    /**
+     *
+     */
+    function act_Month()
+    {
+        $res = '1';
+
+        return $this->renderWrapping($res);
+
+    }
+
+
+    /**
+     *
+     */
+    function act_Year()
+    {
+        $res = '1';
+
+        return $this->renderWrapping($res);
     }
 
 }
