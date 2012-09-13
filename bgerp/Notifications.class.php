@@ -204,6 +204,10 @@ class bgerp_Notifications extends core_Manager
         
         $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
         $data->query->orderBy("state,modifiedOn=DESC");
+
+        if(Mode::is('screenMode', 'narrow')) {
+            $data->query->where("#state = 'active'");
+        }
         
         // Подготвяме навигацията по страници
         $Notifications->prepareListPager($data);

@@ -33,6 +33,8 @@ class bgerp_plg_GroupByDate extends core_Plugin
 
         $exDate = '0000-00-00';
         
+        $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd F-YEAR, l';
+
         foreach($data->recs as $id => $rec) {
 
             list($d, $t) = explode(' ', $rec->{$field});
@@ -45,7 +47,7 @@ class bgerp_plg_GroupByDate extends core_Plugin
 
                 if($res->day) $res->day .= ', ';
                 
-                $res->day .= dt::mysql2verbal($rec->{$field}, 'd F-YEAR, l');
+                $res->day .= dt::mysql2verbal($rec->{$field}, $format);
 
                 $res->color = dt::getColorByTime(time() - dt::mysql2timestamp($rec->{$field}));
                 
