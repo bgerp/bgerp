@@ -313,6 +313,8 @@ class log_Documents extends core_Manager
             'alert' // Важност (приоритет)
         );
     
+        core_Logs::add(get_called_class(), $sendRec->id, $msg);
+        
         return TRUE;
     }
 
@@ -351,12 +353,18 @@ class log_Documents extends core_Manager
         $msg = "Потвърдено получаване: " . doc_Containers::getDocTitle($sendRec->containerId);
         
         // Нотификация за получаване на писмото до адресата.
+        /*
+         * За сега отпада: @link https://github.com/bgerp/bgerp/issues/353#issuecomment-8531333
+         *  
         bgerp_Notifications::add(
             $msg, // съобщение
             array('log_Documents', 'list', 'containerId' => $sendRec->containerId), // URL
             $sendRec->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
+        */
+        
+        core_Logs::add(get_called_class(), $sendRec->id, $msg);
     
         return TRUE;
     }
@@ -382,7 +390,10 @@ class log_Documents extends core_Manager
         // Нотификация за получаването на писмото
         $msg = "Видян документ: " . doc_Containers::getDocTitle($parent->containerId);
         
-        // Нотификация за връщането на писмото до изпращача му
+        // Нотификация за виждане на писмото от получателя му
+        /*
+         * За сега отпада: @link https://github.com/bgerp/bgerp/issues/353#issuecomment-8531333
+         *  
         bgerp_Notifications::add(
             $msg, // съобщение
             array(
@@ -394,6 +405,9 @@ class log_Documents extends core_Manager
             $parent->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
+        */
+        
+        core_Logs::add(get_called_class(), $parent->id, $msg);
     }
     
 
