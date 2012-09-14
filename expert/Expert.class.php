@@ -807,7 +807,7 @@ class expert_Expert extends core_FieldSet {
      * Прави опит да намери указаната цел
      */
     function solve($goal)
-    {
+    {   
         // Ако командата е cancel, задаваме редирект и връщаме истина.
         if($this->Cmd == 'cancel') {
             $this->setRedirect();
@@ -846,6 +846,9 @@ class expert_Expert extends core_FieldSet {
                 
                 // Ако имаме грешки на входа и текущата команда не е връщане, показваме формата
                 if($form->gotErrors() && !($this->Cmd == 'back')) {
+                    if(!is_object($this->midRes)) {
+                        $this->midRes = new stdClass();
+                    }
                     $this->midRes->form = $form;
                     $this->currentStep--;
                     Debug::log("CurrentStep on error: $this->currentStep");
