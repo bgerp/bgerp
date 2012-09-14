@@ -137,7 +137,7 @@ class crm_Persons extends core_Master
      * 
      * @var string|array
      */
-    public $details = 'ContragentLocations=crm_Locations';
+    public $details = '';
     
 
     /**

@@ -87,6 +87,11 @@ class crm_Groups extends groups_Manager
             'prefix'    => 'PersonalData',
             'title'     => 'Лични данни',
         ),
+        'locations' => array(
+            'className' => 'crm_Locations',
+            'prefix'    => 'ContragentLocations',
+            'title'     => 'Локации',
+        ),
     );
     
     
