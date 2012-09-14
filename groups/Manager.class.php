@@ -106,19 +106,16 @@ class groups_Manager extends core_Manager
     public function getExtenders($groupIds)
     {
         $extenderKeys = array();
-        
+
         foreach ($groupIds as $id) {
-            $extenderKeys = array_merge(
-                $extenderKeys,
-                type_Keylist::toArray(static::fetchField($id, 'extenders'))
-            );
+            $extenderKeys += type_Set::toArray(static::fetchField($id, 'extenders'));
         }
         
         $extenders    = array();
         
         if (!empty($extenderKeys)) {
             $allExtenders = $this->getAllowedExtenders();
-        
+            
             foreach ($extenderKeys as $key) {
                 if (isset($allExtenders[$key])) {
                     $extenders[$key] = $allExtenders[$key];
