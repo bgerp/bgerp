@@ -92,7 +92,9 @@ class bgerp_Menu extends core_Manager
      */
     function on_AfterSave($mvc, $id, $rec)
     {
-        core_Cache::remove('Menu', 'menuObj');
+        $cacheKey = 'menuObj_' . core_Lg::getCurrent();
+
+        core_Cache::remove('Menu', $cacheKey);
     }
     
 

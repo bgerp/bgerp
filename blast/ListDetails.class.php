@@ -237,7 +237,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Преобразува стринга в масив, който се използва за създаване на функционални полета
      */
-    function getFncFieldsArr($fields)
+    static function getFncFieldsArr($fields)
     {
         $fields = str_replace(array("\n", "\r\n", "\n\r"), array(',', ',', ','), trim($fields));
         $fieldsArr = arr::make($fields, TRUE);
@@ -275,14 +275,16 @@ class blast_ListDetails extends core_Detail
         $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
-        
+        $exp->functions['importcsvfromlists'] = 'blast_Lists::importCsvFromLists';
+
         $exp->DEF('#listId', 'int', 'fromRequest');
         
         $exp->DEF('#source=Източник', 'enum(csv=Copy&Paste на CSV данни, 
                                            csvFile=Файл със CSV данни,
                                            groupCompanies=Група от "Контакти » Фирми",
                                            groupPersons=Група от "Контакти » Лица",
-                                           blastList=Друг списък от "Разпращане")', 'maxRadio=5,columns=1,value=csv,mandatory');
+                                           blastList=Друг списък от "Разпращане")', 'maxRadio=5,columns=1,mandatory');
+        $exp->ASSUME('#source', '"csv"');
         $exp->question("#source", "Моля, посочете източника на данните:", TRUE, 'title=От къде ще се импортират данните?');
         
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
@@ -300,7 +302,12 @@ class blast_ListDetails extends core_Detail
         
         $exp->rule("#csvData", "importCsvFromContacts('crm_Companies', #companiesGroup)");
         $exp->rule("#csvData", "importCsvFromContacts('crm_Persons', #personsGroup)");
-        
+
+        $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
+
+        $exp->question("#blastList", "Изберете списъка от който да се импортират даните", "#source == 'blastList'", 'title=Импортиране от съществуващ списък');
+        $exp->rule("#csvData", "importCsvFromLists(#blastList)", '#blastList');
+
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
         $exp->question("#csvFile", "Въведете файл с контактни данни във CSV формат:", "#source == 'csvFile'", 'title=Въвеждане на данните от файл');
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");

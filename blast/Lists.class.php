@@ -256,4 +256,64 @@ class blast_Lists extends core_Master
         
         return $row;
     }
+
+
+    /**
+     * Връща CSV представяне на данните в списъка
+     */
+    static function importCsvFromLists($listId)
+    {
+        $rec = self::fetch($listId);
+        $fieldsArr = blast_ListDetails::getFncFieldsArr($rec->allFields);
+        
+        $csv = '';
+
+        self::addCsvRow($csv, $fieldsArr);
+
+ 
+        $dQuery = blast_ListDetails::getQuery();
+        $dQuery->where("#listId = {$rec->id}");
+        
+        $listDetails = cls::get('blast_ListDetails');
+        $listDetails->addFNC($rec->allFields);
+
+        while($r = $dQuery->fetch()) {  
+            $data = unserialize($r->data);
+            
+            $row = array();
+            foreach($fieldsArr as $key => $caption) {
+                $row[$key] = $data[$key . '_'];
+            }
+            
+            self::addCsvRow($csv, $row);
+         
+        }
+
+        return $csv;
+    }
+    
+    /**
+     * Добавя един ред в CSV структура
+     */
+    static function addCsvRow(&$csv, $row)
+    { 
+        $div = '';
+
+        foreach($row as $value) {
+
+            // escape
+            if (preg_match('/\\r|\\n|,|"/', $value)) {
+                $value = '"' . str_replace('"', '""', $value) . '"';
+            }
+                    
+            $csv .= $div . $value;
+
+            $div = ',';
+        }
+                
+                 
+        $csv .= "\n";
+
+        return $csv;
+    }
 }
