@@ -514,8 +514,8 @@ class crm_Profiles extends core_Master
         
         $profileRec = static::fetch("#userId = {$userRec->id}");
         
-        if (!$profileRec) {
-            // Нищо не правим, ако потребителя няма профил
+        if (!$profileRec || !$profileRec->personId) {
+            // Нищо не правим, ако потребителя няма профил или профилна визитка.
             return;
         }
         
