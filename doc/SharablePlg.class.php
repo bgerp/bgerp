@@ -148,9 +148,7 @@ class doc_SharablePlg extends core_Plugin
             $userRec = core_Users::fetch($userId);
             $nick = mb_convert_case(core_Users::getVerbal($userRec, 'nick'), MB_CASE_TITLE, "UTF-8");
             
-            if ($profileUrl = crm_Profiles::getUrl($userId)) {
-                $nick = ht::createLink($nick, $profileUrl);
-            }
+            $nick = crm_Profiles::createLink($nick, $userId);
             
             if (!empty($seenDate)) {
                 $seenDate = mb_strtolower(core_DateTime::mysql2verbal($seenDate, 'smartTime'));
