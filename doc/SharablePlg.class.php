@@ -23,8 +23,14 @@ class doc_SharablePlg extends core_Plugin
         expect(cls::haveInterface('doc_DocumentIntf', $mvc), 'doc_SharablePlg е приложим само към документи');
         
         // Поле за потребителите, с които е споделен документа (ако няма)
-        if (!$mvc->getField('sharedUsers')) {
+        if (!$mvc->getField('sharedUsers', FALSE)) {
             $mvc->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
+        }
+        // Поле за първите виждания на документа от потребителите с които той е споделен
+        if (!$mvc->getField('sharedViews', FALSE)) {
+            // Стойността на полето е сериализиран масив с ключ - потребител и стойност - дата
+            // на първо виждане от потребителя
+            $mvc->FLD('sharedViews', 'blob', 'caption=Споделяне->Виждания,input=none');
         }
     }
     
@@ -80,8 +86,26 @@ class doc_SharablePlg extends core_Plugin
             return;
         }
         
-        if (doc_ThreadUsers::markContainerViewed($rec->containerId)) {
-            core_Cache::remove($mvc->className, $data->cacheKey . '%');
+        $userId = core_Users::getCurrent('id');
+        
+        if (!type_Keylist::isIn($userId, $rec->sharedUsers)) {
+            // Документа не е споделен с текущия потребител - не правим нищо
+            return;
+        }
+        
+        $viewedBy = array();
+        
+        if (!empty($rec->sharedViews)) {
+            $viewedBy = unserialize($rec->sharedViews);
+        }
+        
+        if (!isset($viewedBy[$userId])) {
+            // Първо виждане на документа от страна на $userId
+            $viewedBy[$userId] = dt::now(TRUE);
+            $rec->sharedViews = serialize($viewedBy);
+            if ($mvc::save($rec)) {
+                core_Cache::remove($mvc->className, $data->cacheKey . '%');
+            }
         }
     }
     
@@ -96,18 +120,13 @@ class doc_SharablePlg extends core_Plugin
      */
     protected static function prepareHistory($rec)
     {
-        $history = array();
+        $history = type_Keylist::toArray($rec->sharedUsers);
+        $history = array_fill_keys($history, NULL);
         
-        if ($rec->state == 'draft') {
-            $klist = doc_Containers::getShared($rec->containerId);
-            $klist = type_Keylist::toArray($klist);
-            $history = array();
-            foreach (array_keys($klist) as $userId) {
-                $history[$userId] = NULL;
-            }
-        } else {
-            $history = doc_ThreadUsers::prepareSharingHistory($rec->containerId, $rec->threadId);
+        if (!empty($rec->sharedViews)) {
+            $history = unserialize($rec->sharedViews) + $history;
         }
+        
         
         return $history;
     }
