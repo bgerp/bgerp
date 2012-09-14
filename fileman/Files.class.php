@@ -662,14 +662,7 @@ class fileman_Files extends core_Master
             $dUrl = fileman_Download::getDownloadUrl($data->rec->fileHnd);
             $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><iframe src='{$dUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' style='width:100%; min-height:600px;border:solid 0px transparent;'></iframe></fieldset>");
         } elseif( in_array($ext, array('eml')) ) {
-            // Тук парсираме писмото и проверяваме дали не е системно
-            $mime = new email_Mime();
-            
-            expect($emlRec = $mime->getEmail(self::getContent($data->rec->fileHnd)));
-            $emlRec->textPart = str_replace("\n\n\n", "\n\n", $emlRec->textPart);
-//            $richText = new type_Richtext();
-//
-//            $preview = new ET("<fieldset style='max-width:900px;padding:10px;'><legend>Преглед</legend><br>" . $richText->toVerbal($emlRec->textPart) . "</fieldset>");
+
         }
         
         // Добаваме preview' то към шаблона

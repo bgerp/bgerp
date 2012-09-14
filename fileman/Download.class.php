@@ -360,6 +360,9 @@ class fileman_Download extends core_Manager {
             //Преобразуваме големината на файла във вербална стойност
             $size = $FileSize->toVerbal($fileLen);
 
+            // Ако линка е в iframe да се отваря в родителския(главния) прозорец
+            $attr['target'] = "_parent";
+            
             //Ако сме в режим "Тесен"
             if (Mode::is('screenMode', 'narrow')) {
                 
