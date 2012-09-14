@@ -100,9 +100,9 @@ class cal_Holidays extends core_Master
         $this->FLD('title', 'varchar', 'caption=Празник->Заглавие,export');
         $this->FLD('type', 'enum(0=&nbsp;,
         								holiday=Празник,
+        								non-classes-working=Неучебен-работен,
                                         non-working=Неработен,
                                         workday=Отработване,
-                                        nameday=Имен ден,
                                         orthodox=Православен,
                                         muslim=Мюсюлмански,
                                         foreign=Чуждестранен,
@@ -442,7 +442,6 @@ class cal_Holidays extends core_Master
 
         return $res;
     }
-
 
     /**
      * Форма за търсене по дадена ключова дума
