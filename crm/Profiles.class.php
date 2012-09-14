@@ -666,13 +666,15 @@ class crm_Profiles extends core_Master
     {
         $rows = &$data->rows;
         $recs = &$data->recs;
-    
-        foreach ($rows as $i=>&$row) {
-            $rec = &$recs[$i];
-    
-            if ($url = $mvc::getUrl($rec->userId)) {
-                $row->personId = ht::createLink($row->personId, $url);
-                $row->userId   = ht::createLink($row->userId, $url);
+        
+        if(count($rows)) {
+            foreach ($rows as $i=>&$row) {
+                $rec = &$recs[$i];
+        
+                if ($url = $mvc::getUrl($rec->userId)) {
+                    $row->personId = ht::createLink($row->personId, $url);
+                    $row->userId   = ht::createLink($row->userId, $url);
+                }
             }
         }
     }
