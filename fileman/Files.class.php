@@ -185,9 +185,12 @@ class fileman_Files extends core_Master
         $bucketId = $Buckets->fetchByName($bucket);
         
         if($dataId = $this->Data->absorbFile($path, FALSE)) {
-            if($fh = self::fetchField(array("#name = '[#1#]' AND #bucketId = {$bucketId} AND #dataId = {$dataId}", $fname), 'fileHnd' ) ) {
-                return $fh;
-            }
+            
+            // Проверяваме името на файла
+            $fh = $this->checkFileName($dataId, $bucketId, $fname);
+            
+            // Ако има съвпадения с друг файл в системата връщаме манипулатора му
+            if ($fh) return $fh;
         }        
         
         $fh = $this->createDraftFile($fname, $bucketId);
@@ -213,10 +216,11 @@ class fileman_Files extends core_Master
         
         if($dataId = $this->Data->absorbString($string, FALSE)) {
 
-            if($fh = self::fetchField(array("#name = '[#1#]' AND #bucketId = {$bucketId} AND #dataId = {$dataId}", $fname), 'fileHnd' ) ) {
-
-                return $fh;
-            }
+            // Проверяваме името на файла
+            $fh = $this->checkFileName($dataId, $bucketId, $fname);
+            
+            // Ако има съвпадения с друг файл в системата връщаме манипулатора му
+            if ($fh) return $fh;
         }        
 
         $fh = $me->createDraftFile($fname, $bucketId);
@@ -381,6 +385,7 @@ class fileman_Files extends core_Master
      */
     static function getContent($hnd)
     {
+        //expect($path = fileman_Download::getDownloadUrl($hnd));  
         expect($path = fileman_Files::fetchByFh($hnd, 'path'));
         
         return file_get_contents($path);
@@ -662,9 +667,9 @@ class fileman_Files extends core_Master
             
             expect($emlRec = $mime->getEmail(self::getContent($data->rec->fileHnd)));
             $emlRec->textPart = str_replace("\n\n\n", "\n\n", $emlRec->textPart);
-            $richText = new type_Richtext();
-
-            $preview = new ET("<fieldset style='max-width:900px;padding:10px;'><legend>Преглед</legend><br>" . $richText->toVerbal($emlRec->textPart) . "</fieldset>");
+//            $richText = new type_Richtext();
+//
+//            $preview = new ET("<fieldset style='max-width:900px;padding:10px;'><legend>Преглед</legend><br>" . $richText->toVerbal($emlRec->textPart) . "</fieldset>");
         }
         
         // Добаваме preview' то към шаблона
@@ -775,5 +780,78 @@ class fileman_Files extends core_Master
         // Генериране на линк сваляне на файла от sbf директорията
         $createLinkUrl = toUrl(array('fileman_Download', 'GenerateLink', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
         $data->toolbar->addBtn('Линк', $createLinkUrl, 'id=btn-createLink,class=btn-createLink', 'order=40');
+    }
+    
+    
+    /**
+     * Проверява дали името на подадения файл не се съдържа в същата кофа със същите данни.
+     * Ако същия файл е бил качен връща манипулатора на файла
+     * 
+     * @param fileman_Data $dataId - id' то на данните на файка
+     * @param fileman_Buckets $bucketId - id' то на кофата
+     * @param string $inputFileName - Името на файла, който искаме да качим
+     * 
+     * @return fileman_Files $fileHnd - Манипулатора на файла
+     */
+    function checkFileName($dataId, $bucketId, $inputFileName)
+    {
+        // Вземаме всички файлове, които са в съответната кофа и със същите данни
+        $query = $this->getQuery();
+        $query->where("#bucketId = '{$bucketId}' AND #dataId = '{$dataId}'");
+        $query->show('fileHnd, name');
+        
+        // Обикаляме всички открити съвпадения
+        while ($rec = $query->fetch($where)) {
+
+            // Ако имената са еднакви
+            if ($rec->name == $inputFileName) return $rec->fileHnd;
+            
+            $inputFileNameArr = static::getNameAndExt($inputFileName);
+            $recFileNameArr = static::getNameAndExt($rec->name);
+            
+            // Намираме името на файла до последния '_'
+            if(($underscorePos = mb_strrpos($recFileNameArr['name'], '_')) !== FALSE) {
+                $recFileNameArr['name'] = mb_substr($recFileNameArr['name'], 0, $underscorePos);
+            }
+
+            // Ако двата масива са еднакви
+            if ($inputFileNameArr == $recFileNameArr) {
+                
+                // Връщаме манипулатора на файла
+                return $rec->fileHnd;
+            }
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Създава масив с името на разширението на подадения файл
+     * 
+     * @param string $fname - Името на файла
+     * 
+     * @return array $nameArr - Масив с разширението и името на файла
+     * 		   string $nameArr['name'] - Името на файла, без разширението
+     * 		   string $nameArr['ext'] - Разширението на файла
+     */
+    static function getNameAndExt($fname)
+    {
+        // Ако има точка в името на файла, вземаме мястото на последната
+        if(($dotPos = mb_strrpos($fname, '.')) !== FALSE) {
+            
+            // Името на файла
+            $nameArr['name'] = mb_substr($fname, 0, $dotPos);
+            
+            // Разширението на файла
+            $nameArr['ext'] = mb_substr($fname, $dotPos + 1);
+        } else {
+            
+            // Ако няма разширение
+            $nameArr['name'] = $fname;
+            $nameArr['ext'] = '';
+        }
+        
+        return $nameArr;
     }
 }
