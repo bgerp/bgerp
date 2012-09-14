@@ -194,12 +194,6 @@ class crm_Persons extends core_Master
         $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Информация->Бележки,height=150px,class=contactData');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
 
-        // Лична карта
-        $this->FLD('idCardNumber', 'varchar(16)', 'caption=Лична карта->Номер');
-        $this->FLD('idCardIssuedOn', 'date', 'caption=Лична карта->Издадена на');
-        $this->FLD('idCardExpiredOn', 'date', 'caption=Лична карта->Валидна до');
-        $this->FLD('idCardIssuedBy', 'varchar(64)', 'caption=Лична карта->Издадена от');
-
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember,silent');
 
@@ -347,37 +341,6 @@ class crm_Persons extends core_Master
                 $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd,class=btn-add');
             }
         }
-    }
-
-
-    /**
-     * Модифициране на edit формата
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
-    {
-    	$conf = core_Packs::getConfig('crm');
-    	
-        $form = $data->form;
-
-        if(empty($form->rec->id)) {
-            // Слагаме Default за поле 'country'
-            $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
-        }
-
-        $mvrQuery = drdata_Mvr::getQuery();
-
-        while($mvrRec = $mvrQuery->fetch()) {
-            $mvrName = 'МВР - ';
-            $mvrName .= drdata_Mvr::getVerbal($mvrRec, 'city');
-            $mvrSug[$mvrName] = $mvrName;
-        }
-
-        $form->setSuggestions('idCardIssuedBy', $mvrSug);
     }
 
 
