@@ -633,20 +633,14 @@ class crm_Profiles extends core_Master
         
         $url  = static::getUrl($userId);
 
-       
-        
         if ($url) { 
-            if(core_Users::haveRole('ceo', $userId)) {
-                $attr['style'] .= 'background-color:#66a;color:white;padding:2px;border-radius:2px;'; 
-            } elseif(core_Users::haveRole('manager', $userId)) {
-                $attr['style'] .= 'background-color:#ffc;padding:2px;border-radius:2px;';    
-            } elseif(core_Users::haveRole('officer', $userId)) {
-               $attr['style'] .= 'background-color:#dfd;padding:2px;border-radius:2px;';
-            } elseif(core_Users::haveRole('executive', $userId)) {
-                 $attr['style'] .= 'background-color:#ddd;padding:2px;border-radius:2px;';
-            } elseif(core_Users::haveRole('contractor', $userId)) {
-                $attr['style'] .= 'background-color:#922;color:white;padding:2px;border-radius:2px;';  
+            $attr['class'] .= ' profile';
+            foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor') as $role) {
+                if (core_Users::haveRole($role, $userId)) {
+                    $attr['class'] .= " {$role}";
+                } 
             }
+            
             $link = ht::createLink($title, $url, $warning, $attr);
         }
         
