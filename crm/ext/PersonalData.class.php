@@ -36,6 +36,10 @@ class crm_ext_PersonalData extends core_Detail
         
         expect($data->masterId);
         
+        if(!$data->PersonalData) {
+            $data->PersonalData = new stdClass();
+        }
+
         $data->PersonalData->rec = static::fetch("#personId = {$data->masterId}");
         $data->PersonalData->row = static::recToVerbal($data->PersonalData->rec);
         $data->canChange         = static::haveRightFor('edit');
