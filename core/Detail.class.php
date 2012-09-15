@@ -48,7 +48,9 @@ class core_Detail extends core_Manager
         
         $mvc->Master = cls::get($mvc->masterClass);
         
-        $mvc->currentTab = $mvc->masterClass;
+        if (!isset($mvc->currentTab)) {
+            $mvc->currentTab = $mvc->Master->title;
+        }
         
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
     }
