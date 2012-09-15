@@ -81,8 +81,17 @@ class crm_Groups extends groups_Manager
             'className' => 'crm_Profiles',
             'prefix'    => 'Profile',
             'title'     => 'Потребителски Профил',
-            'visible'   => FALSE,  // @TODO
-        )
+        ),
+        'personalData' => array(
+            'className' => 'crm_ext_PersonalData',
+            'prefix'    => 'PersonalData',
+            'title'     => 'Лични данни',
+        ),
+        'locations' => array(
+            'className' => 'crm_Locations',
+            'prefix'    => 'ContragentLocations',
+            'title'     => 'Локации',
+        ),
     );
     
     

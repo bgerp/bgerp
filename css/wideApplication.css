@@ -1668,3 +1668,33 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	font-weight:bold;
 	margin-left:60px;
 }
+
+/*
+ * Хипервръзки към профилите на потребители
+ */
+a.profile {
+    padding:2px;
+    border-radius:2px;
+}
+
+a.profile.ceo {
+	background-color:#66a;
+	color:white;
+}
+
+a.profile.manager {
+	background-color:#ffc;
+}
+
+a.profile.officer {
+	background-color:#dfd;
+}
+
+a.profile.executive {
+	background-color:#ddd;
+}
+
+a.profile.contractor {
+	background-color:#922;
+	color:white;
+}

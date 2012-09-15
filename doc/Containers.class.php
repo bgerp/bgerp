@@ -142,6 +142,7 @@ class doc_Containers extends core_Manager
         // Потребител
         if($folderRec->inCharge) {
             $user = core_Users::fetchField($folderRec->inCharge, 'nick');
+            $user = crm_Profiles::createLink($user, $folderRec->inCharge);
         } else {
             $user = '@system';
         }

@@ -1028,4 +1028,39 @@ class email_Mime extends core_BaseClass
         
         return $url;
     }
+    
+    
+    /**
+     * Взема хедърите от манипулатора на eml файл
+     * 
+     * @param fileman_Files $emlFileHnd - Манипулатора на eml файла
+     * @param boolean $parseHeaders - Дали да се парсират в масив откритите хедъри
+     * 
+     * @return array $headersArr - Масив с хедърите
+     * 		   string $headersArr['string'] - Стринг с хедърите
+     * 		   array $headersArr['array'] - Масив с парсираните хедърите /Ако е зададено/
+     */
+    function getHeadersFromEmlFile($emlFileHnd, $parseHeaders=FALSE)
+    {
+        // Вземаме съдържанието на eml файла
+        $emlFileContent = fileman_Files::getContent($emlFileHnd);
+        
+        // Парсираме съдържанието
+        $this->parseAll($emlFileContent);
+
+        // Стринг с хедърите
+        $headersStr = $this->getHeadersStr();
+        
+        // Добавяме в масива
+        $headersArr['string'] = $headersStr;
+        
+        // Ако е зададено да се парсират хедърите
+        if ($parseHeaders) {
+            
+            // Добавяме в масива парсираните хедъри
+            $headersArr['array'] = $this->parseHeaders($headersStr);
+        }
+        
+        return $headersArr;
+    }
 }

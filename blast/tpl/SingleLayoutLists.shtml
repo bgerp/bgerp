@@ -69,11 +69,13 @@
      
 	<!-- ET_BEGIN DETAILS --> 
 		<div style='display:inline-block;margin-top:10px;'>
-			<div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; 
-						border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Адреси и шаблони|*:
-			</div>
-			
-			<div style='max-width: 850px; overflow: auto;'>[#DETAILS#]</div>
+		
+			<div style='max-width: 850px; overflow: auto; padding:10px; '>
+				<div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; 
+						border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Списък с контакти|*:
+			        </div>
+                               [#DETAILS#]
+                        </div>
 		</div>
 	<!-- ET_END DETAILS -->
     
