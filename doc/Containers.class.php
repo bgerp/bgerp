@@ -243,7 +243,7 @@ class doc_Containers extends core_Manager
         }
 
         if(Mode::is('screenMode', 'narrow')) {
-            $row->created = new ET("<table style='margin-left:5px;margin-top:5px;' ><tr><td rowspan='2' valign='top' style='white-space:nowrap;'>[#2#]</td><td style='padding-top:2px;white-space:nowrap;'>[#3#]</td><td rowspan='2' style='width:50%'>[#HISTORY#]</td></tr><tr><td>[#1#]</td></tr></table>",
+            $row->created = new ET("<table width='100%' style='margin-left:5px;margin-top:5px;' ><tr><td rowspan='2' valign='top' style='white-space:nowrap;'>[#2#]</td><td nowrap style='padding-top:2px;'>[#3#]</td><td rowspan='2' style='width:50%'>[#HISTORY#]</td></tr><tr><td nowrap>[#1#]</td></tr></table>",
                 $mvc->getVerbal($rec, 'createdOn'),
                 $avatar,
                 $row->created);
