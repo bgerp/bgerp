@@ -421,6 +421,7 @@ class core_Packs extends core_Manager
         // Максиламно време за инсталиране на пакет
         set_time_limit(400);
         
+
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         
         // Имената на пакетите са винаги с малки букви
@@ -428,6 +429,9 @@ class core_Packs extends core_Manager
         
         // Предпазване срещу рекурсивно зацикляне
         if($this->alreadySetup[$pack]) return;
+        
+        // Отбелязваме, че на текущия хит, този пакет е установен
+        $this->alreadySetup[$pack] = TRUE;
         
         // Проверка дали Setup класа съществува
         if(!cls::load($pack . "_Setup", TRUE)) {
@@ -490,7 +494,7 @@ class core_Packs extends core_Manager
             core_Users::forceSystemUser();
             
             // Правим началното установяване
-            $res .= $setup->install() . "</ul>";
+            $res .= $setup->install();
             
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
@@ -507,11 +511,9 @@ class core_Packs extends core_Manager
             $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
             $this->save($rec);
         } else {
-            $res .= "<li>Пропускаме, има налична инсталация";
+            $res .= "<li>Пропускаме, има налична инсталация</li>";
         }
         
-        // Отбелязваме, че на текущия хит, този пакет е установен
-        $this->alreadySetup[$pack] = TRUE;
         
         $res .= "</ul>";
         
