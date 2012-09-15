@@ -83,8 +83,12 @@ class avatar_Plugin extends core_Plugin
     /**
      * Връща html <img> елемент, отговарящ на аватара на потребителя
      */
-    static function getImg($userId, $email = NULL, $width = 100)
+    static function getImg($userId, $email = NULL, $width = NULL)
     {
+        if(!$width) {
+            $width = Mode::is('screenMode', 'narrow') ? 48 : 100;
+        }
+
         if($userId < 0) {
             // Ако става дума за системния потребител
              $imgUrl = sbf('img/100/system.png', '');

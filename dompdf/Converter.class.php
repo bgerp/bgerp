@@ -73,12 +73,12 @@ class dompdf_Converter extends core_Manager
         
         if(!is_dir($d)) {
             if(mkdir($d, 0777, TRUE)) {
-                $msg = "<li style='color:green;'> Директорията <b>{$d}</b> е създадена ({$caption})";
+                $msg = "<li style='color:green;'> Директорията <b>{$d}</b> е създадена ({$caption})</li>";
             } else {
-                $msg = "<li style='color:red;'> Директорията <b>{$d}</b> не може да бъде създадена ({$caption})";
+                $msg = "<li style='color:red;'> Директорията <b>{$d}</b> не може да бъде създадена ({$caption})</li>";
             }
         } else {
-            $msg = "<li> Директорията <b>{$d}</b> съществува от преди ({$caption})";
+            $msg = "<li> Директорията <b>{$d}</b> съществува от преди ({$caption})</li>";
         }
         
         $res .= $msg;
