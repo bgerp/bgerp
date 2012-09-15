@@ -793,13 +793,16 @@ class fileman_Files extends core_Master
         $query->where("#bucketId = '{$bucketId}' AND #dataId = '{$dataId}'");
         $query->show('fileHnd, name');
         
+        // Масив с името на файла и разширението
+        $inputFileNameArr = static::getNameAndExt($inputFileName);
+        
         // Обикаляме всички открити съвпадения
         while ($rec = $query->fetch($where)) {
 
             // Ако имената са еднакви
             if ($rec->name == $inputFileName) return $rec->fileHnd;
             
-            $inputFileNameArr = static::getNameAndExt($inputFileName);
+            // Вземаме името на файла и разширението
             $recFileNameArr = static::getNameAndExt($rec->name);
             
             // Намираме името на файла до последния '_'
