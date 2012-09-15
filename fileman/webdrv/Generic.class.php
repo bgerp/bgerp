@@ -518,17 +518,4 @@ class fileman_webdrv_Generic extends core_Manager
             static::createErrorLog($params['dataId'], $params['type']);
         }
     }  
-
-    
-	/**
-     * Връща данните на един файл като стринг
-     */
-    static function getContent($fileHnd)
-    {
-        // Пътя до файла
-//        expect($path = fileman_Files::fetchByFh($fileHnd, 'path'));
-        expect($path = fileman_Download::getDownloadUrl($fileHnd));        
-        
-        return file_get_contents($path);
-    }
 }

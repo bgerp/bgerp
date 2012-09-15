@@ -78,7 +78,7 @@ class fileman_webdrv_Txt extends fileman_webdrv_Office
         $params = unserialize($script->params);
         
         // Вземаме съдържанието на файла
-        $text = static::getContent($params['fileHnd']);
+        $text = fileman_Files::getContent($params['fileHnd']);
         
         // Сериализираме масива и обновяваме данните за записа в fileman_Info
         $rec = new stdClass();
