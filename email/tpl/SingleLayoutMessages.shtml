@@ -55,7 +55,7 @@
 		
 		<!--ET_BEGIN files-->
 		<small>
-			<div class='attachments' style='float:right;'>   
+			<div class='attachments'>   
 				<div class="aHeader">|Прикачени файлове|*:</div>
 				<div style='display:inline-block; margin:5px'>[#files#]</div>
 			</div>
