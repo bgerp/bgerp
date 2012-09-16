@@ -251,7 +251,13 @@ class doc_Threads extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if(empty($rec->firstContainerId)) return;
-        $docProxy = doc_Containers::getDocument($rec->firstContainerId);
+
+        try {
+            $docProxy = doc_Containers::getDocument($rec->firstContainerId);
+        } catch (core_Exception_Expect $expect) {
+
+            return;
+        }
         
         $docRow = $docProxy->getDocumentRow();
         
