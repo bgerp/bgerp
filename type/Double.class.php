@@ -113,7 +113,7 @@ class type_Double extends core_Type {
      */
     function toVerbal($value)
     {
-        if(empty($value)) return NULL;
+        if(!isset($value)) return NULL;
         
         setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
         

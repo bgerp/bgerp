@@ -51,14 +51,19 @@ class type_Datetime extends type_Date {
                 $date = $value['d'];
                 $time = $value['t'];
             } else {
-                list($date, $time) = explode(' ', dt::mysql2verbal($value, 'd-m-Y G:i:s'));
+                list($date, $time) = explode(' ', $value);
+                $date = dt::mysql2verbal($date, 'd-m-Y');
+                list($h, $m, $s) = explode(':', $time);
+                if($s == '00') {
+                    $time = "{$h}:{$m}";
+                }
             }
         }
         
         $attr['size'] = 10;
         $attr['value'] = $date;
         $input = $this->dt->renderInput($name . '[d]', NULL, $attr);
-        $attr['size'] = 5;
+        $attr['size'] = 6;
         $input->append('&nbsp;');
         $attr['value'] = $time;
         $input->append($this->createInput($name . '[t]', NULL, $attr));
@@ -72,18 +77,21 @@ class type_Datetime extends type_Date {
      */
     function fromVerbal($value)
     {
-        
         if(!is_array($value)) return NULL;
         
         if(!trim($value['d'])) return NULL;
         
-        $value = dt::verbal2mysql(trim(trim($value['d']) . ' ' . trim($value['t'])));
+        $val1 = dt::verbal2mysql(trim(trim($value['d']) . ' ' . trim($value['t'])));
         
-        $val = dt::verbal2mysql(dt::mysql2verbal($value));
+        $val2 = dt::verbal2mysql(dt::mysql2verbal($val1));
+        
 
-        if($value == $val) {
+        if($val1 == $val2) {
+            if(!trim($value['t'])) {
+                $val1 = str_replace(' 00:00:00', '', $val1);
+            }
             
-            return $value;
+            return $val1;
         } else {
              $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y G:i') . "</B>'";
             
