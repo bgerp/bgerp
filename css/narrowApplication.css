@@ -712,6 +712,8 @@ ul.history {
 	padding: 0;
 	margin: 0;
 	list-style: none;
+	white-space:nowrap;
+	display:inline-block;
 }
 
 ul.history.summary {
@@ -724,10 +726,13 @@ ul.history li {
 	margin: 3px 0;
 	padding: 2px 0;
 	line-height: 1.2;
+	display: inline-block;
+	margin-left:10px;
 }
 
 ul.history.summary li span {
     color: #333;
+	display:block;
 }
 
 ul.history b {
@@ -739,9 +744,11 @@ ul.history b {
 	font-weight: bold;
 }
 
+ 
 ul.history .action.send b {
     background-color:green;	
 }
+
 .action._received b {
     background-color:blue;
     color: white;
@@ -1126,4 +1133,32 @@ a.profile.executive {
 a.profile.contractor {
     background-color:#922;
     color:white;
+}
+
+/*
+ * Хипервръзки към профилите на потребители
+ */
+a.profile {
+    padding:2px;
+    border-radius:2px;
+}
+
+a.profile.ceo {
+	color:blue;
+}
+
+a.profile.manager {
+	color:#009999;
+}
+
+a.profile.officer {
+	color:green;
+}
+
+a.profile.executive {
+	color:#aa6600;
+}
+
+a.profile.contractor {
+	color:#f00;
 }

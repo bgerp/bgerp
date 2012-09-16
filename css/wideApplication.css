@@ -1678,23 +1678,21 @@ a.profile {
 }
 
 a.profile.ceo {
-	background-color:#66a;
-	color:white;
+	color:blue;
 }
 
 a.profile.manager {
-	background-color:#ffc;
+	color:#009999;
 }
 
 a.profile.officer {
-	background-color:#dfd;
+	color:green;
 }
 
 a.profile.executive {
-	background-color:#ddd;
+	color:#aa6600;
 }
 
 a.profile.contractor {
-	background-color:#922;
-	color:white;
+	color:#f00;
 }
