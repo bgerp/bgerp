@@ -733,7 +733,8 @@ ul.history li {
 ul.history.summary li span {
     color: #333;
 	display:block;
-	padding-top:5px;
+	padding-top:8px;
+	font-size:0.8em;
 }
 
 ul.history b {
