@@ -55,6 +55,7 @@ class cal_Setup
         $managers = array(
             'cal_Calendar',
             'cal_Tasks',
+            'cal_TaskProgresses',
             'cal_Holidays',
         );
         

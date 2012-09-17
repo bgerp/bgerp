@@ -33,7 +33,12 @@ class cal_Tasks extends core_Master
      */
     var $groupByDateField = 'timeStart';
     
-    
+
+    /**
+     * Какви детайли има този мастер
+     */
+    var $details = 'cal_TaskProgresses';
+
     /**
      * Заглавие
      */
@@ -212,7 +217,7 @@ class cal_Tasks extends core_Master
         $data->query = self::getQuery();
         
         // Подготвяме полетата за показване
-        $data->listFields = 'timeStart,title';
+        $data->listFields = 'timeStart,title,progress';
         
         // Подготвяме формата за филтриране
         // $this->prepareListFilter($data);
@@ -220,6 +225,7 @@ class cal_Tasks extends core_Master
         $now = dt::verbal2mysql();
         
         $data->query->where("#sharedUsers LIKE '%|{$userId}|%' AND (#timeStart < '{$now}' || #timeStart IS NULL)");
+        $data->query->where("#state = 'active'");
         $data->query->orderBy("timeStart=DESC");
         
         // Подготвяме навигацията по страници
@@ -235,7 +241,6 @@ class cal_Tasks extends core_Master
         
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
-
         
         $tpl = new ET("
             [#PortalPagerTop#]
@@ -266,6 +271,17 @@ class cal_Tasks extends core_Master
     static function on_AfterSave($mvc, &$id, $rec)
     {
         $mvc->updateTaskToCalendar($rec->id);
+    }
+
+
+    /**
+     *
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if($data->rec->state == 'active') {
+            $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
+        }
     }
 
 

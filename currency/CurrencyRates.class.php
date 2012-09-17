@@ -64,6 +64,8 @@ class currency_CurrencyRates extends core_Manager
     {
         $euroId = $this->Currencies->fetchField("#code='EUR'", 'id');
         
+        $this->data = new stdClass();
+
         $this->data->rates = array();
         $XML = simplexml_load_file("http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml");
         $now = $XML->Cube->Cube['time']->__toString();
