@@ -427,6 +427,7 @@ class core_Mvc extends core_FieldSet
 
         if (count($fields) > 0) {
             foreach ($fields as $name => $caption) {
+                expect($name);
                 if (!$row->{$name} && $modelFields[$name]) {
                     //DEBUG::startTimer("GetVerbal");
                     $row->{$name} = $this->getVerbal($rec, $name);

@@ -94,7 +94,7 @@ class type_Percent extends type_Double {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        if (!($this->error)) {
+        if (!($this->error) && isset($value)) {
             $value = (100 * $value) . ' %';
         }
         
