@@ -501,6 +501,15 @@ class core_Html
         } else {
             $attr['class'] = 'button';
         }
+        
+        // Добавяме икона на бутона, ако има
+        if($img = $attr['ef_icon']) {
+            if (!Mode::is('screenMode', 'narrow') ) { 
+                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
+                $attr['class'] .= ' linkWithIcon';  
+            }
+            unset($attr['ef_icon']);
+        }
 
         $btn = ht::createElement('input', $attr);
 
@@ -536,6 +545,15 @@ class core_Html
         }
 
         $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
+        
+        // Добавяме икона на бутона, ако има
+        if($img = $attr['ef_icon']) {
+            if (!Mode::is('screenMode', 'narrow') ) { 
+                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
+                $attr['class'] .= ' linkWithIcon';  
+            }
+            unset($attr['ef_icon']);
+        }
 
         $btn = ht::createElement('input', $attr);
 

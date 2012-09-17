@@ -207,8 +207,7 @@ table.listTable>thead>tr>th {
 
 .toolbar{
 	display:block;
-	width:100%;
-}
+ }
 
 .listFilter {
 	padding-bottom:5px; 

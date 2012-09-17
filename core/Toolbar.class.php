@@ -155,9 +155,26 @@ class core_Toolbar extends core_BaseClass
             // Показваме бутони 
             $btnCnt = 0;
             
-            // Сортираме бутоните
-            arr::order($this->buttons);
+            foreach($this->buttons as $k => $b) {
+                if(Mode::is('screenMode', 'narrow')) {
+                    if($b->order > 100) {
+                        $this->buttons[$k]->order = $b->order - 100;
+                    }
+                }
+            }
             
+            // Сортираме бутоните
+            arr::order($this->buttons);            
+ 
+            $attr = array('id' => $this->id);
+            
+            ht::setUniqId($attr);
+
+            $rowId = $attr['id'];
+
+            $toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW1#]</div>" . 
+                "<!--ET_BEGIN ROW2--><div style='margin-top:10px;' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
+ 
             foreach ($this->buttons as $id => $btn) {
                 
                 $attr = $btn->attr;
@@ -172,24 +189,26 @@ class core_Toolbar extends core_BaseClass
                     }
                 }
                 
+                $place = ($btn->order < 100) ? 'ROW1' : 'ROW2';
+
                 if ($btn->type == 'submit') {
-                    $toolbar->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr));
+                    $toolbar->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr), $place);
                 } elseif ($btn->type == 'function') {
-                    $toolbar->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr));
+                    $toolbar->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);
                 } else {
-                    $toolbar->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr));
+                    $toolbar->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr), $place);
                 }
                 
                 $btnCnt++;
             }
             
-            if($this->id) {
-                $id = " id='{$this->id}'";
-            } else {
-                $id = '';
+            if($place == 'ROW2') {
+                // $toolbar->append("<a href=\"javascript:toggleDisplay('Row2_{$rowId}')\" style=\"font-weight:bold; background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\"linkWithIcon\">Още...</a>", "ROW1");
+
+                $toolbar->append(ht::createFnBtn('Още...', "toggleDisplay('Row2_{$rowId}');", NULL, 'ef_icon=img/16/toggle-expand.png'), "ROW1");
             }
-            $toolbar->prepend("<div class='clearfix21 toolbar'{$id}>");
-            $toolbar->append('</div>');
+
+            
         } else {
             // Показваме селект меню
             $options['default'] = tr('Действие') . ' »';
