@@ -47,7 +47,11 @@ class bgerp_plg_GroupByDate extends core_Plugin
 
                 if($res->day) $res->day .= ', ';
                 
-                $res->day .= dt::mysql2verbal($rec->{$field}, $format);
+                if($rec->{$field}) {
+                    $res->day .= dt::mysql2verbal($rec->{$field}, $format);
+                } else {
+                    $res->day = tr('Без дата');
+                }
 
                 $res->color = dt::getColorByTime(time() - dt::mysql2timestamp($rec->{$field}));
                 
