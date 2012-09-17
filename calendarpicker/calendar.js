@@ -28,7 +28,7 @@ function initDateInput(inputName, opt)
  
 	if (dateClass.indexOf('combo') == -1) {
 		if(dateInput.tagName == 'INPUT') { 
-			dateInput.style.width = Math.max((dateInput.offsetWidth - dateInputBtn.offsetWidth-7), 20)+'px';
+			dateInput.style.width = Math.max((dateInput.offsetWidth - dateInputBtn.offsetWidth-7), 100)+'px';
 		}
 	} else {
 		dateInput.style.width = (dateInput.offsetWidth - 20)+'px';
