@@ -87,7 +87,7 @@ class crm_Setup
             'crm_Groups',
             'crm_Companies',
             'crm_Persons',
-            'crm_ext_PersonalData',
+            'crm_ext_IdCards',
             'crm_Profiles',
             'crm_Locations',
         );

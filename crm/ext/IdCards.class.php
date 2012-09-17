@@ -1,5 +1,5 @@
 <?php
-class crm_ext_PersonalData extends core_Detail
+class crm_ext_IdCards extends core_Detail
 {
     /**
      * Име на поле от модела, външен ключ към мастър записа
@@ -21,13 +21,13 @@ class crm_ext_PersonalData extends core_Detail
     public function description()
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent');
-        $this->FLD('idCardNumber', 'varchar(16)', 'caption=Лична карта->Номер');
-        $this->FLD('idCardIssuedOn', 'date', 'caption=Лична карта->Издадена на');
-        $this->FLD('idCardExpiredOn', 'date', 'caption=Лична карта->Валидна до');
-        $this->FLD('idCardIssuedBy', 'varchar(64)', 'caption=Лична карта->Издадена от');
+        $this->FLD('idCardNumber', 'varchar(16)', 'caption=Номер');
+        $this->FLD('idCardIssuedOn', 'date', 'caption=Издадена на');
+        $this->FLD('idCardExpiredOn', 'date', 'caption=Валидна до');
+        $this->FLD('idCardIssuedBy', 'varchar(64)', 'caption=Издадена от');
     }
     
-    public static function preparePersonalData($data)
+    public static function prepareIdCard($data)
     {
         if (get_class($data->masterMvc) != 'crm_Persons') {
             // Позволено само за физически лица
@@ -36,26 +36,26 @@ class crm_ext_PersonalData extends core_Detail
         
         expect($data->masterId);
         
-        if(!$data->PersonalData) {
-            $data->PersonalData = new stdClass();
+        if(!$data->IdCard) {
+            $data->IdCard = new stdClass();
         }
 
-        $data->PersonalData->rec = static::fetch("#personId = {$data->masterId}");
-        $data->PersonalData->row = static::recToVerbal($data->PersonalData->rec);
+        $data->IdCard->rec = static::fetch("#personId = {$data->masterId}");
+        $data->IdCard->row = static::recToVerbal($data->IdCard->rec);
         $data->canChange         = static::haveRightFor('edit');
     }
     
-    public static function renderPersonalData($data)
+    public static function renderIdCard($data)
     {
         $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
-        $tpl->append(tr('Лични данни'), 'title');
+        $tpl->append(tr('Лична карта'), 'title');
         
-        $personalDataTpl = new ET(getFileContent('crm/tpl/PersonalData.shtml'));
+        $idCardTpl = new ET(getFileContent('crm/tpl/IdCard.shtml'));
 
         if ($data->canChange && !Mode::is('printing')) {
-            if ($data->PersonalData->rec) {
-                $url = array(get_called_class(), 'edit', $data->PersonalData->rec->id, 'ret_url' => TRUE);
-                $personalDataTpl->placeObject($data->PersonalData->row);
+            if ($data->IdCard->rec) {
+                $url = array(get_called_class(), 'edit', $data->IdCard->rec->id, 'ret_url' => TRUE);
+                $idCardTpl->placeObject($data->IdCard->row);
             } else {
                 $url = array(get_called_class(), 'add', 'personId'=>$data->masterId, 'ret_url' => TRUE);
             }
@@ -69,7 +69,7 @@ class crm_ext_PersonalData extends core_Detail
             );
         }
         
-        $tpl->append($personalDataTpl, 'content');
+        $tpl->append($idCardTpl, 'content');
         
         return $tpl;
     }
@@ -104,6 +104,6 @@ class crm_ext_PersonalData extends core_Detail
 
         $form->setSuggestions('idCardIssuedBy', $mvrSug);
 
-        $data->form->title = 'Лични данни на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
+        $data->form->title = 'Лична карта на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
     }
 }
