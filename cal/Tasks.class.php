@@ -228,10 +228,11 @@ class cal_Tasks extends core_Master
         // Подготвяме записите за таблицата
         self::prepareListRecs($data);
  
-        foreach($data->recs  as   &$rec) {
-             $rec->state = '';
+        if (is_array($data->recs)) {
+            foreach($data->recs  as   &$rec) {
+                 $rec->state = '';
+            }    
         }
-
         
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
