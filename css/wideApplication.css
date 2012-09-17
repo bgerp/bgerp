@@ -350,7 +350,7 @@ div.mobile {
 }
 
 .vertical .formTitle {
-	background-color:#99f !important;
+	background-color:#99f;
 	background-image:url('../img/form.jpg');
 	border:solid 1px #88e;
 	border-bottom:none;
@@ -881,6 +881,15 @@ table.top-table td {
     background-color:transparent !important;
 }
 
+.doc_Containers .toolbar{
+	margin-left:2px;
+	margin-top:5px;
+}
+
+
+.toolbarHide {
+	display:none;
+}
 
 .doc_Containers .thread-opened table.listTable>tbody>tr:hover  {
     background-color:#f4fff4 !important;
