@@ -103,7 +103,7 @@ class cal_Tasks extends core_Master
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/sheduled-task-icon.png';
+    var $singleIcon = 'img/16/task.png';
     
     
     /**
@@ -250,15 +250,124 @@ class cal_Tasks extends core_Master
 
 
     /**
-     *
+     * Проверява и допълва въведените данни от 'edit' формата
      */
     function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
 
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
-     }
+    }
     
+
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_AfterSave($mvc, &$id, $rec)
+    {
+        $mvc->updateTaskToCalendar($rec->id);
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {        
+        foreach($query->getDeletedRecs() as $id => $rec) {
+ 
+            // изтриваме всички записи за тази задача в календара
+            $mvc->updateTaskToCalendar($rec->id);
+        }
+    }
+
+
+    /**
+     * Обновява информацията за задачата в календара
+     */
+    static function updateTaskToCalendar($id)
+    {
+        $rec = static::fetch($id);
+        
+        $events = array();
+        
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+        
+        // Префикс на клучовете за записите в календара от тази задача
+        $prefix = "TSK-{$id}";
+
+        // Подготвяме запис за началната дата
+        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && $rec->state == 'active') {
+            
+            $calRec = new stdClass();
+                
+            // Ключ на събитието
+            $calRec->key = $prefix . '-Start';
+            
+            // Начало на задачата
+            $calRec->time = $rec->timeStart;
+            
+            // Дали е цял ден?
+            $calRec->allDay = $rec->allDay;
+            
+            // Икона на записа
+            $calRec->type  = 'task';
+
+            // Заглавие за записа в календара
+            $calRec->title = "Задача: \"{$rec->title}\"";
+
+            // В чии календари да влезе?
+            $calRec->users = $rec->sharedUsers;
+
+            // Url на задачата
+            $calRec->url = toUrl(array('cal_Tasks', 'Single', $id), 'local'); 
+            
+            $events[] = $calRec;
+        }
+        
+        // Подготвяме запис за Крайния срок
+        if($rec->timeEnd && $rec->timeEnd >= $fromDate && $rec->timeEnd <= $toDate && $rec->state == 'active') {
+            
+            $calRec = new stdClass();
+                
+            // Ключ на събитието
+            $calRec->key = $prefix . '-End';
+            
+            // Начало на задачата
+            $calRec->time = $rec->timeEnd;
+            
+            // Дали е цял ден?
+            $calRec->allDay = $rec->allDay;
+            
+            // Икона на записа
+            $calRec->type  = 'end-date';
+
+            // Заглавие за записа в календара
+            $calRec->title = "Краен срок за \"{$rec->title}\"";
+
+            // В чии календари да влезе?
+            $calRec->users = $rec->sharedUsers;
+
+            // Url на задачата
+            $calRec->url = toUrl(array('cal_Tasks', 'Single', $id), 'local'); 
+            
+            $events[] = $calRec;
+        }
+  
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+    }
+
+
+
+
+
 
     /**
      * Интерфейсен метод на doc_DocumentIntf

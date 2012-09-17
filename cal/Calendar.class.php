@@ -72,6 +72,9 @@ class cal_Calendar extends core_Master
 
         // Дата на събититието
         $this->FLD('time', new type_Datetime(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Време');
+        
+        // Продължителност на събитието
+        $this->FLD('duration', 'time', 'caption=Продължителност');
 
         // Тип на събититето. Той определя и иконата на събититето
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
@@ -202,7 +205,7 @@ class cal_Calendar extends core_Master
     	$lowerType = strtolower($rec->type);
         $url = getRetUrl($rec->url);
         $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf("cal/icons/{$lowerType}.png") . ');';
+        $attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
         $row->event = ht::createLink($row->title, $url, NULL, $attr);
      
         $today     = date('Y-m-d');
