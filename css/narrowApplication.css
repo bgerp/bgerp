@@ -1164,3 +1164,27 @@ a.profile.executive {
 a.profile.contractor {
 	color:#f00;
 }
+
+
+/**
+ * Defnition lists: DL, DT, DD
+ */
+dl {
+    margin: 0 0 0.5em 0;
+}
+
+dl dt {
+    display: block;
+    float: left; 
+    width: 150px;
+    clear: both;
+    text-align: right;
+    color: #888;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+dl dd {
+    margin-left: 155px;
+    margin-right: 0;
+}
