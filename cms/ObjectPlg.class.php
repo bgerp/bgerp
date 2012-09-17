@@ -29,7 +29,7 @@ class cms_ObjectPlg extends core_Plugin
         if(haveRole('cms,admin,ceo')) {
             $data->toolbar->addBtn('Публикуване', 
                     array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id),
-                    'ef_icon=img/16/world_go.png,order=19');
+                    'ef_icon=img/16/world_go.png,order=119');
 
             Request::setProtected('sourceClass,type,sourceId');
         }
