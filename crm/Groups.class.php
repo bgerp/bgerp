@@ -82,10 +82,10 @@ class crm_Groups extends groups_Manager
             'prefix'    => 'Profile',
             'title'     => 'Потребителски Профил',
         ),
-        'personalData' => array(
-            'className' => 'crm_ext_PersonalData',
-            'prefix'    => 'PersonalData',
-            'title'     => 'Лични данни',
+        'idCard' => array(
+            'className' => 'crm_ext_IdCards',
+            'prefix'    => 'IdCard',
+            'title'     => 'Лична карта',
         ),
         'locations' => array(
             'className' => 'crm_Locations',
