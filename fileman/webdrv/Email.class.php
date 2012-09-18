@@ -4,8 +4,6 @@
 /**
  * Родителски клас на всички имейл документи. Съдържа методите по подразбиране.
  *
- * @todo - Имената на html файла и eml файла трябва да се променят както в email_Inocomings->setEmlAndHtmlFileNames
- *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -16,7 +14,7 @@
 class fileman_webdrv_Email extends fileman_webdrv_Generic
 {
     
-
+    
 	/**
      * Връща всички табове, които ги има за съответния файл
      * 
@@ -32,451 +30,204 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        // URL за показване на текстовата част на файловете
-        $textPart = toUrl(array('fileman_webdrv_Email', 'text', $fRec->fileHnd), TRUE);
+        // Инстанция на класа
+        $mime = new email_Mime();
+        
+        // Вземаме съдържанието на eml файла
+        $source = static::getSource($fRec);
+        
+        // Ескейпваме съдържанието (за визуализиране)
+        $sourceEsc = type_Varchar::escape($source);
+        
+        // Очакваме да няма проблем при парсирането
+        expect($emlRec = $mime->getEmail($source));
+
+        // Променяме Id' то на EML и HTML файла
+        static::changeEmlAndHtmlFileId($emlRec);
+        
+        // Вземаме текстовата част
+        $textPart = static::getTextPart($emlRec);
+        
+        // Вземаме HTML частта
+        $htmlPart = static::getHtmlPart($emlRec);
+        
+        // Вземаме хедърите
+        $headersArr = static::getHeaders($mime, $emlRec);
+        $headersStr = type_Varchar::escape($headersArr['string']);
+        
+        // Вземаме линковете към файловете
+        $filesStr = static::getFiles($emlRec);
+       
+        // Подготвяме табовете
+        
+        // Таб за информация
+        $tabsArr['html'] = (object) 
+			array(
+				'title' => 'HTML',
+				'html'  => "<div class='webdrvIframe'> {$htmlPart} </div>",
+				'order' => 1,
+			);
+        
         // Таб за текстовата част
         $tabsArr['text'] = (object) 
 			array(
 				'title' => 'Текст',
-				'html'  => "<div> <iframe src='{$textPart}' class='webdrvIframe'> </iframe> </div>",
+				'html'  => "<div class='webdrvIframe' style='white-space:pre-line;'> {$textPart} </div>",
 				'order' => 2,
 			);
-        
-		$htmlUrl = toUrl(array('fileman_webdrv_Email', 'html', $fRec->fileHnd), TRUE);	
-		// Таб за информация
-        $tabsArr['html'] = (object) 
-			array(
-				'title' => 'HTML',
-				'html'  => "<div> <iframe src='{$htmlUrl}' class='webdrvIframe'> </iframe> </div>",
-				'order' => 4,
-			);
 
-        // URL за показване на преглед на файловете
-        $filesUrl = toUrl(array('fileman_webdrv_Email', 'files', $fRec->fileHnd), TRUE);
         // Таб за преглед
 		$tabsArr['files'] = (object) 
 			array(
 				'title'   => 'Файлове',
-				'html'    => "<div> <iframe src='{$filesUrl}' class='webdrvIframe'> </iframe> </div>",
-				'preview' => 5,
+				'html'    => "<div class='webdrvIframe' style='white-space:pre-line;'> {$filesStr} </div>",
+				'preview' => 3,
 			);
 			
-	    // URL за показване на преглед на файловете
-        $headersUrl = toUrl(array('fileman_webdrv_Email', 'headers', $fRec->fileHnd), TRUE);
-        // Таб за преглед
+		// Таб за хедърите
 		$tabsArr['headers'] = (object) 
 			array(
 				'title'   => 'Хедъри',
-				'html'    => "<div> <iframe src='{$headersUrl}' class='webdrvIframe'> </iframe> </div>",
+				'html'    => "<div class='webdrvIframe' style='white-space:pre-wrap;'> {$headersStr} </div>",
+				'preview' => 4,
+			);
+			
+        // Таб за сорса
+        $tabsArr['source'] = (object) 
+			array(
+				'title'   => 'Сорс',
+				'html'    => "<div class='webdrvIframe' style='white-space:pre-wrap;'> {$sourceEsc} </div>",
 				'preview' => 5,
 			);
 			
         return $tabsArr;
     }
-    
-    
-	/**
-     * Екшън за показване текстовата част на файла
-     */
-    function act_Text()
-    {
-        // Вземаме съдържанието от родителския клас
-        $content = parent::act_Text();
-        
-        // Ако мода ма wrapper' а е page_Waiting връщаме
-        if (Mode::is('wrapper', 'page_Waiting')) {
-            
-            return ;
-        }
-        
-        // Сменяма wrapper'а
-        Mode::set('wrapper', 'page_Html'); // Тук може и да се използва page_PreText за подреден текст
-        
-        // Обработваме съдържанието
-        $content = str_replace("\n\n\n", "\n\n", $content);
-        $richText = new type_Richtext();
-        $content = $richText->toVerbal($content);
-        
-        return $content;
-    }
-    
-    
-	/**
-     * Екшън за показване текстовата част на файла
-     */
-    function act_Files()
-    {
-        // Манупулатора на файла
-        $fileHnd = Request::get('id'); 
-        
-        // Вземаме текста
-        $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'files');
-        
-        // Ако нама такъв запис
-        if ($content === FALSE) {
-            
-            // Сменяме мода на page_Waiting
-            Mode::set('wrapper', 'page_Waiting');
-            
-            return ;
-        }
 
-        // Сменяма wrapper'а да е празна страница
-        Mode::set('wrapper', 'page_PreText');
-        
-        // Връщаме съдържанието
-        return $content;
-    }
     
-    
-	/**
-     * Екшън за показване текстовата част на файла
+    /**
+     * Намира и връща соурса на файла
+     * 
+     * @param fileman_Files $fRec - Обект с данните за съответния файл
+     * 
+     * @return string - Сорса на EML файла
      */
-    function act_Headers()
+    static function getSource($fRec)
     {
-        // Манупулатора на файла
-        $fileHnd = Request::get('id'); 
-        
-        // Вземаме текста
-        $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'headers');
-        
-        // Санитаризираме данните
-        $content = type_Varchar::escape($content);
-        
-        // Ако нама такъв запис
-        if ($content === FALSE) {
-            
-            // Сменяме мода на page_Waiting
-            Mode::set('wrapper', 'page_Waiting');
-            
-            return ;
-        }
-
-        // Сменяма wrapper'а да е празна страница
-        Mode::set('wrapper', 'page_PreText');
-        
-        // Връщаме съдържанието
-        return $content;
+        // Връщаме соурса на файла
+        return fileman_Files::getContent($fRec->fileHnd);
     }
     
     
     /**
-     * Стартира извличането на информациите за файла
+     * Връща текстовата част от файла
      * 
-     * @param object $fRec - Записите за файла
+     * @param object $emlRec - Данните за имейла
      * 
-     * @Override
-     * @see fileman_webdrv_Generic::startProcessing
+     * return string - Текстовата част
      */
-    static function startProcessing($fRec) 
+    static function getTextPart($emlRec)
     {
-        parent::startProcessing($fRec);
-        static::getTextPart($fRec);
-        static::getHtmlPart($fRec);
-        static::getFiles($fRec);
-        static::getHeaders($fRec);
+        return $emlRec->textPart;
     }
     
     
     /**
-     * Извлича текстовата част от файла
+     * Връща HTML частта от файла
      * 
-     * @param object $fRec - Записите за файла
+     * @param object $emlRec - Данните за имейла
+     * 
+     * return string - HTML частта на файла
      */
-    static function getTextPart($fRec)
+    static function getHtmlPart($emlRec)
     {
-        // Извикваме функцията за стартиране на извличането
-        static::startGettingInfo($fRec, 'afterGetTextPart', 'text');
-    }
-    
-    
-    /**
-     * Извиква се след приключване на извличането на текстовата част
-     * 
-     * @param object $script - Данни необходими за извличането и записването на текста
-     * 
-     * @return TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
-     */
-    static function afterGetTextPart($script)
-    {
-        // Масива с параметрите
-        $params = unserialize($script->params);
-        
-        // Тук парсираме писмото и проверяваме дали не е системно
-        $mime = new email_Mime();
-            
-        // Очакваме да има такъв запис
-        expect($emlRec = $mime->getEmail(fileman_Files::getContent($params['fileHnd'])));
-            
-        // Сериализираме масива и обновяваме данните за записа в fileman_Info
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($emlRec->textPart);
-        $rec->createdBy = $params['createdBy'];
-        
-        // Записваме данните
-        $saveId = fileman_Indexes::save($rec);    
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        if ($saveId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
-        } else {
-
-            // Записваме в лога съобщението за грешка
-            static::createErrorLog($params['dataId'], $params['type']);
-        }
-    }
-    
-
-	/**
-     * Извлича HTML частта от файла
-     * 
-     * @param object $fRec - Записите за файла
-     */
-    static function getHtmlPart($fRec)
-    {
-        // Извикваме функцията за стартиране на извличането
-        static::startGettingInfo($fRec, 'afterGetHtmlPart', 'html');
-    }
-    
-    
-    /**
-     * Извиква се след приключване на извличането на HTML частта
-     * 
-     * @param object $script - Данни необходими за извличането и записването на текста
-     * 
-     * @return TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
-     */
-    static function afterGetHtmlPart($script)
-    {
-        // Масива с параметрите
-        $params = unserialize($script->params);
-        
-        // Тук парсираме писмото и проверяваме дали не е системно
-        $mime = new email_Mime();
-            
-        // Очакваме да има такъв запис
-        expect($emlRec = $mime->getEmail(fileman_Files::getContent($params['fileHnd'])));
-
+        // Манипулатора на html файла
         $htmlFileHnd = fileman_Files::fetchField($emlRec->htmlFile, 'fileHnd');
         
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
-        $html = fileman_Files::getContent($htmlFileHnd);
-        
-        // Сериализираме масива и обновяваме данните за записа в fileman_Info
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($html);
-        $rec->createdBy = $params['createdBy'];
-        
-        // Записваме данните
-        $saveId = fileman_Indexes::save($rec);    
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        
-        if ($saveId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
-        } else {
-
-            // Записваме в лога съобщението за грешка
-            static::createErrorLog($params['dataId'], $params['type']);
-        }
+        return fileman_Files::getContent($htmlFileHnd);
     }
     
     
     /**
-     * Извлича HTML частта от файла
+     * Връща хедърите на имейла
      * 
-     * @param object $fRec - Записите за файла
+     * @param email_Mime $mimeInst - Инстанция към класа
+     * @param object $emlRec - Данните за имейла
+     * @param object $parseHeaders - Дали да се парсират хедърите
+     * 
+     * return array $headersArr - Масив с хедърите
      */
-    static function getFiles($fRec)
+    static function getHeaders($mimeInst, $emlRec, $parseHeaders=FALSE)
     {
-        // Извикваме функцията за стартиране на извличането
-        static::startGettingInfo($fRec, 'afterGetFiles', 'files');
+        // 
+        $emlFileHnd = fileman_Files::fetchField($emlRec->emlFile, 'fileHnd');
+
+        // Вземаме хедърите от EML файла
+        $headersArr = $mimeInst->getHeadersFromEmlFile($emlFileHnd);
+        
+        // Връщаме хедърите
+        return $headersArr;
     }
     
     
     /**
-     * Извиква се след приключване на вземането на файловете
+     * Връща html стринг с прикачените файлове
      * 
-     * @param object $script - Данни необходими за извличането и записването на текста
+     * @param object $emlRec - Данните за имейла
      * 
-     * @return TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
+     * return string - html стринг с прикачените файлове
      */
-    static function afterGetFiles($script)
+    static function getFiles($emlRec)
     {
-        // Масива с параметрите
-        $params = unserialize($script->params);
-        
-        // Тук парсираме писмото и проверяваме дали не е системно
-        $mime = new email_Mime();
-            
-        // Очакваме да има такъв запис
-        expect($emlRec = $mime->getEmail(fileman_Files::getContent($params['fileHnd'])));
-        
+        // Масив с всички прикачени файлове
         $filesArr = type_Keylist::toArray($emlRec->files);
-                
+        
+        // Обхождаме всички файлове и вземаме линк за сваляне
         foreach ($filesArr as $keyD) {
             $filesStr .= fileman_Download::getDownloadLinkById($keyD) . "\n";
         }
         
+        // Ако има html файл, вземаме линк към него
         if($emlRec->htmlFile) {
             $filesStr .= fileman_Download::getDownloadLinkById($emlRec->htmlFile);
         }
         
-        // Сериализираме масива и обновяваме данните за записа в fileman_Info
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($filesStr);
-        $rec->createdBy = $params['createdBy'];
-        
-        // Записваме данните
-        $saveId = fileman_Indexes::save($rec);    
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        if ($saveId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
-        } else {
-
-            // Записваме в лога съобщението за грешка
-            static::createErrorLog($params['dataId'], $params['type']);
-        }
+        // Връщаме стринга
+        return $filesStr;
     }
     
     
     /**
-     * Извлича HTML частта от файла
+     * Променяме id' тата на EML и HTML файловете, да сочат към първия файл
      * 
-     * @param object $fRec - Записите за файла
+     * @param object &$emlRec - Данните за имейла
      */
-    static function getHeaders($fRec)
+    static function changeEmlAndHtmlFileId(&$emlRec)
     {
-        // Извикваме функцията за стартиране на извличането
-        static::startGettingInfo($fRec, 'afterGetHeaders', 'headers');
-    }
-    
-    
-	/**
-     * Извиква се след приключване на вземането на файловете
-     * 
-     * @param object $script - Данни необходими за извличането и записването на текста
-     * 
-     * @return TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
-     */
-    static function afterGetHeaders($script)
-    {
-        // Масива с параметрите
-        $params = unserialize($script->params);
+        // Вземаме данните за HTML файла
+        $htmlFileRec = fileman_Files::fetch($emlRec->htmlFile);
         
-        // Тук парсираме писмото и проверяваме дали не е системно
-        $mime = new email_Mime();
+        // Намираме първия запис
+        if ($firstHtmlFileRec = fileman_Files::fetch("#dataId = '{$htmlFileRec->dataId}' AND name != '{$htmlFileRec->name}'")) {
             
-        // Очакваме да има такъв запис
-        expect($emlRec = $mime->getEmail(fileman_Files::getContent($params['fileHnd'])));
-        $emlFileHnd = fileman_Files::fetchField($emlRec->emlFile, 'fileHnd');
-        
-        // Вземаме хедърите от EML файла
-        $headersArr = $mime->getHeadersFromEmlFile($emlFileHnd);
-        
-        // Сериализираме масива и обновяваме данните за записа в fileman_Info
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($headersArr['string']);
-        $rec->createdBy = $params['createdBy'];
-        
-        // Записваме данните
-        $saveId = fileman_Indexes::save($rec);    
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        //$mime->parseAll($emlFileContent);
-        
-        if ($saveId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
-        } else {
-
-            // Записваме в лога съобщението за грешка
-            static::createErrorLog($params['dataId'], $params['type']);
+            // Изтриваме текущия HTML файл
+            fileman_Files::delete($emlRec->htmlFile);
+            
+            // Променяме id' то да е на пътвия запис
+            $emlRec->htmlFile = $firstHtmlFileRec->id;
         }
-    }
-    
-    
-    
-    
-    
-    /**
-     * 
-     * @param object $fRec - Записите за файла
-     * @param string $func - Функцията, която да се стартира
-     * @param string $type $type - Типа на записа, който ще се извлече
-     * 
-     * @access protected
-     */
-    static function startGettingInfo($fRec, $func, $type)
-    {
-        // Параметри необходими за конвертирането
-        $params = array(
-//            'callBack' => 'fileman_webdrv_Email::$func',
-            'dataId' => $fRec->dataId,
-//        	'asynch' => TRUE,
-            'createdBy' => core_Users::getCurrent('id'),
-            'type' => $type,
-            'fileHnd' => $fRec->fileHnd,
-        );
         
-        // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
-        // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        // Вземаме данните за EML файла
+        $emlFileRec = fileman_Files::fetch($emlRec->emlFile);
         
-        // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+        // Намираме първия запис
+        if ($firstEmlFileRec = fileman_Files::fetch("#dataId = '{$emlFileRec->dataId}' AND name != '{$emlFileRec->name}'")) {
             
-            $script = new stdClass();
-            $script->params = serialize($params);
+            // Изтриваме текущия HTML файл
+            fileman_Files::delete($emlRec->emlFile);
             
-            // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
-            static::$func($script);    
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
+            // Променяме id' то да е на пътвия запис
+            $emlRec->emlFile = $firstEmlFileRec->id;
         }
     }
 }
