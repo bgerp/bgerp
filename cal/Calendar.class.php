@@ -441,6 +441,79 @@ class cal_Calendar extends core_Master
 
     
     /**
+     * Функция извеждаща броя на работните, неработните и празничните дни в един месец
+     */
+    function calculateDays($month, $year)
+    {
+    
+    	// Ако е въведен несъществуващ месец или година, взима текущите данни
+        if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
+            $year = date('Y');
+            $month = date('n');
+            
+        }
+        
+        // Таймстамп на първия ден в месеца
+        $timestamp = strtotime("$year-$month-01");
+        
+        // Броя на дните в месеца (= на последната дата в месеца);
+        $lastDay = date('t', $timestamp);
+    
+       for($i = 1; $i <= $lastDay; $i++) {
+            $t = mktime(0, 0, 0, $month, $i, $year);
+            $monthArr[date('W', $t)][date('N', $t)] = $i;
+            
+        }
+        
+        // Начална дата
+        $from = "{$year}-{$month}-01 00:00:00";
+        
+        // Крайна дата
+        $to = "{$year}-{$month}-{$lastDay} 00:00:00";
+
+        $monthEvent = array();
+      
+    	$query = self::getQuery();
+        
+    	$holiday = $nonWorking = $workday = 0;
+    	
+        while($rec = $query->fetch("#time >= '{$from}' AND #time <= '{$to}'")) {
+            
+	        if($rec->type == "holiday"){
+	        		$holiday++;
+	        	} elseif ($rec->type == "non-working"){
+	        		$nonWorking++;
+	        	} elseif($rec->type == "workday"){
+	        		$workday++;
+	        		
+	        	}
+	    }
+	  
+               $satSun = 0;
+               
+        	   foreach ($monthArr as $dayWeek){
+		        	foreach($dayWeek as $k=>$day){
+		        		if($k == 6 || $k == 7){
+		        			$satSun++;
+		        		}
+		        	}
+               }
+      
+        $allHolidays = $satSun - $workday + $nonWorking + $holiday;
+        $allWoking = $lastDay - $allHolidays;
+           
+        $statusArr = array();
+        $statusArr['working'] = $allWoking;
+        $statusArr['nonWorking'] = $allHolidays;
+        $statusArr['holiday'] = $holiday;
+        
+        return $statusArr;
+           
+    }
+
+    
+    
+    /**
      *
      */
     function act_Day()
