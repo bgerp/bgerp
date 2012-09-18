@@ -90,6 +90,10 @@ class oembed_Plugin extends core_Plugin
             'regex' => '#picasaweb\.google\.com/.+#i',
             'api' => 'http://api.embed.ly/1/oembed',
             'example' => ''),
+        'Slideshare' => array (
+            'regex' => '#slideshare\.net/.+#i',
+            'api' => 'http://www.slideshare.net/api/oembed/2',
+            'example' => ''),
         'Vbox7' => array (
             'regex' => '#vbox7.com/play:.+#i',
             'api' => 'http://vbox7.com/etc/oembed/',

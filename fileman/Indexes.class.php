@@ -199,6 +199,29 @@ class fileman_Indexes extends core_Manager
      */
     static function getInfoContentByFh($fileHnd, $type)
     {
+        // Записите за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Вземаме разширението на файла, от името му
+        $ext = fileman_Files::getExt($fRec->name);
+        
+        // Масив с всички драйвери
+        $drivers = static::getDriver($ext);
+        
+        // Обхождаме намерените драйверо
+        foreach ($drivers as $driver) {
+            
+            // Проверяваме дали имат съответния метод
+            if (method_exists($driver, 'getInfoContentByFh')) {
+                
+                // Вземамем съдържанието
+                $content = $driver::getInfoContentByFh($fileHnd, $type);
+                
+                // Ако открием съдържание, връщаме него
+                if ($content !== FALSE) return $content;
+            }
+        }
+        
         // Определяме dataId от манупулатора
         $dataId = fileman_Files::fetchByFh($fileHnd, 'dataId');
         
