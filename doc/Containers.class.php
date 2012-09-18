@@ -142,6 +142,7 @@ class doc_Containers extends core_Manager
         // Потребител
         if($folderRec->inCharge) {
             $user = core_Users::fetchField($folderRec->inCharge, 'nick');
+            $user = crm_Profiles::createLink($user, $folderRec->inCharge);
         } else {
             $user = '@system';
         }
@@ -239,18 +240,38 @@ class doc_Containers extends core_Manager
         
         if ($rec->createdBy > 0) {
             $row->created = crm_Profiles::createLink($row->created, $rec->createdBy);
-         }
-        
-        $row->created = new ET("<div style='text-align:center;'><div style='text-align:left;display:inline-block;'><div style='font-size:0.8em;margin-top:5px;margin-left:10px;'>[#3#]</div>
-                                            <div style='font-size:0.8em;margin:5px;margin-bottom:10px;margin-left:10px;'>[#1#]</div>
-                                            <div style='margin:10px;'>[#2#]</div>[#4#]</div></div>",
-            $mvc->getVerbal($rec, 'createdOn'),
-            $avatar,
-            $row->created);
-            
-        // визуализиране на обобщена информация от лога
-        $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), '4');
+        }
+
+        if(Mode::is('screenMode', 'narrow')) {
+            $row->created = new ET("<table style='margin-left:5px;margin-top:10px;margin-bottom:7px;' ><tr><td rowspan='2' valign='top' style='white-space:nowrap;'>[#2#]</td><td nowrap style='padding-top:2px;'>[#3#]</td><td rowspan='2' style='width:50%'>[#HISTORY#]</td></tr><tr><td nowrap>[#1#]</td></tr></table>",
+                $mvc->getVerbal($rec, 'createdOn'),
+                $avatar,
+                $row->created);
                 
+            // визуализиране на обобщена информация от лога
+            $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
+            $row->document->prepend($row->created);
+        } else {
+
+        
+            $row->created = new ET("<div style='text-align:center;'><div style='text-align:left;display:inline-block;'><div style='font-size:0.8em;margin-top:5px;margin-left:10px;'>[#3#]</div>
+                                                <div style='font-size:0.8em;margin:5px;margin-bottom:10px;margin-left:10px;'>[#1#]</div>
+                                                <div style='margin:10px;'>[#2#]</div>[#4#]</div></div>",
+                $mvc->getVerbal($rec, 'createdOn'),
+                $avatar,
+                $row->created);
+                
+            // визуализиране на обобщена информация от лога
+            $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), '4');
+        }
+                
+    }
+
+    function on_BeforeRenderListTable($mvc, $tpl, $data)
+    {   
+        if(Mode::is('screenMode', 'narrow')) {
+            $data->listFields = array('document' => 'Документ');
+        }
     }
     
     
@@ -525,8 +546,12 @@ class doc_Containers extends core_Manager
     static function getDocTitle($id) 
     {
         $doc = static::getDocument($id, 'doc_DocumentIntf');
-
-        $docRow = $doc->getDocumentRow();
+        
+        try {
+            $docRow = $doc->getDocumentRow();
+        }  catch (core_Exception_Expect $expect) {
+            $title = '?????????????????????????????????????';
+        }
 
         $title = $docRow->title;
 

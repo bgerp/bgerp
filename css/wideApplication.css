@@ -268,6 +268,13 @@ div.crmImage {
 	padding:18px 0px 8px 8px;float:right;
 }
 
+/**
+ * Defnition lists: DL, DT, DD
+ */
+dl {
+	margin: 0 0 0.5em 0;
+}
+
 dl dt {
 	display: block;
 	float: left; 
@@ -275,7 +282,13 @@ dl dt {
 	clear: both;
 	text-align: right;
 	color: #888;
-	margin-right: 0.5em;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+dl dd {
+	margin-left: 155px;
+	margin-right: 0;
 }
  
 .quiet { color: #888;  font-size: 0.9em; }
@@ -350,7 +363,7 @@ div.mobile {
 }
 
 .vertical .formTitle {
-	background-color:#99f !important;
+	background-color:#99f;
 	background-image:url('../img/form.jpg');
 	border:solid 1px #88e;
 	border-bottom:none;
@@ -881,6 +894,15 @@ table.top-table td {
     background-color:transparent !important;
 }
 
+.doc_Containers .toolbar{
+	margin-left:2px;
+	margin-top:5px;
+}
+
+
+.toolbarHide {
+	display:none;
+}
 
 .doc_Containers .thread-opened table.listTable>tbody>tr:hover  {
     background-color:#f4fff4 !important;
@@ -1667,4 +1689,32 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	font-size:12px;
 	font-weight:bold;
 	margin-left:60px;
+}
+
+/*
+ * Хипервръзки към профилите на потребители
+ */
+a.profile {
+    padding:2px;
+    border-radius:2px;
+}
+
+a.profile.ceo {
+	color:blue;
+}
+
+a.profile.manager {
+	color:#009999;
+}
+
+a.profile.officer {
+	color:green;
+}
+
+a.profile.executive {
+	color:#aa6600;
+}
+
+a.profile.contractor {
+	color:#f00;
 }

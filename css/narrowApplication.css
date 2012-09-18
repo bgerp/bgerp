@@ -706,10 +706,14 @@ input.contactData {
 }
 
 
+
+
 ul.history {
 	padding: 0;
 	margin: 0;
 	list-style: none;
+	white-space:nowrap;
+	display:inline-block;
 }
 
 ul.history.summary {
@@ -722,10 +726,15 @@ ul.history li {
 	margin: 3px 0;
 	padding: 2px 0;
 	line-height: 1.2;
+	display: inline-block;
+	margin-left:10px;
 }
 
 ul.history.summary li span {
     color: #333;
+	display:block;
+	padding-top:8px;
+	font-size:0.8em;
 }
 
 ul.history b {
@@ -737,6 +746,7 @@ ul.history b {
 	font-weight: bold;
 }
 
+ 
 ul.history .action.send b {
     background-color:green;	
 }
@@ -756,6 +766,11 @@ ul.history .action.print b {
 ul.history .action.open b {
     background-color:#ccc;
 	color: #333;
+}
+
+ul.history .action.pdf b {
+    background-color:#888;
+	color: #fff;
 }
 
 ul.history .detailed b {
@@ -812,6 +827,9 @@ fieldset.sharing-history i {
 	color: #888;
 	font-size: 0.9em;
 }
+
+
+
 
 
 /* CMS */
@@ -1089,3 +1107,84 @@ fieldset.sharing-history i {
 	min-height: 300px;
 }
 
+/*
+ * Хипервръзки към профилите на потребители
+ */
+a.profile {
+    padding:2px;
+    border-radius:2px;
+}
+
+a.profile.ceo {
+    background-color:#66a;
+    color:white;
+}
+
+a.profile.manager {
+    background-color:#ffc;
+}
+
+a.profile.officer {
+    background-color:#dfd;
+}
+
+a.profile.executive {
+    background-color:#ddd;
+}
+
+a.profile.contractor {
+    background-color:#922;
+    color:white;
+}
+
+/*
+ * Хипервръзки към профилите на потребители
+ */
+a.profile {
+    padding:2px;
+    border-radius:2px;
+}
+
+a.profile.ceo {
+	color:blue;
+}
+
+a.profile.manager {
+	color:#009999;
+}
+
+a.profile.officer {
+	color:green;
+}
+
+a.profile.executive {
+	color:#aa6600;
+}
+
+a.profile.contractor {
+	color:#f00;
+}
+
+
+/**
+ * Defnition lists: DL, DT, DD
+ */
+dl {
+    margin: 0 0 0.5em 0;
+}
+
+dl dt {
+    display: block;
+    float: left; 
+    width: 150px;
+    clear: both;
+    text-align: right;
+    color: #888;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+dl dd {
+    margin-left: 155px;
+    margin-right: 0;
+}

@@ -96,13 +96,17 @@ class bgerp_Setup {
         $Packs = cls::get('core_Packs');
         
         foreach(arr::make($packs) as $p) {
-            if(cls::load("{$p}_Setup", TRUE)) {
-                $html .= $Packs->setupPack($p);
-            } else {
-                $html .= "<li style='color:red;'>Липсващ инсталатор {$p}_Setup</li>";
-            }
+             $html .= $Packs->setupPack($p);
         }
         
+        $pQuery = $Packs->getQuery();
+        
+        while($pRec = $pQuery->fetch()) {
+            if(!$Packs->alreadySetup[$pRec->name]) {
+                $html .= $Packs->setupPack($pRec->name);
+            }
+        }
+
         //TODO в момента се записват само при инсталация на целия пакет
         
         //Зарежда данни за инициализация от CSV файл за acc_Lists

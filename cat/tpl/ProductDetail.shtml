@@ -1,0 +1,7 @@
+<fieldset class='detail-info' style='margin-bottom:10px;' id="[#DetailName#]">
+	<legend class='groupTitle'>[#TITLE#]</legend>
+
+	<div class='groupList'>
+	    [#CONTENT#]
+	</div>
+</fieldset>

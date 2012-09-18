@@ -1,0 +1,13 @@
+<dl>
+    <dt>Номер</dt>
+    <dd>[#idCardNumber#]&nbsp;</dd>
+
+    <dt>Издадена на</dt>
+    <dd>[#idCardIssuedOn#]&nbsp;</dd>
+
+    <dt>Издадена от</dt>
+    <dd>[#idCardIssuedBy#]&nbsp;</dd>
+
+    <dt>Валидна до</dt>
+    <dd>[#idCardExpiredOn#]&nbsp;</dd>
+</dl>

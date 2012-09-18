@@ -95,6 +95,8 @@ class bgerp_Menu extends core_Manager
         $cacheKey = 'menuObj_' . core_Lg::getCurrent();
 
         core_Cache::remove('Menu', $cacheKey);
+
+        $mvc->savedItems[$rec->id] = TRUE;
     }
     
 
@@ -377,15 +379,40 @@ class bgerp_Menu extends core_Manager
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
         
+        $rec->id = $this->fetchField(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #createdBy = -1", $menu, $subMenu), 'id');
+        
+        if(!$rec->id) {
+            $rec->id = $this->fetchField(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1", $ctr, $act), 'id');
+        }
+
         // expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
         
+        $oldId = $rec->id;
+
         $id = $this->save($rec, NULL, 'IGNORE');
         
-        if($id) {
-            return "<li style='color:green;'> Добавен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
+        if($oldId) {
+            return "<li style='color:#600;'> Обновен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
         } else {
-            return "<li style='color:red;'> Eлементa на менюто \"{$rec->menu} » {$rec->subMenu}\" не бе добавен, поради дублиране</li>";
+            if($id) {
+                return "<li style='color:green;'> Добавен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
+            } else {
+                return "<li style='color:red;'> Eлементa на менюто \"{$rec->menu} » {$rec->subMenu}\" не бе добавен, поради дублиране</li>";
+            }
         }
+    }
+
+    function removeUnsavedItems()
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch("#createdBy = 0")) {
+            if(!$this->savedItems[$rec->id]) {
+                $this->delete($rec->id);
+                $res .= "<li style='color:green;'> Премахнат е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
+            }
+        }
+
+        return $res;
     }
     
     
@@ -415,18 +442,7 @@ class bgerp_Menu extends core_Manager
         }
     }
     
-    
-    /**
-     * Изтриване на елементите на менюто, които са поставени от системния потребител
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        $cnt = $mvc->delete('#createdBy = -1');
         
-        $res .= "<li style='color:green;'>Бяха изтрити {$cnt} записа от менюто на системата";
-    }
-    
-    
     /**
      * Премахване на пакет от менюто
      */

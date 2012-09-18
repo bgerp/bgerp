@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_Files extends core_Detail
+class cat_products_Files extends cat_products_Detail
 {
     
     
@@ -31,7 +31,7 @@ class cat_products_Files extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, file,description';
+    var $listFields = 'file,description,tools';
     
     
     /**
@@ -44,6 +44,8 @@ class cat_products_Files extends core_Detail
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = 'cat_Products';
+    
+    var $rowToolsField = 'tools';
     
     
     /**
@@ -74,21 +76,16 @@ class cat_products_Files extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar(core_Manager $mvc, $data)
     {
-        $data->toolbar->removeBtn('*');
-        
-        $data->toolbar->addBtn('Нов Файл',
-            array(
+        if ($mvc->haveRightFor('add')) {
+            $data->addUrl = array(
                 $mvc,
                 'add',
                 'productId'=>$data->masterId,
-                'ret_url'=>TRUE
-            ),
-            array(
-                'class' => 'btn-add'
-            )
-        );
+                'ret_url'=>getCurrentUrl() + array('#'=>get_class($mvc))
+            );
+        }
     }
     
     
@@ -103,15 +100,34 @@ class cat_products_Files extends core_Detail
         $form->title = "Файл към|* {$productName}";
     }
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_AfterRenderDetail($mvc, &$tpl, $data)
+    public function renderDetail_($data)
     {
-        $tpl = new ET("<br><div style='display:inline-block;margin-top:10px;'>
-                       <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'><b>Файлове</b></div>
-                       <div>[#1#]</div>
-                       </div>", $tpl);
+        $tpl = new ET(getFileContent('cat/tpl/products/Files.shtml'));
+        
+        if ($data->addUrl) {
+            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+            $tpl->append($addBtn, 'TITLE');
+        }
+        
+        foreach($data->rows as $row) {
+            $block = $tpl->getBlock('row');
+            $block->placeObject($row);
+            
+            $block->append2Master();
+        }
+            
+        return $tpl;
+    }
+    
+
+    public static function prepareFiles($data)
+    {
+        static::prepareDetail($data);
+    }
+    
+    
+    public static function renderFiles($data)
+    {
+        return static::renderDetail($data);
     }
 }

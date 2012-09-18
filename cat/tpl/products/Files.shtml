@@ -1,0 +1,14 @@
+<div class="product-files">
+<!--ET_BEGIN row-->
+    <div class="file" style="clear: both;">
+        <div style="float: left;">[#file#]</div>
+        <div style="float: left;">[#tools#]</div>
+        
+        <!--ET_BEGIN description-->
+        <p style="clear: both; padding-left: 22px;" class="quiet">
+            [#description#]
+        </p>
+        <!--ET_END description-->
+    </div>
+<!--ET_END row-->
+</div>

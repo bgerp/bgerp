@@ -72,6 +72,9 @@ class cal_Calendar extends core_Master
 
         // Дата на събититието
         $this->FLD('time', new type_Datetime(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Време');
+        
+        // Продължителност на събитието
+        $this->FLD('duration', 'time', 'caption=Продължителност');
 
         // Тип на събититето. Той определя и иконата на събититето
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
@@ -202,7 +205,7 @@ class cal_Calendar extends core_Master
     	$lowerType = strtolower($rec->type);
         $url = getRetUrl($rec->url);
         $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf("cal/icons/{$lowerType}.png") . ');';
+        $attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
         $row->event = ht::createLink($row->title, $url, NULL, $attr);
      
         $today     = date('Y-m-d');
@@ -330,7 +333,7 @@ class cal_Calendar extends core_Master
         }
 
         // Добавяне на първия хедър
-        $currentMonth = tr(dt::$months[$month-1]) . ", " . $year;
+        $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
 
         $pm = $month-1;
         if($pm == 0) {
@@ -339,7 +342,7 @@ class cal_Calendar extends core_Master
         } else {
             $py = $year;
         }
-        $prevMonth = tr(dt::$months[$pm-1]) . ", " .$py;
+        $prevMonth = tr(dt::$months[$pm-1]) . " " .$py;
 
         $nm = $month+1;
         if($nm == 13) {
@@ -348,7 +351,7 @@ class cal_Calendar extends core_Master
         } else {
             $ny = $year;
         }
-        $nextMonth = tr(dt::$months[$nm-1]) . ", " .$ny;
+        $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
         
         $link = $_SERVER['REQUEST_URI'];
         $nextLink = Url::addParams($link, array('cal_month' => $nm, 'cal_year' => $ny));

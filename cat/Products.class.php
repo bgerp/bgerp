@@ -32,13 +32,22 @@ class cat_Products extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
-                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select';
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select, 
+                     groups_Extendable';
+
     
+    /**
+     * Име на полето с групите, в които се намира продукт. Използва се от groups_Extendable
+     * 
+     * @var string
+     */
+    var $groupsField = 'groups';
+
     
     /**
      * Детайла, на модела
      */
-    var $details = 'cat_products_Params, cat_products_Packagings, cat_products_Files';
+    var $details = '';
     
     
     /**

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends core_Manager
+class cat_Groups extends groups_Manager
 {
     
     
@@ -75,6 +75,31 @@ class cat_Groups extends core_Manager
      * Кой има право да го изтрие?
      */
     var $canDelete = 'admin,acc';
+
+
+    /**
+     * Допустими екстендери
+     *
+     * @var array
+     * @see getExtenders
+     */
+    protected $extendersArr = array(
+        'packagings' => array(
+            'className' => 'cat_products_Packagings',
+            'prefix' => 'Packagings',
+            'title' => 'Опаковки',
+        ),
+        'parameters' => array(
+            'className' => 'cat_products_Params',
+            'prefix'    => 'Params',
+            'title'     => 'Параметри',
+        ),
+        'files' => array(
+            'className' => 'cat_products_Files',
+            'prefix'    => 'Files',
+            'title'     => 'Файлове',
+        ),
+    );
     
     
     /**

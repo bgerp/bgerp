@@ -12,14 +12,8 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_Packagings extends core_Detail
+class cat_products_Packagings extends cat_products_Detail
 {
-    
-    
-    /**
-     * Име на поле от модела, външен ключ към мастър записа
-     */
-    var $masterKey = 'productId';
     
     
     /**
@@ -73,10 +67,16 @@ class cat_products_Packagings extends core_Detail
      */
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if (count($mvc::getPackagingOptions($data->masterId)) > 0) {
-            $data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId, 'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
-        } else {
-            $data->toolbar->removeBtn('btnAdd');
+        $data->toolbar->removeBtn('*');
+        
+        if ($mvc->haveRightFor('add') && count($mvc::getPackagingOptions($data->masterId)) > 0) {
+        //    $data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId, 'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
+            $data->addUrl = array(
+                $mvc,
+                'add',
+                'productId'=>$data->masterId,
+                'ret_url'=>getCurrentUrl() + array('#'=>get_class($mvc))
+            );
         }
     }
     
@@ -156,15 +156,25 @@ class cat_products_Packagings extends core_Detail
         return $options;
     }
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_AfterRenderDetail($mvc, &$tpl, $data)
+
+    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
-        $tpl = new ET("<div style='display:inline-block;margin-top:10px;'>
-                       <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'><b>Опаковки</b></div>
-                       <div>[#1#]</div>
-                       </div>", $tpl);
+        if ($data->addUrl) {
+            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+            $tpl->append($addBtn, 'TITLE');
+        }
+    }
+    
+    
+    public static function preparePackagings($data)
+    {
+        static::prepareDetail($data);
+    }
+    
+    
+    
+    public function renderPackagings($data)
+    {
+        return static::renderDetail($data);
     }
 }

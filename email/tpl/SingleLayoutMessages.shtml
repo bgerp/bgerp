@@ -14,14 +14,15 @@
 	<!-- END Заглавие -->                     
 	
 	<div  class='clearfix21 antetka'>
-		<div style='float:left;'>  <small>   
-			<table cellspacing='1' class='top-table' >
-			<!--ET_BEGIN subject-->          
-				<tr>
-				    <td  align='right'>|Относно|*:</td>
-				    <td style='max-width:600px;'><b>[#subject#]</b></td>
-				</tr>
+		
+		  <!--ET_BEGIN subject-->          
+				<div style='margin-bottom:10px;'>
+				     Относно: <b>[#subject#]</b>
+				</div>
 			<!--ET_END subject-->
+			<div style='float:left;margin-right:10px;'>
+			<small>   
+			<table cellspacing='1' class='top-table' >
 			<!--ET_BEGIN toBox-->          
 				<tr>
 				    <td  align='right'>|До|*:</td>
@@ -36,7 +37,7 @@
 			<!--ET_END to-->
 			<!--ET_BEGIN date-->          
 				<tr>
-				    <td align='right'>|Време|*:</td>
+				    <td align='right'>|На|*:</td>
 				    <td>[#date#]</td>
 				</tr>
 			<!--ET_END date-->
@@ -52,11 +53,13 @@
 		</div>    
 		
 		
-		<!--ET_BEGIN files--> <small>
+		<!--ET_BEGIN files-->
+		<small>
 			<div class='attachments'>   
 				<div class="aHeader">|Прикачени файлове|*:</div>
 				<div style='display:inline-block; margin:5px'>[#files#]</div>
-			</div> </small>
+			</div>
+		</small>
 		<!--ET_END files--> 
 	
 	
