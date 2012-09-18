@@ -102,7 +102,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 			
         return $tabsArr;
     }
-
+    
     
     /**
      * Намира и връща соурса на файла
@@ -229,5 +229,43 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             // Променяме id' то да е на пътвия запис
             $emlRec->emlFile = $firstEmlFileRec->id;
         }
+    }
+
+    
+    /**
+     * Връща десериализараната информация за съответния файл и съответния тип
+     * 
+     * @param fileHandler $fileHnd - Манипулатор на файла
+     * @param string $type - Типа на файла
+     * 
+     * @return mixed $content - Десериализирания стринг
+     */
+    static function getInfoContentByFh($fileHnd, $type)
+    {
+        // Записите за съответния файл
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Инстанция на класа
+        $mime = new email_Mime();
+        
+        // Очакваме да няма проблем при парсирането
+        expect($emlRec = $mime->getEmail(static::getSource($fRec)));
+        
+        // В зависимост от типа пускаме различни методи
+        switch ($type) {
+            
+            // Ако ни трябва текстовата част
+            case 'text':
+                $content = static::getTextPart($emlRec);
+            break;
+            
+            default:
+                
+                // Ако типа не съществува, връщаме FALSE
+                return FALSE;
+            break;
+        }
+        
+        return $content;
     }
 }
