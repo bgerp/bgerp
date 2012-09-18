@@ -64,26 +64,29 @@ class cal_TaskProgresses extends core_Detail
     {
         // id на задачата
         $this->FLD('taskId', 'key(mvc=cal_Tasks,select=title)', 'caption=Задача,input=hidden,silent,column=none');
-
-        // Статус съобщение
-        $this->FLD('message',    'varchar(128)', 'caption=Статус,width=100%');
-        
+       
         // Каква част от задачата е изпълнена?
         $this->FLD('progress', 'percent(min=0,max=1,decimals=0)',     'caption=Прогрес');
-        
+
         // Колко време е отнело изпълнението?
-        $this->FLD('workingTime', 'time',     'caption=Отработено време');
+        $this->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)',     'caption=Отработено време');
+        
+        // Статус съобщение
+        $this->FLD('message',    'richtext(rows=5)', 'caption=Съобщение,width=300px');
     }
 
 
     /**
-     *
+     * 
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {   
-        if($data->form->rec->taskId) {
-            $masterRec = cal_Tasks::fetch($data->form->rec->taskId);
-        }
+        expect($data->form->rec->taskId);
+
+        $masterRec = cal_Tasks::fetch($data->form->rec->taskId);
+
+        $data->form->title = "|Прогрес по|* \"" . type_Varchar::escape($masterRec->title) . "\"";
+    
 
         $progressArr[''] = '';
 
@@ -105,8 +108,8 @@ class cal_TaskProgresses extends core_Detail
             return NULL;
         }
         
-        $tpl = new ET('<style>.portal table.listTable {width:auto !important;}</style><div class="clearfix21 portal" style="margin-bottom:10px;background-color:transparent;">
-                            <div class="legend" style="background-color:#fff;font-size:0.9em;padding:2px;color:black;margin-top:-30px;">Прогрес</div>
+        $tpl = new ET('<style>.portal table.listTable {width:auto !important;}</style><div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
+                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black;margin-top:-30px;">Прогрес</div>
                                 <div class="listRows">
                                 [#TABLE#]
                                 </div>

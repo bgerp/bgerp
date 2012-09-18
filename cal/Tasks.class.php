@@ -25,7 +25,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, bgerp_plg_GroupByDate, doc_SharablePlg';
+    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg';
     
 
     /**
@@ -54,7 +54,7 @@ class cal_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, timeStart=Начало, repeat=Повторение, timeNextRepeat';
+    var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
     
     
     /**
@@ -135,7 +135,7 @@ class cal_Tasks extends core_Master
                                     critical=критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4');
         $this->FLD('description',      'richtext', 'caption=Описание,mandatory');
-        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=names)', 'caption=Отговорници,mandatory');
+        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Отговорници,mandatory');
         
         // Начало на задачата
         $this->FLD('timeStart', 'datetime', 'caption=Времена->Начало');
@@ -184,9 +184,12 @@ class cal_Tasks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $blue = new color_Object("#3366ff");
+        $grey = new color_Object("#bbb");
+
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
-        $row->progressBar = "<div style='display:inline-block;top:-5px;border-bottom:solid 10px #33f;width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px #cc9;width:{$progressRemainPx}px;'> </div>";
+        $row->progressBar = "<div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'> </div>";
         
         if($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
             $rec->remainingTime = round((dt::mysql2timestamp($rec->timeEnd) - time()) / 60) * 60;
@@ -197,6 +200,11 @@ class cal_Tasks extends core_Master
                  $row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
             }
         }
+ 
+      
+        $grey->setGradient($blue, $rec->progress);
+ 
+        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
     }
 
 
@@ -239,6 +247,10 @@ class cal_Tasks extends core_Master
                  $rec->state = '';
             }    
         }
+
+        $Tasks = cls::get('cal_Tasks');
+
+        $Tasks->load('bgerp_plg_GroupByDate');
         
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
