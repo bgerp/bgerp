@@ -38,7 +38,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Преглед',
 				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Преглед</legend> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
-				'preview' => 1,
+				'order' => 1,
 			);
         
         // URL за показване на текстовата част на файловете

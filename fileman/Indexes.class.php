@@ -119,7 +119,7 @@ class fileman_Indexes extends core_Manager
 
         // Подреждаме масивити според order
         $tabsArr = static::orderTabs($tabsArr);
-        
+
         // Текущия таб, ако не е зададен или ако няма такъв е първия
         $currentTab = $tabsArr[$data->currentTab] ? $data->currentTab : key($tabsArr);
 
@@ -127,7 +127,7 @@ class fileman_Indexes extends core_Manager
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
         
         // Обикаляме всички табове
-        foreach($data->tabs as $name => $rec) {
+        foreach($tabsArr as $name => $rec) {
             
             // Ако е текущия таб таб
             if($name == $currentTab) {
@@ -249,7 +249,9 @@ class fileman_Indexes extends core_Manager
      */
     static function orderTabs($tabsArr)
     {
-        // TODO
+        // Подреждаме масива
+        core_Array::orderA($tabsArr);
+
         return $tabsArr;
     }
  }

@@ -81,7 +81,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Файлове',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Прикачените файлове</legend>{$filesStr}</fieldset></div>",
-				'preview' => 3,
+				'order' => 3,
 			);
 			
 		// Таб за хедърите
@@ -89,7 +89,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Хедъри',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Хедърите на имейла</legend>{$headersStr}</fieldset></div>",
-				'preview' => 4,
+				'order' => 4,
 			);
 			
         // Таб за сорса
@@ -97,7 +97,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Сорс',
 				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Сорса на имейла</legend>{$sourceShow}</fieldset></div>",
-				'preview' => 5,
+				'order' => 5,
 			);
 			
         return $tabsArr;
