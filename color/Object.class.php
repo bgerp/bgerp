@@ -157,6 +157,30 @@ class color_Object {
         $this->g = min(round($this->g * $rate + $add), 255);
         $this->b = min(round($this->b * $rate + $add), 255);
     }
+
+
+    /**
+     *
+     */
+    function setGradient($color, $rate)
+    {
+        $dR = $this->r - $color->r;
+        $dG = $this->g - $color->g;
+        $dB = $this->b - $color->b;
+
+        $this->r = round($this->r - $rate * $dR);
+        $this->g = round($this->g - $rate * $dG);
+        $this->b = round($this->b - $rate * $dB);
+    }
+
+
+    /**
+     *
+     */
+    function __toString()
+    {
+        return $this->getHex();
+    }
     
     
     /**
