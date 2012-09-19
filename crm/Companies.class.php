@@ -77,7 +77,7 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected, plg_Printing,
-                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select';
+                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select, groups_Extendable';
     
     
     /**
@@ -132,6 +132,17 @@ class crm_Companies extends core_Master
      * @var crm_Groups
      */
     var $Groups;
+    
+    
+    /**
+     * Поле на модела съдържащо списък с групите, в които е включена фирмата.
+     * 
+     * Използва се от плъгина @link groups_Extendable 
+     * 
+     * @see groups_Extendable
+     * @var string
+     */
+    var $groupsField = 'groupList';
     
     
     /**
