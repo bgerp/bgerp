@@ -30,17 +30,13 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        // URL за показване на преглед на файловете
-        $previewUrl = toUrl(array('fileman_webdrv_Pdf', 'preview', $fRec->fileHnd), TRUE);
-    
-        $url = fileman_Download::getDownloadUrl($fRec->fileHnd);;
+        // Вземаме превюто на файла
+        $preview = static::getThumbPrev($fRec);
         
-        $img = "<img src='{$url}' alt=''>";
-
         // Таб за преглед
 		$tabsArr['preview'] = new stdClass();
         $tabsArr['preview']->title = 'Преглед';
-        $tabsArr['preview']->html = "<div style='padding:10px; border:solid 1px #ccc; background-color:#eee;min-height:600px;'> {$img} </div>";
+        $tabsArr['preview']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Преглед</legend> {$preview} </fieldset></div>";
         $tabsArr['preview']->order = 1;
         
         // URL за показване на текстовата част на файловете
@@ -49,7 +45,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Таб за текстовата част
 		$tabsArr['text'] = new stdClass();
         $tabsArr['text']->title = 'Текст';
-        $tabsArr['text']->html = "<div> <iframe src='{$textPart}' class='webdrvIframe'> </iframe> </div>";
+        $tabsArr['text']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Текст</legend><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></fieldset></iframe></div>";
         $tabsArr['text']->order = 2;
         
         return $tabsArr;
@@ -278,6 +274,46 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         }
     }
 
-
-
+    
+    /**
+     * Връща шаблон с превюто на файла
+     * 
+     * @param object $fRec - Записите за файла
+     * 
+     * @return core_Et - Шаблон с превюто на файла
+     */
+    static function getThumbPrev($fRec)
+    {
+        //Вземема конфигурационните константи
+        $conf = core_Packs::getConfig('fileman');
+        
+        // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
+        if (mode::is('screenMode', 'narrow')) {
+            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH_NARROW;
+            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT_NARROW;
+        } else {
+            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH;
+            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
+        }
+        
+        //Размера на thumbnail изображението
+        $size = array($thumbWidth, $thumbHeight);
+        
+        // Атрибути на thumbnail изображението
+        $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '', 'style' => 'margin: 5px auto; display: block;');
+        
+        // Background' а на preview' то
+        $bgImg = sbf('fileman/img/Preview_background.jpg');
+        
+        // Създаваме шаблон за preview на изображението
+        $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div>");
+        
+        //Създаваме тумбнаил с параметрите
+        $thumbnailImg = thumbnail_Thumbnail::getImg($fRec->fileHnd, $size, $attr);
+        
+        // Добавяме към preview' то генерираното изображение
+        $preview->append($thumbnailImg, 'THUMB_IMAGE');
+        
+        return $preview;
+    }
 }
