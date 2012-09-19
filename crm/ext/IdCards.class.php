@@ -96,6 +96,8 @@ class crm_ext_IdCards extends core_Detail
 
         $mvrQuery = drdata_Mvr::getQuery();
 
+        $mvrSug[''] = '';
+        
         while($mvrRec = $mvrQuery->fetch()) {
             $mvrName = 'МВР - ';
             $mvrName .= drdata_Mvr::getVerbal($mvrRec, 'city');
