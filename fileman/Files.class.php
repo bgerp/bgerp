@@ -648,25 +648,6 @@ class fileman_Files extends core_Master
         
         // Добавяме табовете в шаблона
         $tpl->append($fileInfo, 'fileDetail');
-        
-//        return ;
-        
-        
-        // Разширението на файла
-        $ext = self::getExt($data->rec->name);
-
-        // Проверяваме дали разширението, предлага preview на файла
-        if (in_array($ext, array(''))) {
-
-        } elseif( in_array($ext, array('html', 'htm')) ) { 
-            $dUrl = fileman_Download::getDownloadUrl($data->rec->fileHnd);
-            $preview = new ET("<fieldset style='max-width:900px;'><legend>Преглед</legend><iframe src='{$dUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' style='width:100%; min-height:600px;border:solid 0px transparent;'></iframe></fieldset>");
-        } elseif( in_array($ext, array('eml')) ) {
-
-        }
-        
-        // Добаваме preview' то към шаблона
-        $tpl->append($preview);   
     }
     
     
