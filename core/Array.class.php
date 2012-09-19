@@ -177,6 +177,26 @@ class core_Array
                 return $a->{$field} > $b->{$field} ? 1 : -1;
             });
     }
+    
+    
+	/**
+     * Сортира масив от обекти по тяхното поле 'order' и запазва ключа
+     */
+    static function orderA(&$array, $field = 'order')
+    {
+        uasort($array, function($a, $b) use ($field) {
+            
+            // Ако липсва да се подредят най накрая
+//            if (!isset($a->$field)) return 1;
+//            if (!isset($a->$field)) return -1;
+            
+//            if($a->{$field} == $b->{$field})  return 0;
+            // Ако има 2 елемента с еднакви стойности, първия срещнат да си остане първи
+            if($a->{$field} == $b->{$field})  return 1;
+
+            return $a->{$field} > $b->{$field} ? 1 : -1;
+        });
+    }
 
 
     /**
