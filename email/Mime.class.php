@@ -614,8 +614,9 @@ class email_Mime extends core_BaseClass
     
     /**
      * Конвертира към UTF-8 текст
+     * @todo $subtype не се използва никъде
      */
-    function convertToUtf8($str, $charset, $subtype)
+    function convertToUtf8($str, $charset=NULL, $subtype=NULL)
     {
         if ($this->is7Bit($str)) {
             // Тук трябва да има магическа функция, която да разпознае
