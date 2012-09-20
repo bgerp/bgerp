@@ -110,12 +110,10 @@ class cal_Holidays extends core_Master
         $this->FLD('title', 'varchar', 'caption=Празник->Заглавие,export');
         $this->FLD('type', 'enum(0=&nbsp;,
         								holiday=Празник,
-        								non-classes-working=Неучебен-работен,
-                                        non-working=Неработен,
+        								non-working=Неработен,
                                         workday=Отработване,
                                         orthodox=Православен,
                                         muslim=Мюсюлмански,
-                                        foreign=Чуждестранен,
                                         international=Международен,
                                         AU=Австралия,
 										AT=Австрия,
@@ -287,6 +285,23 @@ class cal_Holidays extends core_Master
         // Префикс на клучовете за рожденните дни на това лице
         $prefix = "HOLIDAY-";
         
+         $queryCountry = drdata_Countries::getQuery();
+         $code2Cards = array();
+         
+                $card = self::bCards();
+                
+                foreach($card as $id=>$persons){
+                	foreach($persons as $key => $person){
+                		$recCountry = drdata_Countries::fetch("#id = '{$id}'");
+                		
+                		//Array[двубуквен код на държавата][потребителско id]
+                		$code2Cards[$recCountry->letterCode2][$key] = TRUE;
+                	
+                	}
+                }
+               
+           
+        
         $query = self::getQuery();
 
         while($rec = $query->fetch()) {
@@ -297,7 +312,7 @@ class cal_Holidays extends core_Master
             	
             	$key = $rec->key;
                 
-                // Ако събитието има година и тя не е текъщата разглеждана, то пропускаме
+                // Ако събитието има година и тя не е текущата разглеждана, то пропускаме
                 if($rec->year && ($rec->year != $year)) continue;
                            
                 if($rec->base == 'EST') {
@@ -315,20 +330,31 @@ class cal_Holidays extends core_Master
                     $delta = -1;
                 }
                 
+             
+                
                 $calRec = new stdClass();
                
                 $calRec->key    = $prefix . $rec->key . $year;
                 $calRec->time   = date('Y-m-d', $base + 24*60*60*($delta + $rec->day));
                 $calRec->type   = $rec->type;
-                if($calRec->type == 'nameday') {
+                /*if($calRec->type == 'nameday') {
                     $calRec->type = 'orthodox';
-                }
+                }*/
                 $calRec->allDay = 'yes';
                 $calRec->title  = self::getVerbal($rec, 'title');
                 if(strlen($rec->type) == 2) {
                     $calRec->title = self::getVerbal($rec, 'type') . ': ' . $calRec->title;
                 }
-                $calRec->users  = '';
+                
+	              foreach($code2Cards as $code2 => $users){
+	                 	if($rec->type == $code2){
+		             
+	                 		// Потребителите имащи право да виждат този празник са keylist
+		               		$calRec->users = type_Keylist::fromArray($users);
+		               	
+		               	}
+	              }
+                
                 $calRec->url    = toUrl(array('cal_Holidays', 'single', $rec->id), 'local');
                 
                      
@@ -477,6 +503,23 @@ class cal_Holidays extends core_Master
         if($base = $data->listFilter->rec->base){
             $data->query->where("#base = '{$base}'");
         }
+    }
+    
+    /**
+     * Функция, която връща array[кода на държавата][потребителско id имащо собственост тази държава]
+     */
+    function bCards ()
+    {
+    	
+    	$cards = array();
+        $query = crm_Persons::getQuery();
+    	    	
+    	while($rec = $query->fetch()){
+    	
+    		$cards[$rec->country][$rec->id] = TRUE;
+    			
+    	}
+         	return $cards;
     }
 
 }

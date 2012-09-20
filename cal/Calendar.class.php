@@ -165,6 +165,7 @@ class cal_Calendar extends core_Master
         $data->query->orderBy("#time=ASC,#priority=DESC");
         
         if($from = $data->listFilter->rec->from) {
+        	
             $data->query->where("#time >= date('$from')");
         }
     }
@@ -481,7 +482,7 @@ class cal_Calendar extends core_Master
         $monthEvent = array();
       
     	$query = self::getQuery();
-        
+
     	$holiday = $nonWorking = $workday = 0;
     	
         while($rec = $query->fetch("#time >= '{$from}' AND #time <= '{$to}'")) {
@@ -518,7 +519,15 @@ class cal_Calendar extends core_Master
            
     }
 
+    function act_Test()
+    {
+    	$m = 9;
+    	$y = 2012;
     
+    	$days = self::calculateDays($m, $y);
+    	
+    	expect ($days['working'] == 18 && $days['nonWorking'] == 12 && $days['holiday'] == 2, 'Greshka');
+    }
     
     /**
      *
