@@ -49,7 +49,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $textPart = static::getTextPart($emlRec);
         
         // Вземаме HTML частта
-        $htmlPart = static::getHtmlPart($emlRec);
+        $htmlPart = static::getHtmlPart($mime, $emlRec);
         
         // Вземаме хедърите
         $headersArr = static::getHeaders($mime, $emlRec);
@@ -138,7 +138,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * 
      * return string - HTML частта на файла
      */
-    static function getHtmlPart($emlRec)
+    static function getHtmlPart($mime, $emlRec)
     {
         // Ако липсва HTML част
         if (!$emlRec->htmlFile) return ;
@@ -147,7 +147,12 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $htmlFileHnd = fileman_Files::fetchField($emlRec->htmlFile, 'fileHnd');
         
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
-        return fileman_Files::getContent($htmlFileHnd);
+        $htmlPart = fileman_Files::getContent($htmlFileHnd);
+        
+        // Декодираме го
+        $decoded = $mime->convertToUtf8($htmlPart);
+        
+        return $decoded;
     }
     
     
