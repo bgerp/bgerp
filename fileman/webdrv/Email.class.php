@@ -140,6 +140,9 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      */
     static function getHtmlPart($emlRec)
     {
+        // Ако липсва HTML част
+        if (!$emlRec->htmlFile) return ;
+        
         // Манипулатора на html файла
         $htmlFileHnd = fileman_Files::fetchField($emlRec->htmlFile, 'fileHnd');
         
