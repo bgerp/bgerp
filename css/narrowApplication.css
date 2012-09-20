@@ -1100,9 +1100,19 @@ fieldset.sharing-history i {
 	)
 }
 	
-.webdrvIframe {
+.webdrvTabBody {
 	max-width: 600px;
 	min-width: 400px;
+	min-height: 300px;
+}
+
+.webdrvIframe {
+	width:100%;
+	min-height:300px;
+	border:solid 0px transparent;
+}
+
+.webdrvFieldset {
 	min-height: 300px;
 }
 

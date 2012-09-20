@@ -24,7 +24,7 @@ class crm_ext_IdCards extends core_Detail
         $this->FLD('idCardNumber', 'varchar(16)', 'caption=Номер');
         $this->FLD('idCardIssuedOn', 'date', 'caption=Издадена на');
         $this->FLD('idCardExpiredOn', 'date', 'caption=Валидна до');
-        $this->FLD('idCardIssuedBy', 'varchar(64)', 'caption=Издадена от');
+        $this->FLD('idCardIssuedBy', 'varchar', 'caption=Издадена от');
     }
     
     public static function prepareIdCard($data)
@@ -96,6 +96,8 @@ class crm_ext_IdCards extends core_Detail
 
         $mvrQuery = drdata_Mvr::getQuery();
 
+        $mvrSug[''] = '';
+        
         while($mvrRec = $mvrQuery->fetch()) {
             $mvrName = 'МВР - ';
             $mvrName .= drdata_Mvr::getVerbal($mvrRec, 'city');

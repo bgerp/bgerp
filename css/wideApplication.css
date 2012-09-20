@@ -1494,9 +1494,19 @@ h2 {
     padding: 1px 7px 2px;
 }
 
-.webdrvIframe {
+.webdrvTabBody {
 	max-width: 900px;
 	min-width: 800px;
+	min-height: 600px;
+}
+
+.webdrvIframe {
+	width:100%;
+	min-height:600px;
+	border:solid 0px transparent;
+}
+
+.webdrvFieldset {
 	min-height: 600px;
 }
 
