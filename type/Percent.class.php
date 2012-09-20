@@ -51,6 +51,10 @@ class type_Percent extends type_Double {
      */
     function fromVerbal($value)
     {
+        if(!strlen($value)) {
+
+            return NULL;
+        }
         //Преобразува в невербална стойност
         $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
             ' <dot> ', ' [dot] ', ' (dot) ', ' {dot} ');
@@ -100,4 +104,13 @@ class type_Percent extends type_Double {
         
         return parent::renderInput_($name, $value, $attr);
     }
+
+        /**
+     * @todo Чака за документация...
+     */
+    function getCellAttr()
+    { 
+        return 'align="right" nowrap';
+    }
+
 }
