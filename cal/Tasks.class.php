@@ -133,7 +133,7 @@ class cal_Tasks extends core_Master
                                     normal=нормален,
                                     high=висок,
                                     critical=критичен)', 
-            'caption=Приоритет,mandatory,maxRadio=4,columns=4');
+            'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
         $this->FLD('description',      'richtext', 'caption=Описание,mandatory');
         $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Отговорници,mandatory');
         
@@ -184,7 +184,7 @@ class cal_Tasks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $blue = new color_Object("#3366ff");
+        $blue = new color_Object("#2244cc");
         $grey = new color_Object("#bbb");
 
         $progressPx = min(100, round(100 * $rec->progress));
@@ -275,6 +275,10 @@ class cal_Tasks extends core_Master
         $rec = $form->rec;
 
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
+
+        if($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
+            $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
+        }
     }
     
 
@@ -333,7 +337,7 @@ class cal_Tasks extends core_Master
         $prefix = "TSK-{$id}";
 
         // Подготвяме запис за началната дата
-        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && $rec->state == 'active') {
+        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed')) {
             
             $calRec = new stdClass();
                 
@@ -355,6 +359,9 @@ class cal_Tasks extends core_Master
             // В чии календари да влезе?
             $calRec->users = $rec->sharedUsers;
 
+            // Какъв да е приоритета в числово изражение
+            $calRec->priority = self::getNumbPriority($rec);
+
             // Url на задачата
             $calRec->url = toUrl(array('cal_Tasks', 'Single', $id), 'local'); 
             
@@ -362,7 +369,7 @@ class cal_Tasks extends core_Master
         }
         
         // Подготвяме запис за Крайния срок
-        if($rec->timeEnd && $rec->timeEnd >= $fromDate && $rec->timeEnd <= $toDate && $rec->state == 'active') {
+        if($rec->timeEnd && $rec->timeEnd >= $fromDate && $rec->timeEnd <= $toDate && ($rec->state == 'active' || $rec->state == 'closed') ) {
             
             $calRec = new stdClass();
                 
@@ -383,6 +390,9 @@ class cal_Tasks extends core_Master
 
             // В чии календари да влезе?
             $calRec->users = $rec->sharedUsers;
+            
+            // Какъв да е приоритета в числово изражение
+            $calRec->priority = self::getNumbPriority($rec) - 1;
 
             // Url на задачата
             $calRec->url = toUrl(array('cal_Tasks', 'Single', $id), 'local'); 
@@ -394,7 +404,34 @@ class cal_Tasks extends core_Master
     }
 
 
+    /**
+     * Връща приоритета на задачата за отразяване в календара
+     */
+    static function getNumbPriority($rec)
+    {
+        if($rec->state == 'active') {
 
+            switch($rec->priority) {
+                case 'low':
+                    $res = 100;
+                    break;
+                case 'normal':
+                    $res = 200;
+                    break;
+                case 'high':
+                    $res = 300;
+                    break;
+                case 'critical':
+                    $res = 400;
+                    break;
+            }
+        } else {
+
+            $res = 0;
+        }
+
+        return $res;
+    }
 
 
 

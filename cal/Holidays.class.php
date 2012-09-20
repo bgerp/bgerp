@@ -57,6 +57,16 @@ class cal_Holidays extends core_Master
     var $singleLayoutFile = 'cal/tpl/SingleLayoutHolidays.shtml';
 
     var $canWrite = 'no_one';
+
+
+    static $priorities = array(
+        'holiday' => 79,
+        'international' => 78,
+        'bg' => 77,
+        'non-working' => 76,
+        'workday' => 75,
+        'orthodox' => 74,
+        'muslim' => 73);
     
     /**
      * Описание на модела (таблицата)
@@ -320,6 +330,13 @@ class cal_Holidays extends core_Master
                 }
                 $calRec->users  = '';
                 $calRec->url    = toUrl(array('cal_Holidays', 'single', $rec->id), 'local');
+                
+                     
+                $calRec->priority = self::$priorities[$rec->type];
+
+                if(!$calRec->priority) {
+                    $calRec->priority = 71;
+                }
                
                 $events[] = $calRec;
             }

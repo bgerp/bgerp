@@ -671,7 +671,6 @@ class crm_Persons extends core_Master
                 $calRec->type = 'birthday';
                 $calRec->allDay = 'yes';
                 
-
                 if($y > 0) {
                     $calRec->title = $rec->name . " на " . ($year - $y) . " г.";
                 } else {
@@ -682,10 +681,12 @@ class crm_Persons extends core_Master
 
                 $calRec->url = toUrl(array('crm_Persons', 'Single', $id), 'local');
 
+                $calRec->priority = 90;
+
                 $events[] = $calRec;
             }
         }
- 
+
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
 

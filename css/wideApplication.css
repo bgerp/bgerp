@@ -607,7 +607,6 @@ option.team {
 .portal table.listTable td {
 	border:none !important;
 	border-top:dotted 1px #ccc !important;
-	text-align:left;
 	vertical-align:top !important;
 }
 

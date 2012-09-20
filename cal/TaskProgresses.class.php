@@ -127,12 +127,27 @@ class cal_TaskProgresses extends core_Detail
      */
     static function on_AfterSave($mvc, $id, $rec)
     {
-        $masterRec = cal_Tasks::fetch($rec->taskId);
-        $masterRec->progress = $rec->progress;
-        if($rec->progress == 1) {
-            $masterRec->state = 'closed';
+        $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime,progress,state');
+        
+        // Определяне на прогреса
+        if(isset($rec->progress)) {
+            $tRec->progress = $rec->progress;
+
+            if($rec->progress == 1) {
+                $tRec->state = 'closed';
+            }
         }
-        cal_Tasks::save($masterRec, 'progress,state');
+        
+        // Определяне на отработеното време
+        if(isset($rec->workingTime)) {
+            $query = self::getQuery();
+            $query->where("#taskId = {$tRec->id}");
+            $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
+            $rec = $query->fetch();
+            $tRec->workingTime = $rec->workingTimeSum;
+        }
+
+        cal_Tasks::save($tRec);
     }
 
 }

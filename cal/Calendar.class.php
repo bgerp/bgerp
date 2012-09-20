@@ -85,6 +85,9 @@ class cal_Calendar extends core_Master
         // Заглавие на събитието
         $this->FLD('title', 'varchar', 'caption=Заглавие');
 
+        // Приоритет 1=Нисък, 2=Нормале, 3=Висок, 4=Критичен, 0=Никакъв (приключена задача)
+        $this->FLD('priority', 'int', 'caption=Приоритет,notNull,value=1');
+
         // Локално URL към обект, даващ повече информация за събитието
         $this->FLD('url',  'varchar', 'caption=Url,column=none');
         
@@ -159,7 +162,7 @@ class cal_Calendar extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        $data->query->orderBy("#time=ASC,#type=DESC");
+        $data->query->orderBy("#time=ASC,#priority=DESC");
         
         if($from = $data->listFilter->rec->from) {
             $data->query->where("#time >= date('$from')");
@@ -197,15 +200,18 @@ class cal_Calendar extends core_Master
      * Входният параметър $rec е оригиналният запис от модела
      * резултата е вербалният еквивалент, получен до тук
      */
-    static function recToVerbal($rec)
+    static function recToVerbal(&$rec)
     {
     	
-    	$row = parent::recToVerbal($rec);
+    	$row = parent::recToVerbal_($rec);
 
     	$lowerType = strtolower($rec->type);
         $url = getRetUrl($rec->url);
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
+        if($rec->priority <= 0) {
+            $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
+        }
         $row->event = ht::createLink($row->title, $url, NULL, $attr);
      
         $today     = date('Y-m-d');
@@ -381,7 +387,6 @@ class cal_Calendar extends core_Master
         $state = new stdClass();
         $state->query = self::getQuery();
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
-        $state->query->orderBy("#time=ASC,#type=DESC");
 
         $Calendar = cls::get('cal_Calendar');
         $Calendar->prepareListFields($state);
@@ -431,7 +436,6 @@ class cal_Calendar extends core_Master
         $state = new stdClass();
         $state->query = self::getQuery();
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
-        $state->query->orderBy("#time=ASC,#type=DESC");
 
         $Calendar->prepareListFields($state);
         $Calendar->prepareListRecs($state);
