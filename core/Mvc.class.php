@@ -413,9 +413,11 @@ class core_Mvc extends core_FieldSet
      * Входният параметър $rec е оригиналният запис от модела
      * резултата е вербалният еквивалент, получен до тук
      */
-    function recToVerbal_($rec, &$fields = '*')
+    static function recToVerbal_($rec, &$fields = '*')
     {
-        $modelFields = $this->selectFields("");
+        $me = cls::get(get_called_class());
+
+        $modelFields = $me->selectFields("");
 
         if($fields === '*') {
             $fields = $modelFields;
@@ -430,7 +432,7 @@ class core_Mvc extends core_FieldSet
                 expect($name);
                 if (!$row->{$name} && $modelFields[$name]) {
                     //DEBUG::startTimer("GetVerbal");
-                    $row->{$name} = $this->getVerbal($rec, $name);
+                    $row->{$name} = $me->getVerbal($rec, $name);
 
                     //DEBUG::stopTimer("GetVerbal");
                 }
@@ -444,22 +446,24 @@ class core_Mvc extends core_FieldSet
     /**
      * Превръща стойността на посоченото поле във вербална
      */
-    function getVerbal_($rec, $fieldName)
+    static function getVerbal_($rec, $fieldName)
     {
-        if(is_numeric($rec) && ($rec > 0)) $rec = $this->fetch($rec);
+        $me = cls::get(get_called_class());
+
+        if(is_numeric($rec) && ($rec > 0)) $rec = $me->fetch($rec);
 
         if(!is_object($rec)) return "?????";
 
         expect(is_scalar($fieldName));
 
-        expect($this->fields[$fieldName], 'Не съществуващо поле: ' . $fieldName);
+        expect($me->fields[$fieldName], 'Не съществуващо поле: ' . $fieldName);
 
         $value = $rec->{$fieldName};
 
-        if (is_array($this->fields[$fieldName]->options)) {
-            $res = $this->fields[$fieldName]->options[$value];
+        if (is_array($me->fields[$fieldName]->options)) {
+            $res = $me->fields[$fieldName]->options[$value];
         } else {
-            $res = $this->fields[$fieldName]->type->toVerbal($value);
+            $res = $me->fields[$fieldName]->type->toVerbal($value);
         }
 
         return $res;
