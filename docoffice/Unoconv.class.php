@@ -42,19 +42,8 @@ class docoffice_Unoconv extends core_Manager
         // Разширението да е в дония регистър
         $toExt = strtolower($toExt);
         
-        // Process id' то на office пакета
-        $officePid = docoffice_Office::getStartedOfficePid();
-
-        // Ако не е стартиране
-        if (!$officePid) {    
-            
-            // Стартираме офис пакета
-            docoffice_Office::startOffice();        
-        } else {
-            
-            // Ако е стартиран проверяваме дали не трябва да се рестартира
-            docoffice_Office::checkRestartOffice();
-        }
+        // Стартираме или рестартираме офис пакета
+        docoffice_Office::prepareOffice();
         
         // Константите, които ще използваме
         $conf = core_Packs::getConfig('docoffice');
@@ -72,8 +61,11 @@ class docoffice_Unoconv extends core_Manager
         $Script->setParam('TOEXT', $toExt, TRUE);
         $Script->setParam('UNOCONV', $unoconv, TRUE);
         
+        // Вземаме порта на който слуша офис пакета
+        $port = docoffice_Office::getOfficePort();
+
         // Добавяме към изпълнимия скрипт
-        $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] [#INPUTF#]";
+        $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] -p {$port} [#INPUTF#]";
         
         // Ако е дефиниранеп пътя до PYTHON
         if ($pythonPath) {
@@ -104,7 +96,7 @@ class docoffice_Unoconv extends core_Manager
         
         // Увеличаваме броя на направените конвертирания с единица
         docoffice_Office::increaseConvertCount();
-        
+
         // Стартираме скрипта синхронно
         $Script->run($params['asynch']);
     }
