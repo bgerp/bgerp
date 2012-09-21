@@ -582,7 +582,16 @@ class email_Outgoings extends core_Master
                 "\n" . getFileContent('css/wideApplication.css') . "\n" . $css ;
                 
             $res = '<div id="begin">' . $res->getContent() . '<div id="end">';  
-            $res =  csstoinline_Emogrifier::convert($res, $css);  
+            
+            // Вземаме пакета
+            $conf = core_Packs::getConfig('csstoinline');
+            
+            // Класа
+            $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
+            
+            // Стартираме процеса
+            $res =  $CssToInline::convert($res, $css); 
+             
             $res = str::cut($res, '<div id="begin">', '<div id="end">');
         }
             
