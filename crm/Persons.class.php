@@ -888,10 +888,11 @@ class crm_Persons extends core_Master
      */
     static function prepareNamedays(&$data)
     {   
+    	$currentId = core_Users::getCurrent();
         $query = self::getQuery();
         
         foreach($data->namesArr as $name) { 
-            $query->orWhere("#searchKeywords LIKE ' {$name} %'");
+            $query->orWhere("#searchKeywords LIKE ' {$name} %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')");
         }
         
         $self = cls::get('crm_Persons');
@@ -913,6 +914,7 @@ class crm_Persons extends core_Master
      */
     static function renderNamedays($data)
     {
+    	
         if(!count($data->rows)) return '';
 
         $tpl = new ET("<fieldset class='detail-info'>

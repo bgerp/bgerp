@@ -162,11 +162,14 @@ class cal_Calendar extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+    	$currentId = core_Users::getCurrent();
+    	
         $data->query->orderBy("#time=ASC,#priority=DESC");
         
         if($from = $data->listFilter->rec->from) {
         	
             $data->query->where("#time >= date('$from')");
+            $data->query->fetch("#users = '' OR #users LIKE '|{$currentID}|'");
         }
     }
     

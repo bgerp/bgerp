@@ -452,7 +452,7 @@ class cal_Holidays extends core_Master
             $pData = new stdClass();
 
             $pData->namesArr = self::getLatinNames($row->nameday);
-            
+           
             crm_Persons::prepareNamedays($pData);
             
             $tpl = crm_Persons::renderNamedays($pData);
@@ -475,12 +475,17 @@ class cal_Holidays extends core_Master
      */
     static function getLatinNames($names)
     {
-        $namesArr = explode(',', str::utf2ascii($names));
+    
+        $namesArr = explode(',', str::utf2ascii(strstr($names, '>')));
 
         foreach($namesArr as $n) {
-            $n = strtolower(trim($n));
-            $nArr = explode(' ', $n);
+        	
+            $n = strtolower(trim(substr($n, 1)));
+           
+            $nArr = explode(' ', strstr($n, '<', TRUE));
+          
             $res[$nArr[0]] = $nArr[0];
+
         }
 
         return $res;
