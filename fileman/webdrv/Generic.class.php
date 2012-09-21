@@ -32,8 +32,9 @@ class fileman_webdrv_Generic extends core_Manager
         $tabsArr['info'] = (object) 
 			array(
 				'title' => 'Информация',
-				'html'  => "<div> <iframe src='{$infoUrl}' class='webdrvIframe'> </iframe> </div>",
-				'order' => 4,
+				'html'  => "<div class='webdrvTabBody'><fieldset  class='webdrvFieldset'><legend>Мета информация</legend>
+					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
+				'order' => 9,
 			);
         
         return $tabsArr;

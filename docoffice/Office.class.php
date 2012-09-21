@@ -4,7 +4,7 @@
 /**
  * Пътя до офис пакет
  */
-defIfNot('OFFICE_PACKET_PATH', '/usr/lib/openoffice/program/soffice.bin');
+defIfNot('OFFICE_PACKET_PATH', 'soffice');
 
 
 /**
@@ -36,8 +36,14 @@ class docoffice_Office
         // Заключваме офис пакета
         static::lockOffice(20, 10);
         
+        // Намираме и задаваме порта на офис пакета
+        static::setOfficePort();
+        
+        // Вземаме порта на офис пакета
+        $port = static::getOfficePort();
+        
 //        pclose(popen(OFFICE_PACKET_PATH . "2>&1 >/dev/null &", "r"));
-        $srated = pclose(popen(OFFICE_PACKET_PATH . ' &', "r"));
+        $srated = pclose(popen(OFFICE_PACKET_PATH . " -headless -accept='socket,host=127.0.0.1,port={$port};urp;' -nofirststartwizard &", "r"));
 
         // Ако е стартиран успешно
         if ($srated == 0) {
@@ -98,7 +104,7 @@ class docoffice_Office
     {
         // Вземаме process id' то на офис пакета
         $pid = static::getStartedOfficePid();
-        
+
         if (!$pid) return ;
         
         // Заключваме офис пакета
@@ -113,6 +119,9 @@ class docoffice_Office
             
             // Премахваме от перманентните данни
             permanent_Data::remove('countOfficeProccess');
+            
+            // Премахваме от перманентните данни порта на офис пакета
+            permanent_Data::remove('officePort');
             
             // Отключваме процеса
             static::unlockOffice();
@@ -203,5 +212,67 @@ class docoffice_Office
     static function unlockOffice()
     {
         core_Locks::release('OfficePacket');
+    }
+    
+    
+    /**
+     * Стартираме или рестартираме офис пакета в зависимост от състоянието му
+     */
+    static function prepareOffice()
+    {
+        // Process id' то на office пакета
+        $officePid = static::getStartedOfficePid();
+
+        // Ако не е стартиране
+        if (!$officePid) {    
+            
+            // Стартираме офис пакета
+            static::startOffice();        
+        } else {
+            
+            // Ако е стартиран проверяваме дали не трябва да се рестартира
+            static::checkRestartOffice();
+        }
+    }
+    
+    
+    /**
+     * Сетва порта на който ще слуша офис пакета
+     */
+    static function setOfficePort()
+    {
+        // Намираме свободен порт
+        $port = static::findEmptyPort();
+        
+        // Записваме номера на порта
+        permanent_Data::write('officePort', $port);
+    }
+    
+    
+    /**
+     * Намира свободния порт
+     */
+    static function findEmptyPort()
+    {
+        // Порта по подразбиране
+        $port = 8100;
+        
+        // Докато не намери свободен порт
+        while (exec("netstat -tln | grep ':{$port}[^0-9]'")) {
+            
+            // Увеличаваме с единица
+            $port++;        
+        }
+        
+        return $port;
+    }
+    
+    
+    /**
+     * Връща порта на който слуша офис пакета
+     */
+    static function getOfficePort()
+    {
+        return permanent_Data::read('officePort');
     }
 }

@@ -36,9 +36,9 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Вземаме съдържанието на eml файла
         $source = static::getSource($fRec);
         
-        // Ескейпваме съдържанието (за визуализиране)
-        $sourceEsc = type_Varchar::escape($source);
-        
+        // Подгорвяме сорса за показване
+        $sourceShow = static::prepareSource($source);
+    
         // Очакваме да няма проблем при парсирането
         expect($emlRec = $mime->getEmail($source));
 
@@ -49,7 +49,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $textPart = static::getTextPart($emlRec);
         
         // Вземаме HTML частта
-        $htmlPart = static::getHtmlPart($emlRec);
+        $htmlPart = static::getHtmlPart($mime, $emlRec);
         
         // Вземаме хедърите
         $headersArr = static::getHeaders($mime, $emlRec);
@@ -64,7 +64,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['html'] = (object) 
 			array(
 				'title' => 'HTML',
-				'html'  => "<div class='webdrvIframe'> {$htmlPart} </div>",
+				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML частта на имейла</legend>{$htmlPart}</fieldset></div>",
 				'order' => 1,
 			);
         
@@ -72,7 +72,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['text'] = (object) 
 			array(
 				'title' => 'Текст',
-				'html'  => "<div class='webdrvIframe' style='white-space:pre-line;'> {$textPart} </div>",
+				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Текстовата част на имейла</legend>{$textPart}</fieldset></div>",
 				'order' => 2,
 			);
 
@@ -80,24 +80,24 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 		$tabsArr['files'] = (object) 
 			array(
 				'title'   => 'Файлове',
-				'html'    => "<div class='webdrvIframe' style='white-space:pre-line;'> {$filesStr} </div>",
-				'preview' => 3,
+				'html'    => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Прикачените файлове</legend>{$filesStr}</fieldset></div>",
+				'order' => 3,
 			);
 			
 		// Таб за хедърите
 		$tabsArr['headers'] = (object) 
 			array(
 				'title'   => 'Хедъри',
-				'html'    => "<div class='webdrvIframe' style='white-space:pre-wrap;'> {$headersStr} </div>",
-				'preview' => 4,
+				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Хедърите на имейла</legend>{$headersStr}</fieldset></div>",
+				'order' => 4,
 			);
 			
         // Таб за сорса
         $tabsArr['source'] = (object) 
 			array(
 				'title'   => 'Сорс',
-				'html'    => "<div class='webdrvIframe' style='white-space:pre-wrap;'> {$sourceEsc} </div>",
-				'preview' => 5,
+				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Сорса на имейла</legend>{$sourceShow}</fieldset></div>",
+				'order' => 5,
 			);
 			
         return $tabsArr;
@@ -138,13 +138,21 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * 
      * return string - HTML частта на файла
      */
-    static function getHtmlPart($emlRec)
+    static function getHtmlPart($mime, $emlRec)
     {
+        // Ако липсва HTML част
+        if (!$emlRec->htmlFile) return ;
+        
         // Манипулатора на html файла
         $htmlFileHnd = fileman_Files::fetchField($emlRec->htmlFile, 'fileHnd');
         
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
-        return fileman_Files::getContent($htmlFileHnd);
+        $htmlPart = fileman_Files::getContent($htmlFileHnd);
+        
+        // Декодираме го
+        $decoded = $mime->convertToUtf8($htmlPart);
+        
+        return $decoded;
     }
     
     
@@ -204,36 +212,44 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      */
     static function changeEmlAndHtmlFileId(&$emlRec)
     {
-        // Вземаме данните за HTML файла
-        $htmlFileRec = fileman_Files::fetch($emlRec->htmlFile);
-        
-        // Намираме първия запис
-        if ($firstHtmlFileRec = fileman_Files::fetch("#dataId = '{$htmlFileRec->dataId}' AND name != '{$htmlFileRec->name}'")) {
+        // Ако има html файл
+        if ($emlRec->htmlFile) {
             
-            // Изтриваме текущия HTML файл
-            fileman_Files::delete($emlRec->htmlFile);
+            // Вземаме данните за HTML файла
+            $htmlFileRec = fileman_Files::fetch($emlRec->htmlFile);
             
-            // Променяме id' то да е на пътвия запис
-            $emlRec->htmlFile = $firstHtmlFileRec->id;
+            // Намираме първия запис
+            if ($firstHtmlFileRec = fileman_Files::fetch("#dataId = '{$htmlFileRec->dataId}' AND name != '{$htmlFileRec->name}'")) {
+                
+                // Изтриваме текущия HTML файл
+                fileman_Files::delete($emlRec->htmlFile);
+                
+                // Променяме id' то да е на пътвия запис
+                $emlRec->htmlFile = $firstHtmlFileRec->id;
+            }    
         }
-        
-        // Вземаме данните за EML файла
-        $emlFileRec = fileman_Files::fetch($emlRec->emlFile);
-        
-        // Намираме първия запис
-        if ($firstEmlFileRec = fileman_Files::fetch("#dataId = '{$emlFileRec->dataId}' AND name != '{$emlFileRec->name}'")) {
+
+        // Ако има eml файл
+        if ($emlRec->emlFile) {
             
-            // Изтриваме текущия HTML файл
-            fileman_Files::delete($emlRec->emlFile);
+            // Вземаме данните за EML файла
+            $emlFileRec = fileman_Files::fetch($emlRec->emlFile);
             
-            // Променяме id' то да е на пътвия запис
-            $emlRec->emlFile = $firstEmlFileRec->id;
+            // Намираме първия запис
+            if ($firstEmlFileRec = fileman_Files::fetch("#dataId = '{$emlFileRec->dataId}' AND name != '{$emlFileRec->name}'")) {
+                
+                // Изтриваме текущия HTML файл
+                fileman_Files::delete($emlRec->emlFile);
+                
+                // Променяме id' то да е на пътвия запис
+                $emlRec->emlFile = $firstEmlFileRec->id;
+            }    
         }
     }
 
     
     /**
-     * Връща десериализараната информация за съответния файл и съответния тип
+     * Връща информация за съответния файл и съответния тип
      * 
      * @param fileHandler $fileHnd - Манипулатор на файла
      * @param string $type - Типа на файла
@@ -267,5 +283,27 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         }
         
         return $content;
+    }
+    
+    
+    /**
+     * Подготвя сорса за показване
+     * 
+     * @param string $source - Соурса, който искаме да го добавим
+     * 
+     * @return type_Richtext $source - Преработения сорс
+     */
+    static function prepareSource($source)
+    {
+        // Добавяме сорса в code елемент
+        $source = "[code=eml]{$source}[/code]";
+        
+        // Инстанция на richtext
+        $richtextInst = cls::get('type_Richtext');
+        
+        // Преобразуваме към вербална стойност
+        $source = $richtextInst->toVerbal($source);
+
+        return $source;
     }
 }
