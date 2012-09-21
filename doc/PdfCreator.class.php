@@ -114,7 +114,16 @@ class doc_PdfCreator extends core_Manager
             
             //Добавяме всички стилове inline
             $html = '<div id="begin">' . $html . '<div id="end">';
-            $html = csstoinline_Emogrifier::convert($html, $css); 
+            
+            // Вземаме пакета
+            $conf = core_Packs::getConfig('csstoinline');
+            
+            // Класа
+            $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
+            
+            // Стартираме процеса
+            $html = $CssToInline::convert($html, $css); 
+            
             $html = str::cut($html, '<div id="begin">', '<div id="end">');
             
             $name = self::createPdfName($name);

@@ -906,8 +906,17 @@ class blast_Emails extends core_Master
             $css = getFileContent('css/wideCommon.css') .
                 "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css') ;
                 
-            $res = '<div id="begin">' . $res->getContent() . '<div id="end">';  
-            $res =  csstoinline_Emogrifier::convert($res, $css);  
+            $res = '<div id="begin">' . $res->getContent() . '<div id="end">'; 
+             
+            // Вземаме пакета
+            $conf = core_Packs::getConfig('csstoinline');
+            
+            // Класа
+            $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
+            
+            // Стартираме процеса
+            $res =  $CssToInline::convert($res, $css);  
+            
             $res = str::cut($res, '<div id="begin">', '<div id="end">');    
         }
         
