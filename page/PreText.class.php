@@ -21,7 +21,7 @@ class page_PreText extends page_Empty
      */
     function output($content = '', $place = "PAGE_CONTENT")
     {
-        $this->appendOnce('body{white-space: pre;}', 'STYLES');
+        $this->appendOnce('body{white-space: pre-wrap; width: auto; overflow: auto;}', 'STYLES');
         
         parent::output($content, $place);
     }
