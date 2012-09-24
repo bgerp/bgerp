@@ -173,8 +173,11 @@ class hclean_Purifier
         // Класа
         $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
         
+        // Инстанция на класа
+        $inst = cls::get($CssToInline);
+        
         // Стартираме процеса
-        $html = $CssToInline::convert($html, $css);
+        $html = $inst->convert($html, $css);
         
         return $html;
     }
