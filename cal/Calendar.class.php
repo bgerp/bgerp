@@ -169,7 +169,7 @@ class cal_Calendar extends core_Master
         if($from = $data->listFilter->rec->from) {
         	
             $data->query->where("#time >= date('$from')");
-            $data->query->fetch("#users = '' OR #users LIKE '|{$currentID}|'");
+            $data->query->where("#users = '' OR #users LIKE '|{$currentID}|'");
         }
     }
     
