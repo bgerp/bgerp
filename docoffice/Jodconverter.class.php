@@ -2,7 +2,7 @@
 
 
 /**
- * Плъгин за конвертиране на офис документи с помощта на unoconv
+ * Плъгин за конвертиране на офис документи с помощта на JodConverter
  *
  * @category  vendors
  * @package   docoffice
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class docoffice_Unoconv extends core_Manager
+class docoffice_Jodconverter extends core_Manager
 {
     
     
@@ -24,11 +24,11 @@ class docoffice_Unoconv extends core_Manager
     /**
      * 
      */
-    var $title = 'Unoconv';
+    var $title = 'JodConverter';
     
     
     /**
-     * Конвертиране на офис документи с помощта на unoconv
+     * Конвертиране на офис документи с помощта на Jodconverter
      * 
      * @param fileHandler $fileHnd - Манупулатора на файла, който ще се конвертира
      * @param string $toExt - Разширението, в което ще се конвертира
@@ -39,58 +39,57 @@ class docoffice_Unoconv extends core_Manager
      */
     static function convertDoc($fileHnd, $toExt, $params=array())
     {
-        // Разширението да е в дония регистър
+        // Разширението да е в долния регистър
         $toExt = strtolower($toExt);
         
         // Стартираме или рестартираме офис пакета
         docoffice_Office::prepareOffice();
         
-        // Константите, които ще използваме
+        // Вземаме конфигурационните данни
         $conf = core_Packs::getConfig('docoffice');
-        $pythonPath = $conf->OFFICE_CONVERTER_PYTHON;
-        $unoconv = $conf->OFFICE_CONVERTER_UNOCONV;
         
-        // Инстанция на класа
+        // Вземаме целия път до jodconverter
+        $jodPath = getFullPath('docoffice/jodconverter/' . $conf->OFFICE_JODCONVERTER_VERSION . '/lib/jodconverter-core.jar');
+        
+         // Инстанция на класа
         $Script = cls::get(fconv_Script);
         
-        // Пътя до файла, в който ще се записва получения текст
-        $outFilePath = $Script->tempDir . fileman_Files::getFileNameWithoutExt($fileHnd) . ".{$toExt}";
-        
-        // Вземаме порта на който слуша офис пакета
-        $port = docoffice_Office::getOfficePort();
+        // Пътя до изходния файл
+        $outFilePath = $Script->tempDir . fileman_Files::getFileNameWithoutExt($fileHnd) . '.' . $toExt;
         
         // Задаваме файловете и параметрите
         $Script->setFile('INPUTF', $fileHnd);
-        $Script->setParam('TOEXT', $toExt, TRUE);
-        $Script->setParam('UNOCONV', $unoconv, TRUE);
-        $Script->setParam('PORT', $port, TRUE);
-
-        // Добавяме към изпълнимия скрипт
-        $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] -p [#PORT#] [#INPUTF#]";
+        $Script->setFile('OUTPUTF', $outFilePath);
         
-        // Ако е дефиниранеп пътя до PYTHON
-        if ($pythonPath) {
-            
-            // Задаваме параметъра за питон
-            $Script->setParam('PYTHON', $pythonPath, TRUE);
-            
-            // Добавяме в началото на изпълнимия скрипт placeHolder за питон
-            $lineExecStr = "[#PYTHON#] {$lineExecStr}";
-        }
+        // Задаваме пътя, като параметър
+        $Script->setParam('JODPATH', $jodPath, TRUE);
+        
+        // Портра на който е стартиран офис пакета
+        $port = docoffice_Office::getOfficePort();
+        
+        // Задаваме пътя, като параметър
+        $Script->setParam('PORT', $port, TRUE);
+        
+        // TODO Хубаво е да се използва -p (порта), но не работи коректно във версия 3.0 beta 4
+        // @see http://code.google.com/p/jodconverter/issues/detail?id=108&colspec=ID%20Type%20Status%20Priority%20Version%20Target%20Owner%20Summary
+//        $lineExecStr = "java -jar [#JODPATH#] -p [#PORT#] [#INPUTF#] [#OUTPUTF#]";
+        // Добавяме към изпълнимия скрипт
+        $lineExecStr = "java -jar [#JODPATH#] [#INPUTF#] [#OUTPUTF#]";
+        // @todo
         
         // Скрипта, който ще конвертира
         $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8'));
-
+        
         // Функцията, която ще се извика след приключване на операцията
-        $Script->callBack('docoffice_Unoconv::afterConvertDoc');
+        $Script->callBack('docoffice_Jodconverter::afterConvertDoc');
         
         // Други необходими променливи
         $Script->params = serialize($params);
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fileHnd;
         
-        // Заключваме unoconv
-        static::lockUnoconv(100, 60);
+        // Заключваме Jodconverter
+        static::lockJodconverter(100, 60);
         
         // Заключваме офис пакета
         docoffice_Office::lockOffice(100, 60);
@@ -115,12 +114,12 @@ class docoffice_Unoconv extends core_Manager
         // Отключва офис пакета
         docoffice_Office::unlockOffice();
         
-        // Отключваме unoconv
-        docoffice_Unoconv::unlockUnoconv();
+        // Отключваме Jodconverter
+        docoffice_Jodconverter::unlockJodconverter();
         
         // Десериализираме параметрите
         $params = unserialize($script->params);
-        
+
         // Ако има callBack функция
         if ($params['callBack']) {
             
@@ -143,23 +142,22 @@ class docoffice_Unoconv extends core_Manager
 	
 	
 	/**
-     * Заключваме UNOCONV
+     * Заключваме JodConverter
      * 
      * @param int $maxDuration - Максималното време за което ще се опитаме да заключим
      * @param int $maxTray - Максималният брой опити, за заключване
      */
-    static function lockUnoconv($maxDuration=50, $maxTray=30)
+    static function lockJodconverter($maxDuration=50, $maxTray=30)
     {
-        core_Locks::get('unoconv', $maxDuration, $maxTray, FALSE);
+        core_Locks::get('jodconverter', $maxDuration, $maxTray, FALSE);
     }
     
     
     /**
-     * Отключваме UNOCONV
+     * Отключваме JodConverter
      */
-    static function unlockUnoconv()
+    static function unlockJodconverter()
     {
-        core_Locks::release('unoconv');
+        core_Locks::release('jodconverter');
     }
-    
 }

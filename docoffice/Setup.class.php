@@ -4,7 +4,7 @@
 /**
  * Класа, който ще се използва за конвертиране
  */
-defIfNot('OFFICE_CONVERTER_CLASS', 'docoffice_Unoconv');
+defIfNot('OFFICE_CONVERTER_CLASS', 'docoffice_Jodconverter');
 
 
 /**
@@ -17,6 +17,12 @@ defIfNot('OFFICE_CONVERTER_PYTHON', '');
  * Пътя до unoconv' a, който искаме да използваме
  */
 defIfNot('OFFICE_CONVERTER_UNOCONV', 'unoconv');
+
+
+/**
+ * Версията на JodConverter'а
+ */
+defIfNot('OFFICE_JODCONVERTER_VERSION', '3.0b4');
 
 
 /**
@@ -53,7 +59,7 @@ class docoffice_Setup
         'OFFICE_CONVERTER_CLASS' => array ('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory'),
     
         // Коя програма да се използва за конвертиране
-        'OFFICE_CONVERTER_UNOCONV' => array ('varchar', 'mandatory'),
+        'OFFICE_CONVERTER_UNOCONV' => array ('varchar', ''),
         
         // Кой python да се използва
     	'OFFICE_CONVERTER_PYTHON' => array ('varchar', ''),
@@ -66,6 +72,7 @@ class docoffice_Setup
     function install()
     {
         $managers = array(
+            'docoffice_Jodconverter',
             'docoffice_Unoconv',
         );
         
