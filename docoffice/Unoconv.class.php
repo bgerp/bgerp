@@ -55,17 +55,18 @@ class docoffice_Unoconv extends core_Manager
         
         // Пътя до файла, в който ще се записва получения текст
         $outFilePath = $Script->tempDir . fileman_Files::getFileNameWithoutExt($fileHnd) . ".{$toExt}";
-
+        
+        // Вземаме порта на който слуша офис пакета
+        $port = docoffice_Office::getOfficePort();
+        
         // Задаваме файловете и параметрите
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setParam('TOEXT', $toExt, TRUE);
         $Script->setParam('UNOCONV', $unoconv, TRUE);
-        
-        // Вземаме порта на който слуша офис пакета
-        $port = docoffice_Office::getOfficePort();
+        $Script->setParam('PORT', $port, TRUE);
 
         // Добавяме към изпълнимия скрипт
-        $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] -p {$port} [#INPUTF#]";
+        $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] -p [#PORT#] [#INPUTF#]";
         
         // Ако е дефиниранеп пътя до PYTHON
         if ($pythonPath) {
