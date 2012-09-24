@@ -76,7 +76,7 @@ class fileman_webdrv_Generic extends core_Manager
         }
 
         // Сменяма wrapper'а да е празна страница
-        Mode::set('wrapper', 'page_Empty'); // Тук може и да се използва page_PreText за подреден текст
+        Mode::set('wrapper', 'page_PreText');
         
         // Ескейпваме текстовата част
         $content = type_Varchar::escape($content);
