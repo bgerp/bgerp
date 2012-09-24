@@ -345,7 +345,7 @@ class fileman_webdrv_Generic extends core_Manager
             // Вземаме баркодовете
             $barcodesArr = static::getBarcodes($fileHndArr, $params['dataId']);
         
-            // Сериализираме масива и обновяваме данните за записа в fileman_Info
+            // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
             $rec->type = 'barcodes';
@@ -370,7 +370,7 @@ class fileman_webdrv_Generic extends core_Manager
      * Намира баркодовете във подадените файлове
      * 
      * @param mixed $fh - Манипулатор на файла или масив от манипулатори на файла
-     * @param integer $fileInfoId - id' то на записа от fileman_Info, в който ще запишем получената информация
+     * @param integer $fileInfoId - id' то на записа от fileman_Indexes, в който ще запишем получената информация
      * 
      * @access protected
      */

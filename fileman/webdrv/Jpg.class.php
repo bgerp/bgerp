@@ -99,7 +99,7 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
         // Масив с манупулатора на файла
         $fileHndArr[$params['fileHnd']] = $params['fileHnd'];
         
-        // Сериализираме масива и обновяваме данните за записа в fileman_Info
+        // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
         $rec->type = $params['type'];

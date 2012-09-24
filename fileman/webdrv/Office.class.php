@@ -381,7 +381,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Десериализираме нужните помощни данни
             $params = unserialize($script->params);
 
-            // Сериализираме масива и обновяваме данните за записа в fileman_Info
+            // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
             $rec->type = $params['type'];
