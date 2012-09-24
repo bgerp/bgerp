@@ -428,21 +428,30 @@ class sens_driver_IpDevice extends core_BaseClass
     function renderHtml()
     {
         
-        $this->loadState(); //bp($this);
+        $this->loadState(); 
+        $settings = (array) $this->settings; // if ($this->id == 5) bp($settings);
         
+        $html = "<table colspan=0 rowspan=0>";
         foreach ($this->params as $param => $properties) {
             
             // Празните параметри не ги показваме
             if (empty($this->stateArr["{$param}"]) && !is_numeric($this->stateArr["{$param}"])) continue;
             
+            // Ако параметъра е аналогов и има функция за изчислението му показваме само изчисления параметър
+            if (strpos($param, 'InA') !== FALSE && !empty($settings["name_{$param}"])) {
+            	$html .= "<tr><td>{$settings["name_{$param}"]}</td><td>= " . round($this->stateArr["{$settings["name_{$param}"]}"], 2) . "</td></tr>";
+            	continue;
+            }
+            
             // Стринговете се обработват различно
             if (!is_numeric($this->stateArr["{$param}"])) {
-                $html .= "{$param} = " . $this->stateArr["{$param}"] . " {$properties['details']}<br>";
+                $html .= "<tr><td>{$param}</td><td>= " . $this->stateArr["{$param}"] . " {$properties['details']}</td></tr>";
                 continue;
             }
             
-            $html .= "{$param} = " . round($this->stateArr["{$param}"], 2) . " {$properties['details']}<br>";
+            $html .= "<tr><td>{$param}</td><td>= " . round($this->stateArr["{$param}"], 2) . " {$properties['details']}</td></tr>";
         }
+        $html .= "</table>";
         
         return $html;
     }
