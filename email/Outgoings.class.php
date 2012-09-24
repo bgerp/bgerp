@@ -589,8 +589,11 @@ class email_Outgoings extends core_Master
             // Класа
             $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
             
+            // Инстанция на класа
+            $inst = cls::get($CssToInline);
+            
             // Стартираме процеса
-            $res =  $CssToInline::convert($res, $css); 
+            $res =  $inst->convert($res, $css); 
              
             $res = str::cut($res, '<div id="begin">', '<div id="end">');
         }
