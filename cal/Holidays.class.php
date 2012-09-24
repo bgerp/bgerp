@@ -475,17 +475,15 @@ class cal_Holidays extends core_Master
      */
     static function getLatinNames($names)
     {
-    
-        $namesArr = explode(',', str::utf2ascii(strstr($names, '>')));
+	    	$needle = array('<div class="richtext">', "<br>
+	</div>");
+	    	$names = str_replace($needle, "", $names->content);
+    	    $namesArr = explode(',', str::utf2ascii($names));
 
         foreach($namesArr as $n) {
-        	
-            $n = strtolower(trim(substr($n, 1)));
-           
-            $nArr = explode(' ', strstr($n, '<', TRUE));
-          
+            $n = strtolower(trim($n));
+            $nArr = explode(' ', $n);
             $res[$nArr[0]] = $nArr[0];
-
         }
 
         return $res;
