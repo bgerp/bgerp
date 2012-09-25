@@ -214,7 +214,7 @@ class sens_Sensors extends core_Master
         
         // Следващият ред генерира notice,
         // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
-/*        @ob_end_clean();
+        @ob_end_clean();
         
         header("Connection: close\r\n");
         header("Content-Encoding: none\r\n");
@@ -227,8 +227,8 @@ class sens_Sensors extends core_Master
         ob_end_clean();
         
         $id = str::checkHash(Request::get('id', 'varchar'));
-*/        
-      $id = 5;
+        
+//      $id = 5;
         if (FALSE === $id) {
             
             /**
