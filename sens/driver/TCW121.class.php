@@ -26,13 +26,13 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         'T2' => array('unit'=>'T2', 'param'=>'Температура', 'details'=>'C', 'xmlPath'=>'/Entry[6]/Value[1]'),
         'Hr1' => array('unit'=>'Hr1', 'param'=>'Влажност', 'details'=>'%', 'xmlPath'=>'/Entry[7]/Value[1]'),
         'Hr2' => array('unit'=>'Hr2', 'param'=>'Влажност', 'details'=>'%', 'xmlPath'=>'/Entry[8]/Value[1]'),
-    	'In1' => array('unit'=>'In1', 'param'=>'Състояние вход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[1]/Value[1]'),
-        'In2' => array('unit'=>'In2', 'param'=>'Състояние вход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[2]/Value[1]'),
+    	'InD1' => array('unit'=>'InD1', 'param'=>'Цифров вход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[1]/Value[1]'),
+        'InD2' => array('unit'=>'InD2', 'param'=>'Цифров вход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[2]/Value[1]'),
         'InA1' => array('unit'=>'InA1', 'param'=>'Аналогов вход 1', 'details'=>'V', 'xmlPath'=>'/Entry[3]/Value[1]'),
         'InA2' => array('unit'=>'InA2', 'param'=>'Аналогов вход 2', 'details'=>'V', 'xmlPath'=>'/Entry[4]/Value[1]'),
-    // Oписваме и изходите за да можем да ги следим в логовете
-        'Out1' => array('unit'=>'Out1', 'param'=>'Състояние изход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[9]/Value[1]'),
-        'Out2' => array('unit'=>'Out2', 'param'=>'Състояние изход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[10]/Value[1]')
+    	// Oписваме и изходите за да можем да ги следим в логовете
+        'OutD1' => array('unit'=>'OutD1', 'param'=>'Цифров изход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[9]/Value[1]'),
+        'OutD2' => array('unit'=>'OutD2', 'param'=>'Цифров изход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[10]/Value[1]')
     
     );
     
@@ -41,8 +41,8 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
      * Описания на изходите
      */
     var $outs = array(
-        'Out1' => array('digital' => array('0', '1'), 'cmd'=>'/?r1'),
-        'Out2' => array('digital' => array('0', '1'), 'cmd'=>'/?r2')
+        'OutD1' => array('digital' => array('0', '1'), 'cmd'=>'/?r1'),
+        'OutD2' => array('digital' => array('0', '1'), 'cmd'=>'/?r2')
     );
     
     

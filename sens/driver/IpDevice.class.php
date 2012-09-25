@@ -429,7 +429,7 @@ class sens_driver_IpDevice extends core_BaseClass
     {
         
         $this->loadState(); 
-        $settings = (array) $this->settings; // if ($this->id == 5) bp($settings);
+        $settings = (array) $this->settings;
         
         $html = "<table colspan=0 rowspan=0>";
         foreach ($this->params as $param => $properties) {
@@ -443,9 +443,9 @@ class sens_driver_IpDevice extends core_BaseClass
             	continue;
             }
             
-            // Стринговете се обработват различно
+            // Стринговете се обработват различно - тоест не се показват
             if (!is_numeric($this->stateArr["{$param}"])) {
-                $html .= "<tr><td>{$param}</td><td>= " . $this->stateArr["{$param}"] . " {$properties['details']}</td></tr>";
+                // $html .= "<tr><td>{$param}</td><td>= " . $this->stateArr["{$param}"] . " {$properties['details']}</td></tr>";
                 continue;
             }
             

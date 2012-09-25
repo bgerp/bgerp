@@ -126,7 +126,7 @@ class sens_driver_Mockup extends sens_driver_IpDevice
     	    			// Изчисляваме новата стойност по линейната зависимост
        		 			$paramValue = $settingsArr['angular_InA1'] * $state['InA1'] + $settingsArr['linear_InA1'];
         				// Присвояваме стойността на новия параметър
-        				$state["{$settingsArr['name_InA1']}"] = $paramValue;// bp($settingsArr['angular_InA1'], $state['InA1'], $settingsArr['linear_InA1']);
+        				$state["{$settingsArr['name_InA1']}"] = $paramValue;
                     }
                     break;
                 case 'avgHr' :

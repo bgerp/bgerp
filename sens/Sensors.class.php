@@ -228,7 +228,7 @@ class sens_Sensors extends core_Master
         
         $id = str::checkHash(Request::get('id', 'varchar'));
         
- //      $id = 5;
+//      $id = 5;
         if (FALSE === $id) {
             
             /**
