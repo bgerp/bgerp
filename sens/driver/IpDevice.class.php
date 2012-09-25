@@ -440,7 +440,11 @@ class sens_driver_IpDevice extends core_BaseClass
             
             // Ако параметъра е аналогов и има функция за изчислението му показваме само изчисления параметър
             if (strpos($param, 'InA') !== FALSE && !empty($settings["name_{$param}"]) && $settings["name_{$param}"] !='empty') {
-            	$html .= "<tr><td>{$settings["name_{$param}"]}</td><td>= " . round($this->stateArr["{$settings["name_{$param}"]}"], 2) . "</td></tr>";
+            	$query = sens_params::getQuery();
+		        $query->where('#unit="' . $settings["name_{$param}"] . '"');
+		        $countable = $query->fetch();
+            	
+            	$html .= "<tr><td>{$settings["name_{$param}"]}</td><td>= " . round($this->stateArr["{$settings["name_{$param}"]}"], 2) . " {$countable->details}</td></tr>";
             	continue;
             }
             
