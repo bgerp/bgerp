@@ -93,6 +93,8 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         // Необходимо е само ако ни интересуват предходни стойности на базата на които да правим изчисления 
         //$stateOld = $this->loadState();
         
+    	$settingsArr = (array) $this->getSettings();
+    	
         $state = array();
         
         $url = "http://{$this->settings->ip}:{$this->settings->port}/m.xml";
@@ -116,6 +118,13 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         foreach ($this->params as $param => $details) {
             
             $state[$param] = $result[$details['xmlPath']];
+            
+            // Ако има изчисляеми параметри
+            if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
+       		 	$paramValue = $settingsArr["angular_{$param}"] * $state["{$param}"] + $settingsArr["linear_{$param}"];
+        		$state["{$settingsArr["name_{$param}"]}"] = $paramValue;
+            }
+       		 	
             
             if ($details['details'] == '(ON,OFF)') {
                 $state[$param] = trim(strtoupper($result[$details['xmlPath']]));

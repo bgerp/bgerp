@@ -291,15 +291,16 @@ class sens_driver_IpDevice extends core_BaseClass
         // Обикаляме всички параметри на драйвера и всичко с префикс logPeriod от настройките
         // и ако му е времето го записваме в indicationsLog-а
         $settingsArr = (array) $this->getSettings();
-		//bp($this);
 
         foreach ($this->params as $param => $arr) {
-        	// Ако в сетингите е зададено че параметъра е изчисляем
+        	// Ако в сетингите е зададено че параметъра е изчисляем:
+        	// Създаваме logPeriod 
         	if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
         		$settingsArr["logPeriod_{$settingsArr["name_{$param}"]}"] = $settingsArr["logPeriod_{$param}"];
         		$param = $settingsArr["name_{$param}"];
         	}
-            // Дали параметъра е зададен да се логва при промяна?
+
+        	// Дали параметъра е зададен да се логва при промяна?
             if ($arr['onChange']) {
                 // Дали има промяна? Ако - ДА записваме в лог-а
                 if ($this->stateArr["$param"] != $stateArrOld["$param"]) {
@@ -435,10 +436,10 @@ class sens_driver_IpDevice extends core_BaseClass
         foreach ($this->params as $param => $properties) {
             
             // Празните параметри не ги показваме
-            if (empty($this->stateArr["{$param}"]) && !is_numeric($this->stateArr["{$param}"])) continue;
+            if (empty($this->stateArr["{$param}"]) && !is_numeric($this->stateArr["{$param}"]) || $param == 'empty') continue;
             
             // Ако параметъра е аналогов и има функция за изчислението му показваме само изчисления параметър
-            if (strpos($param, 'InA') !== FALSE && !empty($settings["name_{$param}"])) {
+            if (strpos($param, 'InA') !== FALSE && !empty($settings["name_{$param}"]) && $settings["name_{$param}"] !='empty') {
             	$html .= "<tr><td>{$settings["name_{$param}"]}</td><td>= " . round($this->stateArr["{$settings["name_{$param}"]}"], 2) . "</td></tr>";
             	continue;
             }
