@@ -41,7 +41,7 @@ class acc_RegisterIntf
      * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
      * @return mixed string или ET (@see ht::createLink())
      */
-    static function getLinkToObj($objectId)
+    function getLinkToObj($objectId)
     {
         return $this->class->getLinkToObj($objectId);
     }
