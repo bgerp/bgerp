@@ -392,13 +392,7 @@ class fileman_Download extends core_Manager {
             //Генерираме името с иконата
             $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$name} </span>";
         }
-
-        $ext = fileman_Files::getExt($fRec->name);
-
-        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-       
         return $link;
     }
     
