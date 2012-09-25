@@ -18,6 +18,12 @@ class fileman_RichTextPlg extends core_Plugin
     
     
     /**
+     * Регулярен израз за намиране на файлове в richText
+     */
+    static $pattern = "/\[file=(?'fileHnd'[a-z0-9]{4,32})\](?'fileName'.*?)\[\/file\]/is";
+    
+    
+    /**
      * Добавя бутон за качване на файлове
      */
     function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
@@ -61,7 +67,7 @@ class fileman_RichTextPlg extends core_Plugin
     {
         // Обработваме [file=?????] ... [/file] елементите, които  съдържат връзки към файлове
         $this->mvc = $mvc;
-        $html = preg_replace_callback("/\[file(=([a-z0-9]{4,32})|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
+        $html = preg_replace_callback(static::$pattern, array($this, '_catchFile'), $html);
     }
     
     
@@ -70,8 +76,8 @@ class fileman_RichTextPlg extends core_Plugin
      */
     function _catchFile($match)
     {
-        $title = $match[3];
-        $fh = $match[2];
+        $title = $match['fileName'];
+        $fh = $match['fileHnd'];
         $place = $this->mvc->getPlace();
         
         if(Mode::is('text', 'plain')) {
@@ -104,13 +110,13 @@ class fileman_RichTextPlg extends core_Plugin
      */
     static function getFiles($rt)
     {
-        preg_match_all("/\[file=([A-Za-z0-9]*)\](.*?)\[\/file\]/i", $rt, $matches);
+        preg_match_all(static::$pattern, $rt, $matches);
         
         $files = array();
         
-        if(count($matches[1])) {
-            foreach($matches[1] as $id => $fh) {
-                $files[$fh] = strip_tags($matches[2][$id]);
+        if(count($matches['fileHnd'])) {
+            foreach($matches['fileHnd'] as $id => $fh) {
+                $files[$fh] = strip_tags($matches['fileName'][$id]);
             }
         }
         
