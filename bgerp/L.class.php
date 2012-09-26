@@ -45,7 +45,7 @@ class bgerp_L extends core_Manager
         $this->FLD('action', 'enum( activate=Активиране,
                                     email=Имейл,
                                     fax=Факс,
-                                    pfd=PDF експорт,
+                                    pdf=PDF експорт,
                                     print=Печат,
                                     _see=Виждане,
                                     _receive=Получаване,
@@ -194,6 +194,9 @@ class bgerp_L extends core_Manager
         $cid = Request::get('id', 'int');
         $mid = Request::get('m');
         
+        // При отваряне на имейла от получателя, отбелязваме като видян.
+        if ($mid) log_Documents::received($mid);
+
         $docUrl = static::getDocLink($cid, $mid);
 
         barcode_Qr::getImg($docUrl, 3, 0, 'L', NULL);
