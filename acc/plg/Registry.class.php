@@ -28,6 +28,17 @@ class acc_plg_Registry extends core_Plugin
         // Подсигуряваме, че първичния ключ на регистъра-приемник ще се запомни преди изтриване
         $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
         $mvc->fetchFieldsBeforeDelete['id'] = 'id';
+        
+        if (isset($mvc->_plugins['groups_Extendable'])) {
+            $groups = groups_Extendable::getGroupsManager($mvc);
+            $groups->addExtender('lists', 
+                array(
+                    'className' => 'acc_Items',
+                    'prefix'    => 'ObjectLists',
+                    'title'     => 'Номенклатура',
+                )                
+            );
+        }
     }
     
     

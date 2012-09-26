@@ -66,10 +66,20 @@ class groups_Extendable extends core_Plugin
         // ИД-тата на групите в които е записа $rec  
         $groupIds = type_Keylist::toArray($rec->{$groupsFieldName});
         
+        expect($GroupsManager = static::getGroupsManager($master));
+        
+        return $GroupsManager->getExtenders($groupIds);
+    }
+    
+    
+    public static function getGroupsManager(core_Master $master)
+    {
+        $groupsFieldName = static::getGroupsFieldName($master);
+        
         expect($groupsField   = $master->getField($groupsFieldName));
         expect($GroupsManager = cls::get($groupsField->type->params['mvc']));
         
-        return $GroupsManager->getExtenders($groupIds);
+        return $GroupsManager;
     }
     
     
