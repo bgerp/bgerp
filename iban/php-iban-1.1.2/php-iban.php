@@ -341,5 +341,3 @@ function _iban_country_get_info($country,$code) {
  }
  return false;
 }
-
-?>
