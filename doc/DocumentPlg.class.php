@@ -1161,4 +1161,21 @@ class doc_DocumentPlg extends core_Plugin
         
         return $res;
     }
+    
+    
+   /**
+    * Метод по подразбиране за намиране на прикачените файлове в документ
+    * 
+    * @param object $mvc - 
+    * @param array $res - Масив с откритете прикачените файлове
+    * @param integer $id - 
+    */
+    function on_AfterGetLinkedFiles($mvc, &$res, $id)
+    {
+        // Вземаме документа
+        $data = $mvc->prepareDocument($id);
+
+        // Намираме прикачените файлове
+        $res = array_merge(fileman_RichtextPlg::getFiles($data->rec->body), (array)$res);
+    }
 }
