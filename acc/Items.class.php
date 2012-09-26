@@ -87,7 +87,7 @@ class acc_Items extends core_Manager
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info,input=none');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input,mandatory');
+        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input,mandatory');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
@@ -257,7 +257,7 @@ class acc_Items extends core_Manager
         $rec  = &$form->rec;
         
         if (!$rec->id && $rec->classId && $rec->objectId) {
-            if ($_rec = $mvc::fetch("#classId = {$rec->classId} AND #objectId = {$rec->objectId}")) {
+            if ($_rec = $mvc::fetchItem($rec->classId, $rec->objectId)) {
                 $rec = $_rec;
             }
         }
@@ -454,7 +454,7 @@ class acc_Items extends core_Manager
         $classId  = $masterMvc::getClassId();
         $objectId = $data->masterId;
         
-        $data->itemRec = static::fetch("#classId = {$classId} AND #objectId = {$objectId}");
+        $data->itemRec = static::fetchItem($classId, $objectId);
         $data->canChange = static::haveRightFor('edit', $data->itemRec);
     }
     
@@ -491,5 +491,67 @@ class acc_Items extends core_Manager
         }
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Помощен метод за извличане на перо със зададени регистър и ключ в регистъра
+     * 
+     * @param int $classId
+     * @param int $objectId
+     * @param mixed $fields списък от полета на acc_Items, които да бъдат извлечени
+     */
+    protected static function fetchItem($classId, $objectId, $fields = NULL)
+    {
+        return static::fetch("#classId = {$classId} AND #objectId = {$objectId}", $fields);
+    }
+    
+    
+    /**
+     * След промяна на запис на мениджър, на който acc_Items е екстендер
+     * 
+     * Това събитие се генерира от @see groups_Extendable
+     * 
+     * @param acc_Items $mvc
+     * @param stdClass $regRec
+     * @param core_Mvc $master
+     */
+    public static function on_AfterMasterSave(acc_Items $mvc, stdClass $regRec, core_Mvc $master)
+    {
+        $mvc::syncItemWith($master, $regRec->id);
+    }
+    
+    
+    /**
+     * Синхронизира запис от регистър на пера със съответното му номенклатурно перо.
+     * 
+     * @param core_Mvc $master
+     * @param int $objectId;
+     */
+    public static function syncItemWith(core_Mvc $master, $objectId)
+    {
+        // Синхронизирането е възможно само с мениджъри поддържащи acc_RegisterIntf
+        if (!core_Cls::haveInterface('acc_RegisterIntf', $master)) {
+            return;
+        }
+        
+        $classId  = $master::getClassId();
+        
+        if ($itemRec = static::fetchItem($classId, $objectId)) {
+            $register = core_Cls::getInterface('acc_RegisterIntf', $master);
+            
+            $r = $register->getItemRec($objectId);
+            
+            $itemRec->num   = $r->num; 
+            $itemRec->title = $r->title;
+            
+            if (!empty($master->autoList)) {
+                // Автоматично добавяне към номенклатурата $autoList
+                expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $master->autoList), 'id'));
+                $itemRec->lists = type_Keylist::addKey($itemRec->lists, $autoListId);
+            }
+            
+            static::save($itemRec);
+        }
     }
 }

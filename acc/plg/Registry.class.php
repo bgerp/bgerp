@@ -32,48 +32,6 @@ class acc_plg_Registry extends core_Plugin
     
     
     /**
-     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
-     */
-    function on_AfterPrepareEditForm($mvc, $data)
-    {
-        if ($suggestions = static::getSelectableLists($mvc)) {
-            $data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input,remember');
-            $data->form->setSuggestions('lists', $suggestions);
-            
-            if ($data->form->rec->id) {
-                $data->form->setDefault('lists',
-                    type_Keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
-            }
-        }
-    }
-    
-    
-    /**
-     * След промяна на обект от регистър
-     *
-     * Нотифицира номенклатурите за промяната.
-     *
-     * @param core_Manager $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
-    {
-        if (!empty($mvc->autoList)) {
-            // Автоматично добавяне към номенклатурата $autoList
-            expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
-            $rec->lists = type_Keylist::addKey($rec->lists, $autoListId);
-        }
-        
-        $fieldListArr = arr::make($fieldList, TRUE);
-        
-        if(empty($fieldList) || $fieldListArr['lists']) {
-            acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-        }
-    }
-    
-    
-    /**
      * @todo Чака за документация...
      */
     function on_AfterDelete($mvc, &$res, $query)
