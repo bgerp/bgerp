@@ -50,7 +50,8 @@ class editwatch_Plugin extends core_Plugin {
         
         $info->appendOnce("setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'editStatus');}, {$time});", 'ON_LOAD');
         
-        $data->form->info = $info;
+        $data->form->info = new core_ET($data->form->info);
+        $data->form->info->append($info);
     }
     
     
