@@ -274,7 +274,7 @@ class log_Documents extends core_Manager
 
     public static function returned($mid, $date = NULL)
     {
-        if (!($sendRec = static::fetch(array("#mid = '[#1#]' AND #action = '" . static::ACTION_SEND . "'", $mid)))) {
+        if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
             // Няма изпращане с такъв MID
             return FALSE;
         }
@@ -321,7 +321,7 @@ class log_Documents extends core_Manager
 
     public static function received($mid, $date = NULL)
     {
-        if (!($sendRec = static::fetch(array("#mid = '[#1#]' AND #action = '" . static::ACTION_SEND . "'", $mid)))) {
+        if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
             // Няма изпращане с такъв MID
             return FALSE;
         }
@@ -1050,5 +1050,25 @@ class log_Documents extends core_Manager
         }
 
         return $res;
+    }
+    
+    
+    /**
+     * Връща записа за съответния екшън и мид
+     * 
+     * @param string $mid - Mid' а на действието
+     * @param string $action - Действието, което искаме да търсим
+     * 
+     * @return log_Documents - Обект с данни
+     */
+    static function getActionRecForMid($mid, $action=NULL)
+    {
+        // Акшъна по подразбиране да е send
+        setIfNot($action, static::ACTION_SEND);
+
+        // Вземаме записите, ако има такива
+        $rec = static::fetch(array("#mid = '[#1#]' AND #action = '{$action}'", $mid));
+        
+        return $rec;
     }
 }
