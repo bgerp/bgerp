@@ -91,4 +91,30 @@ class core_ObjectReference
         
         return call_user_func_array(array($this->instance, $method), $args);
     }
+    
+    
+    public function __get($property)
+    {
+        return $this->instance->{$property};
+    }
+    
+    public function __isset($property)
+    {
+        return isset($this->instance->{$property});
+    }
+    
+    
+    /**
+     * Инстанция на класа на обекта, към който сочи този указател
+     * 
+     * @return int key(mvc=core_Classes)
+     */
+    public function getInstance()
+    {
+        if (is_null($this->interface)) {
+            return $this->instance;
+        }
+        
+        return $this->instance->class;
+    }
 }
