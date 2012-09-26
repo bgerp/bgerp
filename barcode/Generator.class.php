@@ -41,6 +41,7 @@ class barcode_Generator extends core_Manager
      * $params['outFileName'] - Името на файла
      * $params['quality'] - Качеството на QR изображението. По подразбиране е 'l'
      * $params['outerFrame'] - Рамката на изображението. По подразбирена е 0.
+     * $params['saveAndPrint'] - При генериране на изображение, да се запише във файла и да се изведе на екрана.
      * 
      * За останалите:
      * $params['angle'] - Ъгул на завъртане. По подразбиране е 0. Представалява ъгъла на завъртане спрямо центъра.
@@ -80,12 +81,13 @@ class barcode_Generator extends core_Manager
             
             // Ако не се зададени параметрите, използваме по подразбиране
             $pixelPerPoint = $params['pixelPerPoint'] ? $params['pixelPerPoint'] : 3;
-            $outFileName = $params['outFileName'] ? $params['outFileName'] : NULL;
+            $outFileName = $params['outFileName'] ? $params['outFileName'] : FALSE;
             $quality = $params['quality'] ? $params['quality'] : 'l';
             $outerFrame = $params['outerFrame'] ? $params['outerFrame'] : 0;
+            $params['saveAndPrint'] = $outFileName ? $params['saveAndPrint'] : FALSE;
 
             // Генерира QR изображение
-            $im = QRcode::png($conten, $outFileName, $quality, $pixelPerPoint, $outerFrame);
+            $im = QRcode::png($conten, $outFileName, $quality, $pixelPerPoint, $outerFrame, $params['saveAndPrint']);
             
             return $im;
         }
@@ -166,11 +168,10 @@ class barcode_Generator extends core_Manager
      */
     static function printImg($type, $conten, $size, $params=array())
     {
-        $gdImg = self::getImg($type, $conten, $size, $params);
+        self::getImg($type, $conten, $size, $params);
 
-        header('Content-type: image/png');
-        imagepng($gdImg);
-        imagedestroy($gdImg);
+        header('Content-Type: image/png');
+
         shutdown();
     }
     
