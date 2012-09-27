@@ -23,62 +23,6 @@ class bgerp_F extends core_Manager
     
     
     /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'admin';
-    
-    
-    /**
-     * Кой има право да променя?
-     */
-    var $canEdit = 'no_one';
-    
-    
-    /**
-     * Кой има право да добавя?
-     */
-    var $canAdd = 'no_one';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    var $canView = 'admin';
-    
-    
-    /**
-     * Кой може да го разглежда?
-     */
-    var $canList = 'admin';
-    
-    
-    /**
-     * Необходими роли за оттегляне на документа
-     */
-    var $canReject = 'no_one';
-    
-    
-    /**
-     * Кой има право да го изтрие?
-     */
-    var $canDelete = 'no_one';
-    
-
-    /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'bgerp_Wrapper, plg_RowTools, plg_Printing, plg_Created';
-
-
-//    /**
-//     * Описание на модела
-//     */
-//    function description()
-//    {
-//    }
-    
-    
-    /**
      * Екшън за показване на файловете, на нерегистрираните потребители
      */
     function act_S()
