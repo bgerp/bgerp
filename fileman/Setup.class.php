@@ -167,10 +167,6 @@ class fileman_Setup extends core_Manager {
         $Info = cls::get('fileman_Indexes');
         $html .= $Info->setupMVC();
         
-        // TODO remove
-        $Info = cls::get('fileman_Info');
-        $html .= $Info->setupMVC();
-        
         // Установяваме вземанията от URL;
         // $Get = cls::get('fileman_Get');
         // $html .= $Get->setupMVC();

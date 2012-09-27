@@ -170,8 +170,9 @@ class fileman_Download extends core_Manager {
         // Очакваме да има такъв запис
         expect($fRec, 'Няма такъв запис.');
         
+        // TODO не е необходимо да има права за сваляне ?
         // Очакваме да има права за сваляне
-        $this->Files->requireRightFor('download', $fRec);
+//        $this->Files->requireRightFor('download', $fRec);
         
         // Генерираме линк за сваляне
         $link = $this->getDownloadUrl($fh, 1);
@@ -339,9 +340,6 @@ class fileman_Download extends core_Manager {
             $icon = "fileman/icons/default.png";
         }
         
-        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
         // Икона на линка
         $attr['ef_icon'] = $icon;
         
@@ -383,7 +381,7 @@ class fileman_Download extends core_Manager {
             }
             
             //Генерираме връзката 
-            $url  = toUrl(array('fileman_Files', 'Single', $fh), $isAbsolute);
+            $url  = static::generateUrl($fh);
             $link = ht::createLink($name, $url, NULL, $attr);
         } else {
 			if(!file_exists($path)) {
@@ -392,14 +390,23 @@ class fileman_Download extends core_Manager {
             //Генерираме името с иконата
             $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$name} </span>";
         }
-
-        $ext = fileman_Files::getExt($fRec->name);
-
-        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-       
         return $link;
+    }
+    
+    
+    /**
+     * Прекъсваема функция за генериране на URL от манипулатор на файл
+     */
+    static function generateUrl_($fh)
+    {
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+
+        //Генерираме връзката 
+        $url = toUrl(array('fileman_Files', 'Single', $fh), $isAbsolute);
+        
+        return $url;
     }
     
     

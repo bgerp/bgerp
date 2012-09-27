@@ -80,7 +80,7 @@ class fileman_webdrv_Txt extends fileman_webdrv_Office
         // Вземаме съдържанието на файла
         $text = fileman_Files::getContent($params['fileHnd']);
         
-        // Сериализираме масива и обновяваме данните за записа в fileman_Info
+        // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
         $rec->type = $params['type'];

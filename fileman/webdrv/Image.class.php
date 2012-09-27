@@ -249,7 +249,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             
             $fileHndArr[$fileHnd] = $fileHnd;
             
-            // Сериализираме масива и обновяваме данните за записа в fileman_Info
+            // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
             $rec->type = $params['type'];

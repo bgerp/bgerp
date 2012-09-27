@@ -124,8 +124,12 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 //            $conf = core_Packs::getConfig('docoffice');
             // Класа, който ще конвертира
 //            $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
+            
+            // Инстанция на класа
+//            $inst = cls::get($ConvClass);
+            
             // Стартираме конвертирането
-//            $ConvClass::convertDoc($fRec->fileHnd, 'txt', $params); 
+//            $inst->convertDoc($fRec->fileHnd, 'txt', $params); 
 
             // Извличаме текстовата част с Apache Tika
             apachetika_Detect::extract($fRec->fileHnd, $params);
@@ -214,14 +218,18 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
             // Конфигурационните константи
             $conf = core_Packs::getConfig('docoffice');
             
             // Класа, който ще конвертира
             $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
             
+            // Инстанция на класа
+            $inst = cls::get($ConvClass);
+            
             // Стартираме конвертирането
-            $ConvClass::convertDoc($fRec->fileHnd, 'pdf', $params);    
+            $inst->convertDoc($fRec->fileHnd, 'pdf', $params);    
         } else {
             
             // Записваме грешката
@@ -373,7 +381,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Десериализираме нужните помощни данни
             $params = unserialize($script->params);
 
-            // Сериализираме масива и обновяваме данните за записа в fileman_Info
+            // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
             $rec->type = $params['type'];
