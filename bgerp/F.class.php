@@ -62,6 +62,9 @@ class bgerp_F extends core_Manager
             $url = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), TRUE);    
         }
         
+        // Записваме в лога за файлове, информация за свалянето
+        log_Files::downloaded($fh, $rec->containerId);
+        
         // Редиректваме към линка
         redirect($url);    
     }

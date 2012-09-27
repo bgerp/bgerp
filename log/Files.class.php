@@ -1,0 +1,113 @@
+<?php
+
+
+/**
+ * Лог на файловете
+ *
+ * @category  bgerp
+ * @package   doc
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class log_Files extends core_Manager
+{
+    
+    
+    /**
+     * Заглавие на таблицата
+     */
+    var $title = "Лог на файловете";
+    
+    
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'admin, doc';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'no_one';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'no_one';
+    
+    
+    /**
+     * Кой има право да го види?
+     */
+    var $canView = 'admin, doc';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin, doc';
+    
+    
+    /**
+     * Необходими роли за оттегляне на документа
+     */
+    var $canReject = 'no_one';
+    
+    
+    /**
+     * Кой има право да го изтрие?
+     */
+    var $canDelete = 'no_one';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    var $loadList = 'log_Wrapper, plg_Created, plg_Sorting';
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    var $listFields = 'cid, fileHnd, createdOn=Свален->На, createdBy=Свален->От, seenFromIp=Свален->Ip';
+    
+    
+    /**
+     * Описание на модела
+     */
+    function description()
+    {
+        $this->FLD("fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
+            array('notNull' => TRUE, 'caption' => 'Манипулатор'));
+        
+        $this->FLD('cid', 'key(mvc=doc_Containers)', 'caption=Контейнер,notNull,value=0');
+        
+        $this->FLD('seenFromIp', 'ip', 'input=none', 'caption=IP,value=0');
+        
+    }
+
+    
+    /**
+     * Записваме информация за свалянето на съответния файл
+     */
+    static function downloaded($fileHnd, $cid)
+    {
+        // Създаваме обект
+        $rec = new stdClass();
+        
+        // IP то на потребителя, който сваля
+        $rec->seenFromIp = core_Users::getRealIpAddr();
+        
+        // Манипулатора на файла
+        $rec->fileHnd = $fileHnd;
+        
+        // Контейнера, от където е файла
+        $rec->cid = $cid;
+
+        // Записваме
+        static::save($rec);
+    }
+}
