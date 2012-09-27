@@ -25,6 +25,29 @@ class groups_Extendable extends core_Plugin
     {
         static::attachExtenders($master, $data->rec);
     }
+
+    
+    /**
+     * Реализация на метода $master::addExtender() по подразбиране
+     * 
+     *  Така обектите с прикачен плъгин groups_Extendable получават нов метод - addExtender().
+     *  Извикването му води до регистриране на нов екстендер в груповия мениджър на $master по
+     *  време на изпълнението.
+     *  
+     *  Този механизъм позволява на плъгините да регистрират екстендери на класовете, към които 
+     *  са прикачени.
+     *  
+     * @param core_Master $master
+     * @param mixed $res резултата, който връща $master::addExtender()
+     * @param string $xtName кодово име на екстендер
+     * @param array $xtDescription  
+     */
+    public static function on_AfterAddExtender(core_Master $master, &$res, $xtName, $xtDescription)
+    {
+        $groups = static::getGroupsManager($master);
+        
+        $res = $groups->addExtender($xtName, $xtDescription);
+    }
     
     
     /**

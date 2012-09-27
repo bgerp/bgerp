@@ -30,8 +30,8 @@ class acc_plg_Registry extends core_Plugin
         $mvc->fetchFieldsBeforeDelete['id'] = 'id';
         
         if (isset($mvc->_plugins['groups_Extendable'])) {
-            $groups = groups_Extendable::getGroupsManager($mvc);
-            $groups->addExtender('lists', 
+            // Динамично прикачане на екстендера acc_Items към регистровия мениджър.
+            $mvc->addExtender('lists', 
                 array(
                     'className' => 'acc_Items',
                     'prefix'    => 'ObjectLists',
