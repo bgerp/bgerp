@@ -285,11 +285,10 @@ class cal_Holidays extends core_Master
         // Префикс на клучовете за рожденните дни на това лице
         $prefix = "HOLIDAY-";
         
-         $queryCountry = drdata_Countries::getQuery();
-         $code2Cards = array();
+              $code2Cards = array();
          
                 $card = self::bCards();
-                
+              //  bp($card);
                 foreach($card as $id=>$persons){
                 	foreach($persons as $key => $person){
                 		$recCountry = drdata_Countries::fetch("#id = '{$id}'");
@@ -300,7 +299,7 @@ class cal_Holidays extends core_Master
                 	}
                 }
                
-           
+           //bp($code2Cards);
         
         $query = self::getQuery();
 
@@ -515,13 +514,26 @@ class cal_Holidays extends core_Master
     {
     	
     	$cards = array();
-        $query = crm_Persons::getQuery();
-    	    	
+    	$profiles = array();
+        $query = crm_Profiles::getQuery();
+           	    	
     	while($rec = $query->fetch()){
     	
-    		$cards[$rec->country][$rec->id] = TRUE;
+    		$profiles[$rec->personId][$rec->userId] = TRUE;
     			
     	}
+    	
+    	foreach($profiles as $id=>$profile){
+    		
+    		foreach($profile as $idProf => $person){
+    		 
+    			$recPerson = crm_Persons::fetch("#id = '{$id}'");
+    		 	
+    	     	$cards[$recPerson->country][$idProf] = TRUE;
+    	     	     		
+    		}
+    	}
+    	
          	return $cards;
     }
 
