@@ -346,10 +346,13 @@ class cal_Holidays extends core_Master
                 }
                 
 	              foreach($code2Cards as $code2 => $users){
+	              	
 	                 	if($rec->type == $code2){
-		             
+		                  foreach($users as $id => $u){
 	                 		// Потребителите имащи право да виждат този празник са keylist
-		               		$calRec->users = type_Keylist::fromArray($users);
+		               		$calRec->users = '|'.$id.'|';
+		               		
+		                  }
 		               	
 		               	}
 	              }
