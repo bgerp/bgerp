@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cash_Cases extends core_Manager {
+class cash_Cases extends core_Master {
     
     
     /**
@@ -41,12 +41,26 @@ class cash_Cases extends core_Manager {
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
+     * таблицата.
+     * 
+     * @see plg_RowTools
+     * @var $string име на поле от този модел
      */
     var $rowToolsField = 'tools';
 
     var $canRead = 'cash, admin';
     var $canWrite = 'cash, admin';
+    
+    
+    /**
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
+     * $autoList.
+     * 
+     * @see acc_plg_Registry
+     * @var string
+     */
+    var $autoList = 'case';
  
     
     /**
