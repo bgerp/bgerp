@@ -38,6 +38,8 @@ class acc_plg_Registry extends core_Plugin
                     'title'     => 'Номенклатура',
                 )                
             );
+        } elseif ($mvc instanceof core_Master) {
+            $mvc->attachDetails('ObjectLists=acc_Items');
         }
     }
 
@@ -47,7 +49,7 @@ class acc_plg_Registry extends core_Plugin
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
-        if (static::supportExtenders($mvc)) {
+        if (static::supportExtenders($mvc) || static::hasDetail($mvc, 'ObjectLists')) {
             return;
         }
         
@@ -74,7 +76,7 @@ class acc_plg_Registry extends core_Plugin
      */
     function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
-        if (static::supportExtenders($mvc)) {
+        if (static::supportExtenders($mvc) || static::hasDetail($mvc, 'ObjectLists')) {
             return;
         }
         
@@ -127,5 +129,11 @@ class acc_plg_Registry extends core_Plugin
     protected static function supportExtenders($mvc)
     {
         return isset($mvc->_plugins['groups_Extendable']);
+    }
+    
+    
+    protected static function hasDetail($mvc, $detailAlias, $detailName = NULL)
+    {
+        return $mvc instanceof core_Master && $mvc->hasDetail($detailAlias, $detailName);
     }
 }
