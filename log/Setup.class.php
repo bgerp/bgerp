@@ -54,6 +54,7 @@ class log_Setup
         // Инсталиране на мениджърите
         $managers = array(
             'log_Documents',
+            'log_Files',
         );
         
         $instances = array();
