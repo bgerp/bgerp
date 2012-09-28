@@ -273,7 +273,15 @@ class acc_Items extends core_Manager
                 $form->setHidden('uomId');
             }
             
-            expect(isset($rec->num) && isset($rec->title));
+            if (!$rec->id) {
+                $regRec     = $register->getItemRec($rec->objectId);
+                $rec->num   = $regRec->num;
+                $rec->title = $regRec->title;
+                
+                $mvc::on_CalcNumTitleLink($mvc, $rec);
+            }
+            
+            expect(isset($rec->numTitleLink));
             
             $form->info = $rec->numTitleLink;
         }
