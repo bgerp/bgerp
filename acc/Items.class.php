@@ -488,7 +488,7 @@ class acc_Items extends core_Manager
             );
         }
         
-        if ($data->itemRec) {
+        if ($data->itemRec->lists) {
             $content = static::getVerbal($data->itemRec, 'lists');
             $tpl->append($content, 'content');
         } else {
