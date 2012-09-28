@@ -32,17 +32,9 @@ class core_Master extends core_Manager
     /**
      * Изпълнява се след конструирането на мениджъра
      */
-    static function on_AfterDescription(&$mvc)
+    static function on_AfterDescription(core_Master &$mvc)
     {
-        // Списъка с детайлите става на масив
-        $mvc->details = arr::make($mvc->details, TRUE);
-        
-        // Зарежда mvc класовете
-        $mvc->load($mvc->details);
-        
-        foreach($mvc->details as $var => $class) {
-            $mvc->{$var}->Master = &$mvc;
-        }
+        $mvc->attachDetails($mvc->details);
     }
     
     
@@ -312,5 +304,28 @@ class core_Master extends core_Manager
         }
         
         return $requiredRoles;
+    }
+    
+    
+    /**
+     * Прикачане на детайли към този мастър
+     * 
+     * @param array|string $details
+     */
+    public function attachDetails($details)
+    {
+        // Списъка с детайлите става на масив
+        $details       = arr::make($details, TRUE);
+        $this->details = arr::make($this->details, TRUE);
+        
+        if (!empty($details)) {
+            // Зарежда mvc класовете
+            $this->load($details);
+            
+            foreach($details as $var => $class) {
+                $this->details[$var] = $class;
+                $this->{$var}->Master = &$this;
+            }
+        }
     }
 }
