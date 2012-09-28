@@ -328,4 +328,33 @@ class core_Master extends core_Manager
             }
         }
     }
+    
+    
+    /**
+     * Има ли този мастер прикачен зададения детайл?
+     * 
+     * @param string $detailAlias псевдоним на детайл
+     * @param string $detailName име на детайл-клас
+     * @return boolean
+     */
+    public function hasDetail($detailAlias, $detailName = NULL)
+    {
+        if (isset($detailAlias)) {
+            if (!isset($this->details[$detailAlias])) {
+                return FALSE;
+            }
+            
+            return $detailName == $this->details[$detailAlias];
+        } elseif (isset($detailName)) {
+            foreach ($this->details as $alias=>$name) {
+                if ($name == $detailName) {
+                    return TRUE;
+                }
+            }
+            
+            return FALSE;
+        }
+
+        return !empty($this->detail);
+    }
 }
