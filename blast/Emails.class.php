@@ -350,8 +350,13 @@ class blast_Emails extends core_Master
                 $fieldsArr[$field] = $field;
             }
             
+            // Премахваме дублиращите се плейсхолдери
+            $allPlaceHolder = array_unique($allPlaceHolder);
+            
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
+                
+                // Ако плейсхолдера го няма във листа
                 if (!$fieldsArr[$placeHolder]) {
                     $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
                 }
@@ -1046,16 +1051,13 @@ class blast_Emails extends core_Master
             //Десериализираме данните за потребителя
             $this->emailData[$listId][$email] = unserialize($recList->data);
             
-            $mid = '[#mid#]';
+            $mid = doc_DocumentPlg::getMidPlace();
             $urlBg = array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => 'bg');
             $urlEn = array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => 'en');
             
             //Създаваме линковете
-            $linkBg = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
-            $linkEn = ht::createLink('here', toUrl($urlEn, 'absolute'), NULL, array('target'=>'_blank'));
-            
-            $this->emailData[$listId][$email]['otpisvane'] = $linkBg;
-            $this->emailData[$listId][$email]['unsubscribe'] = $linkEn;
+            $this->emailData[$listId][$email]['otpisvane'] = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
+            $this->emailData[$listId][$email]['unsubscribe'] = ht::createLink('here', toUrl($urlEn, 'absolute'), NULL, array('target'=>'_blank'));
         }
     }
     
