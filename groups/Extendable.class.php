@@ -60,19 +60,19 @@ class groups_Extendable extends core_Plugin
     {
         $extenders = static::getExtenders($master, $rec);
         
-        $master->details = arr::make($master->details);
-        
         //
         // Добавяме екстендерите като детайли на мастър класа
         //
+        $details = array();
+
         foreach ($extenders as $key => $ext) {
             $prefix    = $ext['prefix'];
             $className = $ext['className'];
             
-            if (!isset($master->details[$prefix])) {
-                $master->details[$prefix] = $className;
-            }
+            $details[$prefix] = $className;
         }
+        
+        $master->attachDetails($details);
     }
 
 
