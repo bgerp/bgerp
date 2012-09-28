@@ -1060,4 +1060,57 @@ class doc_Threads extends core_Manager
         
         return $docRow->title;
     }
+    
+    /**
+     * Връща линка на папката във вербален вид
+     * 
+     * @param array $params - Масив с частите на линка
+     * @param $params['Ctr'] - Контролера
+     * @param $params['Act'] - Действието
+     * @param $params['threadId'] - id' то на нишката
+     * 
+     * @return $res - Линк
+     */
+    static function getVerbalLink($params)
+    {
+        // Записите за нишката
+        $rec = static::fetch($params['threadId']);
+        
+        // Проверяваме дали има права
+        if (!static::haveRightFor($params['Act'], $rec)) return FALSE;
+        
+        // Инстанция на първия документ
+        $docProxy = doc_Containers::getDocument($rec->firstContainerId);
+        
+        // Вземаме колоните на документа
+        $docRow = $docProxy->getDocumentRow();
+        
+        // Ескейпваме заглавието
+        $title = core_Type::escape($docRow->title);
+
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        // Иконата на нишката
+        $sbfIcon = sbf($docProxy->instance->singleIcon, '"', $isAbsolute);
+        
+        // Ако мода е xhtml
+        if (Mode::get('text') == 'xhtml') {
+            
+            // Добаваме span с иконата и заглавиетео - не е линк
+            // TODO класа да не е linkWithIcon
+            $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+        } else {
+            
+            // Атрибути на линка
+            $attr['class'] = 'linkWithIcon';
+            $attr['style'] = "background-image:url({$sbfIcon});";    
+            $attr['target'] = '_blank'; 
+            
+            // Създаваме линк
+            $res = ht::createLink($title, $params, NULL, $attr);  
+        }
+        
+        return $res;
+    }
 }

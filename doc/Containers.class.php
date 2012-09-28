@@ -697,4 +697,65 @@ class doc_Containers extends core_Manager
         //Връщаме езика
         return $docRec->lg;
     }
+    
+    
+    /**
+     * Връща линка на папката във вербален вид
+     * 
+     * @param array $params - Масив с частите на линка
+     * @param $params['Ctr'] - Контролера
+     * @param $params['Act'] - Действието
+     * @param $params['id'] - id' то на сингъла
+     * 
+     * @return $res - Линк
+     */
+    static function getVerbalLink($params)
+    {
+        try {
+            
+            // Опитваме се да вземем инстанция на класа
+            $ctrInst = cls::get($params['Ctr']);
+            
+            // Вземаме записите
+            $rec = $ctrInst->fetch($params['id']);
+            
+            // Очакваме да имаме права за съответния екшън
+            expect($ctrInst->haveRightFor($params['Act'], $rec), 'Нямате права за разглеждане');
+        } catch (core_exception_Expect $e) {
+            
+            // Ако възникне някаква греша
+            return FALSE;
+        }
+        
+        //Кое поле е избрано да се показва, като текст
+        if (!($field = $ctrInst->rowToolsSingleField)) return ;
+        
+        //Стойността на полето на текстовата част
+        $title = $ctrInst->getVerbal($params['id'], $field);
+        
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        // Иконата на класа
+        $sbfIcon = sbf($ctrInst->singleIcon, '"', $isAbsolute);
+
+        //Ако мода е xhtml
+        if (Mode::get('text') == 'xhtml') {
+            
+            //Добаваме span с иконата и заглавиетео - не е линк
+            //TODO класа да не е linkWithIcon
+            $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+        } else {
+            
+            //Атрибути на линка
+            $attr['class'] = 'linkWithIcon';
+            $attr['style'] = "background-image:url({$sbfIcon});";    
+            $attr['target'] = '_blank';    
+            
+            //Създаваме линк
+            $res = ht::createLink($title, $params, NULL, $attr); 
+        }
+        
+        return $res;
+    }
 }
