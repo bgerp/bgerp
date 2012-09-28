@@ -273,20 +273,17 @@ class acc_Items extends core_Manager
                 $form->setHidden('uomId');
             }
             
-//             if (!$rec->id) {
-//                 expect($object = $register->getItemRec($rec->objectId));
-                
-//                 $rec->num   = $object->num;
-//                 $rec->title = $object->title;
-//             }
-            
             expect(isset($rec->num) && isset($rec->title));
-
-            $form->info = $register->getLinkToObj($rec->objectId);
+            
+            $form->info = $rec->numTitleLink;
         }
         
         $form->fields['lists']->type->suggestions = acc_Lists::getPossibleLists($rec->classId);
         $form->setDefault('ret_url', Request::get('ret_url'));
+        
+        if ($rec->id) {
+            $form->title = 'Редактиране на перо';
+        }
     }
     
     
