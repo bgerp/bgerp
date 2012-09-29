@@ -146,7 +146,7 @@ class bgerp_L extends core_Manager
             
             log_Documents::opened($parent);
             
-            $html = $doc->getDocumentBody('xhtml', (object) array('__mid'=>$parent->mid));
+            $html = $doc->getDocumentBody('xhtml', (object) array('__mid'=>$parent->mid, '__toEmail'=>$parent->data->to));
             
             Mode::set('wrapper', 'page_External');
             

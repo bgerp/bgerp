@@ -843,8 +843,16 @@ class doc_DocumentPlg extends core_Plugin
         // Създаваме обекта $data
         $data = new stdClass();
         
-        // Трябва да има $rec за това $id
-        expect($data->rec = $mvc->fetch($id));
+        // Ако сме подали $rec'a в опциите, с променени данни (за бласта)
+        if ($options->rec->id == $id) {
+        
+            // Използваме rec'а в опциите
+            $data->rec = $options->rec;    
+        } else {
+            
+            // Трябва да има $rec за това $id
+            expect($data->rec = $mvc->fetch($id));
+        }
         
         $data->cacheKey = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
         $data->threadCachedView = core_Cache::get($mvc->className, $data->cacheKey);
