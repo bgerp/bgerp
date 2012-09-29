@@ -258,13 +258,14 @@ class log_Documents extends core_Manager
         }
         
         if ($rec && $rec->containerId != $cid) {
-            $doc = doc_Containers::getDocument($cid);
+            $doc = doc_Containers::getDocument($rec->containerId);
             
-            //$linkedDocs = $doc->getLinkedDocuments($rec->containerId);
+            $linkedDocs = $doc->getLinkedDocuments();
+            $cidDoc     = doc_Containers::getDocument($cid);
             
-            if (!isset($linkedDocs[$cid])) {
-                // Временно не правим нищо, докато не реализираме getLinkedDocuments()
-                // $rec = FALSE;
+            if (!isset($linkedDocs[$cidDoc->getHandle()])) {
+                // Заявения документ не е посочен от "мидо-носителя" - не го показваме
+                $rec = FALSE;
             }
         }
         

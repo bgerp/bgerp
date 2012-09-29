@@ -1178,4 +1178,18 @@ class doc_DocumentPlg extends core_Plugin
         // Намираме прикачените файлове
         $res = array_merge(fileman_RichtextPlg::getFiles($data->rec->body), (array)$res);
     }
+    
+    
+    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id)
+    {
+        core_Users::sudo($mvc->getContainer($id)->activatedBy);
+        
+        // Вземаме документа
+        $data = $mvc->prepareDocument($id);
+        
+        // Намираме прикачените документи
+        $res = array_merge(doc_RichTextPlg::getAttachedDocs($data->rec->body), (array)$res);
+        
+        core_Users::exitSudo();
+    }
 }
