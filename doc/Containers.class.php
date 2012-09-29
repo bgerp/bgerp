@@ -758,4 +758,23 @@ class doc_Containers extends core_Manager
         
         return $res;
     }
+    
+    
+    public static function getClassByAbbr($abbr)
+    {
+        $abbrArr = static::getAbbr();
+        $abbr    = strtoupper($abbr);
+        
+        foreach ($abbrArr as $a=>$className) {
+            if (strtoupper($a) == $abbr) {
+                $docManager = cls::get($className);
+                
+                expect(cls::haveInterface('doc_DocumentIntf', $docManager));
+                
+                return $docManager;
+            }
+        }
+        
+        return NULL;
+    }
 }
