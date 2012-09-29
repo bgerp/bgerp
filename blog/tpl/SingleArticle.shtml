@@ -1,9 +1,8 @@
-<!--  [#SingleToolbar#]-->
-
-	
-	<div id='blog-single-article'>
+[#changemode#]
+<div id='blog-single-article'>
+ [#SingleToolbar#]
 		<table border='0' id='blog-single-article-body'>
-			<tr>
+		<tr>
 				<td height='70px'>
 					<div id='title'>
 				       <span id='title-text'>[#title#]</span>
@@ -30,9 +29,14 @@
 			    </td>
 			</tr>
 		</table>
- <div id='blog-article-details' name='an'>
-    <!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS-->
-    </div>
+		<a name="top"></a>
+		<!--ET_BEGIN DETAILS-->
+			<br>
+			[#DETAILS#]
+   		<!--ET_END DETAILS-->
+   		<!--ET_BEGIN COMMENTS_FORM-->
+   			[#COMMENTS_FORM#]
+   		<!--ET_END COMMENTS_FORM-->
  </div>
     
    

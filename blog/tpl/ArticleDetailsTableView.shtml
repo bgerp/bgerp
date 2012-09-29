@@ -1,0 +1,25 @@
+<ul id='blog-article-details' name='an'>
+<!--ET_BEGIN COMMENT_LI-->
+<li>
+	<table border="0" width="100%" class="blog-comment-new-table" cellpadding="0" cellspacing="0">
+		<tr class="comment-table-row" height="25px" >
+				<td class="comment-header" >
+						<span class="comment-author"> от:&nbsp;&nbsp;[#author#]&nbsp;&nbsp;([#email#])</span>
+						<span class="createdon">на:&nbsp;&nbsp;&nbsp;[#createdOn#]</span>
+						<!--ET_BEGIN grade--><span class="comment-grade">оценил с:&nbsp;&nbsp;[#grade#]</span><!--ET_END grade-->
+				</td>
+		</tr>
+		<tr class="comment-table-row" >
+			    <td class="comment-body" >
+					[#comment#]
+				</td>
+		</tr>
+		<tr class="comment-table-row" >
+				<td class="comment-tools" style="padding-top:8px;">
+					[#tools#]
+				</td>
+		</tr>
+	</table>
+</li>
+<!--ET_END COMMENT_LI-->
+</ul>

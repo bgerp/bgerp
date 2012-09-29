@@ -1514,7 +1514,7 @@ h2 {
 	display:none;
 }
 
-#blog-article-details .listTable .blog-comment-new-table .comment-header{
+#blog-article-details .listTable {
 	background:rgba(229,229,229,1) 100%;
 	//#ACA9A9
 }
@@ -1524,13 +1524,11 @@ h2 {
 	border:1px solid white;
 	min-height:500px;
     width: 740px ;
-    margin-left: auto ;
-    margin-right: auto ;
     margin-top:0px;
     background-color:#FFFFFF;
-    -moz-box-shadow:    0px 0px 11px 9px #A6A7A7;
-    -webkit-box-shadow: 0px 0px 11px 9px #A6A7A7;
-    box-shadow:         0px 0px 11px 9px #A6A7A7;
+   // -moz-box-shadow:    0px 0px 11px 9px #A6A7A7;
+   // -webkit-box-shadow: 0px 0px 11px 9px #A6A7A7;
+   // box-shadow:         0px 0px 11px 9px #A6A7A7;
 }
 
 #blog-single-article-body{
@@ -1543,13 +1541,13 @@ h2 {
     -webkit-box-shadow: 0px 0px 1px 1px #646465;
     box-shadow:         0px 0px 1px 1px #646465;
 	background: rgb(255,255,255); /* Old browsers */
-background: -moz-linear-gradient(top,  rgba(229,229,229,1) 70%, rgba(229,229,229,1) 100%); /* FF3.6+ */
-background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(229,229,229,1))); /* Chrome,Safari4+ */
-background: -webkit-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* Chrome10+,Safari5.1+ */
-background: -o-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* Opera 11.10+ */
-background: -ms-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* IE10+ */
-background: linear-gradient(to bottom,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* W3C */
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-9 */
+	background: -moz-linear-gradient(top,  rgba(229,229,229,1) 70%, rgba(229,229,229,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(229,229,229,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(229,229,229,1) 70%,rgba(229,229,229,1) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-9 */
 
 }
 
@@ -1588,7 +1586,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 }
 
 #blog-single-article-body #modified-label{
-	margin-left:240px;
+	margin-left:200px;
 	font-size:12px;
 	color:#3B3559;
 	font-weight:bold;
@@ -1620,16 +1618,25 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	margin-left:auto;
     margin-right:auto;
 	margin-top:20px;
+	list-style:none;
+	padding-left:0px;
+	//display:none;
 	
 }
 
-#blog-article-details  td .comment-body{
-	background:white;
+#blog-article-details  .comment-body{
+	background:#ECF4F3;
+	height:50px;
+	vertical-align:top;
+	padding-left:17px;
+	text-indent: 5px;
+	padding-top:5px;
+	
 }
 
  #blog-article-details  .comment-header{
 	font-weight:bold;
-	//border:1px solid orange;
+	background:rgba(229,229,229,1) 100%
 }
 
 #blog-article-details .comment-table-row{
@@ -1658,6 +1665,8 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 
 .blog-comment-new-table{
 	margin-top:-3px;
+	-webkit-box-shadow: 0px 1px 1px 1px ##B9B7B7;
+	box-shadow: 0px 1px 1px 1px #B9B7B7;
 }
 
 .blog-comment-new-table td .createdon, .blog-article-list-table .article-list-createdon{
@@ -1688,7 +1697,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	font-weight:bold;
 }
 
-.blog-article-list-table .list-table-header{
+#blog-article-list-table .list-table-header{
 	background:#C7C6C6  ;
 	//rgba(229,229,229,1) 100%
 }
@@ -1700,6 +1709,205 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	margin-left:60px;
 }
 
+<<<<<<< HEAD
+#article-table-view #article-list-body li{
+	//border:1px solid red;
+	width:500px;
+	margin-top:40px;
+	min-height:120px;
+}
+
+#blog-article-details  li {
+	margin-top:20px;
+	-webkit-box-shadow: 0px 2px 3px rgba(0, 0, 0, 1);
+	-moz-box-shadow:    0px 2px 3px rgba(0, 0, 0, 1);
+	box-shadow:         0px 2px 3px rgba(0, 0, 0, 1);
+}
+
+#blog-single-article #show-comments{
+	margin-top:20px;
+	width:40%;
+	margin-left:auto;
+	margin-right:auto;
+	height:30px;
+	//border:1px solid red;
+	text-align:center;
+	font-weight:bold;
+	padding-top:5px;
+	background:#C7C6C6  ;
+	
+}
+
+#blog-article-list-body {
+	width:130%;
+	margin-left:auto;
+    margin-right:auto;
+	margin-top:20px;
+	list-style:none;
+	padding-left:0px;
+	//display:none;
+}
+
+#blog-article-list-body li{
+	margin-top:50px;
+
+}
+
+.blog-comment-new-table .comment-header{
+	background:#C7C6C6;
+
+}
+
+.blog-article-body{
+	padding:10px;
+	text-indent:10px;
+	vertical-align:text-top;
+	height:100px;
+}
+
+.blog-comment-new-table .article-author{
+	font-size:12px;
+	color:darkred;
+	font-weight:bold;
+	margin-left:20px;
+}
+
+.blog-comment-new-table .article-createdon{
+	font-size:12px;
+	color:darkblue;
+	font-weight:bold;
+	margin-left:20px;
+}
+
+.blog-comment-new-table .article-title{
+	margin-left:20px;
+	margin-top:30px;
+}
+
+.blog-comment-new-table .article-category{
+	margin-left:20px;
+	font-size:14px;
+	font-weight:bold;
+	color:darkblue;
+}
+
+.blog-comment-new-table .article-comments{
+	float:right;
+	margin-right:10px;
+	font-size:14px;
+	font-weight:bold;
+	color:darkgreen;
+}
+
+.blog-comment-new-table .article-average{
+	margin-left:20px;
+	font-size:12px;
+	font-weight:bold;
+}
+
+#blog-article-title{
+	width:400px;
+	text-align:center;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.blog-comment-new-table .comment-header {
+	padding-top:5px;
+	padding-bottom:5px;
+}
+
+#blog-article-bottom-toolbar{
+	width:400px;
+	text-align:center;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.article-tools .rowtools {
+	margin-left:20px; width:50px;
+}
+.article-tools .rowtools .r{
+	display:none;
+}
+
+#categories-menu  {
+	//border:1px solid pink;
+	margin-top:47px;
+	text-indent:15px;
+	//background: rgb(199, 198, 198);
+}
+
+#blog_Articles-EditForm, #blog_Comments-EditForm {
+	//border:1px solid pink;
+	-webkit-border-top-left-radius: 8px;
+	-webkit-border-top-right-radius: 8px;
+	-moz-border-radius-topleft: 8px;
+	-moz-border-radius-topright: 8px;
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	-webkit-box-shadow: 0px 1px 2px 1px #959090;
+	box-shadow: 0px 1px 2px 1px #959090;
+	background:#E0DCDC;
+}
+
+ .categories_list{
+	//border:1px solid red;
+	margin-top:8px;
+	height:25px;
+	padding-top:10px;
+	border-top: 1px solid rgb(150, 209, 248);
+	background: -moz-linear-gradient(center top , rgb(89, 86, 86), rgb(133, 133, 133)) repeat scroll 0% 0% transparent;
+	border-radius: 8px 8px 8px 8px;
+	box-shadow: 0px 1px 0px rgb(0, 0, 0);
+	color: white;
+	font-size: 16px;
+	font-family: Arial;
+	text-align:center;
+	font-weight:bold;
+	//width:160px;
+}
+#cat_header {
+	text-align:center;
+	font-size:22px;
+}
+
+#categories-menu li a {
+	color:white;
+}
+
+#categories-menu li a:hover {
+	color:yellow;
+	text-size:22px;
+}
+
+#blog-article-filter{
+	background:rgb(199,198,198);
+	border-radius: 8px 8px 8px 8px;
+	-webkit-box-shadow: 0px 0px 1px 1px #959090;
+	box-shadow: 0px 0px 1px 1px #959090;
+}
+
+#autoElement1 {
+	padding:4px;
+}
+
+#comment-list-add {
+	height:230px;
+	list-style:none;
+	padding-left:5px;
+	padding-top:5px;
+	background: rgb(229, 229, 229);
+	border-radius: 8px 8px 8px 8px;
+}
+
+#no-articles-found {
+	margin-top:30px;
+	margin-left:20px;
+	font-size:18px;
+	//text-align:center;
+	//padding-top:60px;
+=======
 /*
  * Хипервръзки към профилите на потребители
  */
@@ -1726,4 +1934,5 @@ a.profile.executive {
 
 a.profile.contractor {
 	color:#f00;
+>>>>>>> refs/remotes/origin/master
 }
