@@ -151,7 +151,7 @@ class doc_RichTextPlg extends core_Plugin
                 }
                 
                 //Името на документа
-                $name = $matches['name'][$key];
+                $name = $mvc->getHandle($docRec->id);
                 
                 $docs[$name] = $name;
             }
