@@ -27,7 +27,7 @@ class log_Documents extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, doc';
+    var $canRead = 'user';
     
     
     /**
@@ -45,19 +45,13 @@ class log_Documents extends core_Manager
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, doc';
+    var $canView = 'user';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, doc';
-    
-    
-    /**
-     * Необходими роли за оттегляне на документа
-     */
-    var $canReject = 'no_one';
+    var $canList = 'user';
     
     
     /**
