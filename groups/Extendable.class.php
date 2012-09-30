@@ -25,6 +25,29 @@ class groups_Extendable extends core_Plugin
     {
         static::attachExtenders($master, $data->rec);
     }
+
+    
+    /**
+     * Реализация на метода $master::addExtender() по подразбиране
+     * 
+     *  Така обектите с прикачен плъгин groups_Extendable получават нов метод - addExtender().
+     *  Извикването му води до регистриране на нов екстендер в груповия мениджър на $master по
+     *  време на изпълнението.
+     *  
+     *  Този механизъм позволява на плъгините да регистрират екстендери на класовете, към които 
+     *  са прикачени.
+     *  
+     * @param core_Master $master
+     * @param mixed $res резултата, който връща $master::addExtender()
+     * @param string $xtName кодово име на екстендер
+     * @param array $xtDescription  
+     */
+    public static function on_AfterAddExtender(core_Master $master, &$res, $xtName, $xtDescription)
+    {
+        $groups = static::getGroupsManager($master);
+        
+        $res = $groups->addExtender($xtName, $xtDescription);
+    }
     
     
     /**
@@ -37,19 +60,19 @@ class groups_Extendable extends core_Plugin
     {
         $extenders = static::getExtenders($master, $rec);
         
-        $master->details = arr::make($master->details);
-        
         //
         // Добавяме екстендерите като детайли на мастър класа
         //
+        $details = array();
+
         foreach ($extenders as $key => $ext) {
             $prefix    = $ext['prefix'];
             $className = $ext['className'];
             
-            if (!isset($master->details[$prefix])) {
-                $master->details[$prefix] = $className;
-            }
+            $details[$prefix] = $className;
         }
+        
+        $master->attachDetails($details);
     }
 
 
@@ -66,10 +89,20 @@ class groups_Extendable extends core_Plugin
         // ИД-тата на групите в които е записа $rec  
         $groupIds = type_Keylist::toArray($rec->{$groupsFieldName});
         
+        expect($GroupsManager = static::getGroupsManager($master));
+        
+        return $GroupsManager->getExtenders($groupIds);
+    }
+    
+    
+    public static function getGroupsManager(core_Master $master)
+    {
+        $groupsFieldName = static::getGroupsFieldName($master);
+        
         expect($groupsField   = $master->getField($groupsFieldName));
         expect($GroupsManager = cls::get($groupsField->type->params['mvc']));
         
-        return $GroupsManager->getExtenders($groupIds);
+        return $GroupsManager;
     }
     
     

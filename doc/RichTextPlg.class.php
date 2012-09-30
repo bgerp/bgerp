@@ -59,31 +59,23 @@ class doc_RichTextPlg extends core_Plugin
         //Име на файла
         $docName = $match['dsName'];
         
-        //Абревиатурата
-        $abbr = strtoupper($match['abbr']);
-        
-        //id' то на файла
-        $id = $match['id'];
-        
-        // Вземаме всички класове и техните абревиатури от документната система
-        $abbrArr = doc_Containers::getAbbr();
-
-        //Името на класа
-        $className = $abbrArr[$abbr];
-        
-        //Проверяваме дали дали сме открили клас или имаме права за single. Ако нямаме - връщаме името без да го заместваме
-        if ((!$className) || (!$className::haveRightFor('single', $id))) return $match[0];
-        
-        //containerId' то на документа
-        $cid = $className::fetchField($id, 'containerId');
+        //Проверяваме дали сме открили клас. Ако не - връщаме името без да го заместваме
+        if (!$mvc = doc_Containers::getClassByAbbr($match['abbr'])) {
+            return $match[0];
+        }
         
         //Ако нямаме запис за съответното $id връщаме името без да го заместваме
-        if (!$cid) return $match[0];
+        if (!$docRec = $mvc->fetch($match['id'])) {
+            return $match[0];
+        }
         
-        $mvc = cls::get($className);
+        //Проверяваме дали имаме права за single. Ако не - връщаме името без да го заместваме
+        if (!$mvc->haveRightFor('single', $docRec)) {
+            return $match[0];
+        }
         
         //Създаваме линк към документа
-        $link = bgerp_L::getDocLink($cid, doc_DocumentPlg::getMidPlace());
+        $link = bgerp_L::getDocLink($docRec->containerId, doc_DocumentPlg::getMidPlace());
         
         //Уникален стринг
         $place = $this->mvc->getPlace();
@@ -143,26 +135,23 @@ class doc_RichTextPlg extends core_Plugin
             //Обхождаме всички намерени думи
             foreach ($matches['abbr'] as $key => $abbr) {
                 
-                //Преобразуваме абревиатурата от намерения стринг в главни букви
-                $abbr = strtoupper($abbr);
-                
-                // Вземаме всички класове и техните абревиатури от документната система
-                $abbrArr = doc_Containers::getAbbr();
-                
-                //Името на класа
-                $className = $abbrArr[$abbr];
-                
-                //id' то на класа
-                $id = $matches['id'][$key];
-                
-                //Проверяваме дали имаме права за single. Ако нямаме - прескачаме
-                if ((!$className) || (!$className::haveRightFor('single', $id))) continue;
+                //Името на класа според абревиатурата
+                if (!$mvc = doc_Containers::getClassByAbbr($abbr)) {
+                    continue;
+                }
                 
                 //Ако няма такъв документ, не се връща името му за прикачване
-                if (!$className::fetch($id)) continue;
+                if (!$docRec = $mvc->fetch($matches['id'][$key])) {
+                    continue;
+                }
+                
+                //Проверяваме дали имаме права за single. Ако нямаме - прескачаме
+                if (!$mvc->haveRightFor('single', $docRec)) {
+                    continue;
+                }
                 
                 //Името на документа
-                $name = $matches['name'][$key];
+                $name = $mvc->getHandle($docRec->id);
                 
                 $docs[$name] = $name;
             }

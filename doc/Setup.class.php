@@ -146,6 +146,9 @@ class doc_Setup
         // Замества абсолютните линкове с титлата на документа
         $html .= $Plugins->installPlugin('Вътрешни линкове в RichText', 'bgerp_plg_InternalLinkReplacement', 'type_Richtext', 'private');
         
+        // Променя линка за сваляне на файла
+        $html .= $Plugins->installPlugin('Линкове за сваляне', 'bgerp_plg_File', 'fileman_Download', 'private');
+        
         // Добавяне на плъгина за създаване на входящи документи
         $html .= $Plugins->installPlugin('Създаване на входящ документ', 'doc_IncomingCreatePlg', 'fileman_Files', 'private');
         

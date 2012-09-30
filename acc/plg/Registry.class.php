@@ -28,18 +28,35 @@ class acc_plg_Registry extends core_Plugin
         // Подсигуряваме, че първичния ключ на регистъра-приемник ще се запомни преди изтриване
         $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
         $mvc->fetchFieldsBeforeDelete['id'] = 'id';
+        
+        if (static::supportExtenders($mvc)) {
+            // Динамично прикачане на екстендера acc_Items към регистровия мениджър.
+            $mvc->addExtender('lists', 
+                array(
+                    'className' => 'acc_Items',
+                    'prefix'    => 'ObjectLists',
+                    'title'     => 'Номенклатура',
+                )                
+            );
+        } elseif ($mvc instanceof core_Master) {
+            $mvc->attachDetails('ObjectLists=acc_Items');
+        }
     }
-    
-    
+
+
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
+        if (static::supportExtenders($mvc) || static::hasDetail($mvc, 'ObjectLists')) {
+            return;
+        }
+        
         if ($suggestions = static::getSelectableLists($mvc)) {
             $data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input,remember');
             $data->form->setSuggestions('lists', $suggestions);
-            
+    
             if ($data->form->rec->id) {
                 $data->form->setDefault('lists',
                     type_Keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
@@ -47,7 +64,7 @@ class acc_plg_Registry extends core_Plugin
         }
     }
     
-    
+
     /**
      * След промяна на обект от регистър
      *
@@ -59,14 +76,17 @@ class acc_plg_Registry extends core_Plugin
      */
     function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
+        if (static::supportExtenders($mvc) || static::hasDetail($mvc, 'ObjectLists')) {
+            return;
+        }
+        
         if (!empty($mvc->autoList)) {
             // Автоматично добавяне към номенклатурата $autoList
             expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
             $rec->lists = type_Keylist::addKey($rec->lists, $autoListId);
         }
-        
         $fieldListArr = arr::make($fieldList, TRUE);
-        
+    
         if(empty($fieldList) || $fieldListArr['lists']) {
             acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
         }
@@ -103,5 +123,17 @@ class acc_plg_Registry extends core_Plugin
         }
         
         return $suggestions;
+    }
+    
+    
+    protected static function supportExtenders($mvc)
+    {
+        return isset($mvc->_plugins['groups_Extendable']);
+    }
+    
+    
+    protected static function hasDetail($mvc, $detailAlias, $detailName = NULL)
+    {
+        return $mvc instanceof core_Master && $mvc->hasDetail($detailAlias, $detailName);
     }
 }

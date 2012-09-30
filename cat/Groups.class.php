@@ -99,6 +99,11 @@ class cat_Groups extends groups_Manager
             'prefix'    => 'Files',
             'title'     => 'Файлове',
         ),
+        'lists' => array(
+            'className' => 'acc_Items',
+            'prefix'    => 'ObjectLists',
+            'title'     => 'Номенклатура',
+        ),
     );
     
     

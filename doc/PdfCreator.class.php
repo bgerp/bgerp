@@ -121,8 +121,11 @@ class doc_PdfCreator extends core_Manager
             // Класа
             $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
             
+            // Инстанция на класа
+            $inst = cls::get($CssToInline);
+            
             // Стартираме процеса
-            $html = $CssToInline::convert($html, $css); 
+            $html = $inst->convert($html, $css); 
             
             $html = str::cut($html, '<div id="begin">', '<div id="end">');
             

@@ -117,16 +117,11 @@ class sens_driver_Mockup extends sens_driver_IpDevice
                     if ($stateOld['InA1'] > 10) $stateOld['InA1'] = 10;
                     $state['InA1'] = $stateOld['InA1'];
                     // Проверяваме в сетингите на драйвера, дали има зададено преизчисляване на аналоговия вход
-                    if (!empty($settingsArr['name_InA1']) && $settingsArr['name_InA1'] != 'empty') {
-                    	// Имаме зададено линейно преизчислване
-                    	// Лог периода на новия параметър става като на аналоговия вход
-//	        			$settingsArr["logPeriod_{$settingsArr['name_InA1']}"] = $settingsArr["logPeriod_InA1"];
-	        			// При зададен параметър функция от аналоговия вход - той не се следи
-//	        			unset($settingsArr["logPeriod_InA1"]);
+                   if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
     	    			// Изчисляваме новата стойност по линейната зависимост
-       		 			$paramValue = $settingsArr['angular_InA1'] * $state['InA1'] + $settingsArr['linear_InA1'];
+       		 			$paramValue = $settingsArr["angular_{$param}"] * $state["{$param}"] + $settingsArr["linear_{$param}"];
         				// Присвояваме стойността на новия параметър
-        				$state["{$settingsArr['name_InA1']}"] = $paramValue;// bp($settingsArr['angular_InA1'], $state['InA1'], $settingsArr['linear_InA1']);
+        				$state["{$settingsArr["name_{$param}"]}"] = $paramValue; 
                     }
                     break;
                 case 'avgHr' :

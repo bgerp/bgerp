@@ -843,8 +843,16 @@ class doc_DocumentPlg extends core_Plugin
         // Създаваме обекта $data
         $data = new stdClass();
         
-        // Трябва да има $rec за това $id
-        expect($data->rec = $mvc->fetch($id));
+        // Ако сме подали $rec'a в опциите, с променени данни (за бласта)
+        if ($options->rec->id == $id) {
+        
+            // Използваме rec'а в опциите
+            $data->rec = $options->rec;    
+        } else {
+            
+            // Трябва да има $rec за това $id
+            expect($data->rec = $mvc->fetch($id));
+        }
         
         $data->cacheKey = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
         $data->threadCachedView = core_Cache::get($mvc->className, $data->cacheKey);
@@ -1160,5 +1168,36 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         return $res;
+    }
+    
+    
+   /**
+    * Метод по подразбиране за намиране на прикачените файлове в документ
+    * 
+    * @param object $mvc - 
+    * @param array $res - Масив с откритете прикачените файлове
+    * @param integer $id - 
+    */
+    function on_AfterGetLinkedFiles($mvc, &$res, $id)
+    {
+        // Вземаме документа
+        $data = $mvc->prepareDocument($id);
+
+        // Намираме прикачените файлове
+        $res = array_merge(fileman_RichtextPlg::getFiles($data->rec->body), (array)$res);
+    }
+    
+    
+    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id)
+    {
+        core_Users::sudo($mvc->getContainer($id)->activatedBy);
+        
+        // Вземаме документа
+        $data = $mvc->prepareDocument($id);
+        
+        // Намираме прикачените документи
+        $res = array_merge(doc_RichTextPlg::getAttachedDocs($data->rec->body), (array)$res);
+        
+        core_Users::exitSudo();
     }
 }

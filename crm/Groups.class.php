@@ -92,6 +92,11 @@ class crm_Groups extends groups_Manager
             'prefix'    => 'ContragentLocations',
             'title'     => 'Локации',
         ),
+        'lists' => array(
+            'className' => 'acc_Items',
+            'prefix'    => 'ObjectLists',
+            'title'     => 'Номенклатура',
+        ),
     );
     
     

@@ -81,22 +81,22 @@ class acc_Items extends core_Manager
         // Разпознаваем от човек номер на перото. При показване, това число се допълва с водещи 
         // нули, докато броят на цифрите му достигне стойността на полето padding, зададено в 
         // съответната му мастър номенклатура.
-        $this->FLD('num', 'int', "caption=№,mandatory,remember=info,notNull");
+        $this->FLD('num', 'int', "caption=№,mandatory,remember=info,notNull,input=none");
         
         // Заглавие
-        $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
+        $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info,input=none');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input,mandatory');
+        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
         $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=title,allowEmpty)',
-            'caption=Регистър,input=none');
+            'caption=Регистър,input=hidden,silent');
         
         // Външен ключ към обекта, чиято сянка е това перо. Този обект е от класа, посочен в
         // полето `classId` 
-        $this->FLD('objectId', 'int', "input=none,column=none,caption=Обект");
+        $this->FLD('objectId', 'int', "input=hidden,silent,column=none,caption=Обект");
         
         // Мярка на перото. Има смисъл само ако мастър номенклатурата е отбелязана като 
         // "оразмерима" (acc_Lists::dimensional == true). Мярката се показва и въвежда само 
@@ -252,26 +252,46 @@ class acc_Items extends core_Manager
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
+        /* @var $form core_Form */
         $form = $data->form;
+        $rec  = &$form->rec;
         
-        $listId = $mvc->getCurrentListId();
-        $listRec = $mvc->Lists->fetch($listId);
-        
-        if($listRec->dimensional == 'no') {
-            $form->setField('uomId', 'input=none');
-        }
-        
-        $form->fields['lists']->type->suggestions = acc_Lists::getPossibleLists(null);
-        
-        if(!$form->rec->num && ($num = Mode::get('lastEnterItemNumIn' . $listId))) {
-            $num++;
-            
-            if(!$mvc->fetch("#lists LIKE '%|{$listId}|%' && #num = {$num}")) {
-                $form->setDefault('num', $num);
+        if (!$rec->id && $rec->classId && $rec->objectId) {
+            if ($_rec = $mvc::fetchItem($rec->classId, $rec->objectId)) {
+                $rec = $_rec;
             }
         }
         
-        $form->title = "Добавяне на перо в|* <b>{$listRec->caption}<b>";
+        if ($rec->classId && $rec->objectId) {
+            /* @var $register acc_RegisterIntf */
+            expect($register = core_Cls::getInterface('acc_RegisterIntf', $rec->classId));
+            
+            $form->setField('num', 'input=none');
+            $form->setField('title', 'input=none');
+            
+            if (!$register->isDimensional()) {
+                $form->setHidden('uomId');
+            }
+            
+            if (!$rec->id) {
+                $regRec     = $register->getItemRec($rec->objectId);
+                $rec->num   = $regRec->num;
+                $rec->title = $regRec->title;
+                
+                $mvc::on_CalcNumTitleLink($mvc, $rec);
+            }
+            
+            expect(isset($rec->numTitleLink));
+            
+            $form->info = $rec->numTitleLink;
+        }
+        
+        $form->fields['lists']->type->suggestions = acc_Lists::getPossibleLists($rec->classId);
+        $form->setDefault('ret_url', Request::get('ret_url'));
+        
+        if ($rec->id) {
+            $form->title = 'Редактиране на перо';
+        }
     }
     
     
@@ -283,14 +303,12 @@ class acc_Items extends core_Manager
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        if ($form->gotErrors()) {
-            return;
-        }
-        
         if(!$form->rec->id) {
             $listId = $mvc->getCurrentListId();
             Mode::setPermanent('lastEnterItemNumIn' . $listId, $rec->num);
         }
+        
+//         bp($form->rec);
     }
     
     
@@ -351,6 +369,7 @@ class acc_Items extends core_Manager
      */
     static function on_BeforeGetRequiredRoles($mvc, &$roles, $cmd)
     {
+        return;
         if($cmd == 'write') {
             $listId = $mvc->getCurrentListId();
             
@@ -429,5 +448,115 @@ class acc_Items extends core_Manager
         }
         
         return $result;
+    }
+    
+    
+    public static function prepareObjectLists($data)
+    {
+        /* @var $masterMvc core_Mvc */
+        $masterMvc = $data->masterMvc; 
+        
+        $classId  = $masterMvc::getClassId();
+        $objectId = $data->masterId;
+        
+        $data->itemRec = static::fetchItem($classId, $objectId);
+        $data->canChange = static::haveRightFor('edit', $data->itemRec);
+    }
+    
+    
+    public static function renderObjectLists($data)
+    {
+        $masterMvc = $data->masterMvc;
+        
+        try {
+            $tpl = $masterMvc::getDetailWrapper();
+        } catch (core_exception_Expect $e) {
+            $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        }
+        
+        $tpl->append(tr('Номенклатури'), 'title');
+        
+        if($data->canChange && !Mode::is('printing')) {
+            $url = array(get_called_class(), 'edit', 'classId'=>$masterMvc::getClassId(), 'objectId'=>$data->masterId, 'ret_url' => TRUE);
+            $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16' />";
+            $tpl->append(
+                ht::createLink(
+                    $img, $url, FALSE,
+                    'title=' . tr('Промяна')
+                ),
+                'title'
+            );
+        }
+        
+        if ($data->itemRec->lists) {
+            $content = static::getVerbal($data->itemRec, 'lists');
+            $tpl->append($content, 'content');
+        } else {
+           $tpl->append(tr("Не е включен в номенклатура"), 'content');
+        }
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Помощен метод за извличане на перо със зададени регистър и ключ в регистъра
+     * 
+     * @param int $classId
+     * @param int $objectId
+     * @param mixed $fields списък от полета на acc_Items, които да бъдат извлечени
+     */
+    protected static function fetchItem($classId, $objectId, $fields = NULL)
+    {
+        return static::fetch("#classId = {$classId} AND #objectId = {$objectId}", $fields);
+    }
+    
+    
+    /**
+     * След промяна на запис на мениджър, на който acc_Items е екстендер
+     * 
+     * Това събитие се генерира от @see groups_Extendable
+     * 
+     * @param acc_Items $mvc
+     * @param stdClass $regRec
+     * @param core_Mvc $master
+     */
+    public static function on_AfterMasterSave(acc_Items $mvc, stdClass $regRec, core_Mvc $master)
+    {
+        $mvc::syncItemWith($master, $regRec->id);
+    }
+    
+    
+    /**
+     * Синхронизира запис от регистър на пера със съответното му номенклатурно перо.
+     * 
+     * @param core_Mvc $master
+     * @param int $objectId;
+     */
+    public static function syncItemWith(core_Mvc $master, $objectId)
+    {
+        // Синхронизирането е възможно само с мениджъри поддържащи acc_RegisterIntf
+        if (!core_Cls::haveInterface('acc_RegisterIntf', $master)) {
+            return;
+        }
+        
+        $classId  = $master::getClassId();
+        
+        if ($itemRec = static::fetchItem($classId, $objectId)) {
+            $register = core_Cls::getInterface('acc_RegisterIntf', $master);
+            
+            $r = $register->getItemRec($objectId);
+            
+            $itemRec->num   = $r->num; 
+            $itemRec->title = $r->title;
+            
+            if (!empty($master->autoList)) {
+                // Автоматично добавяне към номенклатурата $autoList
+                expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $master->autoList), 'id'));
+                $itemRec->lists = type_Keylist::addKey($itemRec->lists, $autoListId);
+            }
+            
+            static::save($itemRec);
+        }
     }
 }

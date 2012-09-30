@@ -100,8 +100,6 @@ class crm_Locations extends core_Master {
         
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
-        $details = arr::make($Contragents->details);
-        expect($details['ContragentLocations'] == 'crm_Locations');
         
         $contragentRec = $Contragents->fetch($rec->contragentId);
         

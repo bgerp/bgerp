@@ -135,15 +135,40 @@ class sens_Sensors extends core_Master
         }
         
         // Инициализираме драйвера
-        $driver = cls::get($rec->driver, array('id'=>$rec->id)); //if ($rec->id==5) bp($driver->stateArr);
+        $driver = cls::get($rec->driver, array('id'=>$rec->id)); 
         
-        $settingsArr = (array)$driver->settings; 
+        $settingsArr = (array)$driver->settings;
         
-        foreach ($settingsArr as $name =>$value) {
-            $row->settings .= $name . " = " . $value . "<br>";
+        // Тези не са интересни
+        unset($settingsArr['objCls']);
+        unset($settingsArr['objId']);
+        unset($settingsArr['wrapper']);
+        
+        // Махаме незададените аларми
+        for($i = 1; $i <= $driver->alarmCnt; $i++) {
+            switch ($settingsArr["alarm_{$i}_cond"]) {
+                case "nothing" :
+                	unset($settingsArr["alarm_{$i}_message"]);
+                	unset($settingsArr["alarm_{$i}_cond"]);
+                	unset($settingsArr["alarm_{$i}_severity"]);
+                	unset($settingsArr["alarm_{$i}_value"]);
+                	unset($settingsArr["alarm_{$i}_param"]);
+                	unset($settingsArr["OutD1_{$i}"]);
+                	unset($settingsArr["OutD2_{$i}"]);
+                	break;
+            }
         }
+
+        $row->settings = "<table colspan=0 rowspan=0>";
+        foreach ($settingsArr as $name =>$value) {
+        	// Празните параметри не ги показваме
+            if (empty($value) && !is_numeric($value)) continue;
+        	
+            $row->settings .= "<tr><td>" .$name . "</td><td>= " . $value . "</td></tr>";
+        }
+        $row->settings .= "</table>";
         
-        $row->indications = $driver->renderHtml();   //bp($settingsArr);
+        $row->indications = $driver->renderHtml();
     }
     
     
@@ -189,7 +214,7 @@ class sens_Sensors extends core_Master
         
         // Следващият ред генерира notice,
         // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
-/*        @ob_end_clean();
+        @ob_end_clean();
         
         header("Connection: close\r\n");
         header("Content-Encoding: none\r\n");
@@ -203,7 +228,7 @@ class sens_Sensors extends core_Master
         
         $id = str::checkHash(Request::get('id', 'varchar'));
         
-*/      $id = 5;
+//      $id = 5;
         if (FALSE === $id) {
             
             /**

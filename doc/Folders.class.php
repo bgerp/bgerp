@@ -569,4 +569,58 @@ class doc_Folders extends core_Master
 
         return $folderId;
     }
+    
+    
+    /**
+     * Връща линка на папката във вербален вид
+     * 
+     * @param array $params - Масив с частите на линка
+     * @param $params['Ctr'] - Контролера
+     * @param $params['Act'] - Действието
+     * @param $params['folderId'] - id' то на папката
+     * 
+     * @return $res - Линк
+     */
+    static function getVerbalLink($params)
+    {
+        // Записите за папката
+        $rec = static::fetch($params['folderId']);
+            
+        // Проверяваме дали има права
+        if (!static::haveRightFor($params['Act'], $rec)) return FALSE;
+        
+        // Заглавието на файла във вербален вид
+        $title = static::getVerbal($rec, 'title');
+        
+        // Инстанция на cover класа
+        $coverClassInst = cls::get($rec->coverClass);    
+        
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        // Иконата на корицата на папката
+        $sbfIcon = sbf($coverClassInst->singleIcon, '"', $isAbsolute);
+        
+        // Ако мода е xhtml
+        if (Mode::get('text') == 'xhtml') {
+            
+            // Добаваме span с иконата и заглавиетео - не е линк
+            // TODO класа да не е linkWithIcon
+            $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+        } else {
+            
+            // Линка
+            $link = toUrl($params, $isAbsolute);
+
+            // Атрибути на линка
+            $attr['class'] = 'linkWithIcon';
+            $attr['style'] = "background-image:url({$sbfIcon})";    
+            $attr['target'] = '_blank'; 
+            
+            // Създаваме линк
+            $res = ht::createLink($title, $link, NULL, $attr); 
+        }
+        
+        return $res;
+    }
 }

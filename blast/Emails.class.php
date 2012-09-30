@@ -143,6 +143,13 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Масив с подготвените данни (За да не се подготвят данните
+	 * за HTML и текстовата част) 2 пъти
+     */
+    var $prepared = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -350,8 +357,13 @@ class blast_Emails extends core_Master
                 $fieldsArr[$field] = $field;
             }
             
+            // Премахваме дублиращите се плейсхолдери
+            $allPlaceHolder = array_unique($allPlaceHolder);
+            
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
+                
+                // Ако плейсхолдера го няма във листа
                 if (!$fieldsArr[$placeHolder]) {
                     $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
                 }
@@ -485,13 +497,9 @@ class blast_Emails extends core_Master
             return $this->renderWrapping($form->renderHtml());
         }
         
-        
         //Намираме преполагаемия език на съобщението
         Mode::push('lg', $this->getLanguage($emailRec->body));
         
-        // Подготвяме записа с данните на съответния имейл
-        $this->prepareRec($emailRec, $email);
-                
         // Тялото на съобщението
         $body = $this->getEmailBody($emailRec, $email);
         
@@ -753,11 +761,20 @@ class blast_Emails extends core_Master
                 //Клонираме записа
                 $nRec = clone $rec;    
                 
+                // Задаваме екшъна за изпращане
+                log_Documents::pushAction(
+                    array(
+                        'containerId' => $nRec->containerId,
+                        'action'      => log_Documents::ACTION_SEND,
+                        'data'        => (object)array(
+                            'from' => $fromEmail,
+                            'to'   => $emailTo,
+                        )
+                    )
+                );
+            
                 //Намираме преполагаемия език на съобщението
                 Mode::push('lg', $this->getLanguage($nRec->body));
-                
-                //Подготвяме nRec
-                $this->prepareRec($nRec, $emailTo);
                 
                 //Тялото на съобщението
                 $body = $this->getEmailBody($nRec, $emailTo, TRUE);
@@ -765,15 +782,21 @@ class blast_Emails extends core_Master
                 //Връщаме езика по подразбиране
                 Mode::pop('lg');
                                 
-                //Енкодинга
-                $options['encoding'] = $nRec->encoding;
-
-                //Темата на имейла
-                $subject = $nRec->subject;
-                
                 //Извикваме функцията за изпращане на имейли
-                email_Sent::send($containerId, $threadId, $boxFrom, $emailTo, $subject, $body, $options);
+                $status = email_Sent::sendOne(
+                    $boxFrom,
+                    $emailTo,
+                    $body->subject,
+                    $body,
+                    array(
+                       'encoding' => $nRec->encoding
+                    )
+                );
+                
+                log_Documents::popAction();
             }
+            
+            Mode::pop('currentUserRec');
             
             //Стартираме системния потребител
             core_Users::forceSystemUser();
@@ -789,14 +812,26 @@ class blast_Emails extends core_Master
      */
     function prepareRec(&$rec, $emailTo)
     {
-        //Заглавието на темата
-        $subject = $this->getEmailSubject($rec, $emailTo);
-        
-        //Записваме заглавието, за да може да се използва при оформяне на имейла
-        $rec->subject = $subject;
-        
-        //Заместваме шаблоните в антетката с техните стойности
-        $this->replaceHeaderData($rec, $emailTo);
+        // Ако данните веднъж са приготвени, не ги приготвяме пак
+        if ($this->prepared[$rec->id][$emailTo]) {
+            
+            // 
+            $rec = $this->prepared[$rec->id][$emailTo];
+        } else {
+            
+            // Заглавието на темата
+            // Записваме заглавието, за да може да се използва при оформяне на имейла
+            $rec->subject = $this->getEmailSubject($rec, $emailTo);
+            
+            // Заместваме шаблоните в антетката с техните стойности
+            $this->replaceHeaderData($rec, $emailTo);
+            
+            // Заместваме данните в тялото на имейла
+            $rec->body = $this->replaceEmailData($rec->body, $rec->listId, $emailTo);    
+            
+            // Записваме, че данните са приготвени
+            $this->prepared[$rec->id][$emailTo] = $rec;
+        }
     }
     
     
@@ -817,11 +852,11 @@ class blast_Emails extends core_Master
         $body = new stdClass();
                 
         //Вземаме HTML частта
-        $body->html = $this->getEmailHtml($rec, $emailTo, $sending);
+        $body->html = $this->getEmailHtml($rec, $emailTo);
         
         //Вземаме текстовата част
-        $body->text = $this->getEmailText($rec, $emailTo, $sending);
-                
+        $body->text = $this->getEmailText($rec, $emailTo);
+
         $documents = array();
         $attachments = array();
         
@@ -852,6 +887,11 @@ class blast_Emails extends core_Master
         $body->attachments = type_Keylist::fromArray(fileman_Files::getIdFromFh($attachments));
         $body->documents = type_Keylist::fromArray(fileman_Files::getIdFromFh($documents));
 
+        // Други необходими данни за изпращането на имейла
+        $body->containerId = $rec->containerId;
+        $body->__mid = $rec->__mid;
+        $body->subject = $rec->subject;
+        
         return $body;
     }
     
@@ -881,25 +921,25 @@ class blast_Emails extends core_Master
      * 
      * @return core_ET $res
      */
-    function getEmailHtml($rec, $emailTo, $sending=FALSE)
+    function getEmailHtml($rec, $emailTo)
     {
-        //Емулираме xhtml режим
-        Mode::push('text', 'xhtml');
-         
-        $data = new stdClass();
+        // Опциите за генериране на тялото на имейла
+        $options = new stdClass();
+        
+        // Добавяме обработения rec към опциите
+        $options->rec = $rec;
+        $options->__mid = $rec->__mid;
+        $options->__toEmail = $emailTo;
+        
+        // Вземаме тялото на имейла
+        $res = static::getDocumentBody($rec->id, 'xhtml', $options);
+        
+        // За да вземем mid'а който се предава на $options
+        $rec->__mid = $options->__mid;
+        
+        // За да вземем subject'а със заменените данни
+        $rec->subject = $options->rec->subject;
 
-        //Вземаме тялото на имейла и заместваме шаблоните
-        $data->rec = $rec;
-        
-        // Заместваме данните в тялото на имейла
-        $data->rec->body = $this->replaceEmailData($data->rec->body, $rec->listId, $emailTo, !$sending);
-        
-        //Подготвяме данните за имейла
-        $this->prepareSingle($data);
-        
-        //Рендираме шаблона
-        $res = $this->renderSingle($data);
-        
         //Ако изпращаме имейла
         if ($sending) {
             //Добавяме CSS, като inline стилове
@@ -914,8 +954,11 @@ class blast_Emails extends core_Master
             // Класа
             $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
             
+            // Инстанция на класа
+            $inst = cls::get($CssToInline);
+            
             // Стартираме процеса
-            $res =  $CssToInline::convert($res, $css);  
+            $res =  $inst->convert($res, $css);  
             
             $res = str::cut($res, '<div id="begin">', '<div id="end">');    
         }
@@ -923,9 +966,6 @@ class blast_Emails extends core_Master
         //Изчистваме HTMl коментарите
         $res = email_Outgoings::clearHtmlComments($res);
 
-        //Връщаме стария режим
-        Mode::pop('text');
-        
         return $res;
     }
     
@@ -938,27 +978,24 @@ class blast_Emails extends core_Master
      * 
      * @return core_ET $res 
      */
-    function getEmailText($rec, $emailTo, $sending=FALSE)
+    function getEmailText($rec, $emailTo)
     {
-        //Емулираме текстов режим
-        Mode::push('text', 'plain');
-         
-        $data = new stdClass();
+        // Опциите за генериране на тялото на имейла
+        $options = new stdClass();
         
-        //Вземаме тялото на имейла и заместваме шаблоните
-        $data->rec = $rec;
+        // Добавяме обработения rec към опциите
+        $options->rec = $rec;
+        $options->__mid = $rec->__mid;
+        $options->__toEmail = $emailTo;
         
-        // Заместваме данните в тялото на имейла
-        $data->rec->body = $this->replaceEmailData($data->rec->body, $rec->listId, $emailTo, !$sending);
+        // Вземаме тялото на имейла
+        $res = static::getDocumentBody($rec->id, 'plain', $options);
         
-        //Подготвяме данните за имейла
-        $this->prepareSingle($data);
+        // За да вземем mid'а който се предава на $options
+        $rec->__mid = $options->__mid;
         
-        //Рендираме шаблона
-        $res = $this->renderSingle($data);
-        
-        //Връщаме стария режим
-        Mode::pop('text');
+        // За да вземем subject'а със заменените данни
+        $rec->subject = $options->rec->subject;
         
         return $res;
     }
@@ -1004,7 +1041,7 @@ class blast_Emails extends core_Master
      * 
      * @return mixed $res
      */
-    function replaceEmailData($res, $listId, $email, $escape=FALSE)
+    function replaceEmailData($res, $listId, $email)
     {        
         //Записваме текущите данни на потребителя
         $this->setCurrentEmailData($listId, $email);
@@ -1013,12 +1050,10 @@ class blast_Emails extends core_Master
         if (count($this->emailData[$listId][$email])) {
             
             foreach ($this->emailData[$listId][$email] as $key => $value) {
-
-                if ($escape) {
-                    $value = core_Type::escape($value);    
-                }
                 
+                // Какво ще заместваме
                 $search = "[#{$key}#]";
+                
                 //Заместваме данните
                 $res = str_ireplace($search, $value, $res);
             }     
@@ -1043,16 +1078,14 @@ class blast_Emails extends core_Master
             //Десериализираме данните за потребителя
             $this->emailData[$listId][$email] = unserialize($recList->data);
             
-            $mid = '[#mid#]';
-            $urlBg = array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => 'bg');
-            $urlEn = array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => 'en');
-            
+            $mid = doc_DocumentPlg::getMidPlace();
+            $urlBg = htmlentities(toUrl(array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => 'bg'), 'absolute'));
+            $urlEn = htmlentities(toUrl(array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => 'en'), 'absolute'));
+
             //Създаваме линковете
-            $linkBg = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
-            $linkEn = ht::createLink('here', toUrl($urlEn, 'absolute'), NULL, array('target'=>'_blank'));
-            
-            $this->emailData[$listId][$email]['otpisvane'] = $linkBg;
-            $this->emailData[$listId][$email]['unsubscribe'] = $linkEn;
+            $this->emailData[$listId][$email]['otpisvane'] = "[link={$urlBg}] тук [/link]";
+            $this->emailData[$listId][$email]['unsubscribe'] = "[link={$urlEn}] here [/link]";
+            $this->emailData[$listId][$email]['mid'] = $mid;
         }
     }
     
@@ -1222,4 +1255,18 @@ class blast_Emails extends core_Master
     }
     
     
+    /**
+     * Преди да подготвим данните за имейла, подготвяме rec
+     */
+    function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        // Записите за имейла
+        $emailRec = $mvc->fetch($id);
+        
+        // Подготвяме данните за съответния имейл
+        $mvc->prepareRec($emailRec, $options->__toEmail);
+
+        // Добавяме данните в rec'a
+        $options->rec = $emailRec;
+    }
 }

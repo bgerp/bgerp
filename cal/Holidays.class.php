@@ -285,11 +285,10 @@ class cal_Holidays extends core_Master
         // Префикс на клучовете за рожденните дни на това лице
         $prefix = "HOLIDAY-";
         
-         $queryCountry = drdata_Countries::getQuery();
-         $code2Cards = array();
+              $code2Cards = array();
          
                 $card = self::bCards();
-                
+              //  bp($card);
                 foreach($card as $id=>$persons){
                 	foreach($persons as $key => $person){
                 		$recCountry = drdata_Countries::fetch("#id = '{$id}'");
@@ -300,7 +299,7 @@ class cal_Holidays extends core_Master
                 	}
                 }
                
-           
+           //bp($code2Cards);
         
         $query = self::getQuery();
 
@@ -347,10 +346,13 @@ class cal_Holidays extends core_Master
                 }
                 
 	              foreach($code2Cards as $code2 => $users){
+	              	
 	                 	if($rec->type == $code2){
-		             
+		                  foreach($users as $id => $u){
 	                 		// Потребителите имащи право да виждат този празник са keylist
-		               		$calRec->users = type_Keylist::fromArray($users);
+		               		$calRec->users = '|'.$id.'|';
+		               		
+		                  }
 		               	
 		               	}
 	              }
@@ -475,17 +477,15 @@ class cal_Holidays extends core_Master
      */
     static function getLatinNames($names)
     {
-    
-        $namesArr = explode(',', str::utf2ascii(strstr($names, '>')));
+	    	$needle = array('<div class="richtext">', "<br>
+	</div>");
+	    	$names = str_replace($needle, "", $names->content);
+    	    $namesArr = explode(',', str::utf2ascii($names));
 
         foreach($namesArr as $n) {
-        	
-            $n = strtolower(trim(substr($n, 1)));
-           
-            $nArr = explode(' ', strstr($n, '<', TRUE));
-          
+            $n = strtolower(trim($n));
+            $nArr = explode(' ', $n);
             $res[$nArr[0]] = $nArr[0];
-
         }
 
         return $res;
@@ -517,13 +517,26 @@ class cal_Holidays extends core_Master
     {
     	
     	$cards = array();
-        $query = crm_Persons::getQuery();
-    	    	
+    	$profiles = array();
+        $query = crm_Profiles::getQuery();
+           	    	
     	while($rec = $query->fetch()){
     	
-    		$cards[$rec->country][$rec->id] = TRUE;
+    		$profiles[$rec->personId][$rec->userId] = TRUE;
     			
     	}
+    	
+    	foreach($profiles as $id=>$profile){
+    		
+    		foreach($profile as $idProf => $person){
+    		 
+    			$recPerson = crm_Persons::fetch("#id = '{$id}'");
+    		 	
+    	     	$cards[$recPerson->country][$idProf] = TRUE;
+    	     	     		
+    		}
+    	}
+    	
          	return $cards;
     }
 

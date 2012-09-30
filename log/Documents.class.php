@@ -27,7 +27,7 @@ class log_Documents extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, doc';
+    var $canRead = 'user';
     
     
     /**
@@ -45,19 +45,13 @@ class log_Documents extends core_Manager
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, doc';
+    var $canView = 'user';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, doc';
-    
-    
-    /**
-     * Необходими роли за оттегляне на документа
-     */
-    var $canReject = 'no_one';
+    var $canList = 'user';
     
     
     /**
@@ -258,13 +252,14 @@ class log_Documents extends core_Manager
         }
         
         if ($rec && $rec->containerId != $cid) {
-            $doc = doc_Containers::getDocument($cid);
+            $doc = doc_Containers::getDocument($rec->containerId);
             
-            //$linkedDocs = $doc->getLinkedDocuments($rec->containerId);
+            $linkedDocs = $doc->getLinkedDocuments();
+            $cidDoc     = doc_Containers::getDocument($cid);
             
-            if (!isset($linkedDocs[$cid])) {
-                // Временно не правим нищо, докато не реализираме getLinkedDocuments()
-                // $rec = FALSE;
+            if (!isset($linkedDocs[$cidDoc->getHandle()])) {
+                // Заявения документ не е посочен от "мидо-носителя" - не го показваме
+                $rec = FALSE;
             }
         }
         
@@ -274,7 +269,7 @@ class log_Documents extends core_Manager
 
     public static function returned($mid, $date = NULL)
     {
-        if (!($sendRec = static::fetch(array("#mid = '[#1#]' AND #action = '" . static::ACTION_SEND . "'", $mid)))) {
+        if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
             // Няма изпращане с такъв MID
             return FALSE;
         }
@@ -321,7 +316,7 @@ class log_Documents extends core_Manager
 
     public static function received($mid, $date = NULL)
     {
-        if (!($sendRec = static::fetch(array("#mid = '[#1#]' AND #action = '" . static::ACTION_SEND . "'", $mid)))) {
+        if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
             // Няма изпращане с такъв MID
             return FALSE;
         }
@@ -1050,5 +1045,25 @@ class log_Documents extends core_Manager
         }
 
         return $res;
+    }
+    
+    
+    /**
+     * Връща записа за съответния екшън и мид
+     * 
+     * @param string $mid - Mid' а на действието
+     * @param string $action - Действието, което искаме да търсим
+     * 
+     * @return log_Documents - Обект с данни
+     */
+    static function getActionRecForMid($mid, $action=NULL)
+    {
+        // Акшъна по подразбиране да е send
+        setIfNot($action, static::ACTION_SEND);
+
+        // Вземаме записите, ако има такива
+        $rec = static::fetch(array("#mid = '[#1#]' AND #action = '{$action}'", $mid));
+        
+        return $rec;
     }
 }

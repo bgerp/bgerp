@@ -98,6 +98,11 @@ class groups_Manager extends core_Manager
     }
     
     
+    public function addExtender($name, $params)
+    {
+        $this->extendersArr[$name] = $params;
+    }
+    
     /**
      * Обединението на екстендерите, прикачени към поне една от зададените групи
      * 
