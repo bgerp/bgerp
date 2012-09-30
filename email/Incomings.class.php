@@ -538,12 +538,12 @@ class email_Incomings extends core_Master
 
         if($rec->htmlFile) {
             $newName = $this->abbr . $rec->id . '.html';
-            fileman_Files::rename($rec->htmlFile, $newName);
+          //  fileman_Files::rename($rec->htmlFile, $newName);
         }
         
         if($rec->emlFile) {
             $newName = $this->abbr . $rec->id . '.eml';
-            fileman_Files::rename($rec->emlFile, $newName);
+           // fileman_Files::rename($rec->emlFile, $newName);
         }
     }
 

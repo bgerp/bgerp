@@ -127,8 +127,8 @@ class crm_Groups extends groups_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->companiesCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id)));
-        $row->personsCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id)));
+        $row->companiesCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+        $row->personsCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
         
         $name = $mvc->getVerbal($rec, 'name');
         $info = $mvc->getVerbal($rec, 'info');
