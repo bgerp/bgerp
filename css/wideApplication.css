@@ -1709,7 +1709,6 @@ h2 {
 	margin-left:60px;
 }
 
-<<<<<<< HEAD
 #article-table-view #article-list-body li{
 	//border:1px solid red;
 	width:500px;
@@ -1741,7 +1740,7 @@ h2 {
 #blog-article-list-body {
 	width:130%;
 	margin-left:auto;
-    margin-right:auto;
+    	margin-right:auto;
 	margin-top:20px;
 	list-style:none;
 	padding-left:0px;
@@ -1907,7 +1906,8 @@ h2 {
 	font-size:18px;
 	//text-align:center;
 	//padding-top:60px;
-=======
+}
+
 /*
  * Хипервръзки към профилите на потребители
  */
@@ -1934,5 +1934,4 @@ a.profile.executive {
 
 a.profile.contractor {
 	color:#f00;
->>>>>>> refs/remotes/origin/master
 }
