@@ -97,7 +97,7 @@ class doc_RichTextPlg extends core_Plugin
             $attr['style'] = $style;
             
             // Ако изпращаме или принтираме документа
-            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+            if ($isAbsolute) {
                 
                 // Линка да се отваря на нова страница
                 $attr['target'] = '_blank';    
