@@ -142,7 +142,7 @@ class cat_products_Params extends cat_products_Detail
         }
         
         if (!$form->title) {
-            $form->title = "|*" . cat_Products::getVerbal($productRec, 'name');
+            $form->title = "Параметри на |*" . cat_Products::getVerbal($productRec, 'name');
         }
         
         $query = static::getQuery();
@@ -202,7 +202,7 @@ class cat_products_Params extends cat_products_Detail
         
         $tpl->append($data->changeBtn, 'TITLE');
         
-        foreach($data->rows as $row) {
+        foreach((array)$data->rows as $row) {
             $block = $tpl->getBlock('param');
             $block->placeObject($row);
             
