@@ -277,7 +277,7 @@ class blast_Emails extends core_Master
             if (!Request::get('Clone')) {
                 
                 //Чекбоксовете, да са избрани по подразбиране
-                $data->form->setDefault('attachments','files,documents');  
+//                $data->form->setDefault('attachments','files,documents');  
                 
                 //По подразбиране да е избран текущия имейл на потребителя
                 $form->setDefault('from', email_Inboxes::getUserInboxId());  
