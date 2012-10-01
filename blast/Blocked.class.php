@@ -77,6 +77,6 @@ class blast_Blocked extends core_Manager
     {
         $this->FLD('email', 'email', 'caption=Имейл, mandatory');
         
-        $this->setDbUnique('mail');
+        $this->setDbUnique('email');
     }
 }
