@@ -190,7 +190,7 @@ class log_Documents extends core_Manager
             expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
         }
 
-        if (!in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
+        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
             $rec->mid = static::generateMid();
         }
         
@@ -251,6 +251,7 @@ class log_Documents extends core_Manager
             $rec = FALSE;
         }
         
+        
         if ($rec && $rec->containerId != $cid) {
             $doc = doc_Containers::getDocument($rec->containerId);
             
@@ -260,6 +261,8 @@ class log_Documents extends core_Manager
             if (!isset($linkedDocs[$cidDoc->getHandle()])) {
                 // Заявения документ не е посочен от "мидо-носителя" - не го показваме
                 $rec = FALSE;
+            } elseif ($_rec = static::fetch(array("#containerId = '[#1#]'", $cid))) {
+                $rec = $_rec;
             }
         }
         
@@ -364,45 +367,47 @@ class log_Documents extends core_Manager
         return TRUE;
     }
     
-    public static function opened($parent)
+    
+    /**
+     * Преди показването на документ по MID
+     * 
+     * @param int $cid key(mvc=doc_Containers)
+     * @param string $mid
+     * @return stdClass
+     */
+    public static function opened($cid, $mid)
     {
-        $openAction = log_Documents::ACTION_OPEN;
-
-        $ip = core_Users::getRealIpAddr();
+        expect($parent = static::fetchHistoryFor($cid, $mid));
         
-        if (isset($parent->data->{$openAction}[$ip])) {
-            // Вече имаме регистрирано виждане от това IP
-            return;
+        $openAction = self::ACTION_OPEN;
+        
+        if ($parent->containerId != $cid) {
+            $action = (object)array(
+                'action'      => $openAction,
+                'containerId' => $cid,
+                'parentId'    => $parent->id,
+                'data'        => new stdClass(),
+            );
+        } else {
+            $action = $parent;
         }
         
-        $parent->data->{$openAction}[$ip] = array(
-            'on' => dt::now(true),
-            'ip' => $ip 
-        );
+        $ip = core_Users::getRealIpAddr();
         
-        static::save($parent);
-
-        // Нотификация за получаването на писмото
-        $msg = "Видян документ: " . doc_Containers::getDocTitle($parent->containerId);
+        if (!isset($action->data->{$openAction}[$ip])) {
+            $action->data->{$openAction}[$ip] = array(
+                'on' => dt::now(true),
+                'ip' => $ip
+            );
+        }
         
-        // Нотификация за виждане на писмото от получателя му
-        /*
-         * За сега отпада: @link https://github.com/bgerp/bgerp/issues/353#issuecomment-8531333
-         *  
-        bgerp_Notifications::add(
-            $msg, // съобщение
-            array(
-                'log_Documents', 
-                'list', 
-                'containerId'=>$parent->containerId,
-                'action' => log_Documents::ACTION_OPEN 
-            ), // URL
-            $parent->createdBy, // получател на нотификацията
-            'alert' // Важност (приоритет)
-        );
-        */
+        static::pushAction($action);
         
-        core_Logs::add(get_called_class(), $parent->id, $msg);
+        $msg = "Видян документ: " . doc_Containers::getDocTitle($action->containerId);
+        
+        core_Logs::add('doc_Containers', $action->containerId, $msg);
+        
+        return $action;
     }
     
 
