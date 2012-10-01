@@ -110,11 +110,15 @@ class cat_products_Packagings extends cat_products_Detail
     {
         $options = $mvc::getPackagingOptions($data->form->rec->productId, $data->form->rec->id);
         
+        
         if (empty($options)) {
             // Няма повече недефинирани опаковки
             redirect(getRetUrl(), FALSE, tr('Няма повече недефинирани опаковки'));
         }
         $data->form->setOptions('packagingId', $options);
+        
+        $productRec = cat_Products::fetch($data->form->rec->productId);
+        $data->form->title = 'Добавяне на опаковка за |*' . cat_Products::getVerbal($productRec, 'name');
     }
     
     
