@@ -46,7 +46,7 @@ class bgerp_F extends core_Manager
         expect($fh = array_search($name, $linkedFiles), 'Няма такъв файл.');
                 
         // Записваме, ако не е записоно, че файла е отворено от ip
-        log_Documents::opened($rec);
+        log_Documents::opened($rec->containerId, $mid);
         
         // Записите за файла
         $fRec = fileman_Files::fetchByFh($fh);
