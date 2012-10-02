@@ -145,15 +145,16 @@ if (!defined('EF_APP_NAME') &&
     DEFINE('EF_APP_NAME', basename(EF_INDEX_PATH));
 }
 
-/**
- * Пътя до директорията за статичните браузърни файлове към приложението
- */
-defIfNot('EF_SBF_PATH', EF_INDEX_PATH . "/" . EF_SBF . "/" . EF_APP_NAME);
 
 /**
  * Базовото име на директорията за статичните браузърни файлове
  */
 defIfNot('EF_SBF', 'sbf');
+
+/**
+ * Пътя до директорията за статичните браузърни файлове към приложението
+ */
+defIfNot('EF_SBF_PATH', EF_INDEX_PATH . "/" . EF_SBF . "/" . EF_APP_NAME);
 
 /**
  * Директорията с външни пакети
