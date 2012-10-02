@@ -92,20 +92,6 @@ function tr($text, $userId = 0, $key = FALSE)
     return $Lg->translate($text, $userId, $key);
 }
 
-
-// За съвместимост с версиите преди 5.3
-if (!function_exists('class_alias')) {
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function class_alias($original, $alias) {
-        eval('abstract class ' . $alias . ' extends ' . $original . ' {}');
-    }
-}
-
-
 /********************************************************************************************
  *                                                                                          *
  *      Зареждане на класове с библиотечни функции                                          *
