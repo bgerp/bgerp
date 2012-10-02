@@ -90,8 +90,8 @@ class core_Locks extends core_Manager
         if($rec) {
             
             // Не всеки път в текущич хит искаме да презапишем крайния срок
-            if (!$delOnShutDown) {
-                
+            if ($delOnShutDown) {
+
                 // Изчакваме ако обекта е заключен в текущия хит
                 if (static::waitForLock($objectId, $maxDuration, $maxTrays)) return TRUE;    
             }
