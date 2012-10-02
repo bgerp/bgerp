@@ -107,12 +107,10 @@ require_once(EF_EF_PATH . "/core/Cls.class.php");
  *                                                                                          *
  ********************************************************************************************/
 
-
 /**
  * Директорията с конфигурационните файлове
  */
 defIfNot('EF_CONF_PATH', EF_ROOT_PATH . '/conf');
-
 
 /**
  * По подразбиране от локалния хост се работи в режим DEBUG
@@ -131,6 +129,19 @@ if (!defined('EF_APP_NAME') &&
     DEFINE('EF_APP_NAME', basename(EF_INDEX_PATH));
 }
 
+// Зареждаме конфигурационния файл на приложението. 
+// Ако липсва - показваме грешка.
+// Шаблон за този файл има в директорията [_docs]
+if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
+    halt('Error in boot.php: Missing configuration file: ' .
+        EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
+}
+
+// Зареждаме общата за всички приложения конфигурация
+// Той може да липсва. Параметрите в него са с по-нисък 
+// Приоритет, спрямо тези в index.cfg.php и EF_APP_NAME.cfg.php
+// Шаблон за този файл има в директорията [_docs]
+@include EF_CONF_PATH . '/_common.cfg.php';
 
 /**
  * Базовото име на директорията за статичните браузърни файлове
@@ -190,7 +201,7 @@ defIfNot('EF_APP_PATH', EF_APP_BASE_PATH . '/' . EF_APP_CODE_NAME);
 /**
  * Стартира Setup, ако се изисква
  */
-if (isset($_GET['SETUP'])) {// bp(session_name(), $_COOKIE, $_SESSION, $s); 
+if (isset($_GET['SETUP'])) {
 	require_once(EF_EF_PATH . "/core/Setup.inc.php");
    	die;	
 }
@@ -232,20 +243,6 @@ if (!defined('EF_APP_NAME')) {
      */
     DEFINE('EF_APP_NAME_FIXED', TRUE);
 }
-
-// Зареждаме конфигурационния файл на приложението. 
-// Ако липсва - показваме грешка.
-// Шаблон за този файл има в директорията [_docs]
-if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
-    halt('Error in boot.php: Missing configuration file: ' .
-        EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
-}
-
-// Зареждаме общата за всички приложения конфигурация
-// Той може да липсва. Параметрите в него са с по-нисък 
-// Приоритет, спрямо тези в index.cfg.php и EF_APP_NAME.cfg.php
-// Шаблон за този файл има в директорията [_docs]
-@include EF_CONF_PATH . '/_common.cfg.php';
 
 // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
 ob_clean();
