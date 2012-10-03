@@ -130,11 +130,21 @@ class bgerp_L extends core_Manager
             
             // Вземаме манипулатора на записа от този модел (bgerp_L)
             expect($mid = Request::get('m'));
-            expect($parent = log_Documents::opened($cid, $mid));
+            expect(log_Documents::opened($cid, $mid));
+            
+            $options = array();
 
+            // Трасираме стека с действията докато намерим SEND екшън
+            $i = 0;
+            while ($action = log_Documents::getAction($i--)) {
+                if ($action->action == log_Documents::ACTION_SEND) {
+                    $options->__toEmail = $action->data->to;
+                }
+            }
+            
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на 
             // документа за показване
-            $html = $doc->getDocumentBody('xhtml', (object) array('__toEmail'=>$parent->data->to));
+            $html = $doc->getDocumentBody('xhtml', (object) $options);
             
             Mode::set('wrapper', 'page_External');
             
