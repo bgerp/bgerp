@@ -242,31 +242,23 @@ class log_Documents extends core_Manager
      * @param int $cid key(mvc=doc_Containers)
      * @param string $mid
      * @return object|boolean запис на модела или FALSE
+     * 
      */
     public static function fetchHistoryFor($cid, $mid)
     {
-        $rec = static::fetch(array("#mid = '[#1#]'", $mid));
-        
-        if (!$rec) {
-            $rec = FALSE;
-        }
-        
-        
-        if ($rec && $rec->containerId != $cid) {
-            $doc = doc_Containers::getDocument($rec->containerId);
-            
-            $linkedDocs = $doc->getLinkedDocuments();
-            $cidDoc     = doc_Containers::getDocument($cid);
-            
-            if (!isset($linkedDocs[$cidDoc->getHandle()])) {
-                // Заявения документ не е посочен от "мидо-носителя" - не го показваме
-                $rec = FALSE;
-            } elseif ($_rec = static::fetch(array("#containerId = '[#1#]'", $cid))) {
-                $rec = $_rec;
-            }
-        }
-        
-        return $rec;
+        return static::fetch(array("#mid = '[#1#]' AND #containerId = [#2#]", $mid, $cid));
+    }
+    
+    
+    protected static function fetchByMid($mid)
+    {
+        return static::fetch(array("#mid = '[#1#]'", $mid));
+    }
+
+
+    protected static function fetchByCid($cid)
+    {
+        return static::fetch(array("#containerId = [#1#]", $cid));
     }
 
 
@@ -377,20 +369,64 @@ class log_Documents extends core_Manager
      */
     public static function opened($cid, $mid)
     {
-        expect($parent = static::fetchHistoryFor($cid, $mid));
-        
-        $openAction = self::ACTION_OPEN;
+        expect($parent = static::fetchByMid($mid));
         
         if ($parent->containerId != $cid) {
-            $action = (object)array(
-                'action'      => $openAction,
-                'containerId' => $cid,
-                'parentId'    => $parent->id,
-                'data'        => new stdClass(),
-            );
+            // Заявен е документ, който не е собственик на зададения MID. В този случай заявения 
+            // документ трябва да е свързан с (цитиран от) документа собственик на MID.
+            $requestedDoc = doc_Containers::getDocument($cid);
+            $midDoc       = doc_Containers::getDocument($parent->containerId);
+            
+            $linkedDocs = $midDoc->getLinkedDocuments();
+            
+            // свързан ли е?
+            expect(isset($linkedDocs[$requestedDoc->getHandle()]));
+            
+            // До тук се стига само ако заявения е свързан.
+            
+            if (!($action = static::fetchByCid($cid)) || $action->action != self::ACTION_OPEN) {
+                // Ако нямаме отбелязано виждане на заявения документ - създаваме нов запис
+                $action = (object)array(
+                    'action'      => self::ACTION_OPEN,
+                    'containerId' => $cid,
+                    'parentId'    => $parent->id,
+                    'data'        => new stdClass(),
+                );
+            }
         } else {
             $action = $parent;
+            $parent = NULL;
+            
+            if ($action->parentId) {
+                // Ако текущото виждане има родител - подсигуряваме, че и родителя е маркиран 
+                // като видян
+                $parent = static::fetch($action->parentId);
+            }
         }
+        
+        expect($action);
+        
+        return static::markAsOpened($action, $parent);
+    }
+    
+    
+    /**
+     * Помощен метод - маркира запис като видян и го добавя в стека с действията.
+     * 
+     *  Ако има зададен запис за родителско действие ($parent) и той се маркира като видян.
+     *  Стека с действията се пълни в паметта; записа му в БД става в края на заявката
+     *  @see log_Documents::on_Shutdown()
+     * 
+     * @param stdClass $action запис на този модел
+     */
+    protected static function markAsOpened($action, $parent)
+    {
+        if ($parent) {
+            // Ако е зададено действие-родител - маркираме го като видяно.
+            static::markAsOpened($parent, NULL);
+        }
+        
+        $openAction = self::ACTION_OPEN;
         
         $ip = core_Users::getRealIpAddr();
         
@@ -821,13 +857,29 @@ class log_Documents extends core_Manager
     }
     
     
-    protected static function formatViewReason($rec)
+    protected static function formatViewReason($rec, $deep = TRUE)
     {
         switch ($rec->action) {
             case self::ACTION_SEND:
                 return 'Имейл до ' . $rec->data->to . ' / ' . static::getVerbal($rec, 'createdOn');
             case self::ACTION_PRINT:
                 return 'Отпечатване / ' . static::getVerbal($rec, 'createdOn');
+            case self::ACTION_OPEN:
+                if ($deep && !empty($rec->parentId)) {
+                    $parentRec = static::fetch($rec->parentId);
+                    $res = static::formatViewReason($parentRec, FALSE);
+                } else {
+                    $doc = doc_Containers::getDocument($rec->containerId);
+                    $docRow = $doc->getDocumentRow();
+                    $res = 'Показване на ' . 
+                        ht::createLink($docRow->title, 
+                            array(
+                                get_called_class(), 'containerId' => $rec->containerId,
+                                'action' => 'open'
+                            )
+                        ) . ' / ' . static::getVerbal($rec, 'createdOn');
+                }
+                return $res;
             default:
                 return strtoupper($rec->action) . ' / ' . static::getVerbal($rec, 'createdOn');
         }
@@ -1070,5 +1122,33 @@ class log_Documents extends core_Manager
         $rec = static::fetch(array("#mid = '[#1#]' AND #action = '{$action}'", $mid));
         
         return $rec;
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function on_Shutdown($mvc)
+    {
+        static::flushActions();
+    }
+    
+    
+    /**
+     * Записва в БД всички действия от стека
+     */
+    protected static function flushActions()
+    {
+        $count = 0;
+        
+        while (static::hasAction()) {
+            $action = static::popAction();
+            if ($action->value)  {
+                static::save($action->value);
+                $count++;
+            }
+        }
+        
+        core_Logs::add(get_called_class(), NULL, "Записани {$count} действия");
     }
 }
