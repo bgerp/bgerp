@@ -120,10 +120,16 @@ class fileman_Mimes extends core_BaseClass {
                 $ext = mb_strtolower($ext);
                 if(!$ext || !in_array($ext, $extArr)) {
                     
-                    //Масив с разширенията, на които вярваме и няма да се променят на bin
-                    $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx');
+                    // TODO става много сложно
+                    // Може да се направи само ако няма разширение да се променя, но това ще позволи качването на файлове със сгрешени разширения
                     
-                    if (($mime != 'application/octet-stream') || (!in_array($ext, $trustExtArr)) ) {
+                    // Масив с разширенията, на които вярваме и няма да се променят, ако са mimeto им е в $noTrustMimeArr
+                    $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx', 'txt');
+                    
+                    // Масив с mime типове
+                    $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++');
+                    
+                    if ((!in_array($mime, $noTrustMimeArr)) || (!in_array($ext, $trustExtArr)) ) {
                         
                         $fileName .= '.' . $extArr[0];    
                     }
