@@ -64,7 +64,9 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['html'] = (object) 
 			array(
 				'title' => 'HTML',
-				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML частта на имейла</legend>{$htmlPart}</fieldset></div>",
+				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
+                		<iframe src='{$htmlPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
+                	</fieldset></div>",
 				'order' => 1,
 			);
         
@@ -146,13 +148,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Манипулатора на html файла
         $htmlFileHnd = fileman_Files::fetchField($emlRec->htmlFile, 'fileHnd');
         
-        // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
-        $htmlPart = fileman_Files::getContent($htmlFileHnd);
-        
-        // Декодираме го
-        $decoded = $mime->convertToUtf8($htmlPart);
-        
-        return $decoded;
+        return fileman_Download::getDownloadUrl($htmlFileHnd);
     }
     
     
