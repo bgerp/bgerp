@@ -59,7 +59,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $headersStr = type_Varchar::escape($headersArr['string']);
         
         // Вземаме линковете към файловете
-        $filesStr = static::getFiles($emlRec);
+        $filesStr = static::getFiles($mime, $emlRec);
        
         // Подготвяме табовете
         
@@ -192,19 +192,28 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * 
      * return string - html стринг с прикачените файлове
      */
-    static function getFiles($emlRec)
+    static function getFiles($mime, $emlRec)
     {
         // Масив с всички прикачени файлове
         $filesArr = type_Keylist::toArray($emlRec->files);
         
-        // Обхождаме всички файлове и вземаме линк за сваляне
-        foreach ($filesArr as $keyD) {
-            $filesStr .= fileman_Download::getDownloadLinkById($keyD) . "\n";
-        }
+        // Линкнатите файлове (cid)
+        $linkedFiles = $mime->getLinkedFiles();
+        
+        // Масив с всички линкнати файлове
+        $linkedFilesArr = type_Keylist::toArray($linkedFiles);
         
         // Ако има html файл, вземаме линк към него
         if($emlRec->htmlFile) {
-            $filesStr .= fileman_Download::getDownloadLinkById($emlRec->htmlFile);
+            $filesStr .= fileman_Download::getDownloadLinkById($emlRec->htmlFile) . "\n";
+        }
+        
+        // Съединяваме линкнатите файлове с прикачените файлове
+        $filesArr += $linkedFilesArr;
+        
+        // Обхождаме всички файлове и вземаме линк за сваляне
+        foreach ($filesArr as $keyD) {
+            $filesStr .= fileman_Download::getDownloadLinkById($keyD) . "\n";
         }
         
         // Връщаме стринга
