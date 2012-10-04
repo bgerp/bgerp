@@ -570,7 +570,9 @@ class log_Documents extends core_Manager
         
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
-            $data[$rec->containerId]->summary[$rec->action] += 1;
+            if ($rec->action != $open) {
+                $data[$rec->containerId]->summary[$rec->action] += 1;
+            }
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
