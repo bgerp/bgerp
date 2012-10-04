@@ -589,7 +589,7 @@ class core_Html
             $iconSrc = sbf($attr['ef_icon'], '', Mode::is('text', 'xhtml'));
             if(Mode::is('text', 'xhtml') && !Mode::is('pdf')) {
                 $icon    = "<img src='$iconSrc' width='16' height='16' style='float:left;margin:3px 2px 4px 0px;' alt=''>";
-                $title   = $icon . $title;
+                $title   = "<div style='display:inline-block;'>{$icon}{$title}</div>";
             } else {
                 $attr['class'] .= ' linkWithIcon';
                 $attr['style'] .= "background-image:url('{$iconSrc}');";

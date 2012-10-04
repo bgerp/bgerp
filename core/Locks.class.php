@@ -89,13 +89,6 @@ class core_Locks extends core_Manager
         // Ако този обект е заключен от текущия хит, връщаме TRUE
         if($rec) {
             
-            // Не всеки път в текущич хит искаме да презапишем крайния срок
-            if (!$delOnShutDown) {
-                
-                // Изчакваме ако обекта е заключен в текущия хит
-                if (static::waitForLock($objectId, $maxDuration, $maxTrays)) return TRUE;    
-            }
-            
             // Ако имаме промяна в крайния срок за заключването
             // отразяваме я в модела
             if($rec->lockExpire < $lockExpire) {
