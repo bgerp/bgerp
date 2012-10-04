@@ -212,6 +212,8 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      */
     static function changeEmlAndHtmlFileId(&$emlRec)
     {
+        return;
+
         // Ако има html файл
         if ($emlRec->htmlFile) {
             

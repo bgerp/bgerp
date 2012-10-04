@@ -96,6 +96,7 @@ class fileman_Files extends core_Master
         // Индекси
         $this->setDbUnique('fileHnd');
         $this->setDbUnique('name,bucketId', 'uniqName');
+        $this->setDbIndex('dataId,bucketId', 'indexDataId');
     }
     
     
