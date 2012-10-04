@@ -512,6 +512,14 @@ a img {
     background-image:url('../img/16/red-back.png');
 }
 
+.btn-eml {
+    background-image:url('../img/16/file_extension_eml.png');
+}
+
+.btn-html {
+    background-image:url('../img/16/file_extension_html.png');
+}
+
 
 /*Стилове за acc*/
 div.acc-detail {
