@@ -68,13 +68,13 @@ class email_Mime extends core_BaseClass
     /**
      * Масив с id => [име нафайл]
      */
-    var $attachedFiles;
+    var $attachedFiles = array();
     
     
     /**
      * Масив с cid => fh - вградени (embedded) файлове
      */
-    var $linkedFiles;
+    var $linkedFiles = array();
     
     
     /**

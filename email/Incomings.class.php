@@ -1569,17 +1569,6 @@ class email_Incomings extends core_Master
                     ),
                 'class=btn-eml, order=21');    
             }
-            
-            if ($data->rec->htmlFile) {
-                
-                // Добавяме бутон за разглеждане не HTML файла
-                $data->toolbar->addBtn('HTML', array(
-                        'fileman_Files',
-                        'single',
-                        'id' => fileman_Files::fetchField($data->rec->htmlFile, 'fileHnd'),
-                    ),
-                'class=btn-html, order=22');    
-            }    
         }
     }
 }
