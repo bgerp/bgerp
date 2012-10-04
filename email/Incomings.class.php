@@ -214,7 +214,7 @@ class email_Incomings extends core_Master
         $accQuery->XPR('order', 'double', 'RAND()');
         $accQuery->orderBy('#order');
 
-        while ($accRec = $accQuery->fetch("#state = 'active'")) {
+        while (($accRec = $accQuery->fetch("#state = 'active'")) && ($maxTime > time())) {
             
             // Заключваме тегленето от тази пощенска кутия
             $lockKey = 'Inbox:' . $accRec->id;
@@ -370,7 +370,7 @@ class email_Incomings extends core_Master
             $query->XPR('maxUid', 'int', 'max(#uid)');
             $maxRec = $query->fetch("#accId = {$imapConn->accRec->id}");
         }
-
+ 
         if(!$maxRec->maxUid) {
             
             // Горен указател
@@ -442,9 +442,11 @@ class email_Incomings extends core_Master
         // Номерата почват от 1
         if($msgNum < 1) {
              $this->log('TRUE: $msgNum < 1');
+
             return TRUE;
         }
-        
+        echo "<li> ID {$imapConn->accRec->id} $msgNum </li> <br>";
+
         if(!isset($isDown[$imapConn->accRec->id][$msgNum])) {
 
             $headers = $imapConn->getHeaders($msgNum);
@@ -452,6 +454,7 @@ class email_Incomings extends core_Master
             // Ако няма хедъри, значи има грешка
             if(!$headers) {
                 $this->log('TRUE: !$headers');
+
                 return TRUE;
             }
             
@@ -460,7 +463,7 @@ class email_Incomings extends core_Master
             $hash    = $mimeParser->getHash($headers);
             
             $res = $isDown[$imapConn->accRec->id][$msgNum] = $this->fetchField("#hash = '{$hash}'", 'id');
-            $this->log(($res ? 'TRUE' : 'FALSE' ) . ": $res $hash");
+            $this->log(($res ? 'TRUE' : 'FALSE' ) . ":{$imapConn->accRec->id} $res $hash");
 
         }
 
@@ -1215,7 +1218,7 @@ class email_Incomings extends core_Master
     /**
      * Извиква се след вкарване на запис в таблицата на модела
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId');
         
