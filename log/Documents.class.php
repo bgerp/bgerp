@@ -384,7 +384,7 @@ class log_Documents extends core_Manager
             
             // До тук се стига само ако заявения е свързан.
             
-            if (!($action = static::fetchByCid($cid)) || $action->action != self::ACTION_OPEN) {
+            if (!($action = static::fetchHistoryFor($cid, $mid)) || $action->action != self::ACTION_OPEN) {
                 // Ако нямаме отбелязано виждане на заявения документ - създаваме нов запис
                 $action = (object)array(
                     'action'      => self::ACTION_OPEN,
