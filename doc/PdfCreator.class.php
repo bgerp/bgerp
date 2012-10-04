@@ -115,7 +115,7 @@ class doc_PdfCreator extends core_Manager
             //Добавяме всички стилове inline
             $html = '<div id="begin">' . $html . '<div id="end">';
             
-            // Вземаме пакета
+            // Вземаме конфигурацията на пакета csstoinline
             $conf = core_Packs::getConfig('csstoinline');
             
             // Класа
@@ -130,11 +130,14 @@ class doc_PdfCreator extends core_Manager
             $html = str::cut($html, '<div id="begin">', '<div id="end">');
             
             $name = self::createPdfName($name);
+            
+            // Вземаме конфигурацията на пакета doc
+            $confDoc = core_Packs::getConfig('doc');
 
             // Генерираме PDF и му вземаме файловия манипулатор
-            if($conf->BGERP_PDF_GENERATOR == 'dompdf') {
+            if($confDoc->BGERP_PDF_GENERATOR == 'dompdf') {
                 $fileHnd = dompdf_Converter::convert($html, $name, self::PDF_BUCKET);
-            } elseif($conf->BGERP_PDF_GENERATOR == 'webkittopdf') {
+            } elseif($confDoc->BGERP_PDF_GENERATOR == 'webkittopdf') {
                 $fileHnd = webkittopdf_Converter::convert($html, $name, self::PDF_BUCKET);
             } else {
                 expect(FALSE, $conf->BGERP_PDF_GENERATOR);
