@@ -686,14 +686,6 @@ class email_Incomings extends core_Master
                     }
                 }
             }
-            
-            if($rec->emlFile) {
-                $row->emlFile = fileman_Download::getDownloadLinkById($rec->emlFile);
-            }
-            
-            if($rec->htmlFile) {
-                $row->htmlFile = fileman_Download::getDownloadLinkById($rec->htmlFile);
-            }
         }
         
         if(!$rec->toBox) {
@@ -708,8 +700,6 @@ class email_Incomings extends core_Master
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
                 
-        $row->files .= $row->emlFile . $row->htmlFile;
-        
         if($fields['-list']) {
            // $row->textPart = mb_Substr($row->textPart, 0, 100);
         }
@@ -1557,6 +1547,28 @@ class email_Incomings extends core_Master
 
         while($rec = $query->fetch()) {
             $this->setEmlAndHtmlFileNames($rec); 
+        }
+    }
+    
+    
+    /**
+     * Добавя бутони
+     */
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        // Ако имаме права за single
+        if ($mvc->haveRightFor('single', $data->rec)) {
+            
+            if ($data->rec->emlFile) {
+                
+                // Добавяме бутон за разглеждане не EML файла
+                $data->toolbar->addBtn('EML', array(
+                        'fileman_Files',
+                        'single',
+                        'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
+                    ),
+                'class=btn-eml, order=21');    
+            }
         }
     }
 }

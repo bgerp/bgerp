@@ -384,7 +384,9 @@ class log_Documents extends core_Manager
             
             // До тук се стига само ако заявения е свързан.
             
-            if (!($action = static::fetchByCid($cid)) || $action->action != self::ACTION_OPEN) {
+            $action = static::fetch(array("#containerId = [#1#] AND #parentId = {$parent->id}", $cid));
+            
+            if (!$action || $action->action != self::ACTION_OPEN) {
                 // Ако нямаме отбелязано виждане на заявения документ - създаваме нов запис
                 $action = (object)array(
                     'action'      => self::ACTION_OPEN,
@@ -570,7 +572,9 @@ class log_Documents extends core_Manager
         
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
-            $data[$rec->containerId]->summary[$rec->action] += 1;
+            if ($rec->action != $open) {
+                $data[$rec->containerId]->summary[$rec->action] += 1;
+            }
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }

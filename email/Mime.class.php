@@ -68,13 +68,13 @@ class email_Mime extends core_BaseClass
     /**
      * Масив с id => [име нафайл]
      */
-    var $attachedFiles;
+    var $attachedFiles = array();
     
     
     /**
      * Масив с cid => fh - вградени (embedded) файлове
      */
-    var $linkedFiles;
+    var $linkedFiles = array();
     
     
     /**
@@ -950,8 +950,9 @@ class email_Mime extends core_BaseClass
                 // за да можем да свържем вградените граф. файлове в HTML частите
                 if($cid = trim($this->getHeader('Content-ID', $p), '<>')) {
                     $this->linkedFiles[$cid] = $p->filemanId;
+                } else {
+                    $this->attachedFiles[$p->filemanId] = $fileName;    
                 }
-                $this->attachedFiles[$p->filemanId] = $fileName;
             }
         }
     }
@@ -1063,5 +1064,22 @@ class email_Mime extends core_BaseClass
         }
         
         return $headersArr;
+    }
+    
+    
+    /**
+     * Връща линкнатите файлове (cid)
+     * 
+     * @return type_Keylist $linkedFiles - Всички линканти файлове (cid)
+     */
+    function getLinkedFiles()
+    {
+        // Преборъщаме масива, id'тата да са ключ
+        $linkedFiles = array_flip($this->linkedFiles);
+        
+        // Преобразуваме масива в keylist поле
+        $linkedFiles = type_Keylist::fromArray($linkedFiles);
+        
+        return $linkedFiles;
     }
 }

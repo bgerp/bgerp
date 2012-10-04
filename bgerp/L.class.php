@@ -138,7 +138,7 @@ class bgerp_L extends core_Manager
             $i = 0;
             while ($action = log_Documents::getAction($i--)) {
                 if ($action->action == log_Documents::ACTION_SEND) {
-                    $options->__toEmail = $action->data->to;
+                    $options['__toEmail'] = $action->data->to;
                 }
             }
             
