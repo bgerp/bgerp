@@ -222,7 +222,7 @@ class core_Detail extends core_Manager
     /**
      * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
     {
         $masterKey = $mvc->masterKey;
         

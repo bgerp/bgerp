@@ -387,7 +387,7 @@ class core_Roles extends core_Manager
     /**
      * Изпълнява се след запис/промяна на роля
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         // Ако има промени
         if ($mvc->oldInheritRecs != $rec->inherit) {

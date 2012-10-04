@@ -26,7 +26,7 @@ class plg_LastUsedKeys extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterSave(&$mvc, &$id, &$rec, &$fields = NULL)
+    function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
         // Ако липсва масив за полетата, на които трябва да се записва последното използване
         // той се съставя, като се обхождат всички ключови полета
