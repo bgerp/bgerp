@@ -363,14 +363,24 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $Fileman = cls::get('fileman_Files');
         
         // Шаблон за намиране на името на файла
-        $pattern = '/' . preg_quote($script->fName, '/') . '\-[0-9]+\.jpg' . '/i';
+        $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
         
         // Обхождаме всички отркити файлове
         foreach ($files as $file) {
             
             // Ако няма съвпадение, връщаме
-            if (!preg_match($pattern, $file)) continue;
-
+            if (!preg_match($pattern, $file, $matches)) continue;
+            
+            // Записваме номера и името на файла
+            $filesArr[$matches['num']] = $file;
+            
+        }
+        
+        // Сортираме масива по ключ
+        ksort($filesArr);
+        
+        foreach ($filesArr as $file) {
+        
             // Качваме файла в кофата и му вземаме манипулатора
             $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileInfo'); 
             
@@ -379,7 +389,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
                 $fileHndArr[$fileHnd] = $fileHnd;    
             }
         }
-
+        
         // Ако има генерирани файлове, които са качени успешно
         if (count($fileHndArr)) {
             
