@@ -173,7 +173,7 @@ class catpr_Discounts extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         /* @var $priceGroupQuery core_Query */
         $priceGroupQuery = catpr_Pricegroups::getQuery();

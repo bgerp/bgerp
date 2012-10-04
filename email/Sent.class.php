@@ -470,7 +470,7 @@ class email_Sent extends core_Manager
      * @param int $id key(mvc=doc_Log)
      * @param stdClass $rec запис на модела, който е бил записан в БД
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         expect($rec->threadId);
         

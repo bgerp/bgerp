@@ -118,7 +118,7 @@ class groups_Extendable extends core_Plugin
     }
     
     
-    public static function on_AfterSave(core_Master $master, &$id, $rec)
+    public static function on_AfterSave(core_Master $master, &$id, $rec, &$savedFields)
     {
         $extenders = static::getExtenders($master, $rec);
         

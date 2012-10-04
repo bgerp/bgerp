@@ -184,7 +184,7 @@ class email_Accounts extends core_Master
     /**
      * Когато се създава акаунт, към него се съзадава и входяща пощенска кутия
      */
-    function on_AfterSave($mvc, $id, $rec)
+    function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if(email_Inboxes::fetch("#email = '{$rec->email}'")) {
 

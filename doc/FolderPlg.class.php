@@ -269,7 +269,7 @@ class doc_FolderPlg extends core_Plugin
      * Изпълнява се след запис на обект
      * Прави синхронизацията между данните записани в обекта-корица и папката
      */
-    static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
         expect($id);
 

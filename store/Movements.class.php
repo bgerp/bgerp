@@ -516,7 +516,7 @@ class store_Movements extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if ($rec->do && in_array($rec->do, array('palletUp', 'palletDown', 'palletMove'))) {
             $recPallets = store_Pallets::fetch($rec->palletId);

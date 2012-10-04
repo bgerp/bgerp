@@ -101,7 +101,7 @@ class catpr_Pricelists extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         // Изтриване на (евентуални) стари изчисления
         catpr_pricelists_Details::delete("#pricelistId = {$rec->id}");

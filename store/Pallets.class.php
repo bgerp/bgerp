@@ -562,7 +562,7 @@ class store_Pallets extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if ($rec->newRec == TRUE) {
             /* Change product quantity on pallets */

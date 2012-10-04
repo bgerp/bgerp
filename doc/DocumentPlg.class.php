@@ -279,7 +279,7 @@ class doc_DocumentPlg extends core_Plugin
      * Изпълнява се след запис на документ.
      * Ако е може се извиква обновяването на контейнера му
      */
-    static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
         // Изтрива от кеша html представянето на документа
         $key = 'Doc' . $rec->id . '%';

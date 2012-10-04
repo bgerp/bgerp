@@ -522,7 +522,7 @@ class email_Outgoings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if ($mvc->flagSendIt) {
             $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);

@@ -125,7 +125,7 @@ class cal_TaskProgresses extends core_Detail
     /**
      *
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime,progress,state');
         

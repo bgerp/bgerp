@@ -285,7 +285,7 @@ class cal_Tasks extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         $mvc->updateTaskToCalendar($rec->id);
     }

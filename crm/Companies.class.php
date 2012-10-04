@@ -550,7 +550,7 @@ class crm_Companies extends core_Master
     /**
      * След всеки запис (@see core_Mvc::save_())
      */
-    static function on_AfterSave(crm_Companies $mvc, &$id, $rec)
+    static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = NULL)
     {
         if($rec->groupList) {
             $mvc->updateGroupsCnt = TRUE;
