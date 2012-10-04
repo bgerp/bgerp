@@ -382,7 +382,6 @@ class core_Cls
     {
         if(count(core_Cls::$singletons)) {
             foreach(core_Cls::$singletons as $name => $instance) {
-                core_Logs::add('core_Cls', 0, "Shutdown {$name}");
                 if($instance instanceof core_BaseClass) {
                     $instance->invoke('shutdown');
                 }
