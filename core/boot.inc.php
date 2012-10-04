@@ -129,6 +129,31 @@ if (!defined('EF_APP_NAME') &&
     DEFINE('EF_APP_NAME', basename(EF_INDEX_PATH));
 }
 
+// Вземаме името на приложението от параметрите на URL, ако не е дефинирано
+if (!defined('EF_APP_NAME')) {
+    if(!$_GET['App']) {
+        halt('Error: Unable to determinate application name (EF_APP_NAME)</b>');
+    }
+    
+    
+    /**
+     * Името на приложението. Използва се за определяне на други константи.
+     */
+    defIfNot('EF_APP_NAME', $_GET['App']);
+    
+    
+    /**
+     * Дали името на приложението е зададено фиксирано
+     */
+    DEFINE('EF_APP_NAME_FIXED', FALSE);
+} else {
+    
+    /**
+     * Дали името на приложението е зададено фиксирано
+     */
+    DEFINE('EF_APP_NAME_FIXED', TRUE);
+}
+
 // Зареждаме конфигурационния файл на приложението. 
 // Ако липсва - показваме грешка.
 // Шаблон за този файл има в директорията [_docs]
@@ -218,31 +243,6 @@ if (isset($_GET['SETUP'])) {
             
             die;
         }
-
-// Вземаме името на приложението от параметрите на URL, ако не е дефинирано
-if (!defined('EF_APP_NAME')) {
-    if(!$_GET['App']) {
-        halt('Error: Unable to determinate application name (EF_APP_NAME)</b>');
-    }
-    
-    
-    /**
-     * Името на приложението. Използва се за определяне на други константи.
-     */
-    defIfNot('EF_APP_NAME', $_GET['App']);
-    
-    
-    /**
-     * Дали името на приложението е зададено фиксирано
-     */
-    DEFINE('EF_APP_NAME_FIXED', FALSE);
-} else {
-    
-    /**
-     * Дали името на приложението е зададено фиксирано
-     */
-    DEFINE('EF_APP_NAME_FIXED', TRUE);
-}
 
 // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
 ob_clean();
