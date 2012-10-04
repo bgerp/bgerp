@@ -142,21 +142,28 @@ class doc_DocumentPlg extends core_Plugin
             //TODO да се "премахне" и оптимизира
             $data->toolbar->removeBtn('btnPrint');
         }
-        
+
         //Добавяме бутон за клониране ако сме посочили, кои полета ще се клонират
         if (($mvc->cloneFields) && ($data->rec->id)) {
-            if (($data->rec->state != 'draft') && ($mvc->haveRightFor('clone'))) {
-                $retUrl = array($mvc, 'single', $data->rec->id);
+            
+            // Ако не е чернова
+            if ($data->rec->state != 'draft') {
                 
-                // Бутон за клониране
-                $data->toolbar->addBtn('Копие', array(
-                        $mvc,
-                        'add',
-                        'originId' => $data->rec->containerId,
-                        'Clone' => 'clone',
-                        'ret_url'=>$retUrl
-                    ),
-                    'class=btn-clone, order=14');
+                // Ако имаме права за добавяне и single права на треда
+                if (($mvc->haveRightFor('add', $data->rec)) && (doc_Threads::haveRightFor('single', $data->rec->threadId))) {
+                    
+                    $retUrl = array($mvc, 'single', $data->rec->id);
+                
+                    // Бутон за клониране
+                    $data->toolbar->addBtn('Копие', array(
+                            $mvc,
+                            'add',
+                            'originId' => $data->rec->containerId,
+                            'Clone' => 'clone',
+                            'ret_url'=>$retUrl
+                        ),
+                        'class=btn-clone, order=14');    
+                }
             }
         }
     }

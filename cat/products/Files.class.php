@@ -109,7 +109,7 @@ class cat_products_Files extends cat_products_Detail
             $tpl->append($addBtn, 'TITLE');
         }
         
-        foreach($data->rows as $row) {
+        foreach((array)$data->rows as $row) {
             $block = $tpl->getBlock('row');
             $block->placeObject($row);
             

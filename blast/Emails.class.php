@@ -277,7 +277,7 @@ class blast_Emails extends core_Master
             if (!Request::get('Clone')) {
                 
                 //Чекбоксовете, да са избрани по подразбиране
-                $data->form->setDefault('attachments','files,documents');  
+//                $data->form->setDefault('attachments','files,documents');  
                 
                 //По подразбиране да е избран текущия имейл на потребителя
                 $form->setDefault('from', email_Inboxes::getUserInboxId());  
@@ -457,7 +457,11 @@ class blast_Emails extends core_Master
             //След успешен запис редиректваме
             $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
             
-            return new Redirect($link, tr("Успешно активирахте бласт имейл-а"));
+            // Добавяме съобщение в статуса
+            core_Statuses::add(tr("Успешно активирахте бласт имейл-а"));
+            
+            // Редиректваме
+            return new Redirect($link);
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
@@ -558,7 +562,11 @@ class blast_Emails extends core_Master
         
         blast_Emails::save($recUpd);
         
-        return new Redirect($link, tr("Успешно спряхте бласт имейл-а."));
+        // Добавяме съобщение в статуса
+        core_Statuses::add(tr("Успешно спряхте бласт имейл-а"));
+        
+        // Редиректваме
+        return new Redirect($link);
     }
     
     
@@ -572,27 +580,34 @@ class blast_Emails extends core_Master
     	$conf = core_Packs::getConfig('blast');
     	
         //GET променливите от линка
-        $mid = Request::get("mid");
-        $lang = Request::get("lang");
+        $mid = Request::get("m");
+        $lang = Request::get("l");
+        $cid = Request::get('id');
         $uns = Request::get("uns");
         
         //Сменяме езика за да може да  се преведат съобщенията
-        core_Lg::set($lang);
-        
+        core_Lg::push($lang);
+
         //Шаблон
         $tpl = new ET("<div class='unsubscribe'> [#text#] </div>");
         
         //Проверяваме дали има такъв имейл
-        if (!($rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo'))) {
+        if (!($rec = log_Documents::fetchHistoryFor($cid, $mid))) {
             
             //Съобщение за грешка, ако няма такъв имейл
             $tpl->append("<p>" . tr($conf->BGERP_BLAST_NO_MAIL) . "</p>", 'text');
             
+            // Връщаме предишния език
+            core_Lg::pop();
+            
             return $tpl;
         }
         
+        // Имейла на потребителя
+        $email = $rec->data->to;
+        
         //Ако имейл-а е в листата на блокираните имейли или сме натиснали бутона за премахване от листата
-        if (($uns == 'del') || ((!$uns) && (blast_Blocked::fetch("#mail='$rec->mail'")))) {
+        if (($uns == 'del') || ((!$uns) && (blast_Blocked::fetch("#email='{$email}'")))) {
             
             //Какво действие ще правим след натискане на бутона
             $act = 'add';
@@ -600,8 +615,13 @@ class blast_Emails extends core_Master
             //Какъв да е текста на бутона
             $click = 'Добави';
             
-            //Премахва имейл-а от листата на блокираните
+            // Добавяме имейл-а в листата на блокираните
             if ($uns) {
+                
+                $rec = new stdClass();
+                
+                $rec->email = $email;
+                
                 blast_Blocked::save($rec, NULL, 'IGNORE');
             }
             
@@ -611,7 +631,7 @@ class blast_Emails extends core_Master
             $click = 'Премахване';
             
             //Премахваме имейл-а от листата на блокираните имейли
-            blast_Blocked::delete("#mail='$rec->mail'");
+            blast_Blocked::delete("#email='{$email}'");
             $tpl->append("<p>" . tr($conf->BGERP_BLAST_SUCCESS_ADD) . "</p>", 'text');
         } else {
             $act = 'del';
@@ -622,9 +642,12 @@ class blast_Emails extends core_Master
         }
         
         //Генерираме бутон за отписване или вписване
-        $link = ht::createBtn(tr($click), array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => $lang, 'uns' => $act));
+        $link = ht::createBtn(tr($click), array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => $lang, 'uns' => $act));
         
         $tpl->append($link, 'text');
+        
+        // Връщаме предишния език
+        core_Lg::pop();
         
         return $tpl;
     }
@@ -681,7 +704,7 @@ class blast_Emails extends core_Master
         $queryBlocked = blast_Blocked::getQuery();
         
         while ($recBlocked = $queryBlocked->fetch()) {
-            $listBlocked[$recBlocked->mail] = TRUE;
+            $listBlocked[$recBlocked->email] = TRUE;
         }
         
         $queryList = blast_ListDetails::getQuery();
@@ -827,7 +850,7 @@ class blast_Emails extends core_Master
             $this->replaceHeaderData($rec, $emailTo);
             
             // Заместваме данните в тялото на имейла
-            $rec->body = $this->replaceEmailData($rec->body, $rec->listId, $emailTo);    
+            $rec->body = $this->replaceEmailData($rec->body, $rec->listId, $emailTo, $rec->containerId);    
             
             // Записваме, че данните са приготвени
             $this->prepared[$rec->id][$emailTo] = $rec;
@@ -852,13 +875,13 @@ class blast_Emails extends core_Master
         $body = new stdClass();
                 
         //Вземаме HTML частта
-        $body->html = $this->getEmailHtml($rec, $emailTo);
+        $body->html = $this->getEmailHtml($rec, $emailTo, $sending);
         
         //Вземаме текстовата част
         $body->text = $this->getEmailText($rec, $emailTo);
 
-        $documents = array();
-        $attachments = array();
+        $docsArr = array();
+        $attFhArr = array();
         
         //Дали да прикачим файловете
         if (($rec->attachments) && ($sending)) {
@@ -869,23 +892,34 @@ class blast_Emails extends core_Master
         if ($attachArr['documents']) {
             
             //Вземаме манупулаторите на документите
-            $documents = $this->getDocuments($rec->id, $rec->body);
+            $docsArr = $this->getDocuments($rec->id, $rec->body);
+            
+            foreach ($docsArr as $attachDoc) {
+                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                // файл със съдържанието на документа в желания формат
+                $fh = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+            
+                if (!empty($fh)) {
+                    $docsFhArr[$fh] = $fh;
+                }
+            }
+            
         }
         
         //Ако сме избрали да се добавят файловете, като прикачени
         if ($attachArr['files']) {
             
             //Вземаме манупулаторите на файловете
-            $attachments = $this->getAttachments($rec->body);
+            $attFhArr = $this->getAttachments($rec->body);
         }
         
         //Манипулаторите на файловете в масив
-        $body->attachmentsFh = (array)$attachments;
-        $body->documentsFh = (array)$documents;
+        $body->attachmentsFh = (array)$attFhArr;
+        $body->documentsFh = (array)$docsFhArr;
         
         //id' тата на прикачените файлове с техните
-        $body->attachments = type_Keylist::fromArray(fileman_Files::getIdFromFh($attachments));
-        $body->documents = type_Keylist::fromArray(fileman_Files::getIdFromFh($documents));
+        $body->attachments = type_Keylist::fromArray(fileman_Files::getIdFromFh($attFhArr));
+        $body->documents = type_Keylist::fromArray(fileman_Files::getIdFromFh($docsFhArr));
 
         // Други необходими данни за изпращането на имейла
         $body->containerId = $rec->containerId;
@@ -907,7 +941,7 @@ class blast_Emails extends core_Master
     function getEmailSubject($rec, $emailTo) 
     {
         //Заместваме всички шаблони, с техните стойности от БД
-        $res = $this->replaceEmailData($rec->subject, $rec->listId, $emailTo);
+        $res = $this->replaceEmailData($rec->subject, $rec->listId, $emailTo, $rec->containerId);
 
         return $res;
     }
@@ -921,7 +955,7 @@ class blast_Emails extends core_Master
      * 
      * @return core_ET $res
      */
-    function getEmailHtml($rec, $emailTo)
+    function getEmailHtml($rec, $emailTo, $sending)
     {
         // Опциите за генериране на тялото на имейла
         $options = new stdClass();
@@ -1027,7 +1061,7 @@ class blast_Emails extends core_Master
             if (!$rec->$header) continue;
             
             //Заместваме данните в антетката
-            $rec->$header = $this->replaceEmailData($rec->$header, $rec->listId, $emailTo);
+            $rec->$header = $this->replaceEmailData($rec->$header, $rec->listId, $emailTo, $rec->containerId);
         }
     }
     
@@ -1041,10 +1075,10 @@ class blast_Emails extends core_Master
      * 
      * @return mixed $res
      */
-    function replaceEmailData($res, $listId, $email)
+    function replaceEmailData($res, $listId, $email, $cid)
     {        
         //Записваме текущите данни на потребителя
-        $this->setCurrentEmailData($listId, $email);
+        $this->setCurrentEmailData($listId, $email, $cid);
         
         //Ако има данни, които да се заместват
         if (count($this->emailData[$listId][$email])) {
@@ -1069,7 +1103,7 @@ class blast_Emails extends core_Master
      * @param integer $listId - id' то на текущия потребител
      * @param email   $email - Имейл на потребителя
      */
-    function setCurrentEmailData($listId, $email)
+    function setCurrentEmailData($listId, $email, $cid)
     {
         if (!$this->emailData[$listId][$email]) {
             //Вземаме персоналната информация за потребителя
@@ -1079,12 +1113,12 @@ class blast_Emails extends core_Master
             $this->emailData[$listId][$email] = unserialize($recList->data);
             
             $mid = doc_DocumentPlg::getMidPlace();
-            $urlBg = htmlentities(toUrl(array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => 'bg'), 'absolute'));
-            $urlEn = htmlentities(toUrl(array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => 'en'), 'absolute'));
+            $urlBg = htmlentities(toUrl(array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => 'bg'), 'absolute'));
+            $urlEn = htmlentities(toUrl(array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => 'en'), 'absolute'));
 
             //Създаваме линковете
-            $this->emailData[$listId][$email]['otpisvane'] = "[link={$urlBg}] тук [/link]";
-            $this->emailData[$listId][$email]['unsubscribe'] = "[link={$urlEn}] here [/link]";
+            $this->emailData[$listId][$email]['otpisvane'] = "[link={$urlBg}]тук[/link]";
+            $this->emailData[$listId][$email]['unsubscribe'] = "[link={$urlEn}]here[/link]";
             $this->emailData[$listId][$email]['mid'] = $mid;
         }
     }
@@ -1125,8 +1159,7 @@ class blast_Emails extends core_Master
     function getDocuments($id, $body)
     {
         $docsArr = $this->getPossibleTypeConvertings($id);
-
-        $documents = array();
+        $docs     = array();
         
         //Обхождаме всички документи
         foreach ($docsArr as $fileName => $checked) {
@@ -1135,16 +1168,19 @@ class blast_Emails extends core_Master
             if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
                 $ext = mb_substr($fileName, $dotPos + 1);
             
-                $fn = mb_substr($fileName, 0, $dotPos);    
+                $docHandle = mb_substr($fileName, 0, $dotPos);
             } else {
-                $fn = $fileName;
+                $docHandle = $fileName;
             }
             
+            $doc = doc_Containers::getDocumentByHandle($docHandle);
+            expect($doc);
+            
             //Масив с манипулаторите на конвертиранети файлове
-            $documents = array_merge($documents, $this->convertDocumentAsFile($id, $fn, $ext));
+            $docs[] = compact('doc', 'ext', 'fileName');
         }
 
-        return (array) $documents;
+        return $docs;
     }
     
     

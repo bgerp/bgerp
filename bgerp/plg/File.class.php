@@ -24,15 +24,12 @@ class bgerp_plg_File extends core_Plugin
         // Ако не се изпраща имейла, да не сработва
         if (!Mode::is('text', 'xhtml')) return ;
         
-        // TODO това може да се добави, когато в opened (При преглеждане на документа '/L/S')
-        // имаме добавен action. В момента няма да работи коректно.
-        // При изпращане на имейла имаме линк към файл, който не е валиден.
-        // Ако се премахнат коментарите, в преглеждаме документа в '/L/S' ще имаме линк към сингъла на файла
-//        // Действието
-//        $action = log_Documents::getAction();
-//
-//        // Ако не изпращаме имейла, да не сработва
-//        if ((!$action) || ($action->action == )) return ;
+        // Действието
+        $action = log_Documents::getAction();
+
+        // Ако не изпращаме имейла, да не сработва
+//        if ((!$action) || in_array($action->action, array(log_Documents::ACTION_DISPLAY, log_Documents::ACTION_RECEIVE, log_Documents::ACTION_RETURN))) return ;
+        if (!$action) return ;
         
         // Името на файла
         $name = fileman_Files::fetchByFh($fh, 'name');

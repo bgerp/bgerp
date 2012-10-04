@@ -75,10 +75,8 @@ class blast_Blocked extends core_Manager
      */
     function description()
     {
-        $this->FLD('mail', 'email', 'caption=Имейл, mandatory');
+        $this->FLD('email', 'email', 'caption=Имейл, mandatory');
         
-        //$this->FLD('list', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
-        
-        $this->setDbUnique('mail');
+        $this->setDbUnique('email');
     }
 }

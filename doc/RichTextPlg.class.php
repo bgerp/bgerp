@@ -89,24 +89,39 @@ class doc_RichTextPlg extends core_Plugin
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
-            //Създаваме линк в html формат
-            $style = 'background-image:url(' . sbf($mvc->singleIcon, '"', $isAbsolute) . ');';
+            $sbfIcon = sbf($mvc->singleIcon, '"', $isAbsolute);
             
-            // Атрибути на линка
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = $style;
+            $title = substr($docName, 1);
             
-            // Ако изпращаме или принтираме документа
-            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+            if(Mode::is('text', 'xhtml') && !Mode::is('pdf')) {
                 
-                // Линка да се отваря на нова страница
-                $attr['target'] = '_blank';    
+                // Създаваме линк
+                $href = ht::createLink($title, $link);
+                
+                // Добавяме линк и иконата
+                $icon = "<img src={$sbfIcon} width='16' height='16' style='float:left;margin:3px 2px 4px 0px;' alt=''>";
+                $this->mvc->_htmlBoard[$place] = "<div style='display:inline-block;'>{$icon}{$href}</div>";  
+            } else {
+                
+                //Създаваме линк в html формат
+                $style = "background-image:url({$sbfIcon});";
+                
+                // Атрибути на линка
+                $attr['class'] = 'linkWithIcon';
+                $attr['style'] = $style;
+                
+                // Ако изпращаме или принтираме документа
+                if ($isAbsolute) {
+                    
+                    // Линка да се отваря на нова страница
+                    $attr['target'] = '_blank';    
+                }
+                
+                $href = ht::createLink($title, $link, NULL, $attr);
+                
+                //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+                $this->mvc->_htmlBoard[$place] = $href->getContent();
             }
-            
-            $href = ht::createLink(substr($docName, 1), $link, NULL, $attr);
-            
-            //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
-            $this->mvc->_htmlBoard[$place] = $href->getContent();
         }
 
         //Стойността, която ще заместим в регулярния израз

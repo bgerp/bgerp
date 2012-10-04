@@ -121,15 +121,6 @@ class bgerp_L extends core_Manager
             // Вземаме документа
             expect($doc = doc_Containers::getDocument($cid));
             
-            //Инстанцията на документа
-            $instance = $doc->instance;
-                    
-            //id' то на документа
-            $that = $doc->that;
-            
-            //Подготвяме URL' то където ще редиректнем
-            $docUrl = array($doc->instance, 'single', $doc->that);
-            
             //Спираме режима за принтиране
             Mode::set('printing', FALSE); // @todo Необходимо ли е?
 
@@ -139,14 +130,21 @@ class bgerp_L extends core_Manager
             
             // Вземаме манипулатора на записа от този модел (bgerp_L)
             expect($mid = Request::get('m'));
-            expect($parent = log_Documents::fetchHistoryFor($cid, $mid));
+            expect(log_Documents::opened($cid, $mid));
+            
+            $options = array();
+
+            // Трасираме стека с действията докато намерим SEND екшън
+            $i = 0;
+            while ($action = log_Documents::getAction($i--)) {
+                if ($action->action == log_Documents::ACTION_SEND) {
+                    $options->__toEmail = $action->data->to;
+                }
+            }
             
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на 
             // документа за показване
-            
-            log_Documents::opened($parent);
-            
-            $html = $doc->getDocumentBody('xhtml', (object) array('__mid'=>$parent->mid, '__toEmail'=>$parent->data->to));
+            $html = $doc->getDocumentBody('xhtml', (object) $options);
             
             Mode::set('wrapper', 'page_External');
             
@@ -168,11 +166,12 @@ class bgerp_L extends core_Manager
             // невалиден MID. 
 
             // Ако потребителя има права до треда на документа, то той му се показва
-            if($instance && $doc) {
+            if($doc) {
                 $rec = $doc->fetch();
-                if($instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
+                
+                if($doc->instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
 
-                    return new Redirect(array($instance, 'single', $rec->id));
+                    return new Redirect(array($doc->instance, 'single', $rec->id));
                 }
             }
             
