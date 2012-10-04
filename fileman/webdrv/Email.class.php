@@ -51,6 +51,9 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Вземаме HTML частта
         $htmlPart = static::getHtmlPart($mime, $emlRec);
         
+        // Проверяваме дали има HTML част и дали има съдържание
+        $htmlPartCheck = static::checkHtmlPart($htmlPart);
+        
         // Вземаме хедърите
         $headersArr = static::getHeaders($mime, $emlRec);
         $headersStr = type_Varchar::escape($headersArr['string']);
@@ -60,15 +63,19 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
        
         // Подготвяме табовете
         
-        // Таб за информация
-        $tabsArr['html'] = (object) 
-			array(
-				'title' => 'HTML',
-				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
-                		<iframe src='{$htmlPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
-                	</fieldset></div>",
-				'order' => 1,
-			);
+        // Ако има HTML част
+        if ($htmlPartCheck) {
+            
+            // Таб за HTML част
+            $tabsArr['html'] = (object) 
+    			array(
+    				'title' => 'HTML',
+    				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
+                    		<iframe src='{$htmlPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
+                    	</fieldset></div>",
+    				'order' => 1,
+    			);    
+        }
         
         // Таб за текстовата част
         $tabsArr['text'] = (object) 
@@ -77,14 +84,18 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Текстовата част на имейла</legend>{$textPart}</fieldset></div>",
 				'order' => 2,
 			);
+        
+	    // Ако има прикачени файлове
+	    if ($filesStr) {
 
-        // Таб за преглед
-		$tabsArr['files'] = (object) 
-			array(
-				'title'   => 'Файлове',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Прикачените файлове</legend>{$filesStr}</fieldset></div>",
-				'order' => 3,
-			);
+	        // Таб за преглед
+    		$tabsArr['files'] = (object) 
+    			array(
+    				'title'   => 'Файлове',
+    				'html'    => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Прикачените файлове</legend>{$filesStr}</fieldset></div>",
+    				'order' => 3,
+    			);
+	    }
 			
 		// Таб за хедърите
 		$tabsArr['headers'] = (object) 
@@ -303,5 +314,28 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $source = $richtextInst->toVerbal($source);
 
         return $source;
+    }
+
+    
+    /**
+     * Проверяваме дали има HTML част
+     * 
+     * @param $link - Линка към файла
+     * 
+     * @return boolean - Ако има съдържание връща TRUE
+     */
+    static function checkHtmlPart($link)
+    {
+        // Ако няма линк кода не се изплълнява
+        if (!$link) return ;
+        
+        // Вземаме съдържанието на линка
+        $content = file_get_contents($link);
+        
+        // Преобразуваме го в текс
+        $content = html2text_Converter::toRichText($content);
+        
+        // След тримване, ако има съдъжание връщаме TRUE
+        if (trim($content)) return TRUE;
     }
 }
