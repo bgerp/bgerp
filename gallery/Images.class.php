@@ -45,11 +45,11 @@ class gallery_Images extends core_Manager {
     function description()
     {
      
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory');
 
         $this->FLD('groupId', 'key(mvc=gallery_Groups,select=title)', 'caption=Група');
         
-        $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка');
+        $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка,mandatory');
     }
 
     
@@ -62,8 +62,10 @@ class gallery_Images extends core_Manager {
         $mArr = array(600, 450);
             
         $Fancybox = cls::get('fancybox_Fancybox');
-
-        $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr);
+        
+        if($rec->src) {
+            $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr);
+        }
 
         $row->vid = "[img=#" . $rec->vid . "]";
     }
