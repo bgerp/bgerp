@@ -304,6 +304,9 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
         
+        // Конфигурационните данни
+        $conf = core_Packs::getConfig('fileman');
+        
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fileHnd);
 
@@ -314,8 +317,13 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $Script->setFile('INPUTF', $fileHnd, TRUE);
         $Script->setFile('OUTPUTF', $outFilePath);
         
+        // Ако има зададен път до gs, използваме него
+        if (trim($conf->FILEMAN_GHOSTSCRIPT_PATH)) {
+            $Script->setProgram('gs', $conf->FILEMAN_GHOSTSCRIPT_PATH);
+        }
+        
         // Скрипта, който ще конвертира файла от PDF в JPG формат
-        $Script->lineExec('convert -density 150 [#INPUTF#] [#OUTPUTF#]');
+        $Script->lineExec('gs -sDEVICE=jpeg -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile=[#OUTPUTF#] -dBATCH -r200 -dNOPAUSE [#INPUTF#]');
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
@@ -350,31 +358,38 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
     {
         // Вземаме всички файлове във временната директория
         $files = scandir($script->tempDir);
-       
+
         // Инстанция на класа
         $Fileman = cls::get('fileman_Files');
         
-        // Брояч за файла
-        $i=0;
+        // Шаблон за намиране на името на файла
+        $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
         
-        // Генерираме името на файла след конвертиране
-        $fn = $script->fName . '-' .$i . '.jpg';
-
-        // Докато има файл
-        while (in_array($fn, $files)) {
+        // Обхождаме всички отркити файлове
+        foreach ($files as $file) {
             
+            // Ако няма съвпадение, връщаме
+            if (!preg_match($pattern, $file, $matches)) continue;
+            
+            // Записваме номера и името на файла
+            $filesArr[$matches['num']] = $file;
+            
+        }
+        
+        // Сортираме масива по ключ
+        ksort($filesArr);
+        
+        foreach ($filesArr as $file) {
+        
             // Качваме файла в кофата и му вземаме манипулатора
-            $fileHnd = $Fileman->addNewFile($script->tempDir . $fn, 'fileInfo'); 
+            $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileInfo'); 
             
             // Ако се качи успешно записваме манипулатора в масив
             if ($fileHnd) {
                 $fileHndArr[$fileHnd] = $fileHnd;    
             }
-            
-            // Генерираме ново предположение за конвертирания файл, като добавяме единица
-            $fn = $script->fName . '-' . ++$i . '.jpg';
         }
-
+        
         // Ако има генерирани файлове, които са качени успешно
         if (count($fileHndArr)) {
             
