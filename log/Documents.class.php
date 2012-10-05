@@ -220,7 +220,11 @@ class log_Documents extends core_Manager
     
     public static function popAction()
     {
-        return Mode::pop('action');
+        if ($action = static::getAction()) {
+            Mode::pop('action');
+        }
+        
+        return $action;
     }
 
     
@@ -1146,7 +1150,7 @@ class log_Documents extends core_Manager
         $count = 0;
         
         while ($action = static::popAction()) {
-            static::save($action->value);
+            static::save($action);
             $count++;
         }
         
