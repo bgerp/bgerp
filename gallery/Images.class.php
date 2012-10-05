@@ -17,7 +17,11 @@
 class gallery_Images extends core_Manager {
     
     
-     
+    var $canRead = 'admin,ceo,cms';
+    
+    
+    var $canWrite = 'admin,ceo,cms';
+    
     
     /**
      * Заглавие
