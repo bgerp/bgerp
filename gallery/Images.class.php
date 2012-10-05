@@ -19,7 +19,9 @@ class gallery_Images extends core_Manager {
     
     var $canRead = 'admin,ceo,cms';
     
-    
+    /**
+     * Кой  може да пише?
+     */
     var $canWrite = 'admin,ceo,cms';
     
     
@@ -35,11 +37,7 @@ class gallery_Images extends core_Manager {
     var $loadList = "plg_RowTools,gallery_Wrapper,plg_Created,plg_Vid";
     
     
-    /**
-     * Кой  може да пише?
-     */
-    var $canWrite = "admin,cms,ceo";
-    
+     
     var $listFields = 'id,vid=Код,groupId,src,createdOn,createdBy';
 
 
