@@ -4,10 +4,6 @@
 		[#blank#]
 	<!--ET_END blank-->
     
-    <!--ET_BEGIN subject--> 
-    <h3 class="subject">[#subject#]</h3>
-    <!--ET_END subject--> 
-    
 	<div class='antetka'>
 		<small>
 			<div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
@@ -29,8 +25,10 @@
 	   	</small>
 	</div> 
 
-    <br />&nbsp;  
-
+    <!--ET_BEGIN subject--> 
+    <h3 class="subject">[#subject#]</h3>
+    <!--ET_END subject--> 
+    
 	<!--ET_BEGIN body--> 
 	<div>[#body#]</div>
 	<!--ET_END body--> 
