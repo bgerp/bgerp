@@ -36,25 +36,25 @@ class blog_Categories extends core_Master {
 	/**
 	 * Кой може да добавя 
 	 */
-	var $canAdd='every_one';
+	var $canAdd='cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да редактира
 	 */
-	var $canEdit='every_one';
+	var $canEdit='cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да изтрива
 	 */
-	var $canDelete='every_one';
+	var $canDelete='cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да преглежда списъка с коментари
 	 */
-	var $canList='every_one';
+	var $canList='cms, ceo, admin';
 	
 	
 	/**
@@ -77,25 +77,62 @@ class blog_Categories extends core_Master {
 	
 	
 	/**
-	 * Ако блога е за външен изглед то потребителя няма достъп до blog_Categories
+	 * Метод за извличане на всички Категории и съхраняването им в масив от обекти
 	 */
-	static function on_BeforeGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+	static function prepareNavigation($data)
 	{
-		if(blog_Articles::BLOG_OUTER_WRAPPER == 'cms_tpl_Page')
-		{
-			$mvc->canAdd = 'no_one';
-			$mvc->canEdit = 'no_one';
-			$mvc->canDelete = 'no_one';
-			$mvc->canList = 'no_one';
+		
+		// Взимаме Заявката към Категориите
+		$query = static::getQuery();
+			
+		// За всеки запис създаваме клас, който натрупваме в масива $data
+		foreach($query->fetchAll() as $rec) {
+			
+			// Празен стандартен клас
+			$cat = new stdClass();
+			
+			// Задаване ид-то и заглавието на статията на обекта
+			$cat->id = $rec->id;
+			$cat->title = static::getVerbal($rec, 'title');
+			
+			// Добавяме категорията като нов елемент на $data
+			$data[] = $cat;
 		}
+		
+		// Връщаме масива
+		return $data;
 	}
 	
 	
 	/**
-	 *  Поставяме Обвивка взависимост каква е тя в blog_Articles
+	 * Статичен метод за рендиране на меню със всички категории, връща шаблон
 	 */
-	static function on_BeforeAction($mvc, $action)
-	{
-		Mode::set('wrapper', blog_Articles::BLOG_OUTER_WRAPPER);
+	static function renderNavigation($data) {
+		
+		// Шаблон, който ще представлява списъка от хиперлинкове към категориите
+		$tpl=new ET("<ul id='categories-menu' style='list-style:none;padding-left:5px'>
+							<li id='cat_header'>Категории</li>
+							<li class='categories_list'>
+								<a href='/blog_Articles/browse'>Всички</a>
+							</li>
+							[#category#]
+					</ul>");
+		
+		// За всяка Категория, създаваме линк и го поставяме в списъка
+		foreach($data as $row){
+			
+			// Създаваме линк, който ще покаже само статиите от избраната категория
+			$link = ht::createLink($row->title, array('blog_Articles', 'browse', 'cat'  => $row->id));
+			
+			// Създаваме шаблон, после заместваме плейсхолдъра със самия линк
+			$catTpl = new ET("<li class='categories_list'>[#cat#]</li>");
+			$catTpl->replace($link->content, 'cat');
+			
+			// Натрупваме линковете в $tpl
+			$tpl->append($catTpl, 'category');
+		}
+		
+		// Връщаме вече рендираният шаблон
+		return $tpl;
 	}
 }
