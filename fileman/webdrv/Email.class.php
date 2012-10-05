@@ -46,7 +46,10 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         static::changeEmlAndHtmlFileId($emlRec);
         
         // Вземаме текстовата част
-        $textPart = static::getTextPart($emlRec);
+        $textPart = static::getTextPart($mime);
+        
+        // Проверяаваме дали има текстова част и дали има съдържание
+        $textPartCheck = static::checkTextPart($mime);
         
         // Вземаме HTML частта
         $htmlPart = static::getHtmlPart($mime, $emlRec);
@@ -77,13 +80,17 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     			);    
         }
         
-        // Таб за текстовата част
-        $tabsArr['text'] = (object) 
-			array(
-				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Текстовата част на имейла</legend>{$textPart}</fieldset></div>",
-				'order' => 2,
-			);
+        // Ако има текстова част
+        if ($textPartCheck) {
+            
+            // Таб за текстовата част
+            $tabsArr['text'] = (object) 
+    			array(
+    				'title' => 'Текст',
+    				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Текстовата част на имейла</legend>{$textPart}</fieldset></div>",
+    				'order' => 2,
+    			);    
+        }
         
 	    // Ако има прикачени файлове
 	    if ($filesStr) {
@@ -138,9 +145,9 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * 
      * return string - Текстовата част
      */
-    static function getTextPart($emlRec)
+    static function getTextPart($mime)
     {
-        return $emlRec->textPart;
+        return $mime->getJustTextPart();
     }
     
     
@@ -290,7 +297,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             
             // Ако ни трябва текстовата част
             case 'text':
-                $content = static::getTextPart($emlRec);
+                $content = static::getTextPart($mime);
             break;
             
             default:
@@ -346,5 +353,18 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // След тримване, ако има съдъжание връщаме TRUE
         if (trim($content)) return TRUE;
+    }
+    
+    
+    /**
+     * Проверяваме дали има текстова част
+	 * 
+	 * @param email_Mime $mime - Обект
+     * 
+     * @return boolean - Ако има съдържание връща TRUE
+     */
+    static function checkTextPart($mime)
+    {
+        if (trim($mime->getJustTextPart())) return TRUE;
     }
 }
