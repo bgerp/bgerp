@@ -1145,12 +1145,9 @@ class log_Documents extends core_Manager
     {
         $count = 0;
         
-        while (static::hasAction()) {
-            $action = static::popAction();
-            if ($action->value)  {
-                static::save($action->value);
-                $count++;
-            }
+        while ($action = static::popAction()) {
+            static::save($action->value);
+            $count++;
         }
         
         core_Logs::add(get_called_class(), NULL, "Записани {$count} действия");
