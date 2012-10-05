@@ -93,19 +93,6 @@ function tr($text, $userId = 0, $key = FALSE)
 }
 
 
-// За съвместимост с версиите преди 5.3
-if (!function_exists('class_alias')) {
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function class_alias($original, $alias) {
-        eval('abstract class ' . $alias . ' extends ' . $original . ' {}');
-    }
-}
-
-
 /********************************************************************************************
  *                                                                                          *
  *      Зареждане на класове с библиотечни функции                                          *
@@ -151,17 +138,6 @@ if (!defined('EF_APP_NAME') &&
  */
 defIfNot('EF_SBF', 'sbf');
 
-
-/**
- * Стартира Setup, ако се изисква
- */
-
-if (isset($_GET['SETUP'])) {
-	require_once(EF_EF_PATH . "/core/Setup.inc.php");
-   	die;	
-}
-    
-
 // Параметрите от виртуалното URL за зареждат в $_GET
   try
         {
@@ -203,7 +179,7 @@ if (!defined('EF_APP_NAME')) {
 /**
  * Пътя до директорията за статичните браузърни файлове към приложението
  */
-defineIfNot('EF_SBF_PATH', EF_INDEX_PATH . "/" . EF_SBF . "/" . EF_APP_NAME);
+defIfNot('EF_SBF_PATH', EF_INDEX_PATH . "/" . EF_SBF . "/" . EF_APP_NAME);
 
 // Зареждаме конфигурационния файл на приложението. 
 // Ако липсва - показваме грешка.
@@ -232,7 +208,7 @@ ob_start('ob_gzhandler');
 /**
  * Дефинира, ако не е зададено името на кода на приложението
  */
-defineIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
+defIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
 
 // Разрешаваме грешките, ако инсталацията е Debug
 ini_set("display_errors", isDebug());
@@ -294,6 +270,14 @@ defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
  * Директорията с качените и генерираните файлове
  */
 defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
+
+/**
+ * Стартира Setup, ако се изисква
+ */
+if (isset($_GET['SETUP'])) {
+	require_once(EF_EF_PATH . "/core/Setup.inc.php");
+   	die;	
+}
 
 if (!defined('EF_DONT_AUTORUN')) {
     core_App::run();
