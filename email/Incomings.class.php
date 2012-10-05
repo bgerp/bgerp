@@ -1561,8 +1561,15 @@ class email_Incomings extends core_Master
             
             if ($data->rec->emlFile) {
                 
+                // Име на бутона
+                if ($data->rec->htmlFile) {
+                    $buttonName = 'Изглед';
+                } else {
+                    $buttonName = 'Детайли';
+                }
+                
                 // Добавяме бутон за разглеждане не EML файла
-                $data->toolbar->addBtn('EML', array(
+                $data->toolbar->addBtn($buttonName, array(
                         'fileman_Files',
                         'single',
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
