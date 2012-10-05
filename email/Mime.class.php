@@ -24,6 +24,12 @@ class email_Mime extends core_BaseClass
     
     
     /**
+     * Текстовата част на имйела, без да се взема в предвид HTML частта
+     */
+    var $justTextPart;
+    
+    
+    /**
      * Рейтинг на текстовата част
      */
     var $bestTextRate = 0;
@@ -895,6 +901,9 @@ class email_Mime extends core_BaseClass
                 
                 $text = $this->convertToUtf8($data[1], $p->charset, $p->subType);
                 
+                // Текстовата част, без да се гледа HTML частта
+                if ($p->subType == 'PLAIN') $this->justTextPart = $text;
+                
                 if($p->subType == 'HTML') {
                     $text = html2text_Converter::toRichText($text);
                 }
@@ -1081,5 +1090,17 @@ class email_Mime extends core_BaseClass
         $linkedFiles = type_Keylist::fromArray($linkedFiles);
         
         return $linkedFiles;
+    }
+    
+    
+    /**
+     * Връща текстовата част на EML файла /Без да взема в предвид HTML частта/
+     * 
+     * @return string - Текстова част на имейла
+     */
+    function getJustTextPart()
+    {
+        
+        return $this->justTextPart;
     }
 }
