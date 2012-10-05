@@ -254,8 +254,19 @@ class blast_ListDetails extends core_Detail
         if($action == 'edit' || $action == 'add') {
             $roles = 'blast,admin';
         }
+        
+        // Ако листа не е използван никъде тогава може да се изтрива
+        if ($action == 'delete') {
+            
+            // Ако сме използвали листа в имейл, който сме активирали
+            if (blast_Emails::fetch("#listId = '{$rec->listId}' AND #state != 'draft'")) {
+                
+                // Никой да не може да изтрива потребител. Само да може да се редактира
+                $roles = 'no_one';     
+            }
+        }
     }
-    
+
     
     /**
      * Добавя бутон за импортиране на контакти
