@@ -59,7 +59,7 @@ class acc_ArticleDetails extends core_Detail
      */
     var $Accounts;
     
-    
+
     /**
      * Описание на модела
      */
@@ -371,7 +371,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
         $mvc->Master->detailsChanged($rec->{$mvc->masterKey}, $mvc, $rec);
     }
