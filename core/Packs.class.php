@@ -432,7 +432,7 @@ class core_Packs extends core_Manager
         
         // Отбелязваме, че на текущия хит, този пакет е установен
         $this->alreadySetup[$pack] = TRUE;
-        
+
         // Проверка дали Setup класа съществува
         if(!cls::load($pack . "_Setup", TRUE)) {
             return "<h4>Невъзможност да се инсталира <font color='red'>{$pack}</font>. " .
@@ -451,7 +451,7 @@ class core_Packs extends core_Manager
                 $res .= $this->setupPack($p, $v, FALSE);
             }
         }
-        
+
         // Започваме самото инсталиране
         if($setup->startCtr) {
             $res .= "<h2>Инсталиране на пакета \"<a href=\"" .
@@ -501,7 +501,7 @@ class core_Packs extends core_Manager
             
             $rec = $this->fetch("#name = '{$pack}'");
             
-            // Правим запис на факта, че приложението е инсталирано
+            // Правим запис на факта, че пакетът е инсталиран
             if(!is_object($rec)) $rec = new stdClass();
             $rec->name = $pack;
             $rec->version = $setup->version;
@@ -613,10 +613,7 @@ class core_Packs extends core_Manager
                 $data[$field] = $form->rec->{$field};
             }
 
-            $rec->configData = serialize($data);
-   
-            // Записваме данните
-            $id = $this->save($rec);
+            $id = self::setConfig($packName, $data);
         
             // Правим запис в лога
             $this->log($data->cmd, $rec->id);
@@ -629,6 +626,40 @@ class core_Packs extends core_Manager
 
         return $this->renderWrapping($form->renderHtml());
 
+    }
+    
+
+    /**
+     * Задава конфигурация на пакет
+	 *
+     * @param string $name
+     * @param array  $data
+     */
+    static function setConfig($name, $data)
+    {
+    	$rec = self::fetch("#name = '{$name}'");
+    	if(!$rec) {
+    		$rec = new stdClass();
+    		$rec->name = $name;
+    	}
+    	
+    	if($rec->configData) {
+    		$exData = unserialize($rec->configData);
+    	} else {
+    		$exData = array();
+    	}
+    	
+    	if(count($data)) {
+    		foreach($data as $key => $value) {
+    			// if(!isset($exData[$key])) { Новозададените данни са с предимство
+    				$data[$key] = $value;
+    			//}
+    		}
+    	}
+    	
+    	$rec->configData = serialize($data);
+    	
+    	return self::save($rec);   	
     }
 
     
