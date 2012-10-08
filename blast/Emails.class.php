@@ -276,9 +276,6 @@ class blast_Emails extends core_Master
             //Ако не създаваме копие
             if (!Request::get('Clone')) {
                 
-                //Чекбоксовете, да са избрани по подразбиране
-//                $data->form->setDefault('attachments','files,documents');  
-                
                 //По подразбиране да е избран текущия имейл на потребителя
                 $form->setDefault('from', email_Inboxes::getUserInboxId());  
             }
@@ -289,11 +286,19 @@ class blast_Emails extends core_Master
             //Ако добавяме нов показваме всички списъци
             $form->setOptions('listId', $files, $form->rec->id);
             
-            
         } else {
-            //Ако редактираме, показваме списъка, който го редактираме
-            $file[$form->rec->listId] = $files[$form->rec->listId];
-            $form->setOptions('listId', $file, $form->rec->id);
+            
+            if ($form->rec->state == 'draft') {
+                
+                //Ако е ченова
+                $form->setOptions('listId', $files, $form->rec->id);   
+                $form->setOptions('listId', $files[$form->rec->listId], $form->rec->id);     
+            } else {
+                
+                //Ако редактираме, показваме списъка, който го редактираме
+                $file[$form->rec->listId] = $files[$form->rec->listId];
+                $form->setOptions('listId', $file, $form->rec->id);    
+            }
         }
         
         //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
