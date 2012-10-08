@@ -169,12 +169,12 @@ class cms_Content extends core_Manager
         if(!$tpl) {
             $tpl = new ET("<div class='cms-row'>
                     <!--ET_BEGIN NAVIGATION-->
-                    <div class='fourcol' id='cmsNavigation' style='padding-top:20px;padding-left:20px;'>
-                        [#NAVIGATION#]
+                    <div class='threecol' id='cmsNavigation' style='padding-top:20px;padding-left:20px;'>
+                        [#NAVIGATION#] 
                     </div>
                     <!--ET_END NAVIGATION-->
                     <div class='sevencol'  style='padding-top:20px;'>
-                        [#PAGE_CONTENT#]
+                        [#PAGE_CONTENT#] 
                      </div>
                 </div>");
         }
