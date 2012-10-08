@@ -166,6 +166,17 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+
+        if($mvc->haveRightFor('list')) { 
+            // Бутон за листване на всички обекти от този вид
+            $data->toolbar->addBtn('Всички', array(
+                    $mvc,
+                    'list',
+                    'ret_url'=>$retUrl
+                ),
+                'ef_icon=img/16/application_view_list.png, order=18, title=' . tr('Всички ' . mb_strtolower($mvc->title)));    
+
+        }
     }
     
     
