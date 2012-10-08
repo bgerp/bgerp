@@ -11,6 +11,7 @@
 	<div class='antetka'>
 		<small>
 		<table class='top-table' width='100%' cellspacing='5'>
+		<tr><td colspan='2'><b><!--ET_BEGIN listLink-->Лист: [#listLink#]<!--ET_END listLink--></b></td></tr>
 		<tr><td colspan='2'><b><!--ET_BEGIN subject-->[#subject#]<!--ET_END subject--></b></td></tr>
 		<tr>
 				<td valign='top'>

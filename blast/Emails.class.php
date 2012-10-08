@@ -401,6 +401,9 @@ class blast_Emails extends core_Master
             
             //Ако не сме в нито един от посочените рендираме html
             $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutEmails.shtml'))); 
+        
+            // Линк към листа
+            $data->row->listLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId));
         }
         
         return $tpl;
