@@ -67,7 +67,7 @@ class blast_ListSend extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper, plg_Sorting';
+    var $loadList = 'blast_Wrapper, plg_Sorting, plg_State';
     
     
     /**
@@ -79,7 +79,7 @@ class blast_ListSend extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'listDetailId, sended';
+    var $listFields = 'listDetailId, sended, state';
     
     
     /**
@@ -99,4 +99,79 @@ class blast_ListSend extends core_Detail
         
         $this->setDbUnique('listDetailId,emailId');
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        if ($rec->state != 'stopped') {
+			
+            // Бутон за спиране
+			$row->state = HT::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE));
+        } else {
+            
+            // Бутон за активиране
+            $row->state = HT::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE));
+        }
+    }
+    
+    
+    /**
+     * Екшън за спиране
+     */
+    function act_Stop()
+    {
+        // id' то на записа
+        $id = Request::get('id');
+        $id = $this->db->escape($id);
+        
+        // Очакваме да има такъв запис
+        $rec = $this->fetch($id);
+        expect($rec, 'Няма такъв запис.');
+        
+        // Очакваме да имаме права за записа
+        $this->requireRightFor('single', $rec);
+        
+        // Смяняме състоянието на спряно
+        $nRec = new stdClass();
+        $nRec->id = $id;
+        $nRec->state = 'stopped';
+        $this->save($nRec);
+        
+        return new Redirect(getRetUrl());
+    }
+    
+    
+    /**
+     * Екшън за активиране
+     */
+    function act_Activate()
+    {
+        // id' то на записа
+        $id = Request::get('id');
+        $id = $this->db->escape($id);
+        
+        // Очакваме да има такъв запис
+        $rec = $this->fetch($id);
+        expect($rec, 'Няма такъв запис.');
+        
+        // Очакваме да имаме права за записа
+        $this->requireRightFor('single', $rec);
+        
+        // Смяняме състоянието на спряно
+        $nRec = new stdClass();
+        $nRec->id = $id;
+        $nRec->state = 'active';
+        $this->save($nRec);
+        
+        return new Redirect(getRetUrl());
+    }
+    
+    
 }
