@@ -6,11 +6,12 @@ class crm_ext_IdCards extends core_Detail
      */
     var $masterKey = 'personId';
 
+    var $title = 'Лични карти';
 
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'crm_Wrapper';
+    var $loadList = 'crm_Wrapper,plg_RowTools';
     
     var $currentTab = 'Лица';
     
@@ -25,6 +26,12 @@ class crm_ext_IdCards extends core_Detail
         $this->FLD('idCardIssuedOn', 'date', 'caption=Издадена на');
         $this->FLD('idCardExpiredOn', 'date', 'caption=Валидна до');
         $this->FLD('idCardIssuedBy', 'varchar', 'caption=Издадена от');
+
+        $this->setDbUnique('personId');
+
+        // Може ли двама души да имат една карта?
+        // $this->setDbUnique('idCardNumber');
+
     }
     
     public static function prepareIdCard($data)
@@ -48,15 +55,19 @@ class crm_ext_IdCards extends core_Detail
     public static function renderIdCard($data)
     {
         $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
-        $tpl->append(tr('Лична карта'), 'title');
         
-        $idCardTpl = new ET(getFileContent('crm/tpl/IdCard.shtml'));
+        $tpl->append(tr('Лична карта'), 'title');        
 
         if ($data->canChange && !Mode::is('printing')) {
-            if ($data->IdCard->rec) {
-                $url = array(get_called_class(), 'edit', $data->IdCard->rec->id, 'ret_url' => TRUE);
+            
+            $rec = $data->IdCard->rec;
+
+            if ($rec->idCardNumber || $rec->idCardIssuedOn || $rec->idCardExpiredOn || $rec->idCardIssuedBy) {
+                $url = array(get_called_class(), 'edit', $rec->id, 'ret_url' => TRUE);
+                $idCardTpl = new ET(getFileContent('crm/tpl/IdCard.shtml'));
                 $idCardTpl->placeObject($data->IdCard->row);
             } else {
+                $idCardTpl = new ET(tr('Няма данни'));
                 $url = array(get_called_class(), 'add', 'personId'=>$data->masterId, 'ret_url' => TRUE);
             }
             $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
@@ -87,6 +98,9 @@ class crm_ext_IdCards extends core_Detail
     	$conf = core_Packs::getConfig('crm');
     	
         $form = $data->form;
+        
+        // За да гарантираме релацията 1:1
+        $form->rec->id = $mvc->fetchField("#personId = {$form->rec->personId}", 'id');
 
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'

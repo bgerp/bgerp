@@ -1,13 +1,21 @@
 <dl>
+	<!--ET_BEGIN idCardNumber-->
     <dt>Номер</dt>
     <dd>[#idCardNumber#]&nbsp;</dd>
+	<!--ET_END idCardNumber-->
 
+	<!--ET_BEGIN idCardIssuedOn-->
     <dt>Издадена на</dt>
     <dd>[#idCardIssuedOn#]&nbsp;</dd>
+	<!--ET_END idCardIssuedOn-->
 
+	<!--ET_BEGIN idCardIssuedBy-->
     <dt>Издадена от</dt>
     <dd>[#idCardIssuedBy#]&nbsp;</dd>
-
+	<!--ET_END idCardIssuedBy-->
+	
+	<!--ET_BEGIN idCardExpiredOn-->
     <dt>Валидна до</dt>
     <dd>[#idCardExpiredOn#]&nbsp;</dd>
+	<!--ET_END idCardExpiredOn-->
 </dl>
