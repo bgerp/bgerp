@@ -261,6 +261,15 @@ class blast_ListDetails extends core_Detail
         
         return new Redirect(getRetUrl());
     }
+
+    
+    /**
+     * 
+     */
+    function on_AfterGetQuery($mvc, $query)
+    {
+        $query->orderBy('state');
+    }
     
     
     /**

@@ -492,12 +492,16 @@ class blast_Emails extends core_Master
 
         $query = blast_ListDetails::getQuery();
         $query->where("#listId={$emailRec->listId}");
+        $query->where("#state != 'stopped'");
 
         //Обхождаме всички данни докато намерим запис, до който имаме достъп 
         while ($listRec = $query->fetch()) {
             
+            // Имейла за изпращане
+            $sendRec = blast_ListSend::fetch("#listDetailId = '{$listRec->id}' AND #emailId = '{$emailRec->id}'");
+
             //Ако имаме права тогава спираме обхождането
-            if (blast_ListDetails::haveRightFor('single', $listRec)) break;
+            if (blast_ListDetails::haveRightFor('single', $listRec) AND ($sendRec->state != 'stopped')) break;
         }
         
         //Имейла на първия потребител, до когото имаме достъп
@@ -716,7 +720,7 @@ class blast_Emails extends core_Master
         }
         
         $queryList = blast_ListDetails::getQuery();
-        $queryList->where("#listId = '$rec->listId'");
+        $queryList->where("#listId = '$rec->listId' AND #state != 'stopped'");
         
         // Задаваме достатъчно време, за да се обработи списъка
         set_time_limit($queryList->count()/10);
@@ -756,21 +760,17 @@ class blast_Emails extends core_Master
         $query = blast_ListSend::getQuery();
         $query->where("#emailId = '$rec->id'");
         $query->where("#sended IS NULL");
+        $query->where("#state != 'stopped'");
         $query->limit($rec->sendPerMinute);
-        
-        //Ако няма повече пощенски кутии, на които не са пратени имейли сменяме статуса на затворен
-        if (!$query->count()) {
-            $recNew = new stdClass();
-            $recNew->id = $rec->id;
-            $recNew->state = 'closed';
-            blast_Emails::save($recNew);
-            
-            return ;
-        }
         
         //обновяваме времето на изпращане на всички имейли, които сме взели.
         while ($recListSend = $query->fetch()) {
-            $listMail[] = blast_ListDetails::fetchField($recListSend->listDetailId, 'key');
+            
+            $listMailRec = blast_ListDetails::fetchField("#id = '{$recListSend->listDetailId}' AND #state != 'stopped'", 'key');
+            
+            if (!$listMailRec) continue;
+            
+            $listMail[] = $listMailRec;
             $recListSendNew = new stdClass();
             $recListSendNew->id = $recListSend->id;
             $recListSendNew->sended = dt::verbal2mysql();
@@ -779,7 +779,7 @@ class blast_Emails extends core_Master
         
         //Изпращаме персонален имейл до всички намерени адреси адреси
         if (count($listMail)) {
-            
+
             //Спираме системния потребител
             core_Users::cancelSystemUser();
                 
@@ -806,13 +806,13 @@ class blast_Emails extends core_Master
             
                 //Намираме преполагаемия език на съобщението
                 Mode::push('lg', $this->getLanguage($nRec->body));
-                
+
                 //Тялото на съобщението
                 $body = $this->getEmailBody($nRec, $emailTo, TRUE);
                 
                 //Връщаме езика по подразбиране
                 Mode::pop('lg');
-                                
+
                 //Извикваме функцията за изпращане на имейли
                 $status = email_Sent::sendOne(
                     $boxFrom,
@@ -831,6 +831,13 @@ class blast_Emails extends core_Master
             
             //Стартираме системния потребител
             core_Users::forceSystemUser();
+        } else {
+            
+            //Ако няма повече пощенски кутии, на които не са пратени имейли сменяме статуса на затворен
+            $recNew = new stdClass();
+            $recNew->id = $rec->id;
+            $recNew->state = 'closed';
+            blast_Emails::save($recNew);
         }
     }
     
@@ -1306,6 +1313,15 @@ class blast_Emails extends core_Master
     {
         // Записите за имейла
         $emailRec = $mvc->fetch($id);
+        
+        // Очакваме да има такъв запис
+        expect($emailRec);
+        
+        $listDetailRec = blast_ListDetails::fetch("#listId = '{$emailRec->listId}' AND #key = '{$options->__toEmail}'");
+        $listSendRec = blast_ListSend::fetch("#listDetailId = '{$listDetailRec->id}' AND #emailId = '{$emailRec->id}'");
+        
+        // Ако състоянието е затворено, не се показва имейла
+        expect(($listDetailRec->state != 'stopped' AND $listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
         
         // Подготвяме данните за съответния имейл
         $mvc->prepareRec($emailRec, $options->__toEmail);

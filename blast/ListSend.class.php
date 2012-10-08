@@ -174,4 +174,11 @@ class blast_ListSend extends core_Detail
     }
     
     
+    /**
+     * 
+     */
+    function on_AfterGetQuery($mvc, $query)
+    {
+        $query->orderBy('state');
+    }
 }
