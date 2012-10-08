@@ -67,7 +67,7 @@ class doc_Comments extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo';
+    var $canList = 'comment';
     
     /**
      * Кой има право да изтрива?

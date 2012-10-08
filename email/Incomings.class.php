@@ -49,7 +49,7 @@ class email_Incomings extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, email';
+    var $canRead = 'user';
     
     
     /**
@@ -65,21 +65,9 @@ class email_Incomings extends core_Master
     
     
     /**
-     * Кой има право да го види?
-     */
-    var $canView = 'admin, email';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
-    
-    
-    /**
-     * Необходими роли за оттегляне на документа
-     */
-    var $canReject = 'admin, email';
+    var $canList = 'email';
     
     
     /**
@@ -87,13 +75,7 @@ class email_Incomings extends core_Master
      */
     var $canDelete = 'no_one';
     
-    
-    /**
-     * Кой има права за
-     */
-    var $canEmail = 'admin, email, user';
-    
-    
+     
     /**
      * Плъгини за зареждане
      */
