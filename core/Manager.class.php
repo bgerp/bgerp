@@ -283,7 +283,7 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Начално установяване на менуджъра
+     * Начално установяване на мениджъра
      */
     function act_SetupMVC()
     {
@@ -740,7 +740,7 @@ class core_Manager extends core_Mvc
             $rec = $self->fetch($rec);
         }
         
-        // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
+        // Ако нямаме зададен потребител - приемаме, че въпроса се отнася за текущия
         if(!isset($userId)) {
             $userId = core_Users::getCurrent();
         }

@@ -92,36 +92,120 @@ if ($_GET['a'] == '4') {
 	}
 	exit;
 }
+
+/**********************************
+ * Setup на core_Packs
+ **********************************/
+if ($_GET['a'] == '5') {
+	echo("<h2>Сетъп на core_Packs ... </h2>");
+	$res = file_get_contents("http://{$_SERVER['SERVER_NAME']}/core_Packs/setupMVC");
+	echo($res);
+
+	exit;
+}
+
+
+/**********************************
+ * Задаване на административен потребител
+ **********************************/
+if ($_GET['a'] == '6') {
+	// Има зададено нещо от формата
+	if ($_GET['submitted']==1) {
+		
+		// Лека проверка за коректност
+		if ($_GET['pass'] != $_GET['pass_again']) {
+			echo ("<li style='color: red;'> Паролите не съвпадат!</li>");
+			echo ("<a href='http://".$_SERVER['SERVER_NAME']."/?SETUP&a=" . $_GET['a'] . "'>Назад</a><br>");
+			exit;
+		}
+		$rec['nick'] = $_GET['nick'];
+		$rec['pass'] = $_GET['pass'];
+		$rec['names'] = $_GET['names'];
+		$rec['email'] = $_GET['email'];
+		
+		$Users = cls::get('core_Users');
+		$res = $Users->setupMVC();
+		// Добавяме админ потребителя, ако няма потребители досега
+		if(!$Users->fetch('1=1')) {
+			$Users->save($rec);
+			$res .= "<li>Добавен Административен потребител!";
+		} else {
+			$res .= "<li>Административния потребител съществува отпреди";
+		}
+		echo ($res);
+		exit;
+	}
+	echo("<h2>Данни за административен потребител</h2>");
+	echo("<form id=f1 method='get' action='' target='_self'>");
+	echo("<input type=hidden name='SETUP'>");
+	echo("<input type=hidden name='a' value={$_GET['a']}>");
+	echo("<input type=hidden name=submitted value=1>");
+	echo("<li> Ник: <input name=nick></li>");
+	echo("<li> Парола: <input name=pass type=password></li>");
+	echo("<li> Перола пак: <input name=pass_again type=password></li>");
+	echo("<li> Имена: <input name=names></li>");
+	echo("<li> Имейл: <input name=email></li>");
+	echo("<input type=submit value=Запис>");
+	echo("</form>");
+	exit;
+}
+
+
+/**********************************
+ * Задаване на фирма
+ **********************************/
+if ($_GET['a'] == '7') {
+	// Има зададено нещо от формата
+	if ($_GET['submitted']==1) {
+		
+		$cfg['BGERP_OWN_COMPANY_ID'] = $_GET['companyId'];
+		$cfg['BGERP_OWN_COMPANY_NAME'] = $_GET['companyName'];
+		$cfg['BGERP_OWN_COMPANY_COUNTRY'] = $_GET['companyCountry'];
+		//echo('<pre>'); print_r($_SESSION); die;
+		$packs = cls::get('core_Packs');
+		$res = $packs->setupPack('crm');
+		core_Packs::setConfig('crm', $cfg); 
+		//header("Location: http://{$_SERVER['SERVER_NAME']}/core_Packs/install/?pack=crm");
+		echo ($res);
+		exit;
+	}
+	echo("<h2>Данни за фирма</h2>");
+	echo("<form id=f1 method='get' action='' target='_self'>");
+	echo("<input type=hidden name='SETUP'>");
+	echo("<input type=hidden name='a' value={$_GET['a']}>");
+	echo("<input type=hidden name=submitted value=1>");
+	echo("<input type=hidden name=companyId value=1>");
+	echo("<li> Име на фирмата: <input name=companyName></li>");
+	echo("<li> Държава: <input name=companyCountry value=Bulgaria></li>");
+	echo("<input type=submit value=Запис>");
+	echo("</form>");
+	exit;
+}
+
+/**********************************
+ * Край на помощника
+ **********************************/
+if ($_GET['a'] == '8') {
+	// echo("Задаването на основните параметри приключи!");
+	
+	header( 'Location: http://bgerp.local/core_Packs/install/?pack=crm') ;
+}
+
 ?>
 <script language="javascript">
 
-	function next() {
-	    if ( typeof next.counter == 'undefined' ) {
+	function next(r) {
+	    if ( typeof next.counter == 'undefined' || r==0) {
 	    	next.counter = 0;
 	    }
 
-	    alert(++next.counter);		
+	    ++next.counter;		
 		document.getElementById('test').src='http://'+location.host+'/?SETUP&a='+next.counter;
 	}
 	
 </script>
 
-<input type="button" onclick="document.getElementById('test').src='<?php echo("http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank")?>';" value="Начало">
-<input type="button" onclick="next();;" value="Следващ">
-<iframe src='<?php "http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=300></iframe>
-
-<?php
-/*
-if (count($error) > 0){
-	
-	print_r($error)."\n";
-	die('Error: Missing modules');
-	
-} else {
-	$location = 'http://'.$_SERVER['SERVER_NAME'].'/core_Users/login/';
-	
-	echo "<button onclick=\"window.location='$location'\">Начало</button>";
-    die('Everything is OK');
-    
-}
-*/
+<iframe src='<?php "http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=500></iframe>
+<br>
+<input type="button" onclick="next(0); document.getElementById('test').src='<?php echo("http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank")?>';" value="Начало">
+<input type="button" onclick="next(1);" value="Следващ">

@@ -78,6 +78,8 @@ class core_Mode
         if($name) expect($rec->name == $name, "Очаква се Mode::pop('{$rec->name}') а не Mode::pop('{$name}')", self::$stack);
         
         self::set($rec->name, $rec->value);
+        
+        return $rec->value;
     }
     
     
