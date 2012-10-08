@@ -22,6 +22,7 @@ if(file_exists($filename)) {
 
 if ($_GET['a'] == '1') {
 	echo "<li style='color: green;'>Конфигурационен файл $filename - ОК</li>";
+	
 	exit;
 }
 
@@ -39,6 +40,7 @@ if ($_GET['a'] == '2') {
 	} else {
 		echo("<li style='color: red;'>Недефинирани константи за връзка с базата данни</li>");
 	}
+	
 	exit;	
 }
 
@@ -65,6 +67,7 @@ if ($_GET['a'] == '3') {
 			flush();
 		}
 	}
+	
 	exit;	
 }
 
@@ -90,6 +93,7 @@ if ($_GET['a'] == '4') {
 			flush();
 		}
 	}
+	
 	exit;
 }
 
@@ -118,11 +122,17 @@ if ($_GET['a'] == '6') {
 			echo ("<a href='http://".$_SERVER['SERVER_NAME']."/?SETUP&a=" . $_GET['a'] . "'>Назад</a><br>");
 			exit;
 		}
+		$rec['id'] = 1;
 		$rec['nick'] = $_GET['nick'];
 		$rec['pass'] = $_GET['pass'];
 		$rec['names'] = $_GET['names'];
 		$rec['email'] = $_GET['email'];
 		
+		// Сетъпваме мениджъра на ролите който си добавя admin, ако я няма
+		$Roles = cls::get('core_Roles');
+		$Roles->setupMVC();
+		// $res = $Roles->fetchByName('admin');
+		// echo('<pre>'); echo($res); die;
 		$Users = cls::get('core_Users');
 		$res = $Users->setupMVC();
 		// Добавяме админ потребителя, ако няма потребители досега
@@ -133,6 +143,7 @@ if ($_GET['a'] == '6') {
 			$res .= "<li>Административния потребител съществува отпреди";
 		}
 		echo ($res);
+		
 		exit;
 	}
 	echo("<h2>Данни за административен потребител</h2>");
@@ -147,6 +158,7 @@ if ($_GET['a'] == '6') {
 	echo("<li> Имейл: <input name=email></li>");
 	echo("<input type=submit value=Запис>");
 	echo("</form>");
+	
 	exit;
 }
 
@@ -162,11 +174,19 @@ if ($_GET['a'] == '7') {
 		$cfg['BGERP_OWN_COMPANY_NAME'] = $_GET['companyName'];
 		$cfg['BGERP_OWN_COMPANY_COUNTRY'] = $_GET['companyCountry'];
 		//echo('<pre>'); print_r($_SESSION); die;
-		$packs = cls::get('core_Packs');
-		$res = $packs->setupPack('crm');
-		core_Packs::setConfig('crm', $cfg); 
+		// Ако няма фирма с id=1 - добавяме в конфигурационните данни
+		$Company = cls::get('crm_Companies');
+		$Company->setupMVC();
+		if (!$Company->fetch('#id = 1')) {
+			core_Packs::setConfig('crm', $cfg); 
+			$packs = cls::get('core_Packs');
+			$res = $packs->setupPack('crm');
+		} else {
+			$res = "<li>Съществува фирма по подразбиране";
+		}
 		//header("Location: http://{$_SERVER['SERVER_NAME']}/core_Packs/install/?pack=crm");
 		echo ($res);
+		
 		exit;
 	}
 	echo("<h2>Данни за фирма</h2>");
@@ -179,6 +199,7 @@ if ($_GET['a'] == '7') {
 	echo("<li> Държава: <input name=companyCountry value=Bulgaria></li>");
 	echo("<input type=submit value=Запис>");
 	echo("</form>");
+	
 	exit;
 }
 
@@ -186,9 +207,25 @@ if ($_GET['a'] == '7') {
  * Край на помощника
  **********************************/
 if ($_GET['a'] == '8') {
-	// echo("Задаването на основните параметри приключи!");
+	if ($_GET['submitted']==1) {
+		header( "Location: http://".$_SERVER['SERVER_NAME']."/core_Packs/install/?pack=bgerp") ;
+		
+		exit;
+	}
 	
-	header( 'Location: http://bgerp.local/core_Packs/install/?pack=crm') ;
+	echo("<h2>Задаването на основните параметри приключи</h2>");
+	echo("<form id=f1 method='get' action='' target='_self'>");
+	echo("<input type=hidden name='SETUP'>");
+	echo("<input type=hidden name='a' value={$_GET['a']}>");
+	echo("<input type=hidden name=submitted value=1>");
+	echo("<input type=submit value='Стартирай СЕТЪП на бгЕРП' onclick=\"parent.next(1);\">");
+	echo("</form>");
+	
+	exit;
+}
+if ($_GET['a'] == '9' || $_GET['a'] == '10') {
+	echo ("$a");
+	exit;
 }
 
 ?>
@@ -201,11 +238,28 @@ if ($_GET['a'] == '8') {
 
 	    ++next.counter;		
 		document.getElementById('test').src='http://'+location.host+'/?SETUP&a='+next.counter;
+
+		// Скриване на бутона за сетъп на бгЕРП
+		if (next.counter == 8) {
+			document.getElementById('next1').style.visibility = 'hidden';
+		}
+
+		// Показване на бутона за стартиране на бгЕРП
+		if (next.counter == 9) {
+			document.getElementById('next1').style.visibility = 'visible';
+			document.getElementById('next1').value = 'Стартирай бгЕРП';
+		}
+
+		// Стартиране на бгЕРП
+		if (next.counter == 10) {
+			window.location = 'http://'+location.host+'';
+		}
 	}
 	
 </script>
 
-<iframe src='<?php "http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=500></iframe>
+<iframe src='<?php "http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=650></iframe>
 <br>
 <input type="button" onclick="next(0); document.getElementById('test').src='<?php echo("http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank")?>';" value="Начало">
-<input type="button" onclick="next(1);" value="Следващ">
+<input id='next1' type="button" onclick="next(1);" value="Следващ">
+
