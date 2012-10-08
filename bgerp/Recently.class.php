@@ -118,17 +118,20 @@ class bgerp_Recently extends core_Manager
             $row->title = $folderRow->title;
         } elseif ($rec->type == 'document') {
             
-            $docProxy = doc_Containers::getDocument($rec->objectId);
-            $docRow = $docProxy->getDocumentRow();
-            $docRec = $docProxy->fetch();
-            
-            $attr['class'] .= 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
-            
-            $row->title = ht::createLink(str::limitLen($docRow->title, 70),
-                array($docProxy->instance, 'single',
-                    'id' => $docRec->id),
-                NULL, $attr);
+            try {
+                $docProxy = doc_Containers::getDocument($rec->objectId);
+                $docRow = $docProxy->getDocumentRow();
+                $docRec = $docProxy->fetch();
+                
+                $attr['class'] .= 'linkWithIcon';
+                $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
+                
+                $row->title = ht::createLink(str::limitLen($docRow->title, 70),
+                    array($docProxy->instance, 'single',
+                        'id' => $docRec->id),
+                    NULL, $attr);
+            } catch (core_exception_Expect $ex) {}
+                
         }
     }
 
