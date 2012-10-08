@@ -1,0 +1,23 @@
+<div class='blogm-comment-form'>
+<h3 class='comment-form-title'>Добавете коментар</h3>
+
+<form style="" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
+ 
+ 
+<!--ET_BEGIN FORM_ERROR-->
+<div class="formError">
+	[#FORM_ERROR#]
+</div>
+<!--ET_END FORM_ERROR-->
+
+<div class='formFields'>
+	[#FORM_FIELDS#]
+</div>
+
+
+<div class='formToolbar'>
+	[#FORM_TOOLBAR#][#FORM_HIDDEN#]
+</div>
+ 
+</form>
+</div>

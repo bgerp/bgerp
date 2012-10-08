@@ -1,0 +1,26 @@
+
+<div class='blogm-comment clearfix21 [#stateClass#]' style='background-color:[#stateColor#]'>
+	<div class='blogm-comment-who'>
+		<div class='blog-avatar'>
+			[#avatar#]
+		</div>
+		
+		<div class='blogm-name'>
+			[#name#]
+		</div>
+		
+		<div class='blogm-date'>
+			[#createdOn#]
+		</div>
+
+		<div class='blogm-status'>
+			[#status#]
+		</div>
+
+	</div>
+	<div class='blogm-comment-text'>
+		[#comment#]
+	</div>
+</div>
+
+<div class='clearfix21'></div>

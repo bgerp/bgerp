@@ -1,0 +1,19 @@
+<div class='blogm-article-title'>[#title#]</div>
+<div class='blogm-article-info'>
+	[#createdOn#], [#author#] в [#categories#] <span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#] коментара</span>
+</div>
+<div class='blogm-article-body'>
+	[#body#]
+</div>
+
+<!--ET_BEGIN COMMENTS-->
+<div class='blogm-comments'>
+	[#COMMENTS#]
+</div>
+<!--ET_END COMMENTS-->
+
+<!--ET_BEGIN COMMENT_FORM-->
+<div class='blogm-comment-form'>
+	[#COMMENT_FORM#]
+</div>
+<!--ET_END COMMENT_FORM-->

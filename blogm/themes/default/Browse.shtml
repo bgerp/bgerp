@@ -1,0 +1,15 @@
+<div class='blogm-browse'>
+
+<!--ET_BEGIN ROW-->
+
+<div class='blogm-article-title'>[#title#]</div>
+<div class='blogm-article-info'>
+	[#createdOn#], [#author#] в [#categories#] <span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#] коментара</span>
+</div>
+<div class='blogm-article-body'>
+	[#body#]
+</div>
+
+<!--ET_END ROW-->
+
+</div> 
