@@ -105,8 +105,12 @@ class type_User extends type_Key
                 $part = $this->params['select'];
                 
                 while($uRec = $uQueryCopy->fetch()) {
-                    $this->options[$t . '_' . $uRec->id ]->title = core_Users::getVerbal($uRec, $part);
-                    $this->options[$t . '_' . $uRec->id]->value = $uRec->id;
+                    $key = $t . '_' . $uRec->id;
+                    if(!$this->options[$key]) {
+                        $this->options[$key] = new stdClass();
+                    }
+                    $this->options[$key]->title = core_Users::getVerbal($uRec, $part);
+                    $this->options[$key]->value = $uRec->id;
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
                 }

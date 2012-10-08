@@ -156,8 +156,15 @@ class core_Detail extends core_Manager
     function prepareListToolbar_(&$data)
     {
         $data->toolbar = cls::get('core_Toolbar');
+ 
+        $masterKey = $this->masterKey;
         
-        if ($this->haveRightFor('add')) {
+        if($data->masterId) {
+            $rec = new stdClass();
+            $rec->{$masterKey} = $data->masterId;
+        }
+
+        if ($this->haveRightFor('add', $rec)) {
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
                     'add',
@@ -186,9 +193,13 @@ class core_Detail extends core_Manager
         
         $title = $this->Master->getTitleById($data->masterId);
         
-        $data->form->title = $data->form->rec->id ? "Редактиране в" : "Добавяне към";
+        if($this->singleTitle) {
+            $single = ' на| ' . mb_strtolower($this->singleTitle) . '|';
+        }
+
+        $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
         
-        $data->form->title .= "|* \"$title\"";
+        $data->form->title .= "|* \"" . str::limitLen($title, 32) . "\"";
         
         return $data;
     }
@@ -207,13 +218,20 @@ class core_Detail extends core_Manager
         if($action == 'write' && isset($rec)) {
             
             expect($masterKey = $this->masterKey);
-            
+              
             expect($this->Master instanceof core_Master, $this);
             
-            $masterRec = $this->Master->fetch($rec->{$masterKey});
+            if($rec->{$masterKey}) {
+                $masterRec = $this->Master->fetch($rec->{$masterKey});
+            }
             
-            return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
+            if($masterRec) {
+            
+                return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
+            }
         }
+
+ 
         
         return parent::getRequiredRoles_($action, $rec, $userId);
     }

@@ -568,8 +568,8 @@ class core_DateTime
      */
     static function addDays($days, $date = NULL)
     {
-        if (!$date)
-        $date = dt::verbal2mysql();
+        if (!$date) $date = dt::verbal2mysql();
+        
         $date = dt::mysql2timestamp($date);
         $date += $days * 24 * 60 * 60;
         

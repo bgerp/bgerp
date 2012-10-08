@@ -57,8 +57,10 @@ class plg_RowNumbering extends core_Plugin
                 } else {
                     $data->rows[$id]->RowNumb .= "<span style='float:right'>$number</span>";
                 }
-                
-                if($mvc->zebraRows !== FALSE) {
+
+                $rec = $data->recs[$id];
+
+                if($mvc->zebraRows !== FALSE && $rec->state == '') {
                     $row->ROW_ATTR['class'] .= ' zebra' . ($zebra % 2);
                 }
                 $zebra++;
