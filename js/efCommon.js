@@ -739,3 +739,30 @@ function onmouseUpSelect()
 		window.getSelection().addRange(range);
 	}
 }
+
+
+/**
+ * Показване на статус съобщения през определен интервал
+ */
+function getStatuses(url, timeout) {
+	$.get(url,
+    	function(data){
+        	$.each(data, function(index, value) { 
+             	id = (value.id);
+             	text = (value.statusText);
+             	type = (value.statusType);
+             	                     	
+             	$().toastmessage('showToast', {
+                    text            : text,
+                    sticky          : true,
+                    stayTime        : 10000,
+                    inEffectDuration: 1800,
+                    type            : type,
+        			position        :'bottom-right'
+                });
+                
+            });
+		}, 'json');
+   		
+		setTimeout(function(){getStatuses(url, timeout)}, timeout);
+}
