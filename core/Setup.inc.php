@@ -125,7 +125,6 @@ if ($_GET['a'] == '6') {
 			echo ("<a href='http://".$_SERVER['SERVER_NAME'].":".$_SERVER['SERVER_PORT'].$_SERVER['REQUEST_URI']."&a=" . $_GET['a'] . "'>Назад</a><br>");
 			exit;
 		}
-		$rec->id = 1;
 		$rec->nick = $_GET['nick'];
 		$rec->pass = $_GET['pass'];
 		$rec->names = $_GET['names'];
