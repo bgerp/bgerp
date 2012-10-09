@@ -1357,12 +1357,14 @@ class blast_Emails extends core_Master
         
         // Очакваме да има такъв запис
         expect($emailRec);
-        
+
         $listDetailRec = blast_ListDetails::fetch("#listId = '{$emailRec->listId}' AND #key = '{$options->__toEmail}'");
         $listSendRec = blast_ListSend::fetch("#listDetailId = '{$listDetailRec->id}' AND #emailId = '{$emailRec->id}'");
-        
+
         // Ако състоянието е затворено, не се показва имейла
-        expect(($listDetailRec->state != 'stopped' AND $listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
+//        expect(($listDetailRec->state != 'stopped' AND $listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
+        // Ако състоянието на изпратения имейл е затворено
+        expect(($listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
         
         // Подготвяме данните за съответния имейл
         $mvc->prepareRec($emailRec, $options->__toEmail);
