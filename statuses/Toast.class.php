@@ -138,41 +138,8 @@ class statuses_Toast extends core_Plugin
         //Проверява дали има статус към текущия потребител, чрез AJAX на всеки 15 секуди
         //Ако отворения прозорец не е активен не се прави проверка, за да не се показват
         //статуси в неактивен прозорец и да останат незабелязани.
-        $tpl->append("
-        
-    		time=setTimeout('getStatuses()', {$ajaxStartTime});
-    		
-            function getStatuses() {
-            
-            	$.get('{$url}',
-                	function(data){
-                    	$.each(data, function(index, value) { 
-                         	id = (value.id);
-                         	text = (value.statusText);
-                         	type = (value.statusType);
-                         	                     	
-                         	$().toastmessage('showToast', {
-                                text            : text,
-                                sticky          : true,
-                                stayTime        : 10000,
-                                inEffectDuration: 1800,
-                                type            : type,
-                    			position        :'bottom-right'
-                            });
-                            
-                        });
-           		}, 'json');
-               		
-       			time=setTimeout('getStatuses()', {$ajaxStartTime});
-        	}
-        	                	
-        	$(window).focus(function() {
-        		time=setTimeout('getStatuses()', {$ajaxStartTime});
-        	}).blur(function() {
-        		clearTimeout(time);
-        	});
-        	
-    	", 'SCRIPTS');
+        $tpl->appendOnce("time=setTimeout(function(){getStatuses('{$url}', {$ajaxStartTime})}, {$ajaxStartTime});", 'ON_LOAD');
+        $tpl->appendOnce("$(window).focus(function() {time=setTimeout(function(){getStatuses('{$url}', {$ajaxStartTime})}, {$ajaxStartTime});}).blur(function() {clearTimeout(time);});", 'ON_LOAD');
     }
     
     
