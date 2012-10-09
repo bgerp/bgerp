@@ -6,6 +6,9 @@ if(empty($_GET['a'])) {
 	echo ("<h1>Задаване на основните параметри</h1>");
 }
 
+
+$URI_PATH = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],'/?'));
+
 /**********************************
  * Проверка за конфигурационен файл
  **********************************/
@@ -102,7 +105,7 @@ if ($_GET['a'] == '4') {
  **********************************/
 if ($_GET['a'] == '5') {
 	echo("<h2>Сетъп на core_Packs ... </h2>");
-	$res = file_get_contents("http://{$_SERVER['SERVER_NAME']}/core_Packs/setupMVC");
+	$res = file_get_contents("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/core_Packs/setupMVC");
 	echo($res);
 
 	exit;
@@ -119,14 +122,14 @@ if ($_GET['a'] == '6') {
 		// Лека проверка за коректност
 		if ($_GET['pass'] != $_GET['pass_again']) {
 			echo ("<li style='color: red;'> Паролите не съвпадат!</li>");
-			echo ("<a href='http://".$_SERVER['SERVER_NAME']."/?SETUP&a=" . $_GET['a'] . "'>Назад</a><br>");
+			echo ("<a href='http://".$_SERVER['SERVER_NAME'].":".$_SERVER['SERVER_PORT'].$_SERVER['REQUEST_URI']."&a=" . $_GET['a'] . "'>Назад</a><br>");
 			exit;
 		}
-		$rec['id'] = 1;
-		$rec['nick'] = $_GET['nick'];
-		$rec['pass'] = $_GET['pass'];
-		$rec['names'] = $_GET['names'];
-		$rec['email'] = $_GET['email'];
+		$rec->id = 1;
+		$rec->nick = $_GET['nick'];
+		$rec->pass = $_GET['pass'];
+		$rec->names = $_GET['names'];
+		$rec->email = $_GET['email'];
 		
 		// Сетъпваме мениджъра на ролите който си добавя admin, ако я няма
 		$Roles = cls::get('core_Roles');
@@ -208,7 +211,7 @@ if ($_GET['a'] == '7') {
  **********************************/
 if ($_GET['a'] == '8') {
 	if ($_GET['submitted']==1) {
-		header( "Location: http://".$_SERVER['SERVER_NAME']."/core_Packs/install/?pack=bgerp") ;
+		header( "Location: http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/core_Packs/install/?pack=bgerp") ;
 		
 		exit;
 	}
@@ -237,7 +240,7 @@ if ($_GET['a'] == '9' || $_GET['a'] == '10') {
 	    }
 
 	    ++next.counter;		
-		document.getElementById('test').src='http://'+location.host+'/?SETUP&a='+next.counter;
+		document.getElementById('test').src='http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}"); ?>'+'&a='+next.counter;
 
 		// Скриване на бутона за сетъп на бгЕРП
 		if (next.counter == 8) {
@@ -252,14 +255,14 @@ if ($_GET['a'] == '9' || $_GET['a'] == '10') {
 
 		// Стартиране на бгЕРП
 		if (next.counter == 10) {
-			window.location = 'http://'+location.host+'';
+			window.location = 'http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/"); ?>'+'';
 		}
 	}
 	
 </script>
 
-<iframe src='<?php "http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=650></iframe>
+<iframe src='<?php "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=650></iframe>
 <br>
-<input type="button" onclick="next(0); document.getElementById('test').src='<?php echo("http://".$_SERVER['SERVER_NAME']."/?SETUP&a=blank")?>';" value="Начало">
+<input type="button" onclick="next(0); document.getElementById('test').src='<?php echo("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank")?>';" value="Начало">
 <input id='next1' type="button" onclick="next(1);" value="Следващ">
 
