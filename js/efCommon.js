@@ -721,3 +721,21 @@ function setMinHeight()
 		}
 	}
 }
+
+
+/**
+ * При натискане с мишката върху елемента, маркираме текста
+ */
+function onmouseUpSelect()
+{
+	if (document.selection) {
+		var range = document.body.createTextRange();
+		range.moveToElementText(document.getElementById('selectable'));
+		range.select();
+	}
+	else if (window.getSelection) {
+		var range = document.createRange();
+		range.selectNode(document.getElementById('selectable'));
+		window.getSelection().addRange(range);
+	}
+}
