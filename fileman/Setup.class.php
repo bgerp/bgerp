@@ -77,6 +77,12 @@ defIfNot(FILEINFO_MAX_FILE_LEN_BARCODE, 1048576);
 
 
 /**
+ * Пътя до gs файла
+ */
+defIfNot('FILEMAN_GHOSTSCRIPT_PATH', '');
+
+
+/**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
@@ -131,6 +137,8 @@ class fileman_Setup extends core_Manager {
        'FILEINFO_GET_BARCODES_EXT'   => array ('varchar'),
        'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('int'),
        'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('int'),
+       'FILEMAN_GHOSTSCRIPT_PATH'   => array ('varchar'),
+        
     
     );
     

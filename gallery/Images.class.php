@@ -17,7 +17,13 @@
 class gallery_Images extends core_Manager {
     
     
-     
+    var $canRead = 'admin,ceo,cms';
+    
+    /**
+     * Кой  може да пише?
+     */
+    var $canWrite = 'admin,ceo,cms';
+    
     
     /**
      * Заглавие
@@ -31,11 +37,7 @@ class gallery_Images extends core_Manager {
     var $loadList = "plg_RowTools,gallery_Wrapper,plg_Created,plg_Vid";
     
     
-    /**
-     * Кой  може да пише?
-     */
-    var $canWrite = "admin,cms,ceo";
-    
+     
     var $listFields = 'id,vid=Код,groupId,src,createdOn,createdBy';
 
 
@@ -45,11 +47,11 @@ class gallery_Images extends core_Manager {
     function description()
     {
      
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory');
 
         $this->FLD('groupId', 'key(mvc=gallery_Groups,select=title)', 'caption=Група');
         
-        $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка');
+        $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка,mandatory');
     }
 
     
@@ -62,8 +64,10 @@ class gallery_Images extends core_Manager {
         $mArr = array(600, 450);
             
         $Fancybox = cls::get('fancybox_Fancybox');
-
-        $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr);
+        
+        if($rec->src) {
+            $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr, $rec->title);
+        }
 
         $row->vid = "[img=#" . $rec->vid . "]";
     }

@@ -16,8 +16,14 @@
  */
 class gallery_Groups extends core_Manager {
     
+    var $canRead = 'admin,ceo,cms';
     
-     
+
+    /**
+     * Кой  може да пише?
+     */
+    var $canWrite = 'admin,ceo,cms';
+
     
     /**
      * Заглавие
@@ -30,13 +36,7 @@ class gallery_Groups extends core_Manager {
      */
     var $loadList = "plg_RowTools,gallery_Wrapper,plg_Created";
     
-    
-    /**
-     * Кой  може да пише?
-     */
-    var $canWrite = "admin,cms,ceo";
-    
-    
+     
     /**
      * Описание на модела (таблицата)
      */
