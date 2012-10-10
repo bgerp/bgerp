@@ -72,15 +72,27 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Масив с id => [име нафайл]
+     * Масив с id => [име нафайл] - прикачени файлове
      */
     var $attachedFiles = array();
     
     
     /**
-     * Масив с cid => fh - вградени (embedded) файлове
+     * Масив с cid(name) => id(fileman_Files) - вградени (embedded) файлове
      */
     var $linkedFiles = array();
+    
+    
+    /**
+     * Масив с id(fileman_Files) => id(fileman_Files) - cid файлове
+     */
+    var $cidFiles = array();
+    
+    
+    /**
+     * Масив с id(fileman_Files) => [име нафайл] - Файлове от допълнителните части на имейла
+     */
+    var $partFiles = array();
     
     
     /**
@@ -167,13 +179,13 @@ class email_Mime extends core_BaseClass
                 if($index == $this->firstHtmlIndex) {
                     $this->htmlFile = $p->filemanId;
                 } else {
-                    $this->attachedFiles[$p->filemanId] = $fileName;
+                    $this->partFiles[$p->filemanId] = $fileName;
                 }
             }
         }
         
         // Задаваме прикачените файлове като keylist
-        $rec->files = type_Keylist::fromArray($this->attachedFiles);
+        $rec->files = type_Keylist::fromArray($this->getJustAttachedFiles());
         
         // Задаваме първата html част като .html файл
         $rec->htmlFile = $this->htmlFile;
@@ -514,9 +526,9 @@ class email_Mime extends core_BaseClass
     function replaceCid($html)
     {
         if (count($this->linkedFiles)) {
-            
+
             foreach ($this->linkedFiles as $cid => $fileId) {
-                
+
                 $patterns = array("cid:{$cid}" => '', "\"cid:{$cid}\"" => '"', "'cid:{$cid}'" => "'");
                 
                 $Download = cls::get("fileman_Download");
@@ -525,6 +537,9 @@ class email_Mime extends core_BaseClass
                     if(stripos($html, $ptr) !== FALSE) {
                         $fileUrl = static::getUrlForDownload($fileId);
                         $html = str_ireplace($ptr, "{$q}{$fileUrl}{$q}", $html);
+                        
+                        $this->cidFiles[$fileId] = $fileId;
+                        
                     }
                 }
             }
@@ -957,11 +972,11 @@ class email_Mime extends core_BaseClass
                 
                 // Ако имаме 'Content-ID', запазваме го с връзката към файла, 
                 // за да можем да свържем вградените граф. файлове в HTML частите
-                if($cid = trim($this->getHeader('Content-ID', $p), '<>')) {
+                if($cid = trim($this->getHeader('Content-ID', $p), '<>')) {//file_put_contents('/home/developer/Desktop/asd3.txt', $this->parts);
                     $this->linkedFiles[$cid] = $p->filemanId;
-                } else {
-                    $this->attachedFiles[$p->filemanId] = $fileName;    
                 }
+
+                $this->attachedFiles[$p->filemanId] = $fileName;    
             }
         }
     }
@@ -1079,17 +1094,66 @@ class email_Mime extends core_BaseClass
     /**
      * Връща линкнатите файлове (cid)
      * 
-     * @return type_Keylist $linkedFiles - Всички линканти файлове (cid)
+     * @return array $linkedFiles - Масив с всички линкнати файлове (cid)
      */
     function getLinkedFiles()
     {
         // Преборъщаме масива, id'тата да са ключ
         $linkedFiles = array_flip($this->linkedFiles);
         
-        // Преобразуваме масива в keylist поле
-        $linkedFiles = type_Keylist::fromArray($linkedFiles);
-        
         return $linkedFiles;
+    }
+    
+    
+    /**
+     * Премахва CID файловете от прикачените и връща масива
+     * 
+     * @return array $attachedFiles - Масив с прикачените файлове, без CID файловете
+     */
+    function getJustAttachedFiles()
+    {
+        $attachedFiles = $this->attachedFiles;
+        foreach ($this->cidFiles as $id => $cid) {
+            if ($attachedFiles[$id]) unset($attachedFiles[$id]);
+        }
+
+        return $attachedFiles;
+    }
+    
+    
+    /**
+     * Връща прикачените файлове
+     * 
+     * @return array - Масив с всички прикачени файлове
+     */
+    function getAttachedFiles()
+    {
+        
+        return $this->attachedFiles;
+    }
+    
+    
+    /**
+     * Връща файловете от частите на EML
+     * 
+     * @return array - Масив с всички файлове на частите
+     */
+    function getPartFiles()
+    {
+        
+        return $this->partFiles;
+    }
+    
+    
+    /**
+     * Връща cid файловете
+     * 
+     * @return array - Масив с всички cid файлове
+     */
+    function getCidFiles()
+    {
+        
+        return $this->cidFiles;
     }
     
     
