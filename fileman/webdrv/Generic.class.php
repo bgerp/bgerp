@@ -221,6 +221,45 @@ class fileman_webdrv_Generic extends core_Manager
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
         
+        // Записите за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+    
+        // Ако има активен линк за сваляне
+        if (($dRec = fileman_Download::fetch("#fileId = {$fRec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
+            
+            // Линк за сваляне
+            $link = fileman_Download::getSbfDownloadUrl($dRec, TRUE);
+            
+            // До кога е активен линка
+            $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
+            
+            // Линка, който ще се показва
+            $linkText = tr("|Линк|*: <span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOn})</small>");
+ 
+        }
+        
+        // Типа на файла
+        $type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($fRec->name));
+        
+        // Типа за показване
+        $typeText = tr("|Тип|*: {$type}");
+        
+        // Вербалния размер на файла
+        $size = fileman_Data::getFileSize($fRec->dataId);
+        
+        // Размера за показване
+        $sizeText = tr("|Размер|*: {$size}");
+        
+        // Информация за създаването
+        $createdOn = fileman_Files::getVerbal($fRec, 'createdOn');
+        $createdBy = fileman_Files::getVerbal($fRec, 'createdBy');
+        
+        // Показване на създаването
+        $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}");
+        
+        // Добавяме в текста
+        $content = $linkText . "\n" . $typeText . "\n" . $sizeText . "\n" . $createdText . "\n" . $content;
+        
         // Връщаме съдържанието
         return $content;
     }

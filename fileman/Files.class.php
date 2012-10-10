@@ -575,23 +575,6 @@ class fileman_Files extends core_Master
 
         expect($rec->dataId, 'Няма данни за файла');
         
-        // Ако има активен линк за сваляне
-        if (($dRec = fileman_Download::fetch("#fileId = {$rec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
-
-            // Името на файла
-            $fileName = fileman_Download::getVerbal($dRec, 'fileName');
-            
-            // Линка на файла
-            $link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $fileName, '', TRUE);
-            
-            // До кога е активен линка
-            $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
-
-            // Задаваме шаблоните 
-            $row->expireOn = $expireOn; 
-            $row->link = $link;
-        }
-        
         //Разширението на файла
         $ext = fileman_Files::getExt($rec->name);
         
@@ -605,18 +588,12 @@ class fileman_Files extends core_Master
         
         //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-         
+
         // Вербалното име на файла
         $row->fileName = "<span class='linkWithIcon' style='margin-left:-15px;background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
         
-        // Типа на файла
-        $row->type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($rec->name));
-        
-        // Вербалния размер на файла
-        $row->size = fileman_Data::getFileSize($rec->dataId);
-        
         // Версиите на файла
-        $row->versions = static::getFileVersionsString($rec->id);
+//        $row->versions = static::getFileVersionsString($rec->id);
     }
     
     

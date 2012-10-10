@@ -552,8 +552,8 @@ class fileman_Download extends core_Manager {
             // Вземаме линка, за да може да се запише новото време до когато е активен линка
             $link = self::getDownloadUrl($fRec->fileHnd, $form->rec->activeMinutes);
             
-//            Redirect(array('fileman_Files', 'single', $fh));
-            Redirect(array('fileman_Files', 'single', $fh));
+            // Редиректваме на страницата за информация
+            Redirect(array('fileman_Files', 'single', $fh, 'currentTab' => 'info', '#' => 'fileDetail'));
         }
         
         // По подразбиране 12 часа да е активен
@@ -572,5 +572,25 @@ class fileman_Download extends core_Manager {
         $form->title = tr("Генериране на линк за {$fileName}");
         
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Връща SBF линк за сваляне на файла
+     * 
+     * @param object $rec - Записа за файла
+     * @param boolean $absolute - Дали линка да е абсолютен или не
+     * 
+     * @return string $link - Текстов линк за сваляне
+     */
+    static function getSbfDownloadUrl($rec, $absolute=FALSE)
+    {
+         // Името на файла
+        $fileName = fileman_Download::getVerbal($rec, 'fileName');
+        
+        // Линка на файла
+        $link = sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $fileName, '', $absolute);
+        
+        return $link;
     }
 }
