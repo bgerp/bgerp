@@ -197,8 +197,10 @@ class fileman_Setup extends core_Manager {
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
+        $conf = core_Packs::getConfig('fileman');
+        
         // Инсталираме
-        if(defined('EF_EXTENSION_FILE_PROGRAM')) {
+        if($conf->FILEMAN_FILE_COMMAND) {
             $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
         }
         
