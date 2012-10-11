@@ -204,22 +204,37 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Масив с всички прикачени файлове
         $filesArr = type_Keylist::toArray($emlRec->files);
         
-        // Линкнатите файлове (cid)
-        $linkedFiles = $mime->getLinkedFiles();
+        // Масив за HTML файла
+        $htmlFile = array();
         
-        // Масив с всички линкнати файлове
-        $linkedFilesArr = type_Keylist::toArray($linkedFiles);
+        // Стринг с всички прикачени дайлове
+        $filesStr = '';
         
-        // Ако има html файл, вземаме линк към него
+        // Масив с всички линкнатите файлове (cid)
+        $linkedFilesArr = $mime->getLinkedFiles();
+        
+        // Масив с файловете от частите
+        $partFiles = $mime->getPartFiles();
+        
+        // Прикачените файлове, без CID
+        $attachedFiles = $mime->getJustAttachedFiles();
+        
+        // CID файловете
+        $cidFiles = $mime->getCidFiles();
+        
+        // Добавяме в масив HTML файла
         if($emlRec->htmlFile) {
-            $filesStr .= fileman_Download::getDownloadLinkById($emlRec->htmlFile) . "\n";
+            $htmlFile[$emlRec->htmlFile] = $emlRec->htmlFile;
         }
+        
+        // Събираме всички масиви
+        $allFiles = $htmlFile + $partFiles + $attachedFiles + $cidFiles;
         
         // Съединяваме линкнатите файлове с прикачените файлове
         $filesArr += $linkedFilesArr;
         
         // Обхождаме всички файлове и вземаме линк за сваляне
-        foreach ($filesArr as $keyD) {
+        foreach ($allFiles as $keyD => $dummy) {
             $filesStr .= fileman_Download::getDownloadLinkById($keyD) . "\n";
         }
         

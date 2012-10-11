@@ -5,35 +5,6 @@
 	
 		<!--ET_BEGIN fileName--><tr><td colspan='2'><b>[#fileName#]</b></td></tr><!--ET_END fileName-->
 		
-		<!--ET_BEGIN link-->          
-			<tr>
-			    <td align='right' width='auto' >|Линк|*:</td>
-			    <td><span id='selectable' onmouseUp='onmouseUpSelect();'>[#link#]</span> <small>(|Изтича:|* [#expireOn#])</small></td>
-			</tr>
-		<!--ET_END link-->
-		
-		
-		<!--ET_BEGIN type-->          
-			<tr>
-			    <td align='right' width='auto' >|Тип|*:</td>
-			    <td>[#type#]</td>
-			</tr>
-		<!--ET_END type-->
-		
-		<!--ET_BEGIN size-->          
-			<tr>
-			    <td align='right' width='auto' >|Размер|*:</td>
-			    <td>[#size#]</td>
-			</tr>
-		<!--ET_END size-->
-		
-		<!--ET_BEGIN createdOn-->          
-			<tr>
-			    <td align='right' width='auto' >|Добавен на|*:</td>
-			    <td>[#createdOn#] |от|* [#createdBy#]</td>
-			</tr>
-		<!--ET_END createdOn-->
-		
 		<!--ET_BEGIN versions-->          
 			<tr>
 			    <td align='right' width='auto' >|Версии|*:</td>
@@ -44,7 +15,7 @@
 	</table>
 	
 	<!--ET_BEGIN fileDetail-->          
-		    <div id="fileDetail">[#fileDetail#]</div>
+		    <div id="fileDetail" style='margin-top: -11px;'>[#fileDetail#]</div>
 	<!--ET_END fileDetail-->
 	
 </div>

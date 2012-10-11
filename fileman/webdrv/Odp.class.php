@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за работа с .txt файлове.
+ * Драйвер за работа с .odp файлове.
  * 
  * @category  vendors
  * @package   fileman
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Txt extends fileman_webdrv_Text
+class fileman_webdrv_Odp extends fileman_webdrv_Office
 {
     
 }
