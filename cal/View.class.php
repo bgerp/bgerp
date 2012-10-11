@@ -8,8 +8,11 @@ class cal_View extends core_Plugin
         
         if(!$from) {
             $from = dt::verbal2mysql();
+            
         }
-
+		
+        $from = dt::mysql2verbal($from, 'd-m-Y');
+        
         $act = strtolower(Request::get('Act'));
          
         if(!$act || $act == 'default') {

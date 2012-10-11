@@ -1,0 +1,61 @@
+
+[#SingleToolbar#]
+           
+	<div class='document'>
+		<div class='header'>
+			<span style='[#iconStyle#]'>[#title#]</span><br/>
+			<span>[#from#]</span>
+		</div>
+
+        <!-- BEGIN info -->
+        <br/>
+        <div class='block_left'>
+        
+            <br/>
+			 <table cellspacing='1' class='top-table'>
+	             
+	             <tr>
+	             	 <td class="quiet" align="center" width='1%'>Дата: &nbsp; </td>
+	                 <td>[#date#]</td>
+	             </tr>
+				
+				
+				<tr>
+					<td class="quiet" colspan="2" style='padding-top:10px;'>Цял ден:</td>
+				</tr>
+				<tr>
+					<td colspan="2">[#allday#]</td>
+				</tr>
+				
+
+				</table>
+          </div> 
+         
+			<!--ET_END info-->
+			
+						
+		<!--ET_BEGIN event-->	
+         <div class='block_left'>
+         </br>
+                <table cellspacing='1' class='listTable'>
+				<tr>
+                     <td class="quiet" colspan="2" style='padding-top:10px;'>Време</td>
+                     <td class="quiet" colspan="2" style='padding-top:10px;'>Заглавие</td>
+                     <td class="quiet" colspan="2" style='padding-top:10px;'>Задача</td>
+                 </tr>
+                
+                 
+                 <!--ET_BEGIN COMMENT_LI-->
+                 <tr style='background-color:[#color#];'> 
+                     <td colspan="2" >[#time#]</td>
+                     <td colspan="2">[#tasktitle#]</td>
+                     <td colspan="2">[#description#]</td>
+                 </tr>
+                 <!--ET_END COMMENT_LI-->
+                               
+                 </table>
+			</div>
+         <!--ET_END event-->
+         
+         <div style='clear: both;'></div>
+    </div>         
