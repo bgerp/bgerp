@@ -972,7 +972,7 @@ class email_Mime extends core_BaseClass
                 
                 // Ако имаме 'Content-ID', запазваме го с връзката към файла, 
                 // за да можем да свържем вградените граф. файлове в HTML частите
-                if($cid = trim($this->getHeader('Content-ID', $p), '<>')) {//file_put_contents('/home/developer/Desktop/asd3.txt', $this->parts);
+                if($cid = trim($this->getHeader('Content-ID', $p), '<>')) {
                     $this->linkedFiles[$cid] = $p->filemanId;
                 }
 
