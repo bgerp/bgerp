@@ -1,5 +1,5 @@
 <div class='blogm-browse'>
-
+[#results#]
 <!--ET_BEGIN ROW-->
 
 <div class='blogm-article-title'>[#title#]</div>
@@ -9,7 +9,9 @@
 <div class='blogm-article-body'>
 	[#body#]
 </div>
-
+<br>
+<br>
 <!--ET_END ROW-->
-
+<br>
+[#newerArticles#][#olderArticles#]
 </div> 

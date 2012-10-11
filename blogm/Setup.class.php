@@ -6,6 +6,25 @@ defIfNot('BLOGM_MAX_COMMENT_DAYS', '50');
 
 
 /**
+ *  Константа за тема по-подразбиране на блога
+ */
+defIfNot('BLOG_DEFAULT_THEME', 'blogm/themes/default');
+
+
+/**
+ *  Константа за продължителноста на живота на бисквитките създадени от блога
+ */
+defIfNot('BLOG_COOKIE_LIFETIME', '2592000');
+
+
+/**
+ *  Броя на статии, които да се показват
+ */
+defIfNot('BLOG_ARTICLES_LIMIT', '5');
+ 
+
+
+/**
   * class blogm_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -62,7 +81,7 @@ class blogm_Setup
 	);
 	
 	
-/**
+	/**
 	 * Инсталиране на пакета
 	*/
 	function install()
@@ -70,7 +89,8 @@ class blogm_Setup
 		$managers = array(
 				'blogm_Articles',
 				'blogm_Categories',
-				'blogm_Comments'
+				'blogm_Comments',
+				'blogm_Archives'
 		);
 
 		// Роля за power-user на този модул
@@ -104,7 +124,7 @@ class blogm_Setup
         $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
 
 		$Menu  = cls::get('bgerp_Menu');
-		$html .= $Menu->addItem(3, 'Обслужване', 'Блог', 'blogm_Articles', 'default', "{$role}, admin");
+		$html .= $Menu->addItem(3, 'Обслужване', 'Нов Блог', 'blogm_Articles', 'default', "{$role}, admin");
 
 		return $html;
 	}

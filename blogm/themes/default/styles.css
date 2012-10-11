@@ -17,6 +17,10 @@
 	margin-top:10px;
 }
 
+#sBtn{
+	background-image:url('../../../img/search.png');
+	width:25px;
+}
 .blogm-comments-cnt {
 	float:right;
 	background-image:url('../../../img/12/comments.png');
@@ -59,4 +63,15 @@
 
 .blogm-category-row {
 	margin-top:5px;
+}
+
+#archive-list{
+	list-style:none;
+	margin-left:0px;
+	padding-left:0px;
+	width:80%
+}
+
+.article-cat{
+	font-size:12px;
 }

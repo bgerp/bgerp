@@ -36,7 +36,7 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Полета за листов изглед
 	 */
-	var $listFields ='id, title, categories, body, author, createdOn, createdBy, modifiedOn, modifiedBy';
+	var $listFields ='id, title, categories, body, author, createdOn, createdBy, modifiedOn, modifiedBy, archiveId';
 	
     
     /**
@@ -105,17 +105,9 @@ class blogm_Articles extends core_Master {
             'caption=Коментари->Режим,maxRadio=4,columns=4,mandatory');
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
   		$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
-		
-        $this->setDbUnique('title');
-	}
-	
-	
-	/**
-	 * Обработка на вербалното представяне на статиите
-	 */
-	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-	{
-
+		$this->FLD('archiveId', 'key(mvc=blogm_Archives,select=title)', 'caption=Архив,mandatory');
+        
+		$this->setDbUnique('title');
 	}
 	
 	
@@ -132,6 +124,14 @@ class blogm_Articles extends core_Master {
 			
 			// Показваме само статиите които са активни
 			$data->query->where("#state = 'active'");
+			
+		}
+		
+		// Ако е зададен id на архив, то показваме статиите от избрания архив
+		$arch = Request::get('archive');
+		if(isset($arch))
+		{
+			$data->query->where("#archiveId = {$arch}");
 		}
 	}
 	
@@ -149,6 +149,7 @@ class blogm_Articles extends core_Master {
             $mvc->save($rec);
         }
     }
+	
 	
 	/**
 	 * Обработка на заглавието
@@ -204,8 +205,7 @@ class blogm_Articles extends core_Master {
         if(($cat = $recFilter->category) > 0) {
             $data->query->where("#categories LIKE '%|{$cat}|%'");
         }
-        
- 	}
+     }
 
 
     /**
@@ -230,7 +230,8 @@ class blogm_Articles extends core_Master {
 		$data = new stdClass();
 		$data->query = $this->getQuery();
 		$data->articleId = $id;
-        $data->theme = 'blogm/themes/default';
+        $conf = core_Packs::getConfig('blogm');
+        $data->theme = $conf->BLOG_DEFAULT_THEME;
 
 		// Трябва да има $rec за това $id
 		expect($data->rec = $this->fetch($id));
@@ -254,7 +255,7 @@ class blogm_Articles extends core_Master {
             $Comments->invoke('AfterInputEditForm', array($cForm));
             
             // Дали имаме права за това действие към този запис?
-            $Comments->requireRightFor('add', $rec, NULL, $retUrl);
+            $Comments->requireRightFor('add', $rec, NULL);
             
             // Ако формата е успешно изпратена - запис, лог, редирект
             if ($cForm->isSubmitted()) {
@@ -269,18 +270,16 @@ class blogm_Articles extends core_Master {
                 return new Redirect(array('blogm_Articles', 'Article', $data->rec->id), 'Благодарим за вашия коментар;)');
             }
         }
-
-
-        // Подготвяме лейаута за статията
+		 // Подготвяме лейаута за статията
         $layout = $this->getArticleLayout($data);
-		
+        
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
 		
 		// Записваме, че потребителя е разглеждал този списък
 		$this->log('article: ' . ($data->log ? $data->log : tr($data->title)), $id);
 		
-		// Връщаме вече рендирания шаблон
+		
 		return $tpl;
 	}
 	
@@ -299,10 +298,10 @@ class blogm_Articles extends core_Master {
         $data->row = $this->recToVerbal($data->rec, $fields);
 
         $this->blogm_Comments->prepareComments($data);
-
+		
         $data->selectedCategories = type_Keylist::toArray($data->rec->categories);
-
-        blogm_Categories::prepareCategories($data);
+		
+       	$this->prepareNavigation($data);
 
         if($this->haveRightFor('single', $data->rec)) {
             $data->singleUrl = array('blogm_Articles', 'single', $data->rec->id);
@@ -317,25 +316,15 @@ class blogm_Articles extends core_Master {
 	{
 		// Поставяме данните от реда
 		$layout->placeObject($data->row);
-		 
-		// Рендираме коментарите в нов темплейт с новия метод renderShowDetail, който 
-		// се изпозлва вместо renderDetail
+		
 		$layout = $this->blogm_Comments->renderComments($data, $layout);
 
-		
-		// Рендираме категориите
- 		$layout->append(blogm_Categories::renderCategories($data), 'NAVIGATION');
-        
-        if($data->singleUrl) {
-            $layout->append(ht::createBtn('Работилница', $data->singleUrl), 'NAVIGATION');
-        }
+		$this->renderNavigation($data, $layout);
         
         // Добавяме стиловете от темата
         $layout->push($data->theme . '/styles.css', 'CSS');
         
-        // Рендираме търсачката
-
-		// Връщаме шаблона за единичен изглед
+		
 		return $layout;
 	}
 
@@ -380,12 +369,27 @@ class blogm_Articles extends core_Master {
         if($category) {
             expect($catRec = blogm_Categories::fetch($category));
         }
-
-		// Създаваме празен $data обект
+        
+        $q = Request::get('q');
+		
+        $page = Request::get('page');
+		if(!isset($page)) {
+			$page = 0;
+		}
+        // Създаваме празен $data обект
 		$data = new stdClass();
 		$data->query = $this->getQuery();
 		$data->category = $category;
-        $data->theme = 'blogm/themes/default';
+		// По какво заглавие търсим
+		$data->q = $q;
+		// На коя страница сме
+		$data->page = $page;
+		
+		// Ограничаваме показаните статии спрямо спрямо константа и номера на страницата
+		$conf = core_Packs::getConfig('blogm');
+        $data->theme = $conf->BLOG_DEFAULT_THEME;
+        $data->query->limit($conf->BLOG_ARTICLES_LIMIT);
+        $data->query->startFrom($data->page * $conf->BLOG_ARTICLES_LIMIT);
         
         // Подготвяме данните необходими за списъка със стаии
         $this->prepareBrowse($data);
@@ -399,11 +403,24 @@ class blogm_Articles extends core_Master {
 		// Записваме, че потребителя е разглеждал този списък
 		$this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
 		
-		// Връщаме готовия шаблон
+		
 		return $tpl;
 	}
 
-
+	
+	/**
+	 * Подготвяме навигационното меню
+	 */
+	function prepareNavigation(&$data){
+		
+		$this->prepareSearch($data);
+        
+        blogm_Archives::prepareArchives($data);
+        
+        blogm_Categories::prepareCategories($data);
+	}
+	
+	
     /**
      * Подготвяме данните за показването на списъка с блог-статии
      */
@@ -414,14 +431,24 @@ class blogm_Articles extends core_Master {
             $data->selectedCategories[$data->category] = TRUE;
         }
         
+        if($data->archive) {
+        	 $data->query->where("#archiveId = {$data->archive}");
+        	 $data->selectedArchive[$data->archive] = TRUE;
+        }
+        
+        if($data->q) {
+        	plg_Search::applySearch($data->q, $data->query);
+        }
+       
+        $data->query->orderBy('createdOn', 'DESC');
+        
         // Показваме само публикуваните статии
         $data->query->where("#state = 'active'");
-
-        // PAGER
-
+		
+        
         $fields = $this->selectFields("");
         $fields['-browse'] = TRUE;
-
+        
         while($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
@@ -430,8 +457,8 @@ class blogm_Articles extends core_Master {
                 array('blogm_Articles', 'Article', $rec->id)
             );
         }
-
-        blogm_Categories::prepareCategories($data);
+        // Подготвяме навигацията
+        $this->prepareNavigation($data);
     }
 	
 	
@@ -450,25 +477,153 @@ class blogm_Articles extends core_Master {
                 $rowTpl->placeObject($row);
                 $rowTpl->append2master();
             }
+            
+            $conf = core_Packs::getConfig('blogm');
+            
+        	// Ако страницата е различна от първата
+            if($data->page != 0) {
+            	
+            	// Намаляваме страницата с 1 и добавяме линк за връщане на предната страница
+            	$forward = $data->page - 1;
+            	$layout->append(ht::createLink("По-нови статии", array('blogm_Articles', 'browse', 'category' => $data->category, 'page' => $forward)), 'newerArticles');
+            }
+            
+            // Ако броя на статиите е по-голям или равен на ограничението, ние добавяме
+            // бутона за преминаване на следващата страница
+            if(count($data->rows) >= $conf->BLOG_ARTICLES_LIMIT) {
+            	
+            	// Изчисляваме коя  е следващата страница и поставяме линк
+            	$back = $data->page + 1;
+            	$layout->append(ht::createLink("По-стари статии", array('blogm_Articles', 'browse', 'category' => $data->category, 'page' => $back)), 'olderArticles');
+             }
         } else {
             $rowTpl = $layout->getBlock('ROW');
             $rowTpl->replace('<h2>Няма статии</h2>');
             $rowTpl->append2master();
         }
+        
+		// Ако е посочено заглавие по-което се търси
+        if(isset($data->q)) {
+			$layout->replace('Резултати за &nbsp;&nbsp;"<b>' . $data->q . '</b>"<br><br>', 'results');
+		}
+        // Рендираме навигацията
+        $this->renderNavigation($data, $layout);
 		
-        // Рендираме категориите
- 		$layout->append(blogm_Categories::renderCategories($data), 'NAVIGATION');
- 
-		
-		// Връщаме вече готовия шаблон
+        
 		return $layout;
 	}
 	
 	
+	/**
+	 * Екшън, който зарежда статиите, които принадлежат към избрания архив
+	 */
+	function act_Archive(){
+		
+		// Поставяме шаблона за външен изглед
+		Mode::set('wrapper', 'cms_tpl_Page');
+ 		$aId = Request::get('aId');
+		
+ 		// Очакваме да има такъв архив
+        if($aId) {
+            expect($archRec = blogm_Archives::fetch($aId));
+        }
+       
+
+		// Създаваме празен $data обект
+		$data = new stdClass();
+		$data->query = $this->getQuery();
+		$data->archive = $aId;
+		$conf = core_Packs::getConfig('blogm');
+        $data->theme = $conf->BLOG_DEFAULT_THEME;
+         
+		 // Подготвяме данните необходими за списъка със статии
+        $this->prepareBrowse($data);
+        
+        // Рендираме архива
+        $tpl = $this->renderArchive($data);
+        
+        // Добавяме стиловете от темата
+        $tpl->push($data->theme . '/styles.css', 'CSS');
+
+		// Записваме, че потребителя е разглеждал този списък
+		$this->log('Archive: ' . ($data->log ? $data->log : tr($data->title)));
+		
+		
+		return $tpl;
+	
+	}
  
-
-
-    /**
+	/**
+	 * Рендиране на Архива
+	 */ 
+	function renderArchive_(&$data){
+		$layout = new ET(getFileContent($data->theme . '/Archive.shtml'));
+		$layout->replace(blogm_Archives::fetch($data->archive)->title, 'range');
+		$layout->replace(count($data->rows), 'count');
+		
+		if(count($data->rows)) {
+	            foreach($data->rows as $row) {
+	                $rowTpl = $layout->getBlock('ROW');
+	                $rowTpl->placeObject($row);
+	                $rowTpl->append2master();
+	            }
+		} else {
+			$rowTpl = $layout->getBlock('ROW');
+            $rowTpl->replace('<h2>Няма статии</h2>');
+            $rowTpl->append2master(); 
+		}   
+	    // Рендираме навигацията
+		$this->renderNavigation($data, $layout);
+		
+	
+		return $layout;
+	}
+	
+	
+	/**
+     * Подготвяме формата за търсене
+     */
+    function prepareSearch_(&$data){
+		$form = cls::get('core_Form');
+		$form->FNC('q','varchar(100)', 'input,width=95%,placeholder=търси ....');
+		$form->setAction(array('blogm_Articles', Request::get('Act'), 'search'));
+		// Нов Събмит бутон с иконка 
+		$form->toolbar->addSbBtn(' ', '', 'input=none,id=sBtn ');
+		$data->searchForm = $form;
+	}
+	
+	
+	/**
+	 * Рендираме формата за търсене
+	 */
+	function renderSearch_(&$data){
+		$data->searchForm->layout = new ET(getFileContent($data->theme . '/SearchForm.shtml'));
+		$data->searchForm->fieldsLayout = new ET(getFileContent($data->theme . '/SearchFormFields.shtml'));
+		
+		
+		return $data->searchForm->renderHtml();
+	}
+	
+	
+	/**
+	 * Функция което рендира менюто с категориите, формата за търсене, и менюто с архивите
+	 */
+	function renderNavigation($data, &$layout) {
+		
+		// Рендираме категориите
+ 		$layout->append(blogm_Categories::renderCategories($data), 'NAVIGATION');
+ 		if($data->singleUrl) {
+            $layout->append(ht::createBtn('Работилница', $data->singleUrl), 'NAVIGATION');
+        }
+        // Рендираме формата за търсене
+		$layout->append($this->renderSearch($data), 'NAVIGATION');
+		
+		// Рендираме Списъка с архивите
+		$layout->append(blogm_Archives::renderArchives($data), 'NAVIGATION');
+	}
+	
+	
+	/**
      * Какви роли са необходими за посоченото действие?
      */
 	function on_AfterGetRequiredRoles($mvc, &$roles, $act, $rec = NULL, $user = NULL)
@@ -482,10 +637,4 @@ class blogm_Articles extends core_Master {
         }
     }
 	
- 
-
-
-
-  
-	    
 }

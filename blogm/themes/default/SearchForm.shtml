@@ -1,0 +1,11 @@
+<br >
+<div class='blogm-comment-form'>
+<form style="" method="GET" action="[#FORM_ACTION#]"> 
+<table border='0' width='80%'><tr>
+	<td width='80%'>[#FORM_FIELDS#]</td><td>[#FORM_TOOLBAR#]</td>
+</tr></table>
+<div class='formToolbar'>
+</div>
+</form>
+</div>
+<br >
