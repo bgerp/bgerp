@@ -235,20 +235,36 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Линка, който ще се показва
             $linkText = tr("|Линк|*: <span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOn})</small>");
- 
+            
+            // Добавяме към съдържанието на инфо
+            $contentInfo = $linkText . "\n";
         }
         
         // Типа на файла
         $type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($fRec->name));
         
-        // Типа за показване
-        $typeText = tr("|Тип|*: {$type}");
+        // Ако има тип
+        if ($type) {
+            
+            // Типа за показване
+            $typeText = tr("|Тип|*: {$type}");    
+            
+            // Добавяме към съдържанието на инфо
+            $contentInfo .= $typeText . "\n";
+        }
         
         // Вербалния размер на файла
         $size = fileman_Data::getFileSize($fRec->dataId);
         
-        // Размера за показване
-        $sizeText = tr("|Размер|*: {$size}");
+        // Ако има размер
+        if ($size) {
+            
+            // Размера за показване
+            $sizeText = tr("|Размер|*: {$size}");  
+            
+            // Добавяме към съдържанието на инфо
+            $contentInfo .= $sizeText . "\n";
+        }
         
         // Информация за създаването
         $createdOn = fileman_Files::getVerbal($fRec, 'createdOn');
@@ -257,8 +273,11 @@ class fileman_webdrv_Generic extends core_Manager
         // Показване на създаването
         $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}");
         
+        // Добавяме към съдържанието на инфо
+        $contentInfo .= $createdText . "\n";
+        
         // Добавяме в текста
-        $content = $linkText . "\n" . $typeText . "\n" . $sizeText . "\n" . $createdText . "\n" . $content;
+        $content = $contentInfo . $content;
         
         // Връщаме съдържанието
         return $content;
