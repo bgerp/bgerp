@@ -533,13 +533,160 @@ class cal_Calendar extends core_Master
     }
     
     /**
-     *
+     * Функция показваща събитията за даден ден
      */
     function act_Day()
     {
-        $res = '1';
+    	
+    	$from = Request::get('from');
+    	$currentDate = dt::mysql2Verbal($from, 'd F Y, l');
+    	
+    	// Масив с часовете, който искаме да показваме
+    	$hour = array(  "00:00" => " ",
+				    	"01:00" => " ",
+				    	"02:00" => " ",
+				    	"03:00" => " ",
+				    	"04:00" => " ",
+				    	"05:00" => " ",
+				    	"06:00" => " ",
+				    	"07:00" => " ",
+				    	"08:00" => " ",
+				    	"09:00" => " ",
+				    	"10:00" => " ",
+				    	"11:00" => " ",
+				    	"12:00" => " ",
+				    	"13:00" => " ",
+				    	"14:00" => " ",
+				    	"15:00" => " ",
+				    	"16:00" => " ",
+				    	"17:00" => " ",
+				    	"18:00" => " ",
+				    	"19:00" => " ",
+				    	"20:00" => " ",
+				    	"21:00" => " ",
+				    	"22:00" => " ",
+				    	"23:00" => " ");
+    	
+    	// Масив с цветове за събитията
+    	$color = array( "Crimson", 
+				    	"OrangeRed",
+				    	"Gold",
+				    	"Olive", 
+				    	"SteelBlue",
+				    	"Brown", 
+				    	"RosyBrown",
+				    	"LightPink",
+				    	"DarkSeaGreen",
+				    	"Aqua",
+				    	"DimGray",
+				    	"DarkBlue",
+				    	"Purple",
+				    	"BlueViolet",
+				    	"Khaki",
+				    	"LightSalmon", 
+				    	"Crimson");
+    	
+    	$state = new stdClass();
+        $state->query = cal_Tasks::getQuery();
+       	
+    	while ($rec =  $state->query->fetch()){
+    		 
+    		$timeStarts = dt::mysql2verbal($rec->timeStart, 'd-m-Y');
+    		
+    		// Начален час: минути на събитието 
+    		$timeHour = dt::mysql2verbal($rec->timeStart, 'H:i');
+    		
+    		
+    		$taskEnd = ((strstr($timeHour, ":", TRUE) * 3600) + (substr(strstr($timeHour, ":"),1) * 60) + $rec->timeDuration) / 3600;
+    		
+    	    $taskEndH = floor($taskEnd);
+    		$taskEndM =  ($taskEnd - $taskEndH) * 60;
+	    		if(substr($taskEndM,1) === FALSE){
+	    			$taskEndM = $taskEndM . '0';
+	    		}
 
-        return $this->renderWrapping($res);
+	        // Краен час: минути на събитието 
+    		$taskHour = $taskEndH . ":" . $taskEndM;
+    		
+    		if(trim($timeStarts) == trim($from)){
+	          
+    			$hour[$timeHour] = $rec->title;
+    			$hour[$taskHour] = "Kрай на задача: ". $rec->title;
+    			$hour[] = ksort($hour);
+    			$tasks[] = $rec;
+    			$event[$timeHour] = $taskHour;
+    			
+    		}
+    	}
+    	unset ($hour[0]);
+    	unset ($hour[1]);
+    	unset ($hour[2]);
+    	unset ($hour[3]);
+    	unset ($hour[4]);
+    	
+    	$tpl = new ET(getFileContent('cal/tpl/SingleLayoutDays.shtml'));
+    	
+    	$Calendar = cls::get('cal_Calendar');
+    	$Calendar->prepareListFilter($state);
+        
+        $tpl->replace($Calendar->renderListFilter($state), 'from');
+    	
+    	$tpl->replace('Събития за изпълнение', 'title');
+    	$tpl->replace($currentDate, 'date');
+    	
+    	
+    	foreach($hour as $h => $t){
+    		
+    		
+    		if($t == " " || strpos($t, "K") === 0){
+    	
+    		
+    	   /* if($t !== " "){
+    			    		
+    		        $cTpl->replace($colors, 'color');
+    		        
+    		      
+    	    }*/
+    		
+    	
+    	
+    		        $cTpl = $tpl->getBlock("COMMENT_LI");
+    		       
+    		        $cTpl->replace($t, 'tasktitle');
+		    		$cTpl->replace($h, 'time');
+				    $cTpl->append2master();
+    		 
+    		}
+    		if(is_array($tasks)){
+    		
+	         	foreach($tasks as $task){
+	        //bp($task);
+	            //$colors = array_pop($color);
+		         	if(dt::mysql2verbal($task->timeStart, 'H:i') == $h){
+		         	
+		         	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		
+				    	$cTpl = $tpl->getBlock("COMMENT_LI");
+						
+				    	if($task->allDay == 'no'){
+				    		$cTpl->replace('Няма задачи с продължителност през целия ден', 'allday');
+				    	} else {
+				    		$cTpl->replace($task->allDay, 'allday');
+				    	}
+				    	$colors = array_pop($color);
+    		            $cTpl->replace($colors, 'color');
+    		            $cTpl->replace(ht::createLink($t, $url), 'tasktitle');
+				    	$cTpl->replace($h, 'time');
+				    	$cTpl->replace($task->description, 'description');
+				    	
+				    	$cTpl->append2master();
+			         	}
+	         	}
+    		}
+    	}
+    	
+    	return  $this->renderWrapping($tpl);
+ 
     }
 
 

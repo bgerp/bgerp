@@ -17,6 +17,10 @@
 	margin-top:12px;
 }
 
+#sBtn{
+	background-image:url('../../../img/search.png');
+	width:25px;
+}
 .blogm-comments-cnt {
 	float:right;
 	background-image:url('../../../img/12/comments.png');
