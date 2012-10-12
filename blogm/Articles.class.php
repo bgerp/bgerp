@@ -36,7 +36,7 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Полета за листов изглед
 	 */
-	var $listFields ='id, title, categories, body, author, createdOn, createdBy, modifiedOn, modifiedBy';
+	var $listFields ='id, title, categories, author, createdOn, createdBy, modifiedOn, modifiedBy';
 	
     
     /**
@@ -115,6 +115,13 @@ class blogm_Articles extends core_Master {
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
+        if($fields['-browse']) { 
+            $txt = explode("\n", $rec->body, 2);
+            $rec->body = trim($txt[0]); 
+            $rec->body .=   " [link=" . toUrl(array('blogm_Articles', 'Article', $rec->id), 'absolute') . "]Още »[/link]";
+
+            $row->body = $mvc->getVerbal($rec, 'body');
+        }
 
 	}
 	
@@ -305,7 +312,7 @@ class blogm_Articles extends core_Master {
         blogm_Categories::prepareCategories($data);
 
         if($this->haveRightFor('single', $data->rec)) {
-            $data->singleUrl = array('blogm_Articles', 'single', $data->rec->id);
+            $data->workshop = array('blogm_Articles', 'single', $data->rec->id);
         }
     }
 	
@@ -326,9 +333,6 @@ class blogm_Articles extends core_Master {
 		// Рендираме категориите
  		$layout->append(blogm_Categories::renderCategories($data), 'NAVIGATION');
         
-        if($data->singleUrl) {
-            $layout->append(ht::createBtn('Работилница', $data->singleUrl), 'NAVIGATION');
-        }
         
         // Добавяме стиловете от темата
         $layout->push($data->theme . '/styles.css', 'CSS');
@@ -429,6 +433,10 @@ class blogm_Articles extends core_Master {
                 $data->rows[$rec->id]->title,
                 array('blogm_Articles', 'Article', $rec->id)
             );
+        }
+
+        if($this->haveRightFor('list')) {
+            $data->workshop = array('blogm_Articles', 'list');
         }
 
         blogm_Categories::prepareCategories($data);

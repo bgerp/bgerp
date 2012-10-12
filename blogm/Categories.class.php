@@ -101,12 +101,12 @@ class blogm_Categories extends core_Manager {
 	static function renderCategories($data)
     {
 		// Шаблон, който ще представлява списъка от хиперлинкове към категориите
-		$tpl = new ET(getFileContent($data->theme . '/Categories.shtml'));
+		$layout = new ET(getFileContent($data->theme . '/Categories.shtml'));
 		
 		// За всяка Категория, създаваме линк и го поставяме в списъка
 		foreach($data->categories as $id => $title){
 
-            $catRowTpl = $tpl->getBlock('ROW');
+            $catRowTpl = $layout->getBlock('ROW');
 
             if($data->selectedCategories[$id]) {
                 $attr = array('class' => 'nav_item sel_page level2');
@@ -125,9 +125,14 @@ class blogm_Categories extends core_Manager {
 
 			$catRowTpl->append2master();
 		}
-		
+	    
+        if($data->workshop) {
+            $layout->append('<br>&nbsp;<br>');
+            $layout->append(ht::createBtn('Работилница', $data->workshop, NULL, NULL, 'ef_icon=img/16/edit.png'));
+        }
+
 		// Връщаме вече рендираният шаблон
-		return $tpl;
+		return $layout;
 	}
 
 

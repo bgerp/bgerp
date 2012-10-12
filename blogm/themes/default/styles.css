@@ -14,7 +14,7 @@
 	background-color:#f8f8f8;
 	border:solid 1px #eee;
 	color:#333;
-	margin-top:10px;
+	margin-top:12px;
 }
 
 .blogm-comments-cnt {
@@ -23,7 +23,7 @@
 }
 
 .blogm-article-body {
-	margin-top:20px;
+	margin-top:12px;
 	font-size:1.1em;
 }
 
@@ -59,4 +59,14 @@
 
 .blogm-category-row {
 	margin-top:5px;
+}
+
+.blog-article-share {
+	padding-top:8px;
+	padding-bottom:8px;
+	margin-top:8px;
+	margin-bottom:8px;
+	1border-top:solid 1px #ccc;
+	1border-bottom:solid 1px #ccc;
+
 }
