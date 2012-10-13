@@ -115,7 +115,7 @@ class bank_PaymentMethodDetails extends core_Detail
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
         $mvc->Master->invoke('afterDetailChanged', array($res, $mvc, $rec->paymentMethodId, 'edit', array($id)));
     }
