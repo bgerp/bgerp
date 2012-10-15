@@ -27,13 +27,14 @@ class plg_Rejected extends core_Plugin
         if(!isset($mvc->fields['state'])) {
             $mvc->FLD('state',
                 'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
-                'caption=Състояние,column=none,input=none,notNull,value=active');
+                'caption=Състояние,column=none,input=none,notNull');
         }
         
         if(!isset($mvc->fields['state']->type->options['rejected'])) {
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
-            $mvc->fields['state']->type->options['closed'] = 'Затворено';
         }
+
+        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,notNull");
         
         if(!isset($mvc->fields['lastUsedOn'])) {
             $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
@@ -109,6 +110,8 @@ class plg_Rejected extends core_Plugin
             $mvc->requireRightFor('reject', $rec);
             
             if($rec->state != 'rejected') {
+
+                $rec->exState = $rec->state;
                 
                 $rec->state = 'rejected';
                 
@@ -130,7 +133,7 @@ class plg_Rejected extends core_Plugin
             
             if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected')) {
                 
-                $rec->state = 'closed';
+                $rec->state = $rec->exState;
                 
                 $mvc->save($rec);
                 
