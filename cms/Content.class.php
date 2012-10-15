@@ -182,7 +182,7 @@ class cms_Content extends core_Manager
     {
         $layoutPath = Mode::get('cmsLayout');
 
-        $layout = new ET($layoutPath ? getFileContent($layoutPath) : '');
+        $layout = new ET($layoutPath ? getFileContent($layoutPath) : '[#PAGE_CONTENT#]');
     
         return $layout;
     }
