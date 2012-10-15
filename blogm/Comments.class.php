@@ -75,13 +75,12 @@ class blogm_Comments extends core_Detail {
 	function description()
 	{
 		$this->FLD('articleId', 'key(mvc=blogm_Articles, select=title)', 'caption=Тема, input=hidden, silent');
-		$this->FLD('name', 'varchar', 'caption=Име, mandatory, width=65%,placeholder=Името ви (задължително)');
-		$this->FLD('email', 'email', 'caption=Имейл, mandatory, width=65%,placeholder=Имейлът ви (задължително)');
-   		$this->FLD('web', 'url', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
-		$this->FLD('comment', 'richtext', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук,width=500px');
+		$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory, width=65%,placeholder=Името ви (задължително)');
+		$this->FLD('email', 'email(64)', 'caption=Имейл, mandatory, width=65%,placeholder=Имейлът ви (задължително)');
+   		$this->FLD('web', 'url(72)', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
+		$this->FLD('comment', 'richtext', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
   		$this->FLD('state', 'enum(pending=Чакъщ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
   		$this->FLD('browserId', 'varchar(16)', 'caption=ID на браузър,input=none');
-		$this->FLD('botCheck', 'int', 'caption=Глупав бот ли си?');
 	}
 
 
@@ -91,61 +90,71 @@ class blogm_Comments extends core_Detail {
      */       
     function prepareComments_($data)
     {
-    	// Към статията може ли да има коментари?
-        if($data->rec->commentsMode != 'disabled') {
-            $query = $this->getQuery();
-            $fields = $this->selectFields("");
-            $fields['-article'] = TRUE;
-            
-            // Проверяваме дали има бисквитка и дали тя е наша
-            $cookie = $_COOKIE['userCookie'];
-            $browserId = str::checkHash($cookie['browserId'], 8);
-            if(isset($cookie) && $browserId){
-            	
-            	$browserSelect = " OR #browserId = '{$browserId}'";
-            }
-            $query->where("#articleId = {$data->articleId} AND (#state = 'active'{$browserSelect})");
-            
-            while($rec = $query->fetch()) {
-                $data->commentsRecs[$rec->id] = $rec;
-                $data->commentsRows[$rec->id] = $this->recToVerbal($rec, $fields);
-                
-                if($data->commentsRecs[$rec->id]->state == 'pending') {
-                    $data->commentsRows[$rec->id]->status = 'Чака одобрение';
-                    $data->commentsRows[$rec->id]->stateColor = '#cceeff';
-                } elseif($data->commentsRecs[$rec->id]->state == 'rejected') {
-                    $data->commentsRows[$rec->id]->status = 'Отхвърлен';
-                    $data->commentsRows[$rec->id]->stateColor = '#cc6666';
-                }
+        $query = $this->getQuery();
+        $fields = $this->selectFields("");
+        $fields['-article'] = TRUE;
+        
+        // Търсим browserId в сесията
+        $data->browserId = Mode::get('browserId');
+        
+        // Ако няма в сесията - търсим в Cookie
+        if(!$data->browserId) {
+            $data->browserId = str::checkHash($_COOKIE['userCookie']['browserId'], 8);
+        }
 
-                // Аватара на коментиращия
-                $data->commentsRows[$rec->id]->avatar = avatar_Plugin::getImg(0, $rec->email, 50);
+        if($data->browserId){
+        	$browserSelect = " OR #browserId = '{$data->browserId}'";
+        }
+
+        $query->where("#articleId = {$data->articleId} AND (#state = 'active'{$browserSelect})");
+        
+        while($rec = $query->fetch()) {
+            $data->commentsRecs[$rec->id] = $rec;
+            $data->commentsRows[$rec->id] = $this->recToVerbal($rec, $fields);
+            
+            if($data->commentsRecs[$rec->id]->state == 'pending') {
+                $data->commentsRows[$rec->id]->status = 'Чака одобрение';
+                $data->commentsRows[$rec->id]->stateColor = '#cceeff';
+            } elseif($data->commentsRecs[$rec->id]->state == 'rejected') {
+                $data->commentsRows[$rec->id]->status = 'Отхвърлен';
+                $data->commentsRows[$rec->id]->stateColor = '#cc6666';
             }
+
+            $data->commentsRows[$rec->id]->name = str::limitLen($data->commentsRows[$rec->id]->name, 32);
+
+            if($data->commentsRows[$rec->id]->web) {
+                $data->commentsRows[$rec->id]->name = ht::createLink(
+                    $data->commentsRows[$rec->id]->name, 
+                    $rec->web, 
+                    NULL, 'target=_blank,rel=external nofollow');
+            }
+
+            // Аватара на коментиращия
+            $data->commentsRows[$rec->id]->avatar = avatar_Plugin::getImg(0, $rec->email, 50);
         }
 
         // Към статията може ли да има форма за коментари?
         $cRec = (object) array('articleId' => $data->articleId); 
-        if($this->haveRightFor('add', $cRec)) { 
+        if($this->haveRightFor('add', $cRec)) {  
         	$data->commentForm = $this->getForm();
-            $data->commentForm->FNC('remember', 'set(on=Запомни ме)', 'input');
             $data->commentForm->setField('state', 'input=none');
             $data->commentForm->setHidden('articleId', $data->articleId);
             
             // Ако $browserId е правилно, и имаме бисквитка да се помни потребителя то ние
             // извличаме информацията на потребителя, който последно е добавил коментара
             // от това $browserId
-            if($browserId && isset($_COOKIE['userCookie']['remember'])){
+            if($data->browserId){  
             	$query = static::getQuery();
-	        	$query->where("#articleId = {$cRec->articleId} AND #browserId = '{$browserId}'");
-	        	$query->XPR('last', 'int', 'max(#createdOn)');
-	        	$lastComment=$query->fetch();
+	        	$query->where("#browserId = '{$data->browserId}'");
+	        	$query->orderBy('#createdOn', 'DESC');
+                $query->limit(1);
+	        	$lastComment = $query->fetch();
 	        	
 	        	$data->commentForm->setDefault('name', $lastComment->name);
 	            $data->commentForm->setDefault('email', $lastComment->email);
 	            $data->commentForm->setDefault('web', $lastComment->web);
-	            $data->commentForm->setDefault('remember', 'on');
             }
-            $data->commentForm->toolbar->addSbBtn('Коментиране');
+            $data->commentForm->toolbar->addSbBtn('Изпращане');
         }
     }
 	
@@ -164,7 +173,7 @@ class blogm_Comments extends core_Detail {
             }
         }
 
-        if($data->commentForm) {
+        if($data->commentForm) { 
             $data->commentForm->layout = new ET(getFileContent($data->theme . '/CommentForm.shtml'));
             $data->commentForm->fieldsLayout = new ET(getFileContent($data->theme . '/CommentFormFields.shtml'));
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
@@ -182,39 +191,31 @@ class blogm_Comments extends core_Detail {
     function on_BeforeSave($mvc, &$id, &$rec, $fields =  NULL)
     {
         if(!$rec->id) {  
+            
             if(!haveRole('cms,ceo,admin') || $rec->state == 'draft') {
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 $rec->state = ($artRec->commentsMode == 'enabled') ? 'active' : 'pending';
             }
+
+            // Търсим browserId в сесията
+            $rec->browserId = Mode::get('browserId');
+        
+            // Ако няма в сесията - търсим в Cookie
             if(!$rec->browserId) {
-            	
-            	$conf = core_Packs::getConfig('blogm');
-				
-            	// Ако няма бисквитка или тя не е наша ние създаваме нова
-            	if(!isset($_COOKIE['userCookie']['browserId']) || !str::checkHash($_COOKIE['userCookie']['browserId'], 8)) {
-                	
-                	$random = str::addHash(str::getRand(), 8);
-                	
-                	// Сетваме Бисквитка с добавен хеш към browserId
-                    setcookie("userCookie[browserId]", $random, time() + $conf->BLOG_COOKIE_LIFETIME);
-                    
-                    // В записа записваме browserId-то без добавения хеш
-                    $rec->browserId = str::checkHash($random, 8);
-                }
-                else {
-                	// Ако имаме бисквитка, то ние взимаме информацията от нея
-                	$rec->browserId = str::checkHash($_COOKIE['userCookie']['browserId'], 8);
-                }
-                
-                // Ако е отметнато да се запомни потребителя, то ние сетваме в бисквитката
-                // че потребителя, трябва се запомни
-                if($rec->remember) {
-                	 setcookie("userCookie[remember]", $rec->remember, time() + $conf->BLOG_COOKIE_LIFETIME);
-                } else {
-                	 setcookie("userCookie[remember]", $rec->remember, time() - $conf->BLOG_COOKIE_LIFETIME);
-                }
-                
-             }
+                $rec->browserId = str::checkHash($_COOKIE['userCookie']['browserId'], 8);
+            }
+            
+            // Ако няма - генерираме ново, и го записваме в сесията и Cookie
+            if(!$rec->browserId) {
+                $rec->browserId =str::getRand();
+            }
+            
+            // Сетваме сесията
+            Mode::setPermanent('browserId', $rec->browserId);
+
+            // Сетваме Бисквитка с добавен хеш към browserId
+            $conf = core_Packs::getConfig('blogm');
+            setcookie("userCookie[browserId]", str::addHash($rec->browserId, 8), time() + $conf->BLOGM_COOKIE_LIFETIME);
         }
     }
 
@@ -244,7 +245,7 @@ class blogm_Comments extends core_Detail {
         }
 
 		// Проверяваме имаме ли запис и дали екшъна е 'add'
-        if($action == 'add') {
+        if($action == 'add') {  
             if(isset($rec->articleId)) {
                 
                 $artRec = $mvc->Master->fetch($rec->articleId);

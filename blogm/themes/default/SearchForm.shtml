@@ -1,11 +1,8 @@
-<br >
-<div class='blogm-comment-form'>
-<form style="" method="GET" action="[#FORM_ACTION#]"> 
-<table border='0' width='80%'><tr>
-	<td width='80%'>[#FORM_FIELDS#]</td><td>[#FORM_TOOLBAR#]</td>
-</tr></table>
-<div class='formToolbar'>
-</div>
+<form action="[#ACTION#]" id="searchform">
+	<div id="simpleSearch">
+	<input tabindex="1" autocomplete="off" placeholder="Търсене" name="q" title="Търсене в блога [alt-shift-f]" accesskey="f" id="searchInput">
+	<button type="submit" title="Търси този текст в блога" id="searchButton">
+		<img src="[#FIND_IMG#]" alt="Search" height="13" width="12">
+	</button>
+	</div>
 </form>
-</div>
-<br >

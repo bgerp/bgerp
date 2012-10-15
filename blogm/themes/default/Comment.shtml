@@ -1,36 +1,28 @@
-<div class='blog-article-share'>
-<span class='st_facebook_hcount' displayText='Facebook'></span>
-<span class='st_googleplus_hcount' displayText='Google +'></span>
-<span class='st_twitter_hcount' displayText='Tweet'></span>
-<span class='st_linkedin_hcount' displayText='LinkedIn'></span>
-<span class='st_email_hcount' displayText='Email'></span>
-<script type="text/javascript">var switchTo5x=true;</script>
-<script type="text/javascript" src="http://w.sharethis.com/button/buttons.js"></script>
-<script type="text/javascript">stLight.options({publisher: "9e6bfb30-90e6-4967-a678-9e90b6ad9ed5"}); </script>
-</div>
+<table class='blogm-comment clearfix21 [#stateClass#]' style='background-color:[#stateColor#]'>
+	<tr>
+		<td class='blogm-comment-who' align="center">
+			<div style='text-align:left;'>
+				<div class='blog-avatar'>
+					[#avatar#]
+				</div>
+					
+				<div class='blogm-name'>
+					[#name#]
+				</div>
+					
+				<div class='blogm-date'>
+					[#createdOn#]
+				</div>
 
-<div class='blogm-comment clearfix21 [#stateClass#]' style='background-color:[#stateColor#]'>
-	<div class='blogm-comment-who'>
-		<div class='blog-avatar'>
-			[#avatar#]
-		</div>
-		
-		<div class='blogm-name'>
-			[#name#]
-		</div>
-		
-		<div class='blogm-date'>
-			[#createdOn#]
-		</div>
-
-		<div class='blogm-status'>
-			[#status#]
-		</div>
-
-	</div>
-	<div class='blogm-comment-text'>
-		[#comment#]
-	</div>
-</div>
+				<div class='blogm-status'>
+					[#status#]
+				</div>
+			</div>
+		</td>
+		<td class='blogm-comment-text'>
+			[#comment#]
+		</td>
+	</tr>
+</table>
 
 <div class='clearfix21'></div>

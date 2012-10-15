@@ -12,6 +12,7 @@
 
 <div class='formFields'>
 	[#FORM_FIELDS#]
+	<input name="Comment" id='blogm-Comment'>
 </div>
 
 

@@ -1,10 +1,4 @@
-<div class='blogm-categories'>
-
-<div class='nav_item  level1'>Категории</div>
- 
 <!--ET_BEGIN ROW-->
 [#title#]
 <!--ET_END ROW-->
-<br>
-<div class='blogm-search-form'>[#search#]</div>
-</div> 
+  

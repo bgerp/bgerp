@@ -8,20 +8,25 @@ defIfNot('BLOGM_MAX_COMMENT_DAYS', '50');
 /**
  *  Константа за тема по-подразбиране на блога
  */
-defIfNot('BLOG_DEFAULT_THEME', 'blogm/themes/default');
+defIfNot('BLOGM_DEFAULT_THEME', 'blogm/themes/default');
 
 
 /**
  *  Константа за продължителноста на живота на бисквитките създадени от блога
  */
-defIfNot('BLOG_COOKIE_LIFETIME', '2592000');
+defIfNot('BLOGM_COOKIE_LIFETIME', '2592000');
 
 
 /**
  *  Броя на статии, които да се показват
  */
-defIfNot('BLOG_ARTICLES_LIMIT', '5');
- 
+defIfNot('BLOGM_ARTICLES_PER_PAGE', '5');
+
+
+/**
+ *  Код за споделяне на статия
+ */
+defIfNot('BLOGM_ARTICLE_SHARE', '');
 
 
 /**
@@ -57,7 +62,7 @@ class blogm_Setup
 	/**
 	 * Екшън - входна точка в пакета
 	 */
-	var $startAct = 'default';
+	var $startAct = 'list';
 
 
 	/**
@@ -77,6 +82,10 @@ class blogm_Setup
 	
 			// Константи за инициализиране на таблицата с контактите
 			'BLOGM_MAX_COMMENT_DAYS' => array ('int'),
+
+            'BLOGM_ARTICLE_SHARE' => array ('html'),
+
+            'BLOGM_ARTICLES_PER_PAGE' => array('int'),
 	
 	);
 	
@@ -90,7 +99,6 @@ class blogm_Setup
 				'blogm_Articles',
 				'blogm_Categories',
 				'blogm_Comments',
-				'blogm_Archives'
 		);
 
 		// Роля за power-user на този модул
@@ -124,7 +132,7 @@ class blogm_Setup
         $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
 
 		$Menu  = cls::get('bgerp_Menu');
-		$html .= $Menu->addItem(3, 'Обслужване', 'Нов Блог', 'blogm_Articles', 'default', "{$role}, admin");
+		$html .= $Menu->addItem(3, 'Обслужване', 'Нов Блог', 'blogm_Articles', 'list', "{$role}, admin");
 
 		return $html;
 	}

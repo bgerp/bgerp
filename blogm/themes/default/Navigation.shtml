@@ -1,0 +1,26 @@
+<!--ET_BEGIN SEARCH_FORM-->
+<div id='blogm-search-form'>
+[#SEARCH_FORM#]
+</div>
+<!--ET_END SEARCH_FORM-->
+
+
+<!--ET_BEGIN CATEGORIES-->
+<div id='blogm-categories'>
+	<div class='nav_item  level1'>Категории</div>
+	[#CATEGORIES#]
+</div>
+<!--ET_END CATEGORIES-->
+
+<!--ET_BEGIN ARCHIVE-->
+<div id='blogm-archive'>
+	<div class='nav_item  level1'>Архив</div>
+	[#ARCHIVE#]
+</div>
+<!--ET_END ARCHIVE-->
+
+<!--ET_BEGIN WORKSHOP-->
+<div id='blogm-workshop'>
+[#WORKSHOP#]
+</div>
+<!--ET_END WORKSHOP-->

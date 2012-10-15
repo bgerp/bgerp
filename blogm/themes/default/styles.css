@@ -2,10 +2,14 @@
 	font-size:1.5em;
 	line-height:120%;
 	font-weight:bold;
+	margin-top:10px;
+	margin-bottom:10px;
 }
 
 .blogm-browse .blogm-article-title {
-	font-size:1.2em;
+	font-size:1em;
+	margin-top:0px;
+	margin-bottom:0px;
 }
 
 .blogm-article-info {
@@ -14,21 +18,56 @@
 	background-color:#f8f8f8;
 	border:solid 1px #eee;
 	color:#333;
-	margin-top:12px;
+	margin-bottom:6px;
+}
+
+#simpleSearch {
+	width:11em;
+	border:solid 1px #ccc;
+	display:block;
+	position:relative;
+	height:1.5em;
+}
+
+#simpleSearch input {
+	top:0.1em;
+	position:absolute;
+	display:inline-block;
+	border:none;
+	outline:none;
+	height:1.2em;
+ 	width:90%;
+	padding:0px;
+	padding-left:0.2em;
+}
+
+#simpleSearch button {
+	width:10%;
+	padding:0px;
+	height:1.4em;
+	top:0.3em;
+	right:0px;
+	position:absolute;
+	border:none;
+	background-color:transparent;
+	cursor:pointer;
+	display:inline-block;
 }
 
 #sBtn{
 	background-image:url('../../../img/search.png');
 	width:25px;
 }
+
 .blogm-comments-cnt {
 	float:right;
 	background-image:url('../../../img/12/comments.png');
 }
 
 .blogm-article-body {
-	margin-top:12px;
-	font-size:1.1em;
+	margin-top:15px;
+	margin-bottom:15px;
+	font-size:0.9em;
 }
 
 .blogm-comment {
@@ -38,19 +77,34 @@
 	border-radius:5px;
 	background-color:#f8f8f8;
 	border:solid 1px #eee;
+	display:table;
+	width:100%;
 }
 
 .blogm-comment-who {
-	display:inline-block;
-	float:left;
-	width:120px;
+	display:table-cell;
+	vertical-align:top;
+	width:80px;
 	font-size:0.7em;
 }
 
 .blogm-comment-text  {
-	display:inline-block;
+	display:table-cell;
+	width:80%;
+	vertical-align:top;
 	float:left;
 	margin-left:10px;
+}
+
+#blogm-Comment {
+	border:none;
+	position:absolute;
+	height:0px;
+	visibility:hidden;
+}
+
+.blogm-name {
+	white-space:nowrap;
 }
 
 .blogm-comment-form div {
@@ -65,12 +119,35 @@
 	margin-top:5px;
 }
 
-.blog-article-share {
+#blog-article-share {
 	padding-top:8px;
 	padding-bottom:8px;
 	margin-top:8px;
 	margin-bottom:8px;
-	1border-top:solid 1px #ccc;
-	1border-bottom:solid 1px #ccc;
+	height:20px;
+	visibility:hidden;
+}
 
+#blogm-search-form {
+	margin-bottom:10px;
+}
+
+#blogm-workshop {
+	margin-bottom:10px;
+}
+
+#blogm-categories {
+	margin-bottom:10px;
+}
+
+#blogm-archive {
+	margin-bottom:10px;
+}
+
+#blog-browse-header {
+	margin-bottom:20px;
+}
+
+.blogm-browse-article {
+	margin-bottom:20px;
 }

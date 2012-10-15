@@ -98,41 +98,39 @@ class blogm_Categories extends core_Manager {
 	/**
 	 * Статичен метод за рендиране на меню със всички категории, връща шаблон
 	 */
-	static function renderCategories($data)
+	static function renderCategories_($data)
     {
 		// Шаблон, който ще представлява списъка от хиперлинкове към категориите
-		$layout = new ET(getFileContent($data->theme . '/Categories.shtml'));
+		$tpl = new ET();
+ 
+        if(!$data->categories) {
+            $data->categories = array();
+        }
+
+        $cat = array('' => 'Всички') + $data->categories;
 		
 		// За всяка Категория, създаваме линк и го поставяме в списъка
-		foreach($data->categories as $id => $title){
+		foreach($cat as $id => $title){
 
-            $catRowTpl = $layout->getBlock('ROW');
-
-            if($data->selectedCategories[$id]) {
+            if($data->selectedCategories[$id] || (!$id && !count($data->selectedCategories))) {
                 $attr = array('class' => 'nav_item sel_page level2');
             } else {
                 $attr = array('class' => 'nav_item level2');
             }
 			
 			// Създаваме линк, който ще покаже само статиите от избраната категория
-			$title = ht::createLink($title, array('blogm_Articles', 'browse', 'category'  => $id));
+			$title = ht::createLink(tr($title), $id ? array('blogm_Articles', 'browse', 'category'  => $id) : array('blogm_Articles'));
 			
             // Див-обвивка
             $title = ht::createElement('div', $attr, $title);
 
 			// Създаваме шаблон, после заместваме плейсхолдъра със самия линк
-			$catRowTpl->replace($title, 'title');
-
-			$catRowTpl->append2master();
+			$tpl->append($title);
 		}
 	    
-        if($data->workshop) {
-            $layout->append('<br>&nbsp;<br>');
-            $layout->append(ht::createBtn('Работилница', $data->workshop, NULL, NULL, 'ef_icon=img/16/edit.png'));
-        }
-
+ 
 		// Връщаме вече рендираният шаблон
-		return $layout;
+		return $tpl;
 	}
 
 

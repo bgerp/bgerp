@@ -1,8 +1,0 @@
-<ul id='archive-list' >
-
-<li>Архив<hr /></li>
-<!--ET_BEGIN ROW-->
-	<li style='margin-left:0px'>[#title#]</li>
-<!--ET_END ROW-->
-
-</ul>

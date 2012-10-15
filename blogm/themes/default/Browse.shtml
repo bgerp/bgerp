@@ -1,17 +1,27 @@
 <div class='blogm-browse'>
-[#results#]
-<!--ET_BEGIN ROW-->
+	
+	<!--ET_BEGIN BROWSE_HEADER-->
+	<div id='blog-browse-header'>
+		[#BROWSE_HEADER#]
+	</div>
+	<!--ET_END BROWSE_HEADER-->
 
-<div class='blogm-article-title'>[#title#]</div>
-<div class='blogm-article-info'>
-	[#createdOn#], [#author#] в [#categories#] <span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#] коментара</span>
-</div>
-<div class='blogm-article-body'>
-	[#body#]
-</div>
-<br>
-<br>
-<!--ET_END ROW-->
-<br>
-[#newerArticles#][#olderArticles#]
+	<!--ET_BEGIN ROW-->
+	<div class='blogm-browse-article'>
+		<div class='blogm-article-info'>
+			<span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
+			[#createdOn#], [#author#] в [#categories#] 
+		</div>
+		<div class='blogm-article-title'>
+			[#title#]
+		</div>
+		<div class='blogm-article-body'>
+			[#body#]
+		</div>
+	</div>
+	<!--ET_END ROW-->
+	
+	<br>
+	[#newerArticles#][#olderArticles#]
+
 </div> 

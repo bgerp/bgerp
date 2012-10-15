@@ -1,10 +1,17 @@
-<div class='blogm-article-title'>[#title#]</div>
 <div class='blogm-article-info'>
-	[#createdOn#], [#author#] в [#categories#] <span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#] коментара</span>
+	<span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
+	[#createdOn#], [#author#] в [#categories#] 
 </div>
+<div class='blogm-article-title'>[#title#]</div>
 <div class='blogm-article-body'>
 	[#body#]
 </div>
+
+<!--ET_BEGIN SHARE_TOOLBAR-->
+<div id='blog-article-share'>
+	[#SHARE_TOOLBAR#]
+</div>
+<!--ET_END SHARE_TOOLBAR-->
 
 <!--ET_BEGIN COMMENTS-->
 <div class='blogm-comments'>
