@@ -191,6 +191,32 @@ class core_Pager extends core_BaseClass
             $query->startFrom($this->rangeStart);
         }
     }
+
+
+    /**
+     *
+     */
+    function getPrevNext($nextTitle, $prevTitle)
+    {
+        // Ако не е зададен взема текущото URL за линк
+        if (!isset($link)) {
+            $link = $_SERVER['REQUEST_URI'];
+        }
+
+        $p = $this->getPage();
+        $cnt = $this->getPagesCount();
+
+        if($p > 1) {
+            $prev = "<a href=\"" . Url::addParams($link, array($this->pageVar => $p-1)) . "\" class=\"pager\">{$prevTitle}</a>";
+        }
+
+        if($p < $cnt) {
+            $next = "<a href=\"" . Url::addParams($link, array($this->pageVar => $p+1)) . "\" class=\"pager\">{$nextTitle}</a>";
+        }
+
+        return "<div><small><div style='float:left;'>{$next}</div><div style='float:right;'>{$prev}</div></small></div>";
+
+    }
     
     
     /**
