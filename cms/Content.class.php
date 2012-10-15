@@ -54,16 +54,16 @@ class cms_Content extends core_Manager
      */
     function description()
     {   
-        $this->FLD('order', 'order', 'caption=Подредба,mandatory');
-        $this->FLD('menu', 'varchar(64)', 'caption=Меню,mandatory');
-        $this->FLD('url',  'varchar(128)', 'caption=URL,mandatory');
+        $this->FLD('menu',    'varchar(64)', 'caption=Меню,mandatory');
+        $this->FLD('source',  'class(interface=cms_SourceIntf, allowEmpty)', 'caption=Източник');
+        $this->XPR('order', 'double', '0+#menu', 'caption=Подредба,column=none');
+        $this->FLD('url',  'varchar(128)', 'caption=URL');
         $this->FLD('layout', 'html', 'caption=Лейаут');
 
         $this->setDbUnique('menu');
     }
-    
-    
-    
+
+
     /**
      *  Задава подредбата
      */
@@ -102,20 +102,43 @@ class cms_Content extends core_Manager
 
         if (is_array($data->items)) {
             foreach($data->items as $rec) {
+                
+                list($f, $s) = explode(' ', $rec->menu, 2);
+
+                if(is_Numeric($f)) {
+                    $rec->menu = $s;
+                }
+
                 $attr = array();
                 if( ($cMenuId == $rec->id)) {
                     $attr['class'] = 'selected';
                 } 
-
-                if($rec->url) {
-                    $tpl->append(ht::createLink($rec->menu, arr::make($rec->url), NULL, $attr));
-                } else {
-                    $tpl->append(ht::createLink($rec->menu, array('cms_Content', 'show', $rec->id), NULL, $attr));
-                }
+                
+                $url = $this->getContentUrl($rec);
+                
+                $tpl->append(ht::createLink($rec->menu, $url, NULL, $attr));
             }    
         }
  
         return $tpl;
+    }
+
+
+    /**
+     *
+     */
+    function getContentUrl($rec) 
+    {
+        if($rec->source) {
+            $source = cls::get($rec->source);
+            $url = $source->getContentUrl($rec->id);
+        } elseif($rec->url) {
+            $url = arr::make($rec->url);
+        } else {
+            expect(FALSE);
+        }
+
+        return $url;
     }
     
     
@@ -123,8 +146,10 @@ class cms_Content extends core_Manager
      *
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-        $row->menu = ht::createLink($row->menu, array($mvc, 'Show',  $rec->vid ? $rec->vid : $rec->id));
+    {   
+        $url = $mvc->getContentUrl($rec);
+
+        $row->menu = ht::createLink($row->menu, $url);
     }
 
     
@@ -155,31 +180,11 @@ class cms_Content extends core_Manager
      */
     static function getLayout()
     {
-        $cMenuId = Mode::get('cMenuId');
+        $layoutPath = Mode::get('cmsLayout');
 
-        
-        if($cMenuId) {
-
-            $l = self::fetchField($cMenuId, 'layout');
-            
-            if($l) $tpl = new ET($l);
-
-        } 
-
-        if(!$tpl) {
-            $tpl = new ET("<div class='cms-row'>
-                    <!--ET_BEGIN NAVIGATION-->
-                    <div class='threecol' id='cmsNavigation' style='padding-top:20px;padding-left:20px;'>
-                        [#NAVIGATION#] 
-                    </div>
-                    <!--ET_END NAVIGATION-->
-                    <div class='sevencol'  style='padding-top:20px;'>
-                        [#PAGE_CONTENT#] 
-                     </div>
-                </div>");
-        }
-
-        return $tpl;
+        $layout = new ET($layoutPath ? getFileContent($layoutPath) : '');
+    
+        return $layout;
     }
 
 
@@ -192,14 +197,21 @@ class cms_Content extends core_Manager
         $menuId = Request::get('id');
         
         if(!$menuId) {
-            $menuId = 1;
+            $query = self::getQuery();
+            $query->where("#state = 'active'");
+            $query->orderBy("#order");
+            $rec = $query->fetch();
+        } else {
+            $rec = $this->fetch($menuId);
         }
-
+        
         Mode::set('cMenuId', $menuId);
         
-        Request::push(array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => 0));
-       
-        return Request::forward();
+        if($rec) {
+            return new Redirect($this->getContentUrl($rec));
+        } else {
+            return new Redirect(array('bgerp_Portal', 'Show'));
+        }
     }
    
     

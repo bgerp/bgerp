@@ -27,6 +27,12 @@ class cms_Articles extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid';
+    
+
+    /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'cms_SourceIntf';
 
 
     /**
@@ -69,7 +75,6 @@ class cms_Articles extends core_Master
     }
 
 
-    
     /**
      * Подготвя някои полета на формата
      */
@@ -97,7 +102,7 @@ class cms_Articles extends core_Master
         $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
 
         if($rec) {
-            return toUrl(array($this, 'Article', $rec->id));
+            return toUrl(array($this, 'Article', $rec->vid ? $rec->vid : $rec->id));
         } else {
             return toUrl(array($this, 'Article', 'menuId' => $menuId));
         }
@@ -117,7 +122,11 @@ class cms_Articles extends core_Master
     function act_Article()
     {   
         Mode::set('wrapper', 'cms_tpl_Page');
- 
+        
+        $conf = core_Packs::getConfig('cms');
+
+        Mode::set('cmsLayout', $conf->CMS_THEME . '/Articles.shtml');
+
         $id = Request::get('id', 'int');
         
         if(!$id) { 
@@ -139,6 +148,10 @@ class cms_Articles extends core_Master
             $lArr = explode('.', self::getVerbal($rec, 'level'));
 
             $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
+
+            // Рендираме тулбара за споделяне
+            $conf = core_Packs::getConfig('cms');
+            $content->prepend(new ET("<div style='margin-bottom:15px;'>[#1#]</div>", $conf->CMS_SHARE));
 
             $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
@@ -236,6 +249,5 @@ class cms_Articles extends core_Master
 
         return $content;
     }
-    
-    
+
  }

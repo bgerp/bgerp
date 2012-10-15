@@ -1,0 +1,11 @@
+<div class='cms-row'>
+	<!--ET_BEGIN NAVIGATION-->
+	<div class='fourcol' id='cmsNavigation' style='padding-top:20px;padding-left:20px;'>
+		[#NAVIGATION#] 
+	</div>
+	<!--ET_END NAVIGATION-->
+						
+	<div class='sevencol'  style='padding-top:20px;'>
+		[#PAGE_CONTENT#] 
+	</div>
+</div>

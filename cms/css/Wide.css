@@ -61,6 +61,7 @@ body{
  
 #cmsNavigation a {
 	color:#336;
+	border:none;
 }
 
 #cmsNavigation .sel_page a {
