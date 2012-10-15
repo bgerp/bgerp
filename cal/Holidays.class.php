@@ -285,11 +285,11 @@ class cal_Holidays extends core_Master
         // Префикс на клучовете за рожденните дни на това лице
         $prefix = "HOLIDAY-";
         
-              $code2Cards = array();
+        $code2Cards = array();
          
                 $card = self::bCards();
-              //  bp($card);
-                foreach($card as $id=>$persons){
+
+                foreach($card as $id => $persons){
                 	foreach($persons as $key => $person){
                 		$recCountry = drdata_Countries::fetch("#id = '{$id}'");
                 		
@@ -298,9 +298,7 @@ class cal_Holidays extends core_Master
                 	
                 	}
                 }
-               
-           //bp($code2Cards);
-        
+                      
         $query = self::getQuery();
 
         while($rec = $query->fetch()) {
@@ -513,11 +511,12 @@ class cal_Holidays extends core_Master
     /**
      * Функция, която връща array[кода на държавата][потребителско id имащо собственост тази държава]
      */
-    function bCards ()
+    static function bCards ()
     {
-    	
     	$cards = array();
+
     	$profiles = array();
+
         $query = crm_Profiles::getQuery();
            	    	
     	while($rec = $query->fetch()){
@@ -526,7 +525,7 @@ class cal_Holidays extends core_Master
     			
     	}
     	
-    	foreach($profiles as $id=>$profile){
+    	foreach($profiles as $id => $profile){
     		
     		foreach($profile as $idProf => $person){
     		 
