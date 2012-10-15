@@ -46,6 +46,7 @@ span.richEdit div.richedit-toolbar {
 
 span.richEdit {
 	display:table;
+	width:100%;
 }
 
 .richEdit textarea {

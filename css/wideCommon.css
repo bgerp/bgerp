@@ -89,14 +89,16 @@ span.richEdit div.richedit-toolbar {
     font-size: 0.85em; 
     text-align: left;
     padding-top:10px; 
-	font-family: Verdana, Geneva, sans-serif;
 	color:#333;
     font-size:0.9em;
 	margin-top:-4px;
+	white-space:nowrap;
+	 
 }
 
 span.richEdit {
 	display:table;
+	width:100%;
 }
 
 .richEdit textarea {
