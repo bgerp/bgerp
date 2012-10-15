@@ -58,8 +58,9 @@ class type_Set extends core_Type {
     function renderInput_($name, $value = "", &$attr = array())
     {
         $values = type_Set::toArray($value);
-        $attr['type'] = 'checkbox';
-        
+        $attr['type']   = 'checkbox';
+        $attr['class'] .= ' checkbox';
+
         // Определяме броя на колоните, ако не са зададени.
         $col = $this->params['columns'] ? $this->params['columns'] :
         min(($this->params['maxColumns'] ? $this->params['maxColumns'] : 4),
