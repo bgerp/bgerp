@@ -96,6 +96,15 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
         // Масива с параметрите
         $params = unserialize($script->params);
         
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (static::haveErrors($params['fileHnd'], $params['type'], $params)) {
+            
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+            
+            return FALSE;
+        }
+        
         // Масив с манупулатора на файла
         $fileHndArr[$params['fileHnd']] = $params['fileHnd'];
         

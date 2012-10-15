@@ -91,10 +91,6 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
             
             // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
             static::afterExtractText($script);    
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
@@ -112,8 +108,18 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
      */
     static function afterExtractText($script)
     {
-        // Масива с параметрите
+        
+        // Десериализираме нужните помощни данни
         $params = unserialize($script->params);
+
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (static::haveErrors($params['fileHnd'], $params['type'], $params)) {
+            
+            // Отключваме предишния процес
+            core_Locks::release($params['lockId']);
+            
+            return FALSE;
+        }
         
         // Вземаме съдържанието на файла
         $text = fileman_Files::getContent($params['fileHnd']);
@@ -145,10 +151,6 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
-        } else {
-
-            // 
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
 }

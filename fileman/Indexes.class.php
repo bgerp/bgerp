@@ -222,23 +222,39 @@ class fileman_Indexes extends core_Manager
             }
         }
         
-        // Определяме dataId от манупулатора
-        $dataId = fileman_Files::fetchByFh($fileHnd, 'dataId');
-        
         // Вземаме текстовата част за съответното $dataId
-        $rec = fileman_Indexes::fetch("#dataId = '{$dataId}' AND #type = '{$type}'");
+        $rec = fileman_Indexes::fetch("#dataId = '{$fRec->dataId}' AND #type = '{$type}'");
 
         // Ако няма такъв запис
         if (!$rec) return FALSE;
+        
+        return static::decodeContent($rec->content);
+    }
+    
+    
+	/**
+     * Декодираме подадения текст
+     * 
+     * @param string $content - Текста, който да декодираме
+     * 
+     * @return string $content - Променения текст
+     */
+    static function decodeContent($content)
+    {
+        // Вземаме конфигурацията
+        $conf = core_Packs::getConfig('fileman');
+        
+        // Променяме мемори лимита
+        ini_set("memory_limit", $conf->FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT);
 
         // Декодваме
-        $content = base64_decode($rec->content);
+        $content = base64_decode($content);
         
         // Декомпресираме
         $content = gzuncompress($content);
         
         // Десериализираме съдържанието
-        $content = unserialize($content);        
+        $content = unserialize($content);
         
         return $content;
     }

@@ -118,8 +118,17 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      */
     static function afterExtractText($script)
     {
-        // Масив с параметрите
+        // Десериализираме нужните помощни данни
         $params = unserialize($script->params);
+        
+//        // Проверяваме дали е имало грешка при предишното конвертиране
+//        if (static::haveErrors($script->outFilePath, $params['type'], $params)) {
+//            
+//            // Отключваме процеса
+//            core_Locks::release($params['lockId']);
+//            
+//            return FALSE;
+//        }
         
         // Текстовата част
         $text = '';
@@ -176,10 +185,6 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             
             // Стартираме конвертирането към JPG
             static::startConvertingToJpg($fRec, $params);    
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
@@ -235,14 +240,23 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      */
     static function afterConvertToJpg($script, &$fileHndArr=array())
     {
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+        
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (static::haveErrors($script->outFilePath, $params['type'], $params)) {
+            
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+            
+            return FALSE;
+        }
+        
         // Инстанция на класа
         $Fileman = cls::get('fileman_Files');
         
         // Качваме файла в кофата и му вземаме манипулатора
         $fileHnd = $Fileman->addNewFile($script->outFilePath, 'fileInfo'); 
-        
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
         
         // Ако се качи успешно записваме манипулатора в масив
         if ($fileHnd) {
@@ -267,10 +281,6 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
-        } else {
-
-            // 
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
 
@@ -310,6 +320,12 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         //Създаваме тумбнаил с параметрите
         $thumbnailImg = thumbnail_Thumbnail::getImg($fRec->fileHnd, $size, $attr);
+        
+        // Ако е обект и има съобщение за грешка
+        if (!$thumbnailImg) {
+            
+            $thumbnailImg = 'Не може да се генерира изображението.';      
+        }
         
         // Добавяме към preview' то генерираното изображение
         $preview->append($thumbnailImg, 'THUMB_IMAGE');

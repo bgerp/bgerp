@@ -153,15 +153,24 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function afterExtractText($script)
     {
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+        
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (static::haveErrors($script->outFilePath, $params['type'], $params)) {
+            
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+            
+            return FALSE;
+        }
+        
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
         $text = file_get_contents($script->outFilePath);
         
         // Поправяме текста, ако има нужда
         $text = lang_Encoding::repairText($text);
         
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
-
         // Записваме получения текс в модела
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
@@ -178,10 +187,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
-        } else {
-
-            // Записваме в лога съобщението за грешка
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }   
     
@@ -253,8 +258,17 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Десериализираме параметрите
         $params = unserialize($script->params);
         
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        $error = static::haveErrors($script->outFilePath, 'jpg', $params);
+        
         // Отключваме предишния процес
         core_Locks::release($params['lockId']);
+        
+        // Ако има грешка кода не се изпълнява
+        if ($error) {
+            
+            return FALSE;
+        }
         
         // Параметри необходими за конвертирането
         $params['callBack'] = 'fileman_webdrv_Office::afterConvertToJpg';
@@ -270,7 +284,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Заключваме процеса за определно време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
-            // Стартираме конвертирането
+            // Стартираме конвертирането синхронно
             $started = static::convertPdfToJpg($script->outFilePath, $params);
     
             // Отключваме заключения процес за конвертиране от офис към pdf формат
@@ -282,10 +296,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
-        } else {
-
-            // Записваме грешката в лога
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
@@ -390,12 +400,12 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             }
         }
         
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+        
         // Ако има генерирани файлове, които са качени успешно
         if (count($fileHndArr)) {
             
-            // Десериализираме нужните помощни данни
-            $params = unserialize($script->params);
-
             // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
             $rec = new stdClass();
             $rec->dataId = $params['dataId'];
@@ -404,20 +414,26 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             $rec->createdBy = $params['createdBy'];
             
             $savedId = fileman_Indexes::save($rec);    
+        } else {
+        
+            // Проверяваме дали е имало грешка при предишното конвертиране
+            $error = static::haveErrors($script->outFilePath, $params['type'], $params);
         }
         
         // Отключваме процеса
         core_Locks::release($params['lockId']);
+        
+        // Ако има грешка кода не се изпълнява
+        if ($error) {
+            
+            return FALSE;
+        }
         
         if ($savedId) {
 
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
-        } else {
-
-            // Записваме грешката в лога
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
@@ -464,6 +480,17 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function afterConvertToHtml($script)
     {
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+        
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (static::haveErrors($script->outFilePath, $params['type'], $params)) {
+            
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+            
+            return FALSE;
+        }
         
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
         $html = file_get_contents($script->outFilePath);
@@ -481,9 +508,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Поправяме текста, ако има нужда
         $html = lang_Encoding::repairText($html);
 
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
-
         // Записваме получения текс в модела
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
@@ -500,10 +524,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
-        } else {
-
-            // Записваме грешката в лога
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }  
 }
