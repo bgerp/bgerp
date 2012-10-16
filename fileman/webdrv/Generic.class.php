@@ -74,6 +74,16 @@ class fileman_webdrv_Generic extends core_Manager
             
             return ;
         }
+        
+        // Ако е обект и има съобщение за грешка
+        if (is_object($content) && $content->errorProc) {
+            
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
+            
+            // Връщаме съобщението за грешка
+            return $content->errorProc;       
+        }
 
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
@@ -106,6 +116,16 @@ class fileman_webdrv_Generic extends core_Manager
             return ;
         }
         
+        // Ако е обект и има съобщение за грешка
+        if (is_object($jpgArr) && $jpgArr->errorProc) {
+            
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
+            
+            // Връщаме съобщението за грешка
+            return $jpgArr->errorProc;       
+        }
+
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_Empty');
         
@@ -174,6 +194,16 @@ class fileman_webdrv_Generic extends core_Manager
             return ;
         }
         
+        // Ако е обект и има съобщение за грешка
+        if (is_object($barcodes) && $barcodes->errorProc) {
+            
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
+            
+            // Връщаме съобщението за грешка
+            return $barcodes->errorProc;       
+        }
+        
         // Ако е масив
         if (is_array($barcodes)) {
             
@@ -192,7 +222,7 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Сменяма wrapper'а да е празна страница
-        Mode::set('wrapper', 'page_PreText'); // Тук може и да се използва page_PreText за подреден текст
+        Mode::set('wrapper', 'page_PreText');
         
         return $barcodeStr;
     }
@@ -216,6 +246,16 @@ class fileman_webdrv_Generic extends core_Manager
             Mode::set('wrapper', 'page_Waiting');
             
             return ;
+        }
+        
+        // Ако е обект и има съобщение за грешка
+        if (is_object($content) && $content->errorProc) {
+            
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
+            
+            // Връщаме съобщението за грешка
+            return $content->errorProc;       
         }
 
         // Сменяма wrapper'а да е празна страница
@@ -303,6 +343,16 @@ class fileman_webdrv_Generic extends core_Manager
             
             return ;
         }
+        
+        // Ако е обект и има съобщение за грешка
+        if (is_object($content) && $content->errorProc) {
+            
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
+            
+            // Връщаме съобщението за грешка
+            return $content->errorProc;       
+        }
 
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_Html');
@@ -341,10 +391,34 @@ class fileman_webdrv_Generic extends core_Manager
      */
     static function isProcessStarted($params)
     {
-        // Проверяваме дали файла е заключен или има запис в БД
-        if ((fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) 
-            || (core_Locks::isLocked($params['lockId']))) return TRUE;
+        // Ако процеса е заключен
+        if (core_Locks::isLocked($params['lockId'])) return TRUE;
         
+        // Ако има такъв запис
+        if ($rec = fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) {
+            
+            $conf = core_Packs::getConfig('fileman');
+            
+            // Времето след което ще се изтрият
+            $time = time() - ($conf->FILEMAN_WEBDRV_ERROR_CLEAN * 60);
+            
+            // Съдържанието
+            $content = fileman_Indexes::decodeContent($rec->content);
+            
+            // Ако в индекса е записана грешка
+            if (($content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
+                
+                // Изтрива съответния запис
+                fileman_Indexes::delete($rec->id); 
+                
+                // Връщаме FALSE, за да укажем, че няма запис
+                return FALSE;   
+            } else {
+                
+                return TRUE;
+            } 
+        }
+
         return FALSE;
     }
     
@@ -548,13 +622,21 @@ class fileman_webdrv_Generic extends core_Manager
      */
     static function aftergetMetaData($script)
     {
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+        
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (static::haveErrors($script->outFilePath, $params['type'], $params)) {
+            
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+            
+            return FALSE;
+        }
         
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
         $text = file_get_contents($script->outFilePath);
         
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
-
         // Записваме получения текс в модела
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
@@ -571,10 +653,49 @@ class fileman_webdrv_Generic extends core_Manager
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
-        } else {
-
-            // 
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }  
+    
+    
+    /**
+     * Проверява дали има грешка. Ако има грешка, записваме грешката в БД.
+     * 
+     * @param string $file - Пътя до файла, който ще се проверява
+     * @param string $type - Типа, за който се проверява грешката
+     * @param array $params - Други допълнителни параметри
+     * 
+     * @return boolean - Ако не открие грешка, връща FALSE
+     */
+    static function haveErrors($file, $type, $params)
+    {
+        // Ако е файл в директория
+        if (strstr($file, '/')) {
+            
+            $isValid = is_file($file);
+        } else {
+            
+            // Ако е манупулатор на файл
+            $isValid = fileman_Files::fetchField("#fileHnd='{$file}'");
+        }
+        
+        // Ако има файл
+        if ($isValid) return FALSE;
+
+        // Ако няма файл, записваме грешката
+        $error = new stdClass();
+        $error->errorProc = tr("Възникна грешка при обработка") . '...';
+        
+        $rec = new stdClass();
+        $rec->dataId = $params['dataId'];
+        $rec->type = $type;
+        $rec->content = static::prepareContent($error);
+        $rec->createdBy = $params['createdBy'];
+        
+        fileman_Indexes::save($rec);   
+
+        // Записваме грешката в лога
+        static::createErrorLog($params['dataId'], $params['type']);
+        
+        return TRUE;
+    }
 }

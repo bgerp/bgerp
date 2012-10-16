@@ -53,8 +53,8 @@ class hclean_Setup extends core_Manager {
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
-        // Инсталираме
-        $html .= $Plugins->installPlugin('HClean', 'hclean_HtmlPurifyPlg', 'type_Html', 'private');
+        // Инсталираме (не го правим автоматично)
+        // $html .= $Plugins->installPlugin('HClean', 'hclean_HtmlPurifyPlg', 'type_Html', 'private');
         
         return $html;
     }

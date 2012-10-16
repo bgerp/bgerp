@@ -71,7 +71,7 @@ defIfNot(FILEINFO_MIN_FILE_LEN_BARCODE, 15360);
 
 /**
  * Максималната дължина на файла, до която ще се търси баркод
- * 15kB
+ * 1 mB
  */
 defIfNot(FILEINFO_MAX_FILE_LEN_BARCODE, 1048576);
 
@@ -80,6 +80,12 @@ defIfNot(FILEINFO_MAX_FILE_LEN_BARCODE, 1048576);
  * Пътя до gs файла
  */
 defIfNot('FILEMAN_GHOSTSCRIPT_PATH', '');
+
+
+/**
+ * След колко минити да се изтрие от индекса, записа (грешката) за съответния тип на файла
+ */
+defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 5);
 
 
 /**
@@ -138,7 +144,7 @@ class fileman_Setup extends core_Manager {
        'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('int'),
        'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('int'),
        'FILEMAN_GHOSTSCRIPT_PATH'   => array ('varchar'),
-        
+       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('int'), 
     
     );
     
