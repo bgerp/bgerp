@@ -285,20 +285,10 @@ class cal_Holidays extends core_Master
         // Префикс на клучовете за рожденните дни на това лице
         $prefix = "HOLIDAY-";
         
-        $code2Cards = array();
+        //$code2Cards = array();
          
-                $card = self::bCards();
-
-                foreach($card as $id => $persons){
-                	foreach($persons as $key => $person){
-                		$recCountry = drdata_Countries::fetch("#id = '{$id}'");
-                		
-                		//Array[двубуквен код на държавата][потребителско id]
-                		$code2Cards[$recCountry->letterCode2][$key] = TRUE;
-                	
-                	}
-                }
-                      
+        $card = self::bCards();
+        
         $query = self::getQuery();
 
         while($rec = $query->fetch()) {
@@ -343,21 +333,10 @@ class cal_Holidays extends core_Master
                     $calRec->title = self::getVerbal($rec, 'type') . ': ' . $calRec->title;
                 }
                 
-	              foreach($code2Cards as $code2 => $users){
-	              	
-	                 	if($rec->type == $code2){
-		                  foreach($users as $id => $u){
-	                 		// Потребителите имащи право да виждат този празник са keylist
-		               		$calRec->users = '|'.$id.'|';
-		               		
-		                  }
-		               	
-		               	}
-	              }
-                
                 $calRec->url    = toUrl(array('cal_Holidays', 'single', $rec->id), 'local');
                 
-                     
+                $calRec->users = $card[$rec->type];
+                
                 $calRec->priority = self::$priorities[$rec->type];
 
                 if(!$calRec->priority) {
@@ -509,34 +488,64 @@ class cal_Holidays extends core_Master
     }
     
     /**
-     * Функция, която връща array[кода на държавата][потребителско id имащо собственост тази държава]
+     * Функция, която връща array[кода на държавата] = списък на потребители
      */
-    static function bCards ()
+    function bCards ()
     {
-    	$cards = array();
-
+    	
+    	$inChargePerCountry = array();
     	$profiles = array();
-
-        $query = crm_Profiles::getQuery();
+    	
+        $query = crm_Persons::getQuery();
            	    	
     	while($rec = $query->fetch()){
     	
-    		$profiles[$rec->personId][$rec->userId] = TRUE;
-    			
-    	}
-    	
-    	foreach($profiles as $id => $profile){
+ 			if($rec->country) {
     		
-    		foreach($profile as $idProf => $person){
-    		 
-    			$recPerson = crm_Persons::fetch("#id = '{$id}'");
-    		 	
-    	     	$cards[$recPerson->country][$idProf] = TRUE;
-    	     	     		
-    		}
-    	}
+ 				if($recCompanies->inCharge) {
+    				$profiles[$rec->country][$rec->inCharge] = TRUE;
+ 				}
+    			
+    			if($rec->shared) {
+	    			foreach(type_Keylist::toArray($rec->shared) as $userId) {
+	    				$profiles[$rec->country][$userId] = TRUE;
+	    			}
+    			}
+ 			}
     	
-         	return $cards;
+  
+        }
+        
+        $queryCompanies = crm_Companies::getQuery();
+    	
+	    while($recCompanies = $queryCompanies->fetch()){
+	    	
+	    	if($recCompanies->country) {
+	    		
+	    		if($recCompanies->inCharge) {
+	    			$profiles[$recCompanies->country][$recCompanies->inCharge] = TRUE;
+	    		}
+	    		
+	    		if($recCompanies->shared) {
+		    		foreach(type_Keylist::toArray($recCompanies->shared) as $userId) {
+		    			$profiles[$recCompanies->country][$userId] = TRUE;
+		    		}
+	    		}
+	    	
+	    	}
+	    }
+	    
+    	foreach($profiles as $id=>$profile){
+    		
+    		$recPerson = drdata_Countries::fetch("#id = '{$id}'");
+    		
+    		$a = type_Keylist::fromArray($profile);
+    		
+    		$inChargePerCountry[$recPerson->letterCode2] = $a;
+    		
+    	}
+
+   		return $inChargePerCountry;
     }
 
 }
