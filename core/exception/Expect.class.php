@@ -175,6 +175,11 @@ class core_exception_Expect extends Exception
 
         return '[' . implode(', ', $arr) . ']';
     }
+    
+    public function getDebug()
+    {
+        return $this->debug;
+    }
 }
 
 
