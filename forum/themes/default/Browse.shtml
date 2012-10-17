@@ -1,0 +1,10 @@
+<div id='forum-board'>
+[#title#]<br>
+<font size='2px' color='darkgreen'><b>[#shortDesc#]</b></font>
+<hr />
+</div>
+<!--ET_BEGIN THEMES-->
+[#THEMES#]
+<!--ET_END THEMES-->
+<br>
+[#TOOLBAR#]

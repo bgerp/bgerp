@@ -1,0 +1,18 @@
+<table border='1'>
+	<tr>
+		<td>Дъски</td>
+		<td>Дата на създаване</td>
+		<td>Брой на темите</td>
+		<td>Последен коментар</td>
+	</tr>
+<!--ET_BEGIN ROW-->
+	<tr>
+		<td>[#title#]<br>
+			<font size='2px' color='darkgreen'><b>[#shortDesc#]</b></font>
+		</td>
+		<td>[#createdOn#]</td>
+		<td>[#themesCnt#]</td>
+		<td>[#lastComment#]</td>
+	</tr>
+<!--ET_END ROW-->
+</table>

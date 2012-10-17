@@ -1,0 +1,15 @@
+<h3>[#THREAD_HEADER#]</h3>
+<table border='1' width='400px'>
+<!--ET_BEGIN ROW-->
+	<tr>
+		<td>
+			[#title#]<br>
+			[#createdOn#]<br>
+			[#author#]<hr />
+			[#body#]
+		</td>
+	</tr>
+<!--ET_END ROW-->
+</table>
+<br>
+[#COMMENT_FORM#]

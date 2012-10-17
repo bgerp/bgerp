@@ -1,0 +1,14 @@
+<table id='forum-themes' border='1'>
+	<tr>
+		<td>Тема</td>
+		<td>Автор</td>
+		<td>Брой коментари</td>
+	</tr>		
+<!--ET_BEGIN ROW-->	
+	<tr>
+		<td>[#title#]</td>
+		<td>[#author#]</td>
+		<td>[#postingsCnt#]</td>
+	</tr>
+<!--ET_END ROW-->
+</table>
