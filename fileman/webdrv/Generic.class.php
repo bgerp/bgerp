@@ -468,31 +468,34 @@ class fileman_webdrv_Generic extends core_Manager
         $params['type'] = 'barcodes';
         $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
         
-        // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
-
-        // Заключваме процеса за определно време
-        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+        try {
             
             // Вземаме баркодовете
-            $barcodesArr = static::getBarcodes($fileHndArr, $params['dataId']);
-        
-            // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
-            $rec = new stdClass();
-            $rec->dataId = $params['dataId'];
-            $rec->type = 'barcodes';
-            $rec->createdBy = $params['createdBy'];
-            $rec->content = static::prepareContent($barcodesArr);
-        
-            $savedId = fileman_Indexes::save($rec);   
-
-            // Отключваме процеса
-            core_Locks::release($params['lockId']);
-        } else {
+            $barcodesArr = static::findBarcodes($fileHndArr, $params['dataId']); 
+        } catch (core_exception_Expect $e) {
+            
+            // Съобщението въведено в expect
+            $debug = $e->getDebug();
+            
+            // Добавяме съобщението за грешка
+            $barcodesArr = new stdClass();
+            $barcodesArr->errorProc = $debug[1];
             
             // Записваме грешката
             static::createErrorLog($params['dataId'], $params['type']);
         }
+    
+        // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
+        $rec = new stdClass();
+        $rec->dataId = $params['dataId'];
+        $rec->type = 'barcodes';
+        $rec->createdBy = $params['createdBy'];
+        $rec->content = static::prepareContent($barcodesArr);
+    
+        $savedId = fileman_Indexes::save($rec);   
+
+        // Отключваме процеса
+        core_Locks::release($params['lockId']);
         
         return $savedId;
     }
@@ -506,7 +509,7 @@ class fileman_webdrv_Generic extends core_Manager
      * 
      * @access protected
      */
-    static function getBarcodes($fileHnd, $dataId)
+    static function findBarcodes($fileHnd, $dataId)
     {
         // Проверяваме дали оригиналния файл е с допустимите размери и разширение за определяне на баркод
         if (!static::canReadBarcodes($dataId)) {
@@ -697,5 +700,64 @@ class fileman_webdrv_Generic extends core_Manager
         static::createErrorLog($params['dataId'], $params['type']);
         
         return TRUE;
+    }
+    
+    
+    /**
+     * Взема баркодовете от файла
+     * 
+     * @param object $fRec - Записите за файла
+     * @param string $callBack - Функцията, която ще се извика след приключване на процеса
+     */
+    static function getBarcodes($fRec, $callBack = 'fileman_webdrv_Generic::afterGetBarcodes')
+    {
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => $callBack,
+            'dataId' => $fRec->dataId,
+        	'asynch' => TRUE,
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'barcodes',
+        );
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+        
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (static::isProcessStarted($params)) return ;
+
+        // Заключваме процеса за определено време
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Инстанция на класа
+            $Script = cls::get(fconv_Script);
+            
+            // Функцията, която ще се извика след приключване на обработката на файла
+            $Script->callBack($params['callBack']);
+            
+            // Други необходими променливи
+            $Script->params = serialize($params);
+            $Script->fName = $fRec->name;
+            $Script->fh = $fRec->fileHnd;
+            
+            // Ако е подаден параметър за стартиране синхронно
+            // Когато се геририра от офис документи PDF, и от полученич файл
+            // се генерира JPG тогава трябва да се стартира синхронно
+            // В другите случаи трябва да е асинхронно за да не чака потребителя
+            $Script->run($params['asynch']);
+        }
+    }
+    
+    
+    /**
+     * Получава управеленито след вземането баркодовете
+     * 
+     * @param fconv_Script $script - Обект с нужните данни
+     * 
+     * @return boolean - Дали е изпълнен успешно
+     */
+    static function afterGetBarcodes($script)
+    {
+        if (static::saveBarcodes($script, $script->fh)) return TRUE;
     }
 }

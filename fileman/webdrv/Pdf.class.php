@@ -44,6 +44,21 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
     
     
     /**
+     * Стартира извличането на информациите за файла
+     * 
+     * @param object $fRec - Записите за файла
+     * 
+     * @Override
+     * @see fileman_webdrv_Office::startProcessing
+     */
+    static function startProcessing($fRec) 
+    {
+        parent::startProcessing($fRec);
+        static::getBarcodes($fRec);
+    }
+    
+    
+    /**
      * Извлича текстовата част от файла
      * 
      * @param object $fRec - Записите за файла
@@ -171,24 +186,66 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
     static function afterConvertToJpg($script, &$fileHndArr=array())
     {
         // Извикваме родiтелския метод
-        if (parent::afterConvertToJpg($script, $fileHndArr)) {
+        if (parent::afterConvertToJpg($script, $fileHndArr)) return TRUE;
+    }
 
-            // Това е нужно за да вземем всички баркодове
-            
-            $savedId = static::saveBarcodes($script, $fileHndArr);
-            
-            if ($savedId) {
     
-                // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-                // и записа от таблицата fconv_Process
-                return TRUE;
-            } else {
-                
-                $params = unserialize($script);
-                
-                // Записваме грешката в лога
-                static::createErrorLog($params['dataId'], $params['type']);
-            }
+	/**
+     * Конвертиране в JPG формат
+     * 
+     * @param object $fRec - Записите за файла
+     * 
+     * @Override
+     * @see fileman_webdrv_Image::getBarcodes
+     */
+    static function getBarcodes($fRec, $callBack = 'fileman_webdrv_Generic::afterGetBarcodes')
+    {
+        parent::getBarcodes($fRec, 'fileman_webdrv_Pdf::afterGetBarcodes');
+    }
+    
+    
+	/**
+     * Получава управеленито след вземането баркодовете
+     * 
+     * @param fconv_Script $script - Обект с нужните данни
+     * 
+     * @return boolean - Дали е изпълнен успешно
+     * @see fileman_webdrv_Image::afterGetBarcodes
+     */
+    static function afterGetBarcodes($script)
+    {
+        // Брояч за направените опити
+        $trays = 0;
+        
+        // Колко време да спи
+        $sleepTime = 3;
+        
+        // Максималния брой опити
+        $maxTrays = 30;
+        
+        // Докат се направи JPG на документа или прескочим максималния брой опити
+        while ((!($a = fileman_Indexes::getInfoContentByFh($script->fh, 'jpg'))) && ($trays < $maxTrays)){
+            
+            // Заспиваме процеса
+            sleep($sleepTime);
+            
+            // Увеличаваме броя на опитите с единица
+            $trays++;
+        }
+
+        // Ако масив
+        if (is_array($a)) {
+            
+            // Променяма манипулатора на файла в масив
+            $script->fh = $a;
+        }
+        
+        // Извикваме родутелския метод
+        if (parent::afterGetBarcodes($script)) {
+
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
         }
     }
 }

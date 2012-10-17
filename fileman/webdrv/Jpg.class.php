@@ -38,100 +38,19 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
 
         return $tabsArr;
     }
-    
-    
+
+
 	/**
-     * Конвертиране в JPG формат
+     * Стартира извличането на информациите за файла
      * 
      * @param object $fRec - Записите за файла
+     * 
+     * @Override
+     * @see fileman_webdrv_Image::startProcessing
      */
-    static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
+    static function startProcessing($fRec) 
     {
-        // Параметри необходими за конвертирането
-        $params = array(
-//            'callBack' => 'fileman_webdrv_Jpg::afterConvertToJpg',
-            'dataId' => $fRec->dataId,
-//        	'asynch' => TRUE,
-            'createdBy' => core_Users::getCurrent('id'),
-            'type' => 'jpg',
-            'fileHnd' => $fRec->fileHnd,
-        );
-        
-        // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
-        // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
-        
-        // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
-            
-            $script = new stdClass();
-            $script->params = serialize($params);
-            
-            // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
-            static::afterConvertToJpg($script);    
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
-        }
-    }
-    
-	
-	
-	/**
-     * Функция, която получава управлението след конвертирането на файл в JPG формат
-     * 
-     * @param object $script - Обект със стойности
-     * @param output $fileHndArr - Масив, в който след обработката ще се запишат получените файлове
-     * 
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
-     */
-    static function afterConvertToJpg($script, &$fileHndArr=array())
-    {
-        // Масива с параметрите
-        $params = unserialize($script->params);
-        
-        // Проверяваме дали е имало грешка при предишното конвертиране
-        if (static::haveErrors($params['fileHnd'], $params['type'], $params)) {
-            
-            // Отключваме процеса
-            core_Locks::release($params['lockId']);
-            
-            return FALSE;
-        }
-        
-        // Масив с манупулатора на файла
-        $fileHndArr[$params['fileHnd']] = $params['fileHnd'];
-        
-        // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($fileHndArr);
-        $rec->createdBy = $params['createdBy'];
-        
-        fileman_Indexes::save($rec);    
-        
-        // Записваме извличаме и записваме баркодовете
-        $saveId = static::saveBarcodes($script, $fileHndArr);
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        if ($saveId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
-        } else {
-
-            // 
-            static::createErrorLog($params['dataId'], $params['type']);
-        }
+        parent::startProcessing($fRec);
+        static::getBarcodes($fRec);
     }
 }

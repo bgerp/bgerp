@@ -220,31 +220,31 @@ class fconv_Script
                     $this->script = str_replace("[#{$placeHolder}#]", escapeshellarg($this->tempDir . $newFileName), $this->script);
                 }
             }
-            
-            $shellName = $this->tempDir . $this->id . $this->addExtensionScript();
-            $fh = fopen($shellName, 'w') or die("can't open file");
-            fwrite($fh, $this->script);
-            fclose($fh);
-            
-            $rec = new stdClass();
-            $rec->processId = $this->id;
-            $rec->start = dt::verbal2mysql();
-            $rec->script = serialize($this);
-            $rec->timeOut = $time;
-            $rec->callBack = $timeoutCallback;
-            fconv_Processes::save($rec);
-            
-            chmod($shellName, 0777);
-            
-            // Ако е зададено да се стартира асинхронно
-            if ($asynch) {
-                $shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();    
-            } else {
-                $shell = $shellName;    
-            }
-            
-            pclose(popen($shell, "r"));
         }
+            
+        $shellName = $this->tempDir . $this->id . $this->addExtensionScript();
+        $fh = fopen($shellName, 'w') or die("can't open file");
+        fwrite($fh, $this->script);
+        fclose($fh);
+        
+        $rec = new stdClass();
+        $rec->processId = $this->id;
+        $rec->start = dt::verbal2mysql();
+        $rec->script = serialize($this);
+        $rec->timeOut = $time;
+        $rec->callBack = $timeoutCallback;
+        fconv_Processes::save($rec);
+        
+        chmod($shellName, 0777);
+        
+        // Ако е зададено да се стартира асинхронно
+        if ($asynch) {
+            $shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();    
+        } else {
+            $shell = $shellName;    
+        }
+        
+        pclose(popen($shell, "r"));
     }
     
     

@@ -40,51 +40,17 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
     }
     
     
-    /**
-     * Конвертиране в JPG формат
+	/**
+     * Стартира извличането на информациите за файла
      * 
      * @param object $fRec - Записите за файла
      * 
      * @Override
-     * @see fileman_webdrv_Image::convertToJpg
+     * @see fileman_webdrv_Image::startProcessing
      */
-    static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
+    static function startProcessing($fRec) 
     {
-        parent::convertToJpg($fRec, 'fileman_webdrv_Png::afterConvertToJpg');
-    }
-    
-    
-	/**
-     * Функция, която получава управлението след конвертирането на файл в JPG формат
-     * 
-     * @param object $script - Обект със стойности
-     * 
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
-     */
-    static function afterConvertToJpg($script, &$fileHndArr = array())
-    {
-        // Извикваме родутелския метод
-        if (parent::afterConvertToJpg($script, $fileHndArr)) {
-
-            // Това е нужно за да вземем всички баркодове
-            
-            $savedId = static::saveBarcodes($script, $fileHndArr);
-            
-            if ($savedId) {
-    
-                // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-                // и записа от таблицата fconv_Process
-                return TRUE;
-            } else {
-                
-                $params = unserialize($script);
-                
-                // Записваме грешката в лога
-                static::createErrorLog($params['dataId'], $params['type']);
-            }
-        }
+        parent::startProcessing($fRec);
+        static::getBarcodes($fRec);
     }
 }
