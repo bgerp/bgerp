@@ -13,7 +13,7 @@ $URI_PATH = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],'/
  * Проверка за конфигурационен файл
  **********************************/
 if ($_GET['a'] == '1') {
-	echo ("<h2>Проверка за конфигурационен файл ...</h2>");
+	echo ("<h2>{$_GET['a']} Проверка за конфигурационен файл ...</h2>");
 }
 $filename = EF_ROOT_PATH . '/conf/' . EF_APP_NAME . '.cfg.php';
 if(file_exists($filename)) {
@@ -33,7 +33,7 @@ if ($_GET['a'] == '1') {
  * Проверка за връзка към MySql-a
  **********************************/
 if ($_GET['a'] == '2') {
-	echo ("<h2>Проверка за връзка към MySql-a ...</h2>");
+	echo ("<h2> {$_GET['a']} Проверка за връзка към MySql-a ...</h2>");
 	if (defined('EF_DB_USER') && defined('EF_DB_HOST') && defined('EF_DB_PASS')) {
 		if (FALSE !== mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS)) {
 			echo("<li style='color: green;'>Успешна връзка с базата данни</li>");
@@ -51,7 +51,7 @@ if ($_GET['a'] == '2') {
  * Проверка за необходимите модули на PHP-то
  **********************************/
 if ($_GET['a'] == '3') {
-	echo ("<h2>Проверка за необходимите модули на PHP ...</h2>");
+	echo ("<h2> {$_GET['a']} Проверка за необходимите модули на PHP ...</h2>");
 	// Масив съдържащ всички активни php модули, необходими за правилна работа на ситемата
 	// за сега периодично се попълва ръчно
 	$requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
@@ -78,7 +78,7 @@ if ($_GET['a'] == '3') {
  * Проверка за необходимите модули на Apache
  **********************************/
 if ($_GET['a'] == '4') {
-	echo ("<h2>Проверка за необходимите модули на Apache ...</h2>");
+	echo ("<h2> {$_GET['a']} Проверка за необходимите модули на Apache ...</h2>");
 	
 	// Масив съдържащ всички активни apache модули, необходими за правилна работа на ситемата
 	
@@ -104,8 +104,32 @@ if ($_GET['a'] == '4') {
  * Setup на core_Packs
  **********************************/
 if ($_GET['a'] == '5') {
-	echo("<h2>Сетъп на core_Packs ... </h2>");
-	$res = file_get_contents("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/core_Packs/setupMVC");
+	echo("<h2> {$_GET['a']} Сетъп на core_Packs ... </h2>");
+	$Plugins = cls::get('core_Plugins');
+	$res = $Plugins->setupMVC();
+	$Classes = cls::get('core_Classes');
+	$res .= $Classes->setupMVC();
+	$Cron = cls::get('core_Cron');
+	$res .= $Cron->setupMVC();
+	$Cache = cls::get('core_Cache');
+	$res .= $Cache->setupMVC();
+	// Сетъпваме мениджъра на ролите който си добавя admin, ако я няма
+	$Roles = cls::get('core_Roles');
+	$res .= $Roles->setupMVC();
+
+	$Users = cls::get('core_Users');
+	$res .= $Users->setupMVC();
+	
+	$Packs = cls::get('core_Packs');
+	$res .= $Packs->setupMVC();
+	
+	// Зависимости на Crm-a
+    $Menu = cls::get('bgerp_Menu');
+    $res .= $Menu->setupMVC();
+    $Bucket = cls::get('fileman_Buckets');
+    $res .= $Bucket->setupMVC();
+        
+	//$res = file_get_contents("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/core_Packs/setupMVC");
 	echo($res);
 
 	exit;
@@ -130,14 +154,8 @@ if ($_GET['a'] == '6') {
 		$rec->names = $_GET['names'];
 		$rec->email = $_GET['email'];
 		
-		// Сетъпваме мениджъра на ролите който си добавя admin, ако я няма
-		$Roles = cls::get('core_Roles');
-		$Roles->setupMVC();
-		// $res = $Roles->fetchByName('admin');
-		// echo('<pre>'); echo($res); die;
-		$Users = cls::get('core_Users');
-		$res = $Users->setupMVC();
 		// Добавяме админ потребителя, ако няма потребители досега
+		$Users = cls::get('core_Users');
 		if(!$Users->fetch('1=1')) {
 			$Users->save($rec);
 			$res .= "<li>Добавен Административен потребител!";
@@ -148,7 +166,7 @@ if ($_GET['a'] == '6') {
 		
 		exit;
 	}
-	echo("<h2>Данни за административен потребител</h2>");
+	echo("<h2> {$_GET['a']} Данни за административен потребител</h2>");
 	echo("<form id=f1 method='get' action='' target='_self'>");
 	echo("<input type=hidden name='SETUP'>");
 	echo("<input type=hidden name='a' value={$_GET['a']}>");
@@ -191,7 +209,7 @@ if ($_GET['a'] == '7') {
 		
 		exit;
 	}
-	echo("<h2>Данни за фирма</h2>");
+	echo("<h2> {$_GET['a']} Данни за фирма</h2>");
 	echo("<form id=f1 method='get' action='' target='_self'>");
 	echo("<input type=hidden name='SETUP'>");
 	echo("<input type=hidden name='a' value={$_GET['a']}>");
@@ -210,12 +228,15 @@ if ($_GET['a'] == '7') {
  **********************************/
 if ($_GET['a'] == '8') {
 	if ($_GET['submitted']==1) {
+		//$packs = cls::get('core_Packs');
+		//$res = $packs->setupPack('bgerp');
+		//echo $res;
 		header( "Location: http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/core_Packs/install/?pack=bgerp") ;
 		
 		exit;
 	}
 	
-	echo("<h2>Задаването на основните параметри приключи</h2>");
+	echo("<h2> {$_GET['a']} Задаването на основните параметри приключи</h2>");
 	echo("<form id=f1 method='get' action='' target='_self'>");
 	echo("<input type=hidden name='SETUP'>");
 	echo("<input type=hidden name='a' value={$_GET['a']}>");
@@ -264,4 +285,3 @@ if ($_GET['a'] == '9' || $_GET['a'] == '10') {
 <br>
 <input type="button" onclick="next(0); document.getElementById('test').src='<?php echo("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank")?>';" value="Начало">
 <input id='next1' type="button" onclick="next(1);" value="Следващ">
-
