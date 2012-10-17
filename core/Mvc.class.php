@@ -822,7 +822,10 @@ class core_Mvc extends core_FieldSet
 
         // Правим опит да добавим класа в списъка с устройства.
         // Той ще се появи там, само ако в него има описани някакви адаптери
-        $html .= core_Classes::add($this);
+        try {
+	        $html .= core_Classes::add($this);
+	    } catch ( core_exception_Expect $e ) {};
+	         
 
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
