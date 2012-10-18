@@ -53,7 +53,7 @@ class csstoinline_Emogrifier extends core_Manager
         $Emogrifier->preserveEncoding = TRUE;
         
         //Вкарва CSS във html, като inline
-        $processedHTML = $Emogrifier->emogrify();
+        $processedHTML = @$Emogrifier->emogrify();
         
         return $processedHTML;
     }
