@@ -68,7 +68,6 @@ class thumbnail_Thumbnail extends core_Manager {
         expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp', $ext);
         
         // Ако не са зададени параметрите
-        if (!isset($attr['qt'])) $attr['qt'] = '"';
         if (!isset($attr['isAbsolute'])) $attr['isAbsolute'] = Mode::is('text', 'xhtml') || Mode::is('printing');
         
         if(is_array($size)) {
@@ -78,7 +77,7 @@ class thumbnail_Thumbnail extends core_Manager {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext;
             $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext, $attr['qt'], $attr['isAbsolute']);
         }
-        
+
         if(!file_exists($thumbFilePath)) {
             $filePath = fileman_Files::fetchByFh($fh, 'path');
             
