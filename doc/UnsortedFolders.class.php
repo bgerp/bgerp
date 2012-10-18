@@ -98,7 +98,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Кой има права Rip
      */
-    var $canRip = 'admin';
+    var $canWrite = 'user';
     
     
     /**

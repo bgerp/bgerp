@@ -79,7 +79,7 @@ class email_Outgoings extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'email';
+    var $canList = 'user';
     
     
     /**
@@ -172,6 +172,8 @@ class email_Outgoings extends core_Master
             $cu = core_Users::getCurrent();
             $data->query->where("#createdBy = {$cu}");
         }
+
+        $data->query->orderBy('#createdOn', 'DESC');
         
      }
     
