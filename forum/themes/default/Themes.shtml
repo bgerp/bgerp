@@ -1,14 +1,20 @@
-<table id='forum-themes' border='1'>
-	<tr>
-		<td>Тема</td>
-		<td>Автор</td>
-		<td>Брой коментари</td>
-	</tr>		
+<ul style='list-style:none;padding-left:0px'>
+<li id='theme-header'>
+	<span width='65%'>Теми</span>
+	<span>Мнения</span>
+	<span>Започната от</span>
+	<span>Последно</span>
+</li>	
 <!--ET_BEGIN ROW-->	
-	<tr>
-		<td>[#title#]</td>
-		<td>[#author#]</td>
-		<td>[#postingsCnt#]</td>
-	</tr>
+<li>
+	<table class='forum-themes' width='100%'>
+		<tr>
+			<td width='65%'>[#title#]</td>
+			<td width='10%'>[#postingsCnt#]</td>
+			<td>[#author#]</td>
+			<td>[#last#]</td>
+		</tr>
+	</table>
+</li>
 <!--ET_END ROW-->
-</table>
+</ul>

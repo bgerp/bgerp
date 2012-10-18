@@ -1,18 +1,23 @@
-<table border='1'>
-	<tr>
-		<td>Дъски</td>
-		<td>Дата на създаване</td>
-		<td>Брой на темите</td>
-		<td>Последен коментар</td>
-	</tr>
-<!--ET_BEGIN ROW-->
-	<tr>
-		<td>[#title#]<br>
-			<font size='2px' color='darkgreen'><b>[#shortDesc#]</b></font>
-		</td>
-		<td>[#createdOn#]</td>
-		<td>[#themesCnt#]</td>
-		<td>[#lastComment#]</td>
-	</tr>
-<!--ET_END ROW-->
-</table>
+<ul class='category-ul'  width='100%'>
+		<li class='board-header'>[#cat#]</li>
+		
+	<!--ET_BEGIN ROW-->
+	<li>
+		<table width='100%' border='0'><tr>
+			<td width='65%'>[#title#]<br>
+				<font size='2px' color='darkgreen'><b>[#shortDesc#]</b></font>
+			</td>
+			<td width='15%'>
+				<span class='forum-counts'><b>[#themesCnt#]</b>&nbsp;&nbsp;Теми</span><br>
+				<span class='forum-counts'><b>[#commentsCnt#]</b>&nbsp;&nbsp;Отговора </span>
+			</td>
+			<td>
+			<span class='in-theme'>в:&nbsp;[#lastCommentedTheme#]</span><br>
+			<span class='last-comment'>&nbsp;[#lastComment#]</span>
+			</td>
+		</tr></table>
+	</li>
+	<!--ET_END ROW-->	
+</ul>
+
+

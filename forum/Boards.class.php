@@ -35,7 +35,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields ='tools, title, shortDesc, themesCnt, canSeeBoard, canSeeThemes, canComment,lastComment,createdOn,createdBy,  modifiedOn, modifiedBy';
+	var $listFields ='tools, title, category, shortDesc, themesCnt, canSeeBoard, canSeeThemes, canComment,lastComment,lastCommentedTheme,createdOn,createdBy,  modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -63,11 +63,14 @@ class forum_Boards extends core_Master {
 	{
 		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, notNull,width=400px');
 		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, notNull,width=100%');
+		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория на дъската,mandatory');
 		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска,mandatory');
 		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Теми,mandatory');
 		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментиране,mandatory');
 		$this->FLD('themesCnt', 'int', 'caption=Брой на темите,value=0,input=none');
-		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно, input=none');
+		$this->FLD('commentsCnt', 'int', 'caption=Брой на Коментарите,value=0,input=none');
+		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
+		$this->FLD('lastCommentedTheme', 'varchar(100)', 'caption=Последно->къде, input=none');
 		$this->setDbUnique('title');
 	}
 	
@@ -78,9 +81,9 @@ class forum_Boards extends core_Master {
 	static function updateThemesCount($id)
 	{
 	    $query = forum_Postings::getQuery();
-	    
 	    // Преброяваме тези постинги, които принадлежат на дъската и са начало на
 	    // нова тема (themeId е NULL)
+	    
 	    $query->where("#boardId = {$id} AND #themeId IS NULL");
 	    $rec = static::fetch($id);
 	    $rec->themesCnt = $query->count();
@@ -89,11 +92,22 @@ class forum_Boards extends core_Master {
 	
 	
 	/**
-	 * Обновява, кой е последния коментар в тема от дъската
+	 * Обновяваме, къде и кога е публикуван последния коментар в дъската , както и броя на
+	 * всички коментари в дъската
 	 */
-	static function updateLastComment($id, $date)
+	static function updateLastComment($id, $date, $theme)
 	{
+		$query = forum_Postings::getQuery();
+		$query->where("#boardId = {$id} AND #themeId IS NOT NULL");
 		$rec = static::fetch($id);
+		
+		// Броя на всички коментари в дъската
+		$rec->commentsCnt = $query->count();
+		
+		// Коя е последно коментираната тема
+		$rec->lastCommentedTheme = $theme;
+		
+		// Кога е направен последния коментар
 	    $rec->lastComment = $date;
 	    static::save($rec);
 	}
@@ -102,8 +116,8 @@ class forum_Boards extends core_Master {
 	/**
 	 * Екшън за преглеждане на всички дъски
 	 */
-	function act_Boards()
-	 {
+	function act_Forum()
+	{
 		// Създаваме празен $data обект
 		$data = new stdClass();
 
@@ -113,64 +127,99 @@ class forum_Boards extends core_Master {
 		// Тема по подразбиране
 		$conf = core_Packs::getConfig('forum');
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
-        
+        $data->action = 'forum';
+        $data->category = Request::get('cat');
         // Подготвяме необходимите данни за показване на дъските
-        $this->prepareBoards($data);
+        $this->prepareForum($data);
         
         // Рендираме Дъските в форума
-        $layout = $this->renderBoards($data);
+        $layout = $this->renderForum($data);
        
         $layout->push($data->forumTheme . '/styles.css', 'CSS');
         
-        $layout = $this->renderWrapping($layout);
+        // Поставяме шаблона за външен изглед
+		Mode::set('wrapper', 'cms_tpl_Page');
+
+        // Добавяме лейаута на страницата
+        Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
         
         return $layout;
 	}
 	
 	
 	/**
-	 *  Подготовка на списъка с дъски
+	 *  Подготовка на списъка с дъски, разпределени по техните категории
 	 */
-	function prepareBoards(&$data)
+	 function prepareForum(&$data)
 	{
-		$data->query->orderBy('createdOn', 'ASC');
-		$fields = $this->selectFields("");
-	 	while($rec = $data->query->fetch()) {
-	 		if($this->haveRightFor('read', $rec)){
-	 			
-	 			// Ако потребителят може да вижда дъската, ние я добавяме в списъка
-	            $data->recs[$rec->id] = $rec;
-	            $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
-	            $url = array('forum_Boards', 'Browse', $rec->id);
-	            
-	            // Правим заглавието на дъската, като линк
-	            $data->rows[$rec->id]->title = ht::createLink($data->rows[$rec->id]->title, $url);
-		   	}
-	   }
+		// Извличаме всички категории на дъските
+		forum_Categories::prepareCategories(&$data);
+		if(count($data->categories)) {
+			
+			// За всяка категория ние подготвяме списъка от дъски, които са част от нея
+			foreach($data->categories as $category){
+				$this->prepareBoards($category);
+			}
+		}
+	   
 	}
 	
 	
 	/**
-	 *  Рендиране на списъка с дъските
+	 * Подготвя дъските от подадената категория
 	 */
-	function renderBoards($data)
+	function prepareBoards(&$category)
 	{
-		$tpl = new ET(getFileContent($data->forumTheme . '/Boards.shtml'));
+		$query = $this->getQuery();
+		$query->where("#category = {$category->id}");
+		$fields = $this->selectFields("");
+		while($rec = $query->fetch()) {
+			
+		// Ако имаме права да виждаме дъските, ние ги подготвяме 
+		if($this->haveRightFor('read', $rec)){
+				$category->boards->recs[$rec->id] = $rec;
+	 			$category->boards->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+	 			$url = array('forum_Boards', 'Browse', $rec->id);
+	            
+	            // Правим заглавието на дъската, като линк
+	            $category->boards->rows[$rec->id]->title = ht::createLink($category->boards->rows[$rec->id]->title, $url);
+	 		}
+		}
+	}
+	
+	
+	/**
+	 *  Рендираме списъка с дъските групирани по категории
+	 */
+	function renderForum($data)
+	{
+		$tpl = new ET(getFileContent($data->forumTheme . '/Index.shtml'));
+		foreach($data->categories as $category) {
+			
+			// За всяка категория ние поставяме името и преди  списъка с нейните дъски
+			$catTpl = new ET(getFileContent($data->forumTheme . '/Boards.shtml'));
+			$catTpl->replace($category->title,'cat');
+			if($category->boards->rows) { 
+				// За всички дъски от категорията ние ги поставяме под нея в шаблона
+				foreach($category->boards->rows as $row) {
+					$rowTpl = $catTpl->getBlock('ROW');
+					$rowTpl->placeObject($row);
+					$rowTpl->append2master();
+				}
+			} 	else {
+            		$rowTpl = $catTpl->getBlock('ROW');
+            		$rowTpl->replace('<li>Няма Дъски</li>');
+            		$rowTpl->append2master();
+        		}
+        	// Добавяме категорията с нейните дъски към главния шаблон
+			$tpl->append($catTpl, 'BOARDS');
+		}
 		
-		// Ако имаме дъски, то ние ги рендираме
-		if(count($data->rows)) {
-	            foreach($data->rows as $row) {
-	                $rowTpl = $tpl->getBlock('ROW');
-	                $rowTpl->placeObject($row);
-	                $rowTpl->append2master();
-	            }
-	     }  else {
-            $rowTpl = $tpl->getBlock('ROW');
-            $rowTpl->replace('<h2>Няма Дъски</h2>');
-            $rowTpl->append2master();
-        }
+		// @toDo Поставяне на правилна навигация
+		$tpl->replace('Индекс', 'NAVIGATION');
         
-        return $tpl;
+		// Връщаме шаблона с всички дъски групирани по категории
+		return $tpl;
 	}
 	
 	
@@ -188,6 +237,7 @@ class forum_Boards extends core_Master {
 		// Тема по подразбиране
 		$conf = core_Packs::getConfig('forum');
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+        $data->action = 'browse';
         expect($data->rec = $this->fetch($id));
 		
 		// Изискваме потребителя да има права да вижда  дъската
@@ -199,6 +249,15 @@ class forum_Boards extends core_Master {
 		// Рендираме разглежданата дъска
 		$layout = $this->renderBrowse($data);
 		
+		$layout->push($data->forumTheme . '/styles.css', 'CSS');
+        
+        // @toDo метод за рендиране на навигацията и обвивката, общ за всички шаблони
+		
+		// Поставяме шаблона за външен изглед
+		Mode::set('wrapper', 'cms_tpl_Page');
+
+        // Добавяме лейаута на страницата
+        Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
 		
 		return $layout;
 	}

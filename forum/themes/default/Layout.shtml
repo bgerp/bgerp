@@ -1,0 +1,5 @@
+<div class='cms-row'>
+	<div class='ninecol'  style='padding-top:20px;'>
+		[#PAGE_CONTENT#] 
+	</div>
+</div>

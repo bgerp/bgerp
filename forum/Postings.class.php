@@ -54,6 +54,7 @@ class forum_Postings extends core_Detail {
 		$this->FLD('author', 'varchar(50)', 'caption=Автор, mandatory, notNull,width=100%');
 		$this->FLD('body', 'richtext', 'caption=Съдържание, mandatory, notNull,width=100%');
 		$this->FLD('postingsCnt', 'int', 'caption=Брой на постингите,input=hidden,width=100%');
+		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->кога,input=none,width=100%');
 		$this->FLD('themeId', 'int', 'caption=Ид на темата,input=hidden,width=100%');
 	}
 	
@@ -280,25 +281,31 @@ class forum_Postings extends core_Detail {
       } else {
       	
       	// Ако themeId не е NULL, То постинга е добавен към тема. Обновяваме броя
-      	// на постингите в темата след началния
-      	$mvc->updatePostingCount($rec->themeId);
+      	// на постингите в темата след началния, както и кой е последния коментар
+      	$mvc->updateStatistics($rec->themeId, $rec->createdOn);
       	
-      	// Обновяваме информацията за последния коментар в дъската, където е темата
-      	forum_Boards::updateLastComment($rec->boardId, $rec->createdOn);
+      	// Заглавието на темата, където е публикуван коментара
+      	$theme = $mvc::fetchField($rec->themeId,'title');
+      	
+      	// Обновяваме информацията в дъската,кога и къде е постнат последния коментар
+      	forum_Boards::updateLastComment($rec->boardId, $rec->createdOn, $theme);
       }
    }
    
    
    /**
-	 * Обновяваме броя на постингите, в темата
+	 * Обновяваме статистическата информация на темата
 	 */
-   function updatePostingCount($themeId)
+   function updateStatistics($themeId, $createdOn)
     {
    	   		$query = $this->getQuery();
    	   		
    	   		// Избираме тези постинги, принадлежащи на темата
 	        $query->where("#themeId = {$themeId}");
 	        $rec = $this->fetch($themeId);
+	        
+	        // Датата на която е направен последния коментар
+	        $rec->last = $createdOn;
 	        $rec->postingsCnt = $query->count();
 	        static::save($rec);
    }
