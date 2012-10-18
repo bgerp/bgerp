@@ -490,6 +490,9 @@ class log_Documents extends core_Manager
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
+        if ((!$rec->threadId) && ($rec->containerId)) {
+            $rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId');
+        }
         expect($rec->threadId);
         
         // Изчистваме кешираната история на треда, понеже тя току-що е била променена.
