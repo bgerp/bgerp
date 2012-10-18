@@ -270,7 +270,7 @@ class forum_Postings extends core_Detail {
 	 * Обновяване на статистическата информация в моделите, след създаване на
 	 * нов постинг
 	 */
-	static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+	static function on_AfterSave($mvc, &$id, $rec, $fieldList = NULL)
     {
       if($rec->themeId === NULL){
       	

@@ -35,7 +35,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields ='tools, title, shortDesc, author, themesCnt, canSeeBoard, canSeeThemes, canComment,lastComment,createdOn,createdBy,  modifiedOn, modifiedBy';
+	var $listFields ='tools, title, shortDesc, themesCnt, canSeeBoard, canSeeThemes, canComment,lastComment,createdOn,createdBy,  modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -61,14 +61,13 @@ class forum_Boards extends core_Master {
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, notNull,width=100%');
-		$this->FLD('author', 'varchar(50)', 'caption=Автор, mandatory, notNull,width=100%');
-		$this->FLD('shortDesc', 'varchar(100)', 'caption=Кратко описание, mandatory, notNull,width=100%');
-		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Кой може да вижда дъската,mandatory');
-		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Кой може да вижда темите,mandatory');
-		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Кой може да коментира,mandatory');
-		$this->FLD('themesCnt', 'int', 'caption=Брой на темите,value=0,input=hidden,width=100%');
-		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последен Коментар, input=none,width=100%');
+		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, notNull,width=400px');
+		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, notNull,width=100%');
+		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска,mandatory');
+		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Теми,mandatory');
+		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментиране,mandatory');
+		$this->FLD('themesCnt', 'int', 'caption=Брой на темите,value=0,input=none');
+		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно, input=none');
 		$this->setDbUnique('title');
 	}
 	
@@ -239,16 +238,7 @@ class forum_Boards extends core_Master {
 		return $tpl;
 	}
 	
-	
-	/**
-	 * Задаване на име на автора по подразбиране и броя на темите в дъската да е 0
-	 */
-	static function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
-    	$data->form->setDefault('author', core_Users::getCurrent('nick'));
-    	$data->form->setHidden('themesCnt', '0');
-    }
-    
+ 
     
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
