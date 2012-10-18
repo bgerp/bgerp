@@ -28,7 +28,11 @@ class zbar_Reader
         $downloadUrl = fileman_Download::getDownloadUrl($fh);
 
         // Изпълняваме командата за намиране на баркодове
-        exec("zbarimg {$downloadUrl}", $allBarcodesArr);
+        exec("zbarimg {$downloadUrl}", $allBarcodesArr, $errorCode);
+        
+        if (($errorCode != 0) && ($errorCode != 4)) {
+            expect(FALSE, "Възникна грешка при конвертиране.");    
+        }
         
         // Масива с намерените баркодове
         $barcodesArr = array();

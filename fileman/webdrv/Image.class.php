@@ -64,7 +64,6 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
     {
         parent::startProcessing($fRec);
         static::extractText($fRec);
-        static::convertToJpg($fRec);
     }
     
     
@@ -77,9 +76,9 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
     {
         // Параметри необходими за конвертирането
         $params = array(
-//            'callBack' => 'fileman_webdrv_Image::afterExtractText',
+            'callBack' => 'fileman_webdrv_Image::afterExtractText',
             'dataId' => $fRec->dataId,
-//        	'asynch' => TRUE,
+        	'asynch' => TRUE,
             'createdBy' => core_Users::getCurrent('id'),
             'type' => 'text',
         );
@@ -162,6 +161,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      * Конвертиране в JPG формат
      * 
      * @param object $fRec - Записите за файла
+     * @param string $callBack - Функцията, която ще се извика след приключване на процеса
      */
     static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
     {

@@ -235,10 +235,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             
             // Стартираме конвертирането
             $inst->convertDoc($fRec->fileHnd, 'pdf', $params);    
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
