@@ -81,7 +81,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
@@ -113,7 +113,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         $params = unserialize($script->params);
 
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (static::haveErrors($params['fileHnd'], $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($params['fileHnd'], $params['type'], $params)) {
             
             // Отключваме предишния процес
             core_Locks::release($params['lockId']);
@@ -133,20 +133,16 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
             $text = iconv($charset, 'UTF-8//IGNORE', $text);
         }
         
-        // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($text);
-        $rec->createdBy = $params['createdBy'];
-        
-        // Записваме данните
-        $saveId = fileman_Indexes::save($rec);    
+        // Текстовата част
+        $params['content'] = $text;
+
+        // Обновяваме данните за запис във fileman_Indexes
+        $savedId = fileman_Indexes::saveContent($params);
         
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
-        if ($saveId) {
+        if ($savedId) {
 
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process

@@ -81,17 +81,13 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определно време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
             // Стартираме конвертирането
             static::convertPdfToTxt($fRec->fileHnd, $params);   
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
@@ -158,17 +154,13 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определно време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
             // Стартираме конвертирането
             static::convertPdfToJpg($fRec->fileHnd, $params);    
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
