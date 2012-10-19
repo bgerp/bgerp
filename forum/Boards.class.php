@@ -153,7 +153,8 @@ class forum_Boards extends core_Master {
 	 function prepareForum(&$data)
 	{
 		// Извличаме всички категории на дъските
-		forum_Categories::prepareCategories(&$data);
+		forum_Categories::prepareCategories($data);
+
 		if(count($data->categories)) {
 			
 			// За всяка категория ние подготвяме списъка от дъски, които са част от нея
