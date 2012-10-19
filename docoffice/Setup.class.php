@@ -4,7 +4,7 @@
 /**
  * Класа, който ще се използва за конвертиране
  */
-defIfNot('OFFICE_CONVERTER_CLASS', 'docoffice_Jodconverter');
+defIfNot('OFFICE_CONVERTER_CLASS', 'docoffice_Unoconv');
 
 
 /**

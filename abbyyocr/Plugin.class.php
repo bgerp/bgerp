@@ -90,7 +90,7 @@ class abbyyocr_Plugin extends core_Plugin
         if (fileman_Indexes::isProcessStarted($params)) return ;
 
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+        if (core_Locks::get($params['lockId'], 300, 0, FALSE)) {
             
             // Стартираме извличането
             static::getText($rec->fileHnd, $params);
