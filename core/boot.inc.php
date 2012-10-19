@@ -24,8 +24,8 @@
  ********************************************************************************************/
 
 if (PHP_VERSION_ID < 50300) {
-	echo ('Необходимо е php 5.3+!');
-	die;	
+    echo ('Необходимо е php 5.3+!');
+    die;    
 }
 require EF_EF_PATH . '/core/exception/Expect.class.php';
 
@@ -141,7 +141,7 @@ defIfNot('EF_SBF', 'sbf');
 // Параметрите от виртуалното URL за зареждат в $_GET
   try
         {
-			core_App::processUrl();
+            core_App::processUrl();
         }
         catch (core_Exception_Expect $e)
         { 
@@ -195,15 +195,6 @@ if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
 // Шаблон за този файл има в директорията [_docs]
 @include EF_CONF_PATH . '/_common.cfg.php';
 
-// Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
-ob_clean();
-
-// PHP5.4 bugFix
-ini_set('zlib.output_compression', 'Off');
-
-// Стартира записа в буфера, като по възможност компресира съдържанието
-ob_start();
-ob_start('ob_gzhandler');
 
 /**
  * Дефинира, ако не е зададено името на кода на приложението
@@ -222,13 +213,6 @@ defIfNot('EF_TIMEZONE', 'Europe/Sofia');
 
 // Сетваме времевата зона
 date_default_timezone_set(EF_TIMEZONE);
-
-// Вътрешно кодиране
-mb_internal_encoding("UTF-8");
-
-// Локал за функции като basename
-setlocale(LC_ALL, 'en_US.UTF8');
-
 
 /**
  * Директорията с външни пакети
@@ -271,13 +255,29 @@ defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
  */
 defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
 
+// Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
+ob_clean();
+
+// PHP5.4 bugFix
+ini_set('zlib.output_compression', 'Off');
+
 /**
  * Стартира Setup, ако се изисква
  */
 if (isset($_GET['SETUP'])) {
-	require_once(EF_EF_PATH . "/core/Setup.inc.php");
-   	die;	
+    require_once(EF_EF_PATH . "/core/Setup.inc.php");
+    die;    
 }
+
+// Стартира записа в буфера, като по възможност компресира съдържанието
+ob_start();
+ob_start('ob_gzhandler');
+
+// Вътрешно кодиране
+mb_internal_encoding("UTF-8");
+
+// Локал за функции като basename
+setlocale(LC_ALL, 'en_US.UTF8');
 
 if (!defined('EF_DONT_AUTORUN')) {
     core_App::run();
