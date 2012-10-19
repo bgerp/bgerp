@@ -258,12 +258,11 @@ class crm_Companies extends core_Master
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
         
-        if(!$data->listFilter->rec->search) {
+        if($data->listFilter->rec->users != 'all_users') {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }
-
-        
+                    
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
             $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
         }
@@ -281,7 +280,8 @@ class crm_Companies extends core_Master
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
-        
+        $data->listFilter->setDefault('users', 'all_users'); 
+ 
         // Подготовка на полето за подредба
         foreach($mvc->listOrderBy as $key => $attr) {
             $options[$key] = $attr[0];
