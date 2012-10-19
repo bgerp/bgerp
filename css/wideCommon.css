@@ -114,11 +114,18 @@ p.richtext {
 
 .richtext {
 	color:#333;
-	font-family: Ubuntu, sans-serif;
+	font-family: sans-serif;
 	line-height: 1.4em;
 }
 
+.richtext h1 {
+	margin-top:0px;
+	margin-bottom:0px;
+	line-height:1.2em;
+}
+
 .richtext h3 {
+	line-height:2em;
     margin:5px;
     margin-left:0px;
 }

@@ -69,11 +69,18 @@ a.rtbutton:hover {
     background: white;
     border-style: outset;
 }
+
 p.richtext {
 	border: solid 1px red;
 }
 
-.richtext H3 {
+.richtext h1 {
+	margin-top:0px;
+	margin-bottom:0px;
+	line-height:1.2em;
+}
+
+.richtext h3 {
     margin:5px;
 }
 
