@@ -310,7 +310,7 @@ class crm_Persons extends core_Master
 
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $data->listFilter->showFields = 'users,search,order,groupId';
+        $data->listFilter->showFields = 'search,users,order,groupId';
 
         $data->listFilter->input('users,alpha,search,order,groupId', 'silent');
         
