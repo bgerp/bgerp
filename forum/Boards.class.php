@@ -144,7 +144,7 @@ class forum_Boards extends core_Master {
 	/**
 	 *  Подготовка на списъка с дъски, разпределени по техните категории
 	 */
-	 function prepareForum(&$data)
+	 function prepareForum($data)
 	{
 		// Извличаме всички категории на дъските
 		forum_Categories::prepareCategories(&$data);
