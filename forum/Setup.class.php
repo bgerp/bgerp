@@ -55,6 +55,7 @@ class forum_Setup
 		$managers = array(
 				'forum_Boards',
 				'forum_Postings',
+				'forum_Categories',
 		);
 
 		// Роля за power-user на този модул
@@ -67,6 +68,8 @@ class forum_Setup
 			$instances[$manager] = &cls::get($manager);
 			$html .= $instances[$manager]->setupMVC();
 		}
+		
+		return $html;
 	}
 	
 	

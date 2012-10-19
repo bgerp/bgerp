@@ -1,15 +1,34 @@
-<h3>[#THREAD_HEADER#]</h3>
-<table border='1' width='400px'>
+<div id='forum-index'>
+<div id='navigation'>
+[#NAVIGATION#]
+</div>
+<div id='forum-board'>
+<div id='board-name'>[#THREAD_HEADER#]</div>
+</div>
+<ul id='thread-list'>
 <!--ET_BEGIN ROW-->
-	<tr>
-		<td>
-			[#title#]<br>
-			[#createdOn#]<br>
-			[#author#]<hr />
-			[#body#]
-		</td>
-	</tr>
+	<li class='thread-header'>
+		<span class='post-date'>публикувано на:&nbsp&nbsp&nbsp[#createdOn#]</span>
+		<span class='post-author'>от:&nbsp;[#createdBy#]</span>
+	</li>
+	<li class='post-body'>
+		<table border='1' width='100%'>
+			<tr>
+				<td width='30%'>
+					<div class='avatar'>[#avatar#]</div>
+				</td>
+				<td class='text-body'>
+				[#body#]
+				</td>
+			</tr>
+		</table>
+	</li>
 <!--ET_END ROW-->
-</table>
-<br>
+<li>
+[#BOTTOM_PAGER#]
+</li>
+<li id='comment-form'>
 [#COMMENT_FORM#]
+</li>
+</ul>
+</div>

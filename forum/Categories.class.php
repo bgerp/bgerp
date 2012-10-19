@@ -63,7 +63,8 @@ class forum_Categories extends core_Manager {
 	function description()
 	{
 		$this->FLD('title', 'varchar(40)', 'caption=Заглавие,mandatory');
-		//$this->FLD('canSeeCategory', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Виждане');
+		
+		$this->FLD('canSeeCategory', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Виждане');
 		$this->FLD('order', 'int', 'caption=Подредба');
 
 		$this->setDbUnique('title');

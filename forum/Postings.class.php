@@ -51,7 +51,6 @@ class forum_Postings extends core_Detail {
 	{
 		$this->FLD('boardId', 'key(mvc=forum_Boards, select=title)', 'caption=Дъска, input=hidden, silent');
 		$this->FLD('title', 'varchar(50)', 'caption=Заглавие, mandatory, notNull,width=100%');
-		$this->FLD('author', 'varchar(50)', 'caption=Автор, mandatory, notNull,width=100%');
 		$this->FLD('body', 'richtext', 'caption=Съдържание, mandatory, notNull,width=100%');
 		$this->FLD('postingsCnt', 'int', 'caption=Брой на постингите,input=hidden,width=100%');
 		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->кога,input=none,width=100%');
@@ -113,7 +112,6 @@ class forum_Postings extends core_Detail {
         
          $layout->replace($tpl, 'THEMES');
          
-         
          return $layout;
 	}
 	
@@ -146,7 +144,7 @@ class forum_Postings extends core_Detail {
 		$conf = core_Packs::getConfig('forum');
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
         expect($data->rec = $this->fetch($id));
-        
+        $data->action = 'theme';
         // Към коя дъска принадлежи темата
 		$data->board = $this->Master->fetch($data->rec->boardId);
 		
@@ -177,6 +175,10 @@ class forum_Postings extends core_Detail {
 		// Рендираме темата
 		$layout = $this->renderTheme($data);
 		
+		$layout->push($data->forumTheme . '/styles.css', 'CSS');
+		
+		$layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
+		
 		return $layout;
 	}
 
@@ -186,6 +188,7 @@ class forum_Postings extends core_Detail {
 	 */
 	function prepareTheme_($data)
 	{
+		
 		$query = $this->getQuery();
 		$fields = $this->selectFields("");
         $fields['-theme'] = TRUE;
@@ -197,24 +200,22 @@ class forum_Postings extends core_Detail {
         // на темата
         $data->thread[] = $this->recToVerbal($data->rec, $fields);
 		while($rec = $query->fetch()) {
-			
 			// Добавяме другите постинги, които имат за themeId, id-то на темата
 			$data->thread[] = $this->recToVerbal($rec, $fields);
 		}
-		$data->title = "Разглеждане на тема {$data->rec->title}, дъска {$data->rec->boardId}";
+		$data->title = "Разглеждане на тема {$data->rec->title}";
 		
 		// Ако можем да добавяме нов постинг в темата
 		if($this->haveRightFor('add', $data->board)) {
 			
 			// Подготвяме формата за добавяне на нов постинг към нишката
 			$data->postForm = $this->getForm();
-			$data->postForm->setField('author', 'input=hidden');
 			$data->postForm->setField('title', 'input=none');
-			$data->postForm->setHidden('author', core_Users::getCurrent('nick'));
 			$data->postForm->setHidden('themeId', $data->rec->id);
 			$data->postForm->setHidden('boardId', $data->rec->boardId);
 			$data->postForm->toolbar->addSbBtn('Коментирай');
 		}
+		$this->Master->prepareNavigation($data);
 	}
 	
 	

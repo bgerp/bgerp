@@ -1,10 +1,14 @@
+<div id='forum-index'>
+<div id='navigation'>
+[#NAVIGATION#]
+</div>
 <div id='forum-board'>
-[#title#]<br>
-<font size='2px' color='darkgreen'><b>[#shortDesc#]</b></font>
-<hr />
+<div id='board-name'>[#title#]</div>
+<span id='shortDesc'>[#shortDesc#]</span>
 </div>
 <!--ET_BEGIN THEMES-->
 [#THEMES#]
 <!--ET_END THEMES-->
 <br>
 [#TOOLBAR#]
+</div>

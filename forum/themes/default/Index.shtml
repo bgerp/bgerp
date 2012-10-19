@@ -1,7 +1,7 @@
 <div id='forum-index'>
 <div id='navigation'>
-<h4>Добре дошли в нашият форум :)</h4>
 <span id='navigation-link'>[#NAVIGATION#]</span>
 </div>
+<h4>Добре дошли в нашият форум :)</h4>
 [#BOARDS#]
 </div>

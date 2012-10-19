@@ -1,20 +1,23 @@
-<ul style='list-style:none;padding-left:0px'>
-<li id='theme-header'>
-	<span width='65%'>Теми</span>
-	<span>Мнения</span>
-	<span>Започната от</span>
-	<span>Последно</span>
-</li>	
+<table width='100%' id='forum-themes' border='0' cellspacing='0'>
+	<tr>
+		<th width='75%' style='text-indent:10px'>Теми</th>
+		<th class='centered'>Мнения</td>
+		<th class='centered'>Видяна</td>
+		<!-- <th class='centered'>Започната от</th> -->
+		<th class='centered'>Последно</th>
+	</tr>
 <!--ET_BEGIN ROW-->	
-<li>
-	<table class='forum-themes' width='100%'>
-		<tr>
-			<td width='65%'>[#title#]</td>
-			<td width='10%'>[#postingsCnt#]</td>
-			<td>[#author#]</td>
-			<td>[#last#]</td>
-		</tr>
-	</table>
-</li>
+	<tr class='theme-row'>
+		<td class='theme-row-title'>
+			[#title#]<br>
+			<span class='authored'>Започната от:&nbsp;[#createdBy#],[#createdOn#]</span>
+		</td>
+		<td class='centered'>[#postingsCnt#]</td>
+		<td class='centered'>1</td>
+		<!--  <td class='centered'>[#author#]<br>
+		<span class='theme-createdOn'>[#createdOn#]</span>
+		</td>-->
+		<td class='centered'><span class='last-seen'>[#last#]</span></td>
+	</tr>
 <!--ET_END ROW-->
-</ul>
+</table>

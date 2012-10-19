@@ -137,12 +137,6 @@ class forum_Boards extends core_Master {
        
         $layout->push($data->forumTheme . '/styles.css', 'CSS');
         
-        // Поставяме шаблона за външен изглед
-		Mode::set('wrapper', 'cms_tpl_Page');
-
-        // Добавяме лейаута на страницата
-        Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
-        
         return $layout;
 	}
 	
@@ -153,8 +147,7 @@ class forum_Boards extends core_Master {
 	 function prepareForum(&$data)
 	{
 		// Извличаме всички категории на дъските
-		forum_Categories::prepareCategories($data);
-
+		forum_Categories::prepareCategories(&$data);
 		if(count($data->categories)) {
 			
 			// За всяка категория ние подготвяме списъка от дъски, които са част от нея
@@ -162,7 +155,63 @@ class forum_Boards extends core_Master {
 				$this->prepareBoards($category);
 			}
 		}
-	   
+		
+		// Подготвяме навигационните линкове
+	    $this->prepareNavigation($data);
+	}
+	
+	
+	/**
+	 * Подготвяме, навигационните линкове за бърз достъп до избраната категория/дъска/тема
+	 * в навигационното поле на форума
+	 */
+	function prepareNavigation($data){
+		// Линк към началото на форума
+		$data->navigation[] = ht::createLink('Форуми', array('forum_Boards', 'Forum'));
+		 if($data->action == 'forum'){
+		 	if(isset($data->category)){
+		 		
+		 		// Ако е сетнато $data->category, то е избрана само една категория
+		 		$categoryUrl =  array('forum_Boards', 'Forum', 'cat' => $data->category);
+		 		$category = forum_Categories::fetch($data->category);
+		 		$data->navigation[]= ht::createLink(forum_Categories::getVerbal($category, 'title'), $categoryUrl);
+		 	}
+		 } elseif($data->action == 'browse') {
+			
+			 // Ако разглеждаме дъска,навигацията ще от рода  Форуми->Категория->Дъска, като
+			 // всяко едно от тях ще е линк към началото, категорията и дъската
+			 $categoryUrl =  array('forum_Boards', 'Forum', 'cat' => $data->rec->category);
+			 $boardUrl =  array('forum_Boards', 'Browse', $data->row->id);
+			 $data->navigation[]= ht::createLink($data->row->category, $categoryUrl);
+			 $data->navigation[]= ht::createLink($data->row->title, $boardUrl);
+		}  elseif ($data->action == 'theme') {
+			
+			 // Ако разглеждаме тема,навигацията ще от рода  Форуми->Категория->Дъска->Тема,
+			 // като всяко едно от тях ще е линк към началото, категорията, дъската и темата
+			 $board = $this->recToVerbal($data->board);
+			 $boardUrl = array('forum_Boards', 'Browse', $board->id);
+			 $categoryUrl =  array('forum_Boards', 'Forum', 'cat' => $data->board->category);
+			 $themeUrl = array('forum_Postings', 'Theme', $data->rec->id);
+			 $data->navigation[] = ht::createLink($board->category, $categoryUrl);
+			 $data->navigation[] = ht::createLink($board->title, $boardUrl);
+			 $data->navigation[] = ht::createLink($data->rec->title, $themeUrl);
+		}
+	}
+	
+	
+	/**
+	 * Добавяме всеки елемент на в последователност от линкове
+	 */
+	function renderNavigation($data){
+		foreach($data->navigation as $link){
+			$navigation .=  $link . "&nbsp;»&nbsp;";
+		}
+		Mode::set('wrapper', 'cms_tpl_Page');
+
+        // Добавяме лейаута на страницата
+        Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
+        
+		return $navigation;
 	}
 	
 	
@@ -216,8 +265,8 @@ class forum_Boards extends core_Master {
 			$tpl->append($catTpl, 'BOARDS');
 		}
 		
-		// @toDo Поставяне на правилна навигация
-		$tpl->replace('Индекс', 'NAVIGATION');
+		// рендиране на навигацията
+		$tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         
 		// Връщаме шаблона с всички дъски групирани по категории
 		return $tpl;
@@ -252,13 +301,8 @@ class forum_Boards extends core_Master {
 		
 		$layout->push($data->forumTheme . '/styles.css', 'CSS');
         
-        // @toDo метод за рендиране на навигацията и обвивката, общ за всички шаблони
+        $layout->replace($this->renderNavigation($data), 'NAVIGATION');
 		
-		// Поставяме шаблона за външен изглед
-		Mode::set('wrapper', 'cms_tpl_Page');
-
-        // Добавяме лейаута на страницата
-        Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
 		
 		return $layout;
 	}
@@ -273,11 +317,13 @@ class forum_Boards extends core_Master {
 		$fields = $this->selectFields("");
         $fields['-browse'] = TRUE;
         $data->row = $this->recToVerbal($data->rec, $fields);
-        
-		// Извличаме всички Постинги, които са начало на нова тема в дъската
+		
+        // Извличаме всички Постинги, които са начало на нова тема в дъската
         $this->forum_Postings->prepareBoardThemes($data);
+        $this->prepareNavigation($data);
     }
-	
+	// TODO action za mestene na tema Move, s prava forum
+	// dyska za temite koito ti si zadal. paraeter na duskata support desk
 	
 	/**
 	 *  Рендиране на списъка от теми, в разглежданата дъска
