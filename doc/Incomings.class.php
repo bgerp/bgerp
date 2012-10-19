@@ -183,7 +183,13 @@ class doc_Incomings extends core_Master
         // TODO може и да се направи форматиране - Интервалите да се заменят с един
         // може и повтарящите думи да се премахнат
         $content = trim(fileman_Indexes::getInfoContentByFh($fileHnd, 'text'));
-
+        
+        // Вземаме текста извлечен от OCR
+        $contentOcr = trim(fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr'));
+        
+        // Ключовите думи ги вземаме от OCR текста, ако няма тогава от обикновенния
+        $keyWords = ($contentOcr) ? $contentOcr : $content;
+        
         // Ако създаваме документа от файл
         if (($fileHnd) && (!$data->form->rec->id)) {
             
@@ -192,22 +198,19 @@ class doc_Incomings extends core_Master
             
             // Масив с баркодовете
             $barcodesArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
-
-            if (is_array($barcodesArr)) {
+            
+            // Ако има масив и съдържанието е празно
+            if (is_array($barcodesArr) && (!$content)) {
                 foreach ($barcodesArr as $barcodesArrPage) {
                     
                     foreach ($barcodesArrPage as $barcodeObj) {
                         
                         // Вземаме cid'a на баркода
                         $cid = log_Documents::getDocumentCidFromURL($barcodeObj->code);
-                    
+
                         // Ако не може да се намери cid, прескачаме
                         if (!$cid) continue;
     
-                        // TODO това може и да се промени след направата на OCR
-                        // Ако има открито съдържание на файла
-                        if ($content) continue;
-                        
                         // Попълваме описанието за файла
                         $data->form->setDefault('title', "Сканиран");    
                         
@@ -219,19 +222,17 @@ class doc_Incomings extends core_Master
                         $data->form->rec->threadId = $cRec->threadId;
                         
                         // Ако открием съвпадение
-                        $scanned = TRUE;
-                        
                         // Прекъсваме цикъла
                         break;
                     }
                     
                     // Ако сме открили съвпадение, прекъсваме цикъла
-                    if ($scanned) break;
+                    if ($cid) break;
                 }    
             }
 
             // Попълваме описанието за файла
-            $data->form->setDefault('keywords', $content);    
+            $data->form->setDefault('keywords', $keyWords);    
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);

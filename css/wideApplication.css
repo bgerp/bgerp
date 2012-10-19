@@ -520,6 +520,9 @@ a img {
     background-image:url('../img/16/file_extension_html.png');
 }
 
+.btn-ocr {
+    background-image:url('../img/16/scanner.png');
+}
 
 /*Стилове за acc*/
 div.acc-detail {
