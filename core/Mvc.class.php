@@ -800,17 +800,43 @@ class core_Mvc extends core_FieldSet
             $indexes = $this->db->getIndexes($this->dbTableName);
 
             unset($indexes['PRIMARY']);
-
+ 
             // Добавяме индексите
             if (count($this->dbIndexes)) {
                 foreach ($this->dbIndexes as $name => $indRec) {
-                    unset($indexes[$name]);
+                    if($indexes[$name]) {
+                        $exFields = $indexes[$name][$indRec->type];
+                        $exFieldsList = '';
+                        foreach($exFields as $exField => $true) {
+                            if($true) {
+                                $exFieldsList .= ($exFieldsList ? ',' : '') . $exField;
+                            }
+                        }
+                        
+                        // За да не бъде премахнат този индекс по-нататък
+                        unset($indexes[$name]);  
+
+                        // Ако полетата на съществуващия индекс са същите като на зададения, не се прави нищо
+                        if($exFieldsList == $indRec->fields) {
+                            $html .= "<li>Съществуващ от преди индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
+                            continue;
+                        }
+
+                        $act = 'Обновен';
+                        $color = '#660000';
+                    } else {
+                        $act = 'Добавен';
+                        $color = 'green';
+                    }
+
+                    // bp($indexes, $this->dbIndexes, $exFieldsList, $indRec->fields);
+
                     $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
-                    $html .= "<li><font color='#660000'>Обновен индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</font></li>";
+                    $html .= "<li><font color='{$color}'>{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</font></li>";
                 }
             }
 
-            if(count($indexes)) {
+            if(count($indexes)) {  bp($indexes, $this->dbIndexes, $exFieldsList, $indRec->fields);
                 foreach($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, "", "DROP", $name);
                     $html .= "<li><font color='green'>Премахнат е индекс '<b>{$name}</b>'</font></li>";
