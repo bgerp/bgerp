@@ -494,8 +494,10 @@ class core_Packs extends core_Manager
             core_Users::forceSystemUser();
             
             // Правим началното установяване
+            if (is_callable(progressFlush)) {progressFlush("Инсталиране <b><i>$pack</i></b> ... ");}
             $res .= $setup->install();
-            
+            if (is_callable(progressFlush)) {progressFlush(20);}
+                        
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
             
