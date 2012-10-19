@@ -151,9 +151,9 @@ class type_Users extends type_Keylist
         if(empty($value)) {
             $value = '|' . core_Users::getCurrent() . '|';
         }
-        
+
         foreach($this->options as $key => $optObj) {
-            if($value == $optObj->keylist) {
+            if($value == $optObj->keylist || $key == $value) {
                 break;
             }
         }
@@ -188,4 +188,5 @@ class type_Users extends type_Keylist
         
         return $this->options[$key]->title;
     }
+
 }
