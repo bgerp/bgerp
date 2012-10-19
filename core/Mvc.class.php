@@ -836,7 +836,7 @@ class core_Mvc extends core_FieldSet
                 }
             }
 
-            if(count($indexes)) {  bp($indexes, $this->dbIndexes, $exFieldsList, $indRec->fields);
+            if(count($indexes)) {
                 foreach($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, "", "DROP", $name);
                     $html .= "<li><font color='green'>Премахнат е индекс '<b>{$name}</b>'</font></li>";
