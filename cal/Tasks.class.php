@@ -56,6 +56,11 @@ class cal_Tasks extends core_Master
      */
     var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
     
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'title, description';
+
     
     /**
      * Поле в което да се показва иконата за единичен изглед
@@ -66,43 +71,43 @@ class cal_Tasks extends core_Master
     /**
      * Кой може да чете?
      */
-    var $canRead = 'admin,doc';
+    var $canRead = 'user';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'admin,doc';
+    var $canEdit = 'user';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,doc';
+    var $canAdd = 'user';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin,doc';
+    var $canView = 'user';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin,doc';
+    var $canDelete = 'user';
     
     
     /**
      * Кой има право да приключва?
      */
-    var $canChangeTaskState = 'admin, doc';
+    var $canChangeTaskState = 'user';
     
     
     /**
      * Кой има право да затваря задачите?
      */
-    var $canClose = 'admin, doc';
+    var $canClose = 'user';
     
     
     /**
