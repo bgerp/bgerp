@@ -148,6 +148,10 @@ pre.richtext {
 	white-space: pre-wrap;
 }
 
+.richtext code {
+	white-space:nowrap;
+}
+
 div.richtext li {
     margin:0px;
     padding:0px;

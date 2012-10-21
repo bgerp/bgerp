@@ -620,7 +620,7 @@ class core_Mvc extends core_FieldSet
             if(!$this->db->tableExists($newTableName)) {
                 if($this->db->tableExists($oldTableName)) {
                     $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}");
-                    $html .= "<li style='color:green'>Преименувана е таблицата {$oldTableName} => {$newTableName} </li>";
+                    $html .= "<li style='color:green'>Преименувана е таблицата <b>{$oldTableName}</b> => <b>{$newTableName}</b></li>";
                 }
             }
         }
