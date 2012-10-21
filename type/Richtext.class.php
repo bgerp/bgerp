@@ -358,7 +358,7 @@ class type_Richtext extends type_Text {
             $Geshi = cls::get('geshi_Import');
             $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
         } else {
-            $code1 = "<pre class='richtext'>" . trim($code) . "</pre>";;
+            $code1 = "<pre class='richtext code'>" . trim($code) . "</pre>";;
         }
         
         $this->_htmlBoard[$place] = $code1;
@@ -547,7 +547,7 @@ class type_Richtext extends type_Text {
      */
     public function internalUrl_($url, $title, $rest)
     {
-        return "<a href=\"{$url}\">{$rest}</a>";
+        return "<a href=\"{$url}\">{$title}</a>";
     }
     
 
