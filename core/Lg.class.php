@@ -230,6 +230,16 @@ class core_Lg extends core_Manager
         
         return $lg;
     }
+
+
+    /**
+     * Изтрива кеша при ъпдейт
+     */
+    function on_AfterSave($mvc, $id, $rec)
+    {
+        core_Cache::remove('translation', $rec->lg);  
+        core_Cache::remove('Menu', "menuObj_{$rec->lg}");
+    }
     
     
     /**
