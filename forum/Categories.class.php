@@ -24,7 +24,7 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, blogm_Wrapper';
+	var $loadList = 'plg_RowTools, forum_Wrapper';
 	
 	
 	/**

@@ -74,7 +74,7 @@ class lab_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3, 'Обслужване', 'Лаборатория', 'lab_Tests', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Обслужване', 'Лаборатория', 'lab_Tests', 'default', "{$role}, admin");
         
         return $html;
     }

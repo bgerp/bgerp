@@ -68,7 +68,10 @@ class forum_Setup
 			$instances[$manager] = &cls::get($manager);
 			$html .= $instances[$manager]->setupMVC();
 		}
-		
+        
+        $Menu  = cls::get('bgerp_Menu');
+		$html .= $Menu->addItem(3, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms, {$role}, admin");
+
 		return $html;
 	}
 	

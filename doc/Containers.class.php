@@ -694,8 +694,22 @@ class doc_Containers extends core_Manager
         //Вземаме записите на класа
         $docRec = $doc->fetch();
         
+        if($docRec->textPart) {
+
+            $lgRates = lang_Encoding::getLgRates($docRec->textPart);
+          
+            $lg = 'bg';
+            
+            $lgRates[$lg] = $lgRates[$lg] * 4;
+
+            $lg = arr::getMaxValueKey($lgRates);
+
+        } else {
+            $lg = $docRec->lg;
+        }
+
         //Връщаме езика
-        return $docRec->lg;
+        return $lg;
     }
     
     

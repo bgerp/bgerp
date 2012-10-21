@@ -100,7 +100,7 @@ class cms_Setup
 
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3, 'Обслужване', 'CMS', 'cms_Content', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3, 'Сайт', 'CMS', 'cms_Content', 'default', "{$role}, admin");
         
         return $html;
     }

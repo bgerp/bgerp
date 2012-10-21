@@ -17,9 +17,15 @@ class forum_Boards extends core_Master {
 	/**
 	 * Заглавие на страницата
 	 */
-	var $title = 'Дъски';
+	var $title = 'Форумни дъски';
+   
+
+    /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'cms_SourceIntf';
 	
-	
+
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
@@ -147,7 +153,7 @@ class forum_Boards extends core_Master {
 	 function prepareForum($data)
 	{
 		// Извличаме всички категории на дъските
-		forum_Categories::prepareCategories(&$data);
+		forum_Categories::prepareCategories($data);
 		if(count($data->categories)) {
 			
 			// За всяка категория ние подготвяме списъка от дъски, които са част от нея
@@ -359,4 +365,14 @@ class forum_Boards extends core_Master {
 		}
 		
 	}
+
+    
+    /**
+     * Връща URL към себе си (блога)
+     */
+    function getContentUrl($cMenuId)
+    {
+        return array('forum_Boards', 'forum');
+    }
+
 }

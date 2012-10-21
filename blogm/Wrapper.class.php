@@ -24,6 +24,5 @@ class blogm_Wrapper extends plg_ProtoWrapper
 		$this->TAB(array('blogm_Articles', 'list'), 'Статии', 'admin,blog');
 		$this->TAB('blogm_Comments', 'Коментари', 'blog,admin');
 		$this->TAB('blogm_Categories', 'Категории', 'admin,blog');
-		$this->TAB('blogm_Archives', 'Архив', 'admin,blog');
 	}
 }

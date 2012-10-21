@@ -104,7 +104,8 @@ class bgerp_Menu extends core_Manager
      * Изтриване на кеша
      */
     function on_AfterDelete($mvc, $id, $rec)
-    {
+    {   
+
         core_Cache::remove('Menu', 'menuObj');
     }
     
@@ -379,17 +380,21 @@ class bgerp_Menu extends core_Manager
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
         
-        $rec->id = $this->fetchField(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #createdBy = -1", $menu, $subMenu), 'id');
+        $rec->id = $this->fetchField(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1", 
+            $menu, $subMenu, $ctr, $act), 'id');
         
-        if(!$rec->id) {
-            $rec->id = $this->fetchField(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1", $ctr, $act), 'id');
+        if($rec->id) {
+            $addCOnd = "AND #id != {$rec->id}";
         }
+        
+        $this->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1 {$addCOnd}", $ctr, $act));
+        $this->delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #createdBy = -1 {$addCOnd}", $menu, $subMenu));
 
         // expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
         
         $oldId = $rec->id;
 
-        $id = $this->save($rec, NULL, 'IGNORE');
+        $id = $this->save($rec);
         
         if($oldId) {
             return "<li style='color:#600;'> Обновен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";

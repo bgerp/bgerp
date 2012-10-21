@@ -101,9 +101,9 @@ class accda_Da extends core_Master
      */
     function description()
     {
-        $this->FLD('num', 'int', 'caption=Наш номер, mandatory');
+        $this->FLD('num', 'varchar(32)', 'caption=Номер->Наш, mandatory');
         
-        $this->FLD('serial', 'varchar', 'caption=Сериен номер');
+        $this->FLD('serial', 'varchar', 'caption=Номер->Сериен');
         
         $this->FLD('title', 'varchar', 'caption=Наименование,mandatory,width=400px');
         
@@ -111,9 +111,9 @@ class accda_Da extends core_Master
         
         $this->FLD('origin', 'text', 'caption=Произход,column=none,width=400px');
         
-        $this->FLD('inUseSince', 'date', 'caption=В употреба от');
+        $this->FLD('inUseSince', 'date(format=d/m/Y)', 'caption=В&nbsp;употреба&nbsp;от');
         
-        $this->FLD('amortNorm', 'double', 'caption=ГАН,hint=Годишна амортизационна норма,unit=%');
+        $this->FLD('amortNorm', 'percent', 'caption=ГАН,hint=Годишна амортизационна норма');
         
         $this->setDbUnique('num');
     }
