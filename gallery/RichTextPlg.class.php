@@ -57,7 +57,7 @@ class gallery_RichTextPlg extends core_Plugin
             
         $Fancybox = cls::get('fancybox_Fancybox');
 
-        $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr);
+        $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, array('style' => $imgRec->style));
         
         $place = $this->mvc->getPlace();
 

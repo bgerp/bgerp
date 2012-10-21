@@ -48,6 +48,8 @@ class gallery_Images extends core_Manager {
     {
      
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory');
+        
+        $this->FLD('style', 'varchar(128)', 'caption=Стил');
 
         $this->FLD('groupId', 'key(mvc=gallery_Groups,select=title)', 'caption=Група');
         
