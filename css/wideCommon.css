@@ -148,7 +148,7 @@ pre.richtext {
 	white-space: pre-wrap;
 }
 
-.richtext code {
+.richtext .code {
 	white-space:nowrap;
 }
 
