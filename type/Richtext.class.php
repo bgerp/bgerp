@@ -353,12 +353,14 @@ class type_Richtext extends type_Text {
         $code = $match[3];
         
         if(!trim($code)) return "";
-        
+        $lg = $match[2];
         if($lg) {
-            $Geshi = cls::get('geshi_Import');
-            $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
-        } else {
+            // $Geshi = cls::get('geshi_Import');
+            // $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
+            
             $code1 = "<pre class='richtext code'>" . trim($code) . "</pre>";;
+        } else {
+            $code1 = "<pre class='richtext'>" . trim($code) . "</pre>";;
         }
         
         $this->_htmlBoard[$place] = $code1;
