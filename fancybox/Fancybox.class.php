@@ -30,28 +30,37 @@ class fancybox_Fancybox {
     /**
      * @todo Чака за документация...
      */
-    function getImage($fh, $thumbSize, $maxSize, $baseName = NULL)
+    function getImage($fh, $thumbSize, $maxSize, $baseName = NULL, $imgAttr = array(), $aAttr = array())
     {
         $Thumb = cls::get('thumbnail_Thumbnail');
         $jQuery = cls::get('jquery_Jquery');
         
         $info['baseName'] = $baseName;
         
-        $rec = new stdClass();
-        $rec->smallUrl = $Thumb->getLink($fh, $thumbSize, $info);
-        $rec->smallHeight = isset($info['height']) ? $info['height'] : $info[1];
-        $rec->smallWidth = isset($info['width']) ? $info['width'] : $info[0];
+        // Създаваме изображението
+        $imgAttr['src']    = $Thumb->getLink($fh, $thumbSize, $info);
+        $imgAttr['height'] = isset($info['height']) ? $info['height'] : $info[1];
+        $imgAttr['width']  = isset($info['width']) ? $info['width'] : $info[0];
+        $imgAttr['title']  = tr('Кликни за увеличение');
+        setIfNot($imgAttr['alt'], $baseName);
+        $imgTpl = ht::createElement('img', $imgAttr);
         
+        // Създаваме хипервръзката
         $sizes['baseName'] = $baseName;
-        $rec->bigUrl = $Thumb->getLink($fh, $maxSize, $sizes);
-        $rec->rel = $maxSize[0] . "_" . $maxSize[1];
-        $tpl = new ET('
+        $aAttr['href'] = $Thumb->getLink($fh, $maxSize, $sizes);
+        setIfNot($aAttr['rel'], $maxSize[0] . "_" . $maxSize[1]);
+        $aAttr['class'] .= 'fancybox';
+        $tpl = ht::createElement('a', $aAttr, $imgTpl);
+
+    /*    $tpl = new ET('
             <a href="[#bigUrl#]" class="fancybox" rel="[#rel#]">
-                <img src="[#smallUrl#]" alt="Pict"
-                    title="Click to enlarge" height="[#smallHeight#]" 
+                <img src="[#smallUrl#]" 
+                    alt="' . $baseName '"
+                    title="' . tr('Кликни за увеличение' .'" 
+                    height="[#smallHeight#]" 
                     width="[#smallWidth#]" />
             </a>
-        ');
+        '); */
         
         $tpl->placeObject($rec);
         
