@@ -309,9 +309,13 @@ class blogm_Articles extends core_Master {
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
 		
-		// Записваме, че потребителя е разглеждал този списък
-		$this->log('article: ' . ($data->log ? $data->log : tr($data->title)), $id);
+		// Записваме, че потребителя е разглеждал тази статия
+		$this->log(('Blog article: ' .  $data->row->title), $id);
 		
+        if(core_Packs::fetch("#name = 'vislog'")) {
+            vislog_History::add($data->row->title);
+        }
+
 		
 		return $tpl;
 	}
