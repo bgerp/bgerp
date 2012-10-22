@@ -99,6 +99,7 @@ class blogm_Setup
 				'blogm_Articles',
 				'blogm_Categories',
 				'blogm_Comments',
+				'blogm_Links',
 		);
 
 		// Роля за power-user на този модул

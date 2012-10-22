@@ -544,6 +544,8 @@ class blogm_Articles extends core_Master {
 
         $this->prepareArchive($data);
         
+        blogm_Links::prepareLinks($data);
+        
         // Конфигурация на пакета
         $data->conf = core_Packs::getConfig('blogm');
 
@@ -576,6 +578,9 @@ class blogm_Articles extends core_Master {
         
         // Рендираме архива
         $layout->replace($this->renderArchive($data), 'ARCHIVE');
+        
+        // Рендираме Линковете
+        $layout->replace(blogm_Links::renderLinks($data), 'LINKS');
 
         // Добавяме стиловете от темата
         $layout->push($data->theme . '/styles.css', 'CSS');

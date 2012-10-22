@@ -24,3 +24,10 @@
 [#WORKSHOP#]
 </div>
 <!--ET_END WORKSHOP-->
+
+<!--ET_BEGIN LINKS-->
+<div id='blogm-links'>
+<div class='nav_item  level1'>Ние четем</div>
+[#LINKS#]
+</div>
+<!--ET_END LINKS-->
