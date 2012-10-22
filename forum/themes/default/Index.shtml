@@ -2,6 +2,6 @@
 <div id='navigation'>
 <span id='navigation-link'>[#NAVIGATION#]</span>
 </div>
-<h4>Добре дошли в нашият форум :)</h4>
+<div id='forum-board'>Екипът на <b>bgERP</b>  ви пожелава приятни минути в нашия форум :)</div>
 [#BOARDS#]
 </div>

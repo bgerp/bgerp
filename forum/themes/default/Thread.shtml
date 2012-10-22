@@ -8,14 +8,16 @@
 <ul id='thread-list'>
 <!--ET_BEGIN ROW-->
 	<li class='thread-header'>
-		<span class='post-date'>публикувано на:&nbsp&nbsp&nbsp[#createdOn#]</span>
-		<span class='post-author'>от:&nbsp;[#createdBy#]</span>
 	</li>
 	<li class='post-body'>
-		<table border='1' width='100%'>
+		<table border='0' width='100%'>
 			<tr>
-				<td width='30%'>
-					<div class='avatar'>[#avatar#]</div>
+				<td width='15%' class='user-info'>
+					<div >
+						<div class='author'>[#createdBy#]</div>
+						<div class='avatar'>[#avatar#]</div>
+						<div class='published-on'>[#createdOn#]</div>
+					</div>
 				</td>
 				<td class='text-body'>
 				[#body#]
@@ -25,7 +27,7 @@
 	</li>
 <!--ET_END ROW-->
 <li>
-[#BOTTOM_PAGER#]
+[#PAGER#]
 </li>
 <li id='comment-form'>
 [#COMMENT_FORM#]

@@ -76,6 +76,7 @@ class forum_Boards extends core_Master {
 		$this->FLD('themesCnt', 'int', 'caption=Брой на темите,value=0,input=none');
 		$this->FLD('commentsCnt', 'int', 'caption=Брой на Коментарите,value=0,input=none');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
+		$this->FLD('lastCommentBy', 'int', 'caption=Последно->кой, input=none');
 		$this->FLD('lastCommentedTheme', 'varchar(100)', 'caption=Последно->къде, input=none');
 		$this->setDbUnique('title');
 	}
@@ -101,7 +102,7 @@ class forum_Boards extends core_Master {
 	 * Обновяваме, къде и кога е публикуван последния коментар в дъската , както и броя на
 	 * всички коментари в дъската
 	 */
-	static function updateLastComment($id, $date, $theme)
+	static function updateLastComment($id, $date, $by, $theme)
 	{
 		$query = forum_Postings::getQuery();
 		$query->where("#boardId = {$id} AND #themeId IS NOT NULL");
@@ -115,6 +116,11 @@ class forum_Boards extends core_Master {
 		
 		// Кога е направен последния коментар
 	    $rec->lastComment = $date;
+	    
+	    // Кой е направил последния коментар
+	    $rec->lastCommentBy = $by;
+	    
+	    // Ъпдейтваме записа
 	    static::save($rec);
 	}
 	
@@ -239,7 +245,19 @@ class forum_Boards extends core_Master {
 	            
 	            // Правим заглавието на дъската, като линк
 	            $category->boards->rows[$rec->id]->title = ht::createLink($category->boards->rows[$rec->id]->title, $url);
-	 		}
+	 		
+	            if(isset($rec->lastCommentBy)) {
+	            
+	            	// извличаме данните на потребителят направил последния коментар
+	            	$lastUser =core_Users::fetch($rec->lastCommentBy);
+	            
+	            	// Намираме аватара спрямо имейла на потребителя
+	            	$category->boards->rows[$rec->id]->lastAvatar =  avatar_Plugin::getImg(0,$lastUser->email, 50);
+	            	
+	            	// Намираме ника на потребителя направил последния коментар
+	            	$category->boards->rows[$rec->id]->lastNick = $lastUser->nick;
+	            }
+	      }
 		}
 	}
 	

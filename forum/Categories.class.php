@@ -30,7 +30,7 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields='id, title, order';
+	var $listFields='id, title, order, canSeeCategory';
 	
 	
 	/**
@@ -63,11 +63,12 @@ class forum_Categories extends core_Manager {
 	function description()
 	{
 		$this->FLD('title', 'varchar(40)', 'caption=Заглавие,mandatory');
-		
 		$this->FLD('canSeeCategory', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Виждане');
 		$this->FLD('order', 'int', 'caption=Подредба');
 
+		// Поставяне на уникални индекси
 		$this->setDbUnique('title');
+		$this->setDbUnique('order');
 	}
 	
 	
@@ -75,6 +76,9 @@ class forum_Categories extends core_Manager {
 	{
 		// Взимаме Заявката към Категориите
 		$query = static::getQuery();
+		
+		// Подреждаме категориите според тяхната последователност
+		$query->orderBy("#order");
 		if($data->category) {
 			$query->where($data->category);
 		}
@@ -82,14 +86,29 @@ class forum_Categories extends core_Manager {
 		
 		// За всеки запис създаваме клас, който натрупваме в масива $data
 		while($rec = $query->fetch()) {
-            
-			// Добавяме категорията като нов елемент на $data
-			$cat = new stdClass();
-			$cat->id = $rec->id;
-			$cat->title = static::getVerbal($rec, 'title');
-			$url = array('forum_Boards', 'Forum','cat'=> $cat->id);
-			$cat->title = ht::createLink($cat->title, $url);
-			$data->categories[]= $cat;
+           // bp($rec);
+			if(static::haveRightFor('read', $rec)) {
+				// Добавяме категорията като нов елемент на $data
+				$cat = new stdClass();
+				$cat->id = $rec->id;
+				$cat->title = static::getVerbal($rec, 'title');
+				$url = array('forum_Boards', 'Forum','cat'=> $cat->id);
+				$cat->title = ht::createLink($cat->title, $url);
+				$data->categories[]= $cat;
+			}
+		}
+	}
+	
+	
+	/**
+	 * Модификация на ролите, които могат да видят избраната Категория
+	 */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{ 
+		if($action == 'read' && isset($rec)) {
+			
+			// Само тези които имат права за достъп, виждат категорията
+			$res = static::getVerbal($rec, 'canSeeCategory');
 		}
 	}
 }

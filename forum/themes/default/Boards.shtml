@@ -3,17 +3,21 @@
 		
 	<!--ET_BEGIN ROW-->
 	<li>
-		<table width='100%' border='0'><tr>
-			<td width='65%'>[#title#]<br>
-				<font size='2px' color='darkgreen'><b>[#shortDesc#]</b></font>
+		<table width='100%' border='0' ><tr>
+			<td width='63%' class='forum-table'>[#title#]<br>
+				<span class='forum-desc'>[#shortDesc#]</span>
 			</td>
-			<td width='15%'>
+			<td width='12%'>
 				<span class='forum-counts'><b>[#themesCnt#]</b>&nbsp;&nbsp;Теми</span><br>
-				<span class='forum-counts'><b>[#commentsCnt#]</b>&nbsp;&nbsp;Отговора </span>
+				<span class='forum-counts'><b>[#commentsCnt#]</b>&nbsp;&nbsp;Мнения</span>
 			</td>
 			<td>
-			<span class='in-theme'>в:&nbsp;[#lastCommentedTheme#]</span><br>
-			<span class='last-comment'>&nbsp;[#lastComment#]</span>
+				<div class='last-by'>[#lastAvatar#]</div>
+				<div class='last-info'>
+					<span class='in-theme'>в:&nbsp;[#lastCommentedTheme#]</span><br>
+					<span class='last-user'>от:&nbsp;[#lastNick#]</span><br>
+					<span class='last-comment'>[#lastComment#]</span>
+				</div>
 			</td>
 		</tr></table>
 	</li>

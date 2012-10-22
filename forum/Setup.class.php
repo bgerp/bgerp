@@ -5,6 +5,10 @@
  */
 defIfNot('FORUM_DEFAULT_THEME', 'forum/themes/default');
 
+defIfNot('FORUM_THEMES_PER_PAGE', '10');
+
+defIfNot('FORUM_POSTS_PER_PAGE', '3');
+
 /**
   * class forum_Setup
  *

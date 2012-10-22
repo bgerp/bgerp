@@ -1,23 +1,22 @@
 <table width='100%' id='forum-themes' border='0' cellspacing='0'>
 	<tr>
-		<th width='75%' style='text-indent:10px'>Теми</th>
-		<th class='centered'>Мнения</td>
-		<th class='centered'>Видяна</td>
-		<!-- <th class='centered'>Започната от</th> -->
+		<th colspan='2' width='90%' style='text-indent:10px'>Теми</th>
 		<th class='centered'>Последно</th>
 	</tr>
 <!--ET_BEGIN ROW-->	
 	<tr class='theme-row'>
-		<td class='theme-row-title'>
+		<td class='theme-row-title' width='80%'>
 			[#title#]<br>
 			<span class='authored'>Започната от:&nbsp;[#createdBy#],[#createdOn#]</span>
 		</td>
-		<td class='centered'>[#postingsCnt#]</td>
-		<td class='centered'>1</td>
-		<!--  <td class='centered'>[#author#]<br>
-		<span class='theme-createdOn'>[#createdOn#]</span>
-		</td>-->
+		<td class='centered'>
+			<span class='forum-counts'><b>[#postingsCnt#]</b>&nbsp;&nbsp;Отговора</span><br>
+			<span class='forum-counts'><b>1</b>&nbsp;&nbsp;прегледа </span>
+		</td>
 		<td class='centered'><span class='last-seen'>[#last#]</span></td>
 	</tr>
 <!--ET_END ROW-->
 </table>
+<!-- ET_BEGIN PAGER -->
+<div id='themes-pager'>[#PAGER#]</div>
+<!-- ET_END PAGER -->

@@ -4,10 +4,14 @@
 	padding-left:0px;
 }
 
-.category-ul li{
-	margin-top:5px;
-	border-bottom:1px solid black;
+#maincontent {
+	background:rgb(248, 248, 248);
 }
+.category-ul li{
+	margin-top:10px;
+	border-bottom:1px solid rgb(238, 238, 238);
+}
+
 #forum-index{
 	width:95%;
 	margin-left:auto;
@@ -21,21 +25,24 @@
 .board-header{
 	height:30px;
 	font-weight:bold;
-	background:darkgray;
-	color:color: rgb(85, 85, 68);;
+	background:rgb(221, 221, 255);
+	border:1px solid rgb(238, 238, 238);
 	text-indent:10px;
-	padding-top:5px;
+	padding-top:8px;
 }
 
 .forum-counts {
 	font-size:14px;
+	color:rgb(51, 51, 102);
 }
 
 #navigation {
-	background:gray;
-	color:#FFFFFF;
+	background:rgb(221, 221, 255);
+	border:1px solid rgb(238, 238, 238);
+	color:black;
 	font-size:14px;
 	text-indent:10px;
+	font-weight:bold;
 	padding:4px;
 }
 
@@ -44,19 +51,20 @@
 }
 
 a:visited, a:link, a:hover{
-	color:black;
+	color:rgb(51, 51, 102);
 }
 
 #navigation a:visited, #navigation a:link, #navigation a:hover {
-	color:white;
+	color:rgb(0, 68, 136);
 }
 .theme-row-title a:hover {
 	border:1px dotted black;
 }
 
 .in-theme,.last-seen  {
-	font-size:14px;
+	font-size:12px;
 	font-weight:bold;
+	color:rgb(51, 51, 102);
 }
 
 .last-comment, .theme-createdOn {
@@ -64,11 +72,12 @@ a:visited, a:link, a:hover{
 }
 
 .theme-row {
-	height:62px;
+	height:75px;
+	
 }
 
 .theme-row td {
-	border-bottom:1px solid black;
+	border-bottom:1px solid rgb(238, 238, 238);
 }
 
 .theme-row-title {
@@ -79,21 +88,22 @@ a:visited, a:link, a:hover{
 	margin-left:10px;
 }
 th{
-	background:gray;
+	background:rgb(221, 221, 255);
+	border:1px solid rgb(238, 238, 238);
 	padding:5px;
 	font-size:14px;
-	color:white;
+	color:rgb(0, 68, 136);
 }
 
 .centered {
 	text-align:center;
 }
 #forum-board {
-	padding:10px;
+	padding:15px;
 }
 
 #shortDesc {
-	color: green;
+	color:#225C97;
 	font-size:15px;
 	font-weight:bold;
 }
@@ -105,12 +115,12 @@ th{
 
 .thread-header{
 	height:27px;
-	background:gray;
+	background:rgb(221, 221, 255);
 	text-indent:10px;
 }
 
 .post-date {
-	color:#FFFFFF;
+	color:rgb(0, 68, 132);
 	font-size:14px;
 }
 
@@ -120,17 +130,16 @@ th{
 }
 
 .post-body {
-	padding-top:15px;
 	vertical-align:top;
-	background:#E8E5E5;
-	border:1px solid black;
-	text-indent:10px;
-	padding:10px;
 }
 
 .text-body {
-	height:60px;
+	vertical-align:top;
+	padding-top:5px;
+	text-indent:20px;
+	padding-left:10px;
 }
+
 #thread-list {
 	list-style:none;
 	padding-left:0px;
@@ -141,8 +150,66 @@ th{
 	margin-top:6px;
 }
 
-.avatar {
+.text-body {
 }
 
-.text-body {
+.forum-table a:visited {
+	color:rgb(51, 51, 102);
+}
+
+ .forum-table a:hover {
+ 	border:1px dotted #000000;
+}
+
+.forum-desc {
+	
+	font-size:12px;
+}
+
+.user-info {
+	vertical-align:top;
+}
+
+.avatar {
+	width:90px;
+	margin-top:2px;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.author {
+	text-align:center;
+	font-weight:bold;
+}
+
+.published-on {
+	margin-top:2px;
+	margin-bottom:8px;
+	text-align:center;
+}
+
+.richtext {
+	background:rgb(238, 238, 238);
+	min-height:70px;
+	margin-top:16px;
+	padding:10px;
+}
+
+.last-by {
+	width:22%;
+	height:50px;
+	float:left;
+	-moz-box-shadow: 0px 0px 3px #000000;
+	-webkit-box-shadow: 0px 0px 3px #000000;
+	box-shadow: 0px 0px 3px #000000;
+}
+
+.last-info {
+	float:right;
+	width:75%;
+	padding:0px;
+}
+
+.last-user {
+	font-size:12px;
 }

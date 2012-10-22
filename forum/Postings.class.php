@@ -65,11 +65,18 @@ class forum_Postings extends core_Detail {
 	function prepareBoardThemes_($data)
 	{
 		$query = $this->getQuery();
+		
+		// Избираме темите, които са начало на нова нишка от дъската
+        $query->where("#boardId = {$data->rec->id} AND #themeId IS NULL");
+        
+		// Подготвяме пагинатора на темите
+        $conf = core_Packs::getConfig('forum');
+		$data->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_THEMES_PER_PAGE));
+        $data->pager->setLimit($query);
+        
         $fields = $this->selectFields("");
         $fields['-browse'] = TRUE;
         
-        // Избираме темите, които са начало на нова нишка от дъската
-        $query->where("#boardId = {$data->rec->id} AND #themeId IS NULL");
         if($this->haveRightFor('read', $data->rec)) {
         	
         	// Ако имаме права да виждаме темите в дъската, ние ги извличаме
@@ -112,6 +119,8 @@ class forum_Postings extends core_Detail {
         
          $layout->replace($tpl, 'THEMES');
          
+         // Рендираме пагинаторът
+         $layout->replace($this->renderListPager($data), 'PAGER');
          return $layout;
 	}
 	
@@ -188,7 +197,6 @@ class forum_Postings extends core_Detail {
 	 */
 	function prepareTheme_($data)
 	{
-		
 		$query = $this->getQuery();
 		$fields = $this->selectFields("");
         $fields['-theme'] = TRUE;
@@ -196,13 +204,26 @@ class forum_Postings extends core_Detail {
         // Избираме темите, които принадлежът към темата
         $query->where("#themeId = {$data->rec->id}");
         
-        // Първия постинг в нишката е мастър постинга ( този който е начало
-        // на темата
+        // Подготвяме пагинатора на темите
+        $conf = core_Packs::getConfig('forum');
+		$data->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_POSTS_PER_PAGE));
+        $data->pager->setLimit($query);
+        
+        // Първия постинг в нишката е мастър постинга ( този който е начало на темата )
         $data->thread[] = $this->recToVerbal($data->rec, $fields);
+        
+        // Извличаме граватара на автора на темата
+        $data->thread[count($data->thread)-1]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 90);
+       
+        // Извличаме всички постинги направени относно темата
 		while($rec = $query->fetch()) {
+			
 			// Добавяме другите постинги, които имат за themeId, id-то на темата
 			$data->thread[] = $this->recToVerbal($rec, $fields);
-		}
+			
+			// Извличаме аватара на потребителя, който е направил коментара
+			$data->thread[count($data->thread)-1]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 90);
+        }
 		$data->title = "Разглеждане на тема {$data->rec->title}";
 		
 		// Ако можем да добавяме нов постинг в темата
@@ -215,6 +236,7 @@ class forum_Postings extends core_Detail {
 			$data->postForm->setHidden('boardId', $data->rec->boardId);
 			$data->postForm->toolbar->addSbBtn('Коментирай');
 		}
+		
 		$this->Master->prepareNavigation($data);
 	}
 	
@@ -226,7 +248,6 @@ class forum_Postings extends core_Detail {
 	{
 		$tpl = new ET(getFileContent($data->forumTheme . '/Thread.shtml'));
 		$tpl->replace($data->title, 'THREAD_HEADER');
-		
 		// Ако имаме теми в нишката ние ги рендираме
 		if(count($data->thread)){
 			foreach($data->thread as $row) {
@@ -235,6 +256,9 @@ class forum_Postings extends core_Detail {
 	            $rowTpl->append2master();
 			}
 		}
+		
+		// Рендираме пагинаторът
+         $tpl->replace($this->renderListPager($data), 'PAGER');
 		
 		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
@@ -289,7 +313,7 @@ class forum_Postings extends core_Detail {
       	$theme = $mvc::fetchField($rec->themeId,'title');
       	
       	// Обновяваме информацията в дъската,кога и къде е постнат последния коментар
-      	forum_Boards::updateLastComment($rec->boardId, $rec->createdOn, $theme);
+      	forum_Boards::updateLastComment($rec->boardId, $rec->createdOn,$rec->createdBy, $theme);
       }
    }
    
