@@ -52,8 +52,9 @@ class forum_Postings extends core_Detail {
 		$this->FLD('boardId', 'key(mvc=forum_Boards, select=title)', 'caption=Дъска, input=hidden, silent');
 		$this->FLD('title', 'varchar(50)', 'caption=Заглавие, mandatory, notNull,width=100%');
 		$this->FLD('body', 'richtext', 'caption=Съдържание, mandatory, notNull,width=100%');
-		$this->FLD('postingsCnt', 'int', 'caption=Брой на постингите,input=hidden,width=100%');
+		$this->FLD('postingsCnt', 'int', 'caption=Брой на постингите,input=hidden,width=100%,notNull,value=0');
 		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->кога,input=none,width=100%');
+		$this->FLD('lastWho', 'int', 'caption=Последно->Кой,input=none,width=100%');
 		$this->FLD('themeId', 'int', 'caption=Ид на темата,input=hidden,width=100%');
 	}
 	
@@ -85,10 +86,17 @@ class forum_Postings extends core_Detail {
 	            $data->themeRows[$rec->id] = $this->recToVerbal($rec, $fields);
 	            $url = array('forum_Postings', 'Theme', $rec->id);
 	            
-	            // Заглавието на постинга, който е начало на тема става линк към
-	            // самата тема
+	            // Заглавието на постинга, който е начало на тема става линк към самата тема
 	            $data->themeRows[$rec->id]->title = ht::createLink($data->themeRows[$rec->id]->title, $url);
-	        }
+	            
+	            if(isset($rec->lastWho)) {
+	            	
+	            	// Намираме аватара и ника на потребителят, коментирал последно
+	            	$user = core_Users::fetch($rec->lastWho);
+		        	$data->themeRows[$rec->id]->avatar = avatar_Plugin::getImg(0, $user->email, 50);
+		        	$data->themeRows[$rec->id]->nick = $user->nick;
+	            }
+	      }
         }
         
         // Ако имаме права да добавяме нова тема в дъската
@@ -122,16 +130,6 @@ class forum_Postings extends core_Detail {
          // Рендираме пагинаторът
          $layout->replace($this->renderListPager($data), 'PAGER');
          return $layout;
-	}
-	
-	
-	/**
-	 * Задаване на име на автора по подразбиране
-	 */
-	static function on_AfterPrepareEditForm($mvc, $res, $data)
-	{
-	    $data->form->setDefault('author', core_Users::getCurrent('nick'));
-	    $data->form->setHidden('postingsCnt', '0');
 	}
 	
 	
@@ -210,21 +208,37 @@ class forum_Postings extends core_Detail {
         $data->pager->setLimit($query);
         
         // Първия постинг в нишката е мастър постинга ( този който е начало на темата )
-        $data->thread[] = $this->recToVerbal($data->rec, $fields);
+        $data->thread[$data->rec->id] = $this->recToVerbal($data->rec, $fields);
         
         // Извличаме граватара на автора на темата
-        $data->thread[count($data->thread)-1]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 90);
+        $data->thread[$data->rec->id]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 90);
        
         // Извличаме всички постинги направени относно темата
 		while($rec = $query->fetch()) {
 			
 			// Добавяме другите постинги, които имат за themeId, id-то на темата
-			$data->thread[] = $this->recToVerbal($rec, $fields);
+			$data->thread[$rec->id] = $this->recToVerbal($rec, $fields);
 			
 			// Извличаме аватара на потребителя, който е направил коментара
-			$data->thread[count($data->thread)-1]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 90);
+			$data->thread[$rec->id]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 90);
         }
 		$data->title = "Разглеждане на тема {$data->rec->title}";
+		
+	
+		// Ако можем да местим темата, добавяме форма
+		if($this->haveRightFor('write')) {
+			
+			$data->moveForm = cls::get('core_Form');
+			
+			// Избираме дъска в която да преместим темата
+			$data->moveForm->FNC('boardId', 'key(mvc=forum_Boards,select=title)', 'placeholder=Дъска,input');
+			
+			// Ид на темата която местим
+			$data->moveForm->setHidden('themeId', $data->rec->id);
+			$data->moveForm->setDefault('boardId', $data->board->id);
+			$data->moveForm->setAction($this, 'move');
+			$data->moveForm->toolbar->addSbBtn('Премести');
+		}
 		
 		// Ако можем да добавяме нов постинг в темата
 		if($this->haveRightFor('add', $data->board)) {
@@ -237,6 +251,7 @@ class forum_Postings extends core_Detail {
 			$data->postForm->toolbar->addSbBtn('Коментирай');
 		}
 		
+		// Подготвяме навигацията
 		$this->Master->prepareNavigation($data);
 	}
 	
@@ -260,14 +275,60 @@ class forum_Postings extends core_Detail {
 		// Рендираме пагинаторът
          $tpl->replace($this->renderListPager($data), 'PAGER');
 		
-		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
+		// Ако имаме право да местим темата, рендираме формата за местене
+        if($data->moveForm) {
+        	$data->moveForm->layout = new ET(getFileContent($data->forumTheme . '/MoveForm.shtml'));
+            $data->moveForm->fieldsLayout = new ET(getFileContent($data->forumTheme . '/MoveFormFields.shtml'));
+            $tpl->replace($data->moveForm->renderHtml(), 'TOOLS');
+        }
+         
+        // @toDo Има някаква грешка с показване на полето за грешка
+        // Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
             $data->postForm->layout = new ET(getFileContent($data->forumTheme . '/PostForm.shtml'));
             $data->postForm->fieldsLayout = new ET(getFileContent($data->forumTheme . '/PostFormFields.shtml'));
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         }
 		
-		return $tpl;
+        return $tpl;
+	}
+	
+	
+	/**
+	 * Екшън за местене на избрана тема
+	 */
+	function act_Move() {
+		$boardTo = Request::get('boardId');
+		$themeId = Request::get('themeId');
+		
+		$this->requireRightFor('write');
+
+		// Намираме boardId-то на текущата тема
+		$boardFrom = $this->fetchField($themeId, 'boardId');
+		
+		if($boardFrom != $boardTo) {
+			
+			// Ако сме посочили нова дъска
+			$query = $this->getQuery();
+			$query->where("#id = {$themeId}");
+			$query->orWhere("#themeId = {$themeId}");
+			
+			// Ъпдейтваме boardId-то на всеки постинг, който е част от темата
+			while($rec = $query->fetch()) {
+				$rec->boardId = $boardTo;
+				static::save($rec);
+			}
+			
+			// Обновяваме броя на темите съответно в старата и в новата дъска
+			forum_Boards::updateThemesCount($boardFrom);
+			forum_Boards::updateThemesCount($boardTo);
+			
+			//@toDo да модифириам екшъна forum_Boards::updateLastComment 
+			// да ъпдейтва последния коментар само с пдоаването наид-то на дъската
+		} 
+		
+		// След края редиректваме към същата тема
+		return new Redirect(array('forum_Postings', 'Theme', $themeId));
 	}
 	
 	
@@ -303,17 +364,19 @@ class forum_Postings extends core_Detail {
       	// Ако themeId е NULL, то постинга е начало на нова Тема. Обновяваме
       	// броя на темите в Дъската, където е създаденена темата
     	forum_Boards::updateThemesCount($rec->boardId);
+    	
       } else {
       	
       	// Ако themeId не е NULL, То постинга е добавен към тема. Обновяваме броя
       	// на постингите в темата след началния, както и кой е последния коментар
-      	$mvc->updateStatistics($rec->themeId, $rec->createdOn);
+      	$mvc->updateStatistics($rec->themeId, $rec->createdOn, $rec->createdBy);
       	
       	// Заглавието на темата, където е публикуван коментара
       	$theme = $mvc::fetchField($rec->themeId,'title');
       	
-      	// Обновяваме информацията в дъската,кога и къде е постнат последния коментар
+      	// Обновяваме информацията в дъската, кой, кога и къде е постнал последния коментар
       	forum_Boards::updateLastComment($rec->boardId, $rec->createdOn,$rec->createdBy, $theme);
+      	
       }
    }
    
@@ -321,7 +384,7 @@ class forum_Postings extends core_Detail {
    /**
 	 * Обновяваме статистическата информация на темата
 	 */
-   function updateStatistics($themeId, $createdOn)
+   function updateStatistics($themeId, $createdOn, $createdBy)
     {
    	   		$query = $this->getQuery();
    	   		
@@ -329,9 +392,12 @@ class forum_Postings extends core_Detail {
 	        $query->where("#themeId = {$themeId}");
 	        $rec = $this->fetch($themeId);
 	        
-	        // Датата на която е направен последния коментар
+	        // Кой и кога е направил последния коментар
 	        $rec->last = $createdOn;
+	        $rec->lastWho = $createdBy;
 	        $rec->postingsCnt = $query->count();
+	        
+	        // Обновяваме темата
 	        static::save($rec);
    }
 }

@@ -72,6 +72,18 @@ class forum_Categories extends core_Manager {
 	}
 	
 	
+	/**
+	 * Подреждаме категориите по полето им order
+	 */ 
+	function on_BeforePrepareListRecs($mvc, $res, $data)
+	{
+		$data->query->orderBy('#order');
+	}
+	
+	
+	/**
+	 * Подготвяме всички категории в $data
+	 */
 	static function prepareCategories(&$data)
 	{
 		// Взимаме Заявката към Категориите
@@ -79,15 +91,15 @@ class forum_Categories extends core_Manager {
 		
 		// Подреждаме категориите според тяхната последователност
 		$query->orderBy("#order");
+		
+		// Ако е сетнато $data->category, то връщаме само тази категория
 		if($data->category) {
 			$query->where($data->category);
 		}
 		
-		
 		// За всеки запис създаваме клас, който натрупваме в масива $data
 		while($rec = $query->fetch()) {
-           // bp($rec);
-			if(static::haveRightFor('read', $rec)) {
+           if(static::haveRightFor('read', $rec)) {
 				// Добавяме категорията като нов елемент на $data
 				$cat = new stdClass();
 				$cat->id = $rec->id;

@@ -73,12 +73,21 @@ class forum_Boards extends core_Master {
 		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска,mandatory');
 		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Теми,mandatory');
 		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментиране,mandatory');
-		$this->FLD('themesCnt', 'int', 'caption=Брой на темите,value=0,input=none');
-		$this->FLD('commentsCnt', 'int', 'caption=Брой на Коментарите,value=0,input=none');
+		$this->FLD('themesCnt', 'int', 'caption=Брой на темите,notNull,input=hidden,value=0');
+		$this->FLD('commentsCnt', 'int', 'caption=Брой на Коментарите,notNull,input=hidden,value=0');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
 		$this->FLD('lastCommentBy', 'int', 'caption=Последно->кой, input=none');
 		$this->FLD('lastCommentedTheme', 'varchar(100)', 'caption=Последно->къде, input=none');
 		$this->setDbUnique('title');
+	}
+	
+	
+	/**
+	 * Подрежане на дъските по категории
+	 */ 
+	function on_BeforePrepareListRecs($mvc, $res, $data)
+	{
+		$data->query->orderBy('#category');
 	}
 	
 	
@@ -122,6 +131,7 @@ class forum_Boards extends core_Master {
 	    
 	    // Ъпдейтваме записа
 	    static::save($rec);
+	    
 	}
 	
 	
@@ -223,6 +233,7 @@ class forum_Boards extends core_Master {
         // Добавяме лейаута на страницата
         Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
         
+	 	
 		return $navigation;
 	}
 	

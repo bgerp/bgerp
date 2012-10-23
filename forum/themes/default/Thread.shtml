@@ -6,6 +6,9 @@
 <div id='board-name'>[#THREAD_HEADER#]</div>
 </div>
 <ul id='thread-list'>
+	<li >
+		[#TOOLS#]
+	</li>
 <!--ET_BEGIN ROW-->
 	<li class='thread-header'>
 	</li>
