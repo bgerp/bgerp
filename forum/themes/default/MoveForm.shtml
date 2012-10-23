@@ -1,0 +1,13 @@
+<form style="" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
+<!--ET_BEGIN FORM_ERROR-->
+<div class="formError">
+	[#FORM_ERROR#]
+</div>
+<!--ET_END FORM_ERROR-->
+<table border='0'>
+	<tr>
+		<td>[#FORM_FIELDS#]</td>
+		<td>[#FORM_TOOLBAR#][#FORM_HIDDEN#]</td>
+	</tr>
+</table>
+</form>
