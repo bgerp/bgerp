@@ -617,6 +617,9 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
         
+        // Ако се препраща
+        $forward = Request::get('forward');
+        
         // Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
         
@@ -628,16 +631,23 @@ class email_Outgoings extends core_Master
         
         //Зареждаме нужните променливи от $data->form->rec
         $originId = $rec->originId;
-        $threadId = $rec->threadId;
-        $folderId = $rec->folderId;
+        
+        // Ако писмото не се препраща
+        if (!$forward) {
+            $threadId = $rec->threadId;    
+        }
+        
+        // Ако не е задедено folderId в URL' то
+        if (!($folderId = Request::get('folderId', 'int'))) $folderId = $rec->folderId;
+        
         $emailTo = Request::get('emailto');
         
         $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
         $emailTo = str_replace('mailto:', '', $emailTo);
 
 
-        // Определяме треда от originId
-        if($originId && !$threadId) {
+        // Определяме треда от originId, ако не се препраща
+        if($originId && !$threadId && !$forward) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
         
@@ -668,24 +678,44 @@ class email_Outgoings extends core_Master
             //Добавяме в полето Относно отговор на съобщението
             $oDoc = doc_Containers::getDocument($originId);
             $oRow = $oDoc->getDocumentRow();
-            $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
-            $oContragentData = $oDoc->getContragentData();
+            
+            // Заглавието на темата
+            $title = html_entity_decode($oRow->title);
+            
+            // Ако се препраща
+            if ($forward) {
+                
+                // Полето относно
+                $rec->subject = 'FW: ' . $title;    
+            } else {
+                
+                $rec->subject = 'RE: ' . $title;
+                $oContragentData = $oDoc->getContragentData();    
+            }
         }
         
-        // Определяме езика на който трябва да е имейла
-        $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
+        if ($forward) {
+            
+            // Определяме езика от папката
+            $lg = email_Outgoings::getLanguage(FALSE, FALSE, $folderId);   
+        } else {
+            
+            // Определяме езика на който трябва да е имейла
+            $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);    
+        }
         
         //Сетваме езика, който сме определили за превод на съобщението
         core_Lg::push($lg);
         
-        //Ако сме в треда, вземаме данните на получателя
-        if ($threadId) {
+        //Ако сме в треда, вземаме данните на получателя и не препращаме имейла
+        if ($threadId && !$forward) {
+            
             //Данните на получателя от треда
             $contragentData = doc_Threads::getContragentData($threadId);
         }
         
         //Ако създаваме нов тред, определяме данните на контрагента от ковъра на папката
-        if (!$threadId && $folderId) {
+        if ((!$threadId || $forward) && $folderId) {
             $contragentData = doc_Folders::getContragentData($folderId);
         }
         
@@ -715,7 +745,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако отговаряме на конкретен е-имейл, винаги имейл адреса го вземаме от него
-        if($oContragentData->email) {
+        if($oContragentData->email && !$forward) {
             $rec->email = $oContragentData->email;
         }
         
@@ -743,33 +773,37 @@ class email_Outgoings extends core_Master
         $contragentDataHeader['hello'] = $hello;
  
         //Създаваме тялото на постинга
-        $rec->body = $mvc->createDefaultBody($contragentDataHeader, $originId);
+        $rec->body = $mvc->createDefaultBody($contragentDataHeader, $originId, $forward);
         
         //След превода връщаме стария език
         core_Lg::pop();
         
         //Добавяме новите стойности на $rec
-        if($threadId) {
+        if($threadId && !$forward) {
             $rec->threadId = $threadId;
         }
 
         if($folderId) {
             $rec->folderId = $folderId;
         }
-
+        
+        // Премахваме threadId от записите
+        if ($forward) {
+            unset($rec->threadId);    
+        }
      }
     
     
     /**
      * Създава тялото на постинга
      */
-    function createDefaultBody($HeaderData, $originId)
+    function createDefaultBody($HeaderData, $originId, $forward=FALSE)
     {
         //Хедър на съобщението
         $header = $this->getHeader($HeaderData);
         
         //Текста между заглавието и подписа
-        $body = $this->getBody($originId);
+        $body = $this->getBody($originId, $forward);
         
         //Футър на съобщението
         $footer = $this->getFooter();
@@ -800,7 +834,7 @@ class email_Outgoings extends core_Master
     /**
      * Създава текста по подразбиране
      */
-    function getBody($originId)
+    function getBody($originId, $forward=FALSE)
     {
         if (!$originId) return ;
         
@@ -812,7 +846,7 @@ class email_Outgoings extends core_Master
         
         //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на имейл-а
         if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
-            $body = $className::getDefaultEmailBody($document->that);
+            $body = $className::getDefaultEmailBody($document->that, $forward);
         }
         
         return $body;

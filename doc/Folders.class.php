@@ -433,7 +433,7 @@ class doc_Folders extends core_Master
      * @param core_Query $query
      * @param int $userId key(mvc=core_Users)
      */
-    static function restrictAccess($query, $userId = NULL)
+    static function restrictAccess(&$query, $userId = NULL)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();

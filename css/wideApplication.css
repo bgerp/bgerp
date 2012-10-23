@@ -524,6 +524,10 @@ a img {
     background-image:url('../img/16/scanner.png');
 }
 
+.btn-forward {
+    background-image:url('../img/16/email_forward.png');
+}
+
 /*Стилове за acc*/
 div.acc-detail {
  font-size:0.8em;

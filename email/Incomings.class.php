@@ -1424,16 +1424,29 @@ class email_Incomings extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща тялото наимей по подразбиране
      */
-    static function getDefaultEmailBody($id)
+    static function getDefaultEmailBody($id, $forward)
     {
         //Вземаме датата от базата от данни
         $rec = email_Incomings::fetch($id, 'date');
         
-        //Вербализираме датата
-        $date = dt::mysql2verbal($rec->date, 'd-M H:i');
-        
-        //Създаваме шаблона
-        $text = tr('Благодаря за имейла от') . " {$date}.\n" ;
+        if ($forward) {
+            
+            // Инстанция към документа
+            $incomingInst = cls::get('email_Incomings');
+            
+            // Манипулатора на документа
+            $handle = $incomingInst->getHandle($id);
+            
+            // Текстова част
+            $text = "Моля запознайте се с препратения имейл #{$handle}.";    
+        } else {
+            
+            //Вербализираме датата
+            $date = dt::mysql2verbal($rec->date, 'd-M H:i');
+            
+            //Създаваме шаблона
+            $text = tr('Благодаря за имейла от') . " {$date}.\n" ;    
+        }
         
         return $text;
     }
@@ -1557,7 +1570,104 @@ class email_Incomings extends core_Master
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
                     ),
                 'class=btn-eml, order=21');    
+                
+                // Добавяме бутон за препращане на имейла
+                $data->toolbar->addBtn('Препаращне', array(
+                        'email_Incomings',
+                        'forward',
+                        $data->rec->id,
+                        'ret_url' => TRUE,
+                    ), 'class=btn-forward, order=20'
+                );
             }
         }
+    }
+    
+    
+    /**
+     * Екшън за препращане на имейли
+     */
+    function act_Forward()
+    {
+        // id'то на документа
+        $id = Request::get('id', 'int');
+        
+        // Вземаме записа
+        $rec = $this->fetch($id);
+        
+        // Проверяваме за права
+        $this->requireRightFor('single', $rec); // TODO не работи много коректно
+        
+        $data = new stdClass();
+        
+        // Вземаме формата
+        $data->form = static::getForm();
+        
+        $form = &$data->form;
+        
+        // Обхождаме всички да не се показват
+        foreach($form->fields as &$field) {
+            $field->input = 'none';
+        } 
+           
+        // Само полето папкa да се показва
+        $form->fields['folderId']->input = 'input';
+        
+        $form->input();
+        
+        // Ако формата е субмитната
+        if ($form->isSubmitted()) {
+            
+            // Препращаме към формата за създаване на имейл
+            redirect(toUrl(array(
+            					 'email_Outgoings',
+            					 'add', 'originId'=>$rec->containerId,
+            					 'folderId' => $form->rec->folderId,
+            					 'forward'=>'forward',
+            					 'ret_url'=>TRUE,
+                                )));
+        }
+        
+        // Вземаме папките, до които имаме достъп
+        $query = doc_Folders::getQuery();
+        doc_Folders::restrictAccess($query);
+        
+        // Обхождаме всички папки, до които имаме достъп
+        while ($fRec = $query->fetch()) {
+            
+            // Вербалното име на папката
+            $title = doc_Folders::getVerbal($fRec, 'title');
+            
+            // Ако има заглавие
+            if ($title) {
+                
+                // Добавяме в масива с папки
+                $foldersArr[$fRec->id] = $title;
+            }
+        }
+        
+        // Задаваме стойностите на папките от масива
+        $form->setOptions('folderId', $foldersArr);   
+        
+        // URL' то където ще се редиректва
+        $retUrl = getRetUrl();
+        
+        // Ако няма ret_url, създаваме го
+        $retUrl = ($retUrl) ? $retUrl : toUrl(array($this,'single', $id));
+        
+        // Подготвяме лентата с инструменти на формата
+        $form->toolbar->addSbBtn('Избор', 'default', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        
+        // Потготвяме заглавието на формата
+        $form->title = 'Препращане на имейл';
+        
+        // Получаваме изгледа на формата
+        $tpl = $form->renderHtml();
+        
+        // Опаковаме изгледа
+        $tpl = static::renderWrapping($tpl, $data);
+        
+        return $tpl;
     }
 }
