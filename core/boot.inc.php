@@ -11,7 +11,7 @@
  * @package    core
  * @author     Milen Georgiev
  * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ * @license    GPL 3
  * @version    CVS: $Id:$
  * @link
  * @since      v 0.1

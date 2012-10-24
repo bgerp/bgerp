@@ -1,5 +1,20 @@
 <?php
 
+
+
+/**
+ * Скрипт 'Setup.inc.php' - Следи инсталирането на bgERP
+ *
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @link 
+ */
+ 
 ob_end_clean();
 
 function progressFlush ($forFlush)
@@ -13,14 +28,18 @@ function progressFlush ($forFlush)
         echo str_repeat(" ", 1024), "\n";
         $started++;
     }
+    
     // Прогресбар
-    if (is_int($forFlush)) {
-        for ($i==1; $i<$forFlush; $i++)
-        {
-            echo("<span style='color: green;'>+</span>");
+    if (!is_string($forFlush)) {
+        if ($forFlush > 100) $forFlush = 100;
+        $width = 3*$forFlush;
+        echo "<span style=\"text-align: right; padding-right: 2px; padding-left:{$width}px; background-color: #28DB55;\"><span style=\"width: 0;\">&nbsp;</span></span>";
+//        for ($i==0; $i<=$forFlush; $i++)
+//        {
+//            echo("<span style='color: green;'>+</span>");
 
-        }
-        echo("<span style='color: green;'>100 %</span><br>");
+//        }
+        echo("<span style=\"font-size: .8em; font-weight: bold; margin-left:3px;\">{$forFlush}</span></li>");
     } else {
         // Изкарваме само текст
         echo($forFlush);
@@ -164,72 +183,109 @@ if ($_GET['a'] == '4') {
 }
 
 /**********************************
- * Setup на core_Packs
+ * Setup на bgerp
  **********************************/
+
 if ($_GET['a'] == '5') {
+    $totalRecords = 136676;
+    $totalTables = 173;
+
+    $res = file_get_contents("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=55", FALSE, NULL, 0, 2);
     
-    Mode::setPermanent('currentUserRec', NULL);
-    Mode::destroy();
-    core_Db::$noAutoSetup = TRUE;
+    if ($res == 'OK') {
+        progressFlush ("<h3>Setup-а стартиран ...</h3>");
+    } else {
+        progressFlush ("<h3 style='color: red;'>Грешка при стартиране на Setup!</h3>");
+        
+        exit;
+    }
     
-    progressFlush("<h2> {$_GET['a']} Сетъп на core_Packs ... </h2>");
-    echo ("<h4>Създаване структури за:</h4>");
-    progressFlush("Плъгини ...");
+    mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
+    
+    do {
+        $recordsRes = mysql_query("SELECT SUM(TABLE_ROWS) AS RECS
+                                    FROM INFORMATION_SCHEMA.TABLES 
+                                WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
+        
+        $tablesRes = mysql_query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". EF_DB_NAME ."';");
+        $rows = mysql_fetch_object($recordsRes);
+        $tables = mysql_fetch_object($tablesRes);
+//        progressFlush("Вкарани данни: {$rows->RECS} от {$totalRecords} " . round($rows->RECS/$totalRecords,2)*100 . "%<br>");
+//        progressFlush("Създадени таблици: {$tables->TABLES} от {$totalTables} " . round($tables->TABLES/$totalTables,2)*100 . "%<br>");
+        progressFlush("<li><span style='width: 170px; display: block; border: 1px solid black;'>Вкарани данни:&nbsp</span>");
+        progressFlush(round($rows->RECS/$totalRecords,2)*100);
+        progressFlush("<li><span style='width: 170px;display: block;border: 1px solid black;'>Създадени таблици:&nbsp</span>");
+        progressFlush(round($tables->TABLES/$totalTables,2)*100 );
+        sleep(2);
+    } while ($rows->RECS < $totalRecords && $tables->TABLES < $totalTables);
+
+    
+    exit;
+}
+
+/**********************************
+ * Setup на bgerp самостоятелно инсталиране
+ **********************************/
+if ($_GET['a'] == '55') {
+
+    // Затваряме връзката с извикване
+    
+    // Следващият ред генерира notice,
+    // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
+    @ob_end_clean();
+    
+    header("Connection: close\r\n");
+    header("Content-Encoding: none\r\n");
+    ob_start();
+    echo "OK";
+    $size = ob_get_length();
+    header("Content-Length: $size");
+    ob_end_flush();
+    flush();
+    ob_end_clean();
+    
     $Plugins = cls::get('core_Plugins');
     $res = $Plugins->setupMVC();
-    progressFlush(8);
+    file_put_contents("setupResbgERP1.html", $res, FILE_APPEND);
+    file_put_contents("setupResbgERP.html", "OK", FILE_APPEND); exit;
 
-    progressFlush("Класове ...");
     $Classes = cls::get('core_Classes');
-    $res .= $Classes->setupMVC();
-    progressFlush(13);
+    $res = $Classes->setupMVC();
+    file_put_contents("setupResbgERP2.html", $res, FILE_APPEND);
 
-    progressFlush("Крон ...");
     $Cron = cls::get('core_Cron');
-    $res .= $Cron->setupMVC();
-    progressFlush(10);
+    $res = $Cron->setupMVC();
+    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
 
-    progressFlush("Кеш ...");
     $Cache = cls::get('core_Cache');
-    $res .= $Cache->setupMVC();
-    progressFlush(11);
+    $res = $Cache->setupMVC();
+    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
 
-    progressFlush("Роли ...");
     // Сетъпваме мениджъра на ролите който си добавя admin, ако я няма
     $Roles = cls::get('core_Roles');
-    $res .= $Roles->setupMVC();
-    progressFlush(7);
+    $res = $Roles->setupMVC();
+    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
 
-    progressFlush("Потребители ...");
     $Users = cls::get('core_Users');
-    $res .= $Users->setupMVC();
-    progressFlush(15);
+    $res = $Users->setupMVC();
+    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
     
-    progressFlush("Пакети ...");
     $Packs = cls::get('core_Packs');
-    $res .= $Packs->setupMVC();
-    progressFlush(10);
+    $res = $Packs->setupMVC();
+    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
     
-    progressFlush("Меню ...");
     // Зависимости на Crm-a
     $Menu = cls::get('bgerp_Menu');
-    $res .= $Menu->setupMVC();
-    progressFlush(8);
+    $res = $Menu->setupMVC();
+    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
 
-    progressFlush("Файлове ...");
     $Bucket = cls::get('fileman_Buckets');
-    $res .= $Bucket->setupMVC();
-    progressFlush(12);
-        
-    //$res = file_get_contents("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/core_Packs/setupMVC");
-    //echo($res);
-    progressFlush("<div style='color: green; font-size: 16pt;'>OK!</div>");
-    sleep(1);
+    $res = $Bucket->setupMVC();
+    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
 
-    // Редиректваме браузъра направо към следващата стъпка
-    echo ("<script language=\"javascript\">");
-    echo (" parent.next(1);");
-    echo ("</script>");
+    $res = $Packs->setupPack('bgerp');
+
+    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
     
     exit;
 }
@@ -238,7 +294,7 @@ if ($_GET['a'] == '5') {
 /**********************************
  * Задаване на административен потребител
  **********************************/
-if ($_GET['a'] == '6') {
+if ($_GET['a'] == '7') {
     // Има зададено нещо от формата
     if ($_GET['submitted']==1) {
         
@@ -283,53 +339,10 @@ if ($_GET['a'] == '6') {
     exit;
 }
 
-
-/**********************************
- * Задаване на фирма
- **********************************/
-if ($_GET['a'] == '7') {
-    // Има зададено нещо от формата
-    if ($_GET['submitted']==1) {
-
-        core_Db::$noAutoSetup = TRUE;
-
-        $cfg['BGERP_OWN_COMPANY_ID'] = $_GET['companyId'];
-        $cfg['BGERP_OWN_COMPANY_NAME'] = $_GET['companyName'];
-        $cfg['BGERP_OWN_COMPANY_COUNTRY'] = $_GET['companyCountry'];
-
-        // Ако няма фирма с id=1 - добавяме в конфигурационните данни
-        $Company = cls::get('crm_Companies');
-        $Company->setupMVC();
-        if (!$Company->fetch('#id = 1')) {
-            core_Packs::setConfig('crm', $cfg); 
-            $packs = cls::get('core_Packs');
-            $res = $packs->setupPack('crm');
-        } else {
-            $res = "<li>Съществува фирма по подразбиране";
-        }
-        //header("Location: http://{$_SERVER['SERVER_NAME']}/core_Packs/install/?pack=crm");
-        //echo ($res);
-        
-        exit;
-    }
-    echo("<h2> {$_GET['a']} Данни за фирма</h2>");
-    echo("<form id=f1 method='get' action='' target='_self'>");
-    echo("<input type=hidden name='SETUP'>");
-    echo("<input type=hidden name='a' value={$_GET['a']}>");
-    echo("<input type=hidden name=submitted value=1>");
-    echo("<input type=hidden name=companyId value=1>");
-    echo("<li> Име на фирмата: <input name=companyName></li>");
-    echo("<li> Държава: <input name=companyCountry value=Bulgaria></li>");
-    echo("<input type=submit value=Запис>");
-    echo("</form>");
-    
-    exit;
-}
-
 /**********************************
  * Край на помощника
  **********************************/
-if ($_GET['a'] == '8') {
+if ($_GET['a'] == '9') {
     if ($_GET['submitted']==1) {
         
         core_Db::$noAutoSetup = TRUE;
@@ -356,14 +369,17 @@ if ($_GET['a'] == '8') {
     
     exit;
 }
-if ($_GET['a'] == '9' || $_GET['a'] == '10') {
+if ($_GET['a'] == '11' || $_GET['a'] == '10') {
     echo ("$a");
     exit;
 }
 
 ?>
-<script language="javascript">
 
+<script language="javascript">
+    
+    setInterval('frames[0].scrollTo(0,9999999)',1000);
+    
     function next(r) {
         if ( typeof next.counter == 'undefined' || r==0 || next.counter>10) {
             next.counter = 0;
@@ -373,25 +389,24 @@ if ($_GET['a'] == '9' || $_GET['a'] == '10') {
         document.getElementById('test').src='http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}"); ?>'+'&a='+next.counter;
 
         // Скриване на бутона за сетъп на бгЕРП
-        if (next.counter == 8) {
+        if (next.counter == 9) {
             document.getElementById('next1').style.visibility = 'hidden';
         }
 
         // Показване на бутона за стартиране на бгЕРП
-        if (next.counter == 9) {
+        if (next.counter == 10) {
             document.getElementById('next1').style.visibility = 'visible';
             document.getElementById('next1').value = 'Стартирай бгЕРП';
         }
 
         // Стартиране на бгЕРП
-        if (next.counter == 10) {
+        if (next.counter == 11) {
             window.location = 'http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/"); ?>'+'';
         }
     }
-    
 </script>
 
-<iframe src='<?php "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=650></iframe>
+<iframe src='<?php "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=600 scrolling="no"></iframe>
 <br>
 <input type="button" onclick="next(0); document.getElementById('test').src='<?php echo("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank")?>';" value="Начало">
 <input id='next1' type="button" onclick="next(1);" value="Следващ">
