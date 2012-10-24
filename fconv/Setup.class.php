@@ -1,5 +1,12 @@
 <?php
 
+
+/**
+ * Пътя до директорията с временните файлове
+ */
+defIfNot('FCONV_TEMP_PATH', EF_TEMP_PATH . "/fconv/");
+
+
 /**
  * Конвертиране на файлове
  *
@@ -42,6 +49,9 @@ class fconv_Setup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
+    
+        // 
+       'FCONV_TEMP_PATH'   => array ('varchar')
         );
 
     

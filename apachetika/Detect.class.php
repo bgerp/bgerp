@@ -86,7 +86,7 @@ class apachetika_Detect
         $lineExecStr = "java -jar [#APACHETIKA#] --{$type} [#INPUTF#] > [#OUTPUTF#]";
         
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8'));
+        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath));
 
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('apachetika_Detect::afterExtract');

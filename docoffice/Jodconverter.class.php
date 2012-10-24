@@ -78,7 +78,7 @@ class docoffice_Jodconverter extends core_Manager
         // @todo
         
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8'));
+        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('docoffice_Jodconverter::afterConvertDoc');

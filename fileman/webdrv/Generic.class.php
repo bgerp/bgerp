@@ -66,8 +66,26 @@ class fileman_webdrv_Generic extends core_Manager
         // Вземаме текста
         $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'text');
         
+        // Вземаме текста извлечен от OCR
+        $ocrContent = fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr');
+
+        // Ако има OCR съдържание
+        if ($ocrContent !== FALSE) {
+            
+            // Тогава съдържанието е равно на него
+            $content = $ocrContent;
+        } else {
+            
+            // Вземаме записа за съответния файл
+            $rec = fileman_Files::fetchByFh($fileHnd);
+        
+            // Параметри за OCR
+            $paramsOcr['dataId'] = $rec->dataId;
+            $paramsOcr['type'] = 'textOcr';    
+        }
+        
         // Ако нама такъв запис
-        if ($content === FALSE) {
+        if (($content === FALSE) || (($ocrContent === FALSE) && (fileman_Indexes::isProcessStarted($paramsOcr)))) {
             
             // Сменяме мода на page_Waiting
             Mode::set('wrapper', 'page_Waiting');
@@ -380,78 +398,6 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
-     * Проверява дали файла е заключен или записан в БД
-     * 
-     * @param object $fRec - Данните за файла
-     * @param array $params - Масив с допълнителни променливи
-     * 
-     * @return boolean - Връща TRUE ако файла е заключен или има запис в БД
-     * 
-     * @access protected
-     */
-    static function isProcessStarted($params)
-    {
-        // Ако процеса е заключен
-        if (core_Locks::isLocked($params['lockId'])) return TRUE;
-        
-        // Ако има такъв запис
-        if ($rec = fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) {
-            
-            $conf = core_Packs::getConfig('fileman');
-            
-            // Времето след което ще се изтрият
-            $time = time() - ($conf->FILEMAN_WEBDRV_ERROR_CLEAN * 60);
-            
-            // Съдържанието
-            $content = fileman_Indexes::decodeContent($rec->content);
-            
-            // Ако в индекса е записана грешка
-            if (($content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
-                
-                // Изтрива съответния запис
-                fileman_Indexes::delete($rec->id); 
-                
-                // Връщаме FALSE, за да укажем, че няма запис
-                return FALSE;   
-            } else {
-                
-                return TRUE;
-            } 
-        }
-
-        return FALSE;
-    }
-    
-    
-    /**
-     * Подготвяме content частта за по добър запис
-     * 
-     * @param string $text - Текста, който да променяме
-     * 
-     * @return string $text - Променения текст
-     */
-    static function prepareContent($text)
-    {
-        // Вземаме конфигурацията
-        $conf = core_Packs::getConfig('fileman');
-        
-        // Променяме мемори лимита
-        ini_set("memory_limit", $conf->FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT);
-
-        // Сериализираме
-        $text = serialize($text);
-        
-        // Компресираме
-        $text = gzcompress($text);
-        
-        // Енкодваме
-        $text = base64_encode($text);    
-                
-        return $text;
-    }
-    
-    
-    /**
      * Намира баркода и ги записва в базата
      * 
      * @param fconv_Script $script - 
@@ -482,17 +428,14 @@ class fileman_webdrv_Generic extends core_Manager
             $barcodesArr->errorProc = $debug[1];
             
             // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
+            fileman_Indexes::createErrorLog($params['dataId'], $params['type']);
         }
-    
-        // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = 'barcodes';
-        $rec->createdBy = $params['createdBy'];
-        $rec->content = static::prepareContent($barcodesArr);
-    
-        $savedId = fileman_Indexes::save($rec);   
+        
+        // Съдържанието
+        $params['content'] = $barcodesArr;
+        
+        // Обновяваме данните за запис във fileman_Indexes
+        $savedId = fileman_Indexes::saveContent($params);
 
         // Отключваме процеса
         core_Locks::release($params['lockId']);
@@ -570,18 +513,6 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
-     * Записва в лога ако възникне греша при асинхронното обработване на даден файл
-     * 
-     * @param fileman_Data $dataId - id' то на данните на файла
-     * @param string $type - Типа на файла
-     */
-    static function createErrorLog($dataId, $type)
-    {
-        core_Logs::log(tr("|Възникна грешка при обработката на файла с данни|* {$dataId} |в тип|* {$type}"));
-    }
-    
-    
-    /**
      * Извлича мета информацията
      * 
      * @param object $fRec - Записите за файла
@@ -601,17 +532,13 @@ class fileman_webdrv_Generic extends core_Manager
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
 
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
             // Извличаме мета информцията с Apache Tika
             apachetika_Detect::extract($fRec->fileHnd, $params);
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
@@ -629,7 +556,7 @@ class fileman_webdrv_Generic extends core_Manager
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (static::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);
@@ -638,16 +565,11 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
-        $text = file_get_contents($script->outFilePath);
-        
-        // Записваме получения текс в модела
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($text);
-        $rec->createdBy = $params['createdBy'];
-        $saveId = fileman_Indexes::save($rec);
-        
+        $params['content'] = file_get_contents($script->outFilePath);
+
+        // Обновяваме данните за запис във fileman_Indexes
+        $saveId = fileman_Indexes::saveContent($params);
+
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
@@ -658,49 +580,6 @@ class fileman_webdrv_Generic extends core_Manager
             return TRUE;
         }
     }  
-    
-    
-    /**
-     * Проверява дали има грешка. Ако има грешка, записваме грешката в БД.
-     * 
-     * @param string $file - Пътя до файла, който ще се проверява
-     * @param string $type - Типа, за който се проверява грешката
-     * @param array $params - Други допълнителни параметри
-     * 
-     * @return boolean - Ако не открие грешка, връща FALSE
-     */
-    static function haveErrors($file, $type, $params)
-    {
-        // Ако е файл в директория
-        if (strstr($file, '/')) {
-            
-            $isValid = is_file($file);
-        } else {
-            
-            // Ако е манупулатор на файл
-            $isValid = fileman_Files::fetchField("#fileHnd='{$file}'");
-        }
-        
-        // Ако има файл
-        if ($isValid) return FALSE;
-
-        // Ако няма файл, записваме грешката
-        $error = new stdClass();
-        $error->errorProc = tr("Възникна грешка при обработка") . '...';
-        
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $type;
-        $rec->content = static::prepareContent($error);
-        $rec->createdBy = $params['createdBy'];
-        
-        fileman_Indexes::save($rec);   
-
-        // Записваме грешката в лога
-        static::createErrorLog($params['dataId'], $params['type']);
-        
-        return TRUE;
-    }
     
     
     /**
@@ -724,7 +603,7 @@ class fileman_webdrv_Generic extends core_Manager
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
         
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
 
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {

@@ -67,6 +67,9 @@ class thumbnail_Thumbnail extends core_Manager {
         // Очакваме да е от познатите разширения за растерни файлове
         expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp', $ext);
         
+        // Ако не са зададени параметрите
+        if (!isset($attr['isAbsolute'])) $attr['isAbsolute'] = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
         if(is_array($size)) {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size[0] . "-" . $size[1] . "." . $ext;
             $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size[0] . "-" . $size[1] . "." . $ext, $attr['qt'], $attr['isAbsolute']);
@@ -74,7 +77,7 @@ class thumbnail_Thumbnail extends core_Manager {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext;
             $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext, $attr['qt'], $attr['isAbsolute']);
         }
-        
+
         if(!file_exists($thumbFilePath)) {
             $filePath = fileman_Files::fetchByFh($fh, 'path');
             

@@ -46,8 +46,10 @@ class fconv_Script
      */
     function fconv_Script($tempDir = NULL)
     {
+        $conf = core_Packs::getConfig('fconv');
+        $this->tempPath = $conf->FCONV_TEMP_PATH;
         $this->id = str::getRand();
-        setIfNot($tempDir, EF_TEMP_PATH . "/fconv/" . $this->id . "/");
+        setIfNot($tempDir, $this->tempPath . $this->id . "/");
         $this->tempDir = $tempDir;
     }
     
@@ -127,6 +129,11 @@ class fconv_Script
         // Ако е подаден параметър език, тогава се добавя в началото на скрипта
         if ($params['LANG']) {
             $this->script = "LANG='{$params['LANG']}' " . $this->script;
+        }
+        
+        // Ако е подаден параметър език, тогава се добавя в началото на скрипта
+        if ($params['HOME']) {
+            $this->script = "HOME='{$params['HOME']}' " . $this->script;
         }
     }
     

@@ -115,7 +115,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
@@ -133,10 +133,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 
             // Извличаме текстовата част с Apache Tika
             apachetika_Detect::extract($fRec->fileHnd, $params);
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
@@ -157,7 +153,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (static::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);
@@ -171,18 +167,16 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Поправяме текста, ако има нужда
         $text = lang_Encoding::repairText($text);
         
-        // Записваме получения текс в модела
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($text);
-        $rec->createdBy = $params['createdBy'];
-        $saveId = fileman_Indexes::save($rec);
-        
+        // Текстовата част
+        $params['content'] = $text;
+
+        // Обновяваме данните за запис във fileman_Indexes
+        $savedId = fileman_Indexes::saveContent($params);
+
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
-        if ($saveId) {
+        if ($savedId) {
 
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
@@ -211,7 +205,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
         
         // Параметри за проверка дали е стартиран процеса на конвертиране на получения pdf документ към jpg
         $paramsJpg = $params;
@@ -219,7 +213,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $paramsJpg['lockId'] = static::getLockId($paramsJpg['type'], $fRec->dataId);
         
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($paramsJpg)) return ;
+        if (fileman_Indexes::isProcessStarted($paramsJpg)) return ;
 
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
@@ -255,7 +249,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        $error = static::haveErrors($script->outFilePath, 'jpg', $params);
+        $error = fileman_Indexes::haveErrors($script->outFilePath, 'jpg', $params);
         
         // Отключваме предишния процес
         core_Locks::release($params['lockId']);
@@ -275,7 +269,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определно време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
@@ -402,18 +396,16 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Ако има генерирани файлове, които са качени успешно
         if (count($fileHndArr)) {
             
-            // Сериализираме масива и обновяваме данните за записа в fileman_Indexes
-            $rec = new stdClass();
-            $rec->dataId = $params['dataId'];
-            $rec->type = $params['type'];
-            $rec->content = static::prepareContent($fileHndArr);
-            $rec->createdBy = $params['createdBy'];
-            
-            $savedId = fileman_Indexes::save($rec);    
+            // Текстовата част
+            $params['content'] = $fileHndArr;
+    
+            // Обновяваме данните за запис във fileman_Indexes
+            $savedId = fileman_Indexes::saveContent($params);
+                
         } else {
         
             // Проверяваме дали е имало грешка при предишното конвертиране
-            $error = static::haveErrors($script->outFilePath, $params['type'], $params);
+            $error = fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params);
         }
         
         // Отключваме процеса
@@ -454,17 +446,13 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
 
         // Проверявама дали няма извлечена информация или не е заключен
-        if (static::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) return ;
 
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
             // Извличаме HTML частта с Apache Tika
             apachetika_Detect::extract($fRec->fileHnd, $params);
-        } else {
-            
-            // Записваме грешката
-            static::createErrorLog($params['dataId'], $params['type']);
         }
     }
     
@@ -480,7 +468,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (static::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);
@@ -503,19 +491,17 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 
         // Поправяме текста, ако има нужда
         $html = lang_Encoding::repairText($html);
-
-        // Записваме получения текс в модела
-        $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->content = static::prepareContent($html);
-        $rec->createdBy = $params['createdBy'];
-        $saveId = fileman_Indexes::save($rec);
         
+        // Текстовата част
+        $params['content'] = $html;
+
+        // Обновяваме данните за запис във fileman_Indexes
+        $savedId = fileman_Indexes::saveContent($params);
+
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
-        if ($saveId) {
+        if ($savedId) {
 
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
