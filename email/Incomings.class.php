@@ -1692,7 +1692,7 @@ class email_Incomings extends core_Master
     
     
     /**
-     * 
+     * Добавяме манупулаторите на файловете с разширение .eml
      * 
      * @param core_Mvc $mvc
      * @param array $res масив с манипулатор на файл (@see fileman)
