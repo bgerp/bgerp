@@ -1026,11 +1026,16 @@ class doc_DocumentPlg extends core_Plugin
                 if (count($names)) {
                     foreach ($names as $name) {
                         
-                        //Името на файла е с големи букви, както са документите
-                        $name = strtoupper($name) . '.pdf';
+                        $docHandleArr = doc_RichTextPlg::parseDocHandle($name);
                         
-                        //Задаваме полето за избор, да не е избран по подразбиране
-                        $res[$name] = 'off';
+                        if ($docHandleArr['docClass']) {
+                            try {
+                                $classInst = cls::get($docHandleArr['docClass']);
+                                $res += $classInst->getTypeConvertingsByClass($docHandleArr['docId']);
+                                
+                            } catch (Exception $e) {
+                            }
+                        }
                     }
                 }
             }
@@ -1039,16 +1044,39 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Метод по подразбиране за връщане на възможните файлове за прикачване.
+     * По подразбиране всики имат възможност за прикачане на pdf.
+     */
+    function on_AfterGetTypeConvertingsByClass($mvc, $res, $id)
+    {
+        //Превръщаме $res в масив
+        $res = (array)$res;
+        
+        // Вземаме манипулатора на файла
+        $name = $mvc->getHandle($id);
+        
+        //Името на файла е с големи букви, както са документите
+        $name = strtoupper($name) . '.pdf';
+        
+        //Задаваме полето за избор, да не е избран по подразбиране
+        $res[$name] = 'off';
+    }
+    
+    
+    /**
      * Реализация по подразбиране на doc_DocumentIntf::convertTo()
      * 
      * @param core_Mvc $mvc
-     * @param string $res манипулатор на файл (@see fileman)
+     * @param array $res масив с манипулатор на файл (@see fileman)
      * @param int $id първичен ключ на документа
      * @param string $type формат, в който да се генерира съдържанието на док.
      * @param string $fileName име на файл, в който да се запише резултата
      */
     static function on_AfterConvertTo($mvc, &$res, $id, $type, $fileName = NULL)
     {
+        // Преобразуваме в масив
+        $res = (array)$res;
+        
         if (!isset($fileName)) {
             expect($mvc->abbr, 'Липсва зададена абревиатура за документния клас ' . get_class($mvc));
             
@@ -1076,8 +1104,13 @@ class doc_DocumentPlg extends core_Plugin
                 log_Documents::popAction();
                 
                 //Манипулатора на новосъздадения pdf файл
-                $res = doc_PdfCreator::convert($html, $fileName);
-                break;
+                $fileHnd = doc_PdfCreator::convert($html, $fileName);
+                
+                if ($fileHnd) {
+                    $res[$fileHnd] = $fileHnd;
+                }
+                
+            break;
         }
     }
     

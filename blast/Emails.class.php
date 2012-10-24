@@ -950,14 +950,14 @@ class blast_Emails extends core_Master
             //Вземаме манупулаторите на документите
             $docsArr = $this->getDocuments($rec->id, $rec->body);
             
+            $docsFhArr = array();
+            
             foreach ($docsArr as $attachDoc) {
                 // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
                 // файл със съдържанието на документа в желания формат
-                $fh = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
             
-                if (!empty($fh)) {
-                    $docsFhArr[$fh] = $fh;
-                }
+                $docsFhArr += $fhArr;
             }
             
         }

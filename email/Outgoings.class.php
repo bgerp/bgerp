@@ -289,16 +289,15 @@ class email_Outgoings extends core_Master
             foreach ($docsArr as $attachDoc) {
                 // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
                 // файл със съдържанието на документа в желания формат
-                $fh = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
             
-                if (!empty($fh)) {
-                    $rec->documentsFh[$fh] = $fh;
-                }
+                $rec->documentsFh += $fhArr;
             }
-        
+
             // .. ако имаме прикачени документи ...
             if (count($rec->documentsFh)) {
-            //Вземаме id'тата на файловете вместо манипулаторите
+                
+                //Вземаме id'тата на файловете вместо манипулаторите
                 $documents = fileman_Files::getIdFromFh($rec->documentsFh);
             
                 //Записваме прикачените файлове

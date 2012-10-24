@@ -1670,4 +1670,56 @@ class email_Incomings extends core_Master
         
         return $tpl;
     }
+    
+    
+    /**
+     * Връща EML файл при генериране на възможности разширения за прикачване
+     */
+    function on_BeforeGetTypeConvertingsByClass($mvc, $res, $id)
+    {
+        //Превръщаме $res в масив
+        $res = (array)$res;
+        
+        // Вземаме манипулатора на файла
+        $name = $mvc->getHandle($id);
+        
+        //Името на файла е с големи букви, както са документите
+        $name = strtoupper($name) . '.eml';
+        
+        //Задаваме полето за избор, да е избран по подразбиране
+        $res[$name] = 'on';
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param array $res масив с манипулатор на файл (@see fileman)
+     * @param int $id първичен ключ на документа
+     * @param string $type формат, в който да се генерира съдържанието на док.
+     * @param string $fileName име на файл, в който да се запише резултата
+     */
+    static function on_BeforeConvertTo($mvc, &$res, $id, $type, $fileName = NULL)
+    {
+        // Преобразуваме в масив
+        $res = (array)$res;
+        
+        switch (strtolower($type)) {
+            case 'eml':
+        
+                // Вземаме id' то на EML файла
+                $emlFileId = $mvc->fetchField($id, 'emlFile');
+                
+                // Манипулатора на файла
+                $fh = fileman_Files::fetchField($emlFileId, 'fileHnd');
+                
+                // Добавяме в масива
+                if ($fh) {
+                    $res[$fh] = $fh;
+                } 
+                  
+            break;
+        }
+    }
 }

@@ -143,6 +143,18 @@ class doc_DocumentIntf
     }
     
     
+	/**
+     * Връща възможните типове за файлови формати, в зависимост от класа
+     *
+     * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана 
+     *                      по подразбиране
+     */
+    function getTypeConvertingsByClass()
+    {
+        return $this->class->getTypeConvertingsByClass();
+    }
+    
+    
     /**
      * Конвертира документа към файл от указания тип и връща манипулатора му
      *
@@ -166,7 +178,7 @@ class doc_DocumentIntf
      * @param string $fileName - Името на файла; ако не е зададено се определя автоматично -
      *                             {ABBR}{id}.{type}
      *
-     * return string $res - манипулатора на генерирания файл
+     * return array $res - масив с манипулатора на генерирания файл
      */
     function convertTo($type, $fileName = NULL)
     {

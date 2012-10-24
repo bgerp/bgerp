@@ -183,11 +183,9 @@ class email_FaxSent extends core_Manager
                 foreach ($docsArr as $attachDoc) {
                     // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
                     // файл със съдържанието на документа в желания формат
-                    $fh = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                    $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
                     
-                    if (!empty($fh)) {
-                        $data->rec->documentsFh[$fh] = $fh;
-                    }
+                    $data->rec->documentsFh += $fhArr;
                 }
                 
                 // .. ако имаме прикачени документи ...
