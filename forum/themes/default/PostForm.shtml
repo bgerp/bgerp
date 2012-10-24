@@ -1,6 +1,4 @@
 <form style="" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
- 
- 
 <!--ET_BEGIN FORM_ERROR-->
 <div class="formError">
 	[#FORM_ERROR#]
@@ -15,5 +13,4 @@
 <div class='formToolbar'>
 	[#FORM_TOOLBAR#][#FORM_HIDDEN#]
 </div>
- 
 </form>

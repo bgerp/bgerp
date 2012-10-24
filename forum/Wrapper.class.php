@@ -23,6 +23,5 @@ class forum_Wrapper extends plg_ProtoWrapper
 		$this->TAB('forum_Categories', 'Категории', 'forum,admin');
 		$this->TAB('forum_Boards', 'Дъски', 'admin,forum');
 		$this->TAB('forum_Postings', 'Постинги', 'forum,admin');
-		$this->TAB(array('forum_Boards', 'forum'), 'Тест', 'forum,admin');
 	}
 }

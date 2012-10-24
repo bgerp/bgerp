@@ -103,6 +103,11 @@ class forum_Postings extends core_Detail {
         if($this->haveRightFor('add', $data->rec)) {
         	$data->submitUrl = array($this, 'add', $this->masterKey => $data->rec->id);
         }
+        
+        // Ако имаме права за вътрешен изглед
+        if($this->haveRightFor('single')) {
+        	$data->singleUrl = array($this->Master, 'single', $data->rec->id);
+        }
     }
     
     
@@ -129,6 +134,7 @@ class forum_Postings extends core_Detail {
          
          // Рендираме пагинаторът
          $layout->replace($this->renderListPager($data), 'PAGER');
+         
          return $layout;
 	}
 	
@@ -224,18 +230,13 @@ class forum_Postings extends core_Detail {
         }
 		$data->title = "Разглеждане на тема {$data->rec->title}";
 		
-	
 		// Ако можем да местим темата, добавяме форма
 		if($this->haveRightFor('write')) {
 			
 			$data->moveForm = cls::get('core_Form');
-			
-			// Избираме дъска в която да преместим темата
-			$data->moveForm->FNC('boardId', 'key(mvc=forum_Boards,select=title)', 'placeholder=Дъска,input');
-			
-			// Ид на темата която местим
-			$data->moveForm->setHidden('themeId', $data->rec->id);
-			$data->moveForm->setDefault('boardId', $data->board->id);
+			$data->moveForm->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'placeholder=Дъска,input');
+			$data->moveForm->setHidden('theme', $data->rec->id);
+			$data->moveForm->setDefault('boardTo', $data->board->id);
 			$data->moveForm->setAction($this, 'move');
 			$data->moveForm->toolbar->addSbBtn('Премести');
 		}
@@ -298,36 +299,35 @@ class forum_Postings extends core_Detail {
 	 * Екшън за местене на избрана тема
 	 */
 	function act_Move() {
-		$boardTo = Request::get('boardId');
-		$themeId = Request::get('themeId');
-		
+		expect($boardTo = Request::get('boardTo'));
+		expect($themeId = Request::get('theme'));
 		$this->requireRightFor('write');
 
-		// Намираме boardId-то на текущата тема
+		// Намираме Id-то на дъската от която ще местим статията
 		$boardFrom = $this->fetchField($themeId, 'boardId');
-		
 		if($boardFrom != $boardTo) {
 			
 			// Ако сме посочили нова дъска
 			$query = $this->getQuery();
+			
+			// Избираме постингите от нишката
 			$query->where("#id = {$themeId}");
 			$query->orWhere("#themeId = {$themeId}");
 			
 			// Ъпдейтваме boardId-то на всеки постинг, който е част от темата
 			while($rec = $query->fetch()) {
 				$rec->boardId = $boardTo;
-				static::save($rec);
+				self::save($rec);
 			}
 			
-			// Обновяваме броя на темите съответно в старата и в новата дъска
-			forum_Boards::updateThemesCount($boardFrom);
-			forum_Boards::updateThemesCount($boardTo);
+			// Обновяваме броя на темите, коментарите както и информацията за 
+			//последния коментар съответно в оригиналната и новата дъска на темата
+			forum_Boards::updateBoard($boardFrom);
+			forum_Boards::updateBoard($boardTo);
 			
-			//@toDo да модифириам екшъна forum_Boards::updateLastComment 
-			// да ъпдейтва последния коментар само с пдоаването наид-то на дъската
 		} 
 		
-		// След края редиректваме към същата тема
+		// Пренасочваме към същата тема
 		return new Redirect(array('forum_Postings', 'Theme', $themeId));
 	}
 	
@@ -354,30 +354,18 @@ class forum_Postings extends core_Detail {
 	
 	
 	/**
-	 * Обновяване на статистическата информация в моделите, след създаване на
-	 * нов постинг
+	 * Обновяване на статистическата информация, след създаването на нов постинг
 	 */
-	static function on_AfterSave($mvc, &$id, $rec, $fieldList = NULL)
+	 static function on_AfterCreate($mvc, $rec)
     {
-      if($rec->themeId === NULL){
+      if($rec->themeId) {
       	
-      	// Ако themeId е NULL, то постинга е начало на нова Тема. Обновяваме
-      	// броя на темите в Дъската, където е създаденена темата
-    	forum_Boards::updateThemesCount($rec->boardId);
-    	
-      } else {
-      	
-      	// Ако themeId не е NULL, То постинга е добавен към тема. Обновяваме броя
-      	// на постингите в темата след началния, както и кой е последния коментар
+      	// Ако постинга е коментар към тема, ние обновяваме, кой е последния коментар в нея
       	$mvc->updateStatistics($rec->themeId, $rec->createdOn, $rec->createdBy);
-      	
-      	// Заглавието на темата, където е публикуван коментара
-      	$theme = $mvc::fetchField($rec->themeId,'title');
-      	
-      	// Обновяваме информацията в дъската, кой, кога и къде е постнал последния коментар
-      	forum_Boards::updateLastComment($rec->boardId, $rec->createdOn,$rec->createdBy, $theme);
-      	
       }
+     
+      // Обновяваме статистическата информация в дъската където е направен постинга
+  	  forum_Boards::updateBoard($rec->boardId);
    }
    
    

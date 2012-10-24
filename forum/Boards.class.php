@@ -77,7 +77,7 @@ class forum_Boards extends core_Master {
 		$this->FLD('commentsCnt', 'int', 'caption=Брой на Коментарите,notNull,input=hidden,value=0');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
 		$this->FLD('lastCommentBy', 'int', 'caption=Последно->кой, input=none');
-		$this->FLD('lastCommentedTheme', 'varchar(100)', 'caption=Последно->къде, input=none');
+		$this->FLD('lastCommentedTheme', 'int', 'caption=Последно->къде, input=none');
 		$this->setDbUnique('title');
 	}
 	
@@ -92,46 +92,52 @@ class forum_Boards extends core_Master {
 	
 	
 	/**
-	 *  Обновява броя на темите в дъската
+	 * Обновяваме броя на темите и коментарите на дъската. Обновяваме кой, къде и
+	 * кога е направил последния коментар
 	 */
-	static function updateThemesCount($id)
+	static function updateBoard($id)
 	{
-	    $query = forum_Postings::getQuery();
-	    // Преброяваме тези постинги, които принадлежат на дъската и са начало на
-	    // нова тема (themeId е NULL)
-	    
-	    $query->where("#boardId = {$id} AND #themeId IS NULL");
-	    $rec = static::fetch($id);
-	    $rec->themesCnt = $query->count();
-	    static::save($rec);
-	}
-	
-	
-	/**
-	 * Обновяваме, къде и кога е публикуван последния коментар в дъската , както и броя на
-	 * всички коментари в дъската
-	 */
-	static function updateLastComment($id, $date, $by, $theme)
-	{
-		$query = forum_Postings::getQuery();
-		$query->where("#boardId = {$id} AND #themeId IS NOT NULL");
+		// Заявка за работа с темите от дъската
+		$themesQuery = forum_Postings::getQuery();
+		$themesQuery->where("#boardId = {$id} AND #themeId IS NULL");
+		
+		// Заявка за работа с коментарите от дъската
+		$commentsQuery = forum_Postings::getQuery();
+		$commentsQuery->where("#boardId = {$id} AND #themeId IS NOT NULL");
+		
+		// Извличане на последния коментар в дъската
+		$commentsQuery->XPR('maxId', 'int', 'max(#id)');
+		
+		try{
+			// Намираме постинга който е последния коментар в дъската (този с най-голямо ид)
+			$lastComment = forum_Postings::fetch($commentsQuery->fetch()->maxId); 
+		} catch (core_exception_Expect $e) {
+			
+			// В случай че дъската няма коментари задаваме на $lastComment стойност NULL
+			$lastComment = NULL;
+		}
+		
+		// Дъската в която ще обновяваме информацията
 		$rec = static::fetch($id);
 		
-		// Броя на всички коментари в дъската
-		$rec->commentsCnt = $query->count();
+		// Броя на постингите, които са теми
+		$rec->themesCnt = $themesQuery->count();
 		
-		// Коя е последно коментираната тема
-		$rec->lastCommentedTheme = $theme;
+		// Броя на постингите, които са коментари
+		$rec->commentsCnt = $commentsQuery->count();
 		
-		// Кога е направен последния коментар
-	    $rec->lastComment = $date;
-	    
-	    // Кой е направил последния коментар
-	    $rec->lastCommentBy = $by;
-	    
-	    // Ъпдейтваме записа
+		// Ако има коментар в дъската, ние обновяваме кой, кога и къде го е направил
+		if($lastComment) {
+		
+			$rec->lastCommentedTheme = $lastComment->themeId;
+			
+		    $rec->lastComment = $lastComment->createdOn;
+		    
+		    $rec->lastCommentBy = $lastComment->createdBy;
+		}
+		
+	    // Обновяваме дъската
 	    static::save($rec);
-	    
 	}
 	
 	
@@ -151,6 +157,7 @@ class forum_Boards extends core_Master {
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
         $data->action = 'forum';
         $data->category = Request::get('cat');
+        
         // Подготвяме необходимите данни за показване на дъските
         $this->prepareForum($data);
         
@@ -176,6 +183,10 @@ class forum_Boards extends core_Master {
 			foreach($data->categories as $category){
 				$this->prepareBoards($category);
 			}
+		}
+		
+		if($this->haveRightFor('list')) {
+			$data->listUrl = array($this, 'list');
 		}
 		
 		// Подготвяме навигационните линкове
@@ -257,13 +268,19 @@ class forum_Boards extends core_Master {
 	            // Правим заглавието на дъската, като линк
 	            $category->boards->rows[$rec->id]->title = ht::createLink($category->boards->rows[$rec->id]->title, $url);
 	 		
-	            if(isset($rec->lastCommentBy)) {
+	            if($rec->lastCommentBy) {
 	            
+	            	$lastThemeTitle = forum_Postings::fetchField($rec->lastCommentedTheme, 'title');
+	            	$themeUrl = array('forum_Postings', 'Theme', $rec->lastCommentedTheme);
+	            	
+	            	// Създаваме от заглавието на темата линк към нея
+	            	$category->boards->rows[$rec->id]->lastCommentedTheme = ht::createLink($lastThemeTitle, $themeUrl);
+	            	
 	            	// извличаме данните на потребителят направил последния коментар
 	            	$lastUser =core_Users::fetch($rec->lastCommentBy);
-	            
+	            	
 	            	// Намираме аватара спрямо имейла на потребителя
-	            	$category->boards->rows[$rec->id]->lastAvatar =  avatar_Plugin::getImg(0,$lastUser->email, 50);
+	            	$category->boards->rows[$rec->id]->lastAvatar =  avatar_Plugin::getImg(0, $lastUser->email, 50);
 	            	
 	            	// Намираме ника на потребителя направил последния коментар
 	            	$category->boards->rows[$rec->id]->lastNick = $lastUser->nick;
@@ -283,8 +300,9 @@ class forum_Boards extends core_Master {
 			
 			// За всяка категория ние поставяме името и преди  списъка с нейните дъски
 			$catTpl = new ET(getFileContent($data->forumTheme . '/Boards.shtml'));
-			$catTpl->replace($category->title,'cat');
+			$catTpl->replace($category->title, 'cat');
 			if($category->boards->rows) { 
+				
 				// За всички дъски от категорията ние ги поставяме под нея в шаблона
 				foreach($category->boards->rows as $row) {
 					$rowTpl = $catTpl->getBlock('ROW');
@@ -296,8 +314,13 @@ class forum_Boards extends core_Master {
             		$rowTpl->replace('<li>Няма Дъски</li>');
             		$rowTpl->append2master();
         		}
+        		
         	// Добавяме категорията с нейните дъски към главния шаблон
 			$tpl->append($catTpl, 'BOARDS');
+		}
+		
+		if($data->listUrl) { 
+			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
 		// рендиране на навигацията
@@ -338,7 +361,6 @@ class forum_Boards extends core_Master {
         
         $layout->replace($this->renderNavigation($data), 'NAVIGATION');
 		
-		
 		return $layout;
 	}
 	
@@ -357,8 +379,7 @@ class forum_Boards extends core_Master {
         $this->forum_Postings->prepareBoardThemes($data);
         $this->prepareNavigation($data);
     }
-	// TODO action za mestene na tema Move, s prava forum
-	// dyska za temite koito ti si zadal. paraeter na duskata support desk
+	//@toDo dyska za temite koito ti si zadal. paraeter na duskata support desk
 	
 	/**
 	 *  Рендиране на списъка от теми, в разглежданата дъска
@@ -370,16 +391,38 @@ class forum_Boards extends core_Master {
 		
 		// Рендираме всички теми от дъската
 		$tpl = $this->forum_Postings->renderBoardThemes($data, $tpl);
+		
 		if($data->submitUrl) { 
-			
-			// Добавяме бутон за добавяне на нова тема, ако имаме права
-			$tpl->append(ht::createBtn('Нова Тема', $data->submitUrl), 'TOOLBAR');
+			$tpl->append(ht::createBtn('Нова Тема', $data->submitUrl, NULL, NULL, 'id=btnAdd,class=btn-add'), 'TOOLBAR');
+		}
+		
+		if($data->singleUrl) { 
+			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL ,'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
 		return $tpl;
 	}
 	
- 
+	
+	/**
+     * Бутон за преглед на дъските във външен изглед
+     */
+	static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	 $data->toolbar->addBtn('Преглед', array($this,'Forum'));
+    }
+ 	
+    
+    /**
+     * Бутон за преглед на дъската във външен изглед
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+		 if ($mvc->haveRightFor('article', $data->rec)) {
+            $data->toolbar->addBtn('Преглед', array($this,'Browse',$data->rec->id,));
+        }
+    }
+    
     
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
@@ -394,7 +437,7 @@ class forum_Boards extends core_Master {
 		}
 		
 	}
-
+	
     
     /**
      * Връща URL към себе си (блога)
@@ -403,5 +446,4 @@ class forum_Boards extends core_Master {
     {
         return array('forum_Boards', 'forum');
     }
-
 }
