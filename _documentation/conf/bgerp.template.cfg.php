@@ -48,6 +48,9 @@
    
 // "Подправка" за кодиране на паролите
    defIfNot('EF_USERS_PASS_SALT', '[#EF_USERS_PASS_SALT#]');
+
+   // "Ключ" за стартиране на Сетъпа
+   defIfNot('BGERP_SETUP_KEY', '[#BGERP_SETUP_KEY#]');
    
 // Името на приложението. Използва се за определяне на други константи
    defIfNot('EF_APP_NAME', '[#EF_APP_NAME#]');
