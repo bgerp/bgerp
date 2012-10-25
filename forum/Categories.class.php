@@ -97,9 +97,9 @@ class forum_Categories extends core_Manager {
 			$query->where($data->category);
 		}
 		
-		// За всеки запис създаваме клас, който натрупваме в масива $data
 		while($rec = $query->fetch()) {
            if(static::haveRightFor('read', $rec)) {
+           	
 				// Добавяме категорията като нов елемент на $data
 				$cat = new stdClass();
 				$cat->id = $rec->id;

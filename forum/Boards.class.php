@@ -53,13 +53,13 @@ class forum_Boards extends core_Master {
 	/**
 	 * Кой може да листва дъските
 	 */
-	var $canRead = 'cms, ceo, admin';
+	var $canRead = 'forum, cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да добявя,редактира или изтрива дъска
 	 */
-	var $canWrite = 'cms, ceo, admin';
+	var $canWrite = 'forum, cms, ceo, admin';
 	
 	
 	/**
@@ -67,17 +67,19 @@ class forum_Boards extends core_Master {
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, notNull,width=400px');
-		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, notNull,width=100%');
-		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория на дъската,mandatory');
-		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска,mandatory');
-		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Теми,mandatory');
-		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментиране,mandatory');
-		$this->FLD('themesCnt', 'int', 'caption=Брой на темите,notNull,input=hidden,value=0');
-		$this->FLD('commentsCnt', 'int', 'caption=Брой на Коментарите,notNull,input=hidden,value=0');
+		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, notNull, width=400px');
+		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, notNull, width=100%');
+		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория на дъската, mandatory');
+		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска, mandatory');
+		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Теми, mandatory');
+		$this->FLD('canStick', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Важни теми, mandatory');
+		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментиране, mandatory');
+		$this->FLD('themesCnt', 'int', 'caption=Брой на темите, notNull, input=hidden, value=0');
+		$this->FLD('commentsCnt', 'int', 'caption=Брой на Коментарите, notNull, input=hidden, value=0');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
 		$this->FLD('lastCommentBy', 'int', 'caption=Последно->кой, input=none');
 		$this->FLD('lastCommentedTheme', 'int', 'caption=Последно->къде, input=none');
+		$this->FLD('supportBoard', 'enum(FALSE=Не,TRUE=Да)', 'caption=Support дъска ?, notNull, value=FALSE');
 		$this->setDbUnique('title');
 	}
 	
@@ -130,14 +132,14 @@ class forum_Boards extends core_Master {
 		if($lastComment) {
 		
 			$rec->lastCommentedTheme = $lastComment->themeId;
-			
-		    $rec->lastComment = $lastComment->createdOn;
-		    
+			$rec->lastComment = $lastComment->createdOn;
 		    $rec->lastCommentBy = $lastComment->createdBy;
 		}
 		
 	    // Обновяваме дъската
 	    static::save($rec);
+	    
+	    //@TODO Ако дъската е съпорт да отчитаме само темите на потребителя който ги е постнал
 	}
 	
 	
@@ -189,7 +191,6 @@ class forum_Boards extends core_Master {
 			$data->listUrl = array($this, 'list');
 		}
 		
-		// Подготвяме навигационните линкове
 	    $this->prepareNavigation($data);
 	}
 	
@@ -199,6 +200,7 @@ class forum_Boards extends core_Master {
 	 * в навигационното поле на форума
 	 */
 	function prepareNavigation($data){
+		
 		// Линк към началото на форума
 		$data->navigation[] = ht::createLink('Форуми', array('forum_Boards', 'Forum'));
 		 if($data->action == 'forum'){
@@ -239,13 +241,13 @@ class forum_Boards extends core_Master {
 		foreach($data->navigation as $link){
 			$navigation .=  $link . "&nbsp;»&nbsp;";
 		}
+		
 		Mode::set('wrapper', 'cms_tpl_Page');
 
         // Добавяме лейаута на страницата
         Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
         
-	 	
-		return $navigation;
+	 	return $navigation;
 	}
 	
 	
@@ -276,13 +278,9 @@ class forum_Boards extends core_Master {
 	            	// Създаваме от заглавието на темата линк към нея
 	            	$category->boards->rows[$rec->id]->lastCommentedTheme = ht::createLink($lastThemeTitle, $themeUrl);
 	            	
-	            	// извличаме данните на потребителят направил последния коментар
+	            	// Намираме граватара и ника на потребителя коментирал последно
 	            	$lastUser =core_Users::fetch($rec->lastCommentBy);
-	            	
-	            	// Намираме аватара спрямо имейла на потребителя
 	            	$category->boards->rows[$rec->id]->lastAvatar =  avatar_Plugin::getImg(0, $lastUser->email, 50);
-	            	
-	            	// Намираме ника на потребителя направил последния коментар
 	            	$category->boards->rows[$rec->id]->lastNick = $lastUser->nick;
 	            }
 	      }
@@ -323,7 +321,6 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
-		// рендиране на навигацията
 		$tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         
 		// Връщаме шаблона с всички дъски групирани по категории
@@ -336,9 +333,7 @@ class forum_Boards extends core_Master {
 	 */
 	function act_Browse() 
 	{
-		// Ид-то на дъската, която разглеждаме	
 		$id = Request::get('id', 'int');
-
 		$data = new stdClass();
 		$data->query = $this->getQuery();
 		
@@ -379,7 +374,7 @@ class forum_Boards extends core_Master {
         $this->forum_Postings->prepareBoardThemes($data);
         $this->prepareNavigation($data);
     }
-	//@toDo dyska za temite koito ti si zadal. paraeter na duskata support desk
+	
 	
 	/**
 	 *  Рендиране на списъка от теми, в разглежданата дъска
@@ -409,7 +404,7 @@ class forum_Boards extends core_Master {
      */
 	static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	 $data->toolbar->addBtn('Преглед', array($this,'Forum'));
+    	 $data->toolbar->addBtn('Преглед', array($this, 'Forum'));
     }
  	
     
@@ -419,7 +414,7 @@ class forum_Boards extends core_Master {
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
 		 if ($mvc->haveRightFor('article', $data->rec)) {
-            $data->toolbar->addBtn('Преглед', array($this,'Browse',$data->rec->id,));
+            $data->toolbar->addBtn('Преглед', array($this, 'Browse', $data->rec->id));
         }
     }
     
@@ -435,12 +430,11 @@ class forum_Boards extends core_Master {
 			// зададени в полето 'canSeeBoard' от дъската
 			$res = $mvc::getVerbal($rec, 'canSeeBoard');
 		}
-		
 	}
 	
     
     /**
-     * Връща URL към себе си (блога)
+     * Връща URL към себе си (форума)
      */
     function getContentUrl($cMenuId)
     {

@@ -67,6 +67,9 @@ a:visited, a:link, a:hover{
 	color:rgb(51, 51, 102);
 }
 
+.last-theme a:link {
+	text-decoration: underline;
+}
 .last-comment, .theme-createdOn {
 	font-size:12px;
 }
@@ -219,4 +222,13 @@ th{
 
 #forum-toolbar {
 	margin-left:20px;
+}
+
+.themeLink {
+	text-decoration: underline;
+}
+
+.important {
+	color:darkred;
+	font-family:Arial;
 }
