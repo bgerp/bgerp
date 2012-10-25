@@ -30,10 +30,10 @@ function progressFlush ($text, $percents=NULL)
     }
     
     // Прогресбар
-    if ($percents) {
+    if (is_numeric($percents)) {
         if ($percents > 100) $percents = 100;
         $width = 3.5*$percents;
-        echo "<li style='list-style-type: none;'><span style='width: 170px; display: block; float: left;text-align:right;'>{$text}</span><span style=\"text-align: right; padding-right: 2px; padding-left:{$width}px; background-color: #28DB55;\"><span style=\"width: 0;\">&nbsp;</span></span>";
+        echo "<li style='list-style-type: none;'><span style='width: 180px; display: block; float: left;text-align:right;'>{$text}</span><span style=\"text-align: right; padding-right: 2px; padding-left:{$width}px; background-color: #28DB55;\"><span style=\"width: 0;\">&nbsp;</span></span>";
         echo("<span style=\"font-size: .8em; font-weight: bold; margin-left:3px;\">{$percents} %</span></li>");
     } else {
         // Изкарваме само текст
@@ -216,8 +216,8 @@ if ($_GET['a'] == '5') {
 
     echo ("
     <SCRIPT language=\"javascript\">
-        document.getElementById('next1').style.visibility = 'visible';
-        document.getElementById('next1').value = 'Стартирай бгЕРП';
+        parent.document.getElementById('next1').style.visibility = 'visible';
+        parent.document.getElementById('next1').value = 'Стартирай бгЕРП';
     </SCRIPT>
     ");
     
