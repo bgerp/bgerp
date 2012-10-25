@@ -3,7 +3,7 @@
 
 
 /**
- * Скрипт 'Setup.inc.php' - Следи инсталирането на bgERP
+ * Скрипт 'Setup.inc.php' -  Инсталиране на bgERP
  *
  *
  * @category  ef
@@ -17,7 +17,7 @@
  
 ob_end_clean();
 
-function progressFlush ($forFlush)
+function progressFlush ($text, $percents=NULL)
 {
     static $started = 0;
     
@@ -30,19 +30,14 @@ function progressFlush ($forFlush)
     }
     
     // Прогресбар
-    if (!is_string($forFlush)) {
-        if ($forFlush > 100) $forFlush = 100;
-        $width = 3*$forFlush;
-        echo "<span style=\"text-align: right; padding-right: 2px; padding-left:{$width}px; background-color: #28DB55;\"><span style=\"width: 0;\">&nbsp;</span></span>";
-//        for ($i==0; $i<=$forFlush; $i++)
-//        {
-//            echo("<span style='color: green;'>+</span>");
-
-//        }
-        echo("<span style=\"font-size: .8em; font-weight: bold; margin-left:3px;\">{$forFlush}</span></li>");
+    if ($percents) {
+        if ($percents > 100) $percents = 100;
+        $width = 3.5*$percents;
+        echo "<li style='list-style-type: none;'><span style='width: 170px; display: block; float: left;text-align:right;'>{$text}</span><span style=\"text-align: right; padding-right: 2px; padding-left:{$width}px; background-color: #28DB55;\"><span style=\"width: 0;\">&nbsp;</span></span>";
+        echo("<span style=\"font-size: .8em; font-weight: bold; margin-left:3px;\">{$percents} %</span></li>");
     } else {
         // Изкарваме само текст
-        echo($forFlush);
+        echo($text);
     }
     
     ob_flush();
@@ -76,6 +71,8 @@ if(file_exists($filename)) {
 } else {
     echo "<li style='color: red;'>Грешка: Липсва конфигурационен файл $filename</li>";
     $error = TRUE;
+    
+    exit;
 }
 
 if ($_GET['a'] == '1') {
@@ -210,15 +207,19 @@ if ($_GET['a'] == '5') {
         $tablesRes = mysql_query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". EF_DB_NAME ."';");
         $rows = mysql_fetch_object($recordsRes);
         $tables = mysql_fetch_object($tablesRes);
-//        progressFlush("Вкарани данни: {$rows->RECS} от {$totalRecords} " . round($rows->RECS/$totalRecords,2)*100 . "%<br>");
-//        progressFlush("Създадени таблици: {$tables->TABLES} от {$totalTables} " . round($tables->TABLES/$totalTables,2)*100 . "%<br>");
-        progressFlush("<li><span style='width: 170px; display: block; border: 1px solid black;'>Вкарани данни:&nbsp</span>");
-        progressFlush(round($rows->RECS/$totalRecords,2)*100);
-        progressFlush("<li><span style='width: 170px;display: block;border: 1px solid black;'>Създадени таблици:&nbsp</span>");
-        progressFlush(round($tables->TABLES/$totalTables,2)*100 );
+        progressFlush("Зареждане данни:&nbsp", round($rows->RECS/$totalRecords,2)*100);
+        progressFlush("Създаване таблици:&nbsp", round($tables->TABLES/$totalTables,2)*100);
         sleep(2);
     } while ($rows->RECS < $totalRecords && $tables->TABLES < $totalTables);
+    
+    sleep(2);
 
+    echo ("
+    <SCRIPT language=\"javascript\">
+        document.getElementById('next1').style.visibility = 'visible';
+        document.getElementById('next1').value = 'Стартирай бгЕРП';
+    </SCRIPT>
+    ");
     
     exit;
 }
@@ -245,134 +246,39 @@ if ($_GET['a'] == '55') {
     ob_end_clean();
     
     $Plugins = cls::get('core_Plugins');
-    $res = $Plugins->setupMVC();
-    file_put_contents("setupResbgERP1.html", $res, FILE_APPEND);
-    file_put_contents("setupResbgERP.html", "OK", FILE_APPEND); exit;
+    $Plugins->setupMVC();
 
     $Classes = cls::get('core_Classes');
-    $res = $Classes->setupMVC();
-    file_put_contents("setupResbgERP2.html", $res, FILE_APPEND);
+    $Classes->setupMVC();
 
     $Cron = cls::get('core_Cron');
-    $res = $Cron->setupMVC();
-    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
+    $Cron->setupMVC();
 
     $Cache = cls::get('core_Cache');
-    $res = $Cache->setupMVC();
-    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
+    $Cache->setupMVC();
 
     // Сетъпваме мениджъра на ролите който си добавя admin, ако я няма
     $Roles = cls::get('core_Roles');
-    $res = $Roles->setupMVC();
-    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
+    $Roles->setupMVC();
 
     $Users = cls::get('core_Users');
-    $res = $Users->setupMVC();
-    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
+    $Users->setupMVC();
     
     $Packs = cls::get('core_Packs');
-    $res = $Packs->setupMVC();
-    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
+    $Packs->setupMVC();
     
     // Зависимости на Crm-a
     $Menu = cls::get('bgerp_Menu');
-    $res = $Menu->setupMVC();
-    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
+    $Menu->setupMVC();
 
     $Bucket = cls::get('fileman_Buckets');
-    $res = $Bucket->setupMVC();
-    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
+    $Bucket->setupMVC();
 
-    $res = $Packs->setupPack('bgerp');
+    $Packs->setupPack('bgerp');
 
-    file_put_contents("setupResbgERP.html", $res, FILE_APPEND);
-    
     exit;
 }
 
-
-/**********************************
- * Задаване на административен потребител
- **********************************/
-if ($_GET['a'] == '7') {
-    // Има зададено нещо от формата
-    if ($_GET['submitted']==1) {
-        
-        core_Db::$noAutoSetup = TRUE;
-        
-        // Лека проверка за коректност
-        if ($_GET['pass'] != $_GET['pass_again']) {
-            echo ("<li style='color: red;'> Паролите не съвпадат!</li>");
-            echo ("<a href='http://".$_SERVER['SERVER_NAME'].":".$_SERVER['SERVER_PORT'].$_SERVER['REQUEST_URI']."&a=" . $_GET['a'] . "'>Назад</a><br>");
-            exit;
-        }
-        $rec->nick = $_GET['nick'];
-        $rec->pass = $_GET['pass'];
-        $rec->names = $_GET['names'];
-        $rec->email = $_GET['email'];
-        
-        // Добавяме админ потребителя, ако няма потребители досега
-        $Users = cls::get('core_Users');
-        if(!$Users->fetch('1=1')) {
-            $Users->save($rec);
-            $res .= "<li>Добавен Административен потребител!";
-        } else {
-            $res .= "<li>Административния потребител съществува отпреди";
-        }
-        echo ($res);
-        
-        exit;
-    }
-    echo("<h2> {$_GET['a']} Данни за административен потребител</h2>");
-    echo("<form id=f1 method='get' action='' target='_self'>");
-    echo("<input type=hidden name='SETUP'>");
-    echo("<input type=hidden name='a' value={$_GET['a']}>");
-    echo("<input type=hidden name=submitted value=1>");
-    echo("<li> Ник: <input name=nick></li>");
-    echo("<li> Парола: <input name=pass type=password></li>");
-    echo("<li> Перола пак: <input name=pass_again type=password></li>");
-    echo("<li> Имена: <input name=names></li>");
-    echo("<li> Имейл: <input name=email></li>");
-    echo("<input type=submit value=Запис>");
-    echo("</form>");
-    
-    exit;
-}
-
-/**********************************
- * Край на помощника
- **********************************/
-if ($_GET['a'] == '9') {
-    if ($_GET['submitted']==1) {
-        
-        core_Db::$noAutoSetup = TRUE;
-        
-        $packs = cls::get('core_Packs');
-        $res = $packs->setupPack('bgerp');
-        progressFlush("<div style='color: green; font-size: 16pt;'>OK!</div>");        
-        
-        sleep(5);
-        // Редиректваме браузъра направо към следващата стъпка
-        echo ("<script language=\"javascript\">");
-        echo (" parent.next(1);");
-        echo ("</script>");
-        exit;
-    }
-    
-    echo("<h2> {$_GET['a']} Задаването на основните параметри приключи</h2>");
-    echo("<form id=f1 method='get' action='' target='_self'>");
-    echo("<input type=hidden name='SETUP'>");
-    echo("<input type=hidden name='a' value={$_GET['a']}>");
-    echo("<input type=hidden name=submitted value=1>");
-    echo("<input type=submit value='Стартирай СЕТЪП на бгЕРП' onclick=\"parent.next(1);\">");
-    echo("</form>");
-    
-    exit;
-}
-if ($_GET['a'] == '11' || $_GET['a'] == '10') {
-    echo ("$a");
-    exit;
-}
 
 ?>
 
@@ -381,7 +287,7 @@ if ($_GET['a'] == '11' || $_GET['a'] == '10') {
     setInterval('frames[0].scrollTo(0,9999999)',1000);
     
     function next(r) {
-        if ( typeof next.counter == 'undefined' || r==0 || next.counter>10) {
+        if ( typeof next.counter == 'undefined' || r==0 || next.counter>6) {
             next.counter = 0;
         }
 
@@ -389,18 +295,18 @@ if ($_GET['a'] == '11' || $_GET['a'] == '10') {
         document.getElementById('test').src='http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}"); ?>'+'&a='+next.counter;
 
         // Скриване на бутона за сетъп на бгЕРП
-        if (next.counter == 9) {
+        if (next.counter == 5) {
             document.getElementById('next1').style.visibility = 'hidden';
         }
 
         // Показване на бутона за стартиране на бгЕРП
-        if (next.counter == 10) {
-            document.getElementById('next1').style.visibility = 'visible';
-            document.getElementById('next1').value = 'Стартирай бгЕРП';
-        }
+        //if (next.counter == 10) {
+        //    document.getElementById('next1').style.visibility = 'visible';
+         //   document.getElementById('next1').value = 'Стартирай бгЕРП';
+        //}
 
         // Стартиране на бгЕРП
-        if (next.counter == 11) {
+        if (next.counter == 6) {
             window.location = 'http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/"); ?>'+'';
         }
     }
