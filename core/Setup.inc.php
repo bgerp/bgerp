@@ -21,23 +21,29 @@ function progressFlush ($text, $percents=NULL)
 {
     static $started = 0;
     
+    static $absoluteTop = array();
+    
+    if (!isset($absoluteTop["$text"])) {
+        $absoluteTop["$text"] = 35*count($absoluteTop)+50;
+    } 
+    
     ob_clean();
     ob_start();
     
     if ($started == 0) {
         echo str_repeat(" ", 1024), "\n";
-        $started++;
+        echo ("<!DOCTYPE html>");
     }
-    
+    $started++;
     // Прогресбар
     if (is_numeric($percents)) {
         if ($percents > 100) $percents = 100;
-        $width = 3.5*$percents;
-        echo "<li style='list-style-type: none;'><span style='width: 180px; display: block; float: left;text-align:right;'>{$text}</span><span style=\"text-align: right; padding-right: 2px; padding-left:{$width}px; background-color: #28DB55;\"><span style=\"width: 0;\">&nbsp;</span></span>";
+        $width = 4.5*$percents;
+        echo "<li style='list-style-type: none; background-color: white; position:absolute; left:25px; top:" . $absoluteTop["$text"] . "px; z-index: {$started};'><span style='width: 180px; display: block; float: left;text-align:right;'>{$text}</span><span style=\"text-align: right; padding-right: 2px; padding-left:{$width}px; background-color: #28DB55;\"><span style=\"width: 0;\">&nbsp;</span></span>";
         echo("<span style=\"font-size: .8em; font-weight: bold; margin-left:3px;\">{$percents} %</span></li>");
     } else {
         // Изкарваме само текст
-        echo($text);
+        echo("$text");
     }
     
     ob_flush();
@@ -46,8 +52,10 @@ function progressFlush ($text, $percents=NULL)
     
 }
 
-
-if ($_GET['a'] == 'blank') exit;
+if ($_GET['a'] == 'blank') {
+    echo ("<h2>Начало на инициализация...</h2>");
+    exit;
+}
 
 if(empty($_GET['a'])) {
     echo ("<h1>Задаване на основните параметри</h1>");
@@ -190,7 +198,7 @@ if ($_GET['a'] == '5') {
     $res = file_get_contents("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=55", FALSE, NULL, 0, 2);
     
     if ($res == 'OK') {
-        progressFlush ("<h3>Setup-а стартиран ...</h3>");
+        progressFlush ("<h3>Инициализацията стартирана ...</h3>");
     } else {
         progressFlush ("<h3 style='color: red;'>Грешка при стартиране на Setup!</h3>");
         
@@ -212,11 +220,12 @@ if ($_GET['a'] == '5') {
         sleep(2);
     } while ($rows->RECS < $totalRecords && $tables->TABLES < $totalTables);
     
-    sleep(2);
-
+    progressFlush("<h3 style='position:relative; top:150px; padding-left:190px;'>Инициализирането завърши успешно!</h3>");
+    
     echo ("
     <SCRIPT language=\"javascript\">
-        parent.document.getElementById('next1').style.visibility = 'visible';
+        parent.document.getElementById('next1').disabled = false;
+        parent.document.getElementById('start').disabled = false;
         parent.document.getElementById('next1').value = 'Стартирай бгЕРП';
     </SCRIPT>
     ");
@@ -284,7 +293,7 @@ if ($_GET['a'] == '55') {
 
 <script language="javascript">
     
-    setInterval('frames[0].scrollTo(0,9999999)',1000);
+    // setInterval('frames[0].scrollTo(0,9999999)',1000);
     
     function next(r) {
         if ( typeof next.counter == 'undefined' || r==0 || next.counter>6) {
@@ -294,16 +303,11 @@ if ($_GET['a'] == '55') {
         ++next.counter;     
         document.getElementById('test').src='http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}"); ?>'+'&a='+next.counter;
 
-        // Скриване на бутона за сетъп на бгЕРП
+        // Деактивиране на бутоните
         if (next.counter == 5) {
-            document.getElementById('next1').style.visibility = 'hidden';
+            document.getElementById('next1').disabled = true;
+            document.getElementById('start').disabled = true;
         }
-
-        // Показване на бутона за стартиране на бгЕРП
-        //if (next.counter == 10) {
-        //    document.getElementById('next1').style.visibility = 'visible';
-         //   document.getElementById('next1').value = 'Стартирай бгЕРП';
-        //}
 
         // Стартиране на бгЕРП
         if (next.counter == 6) {
@@ -312,7 +316,9 @@ if ($_GET['a'] == '55') {
     }
 </script>
 
-<iframe src='<?php "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank"?>' frameborder="0" name="test" id="test" width=800 height=600 scrolling="no"></iframe>
-<br>
-<input type="button" onclick="next(0); document.getElementById('test').src='<?php echo("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank")?>';" value="Начало">
-<input id='next1' type="button" onclick="next(1);" value="Следващ">
+<iframe src='<?php "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank"?>' frameborder="1" name="test" id="test" width=750 height=500 ></iframe>
+<div style='width: 750px;'>
+    <hr>
+    <input id='start' type="button" style="float: left;" onclick="next(0); document.getElementById('test').src='<?php echo("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank")?>';" value="Начало">
+    <input id='next1' type="button" onclick="next(1);" value="Следващ" style="float: right;">
+</div>
