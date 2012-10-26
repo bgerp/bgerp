@@ -56,12 +56,12 @@ class forum_Postings extends core_Detail {
 		$this->FLD('postingsCnt', 'int', 'caption=Брой на постингите, input=hidden, width=100%, notNull, value=0');
 		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none, width=100%');
 		$this->FLD('lastWho', 'int', 'caption=Последно->Кой, input=none, width=100%');
-		$this->FLD('themeId', 'int', 'caption=Ид на темата, input=hidden, width=100%');
+		$this->FLD('themeId', 'int', 'caption=Тема, input=hidden, width=100%');
 	}
 
 	
 	/**
-	 *  скриване на полето за тип на темата, ако няма права потребителя
+	 *  Скриване на полето за тип на темата, ако няма права потребителя
 	 */
 	static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
@@ -78,15 +78,14 @@ class forum_Postings extends core_Detail {
 	 */
 	function prepareBoardThemes_($data)
 	{
-		$query = $this->getQuery();
-		
 		// Избираме темите, които са начало на нова нишка от дъската
+		$query = $this->getQuery();
         $query->where("#boardId = {$data->rec->id} AND #themeId IS NULL");
         
-        // Подреждаме темите в последователноста : Съобщение, Важна, Нормална
+        // Подреждаме темите в последователност: Съобщение, Важна, Нормална
         $query->orderBy('type, createdOn', 'DESC');
         
-        // Ако дъската е "Support" и потребителя няма роля , то показваме само темите, които
+        // Ако дъската е "Support" и потребителя няма права , то показваме само темите, които
         // той е започнал, ако има право READ той вижда всички теми от дъската
         if((bool)$data->rec->supportBoard){
         	if(!forum_Boards::haveRightFor('read')) {
@@ -94,6 +93,7 @@ class forum_Postings extends core_Detail {
         	}
         }
 		
+        // Пейджър на темите на дъската, лимита е дефиниран в FORUM_THEMES_PER_PAGE
         $conf = core_Packs::getConfig('forum');
 		$data->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_THEMES_PER_PAGE));
         $data->pager->setLimit($query);
@@ -106,9 +106,17 @@ class forum_Postings extends core_Detail {
 	        while($rec = $query->fetch()) {
 	        	$data->themeRecs[$rec->id] = $rec;
 	            $data->themeRows[$rec->id] = $this->recToVerbal($rec, $fields);
-	            $url = array('forum_Postings', 'Theme', $rec->id);
+	           
+	            // Заявка за работа с темата
+	            $themeQuery = $this->getQuery();
+	            $themeQuery->where("#themeId = {$rec->id}");
 	            
-	            // Заглавието на постинга, който е начало на тема става линк към самата тема
+	            // Пейджър за странициране на темата, според  FORUM_POSTS_PER_PAGE
+	            $data->themeRows[$rec->id]->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_POSTS_PER_PAGE));
+	            $data->themeRows[$rec->id]->pager->setLimit($themeQuery);
+	            
+	            // Заглавието на постинга, който е начало на тема става линк към нея
+	            $url = array('forum_Postings', 'Theme', $rec->id);
 	            $data->themeRows[$rec->id]->title = ht::createLink($data->themeRows[$rec->id]->title, $url);
 	            
 	            if(isset($rec->lastWho)) {
@@ -118,7 +126,7 @@ class forum_Postings extends core_Detail {
 		        	$data->themeRows[$rec->id]->avatar = avatar_Plugin::getImg(0, $user->email, 50);
 		        	$data->themeRows[$rec->id]->nick = $user->nick;
 	            }
-	      }
+	      	}
         }
         
         // Ако имаме права да добавяме нова тема в дъската
@@ -126,7 +134,7 @@ class forum_Postings extends core_Detail {
         	$data->submitUrl = array($this, 'add', $this->masterKey => $data->rec->id);
         }
         
-        // Ако имаме права за вътрешен изглед
+        // Ако имаме права за Single
         if($this->haveRightFor('single')) {
         	$data->singleUrl = array($this->Master, 'single', $data->rec->id);
         }
@@ -146,6 +154,12 @@ class forum_Postings extends core_Detail {
 	      foreach($data->themeRows as $row) {
 	      		$themeTpl = $tpl->getBlock('ROW');
 	         	$themeTpl->placeObject($row);
+	         	
+	         	// адреса на темата, която ще отваря темата
+	         	$pagerUrl = toUrl(array('forum_Postings', 'Theme', $row->id), 'relative');
+	         	
+	         	// Рендираме пейджъра на темата до заглавието и
+	         	$themeTpl->replace($row->pager->getHtml($pagerUrl), 'THEME_PAGER');
 	         	$themeTpl->append2master();
 	         } 
         } else {
@@ -234,7 +248,6 @@ class forum_Postings extends core_Detail {
         $conf = core_Packs::getConfig('forum');
 		$data->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_POSTS_PER_PAGE));
         $data->pager->setLimit($query);
-        
         // Първия постинг в нишката е мастър постинга (този който е начало на темата)
         $data->thread[$data->rec->id] = $this->recToVerbal($data->rec, $fields);
         

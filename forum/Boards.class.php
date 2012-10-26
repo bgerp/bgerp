@@ -213,16 +213,15 @@ class forum_Boards extends core_Master {
 		 	}
 		 } elseif($data->action == 'browse') {
 			
-			 // Ако разглеждаме дъска,навигацията ще от рода  Форуми->Категория->Дъска, като
-			 // всяко едно от тях ще е линк към началото, категорията и дъската
+			 // Ако разглеждаме дъска,навигацията ще от рода  Форуми->Категория->Дъска
 			 $categoryUrl =  array('forum_Boards', 'Forum', 'cat' => $data->rec->category);
 			 $boardUrl =  array('forum_Boards', 'Browse', $data->row->id);
 			 $data->navigation[]= ht::createLink($data->row->category, $categoryUrl);
 			 $data->navigation[]= ht::createLink($data->row->title, $boardUrl);
+			 
 		}  elseif ($data->action == 'theme') {
 			
-			 // Ако разглеждаме тема,навигацията ще от рода  Форуми->Категория->Дъска->Тема,
-			 // като всяко едно от тях ще е линк към началото, категорията, дъската и темата
+			 // Ако разглеждаме тема,навигацията ще от рода  Форуми->Категория->Дъска->Тема
 			 $board = $this->recToVerbal($data->board);
 			 $boardUrl = array('forum_Boards', 'Browse', $board->id);
 			 $categoryUrl =  array('forum_Boards', 'Forum', 'cat' => $data->board->category);
@@ -294,6 +293,7 @@ class forum_Boards extends core_Master {
 	function renderForum($data)
 	{
 		$tpl = new ET(getFileContent($data->forumTheme . '/Index.shtml'));
+		
 		foreach($data->categories as $category) {
 			
 			// За всяка категория ние поставяме името и преди  списъка с нейните дъски
@@ -307,7 +307,7 @@ class forum_Boards extends core_Master {
 					$rowTpl->placeObject($row);
 					$rowTpl->append2master();
 				}
-			} 	else {
+			} else {
             		$rowTpl = $catTpl->getBlock('ROW');
             		$rowTpl->replace('<li>Няма Дъски</li>');
             		$rowTpl->append2master();
@@ -392,7 +392,7 @@ class forum_Boards extends core_Master {
 		}
 		
 		if($data->singleUrl) { 
-			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL ,'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
+			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL , 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
 		return $tpl;

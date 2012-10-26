@@ -4,6 +4,7 @@
 </div>
 <div id='forum-board'>
 <div id='board-name'>[#THREAD_HEADER#]</div>
+<div id='pageInfo'>daa</div>
 </div>
 <ul id='thread-list'>
 	<li >

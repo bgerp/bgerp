@@ -8,7 +8,7 @@
 	<tr class='theme-row'>
 		<td class='theme-row-title' width='67%' >
 			<span class='important'>[#type#]</span>	
-			<span class='theme-title'>[#title#]</span><br>
+			<span class='theme-title'>[#title#]</span>[#THEME_PAGER#]<br>
 			<span class='authored'>Започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
 		</td>
 		<td class='right' width='12%'>

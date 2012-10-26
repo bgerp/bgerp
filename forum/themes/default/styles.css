@@ -46,6 +46,10 @@
 	padding:4px;
 }
 
+#navigation a:hover {
+	text-decoration:underline;
+}
+
 #navigation-link{
 	font-size:15px;
 }
@@ -232,3 +236,15 @@ th{
 	color:darkred;
 	font-family:Arial;
 }
+
+.theme-row-title div {
+	padding-left:20px;
+	display:inline;
+	font-size:12px;
+	width:100%;
+}
+
+.theme-row-title div a.pagerSelected {
+	background:0%;border:0px;
+}
+
