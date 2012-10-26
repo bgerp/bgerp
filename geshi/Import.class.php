@@ -35,7 +35,7 @@ class geshi_Import
         
         $GeSHi->set_line_style('color:#111;', 'color:#111; background-color:#fffff0;');
         
-        $tpl = new ET("<div style='font-size:0.9em;'>" . $GeSHi->parse_code() . "</div>");
+        $tpl = new ET("<div class='geshiCode'>" . $GeSHi->parse_code() . "</div>");
         
         return $tpl;
     }
