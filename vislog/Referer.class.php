@@ -36,6 +36,11 @@ class vislog_Referer extends core_Manager {
      */
     var $canWrite = "no_one";
     
+    /**
+     * Кой може да чете?
+     */
+    var $canRead = 'cms,ceo,admin';
+
 
     /**
      * Плъгини за зареждане

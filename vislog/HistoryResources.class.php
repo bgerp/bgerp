@@ -46,6 +46,11 @@ class vislog_HistoryResources extends core_Manager {
      */
     var $canWrite = "no_one";
     
+    /**
+     * Кой може да чете?
+     */
+    var $canRead = 'cms,ceo,admin';
+
     
     /**
      * Описание на модела (таблицата)
