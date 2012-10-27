@@ -99,7 +99,7 @@ class forum_Categories extends core_Manager {
 		
 		while($rec = $query->fetch()) {
            if(static::haveRightFor('read', $rec)) {
-           	
+           
 				// Добавяме категорията като нов елемент на $data
 				$cat = new stdClass();
 				$cat->id = $rec->id;
@@ -118,9 +118,9 @@ class forum_Categories extends core_Manager {
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		if($action == 'read' && isset($rec)) {
-			
+			 
 			// Само тези които имат права за достъп, виждат категорията
-			$res = static::getVerbal($rec, 'canSeeCategory');
+			$res = static::getVerbal($rec, 'canSeeCategory');  
 		}
 	}
 }

@@ -24,7 +24,7 @@ class blogm_Links extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_State, blogm_Wrapper, plg_Created, plg_Modified';
+	var $loadList = 'plg_RowTools, plg_State2, blogm_Wrapper, plg_Created, plg_Modified';
 	
 
    /**
@@ -52,7 +52,6 @@ class blogm_Links extends core_Manager {
 	{
 		$this->FLD('name', 'varchar(50)', 'caption=Наименование, mandatory, notNull');
 		$this->FLD('url', 'url', 'caption=Адрес, mandatory, notNull');
-		$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
 		
 		// Уникални полета
 		$this->setDbUnique('name');
@@ -71,7 +70,7 @@ class blogm_Links extends core_Manager {
 		// Избираме само активните линкове
 		$query->where("#state = 'active'");
 		
-		// За всеки запис създаваме клас, който натрупваме в масива $data
+		// За всеки запис създаваме обект, който натрупваме в масива $data
 		while($rec = $query->fetch()) {
             $link = new stdClass();
 			$link->name = static::getVerbal($rec, 'name');
@@ -93,8 +92,8 @@ class blogm_Links extends core_Manager {
 		if($data->links) {
 			foreach($data->links as $link){
 				// Създаваме линк от заглавието и урл-то 
-				$name = ht::createLink(tr($link->name), $link->url);
-				$name = ht::createElement('div', array('class' => 'nav_item level2'), $name);
+				$name = ht::createLink(tr($link->name), $link->url, NULL, 'target=_blank,class=out');
+				$name = ht::createElement('div', array('class' => 'level2'), $name);
 				
 				// Добавяме линка към шаблона
 				$tpl->append($name);

@@ -1,3 +1,9 @@
+<!--ET_BEGIN WORKSHOP-->
+<div id='blogm-workshop'>
+[#WORKSHOP#]
+</div>
+<!--ET_END WORKSHOP-->
+
 <!--ET_BEGIN SEARCH_FORM-->
 <div id='blogm-search-form'>
 [#SEARCH_FORM#]
@@ -19,11 +25,6 @@
 </div>
 <!--ET_END ARCHIVE-->
 
-<!--ET_BEGIN WORKSHOP-->
-<div id='blogm-workshop'>
-[#WORKSHOP#]
-</div>
-<!--ET_END WORKSHOP-->
 
 <!--ET_BEGIN LINKS-->
 <div id='blogm-links'>
@@ -31,3 +32,4 @@
 [#LINKS#]
 </div>
 <!--ET_END LINKS-->
+

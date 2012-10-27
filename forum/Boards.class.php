@@ -179,6 +179,7 @@ class forum_Boards extends core_Master {
 	{
 		// Извличаме всички категории на дъските
 		forum_Categories::prepareCategories($data);
+
 		if(count($data->categories)) {
 			
 			// За всяка категория ние подготвяме списъка от дъски, които са част от нея
@@ -293,29 +294,31 @@ class forum_Boards extends core_Master {
 	function renderForum($data)
 	{
 		$tpl = new ET(getFileContent($data->forumTheme . '/Index.shtml'));
-		
-		foreach($data->categories as $category) {
-			
-			// За всяка категория ние поставяме името и преди  списъка с нейните дъски
-			$catTpl = new ET(getFileContent($data->forumTheme . '/Boards.shtml'));
-			$catTpl->replace($category->title, 'cat');
-			if($category->boards->rows) { 
-				
-				// За всички дъски от категорията ние ги поставяме под нея в шаблона
-				foreach($category->boards->rows as $row) {
-					$rowTpl = $catTpl->getBlock('ROW');
-					$rowTpl->placeObject($row);
-					$rowTpl->append2master();
-				}
-			} else {
-            		$rowTpl = $catTpl->getBlock('ROW');
-            		$rowTpl->replace('<li>Няма Дъски</li>');
-            		$rowTpl->append2master();
-        		}
-        		
-        	// Добавяме категорията с нейните дъски към главния шаблон
-			$tpl->append($catTpl, 'BOARDS');
-		}
+ 
+        if(count($data->categories)) {
+            foreach($data->categories as $category) {
+                
+                // За всяка категория ние поставяме името и преди  списъка с нейните дъски
+                $catTpl = new ET(getFileContent($data->forumTheme . '/Boards.shtml'));
+                $catTpl->replace($category->title, 'cat');
+                if($category->boards->rows) { 
+                    
+                    // За всички дъски от категорията ние ги поставяме под нея в шаблона
+                    foreach($category->boards->rows as $row) {
+                        $rowTpl = $catTpl->getBlock('ROW');
+                        $rowTpl->placeObject($row);
+                        $rowTpl->append2master();
+                    }
+                } else {
+                        $rowTpl = $catTpl->getBlock('ROW');
+                        $rowTpl->replace('<li>Няма Дъски</li>');
+                        $rowTpl->append2master();
+                    }
+                    
+                // Добавяме категорията с нейните дъски към главния шаблон
+                $tpl->append($catTpl, 'BOARDS');
+            }
+        }
 		
 		if($data->listUrl) { 
 			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
@@ -425,10 +428,10 @@ class forum_Boards extends core_Master {
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		if($action == 'read' && isset($rec)) {
-			
+			 
 			// Могат да виждат дъските, единствено потребителите с роли, които са
 			// зададени в полето 'canSeeBoard' от дъската
-			$res = $mvc::getVerbal($rec, 'canSeeBoard');
+			$res = $mvc::getVerbal($rec, 'canSeeBoard'); 
 		}
 	}
 	

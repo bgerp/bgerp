@@ -59,7 +59,7 @@ body{
 }
 
  
-#cmsNavigation a {
+#cmsNavigation .nav_item a {
 	color:#336;
 	border:none;
 }
