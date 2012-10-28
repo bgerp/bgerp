@@ -290,7 +290,11 @@ if ($_GET['a'] == '55') {
 
 
 ?>
-
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+</head>
+<body>
 <script language="javascript">
     
     // setInterval('frames[0].scrollTo(0,9999999)',1000);
@@ -322,3 +326,5 @@ if ($_GET['a'] == '55') {
     <input id='start' type="button" style="float: left;" onclick="next(0); document.getElementById('test').src='<?php echo("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank")?>';" value="Начало">
     <input id='next1' type="button" onclick="next(1);" value="Следващ" style="float: right;">
 </div>
+</body>
+</html>
