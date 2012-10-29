@@ -418,13 +418,17 @@ class type_Richtext extends type_Text {
      */
     public function externalLink_($url, $title, $place)
     {
-        $bgPlace = $this->getPlace();
-        $urlArr = parse_url($url);
-        $domain = $urlArr['host'];
-        $this->_htmlBoard[$bgPlace] = "background-image:url('http://www.google.com/s2/u/0/favicons?domain={$domain}');";
         $titlePlace = $this->getPlace();
         $this->_htmlBoard[$titlePlace] = $title;
-        $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";
+        if($title{0} != ' ') {
+            $urlArr = parse_url($url);
+            $domain = $urlArr['host'];
+            $bgPlace = $this->getPlace();
+            $this->_htmlBoard[$bgPlace] = "background-image:url('http://www.google.com/s2/u/0/favicons?domain={$domain}');";
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";
+        } else {
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
+        }
 
         return $link;
     }
