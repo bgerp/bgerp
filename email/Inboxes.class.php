@@ -386,7 +386,14 @@ class email_Inboxes extends core_Master
      * Ако е посочено id' или име на потребителя тогава връща него, в противен случай връща на текущия потребител
      */
     static function getUserEmail($userId = NULL)
-    {
+    {   
+        // Ако потребителите се регистрират с никове == имейлите им, 
+        // то не можем да генерираме корпоративен имейл адрес
+        if(EF_USSERS_EMAIL_AS_NICK) {
+
+            return FALSE;
+        }
+
         // Ако не сме подали параметър, вземаме id-то на текущия потребител
         if (!$userId) {
             $userId = core_Users::getCurrent();
@@ -394,7 +401,7 @@ class email_Inboxes extends core_Master
                 
         // Вземаме nick' а на потребителя
         $nick = core_Users::fetchField($userId, 'nick');
-        
+
         // Вземаме корпоративната сметка
         $corpAccRec = email_Accounts::getCorporateAcc();
         

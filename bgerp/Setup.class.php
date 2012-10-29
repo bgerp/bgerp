@@ -87,7 +87,7 @@ class bgerp_Setup {
         // Пакети, които ще се инсталират при инсталацията на bgERP
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,acc,currency,doc,cms,
                   email,crm,cat,catpr,blast,rfid,hr,trz,catering,lab,sales,mp,store,trans,cash,bank,
-                  budget,purchase,accda,sens,cams,hclean,cal,fconv,log,fconv,cms,gallery,blogm,forum,vislog";
+                  budget,purchase,accda,sens,cams,hclean,cal,fconv,log,fconv,cms,gallery,blogm,forum,vislog,avatar,chosen,statuses,google,gdocs,jqdatepick,oembed";
 
         if(defined('EF_PRIVATE_PATH')) {
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));
@@ -118,9 +118,12 @@ class bgerp_Setup {
         //Зарежда данни за инициализация от CSV файл за core_Lg
         $html .= bgerp_data_Translations::loadData();
         
-        //Зарежда данните за "Моята фирма"
-        $html .= crm_Companies::loadData();
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
         
+        // Инсталираме плъгина за прихващане на първото логване на потребител в системата
+        $html .= $Plugins->installPlugin('First Login', 'bgerp_plg_FirstLogin', 'core_Users', 'private');
+
         $Menu = cls::get('bgerp_Menu');
         
         $html .= $Menu->addItem(1, 'Система', 'Ядро', 'core_Packs', 'default', 'admin');

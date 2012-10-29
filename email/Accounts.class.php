@@ -118,7 +118,7 @@ class email_Accounts extends core_Master
      */
     static function getCorporateAcc()
     {
-        $rec = self::fetch("#type = 'corporate'");
+        $rec = self::fetch("#type = 'corporate' AND #state = 'active'");
         
         if($rec) {
             list($rec->user, $rec->domain) = explode('@', $rec->email);
@@ -222,119 +222,79 @@ class email_Accounts extends core_Master
      * Добавя акаунт, ако има зададен такъв в конфигурационния файл
      * и ако няма запис в базата
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    static function loadData()
     {
-        if(!$mvc->count()) {
-            
-            // Импорт на сметките
-            $oldQuery = email_InboxesOld::getQuery();
+        $mvc = cls::get('email_Accounts');
 
-            while($oldRec = $oldQuery->fetch()) {
-                if($oldRec->type =='pop3' || $oldRec->type =='imap') {
-                    $rec = new stdClass();
-                    $rec->id = $oldRec->id;
-                    $rec->email = $oldRec->email;
-                    $rec->protocol = $oldRec->type;
-                    $rec->server = $oldRec->server;
-                    
-                    if($oldRec->port) {
-                        $rec->server .= ':' . $oldRec->port;
-                    }
+        if(defined('BGERP_DEFAULT_EMAIL_FROM') && BGERP_DEFAULT_EMAIL_FROM != '') {
+            if(!$mvc->fetch(array("#email = '[#1#]'", BGERP_DEFAULT_EMAIL_FROM))) {
 
-                    if($oldRec->port == 995 || $oldRec->port == 993) {
-                        $rec->security = 'ssl';
-                    }
 
-                    if($rec->subHost) {
-                        $rec->server .= '/' . $oldRec->subHost;
-                    }
-                    if($oldRec->ssl) {
-                        $rec->server .= '/' . $oldRec->ssl;
-                    }
+                $rec = new stdClass();
 
-                    $rec->user = $oldRec->user;
-                    $rec->password = $oldRec->password;
-
-                    $rec->applyRouting = $oldRec->applyRouting;
-
-                    list($user, $domain) = explode('@', $rec->email);
-
-                    if(drdata_Domains::isPublic($domain)) {
-                        $rec->type = 'single';
-                    } else {
-                        $rec->type = 'corporate';
-                    }
-
-                    $rec->state = $oldRec->state;
-                    $rec->period = $oldRec->period;
-                    $rec->lastFetchAll = $oldRec->lastFetchAll;
-                    $rec->deleteAfterRetrieval = $oldRec->deleteAfterRetrieval;
-                    
-                    $rec->inCharge = $oldRec->inCharge;
-                    $rec->access   = $oldRec->access;
-                    $rec->shared   = $oldRec->shared;
-                    $rec->folderId = $oldRec->folderId;
+                $rec->email = BGERP_DEFAULT_EMAIL_FROM;
+        
+                // Дали да се рутират писмата, получени на този акаунт
+                defIfNot('BGERP_DEFAULT_EMAIL_APPLY_ROUTING', 'yes');
+                $rec->applyRouting = BGERP_DEFAULT_EMAIL_APPLY_ROUTING; 
                 
-                    $rec->oldInboxId = $oldRec->id;
-
-                    $rec->createdOn = $oldRec->createdOn;
-
-                    $rec->createdBy = $oldRec->createdBy;
-
-                    self::save($rec, NULL, 'REPLACE');
-                }
-            }
-
-            // Импорт на кутиите
-            $oldQuery = email_InboxesOld::getQuery();
-
-            // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
-            $corpAccRec = static::getCorporateAcc();
-            
-            if($corpAccRec) {
+                // Дали към този акаунт отговаря и за други вътрешни адреси, освен посочения в email?
+                // Самостоятелна сметка: Отговаря само за имейл адреса, с който е дефинирана
+                // Събирателна сметка: Отговаря и за други имейл адреси
+                // Корпоративна сметка: Отговаря за много други имейл адреси, и кутията по подразбиране на потребителите е в същия домейн, като на тази сметка
+                defIfNot('BGERP_DEFAULT_EMAIL_TYPE', 'corporate');
+                $rec->type = BGERP_DEFAULT_EMAIL_TYPE;
                 
-                // Добавка за да има SMTP сървър
-                if(!$corpAccRec->smtpServer) {
-                    $corpAccRec->smtpServer = 'localhost';
-                    self::save($corpAccRec);
-                }
-                while($oldRec = $oldQuery->fetch()) {
-                    if($oldRec->type == 'internal') {
-                        
+                // Входящо получаване
+                defIfNot('BGERP_DEFAULT_EMAIL_HOST', 'localhost');
+                $rec->server = BGERP_DEFAULT_EMAIL_HOST;
 
-                        list($oldUser, $oldDomain) = explode('@', $oldRec->email);
-                        
-                        if($corpAccRec->domain == $oldDomain) {
+                defIfNot('BGERP_DEFAULT_EMAIL_PROTOCOL', 'imap');
+                $rec->protocol = BGERP_DEFAULT_EMAIL_PROTOCOL;
+                
+                list($server, $port) = explode(':', $rec->server);
+                defIfNot('BGERP_DEFAULT_EMAIL_SECURITY', ($port == 995 || $port == 993) ? 'ssl' : 'default');
+                $rec->security = BGERP_DEFAULT_EMAIL_SECURITY;
+                
+                defIfNot('BGERP_DEFAULT_EMAIL_CERT', 'noValidate');
+                $rec->cert = BGERP_DEFAULT_EMAIL_CERT;
+                
+                defIfNot('BGERP_DEFAULT_EMAIL_CERT', 'inbox');
+                $rec->folder = BGERP_DEFAULT_EMAIL_FOLDER;
 
-                            if($userRec = core_Users::fetch("#nick = '{$oldUser}'")) {
+                $rec->user = BGERP_DEFAULT_EMAIL_USER;
+                $rec->password = BGERP_DEFAULT_EMAIL_PASSWORD ;
+                
+                // Изтегляне
+                $rec->state = 'active';
+                $rec->period = 1;
 
-                                if(!email_Inboxes::fetch("#email = '{$oldRec->email}'")) {
-                                    $boxRec = new stdClass();
-                                    $boxRec->email = $oldRec->email;
-                                    $boxRec->accountId = $corpAccRec->id;
-                                    $boxRec->inCharge = $oldRec->inCharge;
-                                    $boxRec->access   = $oldRec->access;
-                                    $boxRec->shared   = $oldRec->shared;
-                                    $boxRec->folderId = $oldRec->folderId;
+                defIfNot('BGERP_DEFAULT_EMAIL_DELETE', 'no');
+                $rec->deleteAfterRetrieval = BGERP_DEFAULT_EMAIL_DELETE;
+                
+                // Изпращане
+                defIfNot('BGERP_DEFAULT_EMAIL_SMTP_SERVER', 'localhost');
+                $rec->smtpServer = BGERP_DEFAULT_EMAIL_SMTP_SERVER;
+                
+                defIfNot('BGERP_DEFAULT_EMAIL_SMTP_SECURE', 'no');
+                $rec->smtpSecure = BGERP_DEFAULT_EMAIL_SMTP_SECURE;
+                
+                defIfNot('BGERP_DEFAULT_EMAIL_SMTP_AUTH', 'no');
+                $rec->smtpAuth = BGERP_DEFAULT_EMAIL_SMTP_AUTH;
+                
+                defIfNot('BGERP_DEFAULT_EMAIL_SMTP_USER', NULL);
+                $rec->smtpUser = BGERP_DEFAULT_EMAIL_SMTP_USER;
+                
+                defIfNot('BGERP_DEFAULT_EMAIL_SMTP_PASSWORD', NULL);
+                $rec->smtpPassword = BGERP_DEFAULT_EMAIL_SMTP_PASSWORD;
 
-                                    email_Inboxes::save($boxRec, NULL, 'REPLACE');
-                                }
-                            }
-                        }
-                    }
-                }
+                $mvc->save($rec, NULL, 'IGNORE');
+                                
+                $res .= "<li>Добавен вх./изх. имейл аметка: " . BGERP_DEFAULT_EMAIL_FROM;
             }
         }
 
-
-        $corpAccRec = static::getCorporateAcc();
-            
-        // Добавка за да има SMTP сървър
-        if(!$corpAccRec->smtpServer) {
-            list($corpAccRec->smtpServer) = explode(':', $corpAccRec->server);
-            self::save($corpAccRec);
-        }
-
+        return $res;
     }
     
     

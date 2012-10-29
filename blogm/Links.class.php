@@ -18,7 +18,7 @@ class blogm_Links extends core_Manager {
 	/**
 	 * Заглавие на страницата
 	 */
-	var $title = 'Ние четем';
+	var $title = 'Препратки';
 	
 	
 	/**

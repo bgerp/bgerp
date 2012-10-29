@@ -246,12 +246,12 @@ class doc_FolderPlg extends core_Plugin
         // Ако потребителя е -1 (системата), тогава се взема първия срещнат admin
         // @TODO да се махне този хак
         if($cu < 0) {
-            $firstAdmin = core_Users::getFirstAdmin();
+           // $firstAdmin = core_Users::getFirstAdmin();
             
             //Ако има администратор в системата използваме него
             //При при първата инсталация на системата, нямаме администратор. Използваме системния потребител
             if ($firstAdmin) {
-                $cu = $firstAdmin;    
+             //   $cu = $firstAdmin;    
             }
         }
         

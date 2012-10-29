@@ -132,7 +132,7 @@ class email_Filters extends core_Manager
      * Това става като от събджекта ($rec->subject) и текста ($rec->textPart) писмото първо се 
      * извлекат всички имейл адреси, а след това от този списък се премахнат:
      * 
-     *  o нашите имейл адреси (имейл адресите в домейна BGERP_DEFAULT_EMAIL_DOMAIN)
+     *  o нашите имейл адреси (имейл адресите на вътрешните кутии в email_Inboxes)
      *  o имейл адресите, които е много вероятно да са на доставчика на публичната услуга
      *  
      * @param stdClass $rec запис от модела email_Incomings
@@ -210,7 +210,7 @@ class email_Filters extends core_Manager
     /**
      * Премахва нашите имейли от зададен списък с имейли.
      * 
-     * "Нашите" имейли са имейлите в домейна BGERP_DEFAULT_EMAIL_DOMAIN.
+     * "Нашите" имейли са адресите на вътрешните кутии от модела email_Inboxes.
      * 
      * @param array $emails
      * @return array
@@ -218,7 +218,8 @@ class email_Filters extends core_Manager
     protected static function filterOurEmails($emails)
     {
         $emails = array_filter($emails, function ($email) {
-            return strtolower(type_Email::domain($email)) != strtolower(BGERP_DEFAULT_DOMAIN);
+            $allInboxes = email_Inboxes::getAllInboxes();
+            return !$allInboxes[strtolower(trim($email))];
         });
         
         return array_values($emails);

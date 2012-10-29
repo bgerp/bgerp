@@ -490,7 +490,7 @@ class cal_Holidays extends core_Master
     /**
      * Функция, която връща array[кода на държавата] = списък на потребители
      */
-    function bCards ()
+    static function bCards()
     {
     	
     	$inChargePerCountry = array();

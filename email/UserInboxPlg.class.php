@@ -28,29 +28,19 @@ class email_UserInboxPlg extends core_Plugin
         //Ако се добавя или редактира потребител
         //При вход в системата не се задейства
         if($rec->nick) {
-            //Данни необходими за създаване на папка
-            $eRec = new stdClass();
-            $eRec->inCharge = $rec->id;
-            $eRec->access = "private";
-            
-            $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
-            $eRec->type = 'internal';
-            $eRec->applyRouting = 'no';
-            
-            $nick = $rec->nick;
-            
-            if (EF_USSERS_EMAIL_AS_NICK) {
-                $nick = type_Nick::parseEmailToNick($rec->nick);
-            }
-            
+ 
             if($corpAccRec = email_Accounts::getCorporateAcc()) {
+                
+                //Данни необходими за създаване на папка
+                $eRec = new stdClass();
             
                 //Добавяме полето имейл, необходима за създаване на корица
                 $eRec->email = email_Inboxes::getUserEmail($rec->id);
-                $eRec->name = $nick;
                 $eRec->accountId = $corpAccRec->id;
-            
-                email_Inboxes::forceCoverAndFolder($eRec);
+                
+                if($eRec->email) {
+                    email_Inboxes::forceCoverAndFolder($eRec);
+                }
             }
         }
         
