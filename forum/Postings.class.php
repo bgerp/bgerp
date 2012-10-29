@@ -52,8 +52,9 @@ class forum_Postings extends core_Detail {
 		$this->FLD('boardId', 'key(mvc=forum_Boards, select=title)', 'caption=Дъска, input=hidden, silent');
 		$this->FLD('title', 'varchar(50)', 'caption=Заглавие, mandatory, notNull, width=100%');
 		$this->FLD('body', 'richtext', 'caption=Съдържание, mandatory, notNull, width=100%');
-		$this->FLD('type', 'enum(0=Нормална,1=Важна,2=Съобщение)', 'caption=Тип, value=0');
+		$this->FLD('type', 'enum(normal=Нормална,1=Важна,2=Съобщение)', 'caption=Тип, value=0');
 		$this->FLD('postingsCnt', 'int', 'caption=Брой на постингите, input=hidden, width=100%, notNull, value=0');
+		$this->FLD('status', 'enum(unlocked=Отключена, locked=Заключена)', 'caption=Статус, notNull, value = unlocked');
 		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none, width=100%');
 		$this->FLD('lastWho', 'int', 'caption=Последно->Кой, input=none, width=100%');
 		$this->FLD('themeId', 'int', 'caption=Тема, input=hidden, width=100%');
@@ -104,9 +105,17 @@ class forum_Postings extends core_Detail {
         	
         	// Ако имаме права да виждаме темите в дъската, ние ги извличаме
 	        while($rec = $query->fetch()) {
+	        	
 	        	$data->themeRecs[$rec->id] = $rec;
 	            $data->themeRows[$rec->id] = $this->recToVerbal($rec, $fields);
-	           
+	           	
+	            if($rec->type != 0) {
+	           		
+	            	// Ако темата е важна или съобщение, я поставяме в контейнер за по-лесно стлизиране
+	            	$type = ht::createElement('span', array('class' => 'important'), $data->themeRows[$rec->id]->type);
+	            	$data->themeRows[$rec->id]->type = $type;
+	           	}
+	           	
 	            // Заявка за работа с темата
 	            $themeQuery = $this->getQuery();
 	            $themeQuery->where("#themeId = {$rec->id}");
@@ -125,6 +134,11 @@ class forum_Postings extends core_Detail {
 	            	$user = core_Users::fetch($rec->lastWho);
 		        	$data->themeRows[$rec->id]->avatar = avatar_Plugin::getImg(0, $user->email, 50);
 		        	$data->themeRows[$rec->id]->nick = $user->nick;
+	            } else {
+	            	
+	            	// Ако темата няма коментари слагаме дефолт имидж на аватара
+	            	$data->themeRows[$rec->id]->avatar =avatar_Plugin::getImg(0, NULL, 50);
+	            	$data->themeRows[$rec->id]->nick = 'няма коментари';
 	            }
 	      	}
         }
@@ -155,7 +169,7 @@ class forum_Postings extends core_Detail {
 	      		$themeTpl = $tpl->getBlock('ROW');
 	         	$themeTpl->placeObject($row);
 	         	
-	         	// адреса на темата, която ще отваря темата
+	         	// Адреса на темата, която ще отваря темата
 	         	$pagerUrl = toUrl(array('forum_Postings', 'Theme', $row->id), 'relative');
 	         	
 	         	// Рендираме пейджъра на темата до заглавието и
@@ -248,6 +262,7 @@ class forum_Postings extends core_Detail {
         $conf = core_Packs::getConfig('forum');
 		$data->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_POSTS_PER_PAGE));
         $data->pager->setLimit($query);
+        
         // Първия постинг в нишката е мастър постинга (този който е начало на темата)
         $data->thread[$data->rec->id] = $this->recToVerbal($data->rec, $fields);
         
@@ -263,29 +278,37 @@ class forum_Postings extends core_Detail {
 			// Извличаме аватара на потребителя, който е направил коментара
 			$data->thread[$rec->id]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 90);
         }
-		$data->title = "Разглеждане на тема {$data->rec->title}";
+        
+		$data->title = "разглеждане на тема: &nbsp;&nbsp;&nbsp;&nbsp;{$data->rec->title}";
 		
-		// Ако можем да местим темата, добавяме форма
 		if($this->haveRightFor('write')) {
 			
+			// Форма за местене на тема
 			$data->moveForm = cls::get('core_Form');
 			$data->moveForm->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'placeholder=Дъска,input');
 			$data->moveForm->setHidden('theme', $data->rec->id);
 			$data->moveForm->setDefault('boardTo', $data->board->id);
 			$data->moveForm->setAction($this, 'move');
 			$data->moveForm->toolbar->addSbBtn('Премести');
+			
+			// Адрес за заключване/отключване на тема
+			$data->lockUrl = array('forum_Postings', 'Lock', $data->rec->id);
 		}
 		
-		// Ако можем да добавяме нов постинг в темата
-		if($this->haveRightFor('add', $data->board)) {
+		// Ако можем да добавяме нов постинг в темата и тя е отключена
+		if($this->haveRightFor('add', $data->board) && $data->rec->status == 'unlocked') {
 			
 			// Подготвяме формата за добавяне на нов постинг към нишката
 			$data->postForm = $this->getForm();
 			$data->postForm->setField('title', 'input=none');
 			$data->postForm->setField('type', 'input=none');
+			$data->postForm->setField('status', 'input=none');
 			$data->postForm->setHidden('themeId', $data->rec->id);
 			$data->postForm->setHidden('boardId', $data->rec->boardId);
 			$data->postForm->toolbar->addSbBtn('Коментирай');
+			
+			// Котва към формата за коментар
+			$data->formAnchor =  array($this, 'Theme', $data->rec->id, '#'=>'comment');
 		}
 		
 		// Подготвяме навигацията
@@ -301,7 +324,7 @@ class forum_Postings extends core_Detail {
 		$tpl = new ET(getFileContent($data->forumTheme . '/Thread.shtml'));
 		$tpl->replace($data->title, 'THREAD_HEADER');
 		
-		// Ако имаме теми в нишката ние ги рендираме
+		// Ако имаме теми в нишката, ние ги рендираме
 		if(count($data->thread)){
 			foreach($data->thread as $row) {
 				$rowTpl = $tpl->getBlock('ROW');
@@ -315,18 +338,36 @@ class forum_Postings extends core_Detail {
 		
 		// Ако имаме право да местим темата, рендираме формата за местене
         if($data->moveForm) {
+        	
         	$data->moveForm->layout = new ET(getFileContent($data->forumTheme . '/MoveForm.shtml'));
             $data->moveForm->fieldsLayout = new ET(getFileContent($data->forumTheme . '/MoveFormFields.shtml'));
             $tpl->replace($data->moveForm->renderHtml(), 'TOOLS');
         }
         
+        if($data->lockUrl) {
+        	if($data->rec->status == 'unlocked') {
+        		$str = 'Заключи';
+        	} else {
+        		$str = 'Отключи';
+        	}
+        	
+        	$tpl->append(ht::createBtn($str, $data->lockUrl, NULL, NULL, 'id=btnAdd,class=btn-add'), 'LOCK');
+        }
+
         // Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
+			
             $data->postForm->layout = new ET(getFileContent($data->forumTheme . '/PostForm.shtml'));
             $data->postForm->fieldsLayout = new ET(getFileContent($data->forumTheme . '/PostFormFields.shtml'));
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
+        } else {
+        	$tpl->replace('темата неможе да бъде коментирана', 'COMMENT_FORM');
         }
 		
+        if($data->formAnchor) {
+        	$tpl->replace(ht::createBtn('Нов отговор', $data->formAnchor), 'ANSWER');
+        }
+        
         return $tpl;
 	}
 	
@@ -334,10 +375,12 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Екшън за местене на избрана тема
 	 */
-	function act_Move() {
-		expect($boardTo = Request::get('boardTo'));
-		expect($themeId = Request::get('theme'));
+	function act_Move()
+	 {
 		$this->requireRightFor('write');
+	 	expect($boardTo = Request::get('boardTo'));
+		expect($themeId = Request::get('theme'));
+		
 
 		// Намираме Id-то на дъската от която ще местим статията
 		$boardFrom = $this->fetchField($themeId, 'boardId');
@@ -357,13 +400,35 @@ class forum_Postings extends core_Detail {
 			}
 			
 			// Обновяваме броя на темите, коментарите както и информацията за 
-			//последния коментар съответно в оригиналната и новата дъска на темата
+			// последния коментар съответно в оригиналната и новата дъска на темата
 			forum_Boards::updateBoard($boardFrom);
 			forum_Boards::updateBoard($boardTo);
 		} 
 		
 		// Пренасочваме към същата тема
 		return new Redirect(array('forum_Postings', 'Theme', $themeId));
+	}
+	
+	
+	/**
+	 *  Екшън за заключване/отключване на тема. Заключена тема неможе да бъде коментирана повече
+	 */
+	function act_Lock()
+	{
+		expect($rec = self::fetch(Request::get('id')));
+		$this->requireRightFor('write');
+		
+		// променяме статуса на темата на заключенa/отключенa
+		if($rec->status == 'unlocked') {
+			$rec->status = 'locked';
+		} else {
+			$rec->status = 'unlocked';
+		}
+		
+		// Запазваме промененият статус на темата
+		static::save($rec);
+		
+		return new Redirect(array($this, 'Theme', $rec->id));
 	}
 	
 	
@@ -412,16 +477,18 @@ class forum_Postings extends core_Detail {
 	 * Обновяваме статистическата информация на темата
 	 */
    function updateStatistics($themeId, $createdOn, $createdBy)
-    {
-   	   		// Избираме постингите, принадлежащи на темата
-   	   		$query = $this->getQuery();
-	        $query->where("#themeId = {$themeId}");
-	        $rec = $this->fetch($themeId);
+   {
+   	  $rec = $this->fetch($themeId);
+   	   		
+      // Избираме постингите, принадлежащи на темата
+   	  $query = $this->getQuery();
+	  $query->where("#themeId = {$themeId}");
 	        
-	        // Обновяваме, кой и кога е направил последния коментар
-	        $rec->last = $createdOn;
-	        $rec->lastWho = $createdBy;
-	        $rec->postingsCnt = $query->count();
-	        static::save($rec);
+	  // Обновяваме, кой и кога е направил последния коментар
+	  $rec->last = $createdOn;
+	  $rec->lastWho = $createdBy;
+	  $rec->postingsCnt = $query->count();
+	        
+	  static::save($rec);
    }
 }
