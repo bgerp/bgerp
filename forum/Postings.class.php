@@ -52,7 +52,7 @@ class forum_Postings extends core_Detail {
 		$this->FLD('boardId', 'key(mvc=forum_Boards, select=title)', 'caption=Дъска, input=hidden, silent');
 		$this->FLD('title', 'varchar(50)', 'caption=Заглавие, mandatory, notNull, width=100%');
 		$this->FLD('body', 'richtext', 'caption=Съдържание, mandatory, notNull, width=100%');
-		$this->FLD('type', 'enum(normal=Нормална,1=Важна,2=Съобщение)', 'caption=Тип, value=0');
+		$this->FLD('type', 'enum(0=Нормална,1=Важна,2=Съобщение)', 'caption=Тип, value=0');
 		$this->FLD('postingsCnt', 'int', 'caption=Брой на постингите, input=hidden, width=100%, notNull, value=0');
 		$this->FLD('status', 'enum(unlocked=Отключена, locked=Заключена)', 'caption=Статус, notNull, value = unlocked');
 		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none, width=100%');
