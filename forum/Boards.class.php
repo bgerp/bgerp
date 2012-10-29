@@ -41,7 +41,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields ='tools, title, category, shortDesc, themesCnt, canSeeBoard, canSeeThemes, canComment,lastComment,lastCommentedTheme,createdOn,createdBy,  modifiedOn, modifiedBy';
+	var $listFields ='tools, title, category, shortDesc, themesCnt, canSeeBoard, canSeeThemes, canComment,canStick,lastComment,lastCommentedTheme,createdOn,createdBy,  modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -109,7 +109,6 @@ class forum_Boards extends core_Master {
 		
 		// Извличане на последния коментар в дъската
 		$commentsQuery->XPR('maxId', 'int', 'max(#id)');
-		
 		try{
 			// Намираме постинга който е последния коментар в дъската (този с най-голямо ид)
 			$lastComment = forum_Postings::fetch($commentsQuery->fetch()->maxId); 
@@ -138,8 +137,6 @@ class forum_Boards extends core_Master {
 		
 	    // Обновяваме дъската
 	    static::save($rec);
-	    
-	    //@TODO Ако дъската е съпорт да отчитаме само темите на потребителя който ги е постнал
 	}
 	
 	
@@ -200,8 +197,8 @@ class forum_Boards extends core_Master {
 	 * Подготвяме, навигационните линкове за бърз достъп до избраната категория/дъска/тема
 	 * в навигационното поле на форума
 	 */
-	function prepareNavigation($data){
-		
+	function prepareNavigation($data)
+	{
 		// Линк към началото на форума
 		$data->navigation[] = ht::createLink('Форуми', array('forum_Boards', 'Forum'));
 		 if($data->action == 'forum'){
@@ -237,7 +234,8 @@ class forum_Boards extends core_Master {
 	/**
 	 * Добавяме всеки елемент на в последователност от линкове
 	 */
-	function renderNavigation($data){
+	function renderNavigation($data)
+	{
 		foreach($data->navigation as $link){
 			$navigation .=  $link . "&nbsp;»&nbsp;";
 		}
@@ -269,19 +267,32 @@ class forum_Boards extends core_Master {
 	            
 	            // Правим заглавието на дъската, като линк
 	            $category->boards->rows[$rec->id]->title = ht::createLink($category->boards->rows[$rec->id]->title, $url);
-	 		
+	 			
+	             if((bool)$rec->supportBoard){
+		        	if(!static::haveRightFor('read')) {
+		        		
+		        		// Ако дъската е съпорт, преброяваме темите създадени от текущия потребител
+		        		$query = forum_Postings::getQuery();
+		        		$query->where("#boardId = {$rec->id} AND #themeId IS NULL");
+		        		$query->where("#createdBy = " . core_users::getCurrent() . "");
+		        		$category->boards->rows[$rec->id]->themesCnt = $query->count();
+		        	}
+        		}
+	            
 	            if($rec->lastCommentBy) {
 	            
+	            	// Създаваме от заглавието на темата линк към нея
 	            	$lastThemeTitle = forum_Postings::fetchField($rec->lastCommentedTheme, 'title');
 	            	$themeUrl = array('forum_Postings', 'Theme', $rec->lastCommentedTheme);
-	            	
-	            	// Създаваме от заглавието на темата линк към нея
 	            	$category->boards->rows[$rec->id]->lastCommentedTheme = ht::createLink($lastThemeTitle, $themeUrl);
 	            	
 	            	// Намираме граватара и ника на потребителя коментирал последно
 	            	$lastUser =core_Users::fetch($rec->lastCommentBy);
 	            	$category->boards->rows[$rec->id]->lastAvatar =  avatar_Plugin::getImg(0, $lastUser->email, 50);
 	            	$category->boards->rows[$rec->id]->lastNick = $lastUser->nick;
+	            } else {
+	            	$category->boards->rows[$rec->id]->lastCommentedTheme = 'няма коментари';
+	            	$category->boards->rows[$rec->id]->lastAvatar =  avatar_Plugin::getImg(0, NULL, 50);
 	            }
 	      }
 		}

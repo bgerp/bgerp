@@ -1,4 +1,5 @@
 <form style="" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
+<a name='comment'></a>
 <div class='formFields'>
 	[#FORM_FIELDS#]
 </div>

@@ -36,25 +36,25 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Кой може да добавя 
 	 */
-	var $canAdd='cms, ceo, admin';
+	var $canAdd='forum, cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да редактира
 	 */
-	var $canEdit='cms, ceo, admin';
+	var $canEdit='forum, cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да изтрива
 	 */
-	var $canDelete='cms, ceo, admin';
+	var $canDelete='forum, cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да преглежда списъка с коментари
 	 */
-	var $canList='cms, ceo, admin';
+	var $canList='forum, cms, ceo, admin';
 	
 	
 	/**

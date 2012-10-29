@@ -145,6 +145,7 @@ th{
 	padding-top:5px;
 	text-indent:20px;
 	padding-left:10px;
+	background:rgb(238, 238, 238);
 }
 
 #thread-list {
@@ -196,7 +197,7 @@ th{
 }
 
 .richtext {
-	background:rgb(238, 238, 238);
+	
 	min-height:70px;
 	margin-top:16px;
 	padding:10px;
@@ -233,8 +234,20 @@ th{
 }
 
 .important {
-	color:darkred;
-	font-family:Arial;
+	display: inline-block;
+	height: 20px;
+	line-height: 20px;
+	padding: 0px 5px;
+	text-indent:0px;
+	font-size: 9px;
+	font-weight: bold;
+	text-transform: uppercase;
+	color: rgb(0, 68, 136);
+	border-radius: 6px 6px 6px 6px;
+	background:wgb(217,217,217);
+	-moz-box-shadow: 0px 0px 2px #000000;
+	-webkit-box-shadow: 0px 0px 2px black;
+	box-shadow: 0px 0px 2px black;
 }
 
 .theme-row-title div {
@@ -248,3 +261,14 @@ th{
 	background:0%;border:0px;
 }
 
+#comment-form {
+	padding-left:28px;
+}
+
+#bottom-pager {
+	float:right;
+}
+
+#theme-tools {
+	width:100%;
+}

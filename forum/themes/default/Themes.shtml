@@ -7,7 +7,7 @@
 <!--ET_BEGIN ROW-->	
 	<tr class='theme-row'>
 		<td class='theme-row-title' width='67%' >
-			<span class='important'>[#type#]</span>	
+			[#type#]&nbsp;
 			<span class='theme-title'>[#title#]</span>[#THEME_PAGER#]<br>
 			<span class='authored'>Започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
 		</td>
@@ -19,7 +19,7 @@
 			[#avatar#]
 		</td>
 		<td class='last-info'>
-			<span class='last-user'>от:&nbsp;&nbsp;<b>[#nick#]</b></span><br>
+			<span class='last-user'>от:&nbsp;&nbsp;[#nick#]</span><br>
 			<span class='last-comment'>[#last#]</span>
 		</td>
 	</tr>
