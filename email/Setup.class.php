@@ -103,7 +103,6 @@ class email_Setup
             'email_Incomings',
             'email_Outgoings',
             'email_Sent',
-            'old' => 'email_InboxesOld',
             'email_Inboxes',
             'email_Accounts',
             'email_Router',
@@ -112,9 +111,6 @@ class email_Setup
             'email_Filters',
         );
         
-        if(!defined('BGERP_DEFAULT_EMAIL_DOMAIN')) {
-            unset($managers['old']);
-        }
 
         // Роля ръководител на организация 
         // Достъпни са му всички папки и документите в тях

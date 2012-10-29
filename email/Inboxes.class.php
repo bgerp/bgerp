@@ -2,36 +2,6 @@
 
 
 /**
- * Константи за домейн и пощенска кутия по подразбиране - изисква се да бъдат дефинирани
- */
-defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', '');
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('BGERP_DEFAULT_EMAIL_FROM', '');
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('BGERP_DEFAULT_EMAIL_USER', '');
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('BGERP_DEFAULT_EMAIL_HOST', '');
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '');
-
-
-/**
  * Имейл кутии
  *
  *
