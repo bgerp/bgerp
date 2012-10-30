@@ -66,14 +66,21 @@ defIfNot('FILEINFO_GET_BARCODES_EXT', 'pdf');
  * Минималната дължина на файла, до която ще се търси баркод
  * 15kB
  */
-defIfNot(FILEINFO_MIN_FILE_LEN_BARCODE, 15360);
+defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 15360);
 
 
 /**
  * Максималната дължина на файла, до която ще се търси баркод
  * 1 mB
  */
-defIfNot(FILEINFO_MAX_FILE_LEN_BARCODE, 1048576);
+defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 1048576);
+
+
+/**
+ * Максималната дължина на файла, до която ще се търси баркод
+ * 100 mB
+ */
+defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
 
 
 /**
@@ -143,6 +150,7 @@ class fileman_Setup extends core_Manager {
        'FILEINFO_GET_BARCODES_EXT'   => array ('varchar'),
        'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('int'),
        'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('int'),
+       'FILEINFO_MAX_ARCHIVE_LEN'   => array ('int'),
        'FILEMAN_GHOSTSCRIPT_PATH'   => array ('varchar'),
        'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('int'), 
     
@@ -212,7 +220,10 @@ class fileman_Setup extends core_Manager {
         
         // Инсталираме плъгина за качване на файлове в RichEdit
         $html .= $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
-
+        
+        // Кофа файлове качени от архиви
+        $html .= $Buckets->createBucket('archive', 'Качени от архив', '', '10MB', 'user', 'user');
+        
         return $html;
     }
     
