@@ -184,7 +184,7 @@ class core_App
      * Дали се намираме в DEBUG режим
      */
     public static function isDebug()
-    {   RETURN TRUE;
+    {
         global $GET;
         // Временно решение за форсиране на debug mode чрез гет параметър
         if($_GET['debug']) {
