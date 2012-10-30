@@ -1064,7 +1064,7 @@ fieldset.sharing-history i {
 		margin-left:8px;
 		margin-right:8px;
 		font-size:1.1em;
-	)
+    }
 }
 
 
@@ -1073,7 +1073,7 @@ fieldset.sharing-history i {
 		margin-left:5px;
 		margin-right:5px;
 		font-size:1em;
-	)
+    }
 }
 
 @media handheld, only screen and (max-width: 760px) {
@@ -1081,7 +1081,7 @@ fieldset.sharing-history i {
 		margin-left:3px;
 		margin-right:3px;
 		font-size:0.90em;
-	)
+    }
 }
 
 @media handheld, only screen and (max-width: 700px) {
@@ -1089,7 +1089,7 @@ fieldset.sharing-history i {
 		margin-left:2px;
 		margin-right:2px;
 		font-size:0.85em;
-	)
+    }
 }
 
 @media handheld, only screen and (max-width: 600px) {
@@ -1097,7 +1097,7 @@ fieldset.sharing-history i {
 		margin-left:2px;
 		margin-right:2px;
 		font-size:0.8em;
-	)
+    }
 }
 	
 .webdrvTabBody {
