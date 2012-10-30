@@ -226,7 +226,7 @@ if ($_GET['a'] == '5') {
     <SCRIPT language=\"javascript\">
         parent.document.getElementById('next1').disabled = false;
         parent.document.getElementById('start').disabled = false;
-        parent.document.getElementById('next1').value = 'Стартирай бгЕРП';
+        parent.document.getElementById('next1').value = 'Стартирай bgERP';
     </SCRIPT>
     ");
     
@@ -292,7 +292,7 @@ if ($_GET['a'] == '55') {
 ?>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<!-- <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> -->
 </head>
 <body>
 <script language="javascript">
@@ -313,7 +313,7 @@ if ($_GET['a'] == '55') {
             document.getElementById('start').disabled = true;
         }
 
-        // Стартиране на бгЕРП
+        // Стартиране на bgERP
         if (next.counter == 6) {
             window.location = 'http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/"); ?>'+'';
         }
