@@ -1,0 +1,10 @@
+<div class='form-field'>[#title#]</div>
+<div class='form-field'>[#body#]</div>
+
+<!--ET_BEGIN type-->
+<div class='form-field'><span class='form-labels'>Тип</span>&nbsp;&nbsp;[#type#]</div>
+<!--ET_END type-->
+
+<!--ET_BEGIN status-->
+<div class='form-field'><span class='form-labels'>Статус</span>&nbsp;&nbsp;[#status#]</div>
+<!--ET_BEGIN status-->

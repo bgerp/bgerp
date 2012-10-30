@@ -1,0 +1,18 @@
+<table border='1' id='topic-comments'>
+<tr>
+	<th></th>
+	<th>Коментар</th>
+</tr>
+<!--ET_BEGIN ROW-->
+<tr>
+	<td class='comment-avatar'>
+	<div class='avatar-holder'>
+		[#avatar#]
+		[#createdOn#]
+	</div>
+	</td>
+	<td class='comment-body'>[#body#]</td>
+</tr>
+<!--ET_END ROW-->
+</table>
+[#BOTTOM_PAGER#]

@@ -1,0 +1,11 @@
+<div id='forum-index'>
+<div id='navigation'>
+[#NAVIGATION#]
+</div>
+<div id='topic-form'>
+<div id='form_header'>
+[#header#]
+</div>
+[#FORM#]
+</div>
+</div>

@@ -69,13 +69,13 @@ class forum_Boards extends core_Master {
 	{
 		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, notNull, width=400px');
 		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, notNull, width=100%');
-		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория на дъската, mandatory');
+		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория, mandatory');
 		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска, mandatory');
 		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Теми, mandatory');
 		$this->FLD('canStick', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Важни теми, mandatory');
 		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментиране, mandatory');
-		$this->FLD('themesCnt', 'int', 'caption=Брой на темите, notNull, input=hidden, value=0');
-		$this->FLD('commentsCnt', 'int', 'caption=Брой на Коментарите, notNull, input=hidden, value=0');
+		$this->FLD('themesCnt', 'int', 'caption=Темите, notNull, input=hidden, value=0');
+		$this->FLD('commentsCnt', 'int', 'caption=Коментари, notNull, input=hidden, value=0');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
 		$this->FLD('lastCommentBy', 'int', 'caption=Последно->кой, input=none');
 		$this->FLD('lastCommentedTheme', 'int', 'caption=Последно->къде, input=none');
@@ -173,7 +173,7 @@ class forum_Boards extends core_Master {
 	 *  Подготовка на списъка с дъски, разпределени по техните категории
 	 */
 	 function prepareForum($data)
-	{
+	 {
 		// Извличаме всички категории на дъските
 		forum_Categories::prepareCategories($data);
 
@@ -190,7 +190,7 @@ class forum_Boards extends core_Master {
 		}
 		
 	    $this->prepareNavigation($data);
-	}
+	 }
 	
 	
 	/**
@@ -209,7 +209,7 @@ class forum_Boards extends core_Master {
 		 		$category = forum_Categories::fetch($data->category);
 		 		$data->navigation[]= ht::createLink(forum_Categories::getVerbal($category, 'title'), $categoryUrl);
 		 	}
-		 } elseif($data->action == 'browse') {
+		 } elseif($data->action == 'browse' || $data->action == 'new') {
 			
 			 // Ако разглеждаме дъска,навигацията ще от рода  Форуми->Категория->Дъска
 			 $categoryUrl =  array('forum_Boards', 'Forum', 'cat' => $data->rec->category);
@@ -227,12 +227,13 @@ class forum_Boards extends core_Master {
 			 $data->navigation[] = ht::createLink($board->category, $categoryUrl);
 			 $data->navigation[] = ht::createLink($board->title, $boardUrl);
 			 $data->navigation[] = ht::createLink($data->rec->title, $themeUrl);
-		}
+		} 
 	}
 	
 	
 	/**
 	 * Добавяме всеки елемент на в последователност от линкове
+	 * @TODO да махна '»' дето остава накрая !!
 	 */
 	function renderNavigation($data)
 	{
@@ -291,8 +292,7 @@ class forum_Boards extends core_Master {
 	            	$category->boards->rows[$rec->id]->lastAvatar =  avatar_Plugin::getImg(0, $lastUser->email, 50);
 	            	$category->boards->rows[$rec->id]->lastNick = $lastUser->nick;
 	            } else {
-	            	$category->boards->rows[$rec->id]->lastCommentedTheme = 'няма коментари';
-	            	$category->boards->rows[$rec->id]->lastAvatar =  avatar_Plugin::getImg(0, NULL, 50);
+	            	$category->boards->rows[$rec->id]->lastComment = 'няма коментари';
 	            }
 	      }
 		}
@@ -316,9 +316,9 @@ class forum_Boards extends core_Master {
                     
                     // За всички дъски от категорията ние ги поставяме под нея в шаблона
                     foreach($category->boards->rows as $row) {
-                        $rowTpl = $catTpl->getBlock('ROW');
+                    	$rowTpl = $catTpl->getBlock('ROW');
                         $rowTpl->placeObject($row);
-                        $rowTpl->append2master();
+                    	$rowTpl->append2master();
                     }
                 } else {
                         $rowTpl = $catTpl->getBlock('ROW');

@@ -30,7 +30,7 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields='id, title, order, canSeeCategory';
+	var $listFields='id, title, order';
 	
 	
 	/**
@@ -63,7 +63,6 @@ class forum_Categories extends core_Manager {
 	function description()
 	{
 		$this->FLD('title', 'varchar(40)', 'caption=Заглавие,mandatory');
-		$this->FLD('canSeeCategory', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Виждане');
 		$this->FLD('order', 'int', 'caption=Подредба');
 
 		// Поставяне на уникални индекси
@@ -98,29 +97,15 @@ class forum_Categories extends core_Manager {
 		}
 		
 		while($rec = $query->fetch()) {
-           if(static::haveRightFor('read', $rec)) {
            
-				// Добавяме категорията като нов елемент на $data
-				$cat = new stdClass();
-				$cat->id = $rec->id;
-				$cat->title = static::getVerbal($rec, 'title');
-				$url = array('forum_Boards', 'Forum','cat'=> $cat->id);
-				$cat->title = ht::createLink($cat->title, $url);
-				$data->categories[]= $cat;
-			}
-		}
-	}
-	
-	
-	/**
-	 * Модификация на ролите, които могат да видят избраната Категория
-	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{ 
-		if($action == 'read' && isset($rec)) {
-			 
-			// Само тези които имат права за достъп, виждат категорията
-			$res = static::getVerbal($rec, 'canSeeCategory');  
+			// Добавяме категорията като нов елемент на $data
+		   $cat = new stdClass();
+		   $cat->id = $rec->id;
+		   $cat->title = static::getVerbal($rec, 'title');
+		   $url = array('forum_Boards', 'Forum','cat'=> $cat->id);
+		   $cat->title = ht::createLink($cat->title, $url);
+		   $data->categories[]= $cat;
+			
 		}
 	}
 }

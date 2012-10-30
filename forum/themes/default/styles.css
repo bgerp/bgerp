@@ -272,3 +272,17 @@ th{
 #theme-tools {
 	width:100%;
 }
+
+.form-labels {
+	display:inline-block;
+	width:130px; 
+}
+
+.form-field {
+	margin-top:10px;
+}
+
+#form_header {
+	margin-top:20px;
+	text-indent:10px;
+}

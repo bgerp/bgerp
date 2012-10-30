@@ -7,11 +7,7 @@
 </div>
 <ul id='thread-list'>
 	<li>
-		<table id='theme-tools'>
-		<tr><td width='50%'>[#ANSWER#]</td>
-		<td>[#LOCK#]</td>
-		<td>[#TOOLS#]</td></tr>
-		</table>
+		[#ANSWER#]
 	</li>
 <!--ET_BEGIN ROW-->
 	<li class='thread-header'>

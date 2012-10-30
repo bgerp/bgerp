@@ -7,7 +7,9 @@
 <!--ET_BEGIN ROW-->	
 	<tr class='theme-row'>
 		<td class='theme-row-title' width='67%' >
+		<!--ET_BEGIN type-->	
 			[#type#]&nbsp;
+		<!--ET_END type-->
 			<span class='theme-title'>[#title#]</span>[#THEME_PAGER#]<br>
 			<span class='authored'>Започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
 		</td>

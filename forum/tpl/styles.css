@@ -1,0 +1,30 @@
+#topic-layout {
+	width:50%;
+}
+
+#topic-comments {
+	width:50%;
+}
+
+.avatar-holder {
+	width:120px;
+	text-align:center;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.comment-avatar {
+	width:20%;
+}
+
+.avatar-holder img {
+	-moz-box-shadow: 0px 0px 3px #000000;
+	-webkit-box-shadow: 0px 0px 3px #000000;
+	box-shadow: 0px 0px 3px #000000;
+	vertical-align:top;
+}
+
+.comment-body {
+	background:rgba(200, 200, 200, 0.4);
+	text-indent:20px;
+}

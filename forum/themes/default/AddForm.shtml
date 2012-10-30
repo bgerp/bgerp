@@ -1,0 +1,21 @@
+<form style="width:70%" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]" > 
+<!--ET_BEGIN FORM_ERROR-->
+<div class="formError">
+	[#FORM_ERROR#]
+</div>
+<!--ET_END FORM_ERROR-->
+
+<!--ET_BEGIN FORM_FIELDS-->
+[#FORM_FIELDS#]
+<!--ET_END FORM_FIELDS-->
+
+<!--ET_BEGIN FORM_TOOLBAR-->
+<div style='margin-top:10px;'>
+[#FORM_TOOLBAR#]
+</div>
+<!--ET_END FORM_TOOLBAR-->
+
+<!--ET_BEGIN FORM_HIDDEN-->
+[#FORM_HIDDEN#]
+<!--ET_END FORM_HIDDEN-->
+</form>

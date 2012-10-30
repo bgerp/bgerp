@@ -1,0 +1,38 @@
+<div id='forum-topic'>
+<table id='theme-tools'>
+		<tr><td>[#ANSWER#]</td>
+		<td>[#LOCK#]</td>
+		<td>[#TOOLS#]</td></tr>
+</table>
+<h3>Разглеждане на тема :&nbsp;[#title#]</h3>
+<table border ='1' id='topic-layout'>
+<tr>
+	<td rowspan='7'>[#avatar#]<br>[#createdOn#]</td>
+	<td>Дъска</td>
+	<td>[#boardId#]</td>
+</tr>
+<tr>
+	<td>Тяло</td>
+	<td>[#body#]</td>
+</tr>
+<tr>
+	<td>Тип</td>
+	<td>[#type#]</td>
+</tr>
+<tr>
+	<td>Комнтари</td>
+	<td>[#postingsCnt#]</td>
+</tr>
+<tr>
+	<td>Последно->кой</td>
+	<td>[#lastWho#]</td>
+</tr>
+<tr>
+	<td>Състояние</td>
+	<td>[#status#]</td>
+</tr>
+</table>
+<!--ET_BEGIN DETAILS-->
+[#DETAILS#]
+<!--ET_END DETAILS-->
+</div>
