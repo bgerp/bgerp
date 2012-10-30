@@ -77,7 +77,7 @@ defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 1048576);
 
 
 /**
- * Максималната дължина на файла, до която ще се търси баркод
+ * Максималната дължина на архивите, за които ще се визуализира информация
  * 100 mB
  */
 defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
@@ -221,7 +221,7 @@ class fileman_Setup extends core_Manager {
         // Инсталираме плъгина за качване на файлове в RichEdit
         $html .= $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
         
-        // Кофа файлове качени от архиви
+        // Кофа за файлове качени от архиви
         $html .= $Buckets->createBucket('archive', 'Качени от архив', '', '10MB', 'user', 'user');
         
         return $html;
