@@ -111,12 +111,12 @@ class groups_Manager extends core_Manager
     public function getExtenders($groupIds)
     {
         $extenderKeys = array();
-
-        foreach ($groupIds as $id) {
+        
+        foreach ((array)$groupIds as $id) {
             $extenderKeys += type_Set::toArray(static::fetchField($id, 'extenders'));
         }
         
-        $extenders    = array();
+        $extenders = array();
         
         if (!empty($extenderKeys)) {
             $allExtenders = $this->getAllowedExtenders();

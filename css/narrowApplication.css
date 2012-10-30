@@ -327,7 +327,7 @@ div.acc-detail {
 	display: inline-block;
 	min-width:600px;
 	max-width:750px;
-    line-height:1.2em;
+    line-height:1.5em;
 	margin-top:16px;
 }
 
@@ -1191,9 +1191,11 @@ dl dt {
     color: #888;
     margin-left: 0;
     margin-right: 0;
+	line-height: 1.5em;
 }
 
 dl dd {
     margin-left: 155px;
     margin-right: 0;
+    line-height: 1.5em;
 }

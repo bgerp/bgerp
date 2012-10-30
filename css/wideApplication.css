@@ -284,11 +284,13 @@ dl dt {
 	color: #888;
 	margin-left: 0;
 	margin-right: 0;
+    line-height: 1.5em;
 }
 
 dl dd {
 	margin-left: 155px;
 	margin-right: 0;
+    line-height: 1.5em;
 }
  
 .quiet { color: #888;  font-size: 0.9em; }
@@ -542,7 +544,7 @@ div.acc-detail {
 .folder-cover {
     border: solid 1px #bbbbbb; 
     border-radius: 5px;
-	font-size:0.8em;
+/* 	font-size:0.8em; */
 	-moz-box-shadow: 5px 5px 10px #999999;
      background: #ffffff;
     padding: 10px;
@@ -555,7 +557,7 @@ div.acc-detail {
 
 .printing .folder-cover {
     border: none; 
-	font-size:0.8em;
+/* 	font-size:0.8em; */
     background: #ffffff;
    -moz-box-shadow: none;
     padding: 10px;

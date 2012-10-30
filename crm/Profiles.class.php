@@ -64,10 +64,11 @@ class crm_Profiles extends core_Master
      */
     function description()
     {
-        $this->FLD('userId', 'key(mvc=core_Users, select=nick, allowEmpty)', 'caption=Потребител');
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,caption=Визитка');
+        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
+        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
         
-        $this->setDbUnique('userId,personId');
+        $this->setDbUnique('userId');
+        $this->setDbUnique('personId');
     }
     
     
@@ -190,6 +191,12 @@ class crm_Profiles extends core_Master
         return $form->isSubmitted();
     }
     
+    
+    public static function on_AfterInputEditForm(crm_Profiles $mvc, core_Form $form)
+    {
+        $form->rec->_syncUser = TRUE;
+    }
+    
 
     /**
      *
@@ -198,7 +205,7 @@ class crm_Profiles extends core_Master
     {
         $usersQuery = core_Users::getQuery();
 
-        $opt = array('' => '&nbsp;');
+        $opt = array();
 
         $query = self::getQuery();
 
@@ -215,8 +222,17 @@ class crm_Profiles extends core_Master
                 $opt[$uRec->id] = $uRec->nick;
             }
         }
-
+        
         $data->form->setOptions('userId', $opt);
+        
+        $addUserUrl = array(
+            'core_Users', 
+            'add', 
+            'personId'=>Request::get('personId'), 
+            'ret_url'=>getRetUrl()
+        );
+        
+        $data->form->toolbar->addBtn('Нов потребител', $addUserUrl, array('class'=>'btn-add'));
     }
     
 
@@ -277,8 +293,17 @@ class crm_Profiles extends core_Master
                 );
                 $profileTpl->append($changePasswordBtn, 'password');
             }
+            
+            if (!empty($userRow->lastLoginTime)) {
+                $userRow->lastLoginInfo = sprintf('%s от %s', 
+                    $userRow->lastLoginTime, $userRow->lastLoginIp
+                );
+            } else {
+                $userRow->lastLoginInfo = '<span class="quiet">Няма логин</span>';
+            }
 
             $profileTpl->placeObject($userRow);
+            $profileTpl->removeBlocks();
 
             $tpl->append($profileTpl, 'content');
         } 
@@ -298,12 +323,12 @@ class crm_Profiles extends core_Master
                     'title'
                 );
             } else {
-                $url = array($this, 'edit', $data->profile->id, 'ret_url' => TRUE);
-                $img = "<img src=" . sbf('img/16/user_edit.png') . " width='16' height='16'>";
+                $url = array($this, 'delete', $data->profile->id, 'ret_url' => TRUE);
+                $img = "<img src=" . sbf('img/16/cross.png') . " width='16' height='16'>";
                 $tpl->append(
                     ht::createLink(
-                        $img, $url, FALSE, 
-                        'title=' . tr('Смяна на потребител')
+                        $img, $url, 'Внимание! Връзката между визитката и потребителя ще бъде прекъсната!', 
+                        'title=' . tr('Разкачане на визитката от потребителя')
                     ), 
                     'title'
                 );
@@ -358,7 +383,7 @@ class crm_Profiles extends core_Master
      * @param stdClass $rec
      * @param core_Master $master
      */
-    public static function on_AfterMasterSave(core_Mvc $mvc, $rec, core_Master $master)
+    public static function on_AfterMasterSave(crm_Profiles $mvc, $personRec, core_Master $master)
     {
         if (get_class($master) != 'crm_Persons') {
             return;
@@ -366,7 +391,17 @@ class crm_Profiles extends core_Master
         }
         
         // След промяна на профилна визитка, променяме името и имейла на асоциирания потребител
-        static::updateUser($rec);
+        static::syncUser($personRec);
+    }
+    
+    
+    public static function on_AfterSave(crm_Profiles $mvc, $id, $profile)
+    {
+        if ($profile->_syncUser) {
+            // Флага _sync се вдига само на crm_Profiles::on_AfterInputEditForm(). 
+            $person = crm_Persons::fetch($profile->personId);
+            $mvc::syncUser($person);
+        }
     }
     
     
@@ -415,131 +450,45 @@ class crm_Profiles extends core_Master
     
     
     /**
-     * Създаване на потребителски профил за потребител
+     * Синхронизиране на данните (имена, имейл) на профилната визитка с тези на потребител.
      * 
-     *  o Създава визитка на потребителя с частен достъп
-     *  о Добавя визитката в системната CRM-група за профили
-     *  o Свързва (чрез crm_Profiles) новата визитка с потребителя
+     * Ако лице с ключ $personId не съществува - създава се нов потребител.
      * 
-     * @param stdClass $userRec
-     * @return boolean
+     * 
+     * @param int $personId key(mvc=crm_Persons), може и да е NULL
+     * @param stdClass $user
+     * @return int|boolean personId или FALSE при неуспешен запис
      */
-    public static function createProfile($userRec)
-    {   
-        // Ако липсват данните за профил - нищо не правим
-        if(!$userRec->names || !$userRec->email) {
-            return;
-        }
-
-        // Извличаме списък на всички визитки, в чиито лични имейли се среща имейла на 
-        // новосъздадения потребител.
-        //
-        // Ако този списък е празен - създаваме нова визитка и я асоциираме с потребителя.
-        // 
-        // Ако списъка не е празен, търсим в него първата визитка, за която имейла на 
-        // потребителя е на първо място в списъка с лични имейли. Ако намерим такава - 
-        // асоциираме нея с потребителя (тя е неасоциирана - иначе потребителя й би бил със 
-        // същия имейл както на току-що създадения. Това е невъзможно - имейлите на потебителите 
-        // са уникални).
-        
-        /* @var $personQuery core_Query */
-        $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#email LIKE '%{$userRec->email}%'");
-        $personQuery->show("id, name, email, groupList");
-        
-        while ($personRec = $personQuery->fetch()) {
-            if (strpos(trim($personRec->email), trim($userRec->email)) === 0) {
-                // Намерихме визитка, чийто първи личен имейл е същия като на новия потребител
-                break;
-            }
-        }
-        
-        if (!$personRec && $personQuery->numRec() == 0) {
-            // Няма "готова" визитка за профила, но няма и опасност от дублиране - създаваме 
-            // нова профилна визитка за новия потребител
-            $personRec = (object)array(
-                'name' => '', // name, email и groupList се попълват по-долу
-                'email' => '',
-                'groupList' => '',
-                'access' => 'private',
-                'inCharge' => $userRec->id,
-            );
-        }
-        
-        if (!$personRec) {
-            // Поради вероятност или от дублиране на визитки, или от асоцииране с неподходяща 
-            // визитка не създаваме профил на потребителя - оставяме администратора да създаде
-            // профила ръчно
-            return;
-        }
-        
-        expect($profilesGroup = static::fetchCrmGroup());
-        
-        $personRec = (object)array(
-            'name' => $userRec->names,
-            'email' => $userRec->email,
-            'groupList' => type_Keylist::fromArray(array($profilesGroup->id=>$profilesGroup->id)),
-            'access' => 'private',
-            'inCharge' => $userRec->id,
-            '_skipUserUpdate' => TRUE, // Флаг за предотвратяване на безкраен цикъл след 
-                                       // създаване на потребител!
-        );
-        
-        if (!crm_Persons::save($personRec)) {
-            return FALSE;
-        }
-            
-        $profileRec = (object)array(
-            'userId'   => $userRec->id,
-            'personId' => $personRec->id,
-        );
-        
-        return static::save($profileRec) !== FALSE;
-    }
-    
-    /**
-     * Синхронизиране на данните (имена, имейл) на профилната визитка с тези на потребител
-     * 
-     * @param stdClass $userRec
-     * @return boolean
-     */
-    public static function updatePerson($userRec)
+    public static function syncPerson($personId, $user)
     {
-        if ($userRec->_skipPersonUpdate) {
+        if ($user->_skipPersonUpdate) {
             // След запис на визитка се обновяват данните (имена, имейл) на асоциирания с нея 
             // потребител. Ако сме стигнали до тук по този път, не обновяваме отново данните
             // на визитката след промяна на потребителя, защото това води до безкраен цикъл!
             return;
         }
         
-        $profileRec = static::fetch("#userId = {$userRec->id}");
-        
-        if (!$profileRec || !$profileRec->personId) {
-            // Нищо не правим, ако потребителя няма профил или профилна визитка.
-            return;
+        if (!empty($personId)) {
+            $person = crm_Persons::fetch($personId);
         }
         
-        $personRec = crm_Persons::fetch($profileRec->personId);
-
-        // Ако профила сочи към несъществуваща визитка, нищо не правим
-        // Може би трябва да изтрием профиля?
-        if(!$personRec) {
-            return;
+        if (empty($person)) {
+            $person = (object)array(
+                'groupList' => '',
+                'access'    => 'private',
+                'email'     => ''
+            );
         }
-
-        if(!$userRec->names || !$userRec->email) {
-            return;
-        }
-
         
-        $personRec->email = type_Emails::prepend($personRec->email, $userRec->email);
-        $personRec->name  = $userRec->names;
+        $profilesGroup = static::fetchCrmGroup();
         
-        // Флаг за предотвратяване на безкрайния цикъл: промяна на визитка -> потребител -> 
-        // визитка -> ...
-        $personRec->_skipUserUpdate  = TRUE;
+        $person->name      = $user->names;
+        $person->email     = type_Emails::prepend($person->email, $user->email);
+        $person->inCharge  = $user->id;
+        $person->groupList = type_Keylist::addKey($person->groupList, $profilesGroup->id);
+        $person->_skipUserUpdate = TRUE; // Флаг за предотвратяване на безкраен цикъл
         
-        return crm_Persons::save($personRec);
+        return crm_Persons::save($person);
     }
     
     
@@ -548,7 +497,7 @@ class crm_Profiles extends core_Master
      * 
      * @param stdClass $personRec
      */
-    public static function updateUser($personRec)
+    public static function syncUser($personRec)
     {
         if ($personRec->_skipUserUpdate) {
             return;
@@ -561,8 +510,7 @@ class crm_Profiles extends core_Master
         }
         
         // Обновяване на записа на потребителя след промяна на асоциираната му визитка
-        $userRec = core_Users::fetch($profile->userId);
-        if(!$userRec) {
+        if (!$userRec = core_Users::fetch($profile->userId)) {
             return;
         }
         
@@ -581,7 +529,6 @@ class crm_Profiles extends core_Master
         if (!empty($personRec->photo)) {
             $userRec->avatar = $personRec->photo; 
         }
-        
         
         // Флаг за предотвратяване на безкраен цикъл след промяна на визитка
         $userRec->_skipPersonUpdate = TRUE;

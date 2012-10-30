@@ -50,14 +50,31 @@ class email_UserInboxPlg extends core_Plugin
         }
     }
     
-    public static function on_AfterCreate($mvc, $rec)
+    public static function on_AfterCreate($mvc, $user)
     {
-        crm_Profiles::createProfile($rec);
+        if (!empty($user->personId) && crm_Profiles::fetch("#personId = {$user->personId}")) {
+            // Не можем да асоциираме новия потребител с човек, който вече има профил
+            $user->personId = NULL;
+        }
+        
+        // Създава или обновява профилната визитка на новия потребител.
+        $personId = crm_Profiles::syncPerson($user->personId, $user);
+        
+        if ($personId) {
+           crm_Profiles::save(
+               (object)array(
+                   'personId' => $personId,
+                   'userId'   => $user->id
+               )
+           ); 
+        }
     }
     
     public static function on_AfterUpdate($mvc, $rec)
     {
-        crm_Profiles::updatePerson($rec);
+        if ($profile = crm_Profiles::fetch("#userId = {$rec->id}")) {
+            crm_Profiles::syncPerson($profile->personId, $rec);
+        }
     }
     
     
@@ -86,7 +103,7 @@ class email_UserInboxPlg extends core_Plugin
     {
         //Ако формата е субмитната
         if ($form->isSubmitted()) {
-            
+
             if(core_Users::fetch('1=1')) {
 
                 //Вземаме броя на срещанията на всички типове роли
@@ -111,6 +128,34 @@ class email_UserInboxPlg extends core_Plugin
                     $form->setError('nick', "Моля въведете друг '{$form->fields['nick']->caption}'. Папката е заета от друг потребител.");
                 }
             }
+        }
+    }
+    
+    
+    public static function on_AfterPrepareEditForm(core_Users $mvc, $data)
+    {
+        if (empty($data->form->rec->id)) {
+            $personId  = Request::get('personId');
+            if (!empty($personId) && $personRec = crm_Persons::fetch($personId)) {
+                
+                $emails = type_Emails::toArray($personRec->email, type_Emails::VALID);
+                $email  = $nick = '';
+                if (!empty($emails[0])) {
+                    $email = $emails[0];
+                    $nick  = substr($email, strpos($email, '@'));
+                }
+                
+                $data->form->setDefault('names', $personRec->name);
+                $data->form->setDefault('email', $email);
+                $data->form->setDefault('email', $email);
+                $data->form->setField('names', 'input=hidden');
+                
+                $data->form->title = 'Създаване на потребител за ' . $personRec->name;
+                
+                $data->form->FNC('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,caption=Визитка');
+                $data->form->setDefault('personId', $personId);
+            }
+            
         }
     }
     

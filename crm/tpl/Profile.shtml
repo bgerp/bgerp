@@ -11,7 +11,9 @@
     <dt>Парола</dt>
     <dd>[#password#]</dd>
 
-	<dt>Последно</dt>
-    <dd>[#lastLoginTime#] от [#lastLoginIp#]</dd>
+    <!--ET_BEGIN lastLoginInfo-->
+	<dt>Последно </dt>
+    <dd>[#lastLoginInfo#]</dd>
+    <!--ET_END lastLoginInfo-->
 
 </dl>
