@@ -23,6 +23,7 @@
 
 #simpleSearch {
 	width:11em;
+	max-width:100%;
 	border:solid 1px #ccc;
 	display:block;
 	position:relative;
