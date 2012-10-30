@@ -1090,7 +1090,7 @@ function shutdown($sendOutput = TRUE)
  * Дали се намираме в DEBUG режим
  */
 function isDebug()
-{
+{   RETURN TRUE;
     return core_App::isDebug();
 }
 
