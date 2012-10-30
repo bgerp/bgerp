@@ -838,13 +838,16 @@ fieldset.sharing-history i {
 	background-repeat:no-repeat;
 	display: block;
 	height: 287px;
+
 	-moz-border-radius-topright:10px;
 	-moz-border-radius-topleft:10px;
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
+	min-width:610px; 
 }
 
 #cmsMenu {
+      min-width:610px; 
 	  padding-top:10px;
 	  padding-bottom:10px;
 	  text-align:left;
@@ -876,6 +879,7 @@ fieldset.sharing-history i {
 	padding-bottom:10px;
 	display:block;
 	width:1000px;
+	min-width:610px; 
 }
 
 #all {
