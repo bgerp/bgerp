@@ -1,0 +1,49 @@
+<div id='forum-board'>
+[#SingleToolbar#]
+<br>
+	<table border='1' class='listTable'>
+	<thead>
+	<tr>
+		<th rowspan='2'>Име</th>
+		<th rowspan='2'>Oписание</th>
+		<th rowspan='2'>Категория</th>
+		<th rowspan='2'>Теми</th>
+		<th rowspan='2'>Коментари</th>
+		<th rowspan='2'>Support дъска ?</th>
+		<th colspan='3'>Последно</th>
+		<th colspan='4'>Права</th>
+		<th colspan='2'>Създаване</th>
+	</tr>
+	<tr>
+		<th>Кога</th>
+		<th>Къде</th>
+		<th>Кой</th>
+		<th>Дъски</th>
+		<th>Теми</th>
+		<th>Важни теми</th>
+		<th>Коментари</th>
+		<th>от</th>
+		<th>на</th>
+	</tr>
+	</thead>
+	<tr>
+		<td>[#title#]</td>
+		<td width='10%'>[#shortDesc#]</td>
+		<td>[#category#]</td>
+		<td>[#themesCnt#]</td>
+		<td>[#commentsCnt#]</td>
+		<td>[#supportBoard#]</td>
+		<td>[#lastComment#]</td>
+		<td>[#lastCommentedTheme#]</td>
+		<td>[#lastCommentBy#]</td>
+		<td>[#canSeeBoard#]</td>
+		<td>[#canSeeThemes#]</td>
+		<td>[#canStick#]</td>
+		<td>[#canComment#]</td>
+		<td>[#createdBy#]</td>
+		<td>[#createdOn#]</td>
+	</tr>
+	</table>
+	<br>
+	[#DETAILS#]
+</div>

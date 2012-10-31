@@ -1,4 +1,4 @@
-<form style="" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
+<form style="margin-left:10px" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
 <!--ET_BEGIN FORM_ERROR-->
 <div class="formError">
 	[#FORM_ERROR#]
@@ -6,8 +6,8 @@
 <!--ET_END FORM_ERROR-->
 <table border='0'>
 	<tr>
-		<td>Дъска:&nbsp; [#FORM_FIELDS#]</td>
-		<td>[#FORM_TOOLBAR#][#FORM_HIDDEN#]</td>
+		<td style='border:0px'>Дъска:&nbsp; [#FORM_FIELDS#]</td>
+		<td style='border:0px'>[#FORM_TOOLBAR#][#FORM_HIDDEN#]</td>
 	</tr>
 </table>
 </form>

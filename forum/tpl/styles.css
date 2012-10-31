@@ -1,6 +1,19 @@
 #topic-layout {
-	width:50%;
+	width:70%;
 }
+
+table#topic-layout, table#topic-layout td, table#topic-layout th{
+	border-color:rgb(153, 153, 153);
+	border-width:1px;
+	border-style:solid;
+	border-collapse:collapse;
+}
+
+#topic-layout th {
+	background: rgb(221, 221, 221);
+    height:25px;
+}
+
 
 #topic-comments {
 	width:50%;
@@ -13,10 +26,6 @@
 	margin-right:auto;
 }
 
-.comment-avatar {
-	width:20%;
-}
-
 .avatar-holder img {
 	-moz-box-shadow: 0px 0px 3px #000000;
 	-webkit-box-shadow: 0px 0px 3px #000000;
@@ -24,7 +33,64 @@
 	vertical-align:top;
 }
 
-.comment-body {
+
+#topic-header {
+	background:rgba(250, 221, 187, 0.5);
+	text-indent:10px;
+	font-family:Arial;
+	height:25px;
+	padding-top:5px;
+}
+
+#btnAdd{
+	margin-left:10px;
+	margin-top:5px;
+	float:left;
+}
+
+#header-td, #body-td {
+	padding-top:7px;
+}
+
+#body-td {
 	background:rgba(200, 200, 200, 0.4);
-	text-indent:20px;
+	text-indent:10px;
+	font-family:Arial;
+	margin-top:5px;
+}
+
+.topic-info {
+	font-family:Arial;
+}
+
+#td-misc {
+	padding-top:10px;
+	padding-bottom:10px;
+}
+
+#created-td {
+	vertical-align:top;
+	padding:10px;
+	font-size:0.8em;
+}
+
+#topic-createdOn {
+	text-indent:5px;
+	margin-top:5px;
+	margin-bottom:5px;
+	display:block
+}
+
+#topic, .comment-body{
+	padding-left:8px;
+	padding-right:8px;
+	vertical-align:top;
+}
+
+.comment-body #topic-header {
+	background:rgb(136, 204, 153);
+}
+
+.body-comment {
+	padding-top:10px;
 }

@@ -1,0 +1,4 @@
+<ul class='category-ul'  width='100%'>
+		<li class='board-header'>[#cat#]</li>
+		[#BOARDS#]
+</ul>

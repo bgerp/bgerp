@@ -1,38 +1,41 @@
 <div id='forum-topic'>
-<table id='theme-tools'>
-		<tr><td>[#ANSWER#]</td>
-		<td>[#LOCK#]</td>
-		<td>[#TOOLS#]</td></tr>
-</table>
-<h3>Разглеждане на тема :&nbsp;[#title#]</h3>
-<table border ='1' id='topic-layout'>
+<div id='navigation'>
+<span id='navigation-link'>[#NAVIGATION#]</span>
+</div>
+<table border='1px' id='topic-layout' cellspacing='0px'>
 <tr>
-	<td rowspan='7'>[#avatar#]<br>[#createdOn#]</td>
-	<td>Дъска</td>
-	<td>[#boardId#]</td>
+	<th>Създаване</th>
+	<th>Тема</th>
 </tr>
 <tr>
-	<td>Тяло</td>
-	<td>[#body#]</td>
+	<td id='created-td' width='14%'>
+	<span style='text-indent:5px;display:block'>[#createdBy#]</span>
+	<span id='topic-createdOn'>[#createdOn#]</span>
+	<div style='text-align:center'>[#avatar#]</div></td>
+	<td id='topic'>
+		<div id='toolbox'>[#ANSWER#][#LOCK#][#TOOLS#]</div>
+		<div id='header-td'><div id='topic-header'>Тема :&nbsp;&nbsp;<b>[#title#]</b></div></div>
+		<div id='body-td'>[#body#]</div>
+		<div id='td-misc'>
+			<span class='topic-info'>Дъска:&nbsp;&nbsp;<b>[#boardId#]</b></span><br>
+			<span class='topic-info'>Коментари:&nbsp;&nbsp;<b>[#postingsCnt#]</b></span><br>
+			<span class='topic-info'>Тип: &nbsp;&nbsp;<b>[#type#]</b></span><br>
+			<span class='topic-info'>Състояние:&nbsp;&nbsp;<b>[#status#]</b></span><br>
+		</div>
+	</td>
 </tr>
-<tr>
-	<td>Тип</td>
-	<td>[#type#]</td>
-</tr>
-<tr>
-	<td>Комнтари</td>
-	<td>[#postingsCnt#]</td>
-</tr>
-<tr>
-	<td>Последно->кой</td>
-	<td>[#lastWho#]</td>
-</tr>
-<tr>
-	<td>Състояние</td>
-	<td>[#status#]</td>
-</tr>
-</table>
 <!--ET_BEGIN DETAILS-->
 [#DETAILS#]
 <!--ET_END DETAILS-->
+
+<!--ET_BEGIN BOTTOM_PAGER-->
+<tr>
+	<td colspan='2'>[#BOTTOM_PAGER#]</td>
+</tr>
+<!--ET_END BOTTOM_PAGER-->
+
+<tr>
+	<td colspan='2'>[#ADD_COMMENT#]</td>
+</tr>
+</table>
 </div>
