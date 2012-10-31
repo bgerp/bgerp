@@ -627,6 +627,21 @@ class doc_Folders extends core_Master
         
         return $res;
     }
+    
+    
+    /**
+     * Името на класа на корицата на папка
+     * 
+     * @param int $id key(mvc=doc_Folders)
+     * @return string име на PHP клас-наследник на core_Mvc
+     */
+    public static function fetchCoverClassName($id)
+    {
+        $folderClass = static::fetchField($id, 'coverClass');
+        $folderClassName = cls::getClassName($folderClass);
+        
+        return $folderClassName;
+    }
 
 
     /**
