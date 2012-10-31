@@ -178,6 +178,7 @@ class type_Key extends type_Int {
                         $options[$id] = $v;
                     }
                 }
+if(haveRole('admin')) bp($this, $options);
             }
             
             $mvc->invoke('AfterPrepareKeyOptions', array(&$options, $this));
