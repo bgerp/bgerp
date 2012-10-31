@@ -178,7 +178,6 @@ class type_Key extends type_Int {
                         $options[$id] = $v;
                     }
                 }
-if(haveRole('admin')) bp($mvc->makeArray4select($field, $where), $field, $where);
             }
             
             $mvc->invoke('AfterPrepareKeyOptions', array(&$options, $this));
