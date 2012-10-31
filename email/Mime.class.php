@@ -1112,9 +1112,33 @@ class email_Mime extends core_BaseClass
      */
     function getJustAttachedFiles()
     {
+        // Всички файлове, които са маркирани, като cid
+        $cidFiles = $this->getCidFiles();
+        
+        // Всички прикачени файлове в документа
         $attachedFiles = $this->attachedFiles;
-        foreach ($this->cidFiles as $id => $cid) {
-            if ($attachedFiles[$id]) unset($attachedFiles[$id]);
+        
+        // Конфигурационните константи
+        $conf = core_Packs::getConfig('email');
+        
+        // Обхождаме всики cid файлове
+        foreach ($cidFiles as $key => $cidFile) {
+            
+            // Вземаме записите за съответния файа
+            $fRec = fileman_Files::fetch($cidFile);
+            
+            // Данните за съответния файл
+            $dataRec = fileman_Data::fetch($fRec->dataId);
+            
+            // Дължината на файла
+            $fLen = $dataRec->fileLen;
+            
+            // Ако дължината на файла е по малка от максимално допустимата
+            if ($fLen <= $conf->EMAIL_MAXIMUM_CID_LEN) {
+                
+                // Ако има такъв прикачен файл, премахваме го от прикачените
+                if ($attachedFiles[$key]) unset($attachedFiles[$key]);
+            }
         }
 
         return $attachedFiles;
