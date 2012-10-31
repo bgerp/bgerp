@@ -98,13 +98,4 @@ class type_Date extends core_Type {
         
         return $this->createInput($name, $value, $attr);
     }
-    
-    
-    /**
-     * Връща стойността по подразбиране за съответния тип
-     */
-    function defVal()
-    {
-        return date("Y-m-d", 0);
-    }
 }
