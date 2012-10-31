@@ -372,7 +372,9 @@ class core_Mvc extends core_FieldSet
             $query->show("id");
             $query->orderBy($fields);
         }
-
+        
+	$res = FALSE;
+	
         if($query->count() > 500) {
 
             $handler = md5("{$fields} . {$where} . {$index} . {$this->className}");
@@ -380,7 +382,7 @@ class core_Mvc extends core_FieldSet
             $res = core_Cache::get('makeArray4Select', $handler, 20, array($this));
         }
 
-        if($res !== FALSE) {
+        if($res === FALSE) {
             $res = array();
 
             while ($rec = $query->fetch($where)) {
@@ -395,14 +397,16 @@ class core_Mvc extends core_FieldSet
                     $res[$rec->{$index}] = $this->getRecTitle($rec);
                 }
             }
-
-            if($handler) {
-                core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
-            }
-        } else {
+            
+       } else {
         	// ф-та трябва да върне масив
         	$res = array();
         }
+        
+        if($handler) {
+            core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
+        }
+ 
 
         return $res;
     }
