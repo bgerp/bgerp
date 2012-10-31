@@ -398,10 +398,7 @@ class core_Mvc extends core_FieldSet
                 }
             }
             
-       } else {
-        	// ф-та трябва да върне масив
-        	$res = array();
-        }
+       }
         
         if($handler) {
             core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
