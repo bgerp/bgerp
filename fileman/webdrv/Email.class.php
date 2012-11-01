@@ -46,7 +46,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         static::changeEmlAndHtmlFileId($emlRec);
         
         // Вземаме текстовата част
-        $textPart = static::getTextPart($mime);
+        $textPart = static::getTextPart($mime, TRUE);
         
         // Проверяаваме дали има текстова част и дали има съдържание
         $textPartCheck = static::checkTextPart($mime);
@@ -142,12 +142,23 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * Връща текстовата част от файла
      * 
      * @param object $emlRec - Данните за имейла
+     * @param boolean $escape - Дали да се ескейпва текстовата част
      * 
      * return string - Текстовата част
      */
-    static function getTextPart($mime)
+    static function getTextPart($mime, $escape=TRUE)
     {
-        return $mime->getJustTextPart();
+        // Текстовата част
+        $textPart = $mime->getJustTextPart();
+        
+        // Ако е зададено да се ескейпва
+        if ($escape) {
+            
+            // Ескейпваме текстовата част
+            $textPart = core_Type::escape($textPart);    
+        }
+        
+        return $textPart;
     }
     
     
@@ -312,7 +323,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             
             // Ако ни трябва текстовата част
             case 'text':
-                $content = static::getTextPart($mime);
+                $content = static::getTextPart($mime, FALSE);
             break;
             
             default:
