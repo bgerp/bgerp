@@ -249,24 +249,24 @@ class doc_Containers extends core_Manager
                 $row->created);
                 
             // визуализиране на обобщена информация от лога
-            $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
-            $row->document->prepend($row->created);
         } else {
-
-        
             $row->created = new ET("<div style='text-align:center;'><div style='text-align:left;display:inline-block;'><div style='font-size:0.8em;margin-top:5px;margin-left:10px;'>[#3#]</div>
                                                 <div style='font-size:0.8em;margin:5px;margin-bottom:10px;margin-left:10px;'>[#1#]</div>
-                                                <div style='margin:10px;'>[#2#]</div>[#4#]</div></div>",
+                                                <div style='margin:10px;'>[#2#]</div>[#HISTORY#]</div></div>",
                 $mvc->getVerbal($rec, 'createdOn'),
                 $avatar,
                 $row->created);
                 
             // визуализиране на обобщена информация от лога
-            $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), '4');
         }
-                
+        
+        $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
     }
+    
 
+    /**
+     * При мобилен изглед оставяме само колонката "документ"
+     */
     function on_BeforeRenderListTable($mvc, $tpl, $data)
     {   
         if(Mode::is('screenMode', 'narrow')) {
