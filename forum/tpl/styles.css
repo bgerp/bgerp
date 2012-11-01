@@ -94,3 +94,7 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 .body-comment {
 	padding-top:10px;
 }
+
+#navigation-inner-link {
+	font-size:20px;
+}

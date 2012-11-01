@@ -22,6 +22,16 @@ class forum_Wrapper extends plg_ProtoWrapper
 	{
 		$this->TAB('forum_Categories', 'Категории', 'forum,admin');
 		$this->TAB('forum_Boards', 'Дъски', 'admin,forum');
+		
+		$topicUrl = array();
+		
+		//@TODO  да оправя правилното взимане на ид на тема и да се записва в сесията
+		if(Request::get('Act') == 'Topic') {
+			$topic = Request::get('id');
+			
+			$topicUrl = array('forum_Postings', 'Topic', $topic);
+		}
+		$this->TAB($topicUrl, 'Tема', 'forum,admin');
 		$this->TAB('forum_Postings', 'Постинги', 'forum,admin');
 	}
 }

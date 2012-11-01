@@ -18,11 +18,22 @@
 			<span class='forum-counts'><b>1</b>&nbsp;&nbsp;прегледа </span>
 		</td>
 		<td class='last-by'>
+			<div id='avatar-container'>
 			[#avatar#]
+			</div>
 		</td>
 		<td class='last-info'>
+			<!--ET_BEGIN nick-->
 			<span class='last-user'>от:&nbsp;&nbsp;[#nick#]</span><br>
+			<!--ET_END nick-->
+			
+			<!--ET_BEGIN last-->
 			<span class='last-comment'>[#last#]</span>
+			<!--ET_END last-->
+			
+			<!--ET_BEGIN noComment-->
+			<span class='no-comment'>[#noComment#]</span>
+			<!--ET_END noComment-->
 		</td>
 	</tr>
 <!--ET_END ROW-->

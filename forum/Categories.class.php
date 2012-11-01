@@ -113,8 +113,14 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Създаване на линк към дъските, филтрирани спрямо избраната категория
 	 */
-	function on_AfterRecToVerbal($mvc, $row, $rec)
+	function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
 	{
-		$row->title = ht::createLink($row->title, array('forum_Boards', 'list', 'category' => $rec->id));
+		if($fields['-list']) {
+			$row->title = ht::createLink($row->title, array('forum_Boards', 'list', 'category' => $rec->id));
+		}
+		
+		if($fields['-public']) {
+			$row->title = ht::createLink($row->title, array('forum_Boards', 'forum', 'cat' => $rec->id));
+		}
 	}
 }

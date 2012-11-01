@@ -9,7 +9,9 @@
 			<span class='forum-counts'><b>[#commentsCnt#]</b>&nbsp;&nbsp;Мнения</span>
 		</td>
 		<td class='last-by'>
+			<div id='avatar-container'>
 			[#lastAvatar#]
+			</div>
 		</td>
 		<td  class='last-info'>
 		<!--ET_BEGIN lastCommentedTheme-->     
@@ -20,7 +22,13 @@
 			<span class='last-user'>от:&nbsp;&nbsp;<b>[#lastNick#]</b></span><br>
 		<!--ET_END lastNick-->
 		
+		<!--ET_BEGIN lastComment-->
 			<span class='last-comment'>[#lastComment#]</span>
+		<!--ET_END lastComment-->
+		
+		<!--ET_BEGIN noComment-->
+			<span class='no-comment'>[#noComment#]</span>
+		<!--ET_END noComment-->
 		</td>
 	</tr>
 	</table>

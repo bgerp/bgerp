@@ -1,4 +1,7 @@
 <div id='forum-board'>
+<span id='navigation-inner-link'>[#NAVIGATION#]</span>
+<br>
+<br>
 [#SingleToolbar#]
 <br>
 	<table border='1' class='listTable'>
