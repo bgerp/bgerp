@@ -3,7 +3,7 @@
 <span id='navigation-link'>[#NAVIGATION#]</span>
 </div>
 <div id='forum-board'>Пожелаваме ви приятни минути в нашия форум :)</div>
-[#BOARDS#]
+[#CATEGORIES#]
 </div>
 <div id='forum-toolbar'>
 [#TOOLBAR#]

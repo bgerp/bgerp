@@ -1,18 +1,15 @@
-<table border='1' id='topic-comments'>
-<tr>
-	<th></th>
-	<th>Коментар</th>
-</tr>
 <!--ET_BEGIN ROW-->
 <tr>
-	<td class='comment-avatar'>
-	<div class='avatar-holder'>
-		[#avatar#]
-		[#createdOn#]
-	</div>
+	<td id='created-td'>
+		<span style='text-indent:5px;display:block'>[#createdBy#]</span>
+		<span id='topic-createdOn'>[#createdOn#]</span>
+		<div style='text-align:center'>[#avatar#]</div>
 	</td>
-	<td class='comment-body'>[#body#]</td>
+	<td class='comment-body'>
+		<div id='header-td'><div id='topic-header'>Коментар</div></div>
+		<div class='body-comment'>[#body#]</div>
+	</td>
 </tr>
 <!--ET_END ROW-->
-</table>
-[#BOTTOM_PAGER#]
+
+

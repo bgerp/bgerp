@@ -102,10 +102,19 @@ class forum_Categories extends core_Manager {
 		   $cat = new stdClass();
 		   $cat->id = $rec->id;
 		   $cat->title = static::getVerbal($rec, 'title');
-		   $url = array('forum_Boards', 'Forum','cat'=> $cat->id);
+		   $url = array('forum_Boards', 'Forum', 'cat'=> $cat->id);
 		   $cat->title = ht::createLink($cat->title, $url);
 		   $data->categories[]= $cat;
 			
 		}
+	}
+	
+	
+	/**
+	 * Създаване на линк към дъските, филтрирани спрямо избраната категория
+	 */
+	function on_AfterRecToVerbal($mvc, $row, $rec)
+	{
+		$row->title = ht::createLink($row->title, array('forum_Boards', 'list', 'category' => $rec->id));
 	}
 }

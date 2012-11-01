@@ -233,7 +233,7 @@ th{
 	text-decoration: underline;
 }
 
-.important {
+.sticky {
 	display: inline-block;
 	height: 20px;
 	line-height: 20px;
@@ -248,6 +248,23 @@ th{
 	-moz-box-shadow: 0px 0px 2px #000000;
 	-webkit-box-shadow: 0px 0px 2px black;
 	box-shadow: 0px 0px 2px black;
+}
+
+.announcement {
+	display: inline-block;
+	height: 20px;
+	line-height: 20px;
+	padding: 0px 5px;
+	text-indent:0px;
+	font-size: 9px;
+	font-weight: bold;
+	text-transform: uppercase;
+	color: rgb(0, 68, 136);
+	border-radius: 6px 6px 6px 6px;
+	background:darkgray;
+	-moz-box-shadow: 0px 0px 4px #000000;
+	-webkit-box-shadow: 0px 0px 4px black;
+	box-shadow: 0px 0px 4px black;
 }
 
 .theme-row-title div {

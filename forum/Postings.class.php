@@ -27,6 +27,12 @@ class forum_Postings extends core_Detail {
 	
 	
 	/**
+	 * Полета за изглед
+	 */
+	var $listFields = 'id, type, title, postingsCnt, last, lastWho, createdBy, createdOn';
+	
+	
+	/**
 	 * Мастър ключ към статиите
 	 */
 	var $masterKey = 'boardId';
@@ -66,11 +72,31 @@ class forum_Postings extends core_Detail {
 	 */
 	static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	$board = $mvc->Master->fetch($data->form->rec->boardId);
-    	if(!$mvc::haveRightFor('write', $board)) {
+    	expect($board = $mvc->Master->fetch($data->form->rec->boardId));
+    	
+	    if(!$mvc::haveRightFor('write', $board)) {
     		
     		$data->form->setField('type', 'input=none');
+    		$data->form->title = "Започване на тема в <b>{$board->title}</b>";
     	}
+    	
+    	// Ако постинга е коментар
+    	if($themeId = Request::get('themeId')) {
+    		
+    		// Трябва да имаме права да коментираме темата
+    		static::requireRightFor('add', $board);
+    		
+    		// Трябва да съществува тема с това ид, и нейния статис да е отключен
+    		expect($theme = static::fetch($themeId));
+    		expect($theme->status == 'unlocked');
+    		
+	    	$data->form->setField('type', 'input=none');
+	    	$data->form->setField('title', 'input=none');
+	    	$data->form->setField('status', 'input=none');
+	    	$data->form->setHidden('themeId', $theme->id);
+	    	$data->form->title = "Добавяне на коментар в <b>{$theme->title}</b>";
+	    }
+	    
     }
 	
     
@@ -473,14 +499,14 @@ class forum_Postings extends core_Detail {
 	
 	
 	/**
-	 * 
+	 *  Подготвяме темата за вътрешен изглед
 	 */
 	function prepareTopic($data)
 	{
 		$fields = $this->selectFields("");
         $fields['-topic'] = TRUE;
         $data->row = $this->recToVerbal($data->rec, $fields);
-        $data->row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 90);
+        $data->row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 100);
         
         // Избираме темите, които принадлежът към темата
         $data->query->where("#themeId = {$data->rec->id}");
@@ -493,7 +519,7 @@ class forum_Postings extends core_Detail {
 		// Извличаме всички постинги направени относно темата
 		while($rec = $data->query->fetch()) {
 			$data->details[$rec->id] = $this->recToVerbal($rec, $fields);
-			$data->details[$rec->id]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 90);
+			$data->details[$rec->id]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
         }
         
         if($this->haveRightFor('write')) {
@@ -509,7 +535,8 @@ class forum_Postings extends core_Detail {
 			// Адрес за заключване/отключване на тема
 			$data->lockUrl = array('forum_Postings', 'Lock', $data->rec->id);
 		} 
-    }
+	}
+	
 	
 	/**
 	 *  Рендираме темата за вътрешен изглед
@@ -530,7 +557,13 @@ class forum_Postings extends core_Detail {
 			}
 			
 			$tpl->replace($detailsTpl, 'DETAILS');
-			$detailsTpl->replace($data->pager->getHtml(), 'BOTTOM_PAGER');
+			$tpl->replace($data->pager->getHtml(), 'BOTTOM_PAGER');
+		}
+		
+		// Ако можем да добавяме нов постинг в темата и тя е отключена
+		if($this->haveRightFor('add', $data->board) && $data->rec->status == 'unlocked') {
+			$addUrl = array($this, 'Add', 'boardId' => $data->board->id , 'themeId' => $data->rec->id, 'ret_url' => TRUE );
+			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'id=btnAdd,class=btn-add'), 'ADD_COMMENT');
 		}
 		
 		// Бутон за заключване/отключване на темата за коментиране
@@ -695,18 +728,30 @@ class forum_Postings extends core_Detail {
    	 		 	
    	 		 	// Ако екшъна е browse правим обработки на заглавието и типа
    	 		 	$row->title = ht::createLink($row->title, array($mvc, 'Theme', $row->id));
-   	 		 	if($rec->type != 'normal') {
-	           		
-	            	// Ако темата е важна или съобщение, я поставяме в контейнер за по-лесно стлизиране
-	            	$row->type = ht::createElement('span', array('class' => 'important'), $row->type);
+   	 		 	
+   	 		 	// Ако темата е важна или съобщение, я поставяме в контейнер за по-лесно стлизиране
+   	 		 	if($rec->type == 'sticky') {
+	           		$row->type = ht::createElement('span', array('class' => 'sticky'), $row->type);
+	           	} elseif($rec->type =='announcement') {
+	           		$row->type = ht::createElement('span', array('class' => 'announcement'), $row->type);
 	           	} else {
 	           		unset($row->type);
 	           	}
    	 		 } 
+   	 		 
+   	 		 if($fields['-list']) { 
+   	 		 	if(!$row->last) {
+   	 		 		$row->last ='няма';
+   	 		 	}
+   	 		 	
+   	 		 	if(!$row->lastWho) {
+   	 		 		$row->lastWho ='няма';
+   	 		 	}
+   	 		 }
    	 	}
     }
    
-   
+    
 	/**
 	 *  При разглеждане на дъска, показваме само постингите които са теми. Сортиране на темите по
 	 *  тип и дата на създаване

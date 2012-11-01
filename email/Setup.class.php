@@ -26,6 +26,13 @@ defIfNot('EMAIL_POP3_TIMEOUT', 2);
 
 
 /**
+ * Максималната големина на файловете, които ще се приемат за CID
+ * 10kB
+ */
+defIfNot('EMAIL_MAXIMUM_CID_LEN', 10240);
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -89,6 +96,9 @@ class email_Setup
 
             // Шаблон за име на папки
             'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory'),
+
+            // Максималната големина на файловете, които ще се приемат за CID
+            'EMAIL_MAXIMUM_CID_LEN' => array ('int'),
 
             
         );

@@ -63,6 +63,12 @@ class forum_Boards extends core_Master {
 	
 	
 	/**
+	 * Файл за единичен изглед
+	 */
+	var $singleLayoutFile = 'forum/tpl/SingleBoard.shtml';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -85,10 +91,14 @@ class forum_Boards extends core_Master {
 	
 	
 	/**
-	 * Подрежане на дъските по категории
+	 * Подрежане  и филтриране на дъските по категории
 	 */ 
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
+		if($category = Request::get('category')) {
+			$data->query->where("#category = {$category}");
+		}
+		
 		$data->query->orderBy('#category');
 	}
 	
@@ -242,11 +252,11 @@ class forum_Boards extends core_Master {
 		}
 		
 		Mode::set('wrapper', 'cms_tpl_Page');
-
-        // Добавяме лейаута на страницата
-        Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
-        
-	 	return $navigation;
+	
+	    // Добавяме лейаута на страницата
+	    Mode::set('cmsLayout', $data->forumTheme . '/Layout.shtml');
+		
+        return $navigation;
 	}
 	
 	
@@ -307,27 +317,31 @@ class forum_Boards extends core_Master {
 		$tpl = new ET(getFileContent($data->forumTheme . '/Index.shtml'));
  
         if(count($data->categories)) {
-            foreach($data->categories as $category) {
+        	
+        	// Зареждаме шаблоните веднъж в паметта и после само ги клонирваме
+        	$categoryTpl = new ET(getFileContent($data->forumTheme . '/Category.shtml'));
+        	$boardTpl = new ET(getFileContent($data->forumTheme . '/Boards.shtml'));
+            
+        	foreach($data->categories as $category) {
                 
                 // За всяка категория ние поставяме името и преди  списъка с нейните дъски
-                $catTpl = new ET(getFileContent($data->forumTheme . '/Boards.shtml'));
+                $catTpl = clone($categoryTpl);
                 $catTpl->replace($category->title, 'cat');
                 if($category->boards->rows) { 
                     
                     // За всички дъски от категорията ние ги поставяме под нея в шаблона
                     foreach($category->boards->rows as $row) {
-                    	$rowTpl = $catTpl->getBlock('ROW');
+                    	$rowTpl = clone($boardTpl);
                         $rowTpl->placeObject($row);
-                    	$rowTpl->append2master();
+                        $rowTpl->removeBlocks();
+                    	$catTpl->append($rowTpl, 'BOARDS');
                     }
                 } else {
-                        $rowTpl = $catTpl->getBlock('ROW');
-                        $rowTpl->replace('<li>Няма Дъски</li>');
-                        $rowTpl->append2master();
+                       $catTpl->replace(new ET('<li>Няма Дъски</li>'), 'BOARDS');
                     }
-                    
+
                 // Добавяме категорията с нейните дъски към главния шаблон
-                $tpl->append($catTpl, 'BOARDS');
+                $tpl->append($catTpl, 'CATEGORIES');
             }
         }
 		
@@ -446,7 +460,29 @@ class forum_Boards extends core_Master {
 		}
 	}
 	
+	
+	/**
+	 * Модификация на вербалните записи
+	 */
+	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+   	{
+   		if($fields['-list']) {
+   			
+   			// Правим заглавието на линк за единичен изглед
+   			$row->title = ht::createLink($row->title, array($mvc, 'Single', $rec->id));
+   			
+   			if(!$rec->lastCommentedTheme) {
+   				$row->lastCommentedTheme = 'няма';
+   			}
+   			
+   			if(!$rec->lastComment) {
+   				$row->lastComment = 'няма';
+   			}
+   		}
+   		
+    }
     
+   
     /**
      * Връща URL към себе си (форума)
      */

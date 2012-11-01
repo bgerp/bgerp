@@ -1,31 +1,30 @@
-<ul class='category-ul'  width='100%'>
-		<li class='board-header'>[#cat#]</li>
+<li>
+	<table width='100%' border='0' cellpadding='3px'>
+	<tr>
+		<td width='63%' class='forum-table'>[#title#]<br>
+			<span class='forum-desc'>[#shortDesc#]</span>
+		</td>
+		<td width='12%' class='right'>
+			<span class='forum-counts'><b>[#themesCnt#]</b>&nbsp;&nbsp;Теми</span><br>
+			<span class='forum-counts'><b>[#commentsCnt#]</b>&nbsp;&nbsp;Мнения</span>
+		</td>
+		<td class='last-by'>
+			[#lastAvatar#]
+		</td>
+		<td  class='last-info'>
+		<!--ET_BEGIN lastCommentedTheme-->     
+			<span class='last-theme'>в:&nbsp;[#lastCommentedTheme#]</span><br>
+		<!--ET_END lastCommentedTheme-->
 		
-	<!--ET_BEGIN ROW-->
-	<li>
-		<table width='100%' border='0' cellpadding='3px'><tr>
-			<td width='63%' class='forum-table'>[#title#]<br>
-				<span class='forum-desc'>[#shortDesc#]</span>
-			</td>
-			<td width='12%' class='right'>
-				<span class='forum-counts'><b>[#themesCnt#]</b>&nbsp;&nbsp;Теми</span><br>
-				<span class='forum-counts'><b>[#commentsCnt#]</b>&nbsp;&nbsp;Мнения</span>
-			</td>
-			<td class='last-by'>
-				[#lastAvatar#]
-			</td>
-			<td  class='last-info'>
-			<!--ET_BEGIN lastCommentedTheme-->
-				<span class='last-theme'>в:&nbsp;[#lastCommentedTheme#]</span><br>
-			<!--ET_END lastCommentedTheme-->
-			<!--ET_BEGIN lastNick-->
-				<span class='last-user'>от:&nbsp;&nbsp;<b>[#lastNick#]</b></span><br>
-			<!--ET_END lastNick-->
-				<span class='last-comment'>[#lastComment#]</span>
-			</td>
-		</tr></table>
-	</li>
-	<!--ET_END ROW-->	
-</ul>
+		<!--ET_BEGIN lastNick-->
+			<span class='last-user'>от:&nbsp;&nbsp;<b>[#lastNick#]</b></span><br>
+		<!--ET_END lastNick-->
+		
+			<span class='last-comment'>[#lastComment#]</span>
+		</td>
+	</tr>
+	</table>
+</li>
+
 
 
