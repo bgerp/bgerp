@@ -203,13 +203,7 @@ class type_Richtext extends type_Text {
         $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
         
         // Обработваме елемента [li]
-        if(!Mode::is('text', 'plain')) {
-            $html = preg_replace_callback("/\[li](.*?)<br>/is", array($this, '_catchLi'), $html);
-            $html = str_replace("[li]", "<li>", $html);
-        } else {
-            $html = preg_replace_callback("/\[li](.*?)\n/is", array($this, '_catchLi'), $html);
-            $html = str_replace("[li]", "\n o ", $html);
-        }
+        $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n))/is", array($this, '_catchLi'), $html);
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
@@ -305,7 +299,7 @@ class type_Richtext extends type_Text {
         if(!Mode::is('text', 'plain')) {
             $res = "<li>$text</li>\n";
         } else {
-            $res = "\n o {$text}";
+            $res = " o {$text}\n";
         }
         
         return $res;
