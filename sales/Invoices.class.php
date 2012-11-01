@@ -129,7 +129,7 @@ class sales_Invoices extends core_Master
         $this->FLD('vatCanonized', 'varchar(255)', 'caption=Vat Canonized, input=none');
         $this->FLD('dealPlace', 'varchar(255)', 'caption=Място на сделката');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
-        $this->FLD('vatRate', 'double(decimals=2)', 'caption=ДДС');
+        $this->FLD('vatRate', 'double(decimals=2)', 'caption=ДДС,unit=%');
         
         // $this->FLD("vatReason", "string(128)"); plg_Resent
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъчно основание');
@@ -139,7 +139,7 @@ class sales_Invoices extends core_Master
         
         /* Кога е дан. събитие. Ако не се въведе е датата на фактурата */
         // $this->FLD("vatDate", "date");
-        $this->FLD('vatDate', 'date', 'caption=Данъчна дата');
+        $this->FLD('vatDate', 'date', 'caption=Дата на ДС');
         
         // $this->FLD("currency", "string(3)"); mvc=currency_Currencies по-подразбиране е основната валута
         // ако няма такава деф. конст трябва да дефинираме
@@ -151,7 +151,7 @@ class sales_Invoices extends core_Master
         $this->FLD('paymentMethod', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Начин на плащане');
         
         // $this->FLD("delivery", "string(16)"); mvc=trans_DeliveryTerm 
-        $this->FLD('delivery', 'varchar(255)', 'caption=Начин на доставка');
+        $this->FLD('delivery', 'varchar(255)', 'caption=Доставка');
         
         /* перо от номенклатурата банкови с-ки */
         // $this->FLD("account", "int");
