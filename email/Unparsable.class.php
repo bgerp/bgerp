@@ -91,7 +91,7 @@ class email_Unparsable extends core_Master
     {
         $rec->source = $eml;
 
-        $this->save($rec);
+        self::save($rec);
     }
     
  }
