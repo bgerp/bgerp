@@ -205,6 +205,9 @@ class type_Richtext extends type_Text {
         // Обработваме елемента [li]
         $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n))/is", array($this, '_catchLi'), $html);
         
+        // Обработваме елемента [lio]
+        $html = preg_replace_callback("/\[lio](.*?)((<br>)|(\n))/is", array($this, '_catchLio'), $html);
+        
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
         
@@ -300,6 +303,23 @@ class type_Richtext extends type_Text {
             $res = "<li>$text</li>\n";
         } else {
             $res = " o {$text}\n";
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Заменя [html] ... [/html]
+     */
+    function _catchLio($match)
+    {
+        $text = $match[1];
+        
+        if(!Mode::is('text', 'plain')) {
+            $res = "<li class='lio' type='circle'>$text</li>\n";
+        } else {
+            $res = "   - {$text}\n";
         }
         
         return $res;

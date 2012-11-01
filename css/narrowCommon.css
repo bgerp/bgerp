@@ -105,6 +105,10 @@ div.richtext li {
     padding-top:0.2em;
 }
 
+div.richtext li.lio {
+	margin-left:3em;
+}
+
 div.richtextHide {
 	display:none;
 	margin-left:4px;
