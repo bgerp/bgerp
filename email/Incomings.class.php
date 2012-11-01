@@ -601,7 +601,7 @@ class email_Incomings extends core_Master
                 } catch (Exception $exc) {
                     // Не можем да парсираме е-мейла
                     
-                    if(Request::get('forsed')) {
+                    if(Request::get('forced')) {
                         $exc->getAsHtml();
                     }
 
