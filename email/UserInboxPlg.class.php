@@ -37,6 +37,8 @@ class email_UserInboxPlg extends core_Plugin
                 //Добавяме полето имейл, необходима за създаване на корица
                 $eRec->email = email_Inboxes::getUserEmail($rec->id);
                 $eRec->accountId = $corpAccRec->id;
+                $eRec->access = 'private';
+                $eRec->inCharge = $rec->id;
                 
                 if($eRec->email) {
                     email_Inboxes::forceCoverAndFolder($eRec);

@@ -205,11 +205,12 @@ th{
 .last-by {
 	width:50px;
 }
-.last-by img{
+.last-by div{
 	-moz-box-shadow: 0px 0px 3px #000000;
 	-webkit-box-shadow: 0px 0px 3px #000000;
 	box-shadow: 0px 0px 3px #000000;
 	vertical-align:middle;
+	width:50px;height:50px;
 }
 
 .last-info {
@@ -302,4 +303,11 @@ th{
 #form_header {
 	margin-top:20px;
 	text-indent:10px;
+}
+
+.no-comment {
+	font-style:italic;
+	font-size:14px;
+	display:block;
+	vertical-align:middle;
 }

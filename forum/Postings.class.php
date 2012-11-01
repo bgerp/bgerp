@@ -74,7 +74,7 @@ class forum_Postings extends core_Detail {
     {
     	expect($board = $mvc->Master->fetch($data->form->rec->boardId));
     	
-	    if(!$mvc::haveRightFor('write', $board)) {
+	    if(!$mvc::haveRightFor('write')) {
     		
     		$data->form->setField('type', 'input=none');
     		$data->form->title = "Започване на тема в <b>{$board->title}</b>";
@@ -83,14 +83,12 @@ class forum_Postings extends core_Detail {
     	// Ако постинга е коментар
     	if($themeId = Request::get('themeId')) {
     		
-    		// Трябва да имаме права да коментираме темата
-    		static::requireRightFor('add', $board);
-    		
-    		// Трябва да съществува тема с това ид, и нейния статис да е отключен
     		expect($theme = static::fetch($themeId));
-    		expect($theme->status == 'unlocked');
     		
-	    	$data->form->setField('type', 'input=none');
+    		// Трябва да имаме права да коментираме темата
+    		static::requireRightFor('add', $theme);
+    		
+    		$data->form->setField('type', 'input=none');
 	    	$data->form->setField('title', 'input=none');
 	    	$data->form->setField('status', 'input=none');
 	    	$data->form->setHidden('themeId', $theme->id);
@@ -127,7 +125,7 @@ class forum_Postings extends core_Detail {
         $fields = $this->selectFields("");
         $fields['-browse'] = TRUE;
         
-        if($this->haveRightFor('read', $data->rec)) {
+        if($this->Master->haveRightFor('read', $data->rec)) {
         	
         	// Ако имаме права да виждаме темите в дъската, ние ги извличаме
 	        while($rec = $query->fetch()) {
@@ -142,24 +140,11 @@ class forum_Postings extends core_Detail {
 	            // Пейджър за странициране на темата, според  FORUM_POSTS_PER_PAGE
 	            $data->themeRows[$rec->id]->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_POSTS_PER_PAGE));
 	            $data->themeRows[$rec->id]->pager->setLimit($themeQuery);
-	            
-	            if(isset($rec->lastWho)) {
-	            	
-	            	// Намираме аватара и ника на потребителят, коментирал последно
-	            	$user = core_Users::fetch($rec->lastWho);
-		        	$data->themeRows[$rec->id]->avatar = avatar_Plugin::getImg(0, $user->email, 50);
-		        	$data->themeRows[$rec->id]->nick = $user->nick;
-	            } else {
-	            	
-	            	// Ако темата няма коментари слагаме дефолт имидж на аватара
-	            	$data->themeRows[$rec->id]->avatar =avatar_Plugin::getImg(0, NULL, 50);
-	            	$data->themeRows[$rec->id]->nick = 'няма коментари';
-	            }
-	      	}
+	        }
         }
         
         // Ако имаме права да добавяме нова тема в дъската
-        if($this->haveRightFor('add', $data->rec)) {
+        if($this->haveRightFor('write')) {
         	$data->submitUrl = array($this, 'new', $this->masterKey => $data->rec->id);
         }
         
@@ -189,6 +174,7 @@ class forum_Postings extends core_Detail {
 	         	
 	         	// Рендираме пейджъра на темата до заглавието и
 	         	$themeTpl->replace($row->pager->getHtml($pagerUrl), 'THEME_PAGER');
+	         	$themeTpl->removeBlocks();
 	         	$themeTpl->append2master();
 	         } 
         } else {
@@ -222,12 +208,13 @@ class forum_Postings extends core_Detail {
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
         expect($data->rec = $this->fetch($id));
         $data->action = 'theme';
-        
+        $data->display ='public';
         // Към коя дъска принадлежи темата
 		$data->board = $this->Master->fetch($data->rec->boardId);
+		$data->category = forum_Categories::fetch($data->board->category);
 		
 		// Потребителят трябва да има права да чете темите от дъската
-		$this->requireRightFor('read', $data->board);
+		$this->requireRightFor('read', $data->rec);
 		
 		// Подготвяме постингите от избраната тема
 		$this->prepareTheme($data);
@@ -239,7 +226,7 @@ class forum_Postings extends core_Detail {
             $rec = $data->postForm->input();
             
             // Трябва да имаме права да добавяме постинг към тема от дъската
-            $this->requireRightFor('add', $data->board);
+            $this->requireRightFor('add', $data->rec);
             
             // Ако формата е успешно изпратена - запис, лог, редирек
             if ($data->postForm->isSubmitted() && Request::get('body')) {
@@ -280,24 +267,18 @@ class forum_Postings extends core_Detail {
         
         // Първия постинг в нишката е мастър постинга (този който е начало на темата)
         $data->thread[$data->rec->id] = $this->recToVerbal($data->rec, $fields);
-        
-        // Извличаме граватара на автора на темата
-        $data->thread[$data->rec->id]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 90);
        
         // Извличаме всички постинги направени относно темата
 		while($rec = $query->fetch()) {
 			
 			// Добавяме другите постинги, които имат за themeId, id-то на темата
 			$data->thread[$rec->id] = $this->recToVerbal($rec, $fields);
-			
-			// Извличаме аватара на потребителя, който е направил коментара
-			$data->thread[$rec->id]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 90);
-        }
+		}
         
 		$data->title = "разглеждане на тема: &nbsp;&nbsp;&nbsp;&nbsp;{$data->rec->title}";
 		
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
-		if($this->haveRightFor('add', $data->board) && $data->rec->status == 'unlocked') {
+		if($this->haveRightFor('add', $data->rec->id)) {
 			
 			// Подготвяме формата за добавяне на нов постинг към нишката
 			$data->postForm = $this->getForm();
@@ -382,6 +363,7 @@ class forum_Postings extends core_Detail {
        	$fields = $this->Master->selectFields('');
         $data->row = $this->Master->recToVerbal($data->rec, $fields);
         $data->action = 'new';
+        $data->display ='public';
         
         // Подготвяме $data
         $this->prepareNew($data);
@@ -425,12 +407,12 @@ class forum_Postings extends core_Detail {
 		$form->setHidden('boardId', $data->row->id);
 		
 		// Ако потребителя няма права да заключва/отключва тема, ние скриваме полето от формата
-		if(!$this->haveRightFor('write')) {
+		if(!$this->Master->haveRightFor('write', $data->rec)) {
 			$form->setField('status', 'input=none');
 		}
 		
 		// Ако потребителя няма права да прави важни теми, ние скриваме полето от формата
-		if(!$this->haveRightFor('write', $data->rec)) {
+		if(!$this->Master->haveRightFor('write', $data->rec)) {
 			$form->setField('type', 'input=none');
 		}
 		
@@ -482,7 +464,7 @@ class forum_Postings extends core_Detail {
 		$data->board = $this->Master->fetch($data->rec->boardId);
 		
 		// Потребителят трябва да има права да чете темите от дъската
-		$this->requireRightFor('read', $data->board);
+		$this->requireRightFor('read', $data->rec);
 		
 		// Подготвяме темата
 		$this->prepareTopic($data);
@@ -493,6 +475,8 @@ class forum_Postings extends core_Detail {
 		$layout->push('forum/tpl/styles.css', 'CSS');
 		
 		$layout = $this->renderWrapping($layout);
+		
+		$layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		
 		return $layout;
 	}
@@ -506,7 +490,6 @@ class forum_Postings extends core_Detail {
 		$fields = $this->selectFields("");
         $fields['-topic'] = TRUE;
         $data->row = $this->recToVerbal($data->rec, $fields);
-        $data->row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($data->rec->createdBy)->email, 100);
         
         // Избираме темите, които принадлежът към темата
         $data->query->where("#themeId = {$data->rec->id}");
@@ -519,8 +502,7 @@ class forum_Postings extends core_Detail {
 		// Извличаме всички постинги направени относно темата
 		while($rec = $data->query->fetch()) {
 			$data->details[$rec->id] = $this->recToVerbal($rec, $fields);
-			$data->details[$rec->id]->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
-        }
+		}
         
         if($this->haveRightFor('write')) {
 			
@@ -535,6 +517,7 @@ class forum_Postings extends core_Detail {
 			// Адрес за заключване/отключване на тема
 			$data->lockUrl = array('forum_Postings', 'Lock', $data->rec->id);
 		} 
+		$this->Master->prepareInnerNavigation($data);
 	}
 	
 	
@@ -561,7 +544,7 @@ class forum_Postings extends core_Detail {
 		}
 		
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
-		if($this->haveRightFor('add', $data->board) && $data->rec->status == 'unlocked') {
+		if($this->haveRightFor('add', $data->rec)) { 
 			$addUrl = array($this, 'Add', 'boardId' => $data->board->id , 'themeId' => $data->rec->id, 'ret_url' => TRUE );
 			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'id=btnAdd,class=btn-add'), 'ADD_COMMENT');
 		}
@@ -589,7 +572,7 @@ class forum_Postings extends core_Detail {
             $tpl->replace($data->moveForm->renderHtml(), 'TOOLS');
         }
         
-		return $tpl;
+        return $tpl;
 	}
 	
 	
@@ -661,19 +644,20 @@ class forum_Postings extends core_Detail {
 		if($action == 'read' && isset($rec)) {
 			
 			// Единствено потребители с роли в canSeeThemes на дъската могат да виждат темите
-			$res = forum_Boards::getVerbal($rec, 'canSeeThemes');
+			$board = forum_Boards::fetch($rec->boardId);
+			$res = forum_Boards::getVerbal($board, 'canSeeThemes');
 		}
 		
-		if($action == 'add' && isset($rec->canComment)) {
+		if($action == 'add' && isset($rec)) {
 			
-			// Единствено потребители с роли в canComment на дъската могат да виждат темите
-			$res = forum_Boards::getVerbal($rec, 'canComment');
-		} 
-		
-		if($action == 'write' && isset($rec->canStick)) {
+			// Тема може да бъде коментирана само когато потребителя има права и темата
+			// е отключена
+			$board = forum_Boards::fetch($rec->boardId);
+			$res = forum_Boards::getVerbal($board, 'canComment');
 			
-			// Единствено потребители с роли в canStick на дъската могат да виждат темите
-			$res = forum_Boards::getVerbal($rec, 'canStick');
+			if($rec->status == 'locked') {
+				$res = 'no_one';
+			}
 		}
 	}
 	
@@ -720,14 +704,33 @@ class forum_Postings extends core_Detail {
    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
    {
    	 	if($row->themeId === NULL) { 
-   	 		
-   	 		 if($fields['-list']) { 
-   	 		 	$row->title = ht::createLink($row->title, array($mvc, 'Topic', $row->id));
+   	 		 
+   	 		if($fields['-list']) {
 
+   	 			$row->title = ht::createLink($row->title, array($mvc, 'Topic', $row->id));
+   	 			
+   	 		 	if(!$row->last) {
+   	 		 		$row->last ='няма';
+   	 		 	}
+   	 		 	
+   	 		 	if(!$row->lastWho) {
+   	 		 		$row->lastWho ='няма';
+   	 		 	}
+   	 		 
    	 		 } elseif($fields['-browse']) {
    	 		 	
    	 		 	// Ако екшъна е browse правим обработки на заглавието и типа
    	 		 	$row->title = ht::createLink($row->title, array($mvc, 'Theme', $row->id));
+   	 		 	
+   	 		 	if(isset($rec->lastWho)) {
+	            	
+	            	// Намираме аватара и ника на потребителят, коментирал последно
+	            	$user = core_Users::fetch($rec->lastWho);
+		        	$row->avatar = avatar_Plugin::getImg(0, $user->email, 50);
+		        	$row->nick = $user->nick;
+	            } else {
+	            	$row->noComment = 'няма коментари';
+	            }
    	 		 	
    	 		 	// Ако темата е важна или съобщение, я поставяме в контейнер за по-лесно стлизиране
    	 		 	if($rec->type == 'sticky') {
@@ -738,16 +741,20 @@ class forum_Postings extends core_Detail {
 	           		unset($row->type);
 	           	}
    	 		 } 
-   	 		 
-   	 		 if($fields['-list']) { 
-   	 		 	if(!$row->last) {
-   	 		 		$row->last ='няма';
-   	 		 	}
-   	 		 	
-   	 		 	if(!$row->lastWho) {
-   	 		 		$row->lastWho ='няма';
-   	 		 	}
-   	 		 }
+   	 	}
+   	 	
+   	 	if($fields['-theme'] || $fields['-topic']) {
+   	 		$row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
+   	 	}
+   	 	
+   	 	// Линк към преглед на темата във външния изглед
+   	 	if($fields['-public']) {
+   	 		$row->title = ht::createLink($row->title, array($mvc, 'Theme', $row->id));
+   	 	}
+   	 	
+   	 	// Линк към преглед на темата във вътрешния изглед
+   		if($fields['-private']) {
+   	 		$row->title = ht::createLink($row->title, array($mvc, 'Topic', $row->id));
    	 	}
     }
    
