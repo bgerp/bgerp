@@ -81,6 +81,17 @@ class email_Unparsable extends core_Master
     {
         $this->FLD("source", "text(2000000)", "caption=Сорс");
           
-     }
+    }
+    
+    
+    /**
+     * Добавяне на писмо, което не може да се парсира
+     */
+    function add($eml)
+    {
+        $rec->source = $eml;
+
+        $this->save($rec);
+    }
     
  }
