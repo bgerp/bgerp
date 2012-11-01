@@ -661,7 +661,14 @@ class email_Outgoings extends core_Master
             if (type_Email::isValidEmail($emailTo)) {
                                 
                 // Вземаме папката на имейла
-                $folderId = email_Router::getEmailFolder($emailTo); 
+                $emailFolderId = email_Router::getEmailFolder($emailTo);
+                
+                // Проверяваме дали имаме права за папката
+                if (doc_Folders::haveRightFor('single', $emailFolderId)) {
+                    
+                    // Ако имаме права, задаваме папката да е тя
+                    $folderId = $emailFolderId;
+                }
 
                 // Попълваме полето Адресант->Имейл със съответния имейл
                 $rec->email = $emailTo;       
