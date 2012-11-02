@@ -41,7 +41,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields ='tools, title, category, shortDesc, themesCnt, canSeeBoard, canSeeThemes, canComment,canStick,lastComment,lastCommentedTheme,createdOn,createdBy,  modifiedOn, modifiedBy';
+	var $listFields ='tools=Пулт, title, category, shortDesc, themesCnt, canSeeBoard, canSeeThemes, canComment,canStick,lastCommentedTheme,lastComment,createdOn,createdBy,  modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -69,6 +69,12 @@ class forum_Boards extends core_Master {
 	
 	
 	/**
+	 * Полета които да са достъпни след изтриване на дъска
+	 */
+	var $fetchFieldsBeforeDelete = 'id,title';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -79,7 +85,7 @@ class forum_Boards extends core_Master {
 		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска, mandatory');
 		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Теми, mandatory');
 		$this->FLD('canStick', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Важни теми, mandatory');
-		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментиране, mandatory');
+		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментар, mandatory');
 		$this->FLD('themesCnt', 'int', 'caption=Темите, notNull, input=hidden, value=0');
 		$this->FLD('commentsCnt', 'int', 'caption=Коментари, notNull, input=hidden, value=0');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
@@ -164,6 +170,7 @@ class forum_Boards extends core_Master {
 		// Тема по подразбиране
 		$conf = core_Packs::getConfig('forum');
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+        $data->title = $conf->GREETING_MESSAGE;
         $data->action = 'forum';
         $data->display ='public';
         $data->category = Request::get('cat');
@@ -223,18 +230,18 @@ class forum_Boards extends core_Master {
 		 } elseif($data->action == 'browse' || $data->action == 'new') {
 			 
 		 	// Ако разглеждаме дъска,навигацията ще от рода  Форуми->Категория->Дъска
-			$row = $this->recToVerbal($data->rec, "id,title,category,-public");
-			$data->navigation[] = $row->category->title;
-			$data->navigation[] = $row->title;
+			$boardRow = $this->recToVerbal($data->rec, "id,title,category,-public");
+			$data->navigation[] = $boardRow->category->title;
+			$data->navigation[] = $boardRow->title;
 			 
 		}  elseif ($data->action == 'theme') {
 			
 			// Ако разглеждаме тема,навигацията ще от рода  Форуми->Категория->Дъска->Тема
-			$board = $this->recToVerbal($data->board, "id,title,category,-public");
-			$theme = forum_Postings::recToVerbal($data->rec, "id,title,-public");
-			$data->navigation[] = $board->category->title;
-			$data->navigation[] = $board->title;
-			$data->navigation[] = $theme->title;
+			$boardRow = $this->recToVerbal($data->board, "id,title,category,-public");
+			$themeRow = forum_Postings::recToVerbal($data->rec, "id,title,-public");
+			$data->navigation[] = $boardRow->category->title;
+			$data->navigation[] = $boardRow->title;
+			$data->navigation[] = $themeRow->title;
 		} 
 	}
 	
@@ -246,21 +253,31 @@ class forum_Boards extends core_Master {
 	{
 		// Линк към началото на форума
 		$data->navigation[] = ht::createLink('Форуми', array('forum_Boards', 'list'));
-		if($data->action == 'single') {
+		
+		if($data->action == 'list') {
+			if($category = Request::get('category')) {
+				
+				// Ако е сетнато $data->category, то е избрана само една категория
+				$categoryRec = forum_Categories::fetch($category);
+				$categoryRow = forum_Categories::recToVerbal($categoryRec, "id,title,-list");
+				$data->navigation[] = $categoryRow->title;
+			}
+			
+		}  elseif($data->action == 'single') {
 			 
 		 	 // Ако разглеждаме дъска,навигацията ще от рода  Форуми->Категория->Дъска
-			$row = static::recToVerbal($data->rec, "id,title,category,-private");
-			$data->navigation[] = $row->category->title;
-			$data->navigation[] = $row->title;
+			$boardRow = static::recToVerbal($data->rec, "id,title,category,-private");
+			$data->navigation[] = $boardRow->category->title;
+			$data->navigation[] = $boardRow->title;
 			 
 		}  elseif ($data->action == 'topic') {
 			
 			// Ако разглеждаме тема,навигацията ще от рода  Форуми->Категория->Дъска->Тема
-			$board = $this->recToVerbal($data->board, "id,title,category,-private");
-			$theme = forum_Postings::recToVerbal($data->rec, "id,title,-private");
-			$data->navigation[] = $board->category->title;
-			$data->navigation[] = $board->title;
-			$data->navigation[] = $theme->title;
+			$boardRow = $this->recToVerbal($data->board, "id,title,category,-private");
+			$themeRow = forum_Postings::recToVerbal($data->rec, "id,title,-private");
+			$data->navigation[] = $boardRow->category->title;
+			$data->navigation[] = $boardRow->title;
+			$data->navigation[] = $themeRow->title;
 		} 
 	}
 	
@@ -330,8 +347,9 @@ class forum_Boards extends core_Master {
 	function renderForum($data)
 	{
 		$tpl = new ET(getFileContent($data->forumTheme . '/Index.shtml'));
- 
-        if(count($data->categories)) {
+ 		$tpl->replace('<h2>' . $data->title . '</h2>', 'GREETING');
+
+ 		if(count($data->categories)) {
         	
         	// Зареждаме шаблоните веднъж в паметта и после само ги клонирваме
         	$categoryTpl = new ET(getFileContent($data->forumTheme . '/Category.shtml'));
@@ -412,6 +430,7 @@ class forum_Boards extends core_Master {
 		$data->query->orderBy('createdOn', 'DESC');
 		$fields = $this->selectFields("");
         $fields['-browse'] = TRUE;
+        $data->row = $this->recToVerbal($data->rec, $fields);
         
         // Извличаме всички Постинги, които са начало на нова тема в дъската
         $this->forum_Postings->prepareBoardThemes($data);
@@ -425,6 +444,7 @@ class forum_Boards extends core_Master {
 	function renderBrowse_($data) 
 	{
 		$tpl = new ET(getFileContent($data->forumTheme . '/Browse.shtml'));
+		
 		$tpl->placeObject($data->row);
 		
 		// Рендираме всички теми от дъската
@@ -467,19 +487,19 @@ class forum_Boards extends core_Master {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
-		if($action == 'read' && isset($rec)) {
+		if($action == 'read' && isset($rec->id)) {
 			 
 			// Могат да виждат дъските, единствено потребителите с роли, зададени в 'canSeeBoard' 
 			$res = $mvc::getVerbal($rec, 'canSeeBoard'); 
 		}
 		
-		if($action == 'add' && isset($rec)) {
+		if($action == 'add' && isset($rec->id)) {
 			 
 			$res = $mvc::getVerbal($rec, 'canSeeBoard'); 
 		}
 		
-		if($action == 'write' && isset($rec)) {
-			 
+		if($action == 'write' && isset($rec->id)) {
+			
 			$res = $mvc::getVerbal($rec, 'canStick'); 
 		}
 	}
@@ -490,17 +510,17 @@ class forum_Boards extends core_Master {
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
    	{
-   		if($fields['-list']) {
+   		if($fields['-list'] || $fields['-single']) {
    			
    			// Правим заглавието на линк за единичен изглед
    			$row->title = ht::createLink($row->title, array($mvc, 'Single', $rec->id));
    			
-   			if(!$rec->lastCommentedTheme) {
+   			if(!$rec->lastCommentBy) {
    				$row->lastCommentedTheme = 'няма';
-   			}
-   			
-   			if(!$rec->lastComment) {
    				$row->lastComment = 'няма';
+   				$row->lastCommentBy = 'няма';
+   			} else {
+   				$row->lastCommentBy = core_Users::fetch($rec->lastCommentBy)->nick;
    			}
    			
    			if($rec->lastCommentedTheme) {
@@ -508,6 +528,7 @@ class forum_Boards extends core_Master {
    				$themeRow = forum_Postings::recToVerbal($themeRec, 'id,title,-list');
    				$row->lastCommentedTheme = $themeRow->title;
    			}
+   			
    		}
    		
    		// Модификации по вербалното представяне на записите  в екшъна forum
@@ -518,11 +539,11 @@ class forum_Boards extends core_Master {
 	            
 	           // преобразуваме ид-то на последно коментираната тема в разбираем вид
 	           $themeRec = forum_Postings::fetch($rec->lastCommentedTheme);
-	           $themeRow = forum_Postings::recToVerbal ($themeRec, 'id,title,-forum');
+	           $themeRow = forum_Postings::recToVerbal ($themeRec, 'id,title,-public');
 	           $row->lastCommentedTheme = $themeRow->title;
 	           
 	           // Намираме граватара и ника на потребителя коментирал последно
-	           $lastUser =core_Users::fetch($rec->lastCommentBy);
+	           $lastUser = core_Users::fetch($rec->lastCommentBy);
 	           $row->lastAvatar =  avatar_Plugin::getImg(0, $lastUser->email, 50);
 	           $row->lastNick = $lastUser->nick;
 	       } else {
@@ -569,11 +590,33 @@ class forum_Boards extends core_Master {
     
     
     /**
+     * Подготвяме вътрешната навигация в List екшъна
+     */
+    static function on_BeforePrepareListTitle($mvc, &$res, $data)
+    {
+    	$data->action = 'list';
+    	$mvc::prepareInnerNavigation($data);
+    }
+    
+    
+	/**
+     * Подготвяме вътрешната навигация в List екшъна
+     */
+    static function on_AfterRenderListTitle($mvc, &$tpl, $data)
+    {
+    	
+    	$tpl->replace(new ET("<span id='navigation-inner-link'>[#NAVIGATION#]</span>"));
+    	
+    }
+    
+    
+    /**
      * Рендираме навигацията след рендирането на обвивката
      */
     function on_AfterRenderWrapping($mvc, &$tpl, $content, $data = NULL) {
     	
-    	if($data->navigation){
+    	$tpl->push('forum/tpl/styles.css', 'CSS');
+    	if($data->navigation){ 
     		$tpl->replace($this->renderNavigation($data), 'NAVIGATION');
     	}
      }

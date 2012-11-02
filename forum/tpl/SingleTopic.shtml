@@ -31,12 +31,12 @@
 
 <!--ET_BEGIN BOTTOM_PAGER-->
 <tr>
-	<td colspan='2'>[#BOTTOM_PAGER#]</td>
+	<td colspan='2' id='bottom-pager'>[#BOTTOM_PAGER#]</td>
 </tr>
 <!--ET_END BOTTOM_PAGER-->
 
 <tr>
-	<td colspan='2'>[#ADD_COMMENT#]</td>
+	<td colspan='2' class='add-comment'>[#ADD_COMMENT#]</td>
 </tr>
 </table>
 </div>

@@ -7,6 +7,8 @@ defIfNot('FORUM_DEFAULT_THEME', 'forum/themes/default');
 
 defIfNot('FORUM_THEMES_PER_PAGE', '10');
 
+defIfNot('GREETING_MESSAGE', 'Добре дошли в нашия форум');
+
 defIfNot('FORUM_POSTS_PER_PAGE', '3');
 
 /**

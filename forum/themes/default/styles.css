@@ -37,11 +37,8 @@
 }
 
 #navigation {
-	background:rgb(221, 221, 255);
-	border:1px solid rgb(238, 238, 238);
 	color:black;
-	font-size:14px;
-	text-indent:10px;
+	font-size:16px;
 	font-weight:bold;
 	padding:4px;
 }
@@ -106,7 +103,7 @@ th{
 	text-align:center;
 }
 #forum-board {
-	padding:15px;
+	padding:10px;
 }
 
 #shortDesc {
@@ -276,7 +273,7 @@ th{
 }
 
 .theme-row-title div a.pagerSelected {
-	background:0%;border:0px;
+	
 }
 
 #comment-form {
@@ -310,4 +307,9 @@ th{
 	font-size:14px;
 	display:block;
 	vertical-align:middle;
+}
+
+h2{
+	margin-left:10px;
+	margin-top:10px;
 }
