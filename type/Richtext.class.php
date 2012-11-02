@@ -336,7 +336,7 @@ class type_Richtext extends type_Text {
         
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
-        $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" style='1max-width:750px;' alt=\"{$title}\"><br><small>";
+        $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" style='12max-width:750px;' alt=\"{$title}\"><br><small>";
         
         return "[#{$place}#]{$title}</small></div>";
     }
