@@ -649,7 +649,7 @@ class blogm_Articles extends core_Master {
             $tpl = new ET();
 
             foreach($data->archiveArr as $month) {
-                
+
                 list($y, $m) = explode('|', $month);
             
                 if($data->archive == $month) {
@@ -667,7 +667,7 @@ class blogm_Articles extends core_Master {
                 $tpl->append($title);
             }
 
-            return $title;
+            return $tpl;
         }
  	}	
 

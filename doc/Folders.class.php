@@ -271,6 +271,10 @@ class doc_Folders extends core_Master
     {
         // Извличаме записа на папката
         $rec = doc_Folders::fetch($id);
+
+        if(!$rec) {
+            return;
+        }
         
         // Запомняме броя на отворените теми до сега
         $exOpenThreadsCnt = $rec->openThreadsCnt;
@@ -623,4 +627,70 @@ class doc_Folders extends core_Master
         
         return $res;
     }
-}
+
+
+    /**
+     *
+     */
+    function act_Repair()
+    {
+        requireRole('admin');
+
+        $query = $this->getQuery();
+
+        while($rec = $query->fetch()) {
+            
+            if(!$rec->inCharge > 0) {
+                $err[$rec->id] .= 'Missing inCharge; ';
+                $rec->inCharge = core_Users::getCurrent();
+            }
+            
+            $projectName = FALSE;
+
+            if(!$rec->coverClass) {
+                $err[$rec->id] .= 'Missing coverClass; ';
+                $projectName = "LaF " . $rec->title;
+            } else {
+            
+                if(!($className = core_Classes::fetchField("#id = {$rec->coverClass} && #state = 'active'", 'name'))) {
+                    $err[$rec->id] .= 'Not exists coverClass; ';
+                    $projectName = "LaF " . $rec->title;
+                } else {
+                    if(!$rec->coverId) {
+                        $err[$rec->id] .= 'Not exists coverId; ';
+                        $projectName = "LaF " . $className . ' ' . $rec->title;
+                    } else {
+
+                        $cls = cls::get($rec->coverClass);
+
+                        if(!$cls->fetch($rec->coverId)) {
+                            $err[$rec->id] .= 'Not exists cover; ';
+                            $projectName = "LaF " . $className . ' ' . $rec->title;
+                        }
+                    }
+                }
+            }
+
+            if($projectName) {
+                $rec->coverClass = core_Classes::fetchIdByName('doc_UnsortedFolders');
+                $rec->coverId = 0;
+                $this->save($rec);
+                $unRec = new stdClass();
+                $unRec->name = $projectName . ' ' . doc_UnsortedFolders::count();
+                $unRec->inCharge = core_Users::getCurrent();
+                $unRec->folderId = $rec->id;
+                $rec->coverId = doc_UnsortedFolders::save($unRec);
+                $this->save($rec);
+            }
+            
+            if(!$rec->title) {
+                $err[$rec->id] .= 'Missing title; ';
+            }
+        }
+
+        foreach($err as $id => $msg) {
+            $res .= "<li> $id => $msg </li>";
+        }
+
+        return $res;
+    }}

@@ -791,4 +791,57 @@ class doc_Containers extends core_Manager
         
         return NULL;
     }
+
+
+    function act_Repair()
+    {
+        $query = $this->getQuery();
+        
+        $query->startFrom(90000);
+        $query->limit(10000);
+
+        while($rec = $query->fetch()) {
+            if(!$rec->threadId) {
+                $err[$rec->id] .= 'Missing threadId; ';
+            }
+            if(!$rec->folderId) {
+                $err[$rec->id] .= 'Missing folderId; ';
+            }
+
+            if(!doc_Folders::fetch($rec->folderId, 'id')) {
+                $err[$rec->id] .= 'Missing folder;';
+                $tRec = doc_Threads::fetch($rec->threadId);
+
+                $rec->folderId = 291;
+                $this->save($rec);
+
+                $tRec->folderId = 291;
+                doc_Threads::save($tRec);
+            }
+            if(!$rec->docClass) {
+                $err[$rec->id] .= 'Missing docClass; ';
+            }
+            if(!core_Classes::fetch("#id = {$rec->docClass} && #state = 'active'")) {
+                $err[$rec->id] .= 'Not exists docClass; ';
+            } else {
+                if(!$rec->docId) {
+                    $err[$rec->id] .= 'Not exists docId; ';
+                } else {
+
+                    $cls = cls::get($rec->docClass);
+
+                    if(!$cls->fetch($rec->docId)) {
+                        $err[$rec->id] .= 'Not exists document; ';
+                    }
+                }
+            }
+        }
+
+        foreach($err as $id => $msg) {
+            $res .= "<li> $id => $msg </li>";
+        }
+
+        return $res;
+    }
+
 }

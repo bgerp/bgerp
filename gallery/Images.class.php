@@ -56,9 +56,18 @@ class gallery_Images extends core_Manager {
         $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка,mandatory');
     }
 
+
+    /**
+     * Подреждаме картинките, като най-новите са първи
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $data->query->orderBy("#createdOn", "DESC");
+    }
+
     
     /**
-     *
+     * допълнение към подготовката на вербално представяне
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
