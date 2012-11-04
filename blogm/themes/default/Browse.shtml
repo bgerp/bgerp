@@ -18,8 +18,8 @@
 		<div class='blogm-article-body'>
 			[#body#]
 		</div>
+     	<div class="clearfix21"></div>
 	</div>
-	<div class="clearfix"></div>
 	<!--ET_END ROW-->
 	
 	<br>
