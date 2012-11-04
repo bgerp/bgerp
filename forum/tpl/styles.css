@@ -44,7 +44,6 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 
 #btnAdd{
 	margin-left:10px;
-	margin-top:5px;
 	float:left;
 }
 
@@ -97,4 +96,8 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 
 #navigation-inner-link {
 	font-size:20px;
+}
+
+.add-comment {
+	height:40px;
 }

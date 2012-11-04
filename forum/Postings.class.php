@@ -23,13 +23,19 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_Created, plg_Modified, forum_Wrapper';
+	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper';
+	
+	
+	/**
+	 * Поле за лентата с инструменти
+	 */
+	var $rowToolsField = 'tools';
 	
 	
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'id, type, title, postingsCnt, last, lastWho, createdBy, createdOn';
+	var $listFields = 'tools=Пулт, id, type, title, postingsCnt, last, lastWho, createdBy, createdOn';
 	
 	
 	/**
@@ -61,7 +67,7 @@ class forum_Postings extends core_Detail {
 		$this->FLD('type', 'enum(normal=Нормална,sticky=Важна,announcement=Съобщение)', 'caption=Тип, value=normal');
 		$this->FLD('postingsCnt', 'int', 'caption=Коментари, input=hidden, width=100%, notNull, value=0');
 		$this->FLD('status', 'enum(unlocked=Отключена, locked=Заключена)', 'caption=Статус, notNull, value = unlocked');
-		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none, width=100%');
+		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->Кога, input=none, width=100%');
 		$this->FLD('lastWho', 'int', 'caption=Последно->Кой, input=none, width=100%');
 		$this->FLD('themeId', 'int', 'caption=Тема, input=hidden, width=100%');
 	}
@@ -209,6 +215,7 @@ class forum_Postings extends core_Detail {
         expect($data->rec = $this->fetch($id));
         $data->action = 'theme';
         $data->display ='public';
+        
         // Към коя дъска принадлежи темата
 		$data->board = $this->Master->fetch($data->rec->boardId);
 		$data->category = forum_Categories::fetch($data->board->category);
@@ -275,7 +282,7 @@ class forum_Postings extends core_Detail {
 			$data->thread[$rec->id] = $this->recToVerbal($rec, $fields);
 		}
         
-		$data->title = "разглеждане на тема: &nbsp;&nbsp;&nbsp;&nbsp;{$data->rec->title}";
+		$data->title = "<h2>{$data->rec->title}</h2>";
 		
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
 		if($this->haveRightFor('add', $data->rec->id)) {
@@ -535,6 +542,7 @@ class forum_Postings extends core_Detail {
 			
 			foreach($data->details as $row) {
 				$rowTpl = $detailsTpl->getBlock('ROW');
+				$row->title = "Коментар";
 				$rowTpl->placeObject($row);
 				$rowTpl->append2master();
 			}
@@ -585,7 +593,6 @@ class forum_Postings extends core_Detail {
 	 	expect($boardTo = Request::get('boardTo'));
 		expect($themeId = Request::get('theme'));
 		
-
 		// Намираме Id-то на дъската от която ще местим статията
 		$boardFrom = $this->fetchField($themeId, 'boardId');
 		if($boardFrom != $boardTo) {
@@ -710,11 +717,13 @@ class forum_Postings extends core_Detail {
    	 			$row->title = ht::createLink($row->title, array($mvc, 'Topic', $row->id));
    	 			
    	 		 	if(!$row->last) {
-   	 		 		$row->last ='няма';
+   	 		 		$row->last = 'няма';
    	 		 	}
    	 		 	
    	 		 	if(!$row->lastWho) {
-   	 		 		$row->lastWho ='няма';
+   	 		 		$row->lastWho = 'няма';
+   	 		 	} else {
+   	 		 		$row->lastWho = core_Users::fetch($rec->lastWho)->nick;
    	 		 	}
    	 		 
    	 		 } elseif($fields['-browse']) {
@@ -767,5 +776,5 @@ class forum_Postings extends core_Detail {
 	{
 		$data->query->where("#themeId IS NULL");
 		$data->query->orderBy('type, createdOn', 'DESC');
-	}
+	}  
 }

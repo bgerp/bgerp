@@ -2,7 +2,7 @@
 <div id='navigation'>
 <span id='navigation-link'>[#NAVIGATION#]</span>
 </div>
-<div id='forum-board'>Пожелаваме ви приятни минути в нашия форум :)</div>
+<div id='forum-board'>[#GREETING#]</div>
 [#CATEGORIES#]
 </div>
 <div id='forum-toolbar'>

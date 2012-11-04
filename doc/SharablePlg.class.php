@@ -158,6 +158,10 @@ class doc_SharablePlg extends core_Plugin
             $html[] = "<span style='color:black;'>" . $nick . "</span>{$seenDate}";
         }
         
-        return implode(', ', $html);
+        $htmlStr = implode(', ', $html);
+        
+        $htmlStr = "<div style='max-width: 87%;'>$htmlStr</div>";
+        
+        return $htmlStr;
     }
 }

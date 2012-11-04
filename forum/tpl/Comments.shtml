@@ -6,7 +6,7 @@
 		<div style='text-align:center'>[#avatar#]</div>
 	</td>
 	<td class='comment-body'>
-		<div id='header-td'><div id='topic-header'>Коментар</div></div>
+		<div id='header-td'><div id='topic-header'>[#title#]</div></div>
 		<div class='body-comment'>[#body#]</div>
 	</td>
 </tr>
