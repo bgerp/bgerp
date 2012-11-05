@@ -413,13 +413,32 @@ class type_Richtext extends type_Text {
     public function externalLink_($url, $title, $place)
     {
         $titlePlace = $this->getPlace();
-        $this->_htmlBoard[$titlePlace] = $title;
+        
+        // Парсираме URL' то 
+        $urlArr = @parse_url($url);
+        $domain = $urlArr['host'];
+        
+        // Ако няма заглавие част
+        if (!trim($title)) {
+            
+            // Използваме домейна за заглавие
+            $this->_htmlBoard[$titlePlace] = $domain;
+        } else {
+            $this->_htmlBoard[$titlePlace] = $title;    
+        }
+        
         if($title{0} != ' ') {
-            $urlArr = parse_url($url);
-            $domain = $urlArr['host'];
-            $bgPlace = $this->getPlace();
-            $this->_htmlBoard[$bgPlace] = "background-image:url('http://www.google.com/s2/u/0/favicons?domain={$domain}');";
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";
+            
+            // Ако е парсиран успешно
+            if ($urlArr) {
+                $bgPlace = $this->getPlace();
+                $this->_htmlBoard[$bgPlace] = "background-image:url('http://www.google.com/s2/u/0/favicons?domain={$domain}');";
+                $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";    
+            } else {
+                
+                // Ако не се парсира успешно връщаме линка
+                $link = $url;
+            }
         } else {
             $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
         }
