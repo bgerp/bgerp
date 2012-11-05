@@ -13,14 +13,16 @@ body{
 }
 
 .narrow #cmsTop {
-	background-image: url('../img/bgERP.jpg') !important;
-	min-width:510;
+	background-image: url('../img/bgERP-small.jpg') !important;
+	min-width:520px;
+	height:141px !important;
+	background-color:white !important;
 }
 
 #cmsMenu {
 	  background-color:#333;
 	  color:#333 !important;
-      min-width:510px;
+      min-width:520px;
 }
 
 #cmsMenu a {
@@ -49,7 +51,7 @@ body{
 
 #cmsBottom {
 	background-color: #333;
-	min-width:510px;
+	min-width:520px;
 }
 
 #all {
@@ -59,7 +61,7 @@ body{
 
 #maincontent {
 	background-color:white;
-	min-width:500px;
+	min-width:510px;
 }
 
 #cmsNavigation .nav_item a {
