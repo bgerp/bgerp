@@ -52,13 +52,19 @@ class email_UserInboxPlg extends core_Plugin
         }
     }
     
+
+    /**
+     * Изпълнява се след създаване на потребител
+     */
     public static function on_AfterCreate($mvc, $user)
     {
         if (!empty($user->personId) && crm_Profiles::fetch("#personId = {$user->personId}")) {
             // Не можем да асоциираме новия потребител с човек, който вече има профил
             $user->personId = NULL;
         }
-        
+
+        expect($user->names, $user);
+
         // Създава или обновява профилната визитка на новия потребител.
         $personId = crm_Profiles::syncPerson($user->personId, $user);
         
@@ -72,6 +78,10 @@ class email_UserInboxPlg extends core_Plugin
         }
     }
     
+
+    /**
+     * Изпълнява се след обновяване на информацията за потребител
+     */
     public static function on_AfterUpdate($mvc, $rec)
     {
         if ($profile = crm_Profiles::fetch("#userId = {$rec->id}")) {
@@ -183,5 +193,16 @@ class email_UserInboxPlg extends core_Plugin
         
         //Вземаме id' то на потребителя, който е inCharge
         return $inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
+    }
+
+
+    /**
+     *
+     */
+    function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = NULL)
+    {
+        if($action == 'delete') {
+            $roles = 'no_one';
+        }
     }
 }

@@ -52,7 +52,7 @@ class gallery_RichTextPlg extends core_Plugin
 
         $groupRec =  gallery_Groups::fetch($imgRec->groupId);
         
-        $tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tWidth : 128);
+        $tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
         $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
             
         $Fancybox = cls::get('fancybox_Fancybox');

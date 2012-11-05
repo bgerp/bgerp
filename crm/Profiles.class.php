@@ -121,6 +121,8 @@ class crm_Profiles extends core_Master
      */
     public static function act_ChangePassword()
     {
+        requireRole('user');
+
         $data = new stdClass();
         
         $data->form = static::getForm();
@@ -191,7 +193,10 @@ class crm_Profiles extends core_Master
         return $form->isSubmitted();
     }
     
-    
+
+    /**
+     *
+     */
     public static function on_AfterInputEditForm(crm_Profiles $mvc, core_Form $form)
     {
         $form->rec->_syncUser = TRUE;
@@ -262,7 +267,7 @@ class crm_Profiles extends core_Master
                 }
             }
         
-            if($data->profile->userRec->id == core_Users::getCurrent('id') || haveRole('admin')) {
+            if($data->profile->userRec->id == core_Users::getCurrent('id')) {
                 $data->changePassUrl =  array($this, 'changePassword', 'ret_url'=>TRUE);
             }
         }
@@ -323,6 +328,16 @@ class crm_Profiles extends core_Master
                     'title'
                 );
             } else {
+                $url = array('core_Users', 'edit', $data->profile->userId, 'ret_url' => TRUE);
+                $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
+                $tpl->append(
+                    ht::createLink(
+                        $img, $url, NULL, 
+                        'title=' . tr('Редактиране на потребителските данни за достъп')
+                    ), 
+                    'title'
+                );
+
                 $url = array($this, 'delete', $data->profile->id, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/cross.png') . " width='16' height='16'>";
                 $tpl->append(
@@ -332,6 +347,8 @@ class crm_Profiles extends core_Master
                     ), 
                     'title'
                 );
+
+
             }
         }
         
@@ -478,17 +495,35 @@ class crm_Profiles extends core_Master
                 'access'    => 'private',
                 'email'     => ''
             );
+            $profilesGroup = static::fetchCrmGroup();
+            $person->groupList = type_Keylist::addKey($person->groupList, $profilesGroup->id);
+            $mustSave = TRUE;
         }
         
-        $profilesGroup = static::fetchCrmGroup();
         
-        $person->name      = $user->names;
-        $person->email     = type_Emails::prepend($person->email, $user->email);
-        $person->inCharge  = $user->id;
-        $person->groupList = type_Keylist::addKey($person->groupList, $profilesGroup->id);
+        if(!empty($user->names)) {
+            $person->name      = $user->names;
+            $mustSave = TRUE;
+        }
+        
+        // Само ако записа на потребителя има 
+        if(!empty($user->email)) {
+            $person->email     = type_Emails::prepend($person->email, $user->email);
+            $mustSave = TRUE;
+        }
+        
+        // Само ако досега визитката не е имала inCharge, променения потребител и става отговорник
+        if(!$person->inCharge) {
+            $person->inCharge  = $user->id;
+            $mustSave = TRUE;
+        }
+
         $person->_skipUserUpdate = TRUE; // Флаг за предотвратяване на безкраен цикъл
         
-        return crm_Persons::save($person);
+        if($mustSave) {
+
+            return crm_Persons::save($person);
+        }
     }
     
     
