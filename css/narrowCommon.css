@@ -95,7 +95,7 @@ pre.richtext {
 }
 
 .richtext .code {
-	white-space:pre;
+	white-space:pre-wrap;
 }
 
 div.richtext li {
