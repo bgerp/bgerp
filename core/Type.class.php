@@ -68,7 +68,7 @@ class core_Type extends core_BaseClass
      */
     function defVal()
     {
-        return $this->defaultValue ? $this->defaultValue : '';
+        return isset($this->defaultValue) ? $this->defaultValue : NULL;
     }
     
     
