@@ -1188,7 +1188,11 @@ class doc_DocumentPlg extends core_Plugin
             return;
         }
         
-        $rec = $mvc->fetch($id);
+        if(is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = $mvc->fetch($id);
+        }
         
         $res = plg_Search::getKeywords($mvc, $rec);
     }
