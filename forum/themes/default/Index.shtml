@@ -1,6 +1,6 @@
 <div id='forum-index'>
 <div id='navigation'>
-<span id='navigation-link'>[#NAVIGATION#]</span>
+[#NAVIGATION#]
 </div>
 <div id='forum-board'>[#GREETING#]</div>
 [#CATEGORIES#]

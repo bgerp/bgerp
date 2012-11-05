@@ -35,8 +35,11 @@
 </tr>
 <!--ET_END BOTTOM_PAGER-->
 
+<!--ET_BEGIN ADD_COMMENT-->
 <tr>
 	<td colspan='2' class='add-comment'>[#ADD_COMMENT#]</td>
 </tr>
+<!--ET_END ADD_COMMENT-->
+
 </table>
 </div>

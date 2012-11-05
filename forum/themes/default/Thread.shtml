@@ -6,12 +6,12 @@
 <div id='board-name'>[#THREAD_HEADER#]</div>
 </div>
 <ul id='thread-list'>
-	<li>
+	<li class='toolbar'>
 		[#ANSWER#]
 	</li>
-<!--ET_BEGIN ROW-->
 	<li class='thread-header'>
 	</li>
+<!--ET_BEGIN ROW-->
 	<li class='post-body'>
 		<table border='0' width='100%'>
 			<tr>
@@ -28,7 +28,7 @@
 			</tr>
 			<tr>
 				<td class='tools-box'>
-					<a href=''>към началото</a>
+					[#topLink#]
 				</td>
 			</tr>
 		</table>

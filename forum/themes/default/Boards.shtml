@@ -1,7 +1,7 @@
 <li>
 	<table width='100%' border='0' cellpadding='3px'>
 	<tr>
-		<td width='63%' class='forum-table'>[#title#]<br>
+		<td width='63%' class='forum-table'><b>[#title#]</b><br>
 			<span class='forum-desc'>[#shortDesc#]</span>
 		</td>
 		<td width='12%' class='right'>

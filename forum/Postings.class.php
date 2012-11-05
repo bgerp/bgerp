@@ -35,7 +35,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'tools=Пулт, id, type, title, postingsCnt, last, lastWho, createdBy, createdOn';
+	var $listFields = 'tools=Пулт, id, type, title, postingsCnt, last, lastWho, createdBy, createdOn, status';
 	
 	
 	/**
@@ -62,11 +62,11 @@ class forum_Postings extends core_Detail {
 	function description()
 	{
 		$this->FLD('boardId', 'key(mvc=forum_Boards, select=title)', 'caption=Дъска, input=hidden, silent');
-		$this->FLD('title', 'varchar(50)', 'caption=Заглавие, mandatory, notNull, width=100%');
-		$this->FLD('body', 'richtext', 'caption=Съдържание, mandatory, notNull, width=100%');
+		$this->FLD('title', 'varchar(50)', 'caption=Заглавие, mandatory, notNull,placeholder=Заглавие, width=100%');
+		$this->FLD('body', 'richtext', 'caption=Съдържание, mandatory, notNull,placeholder=Добавете вашия коментар, width=100%');
 		$this->FLD('type', 'enum(normal=Нормална,sticky=Важна,announcement=Съобщение)', 'caption=Тип, value=normal');
 		$this->FLD('postingsCnt', 'int', 'caption=Коментари, input=hidden, width=100%, notNull, value=0');
-		$this->FLD('status', 'enum(unlocked=Отключена, locked=Заключена)', 'caption=Статус, notNull, value = unlocked');
+		$this->FLD('status', 'enum(unlocked=Отключена, locked=Заключена)', 'caption=Състояние, notNull, value = unlocked');
 		$this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно->Кога, input=none, width=100%');
 		$this->FLD('lastWho', 'int', 'caption=Последно->Кой, input=none, width=100%');
 		$this->FLD('themeId', 'int', 'caption=Тема, input=hidden, width=100%');
@@ -81,10 +81,10 @@ class forum_Postings extends core_Detail {
     	expect($board = $mvc->Master->fetch($data->form->rec->boardId));
     	
 	    if(!$mvc::haveRightFor('write')) {
-    		
     		$data->form->setField('type', 'input=none');
-    		$data->form->title = "Започване на тема в <b>{$board->title}</b>";
     	}
+    	
+    	$data->form->title = "Започване на нова тема в <b>{$board->title}</b>";
     	
     	// Ако постинга е коментар
     	if($themeId = Request::get('themeId')) {
@@ -184,7 +184,7 @@ class forum_Postings extends core_Detail {
 	         	$themeTpl->append2master();
 	         } 
         } else {
-            $tpl->replace('<h2>Няма Теми</h2>');
+            $tpl->replace('<h2>Няма теми</h2>');
         }
         
          $layout->replace($tpl, 'THEMES');
@@ -282,7 +282,7 @@ class forum_Postings extends core_Detail {
 			$data->thread[$rec->id] = $this->recToVerbal($rec, $fields);
 		}
         
-		$data->title = "<h2>{$data->rec->title}</h2>";
+		$data->title = "<h3>{$data->rec->title}</h3>";
 		
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
 		if($this->haveRightFor('add', $data->rec->id)) {
@@ -329,7 +329,7 @@ class forum_Postings extends core_Detail {
 		}
 		
 		// Рендираме пагинаторът
-         $tpl->replace($this->renderListPager($data), 'PAGER');
+        $tpl->replace($this->renderListPager($data), 'PAGER');
 		
 		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
@@ -338,7 +338,7 @@ class forum_Postings extends core_Detail {
             $data->postForm->fieldsLayout = new ET(getFileContent($data->forumTheme . '/PostFormFields.shtml'));
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         } else {
-        	$tpl->replace('темата неможе да бъде коментирана', 'COMMENT_FORM');
+        	$tpl->replace('темата е заключена', 'COMMENT_FORM');
         }
 		
         if($data->formAnchor) {
@@ -428,7 +428,7 @@ class forum_Postings extends core_Detail {
 		$data->form = $form;
 		
 		// Заглавие на формата
-		$data->header = "<span id='new-header'>започване на нова тема в: <b>{$data->row->title}</b></span>";
+		$data->header = "започване на нова тема в: {$data->row->title}";
 		
 		// Подготвяме навигацията
 		$this->Master->prepareNavigation($data);
@@ -666,6 +666,11 @@ class forum_Postings extends core_Detail {
 				$res = 'no_one';
 			}
 		}
+		
+		// в Лист изгледа, забраняваме да бъде създаван нов постинг
+		if($action == 'add' && !isset($rec)) {
+			$res = 'no_one';
+		}
 	}
 	
 	
@@ -731,6 +736,10 @@ class forum_Postings extends core_Detail {
    	 		 	// Ако екшъна е browse правим обработки на заглавието и типа
    	 		 	$row->title = ht::createLink($row->title, array($mvc, 'Theme', $row->id));
    	 		 	
+   	 		 	if($rec->status == 'locked') {
+   	 		 		$row->locked = "заключена";
+   	 		 	}
+   	 		 	
    	 		 	if(isset($rec->lastWho)) {
 	            	
 	            	// Намираме аватара и ника на потребителят, коментирал последно
@@ -754,6 +763,7 @@ class forum_Postings extends core_Detail {
    	 	
    	 	if($fields['-theme'] || $fields['-topic']) {
    	 		$row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
+   	 		$row->topLink = ht::createLink('начало', getCurrentUrl(), NULL, array('class' => 'button'));
    	 	}
    	 	
    	 	// Линк към преглед на темата във външния изглед
@@ -777,4 +787,5 @@ class forum_Postings extends core_Detail {
 		$data->query->where("#themeId IS NULL");
 		$data->query->orderBy('type, createdOn', 'DESC');
 	}  
+	
 }

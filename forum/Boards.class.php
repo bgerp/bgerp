@@ -149,6 +149,11 @@ class forum_Boards extends core_Master {
 			$rec->lastCommentedTheme = $lastComment->themeId;
 			$rec->lastComment = $lastComment->createdOn;
 		    $rec->lastCommentBy = $lastComment->createdBy;
+		} else {
+			
+			$rec->lastCommentedTheme = NULL;
+			$rec->lastComment = NULL;
+		    $rec->lastCommentBy = NULL;
 		}
 		
 	    // Обновяваме дъската
@@ -265,7 +270,7 @@ class forum_Boards extends core_Master {
 			
 		}  elseif($data->action == 'single') {
 			 
-		 	 // Ако разглеждаме дъска,навигацията ще от рода  Форуми->Категория->Дъска
+		 	// Ако разглеждаме дъска,навигацията ще от рода  Форуми->Категория->Дъска
 			$boardRow = static::recToVerbal($data->rec, "id,title,category,-private");
 			$data->navigation[] = $boardRow->category->title;
 			$data->navigation[] = $boardRow->title;
@@ -331,12 +336,11 @@ class forum_Boards extends core_Master {
 		        		// Ако дъската е съпорт, преброяваме темите създадени от текущия потребител
 		        		$query = forum_Postings::getQuery();
 		        		$query->where("#boardId = {$rec->id} AND #themeId IS NULL");
-		        		$query->where("#createdBy = " . core_users::getCurrent() . "");
+		        		$query->where("#createdBy = " . core_Users::getCurrent() . "");
 		        		$category->boards->rows[$rec->id]->themesCnt = $query->count();
 		        	}
         		}
-	            
-	      }
+	       }
 		}
 	}
 	
@@ -370,8 +374,8 @@ class forum_Boards extends core_Master {
                     	$catTpl->append($rowTpl, 'BOARDS');
                     }
                 } else {
-                       $catTpl->replace(new ET('<li>Няма Дъски</li>'), 'BOARDS');
-                    }
+                       $catTpl->replace(new ET('<li class="no-boards">Няма Дъски</li>'), 'BOARDS');
+                     }
 
                 // Добавяме категорията с нейните дъски към главния шаблон
                 $tpl->append($catTpl, 'CATEGORIES');
@@ -402,7 +406,7 @@ class forum_Boards extends core_Master {
 		$conf = core_Packs::getConfig('forum');
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
         $data->action = 'browse';
-        $data->display ='public';
+        $data->display = 'public';
         expect($data->rec = $this->fetch($id));
 		
 		// Изискваме потребителя да има права да вижда  дъската
@@ -455,7 +459,7 @@ class forum_Boards extends core_Master {
 		}
 		
 		if($data->singleUrl) { 
-			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL , 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
+			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
 		return $tpl;
@@ -528,7 +532,6 @@ class forum_Boards extends core_Master {
    				$themeRow = forum_Postings::recToVerbal($themeRec, 'id,title,-list');
    				$row->lastCommentedTheme = $themeRow->title;
    			}
-   			
    		}
    		
    		// Модификации по вербалното представяне на записите  в екшъна forum
@@ -547,7 +550,7 @@ class forum_Boards extends core_Master {
 	           $row->lastAvatar =  avatar_Plugin::getImg(0, $lastUser->email, 50);
 	           $row->lastNick = $lastUser->nick;
 	       } else {
-	          ($rec->themesCnt == 0) ? $str = 'форума е празен' : $str ='няма коментари';
+	          ($rec->themesCnt == 0) ? $str = 'дъската е празна' : $str ='няма коментари';
 	           $row->noComment = $str;
 	        }
    		}
@@ -604,9 +607,7 @@ class forum_Boards extends core_Master {
      */
     static function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
-    	
     	$tpl->replace(new ET("<span id='navigation-inner-link'>[#NAVIGATION#]</span>"));
-    	
     }
     
     
