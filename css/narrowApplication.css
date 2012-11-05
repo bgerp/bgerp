@@ -44,7 +44,6 @@ input, select {
 #maincontent{
 	padding:5px;
 	background-color:#eee;
-	min-width:600px; 
 }
 
 #navBar{
@@ -117,13 +116,6 @@ a.out:visited {
 	font-weight:bold;
 	color:#6600cc
 } 
-
-
-
-
-
-
-
 
 
 .ListTitle { 

@@ -10,6 +10,7 @@ body{
 
 #cmsTop {
 	background-image: url('../img/bgERP.jpg');
+	min-width:510;
 }
 
 .narrow #cmsTop {
@@ -19,6 +20,7 @@ body{
 #cmsMenu {
 	  background-color:#333;
 	  color:#333 !important;
+      min-width:510;
 }
 
 #cmsMenu a {
@@ -47,6 +49,7 @@ body{
 
 #cmsBottom {
 	background-color: #333;
+	min-width:510;
 }
 
 #all {
@@ -56,6 +59,9 @@ body{
 
 #maincontent {
 	background-color:white;
+	min-width:500;
+}
+
 }
 
  
