@@ -187,11 +187,11 @@ class type_Richtext extends type_Text {
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') {
-            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]');
-            $to = array("\n", "\n", "\n", "<br>", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>');
+            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]');
+            $to = array("\n", "\n", "\n", "<br>", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>');
         } else {
-            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]');
-            $to   = array("\n",   "\n",   "\n",  "    ", '',         '',      '*',   '*',    '',    '',     '',    '',     str_repeat('_', 84));
+            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]');
+            $to   = array("\n",   "\n",   "\n",  "    ", '',         '',      '*',   '*',    '',    '',     '',    '',     str_repeat('_', 84), '', '', '', '');
         }
         
         $html = str_replace($from, $to, $html);
@@ -204,9 +204,6 @@ class type_Richtext extends type_Text {
         
         // Обработваме елемента [li]
         $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n))/is", array($this, '_catchLi'), $html);
-        
-        // Обработваме елемента [lio]
-        $html = preg_replace_callback("/\[lio](.*?)((<br>)|(\n))/is", array($this, '_catchLio'), $html);
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
@@ -303,23 +300,6 @@ class type_Richtext extends type_Text {
             $res = "<li>$text</li>\n";
         } else {
             $res = " o {$text}\n";
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Заменя [html] ... [/html]
-     */
-    function _catchLio($match)
-    {
-        $text = $match[1];
-        
-        if(!Mode::is('text', 'plain')) {
-            $res = "<li class='lio' type='circle'>$text</li>\n";
-        } else {
-            $res = "   - {$text}\n";
         }
         
         return $res;
