@@ -370,7 +370,23 @@ class type_Richtext extends type_Text {
     {
         $place = $this->getPlace();
         $title = $match[3];
-        $url = core_Url::escape($match[2]);
+        
+        // URL' то 
+        $url = $match[2];
+        
+        // Проверяваме дали е валидно URL и дали има текстова част
+        if (!filter_var($url, FILTER_VALIDATE_URL) && trim($title)) {
+            
+            // Ако не е валидно URL, тогава се опитваме да извлечем URL' то от заглавието
+            $url = $title;
+            
+            // Ако все още не е валидно URL, добавяме в титлата http
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                $url = "http://{$title}";
+            }    
+        }
+        
+        $url = core_Url::escape($url);
         
         $this->_htmlBoard[$place] = $url;
          
@@ -416,33 +432,30 @@ class type_Richtext extends type_Text {
         
         // Парсираме URL' то 
         $urlArr = @parse_url($url);
-        $domain = $urlArr['host'];
         
-        // Ако няма заглавие част
+        // Домейна
+        $domain = $urlArr['host'];
+
+        // Ако няма заглавие
         if (!trim($title)) {
             
             // Използваме домейна за заглавие
             $this->_htmlBoard[$titlePlace] = $domain;
+            $title = $domain;
         } else {
             $this->_htmlBoard[$titlePlace] = $title;    
         }
-        
+            
         if($title{0} != ' ') {
             
-            // Ако е парсиран успешно
-            if ($urlArr) {
-                $bgPlace = $this->getPlace();
-                $this->_htmlBoard[$bgPlace] = "background-image:url('http://www.google.com/s2/u/0/favicons?domain={$domain}');";
-                $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";    
-            } else {
-                
-                // Ако не се парсира успешно връщаме линка
-                $link = $url;
-            }
+            $bgPlace = $this->getPlace();
+            $this->_htmlBoard[$bgPlace] = "background-image:url('http://www.google.com/s2/u/0/favicons?domain={$domain}');";
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
+              
         } else {
             $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
         }
-
+        
         return $link;
     }
 
