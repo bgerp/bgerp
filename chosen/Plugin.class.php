@@ -104,7 +104,7 @@ class chosen_Plugin extends core_Plugin
      */
     function on_BeforeFromVerbal($type, &$res, $value)
     {
-        if ((count($value)>1) && (isset($value['chosen']))) {
+        if ((count($value) > 1) && (isset($value['chosen']))) {
             unset($value['chosen']);
             
             foreach($value as $id => $val){
@@ -120,8 +120,9 @@ class chosen_Plugin extends core_Plugin
             
             return FALSE;
         }
-        unset($value['chosen']);
         
-        return ;
+        if ((count($value) == 1) && (isset($value['chosen']))) {
+            return FALSE;
+        }
     }
 }

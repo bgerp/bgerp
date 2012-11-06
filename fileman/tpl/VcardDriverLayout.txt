@@ -1,0 +1,33 @@
+|*<!--ET_BEGIN separator-->[#separator#]
+<!--ET_END separator--><!--ET_BEGIN formattedName--><b>[#formattedName#]</b>
+
+<!--ET_END formattedName--><!--ET_BEGIN version-->|Версия на vCard|*: [#version#]
+<!--ET_END version--><!--ET_BEGIN revision-->|Дата|*: [#revision#]
+<!--ET_END revision--><!--ET_BEGIN given-->|Име|*: [#given#]
+<!--ET_END given--><!--ET_BEGIN additional-->|Презиме|*: [#additional#]
+<!--ET_END additional--><!--ET_BEGIN surname-->|Фамилия|*: [#surname#]
+<!--ET_END surname--><!--ET_BEGIN prefix-->|Префикс|*: [#prefix#]
+<!--ET_END prefix--><!--ET_BEGIN suffix-->|Суфикс|*: [#suffix#]
+<!--ET_END suffix--><!--ET_BEGIN photoUrl-->|Снимки|*: [#photoUrl#]
+<!--ET_END photoUrl--><!--ET_BEGIN bDay-->|Рожден ден|*: [#bDay#]
+<!--ET_END bDay--><!--ET_BEGIN emailsRemover-->[#emailsRemover#]|Имейли|*:<!--ET_BEGIN prefEmails-->
+    <i>|Предпочитани|*:</i> [#prefEmails#]<!--ET_END prefEmails--><!--ET_BEGIN internetEmails-->
+    <i>|Публични|*:</i> [#internetEmails#]<!--ET_END internetEmails--><!--ET_BEGIN otherEmails-->
+    <i>|Други|*:</i> [#otherEmails#]<!--ET_END otherEmails-->
+<!--ET_END emailsRemover--><!--ET_BEGIN phonesRemover-->[#phonesRemover#]|Телефони|*:<!--ET_BEGIN prefPhones-->
+    <i>|Предпочитани|*:</i> [#prefPhones#]<!--ET_END prefPhones--><!--ET_BEGIN cellPhones-->
+    <i>|Мобилни|*:</i> [#cellPhones#]<!--ET_END cellPhones--><!--ET_BEGIN workPhones-->
+    <i>|Служебни|*:</i> [#workPhones#]<!--ET_END workPhones--><!--ET_BEGIN homePhones-->
+    <i>|Домашни|*:</i> [#homePhones#]<!--ET_END homePhones--><!--ET_BEGIN voicePhones-->
+    <i>|Гласови|*:</i> [#voicePhones#]<!--ET_END voicePhones--><!--ET_BEGIN faxPhones-->
+    <i>|факсове|*:</i> [#faxPhones#]<!--ET_END faxPhones--><!--ET_BEGIN otherPhones-->
+    <i>|Други|*:</i> [#otherPhones#]<!--ET_END otherPhones-->
+<!--ET_END phonesRemover--><!--ET_BEGIN addressRemover-->[#addressRemover#]|Адреси|*:<!--ET_BEGIN homeAddress-->
+    <i>|Домашен|*:</i> [#homeAddress#]<!--ET_END homeAddress--><!--ET_BEGIN workAddress-->
+    <i>|Служебен|*:</i> [#workAddress#]<!--ET_END workAddress--><!--ET_BEGIN otherAddress-->
+    <i>|Други|*:</i> [#otherAddress#]<!--ET_END otherAddress-->
+<!--ET_END addressRemover--><!--ET_BEGIN jobRemover-->[#jobRemover#]|Работа|*:<!--ET_BEGIN organization-->
+    <i>|Предприятие|*:</i> [#organization#]<!--ET_END organization--><!--ET_BEGIN jobTitle-->
+    <i>|Длъжност|*:</i> [#jobTitle#]<!--ET_END jobTitle--><!--ET_BEGIN role-->
+    <i>|Роля|*:<i> [#role#]<!--ET_END role-->
+<!--ET_END jobRemover-->

@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за работа с .docx файлове.
+ * Драйвер за работа с архиви.
  * 
  * @category  vendors
  * @package   fileman
@@ -11,11 +11,11 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Docx extends fileman_webdrv_Office
+class fileman_webdrv_Archive extends fileman_webdrv_Generic
 {
     
     
-	/**
+    /**
      * Връща всички табове, които ги има за съответния файл
      * 
      * @param object $fRec - Записите за файла
@@ -23,7 +23,7 @@ class fileman_webdrv_Docx extends fileman_webdrv_Office
      * @return array
      * 
      * @Override
-     * @see fileman_webdrv_Office::getTabs
+     * @see fileman_webdrv_Generic::getTabs
      */
     static function getTabs($fRec)
     {
@@ -41,7 +41,7 @@ class fileman_webdrv_Docx extends fileman_webdrv_Office
 			array(
 				'title'   => 'Съдържание',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Съдържание</legend>{$contentStr}</fieldset></div>",
-				'order' => 3,
+				'order' => 1,
 			);
         
         return $tabsArr;
