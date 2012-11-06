@@ -652,7 +652,7 @@ class doc_Folders extends core_Master
                 $projectName = "LaF " . $rec->title;
             } else {
             
-                if(!($className = core_Classes::fetchField("#id = {$rec->coverClass} && #state = 'active'", 'name'))) {
+                if(!($cls =  cls::load($rec->coverClass, TRUE)) {
                     $err[$rec->id] .= 'Not exists coverClass; ';
                     $projectName = "LaF " . $rec->title;
                 } else {
