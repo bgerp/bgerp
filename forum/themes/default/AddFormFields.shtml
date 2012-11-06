@@ -6,5 +6,5 @@
 <!--ET_END type-->
 
 <!--ET_BEGIN status-->
-<div class='form-field'><span class='form-labels'>Статус</span>&nbsp;&nbsp;[#status#]</div>
+<div class='form-field'><span class='form-labels'>Състояние</span>&nbsp;&nbsp;[#status#]</div>
 <!--ET_BEGIN status-->

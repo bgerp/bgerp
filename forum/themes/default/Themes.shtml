@@ -3,14 +3,18 @@
 		<th colspan='2'  style='text-indent:10px'>Теми</th>
 		<th style='text-align:left' colspan='2'>Последно</th>
 	</tr>
-
 <!--ET_BEGIN ROW-->	
 	<tr class='theme-row'>
 		<td class='theme-row-title' width='67%' >
 		<!--ET_BEGIN type-->	
 			[#type#]&nbsp;
 		<!--ET_END type-->
-			<span class='theme-title'>[#title#]</span>[#THEME_PAGER#]<br>
+			<span class='theme-title'>[#title#]</span>
+			[#THEME_PAGER#]
+			<!--ET_BEGIN LOCKED-->
+			<span class='locked'>[#locked#]</span>
+			<!--ET_END LOCKED-->
+			<br>
 			<span class='authored'>Започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
 		</td>
 		<td class='right' width='12%'>
