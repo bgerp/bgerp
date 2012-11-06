@@ -128,7 +128,7 @@ class email_Incomings extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'subject, fromEml, fromName, textPart';
+    var $searchFields = 'subject, fromEml, fromName, textPart, files';
     
     
     /**
