@@ -75,7 +75,7 @@ class email_Accounts extends core_Master
      */
     function description()
     {
-        $this->FLD("email", "email(link=no)", "caption=Имейл,width=100%");
+        $this->FLD("email", "email(link=no)", "caption=Имейл,mandatory,width=100%", array('hint' => 'Имейл адреса, съответстващ на сметката'));
         
         // Дали да се рутират писмата, получени на този акаунт
         $this->FLD('applyRouting', 'enum(no=Без рутиране, yes=С рутиране)', 'notNull,caption=Рутиране,maxRadio=2');
