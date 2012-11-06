@@ -957,7 +957,7 @@ class log_Documents extends core_Manager
             $data->doc = doc_Containers::getDocument($data->containerId, 'doc_DocumentIntf');
         }
         
-        $data->query->orderBy('#createdOn');
+        $data->query->orderBy('#createdOn', 'DESC');
     }
     
     
@@ -1159,4 +1159,5 @@ class log_Documents extends core_Manager
         
         core_Logs::add(get_called_class(), NULL, "Записани {$count} действия");
     }
+    
 }
