@@ -107,6 +107,9 @@ class doc_Search extends core_Manager
             // Ограничаване на заявката само до достъпните нишки
             doc_Threads::restrictAccess($data->query);
             
+            // Избягваме търсенето в оттеглените документи
+            $data->query->where("#state != 'rejected'");
+
             // Експеримент за оптимизиране на бързодействието
             $data->query->setStraight();
             $data->query->orderBy('#createdOn=DESC');
