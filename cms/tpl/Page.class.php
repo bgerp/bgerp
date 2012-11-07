@@ -38,7 +38,7 @@ class cms_tpl_Page extends page_Html {
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
-     
+       
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
         $this->replace(new ET(
@@ -56,8 +56,9 @@ class cms_tpl_Page extends page_Html {
                  [#CMS_LAYOUT#]
              </div>
              <div id=\"cmsBottom\">
+                [#FEED#]
                 [#cms_Content::getFooter#]
-             </div>
+              </div>
          </div>"), 
         'PAGE_CONTENT');
 
@@ -79,11 +80,17 @@ class cms_tpl_Page extends page_Html {
      */
     static function on_Output(&$invoker)
     {
-        if (!Mode::get('lastNotificationTime')) {
+   	   // Генерираме хедъра и Линка към хедъра
+       $invoker->appendOnce(feed_Generator::generateHeaders(), 'HEAD');
+       $invoker->replace(feed_Generator::generateFeedLink(), 'FEED');
+        
+    	
+    	if (!Mode::get('lastNotificationTime')) {
             Mode::setPermanent('lastNotificationTime', time());    
         }
-        $invoker->append(core_Statuses::show(), 'STATUSES');
         
+        $invoker->append(core_Statuses::show(), 'STATUSES');
+       
         $Nid = Request::get('Nid', 'int');
         
         if($Nid && $msg = Mode::get('Notification_' . $Nid)) {
@@ -99,10 +106,11 @@ class cms_tpl_Page extends page_Html {
             if($msgType) {
                 $invoker->append("</div>", 'NOTIFICATION');
             }
-            
+             
             Mode::setPermanent('Notification_' . $Nid, NULL);
             
             Mode::setPermanent('NotificationType_' . $Nid, NULL);
+       
         }
     }
 }

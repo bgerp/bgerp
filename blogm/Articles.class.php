@@ -43,7 +43,7 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Полета за листов изглед
 	 */
-	var $listFields ='id, title, categories, author, createdOn, createdBy, modifiedOn, modifiedBy';
+	var $listFields ='id, title, categories, author, language, createdOn, createdBy, modifiedOn, modifiedBy';
 	
     
     /**
@@ -86,13 +86,8 @@ class blogm_Articles extends core_Master {
 	 */
 	var $canArticle = 'every_one';
 	
+	
 	/**
-	 * Файл за единичен изглед
-	 */
-	//var $singleLayoutFile = 'blogm/tpl/SingleArticle.shtml';
-
-
-    /**
 	 * Единично заглавие на документа
 	 */
 	var $singleTitle = 'Статия';
@@ -112,6 +107,7 @@ class blogm_Articles extends core_Master {
             'caption=Коментари->Режим,maxRadio=4,columns=4,mandatory');
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
   		$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
+  		$this->FLD('language', 'enum(bg=Български,en=Английски)', 'caption=Език, notNull, value=bg');
          
 		$this->setDbUnique('title');
 	}
@@ -699,37 +695,42 @@ class blogm_Articles extends core_Master {
     /**
      * Имплементиране на интерфейсния метод getItems от feed_SourceIntf
      * @param int $itemsCnt
-     * @param varchar(2) $lg
+     * @param enum $lg
      * @return array()
      */
     function getItems($itemsCnt, $lg)
     {
     	// Заявка за работа с модела
     	$query = $this->getQuery();
+    	
+    	// Филтрираме, подреждаме и ограничаваме броя на резултатите
+    	$query->where("#language = '{$lg}'");
     	$query->orderBy('createdOn', 'DESC');
     	$query->limit($itemsCnt);
     	
     	$items = array();
     	
-    	while($rec = $query->fetch()) {
-    		
-    		// Извличаме необходимите ни данни
-    		$obj = new stdClass();
-    		$obj->title = $rec->title;
-    		$obj->link = toUrl(array($this, 'Article', $rec->id), 'absolute');
-    		$obj->date = $rec->createdOn;
-    		
-    		// Извличаме описанието на статията, като съкръщаваме тялото и 
-    		$desc = explode("\n", $rec->body);
-    		if(count($desc) > 1) {
-    			$rec->body = $desc[0];
-    			$rec->body .= "[...]";
-    		}
-    		
-    		$obj->description = $rec->body;
-    		
-    		// Натрупваме информацията за статиите
-    		$items[] = $obj;
+    	if($query->count()) {
+	    	while($rec = $query->fetch()) {
+	    		
+	    		// Извличаме необходимите ни данни
+	    		$item = new stdClass();
+	    		$item->title = $rec->title;
+	    		$item->link = toUrl(array($this, 'Article', $rec->id), 'absolute');
+	    		$item->date = $rec->createdOn;
+	    		
+	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
+	    		$desc = explode("\n", $rec->body);
+	    		if(count($desc) > 1) {
+	    			$rec->body = $desc[0];
+	    			$rec->body .= "[...]";
+	    		}
+	    		
+	    		$item->description = $rec->body;
+	    		
+	    		// Натрупваме информацията за статиите
+	    		$items[] = $item;
+	    	}
     	}
     	
     	return $items;
