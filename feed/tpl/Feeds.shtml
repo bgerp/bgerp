@@ -1,0 +1,16 @@
+<ul style='list-style:none'>
+	<li>
+		<h2>[#ICON#]&nbsp;&nbsp;[#HEADER#]</h2>
+	</li>
+	<!--ET_BEGIN ROW-->
+	<li style = 'margin-top:5px'>
+		<table border='0'>
+			<tr>
+				<td width='30px'>[#logo#]</td>
+				<td><b>[#title#]</b></td>
+				<td style='color:darkgreen;padding-left:10px;font-style:italic;'>[#description#]</td>
+			</tr>
+		</table>
+	</li>
+	<!--ET_END ROW-->
+</ul>

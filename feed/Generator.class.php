@@ -23,7 +23,7 @@ class feed_Generator extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Modified';
+	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, feed_Wrapper';
 	
 	
 	/**
@@ -35,7 +35,7 @@ class feed_Generator extends core_Manager {
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields = 'tools=Пулт, title, description, type, source, url, logo, lg, maxItems, createdOn, createdBy, modifiedOn, modifiedBy';
+	var $listFields = 'tools=Пулт, title, description, type, url, source, logo, lg, maxItems, createdOn, createdBy, modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -47,10 +47,12 @@ class feed_Generator extends core_Manager {
 		$this->FLD('description', 'varchar(100)', 'caption=Oписание, mandatory, notNull');
 		$this->FLD('logo', 'fileman_FileType(bucket=feedImages)', 'caption=Лого, mandatory, notNull');
 		$this->FLD('source', 'class(interface=feed_SourceIntf)', 'caption=Източник, mandatory, notNull');
-		$this->FLD('url', 'url', 'caption=Адрес, mandatory, notNull');
 		$this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, mandatory, notNull');
-		$this->FLD('lg', 'varchar(2)', 'caption=Език, mandatory, notNull');
+		$this->FLD('lg', 'enum(bg=Български,en=Английски)', 'caption=Език, notNull, value=bg');
 		$this->FLD('maxItems', 'int', 'caption=Максимално, mandatory, notNull');
+	
+		// Определяме уникален индекс
+		$this->setDbUnique('title');
 	}
 	
 	
@@ -90,15 +92,13 @@ class feed_Generator extends core_Manager {
         		
         		 // Инстанцираме нова хранилка от тип RSS 1
         		 $feed = new RSS1FeedWriter();
-				 $feed->setDescription($rec->description);
 				 $feed->setChannelAbout('http://bgerp.com/blogm_Articles/');
 				 break;
         	case 'rss2' : 
         		
         		 // Инстанцираме нова хранилка от тип RSS 2.0
         		 $feed = new RSS2FeedWriter();
-  				 $feed->setDescription($rec->description);
-				 $feed->setChannelElement('language', $rec->lg);
+  				 $feed->setChannelElement('language', $rec->lg);
   				 $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
   				 $feed->setImage('feed', null, fileman_Download::getDownloadUrl($rec->logo));
   				 break;
@@ -111,9 +111,10 @@ class feed_Generator extends core_Manager {
         		break;
         }
         
-        // Заглавие и адрес на хранилката
+        // Заглавие, Адрес и Описание на хранилката
 		$feed->setTitle($rec->title);
-		$feed->setLink($rec->url);
+		$feed->setLink(toUrl(array($this, 'get', $rec->id), 'absolute'));
+        $feed->setDescription($rec->description);
         
         // Попълваме хранилката от източника
 		foreach($items as $item) {
@@ -131,7 +132,143 @@ class feed_Generator extends core_Manager {
         // Генерираме хранилката
 		$feed->generateFeed();
 		
-		//@TODO външен изглед на фийдовете
-		//@TODO  да добавя хедъри на рсс-те в cms_Page
+	}
+	
+	
+	/**
+	 *  Екшън за показване на всички Хранилки за външен достъп
+	 */
+	function act_Feeds()
+	{
+		$data = new stdClass();
+		$data->action = 'feeds';
+		$data->query = $this->getQuery();
+		
+		// Подготвяме хранилките
+		$this->prepareFeeds($data);
+		
+		// Рендираме екшъна
+		$layout = $this->renderFeeds($data);
+		
+		// Поставяме обвивката за външен достъп
+		Mode::set('wrapper', 'cms_tpl_Page');
+		
+		return $layout;
+	}
+	
+	
+	/**
+	 * Подготвяме хранилката
+	 */
+	function prepareFeeds($data)
+	{
+		$fields = $this->selectFields("");
+		$fields['-feeds'] = TRUE;
+		
+		// Попълваме вътрешните и вербалните записи
+		while($rec = $data->query->fetch()) {
+			$data->recs[$rec->id] = $rec;
+			$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+		}
+	}
+	
+	
+	/**
+	 * Рендираме списъка от хранилки за външен изглед
+	 * @return core_ET
+	 */
+	function renderFeeds($data)
+	{
+		$layout = new ET(getFileContent('feed/tpl/Feeds.shtml'));
+		
+		// Поставяме иконка и заглавие
+		$layout->append('Нашите емисии', 'HEADER');
+		$icon = ht::createElement('img', array('src' => sbf("feed/img/feed.png", "")));
+		$layout->append($icon, 'ICON');
+		
+		foreach($data->rows as $row) {
+			$feedTpl = $layout->getBlock('ROW');
+			$feedTpl->placeObject($row);
+			$feedTpl->removeBlocks();
+			$feedTpl->append2master();
+		}
+		
+		return $layout;
+	}
+	
+	
+	/**
+	 * Модификация по вербалните записи
+	 */
+	static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+	{
+		// Подготвяме адреса на хранилката
+		$rssLink = array($this, 'get', $rec->id);
+		$row->url = type_Url::toVerbal(toUrl($rssLink, 'absolute'));
+		
+		if($fields['-feeds']) {
+			
+			$row->title = ht::createLink($row->title, $rssLink);
+			
+			// Преобразуваме логото на фийда да е  img
+			$logoSrc = fileman_Download::getDownloadUrl($rec->logo);
+			$logoRow = array('width'=>'30px', 'height' => '30px', 'src' => $logoSrc);
+			$row->logo = ht::createElement('img', $logoRow);
+		}
+	}
+	
+	
+	/**
+	 * Генерира хедърите за обвивката
+	 * @return core_ET
+	 */
+	static function generateHeaders()
+	{
+		// Шаблона който ще се връща
+		$tpl = new ET('');
+		
+		// Заявка за работа с модела 
+        $feedQuery = static::getQuery();
+        
+        while($feed = $feedQuery->fetch()) {
+       		
+       		// Адрес на хранилката
+       		$url = toUrl(array('feed_Generator', 'get', $feed->id), 'absolute');
+       		
+       		// Взависимост от типа на хранилката определяме типа на хедъра
+       		if($feed->type != 'atom') {
+       			$type = 'application/rss+xml';
+       		} else {
+       			$type = 'application/atom+xml';
+       		}
+       		
+       		// Натрупваме генерираният хедър в шаблона
+       		$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
+       	}
+
+       	return $tpl;
+	}
+	
+	
+	/**
+	 * Генерира икона с линк за екшъна с хранилките
+	 * @return core_ET
+	 */
+	static function generateFeedLink()
+	{
+		// Шаблон в който ще се добави линка
+		$tpl = new ET('');
+		
+		// Подготвяме иконка с линк към публичния лист на хранилката
+		$url = array('feed_Generator', 'feeds');
+		$src = sbf("feed/img/feed.png", "");
+		$img = ht::createElement('img', array('src' => $src, 'style' => 'margin-left:7px'));
+		$link = ht::createLink($img, $url);
+		
+		// Добавяме линка към шаблона
+		$tpl->append($link);
+		
+		// Връщаме шаблона
+		return $tpl;
 	}
 }
