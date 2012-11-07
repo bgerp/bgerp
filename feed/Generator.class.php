@@ -52,7 +52,7 @@ class feed_Generator extends core_Manager {
 		$this->FLD('maxItems', 'int', 'caption=Максимално, mandatory, notNull');
 	
 		// Определяме уникален индекс
-		$this->setDbUnique('title');
+		$this->setDbUnique('title,type');
 	}
 	
 	
