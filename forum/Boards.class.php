@@ -41,7 +41,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields ='tools=Пулт, title, category, shortDesc, themesCnt, canSeeBoard, canSeeThemes, canComment,canStick,lastCommentedTheme,lastComment,createdOn,createdBy,  modifiedOn, modifiedBy';
+	var $listFields ='tools=Пулт, title, category, shortDesc, themesCnt, canSeeBoard, canComment, canStick, lastCommentedTheme, lastComment, createdOn, createdBy,  modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -83,7 +83,6 @@ class forum_Boards extends core_Master {
 		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, notNull, width=100%');
 		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория, mandatory');
 		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска, mandatory');
-		$this->FLD('canSeeThemes', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Теми, mandatory');
 		$this->FLD('canStick', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Важни теми, mandatory');
 		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментар, mandatory');
 		$this->FLD('themesCnt', 'int', 'caption=Темите, notNull, input=hidden, value=0');
@@ -254,7 +253,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Подготвя навигацията за вътрешния изглед
 	 */
-	function prepareInnerNavigation($data)
+	static function prepareInnerNavigation($data)
 	{
 		// Линк към началото на форума
 		$data->navigation[] = ht::createLink('Форуми', array('forum_Boards', 'list'));
@@ -278,7 +277,7 @@ class forum_Boards extends core_Master {
 		}  elseif ($data->action == 'topic') {
 			
 			// Ако разглеждаме тема,навигацията ще от рода  Форуми->Категория->Дъска->Тема
-			$boardRow = $this->recToVerbal($data->board, "id,title,category,-private");
+			$boardRow = static::recToVerbal($data->board, "id,title,category,-private");
 			$themeRow = forum_Postings::recToVerbal($data->rec, "id,title,-private");
 			$data->navigation[] = $boardRow->category->title;
 			$data->navigation[] = $boardRow->title;
@@ -331,7 +330,7 @@ class forum_Boards extends core_Master {
 	            $category->boards->rows[$rec->id]->title = ht::createLink($category->boards->rows[$rec->id]->title, $url);
 	 			
 	             if((bool)$rec->supportBoard){
-		        	if(!static::haveRightFor('read')) {
+		        	if(!$this->haveRightFor('read')) {
 		        		
 		        		// Ако дъската е съпорт, преброяваме темите създадени от текущия потребител
 		        		$query = forum_Postings::getQuery();
