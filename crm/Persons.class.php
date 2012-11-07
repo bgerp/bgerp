@@ -1374,4 +1374,44 @@ class crm_Persons extends core_Master
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
         }
     }
+    
+    
+    /**
+     * Функция, която задава правата за достъп до даден потребител в търсенето
+     * 
+     * Вземаме всики папки на които сме inCharge или са споделени с нас или са публични или 
+     * (са екипни и inCharge е някой от нашия екип) и състоянието е активно
+     * 
+     * @param crm_Persons $query - Заявката към системата
+     * @param int $userId - Потребителя, за който ще се отнася
+     */
+    static function applyAccessQuery(&$query, $userId = NULL)
+    {
+        // Ако няма зададен потребител
+        if (!$userId) {
+            
+            // Вземаме текущия
+            $userId = core_Users::getCurrent();
+        }
+        
+        $user = "|" . $userId . "|";
+        
+        // Вземаме членовете на екипа
+        $teammates = core_Users::getTeammates($userId);
+        
+        // Проверка дали не е inCharge
+        $query->where("'{$user}' LIKE CONCAT('%|', #inCharge, '|%')");
+        
+        // Проверка дали не е споделен към потребителя
+        $query->orLikeKeylist('shared', $user);
+        
+        // Вземаме всички публични
+        $query->orWhere("#access = 'public'");
+        
+        // Ако достъпа е отборен и собственика е екипа на потребителя
+        $query->orWhere("#access = 'team' AND '{$teammates}' LIKE CONCAT('%|', #inCharge, '|%')");
+        
+        // Състоянието да е активно
+        $query->where("#state = 'active'");
+    }
 }

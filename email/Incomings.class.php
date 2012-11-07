@@ -1614,44 +1614,164 @@ class email_Incomings extends core_Master
             $field->input = 'none';
         } 
            
-        // Само полето папкa да се показва
-        $form->fields['folderId']->input = 'input';
+        // Добавяме функционални полета
+        $form->FNC('personId', 'key(mvc=crm_Persons,select=name, allowEmpty=true)', 'input=input,silent,caption=Папка->Лице');
+        $form->FNC('companyId', 'key(mvc=crm_Companies,select=name, allowEmpty=true)', 'input=input,silent,caption=Папка->Фирма');
+        $form->FNC('email', 'email', 'input=input,silent,caption=Папка->Имейл');
+        
+        // Заявка за извличане на потребителите
+        $personsQuery = crm_Persons::getQuery();
+        
+        // Да извлече само достъпните
+        crm_Persons::applyAccessQuery($personsQuery);
+        
+        // Подреждаме по имена
+        $personsQuery->orderBy('name', 'ASC');
+
+        // Обхождаме всички открити потребители
+        while ($personRec = $personsQuery->fetch()) {
+            
+            // Името на потребителя
+            $name = crm_Persons::getVerbal($personRec, 'name');  
+            
+            // Ако името е празно, прескачаме
+            if (!trim($name)) continue;
+            
+            // Добавяме в масива
+            $personsArr[$personRec->id] = $name;    
+        }
+        
+        // Ако не сме открили нито един потребител, показваме съобщението
+        // TODO това е необходимо, защото ако не празно показва всички
+        if (!$personsArr) $personsArr[''] = 'Няма лице';
+        
+        // Задаваме да се показват опциите
+        $form->setOptions('personId', $personsArr); 
+        
+        // Заявка за извличане на фирмите
+        $companyQuery = crm_Companies::getQuery();
+        
+        // Да извлече само достъпните
+        crm_Companies::applyAccessQuery($companyQuery);
+
+        // Подреждаме по имена
+        $companyQuery->orderBy('name', 'ASC');
+        
+        // Обхождаме всички открити потребители
+        while ($compRec = $companyQuery->fetch()) {
+            
+            // Името на потребителя
+            $name = crm_Companies::getVerbal($compRec, 'name');
+            
+            // Ако името е празно, прескачаме
+            if (!trim($name)) continue;
+            
+            // Добавяме в масива
+            $companyArr[$compRec->id] = $name;
+        }
+        
+        // Ако не сме открили нито един фирма, показваме съобщението
+        // TODO това е необходимо, защото ако не празно показва всички
+        if (!$companyArr) $companyArr[''] = 'Няма фирма';
+        
+        // Задаваме да се показват опциите
+        $form->setOptions('companyId', $companyArr); 
         
         $form->input();
         
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
             
+            // Намира броя на избраните
+            $count = (int)isset($form->rec->personId) + (int)isset($form->rec->companyId) + (int)isset($form->rec->email);
+            
+            // Трябва да се избере само едното поле
+            expect($count == 1, 'Трябва да изберете една от трите възможности.');
+            
+            // Ако сме избрали потребител
+            if (isset($form->rec->personId)) {
+                
+                // Инстанция на класа
+                $Persons = cls::get('crm_Persons');
+                
+                // Папката
+                $folderId = $Persons->forceCoverAndFolder($form->rec->personId);
+            }
+            
+            // Ако сме избрали фирмата
+            if (isset($form->rec->companyId)) {
+                
+                // Инстанция на класа
+                $Companies = cls::get('crm_Companies');
+                
+                // Папката
+                $folderId = $Companies->forceCoverAndFolder($form->rec->companyId);
+            }
+            
+            // Ако сме въвели имейл
+            if (isset($form->rec->email)) {
+                
+                // Папката
+                $folderId = email_Router::getEmailFolder($form->rec->email);
+                
+            }
+            
+            // Ако не сме открили папка и нямаме права в нея
+            if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) {
+                
+                // Изтриваме папката
+                unset($folderId);
+                
+                // Вземаме id' то на имейла на текущия потребител
+                $userInboxId = email_Inboxes::getUserInboxId();
+                
+                // Ако има имейл
+                if ($userInboxId) {
+                    
+                    // Инстанция на класа
+                    $Inboxes = cls::get('email_Inboxes');
+                    
+                    // Папката
+                    $folderId = $Inboxes->forceCoverAndFolder($userInboxId);
+                }
+            }
+            
+            // Ако все още не е открита папка
+            if (!$folderId) {
+                
+                // Вземаме всички входящи кутии в системата
+                $allBoxesArr = email_Inboxes::getAllInboxes();
+                
+                foreach ($allBoxesArr as $email => $box) {
+                    
+                    // Ако няма кутия продължаваме
+                    if (!$box) continue;
+                    
+                    // Вземаме id' то на папката
+                    $cFolderId = email_Inboxes::forceFolder($email);
+                    
+                    // Ако нямаме права за нея продължаваме
+                    if (!doc_Folders::haveRightFor('single', $cFolderId)) continue;
+                    
+                    // Ако имаме права, задаваме тя да е папката, която ще използваме
+                    $folderId = $cFolderId;
+                }
+            }
+            
+            // Очакваме вече да сме определили папката
+            expect($folderId, 'Не може да се определи папката.');
+            
             // Препращаме към формата за създаване на имейл
             redirect(toUrl(array(
             					 'email_Outgoings',
-            					 'add', 'originId'=>$rec->containerId,
-            					 'folderId' => $form->rec->folderId,
+            					 'add',
+            					 'originId'=>$rec->containerId,
+            					 'folderId' => $folderId,
+    					 		 'emailto' => $form->rec->email,
             					 'forward'=>'forward',
             					 'ret_url'=>TRUE,
                                 )));
         }
-        
-        // Вземаме папките, до които имаме достъп
-        $query = doc_Folders::getQuery();
-        doc_Folders::restrictAccess($query);
-        
-        // Обхождаме всички папки, до които имаме достъп
-        while ($fRec = $query->fetch()) {
-            
-            // Вербалното име на папката
-            $title = doc_Folders::getVerbal($fRec, 'title');
-            
-            // Ако има заглавие
-            if ($title) {
-                
-                // Добавяме в масива с папки
-                $foldersArr[$fRec->id] = $title;
-            }
-        }
-        
-        // Задаваме стойностите на папките от масива
-        $form->setOptions('folderId', $foldersArr);   
         
         // URL' то където ще се редиректва
         $retUrl = getRetUrl();
@@ -1671,7 +1791,7 @@ class email_Incomings extends core_Master
         
         // Опаковаме изгледа
         $tpl = static::renderWrapping($tpl, $data);
-        
+
         return $tpl;
     }
     
