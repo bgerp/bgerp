@@ -642,7 +642,13 @@ class doc_Folders extends core_Master
         
         return $folderClassName;
     }
-
+    
+    
+    public static function fetchCoverId($id)
+    {
+        return static::fetchField($id, 'coverId');
+    }
+    
 
     /**
      *
@@ -708,4 +714,5 @@ class doc_Folders extends core_Master
         }
 
         return $res;
-    }}
+    }
+}

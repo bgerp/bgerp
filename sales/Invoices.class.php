@@ -98,7 +98,7 @@ class sales_Invoices extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'number, date, contragentId, contragentName, contragentCountry';
+    var $searchFields = 'number, date, contragentName';
     
     
     /**
@@ -106,73 +106,67 @@ class sales_Invoices extends core_Master
      */
     function description()
     {
-        // $this->FLD("number", "int"); Уникален номер, инкрементално нараства
-        $this->FLD('number', 'int', 'caption=Номер, notnull, input=none, export=Csv');
-        
+        // Дата на фактурата
         $this->FLD('date', 'date', 'caption=Дата,  notNull, mandatory');
         
-        // $this->FLD("contragentId", "int"); mvc=crm_Companies 
-        $this->FLD('contragentId', 'int', 'caption=Номер на контрагента, mandatory');
+        // Номер на фактурата
+        $this->FLD('number', 'int', 'caption=Номер, notNull, input, mandatory, export=Csv');
         
-        /* Повторение на данните за фирмата с възможности за модифициране */
-        // $this->FLD("contragentName", "string(64)"); 
-        $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име');
+//         $this->FLD('contragentId', 'int', 'notNull, input=hidden');
+//         $this->FLD('contragentClassId', 'key(mvc=core_Classes)', 'notNull, input=hidden');
         
-        // $this->FLD("contragentCountry", "string(64)");
-        $this->FLD('contragentCountry', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Контрагент->Държава,mandatory');
+        $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име, mandatory');
+        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Контрагент->Държава,mandatory');
+        $this->FLD('contragentAddress', 'text', 'caption=Контрагент->Адрес, mandatory',
+            array(
+                'attr' => array(
+                    'rows' => 4,
+                    'style' => 'width: 400px;',
+                )
+            )
+        );
+
+        // ДДС номер на контрагента
+        $this->FLD('contragentVatNo', 'varchar(255)', 'caption=Контрагент->ДДС №, mandatory');
         
-        // $this->FLD("contragentAddress", "string(128)");
-        $this->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес');
-        $this->FLD('contragentVatId', 'varchar(255)', 'caption=Контрагент->Vat Id');
-        
-        // $this->FLD("vatCanonized", "string(32)"); да се мине през функцията за канонизиране от drdata_Vats 
+        // TODO да се мине през функцията за канонизиране от drdata_Vats 
         $this->FLD('vatCanonized', 'varchar(255)', 'caption=Vat Canonized, input=none');
-        $this->FLD('dealPlace', 'varchar(255)', 'caption=Място на сделката');
+        $this->FLD('dealPlace', 'varchar(255)', 'caption=Място на сделката, mandatory');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
-        $this->FLD('vatRate', 'double(decimals=2)', 'caption=ДДС,unit=%');
+        $this->FLD('vatRate', 'percent', 'caption=ДДС');
+        $this->FLD('vatReason', 'varchar(255)', 'caption=Данъчно основание'); // TODO plg_Recently
         
-        // $this->FLD("vatReason", "string(128)"); plg_Resent
-        $this->FLD('vatReason', 'varchar(255)', 'caption=Данъчно основание');
+        $this->FLD('creatorName', 'varchar(255)', 'caption=Съставил, input=none');
         
-        // $this->FLD("creatorName", "string(64)"); 
-        /* $this->FLD('creatorName', 'varchar(255)', 'caption=Съставил'); */
-        
-        /* Кога е дан. събитие. Ако не се въведе е датата на фактурата */
-        // $this->FLD("vatDate", "date");
+        // Дата на данъчното събитие. Ако не се въведе е датата на фактурата.
         $this->FLD('vatDate', 'date', 'caption=Дата на ДС');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута');
+        $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Начин на плащане');
+        $this->FLD('deliveryId', 'key(mvc=trans_DeliveryTerms, select=name, allowEmpty)', 'caption=Доставка');
+
+        // Наша банкова сметка (при начин на плащане по банков път)
+        $this->FLD('accountId', 'key(mvc=bank_Accounts, select=iban)', 'caption=Банкова сметка, export=Csv', 
+            array(
+                'attr' => array(
+                    'style' => 'width: 400px',
+                )
+            )
+        );
         
-        // $this->FLD("currency", "string(3)"); mvc=currency_Currencies по-подразбиране е основната валута
-        // ако няма такава деф. конст трябва да дефинираме
-        $this->FLD('currency', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
-        
-        /* ако не се въведе да взема курса към датата на фактурата */
-        // $this->FLD("curencyRate", "number");
-        $this->FLD('curencyRate', 'double(decimals=2)', 'caption=Курс');
-        $this->FLD('paymentMethod', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Начин на плащане');
-        
-        // $this->FLD("delivery", "string(16)"); mvc=trans_DeliveryTerm 
-        $this->FLD('delivery', 'varchar(255)', 'caption=Доставка');
-        
-        /* перо от номенклатурата банкови с-ки */
-        // $this->FLD("account", "int");
-        $this->FLD('account', 'varchar(64)', 'caption=Номер на банкова сметка, export=Csv');
-        
-        // $this->FLD("factoringAccount", "text");
         /* $this->FLD('factoringAccount', 'varchar(255)', 'caption=Сметка за фактуриране'); */
         
-        // $this->FLD("additionalInfo", "text");
         $this->FLD('additionalInfo', 'text', 'caption=Допълнителна информация');
         
-        // $this->FLD("createdOn", "datetime");
-        // $this->FLD("createdBy", "key(mvc=Users)" );
-        
-        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
+        $this->FLD('state', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'caption=Статус, input=none'
+        );
         
         // $this->FLD("type", "enum(invoice=Чернова, credit_note=Кредитно известие, debit_note=Дебитно известие)" );
-        $this->FLD('type', 'enum(invoice=Чернова, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=none');
-        
-        // $this->FLD("noteReason", "int");
-        /* $this->FLD('noteReason', 'varchar(255)', 'caption=Основание'); */
+        $this->FLD('type', 
+            'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
+            'caption=Вид, input=none'
+        );
         
         // $this->FLD("saleId", "key(mvc=Sales)");
         /* ? */// $this->FLD('saleId', 'key(mvc=sales_Sales,select=title)', 'caption=Продажба');
@@ -181,6 +175,175 @@ class sales_Invoices extends core_Master
         /* $this->FLD('paid', 'int', 'caption=Платено'); */
         // $this->FLD("paidAmount", "number");
         /* $this->FLD('paidAmount', 'double(decimals=2)', 'caption=Сума'); */
+    }
+    
+    
+    public function on_AfterPrepareEditForm($mvc, $data)
+    {
+        /* @var $form core_Form */
+        $form = $data->form;
+        
+        if (!$form->rec->id) {
+            /*
+             * При създаване на нова ф-ра зареждаме полетата на формата с разумни стойности по 
+             * подразбиране.
+             */
+            $mvc::setFormDefaults($form);
+        }
+        
+        $mvc::populateContragentData($form);
+    }
+    
+    
+    /**
+     * Зарежда разумни начални стойности на полетата на форма за фактура.
+     * 
+     * @param core_Form $form
+     */
+    public static function setFormDefaults(core_Form $form)
+    {
+        // Днешна дата в полето `date`
+        $form->rec->date = dt::now();
+
+        // Данни за контрагент
+        static::populateContragentData($form);
+    }
+    
+    
+    /**
+     * Изчислява данните на контрагента и ги зарежда във форма за създаване на нова ф-ра
+     * 
+     * По дефиниция, данните за контрагента се вземат от:
+     * 
+     *  * най-новата активна ф-ра в папката, в която се създава новата
+     *  * ако няма такава - от корицата на тази папка
+     * 
+     * @param core_Form $form форма, в чиито полета да се заредят данните за контрагента
+     */
+    protected static function populateContragentData(core_Form $form)
+    {
+        $rec = $form->rec;
+        
+        if ($rec->id) {
+            // Редактираме запис - не зареждаме нищо
+            return;
+        }
+        
+        // Задължително условие е папката, в която се създава новата ф-ра да е известна
+        expect($folderId = $rec->folderId);
+        
+        // Извличаме данните на контрагент по подразбиране
+        $contragentData = static::getDefaultContragentData($folderId);
+        
+        /*
+         * Разглеждаме четири случая според данните в $contragentData
+         * 
+         *  1. Има данни за фирма и данни за лице
+         *  2. Има само данни за фирма
+         *  3. Има само данни за лице
+         *  4. Нито едно от горните не е вярно
+         */
+        
+        if (empty($contragentData->company) && empty($contragentData->name)) {
+            // Случай 4: нито фирма, нито лице
+            // TODO доколко допустимо е да се стигне до тук?
+            expect(FALSE, 'Проблем с данните за контрагент по подразбиране');
+            return;
+        }
+        
+        $rec->contragentCountryId = $contragentData->countryId;
+        
+        if (!empty($contragentData->company)) {
+            // Случай 1 или 2: има данни за фирма
+            $rec->contragentName    = $contragentData->company;
+            $rec->contragentAddress = trim(
+                sprintf("%s %s\n%s", 
+                    $contragentData->place,
+                    $contragentData->pCode,
+                    $contragentData->address
+                )
+            );
+            $rec->contragentVatNo = $contragentData->vatNo;
+            
+            if (!empty($contragentData->name)) {
+                // Случай 1: данни за фирма + данни за лице
+                
+                // TODO за сега не правим нищо допълнително
+            }
+        } elseif (!empty($contragentData->name)) {
+            // Случай 3: само данни за физическо лице
+            $rec->contragentName    = $contragentData->name;
+            $rec->contragentAddress = $contragentData->pAddress;
+        }
+        
+        if (!empty($rec->contragentCountryId)) {
+            $currencyCode    = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
+            $rec->currencyId = currency_Currencies::fetchField("#code = '{$currencyCode}'", 'id');
+            
+            if ($rec->currencyId) {
+                // Задаване на избор за банкова сметка.
+                $ownBankAccounts = bank_Accounts::makeArray4Select('iban',
+                    "#contragentCls = " . crm_Companies::getClassId() . " AND " .
+                    "#contragentId  = " . BGERP_OWN_COMPANY_ID
+                );
+                
+                $form->getField('accountId')->type->options = $ownBankAccounts;
+            }
+        }
+    }
+
+
+    /**
+     * Данни за контрагент подразбиране при създаване на нова фактура.
+     *
+     * По дефиниция, данните за контрагента се вземат от:
+     *
+     *  * най-новата активна (т.е. контирана) ф-ра в папката, в която се създава новата
+     *  * ако няма такава - от корицата на тази папка; класът на тази корица задължително трябва
+     *                      да поддържа интерфейса doc_ContragentDataIntf
+     *
+     * @param int $folderId key(mvc=doc_Folders)
+     * @return stdClass @see doc_ContragentDataIntf::getContragentData()
+     */
+    protected static function getDefaultContragentData($folderId)
+    {
+        if ($lastInvoiceRec = static::getLastActiveInvoice($folderId)) {
+            $sourceClass    = __CLASS__;
+            $sourceObjectId = $lastInvoiceRec->id;
+        } else {
+            $sourceClass    = doc_Folders::fetchCoverClassName($folderId);
+            $sourceObjectId = doc_Folders::fetchCoverId($folderId);
+        }
+    
+        if (!cls::haveInterface('doc_ContragentDataIntf', $sourceClass)) {
+            // Намерения клас-източник на данни за контрагент не поддържа doc_ContragentDataIntf
+            return;
+        }
+    
+        $contragentData = $sourceClass::getContragentData($sourceObjectId);
+    
+        return $contragentData;
+    }
+    
+    
+    /**
+     * Данните на най-новата активна (т.е. контирана) ф-ра в зададена папка
+     *
+     * @param int $folderId key(mvc=doc_Folders)
+     * @return stdClass обект-данни на модела sales_Invoices; NULL ако няма такава ф-ра
+     */
+    protected static function getLastActiveInvoice($folderId)
+    {
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#folderId = {$folderId}");
+        $query->where("#state <> 'rejected'");
+        $query->orderBy('createdOn', 'DESC');
+        $query->limit(1);
+    
+        $invoiceRec = $query->fetch();
+    
+        return !empty($invoiceRec) ? $invoiceRec : NULL;
     }
     
     
@@ -222,27 +385,24 @@ class sales_Invoices extends core_Master
 
 
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща данните за адресанта
+     * Данните на контрагент, записани в съществуваща фактура.
+     * 
+     * Интерфейсен метод на @see doc_ContragentDataIntf.
+     * 
+     * @param int $id key(mvc=sales_Invoices)
+     * @return stdClass @see doc_ContragentDataIntf::getContragentData()
+     *  
      */
-    static function getContragentData($id)
+    public static function getContragentData($id)
     {
-        //TODO не може да се вземат всичките данни, защото класа не е завършен напълно
         $rec = sales_Invoices::fetch($id);
         
         $contrData = new stdClass();
-        $contrData->company = sales_Invoices::getVerbal($rec, 'contragentId');;
-        $contrData->name = $rec->contragentName;
-        
-        //        $contrData->tel = $rec->tel;
-        //        $contrData->fax = $rec->fax;
-        $contrData->country = sales_Invoices::getVerbal($rec, 'contragentCountry');
-        
-        //        $contrData->pcode = $rec->pcode;
-        //        $contrData->place = $rec->place;
-        $contrData->address = $rec->contragentAddress;
-        
-        //        $contrData->email = $rec->email;
+        $contrData->company   = $rec->contragentName;
+        $contrData->countryId = $rec->contragentCountryId;
+        $contrData->country   = static::getVerbal($rec, 'contragentCountryId');
+        $contrData->vatNo     = $rec->contragentVatNo;
+        $contrData->address   = $rec->contragentAddress;
         
         return $contrData;
     }

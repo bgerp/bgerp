@@ -857,6 +857,8 @@ class crm_Companies extends core_Master
         if ($company) {
             $contrData = new stdClass();
             $contrData->company = $company->name;
+            $contrData->companyId = $company->id;
+            $contrData->vatNo = $company->vatId;
             $contrData->tel = $company->tel;
             $contrData->fax = $company->fax;
             $contrData->country = crm_Companies::getVerbal($company, 'country');
