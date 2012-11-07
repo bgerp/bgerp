@@ -125,7 +125,7 @@ class plg_UserReg extends core_Plugin
                 $rec = $form->input("nick,email,names");
             }
             
-            if ($rec) {
+            if ( $form->isSubmitted() && $rec) {
                 // Ако е конфигурирано да се използва имейлът за ник,
                 // То имейлът се записва като Nick
                 if (EF_USSERS_EMAIL_AS_NICK) {
