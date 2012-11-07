@@ -43,11 +43,11 @@ class feed_Generator extends core_Manager {
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, notNull');
-		$this->FLD('description', 'varchar(100)', 'caption=Oписание, mandatory, notNull');
-		$this->FLD('logo', 'fileman_FileType(bucket=feedImages)', 'caption=Лого, mandatory, notNull');
-		$this->FLD('source', 'class(interface=feed_SourceIntf)', 'caption=Източник, mandatory, notNull');
-		$this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, mandatory, notNull');
+		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory');
+		$this->FLD('description', 'varchar(100)', 'caption=Oписание, mandatory');
+		$this->FLD('logo', 'fileman_FileType(bucket=feedImages)', 'caption=Лого');
+		$this->FLD('source', 'class(interface=feed_SourceIntf)', 'caption=Източник, mandatory');
+		$this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, notNull, mandatory');
 		$this->FLD('lg', 'enum(bg=Български,en=Английски)', 'caption=Език, notNull, value=bg');
 		$this->FLD('maxItems', 'int', 'caption=Максимално, mandatory, notNull');
 	
