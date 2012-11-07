@@ -1360,4 +1360,18 @@ class crm_Persons extends core_Master
            $vcard->addEmail($email, $params);
        }
    }
+   
+   
+    /**
+     * 
+     */
+    function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако е субмитната формата и не сме натиснали бутона "Запис и нов"
+        if ($data->form->isSubmitted() && $data->form->cmd != 'save_n_new') {
+
+            // Променяма да сочи към single'a
+            $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+        }
+    }
 }

@@ -143,6 +143,7 @@ class forum_Postings extends core_Detail {
 	            $themeQuery = $this->getQuery();
 	            $themeQuery->where("#themeId = {$rec->id}");
 	            
+	            //@TODO ако няма страници да не подготвям пейджъра
 	            // Пейджър за странициране на темата, според  FORUM_POSTS_PER_PAGE
 	            $data->themeRows[$rec->id]->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_POSTS_PER_PAGE));
 	            $data->themeRows[$rec->id]->pager->setLimit($themeQuery);
@@ -237,7 +238,7 @@ class forum_Postings extends core_Detail {
             
             // Ако формата е успешно изпратена - запис, лог, редирек
             if ($data->postForm->isSubmitted() && Request::get('body')) {
-            	$id = static::save($rec);
+            	$id = $this->save($rec);
                 $this->log('add', $id);
                 
                 return new Redirect(array('forum_Postings', 'Theme', $data->rec->id), 'Благодарим за вашия коментар;)');
@@ -251,6 +252,10 @@ class forum_Postings extends core_Detail {
 		
 		$layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		
+		if(core_Packs::fetch("#name = 'vislog'")) {
+            vislog_History::add($data->row->title);
+        }
+        
 		return $layout;
 	}
 
@@ -263,6 +268,7 @@ class forum_Postings extends core_Detail {
 		$query = $this->getQuery();
 		$fields = $this->selectFields("");
         $fields['-theme'] = TRUE;
+        $data->row = $this->recToVerbal($data->rec, $fields);
         
         // Избираме темите, които принадлежът към темата
         $query->where("#themeId = {$data->rec->id}");
@@ -386,7 +392,7 @@ class forum_Postings extends core_Detail {
             
             // Ако формата е успешно изпратена - запис, лог, редирек
             if ($data->form->isSubmitted() && Request::get('body')) {
-            	$id = static::save($rec);
+            	$id = $this->save($rec);
                 $this->log('add', $id);
                 
                 return new Redirect(array('forum_Boards', 'Browse', $data->rec->id));
@@ -484,6 +490,10 @@ class forum_Postings extends core_Detail {
 		$layout = $this->renderWrapping($layout);
 		
 		$layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
+		
+		if(core_Packs::fetch("#name = 'vislog'")) {
+            vislog_History::add($data->row->title);
+        }
 		
 		return $layout;
 	}
@@ -637,7 +647,7 @@ class forum_Postings extends core_Detail {
 		}
 		
 		// Запазваме промененият статус на темата
-		static::save($rec);
+		$this->save($rec);
 		
 		return new Redirect(array($this, 'Topic', $rec->id));
 	}
@@ -706,7 +716,7 @@ class forum_Postings extends core_Detail {
 	  $rec->lastWho = $createdBy;
 	  $rec->postingsCnt = $query->count();
 	        
-	  static::save($rec);
+	  $this->save($rec);
    }
    
    

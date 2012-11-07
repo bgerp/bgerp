@@ -37,7 +37,7 @@ class blogm_Articles extends core_Master {
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'cms_SourceIntf';
+    var $interfaces = 'cms_SourceIntf, feed_SourceIntf';
 
 
 	/**
@@ -672,8 +672,6 @@ class blogm_Articles extends core_Master {
  	}	
 
 
-
-
 	/**
      * Какви роли са необходими за посоченото действие?
      */
@@ -697,4 +695,43 @@ class blogm_Articles extends core_Master {
         return array('blogm_Articles');
     }
 	
+    
+    /**
+     * Имплементиране на интерфейсния метод getItems от feed_SourceIntf
+     * @param int $itemsCnt
+     * @param varchar(2) $lg
+     * @return array()
+     */
+    function getItems($itemsCnt, $lg)
+    {
+    	// Заявка за работа с модела
+    	$query = $this->getQuery();
+    	$query->orderBy('createdOn', 'DESC');
+    	$query->limit($itemsCnt);
+    	
+    	$items = array();
+    	
+    	while($rec = $query->fetch()) {
+    		
+    		// Извличаме необходимите ни данни
+    		$obj = new stdClass();
+    		$obj->title = $rec->title;
+    		$obj->link = toUrl(array($this, 'Article', $rec->id), 'absolute');
+    		$obj->date = $rec->createdOn;
+    		
+    		// Извличаме описанието на статията, като съкръщаваме тялото и 
+    		$desc = explode("\n", $rec->body);
+    		if(count($desc) > 1) {
+    			$rec->body = $desc[0];
+    			$rec->body .= "[...]";
+    		}
+    		
+    		$obj->description = $rec->body;
+    		
+    		// Натрупваме информацията за статиите
+    		$items[] = $obj;
+    	}
+    	
+    	return $items;
+    }
 }

@@ -115,4 +115,18 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('name' , 'varchar(128)', 'caption=Наименование,width=400px');
         $this->setDbUnique('name');
     }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако е субмитната формата
+        if ($data->form->isSubmitted()) {
+            
+            // Променяма да сочи към single'a
+            $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+        }
+    }
 }
