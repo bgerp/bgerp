@@ -711,6 +711,7 @@ class blogm_Articles extends core_Master {
     	$items = array();
     	
     	if($query->count()) {
+    		$richText = cls::get('type_RichText');
 	    	while($rec = $query->fetch()) {
 	    		
 	    		// Извличаме необходимите ни данни
@@ -722,7 +723,7 @@ class blogm_Articles extends core_Master {
 	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
 	    		$desc = explode("\n", $rec->body);
 	    		if(count($desc) > 1) {
-	    			$rec->body = $desc[0];
+	    			$rec->body = strip_tags($richText->toHtml($desc[0]));
 	    			$rec->body .= "[...]";
 	    		}
 	    		
