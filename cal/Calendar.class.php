@@ -26,7 +26,7 @@ class cal_Calendar extends core_Master
     /**
      * Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, bgerp_plg_GroupByDate, cal_View';
+    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, bgerp_plg_GroupByDate, cal_View, plg_Printing';
     
 
     /**
@@ -169,7 +169,7 @@ class cal_Calendar extends core_Master
         if($from = $data->listFilter->rec->from) {
         	
             $data->query->where("#time >= date('$from')");
-            $data->query->where("#users = '' OR #users LIKE '|{$currentID}|'");
+            $data->query->where("#users IS NULL OR #users LIKE '|{$currentID}|'");
         }
     }
     
@@ -184,7 +184,8 @@ class cal_Calendar extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
+        $data->listFilter->FNC('persons', 'users', 'caption=Потребител,input,silent');
+        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px');
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->view = 'horizontal';
@@ -193,9 +194,9 @@ class cal_Calendar extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'from';
+        $data->listFilter->showFields = 'persons, from';
         
-        $data->listFilter->input('from', 'silent');
+        $data->listFilter->input('persons, from', 'silent');
     }
     
     
@@ -470,7 +471,7 @@ class cal_Calendar extends core_Master
         // Броя на дните в месеца (= на последната дата в месеца);
         $lastDay = date('t', $timestamp);
     
-       for($i = 1; $i <= $lastDay; $i++) {
+        for($i = 1; $i <= $lastDay; $i++) {
             $t = mktime(0, 0, 0, $month, $i, $year);
             $monthArr[date('W', $t)][date('N', $t)] = $i;
             
@@ -491,24 +492,24 @@ class cal_Calendar extends core_Master
         while($rec = $query->fetch("#time >= '{$from}' AND #time <= '{$to}'")) {
             
 	        if($rec->type == "holiday"){
-	        		$holiday++;
-	        	} elseif ($rec->type == "non-working"){
-	        		$nonWorking++;
-	        	} elseif($rec->type == "workday"){
-	        		$workday++;
+	        	$holiday++;
+	        } elseif ($rec->type == "non-working"){
+	        	$nonWorking++;
+	        } elseif($rec->type == "workday"){
+	        	$workday++;
 	        		
-	        	}
+	        }
 	    }
 	  
-               $satSun = 0;
+        $satSun = 0;
                
-        	   foreach ($monthArr as $dayWeek){
-		        	foreach($dayWeek as $k=>$day){
-		        		if($k == 6 || $k == 7){
-		        			$satSun++;
-		        		}
-		        	}
-               }
+        foreach ($monthArr as $dayWeek){
+			foreach($dayWeek as $k=>$day){
+		    	if($k == 6 || $k == 7){
+		        	$satSun++;
+		        }
+		     }
+        }
       
         $allHolidays = $satSun - $workday + $nonWorking + $holiday;
         $allWoking = $lastDay - $allHolidays;
@@ -595,18 +596,13 @@ class cal_Calendar extends core_Master
     		
     		// Начален час: минути на събитието 
     		$timeHour = dt::mysql2verbal($rec->timeStart, 'H:i');
-    		
-    		
-    		$taskEnd = ((strstr($timeHour, ":", TRUE) * 3600) + (substr(strstr($timeHour, ":"),1) * 60) + $rec->timeDuration) / 3600;
-    		
-    	    $taskEndH = floor($taskEnd);
-    		$taskEndM =  ($taskEnd - $taskEndH) * 60;
-	    		if(substr($taskEndM,1) === FALSE){
-	    			$taskEndM = $taskEndM . '0';
-	    		}
 
-	        // Краен час: минути на събитието 
-    		$taskHour = $taskEndH . ":" . $taskEndM;
+	        // Краен час: минути на събитието
+    		if($rec->timeDuration !== NULL || $rec->timeEnd !== NULL){ 
+    			$taskHour = self::endTask($timeHour, $rec->timeDuration);
+    		} else {
+    			$taskHour = FALSE;
+    		}
     		
     		if(trim($timeStarts) == trim($from)){
 	          
@@ -614,16 +610,13 @@ class cal_Calendar extends core_Master
     			$hour[$taskHour] = "Kрай на задача: ". $rec->title;
     			$hour[] = ksort($hour);
     			$tasks[] = $rec;
-    			$event[$timeHour] = $taskHour;
-    			
     		}
     	}
-    	unset ($hour[0]);
-    	unset ($hour[1]);
-    	unset ($hour[2]);
-    	unset ($hour[3]);
-    	unset ($hour[4]);
     	
+    	for ($i = 0; $i <= count($tasks); $i++){
+    		unset ($hour[$i]);
+    	}
+    	    	
     	$tpl = new ET(getFileContent('cal/tpl/SingleLayoutDays.shtml'));
     	
     	$Calendar = cls::get('cal_Calendar');
@@ -636,35 +629,22 @@ class cal_Calendar extends core_Master
     	
     	
     	foreach($hour as $h => $t){
-    		
-    		
+    		$cTpl = $tpl->getBlock("COMMENT_LI");
+    				
     		if($t == " " || strpos($t, "K") === 0){
     	
-    		
-    	   /* if($t !== " "){
-    			    		
-    		        $cTpl->replace($colors, 'color');
-    		        
-    		      
-    	    }*/
-    		
-    	
-    	
-    		        $cTpl = $tpl->getBlock("COMMENT_LI");
-    		       
-    		        $cTpl->replace($t, 'tasktitle');
-		    		$cTpl->replace($h, 'time');
-				    $cTpl->append2master();
+	    		$cTpl->replace($t, 'tasktitle');
+			    $cTpl->replace($h, 'time');
+				$cTpl->append2master();
     		 
     		}
     		if(is_array($tasks)){
     		
 	         	foreach($tasks as $task){
-	        //bp($task);
-	            //$colors = array_pop($color);
+	       
 		         	if(dt::mysql2verbal($task->timeStart, 'H:i') == $h){
 		         	
-		         	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		         		$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
 		
 				    	$cTpl = $tpl->getBlock("COMMENT_LI");
 						
@@ -691,13 +671,236 @@ class cal_Calendar extends core_Master
 
 
     /**
-     *
+     * Показва събитията за цяла произволна седмица
      */
     function act_Week()
     {
-        $res = '1';
+        $from = Request::get('from');
+        $currentDate = dt::mysql2Verbal($from, 'l d-m-Y');
+        
+        $day = dt::mysql2Verbal($from, 'd');
+        $month = dt::mysql2Verbal($from, 'm');
+        $year = dt::mysql2Verbal($from, 'Y');
+        
+        // Масив с цветове за събитията
+    	$color = array( "Crimson", 
+				    	"OrangeRed",
+				    	"Gold",
+				    	"Olive", 
+				    	"SteelBlue",
+				    	"Brown", 
+				    	"RosyBrown",
+				    	"LightPink",
+				    	"DarkSeaGreen",
+				    	"Aqua",
+				    	"DimGray",
+				    	"PapayaWhip ",
+				    	"Thistle",
+				    	"YellowGreen",
+				    	"PeachPuff",
+				    	"Moccasin", 
+				    	"MistyRose");
+        
+        $hour = array(  "00:00" => " ",
+				    	"01:00" => " ",
+				    	"02:00" => " ",
+				    	"03:00" => " ",
+				    	"04:00" => " ",
+				    	"05:00" => " ",
+				    	"06:00" => " ",
+				    	"07:00" => " ",
+				    	"08:00" => " ",
+				    	"09:00" => " ",
+				    	"10:00" => " ",
+				    	"11:00" => " ",
+				    	"12:00" => " ",
+				    	"13:00" => " ",
+				    	"14:00" => " ",
+				    	"15:00" => " ",
+				    	"16:00" => " ",
+				    	"17:00" => " ",
+				    	"18:00" => " ",
+				    	"19:00" => " ",
+				    	"20:00" => " ",
+				    	"21:00" => " ",
+				    	"22:00" => " ",
+				    	"23:00" => " ");
+                      
+        if($month >= 1 && $month <= 12){
+	        if($day >= 1 && $day <= 31){
+		        
+	        	$dateBefore = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day - 1, $year)),'l d-m-Y');
+	        	$day2Before = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day - 2, $year)),'l d-m-Y');
+			    $day3Before = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day - 3, $year)),'l d-m-Y');
+			
+	        	$dateAfter = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day + 1, $year)),'l d-m-Y');
+	        	$day2After = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day + 2, $year)),'l d-m-Y');
+	        	$day3After = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day + 3, $year)),'l d-m-Y');
+	        	
+	        } 
+        }
+       
+        
+        $state = new stdClass();
+        $state->query = cal_Tasks::getQuery();
+        
+        while ($rec =  $state->query->fetch()){
+        	
+        	$timeStarts = dt::mysql2verbal($rec->timeStart, 'd-m-Y');
+    		
+    		// Начален час: минути на събитието 
+    		$timeHour = dt::mysql2verbal($rec->timeStart, 'H:i');
+    		
+    		if($rec->timeDuration !== NULL || $rec->timeEnd !== NULL){
+    			$taskHour = self::endTask($timeHour, $rec->timeDuration);
+    		} else {
+    			$taskHour = FALSE;
+    		}
+    		
+    		
+    		if(trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day - 1, $year)),'d-m-Y')) ||
+    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day - 2, $year)),'d-m-Y')) ||
+    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day - 3, $year)),'d-m-Y')) ||
+    		   trim($timeStarts) == trim ($from) ||
+    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day + 1, $year)),'d-m-Y')) ||
+    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day + 2, $year)),'d-m-Y')) ||
+    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day + 3, $year)),'d-m-Y')) ){
+    			$hour[$timeHour] = $rec->title;
+    			$hour[$taskHour] = "Kрай на задача: ". $rec->title;
+    			$hour[] = ksort($hour);
+    			
+    			$tasks[] = $rec;
+    		}
+        	
+        }
+        for ($i = 0; $i <= count($tasks); $i++){
+    		unset ($hour[$i]);
+    	}
+               
+        $tpl = new ET(getFileContent('cal/tpl/SingleLayoutWeek.shtml'));
+    	
+    	$Calendar = cls::get('cal_Calendar');
+    	$Calendar->prepareListFilter($state);
+        
+        $tpl->replace($Calendar->renderListFilter($state), 'from');
+    	
+    	$tpl->replace('Събития за седмицата', 'title');
+    	
+    	$tpl->replace($day3Before, '3dayBefore');
+    	$tpl->replace($day2Before, '2dayBefore');
+    	$tpl->replace($dateBefore, 'dateBefore');
+    	$tpl->replace($currentDate, 'fromDate');
+    	$tpl->replace($dateAfter, 'dateAfter');
+    	$tpl->replace($day2After, '2dayAfter');
+    	$tpl->replace($day3After, '3dayAfter');
+    	
+    	if(dt::isHoliday($from)) {
+    		$tpl->replace("DarkGreen", 'color');
+    	} else {
+    		$tpl->replace("black", 'color');
+    	}
+    	
+   		foreach($hour as $h => $t){
+    		if($t == " " || strpos($t, "K") === 0 ){
+    	    	$cTpl = $tpl->getBlock("COMMENT_LI");
+	    		$cTpl->replace($h, 'time');
+				$cTpl->append2master();
+   		    }
+   		    
+			if(is_array($tasks)){
+    		
+	    		foreach($tasks as $task){
+	    			if(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
+	    			   dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $day3Before){
+	    			   	
+		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$colors = array_pop($color);
+		    			   	
+		    				$cTpl = $tpl->getBlock("COMMENT_LI");
+		    				$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskBefore');
+		    			   	$cTpl->replace($h, 'time');
+		    			   	$cTpl->replace($colors, 'color2');
+		    			   	$cTpl->append2master();
+		    			   	
+	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $day2Before){
+	    			   	
+		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$colors = array_pop($color);
+		    			   	
+		    				$cTpl = $tpl->getBlock("COMMENT_LI");
+		    				$cTpl->replace(ht::createLink($task->title, $url), 'dayTaskBefore');
+		    			   	$cTpl->replace($h, 'time');
+		    			   	$cTpl->replace($colors, 'color3');
+		    			   	$cTpl->append2master();
+		    			   	
+	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $dateBefore){
+	    			   	
+		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$colors = array_pop($color);
+		    			   	
+		    				$cTpl = $tpl->getBlock("COMMENT_LI");
+		    				$cTpl->replace(ht::createLink($task->title, $url), 'taskBefore');
+		    			   	$cTpl->replace($h, 'time');
+		    			   	$cTpl->replace($colors, 'color4');
+		    			   	$cTpl->append2master();
+		    			   	
+	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $currentDate){
+	    			   	
+		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$colors = array_pop($color);
+		    			   	
+		    				$cTpl = $tpl->getBlock("COMMENT_LI");
+		    				$cTpl->replace(ht::createLink($task->title, $url), 'task');
+		    				$cTpl->replace($h, 'time');
+		    			   	$cTpl->replace($colors, 'color5');
+		    			   	$cTpl->append2master();
+		    			   	
+	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $dateAfter){
+	    			   	
+		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$colors = array_pop($color);
+		    			   	
+		    				$cTpl = $tpl->getBlock("COMMENT_LI");
+		    				$cTpl->replace(ht::createLink($task->title, $url), 'taskAfter');
+		    			    $cTpl->replace($h, 'time');
+		    			    $cTpl->replace($colors, 'color6');
+		    			   	$cTpl->append2master();
+		    			   	
+	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $day2After){
+	    			   	
+		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$colors = array_pop($color);
+		    			   	
+		    				$cTpl = $tpl->getBlock("COMMENT_LI");
+		    				$cTpl->replace(ht::createLink($task->title, $url), 'dayTaskAfter');
+		    			   	$cTpl->replace($h, 'time');
+		    			   	$cTpl->replace($colors, 'color7');
+		    			   	$cTpl->append2master();
+		    			   	
+	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $day3After){
+	    			   	
+		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$colors = array_pop($color);
+		    			   	
+		    				$cTpl = $tpl->getBlock("COMMENT_LI");
+		    				$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskAfter');
+		    			   	$$cTpl->replace($h, 'time');
+		    			   	$cTpl->replace($colors, 'color8');
+		    			   	$cTpl->append2master();
+	    			}
+	    			
+	    		}
+			}
+    		 
+    	}
 
-        return $this->renderWrapping($res);
+        return $this->renderWrapping($tpl);
     }
 
 
@@ -721,6 +924,24 @@ class cal_Calendar extends core_Master
         $res = '1';
 
         return $this->renderWrapping($res);
+    }
+    
+    function endTask($hour, $duration)
+    {
+    
+	 	$taskEnd = ((strstr($hour, ":", TRUE) * 3600) + (substr(strstr($hour, ":"),1) * 60) + $duration) / 3600;
+	    		
+	    $taskEndH = floor($taskEnd);
+	    $taskEndM =  ($taskEnd - $taskEndH) * 60;
+		if(substr($taskEndM,1) === FALSE){
+			$taskEndM = $taskEndM . '0';
+		}
+	
+		// Краен час: минути на събитието 
+	    $taskEndHour = $taskEndH . ":" . $taskEndM;
+    	
+	    return $taskEndHour;
+    	
     }
 
 }
