@@ -825,7 +825,7 @@ class email_Outgoings extends core_Master
      * Създава хедър към постинга
      */
     function getHeader($data)
-    {
+    {  
         $tpl = new ET(getFileContent("email/tpl/OutgoingHeader.shtml"));
         
         //Заместваме шаблоните
@@ -900,7 +900,7 @@ class email_Outgoings extends core_Master
         $tpl->replace($myCompany->pCode, 'pCode');
         $tpl->replace(tr($myCompany->place), 'city');
         $tpl->replace(tr($myCompany->address), 'street');
-        
+         
         return $tpl->getContent();
     }
     
@@ -923,6 +923,8 @@ class email_Outgoings extends core_Master
                 $data->row->headerType = tr('Съобщение');
             }
         }
+
+        $data->lg = $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
     }
     
     
@@ -932,7 +934,12 @@ class email_Outgoings extends core_Master
      */
     function renderSingleLayout_(&$data)
     {
+        if (Mode::is('printing')) {
+            core_Lg::push($data->lg);
+        }
+
         if (Mode::is('text', 'xhtml')) {
+           
             //Полета До и Към
             $attn = $data->row->recipient . $data->row->attn;
             $attn = trim($attn);
@@ -990,6 +997,10 @@ class email_Outgoings extends core_Master
         
         $tpl = new ET(tr('|*' . getFileContent($tpl)));
         
+        if (Mode::is('printing')) {
+            core_Lg::pop($data->lg);
+        }
+
         return $tpl;
     }
     
