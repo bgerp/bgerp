@@ -197,12 +197,12 @@ class email_UserInboxPlg extends core_Plugin
 
 
     /**
-     *
+     * Определяне на правата за действия над потребителите
      */
     function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = NULL)
     {
         if($action == 'delete') {
-            if(is_object($uRec) && $uRec->state != 'draft') {
+            if(is_object($uRec) && ($uRec->state != 'draft')) {
                 $roles = 'no_one';
             }
         }
