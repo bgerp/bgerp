@@ -22,6 +22,17 @@ function LoginFormSubmit(form, passSalt)
 
 
 /**
+ * Хеширане на потребителската парола със сол
+ */
+function passAddSalth(p, passSalt)
+{
+	var val = MD5(p + MD5(p) + passSalt);
+
+	return val;
+}
+
+
+/**
  * Хеширане на потребителската парола, преди изпращане
  */
 function encodePwd(p, passSalt, time)

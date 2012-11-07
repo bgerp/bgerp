@@ -207,15 +207,18 @@ class plg_UserReg extends core_Plugin
             
             $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
             
-            if (!$rec = $mvc->fetch($userId))
-            error("Този линк е невалиден. Вероятно е използван или е изтекъл.");
+            if (!$userId || (!$rec = $mvc->fetch($userId))) {
+                error("Този линк е невалиден. Вероятно е използван или е изтекъл.");
+            }
             
             // Проверка дали състоянието съответства на действието
-            if ($rec->state != 'draft' && $act == 'activate')
-            error('This account was activated yet!');
+            if ($rec->state != 'draft' && $act == 'activate') {
+                error('This account was activated yet!');
+            }
             
-            if ($rec->state == 'draft' && $act == 'changePass')
-            error('This account is not activated yet!');
+            if ($rec->state == 'draft' && $act == 'changePass') {
+                error('This account is not activated yet!');
+            }
             
             $form = cls::get('core_Form');
             $form->FLD('nick', 'varchar(32)', 'caption=Ник');
@@ -291,9 +294,10 @@ class plg_UserReg extends core_Plugin
             $tpl = $form->renderHtml(NULL, $pRec);
             
             $tpl->push('js/login.js', 'JS');
-            $tpl->replace('this.passEnc.value = encodePwd(this.pass.value, \'' .
+
+            $tpl->replace('this.passEnc.value = passAddSalth(this.pass.value, \'' .
                 EF_USERS_PASS_SALT . '\');' .
-                'this.pass2Enc.value = encodePwd(this.pass2.value, \'' .
+                'this.pass2Enc.value = passAddSalth(this.pass2.value, \'' .
                 EF_USERS_PASS_SALT . '\');' . 'this.passLen.value = this.pass.value.length;' .
                 'this.pass.value = this.pass2.value = \'\'', 'ON_SUBMIT');
             
