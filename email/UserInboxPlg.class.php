@@ -202,7 +202,7 @@ class email_UserInboxPlg extends core_Plugin
     function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = NULL)
     {
         if($action == 'delete') {
-            if($uRec->state != 'draft') {
+            if(is_object($uRec) && $uRec->state != 'draft') {
                 $roles = 'no_one';
             }
         }
