@@ -304,7 +304,7 @@ class plg_UserReg extends core_Plugin
             $content = $tpl;
             
             return FALSE;
-        } elseif ($act == 'resetPassForm') {
+        } elseif ($act == 'resetpassform') {
             
             $form = $mvc->getForm();
             
