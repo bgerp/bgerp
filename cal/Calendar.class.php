@@ -580,36 +580,42 @@ class cal_Calendar extends core_Master
 				    	"DarkSeaGreen",
 				    	"Aqua",
 				    	"DimGray",
-				    	"DarkBlue",
-				    	"Purple",
-				    	"BlueViolet",
-				    	"Khaki",
-				    	"LightSalmon", 
-				    	"Crimson");
+				    	"PapayaWhip ",
+				    	"Thistle",
+				    	"YellowGreen",
+				    	"PeachPuff",
+				    	"Moccasin", 
+				    	"MistyRose");
     	
     	$state = new stdClass();
-        $state->query = cal_Tasks::getQuery();
+        $state->query = self::getQuery();
+        
+       	$fromDate = dt::verbal2mysql($from);
+       	$toDate = str_replace("00:00:00", "23:59:59",dt::verbal2mysql ($from));
        	
-    	while ($rec =  $state->query->fetch()){
+    	while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
     		 
-    		$timeStarts = dt::mysql2verbal($rec->timeStart, 'd-m-Y');
+    		$timeStarts = dt::mysql2verbal($rec->time, 'd-m-Y');
     		
     		// Начален час: минути на събитието 
-    		$timeHour = dt::mysql2verbal($rec->timeStart, 'H:i');
+    		$timeHour = dt::mysql2verbal($rec->time, 'H:i');
 
 	        // Краен час: минути на събитието
-    		if($rec->timeDuration !== NULL || $rec->timeEnd !== NULL){ 
+    		/*if($rec->timeDuration !== NULL || $rec->timeEnd !== NULL){ 
     			$taskHour = self::endTask($timeHour, $rec->timeDuration);
     		} else {
     			$taskHour = FALSE;
-    		}
+    		}*/
     		
     		if(trim($timeStarts) == trim($from)){
 	          
     			$hour[$timeHour] = $rec->title;
-    			$hour[$taskHour] = "Kрай на задача: ". $rec->title;
+    			//$hour[$taskHour] = "Kрай на задача: ". $rec->title;
     			$hour[] = ksort($hour);
     			$tasks[] = $rec;
+    			if($rec->allDay == 'yes'){
+    				$allDay .= $rec->title . "\n";
+    			}
     		}
     	}
     	
@@ -642,20 +648,21 @@ class cal_Calendar extends core_Master
     		
 	         	foreach($tasks as $task){
 	       
-		         	if(dt::mysql2verbal($task->timeStart, 'H:i') == $h){
+		         	if(dt::mysql2verbal($task->time, 'H:i') == $h){
 		         	
-		         		$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		         		$url = getRetUrl($task->url);
 		
 				    	$cTpl = $tpl->getBlock("COMMENT_LI");
 						
 				    	if($task->allDay == 'no'){
 				    		$cTpl->replace('Няма задачи с продължителност през целия ден', 'allday');
 				    	} else {
-				    		$cTpl->replace($task->allDay, 'allday');
+				    		$cTpl->replace($allDay, 'allday');
+				    		
 				    	}
 				    	$colors = array_pop($color);
     		            $cTpl->replace($colors, 'color');
-    		            $cTpl->replace(ht::createLink($t, $url), 'tasktitle');
+    		            $cTpl->replace(ht::createLink($task->title, $url), 'tasktitle');
 				    	$cTpl->replace($h, 'time');
 				    	$cTpl->replace($task->description, 'description');
 				    	
@@ -701,7 +708,8 @@ class cal_Calendar extends core_Master
 				    	"Moccasin", 
 				    	"MistyRose");
         
-        $hour = array(  "00:00" => " ",
+        $hour = array(  "Цял ден" => " ",
+    					"00:00" => " ",
 				    	"01:00" => " ",
 				    	"02:00" => " ",
 				    	"03:00" => " ",
@@ -739,23 +747,24 @@ class cal_Calendar extends core_Master
 	        	
 	        } 
         }
-       
-        
+        $fromDate = dt::verbal2mysql ($day3Before);
+        $toDate =  str_replace("00:00:00", "23:59:59",dt::verbal2mysql ($day3After));
+      
         $state = new stdClass();
-        $state->query = cal_Tasks::getQuery();
-        
-        while ($rec =  $state->query->fetch()){
+        $state->query = self::getQuery();
+             
+        while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
         	
-        	$timeStarts = dt::mysql2verbal($rec->timeStart, 'd-m-Y');
+        	$timeStarts = dt::mysql2verbal($rec->time, 'd-m-Y');
     		
     		// Начален час: минути на събитието 
-    		$timeHour = dt::mysql2verbal($rec->timeStart, 'H:i');
+    		$timeHour = dt::mysql2verbal($rec->time, 'H:i');
     		
-    		if($rec->timeDuration !== NULL || $rec->timeEnd !== NULL){
+    		/*if($rec->timeDuration !== NULL || $rec->timeEnd !== NULL){
     			$taskHour = self::endTask($timeHour, $rec->timeDuration);
     		} else {
     			$taskHour = FALSE;
-    		}
+    		}*/
     		
     		
     		if(trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day - 1, $year)),'d-m-Y')) ||
@@ -766,7 +775,7 @@ class cal_Calendar extends core_Master
     		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day + 2, $year)),'d-m-Y')) ||
     		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day + 3, $year)),'d-m-Y')) ){
     			$hour[$timeHour] = $rec->title;
-    			$hour[$taskHour] = "Kрай на задача: ". $rec->title;
+    			//$hour[$taskHour] = "Kрай на задача: ". $rec->title;
     			$hour[] = ksort($hour);
     			
     			$tasks[] = $rec;
@@ -810,10 +819,10 @@ class cal_Calendar extends core_Master
 			if(is_array($tasks)){
     		
 	    		foreach($tasks as $task){
-	    			if(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
-	    			   dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $day3Before){
+	    			if(dt::mysql2verbal($task->time, 'H:i') == $h && 
+	    			   dt::mysql2verbal($task->time, 'l d-m-Y') == $day3Before){
 	    			   	
-		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl = $tpl->getBlock("COMMENT_LI");
@@ -822,10 +831,10 @@ class cal_Calendar extends core_Master
 		    			   	$cTpl->replace($colors, 'color2');
 		    			   	$cTpl->append2master();
 		    			   	
-	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $day2Before){
+	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day2Before){
 	    			   	
-		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl = $tpl->getBlock("COMMENT_LI");
@@ -834,10 +843,10 @@ class cal_Calendar extends core_Master
 		    			   	$cTpl->replace($colors, 'color3');
 		    			   	$cTpl->append2master();
 		    			   	
-	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $dateBefore){
+	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $dateBefore){
 	    			   	
-		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl = $tpl->getBlock("COMMENT_LI");
@@ -846,10 +855,10 @@ class cal_Calendar extends core_Master
 		    			   	$cTpl->replace($colors, 'color4');
 		    			   	$cTpl->append2master();
 		    			   	
-	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $currentDate){
+	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $currentDate){
 	    			   	
-		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl = $tpl->getBlock("COMMENT_LI");
@@ -858,10 +867,10 @@ class cal_Calendar extends core_Master
 		    			   	$cTpl->replace($colors, 'color5');
 		    			   	$cTpl->append2master();
 		    			   	
-	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $dateAfter){
+	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $dateAfter){
 	    			   	
-		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			    $url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl = $tpl->getBlock("COMMENT_LI");
@@ -870,10 +879,10 @@ class cal_Calendar extends core_Master
 		    			    $cTpl->replace($colors, 'color6');
 		    			   	$cTpl->append2master();
 		    			   	
-	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $day2After){
+	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day2After){
 	    			   	
-		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			    $url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl = $tpl->getBlock("COMMENT_LI");
@@ -882,15 +891,15 @@ class cal_Calendar extends core_Master
 		    			   	$cTpl->replace($colors, 'color7');
 		    			   	$cTpl->append2master();
 		    			   	
-	    			} elseif(dt::mysql2verbal($task->timeStart, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->timeStart, 'l d-m-Y') == $day3After){
+	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
+	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day3After){
 	    			   	
-		    			   	$url = toUrl(array('cal_Tasks', 'single', $task->id), 'relative');
+		    			   	$url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl = $tpl->getBlock("COMMENT_LI");
 		    				$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskAfter');
-		    			   	$$cTpl->replace($h, 'time');
+		    			   	$cTpl->replace($h, 'time');
 		    			   	$cTpl->replace($colors, 'color8');
 		    			   	$cTpl->append2master();
 	    			}
