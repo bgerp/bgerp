@@ -49,7 +49,7 @@ defIfNot('USERREG_ACTIVATION_EMAIL',
     "\nThe above URL will expired after [#regLifetime#] days." .
     "\n" .
     "\nRegards," .
-    "\n\*[#senderName#]|");
+    "\n|*[#senderName#]|");
 
 
 /**
@@ -67,7 +67,7 @@ defIfNot('USERREG_RESET_PASS_EMAIL',
     "\nThe above URL will expired after [#regLifetime#] days." .
     "\n" .
     "\nRegards," .
-    "\n[#senderName#]");
+    "\n|*[#senderName#]");
 
 
 /**
@@ -203,8 +203,7 @@ class plg_UserReg extends core_Plugin
             
             $id = Request::get('id', 'identifier');
             
-            if (!$id)
-            error('Грешка 0', $id);
+            if (!$id) error('Грешка 0', $id);
             
             $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
             
@@ -255,7 +254,7 @@ class plg_UserReg extends core_Plugin
             
             $pRec = $form->input('pass,pass2,passEnc,pass2Enc,passLen,id');
             
-            if ($pRec) {
+            if ($form->isSubmitted() && $pRec) {
                 if ($pRec->pass) {
                     // В случай, че няма JavaScript, паролите идват чисти
                     // В такъв случай ги криптираме
