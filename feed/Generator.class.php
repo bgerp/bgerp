@@ -213,7 +213,7 @@ class feed_Generator extends core_Manager {
 			$imgUrl = sbf('feed/img/' . $rec->type . '.png', '\'');
 			
 			$row->title = ht::createLink($row->title, $rssLink, NULL, 
-                array('class' => 'linkWithIcon', 'style' => "padding-left:45px; background-image:url({$imgUrl})"));
+                array('class' => 'linkWithIcon', 'style' => "padding-left:45px !important; background-image:url({$imgUrl})"));
 			
 		}
 	}
