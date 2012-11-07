@@ -199,7 +199,7 @@ class plg_UserReg extends core_Plugin
             }
             
             return FALSE;
-        } elseif ($act == 'activate' || $act == 'changePass') {
+        } elseif ($act == 'activate' || $act == 'changepass') {
             
             $id = Request::get('id', 'identifier');
             
@@ -317,7 +317,7 @@ class plg_UserReg extends core_Plugin
             
             $rec = $form->input('email,captcha');
             
-            if ($rec) {
+            if ($form->isSubmitted() && $rec) {
                 $id = $mvc->fetchField(array("#email = '[#1#]'", $rec->email), 'id');
                 
                 if (!$id) {
