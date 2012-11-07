@@ -146,6 +146,7 @@ pre.richtext {
     border:solid 1px #ccc;
     overflow: auto;
 	white-space: pre-wrap;
+	max-width:800px;
 }
 
 .richtext .code {
