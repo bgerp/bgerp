@@ -29,11 +29,12 @@ class core_Html
                 foreach ($attributes as $atr => $content) {
                     // Смятаме, че всички атрибути с имена, започващи със '#'
                     // са вътрешни и поради това не ги показваме в елемента
-                    if ($atr{0} == '#')
-                    continue;
+                    if ($atr{0} == '#') continue;
+                    
 
                     if (is_string($content)) {
-                        $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
+                        $content = htmlspecialchars($content);
+                        // $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
                     }
 
                     $attrStr .= " " . $atr . "=\"" . $content . "\"";

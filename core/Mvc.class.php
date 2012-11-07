@@ -270,9 +270,9 @@ class core_Mvc extends core_FieldSet
             }
         }
 
-        $this->dbTableUpdated();
-
         if (!$this->db->query($query)) return FALSE;
+
+        $this->dbTableUpdated();
 
         if (!$rec->id) {
             $rec->id = $this->db->insertId();
