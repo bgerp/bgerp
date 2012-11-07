@@ -44,7 +44,7 @@ class feed_Generator extends core_Manager {
 	function description()
 	{
 		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory');
-		$this->FLD('description', 'varchar(100)', 'caption=Oписание, mandatory');
+		$this->FLD('description', 'text', 'caption=Oписание, mandatory');
 		$this->FLD('logo', 'fileman_FileType(bucket=feedImages)', 'caption=Лого');
 		$this->FLD('source', 'class(interface=feed_SourceIntf)', 'caption=Източник, mandatory');
 		$this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, notNull, mandatory');
