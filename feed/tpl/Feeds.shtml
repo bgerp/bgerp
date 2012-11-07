@@ -6,9 +6,10 @@
 	<li style = 'margin-top:5px'>
 		<table border='0'>
 			<tr>
-				<td width='30px'>[#logo#]</td>
-				<td><b>[#title#]</b></td>
-				<td style='color:darkgreen;padding-left:10px;font-style:italic;'>[#description#]</td>
+				<td>
+					<b>[#title#]</b>
+					<div style='color:darkgreen;font-style:italic;'>[#description#]</div>
+				</td>
 			</tr>
 		</table>
 	</li>

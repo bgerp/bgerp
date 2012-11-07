@@ -132,6 +132,7 @@ class feed_Generator extends core_Manager {
         // Генерираме хранилката
 		$feed->generateFeed();
 		
+        shutdown();
 	}
 	
 	
@@ -182,8 +183,8 @@ class feed_Generator extends core_Manager {
 		$layout = new ET(getFileContent('feed/tpl/Feeds.shtml'));
 		
 		// Поставяме иконка и заглавие
-		$layout->append('Нашите емисии', 'HEADER');
-		$icon = ht::createElement('img', array('src' => sbf("feed/img/feed.png", "")));
+		$layout->append(tr('Нашите емисии'), 'HEADER');
+		$icon = ht::createElement('img', array('src' => sbf("feed/img/feed.png", ""), 'style' => 'float:left;;'));
 		$layout->append($icon, 'ICON');
 		
 		foreach($data->rows as $row) {
@@ -204,16 +205,16 @@ class feed_Generator extends core_Manager {
 	{
 		// Подготвяме адреса на хранилката
 		$rssLink = array($this, 'get', $rec->id);
-		$row->url = type_Url::toVerbal(toUrl($rssLink, 'absolute'));
+        $typeUrl = cls::get('type_Url');
+		$row->url = $typeUrl->toVerbal(toUrl($rssLink, 'absolute'));
 		
 		if($fields['-feeds']) {
-			
-			$row->title = ht::createLink($row->title, $rssLink);
-			
 			// Преобразуваме логото на фийда да е  img
-			$logoSrc = fileman_Download::getDownloadUrl($rec->logo);
-			$logoRow = array('width'=>'30px', 'height' => '30px', 'src' => $logoSrc);
-			$row->logo = ht::createElement('img', $logoRow);
+			$imgUrl = sbf('feed/img/' . $rec->type . '.png', '\'');
+			
+			$row->title = ht::createLink($row->title, $rssLink, NULL, 
+                array('class' => 'linkWithIcon', 'style' => "padding-left:45px; background-image:url({$imgUrl})"));
+			
 		}
 	}
 	
