@@ -662,7 +662,7 @@ class forum_Postings extends core_Detail {
 			
 			// Единствено потребители с роли в canSeeThemes на дъската могат да виждат темите
 			$board = forum_Boards::fetch($rec->boardId);
-			$res = forum_Boards::getVerbal($board, 'canSeeThemes');
+			$res = forum_Boards::getVerbal($board, 'canSeeBoard');
 		}
 		
 		if($action == 'add' && isset($rec)) {
