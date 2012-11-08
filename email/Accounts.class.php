@@ -259,7 +259,7 @@ class email_Accounts extends core_Master
                 defIfNot('BGERP_DEFAULT_EMAIL_CERT', 'noValidate');
                 $rec->cert = BGERP_DEFAULT_EMAIL_CERT;
                 
-                defIfNot('BGERP_DEFAULT_EMAIL_CERT', 'inbox');
+                defIfNot('BGERP_DEFAULT_EMAIL_FOLDER', 'inbox');
                 $rec->folder = BGERP_DEFAULT_EMAIL_FOLDER;
 
                 $rec->user = BGERP_DEFAULT_EMAIL_USER;
