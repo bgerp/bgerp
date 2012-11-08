@@ -170,6 +170,7 @@ class cal_Calendar extends core_Master
         	
             $data->query->where("#time >= date('$from')");
             $data->query->where("#users = '' OR #users LIKE '|{$currentID}|'");
+            //$data->query->where("#users = '' OR  #users IS NULL OR #users LIKE '|{$currentID}|'");
         }
     }
     
@@ -663,7 +664,11 @@ class cal_Calendar extends core_Master
 				    	$colors = array_pop($color);
     		            $cTpl->replace($colors, 'color');
     		            $cTpl->replace(ht::createLink($task->title, $url), 'tasktitle');
-				    	$cTpl->replace($h, 'time');
+		         	    if($h == "00:00"){
+		    				$cTpl->replace("Цял ден", 'time');
+		    			} else{
+		    				$cTpl->replace($h, 'time');
+		    			}
 				    	$cTpl->replace($task->description, 'description');
 				    	
 				    	$cTpl->append2master();
@@ -708,8 +713,7 @@ class cal_Calendar extends core_Master
 				    	"Moccasin", 
 				    	"MistyRose");
         
-        $hour = array(  "Цял ден" => " ",
-    					"00:00" => " ",
+        $hour = array(  "00:00" => " ",
 				    	"01:00" => " ",
 				    	"02:00" => " ",
 				    	"03:00" => " ",
@@ -823,7 +827,6 @@ class cal_Calendar extends core_Master
     		
 	    		foreach($tasks as $task){
 	    			
-						    			
 	    			$cTpl = $tpl->getBlock("COMMENT_LI");
 	    			
 	    			if(dt::mysql2verbal($task->time, 'H:i') == $h && 
@@ -833,10 +836,13 @@ class cal_Calendar extends core_Master
 		    			   	$colors = array_pop($color);
 		    			   			    				
 		    				$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskBefore');
-		    			   	$cTpl->replace($h, 'time');
+		    				if($h == "00:00"){
+		    					$cTpl->replace("Цял ден", 'time');
+		    				} else{
+		    			   		$cTpl->replace($h, 'time');
+		    				}
 		    			   	$cTpl->replace($colors, 'color2');
-		    			   	$cTpl->append2master();
-		    			   	
+		    			   
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day2Before){
 	    			   	
@@ -844,10 +850,13 @@ class cal_Calendar extends core_Master
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'dayTaskBefore');
-		    			   	$cTpl->replace($h, 'time');
+	    			        if($h == "00:00"){
+		    					$cTpl->replace("Цял ден", 'time');
+		    				} else{
+		    			   		$cTpl->replace($h, 'time');
+		    				}
 		    			   	$cTpl->replace($colors, 'color3');
-		    			   	$cTpl->append2master();
-		    			   	
+		    			  		    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $dateBefore){
 	    			   	
@@ -855,10 +864,13 @@ class cal_Calendar extends core_Master
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'taskBefore');
-		    			   	$cTpl->replace($h, 'time');
+	    			        if($h == "00:00"){
+		    					$cTpl->replace("Цял ден", 'time');
+		    				} else{
+		    			   		$cTpl->replace($h, 'time');
+		    				}
 		    			   	$cTpl->replace($colors, 'color4');
-		    			   	$cTpl->append2master();
-		    			   	
+		    					    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $currentDate){
 	    			   	
@@ -866,10 +878,13 @@ class cal_Calendar extends core_Master
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'task');
-		    				$cTpl->replace($h, 'time');
+	    			        if($h == "00:00"){
+		    					$cTpl->replace("Цял ден", 'time');
+		    				} else{
+		    			   		$cTpl->replace($h, 'time');
+		    				}
 		    			   	$cTpl->replace($colors, 'color5');
-		    			   	$cTpl->append2master();
-		    			   	
+		    			  		    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $dateAfter){
 	    			   	
@@ -877,10 +892,13 @@ class cal_Calendar extends core_Master
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'taskAfter');
-		    			    $cTpl->replace($h, 'time');
+	    			        if($h == "00:00"){
+		    					$cTpl->replace("Цял ден", 'time');
+		    				} else{
+		    			   		$cTpl->replace($h, 'time');
+		    				}
 		    			    $cTpl->replace($colors, 'color6');
-		    			   	$cTpl->append2master();
-		    			   	
+		    			   		    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day2After){
 	    			   	
@@ -888,10 +906,13 @@ class cal_Calendar extends core_Master
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'dayTaskAfter');
-		    			   	$cTpl->replace($h, 'time');
+	    			        if($h == "00:00"){
+		    					$cTpl->replace("Цял ден", 'time');
+		    				} else{
+		    			   		$cTpl->replace($h, 'time');
+		    				}
 		    			   	$cTpl->replace($colors, 'color7');
-		    			   	$cTpl->append2master();
-		    			   	
+		    			  		    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day3After){
 	    			   	
@@ -899,8 +920,13 @@ class cal_Calendar extends core_Master
 		    			   	$colors = array_pop($color);
 		    			   	
 		    				$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskAfter');
-		    			   	$cTpl->replace($h, 'time');
+	    			        if($h == "00:00"){
+		    					$cTpl->replace("Цял ден", 'time');
+		    				} else{
+		    			   		$cTpl->replace($h, 'time');
+		    				}
 		    			   	$cTpl->replace($colors, 'color8');
+		    			   	$cTpl->append2master();
 		    			   	
 	    			}
 	    			
