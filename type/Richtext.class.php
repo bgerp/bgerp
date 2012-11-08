@@ -374,20 +374,28 @@ class type_Richtext extends type_Text {
         // URL' то 
         $url = $match[2];
         
-        // Проверяваме дали е валидно URL и дали има текстова част
-        if (!URL::isValidUrl($url) && trim($title)) {
+        // Ако URL' то не е валидно
+        if (!URL::isValidUrl($url)) {
             
-            // Ако не е валидно URL, тогава се опитваме да извлечем URL' то от заглавието
-            $url = $title;
-            
-            // Ако все още не е валидно URL, добавяме в титлата http
-            if (!URL::isValidUrl($url)) {
-                $url = "http://{$title}";
-            }    
+            // Проверяваме дали имаме URL част, която да не е http://
+            if (trim($url) && (trim($url) != 'http://')) {
+                
+                // Ако имаме $url част добавяме към нея
+                $url = "http://{$url}";
+            } elseif(trim($title)) {
+                
+                // Ако има заглавие и другите условия не отговарят, тогава използваме заглавието
+                $url = $title;    
+                
+                // Ако все още не е валидно URL, добавяме в титлата http
+                if (!URL::isValidUrl($url)) {
+                    $url = "http://{$url}";
+                }   
+            }
         }
         
         $url = core_Url::escape($url);
-        
+
         $this->_htmlBoard[$place] = $url;
          
         if(core_Url::isLocal($url, $rest)) {
