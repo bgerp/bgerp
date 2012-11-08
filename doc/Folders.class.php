@@ -606,11 +606,21 @@ class doc_Folders extends core_Master
         $sbfIcon = sbf($coverClassInst->singleIcon, '"', $isAbsolute);
         
         // Ако мода е xhtml
-        if (Mode::get('text') == 'xhtml') {
+        if (Mode::is('text', 'xhtml')) {
+            
+            // Ескейпваме плейсхолдърите
+            $title = core_ET::escape($title);
+            
+            // TODO може да се използва този начин вместо ескейпването
+            //$res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
             
             // Добаваме span с иконата и заглавиетео - не е линк
             // TODO класа да не е linkWithIcon
             $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+        } elseif (Mode::is('text', 'plain')) {
+            
+            // Ескейпваме плейсхолдърите и връщаме титлата
+            $res = core_ET::escape($title);
         } else {
             
             // Линка
@@ -627,7 +637,28 @@ class doc_Folders extends core_Master
         
         return $res;
     }
-
+    
+    
+    /**
+     * Името на класа на корицата на папка
+     * 
+     * @param int $id key(mvc=doc_Folders)
+     * @return string име на PHP клас-наследник на core_Mvc
+     */
+    public static function fetchCoverClassName($id)
+    {
+        $folderClass = static::fetchField($id, 'coverClass');
+        $folderClassName = cls::getClassName($folderClass);
+        
+        return $folderClassName;
+    }
+    
+    
+    public static function fetchCoverId($id)
+    {
+        return static::fetchField($id, 'coverId');
+    }
+    
 
     /**
      *
@@ -693,4 +724,5 @@ class doc_Folders extends core_Master
         }
 
         return $res;
-    }}
+    }
+}

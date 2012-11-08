@@ -1340,8 +1340,8 @@ select {
 #cmsBottom {
 	font-size:1.2em;
 	padding:0px;
-	padding-top:10px;
-	padding-bottom:10px;
+	padding-top:7px;
+	height:37px;
 	display:block;
 	width:1000px;
 }

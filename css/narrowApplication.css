@@ -867,8 +867,8 @@ fieldset.sharing-history i {
 #cmsBottom {
 	font-size:1.2em;
 	padding:0px;
-	padding-top:10px;
-	padding-bottom:10px;
+	padding-top:7px;
+	height:37px;
 	display:block;
 	width:1000px;
 	min-width:610px; 
@@ -1122,36 +1122,6 @@ a.profile {
 }
 
 a.profile.ceo {
-    background-color:#66a;
-    color:white;
-}
-
-a.profile.manager {
-    background-color:#ffc;
-}
-
-a.profile.officer {
-    background-color:#dfd;
-}
-
-a.profile.executive {
-    background-color:#ddd;
-}
-
-a.profile.contractor {
-    background-color:#922;
-    color:white;
-}
-
-/*
- * Хипервръзки към профилите на потребители
- */
-a.profile {
-    padding:2px;
-    border-radius:2px;
-}
-
-a.profile.ceo {
 	color:blue;
 }
 
@@ -1170,6 +1140,7 @@ a.profile.executive {
 a.profile.contractor {
 	color:#f00;
 }
+
 
 
 /**

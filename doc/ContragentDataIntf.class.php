@@ -21,17 +21,20 @@ class doc_ContragentDataIntf
      * Връща данните на получателя
      * return object
      *
-     * $obj->name       - Име
      * $obj->company    - Името на компанията
-     * $obj->companyId  - Id' то на компанията
+     * $obj->companyId  - Id' то на компанията - key(mvc=crm_Companies)
      * $obj->country    - Името на държавата
      * $obj->countryId  - Id' то на
-     * $obj->pCode      -код
+     * $obj->vatNo      - ДДС номер на компанията
+     * $obj->pCode      - код
      * $obj->place      -
      * $obj->email      - Имейл
      * $obj->tel        - Телефон
      * $obj->fax        - Факс
      * $obj->address    - Адрес
+     * 
+     * $obj->name       - Име на физическо лице
+     * $obj->personId   - ИД на лице - key(mvc=crm_Persons)
      * $obj->pTel       - Персонален телефон
      * $obj->pMobile    - Мобилен
      * $obj->pFax       - Персонален

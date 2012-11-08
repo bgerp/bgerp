@@ -1414,4 +1414,26 @@ class crm_Persons extends core_Master
         // Състоянието да е активно
         $query->where("#state = 'active'");
     }
+    
+    
+    /**
+     * Модифициране на edit формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        $conf = core_Packs::getConfig('crm');
+    	
+        $form = $data->form;
+        
+        if(empty($form->rec->id)) {
+            // Слагаме Default за поле 'country'
+            $Countries = cls::get('drdata_Countries');
+            $form->setDefault('country', $Countries->fetchField("#commonName = '" .
+                    $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+        }
+    }
 }

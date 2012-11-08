@@ -261,6 +261,10 @@ class doc_Containers extends core_Manager
         }
         
         $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
+
+        if(Mode::is('screenMode', 'narrow')) {
+            $row->document->prepend($row->created);
+        }
     }
     
 
@@ -754,11 +758,21 @@ class doc_Containers extends core_Manager
         $sbfIcon = sbf($ctrInst->singleIcon, '"', $isAbsolute);
 
         //Ако мода е xhtml
-        if (Mode::get('text') == 'xhtml') {
+        if (Mode::is('text', 'xhtml')) {
+            
+            // Ескейпваме плейсхолдърите
+            $title = core_ET::escape($title);
+            
+            // TODO може да се използва този начин вместо ескейпването
+            //$res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
             
             //Добаваме span с иконата и заглавиетео - не е линк
             //TODO класа да не е linkWithIcon
             $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+        } elseif (Mode::is('text', 'plain')) {
+            
+            // Ескейпваме плейсхолдърите и връщаме титлата
+            $res = core_ET::escape($title);
         } else {
             
             //Атрибути на линка

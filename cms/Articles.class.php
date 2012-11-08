@@ -127,15 +127,17 @@ class cms_Articles extends core_Master
 
         Mode::set('cmsLayout', $conf->CMS_THEME . '/Articles.shtml');
 
-        $id = Request::get('id', 'int');
+        $id = Request::get('id');
         
-        if(!$id) { 
+        if(!$id || !is_numeric($id)) { 
             $menuId =  Mode::get('cMenuId');
 
             if(!$menuId) {
                 $menuId = Request::get('menuId');
             }
-            expect($menuId, $menuId);
+            if(!$menuId) {
+                return new Redirect(array('Index'));
+            }
         } else {
             // Ако има, намира записа на страницата
             $rec = self::fetch($id);

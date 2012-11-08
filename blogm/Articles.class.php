@@ -43,7 +43,7 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Полета за листов изглед
 	 */
-	var $listFields ='id, title, categories, author, createdOn, createdBy, modifiedOn, modifiedBy';
+	var $listFields ='id, title, categories, author, language, createdOn, createdBy, modifiedOn, modifiedBy';
 	
     
     /**
@@ -86,13 +86,8 @@ class blogm_Articles extends core_Master {
 	 */
 	var $canArticle = 'every_one';
 	
+	
 	/**
-	 * Файл за единичен изглед
-	 */
-	//var $singleLayoutFile = 'blogm/tpl/SingleArticle.shtml';
-
-
-    /**
 	 * Единично заглавие на документа
 	 */
 	var $singleTitle = 'Статия';
@@ -112,6 +107,7 @@ class blogm_Articles extends core_Master {
             'caption=Коментари->Режим,maxRadio=4,columns=4,mandatory');
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
   		$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
+  		$this->FLD('language', 'enum(bg=Български,en=Английски)', 'caption=Език, notNull, value=bg');
          
 		$this->setDbUnique('title');
 	}
@@ -513,18 +509,20 @@ class blogm_Articles extends core_Master {
         
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
-			$layout->replace('Резултати при търсене на "<b>' . 
-                type_Varchar::escape($data->q) . '</b>"', 'BROWSE_HEADER');
+			$title = 'Резултати при търсене на "<b>' . type_Varchar::escape($data->q) . '</b>"';
 		} elseif( isset($data->archive)) {  
-   			$layout->replace('Архив за месец&nbsp;<b>' . 
-                dt::getMonth($data->archiveM, 'F') . ', ' . $data->archiveY . '&nbsp;г.</b>', 'BROWSE_HEADER');
+   			$title = 'Архив за месец&nbsp;<b>' . dt::getMonth($data->archiveM, 'F') . ', ' . $data->archiveY . '&nbsp;г.</b>';
         } elseif( isset($data->category)) {
             $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
-   			$layout->replace('Статии в категорията&nbsp;"<b>' . $category .
-                '</b>"', 'BROWSE_HEADER');
+   			$title = 'Статии в категорията&nbsp;"<b>' . $category . '</b>"';
         }
-
+        
+        $layout->replace($title, 'BROWSE_HEADER');
         $layout->append($data->pager->getPrevNext("« по-стари", "по-нови »"));
+        
+        if(core_Packs::fetch("#name = 'vislog'")) {
+            vislog_History::add($title ? str_replace('&nbsp;', ' ', strip_tags($title)) : 'БЛОГ');
+        }
 
         // Рендираме навигацията
         $layout->replace($this->renderNavigation($data), 'NAVIGATION');
@@ -699,37 +697,43 @@ class blogm_Articles extends core_Master {
     /**
      * Имплементиране на интерфейсния метод getItems от feed_SourceIntf
      * @param int $itemsCnt
-     * @param varchar(2) $lg
+     * @param enum $lg
      * @return array()
      */
     function getItems($itemsCnt, $lg)
     {
     	// Заявка за работа с модела
     	$query = $this->getQuery();
+    	
+    	// Филтрираме, подреждаме и ограничаваме броя на резултатите
+    	$query->where("#language = '{$lg}'");
     	$query->orderBy('createdOn', 'DESC');
     	$query->limit($itemsCnt);
     	
     	$items = array();
     	
-    	while($rec = $query->fetch()) {
-    		
-    		// Извличаме необходимите ни данни
-    		$obj = new stdClass();
-    		$obj->title = $rec->title;
-    		$obj->link = toUrl(array($this, 'Article', $rec->id), 'absolute');
-    		$obj->date = $rec->createdOn;
-    		
-    		// Извличаме описанието на статията, като съкръщаваме тялото и 
-    		$desc = explode("\n", $rec->body);
-    		if(count($desc) > 1) {
-    			$rec->body = $desc[0];
-    			$rec->body .= "[...]";
-    		}
-    		
-    		$obj->description = $rec->body;
-    		
-    		// Натрупваме информацията за статиите
-    		$items[] = $obj;
+    	if($query->count()) {
+    		$richText = cls::get('type_RichText');
+	    	while($rec = $query->fetch()) {
+	    		
+	    		// Извличаме необходимите ни данни
+	    		$item = new stdClass();
+	    		$item->title = $rec->title;
+	    		$item->link = toUrl(array($this, 'Article', $rec->id), 'absolute');
+	    		$item->date = $rec->createdOn;
+	    		
+	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
+	    		$desc = explode("\n", $rec->body);
+	    		if(count($desc) > 1) {
+	    			$rec->body = strip_tags($richText->toHtml($desc[0]));
+	    			$rec->body .= "[...]";
+	    		}
+	    		
+	    		$item->description = $rec->body;
+	    		
+	    		// Натрупваме информацията за статиите
+	    		$items[] = $item;
+	    	}
     	}
     	
     	return $items;
