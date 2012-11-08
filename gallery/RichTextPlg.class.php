@@ -18,19 +18,14 @@ class gallery_RichTextPlg extends core_Plugin
     /**
      * Обработваме елементите линковете, които сочат към докъментната система
      */
-    function on_AfterCatchRichElements($mvc, &$html)
+    function on_BeforeCatchRichElements($mvc, &$html)
     {
-        if (Request::get('Printing')) {
-            return;
-        }
-        
+       
         $this->mvc = $mvc;
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         // Обработваме елементите [images=????]  
         $html = preg_replace_callback("/\[img(=\#([^\]]*)|)\]\s*/si", array($this, 'catchImages'), $html);
-
-		
     }
     
     
