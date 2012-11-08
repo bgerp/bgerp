@@ -81,8 +81,8 @@ class cms_tpl_Page extends page_Html {
     static function on_Output(&$invoker)
     {
    	   // Генерираме хедъра и Линка към хедъра
-       $invoker->appendOnce(feed_Generator::generateHeaders(), 'HEAD');
-       $invoker->replace(feed_Generator::generateFeedLink(), 'FEED');
+       // $invoker->appendOnce(feed_Generator::generateHeaders(), 'HEAD');
+       // $invoker->replace(feed_Generator::generateFeedLink(), 'FEED');
         
     	
     	if (!Mode::get('lastNotificationTime')) {
