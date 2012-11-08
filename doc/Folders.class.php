@@ -608,9 +608,19 @@ class doc_Folders extends core_Master
         // Ако мода е xhtml
         if (Mode::get('text') == 'xhtml') {
             
+            // Ескейпваме плейсхолдърите
+            $title = core_ET::escape($title);
+            
+            // TODO може да се използва този начин вместо ескейпването
+            //$res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
+            
             // Добаваме span с иконата и заглавиетео - не е линк
             // TODO класа да не е linkWithIcon
             $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+        } elseif (Mode::get('text') == 'plain') {
+            
+            // Ескейпваме плейсхолдърите и връщаме титлата
+            $res = core_ET::escape($title);
         } else {
             
             // Линка
