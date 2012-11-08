@@ -667,6 +667,10 @@ class core_Db extends core_BaseClass
                     	foreach ($matches[1] as $pack) {
                     	    $res .= $Packs->setupPack($pack);
                     	}
+                        if(!haveRole('user')) {
+                            bp($res);
+                            die('error db');
+                        }
                     } else {
                     	bp($error);
                     }
