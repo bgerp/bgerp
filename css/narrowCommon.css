@@ -105,8 +105,27 @@ div.richtext li {
     padding-top:0.2em;
 }
 
-div.richtext li.lio {
-	margin-left:3em;
+div.richtext li {
+    margin:0px;
+    padding:0px;
+    margin-left:1.5em;
+    padding-top:0.2em;
+}
+
+div.richtext ul {
+	margin-top: -25px;
+	margin-bottom: -25px;
+	list-style-type: circle;
+}
+
+div.richtext ul ul {
+	list-style-type: square;
+}
+
+div.richtext ol {
+	margin-top: -25px;
+	margin-bottom: -25px;
+	list-style-type: decimal;
 }
 
 div.richtextHide {
