@@ -535,7 +535,7 @@ class core_Query extends core_FieldSet
                 if (count($arr) > 0) {
                     
                     foreach ($arr as $fld => $val) {
-                        $rec->{$fld} = $val;
+                        $rec->{$fld} = $this->mvc->fields[$fld]->type->fromMysql($val);
                     }
                 }
                 

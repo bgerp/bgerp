@@ -170,6 +170,12 @@ class core_Type extends core_BaseClass
     }
     
     
+    public function fromMysql($value)
+    {
+        return $value;
+    }
+    
+    
     /**
      * Проверява зададената стойност дали е допустима за този тип.
      * Стойността е във вътрешен формат (MySQL)
