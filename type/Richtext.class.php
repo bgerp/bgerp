@@ -154,6 +154,9 @@ class type_Richtext extends type_Text {
 			$html = str_replace($replaceFrom, $replaceTo, $html);
 		}
         
+        // Даваме възможност други да правят обработки на текста
+        $this->invoke('BeforeCatchRichElements', array(&$html));
+
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]([\r\n]{0,2})/is", array($this, '_catchCode'), $html);
         
