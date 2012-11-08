@@ -78,7 +78,7 @@ class type_Keylist extends core_Type {
      * има select = конкретно поле от и mvc
      * @todo: да се направи конвертирането
      */
-    static function toMysql($value, $db, $notNull, $defValue)
+    public function toMysql($value, $db, $notNull, $defValue)
     {
         return parent::toMysql($value, $db, $notNull, $defValue);
     }
