@@ -263,8 +263,8 @@ class feed_Generator extends core_Manager {
 		// Подготвяме иконка с линк към публичния лист на хранилката
 		$url = array('feed_Generator', 'feeds');
 		$src = sbf("feed/img/feed.png", "");
-		$img = ht::createElement('img', array('src' => $src, 'style' => 'margin-left:7px'));
-		$link = ht::createLink($img, $url);
+		$img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;'));
+		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:0px;margin-left:7px;float:left;'));
 		
 		// Добавяме линка към шаблона
 		$tpl->append($link);
