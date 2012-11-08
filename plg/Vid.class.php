@@ -99,6 +99,9 @@ class plg_Vid extends core_Plugin
         $vid = Request::get('id'); 
         if($vid && !is_numeric($vid)) {
             $id = $mvc->fetchField(array("#vid = '[#1#]'", $vid), 'id');
+            if(!$id) {
+                $id = FALSE;
+            }
             Request::push(array('id' => $id));
         }
     }
