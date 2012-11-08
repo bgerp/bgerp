@@ -625,10 +625,10 @@ class email_Incomings extends core_Master
                     $rec->isDublicate = $this->fetchField("#hash = '{$hash}'", 'id');
                 }
             } else {
+                $rec = new stdClass();
                 $rec->isService =  TRUE;
             }
         } else {
-            $rec = new stdClass();
             $rec->isDublicate = TRUE;
         }
         
