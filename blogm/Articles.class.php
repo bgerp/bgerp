@@ -509,18 +509,20 @@ class blogm_Articles extends core_Master {
         
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
-			$layout->replace('Резултати при търсене на "<b>' . 
-                type_Varchar::escape($data->q) . '</b>"', 'BROWSE_HEADER');
+			$title = 'Резултати при търсене на "<b>' . type_Varchar::escape($data->q) . '</b>"';
 		} elseif( isset($data->archive)) {  
-   			$layout->replace('Архив за месец&nbsp;<b>' . 
-                dt::getMonth($data->archiveM, 'F') . ', ' . $data->archiveY . '&nbsp;г.</b>', 'BROWSE_HEADER');
+   			$title = 'Архив за месец&nbsp;<b>' . dt::getMonth($data->archiveM, 'F') . ', ' . $data->archiveY . '&nbsp;г.</b>';
         } elseif( isset($data->category)) {
             $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
-   			$layout->replace('Статии в категорията&nbsp;"<b>' . $category .
-                '</b>"', 'BROWSE_HEADER');
+   			$title = 'Статии в категорията&nbsp;"<b>' . $category . '</b>"';
         }
-
+        
+        $layout->replace($title, 'BROWSE_HEADER');
         $layout->append($data->pager->getPrevNext("« по-стари", "по-нови »"));
+        
+        if(core_Packs::fetch("#name = 'vislog'")) {
+            vislog_History::add($title ? str_replace('&nbsp;', ' ', strip_tags($title)) : 'БЛОГ');
+        }
 
         // Рендираме навигацията
         $layout->replace($this->renderNavigation($data), 'NAVIGATION');
