@@ -213,10 +213,10 @@ class fileman_Get extends core_Manager {
 
 
             // Вземаме данните от посоченото URL
-            $data = file_get_contents($rec->url, FALSE, $context);
+            $data = @file_get_contents($rec->url, FALSE, $context);
 
             if(!$data) {
-                $data = file_get_contents($rec->url);
+                $data = @file_get_contents($rec->url);
 
             }
             foreach($http_response_header as $l) {
