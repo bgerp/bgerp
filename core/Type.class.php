@@ -170,6 +170,12 @@ class core_Type extends core_BaseClass
     }
     
     
+    /**
+     * Въртрешно PHP представяне на произволна стойност, сериализирана в MySQL поле.
+     * 
+     * @param string $value
+     * @return mixed stdClass, array, string, ...
+     */
     public function fromMysql($value)
     {
         return $value;
