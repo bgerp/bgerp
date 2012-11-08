@@ -261,6 +261,10 @@ class doc_Containers extends core_Manager
         }
         
         $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
+
+        if(Mode::is('screenMode', 'narrow')) {
+            $row->document->prepend($row->created);
+        }
     }
     
 
