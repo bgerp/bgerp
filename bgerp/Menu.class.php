@@ -510,6 +510,7 @@ class bgerp_Menu extends core_Manager
         
         $tpl->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $tpl->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
+        $tpl->prepend("\n<meta name=\"google\" value=\"notranslate\">", 'HEAD');
 
         return $tpl;
     }
