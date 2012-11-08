@@ -375,13 +375,13 @@ class type_Richtext extends type_Text {
         $url = $match[2];
         
         // Проверяваме дали е валидно URL и дали има текстова част
-        if (!filter_var($url, FILTER_VALIDATE_URL) && trim($title)) {
+        if (!URL::isValidUrl($url) && trim($title)) {
             
             // Ако не е валидно URL, тогава се опитваме да извлечем URL' то от заглавието
             $url = $title;
             
             // Ако все още не е валидно URL, добавяме в титлата http
-            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            if (!URL::isValidUrl($url)) {
                 $url = "http://{$title}";
             }    
         }
