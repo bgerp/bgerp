@@ -161,8 +161,8 @@ div.richtext li {
 }
 
 div.richtext ul {
-	margin-top: -25px;
-	margin-bottom: -25px;
+	margin-top: -20px;
+	margin-bottom: -15px;
 	list-style-type: circle;
 }
 
@@ -171,8 +171,8 @@ div.richtext ul ul {
 }
 
 div.richtext ol {
-	margin-top: -25px;
-	margin-bottom: -25px;
+	margin-top: -20px;
+	margin-bottom: -15px;
 	list-style-type: decimal;
 }
 
