@@ -355,9 +355,9 @@ class type_Richtext extends type_Text {
             // $Geshi = cls::get('geshi_Import');
             // $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
             
-            $code1 = "<pre class='richtext code'>" . trim($code) . "</pre>";;
+            $code1 = "<pre class='richtext code'>" . rtrim($code) . "</pre>";;
         } else {
-            $code1 = "<pre class='richtext'>" . trim($code) . "</pre>";;
+            $code1 = "<pre class='richtext'>" . rtrim($code) . "</pre>";;
         }
         
         $this->_htmlBoard[$place] = $code1;
@@ -376,6 +376,18 @@ class type_Richtext extends type_Text {
         
         // URL' то 
         $url = $match[2];
+        
+        // Ако сме в текстов режим
+        if (Mode::is('text', 'plain')) {
+            
+            // Изчистваме празните интервали в началото и края
+            $title = trim($title);
+            
+            // В зависимост от това дали имаме заглавие на линка, определяме текста
+            $text = ($title)? "({$title}) - {$url}" : $url;
+            
+            return $text;
+        }
         
         // Ако URL' то не е валидно
         if (!URL::isValidUrl($url)) {
@@ -569,12 +581,10 @@ class type_Richtext extends type_Text {
 
         $result = core_Url::escape($url);
         
-        if(!Mode::is('text', 'plain')) {
-            if( core_Url::isLocal($url, $rest) ) {
-                $result = $this->internalUrl($url, str::limitLen($url,120), $rest);
-            } else {
-                $result = $this->externalUrl($url, str::limitLen($url,120));
-            }
+        if( core_Url::isLocal($url, $rest) ) {
+            $result = $this->internalUrl($url, str::limitLen($url,120), $rest);
+        } else {
+            $result = $this->externalUrl($url, str::limitLen($url,120));
         }
         
         return $result;
@@ -590,7 +600,11 @@ class type_Richtext extends type_Text {
      */
     public function internalUrl_($url, $title, $rest)
     {
-        return "<a href=\"{$url}\">{$title}</a>";
+        if(!Mode::is('text', 'plain')) {
+            return "<a href=\"{$url}\">{$title}</a>";    
+        }
+        
+        return $url;
     }
     
 
@@ -603,9 +617,13 @@ class type_Richtext extends type_Text {
      */
     public function externalUrl_($url, $title)
     {
-        $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
-        
-        return $link;        
+        if(!Mode::is('text', 'plain')) {
+            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
+            
+            return $link;
+        } 
+
+        return $url;
     }
 
 
