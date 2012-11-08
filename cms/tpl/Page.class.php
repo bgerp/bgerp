@@ -81,7 +81,7 @@ class cms_tpl_Page extends page_Html {
     static function on_Output(&$invoker)
     {
         // Генерираме хедъра и Линка към хедъра
-        if(core_Packs::fetch("#name = 'feed')) {
+        if(core_Packs::fetch("#name = 'feed'")) {
             $invoker->appendOnce(feed_Generator::generateHeaders(), 'HEAD');
             $invoker->replace(feed_Generator::generateFeedLink(), 'FEED');
         }
