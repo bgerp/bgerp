@@ -1,0 +1,21 @@
+<li class='post-body'>
+	<table border='0' width='100%'>
+		<tr>
+			<td width='15%' class='user-info' rowspan='2'>
+				<div >
+					<div class='author'>[#createdBy#]</div>
+					<div class='avatar'>[#avatar#]</div>
+					<div class='published-on'>[#createdOn#]</div>
+				</div>
+			</td>
+			<td class='text-body'>
+				[#body#]
+			</td>
+		</tr>
+		<tr>
+			<td class='tools-box'>
+				[#topLink#]
+			</td>
+		</tr>
+	</table>
+</li>

@@ -11,7 +11,6 @@
 	</li>
 	<li class='thread-header'>
 	</li>
-<!--ET_BEGIN ROW-->
 	<li class='post-body'>
 		<table border='0' width='100%'>
 			<tr>
@@ -33,7 +32,9 @@
 			</tr>
 		</table>
 	</li>
-<!--ET_END ROW-->
+<!--ET_BEGIN COMMENTS-->
+[#COMMENTS#]
+<!--ET_END COMMENTS-->
 <li style='height:20px'>
 <div id='bottom-pager'>[#PAGER#]</div>
 </li>

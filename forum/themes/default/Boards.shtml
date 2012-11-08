@@ -1,8 +1,12 @@
 <li>
 	<table width='100%' border='0' cellpadding='3px'>
 	<tr>
-		<td width='63%' class='forum-table'><b>[#title#]</b><br>
-			<span class='forum-desc'>[#shortDesc#]</span>
+		<td width='63%' class='forum-table'>
+		<div class='forum-icon'>[#ICON#]</div>
+		   <div class='forum-row'>
+			    <b>[#title#]</b><br>
+				<span class='forum-desc'>[#shortDesc#]</span>
+			</div>
 		</td>
 		<td width='12%' class='right'>
 			<span class='forum-counts'><b>[#themesCnt#]</b>&nbsp;&nbsp;Теми</span><br>

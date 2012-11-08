@@ -62,6 +62,8 @@
 
 .theme-title {
 	font-weight:bold;
+	padding-right:15px;
+	padding-left:5px;
 }
 
 .last-theme a:link {
@@ -268,21 +270,6 @@ th{
 	box-shadow: 0px 0px 2px black;
 }
 
-.theme-row-title div {
-	padding-left:20px;
-	display:inline;
-	font-size:12px;
-	width:100%;
-}
-
-.theme-row-title div a.pagerSelected {
-	
-}
-
-#comment-form {
-	
-}
-
 #bottom-pager {
 	float:right;
 }
@@ -302,7 +289,7 @@ th{
 
 .no-comment {
 	font-style:italic;
-	font-size:14px;
+	font-size:12px;
 	display:block;
 	vertical-align:middle;
 }
@@ -330,4 +317,23 @@ h2{
 .tools-box .button {
 	padding-left:10px;
 	padding-right:10px;
+}
+
+.forum-icon {
+	margin-left:5px;
+	width:32px;
+	height:32px;
+	float:left;
+	display:block-inline;
+}
+
+.forum-row {
+	margin-left:15px;
+	float:left;
+	display:block-inline;
+}
+
+.forum-row div{
+	margin-left:20px;
+	display:inline;
 }

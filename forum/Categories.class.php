@@ -62,12 +62,11 @@ class forum_Categories extends core_Manager {
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(40)', 'caption=Заглавие,mandatory');
+		$this->FLD('title', 'varchar(40)', 'caption=Заглавие, mandatory');
 		$this->FLD('order', 'int', 'caption=Подредба');
 
 		// Поставяне на уникални индекси
-		$this->setDbUnique('title');
-		$this->setDbUnique('order');
+		$this->setDbUnique('title, order');
 	}
 	
 	
@@ -98,12 +97,12 @@ class forum_Categories extends core_Manager {
 		
 		while($rec = $query->fetch()) {
            
-			// Добавяме категорията като нов елемент на $data
+		   // Добавяме категорията като нов елемент на $data
 		   $cat = new stdClass();
 		   $cat->id = $rec->id;
 		   $cat->title = static::getVerbal($rec, 'title');
 		   $url = array('forum_Boards', 'Forum', 'cat'=> $cat->id);
-		   $cat->title = ht::createLink($cat->title, $url);
+		   $cat->title = ht::createLink(tr($cat->title), $url);
 		   $data->categories[] = $cat;
 			
 		}
