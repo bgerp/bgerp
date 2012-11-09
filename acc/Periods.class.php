@@ -151,13 +151,13 @@ class acc_Periods extends core_Manager
      */
     static function getFirstDayOfCurrentMonth()
     {
-        $date = time();
-        
+        $date  = time();
         $month = date('m', $date);
-        $year = date('Y', $date);
-        $timestamp = strtotime("$year-$month-01");
+        $year  = date('Y', $date);
         
-        return date('Y-m-d', strtotime("$year-$month-01"));
+        $firstDayStamp = mktime(0, 0, 0, $month, 1, $year);
+        
+        return date('Y-m-d', $firstDayStamp);
     }
     
     
@@ -168,14 +168,13 @@ class acc_Periods extends core_Manager
      */
     static function getLastDayOfCurrentMonth()
     {
-        $date = time();
+        $now   = time();
+        $month = date('m', $now);
+        $year  = date('Y', $now);
         
-        $month = date('m', $date);
-        $year = date('Y', $date);
-        $timestamp = strtotime("$year-$month-01");
-        $numberOfDaysInCurrentMonth = date('t', $timestamp);
+        $lastDayStamp = mktime(0, 0, 0, $month+1, 0, $year);
         
-        return date('Y-m-d', strtotime("$year-$month-$numberOfDaysInCurrentMonth"));
+        return date('Y-m-d', $lastDayStamp);
     }
     
     
@@ -310,6 +309,24 @@ class acc_Periods extends core_Manager
         return $recPrev;
     }
     
+
+    /**
+     * Данните на най-скоро създадения период
+     * 
+     * @return stdClass запис на модела acc_Periods
+     */
+    public static function fetchLastActivePeriod()
+    {
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->limit(1);
+        $query->orderBy('createdOn', 'DESC');
+        
+        $rec = $query->fetch();
+        
+        return $rec;
+    }
+    
     
     /**
      * Проверява дали края на редактирания период не попада в активния период
@@ -339,6 +356,38 @@ class acc_Periods extends core_Manager
                 $form->setError('end', 'Не може да е преди края на активния период ');
             }
         }
+    }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
+    {
+        if (!$data->form->rec->id) {
+            // При създаване на нов запис, зарежда форма с разумни ст-сти по подразбиране
+            $mvc::populateCreateDefaults($data->form);
+        }
+    }
+    
+    
+    /**
+     * Зарежда форма със стойности по подразбиране
+     * 
+     * @param core_Form $form
+     */
+    public static function populateCreateDefaults(core_Form $form)
+    {
+        $lastPeriodRec = static::fetchLastActivePeriod();
+        
+        if (!$lastPeriodRec) {
+            return;
+        }
+        
+        $form->rec->vatPercent     = $lastPeriodRec->vatPercent;
+        $form->rec->baseCurrencyId = $lastPeriodRec->baseCurrencyId;
     }
     
     
