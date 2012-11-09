@@ -148,7 +148,7 @@ class sales_Invoices extends core_Master
         $this->FLD('creatorName', 'varchar(255)', 'caption=Съставил, input=none');
         
         // Дата на данъчното събитие. Ако не се въведе е датата на фактурата.
-        $this->FLD('vatDate', 'date', 'caption=Дата на ДС');
+        $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Дата на ДС');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута');
         $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Начин на плащане');
         $this->FLD('deliveryId', 'key(mvc=trans_DeliveryTerms, select=name, allowEmpty)', 'caption=Доставка');
@@ -189,7 +189,7 @@ class sales_Invoices extends core_Master
     }
     
     
-    public function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         /* @var $form core_Form */
         $form = $data->form;
@@ -203,6 +203,34 @@ class sales_Invoices extends core_Master
         }
         
         $mvc::populateContragentData($form);
+    }
+    
+    
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if (!$form->isSubmitted()) {
+            return;
+        }
+        
+        if (!empty($form->rec->number)) {
+            $prevNumber = intval($form->rec->number)-1;
+            if (!$mvc->fetchField("#number = {$prevNumber}")) {
+                $form->setWarning('number', 'Липсва фактура с предходния номер!');
+            }
+        }
+        
+        if (!empty($form->rec->vatDate)) {
+            // Датата на дан. събитие може да е преди датата на ф-рата, но не-повече от 5 дни
+            // @todo ...
+        }
+    }
+    
+    
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+        if (empty($rec->vatDate)) {
+            $rec->vatDate = $rec->date;
+        }
     }
     
     

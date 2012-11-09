@@ -134,7 +134,7 @@
                                 <td style="padding-top: 10px; text-align: right;"><small><b>Дата на данъчното събитие</b></small></td>
                             </tr>
                             <tr>
-                                <td align="RIGHT">[#createdOn#]</td>
+                                <td align="RIGHT">[#vatDate#]</td>
                             </tr>
                             <tr>
                                 <td style="padding-top:10px; text-align:right;"><small><b>Основание за размера на ДДС</b></small></td>
