@@ -882,4 +882,29 @@ class fileman_Files extends core_Master
         
         return redirect($retUrl);
     }    
+    
+    
+    /**
+     * Преобразува линка към single' на файла richtext линк
+     * 
+     * @param string $fileHnd - Манипулатора на файла
+     * 
+     * @return string $res - Линка в richText формат
+     */
+    function getVerbalLinkFromClass($fileHnd)
+    {
+        // Записите за файла
+        $fRec = static::fetchByFh($fileHnd);
+        
+        // Ако няма такъв запис или нямаме права за single
+        if ((!$fRec) || (!static::haveRightFor('single', $fRec))) return FALSE;
+        
+        // Името на файла
+        $name = static::getVerbal($fRec, 'name');
+        
+        // Преобразуваме линка към richText линк
+        $res = "[file={$fileHnd}]{$name}[/file]";
+        
+        return $res;
+    }
 }
