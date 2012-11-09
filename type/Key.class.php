@@ -180,15 +180,18 @@ class type_Key extends type_Int {
                 }
             }
             
-            $mvc->invoke('AfterPrepareKeyOptions', array(&$options, $this));
+            $this->options = $options;
 
+            $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+            
+            
             setIfNot($handler, md5(json_encode($options[$id])));
             
             
             setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
 
             Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
-            
+             
             // Ако трябва да показваме combo-box
             if(count($options) > $maxSuggestions) {
                 
@@ -246,7 +249,9 @@ class type_Key extends type_Int {
                 }
                 
                 $selOpt[$options[$value]] = $options[$value];
-                
+                 
+                $this->options = $selOpt;
+
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
                 ", Act:\"ajax_GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\"}";
                 

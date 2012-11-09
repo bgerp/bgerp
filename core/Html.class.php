@@ -425,10 +425,13 @@ class core_Html
 
         // Ако нямаме JavaScript правим хипервръзка
         if (Mode::is('javascript', 'no')) {
+            
             $attr['href'] = $url;
 
-            if ($newWindow)
-            $attr['target'] = $newWindow;
+            if ($newWindow) {
+                $attr['target'] = $newWindow;
+            }
+
             $attr['rel'] = 'nofollow';
 
             return ht::createElement('a', $attr, "$title");
