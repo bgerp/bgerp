@@ -21,8 +21,8 @@
 			</div>
 		</td>
 		<td class='right' width='12%'>
-			<span class='forum-counts'><b>[#postingsCnt#]</b>&nbsp;&nbsp;Мнения</span><br>
-			<span class='forum-counts'><b>[#views#]</b>&nbsp;&nbsp;прегледа </span>
+			<span class='forum-counts'>[#postingsCnt#]</span><br>
+			<span class='forum-counts'>[#views#]</span>
 		</td>
 		<td class='last-by'>
 			<div id='avatar-container'>

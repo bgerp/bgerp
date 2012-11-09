@@ -36,7 +36,7 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 
 #topic-header {
 	background:rgba(250, 221, 187, 0.5);
-	text-indent:10px;
+	text-indent:15px;
 	font-family:Arial;
 	height:25px;
 	padding-top:5px;
@@ -56,6 +56,7 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 	text-indent:10px;
 	font-family:Arial;
 	margin-top:5px;
+	padding:15px;
 }
 
 .topic-info {
@@ -63,8 +64,7 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 }
 
 #td-misc {
-	padding-top:10px;
-	padding-bottom:10px;
+	padding:15px;
 }
 
 #created-td {
@@ -91,7 +91,7 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 }
 
 .body-comment {
-	padding-top:10px;
+	padding:15px;
 }
 
 #navigation-inner-link {
@@ -100,4 +100,8 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 
 .add-comment {
 	height:40px;
+}
+
+#toolbox {
+	padding-top:7px;
 }
