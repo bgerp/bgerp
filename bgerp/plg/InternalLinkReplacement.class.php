@@ -58,9 +58,14 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             $params[$restArr[$pId]] = $params[$restArr[$pId+1]];
             $pId++;
         }
-
+        
+        // Всички параметри, които проверяваме да са в долния регистър
+        $ctr = strtolower($params['Ctr']);
+        $act = strtolower($params['Act']);
+        $threadId = strtolower($params['threadId']);
+        
         // Папки
-        if($params['Ctr'] == 'doc_Threads' && ($params['Act'] == 'list' || $params['Act'] == 'default')) {
+        if($ctr == 'doc_threads' && ($act == 'list' || $act == 'default')) {
             
             // Вземаме вербалния линка към папката
             $res = doc_Folders::getVerbalLink($params);
@@ -74,7 +79,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         }
         
         // Нишки
-        if($params['Ctr'] == 'doc_Containers' && $params['threadId'] && ($params['Act'] == 'list' || $params['Act'] == 'default')) {
+        if($ctr == 'doc_containers' && $threadId && ($act == 'list' || $act == 'default')) {
         
             // Вземаме вербалния линка към папката
             $res = doc_Threads::getVerbalLink($params);
@@ -88,8 +93,8 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         }
 
         // Сингле
-        if ($params['Act'] == 'single') {
-            
+        if ($act == 'single') {
+
             // Вземаме вербалния линка към папката
             $res = doc_Containers::getVerbalLink($params);
 

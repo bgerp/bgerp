@@ -734,9 +734,21 @@ class doc_Containers extends core_Manager
             // Опитваме се да вземем инстанция на класа
             $ctrInst = cls::get($params['Ctr']);
             
+            // Ако метода съществува в съответия клас
+            if (method_exists($ctrInst, 'getVerbalLinkFromClass')) {
+                
+                // Вземаме линковете от класа
+                $res = $ctrInst->getVerbalLinkFromClass($params['id']); 
+
+                return $res;
+            }
+                
             // Вземаме записите
             $rec = $ctrInst->fetch($params['id']);
             
+            //Кое поле е избрано да се показва, като текст
+            expect($field = $ctrInst->rowToolsSingleField);
+
             // Очакваме да имаме права за съответния екшън
             expect($ctrInst->haveRightFor($params['Act'], $rec), 'Нямате права за разглеждане');
         } catch (core_exception_Expect $e) {
@@ -744,10 +756,7 @@ class doc_Containers extends core_Manager
             // Ако възникне някаква греша
             return FALSE;
         }
-        
-        //Кое поле е избрано да се показва, като текст
-        if (!($field = $ctrInst->rowToolsSingleField)) return ;
-        
+
         //Стойността на полето на текстовата част
         $title = $ctrInst->getVerbal($params['id'], $field);
         
