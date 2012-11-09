@@ -750,7 +750,7 @@ class doc_Containers extends core_Manager
             expect($field = $ctrInst->rowToolsSingleField);
 
             // Очакваме да имаме права за съответния екшън
-            expect($ctrInst->haveRightFor($params['Act'], $rec), 'Нямате права за разглеждане');
+            expect($ctrInst->haveRightFor('single', $rec), 'Нямате права за разглеждане');
         } catch (core_exception_Expect $e) {
             
             // Ако възникне някаква греша
