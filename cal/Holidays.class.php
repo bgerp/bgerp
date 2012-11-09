@@ -21,7 +21,13 @@ class cal_Holidays extends core_Master
      */
     var $loadList = 'cal_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
     
-
+    
+    /**
+     * @todo Чака за документация...
+     */
+    var $canSingle = 'user';
+    
+    
     /**
      * Заглавие на мениджъра
      */

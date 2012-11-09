@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
+ * Използва се по време на инициализацията на системата, при създаването на първия период
+ */
+defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
+
+/**
+ * Стойност по подразбиране на базовата валута.
+ * Използва се по време на инициализацията на системата, при създаването на първия период
+ */
+defIfNot('ACC_DEFAULT_CURRENCY_CODE', 'BGN');
+
 
 /**
  * Мениджира периодите в счетоводната система
@@ -42,7 +54,7 @@ class acc_Periods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, start=Начало, end, state, reports=Справки, close=Приключване";
+    var $listFields = "id, title, start=Начало, end, vatPercent, baseCurrencyId, state, reports=Справки, close=Приключване";
     
     
     /**
@@ -72,6 +84,9 @@ class acc_Periods extends core_Manager
         $this->FLD('state', 'enum(draft=Бъдещ,active=Активен,closed=Приключен)', 'caption=Състояние,input=none');
         $this->FNC('start', 'date', 'caption=Начало', 'dependFromFields=end');
         $this->FNC('title', 'varchar', 'caption=Заглавие,dependFromFields=start|end');
+        $this->FLD('params', 'object', 'input=none');
+        $this->FNC('vatPercent', 'percent', 'caption=Параметри->ДДС, input, dependFromFields=paramsBlob');
+        $this->FNC('baseCurrencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Параметри->Валута, input, dependFromFields=paramsBlob');
     }
     
     
@@ -114,6 +129,18 @@ class acc_Periods extends core_Manager
         }
         
         $rec->title = implode(' ', $title);
+    }
+    
+    
+    public static function on_CalcVatPercent(core_Mvc $mvc, $rec)
+    {
+        $rec->vatPercent = $rec->params->vatPercent;
+    }
+    
+    
+    public static function on_CalcBaseCurrencyId(core_Mvc $mvc, $rec)
+    {
+        $rec->baseCurrencyId = $rec->params->baseCurrencyId;
     }
     
     
@@ -191,6 +218,9 @@ class acc_Periods extends core_Manager
             $rec = new stdClass();
             $rec->end = dt::addDays(-1, $startDay);
             $rec->state = "closed";
+            $rec->params->vatPercent     = ACC_DEFAULT_VAT_RATE;
+            $rec->params->baseCurrencyId =
+                currency_Currencies::fetchField("#code = '" . ACC_DEFAULT_CURRENCY_CODE . "'", id);
             $mvc->save($rec);
             $res .= "<li style='color:green'>Създаден е <b>затворен</b> счетоводен период с край <b>" .
                 dt::mysql2verbal($rec->end, 'd/m/Y') . "</b>.</li>";
@@ -200,6 +230,9 @@ class acc_Periods extends core_Manager
             $lastDay = date("Y-m-t", strtotime($startDay));
             $rec->end = $lastDay;
             $rec->state = "active";
+            $rec->params->vatPercent     = ACC_DEFAULT_VAT_RATE;
+            $rec->params->baseCurrencyId =
+                currency_Currencies::fetchField("#code = '" . ACC_DEFAULT_CURRENCY_CODE . "'", id);
             $mvc->save($rec);
             
             $res .= "<li style='color:green'>Създаден е <b>активен</b> счетоводен период с начало с начало <b>" .
@@ -345,7 +378,23 @@ class acc_Periods extends core_Manager
             }
         }
     }
+
     
+    static function on_BeforeSave($mvc, $id, $rec)
+    {
+        $paramNames = array('vatPercent', 'baseCurrencyId');
+        $params     = array();
+        
+        foreach ($paramNames as $n) {
+            if (property_exists($rec, $n)) {
+                $params[$n] = $rec->{$n};
+            }
+        }
+        
+        if (!empty($params)) {
+            $rec->params = (object)$params;
+        }
+    }
     
     /**
      * Сортира записите по поле end

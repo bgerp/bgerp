@@ -6,20 +6,23 @@
 <!--ET_BEGIN ROW-->	
 	<tr class='theme-row'>
 		<td class='theme-row-title' width='67%' >
-		<!--ET_BEGIN type-->	
-			[#type#]&nbsp;
-		<!--ET_END type-->
-			<span class='theme-title'>[#title#]</span>
-			[#THEME_PAGER#]
-			<!--ET_BEGIN LOCKED-->
-			<span class='locked'>[#locked#]</span>
-			<!--ET_END LOCKED-->
-			<br>
-			<span class='authored'>Започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
+			<div class='forum-icon'>[#ICON#]</div>
+			<div class='forum-row'>
+			<!--ET_BEGIN type-->	
+				[#type#]&nbsp;
+			<!--ET_END type-->
+				<span class='theme-title'>[#title#]</span>
+				[#THEME_PAGER#]
+				<!--ET_BEGIN LOCKED-->
+				<span class='locked'>[#locked#]</span>
+				<!--ET_END LOCKED-->
+				<br>
+				<span class='authored'>Започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
+			</div>
 		</td>
 		<td class='right' width='12%'>
 			<span class='forum-counts'><b>[#postingsCnt#]</b>&nbsp;&nbsp;Мнения</span><br>
-			<span class='forum-counts'><b>1</b>&nbsp;&nbsp;прегледа </span>
+			<span class='forum-counts'><b>[#views#]</b>&nbsp;&nbsp;прегледа </span>
 		</td>
 		<td class='last-by'>
 			<div id='avatar-container'>

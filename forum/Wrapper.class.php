@@ -29,7 +29,7 @@ class forum_Wrapper extends plg_ProtoWrapper
 		if(Request::get('Act') == 'Topic') {
 			$topic = Request::get('id');
 			Mode::setPermanent('lastTopic', $topic);
-			}
+		}
 		
 		// Ако има последна тема в сесията създаваме адреса на таба
 		if($topic = Mode::get('lastTopic')) {
