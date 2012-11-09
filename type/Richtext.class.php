@@ -20,7 +20,8 @@ defIfNot('RICHTEXT_CACHE_TYPE', 'RichText');
  * @since     v 0.1
  * @link
  */
-class type_Richtext extends type_Text {
+class type_Richtext extends type_Text 
+{
     
     static $emoticons = array(
         'smile' => ' :) ',
@@ -33,6 +34,12 @@ class type_Richtext extends type_Text {
         'think' => ' :-? '
     );
     
+    
+    /**
+     * Шаблон за намиране на линкове в текст
+     */
+    static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
+
     
     /**
      * Рендира HTML инпут поле
@@ -174,7 +181,7 @@ class type_Richtext extends type_Text {
         
         
         // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback("#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i", array($this, '_catchUrls'), $html);
+        $html = preg_replace_callback(static::$urlPattern, array($this, '_catchUrls'), $html);
         
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/(\S+@\S+\.\S+)/i", array($this, '_catchEmails'), $html);
@@ -699,5 +706,56 @@ class type_Richtext extends type_Text {
         $this->invoke('AfterGetToolbar', array(&$toolbarArr, &$attr));
         
         return $toolbarArr;
+    }
+    
+    
+    /**
+     * Парсира вътрешното URL
+     * 
+     * @param URL $res - Вътрешното URL, което ще парсираме
+     * 
+     * @return array $params - Масив с парсираното URL
+     */
+    static function parseInternalUrl($rest)
+    {
+        $rest = trim($rest, '/');
+        
+        $restArr = explode('/', $rest);
+
+        $params = array();
+        
+        $lastPart = $restArr[count($restArr)-1];
+
+        if($lastPart{0} == '?') {
+           $lastPart = ltrim($lastPart, '?'); 
+           $lastPart = str_replace('&amp;', '&', $lastPart);
+           parse_str($lastPart, $params);
+           unset($restArr[count($restArr)-1]);
+        }
+
+        setIfNot($params['Ctr'], $restArr[0]);
+
+        setIfNot($params['Act'], $restArr[1], 'default');
+
+        if(count($restArr) % 2) {
+            setIfNot($params['id'], $restArr[2]);
+            $pId = 3;
+        } else {
+            $pId = 2;
+        }
+        
+        // Добавяме останалите параметри, които са в часта "път"
+        while($restArr[$pId]) {
+            $params[$restArr[$pId]] = $params[$restArr[$pId+1]];
+            $pId++;
+        }
+        
+        // Всички параметри, които проверяваме да са в долния регистър
+        $params['Ctr'] = mb_strtolower($params['Ctr']);
+        $params['Act'] = mb_strtolower($params['Act']);
+        $params['threadId'] = mb_strtolower($params['threadId']);
+        $params['folderId'] = mb_strtolower($params['folderId']);
+        
+        return $params;
     }
 }
