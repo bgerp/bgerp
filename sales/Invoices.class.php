@@ -203,7 +203,15 @@ class sales_Invoices extends core_Master
     public static function setFormDefaults(core_Form $form)
     {
         // Днешна дата в полето `date`
-        $form->rec->date = dt::now();
+        if (empty($form->rec->date)) {
+            $form->rec->date = dt::now();
+        }
+        
+        // ДДС % по-подразбиране - от периода към датата на ф-рата
+        $periodRec = acc_Periods::fetchByDate($form->rec->date);
+        if ($periodRec) {
+            $form->rec->vatRate = $periodRec->params->vatPercent;
+        }
 
         // Данни за контрагент
         static::populateContragentData($form);
