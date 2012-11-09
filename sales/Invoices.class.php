@@ -45,7 +45,8 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
-					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing';
+					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
+                    doc_SequencerPlg';
     
     
     /**
@@ -100,6 +101,14 @@ class sales_Invoices extends core_Master
      */
     var $searchFields = 'number, date, contragentName';
     
+    /**
+     * Име на полето съдържащо номер на фактурата
+     * 
+     * @var int
+     * @see doc_SequencerPlg
+     */
+    var $sequencerField = 'number';
+    
     
     /**
      * Описание на модела
@@ -107,10 +116,10 @@ class sales_Invoices extends core_Master
     function description()
     {
         // Дата на фактурата
-        $this->FLD('date', 'date', 'caption=Дата,  notNull, mandatory');
+        $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         
         // Номер на фактурата
-        $this->FLD('number', 'int', 'caption=Номер, notNull, input, mandatory, export=Csv');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv');
         
 //         $this->FLD('contragentId', 'int', 'notNull, input=hidden');
 //         $this->FLD('contragentClassId', 'key(mvc=core_Classes)', 'notNull, input=hidden');
@@ -175,6 +184,8 @@ class sales_Invoices extends core_Master
         /* $this->FLD('paid', 'int', 'caption=Платено'); */
         // $this->FLD("paidAmount", "number");
         /* $this->FLD('paidAmount', 'double(decimals=2)', 'caption=Сума'); */
+        
+        $this->setDbUnique('number');
     }
     
     
@@ -365,30 +376,6 @@ class sales_Invoices extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#number', 'DESC');
-    }
-    
-    
-    /**
-     * При добавяне слага пореден номер
-     *
-     * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    static function on_BeforeSave($mvc, &$id, $rec)
-    {
-        if ($rec->number === NULL) {
-            $query = $mvc->getQuery();
-            $where = "1=1";
-            $query->limit(1);
-            $query->orderBy('number', 'DESC');
-            
-            while($recInvoices = $query->fetch($where)) {
-                $lastNumber = $recInvoices->number;
-            }
-            
-            $rec->number = $lastNumber + 1;
-        }
     }
 
 
