@@ -84,29 +84,41 @@ class bgerp_Setup {
             $html .= $instances[$manager]->setupMVC();
         }
         
-        // Пакети, които ще се инсталират при инсталацията на bgERP
-        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,acc,currency,doc,cms,
-                  email,crm,cat,catpr,blast,rfid,hr,trz,catering,lab,sales,mp,store,trans,cash,bank,
-                  budget,purchase,accda,sens,cams,hclean,cal,fconv,log,fconv,cms,gallery,blogm,forum,
-                  vislog,avatar,statuses,google,gdocs,jqdatepick,oembed,chosen";
+        // Инстанция на мениджъра на пакетите
+        $Packs = cls::get('core_Packs');
 
+        
+        // Списък на основните модули на bgERP
+        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,acc,currency,doc,cms,
+                  email,crm,cat,catpr,blast,rfid,hr,trz,lab,sales,mp,store,trans,cash,bank,
+                  budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,gallery,blogm,forum,
+                  vislog";
+        
+        // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if(defined('EF_PRIVATE_PATH')) {
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));
         }
         
-        $Packs = cls::get('core_Packs');
+        // Добавяме допълнителните пакети, само при първоначален Setup
+        if(!$Packs->db->tableExists($Packs->dbTableName) || ($Packs->count() == 0)) {
+            $packs .= "avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen";
+        } else {
+            $packs = arr::make($packs, TRUE);
+            $pQuery = $Packs->getQuery();
+            
+            while($pRec = $pQuery->fetch()) {
+                if(!$packs[$pRec->name]) {
+                    $packs[$pRec->name] = $pRec->name;
+                }
+            }
+        }
         
+        // Извършваме инициализирането на всички включени в списъка пакети
         foreach(arr::make($packs) as $p) {
              $html .= $Packs->setupPack($p);
         }
+
         
-        $pQuery = $Packs->getQuery();
-        
-        while($pRec = $pQuery->fetch()) {
-            if(!$Packs->alreadySetup[$pRec->name]) {
-                $html .= $Packs->setupPack($pRec->name);
-            }
-        }
 
         //TODO в момента се записват само при инсталация на целия пакет
         
