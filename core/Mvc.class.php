@@ -71,10 +71,11 @@ class core_Mvc extends core_FieldSet
             $class = $this->className;
 
             // Намираме, кой е най-стария пра-родител на този клас, с 'description'
-            do { $descrClass = $class;
-            }
+            do { 
 
-            while(method_exists($class = get_parent_class($class), 'description'));
+                $descrClass = $class;
+
+            } while(method_exists($class = get_parent_class($class), 'description'));
 
             // Задаваме таблицата по подразбиране
             $this->dbTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($descrClass);
