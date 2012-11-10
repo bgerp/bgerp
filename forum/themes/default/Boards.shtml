@@ -9,8 +9,8 @@
 			</div>
 		</td>
 		<td width='12%' class='right'>
-			<span class='forum-counts'><b>[#themesCnt#]</b>&nbsp;&nbsp;Теми</span><br>
-			<span class='forum-counts'><b>[#commentsCnt#]</b>&nbsp;&nbsp;Мнения</span>
+			<span class='forum-counts'>[#themesCnt#]</span><br>
+			<span class='forum-counts'>[#commentsCnt#]</span>
 		</td>
 		<td class='last-by'>
 			<div id='avatar-container'>

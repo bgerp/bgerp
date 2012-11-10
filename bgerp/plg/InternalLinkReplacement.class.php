@@ -27,42 +27,13 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
      */
     function on_BeforeInternalUrl($rt, &$res, $url, $title, $rest)
     {
-        $rest = trim($rest, '/');
+        // Парсираме URL' то
+        $params = type_Richtext::parseInternalUrl($rest);
         
-        $restArr = explode('/', $rest);
-
-        $params = array();
-        
-        $lastPart = $restArr[count($restArr)-1];
-
-        if($lastPart{0} == '?') {
-           $lastPart = ltrim($lastPart, '?'); 
-           $lastPart = str_replace('&amp;', '&', $lastPart);
-           parse_str($lastPart, $params);
-           unset($restArr[count($restArr)-1]);
-        }
-
-        setIfNot($params['Ctr'], $restArr[0]);
-
-        setIfNot($params['Act'], $restArr[1], 'default');
-
-        if(count($restArr) % 2) {
-            setIfNot($params['id'], $restArr[2]);
-            $pId = 3;
-        } else {
-            $pId = 2;
-        }
-        
-        // Добавяме останалите параметри, които са в часта "път"
-        while($restArr[$pId]) {
-            $params[$restArr[$pId]] = $params[$restArr[$pId+1]];
-            $pId++;
-        }
-        
-        // Всички параметри, които проверяваме да са в долния регистър
-        $ctr = strtolower($params['Ctr']);
-        $act = strtolower($params['Act']);
-        $threadId = strtolower($params['threadId']);
+        // Всички параметри
+        $ctr = $params['Ctr'];
+        $act = $params['Act'];
+        $threadId = $params['threadId'];
         
         // Папки
         if($ctr == 'doc_threads' && ($act == 'list' || $act == 'default')) {

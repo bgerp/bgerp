@@ -67,9 +67,11 @@ class vislog_History extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
+     * Добавя нов запис в лога
+     * @param string $query
+     * @param boolean $returnCnt
      */
-    static function add($query)
+    static function add($query, $returnCnt = FALSE)
     {
         $rec = new stdClass();
 
@@ -77,8 +79,19 @@ class vislog_History extends core_Manager {
         
         $History = cls::get('vislog_History');
         
-        $History->save($rec);
-    }
+        $id = $History->save($rec);
+        
+        if($returnCnt) {
+        	if($id) {
+        		
+        		// Преброяваме и връщаме броя посещения на ресурса
+	        	$historyQuery = $History->getQuery();
+	        	$historyQuery->where("#HistoryResourceId = {$rec->HistoryResourceId}");
+	        	
+	        	return $historyQuery->count();
+        	}
+        }
+	}
     
     
     /**

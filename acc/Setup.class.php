@@ -29,6 +29,11 @@ class acc_Setup
      */
     var $version = '0.1';
     
+
+    /**
+     * Необходими пакети
+     */
+    var $depends = 'currency=0.1';
     
     /**
      * Мениджър - входна точка в пакета

@@ -14,7 +14,7 @@
 	<span id='topic-createdOn'>[#createdOn#]</span>
 	<div style='text-align:center'>[#avatar#]</div></td>
 	<td id='topic'>
-		<div id='toolbox'>[#ANSWER#][#LOCK#][#TOOLS#]</div>
+		<div id='toolbox'>[#TOOLS#]</div>
 		<div id='header-td'><div id='topic-header'>Тема :&nbsp;&nbsp;<b>[#title#]</b></div></div>
 		<div id='body-td'>[#body#]</div>
 		<div id='td-misc'>
@@ -22,6 +22,7 @@
 			<span class='topic-info'>Коментари:&nbsp;&nbsp;<b>[#postingsCnt#]</b></span><br>
 			<span class='topic-info'>Тип: &nbsp;&nbsp;<b>[#type#]</b></span><br>
 			<span class='topic-info'>Състояние:&nbsp;&nbsp;<b>[#status#]</b></span><br>
+			<span class='topic-info'>Посещения:&nbsp;&nbsp;<b>[#views#]</b></span><br>
 		</div>
 	</td>
 </tr>

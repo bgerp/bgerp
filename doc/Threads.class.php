@@ -1077,7 +1077,7 @@ class doc_Threads extends core_Manager
         $rec = static::fetch($params['threadId']);
         
         // Проверяваме дали има права
-        if (!static::haveRightFor($params['Act'], $rec)) return FALSE;
+        if (!static::haveRightFor('single', $rec)) return FALSE;
         
         // Инстанция на първия документ
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);

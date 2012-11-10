@@ -591,7 +591,7 @@ class doc_Folders extends core_Master
         $rec = static::fetch($params['folderId']);
             
         // Проверяваме дали има права
-        if (!static::haveRightFor($params['Act'], $rec)) return FALSE;
+        if (!static::haveRightFor('single', $rec)) return FALSE;
         
         // Заглавието на файла във вербален вид
         $title = static::getVerbal($rec, 'title');

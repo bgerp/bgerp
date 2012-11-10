@@ -45,7 +45,8 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
-					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing';
+					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
+                    doc_SequencerPlg';
     
     
     /**
@@ -100,6 +101,14 @@ class sales_Invoices extends core_Master
      */
     var $searchFields = 'number, date, contragentName';
     
+    /**
+     * Име на полето съдържащо номер на фактурата
+     * 
+     * @var int
+     * @see doc_SequencerPlg
+     */
+    var $sequencerField = 'number';
+    
     
     /**
      * Описание на модела
@@ -107,10 +116,10 @@ class sales_Invoices extends core_Master
     function description()
     {
         // Дата на фактурата
-        $this->FLD('date', 'date', 'caption=Дата,  notNull, mandatory');
+        $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         
         // Номер на фактурата
-        $this->FLD('number', 'int', 'caption=Номер, notNull, input, mandatory, export=Csv');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv');
         
 //         $this->FLD('contragentId', 'int', 'notNull, input=hidden');
 //         $this->FLD('contragentClassId', 'key(mvc=core_Classes)', 'notNull, input=hidden');
@@ -139,7 +148,7 @@ class sales_Invoices extends core_Master
         $this->FLD('creatorName', 'varchar(255)', 'caption=Съставил, input=none');
         
         // Дата на данъчното събитие. Ако не се въведе е датата на фактурата.
-        $this->FLD('vatDate', 'date', 'caption=Дата на ДС');
+        $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Дата на ДС');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута');
         $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Начин на плащане');
         $this->FLD('deliveryId', 'key(mvc=trans_DeliveryTerms, select=name, allowEmpty)', 'caption=Доставка');
@@ -175,10 +184,12 @@ class sales_Invoices extends core_Master
         /* $this->FLD('paid', 'int', 'caption=Платено'); */
         // $this->FLD("paidAmount", "number");
         /* $this->FLD('paidAmount', 'double(decimals=2)', 'caption=Сума'); */
+        
+        $this->setDbUnique('number');
     }
     
     
-    public function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         /* @var $form core_Form */
         $form = $data->form;
@@ -195,6 +206,34 @@ class sales_Invoices extends core_Master
     }
     
     
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if (!$form->isSubmitted()) {
+            return;
+        }
+        
+        if (!empty($form->rec->number)) {
+            $prevNumber = intval($form->rec->number)-1;
+            if (!$mvc->fetchField("#number = {$prevNumber}")) {
+                $form->setWarning('number', 'Липсва фактура с предходния номер!');
+            }
+        }
+        
+        if (!empty($form->rec->vatDate)) {
+            // Датата на дан. събитие може да е преди датата на ф-рата, но не-повече от 5 дни
+            // @todo ...
+        }
+    }
+    
+    
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+        if (empty($rec->vatDate)) {
+            $rec->vatDate = $rec->date;
+        }
+    }
+    
+    
     /**
      * Зарежда разумни начални стойности на полетата на форма за фактура.
      * 
@@ -203,7 +242,15 @@ class sales_Invoices extends core_Master
     public static function setFormDefaults(core_Form $form)
     {
         // Днешна дата в полето `date`
-        $form->rec->date = dt::now();
+        if (empty($form->rec->date)) {
+            $form->rec->date = dt::now();
+        }
+        
+        // ДДС % по-подразбиране - от периода към датата на ф-рата
+        $periodRec = acc_Periods::fetchByDate($form->rec->date);
+        if ($periodRec) {
+            $form->rec->vatRate = $periodRec->params->vatPercent;
+        }
 
         // Данни за контрагент
         static::populateContragentData($form);
@@ -357,30 +404,6 @@ class sales_Invoices extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#number', 'DESC');
-    }
-    
-    
-    /**
-     * При добавяне слага пореден номер
-     *
-     * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    static function on_BeforeSave($mvc, &$id, $rec)
-    {
-        if ($rec->number === NULL) {
-            $query = $mvc->getQuery();
-            $where = "1=1";
-            $query->limit(1);
-            $query->orderBy('number', 'DESC');
-            
-            while($recInvoices = $query->fetch($where)) {
-                $lastNumber = $recInvoices->number;
-            }
-            
-            $rec->number = $lastNumber + 1;
-        }
     }
 
 
