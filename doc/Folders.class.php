@@ -606,6 +606,9 @@ class doc_Folders extends core_Master
             $res = core_ET::escape($title);
         } else {
             
+            // Дали линка да е абсолютен
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+            
             // Линка
             $link = toUrl($params, $isAbsolute);
 
