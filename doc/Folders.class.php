@@ -218,22 +218,11 @@ class doc_Folders extends core_Master
         $row->title = str::limitLen($row->title, 48);
         
         if($mvc->haveRightFor('single', $rec)) {
+            
             // Иконката на папката според достъпа и
+            $img = static::getIconImg($rec);
             
-            switch($rec->access) {
-                case 'secret' :
-                    $img = 'folder_key.png';
-                    break;
-                case 'private' :
-                    $img = 'folder_user.png';
-                    break;
-                case 'team' :
-                case 'public' :
-                default :
-                $img = 'folder-icon.png';
-            }
-            
-            $attr['style'] = 'background-image:url(' . sbf('img/16/' . $img) . ');';
+            $attr['style'] = 'background-image:url(' . $img . ');';
             $row->title = ht::createLink($row->title, array('doc_Threads', 'list', 'folderId' => $rec->id), NULL, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . sbf('img/16/lock.png') . ');';
@@ -251,7 +240,7 @@ class doc_Folders extends core_Master
             $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
         }
     }
-
+    
 
     /**
      * Добавя бутони за нова фирма, лице и проект
@@ -596,14 +585,8 @@ class doc_Folders extends core_Master
         // Заглавието на файла във вербален вид
         $title = static::getVerbal($rec, 'title');
         
-        // Инстанция на cover класа
-        $coverClassInst = cls::get($rec->coverClass);    
-        
-        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Иконата на корицата на папката
-        $sbfIcon = sbf($coverClassInst->singleIcon, '"', $isAbsolute);
+        // Иконата на папката
+        $sbfIcon = static::getIconImg($rec);
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
@@ -622,6 +605,9 @@ class doc_Folders extends core_Master
             // Ескейпваме плейсхолдърите и връщаме титлата
             $res = core_ET::escape($title);
         } else {
+            
+            // Дали линка да е абсолютен
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
             $link = toUrl($params, $isAbsolute);
@@ -724,5 +710,38 @@ class doc_Folders extends core_Master
         }
 
         return $res;
+    }
+    
+    
+    /**
+     * Връща иконата на папката според достъпа
+     * 
+     * @params object $rec - Данните за записа
+     */
+    static function getIconImg($rec)
+    {
+        switch($rec->access) {
+            case 'secret' :
+                $img = 'folder_key.png';
+            break;
+            
+            case 'private' :
+                $img = 'folder_user.png';
+            break;
+            
+            case 'team' :
+            case 'public' :
+            default :
+                $img = 'folder-icon.png';
+            break;
+        }
+        
+        // Дали линка да е абсолютен
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        // Връщаме sbf линка до иконата
+        $sbfImg = sbf('img/16/' . $img, '"', $isAbsolute);
+
+        return $sbfImg;        
     }
 }
