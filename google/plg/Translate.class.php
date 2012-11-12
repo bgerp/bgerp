@@ -13,7 +13,7 @@ function googleSectionalElementInit() {
 } 
 EOT;
     
-    protected static $elementJsUrl = '//translate.google.com/translate_a/element.js?cb=googleSectionalElementInit&ug=section&hl=%s';
+    protected static $elementJsUrl = '//translate.google.com/translate_a/element.js?cb=googleSectionalElementInit&amp;ug=section&amp;hl=%s';
 
     protected static $markupTpl = <<<EOT
 <div class="goog-trans-section">

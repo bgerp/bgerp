@@ -37,7 +37,7 @@ class color_Setup extends core_Manager {
     /**
      * Описание на модула
      */
-    var $info = "Избор на цят от палитра";
+    var $info = "Избор на цвят от палитра";
     
     
     /**
@@ -63,7 +63,7 @@ class color_Setup extends core_Manager {
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
-        // Премахваме от type_Date полета
+        // Премахваме от color_Type полета
         $Plugins->deinstallPlugin('jqcolorpicker_Plugin');
         $html .= "<li>Премахнати са всички инсталации на 'jqcolorpicker_Plugin'";
         
