@@ -118,7 +118,7 @@ defIfNot('EF_CONF_PATH', EF_ROOT_PATH . '/conf');
 /**
  * По подразбиране от локалния хост се работи в режим DEBUG
  */
-defIfNot('EF_DEBUG_HOSTS', 'localhost,127.0.0.1');
+defIfNot('EF_DEBUG_HOSTS', 'localhost,127.0.0.1,::1');
 
 // Ако index.php стои в директория с име, за което съществува конфигурационен 
 // файл, приема се, че това име е името на приложението
@@ -265,9 +265,17 @@ ini_set('zlib.output_compression', 'Off');
  * Стартира Setup, ако се изисква
  */
 if (isset($_GET['SETUP']) && $_GET['SETUP'] == BGERP_SETUP_KEY) {
-    require_once(EF_EF_PATH . "/core/Setup.inc.php");
+    require_once(EF_EF_PATH . "/core/SetupM.inc.php");
     die;    
 }
+
+/**
+ * Стартира Setup, ако се изисква
+ */
+if (isset($_GET['SETUPM'])) {
+    require_once(EF_EF_PATH . "/core/SetupM.inc.php");
+}
+
 
 // Стартира записа в буфера, като по възможност компресира съдържанието
 ob_start();
