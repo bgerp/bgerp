@@ -158,16 +158,16 @@ class core_Setup {
         foreach($folders as $path) {
             if(!is_dir($path)) {
                 if(!mkdir($path, 0777, TRUE)) {
-                    $html .= "<li style='color:red;'>Не може да се създаде директорията: <b>{$path}</b>";
+                    $html .= "<li style='color:red;'>Не може да се създаде директорията: <b>{$path}</b></li>";
                 } else {
-                    $html .= "<li style='color:green;'>Създадена е директорията: <b>{$path}</b>";
+                    $html .= "<li style='color:green;'>Създадена е директорията: <b>{$path}</b></li>";
                 }
             } else {
-                $html .= "<li>Съществуваща от преди директория: <b>{$path}</b>";
+                $html .= "<li>Съществуваща от преди директория: <b>{$path}</b></li>";
             }
             
             if(!is_writable($path)) {
-                $html .= "<li style='color:red;'>Не може да се записва в директорията <b>{$path}</b>";
+                $html .= "<li style='color:red;'>Не може да се записва в директорията <b>{$path}</b></li>";
             }
         }
         
@@ -179,9 +179,9 @@ class core_Setup {
             
             foreach($filesToCopy as $src => $dest) {
                 if(copy($src, $dest)) {
-                        $html .= "<li style='color:green;'>Копиран е файла: <b>{$src}</b> => <b>{$dest}</b>";
+                        $html .= "<li style='color:green;'>Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 } else {
-                        $html .= "<li style='color:red;'>Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b>";
+                        $html .= "<li style='color:red;'>Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 }
             }
         }
@@ -191,10 +191,10 @@ class core_Setup {
 		    while (false !== ($entry = readdir($handle))) {
 		        if ($entry != "." && $entry != ".." && false === strpos($entry, '_') && $entry != '.htaccess') {
 		        	if (core_Os::deleteDir(EF_SBF_PATH . "/{$entry}")) {
-		        		$html .= "<li style='color:green;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> е изтрита";
+		        		$html .= "<li style='color:green;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> е изтрита</li>";
 		        	}
 		        	else {
-		        		$html .= "<li style='color:red;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> не беше изтрита";	
+		        		$html .= "<li style='color:red;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> не беше изтрита</li>";	
 		        	}
 		        }
 		    }
