@@ -105,8 +105,8 @@ class bgerp_Setup {
         }
         
         // Добавяме допълнителните пакети, само при първоначален Setup
-        $Menu = cls::get('bgerp_Menu');
-        if(!$Menu->db->tableExists($Menu->dbTableName) || ($isFirstSetup)) {
+        $Folders = cls::get('doc_Folders');
+        if(!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
             $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen";
         } else {
             $packs = arr::make($packs, TRUE);
