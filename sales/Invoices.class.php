@@ -211,17 +211,101 @@ class sales_Invoices extends core_Master
         if (!$form->isSubmitted()) {
             return;
         }
-        
-        if (!empty($form->rec->number)) {
-            $prevNumber = intval($form->rec->number)-1;
-            if (!$mvc->fetchField("#number = {$prevNumber}")) {
-                $form->setWarning('number', 'Липсва фактура с предходния номер!');
-            }
+
+        //
+        // Идея за шаблон за валидация на данни от потребителя. Предимства:
+        //
+        //  * Кратки и добре обособени методи за валидация - по един за поле;
+        //  * възможност за добавяне нови на валидационни правила в плъгини.
+        //
+        foreach ($mvc->fields as $fName=>$field) {
+            $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
+        }
+    }
+    
+    
+    /**
+     * Валидиране на полето 'date' - дата на фактурата
+     * 
+     * Предупреждение ако има фактура с по-нова дата (само при update!)
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param core_Form $form
+     */
+    public function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
+    {
+        if (empty($rec->date)) {
+            return;
         }
         
-        if (!empty($form->rec->vatDate)) {
-            // Датата на дан. събитие може да е преди датата на ф-рата, но не-повече от 5 дни
-            // @todo ...
+        if (!empty($rec->id)) {
+            // Промяна на съществуваща ф-ра - не правим нищо
+            return;
+        }
+        
+        /* @var $query core_Query */
+        $query = $mvc->getQuery();
+        $query->where("#state != 'rejected'");
+        $query->orderBy('date', 'DESC');
+        $query->limit(1);
+        
+        if (!$newestInvoiceRec = $query->fetch()) {
+            // Няма ф-ри в състояние различно от rejected
+            return;
+        }
+        
+        if ($newestInvoiceRec->date > $rec->date) {
+            // Най-новата валидна ф-ра в БД е по-нова от настоящата.
+            $form->setWarning('date', 
+                'Има фактура с по-нова дата (от ' . 
+                    dt::mysql2verbal($newestInvoiceRec->date, 'd-m-y') .
+                ')'
+            );
+        }
+    }
+    
+    
+    /**
+     * Валидиране на полето 'number' - номер на фактурата
+     * 
+     * Предупреждение при липса на ф-ра с номер едно по-малко от въведения.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param core_Form $form
+     */
+    public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
+    {
+        if (empty($rec->number)) {
+            return;
+        }
+        
+        $prevNumber = intval($rec->number)-1;
+        if (!$mvc->fetchField("#number = {$prevNumber}")) {
+            $form->setWarning('number', 'Липсва фактура с предходния номер!');
+        }
+    }
+
+
+    /**
+     * Валидиране на полето 'vatDate' - дата на данъчно събитие (ДС)
+     * 
+     * Грешка ако ДС е след датата на фактурата или на повече от 5 дни преди тази дата.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param core_Form $form
+     */
+    public function on_ValidateVatDate(core_Mvc $mvc, $rec, core_Form $form)
+    {
+        if (empty($rec->vatDate)) {
+            return;
+        }
+        
+        // Датата на ДС не може да бъде след датата на фактурата, нито на повече от 5 дни преди нея.
+        if ($rec->vatDate > $rec->date || dt::addDays(5, $rec->vatDate) < $rec->date) {
+            $form->setError('vatDate', 'Данъчното събитие трябва да е до 5 дни <b>преди</b> датата на фактурата');
         }
     }
     
