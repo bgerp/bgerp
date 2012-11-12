@@ -1075,9 +1075,9 @@ class doc_Threads extends core_Manager
     {
         // Записите за нишката
         $rec = static::fetch($params['threadId']);
-        
+
         // Проверяваме дали има права
-        if (!static::haveRightFor('single', $rec)) return FALSE;
+        if (!$rec || !static::haveRightFor('single', $rec)) return FALSE;
         
         // Инстанция на първия документ
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
