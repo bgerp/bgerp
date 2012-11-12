@@ -119,6 +119,59 @@ class fileman_RichTextPlg extends core_Plugin
                 $files[$fh] = strip_tags($matches['fileName'][$id]);
             }
         }
+
+        // Намираме всички линкове, които имат линкове към единичния изглед на файловете
+        preg_match_all(type_Richtext::$urlPattern, $rt, $matches);
+        
+        // Събирме двата масива
+        $files += static::getFilesFromUrlMatches($matches);        
+        
+        return $files;
+    }
+    
+    
+    /**
+     * Връща масив с файловете
+     * 
+     * @param array $matches - Масив със съвпаденията
+     * 
+     * @return $files - Масив с манипулатора на файла и мето му
+     */
+    static function getFilesFromUrlMatches($matches) 
+    {
+        // Масива, който ще се връща
+        $files = array();
+        
+        // Обхождаме всички открити резултата
+        foreach ((array)$matches[0] as $match) {
+            
+            // Вземаме URL'то
+            $url = rtrim($match, ',.;');
+    
+            if(!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
+                $url = 'http://' . $url;
+            }
+
+            // Ескейпваме
+            $result = core_Url::escape($url);
+    
+            // Проверяваме дали е локално
+            if( core_Url::isLocal($url, $rest) ) {
+                
+                // Парсираме URL' то и вземаме параметрите
+                $params = type_Richtext::parseInternalUrl($rest);
+                
+                // Ако е файл от fileman
+                if ($params['Ctr'] == 'fileman_files' && $params['Act'] == 'single' && $params['id']) {
+                    
+                    // Вземаме данните за файла
+                    $fRec = fileman_Files::fetchByFh($params['id']);
+
+                    // Добавяме в масивa
+                    $files[$fRec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
+                }
+            }
+        }
         
         return $files;
     }

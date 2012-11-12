@@ -40,11 +40,11 @@ class chosen_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
-        if(!$inviker->params['chisenMinItems']) {
+        if(!$invoker->params['chosenMinItems']) {
             $conf = core_Packs::getConfig('chosen');
             $minItems = $conf->CHOSEN_MIN_ITEMS;
         } else {
-            $minItems = $inviker->params['chisenMinItems'];
+            $minItems = $invoker->params['chosenMinItems'];
         }
     	
         // Ако нямаме JS или има много малко предложения - не правим нищо

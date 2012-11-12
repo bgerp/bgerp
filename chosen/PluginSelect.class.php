@@ -37,11 +37,11 @@ class chosen_PluginSelect extends core_Plugin
     {
     	
         // Определяме при колко минимално опции ще правим chosen
-        if(!$inviker->params['chisenMinItems']) {
+        if(!$invoker->params['chosenMinItems']) {
             $conf = core_Packs::getConfig('chosen');
             $minItems = $conf->CHOSEN_MIN_ITEMS;
         } else {
-            $minItems = $inviker->params['chisenMinItems'];
+            $minItems = $invoker->params['chosenMinItems'];
         }
     	
         // Ако опциите са под минималното - нищо не правим
