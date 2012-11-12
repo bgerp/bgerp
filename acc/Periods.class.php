@@ -202,9 +202,9 @@ class acc_Periods extends core_Manager
      * @param acc_Periods $mvc
      * @param string $res
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
-        if (!$mvc->fetch("1=1")){
+        if (!$this->fetch("1=1")){
             
             $conf = core_Packs::getConfig('acc');
             
@@ -217,10 +217,11 @@ class acc_Periods extends core_Manager
             $rec = new stdClass();
             $rec->end = dt::addDays(-1, $startDay);
             $rec->state = "closed";
+            $rec->params = new stdClass();
             $rec->params->vatPercent     = ACC_DEFAULT_VAT_RATE;
             $rec->params->baseCurrencyId =
                 currency_Currencies::fetchField("#code = '" . ACC_DEFAULT_CURRENCY_CODE . "'", id);
-            $mvc->save($rec);
+            $this->save($rec);
             $res .= "<li style='color:green'>Създаден е <b>затворен</b> счетоводен период с край <b>" .
                 dt::mysql2verbal($rec->end, 'd/m/Y') . "</b>.</li>";
             
@@ -229,14 +230,17 @@ class acc_Periods extends core_Manager
             $lastDay = date("Y-m-t", strtotime($startDay));
             $rec->end = $lastDay;
             $rec->state = "active";
+            $rec->params = new stdClass();
             $rec->params->vatPercent     = ACC_DEFAULT_VAT_RATE;
             $rec->params->baseCurrencyId =
                 currency_Currencies::fetchField("#code = '" . ACC_DEFAULT_CURRENCY_CODE . "'", id);
-            $mvc->save($rec);
+            $this->save($rec);
             
             $res .= "<li style='color:green'>Създаден е <b>активен</b> счетоводен период с начало с начало <b>" .
                 dt::mysql2verbal($startDay, 'd/m/Y') . "</b> и край <b>" . dt::mysql2verbal($rec->end, 'd/m/Y') . "</b>.</li>";
         }
+
+        return $res;
     }
     
     

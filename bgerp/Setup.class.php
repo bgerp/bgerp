@@ -70,6 +70,9 @@ class bgerp_Setup {
      */
     function install($Plugins = NULL)
     {
+        // Предотвратяваме логването в Debug режим
+        Debug::$isLogging = FALSE;
+
         $managers = array(
             'bgerp_Menu',
             'bgerp_Portal',
@@ -118,15 +121,17 @@ class bgerp_Setup {
              $html .= $Packs->setupPack($p);
         }
 
+        // Извършваме инициализирането на всички включени в списъка пакети
+        foreach(arr::make($packs) as $p) {
+            $packsInst[$p] = cls::get($p . '_Setup');
+            if(method_exists($packsInst[$p], 'loadSetupData')) {
+                $packsInst[$p]->loadSetupData();
+            }
+        }
         
 
         //TODO в момента се записват само при инсталация на целия пакет
         
-        //Зарежда данни за инициализация от CSV файл за acc_Lists
-        $html .= acc_setup_Lists::loadData();
-        
-        //Зарежда данни за инициализация от CSV файл за acc_Accounts
-        $html .= acc_setup_Accounts::loadData();
         
         //Зарежда данни за инициализация от CSV файл за core_Lg
         $html .= bgerp_data_Translations::loadData();

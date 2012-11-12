@@ -124,7 +124,7 @@ class currency_Currencies extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    function loadInitData()
     {
         $currDefs = array("БЪЛГАРСКИ ЛЕВ|BGN",
         	"АВСТРАЛИЙСКИ ДОЛАР|AUD",
@@ -168,7 +168,7 @@ class currency_Currencies extends core_Manager {
             
             list($rec->name, $rec->code) = explode('|', $c);
             
-            if (!$mvc->fetch("#code = '{$rec->code}'")){
+            if (!$this->fetch("#code = '{$rec->code}'")){
                 $rec->lastUpdate = dt::verbal2mysql();
                 
                 if($rec->code == 'EUR') {
@@ -176,7 +176,7 @@ class currency_Currencies extends core_Manager {
                 }
                 $rec->state = "active";
                 
-                $mvc->save($rec);
+                $this->save($rec);
                 
                 $insertCnt++;
             }
@@ -185,6 +185,8 @@ class currency_Currencies extends core_Manager {
         if($insertCnt) {
             $res .= "<li>Добавени са запис/и за {$insertCnt} валути.</li>";
         }
+
+        return $res;
     }
     
     /*******************************************************************************************

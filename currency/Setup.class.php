@@ -21,7 +21,7 @@ defIfNot('BGERP_BASE_CURRENCY', 'BGN');
  * @license   GPL 3
  * @since     v 0.1
  */
-class currency_Setup
+class currency_Setup extends core_ProtoSetup
 {
     
     
@@ -54,8 +54,9 @@ class currency_Setup
      */
     var $info = "Валути и техните курсове";
     
+
     /**
-     * Описание на конфигурационните константи
+     * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
             
@@ -64,35 +65,32 @@ class currency_Setup
          
         );
     
-    
+
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'currency_Currencies',
             'currency_CurrencyGroups',
             'currency_CurrencyRates',
             'currency_FinIndexes'
         );
-        
-        // Роля за power-user на този модул
-        $role = 'currency';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "{$role}, admin");
-        
-        return $html;
-    }
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'currency';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $manuItems = array(
+            array(2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "currency, admin"),
+        );
+
+
     
     
     /**
