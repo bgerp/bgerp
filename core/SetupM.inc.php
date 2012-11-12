@@ -164,7 +164,7 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 $isLocal = in_array($_SERVER['REMOTE_ADDR'], array('::1', '127.0.0.1'));
 
 if(!$isLocal) {
-    exit;
+    return;
 }
 
 
