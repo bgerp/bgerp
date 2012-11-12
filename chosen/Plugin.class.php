@@ -5,7 +5,7 @@
 /**
  * Пътя до външния код на chosen
  */
-defIfNot('CHOSEN_PATH', 'chosen/0.9.3');
+defIfNot('CHOSEN_PATH', 'chosen/0.9.8');
 
 
 /**
@@ -40,24 +40,33 @@ class chosen_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
-    	$conf = core_Packs::getConfig('chosen');
+        if(!$invoker->params['chosenMinItems']) {
+            $conf = core_Packs::getConfig('chosen');
+            $minItems = $conf->CHOSEN_MIN_ITEMS;
+        } else {
+            $minItems = $invoker->params['chosenMinItems'];
+        }
     	
-        if (Mode::is('javascript', 'no') || ((count($invoker->suggestions))<$conf->EF_MIN_COUNT_LIST_CHOSEN)) {
+        // Ако нямаме JS или има много малко предложения - не правим нищо
+        if (Mode::is('javascript', 'no') || ((count($invoker->suggestions)) < $minItems)) {
             return ;
         }
 
         $options = new ET();
-        
+        $mustCloseGroup = FALSE;
+
         foreach ($invoker->suggestions as $key => $val) {
             
             $attr = array();
-            
+                            
+
             if (is_object($val)) {
                 if ($val->group) {
-                    $attr = $val->attr;
-                    $attr['label'] = $val->title;
-                    $optgroup = ht::createElement('optgroup', $attr, '' , TRUE);
-                    $options->append($optgroup);
+                    if($mustCloseGroup) {
+                        $options->append("</optgroup>\n");
+                    }
+                    $options->append("<optgroup label=\"$val->title\">\n");
+                    $mustCloseGroup = TRUE;
                     continue;
                 } else {
                     $attr = $val->attr;
@@ -77,7 +86,11 @@ class chosen_Plugin extends core_Plugin
             
             $options->append(ht::createElement('option', $attr, $val));
         }
-        
+
+        if($mustCloseGroup) {
+            $options->append("</optgroup>\n");
+        }
+
         $attr = array();
         
         $attr['class'] = 'keylistChosen';

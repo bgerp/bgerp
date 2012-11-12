@@ -3,7 +3,7 @@
 /**
  * Минималния брой елементи, за които няма да сработи Chosen
  */
-defIfNot('EF_MIN_COUNT_LIST_CHOSEN', 16);
+defIfNot('CHOSEN_MIN_ITEMS', 32);
 
 
 /**
@@ -51,7 +51,7 @@ class chosen_Setup extends core_Manager {
     var $configDescription = array(
     
             // Минималния брой елементи, за които няма да сработи Chosen
-            'EF_MIN_COUNT_LIST_CHOSEN' => array ('int'),
+            'CHOSEN_MIN_ITEMS' => array ('int'),
     
         );
     
@@ -65,7 +65,8 @@ class chosen_Setup extends core_Manager {
         
         // Инсталираме
         $html .= $Plugins->forcePlugin('Chosen', 'chosen_Plugin', 'type_Keylist', 'private');
-        
+        $html .= $Plugins->forcePlugin('ChosenSelect', 'chosen_PluginSelect', 'type_Key', 'private');
+
         return $html;
     }
     
@@ -81,6 +82,10 @@ class chosen_Setup extends core_Manager {
         // Премахваме от type_Keylist полета
         $Plugins->deinstallPlugin('chosen_Plugin');
         $html .= "<li>Премахнати са всички инсталации на 'chosen_Plugin'";
+        
+        // Премахваме от type_Key полета
+        $Plugins->deinstallPlugin('chosen_PluginSelect');
+        $html .= "<li>Премахнати са всички инсталации на 'chosen_PluginSelect'";
         
         return $html;
     }

@@ -184,7 +184,7 @@ class feed_Generator extends core_Manager {
 		
 		// Поставяме иконка и заглавие
 		$layout->append(tr('Нашите емисии'), 'HEADER');
-		$icon = ht::createElement('img', array('src' => sbf("feed/img/feed.png", ""), 'style' => 'float:left;;'));
+		$icon = ht::createElement('img', array('src' => sbf("feed/img/rss_icon_glass32.PNG", ""), 'style' => 'float:left;;'));
 		$layout->append($icon, 'ICON');
 		
 		foreach($data->rows as $row) {
@@ -262,8 +262,15 @@ class feed_Generator extends core_Manager {
 		
 		// Подготвяме иконка с линк към публичния лист на хранилката
 		$url = array('feed_Generator', 'feeds');
-		$src = sbf("feed/img/feed.png", "");
-		$img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;'));
+		
+        if( Mode::is('screenMode', 'narrow')) {
+            $src = sbf("feed/img/rss_icon_glass_gray24.PNG", "");
+        } else {
+            $src = sbf("feed/img/rss_icon_glass_gray32.PNG", "");
+        }
+        
+        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;'));
+
 		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:0px;margin-left:7px;float:left;'));
 		
 		// Добавяме линка към шаблона
