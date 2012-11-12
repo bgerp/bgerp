@@ -53,7 +53,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Кой може да добявя,редактира или изтрива дъска
 	 */
-	var $canWrite = 'forum, cms, ceo, admin';
+	var $canWrite = 'forum, admin, cms, user';
 	
 	
 	/**
@@ -79,32 +79,31 @@ class forum_Postings extends core_Detail {
 	 */
 	static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	expect($board = $mvc->Master->fetch($data->form->rec->boardId));
+    	expect($boardRec = $mvc->Master->fetch($data->form->rec->boardId));
+    	$boardRow = $mvc->Master->recToVerbal($boardRec, 'title');
     	
-	    if(!$mvc->haveRightFor('write')) {
+    	// Проверяваме дали можем да правим важни теми, както и да ги заключваме
+	    if(!$mvc->haveRightFor('write', $boardRec)) {
     		$data->form->setField('type', 'input=none');
+    		$data->form->setField('status', 'input=none');
     	}
-    	
-    	// Ако потребителя няма права да прави важни теми, ние скриваме полето от формата
-		if(!$mvc->Master->haveRightFor('sticky', $board)) {
-			$data->form->setField('type', 'input=none');
-		}
 		
-    	$data->form->title = tr("Започване на нова тема в ") . "<b>{$board->title}</b>";
+    	$data->form->title = tr("Започване на нова тема в ") . "<b>{$boardRow->title}</b>";
     	
     	// Ако постинга е коментар
     	if($themeId = Request::get('themeId')) {
     		
-    		expect($theme = static::fetch($themeId));
+    		expect($themeRec = static::fetch($themeId));
+    		$themeRow = $mvc->Master->recToVerbal($themeRec, 'id,title');
     		
     		// Трябва да имаме права да коментираме темата
-    		static::requireRightFor('add', $theme);
+    		static::requireRightFor('add', $themeRec);
     		
     		$data->form->setField('type', 'input=none');
 	    	$data->form->setField('title', 'input=none');
 	    	$data->form->setField('status', 'input=none');
-	    	$data->form->setHidden('themeId', $theme->id);
-	    	$data->form->title = tr("Добавяне на коментар в ") . "<b>{$theme->title}</b>";
+	    	$data->form->setHidden('themeId', $themeRow->id);
+	    	$data->form->title = tr("Добавяне на коментар в: ") . "<b>{$themeRow->title}</b>";
 	    }
 	 }
 	
@@ -121,15 +120,7 @@ class forum_Postings extends core_Detail {
         // Подреждаме темите в последователност: Съобщение, Важна, Нормална
         $query->orderBy('type, createdOn', 'DESC');
         
-        // Ако дъската е "Support" и потребителя няма права , то показваме само темите, които
-        // той е започнал
-        if((bool)$data->rec->supportBoard){
-        	if(!$this->Master->haveRightFor('read')) {
-        		$query->where("#createdBy = " . core_users::getCurrent() . "");
-        	}
-        }
-		
-        // Пейджър на темите на дъската, лимита е дефиниран в FORUM_THEMES_PER_PAGE
+		// Пейджър на темите на дъската, лимита е дефиниран в FORUM_THEMES_PER_PAGE
         $conf = core_Packs::getConfig('forum');
 		$data->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->FORUM_THEMES_PER_PAGE));
         $data->pager->setLimit($query);
@@ -263,7 +254,7 @@ class forum_Postings extends core_Detail {
             	$id = $this->save($rec);
                 $this->log('add', $id);
                 
-                return new Redirect(array('forum_Postings', 'Theme', $data->rec->id), 'Благодарим за вашия коментар;)');
+                return new Redirect(array('forum_Postings', 'Theme', $data->rec->id));
             }
 		}
 		
@@ -313,7 +304,7 @@ class forum_Postings extends core_Detail {
 			$data->thread[$rec->id] = $this->recToVerbal($rec, $fields);
 		}
         
-		$data->title = "<h3>{$data->rec->title}</h3>";
+		$data->title = "<h3>{$data->row->title}</h3>";
 		
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
 		if($this->haveRightFor('add', $data->rec->id)) {
@@ -392,9 +383,9 @@ class forum_Postings extends core_Detail {
 	 */
 	function act_New()
 	{
-		$this->requireRightFor('write');
 		expect($boardId = Request::get('boardId'));
 		expect($rec = $this->Master->fetch($boardId));
+		$this->requireRightFor('add', $rec);
 		
 		$data = new stdClass();
 		$data->rec = $rec;
@@ -405,7 +396,7 @@ class forum_Postings extends core_Detail {
         $fields = $this->Master->selectFields('');
         $data->row = $this->Master->recToVerbal($data->rec, $fields);
         $data->action = 'new';
-        $data->display ='public';
+        $data->display = 'public';
         
         // Подготвяме $data
         $this->prepareNew($data);
@@ -417,7 +408,7 @@ class forum_Postings extends core_Detail {
             $rec = $data->form->input();
             
 			// Трябва да имаме права да добавяме постинг към тема от дъската
-            $this->requireRightFor('write');
+            $this->requireRightFor('add', $data->rec);
             
             // Ако формата е успешно изпратена - запис, лог, редирек
             if ($data->form->isSubmitted() && Request::get('body')) {
@@ -449,12 +440,8 @@ class forum_Postings extends core_Detail {
 		$form->setHidden('boardId', $data->row->id);
 		
 		// Ако потребителя няма права да заключва/отключва тема, ние скриваме полето от формата
-		if(!$this->haveRightFor('write')) {
+		if(!$this->haveRightFor('write', $data->row->id)) {
 			$form->setField('status', 'input=none');
-		}
-		
-		// Ако потребителя няма права да прави важни теми, ние скриваме полето от формата
-		if(!$this->Master->haveRightFor('sticky', $data->rec)) {
 			$form->setField('type', 'input=none');
 		}
 		
@@ -463,7 +450,7 @@ class forum_Postings extends core_Detail {
 		$data->form = $form;
 		
 		// Заглавие на формата
-		$data->header = tr("Започване на нова тема в:") . $data->row->title;
+		$data->header = tr("Започване на нова тема в:") . "&nbsp;&nbsp;&nbsp;" . $data->row->title;
 		
 		// Подготвяме навигацията
 		$this->Master->prepareNavigation($data);
@@ -695,26 +682,31 @@ class forum_Postings extends core_Detail {
 	{ 
 		if($action == 'read' && isset($rec)) {
 			
-			// Единствено потребители с роли в canSeeBoard на дъската могат да виждат темите
+			// Ако потребителя има достъп до дъската, той има достъп и до темата
 			$board = forum_Boards::fetch($rec->boardId);
-			$res = forum_Boards::getVerbal($board, 'canSeeBoard');
+			(forum_Boards::haveRightToObject($board) ) ? $res = 'every_one' : $res = 'no_one';
 		}
 		
-		if($action == 'add' && isset($rec->id)) {
+		if($action == 'add' && isset($rec)) {
 			
-			// Тема може да бъде коментирана само когато потребителя има права и темата
-			// е отключена
-			$board = forum_Boards::fetch($rec->boardId);
-			$res = forum_Boards::getVerbal($board, 'canComment');
+			// Намираме ид-то на дъската взависимост дали добавяме нова тема или коментар
+			$id = ($rec->boardId) ? $id = $rec->boardId : $id = $rec->id;
 			
+			// Проверяваме дали потребителя има достъп до дъската
+			$board = forum_Boards::fetch($id);
+			(forum_Boards::haveRightToObject($board) ) ? $res = $mvc->canWrite : $res = 'no_one';
+			
+			// Ако постинга е коментар и темата е заключена
 			if($rec->status == 'locked') {
 				$res = 'no_one';
 			}
 		}
 		
-		// в Лист изгледа, забраняваме да бъде създаван нов постинг
-		if($action == 'add' && !isset($rec)) {bp('tam');
-			$res = 'no_one';
+		if($action == 'write' && isset($rec->id)) {
+			
+			// Който може да създава дъски, той може да прави важни теми, както и да ги заключва
+			$board = forum_Boards::fetch($rec->id);
+			(forum_Boards::haveRightToObject($board) ) ? $res = $mvc->Master->canWrite : $res = 'no_one';
 		}
 	}
 	

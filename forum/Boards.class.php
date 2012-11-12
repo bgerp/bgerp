@@ -41,7 +41,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields = 'tools=Пулт, title, category, shortDesc, themesCnt, canSeeBoard, canComment, canStick, lastCommentedTheme, lastComment, createdOn, createdBy,  modifiedOn, modifiedBy';
+	var $listFields = 'tools=Пулт, title, category, shortDesc, themesCnt, boardType, shared, lastComment, lastCommentedTheme, lastCommentBy, createdOn, createdBy,  modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -53,13 +53,13 @@ class forum_Boards extends core_Master {
 	/**
 	 * Кой може да листва дъските
 	 */
-	var $canRead = 'forum, cms, ceo, admin';
+	var $canRead = 'forum, cms, admin';
 	
 	
 	/**
 	 * Кой може да добявя,редактира или изтрива дъска
 	 */
-	var $canWrite = 'forum, cms, ceo, admin';
+	var $canWrite = 'forum, cms, admin';
 	
 	
 	/**
@@ -82,15 +82,15 @@ class forum_Boards extends core_Master {
 		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, width=400px');
 		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, width=100%');
 		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория, mandatory');
-		$this->FLD('canSeeBoard', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Дъска, mandatory');
-		$this->FLD('canStick', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Важни теми, mandatory');
-		$this->FLD('canComment', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли за достъп->Коментар, mandatory');
+		$this->FLD('boardType', 'enum(normal=Нормална,confidential=Конфиденциална)', 'caption=Роли за достъп->Тип, notNull, value=normal');
+		$this->FLD('shared', 'keylist(mvc=core_Users,select=nick)', 'caption=Роли за достъп->Споделяне');
 		$this->FLD('themesCnt', 'int', 'caption=Темите, input=none, value=0');
 		$this->FLD('commentsCnt', 'int', 'caption=Коментари, input=none, value=0');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
 		$this->FLD('lastCommentBy', 'int', 'caption=Последно->кой, input=none');
 		$this->FLD('lastCommentedTheme', 'int', 'caption=Последно->къде, input=none');
-		$this->FLD('supportBoard', 'enum(FALSE=Не,TRUE=Да)', 'caption=Поддържаща, value=FALSE');
+		
+		// Поставяме уникален индекс
 		$this->setDbUnique('title');
 	}
 	
@@ -100,6 +100,15 @@ class forum_Boards extends core_Master {
 	 */ 
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
+		// Предпазване от листване на конфиденциални дъски
+		$cu = core_Users::getCurrent();
+		
+		//@TODO Да го променя на forum
+		// Пропускаме конфиденциалните папки,несподелени с текущия потребител
+       	if(!haveRole('ceo') && $cu >0) {
+            $data->query->where("NOT (#boardType = 'confidential'  AND !(#shared LIKE '%|{$cu}|%'))");
+        }
+		
 		if($category = Request::get('category')) {
 			$data->query->where("#category = {$category}");
 		}
@@ -320,6 +329,14 @@ class forum_Boards extends core_Master {
 	{
 		$query = $this->getQuery();
 		$query->where("#category = {$category->id}");
+		
+	 	// Предпазване от листване на конфиденциални дъски
+		$cu = core_Users::getCurrent();
+
+       	if(!haveRole('forum') && $cu >0) {
+            $query->where("NOT (#boardType = 'confidential'  AND !(#shared LIKE '%|{$cu}|%'))");
+        }
+		
 		$fields = $this->selectFields("");
 		$fields['-public'] = TRUE;
 		while($rec = $query->fetch()) {
@@ -328,18 +345,7 @@ class forum_Boards extends core_Master {
 		if($this->haveRightFor('read', $rec)){
 				$category->boards->recs[$rec->id] = $rec;
 	 			$category->boards->rows[$rec->id] = $this->recToVerbal($rec, $fields);
-	 			
-	 			if((bool)$rec->supportBoard){
-		        	if(!$this->haveRightFor('read')) {
-		        		
-		        		// Ако дъската е съпорт, преброяваме темите създадени от текущия потребител
-		        		$query = forum_Postings::getQuery();
-		        		$query->where("#boardId = {$rec->id} AND #themeId IS NULL");
-		        		$query->where("#createdBy = " . core_Users::getCurrent() . "");
-		        		$category->boards->rows[$rec->id]->themesCnt = $query->count();
-		        	}
-        		}
-	       }
+	 		}
 		}
 	}
 	
@@ -481,7 +487,7 @@ class forum_Boards extends core_Master {
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-		 if ($mvc->haveRightFor('article', $data->rec)) {
+		 if ($mvc->haveRightFor('read', $data->rec)) {
             $data->toolbar->addBtn('Преглед', array($this, 'Browse', $data->rec->id));
         }
     }
@@ -491,24 +497,38 @@ class forum_Boards extends core_Master {
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{ 
+	{  
 		if($action == 'read' && isset($rec->id)) {
-			 
-			// Могат да виждат дъските, единствено потребителите с роли, зададени в 'canSeeBoard' 
-			$res = $mvc::getVerbal($rec, 'canSeeBoard'); 
-		}
-		
-		if($action == 'add' && isset($rec->id)) {
-			 
-			$res = $mvc::getVerbal($rec, 'canSeeBoard'); 
-		}
-		
-		if($action == 'sticky' && isset($rec->id)) {
 			
-			// Само потребители с права могат да правят темите важни
-			$res = $mvc::getVerbal($rec, 'canStick'); 
+			($mvc::haveRightToObject($rec, $userId)) ? $res = 'every_one' : $res = 'no_one';
 		}
 	}
+	
+	
+	/**
+	 * Функция проверяваща дали потребителя има достъп до дъската
+	 * @param stdClass $rec
+	 * @param int $userId 
+	 * @return boolean
+	 */
+	static function haveRightToObject($rec, $userId = NULL)
+    {
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        // 'forum' има достъп до всяка дъска
+        if(haveRole('forum')) return TRUE;
+        
+        // Ако дъската е 'нормална' всички имат достъп до нея
+        if($rec->boardType == 'normal') return TRUE;
+        
+        // Ако дъската е споделена с текущия потребител, той има достъп
+        if(strpos($rec->shared, '|' . $userId . '|') !== FALSE) return TRUE;
+        
+        // Ако никое от горните не е изпълнено - отказваме достъпа
+        return FALSE;
+    }
 	
 	
 	/**
@@ -526,7 +546,9 @@ class forum_Boards extends core_Master {
    				$row->lastComment = 'няма';
    				$row->lastCommentBy = 'няма';
    			} else {
-   				$row->lastCommentBy = core_Users::fetch($rec->lastCommentBy)->nick;
+   				$userNick = core_Users::fetch($rec->lastCommentBy)->nick;
+   				$row->lastCommentBy = crm_Profiles::createLink($userNick, $rec->lastCommentBy);
+   				
    			}
    			
    			if($rec->lastCommentedTheme) {
