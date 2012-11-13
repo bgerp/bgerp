@@ -147,6 +147,9 @@ class core_ProtoSetup
                 $html .= "<li style='color:red;'>Не може да се записва в директорията <b>{$path}</b>";
             }
         }
+        
+        // Зареждане на началните данни на всички мениджъри от пакета
+        $this->loadSetupData();
 
         return $html;
     }
