@@ -29,7 +29,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper'; 
+	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting'; 
 	
 	
 	/**
@@ -60,6 +60,12 @@ class forum_Boards extends core_Master {
 	 * Кой може да добявя,редактира или изтрива дъска
 	 */
 	var $canWrite = 'forum, cms, admin';
+	
+	
+	/**
+	 * Кой може да изтрива дъските
+	 */
+	var $canDelete = 'no_one';
 	
 	
 	/**
@@ -194,8 +200,6 @@ class forum_Boards extends core_Master {
         // Рендираме Дъските в форума
         $layout = $this->renderForum($data);
        
-        $layout->push($data->forumTheme . '/styles.css', 'CSS');
-        
         return $layout;
 	}
 	
@@ -217,7 +221,13 @@ class forum_Boards extends core_Master {
 		}
 		
 		if($this->haveRightFor('list')) {
-			$data->listUrl = array($this, 'list');
+			if($data->category) {
+				$url = array($this, 'list', 'category' => $data->category);
+			} else {
+				$url = array($this, 'list');
+			}
+			
+			$data->listUrl = $url;
 		}
 		
 		$this->prepareNavigation($data);
@@ -283,7 +293,7 @@ class forum_Boards extends core_Master {
 			$data->navigation[] = $boardRow->category->title;
 			$data->navigation[] = $boardRow->title;
 			 
-		}  elseif ($data->action == 'topic') {
+		}  elseif ($data->action == 'topic' || $data->action == 'move') {
 			
 			// Ако разглеждаме тема,навигацията ще от рода  Форуми->Категория->Дъска->Тема
 			$boardRow = static::recToVerbal($data->board, "id,title,category,-private");
@@ -306,6 +316,7 @@ class forum_Boards extends core_Master {
 		
 		// Премахваме излишните символи от края на линка
 		$navigation = trim($navigation, "&nbsp»&nbsp;");
+		$navigation = "<span id='navigation-inner-link'>" . $navigation . "</span>";
 		
 		if($data->display) {
 		   
@@ -393,7 +404,9 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
-		$tpl->replace($this->renderNavigation($data), 'NAVIGATION');
+        $tpl->push($data->forumTheme . '/styles.css', 'CSS');
+        
+        $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         
 		// Връщаме шаблона с всички дъски групирани по категории
 		return $tpl;
@@ -424,10 +437,6 @@ class forum_Boards extends core_Master {
 		
 		// Рендираме разглежданата дъска
 		$layout = $this->renderBrowse($data);
-		
-		$layout->push($data->forumTheme . '/styles.css', 'CSS');
-        
-        $layout->replace($this->renderNavigation($data), 'NAVIGATION');
 		
 		return $layout;
 	}
@@ -469,6 +478,10 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
+		$tpl->push($data->forumTheme . '/styles.css', 'CSS');
+        
+        $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
+        
 		return $tpl;
 	}
 	
@@ -478,7 +491,13 @@ class forum_Boards extends core_Master {
      */
 	static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	 $data->toolbar->addBtn('Преглед', array($this, 'Forum'));
+		if($cat = Request::get('category')){
+			$url = array($this, 'forum', 'cat' => $cat);
+		} else {
+			$url = array($this, 'forum');
+		}
+		
+    	$data->toolbar->addBtn('Преглед', $url);
     }
  	
     
@@ -629,7 +648,7 @@ class forum_Boards extends core_Master {
      */
     static function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
-    	$tpl->replace(new ET("<span id='navigation-inner-link'>[#NAVIGATION#]</span>"));
+    	$tpl->replace(new ET("[#NAVIGATION#]"));
     }
     
     
