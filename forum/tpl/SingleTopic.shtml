@@ -1,6 +1,6 @@
 <div id='forum-topic'>
 <div id='navigation'>
-<span id='navigation-inner-link'>[#NAVIGATION#]</span>
+[#NAVIGATION#]
 </div>
 <br>
 <table border='1px' id='topic-layout' cellspacing='0px'>
