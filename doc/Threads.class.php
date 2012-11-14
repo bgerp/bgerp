@@ -133,6 +133,7 @@ class doc_Threads extends core_Manager
         // Потребител
         if($folderRec->inCharge > 0) {
             $user = core_Users::fetchField($folderRec->inCharge, 'nick');
+            $user = crm_Profiles::createLink($user, $folderRec->inCharge);
         } else {
             $user = '@system';
         }
