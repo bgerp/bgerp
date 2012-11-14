@@ -596,19 +596,19 @@ class crm_Profiles extends core_Master
     /**
      * Метод за удобство при генерирането на линкове към потребителски профили
      * 
-     * @param string $title    @see core_Html::createLink()
      * @param string|int $user @see crm_Profiles::getUrl()
+     * @param string $title    @see core_Html::createLink()
      * @param string $warning  @see core_Html::createLink()
      * @param array $attr      @see core_Html::createLink()
      */
-    public static function createLink($title, $user, $warning = FALSE, $attr = array())
+    public static function createLink($userId, $title = NULL, $warning = FALSE, $attr = array())
     {   
-        if (is_numeric($user)) {
-            // $user е ид на потребител
-            $userId = intval($user);
-        } else {
-            // $user е nick на потребител
-            $userId = core_Users::fetchField(array("#nick = '[#1#]'", $user), 'id');
+
+        
+
+        if(!$title) {
+            $userRec = core_Users::fetch($userId);
+            $title = mb_convert_case(str_replace(array('.', '_'), array('&nbsp;', '&nbsp;'), $userRec->nick), MB_CASE_TITLE, "UTF-8");
         }
 
         $link = $title;
@@ -649,7 +649,7 @@ class crm_Profiles extends core_Master
         
                 if ($url = $mvc::getUrl($rec->userId)) {
                     $row->personId = ht::createLink($row->personId, $url);
-                    $row->userId   = ht::createLink($row->userId, $url);
+                    $row->userId   = static::createLink($rec->userId);
                 }
             }
         }

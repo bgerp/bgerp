@@ -146,9 +146,8 @@ class doc_SharablePlg extends core_Plugin
         
         foreach ($sharedWith as $userId => $seenDate) {
             $userRec = core_Users::fetch($userId);
-            $nick = mb_convert_case(core_Users::getVerbal($userRec, 'nick'), MB_CASE_TITLE, "UTF-8");
-            
-            $nick = crm_Profiles::createLink($nick, $userId);
+          
+            $nick = crm_Profiles::createLink($userId);
             
             if (!empty($seenDate)) {
                 $seenDate = mb_strtolower(core_DateTime::mysql2verbal($seenDate, 'smartTime'));

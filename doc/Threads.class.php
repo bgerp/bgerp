@@ -132,7 +132,7 @@ class doc_Threads extends core_Manager
         
         // Потребител
         if($folderRec->inCharge > 0) {
-            $user = core_Users::fetchField($folderRec->inCharge, 'nick');
+            $user = crm_Profiles::createLink($folderRec->inCharge);
         } else {
             $user = '@system';
         }
@@ -269,7 +269,12 @@ class doc_Threads extends core_Manager
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId),
             NULL, $attr);
-        $row->author = $docRow->author;
+
+        if($docRow->authorId>0) {
+            $row->author = crm_Profiles::createLink($docRow->authorId);
+        } else {
+            $row->author = $docRow->author;
+        }
         
         $row->hnd = "<div class='rowtools'>";
         
@@ -1034,6 +1039,8 @@ class doc_Threads extends core_Manager
         
         //id' то на контейнера на първия документ в треда
         $firstContId = $threadRec->firstContainerId;
+
+        if (!$firstContId) return ;
         
         //Документа
         $oDoc = doc_Containers::getDocument($firstContId);
@@ -1073,11 +1080,14 @@ class doc_Threads extends core_Manager
      */
     static function getVerbalLink($params)
     {
+        // Проверяваме дали е число
+        if (!is_numeric($params['threadId'])) return FALSE;
+        
         // Записите за нишката
         $rec = static::fetch($params['threadId']);
-        
+
         // Проверяваме дали има права
-        if (!static::haveRightFor('single', $rec)) return FALSE;
+        if (!$rec || !static::haveRightFor('single', $rec)) return FALSE;
         
         // Инстанция на първия документ
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);

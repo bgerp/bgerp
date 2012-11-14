@@ -217,15 +217,17 @@ class doc_Folders extends core_Master
         $attr['class'] = 'linkWithIcon';
         $row->title = str::limitLen($row->title, 48);
         
-        if($mvc->haveRightFor('single', $rec)) {
-            
-            // Иконката на папката според достъпа и
-            $img = static::getIconImg($rec);
+        $haveRight = $mvc->haveRightFor('single', $rec);
+        
+        // Иконката на папката според достъпа и
+        $img = static::getIconImg($rec, $haveRight);
+        
+        if($haveRight) {
             
             $attr['style'] = 'background-image:url(' . $img . ');';
             $row->title = ht::createLink($row->title, array('doc_Threads', 'list', 'folderId' => $rec->id), NULL, $attr);
         } else {
-            $attr['style'] = 'color:#777;background-image:url(' . sbf('img/16/lock.png') . ');';
+            $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
             $row->title = ht::createElement('span', $attr, $row->title);
         }
         
@@ -239,6 +241,8 @@ class doc_Folders extends core_Master
             $attr['style'] .= 'color:#777;';
             $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
         }
+
+        $row->inCharge = crm_Profiles::createLink($rec->inCharge);
     }
     
 
@@ -576,20 +580,28 @@ class doc_Folders extends core_Master
      */
     static function getVerbalLink($params)
     {
+        // Проверяваме дали е число
+        if (!is_numeric($params['folderId'])) return FALSE;
+        
         // Записите за папката
         $rec = static::fetch($params['folderId']);
             
-        // Проверяваме дали има права
-        if (!static::haveRightFor('single', $rec)) return FALSE;
+        $haveRight = static::haveRightFor('single', $rec);
         
+        // Проверяваме дали има права
+        if (!$rec || (!($haveRight) && $rec->access != 'private')) return FALSE;
+
         // Заглавието на файла във вербален вид
         $title = static::getVerbal($rec, 'title');
         
         // Иконата на папката
-        $sbfIcon = static::getIconImg($rec);
+        $sbfIcon = static::getIconImg($rec, $haveRight);
         
-        // Ако мода е xhtml
-        if (Mode::is('text', 'xhtml')) {
+        if (Mode::is('text', 'plain')) {
+
+            // Ескейпваме плейсхолдърите и връщаме титлата
+            $res = core_ET::escape($title);
+        } elseif (Mode::is('text', 'xhtml') || !$haveRight) {
             
             // Ескейпваме плейсхолдърите
             $title = core_ET::escape($title);
@@ -600,12 +612,8 @@ class doc_Folders extends core_Master
             // Добаваме span с иконата и заглавиетео - не е линк
             // TODO класа да не е linkWithIcon
             $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
-        } elseif (Mode::is('text', 'plain')) {
-            
-            // Ескейпваме плейсхолдърите и връщаме титлата
-            $res = core_ET::escape($title);
         } else {
-            
+
             // Дали линка да е абсолютен
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
@@ -616,7 +624,7 @@ class doc_Folders extends core_Master
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = "background-image:url({$sbfIcon})";    
             $attr['target'] = '_blank'; 
-            
+
             // Създаваме линк
             $res = ht::createLink($title, $link, NULL, $attr); 
         }
@@ -717,8 +725,11 @@ class doc_Folders extends core_Master
      * Връща иконата на папката според достъпа
      * 
      * @params object $rec - Данните за записа
+     * @param boolean $haveRight - Дали има права за single
+     * 
+     * @return string $sbfImg - Иконата
      */
-    static function getIconImg($rec)
+    static function getIconImg($rec, $haveRight = FALSE)
     {
         switch($rec->access) {
             case 'secret' :
@@ -726,7 +737,12 @@ class doc_Folders extends core_Master
             break;
             
             case 'private' :
-                $img = 'folder_user.png';
+                if ($haveRight) {
+                    $img = 'folder_user.png';    
+                } else {
+                    $img = 'lock.png';
+                }
+                
             break;
             
             case 'team' :
