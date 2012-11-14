@@ -148,9 +148,6 @@ class core_ProtoSetup
             }
         }
         
-        // Зареждане на началните данни на всички мениджъри от пакета
-        $this->loadSetupData();
-
         return $html;
     }
 
