@@ -147,6 +147,9 @@ class core_ProtoSetup
                 $html .= "<li style='color:red;'>Не може да се записва в директорията <b>{$path}</b>";
             }
         }
+        
+        // Зареждане на началните данни на всички мениджъри от пакета
+        $this->loadSetupData();
 
         return $html;
     }
@@ -154,14 +157,14 @@ class core_ProtoSetup
     
     /**
      * Зареждане на първоначалните данни
-     * Извиква метода '->loadInitData' на мениджърите, които го имат
+     * Извиква метода '->loadSetupData()' на мениджърите, които го имат
      */
     public function loadSetupData()
     {
         // Създаване моделите в базата данни
         $instances = array();
         $htmlRes = '';
-        foreach (arr::make($managers) as $man) {
+        foreach (arr::make($this->managers) as $man) {
             $instances[$man] = &cls::get($man);
             if(method_exists($instances[$man], 'loadSetupData')) {
                 $htmlRes .= $instances[$man]->loadSetupData();
