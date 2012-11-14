@@ -86,13 +86,11 @@ class currency_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $manuItems = array(
+    var $menuItems = array(
             array(2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "currency, admin"),
         );
 
 
-    
-    
     /**
      * Де-инсталиране на пакета
      */

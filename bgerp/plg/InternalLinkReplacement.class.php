@@ -42,11 +42,14 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             $res = doc_Folders::getVerbalLink($params);
             
             // Ако функцията не върне FALSE 
-            if ($res !== FALSE) {
+            if ($res === FALSE) {
                 
-                // Прекратяваме по нататъшното изпълнени на програмата
-                return FALSE;    
+                // Текста указващ, че нямаме достъп до системата
+                $res = static::getNotAccessMsg();
             }
+
+            // Прекратяваме по нататъшното изпълнени на програмата
+            return FALSE;    
         }
         
         // Нишки
@@ -56,11 +59,14 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             $res = doc_Threads::getVerbalLink($params);
 
             // Ако функцията не върне FALSE 
-            if ($res !== FALSE) {
+            if ($res === FALSE) {
                 
-                // Прекратяваме по нататъшното изпълнени на програмата
-                return FALSE;    
-            }   
+                // Текста указващ, че нямаме достъп до системата
+                $res = static::getNotAccessMsg();
+            }
+
+            // Прекратяваме по нататъшното изпълнени на програмата
+            return FALSE;    
         }
 
         // Сингле
@@ -70,13 +76,43 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             $res = doc_Containers::getVerbalLink($params);
 
             // Ако функцията не върне FALSE 
-            if ($res !== FALSE) {
+            if ($res === FALSE) {
                 
-                // Прекратяваме по нататъшното изпълнени на програмата
-                return FALSE;    
-            }       
+                // Текста указващ, че нямаме достъп до системата
+                $res = static::getNotAccessMsg();
+            }
+
+            // Прекратяваме по нататъшното изпълнени на програмата
+            return FALSE;         
         }
         
         return ;
+    }
+    
+    
+    /**
+     * Съобщението, което ще се показва ако нямаме достъп до обекта
+     */
+    static function getNotAccessMsg()
+    {
+        $text = 'Липсващ обект.';
+        if (Mode::is('text', 'plain')) {
+            
+            // 
+            $str = $text;
+            
+        } else {
+            // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+            
+            // Иконата за линка
+            $sbfIcon = sbf('img/16/link_break.png','"', $isAbsolute);
+            
+            // Съобщението
+            $str = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$text} </span>"; 
+                
+        }
+        
+        return $str;
     }
 }

@@ -79,10 +79,10 @@ class vislog_History extends core_Manager {
         
         $History = cls::get('vislog_History');
         
-        $id = $History->save($rec);
+        $History->save($rec);
         
         if($returnCnt) {
-        	if($id) {
+        	if($rec->id) {
         		
         		// Преброяваме и връщаме броя посещения на ресурса
 	        	$historyQuery = $History->getQuery();

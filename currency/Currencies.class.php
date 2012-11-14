@@ -124,7 +124,7 @@ class currency_Currencies extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadInitData()
+    function loadSetupData()
     {
         $currDefs = array("БЪЛГАРСКИ ЛЕВ|BGN",
         	"АВСТРАЛИЙСКИ ДОЛАР|AUD",

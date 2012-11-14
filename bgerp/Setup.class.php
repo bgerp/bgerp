@@ -89,7 +89,9 @@ class bgerp_Setup {
         
         // Инстанция на мениджъра на пакетите
         $Packs = cls::get('core_Packs');
-
+        
+        // Това първо инсталиране ли е?
+        $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,acc,currency,doc,cms,
@@ -103,8 +105,9 @@ class bgerp_Setup {
         }
         
         // Добавяме допълнителните пакети, само при първоначален Setup
-        if(!$Packs->db->tableExists($Packs->dbTableName) || ($Packs->count() == 0)) {
-            $packs .= "avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen";
+        $Folders = cls::get('doc_Folders');
+        if(!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
+            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();

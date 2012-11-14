@@ -1034,6 +1034,8 @@ class doc_Threads extends core_Manager
         
         //id' то на контейнера на първия документ в треда
         $firstContId = $threadRec->firstContainerId;
+
+        if (!$firstContId) return ;
         
         //Документа
         $oDoc = doc_Containers::getDocument($firstContId);
@@ -1073,11 +1075,14 @@ class doc_Threads extends core_Manager
      */
     static function getVerbalLink($params)
     {
+        // Проверяваме дали е число
+        if (!is_numeric($params['threadId'])) return FALSE;
+        
         // Записите за нишката
         $rec = static::fetch($params['threadId']);
-        
+
         // Проверяваме дали има права
-        if (!static::haveRightFor('single', $rec)) return FALSE;
+        if (!$rec || !static::haveRightFor('single', $rec)) return FALSE;
         
         // Инстанция на първия документ
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
