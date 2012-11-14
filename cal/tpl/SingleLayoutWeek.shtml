@@ -1,0 +1,45 @@
+[#SingleToolbar#]
+           
+	<div class='document'>
+		<div class='header'>
+			<span style='[#iconStyle#]'>[#title#]</span><br/>
+			<span style='width:150px;'>[#from#]</span>
+		</div>
+
+	
+		<!--ET_BEGIN event-->	
+         <div class='block_left'>
+         </br>
+                <table cellspacing='1' class='listTable'>
+				<tr>
+					 <td class="quiet" colspan="2" style='padding-top:10px; color:black;'><b>Време</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#3dayBefore#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#2dayBefore#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#dateBefore#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:[#color#]; background-color:LightGoldenRodYellow ; width:100px;'><b>[#fromDate#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#dateAfter#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#2dayAfter#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#3dayAfter#]</b></td>
+                 </tr>
+                
+                 
+                 <!--ET_BEGIN COMMENT_LI-->
+                 <tr> 
+                 
+                     <td colspan="2" style='background-color:[#color1#];'>[#time#]</td>
+                     <td colspan="2" style='background-color:[#color2#]; width:100px;'>[#2dayTaskBefore#]</td>
+                     <td colspan="2" style='background-color:[#color3#]; width:100px;'>[#dayTaskBefore#]</td>
+                     <td colspan="2" style='background-color:[#color4#]; width:100px;'>[#taskBefore#]</td>
+                     <td colspan="2" style='background-color:LightGoldenRodYellow ; width:100px;'>[#task#]</td>
+                     <td colspan="2" style='background-color:[#color6#]; width:100px;'>[#taskAfter#]</td>
+                     <td colspan="2" style='background-color:[#color7#]; width:100px;'>[#dayTaskAfter#]</td>
+                     <td colspan="2" style='background-color:[#color8#]; width:100px;'>[#2dayTaskAfter#]</td>
+                 </tr>
+                 <!--ET_END COMMENT_LI-->
+                               
+                 </table>
+			</div>
+         <!--ET_END event-->
+         
+         <div style='clear: both;'></div>
+    </div>         

@@ -169,8 +169,8 @@ class cal_Calendar extends core_Master
         if($from = $data->listFilter->rec->from) {
         	
             $data->query->where("#time >= date('$from')");
-            $data->query->where("#users = '' OR #users LIKE '|{$currentID}|'");
-            //$data->query->where("#users = '' OR  #users IS NULL OR #users LIKE '|{$currentID}|'");
+           // $data->query->where("#users = '' OR #users LIKE '|{$currentID}|'");
+            $data->query->where("#users = '' OR  #users IS NULL OR #users LIKE '|{$currentID}|'");
         }
     }
     
@@ -756,7 +756,7 @@ class cal_Calendar extends core_Master
       
         $state = new stdClass();
         $state->query = self::getQuery();
-             
+        $state->query->orderBy('time', 'ASC');     
         while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
         	
         	$timeStarts = dt::mysql2verbal($rec->time, 'd-m-Y');
@@ -786,7 +786,7 @@ class cal_Calendar extends core_Master
     			$tasks[] = $rec;
     		}
         	
-        }
+        }//bp($hour);
         for ($i = 0; $i <= count($tasks); $i++){
     		unset ($hour[$i]);
     	}
@@ -820,13 +820,13 @@ class cal_Calendar extends core_Master
 	    		$cTpl->replace($h, 'time');
 				$cTpl->append2master();
    		    }
-   		    
+   		    //bp($tasks);
 			if(is_array($tasks)){
-				
-				    
-    		
+				    		
 	    		foreach($tasks as $task){
-	    			
+	    			$mode = current($tasks);
+	    			$modeNext = next($tasks);
+	    			//bp($mode);
 	    			$cTpl = $tpl->getBlock("COMMENT_LI");
 	    			
 	    			if(dt::mysql2verbal($task->time, 'H:i') == $h && 
@@ -834,14 +834,19 @@ class cal_Calendar extends core_Master
 	    			   	
 		    			   	$url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
-		    			   			    				
-		    				$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskBefore');
-		    				if($h == "00:00"){
+		    			   	
+		    			   	$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskBefore');
+				    		if($h == "00:00"){
 		    					$cTpl->replace("Цял ден", 'time');
+		    					//$cTpl->replace($t, '2dayTaskBefore');
+		    					//continue;
 		    				} else{
 		    			   		$cTpl->replace($h, 'time');
+		    			   		
 		    				}
+		    			   	
 		    			   	$cTpl->replace($colors, 'color2');
+		    			   	$cTpl->append2master();
 		    			   
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day2Before){
@@ -852,24 +857,32 @@ class cal_Calendar extends core_Master
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'dayTaskBefore');
 	    			        if($h == "00:00"){
 		    					$cTpl->replace("Цял ден", 'time');
+		    					//$cTpl->replace($t, 'dayTaskBefore');
+		    					//continue;
 		    				} else{
 		    			   		$cTpl->replace($h, 'time');
+		    			   		
 		    				}
 		    			   	$cTpl->replace($colors, 'color3');
+		    			   	$cTpl->append2master();
 		    			  		    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $dateBefore){
 	    			   	
 		    			   	$url = getRetUrl($task->url);
 		    			   	$colors = array_pop($color);
-		    			   	
+		    			   			    			   	
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'taskBefore');
 	    			        if($h == "00:00"){
 		    					$cTpl->replace("Цял ден", 'time');
+		    					//$cTpl->replace($t, 'taskBefore');
+		    					//continue;
 		    				} else{
 		    			   		$cTpl->replace($h, 'time');
+		    			   		
 		    				}
 		    			   	$cTpl->replace($colors, 'color4');
+		    			   	$cTpl->append2master();
 		    					    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $currentDate){
@@ -880,10 +893,14 @@ class cal_Calendar extends core_Master
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'task');
 	    			        if($h == "00:00"){
 		    					$cTpl->replace("Цял ден", 'time');
+		    					//$cTpl->replace($t, 'task');
+		    					//continue;
 		    				} else{
 		    			   		$cTpl->replace($h, 'time');
+		    			   		
 		    				}
 		    			   	$cTpl->replace($colors, 'color5');
+		    			   	$cTpl->append2master();
 		    			  		    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $dateAfter){
@@ -894,10 +911,14 @@ class cal_Calendar extends core_Master
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'taskAfter');
 	    			        if($h == "00:00"){
 		    					$cTpl->replace("Цял ден", 'time');
+		    					//$cTpl->replace($t, 'taskAfter');
+		    					//continue;
 		    				} else{
 		    			   		$cTpl->replace($h, 'time');
+		    			   		
 		    				}
 		    			    $cTpl->replace($colors, 'color6');
+		    			    $cTpl->append2master();
 		    			   		    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day2After){
@@ -908,10 +929,14 @@ class cal_Calendar extends core_Master
 		    				$cTpl->replace(ht::createLink($task->title, $url), 'dayTaskAfter');
 	    			        if($h == "00:00"){
 		    					$cTpl->replace("Цял ден", 'time');
+		    					//$cTpl->replace($t, 'dayTaskAfter');
+		    					//continue;
 		    				} else{
 		    			   		$cTpl->replace($h, 'time');
+		    			   		
 		    				}
 		    			   	$cTpl->replace($colors, 'color7');
+		    			   	$cTpl->append2master();
 		    			  		    			   	
 	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
 	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day3After){
@@ -922,8 +947,11 @@ class cal_Calendar extends core_Master
 		    				$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskAfter');
 	    			        if($h == "00:00"){
 		    					$cTpl->replace("Цял ден", 'time');
+		    					//$cTpl->replace($t, '2dayTaskAfter');
+		    					//continue;
 		    				} else{
 		    			   		$cTpl->replace($h, 'time');
+		    			   		
 		    				}
 		    			   	$cTpl->replace($colors, 'color8');
 		    			   	$cTpl->append2master();
