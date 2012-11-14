@@ -860,7 +860,7 @@ class forum_Postings extends core_Detail {
    	 				$row->status = '';
    	 			}
    	 			
-   	 			$row->title =$row->status. ht::createLink($row->title, array($mvc, 'Topic', $row->id));
+   	 			$row->title =$row->status. ht::createLink($row->title, array($mvc, 'Topic', $rec->id));
    	 			
    	 			if(!$row->last) {
    	 		 		$row->last = tr('няма');
@@ -938,12 +938,14 @@ class forum_Postings extends core_Detail {
 	function on_AfterPrepareListRecs($mvc, $res, $data)
 	{
 		$cu = core_Users::getCurrent();
-		foreach($data->recs as $rec) {
-			
-			// за всяка тема проверяваме достъпа до дъската и, ако не я премахваме
-			$board = $this->Master->fetch($rec->boardId);
-			if(!$this->Master->haveRightToObject($board, $cu)) {
-				unset($data->recs[$rec->id]);
+		if($data->recs){
+			foreach($data->recs as $rec) {
+				
+				// за всяка тема проверяваме достъпа до дъската и, ако не я премахваме
+				$board = $this->Master->fetch($rec->boardId);
+				if(!$this->Master->haveRightToObject($board, $cu)) {
+					unset($data->recs[$rec->id]);
+				}
 			}
 		}
 	}
