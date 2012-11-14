@@ -743,6 +743,9 @@ class doc_Containers extends core_Manager
                 return $res;
             }
                 
+             // Проверяваме дали е число
+            expect(is_numeric($params['id']));
+            
             // Вземаме записите
             $rec = $ctrInst->fetch($params['id']);
             

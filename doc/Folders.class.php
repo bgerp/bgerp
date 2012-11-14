@@ -578,6 +578,9 @@ class doc_Folders extends core_Master
      */
     static function getVerbalLink($params)
     {
+        // Проверяваме дали е число
+        if (!is_numeric($params['folderId'])) return FALSE;
+        
         // Записите за папката
         $rec = static::fetch($params['folderId']);
             
