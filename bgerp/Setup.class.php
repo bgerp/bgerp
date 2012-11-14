@@ -121,16 +121,18 @@ class bgerp_Setup {
         
         // Извършваме инициализирането на всички включени в списъка пакети
         foreach(arr::make($packs) as $p) {
-            $packsInst[$p] = cls::get($p . '_Setup', TRUE);
-            if($packsInst[$p]) {
+            if(cls::load($p . '_Setup', TRUE)) {
                 $html .= $Packs->setupPack($p);
             }
         }
 
         // Извършваме инициализирането на всички включени в списъка пакети
         foreach(arr::make($packs) as $p) {
-            if($packsInst[$p] && method_exists($packsInst[$p], 'loadSetupData')) {
-                $packsInst[$p]->loadSetupData();
+            if(cls::load($p . '_Setup', TRUE)) {
+                $packsInst[$p] = cls::get($p);
+                if(method_exists($packsInst[$p], 'loadSetupData')) {
+                    $packsInst[$p]->loadSetupData();
+                }
             }
         }
         
