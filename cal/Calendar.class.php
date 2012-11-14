@@ -695,7 +695,7 @@ class cal_Calendar extends core_Master
         $year = dt::mysql2Verbal($from, 'Y');
         
         // Масив с цветове за събитията
-    	$color = array( "Crimson", 
+    	$colors = array( "Crimson", 
 				    	"OrangeRed",
 				    	"Gold",
 				    	"Olive", 
@@ -713,84 +713,42 @@ class cal_Calendar extends core_Master
 				    	"Moccasin", 
 				    	"MistyRose");
         
-        $hour = array(  "00:00" => " ",
-				    	"01:00" => " ",
-				    	"02:00" => " ",
-				    	"03:00" => " ",
-				    	"04:00" => " ",
-				    	"05:00" => " ",
-				    	"06:00" => " ",
-				    	"07:00" => " ",
-				    	"08:00" => " ",
-				    	"09:00" => " ",
-				    	"10:00" => " ",
-				    	"11:00" => " ",
-				    	"12:00" => " ",
-				    	"13:00" => " ",
-				    	"14:00" => " ",
-				    	"15:00" => " ",
-				    	"16:00" => " ",
-				    	"17:00" => " ",
-				    	"18:00" => " ",
-				    	"19:00" => " ",
-				    	"20:00" => " ",
-				    	"21:00" => " ",
-				    	"22:00" => " ",
-				    	"23:00" => " ");
-                      
-        if($month >= 1 && $month <= 12){
-	        if($day >= 1 && $day <= 31){
-		        
-	        	$dateBefore = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day - 1, $year)),'l d-m-Y');
-	        	$day2Before = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day - 2, $year)),'l d-m-Y');
-			    $day3Before = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day - 3, $year)),'l d-m-Y');
-			
-	        	$dateAfter = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day + 1, $year)),'l d-m-Y');
-	        	$day2After = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day + 2, $year)),'l d-m-Y');
-	        	$day3After = dt::mysql2Verbal(date("l d-m-Y", mktime(0, 0, 0, $month, $day + 3, $year)),'l d-m-Y');
-	        	
-	        } 
+        $hours = array( "allDay" => "Цял ден");
+        
+        //Генерираме масив с часовете
+        for($i = 0; $i < 24; $i++){
+        	$hours[$i] = str_pad($i, 2, "0", STR_PAD_LEFT). ":00";
         }
-        $fromDate = dt::verbal2mysql ($day3Before);
-        $toDate =  str_replace("00:00:00", "23:59:59",dt::verbal2mysql ($day3After));
-      
+        
+        //Генерираме масив с дните и масив за обратна връзка
+        for($i = 0; $i < 7; $i++){
+        	$days[$i] = dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'l d-m-Y');
+        	$dates[date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year))] = "d" . $i;
+        }
+               
+        $fromDate = date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day - 3, $year));
+        $toDate = date("Y-m-d 23:59:59", mktime(0, 0, 0, $month, $day + 3, $year));
+              
+        //Извличане на събитията за цялата седмица
         $state = new stdClass();
         $state->query = self::getQuery();
         $state->query->orderBy('time', 'ASC');     
         while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
         	
-        	$timeStarts = dt::mysql2verbal($rec->time, 'd-m-Y');
+        	//какъв ден е
+        	$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
     		
-    		// Начален час: минути на събитието 
-    		$timeHour = dt::mysql2verbal($rec->time, 'H:i');
+    		// Начален час на събитието 
+    		$hourKey = dt::mysql2verbal($rec->time, 'G');
     		
-    		/*if($rec->timeDuration !== NULL || $rec->timeEnd !== NULL){
-    			$taskHour = self::endTask($timeHour, $rec->timeDuration);
-    		} else {
-    			$taskHour = FALSE;
-    		}*/
-    		
-    		
-    		if(trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day - 1, $year)),'d-m-Y')) ||
-    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day - 2, $year)),'d-m-Y')) ||
-    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day - 3, $year)),'d-m-Y')) ||
-    		   trim($timeStarts) == trim ($from) ||
-    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day + 1, $year)),'d-m-Y')) ||
-    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day + 2, $year)),'d-m-Y')) ||
-    		   trim($timeStarts) == trim (dt::mysql2Verbal(date("d-m-Y", mktime(0, 0, 0, $month, $day + 3, $year)),'d-m-Y')) ){
-    		   	
-    			$hour[$timeHour] .= $rec->title . "<br>";
-    			//$hour[$taskHour] = "Kрай на задача: ". $rec->title;
-    			$hour[] = ksort($hour);
-    			
-    			$tasks[] = $rec;
+    		if($rec->allDay == "yes"){
+    			$hourKey = "allDay";
     		}
-        	
-        }//bp($hour);
-        for ($i = 0; $i <= count($tasks); $i++){
-    		unset ($hour[$i]);
-    	}
-               
+    		
+    		$weekData[$hourKey][$dayKey] .= "<p style='background-color:[#color#];'>" . $rec->title . "</p>";
+        }
+             
+    	//Рендиране на седмицата	
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutWeek.shtml'));
     	
     	$Calendar = cls::get('cal_Calendar');
@@ -800,168 +758,19 @@ class cal_Calendar extends core_Master
     	
     	$tpl->replace('Събития за седмицата', 'title');
     	
-    	$tpl->replace($day3Before, '3dayBefore');
-    	$tpl->replace($day2Before, '2dayBefore');
-    	$tpl->replace($dateBefore, 'dateBefore');
-    	$tpl->replace($currentDate, 'fromDate');
-    	$tpl->replace($dateAfter, 'dateAfter');
-    	$tpl->replace($day2After, '2dayAfter');
-    	$tpl->replace($day3After, '3dayAfter');
+    	//Рендираме масива с дните
+    	$tpl->placeArray($days);
     	
-    	if(dt::isHoliday($from)) {
-    		$tpl->replace("DarkGreen", 'color');
-    	} else {
-    		$tpl->replace("black", 'color');
-    	}
-    	
-   		foreach($hour as $h => $t){
-    		if($t == " " || strpos($t, "K") === 0 ){
-    	    	$cTpl = $tpl->getBlock("COMMENT_LI");
-	    		$cTpl->replace($h, 'time');
-				$cTpl->append2master();
-   		    }
-   		    //bp($tasks);
-			if(is_array($tasks)){
-				    		
-	    		foreach($tasks as $task){
-	    			$mode = current($tasks);
-	    			$modeNext = next($tasks);
-	    			//bp($mode);
-	    			$cTpl = $tpl->getBlock("COMMENT_LI");
-	    			
-	    			if(dt::mysql2verbal($task->time, 'H:i') == $h && 
-	    			   dt::mysql2verbal($task->time, 'l d-m-Y') == $day3Before){
-	    			   	
-		    			   	$url = getRetUrl($task->url);
-		    			   	$colors = array_pop($color);
-		    			   	
-		    			   	$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskBefore');
-				    		if($h == "00:00"){
-		    					$cTpl->replace("Цял ден", 'time');
-		    					//$cTpl->replace($t, '2dayTaskBefore');
-		    					//continue;
-		    				} else{
-		    			   		$cTpl->replace($h, 'time');
-		    			   		
-		    				}
-		    			   	
-		    			   	$cTpl->replace($colors, 'color2');
-		    			   	$cTpl->append2master();
-		    			   
-	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day2Before){
-	    			   	
-		    			   	$url = getRetUrl($task->url);
-		    			   	$colors = array_pop($color);
-		    			   	
-		    				$cTpl->replace(ht::createLink($task->title, $url), 'dayTaskBefore');
-	    			        if($h == "00:00"){
-		    					$cTpl->replace("Цял ден", 'time');
-		    					//$cTpl->replace($t, 'dayTaskBefore');
-		    					//continue;
-		    				} else{
-		    			   		$cTpl->replace($h, 'time');
-		    			   		
-		    				}
-		    			   	$cTpl->replace($colors, 'color3');
-		    			   	$cTpl->append2master();
-		    			  		    			   	
-	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $dateBefore){
-	    			   	
-		    			   	$url = getRetUrl($task->url);
-		    			   	$colors = array_pop($color);
-		    			   			    			   	
-		    				$cTpl->replace(ht::createLink($task->title, $url), 'taskBefore');
-	    			        if($h == "00:00"){
-		    					$cTpl->replace("Цял ден", 'time');
-		    					//$cTpl->replace($t, 'taskBefore');
-		    					//continue;
-		    				} else{
-		    			   		$cTpl->replace($h, 'time');
-		    			   		
-		    				}
-		    			   	$cTpl->replace($colors, 'color4');
-		    			   	$cTpl->append2master();
-		    					    			   	
-	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $currentDate){
-	    			   	
-		    			   	$url = getRetUrl($task->url);
-		    			   	$colors = array_pop($color);
-		    			   	
-		    				$cTpl->replace(ht::createLink($task->title, $url), 'task');
-	    			        if($h == "00:00"){
-		    					$cTpl->replace("Цял ден", 'time');
-		    					//$cTpl->replace($t, 'task');
-		    					//continue;
-		    				} else{
-		    			   		$cTpl->replace($h, 'time');
-		    			   		
-		    				}
-		    			   	$cTpl->replace($colors, 'color5');
-		    			   	$cTpl->append2master();
-		    			  		    			   	
-	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $dateAfter){
-	    			   	
-		    			    $url = getRetUrl($task->url);
-		    			   	$colors = array_pop($color);
-		    			   	
-		    				$cTpl->replace(ht::createLink($task->title, $url), 'taskAfter');
-	    			        if($h == "00:00"){
-		    					$cTpl->replace("Цял ден", 'time');
-		    					//$cTpl->replace($t, 'taskAfter');
-		    					//continue;
-		    				} else{
-		    			   		$cTpl->replace($h, 'time');
-		    			   		
-		    				}
-		    			    $cTpl->replace($colors, 'color6');
-		    			    $cTpl->append2master();
-		    			   		    			   	
-	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day2After){
-	    			   	
-		    			    $url = getRetUrl($task->url);
-		    			   	$colors = array_pop($color);
-		    			   	
-		    				$cTpl->replace(ht::createLink($task->title, $url), 'dayTaskAfter');
-	    			        if($h == "00:00"){
-		    					$cTpl->replace("Цял ден", 'time');
-		    					//$cTpl->replace($t, 'dayTaskAfter');
-		    					//continue;
-		    				} else{
-		    			   		$cTpl->replace($h, 'time');
-		    			   		
-		    				}
-		    			   	$cTpl->replace($colors, 'color7');
-		    			   	$cTpl->append2master();
-		    			  		    			   	
-	    			} elseif(dt::mysql2verbal($task->time, 'H:i') == $h && 
-	    			         dt::mysql2verbal($task->time, 'l d-m-Y') == $day3After){
-	    			   	
-		    			   	$url = getRetUrl($task->url);
-		    			   	$colors = array_pop($color);
-		    			   	
-		    				$cTpl->replace(ht::createLink($task->title, $url), '2dayTaskAfter');
-	    			        if($h == "00:00"){
-		    					$cTpl->replace("Цял ден", 'time');
-		    					//$cTpl->replace($t, '2dayTaskAfter');
-		    					//continue;
-		    				} else{
-		    			   		$cTpl->replace($h, 'time');
-		    			   		
-		    				}
-		    			   	$cTpl->replace($colors, 'color8');
-		    			   	$cTpl->append2master();
-		    			   	
-	    			}
-	    			
-	    		}
-			}
-    		 
-    	}
+   		foreach($hours as $h => $t){
+   			
+    		$hourArr = $weekData[$h];
+    		$hourArr['time'] = $t;
+    		    		    		
+    		$cTpl = $tpl->getBlock("COMMENT_LI");
+    		$cTpl->placeArray($hourArr);
+    		$cTpl->append2master();
+   		}
+   		    
 
         return $this->renderWrapping($tpl);
     }

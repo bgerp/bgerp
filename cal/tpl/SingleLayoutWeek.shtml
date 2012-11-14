@@ -13,27 +13,27 @@
                 <table cellspacing='1' class='listTable'>
 				<tr>
 					 <td class="quiet" colspan="2" style='padding-top:10px; color:black;'><b>Време</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#3dayBefore#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#2dayBefore#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#dateBefore#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:[#color#]; background-color:LightGoldenRodYellow ; width:100px;'><b>[#fromDate#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#dateAfter#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#2dayAfter#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#3dayAfter#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#0#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#1#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#2#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black;; background-color:LightGoldenRodYellow ; width:100px;'><b>[#3#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#4#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#5#]</b></td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#6#]</b></td>
                  </tr>
                 
                  
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr> 
                  
-                     <td colspan="2" style='background-color:[#color1#];'>[#time#]</td>
-                     <td colspan="2" style='background-color:[#color2#]; width:100px;'>[#2dayTaskBefore#]</td>
-                     <td colspan="2" style='background-color:[#color3#]; width:100px;'>[#dayTaskBefore#]</td>
-                     <td colspan="2" style='background-color:[#color4#]; width:100px;'>[#taskBefore#]</td>
-                     <td colspan="2" style='background-color:LightGoldenRodYellow ; width:100px;'>[#task#]</td>
-                     <td colspan="2" style='background-color:[#color6#]; width:100px;'>[#taskAfter#]</td>
-                     <td colspan="2" style='background-color:[#color7#]; width:100px;'>[#dayTaskAfter#]</td>
-                     <td colspan="2" style='background-color:[#color8#]; width:100px;'>[#2dayTaskAfter#]</td>
+                     <td colspan="2" >[#time#]</td>
+                     <td colspan="2" style='width:100px;'>[#d0#]</td>
+                     <td colspan="2" style='width:100px;'>[#d1#]</td>
+                     <td colspan="2" style='width:100px;'>[#d2#]</td>
+                     <td colspan="2" style='background-color:LightGoldenRodYellow ; width:100px;'>[#d3#]</td>
+                     <td colspan="2" style='width:100px;'>[#d4#]</td>
+                     <td colspan="2" style='width:100px;'>[#d5#]</td>
+                     <td colspan="2" style='width:100px;'>[#d6#]</td>
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                
