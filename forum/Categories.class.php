@@ -18,7 +18,7 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Заглавие на страницата
 	 */
-	var $title = 'Категории на дъските';
+	var $title = 'Категории';
 	
 	
 	/**
@@ -30,31 +30,31 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields='id, title, order';
+	var $listFields ='id, title, order, boardCnt';
 	
 	
 	/**
 	 * Кой може да добавя 
 	 */
-	var $canAdd='forum, cms, ceo, admin';
+	var $canAdd = 'forum, cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да редактира
 	 */
-	var $canEdit='forum, cms, ceo, admin';
+	var $canEdit = 'forum, cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да изтрива
 	 */
-	var $canDelete='forum, cms, ceo, admin';
+	var $canDelete = 'forum, cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да преглежда списъка с коментари
 	 */
-	var $canList='forum, cms, ceo, admin';
+	var $canList = 'forum, cms, ceo, admin';
 	
 	
 	/**
@@ -64,6 +64,7 @@ class forum_Categories extends core_Manager {
 	{
 		$this->FLD('title', 'varchar(40)', 'caption=Заглавие, mandatory');
 		$this->FLD('order', 'int', 'caption=Подредба');
+		$this->FLD('boardCnt', 'int', 'caption=Дъски, input=none, value=0');
 
 		// Поставяне на уникални индекси
 		$this->setDbUnique('title, order');
@@ -104,7 +105,6 @@ class forum_Categories extends core_Manager {
 		   $url = array('forum_Boards', 'Forum', 'cat' => $cat->id);
 		   $cat->title = ht::createLink($cat->title, $url);
 		   $data->categories[] = $cat;
-			
 		}
 	}
 	
@@ -121,5 +121,24 @@ class forum_Categories extends core_Manager {
 		if($fields['-public']) {
 			$row->title = ht::createLink($row->title, array('forum_Boards', 'forum', 'cat' => $rec->id));
 		}
+	}
+	
+	
+	/**
+	 *  Обновяваме броя на дъските в подадената категория
+	 *  @param int $id
+	 *  @return void
+	 */
+	static function updateCategory($id)
+	{
+		$rec = static::fetch($id);
+		$query = forum_Boards::getQuery();
+		$query->where("#category = {$id}");
+		
+		// Преброяваме дъските от тази категория
+		$rec->boardCnt = $query->count();
+		
+		// Обновяваме записа
+		static::save($rec);
 	}
 }

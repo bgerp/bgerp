@@ -41,11 +41,11 @@ class forum_Boards extends core_Master {
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields = 'tools=Пулт, title, category, shortDesc, themesCnt, boardType, shared, lastComment, lastCommentedTheme, lastCommentBy, createdOn, createdBy,  modifiedOn, modifiedBy';
+	var $listFields = 'tools=Пулт, title, category, shortDesc, themesCnt, commentsCnt, boardType, shared, lastComment, lastCommentedTheme, lastCommentBy, createdOn, createdBy';
 	
 	
 	/**
-	 * Коментари на статията
+	 * Теми и коментари на дъската
 	 */
 	var $details = 'forum_Postings';
 	
@@ -85,11 +85,11 @@ class forum_Boards extends core_Master {
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory, width=400px');
+		$this->FLD('title', 'varchar(50)', 'caption=Име, mandatory, width=400px');
 		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, width=100%');
 		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория, mandatory');
-		$this->FLD('boardType', 'enum(normal=Нормална,confidential=Конфиденциална)', 'caption=Роли за достъп->Тип, notNull, value=normal');
-		$this->FLD('shared', 'keylist(mvc=core_Users,select=nick)', 'caption=Роли за достъп->Споделяне');
+		$this->FLD('boardType', 'enum(normal=Нормална,confidential=Конфиденциална)', 'caption=Достъп->Тип, notNull, value=normal');
+		$this->FLD('shared', 'keylist(mvc=core_Users,select=nick)', 'caption=Достъп->Споделяне');
 		$this->FLD('themesCnt', 'int', 'caption=Темите, input=none, value=0');
 		$this->FLD('commentsCnt', 'int', 'caption=Коментари, input=none, value=0');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');
@@ -109,14 +109,13 @@ class forum_Boards extends core_Master {
 		// Предпазване от листване на конфиденциални дъски
 		$cu = core_Users::getCurrent();
 		
-		//@TODO Да го променя на forum
 		// Пропускаме конфиденциалните папки,несподелени с текущия потребител
-       	if(!haveRole('ceo') && $cu >0) {
+       	if(!haveRole('forum') && $cu >0) {
             $data->query->where("NOT (#boardType = 'confidential'  AND !(#shared LIKE '%|{$cu}|%'))");
         }
 		
 		if($category = Request::get('category')) {
-			$data->query->where("#category = {$category}");
+			$data->query->where(array("#category = [#1#]", $category));
 		}
 		
 		$data->query->orderBy('#category');
@@ -126,6 +125,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Обновяваме броя на темите и коментарите на дъската. Обновяваме кой, къде и
 	 * кога е направил последния коментар
+	 * @param int $id
 	 */
 	function updateBoard($id)
 	{
@@ -137,16 +137,25 @@ class forum_Boards extends core_Master {
 		$commentsQuery = forum_Postings::getQuery();
 		$commentsQuery->where("#boardId = {$id} AND #themeId IS NOT NULL");
 		
-		// Извличане на последния коментар в дъската
+		// Извличане на последните тема и коментар
+		$themesQuery->XPR('maxId', 'int', 'max(#id)');
 		$commentsQuery->XPR('maxId', 'int', 'max(#id)');
-		try{
-			// Намираме постинга който е последния коментар в дъската (този с най-голямо ид)
-			$lastComment = forum_Postings::fetch($commentsQuery->fetch()->maxId); 
-		} catch (core_exception_Expect $e) {
+		
+		if($commentsQuery->count() > 0) {
 			
-			// В случай че дъската няма коментари задаваме на $lastComment стойност NULL
-			$lastComment = NULL;
-		}
+			// Ако има коментари то намираме, последно добавения коментар
+			$last = forum_Postings::fetch($commentsQuery->fetch()->maxId);
+		} else {
+			if($themesQuery->count() > 0) {
+				
+				// Ако няма коментари но има теми, намираме последно добавената тема
+				$last = forum_Postings::fetch($themesQuery->fetch()->maxId);
+			} else {
+				
+				// Ако няма нито коментари нито теми, то $last е NULL
+				$last = NULL;
+			  }
+		  }
 		
 		// Дъската в която ще обновяваме информацията
 		$rec = $this->fetch($id);
@@ -158,17 +167,22 @@ class forum_Boards extends core_Master {
 		$rec->commentsCnt = $commentsQuery->count();
 		
 		// Ако има коментар в дъската, ние обновяваме кой, кога и къде го е направил
-		if($lastComment) {
-		
-			$rec->lastCommentedTheme = $lastComment->themeId;
-			$rec->lastComment = $lastComment->createdOn;
-		    $rec->lastCommentBy = $lastComment->createdBy;
+		if($last) { 
+			($last->themeId !== NULL) ? $id = $last->themeId : $id = $last->id;
+			
+			// Обновяваме кога къде и от кого е направн последния коментар, ако няма 
+			// коментари обновяваме коя, кога и къде е последно създадената тема
+			$rec->lastCommentedTheme = $id;
+			$rec->lastComment = $last->createdOn;
+		    $rec->lastCommentBy = $last->createdBy;
+		   
 		} else {
 			
+			// Ако дъската е празна
 			$rec->lastCommentedTheme = NULL;
 			$rec->lastComment = NULL;
 		    $rec->lastCommentBy = NULL;
-		}
+		  }
 		
 	    // Обновяваме дъската
 	    $this->save($rec);
@@ -191,7 +205,7 @@ class forum_Boards extends core_Master {
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
         $data->title = tr($conf->GREETING_MESSAGE);
         $data->action = 'forum';
-        $data->display ='public';
+        $data->display = 'public';
         $data->category = Request::get('cat');
         
         // Подготвяме необходимите данни за показване на дъските
@@ -225,7 +239,7 @@ class forum_Boards extends core_Master {
 				$url = array($this, 'list', 'category' => $data->category);
 			} else {
 				$url = array($this, 'list');
-			}
+			  }
 			
 			$data->listUrl = $url;
 		}
@@ -393,7 +407,7 @@ class forum_Boards extends core_Master {
                     }
                 } else {
                        $catTpl->replace(new ET("<li class='no-boards'>" . tr("Няма Дъски") . "</li>"), 'BOARDS');
-                }
+                  }
 
                 // Добавяме категорията с нейните дъски към главния шаблон
                 $tpl->append($catTpl, 'CATEGORIES');
@@ -495,7 +509,7 @@ class forum_Boards extends core_Master {
 			$url = array($this, 'forum', 'cat' => $cat);
 		} else {
 			$url = array($this, 'forum');
-		}
+		  }
 		
     	$data->toolbar->addBtn('Преглед', $url);
     }
@@ -519,7 +533,7 @@ class forum_Boards extends core_Master {
 	{  
 		if($action == 'read' && isset($rec->id)) {
 			
-			($mvc::haveRightToObject($rec, $userId)) ? $res = 'every_one' : $res = 'no_one';
+			($mvc::haveRightToObject($rec, $userId)) ? $res = 'every_one' : $res = 'forum';
 		}
 	}
 	
@@ -567,11 +581,17 @@ class forum_Boards extends core_Master {
    			} else {
    				$row->lastCommentBy = crm_Profiles::createLink($rec->lastCommentBy);
    			}
-   			
+
    			if($rec->lastCommentedTheme) {
    				$themeRec = forum_Postings::fetch($rec->lastCommentedTheme);
-   				$themeRow = forum_Postings::recToVerbal($themeRec, 'id,title,-list');
-   				$row->lastCommentedTheme = $themeRow->title;
+   				if(strlen($themeRec->title) >= 10) {
+   					
+   					// Ако заглавието и е много дълго го съкръщаваме
+   					$themeRec->title = mb_substr($themeRec->title,0 , 10);
+   					$themeRec->title .= "..."; 
+   				}
+   				
+   				$row->lastCommentedTheme = ht::createLink($themeRec->title, array('forum_Postings', 'Topic', $themeRec->id));
    			}
    		}
    		
@@ -580,25 +600,30 @@ class forum_Boards extends core_Master {
    			
    			$row->title = ht::createLink($row->title, array($mvc, 'Browse', $rec->id));
    			$categoryRec = forum_Categories::fetch($rec->category);
-   			$row->category =  forum_Categories::recToVerbal($categoryRec, 'id,title,-public');
+   			$row->category = forum_Categories::recToVerbal($categoryRec, 'id,title,-public');
    			$row->themesCnt .= "&nbsp;" . tr('Теми');
    			$row->commentsCnt .= "&nbsp;" . tr('Мнения');
    			
    			// Ако темата има последен коментар
    			if($rec->lastCommentBy) {
-	           
+	          
 	           // преобразуваме ид-то на последно коментираната тема в разбираем вид
 	           $themeRec = forum_Postings::fetch($rec->lastCommentedTheme);
-	           $themeRow = forum_Postings::recToVerbal ($themeRec, 'id,title,-public');
-	           $row->lastCommentedTheme = $themeRow->title;
+	           if(strlen($themeRec->title) >= 25) {
+	           	
+	           		// Ако заглавието и е много дълго го съкръщаваме
+   					$themeRec->title = mb_substr($themeRec->title, 0, 20);
+   					$themeRec->title .= "..."; 
+   				}
+   				
+   				$row->lastCommentedTheme =  ht::createLink($themeRec->title, array('forum_Postings', 'Theme', $themeRec->id));
 	           
 	           // Намираме граватара и ника на потребителя коментирал последно
 	           $lastUser = core_Users::fetch($rec->lastCommentBy);
 	           $row->lastAvatar =  avatar_Plugin::getImg(0, $lastUser->email, 50);
 	           $row->lastNick = $lastUser->nick;
 	       } else {
-	          ($rec->themesCnt == 0) ? $str = 'дъската е празна' : $str ='няма коментари';
-	           $row->noComment = tr($str);
+	           $row->noComment = tr('дъската е празна');
 	        }
    		}
    		
@@ -607,7 +632,7 @@ class forum_Boards extends core_Master {
    		if($fields['-private']) { 
    			$row->title = ht::createLink($row->title, array($mvc, 'Single', $rec->id));
    			$categoryRec = forum_Categories::fetch($rec->category);
-   			$row->category =  forum_Categories::recToVerbal($categoryRec, 'id,title,-list');
+   			$row->category = forum_Categories::recToVerbal($categoryRec, 'id,title,-list');
    		}
     }
     
@@ -659,5 +684,14 @@ class forum_Boards extends core_Master {
     	if($data->navigation){ 
     		$tpl->replace($this->renderNavigation($data), 'NAVIGATION');
     	}
+     }
+     
+     
+     /**
+      *  Обновяване на категория, след добавяне на нова тема
+      */
+     static function on_AfterCreate($mvc, $rec)
+     {
+     	forum_Categories::updateCategory($rec->category);
      }
 }
