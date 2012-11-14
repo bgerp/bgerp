@@ -141,8 +141,7 @@ class doc_Containers extends core_Manager
         $title->replace($folderRow->type, 'folderCover');
         // Потребител
         if($folderRec->inCharge) {
-            $user = core_Users::fetchField($folderRec->inCharge, 'nick');
-            $user = crm_Profiles::createLink($user, $folderRec->inCharge);
+            $user = crm_Profiles::createLink($folderRec->inCharge);
         } else {
             $user = '@system';
         }
@@ -239,7 +238,7 @@ class doc_Containers extends core_Manager
         $row->created = ucfirst($row->created);
         
         if ($rec->createdBy > 0) {
-            $row->created = crm_Profiles::createLink($row->created, $rec->createdBy);
+            $row->created = crm_Profiles::createLink($rec->createdBy);
         }
 
         if(Mode::is('screenMode', 'narrow')) {

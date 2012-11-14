@@ -132,8 +132,7 @@ class doc_Threads extends core_Manager
         
         // Потребител
         if($folderRec->inCharge > 0) {
-            $user = core_Users::fetchField($folderRec->inCharge, 'nick');
-            $user = crm_Profiles::createLink($user, $folderRec->inCharge);
+            $user = crm_Profiles::createLink($folderRec->inCharge);
         } else {
             $user = '@system';
         }
@@ -270,7 +269,12 @@ class doc_Threads extends core_Manager
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId),
             NULL, $attr);
-        $row->author = $docRow->author;
+
+        if($docRow->authorId>0) {
+            $row->author = crm_Profiles::createLink($docRow->authorId);
+        } else {
+            $row->author = $docRow->author;
+        }
         
         $row->hnd = "<div class='rowtools'>";
         

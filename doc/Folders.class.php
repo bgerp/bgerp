@@ -241,6 +241,8 @@ class doc_Folders extends core_Master
             $attr['style'] .= 'color:#777;';
             $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
         }
+
+        $row->inCharge = crm_Profiles::createLink($rec->inCharge);
     }
     
 

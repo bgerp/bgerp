@@ -565,9 +565,7 @@ class forum_Boards extends core_Master {
    				$row->lastComment = 'няма';
    				$row->lastCommentBy = 'няма';
    			} else {
-   				$userNick = core_Users::fetch($rec->lastCommentBy)->nick;
-   				$row->lastCommentBy = crm_Profiles::createLink($userNick, $rec->lastCommentBy);
-   				
+   				$row->lastCommentBy = crm_Profiles::createLink($rec->lastCommentBy);
    			}
    			
    			if($rec->lastCommentedTheme) {
