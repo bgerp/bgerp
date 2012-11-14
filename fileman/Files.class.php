@@ -415,7 +415,7 @@ class fileman_Files extends core_Master
     {
         $Files = cls::get('fileman_Files');
         
-        $rec = $Files->fetch("#fileHnd = '{$fh}'");
+        $rec = $Files->fetch(array("#fileHnd = '[#1#]'", $fh));
         
         if($field === NULL) return $rec;
         
