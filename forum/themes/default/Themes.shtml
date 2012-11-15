@@ -17,7 +17,7 @@
 				<span class='locked'>[#locked#]</span>
 				<!--ET_END LOCKED-->
 				<br>
-				<span class='authored'>Започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
+				<span class='authored'>започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
 			</div>
 		</td>
 		<td class='right' width='12%'>

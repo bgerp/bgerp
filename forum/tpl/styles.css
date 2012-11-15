@@ -33,12 +33,12 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 	vertical-align:top;
 }
 
-
 #topic-header {
 	background:rgba(250, 221, 187, 0.5);
-	text-indent:15px;
 	font-family:Arial;
-	height:25px;
+	min-height:25px;
+	padding-left:5px;
+	padding-right:5px;
 	padding-top:5px;
 }
 

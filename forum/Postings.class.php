@@ -35,11 +35,17 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'tools=Пулт, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
+	var $listFields = 'tools=Пулт, id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
 	
 	
 	/**
-	 * Мастър ключ към статиите
+	 *  Брой теми на страница
+	 */
+	var $listItemsPerPage = "30";
+	
+	
+	/**
+	 * Мастър ключ към дъските
 	 */
 	var $masterKey = 'boardId';
 	
@@ -183,7 +189,7 @@ class forum_Postings extends core_Detail {
 	         		$themeTpl->replace($lockedIcon, 'ICON');
 	         	} else {
 	         		$themeTpl->replace($openIcon, 'ICON');
-	         	}
+	         	  }
 	         	
 	         	// Адреса на темата, която ще отваря темата
 	         	$pagerUrl = toUrl(array('forum_Postings', 'Theme', $row->id), 'relative');
@@ -199,7 +205,7 @@ class forum_Postings extends core_Detail {
 	         } 
         } else {
             $tpl->replace("<h2>" . tr("Няма теми") . "</h2>");
-        }
+          }
         
          $layout->replace($tpl, 'THEMES');
          
@@ -312,7 +318,7 @@ class forum_Postings extends core_Detail {
 			$data->postForm->setField('status', 'input=none');
 			$data->postForm->setHidden('themeId', $data->rec->id);
 			$data->postForm->setHidden('boardId', $data->rec->boardId);
-			$data->postForm->toolbar->addSbBtn('Коментирай');
+			$data->postForm->toolbar->addSbBtn('Добави');
 			
 			// Котва към формата за коментар
 			$data->formAnchor =  array($this, 'Theme', $data->rec->id, '#'=>'comment');
@@ -359,8 +365,9 @@ class forum_Postings extends core_Detail {
             $data->postForm->fieldsLayout = new ET(getFileContent($data->forumTheme . '/PostFormFields.shtml'));
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         } else {
-        	$tpl->replace(tr('темата е заключена'), 'COMMENT_FORM');
-        }
+        	(core_Users::getCurrent()) ? $msg = 'темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';
+        	$tpl->replace("<b>" . tr($msg) . "</b>", 'COMMENT_FORM');
+          }
 		
         if($data->formAnchor) {
         	$tpl->append(ht::createBtn('Нов отговор', $data->formAnchor), 'ANSWER');
@@ -611,13 +618,9 @@ class forum_Postings extends core_Detail {
         
 		// Бутон за заключване/отключване на темата за коментиране
 		if($data->lockUrl) {
-        	if($data->rec->status == 'unlocked') {
-        		$str = tr('Заключи');
-        	} else {
-        		$str = tr('Отключи');
-        	}
-        	
-        	$tpl->append(ht::createBtn($str, $data->lockUrl, NULL, NULL, 'class=btn-add'), 'TOOLS');
+        	($data->rec->status == 'unlocked') ?  $str = 'Заключване' : $str = 'Отключване';
+        	  
+        	$tpl->append(ht::createBtn(tr($str), $data->lockUrl, NULL, NULL, 'class=btn-add'), 'TOOLS');
          }
 		
         // Ако имаме право да местим темата, рендираме формата за местене
@@ -676,9 +679,8 @@ class forum_Postings extends core_Detail {
 					
 					return new Redirect(array($this, 'Topic', $data->rec->id), tr('Темата е преместена успешно'));
 		       } else {
-		       	
 		       		$data->form->setError('boardTo', tr('Посочили сте същата дъска'));
-		       }
+		         }
 		   }
 		} 
 		
@@ -695,7 +697,7 @@ class forum_Postings extends core_Detail {
 	{
 		// Форма за местене на тема
 		$data->form = cls::get('core_Form');
-		$data->form->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'caption = Избери,input');
+		$data->form->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'caption = Избери,input,width=100%');
 		$data->form->setHidden('theme', $data->rec->id);
 		$data->form->setDefault('boardTo', $data->board->id);
 		$data->form->title = tr('Местене на тема') . ":&nbsp;<b>" . $data->row->title . "</b>";
@@ -707,7 +709,6 @@ class forum_Postings extends core_Detail {
 	
 	
 	/**
-	 * 
 	 * @param stdClass $data
 	 * @return core_ET
 	 */
@@ -743,7 +744,7 @@ class forum_Postings extends core_Detail {
 		} else {
 			$rec->status = 'unlocked';
 			$msg = tr('Темата беше успешно отключена');
-		}
+		  }
 		
 		// Запазваме промененият статус на темата
 		$this->save($rec);
@@ -761,7 +762,7 @@ class forum_Postings extends core_Detail {
 			
 			// Ако потребителя има достъп до дъската, той има достъп и до темата
 			$board = forum_Boards::fetch($rec->boardId);
-			(forum_Boards::haveRightToObject($board) ) ? $res = 'every_one' : $res = 'no_one';
+			(forum_Boards::haveRightToObject($board) ) ? $res = 'every_one' : $res = 'forum';
 		}
 		
 		if($action == 'add' && isset($rec)) {
@@ -771,7 +772,7 @@ class forum_Postings extends core_Detail {
 			
 			// Проверяваме дали потребителя има достъп до дъската
 			$board = forum_Boards::fetch($id);
-			(forum_Boards::haveRightToObject($board) ) ? $res = $mvc->canWrite : $res = 'no_one';
+			(forum_Boards::haveRightToObject($board) ) ? $res = $mvc->canWrite : $res = 'forum';
 			
 			// Ако постинга е коментар и темата е заключена
 			if($rec->status == 'locked') {
@@ -787,10 +788,10 @@ class forum_Postings extends core_Detail {
 		
 		if($action == 'write' && isset($rec)) {
 			$id = ($rec->boardId) ? $id = $rec->boardId : $id = $rec->id;
-			//bp($id);
+			
 			// Който може да създава дъски, той може да прави важни теми, както и да ги заключва
 			$board = forum_Boards::fetch($id);
-			(forum_Boards::haveRightToObject($board) ) ? $res = $mvc->Master->canWrite : $res = 'no_one';
+			(forum_Boards::haveRightToObject($board) ) ? $res = $mvc->Master->canWrite : $res = 'forum';
 		
 		}
 		
@@ -804,7 +805,7 @@ class forum_Postings extends core_Detail {
 				}
 			} else {
 				$res = 'no_one';
-			}
+			  }
 		}
 	}
 	
@@ -825,11 +826,11 @@ class forum_Postings extends core_Detail {
     }
    
    
-   /**
-    * Обновяваме статистическата информация на темата
-    */
-   function updateStatistics($themeId, $createdOn, $createdBy)
-   {
+    /**
+     * Обновяваме статистическата информация на темата
+     */
+    function updateStatistics($themeId, $createdOn, $createdBy)
+    {
    	  $rec = $this->fetch($themeId);
    	   		
       // Избираме постингите, принадлежащи на темата
@@ -854,11 +855,11 @@ class forum_Postings extends core_Detail {
    	 		if($fields['-list']) {
 				
    	 			if($rec->status == 'locked') {
-   	 				$row->status = ht::createElement('img', array('src' => sbf("forum/themes/default/img/32/locked.png", ""), 'width' => '20px'));
+   	 				$row->status = ht::createElement('img', array('src' => sbf("forum/tpl/img/32/locked.png", ""), 'width' => '20px'));
    	 				$row->status .= "&nbsp";
    	 			} else {
    	 				$row->status = '';
-   	 			}
+   	 			  }
    	 			
    	 			$row->title =$row->status. ht::createLink($row->title, array($mvc, 'Topic', $rec->id));
    	 			
@@ -866,13 +867,9 @@ class forum_Postings extends core_Detail {
    	 		 		$row->last = tr('няма');
    	 		 	}
    	 		 	
-   	 		 	if(!$row->lastWho) {
-   	 		 		$row->lastWho = tr('няма');
-   	 		 	} else {
-   	 		 		$row->lastWho = core_Users::fetch($rec->lastWho)->nick;
-   	 		 	}
+   	 		 	(!$row->lastWho) ? $row->lastWho = tr('няма') : $row->lastWho = core_Users::fetch($rec->lastWho)->nick;
    	 		 
-   	 		 } elseif($fields['-browse']) {
+   	 		} elseif($fields['-browse']) {
    	 		 	
    	 		 	// Ако екшъна е browse правим обработки на заглавието и типа
    	 		 	$row->title = ht::createLink($row->title, array($mvc, 'Theme', $row->id));
@@ -892,7 +889,7 @@ class forum_Postings extends core_Detail {
 		        	$row->nick = $user->nick;
 	            } else {
 	            	$row->noComment = tr('няма коментари');
-	            }
+	              }
    	 		 	
    	 		 	// Ако темата е важна или съобщение, я поставяме в контейнер за по-лесно стлизиране
    	 		 	if($rec->type == 'sticky') {
@@ -901,7 +898,7 @@ class forum_Postings extends core_Detail {
 	           		$row->type = ht::createElement('span', array('class' => 'announcement'), tr($row->type));
 	           	} else {
 	           		unset($row->type);
-	           	} 
+	           	  } 
    	 		 } 
    	 	}
    	 	
@@ -929,6 +926,16 @@ class forum_Postings extends core_Detail {
 	{
 		$data->query->where("#themeId IS NULL");
 		$data->query->orderBy('type, createdOn', 'DESC');
+		
+		// Филтрирваме по име на темата, ако е посочено
+		if($search = $data->listFilter->rec->search) {
+			$data->query->where(array("#title LIKE '%[#1#]%'", $search));
+		}
+		
+		// Филтрирваме по дъска ако е посочено
+	 	if(($board = $data->listFilter->rec->board) > 0) {
+           $data->query->where("#boardId = {$board}");
+        }
 	}
 	
 	
@@ -937,14 +944,17 @@ class forum_Postings extends core_Detail {
 	 */
 	function on_AfterPrepareListRecs($mvc, $res, $data)
 	{
-		$cu = core_Users::getCurrent();
-		if($data->recs){
-			foreach($data->recs as $rec) {
-				
-				// за всяка тема проверяваме достъпа до дъската и, ако не я премахваме
-				$board = $this->Master->fetch($rec->boardId);
-				if(!$this->Master->haveRightToObject($board, $cu)) {
-					unset($data->recs[$rec->id]);
+		if(!$mvc->masterMvc) {
+			
+			$cu = core_Users::getCurrent();
+			if($data->recs){
+				foreach($data->recs as $rec) {
+					
+					// за всяка тема проверяваме достъпа до дъската и, ако не я премахваме
+					$board = $this->Master->fetch($rec->boardId);
+					if(!$this->Master->haveRightToObject($board, $cu)) {
+						unset($data->recs[$rec->id]);
+					}
 				}
 			}
 		}
@@ -960,9 +970,25 @@ class forum_Postings extends core_Detail {
     		
     		// Не показваме 'boardId' в Single-a  на Мастъра
     		unset($data->listFields['boardId']);
+    		unset($data->listFields['id']);
     	} 
     }
 	
+    
+    /**
+     * Филтриране по име на темата
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$data->listFilter->title = 'Търсене';
+    	$data->listFilter->FNC('search', 'varchar(190)', 'caption=Тема,input,silent');
+        $data->listFilter->FNC('board', 'key(mvc=forum_Boards,select=title,allowEmpty)', 'placeholder=Дъска,input,silent');
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+   		$data->listFilter->view = 'horizontal';
+   		$data->listFilter->showFields = 'search, board';
+        $data->listFilter->input('search, board', 'silent');
+    }
+    
     
     /**
 	 * Обновява броя на индивидуалните посещения на темата, след запис в лога
