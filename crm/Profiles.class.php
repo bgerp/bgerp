@@ -603,12 +603,9 @@ class crm_Profiles extends core_Master
      */
     public static function createLink($userId, $title = NULL, $warning = FALSE, $attr = array())
     {   
-
-        
-
         if(!$title) {
             $userRec = core_Users::fetch($userId);
-            $title = mb_convert_case(str_replace(array('.', '_'), array('&nbsp;', '&nbsp;'), $userRec->nick), MB_CASE_TITLE, "UTF-8");
+            $title = str_replace(' ', '&nbsp;', mb_convert_case(str_replace(array('.', '_'), array(' ', ' '), $userRec->nick), MB_CASE_TITLE, "UTF-8"));
         }
 
         $link = $title;

@@ -657,10 +657,8 @@ class doc_Folders extends core_Master
     /**
      *
      */
-    function act_Repair()
+    function repair()
     {
-        requireRole('admin');
-
         $query = $this->getQuery();
 
         while($rec = $query->fetch()) {

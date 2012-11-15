@@ -156,6 +156,14 @@ class bgerp_Setup {
         $html .= $Menu->addItem(1, 'Система', 'Файлове', 'fileman_Files', 'default', 'admin');
         $html .= $Menu->addItem(1, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
         
+        $html .= $Menu->repair();
+        
+        $Folders = cls::get('doc_Folders');
+        $html .= $Folders->repair();
+        
+        $Containers = cls::get('doc_Containers');
+        $html .= $Containers->repair();
+
         return $html;
     }
 }
