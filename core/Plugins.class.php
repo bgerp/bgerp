@@ -208,4 +208,38 @@ class core_Plugins extends core_Manager
         $preffix = $pack . "_";
         $query->delete(array("#class LIKE '[#1#]%' OR #plugin LIKE '[#1#]%'", $preffix));
     }
+
+
+    /**
+     * функция, която автоматично изчиства лишите линкове от менюто
+     */
+    function repair()
+    {
+        $query = $this->getQuery();
+        while($rec = $query->fetch()) {
+
+            list($pack, ) = explode('_', $rec->plugin);
+
+            if(!core_Packs::fetch("#name = '{$pack}'") || !cls::load($rec->plugin, TRUE)) {
+                $this->delete($rec->id);
+
+                $res .= "<li style='color:red;'>Премахнато е {$rec->name} защото липсва плъгина {$rec->plugin}</li>";
+
+                continue;
+            }
+
+            list($pack, ) = explode('_', $rec->class);
+
+            if(!core_Packs::fetch("#name = '{$pack}'") || !cls::load($rec->class, TRUE)) {
+                $this->delete($rec->id);
+
+                $res .= "<li style='color:red;'>Премахнато е {$rec->name} защото липсва класа {$rec->class}</li>";
+
+                continue;
+            }
+
+        }
+
+    }
+
 }
