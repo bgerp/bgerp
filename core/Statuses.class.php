@@ -98,10 +98,15 @@ class core_Statuses extends core_Manager
                     $i++;
                 }
             }
-            
+
             //Записваме останалите стойности в масива
             mode::setPermanent('statusArr', $resArr);
         }
+        
+        $openNtf = bgerp_Notifications::getOpenCnt();
+
+        $resArr[$i]['statusText'] = $openNtf;
+        $resArr[$i]['statusType'] = 'open';
         
         return $resArr;
     }
@@ -119,7 +124,9 @@ class core_Statuses extends core_Manager
         
         //Обикаляме всички статуси
         foreach ($notifArr as $value) {
-            
+
+            if($value['statusType'] == 'open') continue;
+
             //Записваме всеки статус в отделен div и класа се взема от типа на статуса
             $res .= "<div class='statuses-{$value['statusType']}'> {$value['statusText']} </div>";
         }

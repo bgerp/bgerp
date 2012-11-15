@@ -748,21 +748,63 @@ function getStatuses(url, timeout) {
 	$.get(url,
     	function(data){
         	$.each(data, function(index, value) { 
-             	id = (value.id);
-             	text = (value.statusText);
-             	type = (value.statusType);
-             	                     	
-             	$().toastmessage('showToast', {
-                    text            : text,
-                    sticky          : true,
-                    stayTime        : 10000,
-                    inEffectDuration: 1800,
-                    type            : type,
-        			position        :'bottom-right'
-                });
+             	var id = (value.id);
+             	var text = (value.statusText);
+             	var type = (value.statusType);
+             	if(type == 'open') {
+					var title = document.title;
+					var numbArr = title.match(/\(([^) ]+)\)/);
+					if(numbArr) {
+						numb = numbArr[1];
+					} else {
+						numb = '0';
+					}
+					
+					 
+					var textSpace =  "  " ;
+					 
+
+					if( parseInt(numb) > 0) {
+						if(parseInt(text) > 0) {
+							var titleNew   = title.replace("(" + numb + ") ", "(" + text + ") ");
+							var titleBlink = title.replace("(" + numb + ") ", "(" + textSpace + ") ");
+						} else {
+							var titleNew = title.replace("(" + numb + ") ", "");
+						}
+						
+					} else {
+						if(parseInt(text) > 0) {
+							var titleNew = "(" + text + ") " + title;
+							var titleBlink = "\u00a0\u00a0\u00a0\u00a0\u00a0 " + title;
+						}
+					}
+
+					document.title = titleNew;
+					
+					var link = "";
+					
+					if(parseInt(text)>0) {
+						link = "<a href='/root/bgerp/Portal/Show/'>" + text + "</a>";
+					}
+
+					var nCnt = get$('notificationsCnt');
+
+					nCnt.innerHTML = link;
+
+				} else {
+					$().toastmessage('showToast', {
+						text            : text,
+						sticky          : true,
+						stayTime        : 10000,
+						inEffectDuration: 1800,
+						type            : type,
+						position        :'bottom-right'
+					});
+				}
                 
             });
 		}, 'json');
    		
 		setTimeout(function(){getStatuses(url, timeout)}, timeout);
 }
+ 
