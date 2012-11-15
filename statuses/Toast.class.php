@@ -59,6 +59,8 @@ class statuses_Toast extends core_Plugin
             //Типа на статуса
             $toastType = $val['statusType'];
             
+            if($toastType == 'open') continue;
+
             //Първия статус да се покаже 1 секунда след зареждане на страницата
             //Всеки следващ статус със закъсенине + 1,5 секунди
             $timeOut += (!$timeOut) ? 1000 : 1500;
