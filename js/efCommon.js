@@ -762,24 +762,22 @@ function getStatuses(url, timeout) {
 					
 					 
 					var textSpace =  "  " ;
-					 
+					
 
 					if( parseInt(numb) > 0) {
 						if(parseInt(text) > 0) {
-							var titleNew   = title.replace("(" + numb + ") ", "(" + text + ") ");
-							var titleBlink = title.replace("(" + numb + ") ", "(" + textSpace + ") ");
+							title = title.replace("(" + numb + ") ", "(" + text + ") ");
 						} else {
-							var titleNew = title.replace("(" + numb + ") ", "");
+							title = title.replace("(" + numb + ") ", "");
 						}
 						
 					} else {
 						if(parseInt(text) > 0) {
-							var titleNew = "(" + text + ") " + title;
-							var titleBlink = "\u00a0\u00a0\u00a0\u00a0\u00a0 " + title;
+							title = "(" + text + ") " + title;
 						}
 					}
 
-					document.title = titleNew;
+					document.title = title;
 					
 					var link = "";
 					
