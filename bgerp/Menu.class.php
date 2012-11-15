@@ -296,6 +296,9 @@ class bgerp_Menu extends core_Manager
             if($openNotifications > 0) {
                 $nLink = ht::createLink($openNotifications, $url, NULL, $attr);
                 $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
+                $tpl->APPEND("({$openNotifications}) ", 'PAGE_TITLE');
+            } else {
+                $tpl->replace('&nbsp;', 'NOTIFICATIONS_CNT');
             }
         }  
     }
