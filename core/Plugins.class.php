@@ -216,11 +216,10 @@ class core_Plugins extends core_Manager
     function repair()
     {
         $query = $this->getQuery();
+
         while($rec = $query->fetch()) {
 
-            list($pack, ) = explode('_', $rec->plugin);
-
-            if(!core_Packs::fetch("#name = '{$pack}'") || !cls::load($rec->plugin, TRUE)) {
+            if(!cls::load($rec->plugin, TRUE)) {
                 $this->delete($rec->id);
 
                 $res .= "<li style='color:red;'>Премахнато е {$rec->name} защото липсва плъгина {$rec->plugin}</li>";
@@ -228,9 +227,7 @@ class core_Plugins extends core_Manager
                 continue;
             }
 
-            list($pack, ) = explode('_', $rec->class);
-
-            if(!core_Packs::fetch("#name = '{$pack}'") || !cls::load($rec->class, TRUE)) {
+            if(!cls::load($rec->class, TRUE)) {
                 $this->delete($rec->id);
 
                 $res .= "<li style='color:red;'>Премахнато е {$rec->name} защото липсва класа {$rec->class}</li>";
