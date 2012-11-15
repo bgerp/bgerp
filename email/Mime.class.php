@@ -1068,14 +1068,18 @@ class email_Mime extends core_BaseClass
      */
     function getHeadersFromEmlFile($emlFileHnd, $parseHeaders=FALSE)
     {
-        // Вземаме съдържанието на eml файла
-        $emlFileContent = fileman_Files::getContent($emlFileHnd);
-        
-        // Парсираме съдържанието
-        $this->parseAll($emlFileContent);
-
-        // Стринг с хедърите
-        $headersStr = $this->getHeadersStr();
+        // Ако хедърите не са били извлечени
+        if (!($headersStr = $this->getHeadersStr())) {
+            
+            // Вземаме съдържанието на eml файла
+            $emlFileContent = fileman_Files::getContent($emlFileHnd);
+            
+            // Парсираме съдържанието
+            $this->parseAll($emlFileContent);
+    
+            // Стринг с хедърите
+            $headersStr = $this->getHeadersStr();    
+        }
         
         // Добавяме в масива
         $headersArr['string'] = $headersStr;
