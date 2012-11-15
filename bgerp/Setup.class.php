@@ -145,7 +145,8 @@ class bgerp_Setup {
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-        
+        $html .= $Plugins->repair();
+
         // Инсталираме плъгина за прихващане на първото логване на потребител в системата
         $html .= $Plugins->installPlugin('First Login', 'bgerp_plg_FirstLogin', 'core_Users', 'private');
 
