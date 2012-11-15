@@ -850,7 +850,7 @@ class forum_Postings extends core_Detail {
     */
    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
    {
-   	 	if($row->themeId === NULL) { 
+   	 	if($rec->themeId === NULL) { 
    	 		 
    	 		if($fields['-list']) {
 				
@@ -900,6 +900,16 @@ class forum_Postings extends core_Detail {
 	           		unset($row->type);
 	           	  } 
    	 		 } 
+   	 	} else {
+   	 		if(!$this->masterMVC) {
+   	 			if($fields['-list']) {
+   	 				
+   	 				// за лист изгледа на forum_Postings правим загалвието 
+   	 				// на коментара на линк към неговата тема
+   	 				$themeTitle = $this->fetchField($rec->themeId, 'title');
+   	 				$row->title = ht::createLink($themeTitle, array($this, 'Topic', $rec->themeId));
+   	 			}
+   	 		}
    	 	}
    	 	
    	 	if($fields['-theme'] || $fields['-topic']) {
@@ -924,18 +934,37 @@ class forum_Postings extends core_Detail {
 	 */
     function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		$data->query->where("#themeId IS NULL");
+		// По пдоразбиране ще показваме при първо зареждане само темите
+		$data->query->where("#themeId IS  NULL");
+		
+		if($filter = $data->listFilter->rec) {
+			
+			if($filter->posting == 'all') {
+				
+				// Ако търсим по всички постинги добавяме и коментарите
+				$data->query->orWhere("#themeId IS NOT NULL");
+			} elseif($filter->posting == 'comments') {
+				
+				// Ако търсим само в коментари
+				unset($data->query->where);
+				$data->query->where("#themeId IS NOT NULL");
+			}
+				
+			// Филтрираме по зададения стринг
+			if($filter->search) {
+				$data->query->where(array("#title LIKE '%[#1#]%'", $filter->search));
+				$data->query->orWhere(array("#body LIKE '%[#1#]%'", $filter->search));
+			}
+			
+			// Филтрираме по дъска
+			if($filter->board > 0) {
+				$data->query->where("#boardId = {$filter->board}");
+			}
+			
+		} 
+
+		// подреждане на резултатите
 		$data->query->orderBy('type, createdOn', 'DESC');
-		
-		// Филтрирваме по име на темата, ако е посочено
-		if($search = $data->listFilter->rec->search) {
-			$data->query->where(array("#title LIKE '%[#1#]%'", $search));
-		}
-		
-		// Филтрирваме по дъска ако е посочено
-	 	if(($board = $data->listFilter->rec->board) > 0) {
-           $data->query->where("#boardId = {$board}");
-        }
 	}
 	
 	
@@ -971,7 +1000,14 @@ class forum_Postings extends core_Detail {
     		// Не показваме 'boardId' в Single-a  на Мастъра
     		unset($data->listFields['boardId']);
     		unset($data->listFields['id']);
-    	} 
+    		unset($data->listFields['body']);
+    	} else {
+    		// Премахваме ненужните полета в лист изгледа
+    		unset($data->listFields['views']);
+    		unset($data->listFields['postingsCnt']);
+    		unset($data->listFields['last']);
+    		unset($data->listFields['lastWho']);
+    	}
     }
 	
     
@@ -982,11 +1018,12 @@ class forum_Postings extends core_Detail {
     {
     	$data->listFilter->title = 'Търсене';
     	$data->listFilter->FNC('search', 'varchar(190)', 'caption=Тема,input,silent');
-        $data->listFilter->FNC('board', 'key(mvc=forum_Boards,select=title,allowEmpty)', 'placeholder=Дъска,input,silent');
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('posting', 'enum(themes=Теми,all=Всички,comments=Коментари)', 'placeholder=Тип,input,value=themes,silent');
+    	$data->listFilter->FNC('board', 'key(mvc=forum_Boards,select=title,allowEmpty)', 'placeholder=Дъска,input,silent');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
    		$data->listFilter->view = 'horizontal';
-   		$data->listFilter->showFields = 'search, board';
-        $data->listFilter->input('search, board', 'silent');
+   		$data->listFilter->showFields = 'search, posting, board';
+        $data->listFilter->input('search, board, posting', 'silent');
     }
     
     
