@@ -526,10 +526,7 @@ class bgerp_Menu extends core_Manager
     {
         $query = $this->getQuery();
         while($rec = $query->fetch()) {
-
-            list($pack, ) = explode('_', $rec->ctr);
-
-            if(!core_Packs::fetch("#name = '{$pack}'") || !cls::load($rec->ctr, TRUE)) {
+            if(!cls::load($rec->ctr, TRUE)) {
                 $this->delete($rec->id);
 
                 $res .= "<li style='color:red;'>Премахнато е {$rec->menu} -> {$rec->menu}</li>";
