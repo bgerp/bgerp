@@ -72,6 +72,10 @@ class bgerp_Setup {
     {
         // Предотвратяваме логването в Debug режим
         Debug::$isLogging = FALSE;
+        
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->repair();
 
         $managers = array(
             'bgerp_Menu',
@@ -143,9 +147,6 @@ class bgerp_Setup {
         //Зарежда данни за инициализация от CSV файл за core_Lg
         $html .= bgerp_data_Translations::loadData();
         
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        $html .= $Plugins->repair();
 
         // Инсталираме плъгина за прихващане на първото логване на потребител в системата
         $html .= $Plugins->installPlugin('First Login', 'bgerp_plg_FirstLogin', 'core_Users', 'private');
