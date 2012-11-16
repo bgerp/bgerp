@@ -3,8 +3,10 @@
 [#NAVIGATION#]
 </div>
 <div id='forum-board'>[#GREETING#]</div>
+[#SEARCH_FORM#]
 [#CATEGORIES#]
-</div>
 <div id='forum-toolbar'>
 [#TOOLBAR#]
 </div>
+</div>
+

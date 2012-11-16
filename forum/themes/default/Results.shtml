@@ -1,0 +1,12 @@
+<div id='forum-index'>
+<div id='navigation'>
+[#NAVIGATION#]
+</div>
+<br>
+[#SEARCH_FORM#]
+<br>
+[#TOOLBAR#]
+<!--ET_BEGIN RESULTS-->
+[#RESULTS#]
+<!--ET_END RESULTS-->
+</div>

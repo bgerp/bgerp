@@ -1,0 +1,8 @@
+<form action="[#ACTION#]" id="searchform">
+	<div id="simpleSearch">
+	<input tabindex="1" autocomplete="off" placeholder="Търсене" name="q" title="Търсене в блога [alt-shift-f]" accesskey="f" id="searchInput">
+	<button type="submit" title="Търси този тема" id="searchButton">
+		<img src="[#FIND_IMG#]" alt="Търси" height="13" width="12">
+	</button>
+	</div>
+</form>

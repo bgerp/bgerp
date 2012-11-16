@@ -244,6 +244,8 @@ class forum_Boards extends core_Master {
 			$data->listUrl = $url;
 		}
 		
+		$data->searchUrl = array('forum_Postings', 'search');
+		
 		$this->prepareNavigation($data);
 	 }
 	
@@ -279,7 +281,17 @@ class forum_Boards extends core_Master {
 			$data->navigation[] = $boardRow->category->title;
 			$data->navigation[] = $boardRow->title;
 			$data->navigation[] = $themeRow->title;
-		} 
+		}  elseif($data->action == 'search') {
+			if($data->q != '') {
+				$varChar = cls::get('type_Varchar');
+				$title = tr('Резултати за ') . $varChar->escape($data->q);
+			} else {
+				$title = tr('Всички теми');
+			}
+			$data->navigation[] = $title;
+		}
+		
+		$this->prepareSearchForm($data);
 	}
 	
 	
@@ -318,16 +330,22 @@ class forum_Boards extends core_Master {
 		} 
 	}
 	
+	function prepareSearchForm($data)
+	{
+		$form = cls::get('core_Form');
+ 		$data->searchForm = $form;
+	}
 	
 	/**
 	 * Добавяме всеки елемент на в последователност от линкове
 	 */
 	function renderNavigation($data)
 	{
-		foreach($data->navigation as $nav) {
-			$navigation .= $nav . "&nbsp;»&nbsp;"; 
+		if($data->navigation) {
+			foreach($data->navigation as $nav) {
+				$navigation .= $nav . "&nbsp;»&nbsp;"; 
+			}
 		}
-		
 		// Премахваме излишните символи от края на линка
 		$navigation = trim($navigation, "&nbsp»&nbsp;");
 		$navigation = "<span id='navigation-inner-link'>" . $navigation . "</span>";
@@ -344,6 +362,21 @@ class forum_Boards extends core_Master {
 		}
 		
         return $navigation;
+	}
+	
+	
+	/**
+	 * Рендираме формата за търсене
+	 */
+	function renderSearchForm_(&$data)
+    {
+ 		$data->searchForm->layout = new ET(getFileContent($data->forumTheme . '/SearchForm.shtml'));
+ 		
+        $data->searchForm->layout->replace(toUrl(array('forum_Postings', 'search')), 'ACTION');
+		
+        $data->searchForm->layout->replace(sbf('blogm/img/16/find.png', ''), 'FIND_IMG');
+
+		return $data->searchForm->renderHtml();
 	}
 	
 	
@@ -418,9 +451,13 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
+		$tpl->append(ht::createBtn('Търсене', $data->searchUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
+		
         $tpl->push($data->forumTheme . '/styles.css', 'CSS');
         
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
+        
+        $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
         
 		// Връщаме шаблона с всички дъски групирани по категории
 		return $tpl;
@@ -496,6 +533,8 @@ class forum_Boards extends core_Master {
         
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         
+        $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
+         
 		return $tpl;
 	}
 	

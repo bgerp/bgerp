@@ -6,6 +6,10 @@
 <div id='board-name'>[#THREAD_HEADER#]</div>
 </div>
 <ul id='thread-list'>
+	<li>
+		[#SEARCH_FORM#]
+		<br>
+	</li>
 	<li class='toolbar'>
 		[#ANSWER#]
 	</li>

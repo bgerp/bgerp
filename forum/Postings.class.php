@@ -26,6 +26,12 @@ class forum_Postings extends core_Detail {
 	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting';
 	
 	
+	/** 
+	 *  Полета по които ще се търси
+	 */
+	var $searchFields = 'title, body';
+	
+	
 	/**
 	 * Поле за лентата с инструменти
 	 */
@@ -381,6 +387,8 @@ class forum_Postings extends core_Detail {
 		
 		$tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		
+		$tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
+		 
         return $tpl;
 	}
 	
@@ -533,6 +541,10 @@ class forum_Postings extends core_Detail {
 		// Извличаме всички постинги направени относно темата
 		while($rec = $data->query->fetch()) {
 			$data->details[$rec->id] = $this->recToVerbal($rec, $fields);
+			
+			// Заглавието на коментара е комбинация от #C и id-то на коментара
+			$data->details[$rec->id]->title = tr("Коментар") . " <b>#C{$rec->id}</b>";
+			$data->details[$rec->id]->anchor = "C{$rec->id}";
 		}
         
 		$this->prepareTopicToolbar($data);
@@ -575,7 +587,6 @@ class forum_Postings extends core_Detail {
 			
 			foreach($data->details as $row) {
 				$rowTpl = $cloneTpl->getBlock('ROW');
-				$row->title = tr("Коментар");
 				$rowTpl->placeObject($row);
 				$rowTpl->append2master();
 			}
@@ -754,6 +765,88 @@ class forum_Postings extends core_Detail {
 	
 	
 	/**
+    *  Екшън за търсене и визуализиране на намерените теми
+    */
+	function act_Search()
+	{
+		$data = new stdClass();
+		$data->query = $this->getQuery();
+		$conf = core_Packs::getConfig('forum');
+		$data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+		$data->action = 'search';
+        $data->display = 'public';
+        $data->q = Request::get('q');
+        
+        $this->prepareSearch($data);
+        
+        $layout = $this->renderSearch($data);
+        
+        $layout->push($data->forumTheme . '/styles.css', 'CSS');
+         
+        $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
+        
+        $layout->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
+        
+        return $layout;
+	}
+	
+	
+	/**
+    *  Подготвяме резултатите за търсенето
+    */
+	function prepareSearch($data)
+	{
+		$fields = $this->selectFields("");
+        $fields['-browse'] = TRUE;
+        $data->query->where("#themeId IS NULL");
+        
+        // Подреждаме темите в последователност: Съобщение, Важна, Нормална
+        $data->query->orderBy('type, createdOn', 'DESC');
+        
+        // Временно докато бъде остранен проблема с plg_Search
+        if($data->q == '') {
+        	plg_Search::applySearch($data->q, $data->query);
+        }
+        
+        //@TODO  да пропусна темите до които нямам достъп
+        while($rec = $data->query->fetch()) {
+        	$data->recs[$rec->id] = $rec;
+        	$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+        	$boardUrl = array($this, 'browse', $rec->boardId);
+        	$data->rows[$rec->id]->board = ht::createLink($data->rows[$rec->id]->board, $boardUrl);
+        } 
+        
+        $this->Master->prepareNavigation($data);
+    }
+	
+    
+    /**
+     *  Рендираме резултатите от ръсенето
+     */
+    function renderSearch($data)
+    {
+    	$tpl = new ET(getFileContent($data->forumTheme . '/Results.shtml'));
+    	$tableTpl = new ET(getFileContent($data->forumTheme . '/ResultsTable.shtml'));
+    	
+		
+		if(count($data->rows)) {
+	      foreach($data->rows as $row) {
+	      		$themeTpl = $tableTpl->getBlock('ROW');
+	         	$themeTpl->placeObject($row);
+	         	$themeTpl->removeBlocks();
+	         	$themeTpl->append2master();
+	      }
+		} else {
+			$tableTpl->replace("<h2>" . tr("Няма теми") . "</h2>");
+		}
+		
+		$tpl->append($tableTpl, 'RESULTS');
+		
+    	return $tpl;
+    }
+    
+    
+	/**
 	 * Модифициране на данните за преглеждане на темите и коментиране
 	 */
 	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
@@ -903,11 +996,9 @@ class forum_Postings extends core_Detail {
    	 	} else {
    	 		if(!$this->masterMVC) {
    	 			if($fields['-list']) {
-   	 				
-   	 				// за лист изгледа на forum_Postings правим загалвието 
-   	 				// на коментара на линк към неговата тема
-   	 				$themeTitle = $this->fetchField($rec->themeId, 'title');
-   	 				$row->title = ht::createLink($themeTitle, array($this, 'Topic', $rec->themeId));
+   	 				$row->type = 'коментар';
+   	 				$commentURL = array($this, 'Topic', $rec->themeId, '#' => "C{$rec->id}");
+   	 				$row->title = ht::createLink("#C{$rec->id}", $commentURL);
    	 			}
    	 		}
    	 	}
@@ -934,35 +1025,31 @@ class forum_Postings extends core_Detail {
 	 */
     function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		// По пдоразбиране ще показваме при първо зареждане само темите
 		$data->query->where("#themeId IS  NULL");
+		$data->title = 'Показване на всички теми';
 		
-		if($filter = $data->listFilter->rec) {
-			
-			if($filter->posting == 'all') {
+        if($filter = $data->listFilter->rec) {
+	    	if($filter->board > 0) {
+					$data->query->where("#boardId = {$filter->board}");
+					$verbalBoard = $data->listFilter->fields['board']->type->toVerbal($filter->board);
+					$data->title .= ' в дъска |*<font color="darkblue">"' . $verbalBoard . '"</font>';
+				}
+				
+        	if($filter->posting == 'all') {
 				
 				// Ако търсим по всички постинги добавяме и коментарите
 				$data->query->orWhere("#themeId IS NOT NULL");
+				$data->title = 'Показване на всички постинги';
 			} elseif($filter->posting == 'comments') {
 				
 				// Ако търсим само в коментари
 				unset($data->query->where);
 				$data->query->where("#themeId IS NOT NULL");
-			}
-				
-			// Филтрираме по зададения стринг
-			if($filter->search) {
-				$data->query->where(array("#title LIKE '%[#1#]%'", $filter->search));
-				$data->query->orWhere(array("#body LIKE '%[#1#]%'", $filter->search));
+				$data->title = 'Показване на всички коментари';
 			}
 			
-			// Филтрираме по дъска
-			if($filter->board > 0) {
-				$data->query->where("#boardId = {$filter->board}");
-			}
-			
-		} 
-
+        }
+        
 		// подреждане на резултатите
 		$data->query->orderBy('type, createdOn', 'DESC');
 	}
@@ -1002,11 +1089,13 @@ class forum_Postings extends core_Detail {
     		unset($data->listFields['id']);
     		unset($data->listFields['body']);
     	} else {
+    		
     		// Премахваме ненужните полета в лист изгледа
     		unset($data->listFields['views']);
     		unset($data->listFields['postingsCnt']);
     		unset($data->listFields['last']);
     		unset($data->listFields['lastWho']);
+    		unset($data->listFields['id']);
     	}
     }
 	
@@ -1016,15 +1105,19 @@ class forum_Postings extends core_Detail {
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+    	
     	$data->listFilter->title = 'Търсене';
-    	$data->listFilter->FNC('search', 'varchar(190)', 'caption=Тема,input,silent');
-        $data->listFilter->FNC('posting', 'enum(themes=Теми,all=Всички,comments=Коментари)', 'placeholder=Тип,input,value=themes,silent');
+    	
+    	//@TODO да се замени с plg_Search след като му се оправи бъга
+    	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+    	$data->listFilter->FNC('posting', 'enum(themes=Теми,all=Всички,comments=Коментари)', 'placeholder=Тип,input,value=themes,silent');
     	$data->listFilter->FNC('board', 'key(mvc=forum_Boards,select=title,allowEmpty)', 'placeholder=Дъска,input,silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
    		$data->listFilter->view = 'horizontal';
    		$data->listFilter->showFields = 'search, posting, board';
         $data->listFilter->input('search, board, posting', 'silent');
-    }
+        
+       }
     
     
     /**
