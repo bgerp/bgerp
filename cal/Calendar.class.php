@@ -695,23 +695,23 @@ class cal_Calendar extends core_Master
         $year = dt::mysql2Verbal($from, 'Y');
         
         // Масив с цветове за събитията
-    	$colors = array( "Crimson", 
-				    	"OrangeRed",
-				    	"Gold",
-				    	"Olive", 
-				    	"SteelBlue",
-				    	"Brown", 
-				    	"RosyBrown",
-				    	"LightPink",
-				    	"DarkSeaGreen",
-				    	"Aqua",
+    	$colors = array( "BlueViolet", 
+				    	"DarkCyan",
+				    	"DarkGreen",
+				    	"FireBrick", 
+				    	"Fuchsia",
+				    	"Indigo", 
+				    	"Peru",
 				    	"DimGray",
-				    	"PapayaWhip ",
-				    	"Thistle",
-				    	"YellowGreen",
-				    	"PeachPuff",
-				    	"Moccasin", 
-				    	"MistyRose");
+				    	"IndianRed",
+				    	"GoldenRod",
+				    	"Crimson",
+				    	"Darkorange",
+				    	"DeepPink",
+				    	"Brown",
+				    	"DarkMagenta",
+				    	"Chocolate", 
+				    	"DarkSlateGray");
         
         $hours = array( "allDay" => "Цял ден");
         
@@ -744,10 +744,16 @@ class cal_Calendar extends core_Master
     		if($rec->allDay == "yes"){
     			$hourKey = "allDay";
     		}
-    		
-    		$weekData[$hourKey][$dayKey] .= "<p style='background-color:[#color#];'>" . $rec->title . "</p>";
+    		$url = getRetUrl($rec->url);
+    		$color = array_pop($colors);
+    		    		
+    		if (dt::mysql2verbal($rec->time, 'i') != "00"){
+    			$weekData[$hourKey][$dayKey] .= "<p>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . ht::createLink($rec->title, $url, NULL, array('style' => 'color:'.$color)) . "</p>";
+    		} else {
+    			$weekData[$hourKey][$dayKey] .= "<p>" . ht::createLink($rec->title, $url, NULL, array('style' => 'color:'.$color)) . "</p>";
+    		}	
         }
-             
+          
     	//Рендиране на седмицата	
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutWeek.shtml'));
     	
@@ -765,13 +771,13 @@ class cal_Calendar extends core_Master
    			
     		$hourArr = $weekData[$h];
     		$hourArr['time'] = $t;
-    		    		    		
+  		
     		$cTpl = $tpl->getBlock("COMMENT_LI");
     		$cTpl->placeArray($hourArr);
     		$cTpl->append2master();
    		}
    		    
-
+        $tpl->push('cal/tpl/style.css', 'CSS');
         return $this->renderWrapping($tpl);
     }
 

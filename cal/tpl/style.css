@@ -1,0 +1,16 @@
+.calWeek {
+	align : center;
+	width: 1%;
+	
+}
+
+td.calWeek {
+	colspan: 2;
+	padding-top:10px;
+	color:black;
+	width:100px;
+}
+
+a.calWeek:hover{
+	color:red;
+}

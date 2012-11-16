@@ -12,28 +12,28 @@
          </br>
                 <table cellspacing='1' class='listTable'>
 				<tr>
-					 <td class="quiet" colspan="2" style='padding-top:10px; color:black;'><b>Време</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#0#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#1#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#2#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black;; background-color:LightGoldenRodYellow ; width:100px;'><b>[#3#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#4#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#5#]</b></td>
-                     <td class="quiet" colspan="2" style='padding-top:10px; color:black; width:100px;'><b>[#6#]</b></td>
+					 <td class="calWeek" style='width:50px'><b>Време</b></td>
+                     <td class="calWeek"><b>[#0#]</b></td>
+                     <td class="calWeek"><b>[#1#]</b></td>
+                     <td class="calWeek"><b>[#2#]</b></td>
+                     <td class="calWeek" style='background-color:LightGoldenRodYellow ;'><b>[#3#]</b></td>
+                     <td class="calWeek"><b>[#4#]</b></td>
+                     <td class="calWeek"><b>[#5#]</b></td>
+                     <td class="calWeek"><b>[#6#]</b></td>
                  </tr>
                 
                  
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr> 
                  
-                     <td colspan="2" >[#time#]</td>
-                     <td colspan="2" style='width:100px;'>[#d0#]</td>
-                     <td colspan="2" style='width:100px;'>[#d1#]</td>
-                     <td colspan="2" style='width:100px;'>[#d2#]</td>
-                     <td colspan="2" style='background-color:LightGoldenRodYellow ; width:100px;'>[#d3#]</td>
-                     <td colspan="2" style='width:100px;'>[#d4#]</td>
-                     <td colspan="2" style='width:100px;'>[#d5#]</td>
-                     <td colspan="2" style='width:100px;'>[#d6#]</td>
+                     <td class="calWeek" style='width:50px'>[#time#]</td>
+                     <td class="calWeek">[#d0#]</td>
+                     <td class="calWeek">[#d1#]</td>
+                     <td class="calWeek">[#d2#]</td>
+                     <td class="calWeek" style='background-color:LightGoldenRodYellow ;'>[#d3#]</td>
+                     <td class="calWeek">[#d4#]</td>
+                     <td class="calWeek">[#d5#]</td>
+                     <td class="calWeek">[#d6#]</td>
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                
