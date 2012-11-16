@@ -93,19 +93,20 @@ class bank_Accounts extends core_Master {
 //         $details = arr::make($Contragents->details);
 //         expect($details['ContragentBankAccounts'] == 'bank_Accounts');
         
-        // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
-        $contragentRec = $Contragents->fetch($rec->contragentId);
-        
-        $countryRec = drdata_Countries::fetch($contragentRec->country);
-        $cCode = $countryRec->currencyCode;
-                
+        $contragentRec   = $Contragents->fetch($rec->contragentId);
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         
         if($rec->id) {
             $data->form->title = 'Редактиране на банкова с-ка на |*' . $contragentTitle;
         } else {
+            // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
+            if ($contragentRec->country) {
+                $countryRec = drdata_Countries::fetch($contragentRec->country);
+                $cCode = $countryRec->currencyCode;
+                $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));  
+            }
+                    
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
-            $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));  
         }
     }
     
