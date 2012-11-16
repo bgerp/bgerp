@@ -23,7 +23,7 @@ class forum_Wrapper extends plg_ProtoWrapper
 		$this->TAB('forum_Categories', 'Категории', 'forum,admin');
 		$this->TAB('forum_Boards', 'Дъски', 'admin,forum');
 		
-		$topicUrl = array();
+		/*$topicUrl = array();
 		
 		//  Ако сме в екшъня Topic извличамв ид-то на темата и го записваме в сесията
 		if(Request::get('Act') == 'Topic') {
@@ -36,7 +36,7 @@ class forum_Wrapper extends plg_ProtoWrapper
 			$topicUrl = array('forum_Postings', 'Topic', $topic);
 		}
 		
-		$this->TAB($topicUrl, 'Tема', 'forum,admin');
+		$this->TAB($topicUrl, 'Tема', 'forum,admin');*/
 		$this->TAB('forum_Postings', 'Постинги', 'forum,admin');
 	}
 }

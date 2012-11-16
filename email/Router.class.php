@@ -243,7 +243,7 @@ class email_Router extends core_Manager
         
         $rec = $query->fetch(array("#key = '[#1#]' AND #type = '[#2#]'", $rule->key, $rule->type));
         
-        if ($rec->priority < $rule->priority) {
+        if (strcmp("{$rec->priority}", "{$rule->priority}") < 0) {
             // Досегашното правило за тази двойка <type, key> е с по-нисък приоритет
             // Обновяваме го
             $rule->id = $rec->id;
@@ -319,7 +319,12 @@ class email_Router extends core_Manager
         
         echo "<pre>";
         echo "PHP_INT_MAX = " . PHP_INT_MAX . '<br/>';
-        echo "dateToPriority('{$date}', 'low', 'desc') = " . static::dateToPriority($date, 'low', 'desc') . '<br/>';
+        echo "dateToPriority('{$date}', 'low', 'desc')  = " . static::dateToPriority($date, 'low', 'desc') . '<br/>';
+        echo "dateToPriority('{$date}', 'low', 'asc')   = " . static::dateToPriority($date, 'low', 'asc') . '<br/>';
+        echo "dateToPriority('{$date}', 'mid', 'desc')  = " . static::dateToPriority($date, 'mid', 'desc') . '<br/>';
+        echo "dateToPriority('{$date}', 'mid', 'asc')   = " . static::dateToPriority($date, 'mid', 'asc') . '<br/>';
+        echo "dateToPriority('{$date}', 'high', 'desc') = " . static::dateToPriority($date, 'high', 'desc') . '<br/>';
+        echo "dateToPriority('{$date}', 'high', 'asc')  = " . static::dateToPriority($date, 'high', 'asc') . '<br/>';
         echo "</pre>";
         
         return ob_get_clean();

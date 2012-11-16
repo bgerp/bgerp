@@ -3,17 +3,17 @@
 
 
 /**
- * Клас 'gallery_RichTextPlg' - замества [img=#...] в type_RichText
+ * Клас 'cms_plg_RichTextPlg' - замества [img=#...] в type_RichText
  *
  *
- * @category  vendors
- * @package   gallery
+ * @category  bgerp
+ * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class gallery_RichTextPlg extends core_Plugin
+class cms_plg_RichTextPlg extends core_Plugin
 {
     /**
      * Обработваме елементите линковете, които сочат към докъментната система
@@ -41,11 +41,11 @@ class gallery_RichTextPlg extends core_Plugin
         $vid = $match[2];
         
 		
-        $imgRec = gallery_Images::fetch(array("#vid = '[#1#]'", $vid));
+        $imgRec = cms_GalleryImages::fetch(array("#vid = '[#1#]'", $vid));
         
         if(!$imgRec) return "[img=#{$vid}]";
 
-        $groupRec =  gallery_Groups::fetch($imgRec->groupId);
+        $groupRec =  cms_GalleryGroups::fetch($imgRec->groupId);
         
         $tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
         $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);

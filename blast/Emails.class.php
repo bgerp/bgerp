@@ -388,46 +388,43 @@ class blast_Emails extends core_Master
      */
     function renderSingleLayout_(&$data)
     {
-        if (Mode::is('text', 'xhtml')) {
+        //Полета До и Към
+        $attn = $data->row->recipient . $data->row->attn;
+        $attn = trim($attn);
+        
+        //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
+        if (!$attn) {
+            $data->row->recipientEmail = $data->row->email;
+            unset($data->row->email);
+        }
+        
+        //Полета Град и Адрес
+        $addr = $data->row->place . $data->row->address;
+        $addr = trim($addr);
+        
+        //Ако липсва адреса и града
+        if (!$addr) {
             
-            //Полета До и Към
-            $attn = $data->row->recipient . $data->row->attn;
-            $attn = trim($attn);
+            //Не се показва и пощенския код
+            unset($data->row->pcode);
             
-            //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
-            if (!$attn) {
-                $data->row->recipientEmail = $data->row->email;
-                unset($data->row->email);
+            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
+            if ($data->row->recipient) {
+                $data->row->firmCountry = $data->row->country;
             }
             
-            //Полета Град и Адрес
-            $addr = $data->row->place . $data->row->address;
-            $addr = trim($addr);
+            //Не се показва и държавата
+            unset($data->row->country);
             
-            //Ако липсва адреса и града
-            if (!$addr) {
-                
-                //Не се показва и пощенския код
-                unset($data->row->pcode);
-                
-                //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
-                if ($data->row->recipient) {
-                    $data->row->firmCountry = $data->row->country;
-                }
-                
-                //Не се показва и държавата
-                unset($data->row->country);
-                
-                $telFax = $data->row->tel . $data->row->fax;
-                $telFax = trim($telFax);
-                
-                //Имейла е само в дясната част, преместваме в ляво
-                if (!$telFax) {
-                    $data->row->emailLeft = $data->row->email;
-                    unset($data->row->email);
-                }
-            }        
-        }
+            $telFax = $data->row->tel . $data->row->fax;
+            $telFax = trim($telFax);
+            
+            //Имейла е само в дясната част, преместваме в ляво
+            if (!$telFax) {
+                $data->row->emailLeft = $data->row->email;
+                unset($data->row->email);
+            }
+        }        
         
         //Рендираме шаблона
         if (Mode::is('text', 'xhtml')) {

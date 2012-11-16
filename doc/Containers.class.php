@@ -818,7 +818,7 @@ class doc_Containers extends core_Manager
     }
 
 
-    function act_Repair()
+    function repair()
     {
         $query = $this->getQuery();
         
@@ -861,9 +861,11 @@ class doc_Containers extends core_Manager
                 }
             }
         }
-
-        foreach($err as $id => $msg) {
-            $res .= "<li> $id => $msg </li>";
+        
+        if(count($err)) {
+            foreach($err as $id => $msg) {
+                $res .= "<li> $id => $msg </li>";
+            }
         }
 
         return $res;

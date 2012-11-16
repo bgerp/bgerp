@@ -113,9 +113,13 @@ class bgerp_Recently extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if($rec->type == 'folder') {
-            $folderRec = doc_Folders::fetch($rec->objectId);
-            $folderRow = doc_Folders::recToVerbal($folderRec);
-            $row->title = $folderRow->title;
+            try {
+                $folderRec = doc_Folders::fetch($rec->objectId);
+                $folderRow = doc_Folders::recToVerbal($folderRec);
+                $row->title = $folderRow->title;
+            } catch (core_exception_Expect $ex) {
+                $row->title = "Проблемна папка № {$rec->objectId}";
+            }
         } elseif ($rec->type == 'document') {
             
             try {
@@ -130,8 +134,9 @@ class bgerp_Recently extends core_Manager
                     array($docProxy->instance, 'single',
                         'id' => $docRec->id),
                     NULL, $attr);
-            } catch (core_exception_Expect $ex) {}
-                
+            } catch (core_exception_Expect $ex) {
+                $row->title = "Проблемен контейнер № {$rec->objectId}";
+            }
         }
     }
 
@@ -236,4 +241,6 @@ class bgerp_Recently extends core_Manager
     {
     
     }
+
+
 }

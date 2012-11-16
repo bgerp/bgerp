@@ -37,7 +37,7 @@ class blogm_Articles extends core_Master {
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'cms_SourceIntf, feed_SourceIntf';
+    var $interfaces = 'cms_SourceIntf, cms_FeedsSourceIntf';
 
 
 	/**
@@ -695,7 +695,7 @@ class blogm_Articles extends core_Master {
 	
     
     /**
-     * Имплементиране на интерфейсния метод getItems от feed_SourceIntf
+     * Имплементиране на интерфейсния метод getItems от cms_FeedsSourceIntf
      * @param int $itemsCnt
      * @param enum $lg
      * @return array()

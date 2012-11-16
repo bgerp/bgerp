@@ -1,0 +1,17 @@
+<ul style='list-style:none'>
+	<li>
+		<h2>[#ICON#]&nbsp;&nbsp;[#HEADER#]</h2>
+	</li>
+	<!--ET_BEGIN ROW-->
+	<li style = 'margin-top:5px'>
+		<table border='0'>
+			<tr>
+				<td>
+					<b>[#title#]</b>
+					<div style='color:darkgreen;font-style:italic;'>[#description#]</div>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<!--ET_END ROW-->
+</ul>

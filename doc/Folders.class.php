@@ -657,10 +657,8 @@ class doc_Folders extends core_Master
     /**
      *
      */
-    function act_Repair()
+    function repair()
     {
-        requireRole('admin');
-
         $query = $this->getQuery();
 
         while($rec = $query->fetch()) {
@@ -712,9 +710,11 @@ class doc_Folders extends core_Master
                 $err[$rec->id] .= 'Missing title; ';
             }
         }
-
-        foreach($err as $id => $msg) {
-            $res .= "<li> $id => $msg </li>";
+        
+        if(count($err)) {
+            foreach($err as $id => $msg) {
+                $res .= "<li> $id => $msg </li>";
+            }
         }
 
         return $res;

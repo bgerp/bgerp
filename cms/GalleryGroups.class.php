@@ -3,18 +3,17 @@
 
 
 /**
- * Клас 'gallery_Groups' - групи от картинки
+ * Клас 'cms_GalleryGroups' - групи от картинки
  *
  *
- * @category  vendors
- * @package   gallery
+ * @category  bgerp
+ * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
-class gallery_Groups extends core_Manager {
+class cms_GalleryGroups extends core_Manager {
     
     var $canRead = 'admin,ceo,cms';
     
@@ -34,9 +33,15 @@ class gallery_Groups extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,gallery_Wrapper,plg_Created";
+    var $loadList = "plg_RowTools,cms_Wrapper,plg_Created";
     
-     
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'gallery_Groups';
+    
+    
     /**
      * Описание на модела (таблицата)
      */

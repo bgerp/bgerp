@@ -296,6 +296,9 @@ class bgerp_Menu extends core_Manager
             if($openNotifications > 0) {
                 $nLink = ht::createLink($openNotifications, $url, NULL, $attr);
                 $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
+                $tpl->APPEND("({$openNotifications}) ", 'PAGE_TITLE');
+            } else {
+                $tpl->replace('&nbsp;', 'NOTIFICATIONS_CNT');
             }
         }  
     }
@@ -514,4 +517,22 @@ class bgerp_Menu extends core_Manager
 
         return $tpl;
     }
+
+
+    /**
+     * функция, която автоматично изчиства лишите линкове от менюто
+     */
+    function repair()
+    {
+        $query = $this->getQuery();
+        while($rec = $query->fetch()) {
+            if(!cls::load($rec->ctr, TRUE)) {
+                $this->delete($rec->id);
+
+                $res .= "<li style='color:red;'>Премахнато е {$rec->menu} -> {$rec->menu}</li>";
+            }
+        }
+
+    }
+   
 }

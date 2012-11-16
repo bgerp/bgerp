@@ -3,21 +3,24 @@
 
 
 /**
- * Клас 'gallery_Images' - картинки в галерията
+ * Клас 'cms_GalleryImages' - картинки в галерията
  *
  *
- * @category  vendors
- * @package   gallery
+ * @category  bgerp
+ * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
-class gallery_Images extends core_Manager {
+class cms_GalleryImages extends core_Manager {
     
     
+    /**
+     * Кой може да чете
+     */
     var $canRead = 'admin,ceo,cms';
+    
     
     /**
      * Кой  може да пише?
@@ -34,10 +37,18 @@ class gallery_Images extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,gallery_Wrapper,plg_Created,plg_Vid";
+    var $loadList = "plg_RowTools,cms_Wrapper,plg_Created,plg_Vid";
     
     
-     
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'gallery_Images';
+    
+    
+    /**
+     * Полета за изглед
+     */
     var $listFields = 'id,vid=Код,groupId,src,createdOn,createdBy';
 
 
@@ -51,7 +62,7 @@ class gallery_Images extends core_Manager {
         
         $this->FLD('style', 'varchar(128)', 'caption=Стил');
 
-        $this->FLD('groupId', 'key(mvc=gallery_Groups,select=title)', 'caption=Група');
+        $this->FLD('groupId', 'key(mvc=cms_GalleryGroups,select=title)', 'caption=Група');
         
         $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка,mandatory');
     }

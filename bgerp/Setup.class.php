@@ -72,6 +72,10 @@ class bgerp_Setup {
     {
         // Предотвратяваме логването в Debug режим
         Debug::$isLogging = FALSE;
+        
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->repair();
 
         $managers = array(
             'bgerp_Menu',
@@ -96,7 +100,7 @@ class bgerp_Setup {
         // Списък на основните модули на bgERP
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,acc,currency,doc,cms,
                   email,crm,cat,catpr,blast,rfid,hr,trz,lab,sales,mp,store,trans,cash,bank,
-                  budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,gallery,blogm,forum,
+                  budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,blogm,forum,
                   vislog";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
@@ -143,9 +147,7 @@ class bgerp_Setup {
         //Зарежда данни за инициализация от CSV файл за core_Lg
         $html .= bgerp_data_Translations::loadData();
         
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
+
         // Инсталираме плъгина за прихващане на първото логване на потребител в системата
         $html .= $Plugins->installPlugin('First Login', 'bgerp_plg_FirstLogin', 'core_Users', 'private');
 
@@ -156,6 +158,14 @@ class bgerp_Setup {
         $html .= $Menu->addItem(1, 'Система', 'Файлове', 'fileman_Files', 'default', 'admin');
         $html .= $Menu->addItem(1, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
         
+        $html .= $Menu->repair();
+        
+        $Folders = cls::get('doc_Folders');
+        $html .= $Folders->repair();
+        
+        $Containers = cls::get('doc_Containers');
+        $html .= $Containers->repair();
+
         return $html;
     }
 }
