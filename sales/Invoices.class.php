@@ -118,72 +118,63 @@ class sales_Invoices extends core_Master
         // Дата на фактурата
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         
+        // Място на сделката
+        $this->FLD('place', 'varchar(64)', 'caption=Място, mandatory');
+        
         // Номер на фактурата
         $this->FLD('number', 'int', 'caption=Номер, export=Csv');
-        
-//         $this->FLD('contragentId', 'int', 'notNull, input=hidden');
-//         $this->FLD('contragentClassId', 'key(mvc=core_Classes)', 'notNull, input=hidden');
-        
-        $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име, mandatory');
-        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Контрагент->Държава,mandatory');
-        $this->FLD('contragentAddress', 'text', 'caption=Контрагент->Адрес, mandatory',
-            array(
-                'attr' => array(
-                    'rows' => 4,
-                    'style' => 'width: 400px;',
-                )
-            )
-        );
 
-        // ДДС номер на контрагента
-        $this->FLD('contragentVatNo', 'varchar(255)', 'caption=Контрагент->ДДС №, mandatory');
-        
-        // TODO да се мине през функцията за канонизиране от drdata_Vats 
-        $this->FLD('vatCanonized', 'varchar(255)', 'caption=Vat Canonized, input=none');
-        $this->FLD('dealPlace', 'varchar(255)', 'caption=Място на сделката, mandatory');
-        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
-        $this->FLD('vatRate', 'percent', 'caption=ДДС');
-        $this->FLD('vatReason', 'varchar(255)', 'caption=Данъчно основание'); // TODO plg_Recently
-        
+        // Съставил фактурата
         $this->FLD('creatorName', 'varchar(255)', 'caption=Съставил, input=none');
         
-        // Дата на данъчното събитие. Ако не се въведе е датата на фактурата.
-        $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Дата на ДС');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута');
-        $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Начин на плащане');
-        $this->FLD('deliveryId', 'key(mvc=trans_DeliveryTerms, select=name, allowEmpty)', 'caption=Доставка');
+        // Контрагент - получател на фактурата
+        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory,width=100%');
+        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Получател->Държава,mandatory,width=100%');
+        $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode');
+        $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData');
+        $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData');
 
+        // ДДС номер на контрагента
+        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->ЕИК/VAT №, mandatory');
+        
+        // TODO да се мине през функцията за канонизиране от drdata_Vats 
+        $this->FLD('vatCanonized', 'drdata_VatType', 'caption=Получател->Vat Canonized, input=none');
+
+        // Плащане
+        $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Плащане->Начин');
+                
         // Наша банкова сметка (при начин на плащане по банков път)
-        $this->FLD('accountId', 'key(mvc=bank_Accounts, select=iban)', 'caption=Банкова сметка, export=Csv', 
-            array(
-                'attr' => array(
-                    'style' => 'width: 400px',
-                )
-            )
-        );
+        $this->FLD('accountId', 'key(mvc=bank_Accounts, select=iban)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
+
+        // Валута
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута->Код');
+        $this->FLD('currencyRate', 'double', 'caption=Валута->Курс');  
         
-        /* $this->FLD('factoringAccount', 'varchar(255)', 'caption=Сметка за фактуриране'); */
+        // Доставка
+        $this->FLD('deliveryId', 'key(mvc=trans_DeliveryTerms, select=name, allowEmpty)', 'caption=Доставка->Условие');
+        $this->FLD('deliveryPlace', 'varchar', 'caption=Доставка->Място');
         
-        $this->FLD('additionalInfo', 'text', 'caption=Допълнителна информация');
+        // Данъци
+        $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
+        $this->FLD('vatRate', 'percent', 'caption=Данъци->ДДС %');
+        $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
+
+        // Допълнителна информация
+        $this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
         
+        // Скрити полета
+        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
+
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
         
-        // $this->FLD("type", "enum(invoice=Чернова, credit_note=Кредитно известие, debit_note=Дебитно известие)" );
         $this->FLD('type', 
             'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
             'caption=Вид, input=none'
         );
-        
-        // $this->FLD("saleId", "key(mvc=Sales)");
-        /* ? */// $this->FLD('saleId', 'key(mvc=sales_Sales,select=title)', 'caption=Продажба');
-        // $this->FLD("paid", "int");
-        
-        /* $this->FLD('paid', 'int', 'caption=Платено'); */
-        // $this->FLD("paidAmount", "number");
-        /* $this->FLD('paidAmount', 'double(decimals=2)', 'caption=Сума'); */
+         
         
         $this->setDbUnique('number');
     }
