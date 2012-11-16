@@ -140,7 +140,7 @@ class email_Outgoings extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'subject, recipient, attn, email, folderId, threadId, containerId';
+    var $searchFields = 'subject, recipient, attn, email, body, folderId, threadId, containerId';
     
     /**
      * Описание на модела
