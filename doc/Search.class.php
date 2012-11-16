@@ -25,7 +25,7 @@ class doc_Search extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $loadList = 'doc_Wrapper, plg_Search';
+    var $loadList = 'doc_Wrapper, plg_Search, plg_State';
     
     
     /**
@@ -40,10 +40,11 @@ class doc_Search extends core_Manager
     var $canList = 'ceo,manager,officer,executive';
     var $canSingle = 'ceo,manager,officer,executive';
 
+
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "docLink=Документ, folderId=Папка, createdOn, createdBy";
+    var $listFields = 'hnd=Номер,title=Заглавие,author=Автор,createdOn=Създаване,modifiedOn=Модифициране';
     
     
     /**
@@ -155,6 +156,18 @@ class doc_Search extends core_Manager
         $data->listFilter->showFields = 'search, scopeFolderId, docClass, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
     }
+
+    
+    /**
+     * @todo Чака за документация...
+     */
+    function on_AfterPrepareListRecs($mvc, $data)
+    {
+        foreach ($data->recs as &$rec) {
+            $rec->state = doc_Threads::fetchField($rec->threadId, 'state');
+        }
+    }
+    
     
     /**
      * @todo Чака за документация...
@@ -165,7 +178,7 @@ class doc_Search extends core_Manager
             return;
         }
         
-        foreach ($data->recs as $i=>$rec) {
+        foreach ($data->recs as $i=>&$rec) {
             $row = $data->rows[$i];
             $folderRec = doc_Folders::fetch($rec->folderId);
             $folderRow = doc_Folders::recToVerbal($folderRec);
@@ -200,6 +213,52 @@ class doc_Search extends core_Manager
     static function on_AfterPrepareListTitle($mvc, $data)
     {
         $data->title = null;
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        try {
+            $docProxy = doc_Containers::getDocument($rec->id);
+        } catch (core_Exception_Expect $expect) {
+    
+            return;
+        }
+        
+        $docRow = $docProxy->getDocumentRow();
+    
+        $attr['class'] .= 'linkWithIcon';
+        $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
+        
+        $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
+    
+        $row->title = ht::createLink(str::limitLen($docRow->title, 70),
+            array('doc_Containers', 'list',
+                'threadId' => $rec->threadId,
+                'folderId' => $rec->folderId,
+                'docId'=>$handle, 
+                '#'=>$handle,
+            ),
+            NULL, $attr);
+    
+        if($docRow->authorId>0) {
+            $row->author = crm_Profiles::createLink($docRow->authorId);
+        } else {
+            $row->author = $docRow->author;
+        }
+    
+        $row->hnd = "<div class='rowtools'>";
+        $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
+        $row->hnd .= $handle;
+        $row->hnd .= '</div>';
+        $row->hnd .= '</div>';
     }
     
     
