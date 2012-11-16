@@ -148,6 +148,12 @@ class bgerp_L extends core_Manager
             
             Mode::set('wrapper', 'page_External');
             
+            $html = new core_ET($html);
+            
+            // Инструкция към ботовете за да не индексират и не проследяват линковете
+            // на тези по същество вътрешни, но достъпни без парола страници.
+            $html->append("\n" . '<meta name="robots" content="noindex, nofollow">', 'HEAD');
+            
             return $html;
             
         } catch (core_exception_Expect $ex) {
