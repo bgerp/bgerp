@@ -222,7 +222,10 @@ class fileman_Setup extends core_Manager {
         $html .= $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
         
         // Кофа за файлове качени от архиви
-        $html .= $Buckets->createBucket('archive', 'Качени от архив', '', '10MB', 'user', 'user');
+        $html .= $Buckets->createBucket('archive', 'Качени от архив', '', '100MB', 'user', 'user');
+        
+        // Кофа за файлове качени от архиви
+        $html .= $Buckets->createBucket('fileIndex', 'Генерирани от разглеждането на файловете', '', '100MB', 'user', 'user');
         
         return $html;
     }
