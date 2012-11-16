@@ -299,6 +299,16 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
+        try {
+            
+            // Опитваме се да запишем файловете от документа в модела
+            doc_Files::saveFile($mvc, $rec);    
+        } catch (Exception $e) {
+            
+            // Ако възникне грешка при записването
+            doc_Files::log("Грешка при записване на файла с id={$id}");
+        }
+        
         // Изтрива от кеша html представянето на документа
         $key = 'Doc' . $rec->id . '%';
         core_Cache::remove($mvc->className, $key);
@@ -1231,10 +1241,15 @@ class doc_DocumentPlg extends core_Plugin
     * 
     * @param object $mvc - 
     * @param array $res - Масив с откритете прикачените файлове
-    * @param integer $id - 
+    * @param integer $rec - 
     */
-    function on_AfterGetLinkedFiles($mvc, &$res, $id)
+    function on_AfterGetLinkedFiles($mvc, &$res, $rec)
     {
+        if (is_object($rec)) {
+            $id = $rec->id;
+        } else {
+            $id = $rec;
+        }
         // Вземаме документа
         $data = $mvc->prepareDocument($id);
 

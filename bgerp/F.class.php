@@ -40,7 +40,7 @@ class bgerp_F extends core_Manager
         $doc = doc_Containers::getDocument($rec->containerId);
         
         // Вземаме линкнатите файлове в документите
-        $linkedFiles = $doc->getLinkedFiles();
+        $linkedFiles = $doc->getLinkedFiles($rec);
         
         // Ако файла съществува в масива
         expect($fh = array_search($name, $linkedFiles), 'Няма такъв файл.');

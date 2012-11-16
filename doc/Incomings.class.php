@@ -429,4 +429,28 @@ class doc_Incomings extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
     }
+    
+    
+	/**
+	 * Връща файла, който се използва в документа
+     * 
+     * @param object $rec - Запис
+     */
+     function getLinkedFiles($rec)
+     {
+         // Ако не е обект
+         if (!is_object($rec)) {
+             
+             // Извличаваме записа
+             $rec = $this->fetch($rec);    
+         }
+         
+         // Вземаме записите за файла
+         $fRec = fileman_Files::fetchByFh($rec->fileHnd);
+         
+         // Добавяме в масива манипулатора и името на файла
+         $fhArr[$rec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
+         
+         return $fhArr;
+     }
 }

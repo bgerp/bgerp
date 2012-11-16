@@ -127,6 +127,7 @@ class doc_Setup
             'doc_Comments',
             'doc_PdfCreator',
             'doc_ThreadUsers',
+            'doc_Files',
         );
         
         $instances = array();

@@ -65,9 +65,11 @@ class doc_Wrapper extends plg_ProtoWrapper
         }
         
         $threadsUrl = array();
+        $filesUrl = array();
         
-        if($folderId) {
+        if($folderId && (doc_Folders::haveRightFor('single', $folderId))) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
+            $filesUrl = array('doc_Files', 'list', 'folderId' => $folderId);    
         }
         
         $this->TAB($threadsUrl, 'Теми');
@@ -84,6 +86,8 @@ class doc_Wrapper extends plg_ProtoWrapper
         $this->TAB($containersUrl, 'Нишка');
         
         $this->TAB('doc_Search', 'Търсене');
+        
+        $this->TAB($filesUrl, 'Файлове');
         
         $this->TAB('doc_UnsortedFolders', 'Проекти');
                 

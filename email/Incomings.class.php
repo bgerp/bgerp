@@ -1846,4 +1846,35 @@ class email_Incomings extends core_Master
             break;
         }
     }
+    
+	
+	/**
+	 * Връща прикачените файлове
+     * 
+     * @param object $rec - Запис
+     */
+     function getLinkedFiles($rec)
+     {
+         // Ако не е обект
+         if (!is_object($rec)) {
+             
+             // Вземаме записите за файла
+             $rec = $this->fetch($rec);    
+         }
+         
+         // Превръщаме в масив
+         $filesArr = type_Keylist::toArray($rec->files);
+         
+         // Обхождаме всички файлове
+         foreach ($filesArr as $fileId) {
+             
+             // Вземаме записите за файловете
+             $fRec = fileman_Files::fetch($fileId);
+             
+             // Създаваме масив с прикачените файлове
+             $fhArr[$fRec->fileHnd] = $fRec->name;
+         }
+         
+         return $fhArr;
+     }
 }
