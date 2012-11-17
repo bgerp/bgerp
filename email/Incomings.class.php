@@ -1888,4 +1888,18 @@ class email_Incomings extends core_Master
          
          return $fhArr;
      }
+
+     
+     /**
+      * Връща иконата на документа
+      */
+    function getIcon_($id)
+    {
+        $rec = self::fetch($id);
+ 
+        if($rec->files) {
+             
+            return "img/16/email-attach.png";
+        }
+    }
 }
