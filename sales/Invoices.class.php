@@ -130,12 +130,10 @@ class sales_Invoices extends core_Master
         // Контрагент - получател на фактурата
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory,width=100%');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Получател->Държава,mandatory,width=100%');
+        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->ЕИК/VAT №, mandatory');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData');
-
-        // ДДС номер на контрагента
-        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->ЕИК/VAT №, mandatory');
         
         // TODO да се мине през функцията за канонизиране от drdata_Vats 
         $this->FLD('vatCanonized', 'drdata_VatType', 'caption=Получател->Vat Canonized, input=none');
