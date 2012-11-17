@@ -163,6 +163,10 @@ class doc_Search extends core_Manager
      */
     function on_AfterPrepareListRecs($mvc, $data)
     {
+        if (count($data->recs) == 0) {
+            return;
+        }
+
         foreach ($data->recs as &$rec) {
             $rec->state = doc_Threads::fetchField($rec->threadId, 'state');
         }
