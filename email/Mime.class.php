@@ -111,11 +111,13 @@ class email_Mime extends core_BaseClass
         if (!isset($this->hash)) {
             if(!$headers) {
                 $headers = $this->getHeadersStr();
+                $hash = $this->hash = md5($headers);
+            } else {
+                $hash = md5($headers);
             }
-            $this->hash = md5($headers);
         }
         
-        return $this->hash;
+        return $hash;
     }
     
     

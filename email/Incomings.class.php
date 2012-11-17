@@ -573,7 +573,15 @@ class email_Incomings extends core_Master
             $mime->parts[1]->headersArr = $mime->parseHeaders($headers);
             
             // Извличаме информация за получателя (към кого е насочено писмото)
-            $toEml = $mime->getToEmail();
+            $toEml = $mime->getHeader('X-Original-To', '*');
+            
+            if(!preg_match('/^.+\+([a-z]+)=([a-z]+)@/i', $toEml)) {
+                $toEml = $mime->getHeader('Delivered-To', '*');
+            }
+            
+            if(!preg_match('/^.+\+([a-z]+)=([a-z]+)@/i', $toEml)) {
+                $toEml = $mime->getToEmail();
+            }
             
             // Намираме датата на писмото
             $date = $mime->getDate();
@@ -620,6 +628,9 @@ class email_Incomings extends core_Master
                 } else {
                     // Само за дебъг. Todo - да се махне
                     $rec->boxIndex = $msgNum;
+
+                    // Все пак да вземем хеша на хедърите от истинското писмо, вместо от $conn->getHeaders($msgNum)
+                    $hash = $mimeParser->getHash();
                     
                     // Проверка дали междувременно друг процес не е свалил и записал писмото
                     $rec->isDublicate = $this->fetchField("#hash = '{$hash}'", 'id');
