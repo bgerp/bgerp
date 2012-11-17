@@ -268,7 +268,7 @@ class doc_Files extends core_Manager
             
             // Атрибутеите на линка
             $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
+            $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
             
             // Полетата на документа във вербален вид
             $docProxyRow = $docProxy->getDocumentRow();

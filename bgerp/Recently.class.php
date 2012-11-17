@@ -128,7 +128,7 @@ class bgerp_Recently extends core_Manager
                 $docRec = $docProxy->fetch();
                 
                 $attr['class'] .= 'linkWithIcon';
-                $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
+                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
                 
                 $row->title = ht::createLink(str::limitLen($docRow->title, 70),
                     array($docProxy->instance, 'single',

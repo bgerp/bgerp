@@ -65,7 +65,7 @@ class doc_RichTextPlg extends core_Plugin
         }
         
         //Ако нямаме запис за съответното $id връщаме името без да го заместваме
-        if (!$docRec = $mvc->fetch($match['id'])) {
+        if (!$docRec = $mvc->fetch( (int) $match['id'])) {
             return $match[0];
         }
         
@@ -89,7 +89,7 @@ class doc_RichTextPlg extends core_Plugin
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
-            $sbfIcon = sbf($mvc->singleIcon, '"', $isAbsolute);
+            $sbfIcon = sbf($mvc->getIcon($docRec->id), '"', $isAbsolute);
             
             $title = substr($docName, 1);
             

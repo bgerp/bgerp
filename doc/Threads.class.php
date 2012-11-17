@@ -1102,7 +1102,7 @@ class doc_Threads extends core_Manager
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
         // Иконата на нишката
-        $sbfIcon = sbf($docProxy->instance->singleIcon, '"', $isAbsolute);
+        $sbfIcon = sbf($docProxy->getIcon(), '"', $isAbsolute);
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
