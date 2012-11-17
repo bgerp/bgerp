@@ -82,7 +82,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $data->row->iconStyle = 'background-image:url("' . sbf($mvc->singleIcon, '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
+        $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         
         if (Request::get('Printing') && empty($data->__MID__)) {
             $data->__MID__ = log_Documents::saveAction(
@@ -1270,4 +1270,17 @@ class doc_DocumentPlg extends core_Plugin
         
         core_Users::exitSudo();
     }
+
+
+    /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    {
+        if(!$res) { 
+            $res = $mvc->singleIcon;
+        }
+    }
+
 }

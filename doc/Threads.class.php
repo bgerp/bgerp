@@ -262,7 +262,7 @@ class doc_Threads extends core_Manager
         $docRow = $docProxy->getDocumentRow();
         
         $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
         
         $row->title = ht::createLink(str::limitLen($docRow->title, 70),
             array('doc_Containers', 'list',
