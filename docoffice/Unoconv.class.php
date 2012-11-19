@@ -64,9 +64,17 @@ class docoffice_Unoconv extends core_Manager
         $Script->setParam('TOEXT', $toExt, TRUE);
         $Script->setParam('UNOCONV', $unoconv, TRUE);
         $Script->setParam('PORT', $port, TRUE);
-
-        // Добавяме към изпълнимия скрипт
-        $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] -p [#PORT#] [#INPUTF#]";
+        
+        // Ако има зададен порт
+        if ($port) {
+            
+            // Добавяме към изпълнимия скрипт
+            $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] -p [#PORT#] [#INPUTF#]";    
+        } else {
+            
+            // Добавяме към изпълнимия скрипт
+            $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] [#INPUTF#]";  
+        }
         
         // Ако е дефиниранеп пътя до PYTHON
         if ($pythonPath) {
