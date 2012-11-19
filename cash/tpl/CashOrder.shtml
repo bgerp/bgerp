@@ -1,0 +1,40 @@
+[#SingleToolbar#]
+<div class='document'>
+	<div class='header [#STATE_CLASS#]'>
+	   <div class='docBgIcon' style='[#iconStyle#]'>[#singleTitle#] &nbsp;[#id#]/[#date#] ([#state#])</div>
+	</div>
+	<table border='1' width='100%' style='border-collapse:collapse;margin-top:15px' cellpadding='3px' cellspacing='0px'>
+		<tr style='height:25px'>
+			<th style='background-color: rgb(221, 221, 221);' width='10%'>Дата</th>
+			<th width='50%' style='background-color: rgb(221, 221, 221);'>Контрагент</th>
+			<th style='background-color: rgb(221, 221, 221);'>Сума</th>
+			<th style='background-color: rgb(221, 221, 221);' >Валута</th>
+			<th style='background-color: rgb(221, 221, 221);' >Курс</th>
+		</tr>
+		<tr>
+			<td align='right'>[#date#]</td>
+			<td align='right'>[#peroContragent#]</td>
+			<td align='right'>[#amount#]</td>
+			<td align='right'>[#currencyId#]</td>
+			<td align='right'>[#rate#]</td>
+		</tr>
+		</table>
+		<table border='1' width='100%' style='border-collapse:collapse;margin-top:15px' cellpadding='3px' cellspacing='0px'>
+		<tr style='height:25px'>
+			<th  style='background-color: rgb(221, 221, 221);' width='80%'>Основание</th>
+			<th  style='background-color: rgb(221, 221, 221);'>Документ</th>
+		</tr>
+		<tr>
+			<td align='left' style='text-indent:15px'>[#reason#]</td>
+			<td align='right'>[#peroDocument#]</td>
+		</tr>
+		</table>
+		<table border ='1' width='100%' style='border-collapse:collapse;margin-top:10px' cellpadding='3px' cellspacing='0px'>
+		<tr style='height:25px'>
+			<th style='background-color: rgb(221, 221, 221);'>Бележки</th>
+		</tr>
+		<tr>
+			<td align='right' style='text-align:left;text-indent:15px'>[#notes#]</td>
+		</tr>
+	</table>
+</div>
