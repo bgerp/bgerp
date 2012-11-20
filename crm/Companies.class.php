@@ -910,7 +910,7 @@ class crm_Companies extends core_Master
     function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако е субмитната формата и не сме натиснали бутона "Запис и нов"
-        if ($data->form->isSubmitted() && $data->form->cmd != 'save_n_new') {
+        if ($data->form && $data->form->isSubmitted() && $data->form->cmd != 'save_n_new') {
             
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
