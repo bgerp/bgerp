@@ -16,8 +16,52 @@ require_once getFullPath('ograph/open-graph-protocol-tools/objects.php');
 class ograph_Factory extends core_Master
 {
 	/**
-     *  Връща OpenGraphProtocol обект, взависимост от подадения стринг
-     *  Ако не е посочен тип, връща обикновения OpenGraphProtocol
+	 * Масив с позволените стойности на параметрите за различните 
+	 * Open Graph Protocol обекти
+	 */
+	protected static $allowed = array(
+	'Default' => array(
+		'locale',
+		'sitename',
+		'description',
+		'title',
+		'type',
+		'url',
+		'determiner',),
+	'Audio' => array(
+		'url',
+		'secureurl',
+		'type',),
+	'Video' => array(
+		'url',
+		'secureurl',
+		'type',
+		'height',
+		'width',),
+	'Article' => array(
+		'published',
+		'modified',
+		'expiration',),
+	'Profile' => array(
+		'firstname',
+		'lastname',
+		'username',
+		'gender'),
+	'VideoEpisode' => array ('series'),
+	'Book' => array ('isbn','releasedate'),
+	'VideoObject' => array ('releasedate','duration'),
+	'Image' => array (
+		'url',
+		'secureurl',
+		'type',
+		'height',
+		'width'));
+	
+	
+	/**
+     *  По подразбиране връща OpenGraphProtocol обект, Ако е зададен стринг 
+     *  се връща съответния OpenGraphProtocolObject
+     *  @param array $params с какви параметри искаме да е обекта
      *  @param string $str какъв обект искаме, по подразбиране NULL
      *  @return OpenGraphProtocol $ogp 
      */
@@ -26,16 +70,7 @@ class ograph_Factory extends core_Master
     	// Ако не е посочен тип връщаме стандартния OpenGraphProtocol обект
         if($str === NULL) {
         	$ogp = new OpenGraphProtocol();
-        	
-        	// Масив с позволени атрибути
-        	$allowed = array('locale',
-        					 'sitename',
-        					 'title',
-        					 'description',
-        					 'type',
-        					 'url',
-        					 'determiner');
-        	
+        	$allowed = static::$allowed['Default'];
         	foreach($params as $key => $value) {
         		expect(in_array(strtolower($key), $allowed), "Невалиден параметър");
 	    		$method = "set{$key}";
@@ -45,7 +80,7 @@ class ograph_Factory extends core_Master
         	return $ogp;
         } 
 		
-        // преобразуваме подадения стринг
+        // Ако има подаден стринг, го преобразураме
         $str = strtolower($str);
         $method = "get{$str}";
         
@@ -53,9 +88,8 @@ class ograph_Factory extends core_Master
         expect(method_exists('ograph_Factory', $method), "Не се поддържа обекта {$str} от Open Graph Protocol");
         
         // Извикваме метода за генериране на обекта
-        $ogp = call_user_func_array("static::{$method}",array($params));
+        $ogp = call_user_func_array("static::{$method}", array($params));
         
-        // Връщаме обекта
         return $ogp;
     }
     
@@ -66,23 +100,19 @@ class ograph_Factory extends core_Master
      * $params['Url'] - Адрес
      * $params['secureUrl'] - Защитен адрес
      * $params['Type'] - Разширение
-     * @return OpenGraphProtocolAudio $vid
+     * @return OpenGraphProtocolAudio $ogp
      */
 	static function getAudio($params = array())
     {
-    	$allowed = array('url',
-        				 'secureurl',
-        				 'title',
-        				 'type',);
-    	
-    	$vid = new OpenGraphProtocolAudio();
+    	$allowed = static::$allowed['Audio'];
+    	$ogp = new OpenGraphProtocolAudio();
     	foreach($params as $key => $value) {
     		expect(in_array(strtolower($key), $allowed), "Аудио обекта неподдържа параметър {$key}");
     		$method = "set{$key}";
-    		$vid->$method($value);
+    		$ogp->$method($value);
     	}  
     	
-    	return $vid;
+    	return $ogp;
     }
     
     
@@ -92,22 +122,19 @@ class ograph_Factory extends core_Master
      * $params['Published'] - Дата на публикуване
      * $params['Modified'] - Последна редакция
      * $params['Expiration'] - Дата на изтичане
-     * @return OpenGraphProtocolArticle $vid
+     * @return OpenGraphProtocolArticle $ogp
      */
 	static function getArticle($params = array())
     {
-    	$allowed = array('published',
-        				 'modified',
-        				 'expiration',);
-    	
-    	$vid = new OpenGraphProtocolArticle(); 
+    	$allowed = static::$allowed['Article'];
+    	$ogp = new OpenGraphProtocolArticle(); 
     	foreach($params as $key => $value) {
     		expect(in_array(strtolower($key), $allowed), "Article обекта неподдържа параметър {$key}");
     		$method = "set{$key}Time";
-    		$vid->$method($value);
+    		$ogp->$method($value);
     	}
     	
-    	return $vid;
+    	return $ogp;
     }
     
     
@@ -118,23 +145,19 @@ class ograph_Factory extends core_Master
      * $params['LastName'] - Последно име
      * $params['Username'] - Потребителско име
      * $params['Gender'] - Пол
-     * @return OpenGraphProtocolProfile $vid
+     * @return OpenGraphProtocolProfile $ogp
      */
 	static function getProfile($params = array())
     {
-    	$allowed = array('firstname',
-        				 'lastname',
-        				 'username',
-    					 'gender');
-    	
-    	$vid = new OpenGraphProtocolProfile(); 
+    	$allowed = static::$allowed['Profile'];
+    	$ogp = new OpenGraphProtocolProfile(); 
     	foreach($params as $key => $value) {
     		expect(in_array(strtolower($key), $allowed), "Profile обекта неподдържа параметър {$key}");
     		$method = "set{$key}";
-    		$vid->$method($value);
+    		$ogp->$method($value);
     	}
     	
-    	return $vid;
+    	return $ogp;
     }
     
     
@@ -143,21 +166,19 @@ class ograph_Factory extends core_Master
      * @param array $params параметри
      * $params['Isbn'] - ISBN
      * $params['ReleaseDate'] - Дата на пускане
-     * @return OpenGraphProtocolBook $vid
+     * @return OpenGraphProtocolBook $ogp
      */
 	static function getBook($params = array())
     {
-    	$allowed = array('isbn',
-        				 'releasedate',);
-    	
-    	$vid = new OpenGraphProtocolBook();
+    	$allowed = static::$allowed['Book'];
+    	$ogp = new OpenGraphProtocolBook();
     	foreach($params as $key => $value) {
     		expect(in_array(strtolower($key), $allowed), "Book обекта неподдържа параметър {$key}");
     		$method = "set{$key}";
-    		$vid->$method($value);
+    		$ogp->$method($value);
     	} 
     	
-    	return $vid;
+    	return $ogp;
     }
     
     
@@ -169,24 +190,19 @@ class ograph_Factory extends core_Master
      * $params['Type] - Разширение
      * $params['Height] - Височина
      * $params['Width] - Ширина
-     * @return OpenGraphProtocolVideo $vid
+     * @return OpenGraphProtocolVideo $ogp
      */
 	static function getVideo($params = array())
     {
-    	$allowed = array('url',
-        				 'secureurl',
-    					 'type',
-    					 'height',
-    					 'width',);
-    	
-    	$vid = new OpenGraphProtocolVideo();
+    	$allowed = static::$allowed['Video'];
+    	$ogp = new OpenGraphProtocolVideo();
     	foreach($params as $key => $value) {
     		expect(in_array(strtolower($key), $allowed), "Video обекта неподдържа параметър {$key}");
     		$method = "set{$key}";
-    		$vid->$method($value);
+    		$ogp->$method($value);
     	} 
     	
-    	return $vid;
+    	return $ogp;
     }
     
     
@@ -195,21 +211,19 @@ class ograph_Factory extends core_Master
      * @param array $params параметри
      * $params['ReleaseDate'] - Дата на пускане
      * $params['Duration'] - Продължителност
-     * @return OpenGraphProtocolVideoObject $vid
+     * @return OpenGraphProtocolVideoObject $ogp
      */
     static function getVideoObject($params = array())
     {
-    	$allowed = array('releasedate',
-        				 'duration',);
-    	
-    	$vid = new OpenGraphProtocolVideoObject(); 
+    	$allowed = static::$allowed['VideoObject'];
+    	$ogp = new OpenGraphProtocolVideoObject(); 
     	foreach($params as $key => $value) {
     		expect(in_array(strtolower($key), $allowed), "Video обекта неподдържа параметър {$key}");
     		$method = "set{$key}";
-    		$vid->$method($value);
+    		$ogp->$method($value);
     	}
     	
-    	return $vid;
+    	return $ogp;
     }
     
     
@@ -217,17 +231,16 @@ class ograph_Factory extends core_Master
      * Връщаме нов Видео Епизод обект
      * @param array $params
      * $params['Series']
-     * @return OpenGraphProtocolAudio $vid
+     * @return OpenGraphProtocolAudio $ogp
      */
 	static function getVideoepisode($params = array())
     {
-    	$allowed = array('series',);
-    	
-    	$vid = new OpenGraphProtocolVideoEpisode();
+    	$allowed = static::$allowed['VideoEpisode'];
+    	$ogp = new OpenGraphProtocolVideoEpisode();
     	expect(in_array('series', $allowed), "Video Episode обекта неподдържа параметъра");
-    	$vid->setSeries($params['Series']);
+    	$ogp->setSeries($params['Series']);
     	
-    	return $vid;
+    	return $ogp;
     }
     
     
@@ -239,23 +252,18 @@ class ograph_Factory extends core_Master
      * $params['Type']
      * $params['Height']
      * $params['Width']
-     * @return OpenGraphProtocolImage $vid
+     * @return OpenGraphProtocolImage $ogp
      */
 	static function getImage($params = array())
     {
-    	$allowed = array('url',
-        				 'secureurl',
-    					 'type',
-    					 'height',
-    					 'width',);
-    	
-    	$vid = new OpenGraphProtocolImage(); 
+    	$allowed = static::$allowed['Image'];
+    	$ogp = new OpenGraphProtocolImage(); 
     	foreach($params as $key => $value) {
     		expect(in_array(strtolower($key), $allowed), "Image обекта неподдържа параметър {$key}");
     		$method = "set{$key}";
-    		$vid->$method($value);
+    		$ogp->$method($value);
     	} 
     	
-    	return $vid;
+    	return $ogp;
     }
 }
