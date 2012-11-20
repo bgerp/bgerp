@@ -526,19 +526,47 @@ class email_Outgoings extends core_Master
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if ($mvc->flagSendIt) {
+            
+            $options = array();
+            
+            // Масив с всички документи
+            $docHandlesArr = $mvc->GetPossibleTypeConvertings($rec->id);
+    
+            // Обхождаме документите
+            foreach ($docHandlesArr as $name => $checked) {
+                
+                // Проверяваме дали документа да се избира по подразбиране
+                if ($checked == 'on') {
+                    
+                    // Добавяме в масива
+                    $docsArr[$name] = $name;
+                }
+            }
+            
+            // Ако има прикачени файлове по подаразбиране
+            if (count($docsArr)) {
+                
+                // Инстанция на класа
+                $typeSet = cls::get('type_Set');
+                
+                // Файловете, които ще се прикачат
+                $docsSet = $typeSet->fromVerbal($docsArr);
+                
+                // Добавяме прикачените документи в опциите
+                $options['documentsSet'] = $docsSet;
+            }
+            
             $lg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
             
             $fromEmailOptions = email_Inboxes::getFromEmailOptions($rec->folderId);
             
             $boxFromId = key($fromEmailOptions);
             
-            $options = (object)array(
-                'boxFrom'  => $boxFromId,
-                'encoding' => 'utf-8',
-                'emailsTo' => $rec->email
-            );
+            $options['boxFrom'] = $boxFromId;
+            $options['encoding'] = 'utf-8';
+            $options['emailsTo'] = $rec->email;
             
-            static::_send($rec, $options, $lg);
+            static::_send($rec, (object)$options, $lg);
         }
     }
     
