@@ -353,18 +353,30 @@ class blogm_Articles extends core_Master {
      */
     function prepareOgraph($data)
     {
-    	// Създаваме Ограф (Open Graph Protocol) Обект
-        $info = array('Locale' =>'bg_BG',
-    				  'SiteName' =>'bgerp.com',
-    	              'Title' =>'bgERP',
-    	              'Description' =>'Блога на bgERP',
-    	              'Type' =>'website',
-    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
-    				  'Determiner' =>'the',);
-        $data->ogp[] = ograph_Factory::get($info);
-    	
-    	// Ако преглеждаме единична статия зареждаме и нейния Ograph
-        if($data->rec){
+    	if(!$data->rec){
+    		// Създаваме Ограф (Open Graph Protocol) Обект
+	        $info = array('Locale' =>'bg_BG',
+	    				  'SiteName' =>'bgerp.com',
+	    	              'Title' =>'bgERP',
+	    	              'Description' =>'Блога на bgERP',
+	    	              'Type' =>'blog',
+	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
+	    				  'Determiner' =>'the',);
+	        $data->ogp[] = ograph_Factory::get($info);
+    	} else {
+    		$desc = mb_substr($data->rec->body, '0','75') . "...";
+    		
+        	// Ако преглеждаме единична статия зареждаме и нейния Ograph
+	        $info = array('Locale' =>'bg_BG',
+	    				  'SiteName' =>'bgerp.com',
+	    	              'Title' =>$data->row->title,
+	    	              'Description' =>$desc,
+	    	              'Type' =>'article',
+	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
+	    				  'Determiner' =>'the',);
+	        $data->ogp[] = ograph_Factory::get($info);
+	        
+	        // Създаваме Open Graph Article  обект
 	    	$articleInfo = array('published' => $data->rec->createdOn,
 	    				  'modified' => $data->rec->modifiedOn,
 	    				  'expiration' => '',);
