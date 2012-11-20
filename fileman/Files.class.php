@@ -607,6 +607,9 @@ class fileman_Files extends core_Master
         
         // Подготвяме данните
         fileman_Indexes::prepare($data, $fh);
+        
+        // Задаваме екшъна
+        if (!$data->action) $data->action = 'single';
     }
     
     
