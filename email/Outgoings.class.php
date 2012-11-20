@@ -303,7 +303,7 @@ class email_Outgoings extends core_Master
                 //Записваме прикачените файлове
                 $rec->documents = type_KeyList::fromArray($documents);
             }
-            bp($rec);
+
             // ... и накрая - изпращане.
             $status = email_Sent::sendOne(
                 $options->boxFrom,
