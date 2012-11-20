@@ -305,6 +305,9 @@ class blogm_Articles extends core_Master {
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
 		
+		// Поставяме ograph мета таговете в Head-a
+        $tpl->append($this->generateOgraph($data),'HEAD');
+        
 		// Записваме, че потребителя е разглеждал тази статия
 		$this->log(('Blog article: ' .  $data->row->title), $id);
 		
@@ -339,9 +342,39 @@ class blogm_Articles extends core_Master {
         if($this->haveRightFor('single', $data->rec)) {
             $data->workshop = array('blogm_Articles', 'single', $data->rec->id);
         }
+        
+        // Подготвяме информацията за Статията за Open Graph Protocol
+        $this->prepareOgraph($data);
     }
 	
 	
+    /**
+     * Създава OpenGraphProtocol  обект
+     */
+    function prepareOgraph($data)
+    {
+    	// Създаваме Ограф (Open Graph Protocol) Обект
+        $info = array('Locale' =>'bg_BG',
+    				  'SiteName' =>'bgerp.com',
+    	              'Title' =>'bgERP',
+    	              'Description' =>'Блога на bgERP',
+    	              'Type' =>'website',
+    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
+    				  'Determiner' =>'the',);
+        $data->ogp[] = ograph_Factory::get($info);
+    	
+    	// Ако преглеждаме единична статия зареждаме и нейния Ograph
+        if($data->rec){
+	    	$articleInfo = array('published' => $data->rec->createdOn,
+	    				  'modified' => $data->rec->modifiedOn,
+	    				  'expiration' => '',);
+	    	$ogp = ograph_Factory::getArticle($articleInfo);
+	    	$ogp->addAuthor($data->row->createdBy);
+	    	$data->ogp[] = $ogp;
+    	}
+    }
+    
+    
 	/**
      * Рендиране на статия за публичната част на блога
 	 */
@@ -428,9 +461,11 @@ class blogm_Articles extends core_Master {
         // Добавяме стиловете от темата
         $tpl->push($data->theme . '/styles.css', 'CSS');
 
+        // Поставяме ograph мета таговете в Head-a
+        $tpl->append($this->generateOgraph($data),'HEAD');
+        
 		// Записваме, че потребителя е разглеждал този списък
 		$this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
-		
 		
 		return $tpl;
 	}
@@ -480,7 +515,10 @@ class blogm_Articles extends core_Master {
         if($this->haveRightFor('list')) {
             $data->workshop = array('blogm_Articles', 'list');
         }
-
+		
+        // Подготвяме OpenGraphProtocol обекта
+        $this->prepareOgraph($data);
+        
         $this->prepareNavigation($data);
     }
 	
@@ -738,4 +776,20 @@ class blogm_Articles extends core_Master {
     	
     	return $items;
     }
+    
+    
+    /**
+     * Генерира мета таговете на ograph-a
+     */
+    function generateOgraph($data)
+    {
+    	$meta = "";
+    	if($data->ogp){
+	    	foreach($data->ogp as $ogp) {
+	    		$meta .= "\n{$ogp->toHTML()}";
+	    	}
+	    }
+	    
+	    return $meta;
+	 }
 }
