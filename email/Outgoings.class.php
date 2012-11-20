@@ -303,7 +303,7 @@ class email_Outgoings extends core_Master
                 //Записваме прикачените файлове
                 $rec->documents = type_KeyList::fromArray($documents);
             }
-            
+            bp($rec);
             // ... и накрая - изпращане.
             $status = email_Sent::sendOne(
                 $options->boxFrom,
@@ -526,7 +526,7 @@ class email_Outgoings extends core_Master
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if ($mvc->flagSendIt) {
-            $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
+            $lg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
             
             $fromEmailOptions = email_Inboxes::getFromEmailOptions($rec->folderId);
             
