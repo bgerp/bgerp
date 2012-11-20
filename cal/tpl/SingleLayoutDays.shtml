@@ -17,16 +17,7 @@
 	             	 <td class="quiet" align="center" width='1%'>Дата: &nbsp; </td>
 	                 <td>[#date#]</td>
 	             </tr>
-				
-				
-				<tr>
-					<td class="quiet" colspan="2" style='padding-top:10px;'>Цял ден:</td>
-				</tr>
-				<tr>
-					<td colspan="2">[#allday#]</td>
-				</tr>
-				
-
+							
 				</table>
           </div> 
          
@@ -40,7 +31,7 @@
 				<tr>
                      <td class="quiet" colspan="2" style='padding-top:10px;'>Време</td>
                      <td class="quiet" colspan="2" style='padding-top:10px;'>Заглавие</td>
-                     <td class="quiet" colspan="2" style='padding-top:10px;'>Задача</td>
+                     
                  </tr>
                 
                  
@@ -48,7 +39,7 @@
                  <tr style='background-color:[#color#];'> 
                      <td colspan="2" >[#time#]</td>
                      <td colspan="2">[#tasktitle#]</td>
-                     <td colspan="2">[#description#]</td>
+                     
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                
