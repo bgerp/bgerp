@@ -817,13 +817,8 @@ class email_Outgoings extends core_Master
             $rec->threadId = $threadId;
         }
 
-        if($folderId) {
+        if($folderId && !$forward) {
             $rec->folderId = $folderId;
-        }
-        
-        // Премахваме threadId от записите
-        if ($forward) {
-            unset($rec->threadId);    
         }
      }
     
