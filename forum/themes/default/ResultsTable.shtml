@@ -6,7 +6,7 @@
 	</tr>
 <!--ET_BEGIN ROW-->	
 	<tr class='theme-row'>
-		<td class='theme-row-title' width='50%' >
+		<td class='theme-row-title' width='58%' >
 			<div class='forum-icon'>[#ICON#]</div>
 			<div class='forum-row'>
 			<!--ET_BEGIN type-->	
@@ -21,7 +21,7 @@
 				<span class='authored'>започната от:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
 			</div>
 		</td>
-		<td class='right' width='12%'>
+		<td class='right' width='8%'>
 			<span class='forum-counts'>[#postingsCnt#]</span><br>
 			<span class='forum-counts'>[#views#]</span>
 		</td>
