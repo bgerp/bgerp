@@ -775,20 +775,20 @@ class forum_Postings extends core_Detail {
 	
 	
 	/**
-    *  Подготвяме резултатите за търсенето
+    *  Подготвяме резултатите за търсенето, резултатите са линкове към нишките в които има
+    *  постинги отговарящи на условието
     */
 	function prepareSearch($data)
 	{
 		$fields = $this->selectFields("");
         $fields['-browse'] = TRUE;
-        $data->query->where("#themeId IS NULL");
         
         // Подреждаме темите в последователност: Съобщение, Важна, Нормална
         $data->query->orderBy('type, createdOn', 'DESC');
+        
+        // Използваме  за филтриране по зададен стринг
         if($data->q) {
-         	
-         	// Използваме  за филтриране по зададен стринг
-        	plg_Search::applySearch($data->q, $data->query);
+         	plg_Search::applySearch($data->q, $data->query);
         }
         
         $conf = core_Packs::getConfig('forum');
@@ -801,20 +801,40 @@ class forum_Postings extends core_Detail {
         	$board = $this->Master->fetch($rec->boardId);
 			if($this->Master->haveRightToObject($board, $cu)) {
 				
-				// Ако имаме достъп до дъската, показваме темите
+				// Ако записа е коментар
+				if($rec->themeId) {
+					
+					// Намираме от коя тема е коментара
+					$themeRec = $this->fetch($rec->themeId);
+					if(array_key_exists($themeRec->id, $data->recs)) {
+						
+						// Ако темата на коментара е вече в масива, продължаваме на следващата
+						// итерация, така коментара не се добавя в резултатите, защото неговата
+						// тема е вече там
+						continue;
+					} else {
+						
+						// Ако темата на коментара, не е в резултатите ние вкарваме в масива
+						// с резултати темата вместо коментара
+						$rec = $themeRec;
+					}
+				}
+				
+				// Ако имаме достъп до дъската, показваме темите, така в получения масив
+				// фигурират само "нишките" от теми които отговарят на условието за търсене
 	        	$data->recs[$rec->id] = $rec;
 	        	$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
 	        	$boardUrl = array($this, 'browse', $rec->boardId);
 	        	$data->rows[$rec->id]->board = ht::createLink($data->rows[$rec->id]->board, $boardUrl);
 			}
 		} 
-        
+       
         $this->Master->prepareNavigation($data);
     }
 	
     
     /**
-     *  Рендираме резултатите от ръсенето
+     *  Рендираме резултатите от търсенето
      */
     function renderSearch($data)
     {
@@ -865,7 +885,7 @@ class forum_Postings extends core_Detail {
 			(forum_Boards::haveRightToObject($board) ) ? $res = $mvc->canWrite : $res = 'forum';
 			
 			// Ако постинга е коментар и темата е заключена
-			if($rec->status == 'locked') {
+			if($rec->status == 'locked' && $rec->id !== NULL) {
 				$res = 'no_one';
 			}
 		}

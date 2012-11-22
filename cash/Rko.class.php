@@ -40,13 +40,13 @@ class cash_Rko extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, id, reason, date, amount, rate, notes, createdOn, createdBy"; // , peroContragent, peroDocument";
+    var $listFields = "id, reason, date, amount, rate, notes, createdOn, createdBy"; // , peroContragent, peroDocument";
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsSingleField = 'reason';
     
     
     /**
