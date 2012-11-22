@@ -172,7 +172,7 @@ class core_Cls
         if (cls::isSingleton($class)) {
             if (!isset(core_Cls::$singletons[$class])) {
                 core_Cls::$singletons[$class] = new stdClass();
-                core_Cls::$singletons[$class] = &cls::createObject($class, $initArr);
+                core_Cls::$singletons[$class] = cls::createObject($class, $initArr);
             }
             
             $obj = &core_Cls::$singletons[$class];
