@@ -52,7 +52,7 @@ class cash_Pko extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Разходен Касов Ордер';
+    var $singleTitle = 'Приходен Касов Ордер';
     
     
     /**
@@ -70,25 +70,25 @@ class cash_Pko extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'cash, admin';
+    var $canRead = 'cash, ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cash, admin';
+    var $canWrite = 'cash, ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'cash, admin';
+    var $canDelete = 'cash, ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'cash, admin';
+    var $canReject = 'cash, ceo';
     
     
     /**
@@ -100,7 +100,7 @@ class cash_Pko extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason, date';
+    var $searchFields = 'reason, amount, date';
     
       
     /**
@@ -108,7 +108,7 @@ class cash_Pko extends core_Master
      */
     function description()
     {
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('date', 'date', 'caption=Дата,mandatory');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
