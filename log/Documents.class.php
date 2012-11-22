@@ -518,7 +518,7 @@ class log_Documents extends core_Manager
                 // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
                 $history = static::buildThreadHistory($threadId);
                 core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, '2 дена');
-            }
+            }       
             
             static::$histories[$threadId] = $history;
         }
