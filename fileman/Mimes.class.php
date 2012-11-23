@@ -127,7 +127,7 @@ class fileman_Mimes extends core_BaseClass {
                     $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx', 'txt');
                     
                     // Масив с mime типове
-                    $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++');
+                    $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++', 'text/plain');
                     
                     if (!$ext || (!in_array($mime, $noTrustMimeArr)) && (!in_array($ext, $trustExtArr)) ) {
                         

@@ -382,7 +382,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         foreach ($filesArr as $file) {
         
             // Качваме файла в кофата и му вземаме манипулатора
-            $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileInfo'); 
+            $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
             
             // Ако се качи успешно записваме манипулатора в масив
             if ($fileHnd) {
