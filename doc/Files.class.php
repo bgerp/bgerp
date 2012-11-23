@@ -253,7 +253,7 @@ class doc_Files extends core_Manager
         
         // Атрибутеите на линка
         $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($doc->instance->singleIcon) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
         
         // Документа да е линк към single' а на документа
         $row->threadId = ht::createLink(str::limitLen($docRow->title,35), array($doc, 'single', $doc->that), NULL, $attr);

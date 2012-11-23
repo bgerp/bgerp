@@ -239,7 +239,7 @@ class doc_Search extends core_Manager
         $docRow = $docProxy->getDocumentRow();
     
         $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
         
         $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
     
