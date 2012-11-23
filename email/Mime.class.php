@@ -210,6 +210,8 @@ class email_Mime extends core_BaseClass
                 $rec->parserWarning = "\n<li style='color:red'>{$err}</li>";
             }
         }
+
+        $rec->hash = $this->getHesh();
         
         return $rec;
     }
