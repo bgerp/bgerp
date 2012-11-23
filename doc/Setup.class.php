@@ -153,6 +153,9 @@ class doc_Setup
         // Добавяне на плъгина за създаване на входящи документи
         $html .= $Plugins->installPlugin('Създаване на входящ документ', 'doc_IncomingCreatePlg', 'fileman_Files', 'private');
         
+        // Плъгин за работа с файлове в документите
+        $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
+        
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Общи', 'doc_Folders', 'default', "user");
         

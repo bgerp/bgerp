@@ -451,7 +451,7 @@ class email_Inboxes extends core_Master
          // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
          $corpAccRec = email_Accounts::getCorporateAcc();
          
-         if(email_Accounts::canSendEmail($corpAccRec->id)) {
+         if($corpAccRec && email_Accounts::canSendEmail($corpAccRec->id)) {
              
              // 2. Корпоративния общ имейл, ако корпоративната сметка може да изпраща писма
              $rec = self::fetch("#email = '{$corpAccRec->email}' && #state = 'active'");

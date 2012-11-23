@@ -1254,7 +1254,7 @@ class doc_DocumentPlg extends core_Plugin
         $data = $mvc->prepareDocument($id);
 
         // Намираме прикачените файлове
-        $res = array_merge(fileman_RichtextPlg::getFiles($data->rec->body), (array)$res);
+        $res = array_merge(fileman_RichTextPlg::getFiles($data->rec->body), (array)$res);
     }
     
     

@@ -144,6 +144,18 @@ class acc_Lists extends core_Manager {
     
     
     /**
+     * Извлича запис на модела acc_Lists според системен идентификатор
+     * 
+     * @param string $systemId
+     * @return stdClass
+     */
+    static public function fetchBySystemId($systemId)
+    {
+        return self::fetch(array ("#systemId = '[#1#]'", $systemId));
+    }
+    
+    
+    /**
      * Изпълнява се преди запис на номенклатурата
      */
     static function on_BeforeSave($mvc, $id, $rec) {

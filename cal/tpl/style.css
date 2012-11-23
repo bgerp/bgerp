@@ -11,6 +11,84 @@ td.calWeek {
 	width:100px;
 }
 
-a.calWeek:hover{
-	color:red;
+a.calWeek:active{
+	border: 0px;
+}
+
+p{
+	
+	border: 1px solid rgb(159, 198, 231);
+	background-image: url("nqkvo_pole4c.png");
+	background-position: center; 
+    font: small Arial,sans-serif;
+	line-height: 14px;
+    font-size: 12px;
+	color: #1d1d1d;
+	
+}
+
+td.calMonth {
+	text-align:left;
+ 	border:none;
+	background-color: #e8efe8;
+	border:solid 2px #e8efe8;
+	padding:1px;
+	font-weight:bold;
+	width:14% !important;
+	cursor: pointer;
+}
+
+table.mc-calendar {
+	width:80%;
+	font-size:0.8em;
+}
+
+table.mc-calendar td.mc-day {
+	text-align:left;
+	vertical-align:top;
+	background-color: #ffffff;
+	border:solid 1px #dddddd;
+	font-weight:bold;
+	cursor: pointer;
+	font-family:Arial,sans-serif;
+	height: 80px;
+	
+	
+}
+
+table.mc-calendar td.mc-week-nb {
+ 	border:none;
+ 	padding:0px;
+	
+}
+
+table.mc-calendar td.mc-wd-name {
+	text-align:left;
+ 	padding-left:1px;
+}
+
+
+table.mc-calendar td.mc-sunday {
+	color:green;
+}
+
+table.mc-calendar td.mc-holiday {
+	color:red !important;
+}
+
+table.mc-calendar td.mc-saturday {
+	color:#006030;
+}
+
+
+table.mc-calendar td.mc-day:hover {
+	background-color: LightGoldenRodYellow ;
+}
+
+table.mc-calendar td.mc-today {
+	border:solid 2px red;
+}
+
+table.mc-header a {
+	color:#999;
 }

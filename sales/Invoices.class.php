@@ -111,6 +111,14 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * SystemId на номенклатура "Клиенти"
+     * 
+     * @var string
+     */
+    const CLIENTS_ACC_LIST = 'clients';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -127,7 +135,12 @@ class sales_Invoices extends core_Master
         // Съставил фактурата
         $this->FLD('creatorName', 'varchar(255)', 'caption=Съставил, input=none');
         
-        // Контрагент - получател на фактурата
+        /*
+         * Данни за контрагента - получател на фактурата
+         */
+        // Перо в номенклатурата с клиенти съответстващо на контрагента
+        $this->FLD('contragentAccItemId', 
+            'acc_type_Item(lists=' . self::CLIENTS_ACC_LIST . ')', 'notNull,input=none,column=none');
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory,width=100%');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Получател->Държава,mandatory,width=100%');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->ЕИК/VAT №, mandatory');
@@ -303,6 +316,18 @@ class sales_Invoices extends core_Master
     {
         if (empty($rec->vatDate)) {
             $rec->vatDate = $rec->date;
+        }
+        
+        if (!empty($rec->folderId)) {
+            // Създаване / обновяване на перото за контрагента
+            $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
+            $coverId    = doc_Folders::fetchCoverId($rec->folderId);
+            
+            expect($clientsListRec = acc_Lists::fetchBySystemId(self::CLIENTS_ACC_LIST),
+                "Липсва номенклатура за клиенти (systemId: " . self::CLIENTS_ACC_LIST . ")"
+            );
+            
+            $rec->contragentAccItemId = acc_Lists::updateItem($coverClass, $coverId, $clientsListRec->id);
         }
     }
     

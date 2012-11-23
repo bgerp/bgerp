@@ -266,12 +266,13 @@ class doc_Files extends core_Manager
             // Първия документ в нишката
             $docProxy = doc_Containers::getDocument($firstContainerId);
             
+            // Полетата на документа във вербален вид
+            $docProxyRow = $docProxy->getDocumentRow();
+            
             // Атрибутеите на линка
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
-            
-            // Полетата на документа във вербален вид
-            $docProxyRow = $docProxy->getDocumentRow();
+            $attr['title'] = $docProxyRow->title;
             
             // Темата да е линк към single' а на първиа документ документа
             $row->containerId = ht::createLink(str::limitLen($docProxyRow->title,35), array($docProxy, 'single', $docProxy->that), NULL, $attr);    
@@ -310,8 +311,15 @@ class doc_Files extends core_Manager
         // Ако листваме
         if ($action == 'list') {
             
-            // id' то на папката
-            $folderId = Request::get('folderId', 'int');
+            // Вземамем папката от записа
+            $folderId = $rec->folderId;
+            
+            // Ако не е зададена папка
+            if (!$folderId) {
+                
+                // id' то на папката
+                $folderId = Request::get('folderId', 'int');    
+            } 
 
             // Ако нямаме права за signle na папката
             if (!doc_Folders::haveRightFor('single', $folderId)) {
