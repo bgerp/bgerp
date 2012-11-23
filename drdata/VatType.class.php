@@ -31,6 +31,7 @@ class drdata_VatType extends type_Varchar
     {
         parent::init($params);
         setIfNot($this->params['size'], $this->dbFieldLen);
+        setIfNot($this->params[0], $this->dbFieldLen);
     }
     
     
