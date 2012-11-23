@@ -211,7 +211,7 @@ class email_Mime extends core_BaseClass
             }
         }
 
-        $rec->hash = $this->getHesh();
+        $rec->hash = $this->getHash();
         
         return $rec;
     }
