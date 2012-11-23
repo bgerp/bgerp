@@ -561,7 +561,7 @@ class email_Incomings extends core_Master
         
         $mimeParser = new email_Mime();
         
-        $hash    = $mimeParser->getHash($headers);
+        $hash = $mimeParser->getHash($headers);
         
         if ((!$rec = $this->fetch("#hash = '{$hash}'"))) {
             

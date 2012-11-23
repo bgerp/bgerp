@@ -107,16 +107,18 @@ class email_Mime extends core_BaseClass
      * то те се вземат от вътрешното състояние
      */
     function getHash($headers = NULL)
-    {
-        if (!isset($this->hash)) {
-            if(!$headers) {
-                $headers = $this->getHeadersStr();
-                $hash = $this->hash = md5($headers);
-            } else {
-                $hash = md5($headers);
-            }
+    {   
+        if($this->hash) {
+            $hash = $this->hash;
+        } elseif ($internalHeaders = $this->getHeadersStr()) {
+            $hash = md5($internalHeaders);
+        } else {
+            expect($headers);
+            $hash = md5($headers);
         }
         
+        $this->hash = $hash;
+ 
         return $hash;
     }
     
