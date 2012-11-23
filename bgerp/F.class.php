@@ -34,7 +34,7 @@ class bgerp_F extends core_Manager
         $name = Request::get('n');
 
         // Очакваме да има изпратен документ с mid' а
-        expect(($rec = log_Documents::getActionRecForMid($mid)) && ($rec->containerId), 'Няма информация.');
+        expect(($rec = log_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
 
         // Вземаме документа
         $doc = doc_Containers::getDocument($rec->containerId);

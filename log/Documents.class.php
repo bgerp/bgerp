@@ -1126,11 +1126,25 @@ class log_Documents extends core_Manager
      */
     static function getActionRecForMid($mid, $action=NULL)
     {
-        // Акшъна по подразбиране да е send
-        setIfNot($action, static::ACTION_SEND);
-
-        // Вземаме записите, ако има такива
-        $rec = static::fetch(array("#mid = '[#1#]' AND #action = '{$action}'", $mid));
+        // Ако не сме задали да не се проверява 
+        if ($action === FALSE) {
+            
+            // Вземаме записа, ако има такъв
+            $rec = static::fetch(array("#mid = '[#1#]'", $mid));
+            
+            // Ако екшъна е един от посочените, връщаме FALSE
+            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
+                
+                return FALSE;
+            }
+        } else {
+            
+            // Акшъна по подразбиране да е send
+            setIfNot($action, static::ACTION_SEND);
+    
+            // Вземаме записа, ако има такъв
+            $rec = static::fetch(array("#mid = '[#1#]' AND #action = '{$action}'", $mid));
+        }
         
         return $rec;
     }
