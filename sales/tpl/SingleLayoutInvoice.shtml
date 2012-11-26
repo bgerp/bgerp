@@ -16,7 +16,7 @@
                 .bigData {font-family:"Courier New"; font-size:1em; font-weight:bold;}
                 .cell {border:1px solid    #000;}
                 .topCell { border-top:none; border-left: 1px solid #000; border-bottom: 1px solid #000; border-right: 1px solid #000;} 
-                .invTable { border-collapse:collapse; background-color:white;  }
+                .invTable { border-collapse:collapse;  }
                 .rowData {font-size:0.9em;}
             </style>
 
