@@ -41,33 +41,13 @@ class fileman_Data extends core_Manager {
         // Дължина на файла в байтове 
         $this->FLD("fileLen", "fileman_FileSize", array('caption' => 'Дължина'));
         
-        // Тип на файла
-        $this->FLD("typeId", "key(mvc=fileman_Types)", 'caption=Тип');
-        
         // Път до файла
         $this->FNC("path", "varchar(10)", array('caption' => 'Път'));
         
         // Връзки към файла
         $this->FLD("links", "int", 'caption=Връзки,notNull');
         
-        // Анализ на файла
-        $this->FLD("analyze", "text", array('caption' => 'Анализ'));
-        
-        // От кога е анализа на файла?
-        $this->FLD("lastAnalyze", "datetime", array('caption' => 'Последен анализ'));
-        
-        // Кога последно е използван този dataFile?
-        $this->FLD("lastUsedOn", "datetime", array('caption' => 'Последно използване'));
-        
-        // Състояние на файла
-        $this->FLD("state", "enum(draft=Чернова,active=Активен,deleted=Изтрит)", array('caption' => 'Състояние'));
-        
-        // Указател към FileData с икона на файла (64х64)
-        $this->FLD("iconId", "int", array('caption' => 'Икона'));
-        
-        // Изглед, прослушване
-        $this->FLD("previewId", "int", array('caption' => 'Превю'));
-        
+      
         $this->setDbUnique('fileLen,md5', 'DNA');
         
     }
