@@ -131,7 +131,7 @@ class statuses_Toast extends core_Plugin
     function on_AfterAjaxGetStatuses($mvc, $tpl)
     {
         //URL до екшъна за вземане на статусите в json формат
-        $url = toUrl(array('core_Statuses', 'ajaxGetStatuses'));
+        $url = toUrl(array('core_Statuses', 'ajaxGetStatuses', 'ajax_mode' => 1));
         
         //След колко милисекунди да се стартира ajax'а (15секунди)*1000
         $ajaxStartTime = 15000;
