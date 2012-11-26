@@ -781,13 +781,15 @@ function getStatuses(url, timeout) {
 					
 					var link = "";
 					
-					if(parseInt(text)>0) {
-						link = "<a href='/root/bgerp/Portal/Show/'>" + text + "</a>";
+					var nCntLink = get$('nCntLink');
+					
+					nCntLink.innerHTML = text;
+
+					if(parseInt(text) > 0) {
+						nCntLink.className = 'haveNtf';
+					} else {
+						nCntLink.className = 'noNtf';
 					}
-
-					var nCnt = get$('notificationsCnt');
-
-					nCnt.innerHTML = link;
 
 				} else {
 					$().toastmessage('showToast', {
