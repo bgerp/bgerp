@@ -1266,8 +1266,8 @@ class email_Outgoings extends core_Master
         return $html;
     }
     
-    
-	/**
+
+    /**
      * Екшън за препращане на имейли
      */
     function act_Forward()
@@ -1292,70 +1292,32 @@ class email_Outgoings extends core_Master
         foreach($form->fields as &$field) {
             $field->input = 'none';
         } 
-           
-        // Добавяме функционални полета
-        $form->FNC('personId', 'key(mvc=crm_Persons,select=name, allowEmpty=true)', 'input=input,silent,caption=Папка->Лице');
-        $form->FNC('companyId', 'key(mvc=crm_Companies,select=name, allowEmpty=true)', 'input=input,silent,caption=Папка->Фирма');
-        $form->FNC('userEmail', 'email', 'input=input,silent,caption=Папка->Имейл');
-        
+
         // Заявка за извличане на потребителите
         $personsQuery = crm_Persons::getQuery();
-        
         // Да извлече само достъпните
         crm_Persons::applyAccessQuery($personsQuery);
-        
-        // Подреждаме по имена
-        $personsQuery->orderBy('name', 'ASC');
+        // Вземаме where клаузата, без 'WHERE'
+        $personsWhere = $personsQuery->getWhereAndHaving(TRUE)->w;
 
-        // Обхождаме всички открити потребители
-        while ($personRec = $personsQuery->fetch()) {
-            
-            // Името на потребителя
-            $name = crm_Persons::getVerbal($personRec, 'name');  
-            
-            // Ако името е празно, прескачаме
-            if (!trim($name)) continue;
-            
-            // Добавяме в масива
-            $personsArr[$personRec->id] = $name;    
-        }
-        
-        // Ако не сме открили нито един потребител, показваме съобщението
-        // TODO това е необходимо, защото ако не празно показва всички
-        if (!$personsArr) $personsArr[''] = 'Няма лице';
-        
-        // Задаваме да се показват опциите
-        $form->setOptions('personId', $personsArr); 
-        
         // Заявка за извличане на фирмите
         $companyQuery = crm_Companies::getQuery();
-        
         // Да извлече само достъпните
         crm_Companies::applyAccessQuery($companyQuery);
+        // Вземаме where клаузата, без 'WHERE'
+        $companiesWhere = $companyQuery->getWhereAndHaving(TRUE)->w;
 
-        // Подреждаме по имена
-        $companyQuery->orderBy('name', 'ASC');
-        
-        // Обхождаме всички открити потребители
-        while ($compRec = $companyQuery->fetch()) {
-            
-            // Името на потребителя
-            $name = crm_Companies::getVerbal($compRec, 'name');
-            
-            // Ако името е празно, прескачаме
-            if (!trim($name)) continue;
-            
-            // Добавяме в масива
-            $companyArr[$compRec->id] = $name;
-        }
-        
-        // Ако не сме открили нито един фирма, показваме съобщението
-        // TODO това е необходимо, защото ако не празно показва всички
-        if (!$companyArr) $companyArr[''] = 'Няма фирма';
-        
-        // Задаваме да се показват опциите
-        $form->setOptions('companyId', $companyArr); 
-        
+        // Добавяме функционални полета
+        $form->FNC('personId', 
+                    new type_Key(array('mvc' => 'crm_Persons', 'select' => 'name', 'where' => $personsWhere, 'allowEmpty' => TRUE)),
+                    'input=input,silent,caption=Папка->Лице');
+                    
+        $form->FNC('companyId',
+                    new type_Key(array('mvc' => 'crm_Companies', 'select' => 'name', 'where' => $companiesWhere, 'allowEmpty' => TRUE)),
+                    'input=input,silent,caption=Папка->Фирма');
+                    
+        $form->FNC('userEmail', 'email', 'input=input,silent,caption=Папка->Имейл');
+
         $form->input();
         
         // Ако формата е субмитната
@@ -1395,7 +1357,7 @@ class email_Outgoings extends core_Master
                 
             }
             
-            // Ако не сме открили папка и нямаме права в нея
+            // Ако не сме открили папка или нямаме права в нея
             if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) {
                 
                 // Изтриваме папката
