@@ -350,6 +350,7 @@ class sales_Invoices extends core_Master
         $tpl->replace($ownCompanyData->company, 'MyCompany');
         $tpl->replace($ownCompanyData->country, 'MyCountry');
         $tpl->replace($address, 'MyAddress');
+        $tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
     }
     
     
