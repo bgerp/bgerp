@@ -253,7 +253,7 @@ class type_Key extends type_Int {
                 $this->options = $selOpt;
 
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
-                ", Act:\"ajax_GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\"}";
+                ", Act:\"ajax_GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\", ajax_mode:1}";
                 
                 $tpl = ht::createCombo($name, $options[$value], $attr, $selOpt);
             } else {
@@ -277,7 +277,7 @@ class type_Key extends type_Int {
             
             if(method_exists($mvc, 'act_ajax_GetOptions')) {
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"{$this->params['mvc']}\"" .
-                ", Act:\"ajax_GetOptions\"}";
+                ", Act:\"ajax_GetOptions\", ajax_mode:1}";
             }
             
             if($this->params['size']) {
