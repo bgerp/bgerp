@@ -319,11 +319,15 @@ class core_Master extends core_Manager
         $this->details = arr::make($this->details, TRUE);
         
         if (!empty($details)) {
+            
             // Зарежда mvc класовете
+           
             $this->load($details);
+            
             
             foreach($details as $var => $class) {
                 $this->details[$var] = $class;
+                
                 $this->{$var}->Master = &$this;
             }
         }
