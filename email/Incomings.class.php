@@ -1626,9 +1626,11 @@ class email_Incomings extends core_Master
         } 
            
         // Добавяме функционални полета
-        $form->FNC('personId', 'key(mvc=crm_Persons,select=name, allowEmpty=true)', 'input=input,silent,caption=Папка->Лице');
-        $form->FNC('companyId', 'key(mvc=crm_Companies,select=name, allowEmpty=true)', 'input=input,silent,caption=Папка->Фирма');
-        $form->FNC('email', 'email', 'input=input,silent,caption=Папка->Имейл');
+        $form->FNC('email', 'email', 'input=input,silent,caption=Към->Адрес,width=100%,hint=Напишете желания имейл адрес [name@example.com]');
+        $form->FNC('companyId', 'key(mvc=crm_Companies,select=name, allowEmpty=true, chosenMinItems=1)', 
+            'input=input,silent,caption=Към->Фирма,width=100%');
+        $form->FNC('personId', 'key(mvc=crm_Persons,select=name, allowEmpty=true, chosenMinItems=1)', 
+            'input=input,silent,caption=Към->Лице,width=100%');
         
         // Заявка за извличане на потребителите
         $personsQuery = crm_Persons::getQuery();
@@ -1689,16 +1691,20 @@ class email_Incomings extends core_Master
         $form->setOptions('companyId', $companyArr); 
         
         $form->input();
+
+        if($form->isSubmitted()) {
+            // Намира броя на избраните
+            $count = (int)isset($form->rec->personId) + (int)isset($form->rec->companyId) + (int)isset($form->rec->email);
+
+            if($count > 1) {
+                $form->setError('*', 'Моля изберете само една възможност');
+            }
+        }
+
         
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
-            
-            // Намира броя на избраните
-            $count = (int)isset($form->rec->personId) + (int)isset($form->rec->companyId) + (int)isset($form->rec->email);
-            
-            // Трябва да се избере само едното поле
-            expect($count == 1, 'Трябва да изберете една от трите възможности.');
-            
+
             // Ако сме избрали потребител
             if (isset($form->rec->personId)) {
                 
@@ -1795,7 +1801,7 @@ class email_Incomings extends core_Master
         $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
         
         // Потготвяме заглавието на формата
-        $form->title = 'Препращане на имейл';
+        $form->title = 'Препращане на входящ имейл';
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();

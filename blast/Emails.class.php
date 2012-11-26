@@ -821,7 +821,7 @@ class blast_Emails extends core_Master
             //Спираме системния потребител
             core_Users::cancelSystemUser();
                 
-            //Променяме потребителя за ипзращане, от системен в потребителя, който е активирал имейла
+            //Променяме потребителя за изпращане, от системен в потребителя, който е активирал имейла
             $activator = core_Users::fetch($rec->activatedBy);
             Mode::push('currentUserRec', $activator);
             
