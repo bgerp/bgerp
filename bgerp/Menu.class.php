@@ -281,26 +281,16 @@ class bgerp_Menu extends core_Manager
         $openNotifications = bgerp_Notifications::getOpenCnt();
         
         $url  = toUrl(array('bgerp_Portal', 'Show'));
-        $attr = array();
+        $attr = array('id' => 'nCntLink');
 
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-        if(Mode::is('screenMode', 'narrow')) {
-            if($openNotifications > 0) {
-                $nLink = ht::createLink($openNotifications, $url, NULL, $attr);
-            } else {
-                $attr['style'] = 'background-color: #bbb !important; border: solid 1px #999 !important; ';
-                $nLink = ht::createLink('0', $url, NULL, $attr);
-            }
-            $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
+        if($openNotifications > 0) {
+            $attr['class'] = 'haveNtf';
         } else {
-            if($openNotifications > 0) {
-                $nLink = ht::createLink($openNotifications, $url, NULL, $attr);
-                $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
-                $tpl->APPEND("({$openNotifications}) ", 'PAGE_TITLE');
-            } else {
-                $tpl->replace('&nbsp;', 'NOTIFICATIONS_CNT');
-            }
-        }  
+            $attr['class'] = 'noNtf';
+        }
+        $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
+        $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
     }
     
     

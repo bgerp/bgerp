@@ -676,18 +676,28 @@ table.mc-header a {
 	display: inline-block;
 }
 
-#notificationsCnt a {
+.narrow #notificationsCnt a  {
 	display:block;
 	font-size:0.8em;
-	background-color:red;
 	color:white;
 	padding:1px 3px 1px 3px !important;
-	border:solid 1px #c33 !important;
 	-moz-box-shadow: 3px 3px 5px  #aaa;
 	-webkit-box-shadow: 3px 3px 5px  #aaa;
     box-shadow: 3px 3px 5px  #aaa;
 	border-radius:3px;
 }
+
+.narrow #notificationsCnt a.haveNtf {
+	background-color:red;
+	border:solid 1px #c33 !important;
+}
+
+
+.narrow #notificationsCnt a.noNtf {
+	background-color: #bbb !important; 
+	border: solid 1px #999 !important;
+}
+
 
 legend img {
 	vertical-align:middle; 

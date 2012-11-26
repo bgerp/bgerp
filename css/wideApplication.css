@@ -1156,11 +1156,22 @@ div.attachments .file {
 	display:block;
 	color:white;
 	font-size:0.9em;
-	background-color:red;
 	padding:1px 2px 1px 2px !important;
-	border:solid 1px #c33 !important;
 	border-radius:3px;
 	box-shadow: 2px 2px 3px #666;
+}
+
+#notificationsCnt a.haveNtf {
+	background-color:red;
+	border:solid 1px #c33 !important;
+}
+
+
+#notificationsCnt a.noNtf {
+    color:transparent;
+	background-color:transparent;
+	border:none !important;
+	box-shadow: none;
 }
 
 legend img {
