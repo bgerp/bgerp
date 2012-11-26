@@ -71,10 +71,10 @@ class sales_InvoiceDetails extends core_Detail
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Поръчка, input=hidden, silent');
         $this->FLD('actionType', 'enum(sale,downpayment,deduct,discount)', 'caption=Тип');
-        $this->FLD('invPeraId', 'int', 'caption=Пера');
+        $this->FLD('itemId', 'acc_type_Item', 'caption=Пера');
         $this->FLD('orderId', 'int', 'caption=Поръчка');
         $this->FLD('note', 'text', 'caption=Пояснение');
-        $this->FLD('productId', 'key(mvc=cat_Products, select=title)', 'caption=Продукт');
+        $this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
         $this->FLD('unit', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка');
         $this->FLD('quantity', 'double(decimals=4)', 'caption=Количество');
         $this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена');
@@ -95,6 +95,18 @@ class sales_InvoiceDetails extends core_Detail
         $rec->amount = round($rec->priceForOne * $rec->quantity, 2);
     }
     
+    /**
+     *
+     */
+    function on_AfterPrepareDetail1($mvc, &$res, $data)
+    { 
+       $query = $this->getQuery();
+
+       while($rec = $query->fetch("#invoiceId = {$data->masterId}")) {
+           $data->recs[$rec->id] = $rec;
+       }
+    }
+
     
     /**
      * Подготвя шаблона за детайлите
@@ -103,8 +115,8 @@ class sales_InvoiceDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforeRenderDetail($mvc, &$res, $data)
-    {
+    function on_AfterRenderDetail($mvc, &$res, $data)
+    { return;
         $res = new ET("
             <table class=\"invTable\" border=\"0\" cellpadding=\"1\" cellspacing=\"0\" width=\"100%\">
                 <tbody>
@@ -118,6 +130,7 @@ class sales_InvoiceDetails extends core_Detail
                 </tr>");
         
         // Брояч на редовете
+        $row = new stdClass();
         $row->numb = 0;
         
         if (count($data->rows)) {

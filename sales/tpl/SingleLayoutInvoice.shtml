@@ -4,7 +4,15 @@
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
+<style>
+.sales_InvoiceDetails .listTable {
+	width:100%;
+}
 
+.sales_InvoiceDetails td,  .sales_InvoiceDetails th, .sales_InvoiceDetails {
+	border:solid 1px black !important;
+}
+</style>
 <table width=100%>
     <tbody>
 
@@ -93,7 +101,7 @@
                 </tbody>
             </table>
 
-            [#Detailacc_InvoiceDetails#]
+            [#DETAILS#]
             
             <table class="invTable" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
