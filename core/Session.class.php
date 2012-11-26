@@ -275,6 +275,9 @@ class core_Session {
         if(!$this->_started) {
             @session_cache_limiter('nocache');
             @session_set_cookie_params(0);
+            // ini_set('session.cookie_secure', 1);
+            ini_set('session.cookie_httponly', 1);
+            ini_set('session.use_only_cookies', 1);
             @session_start();
             
             if(!$this->_resumed) {
