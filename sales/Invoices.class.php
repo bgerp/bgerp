@@ -138,9 +138,6 @@ class sales_Invoices extends core_Master
         /*
          * Данни за контрагента - получател на фактурата
          */
-        // Перо в номенклатурата с клиенти съответстващо на контрагента
-        $this->FLD('contragentAccItemId', 
-            'acc_type_Item(lists=' . self::CLIENTS_ACC_LIST . ')', 'notNull,input=none,column=none');
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory,width=100%');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Получател->Държава,mandatory,width=100%');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->ЕИК/VAT №, mandatory');
@@ -317,18 +314,43 @@ class sales_Invoices extends core_Master
         if (empty($rec->vatDate)) {
             $rec->vatDate = $rec->date;
         }
-        
+    }
+    
+    
+    public static function on_AfterSave($mvc, $id, $rec)
+    {
         if (!empty($rec->folderId)) {
             // Създаване / обновяване на перото за контрагента
             $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
             $coverId    = doc_Folders::fetchCoverId($rec->folderId);
-            
+        
             expect($clientsListRec = acc_Lists::fetchBySystemId(self::CLIENTS_ACC_LIST),
-                "Липсва номенклатура за клиенти (systemId: " . self::CLIENTS_ACC_LIST . ")"
+                "Липсва номенклатура за клиенти (systemId: '" . self::CLIENTS_ACC_LIST . "')"
             );
-            
-            $rec->contragentAccItemId = acc_Lists::updateItem($coverClass, $coverId, $clientsListRec->id);
+        
+            acc_Lists::updateItem($coverClass, $coverId, $clientsListRec->id);
         }
+    }
+    
+    /**
+     * Попълване на шаблона на единичния изглед с данни на доставчика (Моята фирма)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_ET $tpl
+     */
+    public function on_AfterRenderSingle($mvc, core_ET $tpl)
+    {
+        $ownCompanyData = crm_Companies::fetchOwnCompany();
+
+        $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
+        if ($address && !empty($ownCompanyData->address)) {
+            $address .= '<br/>' . $ownCompanyData->address;
+        }  
+        
+        $tpl->replace($ownCompanyData->company, 'MyCompany');
+        $tpl->replace($ownCompanyData->country, 'MyCountry');
+        $tpl->replace($address, 'MyAddress');
+        $tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
     }
     
     

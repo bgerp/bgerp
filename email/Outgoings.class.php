@@ -1265,4 +1265,174 @@ class email_Outgoings extends core_Master
         
         return $html;
     }
+    
+
+    /**
+     * Екшън за препращане на имейли
+     */
+    function act_Forward()
+    {
+        // id'то на документа
+        $id = Request::get('id', 'int');
+        
+        // Вземаме записа
+        $rec = email_Incomings::fetch($id);
+        
+        // Проверяваме за права
+        email_Incomings::requireRightFor('single', $rec);
+        
+        $data = new stdClass();
+        
+        // Вземаме формата
+        $data->form = static::getForm();
+        
+        $form = &$data->form;
+        
+        // Обхождаме всички да не се показват
+        foreach($form->fields as &$field) {
+            $field->input = 'none';
+        } 
+
+        // Заявка за извличане на потребителите
+        $personsQuery = crm_Persons::getQuery();
+        // Да извлече само достъпните
+        crm_Persons::applyAccessQuery($personsQuery);
+        // Вземаме where клаузата, без 'WHERE'
+        $personsWhere = $personsQuery->getWhereAndHaving(TRUE)->w;
+
+        // Заявка за извличане на фирмите
+        $companyQuery = crm_Companies::getQuery();
+        // Да извлече само достъпните
+        crm_Companies::applyAccessQuery($companyQuery);
+        // Вземаме where клаузата, без 'WHERE'
+        $companiesWhere = $companyQuery->getWhereAndHaving(TRUE)->w;
+
+        // Добавяме функционални полета
+        $form->FNC('personId', 
+                    new type_Key(array('mvc' => 'crm_Persons', 'select' => 'name', 'where' => $personsWhere, 'allowEmpty' => TRUE)),
+                    'input=input,silent,caption=Папка->Лице');
+                    
+        $form->FNC('companyId',
+                    new type_Key(array('mvc' => 'crm_Companies', 'select' => 'name', 'where' => $companiesWhere, 'allowEmpty' => TRUE)),
+                    'input=input,silent,caption=Папка->Фирма');
+                    
+        $form->FNC('userEmail', 'email', 'input=input,silent,caption=Папка->Имейл');
+
+        $form->input();
+        
+        // Ако формата е субмитната
+        if ($form->isSubmitted()) {
+            
+            // Намира броя на избраните
+            $count = (int)isset($form->rec->personId) + (int)isset($form->rec->companyId) + (int)isset($form->rec->userEmail);
+            
+            // Трябва да се избере само едното поле
+            expect($count == 1, 'Трябва да изберете една от трите възможности.');
+            
+            // Ако сме избрали потребител
+            if (isset($form->rec->personId)) {
+                
+                // Инстанция на класа
+                $Persons = cls::get('crm_Persons');
+                
+                // Папката
+                $folderId = $Persons->forceCoverAndFolder($form->rec->personId);
+            }
+            
+            // Ако сме избрали фирмата
+            if (isset($form->rec->companyId)) {
+                
+                // Инстанция на класа
+                $Companies = cls::get('crm_Companies');
+                
+                // Папката
+                $folderId = $Companies->forceCoverAndFolder($form->rec->companyId);
+            }
+            
+            // Ако сме въвели имейл
+            if (isset($form->rec->userEmail)) {
+                
+                // Папката
+                $folderId = email_Router::getEmailFolder($form->rec->userEmail);
+                
+            }
+            
+            // Ако не сме открили папка или нямаме права в нея
+            if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) {
+                
+                // Изтриваме папката
+                unset($folderId);
+                
+                // Вземаме id' то на имейла на текущия потребител
+                $userInboxId = email_Inboxes::getUserInboxId();
+                
+                // Ако има имейл
+                if ($userInboxId) {
+                    
+                    // Инстанция на класа
+                    $Inboxes = cls::get('email_Inboxes');
+                    
+                    // Папката
+                    $folderId = $Inboxes->forceCoverAndFolder($userInboxId);
+                }
+            }
+            
+            // Ако все още не е открита папка
+            if (!$folderId) {
+                
+                // Вземаме всички входящи кутии в системата
+                $allBoxesArr = email_Inboxes::getAllInboxes();
+                
+                foreach ($allBoxesArr as $email => $box) {
+                    
+                    // Ако няма кутия продължаваме
+                    if (!$box) continue;
+                    
+                    // Вземаме id' то на папката
+                    $cFolderId = email_Inboxes::forceFolder($email);
+                    
+                    // Ако нямаме права за нея продължаваме
+                    if (!doc_Folders::haveRightFor('single', $cFolderId)) continue;
+                    
+                    // Ако имаме права, задаваме тя да е папката, която ще използваме
+                    $folderId = $cFolderId;
+                }
+            }
+            
+            // Очакваме вече да сме определили папката
+            expect($folderId, 'Не може да се определи папката.');
+            
+            // Препращаме към формата за създаване на имейл
+            redirect(toUrl(array(
+            					 'email_Outgoings',
+            					 'add',
+            					 'originId'=>$rec->containerId,
+            					 'folderId' => $folderId,
+    					 		 'emailto' => $form->rec->userEmail,
+            					 'forward'=>'forward',
+            					 'ret_url'=>TRUE,
+                                )));
+        }
+        
+        // URL' то където ще се редиректва
+        $retUrl = getRetUrl();
+        
+        // Ако няма ret_url, създаваме го
+        $retUrl = ($retUrl) ? $retUrl : toUrl(array('email_Incomings','single', $id));
+        
+        // Подготвяме лентата с инструменти на формата
+        $form->toolbar->addSbBtn('Избор', 'default', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        
+        // Потготвяме заглавието на формата
+        $form->title = 'Препращане на имейл';
+        
+        // Получаваме изгледа на формата
+        $tpl = $form->renderHtml();
+        
+        // Опаковаме изгледа
+        $tpl = static::renderWrapping($tpl, $data);
+
+        return $tpl;
+    }
 }

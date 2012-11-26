@@ -3,38 +3,112 @@
 	<div class='header [#STATE_CLASS#]'>
 	   <div class='docBgIcon' style='[#iconStyle#]'>[#singleTitle#] &nbsp;[#id#]/[#date#] ([#state#])</div>
 	</div>
-	<table border='1' width='100%' style='border-collapse:collapse;margin-top:15px' cellpadding='3px' cellspacing='0px'>
-		<tr style='height:25px'>
-			<th style='background-color: rgb(221, 221, 221);' width='10%'>Дата</th>
-			<th width='50%' style='background-color: rgb(221, 221, 221);'>Контрагент</th>
-			<th style='background-color: rgb(221, 221, 221);'>Сума</th>
-			<th style='background-color: rgb(221, 221, 221);' >Валута</th>
-			<th style='background-color: rgb(221, 221, 221);' >Курс</th>
+	<table border='1px' class='order-table' cellpadding='3px'>
+	<tr>
+		<td class='top-head'>Вносител</td>
+		<td  rowspan='2' class='title-order'>
+			<h2>[#singleTitle#]</h2>
+			№:&nbsp;&nbsp;<b>[#number#]</b><br>
+			Дата:&nbsp;&nbsp;<b>[#date#]</b>
+		</td>
+		<td class='top-head'>Получател</td>
+	</tr>
+	<tr>
+		<td style='padding-top:15px;'>[#importer#]</td>
+		<td style='padding-top:15px;'>[#recipient#]</td>
+	</tr>
+	</table>
+	<table border='1px' class='order-table' cellpadding='3px'>
+		<tr>
+			<td width='55%' align='center'>Основание</td>
+			<td width='20%' align='center'>Сума</td>
+			<td width='25%' align='center'>Валута</td>
 		</tr>
 		<tr>
+			<td height='15px' align='center'>[#reason#]</td>
+			<td height='15px' align='right' style='padding-right:15px'>[#amount#]</td>
+			<td height='15px' align='center'>
+			[#currencyId#]<br>
+			<!--ET_BEGIN rate-->
+			курс:&nbsp;[#rate#]<br>
+			<!--ET_END rate-->
+			<!--ET_BEGIN equals-->
+			равностойност:&nbsp;[#equals#]<br>
+			<!--ET_END equals-->
+			</td>
+		</tr>
+		<tr>
+			<td colspan='3' align='center'><b>с думи:</b>&nbsp;[#amountVerbal#]</td>
+		</tr>
+	</table>
+	<table border='1px' class='order-table' cellpadding='3px'>
+		<tr>
+			<td align='center' colspan='2'>Бележки</td>
+		</tr>
+		<tr>
+			<td height='80px' colspan='2'>[#notes#]</td>
+		</tr>
+		<tr>
+			<td width='50%' align='right'>Вносител</td>
+			<td width='50%' align='right'>Касиер</td>
+		</tr>
+		<tr>
+			<td align='right'>подпис: ...............</td>
+			<td align='right'>подпис: ...............</td>
+		</tr>
+		<tr>
+			<td align='right'>( [#importer#] )</td>
+			<td align='right'>( [#cashier#] )</td>
+		</tr>
+	</table>
+	<!--<table border='1px' class='order-table'>
+		<tr style='height:25px'>
+			<th>Номер</th>
+			<th width='10%'>Дата</th>
+			<th width='50%' >Вносител</th>
+			<th>Сума</th>
+			<th>Валута</th>
+			<th>Курс</th>
+		</tr>
+		<tr>
+			<td align='right'>[#number#]</td>
 			<td align='right'>[#date#]</td>
-			<td align='right'>[#peroContragent#]</td>
+			<td align='right'>[#importer#]</td>
 			<td align='right'>[#amount#]</td>
 			<td align='right'>[#currencyId#]</td>
-			<td align='right'>[#rate#]</td>
+			<td align='right'>444[#rate#]</td>
 		</tr>
 		</table>
-		<table border='1' width='100%' style='border-collapse:collapse;margin-top:15px' cellpadding='3px' cellspacing='0px'>
+		<table border='1px' class='order-table'>
 		<tr style='height:25px'>
-			<th  style='background-color: rgb(221, 221, 221);' width='80%'>Основание</th>
-			<th  style='background-color: rgb(221, 221, 221);'>Документ</th>
+			<th width='80%'>Основание</th>
+			<th>Документ</th>
 		</tr>
 		<tr>
 			<td align='left' style='text-indent:15px'>[#reason#]</td>
 			<td align='right'>[#peroDocument#]</td>
 		</tr>
 		</table>
-		<table border ='1' width='100%' style='border-collapse:collapse;margin-top:10px' cellpadding='3px' cellspacing='0px'>
+		<table border='1px' class='order-table' >
 		<tr style='height:25px'>
-			<th style='background-color: rgb(221, 221, 221);'>Бележки</th>
+			<th >Бележки</th>
 		</tr>
 		<tr>
-			<td align='right' style='text-align:left;text-indent:15px'>[#notes#]</td>
+			<td align='right' class='notes'>[#notes#]</td>
 		</tr>
 	</table>
+	<table border='1px' class='order-table'>
+		<tr style='height:25px'>
+			<td width='50%' align='right'>Вносител</td>
+			<td width='50%' align='right'>Касиер</td>
+		</tr>
+		<tr style='height:25px'>
+			<td></td>
+			<td></td>
+		</tr>
+		<tr style='height:25px'>
+			<td align='right'>([#importer#])</td>
+			<td align='right'>([#cashier#])</td>
+		</tr>
+	</table> -->
 </div>

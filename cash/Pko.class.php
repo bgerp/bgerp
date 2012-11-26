@@ -105,7 +105,7 @@ class cash_Pko extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason, amount, date';
+    var $searchFields = 'number, reason, amount, date';
     
       
     /**
@@ -113,14 +113,95 @@ class cash_Pko extends core_Master
      */
     function description()
     {
+    	$this->FLD('number', 'int', 'caption=Номер,width=50%,mandatory');
+    	$this->FLD('importer', 'varchar(255)', 'caption=Вносител,width=100%,mandatory');
+    	$this->FLD('recipient', 'varchar(255)', 'caption=Получател,width=100%,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('date', 'date', 'caption=Дата,mandatory');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
+    	$this->FLD('amountVerbal', 'varchar(255)', 'caption=Словом,input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс');
     	$this->FLD('notes', 'richtext', 'caption=Бележки');
-    	//$this->FLD('peroContragent', 'key(mvc=acc_PeroType, select=code)', 'caption=Номенклатури->Контрагент');
-    	//$this->FLD('peroDocument', 'key(mvc=acc_PeroType, select=code)', 'caption=Номенклатури->Документ');
+    }
+    
+    
+    /**
+     *  Обработка на формата за редакция и добавяне
+     */
+    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+    	$folderId = Request::get('folderId');
+    	$query = static::getQuery();
+    	$query->XPR('max', 'int', 'max(#id)');
+    	if($folderId){
+    		$query->where("#folderId = {$folderId}");
+    	}
+    	
+    	if($rec = $query->fetch()->max) {
+    		
+    		// Ако има последен ПКО в папката то взимаме неговите стойности
+    		// за вносител и получател  и ги слагаме за дефолт стойности
+    		$lastOrder = static::fetch($rec);
+    		$data->form->setDefault('importer', $lastOrder->importer);
+    		$data->form->setDefault('recipient', $lastOrder->recipient);
+    	}
+    	
+    	// Коя е текущата дата, и валута по подразбиране "BGN"
+    	$today = date("d-m-Y", time());
+    	$currency = currency_Currencies::fetch("#code = 'BGN'"); 
+    	
+    	// Поставяме стойности по подразбиране
+    	$data->form->setDefault('date', $today);
+    	$data->form->setDefault('currencyId', $currency->id);
+    }
+    
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+    	// Записваме вербалната стойност на сумата
+    	$spellNumber = cls::get('core_SpellNumber');
+    	$amountVerbal = $spellNumber->asCurrency($rec->amount);
+    	$rec->amountVerbal = $amountVerbal;
+    }
+    
+    
+    /**
+     *  Обрабтки по вербалното прдставяне на данните
+     */
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if($fields['-single']){
+    		$accPeriods = cls::get('acc_Periods');
+    		$period = $accPeriods->getPeriod();
+    		if($rec->currencyId != $period->baseCurrencyId) {
+    			if(!$rec->rate){
+    				$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$rec->currencyId}");
+    				$row->rate = round($currencyRates->rate, 2);
+    			}
+    			
+    			// Коя е базовата валута
+    			$baseCurrency = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
+    			
+    			$row->equals = round($row->amount / $row->rate * $baseCurrency->rate, 2);
+    		}
+    		
+    		if(core_Users::haveRole('cash', core_Users::getCurrent())){
+    			$row->cashier = core_Users::getCurrent('names');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Вкарваме css файл за единичния изглед
+     */
+	static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	$tpl->push('cash/tpl/styles.css', 'CSS');
     }
     
     

@@ -364,7 +364,7 @@ class blogm_Articles extends core_Master {
 	    				  'Determiner' =>'the',);
 	        $data->ogp[] = ograph_Factory::get($info);
     	} else {
-    		$desc = mb_substr($data->rec->body, '0','75') . "...";
+    		$desc = strip_tags(mb_substr($data->row->body, '0','75')) . "...";
     		
         	// Ако преглеждаме единична статия зареждаме и нейния Ograph
 	        $info = array('Locale' =>'bg_BG',
@@ -384,6 +384,7 @@ class blogm_Articles extends core_Master {
 	    	$ogp->addAuthor($data->row->createdBy);
 	    	$data->ogp[] = $ogp;
     	}
+    	
     }
     
     

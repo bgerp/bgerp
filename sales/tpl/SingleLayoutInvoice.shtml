@@ -24,7 +24,7 @@
                 .bigData {font-family:"Courier New"; font-size:1em; font-weight:bold;}
                 .cell {border:1px solid    #000;}
                 .topCell { border-top:none; border-left: 1px solid #000; border-bottom: 1px solid #000; border-right: 1px solid #000;} 
-                .invTable { border-collapse:collapse; background-color:white;  }
+                .invTable { border-collapse:collapse;  }
                 .rowData {font-size:0.9em;}
             </style>
 
@@ -56,9 +56,9 @@
                     </td>
 
                     <td class="cell">
-                        <b>[#МyCompany#]</b><br>
-                        <b>[#МyCountry#]</b><br>
-                        [#МyAddress#] <br>
+                        <b>[#MyCompany#]</b><br>
+                        <b>[#MyCountry#]</b><br>
+                        [#MyAddress#] <br>
                     </td>
                 </tr>
                 <tr>
@@ -68,7 +68,7 @@
                                 <td><small><b>номер по ЗДДС / <i>VAT ID</i></b></small></td>
                             </tr>
                             <tr>
-                                <td class="bigData">[#contragentVatId#]</td>
+                                <td class="bigData">[#contragentVatNo#]</td>
                             </tr>
                             <tr>
                                 <td><small><b>Идентификационен номер</b></small></td>
@@ -86,7 +86,7 @@
                                 <td><small><b>номер по ЗДДС / <i>VAT ID</i></b></small></td>
                             </tr>
                             <tr>
-                                <td class="bigData">[#vatId#]</td>
+                                <td class="bigData">[#MyCompanyVatNo#]</td>
                             </tr>
                             <tr>
                                 <td><small><b>Идентификационен номер</b></small></td>
