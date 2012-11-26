@@ -396,7 +396,7 @@ input, select, textarea {
     -moz-box-sizing:border-box;
     border: solid 1px #9999ff;
     font-size:1.06em;
-	padding: 0px 0px 0px 3px;
+	padding-left: 3px;
 }
 
 .formFields input:focus, textarea:focus, select:focus {
