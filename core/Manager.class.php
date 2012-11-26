@@ -646,10 +646,11 @@ class core_Manager extends core_Mvc
      */
     function renderListToolbar_($data)
     {
-        if(cls::isSubclass($data->toolbar, 'core_Toolbar') && !Mode::is('printing')) {
-            
-            return new ET("<div class='listToolbar'>[#1#]</div>", $data->toolbar->renderHtml());
+        if(cls::isSubclass($data->toolbar, 'core_Toolbar') && !Mode::is('printing') && $data->toolbar->count()) {
+            $res = new ET("<div class='listToolbar'>[#1#]</div>", $data->toolbar->renderHtml());
         }
+
+        return $res;
     }
     
     

@@ -137,6 +137,15 @@ class core_Toolbar extends core_BaseClass
         
         return ($a->order < $b->order) ? -1 : 1;
     }
+
+
+    /**
+     * Връща броя на бутоните на тулбара
+     */
+    public function count()
+    {
+        return count($this->buttons);
+    }
     
     
     /**
