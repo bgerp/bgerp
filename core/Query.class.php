@@ -627,8 +627,10 @@ class core_Query extends core_FieldSet
     
     /**
      * Връща WHERE и HAVING клаузите
+     * 
+     * @param boolean $pureClause - Дали да добави ключовите думи пред клаузите
      */
-    function getWhereAndHaving()
+    function getWhereAndHaving($pureClause=FALSE)
     {
         $this->useHaving = FALSE;
         
@@ -660,12 +662,22 @@ class core_Query extends core_FieldSet
             }
             
             if ($where) {
-                $clause->w = "\nWHERE \n{$where}";
+                if ($pureClause) {
+                    $clause->w = "\n{$where}";
+                } else {
+                    $clause->w = "\nWHERE \n{$where}";
+                }
             }
             
             if ($having) {
+                
                 $this->useHaving = TRUE;
-                $clause->h = "\nHAVING \n{$having}";
+                
+                if ($pureClause) {
+                    $clause->h = "\n{$having}";
+                } else {
+                    $clause->h = "\nHAVING \n{$having}";
+                }
             }
         }
         
