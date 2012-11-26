@@ -746,6 +746,19 @@ class crm_Companies extends core_Master
     }
     
     
+    /**
+     * Фирмата, от чието лице работи bgerp (BGERP_OWN_COMPANY_ID)
+     * 
+     * @return stdClass @see doc_ContragentDataIntf::getContragentData()
+     */
+    public static function fetchOwnCompany()
+    {
+        $conf = core_Packs::getConfig('crm');
+        
+        return static::getContragentData($conf->BGERP_OWN_COMPANY_ID);
+    }
+    
+    
     /****************************************************************************************
      *                                                                                      *
      *  Методи на интерфейс "doc_FoldersIntf"                                               *

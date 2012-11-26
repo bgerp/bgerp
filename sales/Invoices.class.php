@@ -332,6 +332,26 @@ class sales_Invoices extends core_Master
         }
     }
     
+    /**
+     * Попълване на шаблона на единичния изглед с данни на доставчика (Моята фирма)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_ET $tpl
+     */
+    public function on_AfterRenderSingle($mvc, core_ET $tpl)
+    {
+        $ownCompanyData = crm_Companies::fetchOwnCompany();
+
+        $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
+        if ($address && !empty($ownCompanyData->address)) {
+            $address .= '<br/>' . $ownCompanyData->address;
+        }  
+        
+        $tpl->replace($ownCompanyData->company, 'MyCompany');
+        $tpl->replace($ownCompanyData->country, 'MyCountry');
+        $tpl->replace($address, 'MyAddress');
+    }
+    
     
     /**
      * Зарежда разумни начални стойности на полетата на форма за фактура.

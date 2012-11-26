@@ -48,9 +48,9 @@
                     </td>
 
                     <td class="cell">
-                        <b>[#МyCompany#]</b><br>
-                        <b>[#МyCountry#]</b><br>
-                        [#МyAddress#] <br>
+                        <b>[#MyCompany#]</b><br>
+                        <b>[#MyCountry#]</b><br>
+                        [#MyAddress#] <br>
                     </td>
                 </tr>
                 <tr>
