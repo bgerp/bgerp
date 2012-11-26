@@ -32,9 +32,8 @@ class cash_Pko extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Printing,
-                     cash_Wrapper, plg_Sorting,
-                     doc_DocumentPlg, plg_Search, doc_ActivatePlg';
+    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting,
+                     doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg';
     
     
     /**
