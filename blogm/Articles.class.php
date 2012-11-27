@@ -364,9 +364,11 @@ class blogm_Articles extends core_Master {
 	    				  'Determiner' =>'the',);
 	        $data->ogp[] = ograph_Factory::get($info);
     	} else {
-    		$desc = strip_tags(mb_substr($data->row->body, '0','75')) . "...";
-    		
-        	// Ако преглеждаме единична статия зареждаме и нейния Ograph
+    		$richText = cls::get('type_RichText');
+    		$arr = explode("\n", $data->rec->body);
+    		$desc = strip_tags($richText->toHtml($arr[0]));
+			
+			// Ако преглеждаме единична статия зареждаме и нейния Ograph
 	        $info = array('Locale' =>'bg_BG',
 	    				  'SiteName' =>'bgerp.com',
 	    	              'Title' =>$data->row->title,
@@ -375,7 +377,7 @@ class blogm_Articles extends core_Master {
 	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
 	    				  'Determiner' =>'the',);
 	        $data->ogp[] = ograph_Factory::get($info);
-	        
+	        bp($info);
 	        // Създаваме Open Graph Article  обект
 	    	$articleInfo = array('published' => $data->rec->createdOn,
 	    				  'modified' => $data->rec->modifiedOn,
