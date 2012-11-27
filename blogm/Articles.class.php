@@ -377,7 +377,7 @@ class blogm_Articles extends core_Master {
 	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
 	    				  'Determiner' =>'the',);
 	        $data->ogp[] = ograph_Factory::get($info);
-	        bp($info);
+	        
 	        // Създаваме Open Graph Article  обект
 	    	$articleInfo = array('published' => $data->rec->createdOn,
 	    				  'modified' => $data->rec->modifiedOn,
