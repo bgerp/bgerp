@@ -39,7 +39,7 @@ class cash_Pko extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, reason, date, amount, rate, notes, createdOn, createdBy"; // , peroContragent, peroDocument";
+    var $listFields = "id, number, reason, date, amount, currencyId, rate, createdOn, createdBy";
     
     
     /**
@@ -114,7 +114,7 @@ class cash_Pko extends core_Master
     function description()
     {
     	$this->FLD('number', 'int', 'caption=Номер,width=50%,mandatory');
-    	$this->FLD('importer', 'varchar(255)', 'caption=Вносител,width=100%,mandatory');
+    	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител,width=100%,mandatory');
     	$this->FLD('recipient', 'varchar(255)', 'caption=Получател,width=100%,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('date', 'date', 'caption=Дата,mandatory');
@@ -123,6 +123,8 @@ class cash_Pko extends core_Master
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс');
     	$this->FLD('notes', 'richtext', 'caption=Бележки');
+    	
+    	$this->setDbUnique('number');
     }
     
     
@@ -132,21 +134,51 @@ class cash_Pko extends core_Master
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$folderId = Request::get('folderId');
-    	$query = static::getQuery();
-    	$query->XPR('max', 'int', 'max(#id)');
-    	if($folderId){
-    		$query->where("#folderId = {$folderId}");
-    	}
     	
-    	if($rec = $query->fetch()->max) {
+    	// Информацията за контрагента на папката
+    	try {
+    		$contragent = doc_Folders::getContragentData($folderId);
+    	} catch(Exception $e) {
+    		$contragent = NULL;
+    	};
+    	
+    	if($contragent) {
+    		if($contragent->company){
+    			
+    			// Ако контрагента е компания то взимаме името и
+    			$depositor = $contragent->company;
+    		} else {
+    			
+    			// Ако контрагента е лице взимаме името му;
+    			$depositor = $contragent->name;
+    		}
     		
-    		// Ако има последен ПКО в папката то взимаме неговите стойности
-    		// за вносител и получател  и ги слагаме за дефолт стойности
-    		$lastOrder = static::fetch($rec);
-    		$data->form->setDefault('importer', $lastOrder->importer);
-    		$data->form->setDefault('recipient', $lastOrder->recipient);
+    		// Сетваме контрагента на формата и го правим Read-Only
+    		$data->form->setDefault('depositor', $depositor);
+    		$data->form->setReadOnly('depositor');
+    		
+    	} else {
+    		
+    		// Ако папката не е обвързана с контрагент то намираме името на
+    		// вносителя от последно въведения ПКО
+	    	$query = static::getQuery();
+	    	$query->XPR('max', 'int', 'max(#id)');
+	    	if($folderId){
+	    		$query->where("#folderId = {$folderId}");
+	    	}
+	    	
+	    	if($rec = $query->fetch()->max) {
+	    		$lastOrder = static::fetch($rec);
+	    		$data->form->setDefault('depositor', $lastOrder->depositor);
+	    	}
     	}
     	
+    	if(core_Users::haveRole('cash', core_Users::getCurrent())){
+    		
+    			// Получателят е текущия потребител, ако има роля касиер
+    			$data->form->setDefault('recipient', core_Users::getCurrent('names'));
+    	}
+    		
     	// Коя е текущата дата, и валута по подразбиране "BGN"
     	$today = date("d-m-Y", time());
     	$currency = currency_Currencies::fetch("#code = 'BGN'"); 
@@ -177,7 +209,16 @@ class cash_Pko extends core_Master
     	if($fields['-single']){
     		$accPeriods = cls::get('acc_Periods');
     		$period = $accPeriods->getPeriod();
+    		if(!$period->baseCurrencyId){
+    				
+    				// Ако периода е без посочена валута, то зимаме по дефолт BGN
+    				$period->baseCurrencyId = currency_Currencies::fetchField("#code = 'BGN'", "id");
+    			}
+    		
+    		//	Ако избраната валута е различна от основната за периода
     		if($rec->currencyId != $period->baseCurrencyId) {
+    			
+    			// Ако не е зададен курс на валутата
     			if(!$rec->rate){
     				$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$rec->currencyId}");
     				
@@ -185,32 +226,21 @@ class cash_Pko extends core_Master
     				($currencyRates) ? $row->rate = round($currencyRates->rate, 2) : $row->rate = 1;
     			}
     			
-    			
-    			if(!$period->baseCurrencyId){
-    				
-    				// Ако периода е без посочена валута, то зимаме под дефолт BGN
-    				$period->baseCurrencyId = currency_Currencies::fetchField("#code = 'BGN'", "id");
-    			} 
-    			
-    			// Коя е базовата валута
+    			// Коя е базовата валута, и нейния курс
     			$baseCurrencyRate = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
     			$baseCurrency = currency_Currencies::fetch($baseCurrencyRate->currencyId);
     			
     			// Каква е равостойноста на сумата към текущата валута, и кода на основната валута
     			$row->baseCurrency = $baseCurrency->code;
-    			$row->equals = round(($row->amount / $row->rate) * $baseCurrencyRate->rate, 2);
+    			$row->equals = round(($rec->amount / $row->rate) * $baseCurrencyRate->rate, 2);
     		}
     		
-    		//Вземаме данните за нашата фирма
+    		// Вземаме данните за нашата фирма
     		$conf = core_Packs::getConfig('crm');
     		$companyId = $conf->BGERP_OWN_COMPANY_ID;
         	$myCompany = crm_Companies::fetch($companyId);
-    		
-        	$row->organisation = $myCompany->name;
+    		$row->organisation = $myCompany->name;
         	
-    		if(core_Users::haveRole('cash', core_Users::getCurrent())){
-    			$row->cashier = core_Users::getCurrent('names');
-    		}
     	}
     }
     
