@@ -5,60 +5,56 @@
 	</div>
 	<table border='1px' class='order-table' cellpadding='3px'>
 	<tr>
-		<td class='top-head'>Вносител</td>
+		<td class='top-head'><b>Вносител</b></td>
 		<td  rowspan='2' class='title-order'>
 			<h2>[#singleTitle#]</h2>
 			№:&nbsp;&nbsp;<b>[#number#]</b><br>
 			Дата:&nbsp;&nbsp;<b>[#date#]</b>
 		</td>
-		<td class='top-head'>Получател</td>
+		<td class='top-head'><b>Организация</b></td>
 	</tr>
 	<tr>
 		<td style='padding-top:15px;'>[#importer#]</td>
-		<td style='padding-top:15px;'>[#recipient#]</td>
+		<td style='padding-top:15px;'>[#organisation#]</td>
 	</tr>
 	</table>
 	<table border='1px' class='order-table' cellpadding='3px'>
 		<tr>
-			<td width='55%' align='center'>Основание</td>
-			<td width='20%' align='center'>Сума</td>
-			<td width='25%' align='center'>Валута</td>
+			<td width='70%' align='center'><b>Основание</b></td>
+			<td width='30%' align='center'><b>Сума</b></td>
 		</tr>
 		<tr>
 			<td height='15px' align='center'>[#reason#]</td>
-			<td height='15px' align='right' style='padding-right:15px'>[#amount#]</td>
-			<td height='15px' align='center'>
-			[#currencyId#]<br>
-			<!--ET_BEGIN rate-->
-			курс:&nbsp;[#rate#]<br>
-			<!--ET_END rate-->
-			<!--ET_BEGIN equals-->
-			равностойност:&nbsp;[#equals#]<br>
-			<!--ET_END equals-->
-			</td>
+			<td height='15px' align='right' style='padding-right:15px'>[#amount#]&nbsp;[#currencyId#]</td>
 		</tr>
 		<tr>
-			<td colspan='3' align='center'><b>с думи:</b>&nbsp;[#amountVerbal#]</td>
+			<td colspan='2' align='center'><b>с думи:</b>&nbsp;[#amountVerbal#]</td>
+		</tr>
+		<tr>
+		<!--ET_BEGIN rate-->
+			<td colspan='2' align='center'>курс:&nbsp;<b>[#rate#]</b>, &nbsp;&nbsp;
+			&nbsp;равностойност:&nbsp;&nbsp;<b>[#equals#]</b>&nbsp;[#baseCurrency#]</td>
+		<!--ET_END rate-->
 		</tr>
 	</table>
 	<table border='1px' class='order-table' cellpadding='3px'>
 		<tr>
-			<td align='center' colspan='2'>Бележки</td>
+			<td align='center' colspan='2'><b>Бележки</b></td>
 		</tr>
 		<tr>
-			<td height='80px' colspan='2'>[#notes#]</td>
+			<td height='85px' colspan='2'>[#notes#]</td>
 		</tr>
 		<tr>
-			<td width='50%' align='right'>Вносител</td>
-			<td width='50%' align='right'>Касиер</td>
+			<td width='50%' align='right'><b>Вносител</b></td>
+			<td width='50%' align='right'><b>Касиер</b></td>
 		</tr>
 		<tr>
-			<td align='right'>подпис: ...............</td>
-			<td align='right'>подпис: ...............</td>
-		</tr>
-		<tr>
-			<td align='right'>( [#importer#] )</td>
-			<td align='right'>( [#cashier#] )</td>
+			<td align='right'><br>подпис: .......................<br>
+			( [#importer#] )
+			</td>
+			<td align='right'><br>подпис: .......................<br>
+			( [#cashier#] )
+			</td>
 		</tr>
 	</table>
 	<!--<table border='1px' class='order-table'>

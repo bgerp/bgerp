@@ -180,15 +180,34 @@ class cash_Pko extends core_Master
     		if($rec->currencyId != $period->baseCurrencyId) {
     			if(!$rec->rate){
     				$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$rec->currencyId}");
-    				$row->rate = round($currencyRates->rate, 2);
+    				
+    				// Ако текущата валута е основната валута 
+    				($currencyRates) ? $row->rate = round($currencyRates->rate, 2) : $row->rate = 1;
     			}
     			
-    			// Коя е базовата валута
-    			$baseCurrency = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
     			
-    			$row->equals = round($row->amount / $row->rate * $baseCurrency->rate, 2);
+    			if(!$period->baseCurrencyId){
+    				
+    				// Ако периода е без посочена валута, то зимаме под дефолт BGN
+    				$period->baseCurrencyId = currency_Currencies::fetchField("#code = 'BGN'", "id");
+    			} 
+    			
+    			// Коя е базовата валута
+    			$baseCurrencyRate = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
+    			$baseCurrency = currency_Currencies::fetch($baseCurrencyRate->currencyId);
+    			
+    			// Каква е равостойноста на сумата към текущата валута, и кода на основната валута
+    			$row->baseCurrency = $baseCurrency->code;
+    			$row->equals = round(($row->amount / $row->rate) * $baseCurrencyRate->rate, 2);
     		}
     		
+    		//Вземаме данните за нашата фирма
+    		$conf = core_Packs::getConfig('crm');
+    		$companyId = $conf->BGERP_OWN_COMPANY_ID;
+        	$myCompany = crm_Companies::fetch($companyId);
+    		
+        	$row->organisation = $myCompany->name;
+        	
     		if(core_Users::haveRole('cash', core_Users::getCurrent())){
     			$row->cashier = core_Users::getCurrent('names');
     		}
