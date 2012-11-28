@@ -101,7 +101,7 @@ class doc_DocumentIntf
     
     function getContainer($id)
     {
-        return $this->class->getContainerId($id);
+        return $this->class->getContainer($id);
     }
     
     
