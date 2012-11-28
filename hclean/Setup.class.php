@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Дали да се вкара CSS'а в inline атрибут
+ */
+defIfNot('HCLEAN_PLACE_CSS_TO_INLINE', 'yes');
+
 
 /**
  * Клас 'hclean_Setup' - Инсталира плъгина за изчистване на HTML полетата и създава директория,
@@ -40,6 +45,16 @@ class hclean_Setup extends core_Manager {
      * Описание на модула
      */
     var $info = "Изчистване на HTML";
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+        // Дали да се вкара CSS'а в inline атрибут
+        'HCLEAN_PLACE_CSS_TO_INLINE' => array ("enum(yes=Да, no=Не)"),
+    );
     
     
     /**
