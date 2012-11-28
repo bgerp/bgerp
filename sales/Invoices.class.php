@@ -46,7 +46,7 @@ class sales_Invoices extends core_Master
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
-                    doc_SequencerPlg';
+                    doc_SequencerPlg, doc_plg_BusinessDoc';
     
     
     /**
