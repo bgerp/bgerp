@@ -305,8 +305,8 @@ class blogm_Articles extends core_Master {
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
 		
-		// Поставяме ograph мета таговете в Head-a
-        $tpl->append($this->generateOgraph($data),'HEAD');
+		// Генерираме и заместваме OGP информацията в шаблона
+        $tpl = $this->generateOgraph($tpl, $data);
         
 		// Записваме, че потребителя е разглеждал тази статия
 		$this->log(('Blog article: ' .  $data->row->title), $id);
@@ -365,14 +365,20 @@ class blogm_Articles extends core_Master {
 	        $data->ogp[] = ograph_Factory::get($info);
     	} else {
     		$richText = cls::get('type_RichText');
-    		$arr = explode("\n", $data->rec->body);
-    		$desc = strip_tags($richText->toHtml($arr[0]));
-			
+    		$description = strip_tags($richText->toHtml($data->rec->body));
+    		
+    		// Режем текста за да "излъжем" външната библиотека да него реже с substr
+    		if (strlen($description) > 255) {
+    			$desc = mb_substr( $description, 0, 130);
+    		} else {
+    			$desc = $description;
+    		}
+    		
 			// Ако преглеждаме единична статия зареждаме и нейния Ograph
 	        $info = array('Locale' =>'bg_BG',
 	    				  'SiteName' =>'bgerp.com',
-	    	              'Title' =>$data->row->title,
-	    	              'Description' =>$desc,
+	    	              'Title' => $data->row->title,
+	    	              'Description' => $desc,
 	    	              'Type' =>'article',
 	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
 	    				  'Determiner' =>'the',);
@@ -476,8 +482,7 @@ class blogm_Articles extends core_Master {
         // Добавяме стиловете от темата
         $tpl->push($data->theme . '/styles.css', 'CSS');
 
-        // Поставяме ograph мета таговете в Head-a
-        $tpl->append($this->generateOgraph($data),'HEAD');
+        $tpl = $this->generateOgraph($tpl, $data);
         
 		// Записваме, че потребителя е разглеждал този списък
 		$this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
@@ -795,16 +800,23 @@ class blogm_Articles extends core_Master {
     
     /**
      * Генерира мета таговете на ograph-a
+     * @return core_ET
      */
-    function generateOgraph($data)
+    function generateOgraph($tpl, $data)
     {
-    	$meta = "";
     	if($data->ogp){
 	    	foreach($data->ogp as $ogp) {
 	    		$meta .= "\n{$ogp->toHTML()}";
 	    	}
 	    }
 	    
-	    return $meta;
+	    // Декларираме Неймспейса на OGP
+	    $tpl->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
+	    
+	    // Поставяме генерираните мета тагове
+	    if($meta)
+	    	$tpl->append($meta, 'META_OGRAPH');
+	    
+	    return $tpl;
 	 }
 }
