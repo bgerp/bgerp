@@ -83,6 +83,20 @@ class lang_Encoding {
     
     
     /**
+     * Намира кой е предполагаемия charset
+     */
+    static function detectCharset($html)
+    {
+        $res = static::analyzeCharsets($html);
+        
+        //Взема charset' а, който е с най - голяма вероятност
+        $charset = arr::getMaxValueKey($res->rates);
+        
+        return $charset;
+    }
+    
+    
+    /**
      * Определя каква е потенциално знаковата кодировка на даден текст
      * В допълнение връща и предполагаемия език
      */
