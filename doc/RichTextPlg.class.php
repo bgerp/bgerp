@@ -191,28 +191,6 @@ class doc_RichTextPlg extends core_Plugin
         }
     }
     
-    /**
-     * Разбива манипулатор на документ (docHandle) на име на клас-мениджър и ид на документ.
-     * 
-     * @param string $handle
-     * @return array|boolean масив с два елемента - [docClass] и [docId]; FALSE при неуспех.
-     */
-    static function parseDocHandle($handle)
-    {
-        $info = static::getFileInfo($handle);
-        
-        if (empty($info)) {
-            return FALSE;
-        }
-        
-        $res  = array(
-            'docClass' => $info['className'],
-            'docId' => $info['id'],
-        );
-        
-        return $res;
-    }
-    
     
     /**
      * Помощен метод - извлича запис на документ според зададен хендъл

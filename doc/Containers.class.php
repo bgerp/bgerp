@@ -450,21 +450,23 @@ class doc_Containers extends core_Manager
     }
     
     
+    /**
+     * Документ по зададен хендъл
+     * 
+     * @param string $handle Inv478, Eml57 и т.н.
+     * @param string $intf интерфейс
+     * @return core_ObjectReference
+     */
     static function getDocumentByHandle($handle, $intf = NULL)
     {
-        $rec = doc_RichTextPlg::parseDocHandle($handle);
-        
-        if (!$rec) {
+        if (!$doc = doc_RichTextPlg::getAttachedDocs("#{$handle}")) {
             return FALSE;
         }
         
-        if (!$docRec = $rec['docClass']::fetchByHandle(array('id' => $rec['docId']))) {
-            return FALSE;
-        }
+        // извежда в променливи $mvc и $rec - мениджъра и записа на документа със зададения хендъл
+        extract(reset($doc));  
         
-        $rec['docId'] = $docRec->id;
-        
-        return static::getDocument((object)$rec, $intf);
+        return static::getDocument((object)array('docClass'=>$mvc, 'docId'=>$rec->id), $intf);
     }
     
     
