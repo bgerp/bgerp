@@ -58,8 +58,15 @@ class sales_Invoices extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'number, vatDate, account ';
+    var $listFields = 'number, vatDate, contragentName, contragentVatNo, contragentCountryId ';
     
+    
+    /**
+     * Колоната, в която да се появят инструментите на plg_RowTools
+     * 
+     * @var string
+     */
+    public $rowToolsField = 'number';
     
      
     /**
