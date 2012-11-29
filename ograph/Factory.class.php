@@ -187,9 +187,9 @@ class ograph_Factory extends core_Master
      * @param array $params
      * $params['Url'] - Адрес
      * $params['secureUrl'] - Защитен адрес
-     * $params['Type] - Разширение
-     * $params['Height] - Височина
-     * $params['Width] - Ширина
+     * $params['Type'] string mime-type
+     * $params['Height'] int
+     * $params['Width']	 int
      * @return OpenGraphProtocolVideo $ogp
      */
 	static function getVideo($params = array())
@@ -249,9 +249,9 @@ class ograph_Factory extends core_Master
      * @param array $params
      * $params['Url'] - Адрес
      * $params['secureUrl'] - Защитен адрес
-     * $params['Type']
-     * $params['Height']
-     * $params['Width']
+     * $params['Type'] string mime-type
+     * $params['Height'] int
+     * $params['Width']	 int
      * @return OpenGraphProtocolImage $ogp
      */
 	static function getImage($params = array())
@@ -265,5 +265,36 @@ class ograph_Factory extends core_Master
     	} 
     	
     	return $ogp;
+    }
+    
+    
+    /**
+     * Инстанцираме и генерираме Ографа по зададените данни
+     * Enter description here ...
+     * @param stdClass $data
+     * @return string $meta
+     */
+    static function generateOgraph($data) {
+    	$meta = '';
+    	
+    	// OGP обект съдържащ информацията за сайта
+    	$ogp = static::get($data->siteInfo);
+    	
+    	// Изображението което ще се показва в OGP
+    	$image = static::getImage($data->imageInfo);
+    	$ogp->addImage($image);
+    	$meta .= "\n{$ogp->toHTML()}";
+    	if($data->recInfo) {
+    		
+    		// Ако има допълнителен обект то ние го генерираме и него
+    		$type = $data->siteInfo['Type'];
+    		$method = "get" . $type;
+    		$ogpRec = static::$method($data->recInfo);
+    		
+    		$meta .= "\n{$ogpRec->toHTML()}";
+    	}
+    	
+    	// Връщаме готовите мета тагове
+    	return $meta;
     }
 }

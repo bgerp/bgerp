@@ -422,8 +422,8 @@ class OpenGraphProtocol {
 	public function setTitle( $title ) {
 		if ( is_string($title) ) {
 			$title = trim( $title );
-			if ( strlen( $title ) > 128 )
-				$this->title = substr( $title, 0, 128 );
+			if ( mb_strlen( $title ) > 128 )
+				$this->title = mb_substr( $title, 0, 128 );
 			else
 				$this->title = $title;
 		}
@@ -443,8 +443,8 @@ class OpenGraphProtocol {
 	public function setSiteName( $site_name ) {
 		if ( is_string($site_name) && !empty($site_name) ) {
 			$site_name = trim( $site_name );
-			if ( strlen( $site_name ) > 128 )
-				$this->site_name = substr( $site_name, 0, 128 );
+			if ( mb_strlen( $site_name ) > 128 )
+				$this->site_name = mb_substr( $site_name, 0, 128 );
 			else
 				$this->site_name = $site_name;
 		}
@@ -464,11 +464,11 @@ class OpenGraphProtocol {
 	public function setDescription( $description ) {
 		if ( is_string($description) && !empty($description) ) {
 			$description = trim( $description );
-			if ( strlen( $description ) > 255 )
-				$this->description = substr( $description, 0, 255 );
+			if ( mb_strlen( $description ) > 255 )
+				$this->description = mb_substr( $description, 0, 255 );
 			else
 				$this->description = $description;
-		}
+		} 
 		return $this;
 	}
 

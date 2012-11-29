@@ -31,10 +31,13 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         $tabsArr = parent::getTabs($fRec);
         
         // Url към HTML файла
-        $dUrl = static::getHtmlPart($fRec);
+        $htmlPartUrl = static::getHtmlPart($fRec);
         
         // Текстовата част
         $textPart = static::getRichTextPart($fRec);
+        
+        // Вземаме съдържанието на таба за HTML
+        $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
         
         // Подготвяме табовете
         
@@ -42,9 +45,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         $tabsArr['html'] = (object) 
 			array(
 				'title' => 'HTML',
-                'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
-                		<iframe src='{$dUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
-                	</fieldset></div>",
+                'html'  => $htmlPart,
 				'order' => 1,
 			);
         

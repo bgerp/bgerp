@@ -183,15 +183,19 @@ class fileman_Download extends core_Manager {
             // Големина на файла
             $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
 
-            // Задаватам хедърите
+            // Задаваме хедърите
             header('Content-Description: File Transfer');
             header('Content-Type: application/octet-stream');
             header('Content-Disposition: attachment; filename='.basename($link));
             header('Content-Transfer-Encoding: binary');
             header('Expires: 0');
             header('Cache-Control: must-revalidate');
-//            header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
             header('Content-Length: ' . $fileLen);
+            header("Connection: close");
+            
+//            header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
+//            header("Pragma: "); // TODO ако има проблеми с някои версии на IE
+//            header("Cache-Control: "); // TODO ако има проблеми с някои версии на IE
             
             // Предизвикваме сваляне на файла
             readfile($link);  
@@ -350,7 +354,7 @@ class fileman_Download extends core_Manager {
         $FileSize = cls::get('fileman_FileSize');
         
         // Ако имаме права за сваляне на файла
-        if (fileman_Files::haveRightFor('download', $fRec) && ($fRec->dataId) && file_exists($path)) {
+        if (($fRec->dataId) && file_exists($path)) {
             
             //Големината на файла в байтове
             $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');

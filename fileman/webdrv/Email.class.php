@@ -52,10 +52,10 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $textPartCheck = static::checkTextPart($mime);
         
         // Вземаме HTML частта
-        $htmlPart = static::getHtmlPart($mime, $emlRec);
+        $htmlPartUrl = static::getHtmlPart($mime, $emlRec);
         
         // Проверяваме дали има HTML част и дали има съдържание
-        $htmlPartCheck = static::checkHtmlPart($htmlPart);
+        $htmlPartCheck = static::checkHtmlPart($htmlPartUrl);
         
         // Вземаме хедърите
         $headersArr = static::getHeaders($mime, $emlRec);
@@ -69,13 +69,14 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Ако има HTML част
         if ($htmlPartCheck) {
             
+            // Вземаме съдържанието на таба за HTML
+            $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
+            
             // Таб за HTML част
             $tabsArr['html'] = (object) 
     			array(
     				'title' => 'HTML',
-    				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
-                    		<iframe src='{$htmlPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
-                    	</fieldset></div>",
+    				'html'  => $htmlPart,
     				'order' => 1,
     			);    
         }

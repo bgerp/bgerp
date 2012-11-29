@@ -1009,4 +1009,42 @@ class fileman_webdrv_Generic extends core_Manager
     //
     //END: Функции за работа с архиви
     //
+    
+    
+    /**
+     * Връща съдържанието на HTML таба
+     * 
+     * @param URL $htmlUrl - Линк към HTML файла
+     * 
+     * @return $htmlPart - Текста, за създаване на таб
+     */
+    static function getHtmlTabTpl($htmlUrl)
+    {
+        // Ако JS не е включен
+        if (Mode::is('javascript', 'no')) {
+            
+            // HTML частта, ако не е включен JS
+            $htmlPart = "<div class='webdrvTabBody'>
+            				<fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
+                				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
+                			</fieldset>
+            			</div>";    
+        } else {
+            
+            // HTML частта, ако е включен JS
+            $htmlTpl = new ET("
+            					<div class='webdrvTabBody'>
+                    				<fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
+                    					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
+                    					[#SANITIZEJS#]
+                					</fieldset>
+                				</div>
+            				");
+            
+            // HTML частта със заместениете данни
+            $htmlPart = hclean_JSSanitizer::sanitizeHtml($htmlTpl, $htmlUrl);    
+        }
+        
+        return $htmlPart;
+    }
 }
