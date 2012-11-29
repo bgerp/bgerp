@@ -567,7 +567,7 @@ class sales_Invoices extends core_Master
         $handle = sales_Invoices::getHandle($id);
         
         //Създаваме шаблона
-        $tpl = new ET(tr("Моля запознайте се с приложената фактура:") . "\n[#handle#]");
+        $tpl = new ET(tr("Моля запознайте се с приложената фактура:") . "\n#[#handle#]");
         
         //Заместваме датата в шаблона
         $tpl->append($handle, 'handle');
@@ -607,8 +607,8 @@ class sales_Invoices extends core_Master
         
 		$row = new stdClass();
 
-        $row->title = $this->getHandle($rec->id);   //TODO може да се премени
-        //        $row->title = $this->getVerbal($rec, 'contragentId');
+        //$row->title = $this->getHandle($rec->id);   //TODO може да се премени
+        $row->title = "Фактура №{$rec->number}";
         
         $row->author = $this->getVerbal($rec, 'createdBy');
         
@@ -618,4 +618,20 @@ class sales_Invoices extends core_Master
         
         return $row;
     }
+    
+    
+    public static function getHandle($id)
+    {
+        $self = cls::get(get_called_class());
+        
+        $number = $self->fetchField($id, 'number');
+        
+        return $self->abbr . $number;
+    } 
+    
+    
+    public static function fetchByHandle($parsedHandle)
+    {
+        return static::fetch("#number = '{$parsedHandle['id']}'");
+    } 
 }
