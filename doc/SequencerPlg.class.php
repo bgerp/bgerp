@@ -90,7 +90,7 @@ class doc_SequencerPlg extends core_Plugin
     {
         $seqField = static::getSeqField($mvc);
         
-        if ($rec->state == 'active' && empty($rec->{$seqField})) {
+        if (empty($rec->{$seqField})) {
             $rec->{$seqField} = $mvc::getNextNumber();
         }
     }
