@@ -265,7 +265,7 @@ class cms_Articles extends core_Master
     
     /**
      * Подготвя Информацията за генериране на Ографа
-     * @param stdClass $rec
+     * @param stdClass $rec 
      * @return stdClass $ogp
      */
     function prepareOgraph($rec)
