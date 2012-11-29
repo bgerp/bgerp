@@ -599,6 +599,21 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    /**
+     * Реализация по подразбиране на doc_DocumentIntf::fetchByHandle()
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param array $parsedHandle
+     */
+    public static function on_AfterFetchByHandle($mvc, &$rec, $parsedHandle)
+    {
+        if (empty($rec)) {
+            $rec = $mvc::fetch($parsedHandle['id']);
+        }
+    }
+    
+    
     function on_AfterGetContainer($mvc, &$res, $id)
     {
         $classId = core_Classes::getId($mvc);
@@ -1034,18 +1049,8 @@ class doc_DocumentPlg extends core_Plugin
                 $names = doc_RichTextPlg::getAttachedDocs($rec->$fieldName);
 
                 if (count($names)) {
-                    foreach ($names as $name) {
-                        
-                        $docHandleArr = doc_RichTextPlg::parseDocHandle($name);
-                        
-                        if ($docHandleArr['docClass']) {
-                            try {
-                                $classInst = cls::get($docHandleArr['docClass']);
-                                $res += $classInst->getTypeConvertingsByClass($docHandleArr['docId']);
-                                
-                            } catch (Exception $e) {
-                            }
-                        }
+                    foreach ($names as $name=>$doc) {
+                        $res += $doc['mvc']->getTypeConvertingsByClass($doc['rec']->id);
                     }
                 }
             }
@@ -1266,7 +1271,11 @@ class doc_DocumentPlg extends core_Plugin
         $data = $mvc->prepareDocument($id);
         
         // Намираме прикачените документи
-        $res = array_merge(doc_RichTextPlg::getAttachedDocs($data->rec->body), (array)$res);
+        $attachedDocs = doc_RichTextPlg::getAttachedDocs($data->rec->body);
+        $attachedDocs = array_keys($attachedDocs);
+        $attachedDocs = array_combine($attachedDocs, $attachedDocs);
+        
+        $res = array_merge($attachedDocs, (array)$res);
         
         core_Users::exitSudo();
     }

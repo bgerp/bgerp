@@ -458,6 +458,12 @@ class doc_Containers extends core_Manager
             return FALSE;
         }
         
+        if (!$docRec = $rec['docClass']::fetchByHandle(array('id' => $rec['docId']))) {
+            return FALSE;
+        }
+        
+        $rec['docId'] = $docRec->id;
+        
         return static::getDocument((object)$rec, $intf);
     }
     
