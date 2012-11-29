@@ -12,7 +12,7 @@
          </br>
                 <table cellspacing='1' class='listTable'>
 				<tr>
-					 <td class="calWeek" style='width:50px'><b>Време</b></td>
+					 <td class="calWeek" style='width:60px'><b>Време</b></td>
                      <td class="calWeek"><b>[#0#]</b></td>
                      <td class="calWeek"><b>[#1#]</b></td>
                      <td class="calWeek"><b>[#2#]</b></td>
@@ -26,7 +26,7 @@
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr> 
                  
-                     <td class="calWeek" style='width:50px'>[#time#]</td>
+                     <td class="calWeek" style='width:60px'>[#time#]</td>
                      <td class="calWeek">[#d0#]</td>
                      <td class="calWeek">[#d1#]</td>
                      <td class="calWeek">[#d2#]</td>

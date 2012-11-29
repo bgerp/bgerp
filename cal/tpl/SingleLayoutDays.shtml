@@ -29,15 +29,15 @@
          </br>
                 <table cellspacing='1' class='listTable'>
 				<tr>
-                     <td class="quiet" colspan="2" style='padding-top:10px;'>Време</td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; width:60px'>Време</td>
                      <td class="quiet" colspan="2" style='padding-top:10px;'>Заглавие</td>
                      
                  </tr>
                 
                  
                  <!--ET_BEGIN COMMENT_LI-->
-                 <tr style='background-color:[#color#];'> 
-                     <td colspan="2" >[#time#]</td>
+                 <tr> 
+                     <td colspan="2" style='width:60px'>[#time#]</td>
                      <td colspan="2">[#tasktitle#]</td>
                      
                  </tr>
