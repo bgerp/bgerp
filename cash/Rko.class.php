@@ -94,13 +94,13 @@ class cash_Rko extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'cash/tpl/CashOrder.shtml';
+    var $singleLayoutFile = 'cash/tpl/Rko.shtml';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number, reason, amount, date';
+    var $searchFields = 'number, date, contragent';
     
       
     /**
@@ -109,8 +109,7 @@ class cash_Rko extends core_Master
     function description()
     {
     	$this->FLD('number', 'int', 'caption=Номер,width=50%,mandatory');
-    	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител,width=100%,mandatory');
-    	$this->FLD('recipient', 'varchar(255)', 'caption=Получател,width=100%,mandatory');
+    	$this->FLD('contragent', 'varchar(255)', 'caption=Да се изплати на,width=100%,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('date', 'date', 'caption=Дата,mandatory');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
@@ -118,6 +117,10 @@ class cash_Rko extends core_Master
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс');
     	$this->FLD('notes', 'richtext', 'caption=Бележки');
+    	$this->FLD('state', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'caption=Статус, input=none'
+        );
     	
     	$this->setDbUnique('number');
     }
@@ -141,16 +144,16 @@ class cash_Rko extends core_Master
     		if($contragent->company){
     			
     			// Ако контрагента е компания то взимаме името и
-    			$depositor = $contragent->company;
+    			$contragent = $contragent->company;
     		} else {
     			
     			// Ако контрагента е лице взимаме името му;
-    			$depositor = $contragent->name;
+    			$contragent = $contragent->name;
     		}
     		
     		// Сетваме контрагента на формата и го правим Read-Only
-    		$data->form->setDefault('depositor', $depositor);
-    		$data->form->setReadOnly('depositor');
+    		$data->form->setDefault('contragent', $contragent);
+    		$data->form->setReadOnly('contragent');
     		
     	} else {
     		
@@ -164,14 +167,8 @@ class cash_Rko extends core_Master
 	    	
 	    	if($rec = $query->fetch()->max) {
 	    		$lastOrder = static::fetch($rec);
-	    		$data->form->setDefault('depositor', $lastOrder->depositor);
+	    		$data->form->setDefault('contragent', $lastOrder->contragent);
 	    	}
-    	}
-    	
-    	if(core_Users::haveRole('cash', core_Users::getCurrent())){
-    		
-    			// Получателят е текущия потребител, ако има роля касиер
-    			$data->form->setDefault('recipient', core_Users::getCurrent('names'));
     	}
     	
     	// Коя е текущата дата, и валута по подразбиране "BGN"
@@ -191,13 +188,13 @@ class cash_Rko extends core_Master
     {
     	// Записваме вербалната стойност на сумата
     	$spellNumber = cls::get('core_SpellNumber');
-    	$amountVerbal = $spellNumber->asCurrency($rec->amount);
+    	$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
     	$rec->amountVerbal = $amountVerbal;
     }
     
     
 	/**
-     *  Обрабтки по вербалното прдставяне на данните
+     *  Обработки по вербалното представяне на данните
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
@@ -234,7 +231,21 @@ class cash_Rko extends core_Master
     		$conf = core_Packs::getConfig('crm');
     		$companyId = $conf->BGERP_OWN_COMPANY_ID;
         	$myCompany = crm_Companies::fetch($companyId);
+        	$row->adress = trim(
+                sprintf("%s %s<br> %s", 
+                    $myCompany->place,
+                    $myCompany->pCode,
+                    $myCompany->address
+                )
+            );
+            
     		$row->organisation = $myCompany->name;
+    		
+    		if(core_Users::haveRole('cash', core_Users::getCurrent())){
+	    		
+	    		// Получателят е текущия потребител, ако има роля касиер
+	    		$row->cashier = core_Users::getCurrent('names');
+	    	}
     	}
     }
     

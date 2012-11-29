@@ -1,0 +1,62 @@
+[#SingleToolbar#]
+<div class='document'>
+	<div class='header [#STATE_CLASS#]'>
+	   <div class='docBgIcon' style='[#iconStyle#]'>[#singleTitle#] &nbsp;[#id#]/[#date#] ([#state#])</div>
+	</div>
+	<table border='1px' class='order-table' cellpadding='4px'>
+	<tr>
+		<td class='top-head'><b>Вносител</b></td>
+		<td  rowspan='2' class='title-order'>
+			<h2 style='margin-bottom:15px;margin-top:0px'>ПРИХОДЕН КАСОВ<br> ОРДЕР</h2>
+			№:&nbsp;&nbsp;<b>[#number#]</b><br>
+			Дата:&nbsp;&nbsp;<b>[#date#]</b>
+			<h3 style='margin:15px'>[#state#]</h3>
+		</td>
+		<td class='top-head'><b>Организация</b></td>
+	</tr>
+	<tr>
+		<td style='padding-top:10px;' class='align-top-td'>[#contragent#]</td>
+		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]<br>[#adress#]</td>
+	</tr>
+	</table>
+	<table border='1px' class='order-table' cellpadding='3px'>
+		<tr>
+			<td width='70%' align='center'><b>Основание</b></td>
+			<td width='30%' align='center'><b>Сума</b></td>
+		</tr>
+		<tr>
+			<td height='15px' align='center'>[#reason#]</td>
+			<td height='15px' align='right' style='padding-right:10px'>[#amount#]&nbsp;[#currencyId#]<br>
+			<!--ET_BEGIN rate-->
+			<b>курс:</b>&nbsp;[#rate#] <br>
+			<b>равностойност:</b>&nbsp;&nbsp;[#equals#]&nbsp;[#baseCurrency#]
+			<!--ET_END rate-->
+			</td>
+		</tr>
+		<tr>
+			<td colspan='2' align='center' style='background-color:rgb(221, 221, 221);'>
+				<b>словом:</b>&nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;[#currencyId#]<br>
+			</td>
+		</tr>
+	</table>
+	<table border='1px' class='order-table' cellpadding='3px'>
+		<tr>
+			<td align='center' colspan='2'><b>Бележки</b></td>
+		</tr>
+		<tr>
+			<td height='85px' colspan='2'>[#notes#]</td>
+		</tr>
+		<tr>
+			<td style='padding-right:10px;text-align:right'>
+				<br>
+				<b>Броил сумата</b> &nbsp;&nbsp;..........................<br>
+				( [#contragent#] )
+			</td>
+			<td style='padding-right:10px;text-align:right'>
+				<br>
+				<b>Касиер</b> &nbsp;&nbsp;..........................<br>
+				( [#cashier#] )
+			</td>
+		</tr>
+	</table>
+</div>

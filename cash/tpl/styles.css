@@ -8,6 +8,7 @@
 	width:30%;
 	height:16px;
 	vertical-align:top;
+	background-color:rgb(221, 221, 221);
 }
 
 .title-order{
@@ -29,4 +30,8 @@ th {
 	text-align:left;
 	text-indent:15px;
 	height:80px;
+}
+
+.align-top-td {
+	vertical-align:top;
 }

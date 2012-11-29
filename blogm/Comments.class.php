@@ -79,7 +79,7 @@ class blogm_Comments extends core_Detail {
 		$this->FLD('email', 'email(64)', 'caption=Имейл, mandatory, width=65%,placeholder=Имейлът ви (задължително)');
    		$this->FLD('web', 'url(72)', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
 		$this->FLD('comment', 'richtext', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
-  		$this->FLD('state', 'enum(pending=Чакъщ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
+  		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
   		$this->FLD('browserId', 'varchar(16)', 'caption=ID на браузър,input=none');
 	}
 

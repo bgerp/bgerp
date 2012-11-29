@@ -276,7 +276,7 @@ class cms_Articles extends core_Master
     						 'secureUrl'=> $conf->CMS_OGRAPH_IMAGE,
     						 'type'=> 'image/jpeg',
     						 'height'=> $conf->CMS_OGRAPH_IMAGE_HEIGHT,
-    						 'width'=> $conf->CMS_OGRAPH_IMAGE);
+    						 'width'=> $conf->CMS_OGRAPH_IMAGE_WIDTH);
     	
     	$richText = cls::get('type_RichText');
     	$desc = strip_tags($richText->toHtml($rec->body));
