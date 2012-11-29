@@ -171,7 +171,7 @@ abstract class OpenGraphProtocolVisualMedia extends OpenGraphProtocolMedia {
 	 * Set the height of the referenced object in pixels
 	 * @var int height of the referenced object in pixels
 	 */
-	public function setHeight( $height ) {
+	public function setHeight( $height ) { 
 		if ( is_int($height) && $height > 0 )
 			$this->height = $height;
 		return $this;
