@@ -124,7 +124,8 @@ class cms_Articles extends core_Master
         Mode::set('wrapper', 'cms_tpl_Page');
         
         $conf = core_Packs::getConfig('cms');
-
+        
+		//bp($conf->CMS_OGRAPH_IMAGE, toUrl($conf->CMS_OGRAPH_IMAGE,'absolute'));
         Mode::set('cmsLayout', $conf->CMS_THEME . '/Articles.shtml');
 
         $id = Request::get('id');
@@ -159,7 +160,8 @@ class cms_Articles extends core_Master
 
             $content->prepend($ptitle, 'PAGE_TITLE');
             
-            
+        	// Подготвяме информаията за ографа на статията
+            $ogp = $this->prepareOgraph($rec);
         }
 
         if(!$content) $content = new ET();
@@ -199,7 +201,7 @@ class cms_Articles extends core_Master
                 $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
                 $content->prepend($ptitle, 'PAGE_TITLE');
-
+                
             }
 
             $class = ($rec->id == $rec1->id) ? $class = 'sel_page' : '';
@@ -243,13 +245,54 @@ class cms_Articles extends core_Master
 
         $content->replace($title, 'META_KEYWORDS');
 
+        if($ogp){
+        	
+        	  // Генерираме ограф мета таговете
+        	  $ogpHtml = ograph_Factory::generateOgraph($ogp);
+        	  $content->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
+              $content->append($ogpHtml, 'META_OGRAPH');
+        }
+        
         if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
                 vislog_History::add($rec->title);
             }
         }
-
-        return $content;
+		
+        return $content; 
     }
-
- }
+    
+    
+    /**
+     * Подготвя Информацията за генериране на Ографа
+     * @param stdClass $rec
+     * @return stdClass $ogp
+     */
+    function prepareOgraph($rec)
+    {
+    	$ogp = new stdClass();
+    	$conf = core_Packs::getConfig('cms');
+    	$ogp->imageInfo = array('url'=> $conf->CMS_OGRAPH_IMAGE,
+    						 'secureUrl'=> $conf->CMS_OGRAPH_IMAGE,
+    						 'type'=> 'image/jpeg',
+    						 'height'=> $conf->CMS_OGRAPH_IMAGE_HEIGHT,
+    						 'width'=> $conf->CMS_OGRAPH_IMAGE);
+    	
+    	$richText = cls::get('type_RichText');
+    	$desc = strip_tags($richText->toHtml($rec->body));
+    		
+    	// Ако преглеждаме единична статия зареждаме и нейния Ograph
+	    $ogp->siteInfo = array('Locale' =>'bg_BG',
+	    				  'SiteName' =>'bgerp.com',
+	    	              'Title' => self::getVerbal($rec, 'title'),
+	    	              'Description' => $desc,
+	    	              'Type' =>'article',
+	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
+	    				  'Determiner' =>'the',);
+	        
+	    // Създаваме Open Graph Article  обект
+	    $ogp->recInfo = array('published' => $rec->createdOn);
+    	
+    	return $ogp;
+    }
+}

@@ -306,7 +306,11 @@ class blogm_Articles extends core_Master {
 		$tpl = $this->renderArticle($data, $layout);
 		
 		// Генерираме и заместваме OGP информацията в шаблона
-        $tpl = $this->generateOgraph($tpl, $data);
+        $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
+		
+        $tpl->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
+        
+        $tpl->append($ogpHtml, 'META_OGRAPH');
         
 		// Записваме, че потребителя е разглеждал тази статия
 		$this->log(('Blog article: ' .  $data->row->title), $id);
@@ -353,46 +357,41 @@ class blogm_Articles extends core_Master {
      */
     function prepareOgraph($data)
     {
+    	// Създаваме OGP Image обект
+    	$conf = core_Packs::getConfig('cms');
+    	$data->ogp->imageInfo = array('url'=> $conf->CMS_OGRAPH_IMAGE,
+    						 'secureUrl'=> $conf->CMS_OGRAPH_IMAGE,
+    						 'type'=> 'image/jpeg',
+    						 'height'=> $conf->CMS_OGRAPH_IMAGE_HEIGHT,
+    						 'width'=> $conf->CMS_OGRAPH_IMAGE_WIDTH);
     	if(!$data->rec){
+    		
     		// Създаваме Ограф (Open Graph Protocol) Обект
-	        $info = array('Locale' =>'bg_BG',
+	        $data->ogp->siteInfo = array('Locale' =>'bg_BG',
 	    				  'SiteName' =>'bgerp.com',
 	    	              'Title' =>'bgERP',
 	    	              'Description' =>'Блога на bgERP',
 	    	              'Type' =>'blog',
 	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
 	    				  'Determiner' =>'the',);
-	        $data->ogp[] = ograph_Factory::get($info);
     	} else {
     		$richText = cls::get('type_RichText');
-    		$description = strip_tags($richText->toHtml($data->rec->body));
+    		$desc = strip_tags($richText->toHtml($data->rec->body));
     		
-    		// Режем текста за да "излъжем" външната библиотека да него реже с substr
-    		if (strlen($description) > 255) {
-    			$desc = mb_substr( $description, 0, 130);
-    		} else {
-    			$desc = $description;
-    		}
-    		
-			// Ако преглеждаме единична статия зареждаме и нейния Ograph
-	        $info = array('Locale' =>'bg_BG',
+    		// Ако преглеждаме единична статия зареждаме и нейния Ograph
+	       $data->ogp->siteInfo = array('Locale' =>'bg_BG',
 	    				  'SiteName' =>'bgerp.com',
 	    	              'Title' => $data->row->title,
 	    	              'Description' => $desc,
 	    	              'Type' =>'article',
 	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
 	    				  'Determiner' =>'the',);
-	        $data->ogp[] = ograph_Factory::get($info);
 	        
 	        // Създаваме Open Graph Article  обект
-	    	$articleInfo = array('published' => $data->rec->createdOn,
+	    	$data->ogp->recInfo = array('published' => $data->rec->createdOn,
 	    				  'modified' => $data->rec->modifiedOn,
 	    				  'expiration' => '',);
-	    	$ogp = ograph_Factory::getArticle($articleInfo);
-	    	$ogp->addAuthor($data->row->createdBy);
-	    	$data->ogp[] = $ogp;
     	}
-    	
     }
     
     
@@ -403,8 +402,6 @@ class blogm_Articles extends core_Master {
 	{
 		// Поставяме данните от реда
 		$layout->placeObject($data->row);
-
-		
 		$layout = $this->blogm_Comments->renderComments($data, $layout);
         
         // Рендираме тулбара за споделяне
@@ -482,7 +479,12 @@ class blogm_Articles extends core_Master {
         // Добавяме стиловете от темата
         $tpl->push($data->theme . '/styles.css', 'CSS');
 
-        $tpl = $this->generateOgraph($tpl, $data);
+        // Генерираме мета таговете на OGP
+        $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
+        
+        $tpl->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
+        
+        $tpl->append($ogpHtml, 'META_OGRAPH');
         
 		// Записваме, че потребителя е разглеждал този списък
 		$this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
@@ -797,26 +799,4 @@ class blogm_Articles extends core_Master {
     	return $items;
     }
     
-    
-    /**
-     * Генерира мета таговете на ograph-a
-     * @return core_ET
-     */
-    function generateOgraph($tpl, $data)
-    {
-    	if($data->ogp){
-	    	foreach($data->ogp as $ogp) {
-	    		$meta .= "\n{$ogp->toHTML()}";
-	    	}
-	    }
-	    
-	    // Декларираме Неймспейса на OGP
-	    $tpl->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
-	    
-	    // Поставяме генерираните мета тагове
-	    if($meta)
-	    	$tpl->append($meta, 'META_OGRAPH');
-	    
-	    return $tpl;
-	 }
 }

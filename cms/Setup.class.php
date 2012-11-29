@@ -7,6 +7,24 @@ defIfNot('CMS_THEME', 'cms/themes/default');
 
 
 /**
+ * Изображение което ще се показва в Ографа
+ */
+defIfNot('CMS_OGRAPH_IMAGE', sbf('cms/img/bgERP-small.jpg', NULL, TRUE));
+
+
+/**
+ * 
+ */
+defIfNot('CMS_OGRAPH_IMAGE_HEIGHT', 50);
+
+
+/**
+ * 
+ */
+defIfNot('CMS_OGRAPH_IMAGE_WIDTH', 100);
+
+
+/**
  *  Код за споделяне на съдържание
  */
 defIfNot('CMS_SHARE', '');
