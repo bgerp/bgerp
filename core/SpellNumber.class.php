@@ -343,26 +343,45 @@ class core_SpellNumber
     
     /**
      * Входна фунция
+     * @param int $num Сума за превръщане
+     * @param string $lg Език на който да е изписан текста
+     * @param boolean $displayCurrency Дали да върне валутата
+     * @return text $text подадената сума изписана с думи
      */
-    function asCurrency($num, $lg = "bg")
+    function asCurrency($num, $lg = "bg", $displayCurrency = TRUE)
     {
         $num = round($num, 2);
         
+    	// Дали да показваме валутата в края на сумата в думи
+        if($displayCurrency) {
+        	$numBgn = " лeва";
+        	$centBgn = " стотинки";
+        	$numEuro = " EURO";
+        	$centEuro = " CENTS";
+        } else {
+        	$numBgn = '';
+        	$centBgn = '';
+        	$numEuro = '';
+        	$centEuro = '';
+        }
+        	
         if ($lg == "bg") {
-            $text = $this->num2Text((int) $num) . " лeва";
+        	
+        	$text = $this->num2Text((int) $num) . $numBgn;
             $cents = round((($num - (int) $num) * 100));
             
             if ($cents > 0)
-            $text .= " и " . $this->num2Text($cents) . " стотинки";
+            $text .= " и " . $this->num2Text($cents) . $centBgn;
             $text = str_replace(" и и ", " и ", $text);
             
             return $text;
         } else {
-            $text = $this->int_to_words((int) $num) . " EURO";
+        	
+            $text = $this->int_to_words((int) $num) . $numEuro;
             $cents = round((($num - (int) $num) * 100));
             
             if ($cents > 0)
-            $text .= " and " . $this->int_to_words($cents) . " CENTS";
+            $text .= " and " . $this->int_to_words($cents) . $centEuro;
             
             return $text;
         }
