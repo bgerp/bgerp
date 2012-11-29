@@ -273,7 +273,6 @@ class cms_Articles extends core_Master
     	$ogp = new stdClass();
     	$conf = core_Packs::getConfig('cms');
     	$ogp->imageInfo = array('url'=> $conf->CMS_OGRAPH_IMAGE,
-    						 'secureUrl'=> $conf->CMS_OGRAPH_IMAGE,
     						 'type'=> 'image/jpeg',
     						 'height'=> $conf->CMS_OGRAPH_IMAGE_HEIGHT,
     						 'width'=> $conf->CMS_OGRAPH_IMAGE_WIDTH);
