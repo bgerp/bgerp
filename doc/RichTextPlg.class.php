@@ -58,19 +58,8 @@ class doc_RichTextPlg extends core_Plugin
     {
         //Име на файла
         $docName = $match['dsName'];
-        
-        //Проверяваме дали сме открили клас. Ако не - връщаме името без да го заместваме
-        if (!$mvc = doc_Containers::getClassByAbbr($match['abbr'])) {
-            return $match[0];
-        }
-        
-        //Ако нямаме запис за съответното $id връщаме името без да го заместваме
-        if (!$docRec = $mvc->fetch( (int) $match['id'])) {
-            return $match[0];
-        }
-        
-        //Проверяваме дали имаме права за single. Ако не - връщаме името без да го заместваме
-        if (!$mvc->haveRightFor('single', $docRec)) {
+
+        if (!$docRec = static::matchedHandleToRec($match, $mvc)) {
             return $match[0];
         }
         
@@ -133,42 +122,31 @@ class doc_RichTextPlg extends core_Plugin
 
 
     /**
-     * Намира всички документи към системата.
+     * Намира всички цитирания на хендъли на документи в текст
      *
      * @param string $rt - Стринг, в който ще търсим.
-     *
-     * @return array $docs - Масив с имената на намерените документи
+     * @return array $docs - Масив с ключове - разпознатите хендъли и стойности - масиви от вида
+     *                         array(
+     *                             'name' => хендъл, също като ключа
+     *                             'mvc'  => мениджър на документа с този хендъл
+     *                             'rec'  => запис за документа с този хендъл
+     *                         ) 
      */
     static function getAttachedDocs($rt)
     {
-        //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
-        preg_match_all(self::$pattern, $rt, $matches);
-        
         //Ако сме открили нещо
-        if (count($matches['dsName'])) {
+        if (preg_match_all(self::$pattern, $rt, $matches, PREG_SET_ORDER)) {
             
             //Обхождаме всички намерени думи
-            foreach ($matches['abbr'] as $key => $abbr) {
-                
-                //Името на класа според абревиатурата
-                if (!$mvc = doc_Containers::getClassByAbbr($abbr)) {
-                    continue;
-                }
-                
-                //Ако няма такъв документ, не се връща името му за прикачване
-                if (!$docRec = $mvc->fetch($matches['id'][$key])) {
-                    continue;
-                }
-                
-                //Проверяваме дали имаме права за single. Ако нямаме - прескачаме
-                if (!$mvc->haveRightFor('single', $docRec)) {
+            foreach ($matches as $match) {
+                if (!$rec = static::matchedHandleToRec($match, $mvc)) {
                     continue;
                 }
                 
                 //Името на документа
-                $name = $mvc->getHandle($docRec->id);
+                $name = $mvc->getHandle($rec->id);
                 
-                $docs[$name] = $name;
+                $docs[$name] = compact('name', 'mvc', 'rec');
             }
             
             return $docs;
@@ -213,25 +191,32 @@ class doc_RichTextPlg extends core_Plugin
         }
     }
     
+    
     /**
-     * Разбива манипулатор на документ (docHandle) на име на клас-мениджър и ид на документ.
+     * Помощен метод - извлича запис на документ според зададен хендъл
      * 
-     * @param string $handle
-     * @return array|boolean масив с два елемента - [docClass] и [docId]; FALSE при неуспех.
+     * @param array $match парсиран хендъл на документа
+     * @param core_Mvc $mvc мениджър на документа
+     * @return stdClass запис от модела $mvc; FALSE при неуспех
      */
-    static function parseDocHandle($handle)
+    protected static function matchedHandleToRec($match, &$mvc = NULL)
     {
-        $info = static::getFileInfo($handle);
-        
-        if (empty($info)) {
+        //Проверяваме дали сме открили клас. Ако не - връщаме FALSE
+        if (!$mvc = doc_Containers::getClassByAbbr($match['abbr'])) {
             return FALSE;
         }
         
-        $res  = array(
-            'docClass' => $info['className'],
-            'docId' => $info['id'],
-        );
+        //Ако нямаме запис за съответното $id връщаме FALSE
+        if (!$docRec = $mvc::fetchByHandle($match)) {
+            return FALSE;
+        }
         
-        return $res;
+        //Проверяваме дали имаме права за single. Ако не - FALSE
+        if (!$mvc->haveRightFor('single', $docRec)) {
+            return FALSE;
+        }
+
+        // Връщаме намерения запис, съответстващ на хендъла
+        return $docRec;
     }
 }
