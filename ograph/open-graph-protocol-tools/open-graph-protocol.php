@@ -468,7 +468,7 @@ class OpenGraphProtocol {
 				$this->description = mb_substr( $description, 0, 255 );
 			else
 				$this->description = $description;
-		} bp($description,$this->description);
+		} 
 		return $this;
 	}
 
