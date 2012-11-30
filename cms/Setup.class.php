@@ -13,15 +13,15 @@ defIfNot('CMS_OGRAPH_IMAGE', sbf('cms/img/bgERP-small.jpg', NULL, TRUE));
 
 
 /**
- * 
+ * Височина на Изображението
  */
-defIfNot('CMS_OGRAPH_IMAGE_HEIGHT', 50);
+defIfNot('CMS_OGRAPH_IMAGE_HEIGHT', 260);
 
 
 /**
- * 
+ * Ширина на Изображението
  */
-defIfNot('CMS_OGRAPH_IMAGE_WIDTH', 100);
+defIfNot('CMS_OGRAPH_IMAGE_WIDTH', 200);
 
 
 /**

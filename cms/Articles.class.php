@@ -249,8 +249,8 @@ class cms_Articles extends core_Master
         	
         	  // Генерираме ограф мета таговете
         	  $ogpHtml = ograph_Factory::generateOgraph($ogp);
-        	  $content->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
-              $content->append($ogpHtml, 'META_OGRAPH');
+        	  //$content->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
+              $content->append($ogpHtml);
         }
         
         if($rec) {

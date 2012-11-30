@@ -307,10 +307,7 @@ class blogm_Articles extends core_Master {
 		
 		// Генерираме и заместваме OGP информацията в шаблона
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
-		
-        $tpl->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
-        
-        $tpl->append($ogpHtml, 'META_OGRAPH');
+        $tpl->append($ogpHtml);
         
 		// Записваме, че потребителя е разглеждал тази статия
 		$this->log(('Blog article: ' .  $data->row->title), $id);
@@ -378,7 +375,7 @@ class blogm_Articles extends core_Master {
     		$desc = strip_tags($richText->toHtml($data->rec->body));
     		
     		// Ако преглеждаме единична статия зареждаме и нейния Ograph
-	       $data->ogp->siteInfo = array('Locale' =>'bg_BG',
+	        $data->ogp->siteInfo = array('Locale' =>'bg_BG',
 	    				  'SiteName' =>'bgerp.com',
 	    	              'Title' => $data->row->title,
 	    	              'Description' => $desc,
@@ -480,10 +477,7 @@ class blogm_Articles extends core_Master {
 
         // Генерираме мета таговете на OGP
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
-        
-        $tpl->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
-        
-        $tpl->append($ogpHtml, 'META_OGRAPH');
+        $tpl->append($ogpHtml);
         
 		// Записваме, че потребителя е разглеждал този списък
 		$this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
