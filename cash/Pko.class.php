@@ -69,7 +69,7 @@ class cash_Pko extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Пко";
+    var $abbr = "Pko";
     
     
     /**
@@ -105,7 +105,7 @@ class cash_Pko extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number, date, contragent';
+    var $searchFields = 'number, date, contragentFolder';
     
       
     /**
@@ -114,7 +114,7 @@ class cash_Pko extends core_Master
     function description()
     {
     	$this->FLD('number', 'int', 'caption=Номер,width=50%,mandatory');
-    	$this->FLD('contragent', 'varchar(255)', 'caption=Вносител,width=100%,mandatory');
+    	$this->FLD('contragentFolder', 'key(mvc=doc_Folders,select=title)', 'caption=Вносител,width=100%,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('date', 'date', 'caption=Дата,mandatory');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
@@ -136,7 +136,7 @@ class cash_Pko extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	$folderId = Request::get('folderId');
+    	$folderId = $data->form->rec->folderId;
     	
     	// Информацията за контрагента на папката
     	try {
@@ -146,19 +146,8 @@ class cash_Pko extends core_Master
     	};
     	
     	if($contragentData) {
-    		if($contragentData->company){
-    			
-    			// Ако контрагента е компания то взимаме името и
-    			$contragent = $contragentData->company;
-    		} else {
-    			
-    			// Ако контрагента е лице взимаме името му;
-    			$contragent = $contragentData->name;
-    		}
-    		
-    		// Сетваме контрагента на формата и го правим Read-Only
-    		$data->form->setDefault('contragent', $contragent);
-    		$data->form->setReadOnly('contragent');
+    		$data->form->setDefault('contragentFolder', $folderId);
+    		$data->form->setReadOnly('contragentFolder');
     		
     	} else {
     		
@@ -171,7 +160,7 @@ class cash_Pko extends core_Master
 	    	
 	    	if($rec = $query->fetch()->max) {
 	    		$lastOrder = static::fetch($rec);
-	    		$data->form->setDefault('contragent', $lastOrder->contragent);
+	    		$data->form->setDefault('contragentFolder', $folderId);
 	    	}
     	}
     		
@@ -190,10 +179,13 @@ class cash_Pko extends core_Master
      */
     static function on_BeforeSave($mvc, &$id, $rec)
     {
-    	// Записваме вербалната стойност на сумата
-    	$spellNumber = cls::get('core_SpellNumber');
-    	$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-    	$rec->amountVerbal = $amountVerbal;
+    	if(!$rec->id) {
+    		
+	    	// Записваме вербалната стойност на сумата
+	    	$spellNumber = cls::get('core_SpellNumber');
+	    	$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
+	    	$rec->amountVerbal = $amountVerbal;
+    	}
     }
     
     
@@ -203,6 +195,15 @@ class cash_Pko extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-single']){
+    		
+    		$contragentData = doc_Folders::getContragentData($rec->contragentFolder);
+    		if($contragentData->company)
+    			$row->contragent = $contragentData->company;
+    		elseif($contragentData->name)
+    			$row->contragent = $contragentData->name;
+    		else 
+    			$row->contragent = '';
+    			
     		$accPeriods = cls::get('acc_Periods');
     		$period = $accPeriods->getPeriod();
     		if(!$period->baseCurrencyId){
@@ -211,7 +212,7 @@ class cash_Pko extends core_Master
     				$period->baseCurrencyId = currency_Currencies::fetchField("#code = 'BGN'", "id");
     			}
     		
-    		//	Ако избраната валута е различна от основната за периода
+    		// Ако избраната валута е различна от основната за периода
     		if($rec->currencyId != $period->baseCurrencyId) {
     			
     			// Ако не е зададен курс на валутата
@@ -219,16 +220,35 @@ class cash_Pko extends core_Master
     				$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$rec->currencyId}");
     				
     				// Ако текущата валута е основната валута 
-    				($currencyRates) ? $row->rate = round($currencyRates->rate, 2) : $row->rate = 1;
+    				($currencyRates) ? $row->rate = round($currencyRates->rate, 4) : $row->rate = 1;
     			}
     			
     			// Коя е базовата валута, и нейния курс
     			$baseCurrencyRate = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
+    			
+    			// Ако основната валута за периода не фигурира в currency_CurrencyRates, 
+    			// то приемаме че тя е Евро
+    			if(!$baseCurrencyRate){
+    				$baseCurrencyRate = new stdClass();
+    				$baseCurrencyRate->currencyId = currency_Currencies::fetchField("#code = 'EUR'", "id");
+    				$baseCurrency->code = 'EUR';
+    				$baseCurrencyRate->rate = 1;
+    			}
+    			
     			$baseCurrency = currency_Currencies::fetch($baseCurrencyRate->currencyId);
     			
     			// Каква е равостойноста на сумата към текущата валута, и кода на основната валута
     			$row->baseCurrency = $baseCurrency->code;
-    			$row->equals = round(($rec->amount / $row->rate) * $baseCurrencyRate->rate, 2);
+    			
+    			// Преизчисляваме колко е курса на подадената валута към основната за периода
+    			$row->rate = round($baseCurrencyRate->rate/$row->rate, 4);
+    			
+    			// Намираме равностойноста на подадената валута в основната за периода
+    			$row->equals = round($rec->amount * $row->rate, 2);
+    			$num = cls::get('type_Double');
+    			$num->params['decimals']= 2;
+    			$row->rate = $num->toVerbal($row->rate);
+    			$row->equals = $num->toVerbal($row->equals);
     		}
     		
     		// Вземаме данните за нашата фирма
@@ -275,5 +295,17 @@ class cash_Pko extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         
         return $row;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    static function getHandle($id)
+    {
+    	$rec = static::fetch($id);
+    	$me = cls::get(get_called_class());
+    	
+    	return $me->abbr . $rec->number;
     }
 }

@@ -1,19 +1,23 @@
-.order-table {
+table {
 	border-collapse:collapse;
 	margin-top:1px;
 	width:100%;
 }
 
+.order-table td {
+	padding-left:15px;
+}
+
 .top-head{
-	width:30%;
+	width:34%;
 	height:16px;
 	vertical-align:top;
 	background-color:rgb(221, 221, 221);
 }
 
 .title-order{
-	height:105px;
-	width:40%;
+	
+	width:33%;
 	text-align:center;
 	vertical-align:top;
 }
@@ -34,4 +38,33 @@ th {
 
 .align-top-td {
 	vertical-align:top;
+}
+
+#currency-table {
+	margin-top:3px;
+	margin-bottom:3px;
+}
+
+#currency-table td {
+	padding-left:14px;
+}
+
+.currency-amount {
+	padding-right:05px;
+	text-align:right;
+}
+
+#amount {
+	font-weight:bold;
+	font-size:20px;
+	float:right;
+	margin-right:15px;
+}
+
+#with-words {
+	background-color:rgb(221, 221, 221);
+	text-align:right;
+	padding-top:3px;
+	padding-bottom:3px;
+	padding-right:15px;
 }

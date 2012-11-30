@@ -7,10 +7,10 @@
 	<tr>
 		<td class='top-head'><b>Да се изплати на</b></td>
 		<td  rowspan='2' class='title-order'>
-			<h2 style='margin-bottom:15px;margin-top:0px'>РАЗХОДЕН КАСОВ<br> ОРДЕР</h2>
+			<h2 style='margin-bottom:15px;margin-top:0px'>РАЗХОДЕН<br> КАСОВ ОРДЕР</h2>
 			№:&nbsp;&nbsp;<b>[#number#]</b><br>
 			Дата:&nbsp;&nbsp;<b>[#date#]</b>
-			<h3 style='margin:15px'>[#state#]</h3>
+			<h3 style='margin:10px'>[#state#]</h3>
 		</td>
 		<td class='top-head'><b>Организация</b></td>
 	</tr>
@@ -19,40 +19,32 @@
 		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]<br>[#adress#]</td>
 	</tr>
 	</table>
-	<table border='1px' class='order-table' cellpadding='3px'>
+	<table border='1px'>
 		<tr>
-			<td width='70%' align='center'><b>Основание</b></td>
-			<td width='30%' align='center'><b>Сума</b></td>
-		</tr>
-		<tr>
-			<td height='15px' align='center'>[#reason#]</td>
-			<td height='15px' align='right' style='padding-right:10px'>[#amount#]&nbsp;[#currencyId#]<br>
-			<!--ET_BEGIN rate-->
-			<b>курс:</b>&nbsp;[#rate#] <br>
-			<b>равностойност:</b>&nbsp;&nbsp;[#equals#]&nbsp;[#baseCurrency#]
-			<!--ET_END rate-->
+			<td width='67%' align='left' style='padding-left:10px;'>
+				<b>Основание:</b>&nbsp;&nbsp;&nbsp;[#reason#]
+			</td>
+			<td style='padding-left:10px'>
+				Сума:&nbsp;&nbsp;&nbsp;&nbsp;[#currencyId#]&nbsp;&nbsp;<span id='amount'>[#amount#]</span>
 			</td>
 		</tr>
 		<tr>
-			<td colspan='2' align='center' style='background-color:rgb(221, 221, 221);'>
+			<td id='with-words' colspan='2'>
 				<b>словом:</b>&nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;[#currencyId#]<br>
 			</td>
 		</tr>
 	</table>
 	<table border='1px' class='order-table' cellpadding='3px'>
 		<tr>
-			<td align='center' colspan='2'><b>Бележки</b></td>
+			<td height='85px' colspan='2'><b>Бележки:</b> &nbsp;&nbsp;[#notes#]</td>
 		</tr>
 		<tr>
-			<td height='85px' colspan='2'>[#notes#]</td>
-		</tr>
-		<tr>
-			<td style='padding-right:10px;text-align:right'>
+			<td style='padding-right:3%;text-align:right;width:50%;'>
 				<br>
 				<b>Получил сумата</b> &nbsp;&nbsp;..........................<br>
 				( [#contragent#] )
 			</td>
-			<td style='padding-right:10px;text-align:right'>
+			<td style='padding-right:3%;text-align:right;width:50%;'>
 				<br>
 				<b>Касиер</b> &nbsp;&nbsp;..........................<br>
 				( [#cashier#] )
