@@ -272,10 +272,11 @@ class ograph_Factory extends core_Master
      * Инстанцираме и генерираме Ографа по зададените данни
      * Enter description here ...
      * @param stdClass $data
-     * @return string $meta
+     * @return core_ET $tpl
      */
     static function generateOgraph($data) {
     	$meta = '';
+    	$tpl = new ET('');
     	
     	// OGP обект съдържащ информацията за сайта
     	$ogp = static::get($data->siteInfo);
@@ -294,7 +295,10 @@ class ograph_Factory extends core_Master
     		$meta .= "\n{$ogpRec->toHTML()}";
     	}
     	
+    	$tpl->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
+    	$tpl->append($meta, 'META_OGRAPH');
+    	
     	// Връщаме готовите мета тагове
-    	return $meta;
+    	return $tpl;
     }
 }
