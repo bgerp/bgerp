@@ -783,12 +783,14 @@ function getStatuses(url, timeout) {
 					
 					var nCntLink = get$('nCntLink');
 					
-					nCntLink.innerHTML = text;
+					if(nCntLink != null) {
+						nCntLink.innerHTML = text;
 
-					if(parseInt(text) > 0) {
-						nCntLink.className = 'haveNtf';
-					} else {
-						nCntLink.className = 'noNtf';
+						if(parseInt(text) > 0) {
+							nCntLink.className = 'haveNtf';
+						} else {
+							nCntLink.className = 'noNtf';
+						}
 					}
 
 				} else {
