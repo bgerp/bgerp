@@ -356,25 +356,21 @@ class core_Roles extends core_Manager
      */
     static function on_BeforeSave($mvc, &$id, $rec)
     {
-        // Ако добавяме нов запис
-        if (!$rec->id) {
+        // Всички наследени роли ги преобразуваме в масив
+        $recInhArr = type_Keylist::toArray($rec->inherit);
+        
+        // Масив с наследените роли
+        $inhArr = array();
+        
+        // Обхождаме масива с наследените роли
+        foreach ($recInhArr as $inhId) {
             
-            // Всички наследени роли ги преобразуваме в масив
-            $recInhArr = type_Keylist::toArray($rec->inherit);
-            
-            // Масив с наследените роли
-            $inhArr = array();
-            
-            // Обхождаме масива с наследените роли
-            foreach ($recInhArr as $inhId) {
-                
-                // Добавяме в масива всички наследени роли на съответната наследена роля
-                $inhArr += self::getRolesArr($inhId);
-            }
-            
-            // Променяма записа за наследените роли
-            $rec->inherit = type_Keylist::fromArray($inhArr);
+            // Добавяме в масива всички наследени роли на съответната наследена роля
+            $inhArr += self::getRolesArr($inhId);
         }
+        
+        // Променяма записа за наследените роли
+        $rec->inherit = type_Keylist::fromArray($inhArr);
         
         // Нулираме статичната променлива
         self::$rolesArr = NULL;
