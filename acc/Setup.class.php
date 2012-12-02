@@ -7,6 +7,13 @@ defIfNot('ACC_FIRST_PERIOD_START', '');
 
 
 /**
+ * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
+ * Използва се по време на инициализацията на системата, при създаването на първия период
+ */
+defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -57,7 +64,8 @@ class acc_Setup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        'ACC_FIRST_PERIOD_START' => array('date'),                
+        'ACC_FIRST_PERIOD_START' => array('date'), 
+        'ACC_DEFAULT_VAT_RATE' => array('percent')
     );
     
     /**
@@ -97,6 +105,8 @@ class acc_Setup
         $html .= $Menu->addItem(2, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "{$role}, admin");
         $html .= $Menu->addItem(2, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "{$role}, admin");
         
+        $html .= $this->loadSetupData();
+
         return $html;
     }
 
