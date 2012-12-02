@@ -3,7 +3,7 @@
 /**
  * Задаване на основна валута
  */
-defIfNot('BGERP_BASE_CURRENCY', 'BGN');
+defIfNot('CURRENCY_BASE_CODE', 'BGN');
 
 
 
@@ -61,7 +61,7 @@ class currency_Setup extends core_ProtoSetup
     var $configDescription = array(
             
             //Задаване на основна валута
-            'BGERP_BASE_CURRENCY' => array ('varchar', 'mandatory'),
+            'CURRENCY_BASE_CODE' => array ('varchar', 'mandatory'),
          
         );
     
@@ -90,6 +90,7 @@ class currency_Setup extends core_ProtoSetup
             array(2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "currency, admin"),
         );
 
+ 
 
     /**
      * Де-инсталиране на пакета

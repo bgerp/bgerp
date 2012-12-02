@@ -54,6 +54,23 @@ class currency_Currencies extends core_Manager {
         
         $this->setDbUnique('name');
     }
+
+
+    /**
+     * Връща id-то на валутата с посочения код
+     * Ако не е указан код - връща id-то на базовата валута
+     */
+    static function getIdByCode($code = NULL)
+    {
+        if(!$code) {
+            $conf = core_Packs::getConfig('currency');
+            $code = $conf->CURRENCY_BASE_CODE;
+        }
+
+        $id = self::fetchField("#code = '{$code}'", 'id');
+
+        return $id;
+    }
     
     
     /**
