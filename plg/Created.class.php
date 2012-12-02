@@ -61,25 +61,8 @@ class plg_Created extends core_Plugin
             }
         }
     }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, необходимо за това действие
-     */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if ($rec->createdBy == -1) {
-            if (in_array($action, array('delete', 'write'))) {
-                $requiredRoles = 'no_one';
-            }
-            
-            if($action == 'edit' && !$mvc->protectedSystemFields) {
-                $requiredRoles = 'no_one';
-            }
-        }
-    }
-    
-    
+
+
     /**
      * След поготовката на формата, премахва възможността за редакция на системни полета
      */
