@@ -147,6 +147,11 @@ class core_ProtoSetup
                 $html .= "<li style='color:red;'>Не може да се записва в директорията <b>{$path}</b>";
             }
         }
+
+        if(Request::get('pack')) {
+
+            $html .= $this->loadSetupData();
+        }
         
         return $html;
     }
