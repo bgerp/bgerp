@@ -117,6 +117,7 @@ class bgerp_Recently extends core_Manager
                 $folderRec = doc_Folders::fetch($rec->objectId);
                 $folderRow = doc_Folders::recToVerbal($folderRec);
                 $row->title = $folderRow->title;
+                $state = $folderRec->state;
             } catch (core_exception_Expect $ex) {
                 $row->title = "Проблемна папка № {$rec->objectId}";
             }
@@ -129,7 +130,8 @@ class bgerp_Recently extends core_Manager
                 
                 $attr['class'] .= 'linkWithIcon';
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
-                
+                $threadRec = doc_Threads::fetch($docRec->threadId);
+                $state     = $threadRec->state;
                 $row->title = ht::createLink(str::limitLen($docRow->title, 70),
                     array($docProxy->instance, 'single',
                         'id' => $docRec->id),
@@ -138,7 +140,11 @@ class bgerp_Recently extends core_Manager
                 $row->title = "Проблемен контейнер № {$rec->objectId}";
             }
         }
-    }
+
+        if($state == 'opened') {
+            $row->title = new ET("<div class='state-{$state}'>[#1#]</div>", $row->title);
+        }
+     }
 
 
     /**
