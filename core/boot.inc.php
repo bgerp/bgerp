@@ -47,6 +47,7 @@ function ef_autoload($className)
         'request' => 'core_Request',
         'url' => 'core_Url',
         'users' => 'core_Users',
+        'ut' => 'unit_Tests',
     );
     
     if($fullName = $aliases[strtolower($className)]) {
