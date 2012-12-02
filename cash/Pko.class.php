@@ -172,6 +172,15 @@ class cash_Pko extends core_Master
     	$data->form->setDefault('date', $today);
     	$data->form->setDefault('currencyId', $currency->id);
     }
+
+
+    /**
+     * Проверка и валидиране на формата
+     */
+    function on_AfterInputEditForm($mvc, $form)
+    {
+        acc_Periods::checkDocumentDate($form);
+    }
     
     
     /**
@@ -205,7 +214,10 @@ class cash_Pko extends core_Master
     			$row->contragent = '';
     			
     		$accPeriods = cls::get('acc_Periods');
-    		$period = $accPeriods->getPeriod();
+            
+            // Взема периода за който се отнася документа, според датата му
+    		$period = $accPeriods->fetchByDate($rec->date);
+
     		if(!$period->baseCurrencyId){
     				
     				// Ако периода е без посочена валута, то зимаме по дефолт BGN

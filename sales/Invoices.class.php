@@ -224,9 +224,23 @@ class sales_Invoices extends core_Master
         //  * Кратки и добре обособени методи за валидация - по един за поле;
         //  * възможност за добавяне нови на валидационни правила в плъгини.
         //
+
+        // Не е добра идея, защото:
+        // 1. 90% от полетата се валидират чрез параметрите в описанията си.
+        //    Това тук ще генерира много излишни събития
+        // 2. Идеята на този метод е да се правят валидации на няколко полета едновременно.
+        //    За повечето полета в описанието на типа можем да сложим valid=Class::Method, 
+        //    който да валидира полето, при положение, че неговата валидност не зависи от др. полета
+        // 3. По-доброто тук е да се извикат директно и последователно функциите за валидиране. 
+        //    Плъгините пак са възможни, защото действието на 'setError' и 'setWarning' е монотонно
+
+        acc_Periods::checkDocumentDate($form);
+
         foreach ($mvc->fields as $fName=>$field) {
             $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
         }
+
+       
     }
     
     
@@ -376,7 +390,7 @@ class sales_Invoices extends core_Master
         // ДДС % по-подразбиране - от периода към датата на ф-рата
         $periodRec = acc_Periods::fetchByDate($form->rec->date);
         if ($periodRec) {
-            $form->rec->vatRate = $periodRec->params->vatPercent;
+            $form->rec->vatRate = $periodRec->params->vatRate;
         }
 
         // Данни за контрагент
