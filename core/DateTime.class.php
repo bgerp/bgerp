@@ -124,18 +124,34 @@ class core_DateTime
         return date("Y-m-d H:i:s", $t);
     }
     
-    
+
     /**
-     * Намира последния ден от месеца на една дата (като unixTimestamp)
+     * Връща последния ден за зададения месец
      */
-    static function lastDayOfMonth($date)
+    static function getLastDayOfMonth($date = NULL, $monthOffset = 0) 
     {
-        $month  = date("m", $date);
-        $year   = date("Y", $date);
+        if(!$date) {
+            $date = dt::verbal2mysql();
+        }
         
-        return mktime(12, 59, 59, $month + 1, 0, $year);
+        $date = dt::mysql2verbal($date, "Y-m-1");
+
+        $monthOffset = (int) $monthOffset;
+
+        if($monthOffset > 0) {
+            $time = strtotime("{$date} + {$monthOffset} month");
+        } elseif($monthOffset < 0) {
+            $time = strtotime("{$date} {$monthOffset} month");
+        } else {
+            $time = strtotime("{$date}");
+        }
+
+        $res  = date("Y-m-t", $time);
+
+        return $res;
     }
-    
+
+   
     
     /**
      * Намира първия или последния именован седмичен ден от посочения месец/година
