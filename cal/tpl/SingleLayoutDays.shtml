@@ -29,7 +29,7 @@
          </br>
                 <table cellspacing='1' class='listTable'>
 				<tr>
-                     <td class="quiet" colspan="2" style='padding-top:10px; width:60px'>Време</td>
+                     <td class="quiet" colspan="2" style='padding-top:10px; width:50px'>Време</td>
                      <td class="quiet" colspan="2" style='padding-top:10px;'>Заглавие</td>
                      
                  </tr>
@@ -37,8 +37,8 @@
                  
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr> 
-                     <td colspan="2" style='width:60px'>[#time#]</td>
-                     <td colspan="2">[#tasktitle#]</td>
+                     <td colspan="2" style='width:50px'>[#time#]</td>
+                     <td colspan="2" ondblclick='document.location="/cal_Tasks/add"'>[#tasktitle#]</td>
                      
                  </tr>
                  <!--ET_END COMMENT_LI-->

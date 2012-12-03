@@ -199,6 +199,12 @@ class cal_Calendar extends core_Master
         
         $data->listFilter->input('persons, from', 'silent');
     }
+
+    
+    function on_AfterRenderWrapping($mvc, &$tpl)
+    {
+    	$tpl->push('cal/tpl/style.css', 'CSS');
+    }
     
     
     /**
@@ -536,6 +542,7 @@ class cal_Calendar extends core_Master
     	expect ($days['working'] == 18 && $days['nonWorking'] == 12 && $days['holiday'] == 2, 'Greshka');
     }
     
+    
     /**
      * Функция показваща събитията за даден ден
      */
@@ -554,7 +561,7 @@ class cal_Calendar extends core_Master
 				    	"#211b7d", 
 				    	"#72147d",
 				    	"Violet",
-				    	"DarkSeaGreen",
+				    	"Green",
 				    	"DeepPink ",
 				    	"MediumVioletRed",
 				    	"#0d777d",
@@ -587,30 +594,54 @@ class cal_Calendar extends core_Master
 
     		//Деня, за който взимаме събитията
     		$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
-    		
+     		
     		// Начален час на събитието 
     		$hourKey = dt::mysql2verbal($rec->time, 'G');
+		  
     		
     		//Ако събитието е отбелязано да е активно през целия ден
     		if($rec->allDay == "yes"){
     			$hourKey = "allDay";
     		}
-
+    		
+            //Помощен масив за определяне на най-ранното и най-късното събитие
+    		$minMax[] = $hourKey;
+    		
     		//Линк към събитието
     		$url = getRetUrl($rec->url);
+    		$id = substr(strrchr($rec->url, "/"),1);
     		$color = array_pop($colors);
     		
     		//Проверяваме дали събитието не започва на различен от кръгал час и показваме реалния му час
     		if (dt::mysql2verbal($rec->time, 'i') != "00"){
-    			$dayData[$hourKey][$dayKey] .= ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 40), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    			$dayData[$hourKey][$dayKey] .=  ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 20), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)) . "&nbsp;&nbsp;&nbsp;" . "<a href='/cal_Tasks/edit/$id'><img src=" . sbf('img/16/edit-icon.png') . "align='right' ></a>";
     			
     		} elseif($hourKey != "allDay") { 
-    			$dayData[$hourKey][$dayKey] .= ht::createLink(str::limitLen($rec->title, 40), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    			$dayData[$hourKey][$dayKey] .= ht::createLink(str::limitLen($rec->title, 20), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)) . "&nbsp;&nbsp;&nbsp;" . "<a href='/cal_Tasks/edit/$id'><img src=" . sbf('img/16/edit-icon.png') . " align='right' ></a>";
     		} else {
     			$dayData[$hourKey][$dayKey] .= ht::createLink("<p>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('class' => 'calWeek', 'title' => $rec->title));
     			
     		}
     		
+    	}
+    	
+    	//Начална стойнности за начало на деня
+    	$tr = 8;
+    	
+    	//Начална стойност за края на деня
+    	$tk = 18;
+
+    	if(is_array($minMax)){
+	    	
+    		// Определяме началото и края на деня спрямо началните стойнности
+	        if(min($minMax) < $tr && min($minMax) !== 'allDay'){ 
+	        	$tr = min($minMax);
+	        } elseif(min($minMax) > $tk){
+	        	$tr = 8;
+	        	$tk = min($minMax);
+	        } elseif(max($minMax) > $tk){
+	        	$tk = max($minMax);
+	        }
     	}
     	
     	//Рендираме деня
@@ -624,14 +655,16 @@ class cal_Calendar extends core_Master
     	$tpl->replace('Събития за изпълнение', 'title');
     	$tpl->replace($currentDate, 'date');
     	
+    	
     	foreach($hours as $h => $t){
-   		
+    		if($h === 'allDay' || ($h >= $tr && $h <= $tk)){
     		$hourArr = $dayData[$h];
-    		$hourArr['time'] = $t. " " ."<a href='/cal_Tasks/add'><img src=" . sbf('img/16/add1-16.png') . " ></a>";
+    		$hourArr['time'] = $t;
  
     		$cTpl = $tpl->getBlock("COMMENT_LI");
     		$cTpl->placeArray($hourArr);
     		$cTpl->append2master();
+    		}
    		}
     	
     	
@@ -639,7 +672,7 @@ class cal_Calendar extends core_Master
  
     }
 
-
+    
     /**
      * Показва събитията за цяла произволна седмица
      */
@@ -661,7 +694,7 @@ class cal_Calendar extends core_Master
 				    	"#211b7d", 
 				    	"#72147d",
 				    	"Violet",
-				    	"DarkSeaGreen",
+				    	"Green",
 				    	"DeepPink ",
 				    	"MediumVioletRed",
 				    	"#0d777d",
@@ -703,20 +736,46 @@ class cal_Calendar extends core_Master
     		if($rec->allDay == "yes"){
     			$hourKey = "allDay";
     		}
+    		
+    		//Помощен масив за определяне на най-ранното и най-късното събитие
+    		if($hourKey !== "allDay"){
+    		$minMax[] = $hourKey;
+    		}
+    		
     		$url = getRetUrl($rec->url);
+    		$id = substr(strrchr($rec->url, "/"),1);
     		$color = array_pop($colors);
     		
         	if (dt::mysql2verbal($rec->time, 'i') != "00"){
-    			$weekData[$hourKey][$dayKey] .= ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 40), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    			$weekData[$hourKey][$dayKey] .= ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 13), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)). "&nbsp;&nbsp;&nbsp;" . "<a href='/cal_Tasks/edit/$id'><img src=" . sbf('img/16/edit-icon.png' ) . " align='right' ></a>";
     			
     		} elseif($hourKey != "allDay") { 
-    			$weekData[$hourKey][$dayKey] .= ht::createLink(str::limitLen($rec->title, 40), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    			$weekData[$hourKey][$dayKey] .= ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)). "&nbsp;&nbsp;&nbsp;" . "<a href='/cal_Tasks/edit/$id'><img src=" . sbf('img/16/edit-icon.png') .  "align='right' ></a>";
     		} else {
     			$weekData[$hourKey][$dayKey] .= ht::createLink("<p>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('class' => 'calWeek', 'title' => $rec->title));
     			
     		}
     		
         }
+        
+        //Начална стойнности за начало на деня
+    	$tr = 8;
+    	
+    	//Начална стойност за края на деня
+    	$tk = 18;
+
+    	if(is_array($minMax)){
+	    	
+    		// Определяме началото и края на деня спрямо началните стойнности
+	        if(min($minMax) < $tr && min($minMax) !== 'allDay'){ 
+	        	$tr = min($minMax);
+	        } elseif(min($minMax) > $tk){
+	        	$tr = 8;
+	        	$tk = min($minMax);
+	        } elseif(max($minMax) > $tk){
+	        	$tk = max($minMax);
+	        }
+    	}
      
           
     	//Рендиране на седмицата	
@@ -733,13 +792,14 @@ class cal_Calendar extends core_Master
     	$tpl->placeArray($days);
     	
    		foreach($hours as $h => $t){
-   			
+   			if($h === 'allDay' || ($h >= $tr && $h <= $tk)){
     		$hourArr = $weekData[$h];
-    		$hourArr['time'] = $t . " " ."<a href='/cal_Tasks/add'><img src=" . sbf('img/16/add1-16.png') . " ></a>";
-   			
+    		$hourArr['time'] = $t;
+    		  			
     		$cTpl = $tpl->getBlock("COMMENT_LI");
     		$cTpl->placeArray($hourArr);
     		$cTpl->append2master();
+   			}
    		}
    		    
         //$tpl->push('cal/tpl/style.css', 'CSS');
@@ -817,12 +877,6 @@ class cal_Calendar extends core_Master
     	
         return $this->renderWrapping($tpl);
 
-    }
-
-    
-    function on_AfterRenderWrapping($mvc, &$tpl)
-    {
-    	$tpl->push('cal/tpl/style.css', 'CSS');
     }
 
     
