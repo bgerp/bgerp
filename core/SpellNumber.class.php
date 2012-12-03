@@ -252,34 +252,34 @@ class core_SpellNumber
     function int_to_words($x)
     {
         $nwords = array(
-            "ZERO",
-            "ONE",
-            "TWO",
-            "THREE",
-            "FOUR",
-            "FIVE",
-            "SIX",
-            "SEVEN",
-            "EIGHT",
-            "NINE",
-            "TEN",
-            "ELEVEN",
-            "TWELVE",
-            "THIRTEEN",
-            "FOURTEEN",
-            "FIFTEEN",
-            "SIXTEEN",
-            "SEVENTEEN",
-            "EIGHTEEN",
-            "NINETEEN",
-            "TWENTY",
-            30 => "THIRTY",
-            40 => "FORTY",
-            50 => "FIFTY",
-            60 => "SIXTY",
-            70 => "SEVENTY",
-            80 => "EIGHTY",
-            90 => "NINETY"
+            "zero",
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine",
+            "ten",
+            "eleven",
+            "twelve",
+            "thirteen",
+            "fourteen",
+            "fifteen",
+            "sixteen",
+            "seventeen",
+            "eighteen",
+            "nineteen",
+            "twenty",
+            30 => "thirty",
+            40 => "forty",
+            50 => "fifty",
+            60 => "sixty",
+            70 => "seventy",
+            80 => "eighty",
+            90 => "ninety"
         );
         
         if (!is_numeric($x)) {
@@ -288,7 +288,7 @@ class core_SpellNumber
             $w = '#';
         } else {
             if ($x < 0) {
-                $w = 'MINUS ';
+                $w = 'minus ';
                 $x = -$x;
             } else {
                 $w = '';
@@ -304,14 +304,14 @@ class core_SpellNumber
                     $w .= '-' . $nwords[$r];
                 }
             } else if ($x < 1000) {
-                $w .= $nwords[floor($x / 100)] . ' HUNDRED';
+                $w .= $nwords[floor($x / 100)] . ' hundred';
                 $r = fmod($x, 100);
                 
                 if ($r > 0) {
                     $w .= ' and ' . $this->int_to_words($r);
                 }
             } else if ($x < 1000000) {
-                $w .= $this->int_to_words(floor($x / 1000)) . ' THOUSAND';
+                $w .= $this->int_to_words(floor($x / 1000)) . ' thousand';
                 $r = fmod($x, 1000);
                 
                 if ($r > 0) {
@@ -323,7 +323,7 @@ class core_SpellNumber
                     $w .= $this->int_to_words($r);
                 }
             } else {
-                $w .= $this->int_to_words(floor($x / 1000000)) . ' MILLION';
+                $w .= $this->int_to_words(floor($x / 1000000)) . ' million';
                 $r = fmod($x, 1000000);
                 
                 if ($r > 0) {
@@ -371,8 +371,9 @@ class core_SpellNumber
             $cents = round((($num - (int) $num) * 100));
             
             if ($cents > 0)
-            $text .= " и " . $this->num2Text($cents) . $centBgn;
+            	$text .= " и ," . ($cents) . " " . $centBgn;
             $text = str_replace(" и и ", " и ", $text);
+            //$text .= " и " . $this->num2Text($cents) . $centBgn;
             
             return $text;
         } else {
@@ -381,7 +382,8 @@ class core_SpellNumber
             $cents = round((($num - (int) $num) * 100));
             
             if ($cents > 0)
-            $text .= " and " . $this->int_to_words($cents) . $centEuro;
+            	$text .= " and ," . $cents. " " . $centEuro;
+            //$text .= " and " . $this->int_to_words($cents) . $centEuro;
             
             return $text;
         }
