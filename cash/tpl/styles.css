@@ -1,11 +1,12 @@
 table {
 	border-collapse:collapse;
-	margin-top:1px;
+	border-bottom-style:none;
 	width:100%;
 }
 
 .order-table td {
 	padding-left:15px;
+	border-bottom-style:none;
 }
 
 .top-head{
@@ -55,10 +56,9 @@ th {
 }
 
 #amount {
-	font-weight:bold;
-	font-size:20px;
 	float:right;
 	margin-right:15px;
+	font-size:20px;
 }
 
 #with-words {
@@ -67,4 +67,36 @@ th {
 	padding-top:3px;
 	padding-bottom:3px;
 	padding-right:15px;
+}
+
+#cCode {
+	border:solid 1px #ccc;
+	background-color:#eee;
+	padding:2px;
+    font-size:12px;
+    vertical-align:middle;
+}
+
+#notes {
+	width:67%;
+	height:53px;
+	padding-left:10px;
+	padding-top:5px;
+}
+
+#misc {
+	padding:4px;
+	text-align:right;
+	padding-right:15px;
+	border:1px solid red;
+	border:solid 1px #ccc;
+	background-color:#eee;
+}
+
+.labels {
+	font-size:14px;
+}
+
+.sign_names {
+	margin-left:15%;
 }

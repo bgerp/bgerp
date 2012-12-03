@@ -1,7 +1,7 @@
 [#SingleToolbar#]
 <div class='document'>
 	<div class='header [#STATE_CLASS#]'>
-	   <div class='docBgIcon' style='[#iconStyle#]'>[#singleTitle#] &nbsp;[#id#]/[#date#] ([#state#])</div>
+	   <div class='docBgIcon' style='[#iconStyle#]'>[#singleTitle#] &nbsp;[#number#]/[#date#] ([#state#])</div>
 	</div>
 	<table border='1px' class='order-table' cellpadding='4px'>
 	<tr>
@@ -19,35 +19,51 @@
 		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]<br>[#adress#]</td>
 	</tr>
 	</table>
-	<table border='1px'>
+	<table border='1px' cellpadding='5px'>
 		<tr>
 			<td width='67%' align='left' style='padding-left:10px;'>
 				<b>Основание:</b>&nbsp;&nbsp;&nbsp;[#reason#]
 			</td>
-			<td style='padding-left:10px'>
-				Сума:&nbsp;&nbsp;&nbsp;&nbsp;[#currencyId#]&nbsp;&nbsp;<span id='amount'>[#amount#]</span>
+			<td style='padding-left:10px;'>
+				<span style='font-size:20px'>Сума:</span><span id='amount'><span id='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
 			</td>
 		</tr>
 		<tr>
 			<td id='with-words' colspan='2'>
-				<b>словом:</b>&nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;[#currencyId#]<br>
+				<b>словом:</b>&nbsp;&nbsp;<span id='cCode'>[#currencyId#]</span>
+				&nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;<br>
 			</td>
 		</tr>
 	</table>
-	<table border='1px' class='order-table' cellpadding='3px'>
+	<table border='1px' cellpadding='0'>
 		<tr>
-			<td height='85px' colspan='2'><b>Бележки:</b> &nbsp;&nbsp;[#notes#]</td>
+			<td colspan='2'>
+			<table border='0'>
+			<tr>
+				<td id='notes' >Бележки: &nbsp;&nbsp;[#notes#]</td>
+				<td>
+				<!--ET_BEGIN rate-->
+					<div id ='misc'>
+					<span class='labels'>Курс:</span> &nbsp;&nbsp;<b>[#rate#]</b><br>
+					<div style='margin-top:7px;'>
+					<span class='labels'>Равностойност:</span>
+					<span id='cCode'>[#baseCurrency#]</span>&nbsp;&nbsp;<b>[#equals#]</b></div>
+					</div>
+				<!--ET_END rate-->
+				</td>
+			</tr>
+			</table>
 		</tr>
 		<tr>
-			<td style='padding-right:3%;text-align:right;width:50%;'>
+			<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 				<br>
-				<b>Броил сумата</b> &nbsp;&nbsp;..........................<br>
-				( [#contragent#] )
+				Броил &nbsp;&nbsp;..........................<br>
+				<span class='sign_names'>( <b>[#depositor#]</b> )</span>
 			</td>
-			<td style='padding-right:3%;text-align:right;width:50%;'>
+			<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 				<br>
-				<b>Касиер</b> &nbsp;&nbsp;..........................<br>
-				( [#cashier#] )
+				Касиер &nbsp;&nbsp;..........................<br>
+				<span class='sign_names'>( <b>[#cashier#]</b> )</span>
 			</td>
 		</tr>
 	</table>

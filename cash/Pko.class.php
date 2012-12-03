@@ -21,7 +21,7 @@ class cash_Pko extends core_Master
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
-    
+   
     
     /**
      * Заглавие на мениджъра
@@ -32,8 +32,9 @@ class cash_Pko extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, 
-                     doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg';
+    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
+                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg,
+                     plg_Search, doc_ActivatePlg';
     
     
     /**
@@ -113,20 +114,21 @@ class cash_Pko extends core_Master
      */
     function description()
     {
-    	$this->FLD('number', 'int', 'caption=Номер,width=50%,mandatory');
-    	$this->FLD('contragentFolder', 'key(mvc=doc_Folders,select=title)', 'caption=Вносител,width=100%,mandatory');
+    	$this->FLD('number', 'int', 'caption=Номер,width=50%');
+    	$this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('date', 'date', 'caption=Дата,mandatory');
-    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
-    	$this->FLD('amountVerbal', 'varchar(255)', 'caption=Словом,input=none');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
-    	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс');
-    	$this->FLD('notes', 'richtext', 'caption=Бележки');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory');
+    	$this->FLD('contragentFolder', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент->Получател,mandatory,width=100%');
+    	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
+    	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс');
+    	$this->FLD('notes', 'richtext(rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
     	
+        // Поставяне на уникален индекс
     	$this->setDbUnique('number');
     }
     
@@ -148,29 +150,37 @@ class cash_Pko extends core_Master
     	if($contragentData) {
     		$data->form->setDefault('contragentFolder', $folderId);
     		$data->form->setReadOnly('contragentFolder');
+    		if($contragentData->name) {
+    			
+    			// Ако папката е на лице, то вносителя по дефолт е лицето
+    			$data->form->setDefault('depositor', $contragentData->name);
+    		}
     		
-    	} else {
-    		
-    		// Ако папката не е обвързана с контрагент то намираме името на
-    		// вносителя от последно въведения ПКО
-	    	$query = static::getQuery();
-	    	$query->XPR('max', 'int', 'max(#id)');
-	    	if($folderId)
-	    		$query->where("#folderId = {$folderId}");
-	    	
-	    	if($rec = $query->fetch()->max) {
-	    		$lastOrder = static::fetch($rec);
-	    		$data->form->setDefault('contragentFolder', $folderId);
-	    	}
     	}
-    		
-    	// Коя е текущата дата, и валута по подразбиране "BGN"
+
+    	if($originId = $data->form->rec->originId) {
+    		 $doc = doc_Containers::getDocument($originId);
+    		 $data->form->setDefault('reason', "Към документ #{$doc->getHandle()}");
+    	}
+    	
+    	$query = static::getQuery();
+    	$query->where("#folderId = {$folderId}");
+    	$query->orderBy('createdOn', 'DESC');
+    	$query->limit(1);
+    	
+    	if($lastRec = $query->fetch()) {
+    		$data->form->setDefault('depositor', $lastRec->depositor);
+    		$currencyId = $lastRec->currencyId;
+    	} else {
+    		$currencyId = currency_Currencies::getIdByCode();
+    	}
+    	
+    	
     	$today = date("d-m-Y", time());
-    	$currency = currency_Currencies::fetch("#code = 'BGN'"); 
     	
     	// Поставяме стойности по подразбиране
     	$data->form->setDefault('date', $today);
-    	$data->form->setDefault('currencyId', $currency->id);
+    	$data->form->setDefault('currencyId', $currencyId);
     }
 
 
@@ -184,25 +194,12 @@ class cash_Pko extends core_Master
     
     
     /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    static function on_BeforeSave($mvc, &$id, $rec)
-    {
-    	if(!$rec->id) {
-    		
-	    	// Записваме вербалната стойност на сумата
-	    	$spellNumber = cls::get('core_SpellNumber');
-	    	$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-	    	$rec->amountVerbal = $amountVerbal;
-    	}
-    }
-    
-    
-    /**
      *  Обработки по вербалното представяне на данните
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->number = static::getHandle($rec->id);
+    	
     	if($fields['-single']){
     		
     		$contragentData = doc_Folders::getContragentData($rec->contragentFolder);
@@ -212,17 +209,25 @@ class cash_Pko extends core_Master
     			$row->contragent = $contragentData->name;
     		else 
     			$row->contragent = '';
-    			
+    		
+    		// Адреса на контрагента
+    		$row->contragent .= trim(
+                sprintf("<br>%s %s<br> %s", 
+                    $contragentData->place,
+                    $contragentData->pCode,
+                    $contragentData->pAddress
+                )
+            );
+            	
     		$accPeriods = cls::get('acc_Periods');
             
             // Взема периода за който се отнася документа, според датата му
     		$period = $accPeriods->fetchByDate($rec->date);
-
     		if(!$period->baseCurrencyId){
     				
     				// Ако периода е без посочена валута, то зимаме по дефолт BGN
-    				$period->baseCurrencyId = currency_Currencies::fetchField("#code = 'BGN'", "id");
-    			}
+    				$period->baseCurrencyId = currency_Currencies::getIdByCode();
+    		}
     		
     		// Ако избраната валута е различна от основната за периода
     		if($rec->currencyId != $period->baseCurrencyId) {
@@ -242,7 +247,7 @@ class cash_Pko extends core_Master
     			// то приемаме че тя е Евро
     			if(!$baseCurrencyRate){
     				$baseCurrencyRate = new stdClass();
-    				$baseCurrencyRate->currencyId = currency_Currencies::fetchField("#code = 'EUR'", "id");
+    				$baseCurrencyRate->currencyId = currency_Currencies::getIdByCode('EUR');
     				$baseCurrency->code = 'EUR';
     				$baseCurrencyRate->rate = 1;
     			}
@@ -263,6 +268,10 @@ class cash_Pko extends core_Master
     			$row->equals = $num->toVerbal($row->equals);
     		}
     		
+    		$spellNumber = cls::get('core_SpellNumber');
+	    	$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
+	    	$row->amountVerbal = $amountVerbal;
+	    	
     		// Вземаме данните за нашата фирма
     		$conf = core_Packs::getConfig('crm');
     		$companyId = $conf->BGERP_OWN_COMPANY_ID;
@@ -295,7 +304,12 @@ class cash_Pko extends core_Master
     }
     
     
-    /**
+   	/*
+     * Реализация на интерфейса doc_DocumentIntf
+     */
+    
+    
+ 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     function getDocumentRow($id)
@@ -310,8 +324,25 @@ class cash_Pko extends core_Master
     }
     
     
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     * @param $firstClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $folderClass)
+    {
+        if (empty($folderClass)) {
+            $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+    
+        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons';
+    }
+    
+    
     /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     * Имплементиране на интерфейсен метод 
      */
     static function getHandle($id)
     {
