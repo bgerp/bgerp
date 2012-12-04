@@ -356,6 +356,7 @@ class blogm_Articles extends core_Master {
     {
     	// Създаваме OGP Image обект
     	$conf = core_Packs::getConfig('cms');
+        $data->ogp = new stdClass();
     	$data->ogp->imageInfo = array('url'=> $conf->CMS_OGRAPH_IMAGE,
     						 'type'=> 'image/jpeg',
     						 'height'=> $conf->CMS_OGRAPH_IMAGE_HEIGHT,
