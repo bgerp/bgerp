@@ -163,7 +163,9 @@ class email_UserInboxPlg extends core_Plugin
                 $data->form->setDefault('email', $email);
                 $data->form->setField('names', 'input=hidden');
                 
-                $data->form->title = 'Създаване на потребител за ' . $personRec->name;
+                $name = crm_Persons::getVerbal($personRec, 'name');
+                
+                $data->form->title = 'Създаване на потребител за ' . $name;
                 
                 $data->form->FNC('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,caption=Визитка');
                 $data->form->setDefault('personId', $personId);
