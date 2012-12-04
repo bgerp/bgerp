@@ -583,7 +583,7 @@ input[type=radio]:checked + label {
 /* Стилове за елемента 'tab' */
 div.tab-control div.tab-row .tab {
     display:        table;
-    margin:         1px -15px 1px 1px;
+    margin:         1px -15px 1px 18px;
     float:          left; 
     padding:        3px 5px 5px 5px;
     background:     #cfcfcf;
@@ -605,16 +605,13 @@ div.tab-control div.tab-row .tab {
 div.tab-control div.tab-row .tab.selected {
     background:     #ffffff;
     border:         1px solid #bbb;
-    border-top:     1px solid #bbb !important;
+    border-top:     3px solid #036;
     border-bottom:  none;
     z-index:        3;
     padding:        5px 5px 5px 5px; 
-    margin:         1px -14px -3px 0px;
+    margin:         1px -14px -3px 18px;
     top:            -3px;
-}
-
-.tab.selected select {
-	background-color:#FFFFCC;
+    font-weight:    bold;
 }
 
 div.tab-control div.tab-page {
@@ -626,6 +623,9 @@ div.tab-control div.tab-page {
     padding:        1em;
     /* min-width:95%;  махнато за ради Upload формата*/
     /* display: table; */
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
 }
 
 div.tab-control .tab-title {
