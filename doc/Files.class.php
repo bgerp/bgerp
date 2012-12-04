@@ -299,7 +299,7 @@ class doc_Files extends core_Manager
         $folderRow = doc_Folders::recToVerbal($folderRec);
         
         // Променяме титлата на полето
-        $data->title = tr("|Файлове в папка|* {$folderRow->title}");
+        $data->title =  "Файлове в папка|* {$folderRow->title}";
     }
     
     

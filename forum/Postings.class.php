@@ -695,7 +695,7 @@ class forum_Postings extends core_Detail {
 		$data->form->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'caption = Избери,input,width=100%');
 		$data->form->setHidden('theme', $data->rec->id);
 		$data->form->setDefault('boardTo', $data->board->id);
-		$data->form->title = tr('Местене на тема') . ":&nbsp;<b>" . $data->row->title . "</b>";
+		$data->form->title = "Местене на тема|* : <b>{$data->row->title}</b>";
 		$data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), array('class' => 'btn-move'));
 		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), array('class' => 'btn-cancel'));
 		

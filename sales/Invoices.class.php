@@ -278,7 +278,7 @@ class sales_Invoices extends core_Master
         if ($newestInvoiceRec->date > $rec->date) {
             // Най-новата валидна ф-ра в БД е по-нова от настоящата.
             $form->setWarning('date', 
-                'Има фактура с по-нова дата (от ' . 
+                'Има фактура с по-нова дата (от|* ' . 
                     dt::mysql2verbal($newestInvoiceRec->date, 'd-m-y') .
                 ')'
             );
