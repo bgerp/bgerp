@@ -352,12 +352,8 @@ class acc_Lists extends core_Manager {
             
             // Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
             $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
-            $newItemRec = $AccRegister->getItemRec($objectId);
             
-            $itemRec->num = $newItemRec->num;
-            $itemRec->title = $newItemRec->title;
-            $itemRec->uomId = $newItemRec->uomId;
-            $itemRec->features = $newItemRec->features;
+            acc_Items::syncItemRec($itemRec, $AccRegister, $objectId);
         }
         
         if ($itemRec) {
