@@ -35,7 +35,8 @@ class type_Varchar extends core_Type {
     function renderInput_($name, $value = "", &$attr = array())
     {
         if($this->params[0]) {
-            $attr['maxlength'] = $this->params[0];
+             $attr['onblur'] .= " if(this.value.length > " . $this->params[0] .") alert('" . 
+                 tr("Въведената стойност е над допустимите") . ' ' . $this->params[0] . " " . tr('символа') . "');";
         }
         
         if($this->params['size']) {
