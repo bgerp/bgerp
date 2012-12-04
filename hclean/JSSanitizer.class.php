@@ -121,7 +121,11 @@ class hclean_JSSanitizer extends core_Manager
                     		
                     		var emb = document.getElementById('[#SANITIZEID#]');
                     		
-                    		emb.contentDocument.write(sanitized);
+                    		var emb = emb.contentDocument ? emb.contentDocument : (emb.contentWindow.document || emb.document);
+                    		
+                    		emb.open();
+                    		emb.write(sanitized);
+                    		emb.close();
                     	}
     				</script>";
         
