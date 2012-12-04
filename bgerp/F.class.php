@@ -63,7 +63,7 @@ class bgerp_F extends core_Manager
         }
         
         // Записваме в лога за файлове, информация за свалянето
-        log_Files::downloaded($fh, $rec->containerId);
+        log_Documents::downloaded($mid, $fh);
         
         // Редиректваме към линка
         redirect($url);    

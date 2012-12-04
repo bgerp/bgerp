@@ -75,6 +75,7 @@ class log_Documents extends core_Manager
         self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, receivedOn=Получено, returnedOn=Върнато',
         self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOnTime=Видяно',
         self::ACTION_OPEN => 'seenOnTime=Дата, seenFromIp=IP, reason=Основание',
+        self::ACTION_DOWNLOAD => 'fileHnd=Файл, seenOnTime=Свалено->На, seenFromIp=Свалено->От',
     );
     
     /**
@@ -100,6 +101,7 @@ class log_Documents extends core_Manager
     const ACTION_DISPLAY = 'display';
     const ACTION_FAX     = 'fax';
     const ACTION_PDF     = 'pdf';
+    const ACTION_DOWNLOAD = 'download';
     
     
     /**
@@ -116,6 +118,7 @@ class log_Documents extends core_Manager
             self::ACTION_DISPLAY . '=разглеждане',
             self::ACTION_FAX     . '=факс',
             self::ACTION_PDF     . '=PDF',
+            self::ACTION_DOWNLOAD . '=сваляне',
         );
         
         // Тип на събитието
@@ -139,6 +142,7 @@ class log_Documents extends core_Manager
         
         $this->FNC('data', 'text', 'input=none');
         $this->FNC('seenOnTime', 'datetime(format=smartTime)', 'input=none');
+        $this->FNC('seenFrom', 'key(mvc=core_Users)', 'input=none');
         $this->FNC('receivedOn', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('returnedOn', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('seenFromIp', 'ip', 'input=none');
@@ -190,7 +194,7 @@ class log_Documents extends core_Manager
             expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
         }
 
-        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
+        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD))) {
             $rec->mid = static::generateMid();
         }
         
@@ -452,7 +456,78 @@ class log_Documents extends core_Manager
         return $action;
     }
     
+    
+    /**
+     * Маркира файла, че е свален
+     * 
+     * @param string $mid
+     * @param fileHnd $fh - Манипулатор на файла, който се сваля
+     * 
+     * @return object $rec
+     */
+    public static function downloaded($mid, $fh)
+    {
+        $downloadAction = static::ACTION_DOWNLOAD;
+        
+        // IP' то на потребителя
+        $ip = core_Users::getRealIpAddr();
+        
+        // Очакваме да има запис, в който е цитиран файла
+        expect($sendRec = static::getActionRecForMid($mid, FALSE));
+        expect(is_object($sendRec->data));
+        
+        // Вземаме записа, ако има такъв
+        $rec = static::fetch("#containerId = '{$sendRec->containerId}' AND #action = '{$downloadAction}'");
+        
+        // Ако съответния потребител е свалял файла
+        if (!empty($rec->data->{$downloadAction}[$fh][$ip])) {
+            
+            return TRUE;    
+        }
+        
+        // Датата и часа
+        $date = dt::now(true);
+        
+        // Ако няма запис
+        if (!$rec) {
+            
+            // Създаваме обект с данни
+            $rec = (object)array(
+                'action' => $downloadAction,
+                'containerId' => $sendRec->containerId,
+                'threadId'    => $sendRec->threadId,
+                'data' => new stdClass(),
+            );    
+        }
+        
+        // Добавяме данните
+        $rec->data->{$downloadAction}[$fh][$ip] = array(
+            'ip' => $ip,
+            'seenOnTime' => $date,
+        );
+        
+        // id' то на текущия потребител
+        $currUser = core_Users::getCurrent('id');
+        
+        // Ако има логнат потребител
+        if ($currUser) {
+            
+            // Добавяме id' то му
+            $rec->data->{$downloadAction}[$fh][$ip]['seenFrom'] = $currUser; 
+        }
 
+        // Пушваме съответното действие
+        static::pushAction($rec);
+        
+        // Добавяме запис в лога
+        $msg = "Свален файл: " . fileman_Download::getDownloadLink($fh);
+        
+        core_Logs::add('doc_Containers', $rec->containerId, $msg);
+
+        return $rec;
+    }
+    
+    
     /**
      * Случаен уникален идентификатор на документ
      *
@@ -576,17 +651,44 @@ class log_Documents extends core_Manager
         $query->orderBy('#createdOn');
         
         $open = self::ACTION_OPEN;
+        $download = self::ACTION_DOWNLOAD;
         
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
-            if ($rec->action != $open) {
+            if (($rec->action != $open) && ($rec->action != $download)) {
                 $data[$rec->containerId]->summary[$rec->action] += 1;
             }
+            
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
+            $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
         
         return $data;
+    }
+    
+    
+    /**
+     * Връща броя на свалянията
+     * 
+     * @param array $data - Масив с данни, в които ще се търси
+     * 
+     * @return integer $downloadCount - Броя на свалянията на файловете
+     */
+    protected static function getCountOfDownloads($data)
+    {
+        // Ако е масив
+        if (is_array($data)) {
+            
+            // Обхождаме масива
+            foreach ($data as $downloadRec) {
+                
+                // Добавяме броя на свалянията към променливата
+                $downloadCount += count($downloadRec);
+            }  
+        }
+
+        return $downloadCount;
     }
     
     
@@ -624,6 +726,7 @@ class log_Documents extends core_Manager
                 static::ACTION_RETURN  => array('връщане', 'връщания'),
                 static::ACTION_PRINT   => array('отпечатване', 'отпечатвания'),
                 static::ACTION_OPEN   => array('виждане', 'виждания'),
+                static::ACTION_DOWNLOAD => array('сваляне', 'сваляния'),
             );
         }
 
@@ -636,6 +739,7 @@ class log_Documents extends core_Manager
                 static::ACTION_PRINT   => static::ACTION_PRINT,
                 static::ACTION_PDF     => static::ACTION_PRINT,
                 static::ACTION_OPEN    => static::ACTION_OPEN,
+                static::ACTION_DOWNLOAD    => static::ACTION_DOWNLOAD,
             );
         }
         
@@ -736,6 +840,7 @@ class log_Documents extends core_Manager
                $action == static::ACTION_SEND 
             || $action == static::ACTION_PRINT 
             || $action == static::ACTION_OPEN
+            || $action == static::ACTION_DOWNLOAD
         );
         
         return $action;
@@ -759,6 +864,10 @@ class log_Documents extends core_Manager
             case $mvc::ACTION_OPEN:
                 $mvc->currentTab = 'Виждания';
                 $mvc::prepareOpenSubset($data);
+                break;
+            case $mvc::ACTION_DOWNLOAD:
+                $mvc->currentTab = 'Сваляния';
+                $mvc::prepareDownloadSubset($data);
                 break;
             default:
                 expect(FALSE);
@@ -828,6 +937,67 @@ class log_Documents extends core_Manager
             
             $row->ROW_ATTR['class'] .= ' ' . (empty($row->seenOnTime) ? 'state-closed' : 'state-active');
         }
+    }
+    
+    
+    /**
+     * Подготвяме подмножеството на свалените файлове
+     * 
+     * @param object $data
+     */
+    static function prepareDownloadSubset(&$data)
+    {
+        // Всички записи
+        $recs = $data->recs;
+        
+        // Ако няма записи не се изпълнява
+        if (empty($data->recs)) {
+            
+            return;
+        }
+        
+        $download = static::ACTION_DOWNLOAD;
+        $rows = array();
+        
+        // Обхождаме записите
+        foreach ($recs as $id=>$rec) {
+            
+            // Ако няма зададени действия пррскачаме
+            if (count($rec->data->{$download}) == 0) {
+                
+                continue;
+            }
+            
+            // Обхождаме всички сваляния
+            foreach ($rec->data->{$download} as $fh => $downData) {
+                foreach ($downData as $downData2) {
+                    // СЪздаваме обект със запсиите
+                    $nRec = (object)array(
+                        'seenOnTime' => $downData2['seenOnTime'],
+                        'seenFrom' => $downData2['seenFrom'],
+                        'seenFromIp' => $downData2['ip'],
+                    );
+                    
+                    // Вземаме вербалните стойности
+                    $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
+                    
+                    // Превръщаме манипулатора, в линк за сваляне
+                    $row->fileHnd = fileman_Download::getDownloadLink($fh);
+                    
+                    // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
+                    $row->seenFromIp = $row->seenFrom ? $row->seenFrom : $row->seenFromIp;
+                    
+                    // Записваме в масив данните, с ключ датата
+                    $rows[$nRec->seenOnTime] = $row;    
+                }
+            }
+        }
+        
+        // Подреждаме масива
+        ksort($rows);
+        
+        // Променяме всички вербални данни, да показват откритите от нас
+        $data->rows = $rows;
     }
     
     
@@ -1133,7 +1303,7 @@ class log_Documents extends core_Manager
             $rec = static::fetch(array("#mid = '[#1#]'", $mid));
             
             // Ако екшъна е един от посочените, връщаме FALSE
-            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
+            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD))) {
                 
                 return FALSE;
             }
