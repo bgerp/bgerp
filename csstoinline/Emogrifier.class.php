@@ -49,8 +49,9 @@ class csstoinline_Emogrifier extends core_Manager
         // Създаваме инстанция
         $Emogrifier = new Emogrifier($html, $css);
         
+        // Създава проблеми при енкодинга на някои файлове
         // Запазваме енкодинга
-        $Emogrifier->preserveEncoding = TRUE;
+//        $Emogrifier->preserveEncoding = TRUE;
         
         //Вкарва CSS във html, като inline
         $processedHTML = @$Emogrifier->emogrify();
