@@ -557,11 +557,11 @@ table.mc-calendar td.mc-sunday {
 }
 
 table.mc-calendar td.mc-holiday {
-	color:green;
+	color:red !important;
 }
 
 table.mc-calendar td.mc-saturday {
-	color:blue;
+	color:#006030;
 }
 
 
