@@ -42,7 +42,7 @@ class fileman_DialogWrapper extends core_Plugin
             
             $this->info = $Buckets->getAddFileInfo($bucketId);
             
-            $tpl->prepend("<h4>{$this->info->title}</h4>");
+            $tpl->prepend("<button onclick='javascript:window.close();' style='float:right;font-size:0.8em;;'>x</button><b>{$this->info->title}</b>");
 
             $tpl->append("<ul><small><li>" . tr('Макс. размер') . ": {$this->info->maxFileSize}</li></small>");
             
@@ -95,6 +95,7 @@ class fileman_DialogWrapper extends core_Plugin
             .empty { background-image:url('" . sbf('img/16/new.png', '') . "');}
 
             </style>");
+
             return TRUE;
         }
     }
