@@ -770,6 +770,10 @@ ul.history .action.open b {
 	color: #333;
 }
 
+ul.history .action.download b {
+    background-color:purple;
+}
+
 ul.history .action.pdf b {
     background-color:#888;
 	color: #fff;
