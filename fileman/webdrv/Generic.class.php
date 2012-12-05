@@ -354,7 +354,7 @@ class fileman_webdrv_Generic extends core_Manager
         $contentInfo .= $createdText . "\n";
         
         // Добавяме в текста
-        $content = $contentInfo . $content;
+        $content = $contentInfo . core_Type::escape($content);
         
         // Връщаме съдържанието
         return $content;
