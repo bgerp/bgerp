@@ -378,9 +378,7 @@ class acc_Journal extends core_Master
             );
         }
         
-        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
-        
-        $docClass->rejectTransaction($docId);
+        $mvc->reject($docId);
         
         return new Redirect(array($mvc, 'single', $docId));
     }

@@ -370,21 +370,7 @@ class acc_Articles extends core_Master
         $rec = self::fetch($id, 'id,state,valior');
         
         if ($rec) {
-            if ($rec->state == 'draft') {
-                // Записа не е контиран
-                return self::delete($id);
-            } elseif($rec->state == 'active') {
-                
-                $periodRec = acc_Periods::fetchByDate($rec->valior);
-                
-                if($periodRec->state == 'closed') {
-                    $rec->state = 'revert';
-                } else {
-                    $rec->state = 'rejected';
-                }
-                
-                self::save($rec);
-            }
+            static::reject($id);
         }
     }
     
