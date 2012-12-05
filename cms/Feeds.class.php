@@ -171,12 +171,21 @@ class cms_Feeds extends core_Manager {
 	{
 		$fields = $this->selectFields("");
 		$fields['-feeds'] = TRUE;
+		$tableName = static::instance()->dbTableName;
 		
-		// Попълваме вътрешните и вербалните записи
-		while($rec = $data->query->fetch()) {
-			$data->recs[$rec->id] = $rec;
-			$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
-		}
+		// Проверка дали съществува таблица на модела
+		if(static::instance()->db->tableExists($tableName)) {
+			
+			// Попълваме вътрешните и вербалните записи
+			while($rec = $data->query->fetch()) {
+				$data->recs[$rec->id] = $rec;
+				$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+			}
+		} else {
+			$msg = new stdClass();
+			$msg->title = tr('Има проблем при генерирането на емисиите');
+			$data->rows[] = $msg;
+		} 
 	}
 	
 	
@@ -192,12 +201,13 @@ class cms_Feeds extends core_Manager {
 		$layout->append(tr('Нашите емисии'), 'HEADER');
 		$icon = ht::createElement('img', array('src' => sbf("cms/img/rss_icon_glass32.PNG", ""), 'style' => 'float:left;;'));
 		$layout->append($icon, 'ICON');
-		
-		foreach($data->rows as $row) {
-			$feedTpl = $layout->getBlock('ROW');
-			$feedTpl->placeObject($row);
-			$feedTpl->removeBlocks();
-			$feedTpl->append2master();
+		if(count($data->rows) > 0) {
+			foreach($data->rows as $row) {
+				$feedTpl = $layout->getBlock('ROW');
+				$feedTpl->placeObject($row);
+				$feedTpl->removeBlocks();
+				$feedTpl->append2master();
+			}
 		}
 		
 		return $layout;
@@ -237,21 +247,24 @@ class cms_Feeds extends core_Manager {
 		// Заявка за работа с модела 
         $feedQuery = static::getQuery();
         
-        while($feed = $feedQuery->fetch()) {
-       		
-       		// Адрес на хранилката
-       		$url = toUrl(array('cms_Feeds', 'get', $feed->id), 'absolute');
-       		
-       		// Взависимост от типа на хранилката определяме типа на хедъра
-       		if($feed->type != 'atom') {
-       			$type = 'application/rss+xml';
-       		} else {
-       			$type = 'application/atom+xml';
-       		}
-       		
-       		// Натрупваме генерираният хедър в шаблона
-       		$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
-       	}
+        $tableName = static::instance()->dbTableName;
+        if(static::instance()->db->tableExists($tableName)) {
+	        while($feed = $feedQuery->fetch()) {
+	       		
+	       		// Адрес на хранилката
+	       		$url = toUrl(array('cms_Feeds', 'get', $feed->id), 'absolute');
+	       		
+	       		// Взависимост от типа на хранилката определяме типа на хедъра
+	       		if($feed->type != 'atom') {
+	       			$type = 'application/rss+xml';
+	       		} else {
+	       			$type = 'application/atom+xml';
+	       		}
+	       		
+	       		// Натрупваме генерираният хедър в шаблона
+	       		$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
+	       	}
+        }
 
        	return $tpl;
 	}
