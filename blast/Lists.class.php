@@ -254,6 +254,8 @@ class blast_Lists extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
+        $row->recTitle = $rec->title;
+        
         return $row;
     }
 

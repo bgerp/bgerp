@@ -412,6 +412,8 @@ class acc_Articles extends core_Master
         
         $row->status = $this->getVerbal($rec, 'totalAmount');
         
+        $row->recTitle = $rec->reason;
+        
         return $row;
     }
 }

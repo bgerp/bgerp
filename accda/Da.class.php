@@ -164,6 +164,7 @@ class accda_Da extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->authorId = $rec->createdBy;
+        $row->recTitle = $rec->title;
         
         return $row;
     }

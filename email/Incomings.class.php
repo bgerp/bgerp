@@ -863,6 +863,8 @@ class email_Incomings extends core_Master
         
         $row->state = $rec->state;
         
+        $row->recTitle = $rec->subject;
+        
         return $row;
     }
     

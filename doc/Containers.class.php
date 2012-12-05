@@ -382,7 +382,7 @@ class doc_Containers extends core_Manager
                 // Подготвяме няколко стринга, за употреба по-после
                 $docSingleTitle = mb_strtolower($docMvc->singleTitle);  
                 $docHnd = $docMvc->getHandle($rec->docId);
-                $threadTitle = str::limitLen(doc_Threads::getThreadTitle($rec->threadId), 90);
+                $threadTitle = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, FALSE), 90);
                 $nick = core_Users::getCurrent('nick');
                 $nick = str_replace(array('_', '.'), array(' ', ' '), $nick);
                 $nick = mb_convert_case($nick, MB_CASE_TITLE, 'UTF-8');

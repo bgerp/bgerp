@@ -1058,14 +1058,23 @@ class doc_Threads extends core_Manager
     
     /**
      * Връща титлата на нишката, която е заглавието на първия документ в нишката
+     * 
+     * @param integer $id
+     * @param boolean $verbal - Дали да се върне вербалната стойност
      */
-    static function getThreadTitle($id)
+    static function getThreadTitle($id, $verbal=TRUE)
     {
         $rec = self::fetch($id);
         $document = doc_Containers::getDocument($rec->firstContainerId);
         $docRow = $document->getDocumentRow();
         
-        return $docRow->title;
+        if ($verbal) {
+            $title = $docRow->title;
+        } else {
+            $title = $docRow->recTitle;
+        }
+        
+        return $title;
     }
     
     /**

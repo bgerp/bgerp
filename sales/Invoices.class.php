@@ -630,6 +630,8 @@ class sales_Invoices extends core_Master
         
         $row->state = $rec->state;
         
+        $row->recTitle = $row->title;
+        
         return $row;
     }
     
