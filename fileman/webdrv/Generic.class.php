@@ -320,16 +320,6 @@ class fileman_webdrv_Generic extends core_Manager
         // Типа на файла
         $type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($fRec->name));
         
-//        // Ако има тип
-//        if ($type) {
-//            
-//            // Типа за показване
-//            $typeText = tr("|Тип|*: {$type}");    
-//            
-//            // Добавяме към съдържанието на инфо
-//            $contentInfo .= $typeText . "\n";
-//        }
-        
         // Вербалния размер на файла
         $size = fileman_Data::getFileSize($fRec->dataId);
         
