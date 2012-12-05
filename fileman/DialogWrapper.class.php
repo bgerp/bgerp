@@ -42,13 +42,13 @@ class fileman_DialogWrapper extends core_Plugin
             
             $this->info = $Buckets->getAddFileInfo($bucketId);
             
-            $tpl->prepend("<center><h3>{$this->info->title}</h3></center>");
+            $tpl->prepend("<button onclick='javascript:window.close();' style='float:right;font-size:0.8em;;'>x</button><b>{$this->info->title}</b>");
 
-            $tpl->append("<small><li>" . tr('Макс. размер') . ": {$this->info->maxFileSize}</small>");
+            $tpl->append("<ul><small><li>" . tr('Макс. размер') . ": {$this->info->maxFileSize}</li></small>");
             
             if(!$this->info->extensions) $this->info->extensions = '* (' . tr('всички') . ')';
             
-            $tpl->append("<small><li>" . tr('Разширения') . ": {$this->info->extensions}</small>");
+            $tpl->append("<small><li>" . tr('Разширения') . ": {$this->info->extensions}</li></small></ul>");
             if($this->info->accept) {
                 $tpl->replace("accept=\"{$this->info->accept}\"", 'ACCEPT');
             }
@@ -95,6 +95,7 @@ class fileman_DialogWrapper extends core_Plugin
             .empty { background-image:url('" . sbf('img/16/new.png', '') . "');}
 
             </style>");
+
             return TRUE;
         }
     }

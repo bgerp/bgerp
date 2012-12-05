@@ -77,10 +77,10 @@ class fileman_Upload extends core_Manager {
             
             // Ако има грешки, показваме ги в прозореца за качване
             if(count($err)) {
-                $add = new ET("<div style='border:dotted 1px red; background-color:#ffc;'><ul>[#ERR#]</ul></div>");
+                $add = new ET("<div style='margin-top:5px; border:solid 1px red; background-color:#ffc;'><ul>[#ERR#]</ul></div>");
                 
                 foreach($err as $e) {
-                    $add->append("<li>" . tr($e), 'ERR');
+                    $add->append("<li>" . tr($e) . "</li>", 'ERR');
                 }
             }
         }
