@@ -573,7 +573,7 @@ class fileman_Download extends core_Manager {
         $fileName = fileman_Files::getVerbal($fRec, 'name');
         
         // Добавяме титлата на формата
-        $form->title = tr("Генериране на линк за {$fileName}");
+        $form->title = "Генериране на линк за|* {$fileName}";
         
         return $this->renderWrapping($form->renderHtml());
     }

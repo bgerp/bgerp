@@ -592,8 +592,150 @@ class fileman_Files extends core_Master
         // Вербалното име на файла
         $row->fileName = "<span class='linkWithIcon' style='margin-left:-15px;background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
         
+        // Иконата за редактиране     
+        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
+            
+        // URL' то където ще препрати линка
+        $editUrl = array(
+            $mvc,
+            'editFile',
+            'id' => $rec->fileHnd,
+            'ret_url' => TRUE
+        );
+            
+        // Създаваме линка
+        $editLink = ht::createLink($editImg, $editUrl);
+        
+        // Добавяме линка след името на файла
+        $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
+        
         // Версиите на файла
 //        $row->versions = static::getFileVersionsString($rec->id);
+    }
+    
+    
+    /**
+     * Екшън за редактиране на файл
+     */
+    function act_EditFile()
+    {
+        // Проверяваме дали екшъна е субмитнат
+        if (Request::get('Cmd')) {
+            
+            // id' то на записа
+            $id = Request::get('id', 'int');
+            
+            // Очакваме да има id
+            expect($id);
+            
+            // Вземаме записите за файла
+            $fRec = fileman_Files::fetch($id);
+        } else {
+            
+            // Манипулатора на файла
+            $fh = Request::get('id');
+    
+            // Очакваме да има подаден манипулатор на файла
+            expect($fh, 'Липсва манупулатора на файла');
+            
+            // Ескейпваме манипулатора
+            $fh = $this->db->escape($fh);
+    
+            // Записа за съответния файл
+            $fRec = fileman_Files::fetchByFh($fh);
+            
+            // Задаваме id' то да сочи id' то на записа
+            Request::push(array('id' => $fRec->id));
+        }
+        
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+        
+        // Проверяваме за права
+        $this->requireRightFor('single', $fRec);
+        
+        //URL' то където ще се редиректва при отказ
+        $retUrl = getRetUrl();
+        $retUrl = ($retUrl) ? ($retUrl) : (array('fileman_Files', 'single', $fRec->fileHnd));
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        $form->input('name');
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
+
+            // Предишното име на файла
+            $oldFileName = $fRec->name;
+            
+            // Вземаме новото име на файла
+            $newFileName = $form->rec->name;
+            
+            // Ако сме редактирали името
+            if ($newFileName != $oldFileName) {
+                
+                // Вземамем новото възможно име
+                $newFileName = $this->getPossibleName($newFileName, $fRec->bucketId);
+                
+                // Записа, който ще запишем
+                $nRec = new stdClass();
+                $nRec->id = $fRec->id;
+                $nRec->name = $newFileName;
+                $nRec->fileHnd = $fRec->fileHnd;
+
+                // Вземаме разширението на новия файл
+                $newExt = fileman_Files::getExt($newFileName);
+                
+                // Вземаме разширението на стария файл
+                $oldExt = fileman_Files::getExt($oldFileName);
+                
+                // Ако няма проблем при записването
+                if (static::save($nRec) && ($newExt != $oldExt)) {
+                    
+                    // Изтриваме всички предишни индекси за файла
+                    fileman_Indexes::deleteIndexesForData($fRec->dataId);
+
+                    // Ако има разширение
+                    if ($newExt) {
+                        
+                        // Вземаме драйверите
+                        $drivers = fileman_Indexes::getDriver('pdf');    
+                        
+                        // Обикаляме всички открити драйвери
+                        foreach($drivers as $drv) {
+                            
+                            // Стартираме процеса за извличане на данни
+                            $drv->startProcessing($fRec);
+                        }
+                    }    
+                }
+            }
+
+            // Редиректваме
+            Redirect($retUrl);
+        }
+        
+        // Задаваме по подразбиране да е текущото име на файла
+        $form->setDefault('name', $fRec->name);
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'name';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+
+        // Вербалното име на файла
+        $fileName = fileman_Files::getVerbal($fRec, 'name');
+        
+        // Добавяме титлата на формата
+        $form->title = "Редактиране на файл|*:  {$fileName}";
+        
+        return $this->renderWrapping($form->renderHtml());
     }
     
     

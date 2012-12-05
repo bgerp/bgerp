@@ -21,6 +21,9 @@ class fileman_SetExtensionPlg extends core_Plugin
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
+        // Ако редактираме файла, да не сработва
+        if ($rec->id) return ;
+        
         $fileHnd = $rec->fileHnd;
         $name = $rec->name;
         $bucket = $rec->bucketId;

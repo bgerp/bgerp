@@ -426,4 +426,16 @@ class fileman_Indexes extends core_Manager
     {
         core_Logs::log(tr("|Възникна грешка при обработката на файла с данни|* {$dataId} |в тип|* {$type}"));
     }
+    
+    
+    /**
+     * Изтрива индекса за съответните данни
+     * 
+     * @param fileman_Data $dataId - id' то на данните
+     */
+    static function deleteIndexesForData($dataId)
+    {
+        // Изтриваме всички записи със съответното dataId
+        fileman_Indexes::delete(array("#dataId = [#1#]", $dataId));
+    }
  }
