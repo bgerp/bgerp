@@ -1316,19 +1316,23 @@ class email_Outgoings extends core_Master
                     new type_Key(array('mvc' => 'crm_Companies', 'select' => 'name', 'where' => $companiesWhere, 'allowEmpty' => TRUE)),
                     'input=input,silent,caption=Папка->Фирма');
                     
-        $form->FNC('userEmail', 'email', 'input=input,silent,caption=Папка->Имейл');
+        $form->FNC('userEmail', 'email', 'input=input,silent,caption=Имейл->Адрес');
 
         $form->input();
-        
-        // Ако формата е субмитната
-        if ($form->isSubmitted()) {
-            
+
+        // Проверка за грешки
+        if($form->isSubmitted()) {
             // Намира броя на избраните
             $count = (int)isset($form->rec->personId) + (int)isset($form->rec->companyId) + (int)isset($form->rec->userEmail);
             
-            // Трябва да се избере само едното поле
-            expect($count == 1, 'Трябва да изберете една от трите възможности.');
-            
+            if($count != 1) {
+                $form->setError('#', 'Трябва да изберете само една от трите възможности');
+            } 
+        }
+        
+        // Ако формата е субмитната
+        if ($form->isSubmitted()) {
+                        
             // Ако сме избрали потребител
             if (isset($form->rec->personId)) {
                 
