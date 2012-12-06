@@ -265,15 +265,7 @@ ini_set('zlib.output_compression', 'Off');
 /**
  * Стартира Setup, ако се изисква
  */
-if (isset($_GET['SETUP']) && $_GET['SETUP'] == BGERP_SETUP_KEY) {
-    require_once(EF_EF_PATH . "/core/SetupM.inc.php");
-    die;    
-}
-
-/**
- * Стартира Setup, ако се изисква
- */
-if (isset($_GET['SETUPM'])) {
+if (isset($_GET['SetupKey'])) {
     require_once(EF_EF_PATH . "/core/SetupM.inc.php");
 }
 
