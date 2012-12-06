@@ -45,6 +45,7 @@ class page_Html extends core_ET {
             (Mode::is('screenMode', 'narrow') ? " class=\"narrow\"" : "") . ">" .
             "<!--ET_BEGIN PAGE_CONTENT-->[#PAGE_CONTENT#]<!--ET_END PAGE_CONTENT-->" .
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
+            "<!--ET_BEGIN BROWSER_DETECT-->[#BROWSER_DETECT#]<!--ET_END BROWSER_DETECT-->" .
             "\n</body>" .
             "\n</html>");
     }
