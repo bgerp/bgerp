@@ -145,6 +145,9 @@ class fileman_Files extends core_Master
         // Задаваме id' то на файла да е самото id, а не манупулатора на файла
         Request::push(array('id' => $fRec->id));
         
+        // Заглавието на таба
+        $this->title = static::getVerbal($fRec, 'name');
+        
         return parent::act_Single();
     }
     
