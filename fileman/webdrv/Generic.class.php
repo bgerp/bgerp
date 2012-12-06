@@ -37,25 +37,6 @@ class fileman_webdrv_Generic extends core_Manager
 				'order' => 9,
 			);
         
-		try {
-		    
-		    // Опитваме се да вземем, документите, в които се използва файла
-		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec);    
-		} catch (Exception $e) {
-		}
-		
-	    // Ако сме намерили някой файлове, където се използва
-        if ($documentWithFile) {
-
-            // Показва в кои документи се използва файла
-            $tabsArr['filesindoc'] = (object) 
-    			array(
-    				'title'   => 'Документи',
-    				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Документи, в които се използва</legend>{$documentWithFile}</fieldset></div>",
-    				'order' => 8,
-    			);    
-        }
-        
         return $tabsArr;
     }
     
@@ -315,6 +296,19 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Добавяме към съдържанието на инфо
             $contentInfo = $linkText . "\n";
+        }
+        
+        try {
+		    
+		    // Опитваме се да вземем, документите, в които се използва файла
+		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec);    
+		} catch (Exception $e) {}
+		
+		// Ако сме намерили някой файлове, където се използва
+        if ($documentWithFile) {
+            
+            // Добавяме към съдържанието на инфото
+            $contentInfo .= $documentWithFile . "\n";    
         }
         
         // Типа на файла
