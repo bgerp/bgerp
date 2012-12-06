@@ -1,4 +1,4 @@
-.calWeek {
+#calWeek {
 	
 	
 }
@@ -15,7 +15,13 @@ a.calWeek{
 	font-size: 12px;
 	font: small Arial,sans-serif;
 	white-space: nowrap;
-	max-width:120px;
+	max-width:100px;
+}
+
+img.calWeek{
+	float: right;
+	position: absolute;
+	display:none;
 	
 }
 
@@ -31,11 +37,8 @@ p{
     font-size: 12px;
 	color: #1d1d1d;
 	white-space: nowrap;
-	max-width:120px;
+	max-width:100px;
 	overflow:hidden;
-	
-	
-	
 }
 
 td.calMonth {
@@ -63,14 +66,12 @@ table.mc-calendar td.mc-day {
 	cursor: pointer;
 	font-family:Arial,sans-serif;
 	height: 80px;
-	
-	
+
 }
 
 table.mc-calendar td.mc-week-nb {
  	border:none;
  	padding:0px;
-	
 }
 
 table.mc-calendar td.mc-wd-name {

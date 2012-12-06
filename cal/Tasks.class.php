@@ -143,7 +143,7 @@ class cal_Tasks extends core_Master
         $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Отговорници,mandatory');
         
         // Начало на задачата
-        $this->FLD('timeStart', 'datetime', 'caption=Времена->Начало');
+        $this->FLD('timeStart', 'datetime', 'caption=Времена->Начало, silent');
         
         // Продължителност на задачата
         $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност');

@@ -203,7 +203,11 @@ class cal_Calendar extends core_Master
     
     function on_AfterRenderWrapping($mvc, &$tpl)
     {
+    	jquery_Jquery::enable($tpl);
+    	
     	$tpl->push('cal/tpl/style.css', 'CSS');
+    	$tpl->push('cal/js/mouseEvent.js', 'JS');
+    	
     }
     
     
@@ -316,8 +320,7 @@ class cal_Calendar extends core_Master
                     
                     // URL към което сочи деня
                     $url = $data[$d]->url;
-                   // $url = str_replace("bgerp", "", $url);
-///bp($url);
+                 
                     // Съдържание на клетката, освен датата
                     $content = $data[$d]->html;
 
@@ -614,10 +617,14 @@ class cal_Calendar extends core_Master
     		
     		//Проверяваме дали събитието не започва на различен от кръгал час и показваме реалния му час
     		if (dt::mysql2verbal($rec->time, 'i') != "00"){
-    			$dayData[$hourKey][$dayKey] .=  ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 20), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)) . "&nbsp;&nbsp;&nbsp;" . "<a href='/cal_Tasks/edit/$id'><img src=" . sbf('img/16/edit-icon.png') . "align='right' ></a>";
+    			$dayData[$hourKey][$dayKey] .= "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'>". 
+    			 								ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 13), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)) .
+    			 								"<a href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png') . " ></a></div>";
     			
     		} elseif($hourKey != "allDay") { 
-    			$dayData[$hourKey][$dayKey] .= ht::createLink(str::limitLen($rec->title, 20), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)) . "&nbsp;&nbsp;&nbsp;" . "<a href='/cal_Tasks/edit/$id'><img src=" . sbf('img/16/edit-icon.png') . " align='right' ></a>";
+    			$dayData[$hourKey][$dayKey] .= "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'>".
+    											ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)) .
+    											"<a href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png') . "></a></div>";
     		} else {
     			$dayData[$hourKey][$dayKey] .= ht::createLink("<p>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('class' => 'calWeek', 'title' => $rec->title));
     			
@@ -660,6 +667,8 @@ class cal_Calendar extends core_Master
     		if($h === 'allDay' || ($h >= $tr && $h <= $tk)){
     		$hourArr = $dayData[$h];
     		$hourArr['time'] = $t;
+    		$hourArr['timeJs'] = $h;
+    		$hourArr['dateJs'] = $from;
  
     		$cTpl = $tpl->getBlock("COMMENT_LI");
     		$cTpl->placeArray($hourArr);
@@ -716,8 +725,9 @@ class cal_Calendar extends core_Master
         for($i = 0; $i < 7; $i++){
         	$days[$i] = dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'l d-m-Y');
         	$dates[date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year))] = "d" . $i;
+        	$dateJs["date".$i."Js"] = date("d-m-Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
         }
-         
+//        bp($dates, $days, $dateJs);
         $fromDate = date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day - 3, $year));
         $toDate = date("Y-m-d 23:59:59", mktime(0, 0, 0, $month, $day + 3, $year));
               
@@ -739,18 +749,23 @@ class cal_Calendar extends core_Master
     		
     		//Помощен масив за определяне на най-ранното и най-късното събитие
     		if($hourKey !== "allDay"){
-    		$minMax[] = $hourKey;
+    			$minMax[] = $hourKey;
     		}
     		
     		$url = getRetUrl($rec->url);
     		$id = substr(strrchr($rec->url, "/"),1);
+    		
     		$color = array_pop($colors);
     		
         	if (dt::mysql2verbal($rec->time, 'i') != "00"){
-    			$weekData[$hourKey][$dayKey] .= ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 13), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)). "&nbsp;&nbsp;&nbsp;" . "<a href='/cal_Tasks/edit/$id'><img src=" . sbf('img/16/edit-icon.png' ) . " align='right' ></a>";
+    			$weekData[$hourKey][$dayKey] .= "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'>".
+    											ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 13), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)).
+    											"<a href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png' ) . "></a></div>";
     			
     		} elseif($hourKey != "allDay") { 
-    			$weekData[$hourKey][$dayKey] .= ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)). "&nbsp;&nbsp;&nbsp;" . "<a href='/cal_Tasks/edit/$id'><img src=" . sbf('img/16/edit-icon.png') .  "align='right' ></a>";
+    			$weekData[$hourKey][$dayKey] .= "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'>".
+    											ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title)).
+    											"<a href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png') .  "></a></div>";
     		} else {
     			$weekData[$hourKey][$dayKey] .= ht::createLink("<p>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('class' => 'calWeek', 'title' => $rec->title));
     			
@@ -790,19 +805,25 @@ class cal_Calendar extends core_Master
     	
     	//Рендираме масива с дните
     	$tpl->placeArray($days);
-    	
+    	$tpl->placeArray($dateJs);
+    	//bp($days, $dates);
+    	    	
    		foreach($hours as $h => $t){
+   			
    			if($h === 'allDay' || ($h >= $tr && $h <= $tk)){
     		$hourArr = $weekData[$h];
     		$hourArr['time'] = $t;
-    		  			
+    		$hourArr['timeJs'] = $h;
+    			
+    		$link = "/cal_Tasks/add";
     		$cTpl = $tpl->getBlock("COMMENT_LI");
     		$cTpl->placeArray($hourArr);
+    		$cTpl->replace($link, 'url');
+    
     		$cTpl->append2master();
    			}
    		}
-   		    
-        //$tpl->push('cal/tpl/style.css', 'CSS');
+   		
         return $this->renderWrapping($tpl);
     }
 
