@@ -51,7 +51,7 @@ class page_InternalFooter extends core_ET {
             
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('core_Browser');
-            $this->append($Browser->renderBrowserDetectingCode());
+            $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
 
             // Добавяме превключване между езиците
             $langArr = arr::make(EF_LANGUAGES, TRUE);
