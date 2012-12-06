@@ -200,8 +200,8 @@ if($step == 1) {
 if($step == 2) {
 
  
-    // Ако GIT - а открие променени файлове, трябва да се изведат следните съобщения 
-    // 1. В системата има променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
+    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения 
+    // 1. В системата има локално променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
     // 2. Продължете, без да възстановявате променените файлове (отива на следваща стъпка)
 
     // Ако GIT-а открие по-нова версия на bgERP, трябва да се изведат следните съобщения:
@@ -472,35 +472,65 @@ function linksToHtml($links)
  */
 function gitHasNewVersion($repoPath, &$log)
 {
-    if(rand(1,10) > 5) {
-        $repoName = basename($repoPath);
+	$repoName = basename($repoPath);
+	$command = "git --git-dir={$repoPath}/.git remote show origin";
+
+	exec($command, $arrRes, $returnVar);
+	
+	// В последния ред на резултата се намира индикацията на промени
+	$lastKey = key(array_slice( $arrRes, -1, 1, TRUE ));
+	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");
+	
+	if($hasNewVersion !== FALSE) {
         $log[] = "new:Има нова версия на  [<b>$repoName</b>]";
+        
         return TRUE;
     }
 }
 
 
 /**
- * Дали има по-нова версия на това репозитори?
+ * Дали има промени в локалното копие?
  */
 function gitHasChanges($repoPath, &$log)
 {
-    if(rand(1,10) > 8) {
-        $log[] = "wrn:Модифициран файл: <b>`somefile.class.php`</b>";
+	
+	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} status -s";
 
-        return TRUE;
-    }
+	exec($command, $arrRes, $returnVar);
+	
+	$states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
+	if (!empty($arrRes)) {
+	    foreach ($arrRes as $row) {
+	        $row = trim($row);
+	        $arr = split(" ", $row);
+	        $log[] = "wrn:" . $states[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
+	    }
+    	return TRUE;
+	}
 }
 
 
 /**
- * Синхронизира с последната версия на мастер-баранча
+ * Синхронизира с последната версия на мастер-бранча
  */
 function gitPullRepo($repoPath, &$log)
 {
-    sleep(1);
-    $repoName = basename($repoPath);
-    $log[] = "new:Репозиторито <b>[{$repoName}]</b> е обновено";
+	$repoName = basename($repoPath);
+	
+	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} pull origin master";
+
+	exec($command, $arrRes, $returnVar);
+	
+	$success = array("Alredy up-to-date.", "Fast-forward");
+	
+	foreach ($success as $needle) {
+		if (array_search($needle, $arrRes) !== FALSE) {
+			$log[] = "new:Репозиторито <b>[{$repoName}]</b> е обновено";
+			
+			return TRUE;
+		}
+	}
 }
 
 
@@ -509,8 +539,12 @@ function gitPullRepo($repoPath, &$log)
  */
 function gitRevertRepo($repoPath, &$log)
 {
-    sleep(1);
+    $command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} reset --hard origin/master";
+    
+    exec($command, $arrRes, $returnVar);
+    
     $repoName = basename($repoPath);
+    
     $log[] = "msg:Репозиторито <b>[{$repoName}]</b> е възстановено";
 }
 
