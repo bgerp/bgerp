@@ -455,7 +455,7 @@ class cat_Products extends core_Master {
             $result = (object)array(
                 'num' => $rec->code,
                 'title' => $rec->name,
-                'uomId' => $rec->unitId,
+                'uomId' => $rec->measureId,
                 'features' => 'foobar' // @todo!
             );
         }

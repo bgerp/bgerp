@@ -518,12 +518,12 @@ class blast_Emails extends core_Master
         $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
         
         // Добавяме титлата на формата
-        $form->title = tr("Стартиране на масово разпращане");
+        $form->title = "Стартиране на масово разпращане";
         $subject = $this->getVerbal($rec, 'subject');
         $date = dt::mysql2verbal($rec->createdOn);
         
         // Добавяме във формата информация, за да знаем за кое писмо става дума
-        $form->info = new ET ('[#1#]', tr("|*<b>|Писмо<i style='color:blue'>|*: {$subject} / {$date}</i></b>"));
+        $form->info = new ET ('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
 
         //Данните на имейла
         $emailRec = blast_Emails::fetch($form->rec->id);
@@ -1330,6 +1330,8 @@ class blast_Emails extends core_Master
         
         //id на създателя
         $row->authorId = $rec->createdBy;
+        
+        $row->recTitle = $rec->subject;
         
         return $row;
     }

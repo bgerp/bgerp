@@ -1104,6 +1104,7 @@ class email_Outgoings extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->authorId = $rec->createdBy;
         $row->state = $rec->state;
+        $row->recTitle = $rec->subject;
         
         return $row;
     }

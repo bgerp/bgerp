@@ -274,9 +274,8 @@ class acc_Items extends core_Manager
             }
             
             if (!$rec->id) {
-                $regRec     = $register->getItemRec($rec->objectId);
-                $rec->num   = $regRec->num;
-                $rec->title = $regRec->title;
+                // Попълва полетата на $rec с данни извлечени от съотв. регистър
+                static::syncItemRec($rec, $register, $rec->objectId);
                 
                 $mvc::on_CalcNumTitleLink($mvc, $rec);
             }
@@ -545,10 +544,7 @@ class acc_Items extends core_Manager
         if ($itemRec = static::fetchItem($classId, $objectId)) {
             $register = core_Cls::getInterface('acc_RegisterIntf', $master);
             
-            $r = $register->getItemRec($objectId);
-            
-            $itemRec->num   = $r->num; 
-            $itemRec->title = $r->title;
+            static::syncItemRec($itemRec, $register, $itemRec->objectId);
             
             if (!empty($master->autoList)) {
                 // Автоматично добавяне към номенклатурата $autoList
@@ -557,6 +553,26 @@ class acc_Items extends core_Manager
             }
             
             static::save($itemRec);
+        }
+    }
+    
+    
+    /**
+     * Синхронизира запис-перо с автентични данни извлечени от регистъра.
+     * 
+     * @param acc_RegisterIntf $register
+     * @param int $objectId
+     * @param stdClass $itemRec
+     */
+    public static function syncItemRec(&$itemRec, $register, $objectId)
+    {
+        $regRec = $register->getItemRec($objectId);
+        
+        if ($regRec) {
+            $itemRec->num      = $regRec->num; 
+            $itemRec->title    = $regRec->title;
+            $itemRec->uomId    = $regRec->uomId;
+            $itemRec->features = $regRec->features;
         }
     }
 }

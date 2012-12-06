@@ -319,6 +319,7 @@ class cash_Pko extends core_Master
         $row->title = $rec->reason;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->recTitle = $rec->reason;
         
         return $row;
     }
