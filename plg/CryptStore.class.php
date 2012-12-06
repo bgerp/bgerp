@@ -19,7 +19,7 @@ class plg_CryptStore extends core_Plugin
     /**
      * Изпълнява се преди записване на $rec
      */
-    function on_BeforeSave($mvc, &$res, $rec)
+    function on_BeforeSave($mvc, &$res, &$rec, $fields = NULL, $mode = '')
     {
         $fields = $mvc->selectFields("#crypt");
 
@@ -38,7 +38,7 @@ class plg_CryptStore extends core_Plugin
     /**
      * Изпълнява се след прочитане на $rec
      */
-    function on_AfterRead($mvc,$rec)
+    function on_AfterRead($mvc, &$rec)
     {
         $fields = $mvc->selectFields("#crypt");
 
