@@ -107,10 +107,8 @@ class core_Session {
     {
         if (isset($_COOKIE[session_name()])) {
             $sid = $_COOKIE[session_name()];
-        } elseif(isset($_REQUEST[session_name()])) {
-            $sid = $_REQUEST[session_name()];
         }
-        
+
         if (isset($sid)) {
             
             return $sid;
@@ -214,33 +212,7 @@ class core_Session {
     }
     
     
-    /**
-     * Добавя идентификатора на сесията в query частта на $url, ако това е необходимо.
-     *
-     * @param string $url
-     */
-    static function addSidToUrl($url)
-    {
-        if(is_a($this, 'core_Session')) {
-            $Session = $this;
-        } else {
-            $Session = cls::get('core_Session');
-        }
-        
-        if ($sid = $Session->getSid()) {
-            
-            $name = $Session->getName();
-            
-            if(!isset($_COOKIE[$name])) {
-                // SID-а е не е дошъл от cookie, значи клиента не поддържа cookies,
-                // затова трябва да добавим сесията в URL-то
-                $url = Url::addParams($url, array($name => $sid));
-            }
-        }
-        
-        return $url;
-    }
-    
+     
     
     /**
      * Унищожава сесията (не обекта от клас Session, а файла, съдържащ данните
