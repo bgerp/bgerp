@@ -593,7 +593,7 @@ class fileman_Files extends core_Master
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
 
         // Вербалното име на файла
-        $row->fileName = "<span class='linkWithIcon' style='margin-left:-15px;background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
+        $row->fileName = "<span class='linkWithIcon' style='margin-left:-15px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
         
         // Иконата за редактиране     
         $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
@@ -611,7 +611,23 @@ class fileman_Files extends core_Master
         
         // Добавяме линка след името на файла
         $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
+
+        // Масив с линка към папката и документа на първата достъпна нишка, където се използва файла
+        $pathArr = static::getFirstContainerLinks($rec);
         
+        // Ако има такъв документ
+        if (count($pathArr)) {
+            
+            // Пътя до файла и документа
+            $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . $pathArr['folder']['content'];
+        
+            // TODO името на самия документ, където се среща но става много дълго
+            //$pathArr['container']
+            
+            // Пред името на файла добаваме папката и документа, къде е използван
+            $row->fileName .= $path;    
+        }
+
         // Версиите на файла
 //        $row->versions = static::getFileVersionsString($rec->id);
     }
