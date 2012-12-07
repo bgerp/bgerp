@@ -25,6 +25,10 @@ img.calWeek{
 	
 }
 
+table.listTable td.mc-today {
+	border:solid 2px red;
+}
+
 p{
 	
 	border: 1px solid rgb(159, 198, 231);

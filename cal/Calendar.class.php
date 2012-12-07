@@ -554,6 +554,7 @@ class cal_Calendar extends core_Master
     	
     	$from = Request::get('from');
     	$currentDate = dt::mysql2Verbal($from, 'd F Y, l');
+    	$nowTime = strstr(dt::now(), " ");
     	
     	// Масив с цветове за събитията
     	$colors = array( "#610b7d", 
@@ -671,6 +672,11 @@ class cal_Calendar extends core_Master
     		$hourArr['dateJs'] = $from;
  
     		$cTpl = $tpl->getBlock("COMMENT_LI");
+    		
+    		if($h == $nowTime){
+    			$cTpl->replace('mc-today', 'now');
+    		}
+    		
     		$cTpl->placeArray($hourArr);
     		$cTpl->append2master();
     		}
@@ -689,10 +695,13 @@ class cal_Calendar extends core_Master
     {
         $from = Request::get('from');
         $currentDate = dt::mysql2Verbal($from, 'l d-m-Y');
+       
         
         $day = dt::mysql2Verbal($from, 'd');
         $month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
+        
+        $nowTime = strstr(dt::now(), " ");
         
         // Масив с цветове за събитията
     	$colors = array( "#610b7d", 
@@ -814,11 +823,15 @@ class cal_Calendar extends core_Master
     		$hourArr = $weekData[$h];
     		$hourArr['time'] = $t;
     		$hourArr['timeJs'] = $h;
-    			
-    		$link = "/cal_Tasks/add";
+    	    		
     		$cTpl = $tpl->getBlock("COMMENT_LI");
-    		$cTpl->placeArray($hourArr);
-    		$cTpl->replace($link, 'url');
+   			
+    		if($h == $nowTime){
+    			$cTpl->replace('mc-today', 'now');
+    		}
+    		
+   			$cTpl->placeArray($hourArr);
+    		
     
     		$cTpl->append2master();
    			}

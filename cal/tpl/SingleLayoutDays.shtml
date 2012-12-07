@@ -38,7 +38,7 @@
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr data-cal-time="[#timeJs#]"> 
                      <td class="calWeek" style='width:50px'>[#time#]</td>
-                     <td class="calWeek" data-cal-date="[#dateJs#]">[#tasktitle#]</td>
+                     <td class="[#now#]" data-cal-date="[#dateJs#]">[#tasktitle#]</td>
                      
                  </tr>
                  <!--ET_END COMMENT_LI-->

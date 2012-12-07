@@ -30,7 +30,7 @@
                      <td class="calWeek" data-cal-date="[#date0Js#]">[#d0#]</td>
                      <td class="calWeek" data-cal-date="[#date1Js#]">[#d1#]</td>
                      <td class="calWeek" data-cal-date="[#date2Js#]">[#d2#]</td>
-                     <td class="calWeek" data-cal-date="[#date3Js#]"style='background-color:LightGoldenRodYellow ;'>[#d3#]</td>
+                     <td class="[#now#]" data-cal-date="[#date3Js#]"style='background-color:LightGoldenRodYellow ;'>[#d3#]</td>
                      <td class="calWeek" data-cal-date="[#date4Js#]">[#d4#]</td>
                      <td class="calWeek" data-cal-date="[#date5Js#]">[#d5#]</td>
                      <td class="calWeek" data-cal-date="[#date6Js#]">[#d6#]</td>
