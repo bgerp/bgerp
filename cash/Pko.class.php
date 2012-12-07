@@ -20,7 +20,7 @@ class cash_Pko extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
    
     
     /**
@@ -34,7 +34,7 @@ class cash_Pko extends core_Master
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,
-                     plg_Search, doc_ActivatePlg, doc_plg_MultiPrint, bgerp_plg_Blank';
+                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
     /**
@@ -92,6 +92,14 @@ class cash_Pko extends core_Master
     
     
     /**
+     * Кой може да го контира?
+     */
+    var $canConto = 'acc,admin';
+    
+    var $canRevert = 'cash, ceo';
+    
+    
+    /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'cash, ceo';
@@ -108,10 +116,9 @@ class cash_Pko extends core_Master
      */
     var $searchFields = 'number, date, contragentFolder';
     
-    
-    //Параметри за принтирането
+    // Параметри за принтиране
     var $printParams = array( array('Оригинал'),
-    						  array('Копие'),array('Копие'),);
+    						  array('Копие'),); 
     						  
     /**
      * Описание на модела
@@ -122,8 +129,9 @@ class cash_Pko extends core_Master
     	$this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory');
-    	$this->FLD('contragentFolder', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент->Получател,mandatory,width=100%');
+    	$this->FLD('contragentFolder', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент->Вносител,mandatory,width=100%');
     	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
+    	$this->FLD('peroCase', 'int', 'caption=Каса,input=hidden');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс');
     	$this->FLD('notes', 'richtext(rows=6)', 'caption=Допълнително->Бележки');
@@ -131,9 +139,20 @@ class cash_Pko extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-    	
+    	$this->FNC('isContable', 'int', 'column=none');
+    	 
         // Поставяне на уникален индекс
     	$this->setDbUnique('number');
+    }
+    
+    
+	/**
+     * @todo Чака за документация...
+     */
+    static function on_CalcIsContable($mvc, $rec)
+    {
+        $rec->isContable =
+        ($rec->state == 'draft');
     }
     
     
@@ -145,11 +164,7 @@ class cash_Pko extends core_Master
     	$folderId = $data->form->rec->folderId;
     	
     	// Информацията за контрагента на папката
-    	try {
-    		$contragentData = doc_Folders::getContragentData($folderId);
-    	} catch(Exception $e) {
-    		$contragentData = NULL;
-    	};
+    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
     	
     	if($contragentData) {
     		$data->form->setDefault('contragentFolder', $folderId);
@@ -159,8 +174,7 @@ class cash_Pko extends core_Master
     			// Ако папката е на лице, то вносителя по дефолт е лицето
     			$data->form->setDefault('depositor', $contragentData->name);
     		}
-    		
-    	}
+    	} 
 
     	if($originId = $data->form->rec->originId) {
     		 $doc = doc_Containers::getDocument($originId);
@@ -179,11 +193,11 @@ class cash_Pko extends core_Master
     		$currencyId = currency_Currencies::getIdByCode();
     	}
     	
-    	
     	$today = date("d-m-Y", time());
     	
     	// Поставяме стойности по подразбиране
     	$data->form->setDefault('date', $today);
+    	$data->form->setHidden('peroCase', cash_Cases::getCurrent());
     	$data->form->setDefault('currencyId', $currencyId);
     }
 
@@ -313,6 +327,102 @@ class cash_Pko extends core_Master
     }
     
     
+   	/**
+   	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 */
+    public static function getTransaction($id)
+    {
+       	// Извличаме записа
+        $rec = self::fetch($id);
+        expect($rec);
+        
+        // classId-то на касата
+        $caseClassId = core_Classes::getId('cash_Cases');
+        
+        // classId-то на валутата
+        $currencyClassId = core_Classes::getId('currency_Currencies');
+        
+        // Намираме класа на контрагента
+        $contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $contragentClassId = core_Classes::getId($contragentClass);
+       	
+        // Сметките които ще дебитираме/кредитираме
+       	$debitAcc = acc_Accounts::fetch(array ("#systemId = '[#1#]'", '501'));
+        $creditAcc = acc_Accounts::fetch(array ("#systemId = '[#1#]'", '411'));
+       	
+        // @TODO Проверка дали класа поддържа зададен интерфейс !!!
+        // Перото съответсващо на касата
+        $casePero = acc_Lists::updateItem($caseClassId, $rec->peroCase, 'clients', FALSE);
+        
+        // Перото съответстващо на контрагента
+        $contragentPero =  acc_Lists::updateItem($contragentClassId, $contragentId, 'clients', FALSE);
+        
+        // Перото съответстващо на валутата
+        $peroCurrency = acc_Lists::updateItem($currencyClassId, $rec->currencyId, 'currencies', FALSE);
+        
+        // Курса по който се обменя валутата  на ордера към основната валута за периода
+        // @TODO отделна функция която да изчислява курса от една валута в друга
+        $price = static::recToVerbal($rec, 'rate,-single');
+        $double = cls::get('type_Double');
+        $price = $double->fromVerbal($price->rate);
+        $entrAmount = $price * $rec->amount; 
+        
+        // Подготвяме информацията която ще записваме в Журнала
+        $result = (object)array(
+            'reason' => $rec->reason, // основанието за ордера
+            'valior' => $rec->date,   // датата на ордера
+            'totalAmount' => $entrAmount,
+            'entries' =>array( (object)array(
+                'amount' => $entrAmount,	// равностойноста на сумата в основната валута
+                'debitAccId' => $debitAcc->id, // дебитната сметка
+                'debitEnt1' => $casePero,  // перо каса
+        		'debitEnt2' => $peroCurrency, // перо валута
+                'debitQuantity' => $rec->amount,  // каква е сумата
+                'debitPrice' => $price,	// обменния курс между сумата и основната валута за периода
+                'creditAccId' => $creditAcc->id, // кредитна сметка
+                'creditEnt1' => $contragentPero, // перо контрагент
+                'creditEnt2' => $peroCurrency, // перо валута
+                'creditQuantity' => $rec->amount, // каква е сумата
+                'creditPrice' => $price, // обменния курс между сумата и основната валута за периода
+            ))
+        );
+        
+        return $result;
+    }
+    
+	
+	/**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::getTransaction
+     */
+    public static function finalizeTransaction($id)
+    {
+        $rec = (object)array(
+            'id' => $id,
+            'state' => 'active'
+        );
+        
+        return self::save($rec);
+    }
+    
+    
+    /**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::rejectTransaction
+     */
+    public static function rejectTransaction($id)
+    {
+        $rec = self::fetch($id, 'id,state,valior');
+        
+        if ($rec) {
+            static::reject($id);
+        }
+    }
+    
+    
    	/*
      * Реализация на интерфейса doc_DocumentIntf
      */
@@ -328,7 +438,6 @@ class cash_Pko extends core_Master
         $row->title = $rec->reason;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->recTitle = $rec->reason;
         
         return $row;
     }
@@ -352,13 +461,22 @@ class cash_Pko extends core_Master
     
     
     /**
-     * Имплементиране на интерфейсен метод 
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     static function getHandle($id)
     {
     	$rec = static::fetch($id);
-    	$me = cls::get(get_called_class());
+    	$self = cls::get(get_called_class());
     	
-    	return $me->abbr . $rec->number;
+    	return $self->abbr . $rec->number;
     }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function fetchByHandle($parsedHandle)
+    {
+        return static::fetch("#number = '{$parsedHandle['id']}'");
+    } 
 }
