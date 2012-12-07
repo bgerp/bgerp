@@ -162,7 +162,14 @@ class thumbnail_Thumbnail extends core_Manager {
         $wRatio = $maxWidth / $width;
         $hRatio = $maxHeight / $height;
         
-        $ratio = min($wRatio, $hRatio, 1);
+    	// Ако е FALSE взимаме по малкото отношение да стане с размери максимум
+    	// подадените, иначе взимаме по-голямото отношение и изображението става
+    	// до минимум подадените размери
+       
+        if($size['max'] !== TRUE)
+        {$ratio = min($wRatio, $hRatio, 1);}
+	    else 
+	    {$ratio = max($wRatio, $hRatio, 1);}
         
         $tHeight = ceil($ratio * $height);
         $tWidth = ceil($ratio * $width);
