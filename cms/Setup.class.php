@@ -9,19 +9,13 @@ defIfNot('CMS_THEME', 'cms/themes/default');
 /**
  * Изображение което ще се показва в Ографа
  */
-defIfNot('CMS_OGRAPH_IMAGE', sbf('cms/img/bgERP-small.jpg', NULL, TRUE));
+defIfNot('CMS_OGRAPH_IMAGE', 'cms/img/bgERP-small.jpg');
 
 
 /**
- * Височина на Изображението
+ * Максималната дължина на изображението показвано в Ографа
  */
-defIfNot('CMS_OGRAPH_IMAGE_HEIGHT', 260);
-
-
-/**
- * Ширина на Изображението
- */
-defIfNot('CMS_OGRAPH_IMAGE_WIDTH', 200);
+defIfNot('CMS_OGRAPH_IMAGE_MAX_WIDTH', '250');
 
 
 /**
