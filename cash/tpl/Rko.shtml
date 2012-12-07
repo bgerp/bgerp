@@ -1,11 +1,17 @@
 [#SingleToolbar#]
+<!-- END container -->
 <div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]'>
-	   <div class='docBgIcon' style='[#iconStyle#]'>[#singleTitle#] &nbsp;[#number#]/[#date#] ([#state#])</div>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
+	<!--ET_END header-->
 	<table border='1px' class='order-table' cellpadding='4px'>
 	<tr>
-		<td class='top-head'><b>Вносител</b></td>
+		<td class='top-head'><b>Да се изплати на</b></td>
 		<td  rowspan='2' class='title-order'>
 			<h2 style='margin-bottom:15px;margin-top:0px'>РАЗХОДЕН<br> КАСОВ ОРДЕР</h2>
 			№:&nbsp;&nbsp;<b>[#number#]</b><br>
@@ -16,10 +22,10 @@
 	</tr>
 	<tr>
 		<td style='padding-top:10px;' class='align-top-td'>[#contragent#]</td>
-		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]<br>[#adress#]</td>
+		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]</td>
 	</tr>
 	</table>
-	<table border='1px' cellpadding='5px' class='order-table'>
+	<table border='1px' cellpadding='5px'>
 		<tr>
 			<td width='67%' align='left' style='padding-left:10px;'>
 				<b>Основание:</b>&nbsp;&nbsp;&nbsp;[#reason#]
@@ -35,7 +41,7 @@
 			</td>
 		</tr>
 	</table>
-	<table border='1px' cellpadding='0' >
+	<table border='1px' cellpadding='0'>
 		<tr>
 			<td colspan='2'>
 			<table border='0'>
@@ -57,14 +63,15 @@
 		<tr>
 			<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 				<br>
-				Получил &nbsp;&nbsp;..........................<br>
+				Броил &nbsp;&nbsp;..........................<br>
 				<span class='sign_names'>( <b>[#beneficiary#]</b> )</span>
 			</td>
 			<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 				<br>
 				Касиер &nbsp;&nbsp;..........................<br>
-				<span class='sign_names'>(<b> [#cashier#]</b> )</span>
+				<span class='sign_names'>( <b>[#cashier#]</b> )</span>
 			</td>
 		</tr>
 	</table>
 </div>
+<!-- BEGIN container -->

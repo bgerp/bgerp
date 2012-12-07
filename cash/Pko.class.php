@@ -34,7 +34,7 @@ class cash_Pko extends core_Master
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,
-                     plg_Search, doc_ActivatePlg';
+                     plg_Search, doc_ActivatePlg, doc_plg_MultiPrint, bgerp_plg_Blank';
     
     
     /**
@@ -108,7 +108,11 @@ class cash_Pko extends core_Master
      */
     var $searchFields = 'number, date, contragentFolder';
     
-      
+    
+    //Параметри за принтирането
+    var $printParams = array( array('Оригинал'),
+    						  array('Копие'),array('Копие'),);
+    						  
     /**
      * Описание на модела
      */
@@ -292,6 +296,11 @@ class cash_Pko extends core_Master
 	    		$row->cashier =  core_Users::getCurrent('names');
 	    	}
         }
+       
+        // Показваме заглавието само ако не сме в режим принтиране
+    	if(!Mode::is('printing')){
+    		$row->header = $mvc->singleTitle . " <b>{$row->ident}</b>" . " ({$row->state})" ;
+    	}
     }
     
     
