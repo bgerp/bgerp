@@ -123,27 +123,68 @@ class crm_Profiles extends core_Master
     {
         requireRole('user');
 
-        $data = new stdClass();
+        $form = cls::get('core_Form');
         
-        $data->form = static::getForm();
+        //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
+        if (EF_USSERS_EMAIL_AS_NICK) {
+            //Ако използваме имейлите вместо никове, скриваме полето ник
+            $form->FLD('email', 'email(link=no)', 'caption=Имейл,mandatory,width=100%');
+            $nickField = 'email';
+        } else {
+            //Ако не използвам никовете, тогава полето трябва да е задължително
+            $form->FLD('nick', 'nick(64)', 'caption=Ник,mandatory,width=100%');
+            $nickField = 'nick';
+        }
         
-        /* @var $form core_Form */
-        $form = &$data->form;
+        $form->setDefault($nickField, core_Users::getCurrent($nickField));
+        $form->setReadOnly($nickField);
 
-        foreach($form->fields as &$field) {
-            $field->input = 'none';
-        } 
+        // Стара парола, когато се изисква при задаване на нова парола
+        $passExHint = 'Въведете досегашната си парола';
+        $form->FNC('passEx', 'password(allowEmpty,autocomplete=off)', "caption=Стара парола,input,hint={$passExHint},width=15em");
+        $form->FNC('passExHash', 'varchar', 'caption=Хеш на старата парола,input=hidden');
         
-        $form->FNC('old', 'password', 'caption=Стара парола,input,mandatory');
-        $form->FNC('new', 'password', 'caption=Нова Парола,input,mandatory');
-        $form->FNC('newAgain', 'password', 'caption=Нова Парола (пак),input,mandatory');
+        // Нова парола и нейния производен ключ
+        $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
+        $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола,input,hint={$minLenHint},width=15em");
+        $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
         
+        // Повторение на новата парола
+        $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
+        $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
+
+        core_Users::setUserFormJS($form);
+    
+ 
         $retUrl = getRetUrl();
         
+        // Въвежда и проверява формата за грешки
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            
+            core_Users::calcUserForm($form);
+
+            $rec = $form->rec;
+           
+            if (core_Users::fetchField(core_Users::getCurrent(), 'ps5Enc') != $rec->passExHash) {
+                $form->setError('passEx', 'Грешна стара парола');
+            }
+
+            if($rec->isLenOK == -1) {
+                $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
+            } elseif($rec->passNew != $rec->passRe) {
+                $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
+            } elseif(!$rec->passNewHash) {
+                $form->setError('passNew,passRe', 'Моля, въведете (и повторете) новата парола');
+            }  
+        }
+
         // Ако формата е успешно изпратена - запис, лог, редирект
-        if (static::validatePasswordForm($form)) {
+        if ($form->isSubmitted()) {
+
             // Записваме данните
-            if (core_Users::setPassword($form->rec->new))  {
+            if (core_Users::setPassword($form->rec->passNewHash))  {
                 // Правим запис в лога
                 static::log('change_password');
             
@@ -158,41 +199,22 @@ class crm_Profiles extends core_Master
         
         // Потготвяме заглавието на формата
         $form->title = 'Смяна на паролата';
+        $form->rec->passExHash    = '';
+        $form->rec->passNewHash   = '';
         
+        // Кои полета да се показват
+        $form->showFields = "{$nickField},passEx,passNew,passRe";
+
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
         
         // Опаковаме изгледа
-        $tpl = static::renderWrapping($tpl, $data);
+        $tpl = static::renderWrapping($tpl);
         
         return $tpl;
     }
     
-    
-    /**
-     * Зарежда от заявката и валидира полетата на формата за смяна на парола
-     *  
-     * @param core_Form $form
-     * @return boolean
-     */
-    protected static function validatePasswordForm(core_Form $form)
-    { 
-        $form->input();
-        
-        if ($form->isSubmitted()) {
-            if (core_Users::getCurrent('ps5Enc') != core_Users::encodePwd($form->rec->old)) {
-                $form->setError('old', 'Грешна стара парола');
-            }
-            
-            if ($form->rec->new != $form->rec->newAgain) {
-                $form->setError('new', 'Двете пароли не съвпадат');
-                $form->setError('newAgain');
-            }
-        }
-    
-        return $form->isSubmitted();
-    }
-    
+     
 
     /**
      *
