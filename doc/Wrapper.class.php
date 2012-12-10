@@ -69,7 +69,11 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         if($folderId && (doc_Folders::haveRightFor('single', $folderId))) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
-            $filesUrl = array('doc_Files', 'list', 'folderId' => $folderId);    
+            
+            // Ако има достъпни файлове в папката, тогава да е линк
+            if (doc_Files::getCountInFolder()) {
+                $filesUrl = array('doc_Files', 'list', 'folderId' => $folderId);    
+            }
         }
         
         $this->TAB($threadsUrl, 'Теми');

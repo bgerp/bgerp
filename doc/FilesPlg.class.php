@@ -169,4 +169,110 @@ class doc_FilesPlg extends core_Plugin
             
         }
     }
+    
+    
+    
+    /**
+     * Връща масив с линковете на папката и документа, където се среща за първи път файла
+     * 
+     * @param core_Mvc $mvc - 
+     * @param array $res - Двумерен масив, който съдържа линка и id' то на папкта и документите
+     * @param array $res['folder'] - Масив с id' то и линка на папката
+     * @param array $res['firstContainer'] - Масив с id' то и линка към първия документ на нишката
+     * @param array $res['container'] - Масив с id' то и линка към контейнера
+     * @param string $res[X]['id'] - id' то
+     * @param core_Et $res[X]['content'] - Линка
+     * @param fileman_Files $rec - Записите за файла
+     */
+    function on_AfterGetFirstContainerLinks($mvc, &$res, $rec)
+    {
+        // Ако не е обект, а е подаден id
+        if (!is_object($rec)) {
+            
+            // Опитваме се да извлечем данните
+            $rec = fileman_Files::fetch($rec);
+        }
+        
+        // Очакваме да има такъв запис
+        expect($rec && $rec->dataId, 'Няма такъв запис');
+        
+        // Запитваме за извличане на данните
+        $query = doc_Files::getQuery();
+        
+        // Извличаме всички, със съответното id
+        $query->where("#dataId = '{$rec->dataId}'");
+        
+        // Как да са подредени резултатите
+        $query->orderBy('containerId', 'ASC');
+        
+        // Обхождаме всички извлечени резултати
+        while ($fRec = $query->fetch()) {
+            
+            // Ако нямаме права за листване на записа продължаваме
+            if (!doc_Files::haveRightFor('list', $fRec)) continue;
+            
+            // Документа
+            $doc = doc_Containers::getDocument($fRec->containerId);
+            
+            // Полетата на документа във вербален вид
+            $docRow = $doc->getDocumentRow();
+            
+            // Атрибутеите на линка
+            $attr['class'] = 'linkWithIcon';
+            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
+            $attr['title'] = tr('Документ') . ': ' . $docRow->title;
+            
+            // Документа да е линк към single' а на документа
+            $documentLink = ht::createLink(str::limitLen($docRow->title, 70), array($doc, 'single', $doc->that), NULL, $attr);
+            
+            // Добавяме в масива линка и id' то
+            $res['container']['content'] = $documentLink;
+            $res['container']['id'] = $fRec->containerId;
+            
+            // id' то на контейнера на пъривя документ
+            $firstContainerId = doc_Threads::fetchField($fRec->threadId, 'firstContainerId');
+        
+            // Ако има първи контейнер и не е равен на съответния контейнер
+            if (($firstContainerId) && ($firstContainerId != $fRec->containerId)) {
+                
+                // Първия документ в нишката
+                $docProxy = doc_Containers::getDocument($firstContainerId);
+                
+                // Полетата на документа във вербален вид
+                $docProxyRow = $docProxy->getDocumentRow();
+                
+                // Атрибутеите на линка
+                $attr['class'] = 'linkWithIcon';
+                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
+                $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
+                
+                // Темата да е линк към single' а на първиа документ документа
+                $threadLink = ht::createLink(str::limitLen($docProxyRow->title, 70), array($docProxy, 'single', $docProxy->that), NULL, $attr); 
+
+                // Добавяме в масива линка и id' то
+                $res['firstContainer']['content'] = $threadLink;
+                $res['firstContainer']['id'] = $firstContainerId;
+            } else {
+                
+                // Ако документа е начало на тред
+                $res['firstContainer'] = $res['container'];
+            }
+            
+             // Записите за съответната папка
+            $folderRec = doc_Folders::fetch($fRec->folderId);
+            
+            // Записите във вербален вид
+            $folderRow = doc_Folders::recToVerbal($folderRec);
+            
+            // Линка към папката
+            $folderLink = $folderRow->title;   
+            
+            // Добавяме в масива линка и id' то
+            $res['folder']['content'] = $folderLink;
+            $res['folder']['id'] = $fRec->folderId;
+            
+            // Прекратяваме по нататъчното изпълнение
+            break;
+        }
+    }
 }

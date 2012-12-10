@@ -238,7 +238,7 @@ class cms_Articles extends core_Master
             $navTpl->append(ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId))));
             $navTpl->append( "</div>");
         }
-
+		
         Mode::set('cMenuId', $menuId);
 
         $content->append($navTpl, 'NAVIGATION');
@@ -272,11 +272,24 @@ class cms_Articles extends core_Master
     {
     	$ogp = new stdClass();
     	$conf = core_Packs::getConfig('cms');
-    	$ogp->imageInfo = array('url'=> $conf->CMS_OGRAPH_IMAGE,
-    						 'type'=> 'image/jpeg',
-    						 'height'=> $conf->CMS_OGRAPH_IMAGE_HEIGHT,
-    						 'width'=> $conf->CMS_OGRAPH_IMAGE_WIDTH);
     	
+    	$attr = array('baseName' => 'ograph_Image', 'isAbsolute' => TRUE, 'qt' => '');
+        //Размера на thumbnail изображението
+        $size = array(200,'max'=>TRUE);
+       
+        // Създаваме файл( ако вече е създаден връщаме хендлъра му), който 
+        // представлява ограф изображението
+        $fm = cls::get('fileman_Files'); 
+        $file = $fm->setFile(getFullPath($conf->CMS_OGRAPH_IMAGE),'gallery_Pictures','ograph_Image.jpg');
+         
+        //Създаваме тумбнаил с подадените минимум размери
+        $imageURL = thumbnail_Thumbnail::getLink($file, $size, $attr);
+    	
+        // Създаваме тъмбнейла на изображението, и подготвяме неговата информация
+    	$ogp->imageInfo = array('url'=> $imageURL,
+    						 'type'=> 'image/jpeg',
+    						 );
+    						 
     	$richText = cls::get('type_RichText');
     	$desc = strip_tags($richText->toHtml($rec->body));
     		
@@ -291,7 +304,7 @@ class cms_Articles extends core_Master
 	        
 	    // Създаваме Open Graph Article  обект
 	    $ogp->recInfo = array('published' => $rec->createdOn);
-    	
+	    
     	return $ogp;
     }
 }

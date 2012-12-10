@@ -416,6 +416,8 @@ class doc_Incomings extends core_Master
         
         $row->state = $rec->state;
 
+        $row->recTitle = $rec->title;
+        
         return $row;
     }
     

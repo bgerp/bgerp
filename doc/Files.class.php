@@ -48,7 +48,7 @@ class doc_Files extends core_Manager
     /**
      * Полетата, които ще се показват
      */
-    var $listFields = 'containerId=Тема, threadId=Документ, fileHnd=Файл';
+    var $listFields = 'fileHnd=Файл, threadId=Документ, date=Дата';
     
     
     /**
@@ -62,6 +62,8 @@ class doc_Files extends core_Manager
         $this->FLD("fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
             array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
+        $this->FNC('date', 'datetime', 'caption=Дата,input=none');
+        
         
         $this->setDbUnique('containerId, fileHnd');
     }
@@ -254,6 +256,7 @@ class doc_Files extends core_Manager
         // Атрибутеите на линка
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
+        $attr['title'] = $docRow->title;
         
         // Документа да е линк към single' а на документа
         $row->threadId = ht::createLink(str::limitLen($docRow->title,35), array($doc, 'single', $doc->that), NULL, $attr);
@@ -261,7 +264,7 @@ class doc_Files extends core_Manager
         // id' то на контейнера на пъривя документ
         $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
         
-        if ($firstContainerId) {
+        if ($firstContainerId != $rec->containerId) {
             
             // Първия документ в нишката
             $docProxy = doc_Containers::getDocument($firstContainerId);
@@ -272,12 +275,15 @@ class doc_Files extends core_Manager
             // Атрибутеите на линка
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
-            $attr['title'] = $docProxyRow->title;
+            $attr['title'] = tr('Първи документ|*: ') . $docProxyRow->title;
             
             // Темата да е линк към single' а на първиа документ документа
-            $row->containerId = ht::createLink(str::limitLen($docProxyRow->title,35), array($docProxy, 'single', $docProxy->that), NULL, $attr);    
+            $firstContainerLink = ht::createLink(str::limitLen($docProxyRow->title,35), array($docProxy, 'single', $docProxy->that), NULL, $attr);
+            $row->threadId = $row->threadId . " <- " . $firstContainerLink;    
         }
+        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
         
+        $row->date = fileman_Files::getVerbal($fRec, 'createdOn');;
     }
     
     
@@ -328,5 +334,53 @@ class doc_Files extends core_Manager
                 $requiredRoles = 'no_one';   
             }
         }
+    }
+
+    
+    /**
+     * Връща броя на файловете в съответната папка
+     * 
+     * @param doc_Folders $folderId - id' то на папката, за която търсим
+     * 
+     * @return integer $count - Броя на достъпните файлове
+     */
+    static function getCountInFolder($folderId=NULL) 
+    {
+        // Опитваме се да намерим броя на файловете в документа
+        try {
+            
+            // Създаваме обекта $data
+            $data = new stdClass();
+            
+            // Ако е зададено id' то на папката
+            if ($folderId) {
+                
+                // Използваме него
+                $data->listFilter->rec->folderId = $folderId;    
+            } else {
+                
+                // Ако не е зададено, тогава използва id' то на последно активната папка
+                $data->listFilter->rec->folderId = mode::get('lastfolderId');
+            }
+            
+            // Инстанция на класа
+            $inst = cls::get('doc_Files');
+            
+            // Създаваме заявката
+            $data->query = $inst->getQuery();
+            
+            // Подготвяме записите за таблицата
+            $inst->prepareListRecs($data);  
+
+            // Вземаме броя на файловете
+            $count = count($data->recs);
+            
+        } catch (Exception $e) {
+            
+            // Ако възникне греша, броя да е 0
+            $count = 0;    
+        }
+        
+        return $count;
     }
 }

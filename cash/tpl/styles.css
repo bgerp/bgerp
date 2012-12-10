@@ -4,6 +4,9 @@ table {
 	width:100%;
 }
 
+@media print {
+	table {width:97% !important;}
+}
 .order-table td {
 	padding-left:15px;
 	border-bottom-style:none;
@@ -31,10 +34,10 @@ th {
 	background-color: rgb(221, 221, 221);
 }
 
-.notes {
+#notes {
 	text-align:left;
-	text-indent:15px;
 	height:80px;
+	vertical-align:top;
 }
 
 .align-top-td {
@@ -66,7 +69,6 @@ th {
 	text-align:right;
 	padding-top:3px;
 	padding-bottom:3px;
-	padding-right:15px;
 }
 
 #cCode {

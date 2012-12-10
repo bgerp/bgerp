@@ -320,12 +320,37 @@ class acc_Lists extends core_Manager {
      * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
      * @param int $objectId
      * @param int $listId ид на номенклатура, към която да се добави перото.
+     * @param boolean $forced дали да обновяваме списъка към които е перото
      * Ако перото липсва - създава се
      * @return int ид на обновеното перо или null, ако няма такова перо
      */
-    static function updateItem($class, $objectId, $lists = NULL) {
-        $result = NULL;
+    static function updateItem($class, $objectId, $lists = NULL, $forced = TRUE)
+    {
+		$result = NULL;
+       
+		if($lists !== NULL) {
+			
+			// Проверяваме дали списъка на номенклатурите е подаден като Кейлист
+	 		if (strstr($lists, '|') === FALSE) { 
+	      		$lists = arr::make($lists);
+	        	$str = "|";
+	        	foreach($lists as $list){
+	        		
+	        		// Ако елементите на масива са стрингове намираме на кои записи
+	        		// отговарят те
+	        		if(!is_numeric($list)) 
+	        			$str .= static::fetchBySystemId($list)->id . "|";
+	        		else 
+	        			$str .= $list ."|";
+	        	}
+	        	
+	        	// Заместваме подадения стрингов списък с списък от ключове
+	        	$lists = $str;
+	        }
+		}
+		
         $lists = type_Keylist::toArray($lists);
+        
         
         // Извличаме запис за перо (ако има)
         $itemRec = self::fetchItem($class, $objectId);
@@ -339,8 +364,16 @@ class acc_Lists extends core_Manager {
         if ($itemRec) {
             $oldLists = type_Keylist::toArray($itemRec->lists);
         }
-        $removedFromLists = array_diff($oldLists, $lists);
         
+        // Ако поелто $forced е FALSE, то не ъпдейтваме старите номенклатури на перото
+        if($forced !== TRUE) {
+        	if(count($oldLists) > 0) {
+	      		$lists = $oldLists;
+        	}
+	    }
+        
+	    $removedFromLists = array_diff($oldLists, $lists);
+         
         if ($itemRec || $lists) {
             if (!$itemRec) {
                 $itemRec = new stdClass();
@@ -352,20 +385,16 @@ class acc_Lists extends core_Manager {
             
             // Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
             $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
-            $newItemRec = $AccRegister->getItemRec($objectId);
             
-            $itemRec->num = $newItemRec->num;
-            $itemRec->title = $newItemRec->title;
-            $itemRec->uomId = $newItemRec->uomId;
-            $itemRec->features = $newItemRec->features;
+            acc_Items::syncItemRec($itemRec, $AccRegister, $objectId);
         }
         
         if ($itemRec) {
             $itemRec->state = empty($lists) ? 'closed' : 'active';
-            
+           
             if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
                 $AccRegister->itemInUse($objectId, true);
-                
+                 
                 // Нотифициране на номенклатурите, от които перото е било премахнато
                 foreach ($removedFromLists as $lid) {
                     self::updateSummary($lid);

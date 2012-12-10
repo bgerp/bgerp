@@ -1,8 +1,14 @@
 [#SingleToolbar#]
+<!-- BEGIN container -->
 <div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]'>
-	   <div class='docBgIcon' style='[#iconStyle#]'>[#singleTitle#] &nbsp;[#number#]/[#date#] ([#state#])</div>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
+	<!--ET_END header-->
 	<table border='1px' class='order-table' cellpadding='4px'>
 	<tr>
 		<td class='top-head'><b>Вносител</b></td>
@@ -16,7 +22,7 @@
 	</tr>
 	<tr>
 		<td style='padding-top:10px;' class='align-top-td'>[#contragent#]</td>
-		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]<br>[#adress#]</td>
+		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]</td>
 	</tr>
 	</table>
 	<table border='1px' cellpadding='5px'>
@@ -68,3 +74,4 @@
 		</tr>
 	</table>
 </div>
+<!-- END container -->

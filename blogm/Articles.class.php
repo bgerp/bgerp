@@ -357,10 +357,23 @@ class blogm_Articles extends core_Master {
     	// Създаваме OGP Image обект
     	$conf = core_Packs::getConfig('cms');
         $data->ogp = new stdClass();
-    	$data->ogp->imageInfo = array('url'=> $conf->CMS_OGRAPH_IMAGE,
+    	
+        $attr = array('baseName' => 'ograph_Image', 'isAbsolute' => TRUE, 'qt' => '');
+        //Размера на thumbnail изображението
+        $size = array(200,'max'=>TRUE);
+       
+        // Създаваме файл( ако вече е създаден връщаме хендлъра му), който 
+        // представлява ограф изображението
+        $fm = cls::get('fileman_Files'); 
+        $file = $fm->setFile(getFullPath($conf->CMS_OGRAPH_IMAGE),'gallery_Pictures','ograph_Image.jpg');
+         
+        //Създаваме тумбнаил с подадените минимум размери
+        $imageURL = thumbnail_Thumbnail::getLink($file, $size, $attr);
+    	
+        // Създаваме тъмбнейла на изображението, и подготвяме неговата информация
+    	$data->ogp->imageInfo = array('url'=> $imageURL,
     						 'type'=> 'image/jpeg',
-    						 'height'=> $conf->CMS_OGRAPH_IMAGE_HEIGHT,
-    						 'width'=> $conf->CMS_OGRAPH_IMAGE_WIDTH);
+    						 );
     	if(!$data->rec){
     		
     		// Създаваме Ограф (Open Graph Protocol) Обект

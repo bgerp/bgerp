@@ -221,6 +221,8 @@ class blast_Letters extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
+        $row->recTitle = $rec->subject;
+        
         return $row;
     }
     

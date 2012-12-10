@@ -24,16 +24,16 @@
                 
                  
                  <!--ET_BEGIN COMMENT_LI-->
-                 <tr> 
+                 <tr data-cal-time="[#timeJs#]"> 
                  
                      <td class="calWeek" style='width:50px'>[#time#]</td>
-                     <td class="calWeek" ondblclick='document.location="/cal_Tasks/add"'>[#d0#]</td>
-                     <td class="calWeek" ondblclick='document.location="/cal_Tasks/add"'>[#d1#]</td>
-                     <td class="calWeek" ondblclick='document.location="/cal_Tasks/add"'>[#d2#]</td>
-                     <td class="calWeek" style='background-color:LightGoldenRodYellow ;' ondblclick='document.location="/cal_Tasks/add"'>[#d3#]</td>
-                     <td class="calWeek" ondblclick='document.location="/cal_Tasks/add"'>[#d4#]</td>
-                     <td class="calWeek" ondblclick='document.location="/cal_Tasks/add"'>[#d5#]</td>
-                     <td class="calWeek" ondblclick='document.location="/cal_Tasks/add"'>[#d6#]</td>
+                     <td class="calWeek" data-cal-date="[#date0Js#]">[#d0#]</td>
+                     <td class="calWeek" data-cal-date="[#date1Js#]">[#d1#]</td>
+                     <td class="calWeek" data-cal-date="[#date2Js#]">[#d2#]</td>
+                     <td class="[#now#]" data-cal-date="[#date3Js#]"style='background-color:LightGoldenRodYellow ;'>[#d3#]</td>
+                     <td class="calWeek" data-cal-date="[#date4Js#]">[#d4#]</td>
+                     <td class="calWeek" data-cal-date="[#date5Js#]">[#d5#]</td>
+                     <td class="calWeek" data-cal-date="[#date6Js#]">[#d6#]</td>
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                
