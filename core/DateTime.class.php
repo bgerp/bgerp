@@ -101,16 +101,6 @@ class core_DateTime
      */
     static function mysql2timestamp($mysqlDate)
     {
-        $mysqlDate = trim(strtolower($mysqlDate));
-        $mysqlDate = str_replace(".", "/", $mysqlDate);
-        $mysqlDate = str_replace("/", "/", $mysqlDate);
-        $mysqlDate = str_replace("\\", "/", $mysqlDate);
-        $mysqlDate = str_replace(",", "/", $mysqlDate);
-        $mysqlDate = str_replace(";", "/", $mysqlDate);
-        $mysqlDate = str_replace("  ", " ", $mysqlDate);
-        $mysqlDate = str_replace("  ", " ", $mysqlDate);
-        $mysqlDate = str_replace("''", ":", $mysqlDate);
-        $mysqlDate = str_replace("'", ":", $mysqlDate);
         
         return strtotime($mysqlDate);
     }
