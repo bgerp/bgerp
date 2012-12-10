@@ -21,10 +21,10 @@ class plg_CryptStore extends core_Plugin
      */
     function on_BeforeSave($mvc, &$res, &$rec, $fields = NULL, $mode = '')
     {
-        $fields = $mvc->selectFields("#crypt");
+        $fieldsCrypt = $mvc->selectFields("#crypt");
 
-        if(count($fields)) {
-            foreach($fields as $name => $fld) {
+        if(count($fieldsCrypt)) {
+            foreach($fieldsCrypt as $name => $fld) {
                 if($rec->{$name}) {
                     if(!static::decrypt($rec->{$name})) {
                         $rec->{$name} = static::encrypt($rec->{$name});
