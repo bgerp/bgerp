@@ -25,13 +25,8 @@
 ob_end_clean();
 header("Content-Type: text/html; charset=UTF-8");
 
-
-// Лейаута на HTML страницата
-$layout = 
-"<html>
-<head>
-<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-<title>bgERP - настройване на системата (стъпка [#currentStep#])</title>
+// Стилове
+$styles = "
 <style type=\"text/css\">
 body {
     background-color:#119; 
@@ -111,7 +106,44 @@ h1 {
     line-height:1.5em;
 }
 
+li.progress {
+	list-style-type: none;
+	background-color: #00f;
+	position:absolute;
+	left: 0px;
+	top: 110px;
+}
+
+span.progressTitle {
+	width: 180px;
+	display: block;
+	float: left;
+	text-align:right;
+}
+
+span.progressIndicator {
+ text-align: right;
+ padding-right: 2px;
+ background-color: #ffcc00;
+}
+
+span.progressPercents {
+	font-size: .8em;
+	font-weight: bold;
+	margin-left:3px;
+}
 </style>
+";
+
+// Лейаута на HTML страницата
+$layout = 
+"<html>
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<title>bgERP - настройване на системата (стъпка [#currentStep#])</title>
+" . $styles . "
+
+
 <link  rel=\"shortcut icon\" 
 href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAABaALPDWgCzw1oAs8N" . "aALPDWgCzw////wDjqQD/46kA/+OpAP/jqQD/////AAB79eAAe/XgAHv14AB79eAAe/XgWgCzw1oAs8NaALPDWgCzw1oAs8P///8A46kA/+OpAP/jqQD/46kA/////wA" . "Ae/XgAHv14AB79eAAe/XgAHv14FwAvLBcALywXAC8sFwAvLBcALyw////AO+4AO3vuADt77gA7e+4AO3///8AAJb34wCW9+MAlvfjAJb34wCW9+NfAMqcXwDKnF8Aypx" . "fAMqcXwDKnP///wDxugDo8boA6PG6AOjxugDo////AACa+OQAmvjkAJr45ACa+OQAmvjkXwDKnF8AypxfAMqcXwDKnF8Aypz///8A8sUAzfPIAMXzyADF8sQAzv///wA" . "ApvjLAK35vgCu+b4AqvnEAKr5xP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wAAfS/MAH0vzAB9L8w" . "AfS/MAH0vzP///wABAAXgAQAF4AEABeABAAXg////AAB9L8wAfS/MAH0vzAB9L8wAfS/MAIs9yACLPcgAiz3IAIs9yACLPcj///8AAQAF4AEABeABAAXgAQAF4P///wA" . "Aiz3IAIs9yACLPcgAiz3IAIs9yACZTMUAmUzFAJlMxQCZTMUAmUzF////AAEABeABAAXgAQAF4AEABeD///8AAJlMxQCZTMUAmUzFAJlMxQCZTMUAql3BAKpdwQCqXrw" . "Aql6+AKpdwv///wABAAXgAQAE4AEABOABAAXg////AACqXcIAql6+AKpevACqXcIAql3C////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD" . "///8A////AP///wD///8A////AABu9N4AbvTeAG703gBu9N4AbvTe////AN6hAP/eoQD/3qEA/96hAP////8AWQCuy1kArstZAK7LWQCuy1kArssAivbiAIr24gCK9uI" . "AivbiAIr24v///wDqswD76rMA++qzAPvqswD7////AFoAt7haALe4WgC3uFoAt7haALe4AJr45ACa+OQAmvjkAJr45ACa+OT///8A8boA6PG6AOjxugDo8boA6P///wB" . "dAMOkXQDDpF0Aw6RdAMOkXQDDpACa+OQAmvjkAJr45ACa+OQAmvjk////APG6AOjxugDo8boA6PG6AOj///8AYQDUkWEA1JFhANSRYQDUkWEA1JEAmvjkAJr45ACa+OQ" . "AmvjkAJr45P///wDxugDo8boA6PG6AOjxugDo////AGEA1JFhANSRYQDUkWEA1JFhANSRBCAAAAQgAAAEIAAABCAAAAQgAAD//wAABCAAAAQgAAAEIAAABCAAAP//AAA" . "EIAAABCAAAAQgAAAEIAAABCAAAA==\" type=\"image/x-icon\">
 <script type=\"text/javascript\"></script>
@@ -197,7 +229,7 @@ $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
 
 // Собственото URL
-$selfUrl = "//{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
+$selfUrl = "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
 list($selfUrl,) = explode('&', $selfUrl);
 
 // URL на следващата стъпка
@@ -224,8 +256,8 @@ if($step == 1) {
 if($step == 2) {
 
  
-    // Ако GIT - а открие променени файлове, трябва да се изведат следните съобщения 
-    // 1. В системата има променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
+    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения 
+    // 1. В системата има локално променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
     // 2. Продължете, без да възстановявате променените файлове (отива на следваща стъпка)
 
     // Ако GIT-а открие по-нова версия на bgERP, трябва да се изведат следните съобщения:
@@ -439,287 +471,24 @@ if($step == 3) {
     
 }
 
-
-
-// Субституираме в лейаута
-foreach($texts as $place => $str) {
-    $layout = str_replace("[#{$place}#]", $str, $layout);
-}
-
-  
- 
-
-echo $layout;
-ob_flush();
-
 // Ако се намираме на етапа на инициализиране, по-долу стартираме setup-а
-if($step=4) {
-}
-
-die;
-
-
-/**
- * Преобразува лог от вътрешни операции към HTML
- */
-function logToHtml($log, &$stat)
-{
-    foreach($log as $line) {
-        list($class, $text) = explode(':', $line, 2);
-        $html .= "\n<div class='{$class}'>{$text}</div>";
-        $stat[$class]++;
-    }
-
-    return $html;
-}
-
-
-/**
- * Превръща масив от форматирани стрингове в линкве към следващи действия
- * Стринговете имат следния формат: "class|url|message";
- * Връща string с html
- */
-function linksToHtml($links)
-{
-    foreach($links as $l) {
-        list($class, $url, $text) = explode('|', $l, 3);
-        $html .= "\n<br><table width='100%' class='msg'><tr><th>" .
-            "\n<a href='{$url}' class='{$class}'>{$text}</a>\n</th></tr></table><br>";
-    }
-
-    return $html;
-}
-
-
-
-/**
- * Дали има по-нова версия на това репозитори?
- */
-function gitHasNewVersion($repoPath, &$log)
-{
-    if(rand(1,10) > 5) {
-        $repoName = basename($repoPath);
-        $log[] = "new:Има нова версия на  [<b>$repoName</b>]";
-        return TRUE;
-    }
-}
-
-
-/**
- * Дали има по-нова версия на това репозитори?
- */
-function gitHasChanges($repoPath, &$log)
-{
-    if(rand(1,10) > 8) {
-        $log[] = "wrn:Модифициран файл: <b>`somefile.class.php`</b>";
-
-        return TRUE;
-    }
-}
-
-
-/**
- * Синхронизира с последната версия на мастер-баранча
- */
-function gitPullRepo($repoPath, &$log)
-{
-    sleep(1);
-    $repoName = basename($repoPath);
-    $log[] = "new:Репозиторито <b>[{$repoName}]</b> е обновено";
-}
-
-
-/**
- * Унищожава локалните промени, на фаловете, включени в репозиторито
- */
-function gitRevertRepo($repoPath, &$log)
-{
-    sleep(1);
-    $repoName = basename($repoPath);
-    $log[] = "msg:Репозиторито <b>[{$repoName}]</b> е възстановено";
-}
-
-
-
-function progressFlush ($text, $percents=NULL)
-{
-    static $started = 0;
-    
-    static $absoluteTop = array();
-    
-    if (!isset($absoluteTop["$text"])) {
-        $absoluteTop["$text"] = 35*count($absoluteTop)+50;
-    } 
-    
-    ob_clean();
-    ob_start();
-    
-    if ($started == 0) {
-        echo str_repeat(" ", 1024), "\n";
-        echo ("<!DOCTYPE html>");
-    }
-    $started++;
-    // Прогресбар
-    if (is_numeric($percents)) {
-        if ($percents > 100) $percents = 100;
-        $width = 4.5*$percents;
-        echo "<li style='list-style-type: none; background-color: white; position:absolute; left:25px; top:" . $absoluteTop["$text"] . "px; z-index: {$started};'><span style='width: 180px; display: block; float: left;text-align:right;'>{$text}</span><span style=\"text-align: right; padding-right: 2px; padding-left:{$width}px; background-color: #28DB55;\"><span style=\"width: 0;\">&nbsp;</span></span>";
-        echo("<span style=\"font-size: .8em; font-weight: bold; margin-left:3px;\">{$percents} %</span></li>");
-    } else {
-        // Изкарваме само текст
-        echo("$text");
-    }
-    
-    ob_flush();
-    ob_end_flush();
-    flush();
-    
-}
-
-if ($_GET['a'] == 'blank') {
-    echo ("<h2>Начало на инициализация...</h2>");
-    exit;
-}
-
-if(empty($_GET['a'])) {
-    echo ("<h1>Задаване на основните параметри</h1>");
-}
-
-$error = FALSE;
-
-$URI_PATH = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],'/?'));
-
-/**********************************
- * Проверка за конфигурационен файл
- **********************************/
-if ($_GET['a'] == '1') {
-    echo ("<h2>{$_GET['a']} Проверка за конфигурационен файл ...</h2>");
-}
-
-$filename = EF_ROOT_PATH . '/conf/' . EF_APP_NAME . '.cfg.php';
-
-if(file_exists($filename)) {
-    include($filename);
-} else {
-    echo "<li style='color: red;'>Грешка: Липсва конфигурационен файл $filename</li>";
-    $error = TRUE;
-    
-    exit;
-}
-
-if ($_GET['a'] == '1') {
-    echo "<li style='color: green;'>Конфигурационен файл $filename - ОК</li>";
-    
-    exit;
-}
-
-/**********************************
- * Проверка за връзка към MySql-a
- **********************************/
-if ($_GET['a'] == '2') {
-    echo ("<h2> {$_GET['a']} Проверка за връзка към MySql-a ...</h2>");
-    if (defined('EF_DB_USER') && defined('EF_DB_HOST') && defined('EF_DB_PASS')) {
-        if (FALSE !== mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS)) {
-            echo("<li style='color: green;'>Успешна връзка с базата данни</li>");
-        } else {
-            echo("<li style='color: red;'>Неуспешна връзка с базата данни</li>");
-            $error = TRUE;
-        }
-    } else {
-        echo("<li style='color: red;'>Недефинирани константи за връзка с базата данни</li>");
-        $error = TRUE;
-    }
-    
-    // Ако няма грешка редиректваме браузъра направо към следващата стъпка
-    if (!$error) {
-        progressFlush("<div style='color: green; font-size: 16pt;'>OK!</div>");
-        sleep(2);
-        echo ("<script language=\"javascript\">");
-        echo (" parent.next(1);");
-        echo ("</script>");
-    }
-
-    exit;   
-}
-
-/**********************************
- * Проверка за необходимите модули на PHP-то
- **********************************/
-if ($_GET['a'] == '3') {
-    echo ("<h2> {$_GET['a']} Проверка за необходимите модули на PHP ...</h2>");
-    // Масив съдържащ всички активни php модули, необходими за правилна работа на ситемата
-    // за сега периодично се попълва ръчно
-    $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
-                                'exif', 'filter', 'ftp', 'gd', 'iconv', 'json',
-                                'mbstring', 'mysql', 'pcre', 'session', 'SimpleXML',
-                                'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap');
-    
-    $activePhpModules = get_loaded_extensions();
-    
-    foreach($requiredPhpModules as $required) {
-        if(!in_array($required, $activePhpModules)){
-            progressFlush ("<li style='color: red;'> модул: $required - не е инсталиран!</li>");
-            $error = TRUE;
-        } else {
-            progressFlush ("<li style='color: green;'> модул: $required - OK!</li>");
-        }
-    }
-
-    // Ако няма грешка редиректваме браузъра направо към следващата стъпка
-    if (!$error) {
-        progressFlush("<div style='color: green; font-size: 16pt;'>OK!</div>");
-        sleep(2);
-        echo ("<script language=\"javascript\">");
-        echo (" parent.next(1);");
-        echo ("</script>");
-    }
-    
-    exit;   
-}
-
-/**********************************
- * Проверка за необходимите модули на Apache
- **********************************/
-if ($_GET['a'] == '4') {
-    echo ("<h2> {$_GET['a']} Проверка за необходимите модули на Apache ...</h2>");
-    
-    // Масив съдържащ всички активни apache модули, необходими за правилна работа на ситемата
-    
-    $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_php5', 'mod_rewrite');
-    
-    $activeApacheModules = apache_get_modules();
-    
-    foreach($requiredApacheModules as $requiredA){
-        
-        if(!in_array($requiredA, $activeApacheModules)){
-            progressFlush ("<li style='color: red;'> модул: $requiredA - не е инсталиран!</li>");
-            $error = TRUE;
-        } else {
-            progressFlush ("<li style='color: green;'> модул: $requiredA - OK!</li>");
-        }
-    }
-
-    // Ако няма грешка редиректваме браузъра направо към следващата стъпка
-    if (!$error) {
-        progressFlush("<div style='color: green; font-size: 16pt;'>OK!</div>");
-        sleep(2);
-        echo ("<script language=\"javascript\">");
-        echo (" parent.next(1);");
-        echo ("</script>");
-    }
-    
-    exit;
+if($step == 4) {
+	$texts['body'] .= "<iframe src='{$selfUrl}&step=5' frameborder=1 name='init' id='init' width=750 height=500 ></iframe>";
+	
 }
 
 /**********************************
  * Setup на bgerp
  **********************************/
-
-if ($_GET['a'] == '5') {
+if ($step == '5') {
+	$calibrate = 1000;
     $totalRecords = 136676;
     $totalTables = 173;
+    $total = $totalTables*$calibrate + $totalRecords;
+    // Пращаме стиловете
+    echo ($styles);
 
-    $res = file_get_contents("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=55", FALSE, NULL, 0, 2);
+    $res = file_get_contents("{$selfUrl}&step=55", FALSE, NULL, 0, 2);
     
     if ($res == 'OK') {
         progressFlush ("<h3>Инициализацията стартирана ...</h3>");
@@ -734,13 +503,13 @@ if ($_GET['a'] == '5') {
     do {
         $recordsRes = mysql_query("SELECT SUM(TABLE_ROWS) AS RECS
                                     FROM INFORMATION_SCHEMA.TABLES 
-                                WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
+                                    WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
         
         $tablesRes = mysql_query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". EF_DB_NAME ."';");
         $rows = mysql_fetch_object($recordsRes);
         $tables = mysql_fetch_object($tablesRes);
-        progressFlush("Зареждане данни:&nbsp", round($rows->RECS/$totalRecords,2)*100);
-        progressFlush("Създаване таблици:&nbsp", round($tables->TABLES/$totalTables,2)*100);
+        $tables->TABLES; $rows->RECS;
+        progressFlush("Прогрес:&nbsp", round(($rows->RECS+$calibrate*$tables->TABLES)/$total,2)*100);
         sleep(2);
     } while ($rows->RECS < $totalRecords && $tables->TABLES < $totalTables);
     
@@ -760,8 +529,7 @@ if ($_GET['a'] == '5') {
 /**********************************
  * Setup на bgerp самостоятелно инсталиране
  **********************************/
-if ($_GET['a'] == '55') {
-
+if($step == 55) {
     // Затваряме връзката с извикване
     
     // Следващият ред генерира notice,
@@ -812,43 +580,181 @@ if ($_GET['a'] == '55') {
     exit;
 }
 
+// Субституираме в лейаута
+foreach($texts as $place => $str) {
+    $layout = str_replace("[#{$place}#]", $str, $layout);
+}
+
+  
+ 
+
+echo $layout;
+ob_flush();
+
+die;
+
+//=======================
+// Декларации функции
+//=======================
+
+/**
+ * Преобразува лог от вътрешни операции към HTML
+ */
+function logToHtml($log, &$stat)
+{
+    foreach($log as $line) {
+        list($class, $text) = explode(':', $line, 2);
+        $html .= "\n<div class='{$class}'>{$text}</div>";
+        $stat[$class]++;
+    }
+
+    return $html;
+}
+
+
+/**
+ * Превръща масив от форматирани стрингове в линкве към следващи действия
+ * Стринговете имат следния формат: "class|url|message";
+ * Връща string с html
+ */
+function linksToHtml($links)
+{
+    foreach($links as $l) {
+        list($class, $url, $text) = explode('|', $l, 3);
+        $html .= "\n<br><table width='100%' class='msg'><tr><th>" .
+            "\n<a href='{$url}' class='{$class}'>{$text}</a>\n</th></tr></table><br>";
+    }
+
+    return $html;
+}
+
+
+
+/**
+ * Дали има по-нова версия на това репозитори?
+ */
+function gitHasNewVersion($repoPath, &$log)
+{
+	$repoName = basename($repoPath);
+	$command = "git --git-dir={$repoPath}/.git remote show origin";
+
+	exec($command, $arrRes, $returnVar);
+	
+	// В последния ред на резултата се намира индикацията на промени
+	$lastKey = key(array_slice( $arrRes, -1, 1, TRUE ));
+	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");
+	
+	if($hasNewVersion !== FALSE) {
+        $log[] = "new:Има нова версия на  [<b>$repoName</b>]";
+        
+        return TRUE;
+    }
+}
+
+
+/**
+ * Дали има промени в локалното копие?
+ */
+function gitHasChanges($repoPath, &$log)
+{
+	
+	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} status -s";
+
+	exec($command, $arrRes, $returnVar);
+	
+	$states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
+	if (!empty($arrRes)) {
+	    foreach ($arrRes as $row) {
+	        $row = trim($row);
+	        $arr = split(" ", $row);
+	        $log[] = "wrn:" . $states[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
+	    }
+    	return TRUE;
+	}
+}
+
+
+/**
+ * Синхронизира с последната версия на мастер-бранча
+ */
+function gitPullRepo($repoPath, &$log)
+{
+	$repoName = basename($repoPath);
+	
+	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} pull origin master";
+
+	exec($command, $arrRes, $returnVar);
+	
+	$success = array("Alredy up-to-date.", "Fast-forward");
+	
+	foreach ($success as $needle) {
+		if (array_search($needle, $arrRes) !== FALSE) {
+			$log[] = "new:Репозиторито <b>[{$repoName}]</b> е обновено";
+			
+			return TRUE;
+		}
+	}
+}
+
+
+/**
+ * Унищожава локалните промени, на фаловете, включени в репозиторито
+ */
+function gitRevertRepo($repoPath, &$log)
+{
+    $command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} reset --hard origin/master";
+    
+    exec($command, $arrRes, $returnVar);
+    
+    $repoName = basename($repoPath);
+    
+    $log[] = "msg:Репозиторито <b>[{$repoName}]</b> е възстановено";
+}
+
+
+
+function progressFlush ($text, $percents=NULL)
+{
+    static $started = 0;
+    
+    static $absoluteTop = array();
+    
+    if (!isset($absoluteTop["$text"])) {
+        $absoluteTop["$text"] = 35*count($absoluteTop)+50;
+    } 
+    
+    ob_clean();
+    ob_start();
+    
+    if ($started == 0) {
+        echo str_repeat(" ", 1024), "\n";
+        echo ("<!DOCTYPE html>");
+    }
+    $started++;
+    // Прогресбар
+    if (is_numeric($percents)) {
+        if ($percents > 100) $percents = 100;
+        $width = 4.5*$percents;
+        echo("<li class=\"progress\" style='z-index: {$started};'>");
+        echo("<span class=progressTitle>{$text}</span>");
+        echo("<span class=progressIndicator style=\"padding-left:{$width}px;\">");
+        echo("<span style=\"width: 0;\">&nbsp;</span>");
+        echo("</span>");
+        echo("<span class=progressPercents>{$percents} %</span>");
+        echo("</li>");
+    } else {
+        // Изкарваме само текст
+        echo("$text");
+    }
+    
+    ob_flush();
+    ob_end_flush();
+    flush();
+    
+}
+
+
+$URI_PATH = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],'/?'));
+
 
 ?>
-<html>
-<head>
-	<!-- <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> -->
-</head>
-<body>
-<script language="javascript">
-    
-    // setInterval('frames[0].scrollTo(0,9999999)',1000);
-    
-    function next(r) {
-        if ( typeof next.counter == 'undefined' || r==0 || next.counter>6) {
-            next.counter = 0;
-        }
-
-        ++next.counter;     
-        document.getElementById('test').src='http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}"); ?>'+'&a='+next.counter;
-
-        // Деактивиране на бутоните
-        if (next.counter == 5) {
-            document.getElementById('next1').disabled = true;
-            document.getElementById('start').disabled = true;
-        }
-
-        // Стартиране на bgERP
-        if (next.counter == 6) {
-            window.location = 'http://'+'<?php echo("{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$URI_PATH}/"); ?>'+'';
-        }
-    }
-</script>
-
-<iframe src='<?php "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank"?>' frameborder="1" name="test" id="test" width=750 height=500 ></iframe>
-<div style='width: 750px;'>
-    <hr>
-    <input id='start' type="button" style="float: left;" onclick="next(0); document.getElementById('test').src='<?php echo("http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}&a=blank")?>';" value="Начало">
-    <input id='next1' type="button" onclick="next(1);" value="Следващ" style="float: right;">
-</div>
-</body>
-</html>

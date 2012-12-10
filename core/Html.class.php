@@ -33,8 +33,13 @@ class core_Html
                     
 
                     if (is_string($content)) {
-                        $content = htmlspecialchars($content);
-                        // $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
+                        // $content = htmlspecialchars($content);
+                        /**
+                         * Необходимо ли е да се ескейпва символи различни от двойни кавички
+                         * в стойностите на HTML атрибутите?
+                         * 
+                         */
+                        $content = str_replace(array('&quot;', "\""), array('&amp;quot;', "&quot;"), $content);
                     }
 
                     $attrStr .= " " . $atr . "=\"" . $content . "\"";
