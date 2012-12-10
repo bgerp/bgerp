@@ -172,6 +172,8 @@ class core_Users extends core_Manager
             if(EF_USSERS_EMAIL_AS_NICK) {
                 $data->form->setField("nick", 'input=none');    
             }
+            
+            $data->form->setField("avatar", 'input=none');
         }
 
         // Нова парола и нейния производен ключ
