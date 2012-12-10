@@ -25,8 +25,12 @@ class page_InternalFooter extends core_ET {
      */
     function page_InternalFooter()
     {
+        $nick = Users::getCurrent('nick');
+        if(EF_USSERS_EMAIL_AS_NICK) {
+            list($nick,) = explode('@', $nick);
+        }
         if(Mode::is('screenMode', 'narrow')) {
-            if($nick = Users::getCurrent('nick')) {
+            if($nick) {
                 $this->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на " . $nick)));
                 $this->append("&nbsp;|&nbsp;");
             }
@@ -41,8 +45,7 @@ class page_InternalFooter extends core_ET {
             $this->append("&nbsp;|&nbsp;");
             $this->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
         } else {
-            if($nick = Users::getCurrent('nick')) {
-                
+            if($nick) {
                 $this->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout')));
                 $this->append('&nbsp;|');
             }
@@ -55,7 +58,7 @@ class page_InternalFooter extends core_ET {
             
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('core_Browser');
-            $this->append($Browser->renderBrowserDetectingCode());
+            $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
             
             // Добавяме превключване между езиците
             $this->addLgChange();
