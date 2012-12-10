@@ -33,14 +33,17 @@ class type_Password extends type_Varchar {
         // Само за дебъг
         // !isDebug() || $attr['title'] = $value;
 
-        if($value) $value = EF_PASS_NO_CHANGE;
-        
-        if(! ($this->params['autocomplete'] == 'autocomplete' || $this->params['autocomplete'] == 'on') || !isDebug()) {
-            $attr['autocomplete'] = 'off';
+        if($value && !$this->params['allowEmpty']) {
+            $value = EF_PASS_NO_CHANGE;
+            $attr['onfocus'] = "if(this.value == '" . EF_PASS_NO_CHANGE . "') this.select();";
+        } else {
+            $value = '';
         }
         
-        $attr['onfocus'] = "if(this.value == '" . EF_PASS_NO_CHANGE . "') this.select();";
-        
+        if($value || $this->params['autocomplete'] == 'off') {
+            $attr['autocomplete'] = 'off';
+        }
+                
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -51,13 +54,7 @@ class type_Password extends type_Varchar {
     function fromVerbal($value)
     {
         if(!isset($value) || $value == EF_PASS_NO_CHANGE) return NULL;
-        
-        //        if(strpos($value, substr(EF_PASS_NO_CHANGE, 0, 1)) !== FALSE) {
-        //            $this->error = 'Недопустими символи в паролата. Въведете я пак';
-        //
-        //            return FALSE;;
-        //        }
-        
+                
         return $value;
     }
     
@@ -80,4 +77,6 @@ class type_Password extends type_Varchar {
     {
         return $value ? '********' : '';
     }
+
+
 }
