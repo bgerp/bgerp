@@ -165,11 +165,12 @@ class core_Users extends core_Manager
             $data->form->setOptions('state' , array('active' => 'active'));
             $data->form->setOptions('roles' , array($mvc->core_Roles->fetchByName('admin') => 'admin'));
             $data->form->title = 'Първоначална регистрация на администратор';
-            $data->form->setField('nick,email,pass,names', 'width=15em');
+            
+            $data->form->setField("state", 'input=none');
+            $data->form->setField("roles", 'input=none');
+            
             if(EF_USSERS_EMAIL_AS_NICK) {
-                $data->form->showFields = 'email,pass,passRe,names';
-            } else {
-                $data->form->showFields = 'nick,email,pass,passRe,names';
+                $data->form->setField("nick", 'input=none');    
             }
         }
 
