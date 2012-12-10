@@ -133,7 +133,9 @@ class type_Email extends type_Varchar {
         
         if($this->params['link'] != 'no') {
             $verbal = $this->addHyperlink($email, $verbal);
-        } 
+        } else {
+            $verbal = str_replace('@', "&#64;", $email);
+        }
         
 
         return $verbal;
