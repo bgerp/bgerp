@@ -77,6 +77,12 @@ class email_FaxSent extends core_Manager
     
     
     /**
+     * Плъгини за зареждане
+     */
+    var $loadList = 'email_Wrapper';
+    
+    
+    /**
      * 
      */
     function description()
@@ -245,6 +251,9 @@ class email_FaxSent extends core_Manager
 
         $Email = cls::get('email_Outgoings');
         
+        // Полето имейл да не се показва при изпращане на факс
+        unset($data->rec->email);
+        
         //HTML частта на факса
         $faxHtml = $Email->getEmailHtml($data->rec, $lg);
         
@@ -271,6 +280,8 @@ class email_FaxSent extends core_Manager
      */
     function prepareSendForm_($data)
     {
+        $id = Request::get('id', 'int');
+        
         $data->form = $this->getForm();
         $data->form->setAction(array($mvc, 'send'));
         $data->form->title = 'Изпращане на факс';
@@ -283,6 +294,14 @@ class email_FaxSent extends core_Manager
         
         // Подготвяме лентата с инструменти на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
+        
+        // Ако има права за ипзващане на имейл
+        if (email_Outgoings::haveRightFor('send')) {
+
+            // показваме бутона за изпращане на имейл
+            $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'class=btn-email-send');    
+        }
+        
         $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
 
         $data->form->input(NULL, 'silent');
@@ -346,8 +365,28 @@ class email_FaxSent extends core_Manager
             $data->form->setSuggestions('attachmentsSet', $filesArr);   
         }
         
+        // Масив с всички факсове и имейли
+        $faxesArr = email_Outgoings::explodeEmailsAndFax($data->rec->email);
+        
+        // Добавяме в стринга с факсове, факс номера от полето 'Факс'
+        $faxNums = $data->rec->fax;
+        
+        // Ако има имейли, които са факс номера
+        if (count($faxesArr['fax'])) {
+            
+            // Обхождаме ги
+            foreach ($faxesArr['fax'] as $fax) {
+                
+                // Разделяме домейн частта от номера
+                list($faxNum, $domain) = explode('@', $fax, 2);
+                
+                // Добавяме към стринга
+                $faxNums .= ($faxNums) ? ", {$faxNum}" : $faxNum;
+            }
+        }
+              
         //Задаваме факс номера по подразбиране да се вземат от факса на контрагента
-        $data->form->setDefault('faxTo', $data->rec->fax);
+        $data->form->setDefault('faxTo', $faxNums);
     }
     
     
@@ -358,26 +397,14 @@ class email_FaxSent extends core_Manager
      */
     function on_AfterInputSendForm($mvc, &$form)
     {
+        // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
             
-            $rec = $form->rec;
-            
-            //Всички факс номера
-            $faxArr = static::faxToArray($rec->faxTo);
-    
-            foreach ((array)$faxArr as $fax) {
+            // Ако не може да се намеи нито един факс номер
+            if (!count(drdata_PhoneType::toArray($form->rec->faxTo))) {
                 
-                //Вземаме всички факс номера, които не са съставени само от цифри
-                if (preg_match("/[^0-9]/", $fax)) {
-                    $errorFax .= ($errorFax) ? ', ' . $fax : $fax; 
-                }
-            }
-            
-            //Ако има открит факс номер, който е сгрешен
-            if ($errorFax) {
-                
-                //Показваме съобщение за грешка
-                $form->setError('faxTo', tr("Във факс номерата се допускат само цифри:|* {$errorFax}"));     
+                // Добавяме съобщение за грешка
+                $form->setError('faxTo', "Не сте въвели валиден факс номер.");
             }
         }
     }
@@ -388,15 +415,23 @@ class email_FaxSent extends core_Manager
      * 
      * @param string $faxTo - Стринг от факсове
      * 
-     * @return array $faxArr - Масив с факсове
+     * @return array $toFaxArr - Масив с факсове
      */
     static function faxToArray($faxTo)
     {   
-        //Шаблон за разделяне на факсовете
-        $pattern = '/[\s,;]/'; 
+        // Преобразуваме стринга в масив с факс номера
+        $faxesArr = drdata_PhoneType::toArray($faxTo);
         
-        $faxArr = preg_split($pattern, $faxTo, NULL, PREG_SPLIT_NO_EMPTY);
+        // Обхождаме масива
+        foreach ($faxesArr as $faxArr) {
+            
+            // Създаваме факс номер от кода на държавата + кода на града + самия номер
+            $faxNum = "00{$faxArr->countryCode}{$faxArr->areaCode}{$faxArr->number}";
+            
+            // Добавяме в масива
+            $toFaxArr[$faxNum] = $faxNum;
+        }
         
-        return $faxArr;
+        return $toFaxArr;
     }
 }

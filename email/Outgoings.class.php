@@ -378,6 +378,8 @@ class email_Outgoings extends core_Master
         $data->form->setAction(array($mvc, 'send'));
         $data->form->title = 'Изпращане на имейл';
         
+        $id = Request::get('id', 'int');
+        
         $data->form->FNC(
             'emailsTo',
             'emails',
@@ -394,6 +396,19 @@ class email_Outgoings extends core_Master
         
         // Подготвяме лентата с инструменти на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
+        
+        // Ако има права за ипзващне на факс
+        if (email_FaxSent::haveRightFor('send')) {
+            
+            //Броя на класовете, които имплементират интерфейса email_SentFaxIntf
+            $clsCount = core_Classes::getInterfaceCount('email_SentFaxIntf');
+    
+            //Ако има поне един клас, който да имплементира интерфейса
+            if ($clsCount) {
+                $data->form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => getRetUrl()), 'class=btn-fax');      
+            }
+        }
+        
         $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
         
         $data->form->input(NULL, 'silent');
@@ -578,7 +593,7 @@ class email_Outgoings extends core_Master
     {
         core_Lg::push($lg);
         
-        $textTpl = static::getDocumentBody($oRec->id, 'plain', $oRec);
+        $textTpl = static::getDocumentBody($oRec->id, 'plain', (object)array('rec' => $oRec));
         $text    = html_entity_decode($textTpl->getContent());
         
         core_Lg::pop();
@@ -596,7 +611,7 @@ class email_Outgoings extends core_Master
 
         // Използваме интерфейсния метод doc_DocumentIntf::getDocumentBody() за да рендираме
         // тялото на документа (изходящия имейл)
-        $res = static::getDocumentBody($rec->id, 'xhtml', $rec);
+        $res = static::getDocumentBody($rec->id, 'xhtml', (object)array('rec' => $rec));
         
         // Правим инлайн css, само ако са зададени стилове $css
         // Причината е, че Emogrifier не работи правилно, като конвертира html entities към 
@@ -1158,29 +1173,72 @@ class email_Outgoings extends core_Master
     
     /**
      * Добавя бутон за Изпращане в единичен изглед
-     * @param stdClass $mvc
-     * @param stdClass $data
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         //Добавяме бутона, ако състоянието не е чернова или отхвърлена, и ако имаме права за изпращане
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
-            if ($mvc->haveRightFor('email')) {
-                $retUrl = array($mvc, 'single', $data->rec->id);
-                $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
-            }
-            if ($mvc->haveRightFor('fax')) {
+            
+            // Подготвяме ret_url' то
+            $retUrl = array('email_Outgoings', 'single', $data->rec->id);
+            
+            // Разделяме имейла на факсове и имейли
+            $faxAndEmailsArr = static::explodeEmailsAndFax($data->rec->email);
+            
+            // Броя на факсовете
+            $faxCount = count($faxAndEmailsArr['fax']);
+            
+            // Ако има факс номер и имаме права за изпращане на факс
+            if (($faxCount) && (email_FaxSent::haveRightFor('send'))) {
                 
-                //Броя на класовете, които имплементират интерфейса email_SentFaxIntf
-                $clsCount = core_Classes::getInterfaceCount('email_SentFaxIntf');
-        
-                //Ако нито един клас не имплементира интерфейса
-                if ($clsCount) {
-                    $retUrl = array($mvc, 'single', $data->rec->id);
-                    $data->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-fax');      
+                // Бутона за изпращане да сочи към екшъна за изпращане на факсове
+                $data->toolbar->addBtn('Изпращане', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+            } else {
+                
+                // Ако няма факс номер и имаме права за изпращане на имейл
+                if (email_Outgoings::haveRightFor('email')) {
+                    
+                    // Добавяме бутон за изпращане на имейл
+                    $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Разделя подадения стринг от имейли на масив с факсове и имейли
+     * 
+     * @param string $emails - Стринг от имейли (и факсове)
+     * 
+     * @return array $arr - Масив с имейли и факсове
+     * @return arry $arr['fax'] - Масив с всчики факс номера
+     * @return arry $arr['email'] - Масив с всчики имейли
+     */
+    static function explodeEmailsAndFax($emails)
+    {
+        // Превръщаме всички имейли на масив
+        $emailsArr = type_Emails::toArray($emails);
+        
+        // Обхождаме масива
+        foreach ($emailsArr as $email) {
+            
+            // Вземаме домейн частта на всеки имейл
+            $domain = mb_strtolower(type_Email::domain($email));
+            
+            // Ако домейн частта показва, че е факс
+            if ($domain == 'fax.man') {
+                
+                // Добавяме в масива с факосе
+                $arr['fax'][$email] = $email;
+            } else {
+                
+                // Добавяме в масива с имейли
+                $arr['email'][$email] = $email;
+            }
+        }
+        
+        return $arr;
     }
     
     
