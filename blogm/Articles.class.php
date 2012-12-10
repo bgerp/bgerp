@@ -358,22 +358,19 @@ class blogm_Articles extends core_Master {
     	$conf = core_Packs::getConfig('cms');
         $data->ogp = new stdClass();
     	
-        $attr = array('baseName' => 'ograph_Image', 'isAbsolute' => TRUE, 'qt' => '');
-        //Размера на thumbnail изображението
-        $size = array(200,'max'=>TRUE);
-       
-        // Създаваме файл( ако вече е създаден връщаме хендлъра му), който 
-        // представлява ограф изображението
-        $fm = cls::get('fileman_Files'); 
-        $file = $fm->setFile(getFullPath($conf->CMS_OGRAPH_IMAGE),'gallery_Pictures','ograph_Image.jpg');
-         
-        //Създаваме тумбнаил с подадените минимум размери
-        $imageURL = thumbnail_Thumbnail::getLink($file, $size, $attr);
-    	
-        // Създаваме тъмбнейла на изображението, и подготвяме неговата информация
-    	$data->ogp->imageInfo = array('url'=> $imageURL,
-    						 'type'=> 'image/jpeg',
-    						 );
+    	// Добавяме изображението за ографа ако то е дефинирано от потребителя
+        if($conf->CMS_OGRAPH_IMAGE != '') {
+        	
+	        $file = fileman_Files::fetchByFh($conf->CMS_OGRAPH_IMAGE);
+	        $type = fileman_Files::getExt($file->name);
+	        $attr = array('isAbsolute' => TRUE, 'qt' => '');
+        	$size = array(200, 'max'=>TRUE);
+	        $imageURL = thumbnail_Thumbnail::getLink($file->fileHnd, $size, $attr);
+	    	$data->ogp->imageInfo = array('url'=> $imageURL,
+	    						    	  'type'=> "image/{$type}",
+	    						 		);
+        }
+        
     	if(!$data->rec){
     		
     		// Създаваме Ограф (Open Graph Protocol) Обект
