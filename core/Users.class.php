@@ -215,6 +215,7 @@ class core_Users extends core_Manager
 
         self::calcUserForm($form);  
         
+       
         // Ако имаме въведена нова парола
         if($rec->passNewHash) {
             if($rec->isLenOK == -1) {
@@ -301,7 +302,7 @@ class core_Users extends core_Manager
             if (($inputs->nick || $inputs->email) && $form->isSubmitted()) {
 
                 self::calcLoginForm($form);
-
+ 
                 if (EF_USSERS_EMAIL_AS_NICK) {
                     $userRec = $this->fetch(array(
                             "LOWER(#email) = LOWER('[#1#]')",
@@ -315,7 +316,7 @@ class core_Users extends core_Manager
                     $wrongLoginErr = 'Грешна парола или ник|*!';
                     $wrongLoginLog = 'wrong_nick';
                 }
-
+print_r($form->rec); print_r($userRec); die;
                 if(!$userRec) {
                     $userRec = new stdClass();
                 }
