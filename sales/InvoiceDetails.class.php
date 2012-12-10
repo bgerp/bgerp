@@ -159,26 +159,117 @@ class sales_InvoiceDetails extends core_Detail
             return;
         }
         
-        $mvc::validatePrice($form);
+        switch ($form->rec->itemType)
+        {
+            case 'standard':
+                $mvc::validatePrice($form);
+                
+                if (!$form->gotErrors()) {
+                    // Ако няма грешки, прави опит да изчисли цената според избраната стратегия
+                    $mvc::calculatePrice($form);
+                }
+                
+                break;
+                
+            case 'custom':
+                
+            default:
+                $form->setError('itemType', 'Не е реализирано');
+        }
     }
     
+    
+    /**
+     * Валидация на полето 'price'
+     * 
+     * Ако има, задава грешки и предупреждения във формата.
+     * 
+     * @param core_Form $form
+     */
     public static function validatePrice(core_Form $form)
     {
         $rec = $form->rec;
-        
-        if ($rec->priceType != 'input' && trim($rec->price) != '') {
-            $form->setWarning('price',
-                'Цената ще бъде изчислена автоматично. Въведената цена 
-                ще бъде игнорирана!'
-            );
-        }
         
         if ($rec->priceType == 'input' && !$rec->price) {
             $form->setError('price',
                 'Полето е задължително'
             );
         }
-    }    
+    }
+    
+    
+    /**
+     * Изчислява цената на стандартен продукт според стратегията: въведена, последна или 
+     * каталожна цена.
+     * 
+     * Изчислената цена се записва във полето на формата ($form). При проблем задава 
+     * предупреждения или грешки във формата.
+     * 
+     * @param core_Form $form
+     * 
+     */
+    public static function calculatePrice(core_Form $form)
+    {
+        $rec = $form->rec;
+        
+        switch ($rec->priceType) {
+            case 'input':
+                return;
+            case 'policy':
+                /**
+                 * @TODO цената според актуалната ценова политика (този продукт и този клас клиенти)
+                 */
+                $form->setError('priceType', 'Не е реализирано');
+                break;
+            case 'history':
+                /**
+                * Последната цена, на която този продукт е фактуриран на този клиент.
+                */
+                $recentPrice = static::getRecentPriceFor($rec->itemId, $rec->invoiceId);
+                
+                if ($recentPrice !== FALSE) {
+                    if ($rec->price && $rec->price != $recentPrice) {
+                        $form->setWarning('price',
+                            "Цената бе изчислена автоматично: {$recentPrice}. Въведената цена е игнорирана!"
+                        );
+                    }
+                    $rec->price = $recentPrice;
+                } elseif (!$rec->price) {
+                    $form->setError('priceType, price', 'Невъзможно е да се определи предишна цена');
+                }
+                
+                break;
+        }
+    }
+
+
+    public static function getRecentPriceFor($itemId, $invoiceId)
+    {
+        expect($contragentAccItemId = sales_Invoices::fetchField($invoiceId, 'contragentAccItemId'));
+    
+        /* @var $query core_Query */
+        $query = static::getQuery();
+    
+        $query->EXT('contragentAccItemId', 'sales_Invoices', 'externalName=contragentAccItemId,externalKey=invoiceId');
+        $query->EXT('invoiceDate', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
+        $query->EXT('invoiceState', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
+    
+        $query->where("#contragentAccItemId = {$contragentAccItemId}");
+        $query->where("#itemId = {$itemId}");
+        $query->where("#invoiceId <> {$invoiceId}");
+        $query->where("#invoiceState <> 'rejected'");
+        $query->where("#price IS NOT NULL");
+        $query->orderBy('invoiceDate', 'DESC');
+        $query->limit(1);
+    
+        $recentPrice = FALSE;
+    
+        if ($rec = $query->fetch()) {
+            $recentPrice = $rec->price;
+        }
+    
+        return $recentPrice;
+    }
     
     
     public static function on_BeforeSave($mvc, $id, $rec)
