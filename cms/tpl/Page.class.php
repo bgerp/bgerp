@@ -64,7 +64,7 @@ class cms_tpl_Page extends page_Html {
 
         // Добавка за разпознаване на браузъра
         $Browser = cls::get('core_Browser');
-        $this->append($Browser->renderBrowserDetectingCode());
+        $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
 
         // Добавяме основното меню
         $this->replace(cms_Content::getMenu(), 'CMS_MENU');
