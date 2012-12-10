@@ -2,11 +2,6 @@
 
 
 $conf = core_Packs::getConfig('core');
-/**
- * Каква е минималната дължина за паролата?
- */
-defIfNot('USERREG_MIN_PASS', 5);
-
 
 /**
  * Типа на записите в кеша
@@ -190,12 +185,13 @@ class plg_UserReg extends core_Plugin
                     "На посочения от Вас имейл ще получите линк за избор на паролата за достъп.");
             }
             
-            $form->addAttr("email,names,nick,password", array('style' => 'width:300px'));
             
             if (EF_USSERS_EMAIL_AS_NICK) {
                 $content = $form->renderHtml("email,names", $rec);
+                $form->addAttr("email,names", array('style' => 'width:300px'));
             } else {
                 $content = $form->renderHtml("nick,email,names", $rec);
+                $form->addAttr("email,names,nick", array('style' => 'width:300px'));
             }
             
             return FALSE;
@@ -221,66 +217,74 @@ class plg_UserReg extends core_Plugin
             }
             
             $form = cls::get('core_Form');
-            $form->FLD('nick', 'varchar(32)', 'caption=Ник');
-            $form->setOptions('nick', array($rec->nick => $rec->nick));
-            
-            if ($act == 'activate') {
-                $form->FLD('pass', 'password(32)', 'caption=Вашата парола');
-                $form->title = "Активиране на потребител";
+
+            //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
+            if (EF_USSERS_EMAIL_AS_NICK) {
+                //Ако използваме имейлите вместо никове, скриваме полето ник
+                $form->FLD('email', 'email(link=no)', 'caption=Имейл,mandatory,width=100%');
+                $nickField = 'email';
             } else {
-                $form->FLD('pass', 'password(32)', 'caption=Новата парола');
-                $form->title = "Задаване на нова парола";
+                //Ако не използвам никовете, тогава полето трябва да е задължително
+                $form->FLD('nick', 'nick(64)', 'caption=Ник,mandatory,width=100%');
+                $nickField = 'nick';
             }
             
-            $form->info = tr("За да си активирате достъпа до системата, моля въведете избраната" .
+            $form->setDefault($nickField, $rec->{$nickField});
+            $form->setReadOnly($nickField);
+
+            if ($act == 'activate') {
+                // Нова парола и нейния производен ключ
+                $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
+                $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Вашата парола,input,hint={$minLenHint},width=15em");
+                $form->FNC('passNewHash', 'varchar', 'caption=Хеш на паролата,input=hidden'); 
+                
+                // Повторение на новата парола
+                $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
+                $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
+
+                $form->title = "Активиране на вашия достъп до системата";
+                $form->info = tr("За да си активирате достъпа до системата, моля въведете избраната " .
                 "от вас парола в полетата по-долу. " . "Паролата трябва да е поне|* " .
-                USERREG_MIN_PASS . " |символа и да съдържа латински букви и цифри.");
-            
-            $form->FLD('pass2', 'password(32)', 'caption=Пак паролата');
-            
-            $form->addAttr('nick,pass,pass2', array(
-                    'style' => 'width:240px;'
-                ));
-            
-            $form->FNC('passEnc', 'varchar', 'input=hidden');
-            $form->FNC('pass2Enc', 'varchar', 'input=hidden');
-            
-            $form->FNC('passLen', 'int', 'input=hidden');
-            
+                EF_USERS_PASS_MIN_LEN . " |символа и да съдържа букви, цифри и други символи.");
+
+            } else {
+                // Нова парола и нейния производен ключ
+                $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
+                $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Новата парола,input,hint={$minLenHint},width=15em");
+                $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола  ч,input=hidden'); 
+                
+                // Повторение на новата парола
+                $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
+                $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
+
+                $form->title = "Задаване на нова парола";
+                $form->info = tr("За да смените паролата си за достъп до системата, моля въведете новата " .
+                "парола в полетата по-долу. " . "Паролата трябва да е поне|* " .
+                EF_USERS_PASS_MIN_LEN . " |символа и да съдържа букви, цифри и други символи.");
+            }
+
+            core_Users::setUserFormJS($form);
+             
             $form->FNC('id', 'identifier', 'input=hidden');
             
             $form->toolbar->addSbBtn('Изпрати');
             
-            $form->styles = array(
-                '.formInfo' => 'width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;'
-            );
             
-            $pRec = $form->input('pass,pass2,passEnc,pass2Enc,passLen,id');
+            $pRec = $form->input();
             
-            if ($form->isSubmitted() && $pRec) {
-                if ($pRec->pass) {
-                    // В случай, че няма JavaScript, паролите идват чисти
-                    // В такъв случай ги криптираме
-                    // TODO: да се направи javascript криптиране
-                    $pRec->passEnc = Users::encodePwd($pRec->pass);
-                    $pRec->pass2Enc = Users::encodePwd($pRec->pass2);
-                    $pRec->passLen = strlen($pRec->pass);
-                }
-                
-                if (!$pRec->passEnc || $pRec->passLen == 0) {
-                    $form->setError('pass', 'Не е попълнена паролата');
-                }
-                
-                if ($pRec->passEnc != $pRec->pass2Enc) {
-                    $form->setError('pass', 'Двете пароли се различават');
-                }
-                
-                if ($pRec->passLen < USERREG_MIN_PASS) {
-                    $form->setError('pass', 'Паролата трябва да бъде минимум|* ' . USERREG_MIN_PASS . ' |символа');
-                }
+            if($form->isSubmitted()) {
+                core_Users::calcUserForm($form);
+               
+                if($pRec->isLenOK == -1) {
+                    $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
+                } elseif(!$pRec->passNewHash) {
+                    $form->setError('passNew,passRe', 'Моля, въведете (и повторете) паролата');
+                } elseif($pRec->passNew != $pRec->passRe) {
+                    $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
+                }  
                 
                 if (!$form->gotErrors()) {
-                    $rec->ps5Enc = $pRec->passEnc;
+                    $rec->ps5Enc = $pRec->passNewHash;
                     $rec->state = 'active';
                     $mvc->save($rec, 'state,ps5Enc');
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
@@ -291,19 +295,15 @@ class plg_UserReg extends core_Plugin
             
             $pRec->id = $id;
             
-            $tpl = $form->renderHtml(NULL, $pRec);
-            
-            $tpl->push('js/login.js', 'JS');
-
-            $tpl->replace('this.passEnc.value = passAddSalth(this.pass.value, \'' .
-                EF_USERS_PASS_SALT . '\');' .
-                'this.pass2Enc.value = passAddSalth(this.pass2.value, \'' .
-                EF_USERS_PASS_SALT . '\');' . 'this.passLen.value = this.pass.value.length;' .
-                'this.pass.value = this.pass2.value = \'\'', 'ON_SUBMIT');
-            
-            $content = $tpl;
+            $form->styles = array(
+                '.formInfo' => 'width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
+                '' => 'margin-top:20px;margin-left:20px;'
+            );
+             
+            $content = $form->renderHtml(NULL, $pRec);
             
             return FALSE;
+
         } elseif ($act == 'resetpassform') {
             
             $form = $mvc->getForm();
