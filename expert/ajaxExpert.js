@@ -1,3 +1,6 @@
+/**
+ * Консолидиране и изпращане на Ajax заявките
+ */
 function expEngine(commands, url, formData) {
 	
 	if(url == '') {
@@ -29,6 +32,10 @@ function expEngine(commands, url, formData) {
 
 }
 
+
+/**
+ * Процесиране на върнатите резултати
+ */
 function processExpertForm(data) {
 	
 	// Ако имаме редирект - правим го
@@ -73,8 +80,6 @@ function processExpertForm(data) {
 		}
 	}
 
-	
-
 	$('#expertDialog').dialog( 'option' , 'buttons' , btn);
 
 	$('#expertDialog').html(data.msg);
@@ -91,4 +96,3 @@ function processExpertForm(data) {
 
  	$('#expertDialog').dialog('open');	
 }
-
