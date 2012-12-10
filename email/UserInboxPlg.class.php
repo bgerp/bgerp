@@ -48,7 +48,9 @@ class email_UserInboxPlg extends core_Plugin
         }
         
         if($rec->first && $rec->id) {
+            // На първия потребител даваме и ceo роля. Необходимо ли е?
             core_Users::addRole($rec->id, 'ceo');
+            // Първия потребител го присъединяваме към основния екип
             core_Users::addRole($rec->id, BGERP_ROLE_HEADQUARTER);
         }
     }
