@@ -282,8 +282,10 @@ class ograph_Factory extends core_Master
     	$ogp = static::get($data->siteInfo);
     	
     	// Изображението което ще се показва в OGP
-    	$image = static::getImage($data->imageInfo);
-    	$ogp->addImage($image);
+    	if($data->imageInfo) {
+	    	$image = static::getImage($data->imageInfo);
+	    	$ogp->addImage($image);
+    	}
     	$meta .= "\n{$ogp->toHTML()}";
     	if($data->recInfo) {
     		
