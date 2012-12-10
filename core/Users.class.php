@@ -316,8 +316,8 @@ class core_Users extends core_Manager
                     $wrongLoginErr = 'Грешна парола или ник|*!';
                     $wrongLoginLog = 'wrong_nick';
                 }
-print_r($form->rec); print_r($userRec); die;
-                if(!$userRec) {
+
+		if(!$userRec) {
                     $userRec = new stdClass();
                 }
 
