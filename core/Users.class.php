@@ -34,7 +34,7 @@ defIfNot('EF_USERS_PASS_SALT', hash('sha256', (EF_SALTH . 'EF_USERS_PASS_SALT'))
 /**
  * Колко пъти по дължината на паролата, тя да се хешира?
  */
-defIfNot('EF_USERS_HASH_FACTOR', 500);
+defIfNot('EF_USERS_HASH_FACTOR', 0);
 
 
 /**
