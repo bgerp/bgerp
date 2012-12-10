@@ -47,6 +47,7 @@ class drdata_Countries extends core_Manager {
     function description()
     {
         $this->FLD('commonName', 'varchar', 'caption=Наименование');
+        $this->FLD('commonNameBg', 'varchar', 'caption=Наименование на Български');
         $this->FLD('formalName', 'varchar', 'caption=Формално име');
         $this->FLD('type', 'varchar', 'caption=Тип');
         $this->FLD('sovereignty', 'varchar', 'caption=Суверинитет');
@@ -136,17 +137,18 @@ class drdata_Countries extends core_Manager {
             // Кои колонки ще вкарваме
             $fields = array(
                 1 => "commonName",
-                2 => "formalName",
-                3 => "type",
-                5 => "sovereignty",
-                6 => "capital",
-                7 => "currencyCode",
-                8 => "currencyName",
-                9 => "telCode",
-                10 => "letterCode2",
-                11 => "letterCode3",
-                12 => "isoNumber",
-                13 => "domain"
+                2 => "commonNameBg",
+                3 => "formalName",
+                4 => "type",
+                6 => "sovereignty",
+                7 => "capital",
+                8 => "currencyCode",
+                9 => "currencyName",
+                10 => "telCode",
+                11 => "letterCode2",
+                12 => "letterCode3",
+                13 => "isoNumber",
+                14 => "domain"
             );
             
 

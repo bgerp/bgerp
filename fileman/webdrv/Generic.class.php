@@ -37,25 +37,6 @@ class fileman_webdrv_Generic extends core_Manager
 				'order' => 9,
 			);
         
-		try {
-		    
-		    // Опитваме се да вземем, документите, в които се използва файла
-		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec);    
-		} catch (Exception $e) {
-		}
-		
-	    // Ако сме намерили някой файлове, където се използва
-        if ($documentWithFile) {
-
-            // Показва в кои документи се използва файла
-            $tabsArr['filesindoc'] = (object) 
-    			array(
-    				'title'   => 'Документи',
-    				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Документи, в които се използва</legend>{$documentWithFile}</fieldset></div>",
-    				'order' => 8,
-    			);    
-        }
-        
         return $tabsArr;
     }
     
@@ -317,18 +298,21 @@ class fileman_webdrv_Generic extends core_Manager
             $contentInfo = $linkText . "\n";
         }
         
+        try {
+		    
+		    // Опитваме се да вземем, документите, в които се използва файла
+		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec);    
+		} catch (Exception $e) {}
+		
+		// Ако сме намерили някой файлове, където се използва
+        if ($documentWithFile) {
+            
+            // Добавяме към съдържанието на инфото
+            $contentInfo .= $documentWithFile . "\n";    
+        }
+        
         // Типа на файла
         $type = fileman_Mimes::getMimeByExt(fileman_Files::getExt($fRec->name));
-        
-        // Ако има тип
-        if ($type) {
-            
-            // Типа за показване
-            $typeText = tr("|Тип|*: {$type}");    
-            
-            // Добавяме към съдържанието на инфо
-            $contentInfo .= $typeText . "\n";
-        }
         
         // Вербалния размер на файла
         $size = fileman_Data::getFileSize($fRec->dataId);
@@ -354,7 +338,7 @@ class fileman_webdrv_Generic extends core_Manager
         $contentInfo .= $createdText . "\n";
         
         // Добавяме в текста
-        $content = $contentInfo . $content;
+        $content = $contentInfo . core_Type::escape($content);
         
         // Връщаме съдържанието
         return $content;

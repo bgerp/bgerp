@@ -281,6 +281,7 @@ class php_Test extends core_Manager
      		   !strpos($file, 'ef_root/bgerp/') && 
      		   !strpos($file, 'ef_root/vendors/')) continue;
      		
+     		   
      		// Разглеждаме само тези файлове, които имат определен суфикс 
      		if(strpos($file, '.class.php') || strpos($file, 'boot.inc.php')) {
      			$src = $file;
@@ -296,6 +297,8 @@ class php_Test extends core_Manager
      			// Правим масив с токените
      			$ta = $this->tokenArr;
      			
+     			
+     			
 				if (is_array($ta)) {
 					foreach($ta as $i => $c) {
 						
@@ -309,22 +312,40 @@ class php_Test extends core_Manager
 				if (is_array($e)) {
 				     foreach($e as $id => $i) {
 
-				     	// Върсим всички функции, които използваме
-				      	 if (($ta[$e[$id]]->type == T_STRING)   &&
-				             ($ta[$e[$id+1]]->type == '(')) {
-
+				     	/* if(($ta[$e[$id-1]]->type != T_FUNCTION) || ($ta[$e[$id-1]]->type != '->') &&($ta[$e[$id]]->str == 'generateModules')){
+				     	 	bp($ta[$e[$id-1]]->type,$ta[$e[$id-1]]->str, $ta[$e[$id]]->type, $ta[$e[$id+1]]->type == '(', $ta[$e[$id+1]]->str);
+				     	 }*/
+				     	
+				     	// Tърсим всички функции, които използваме
+				      	 if (($ta[$e[$id-1]]->type == T_FUNCTION) ||
+				      	     ($ta[$e[$id-1]]->type == '->') ||
+				      	     ($ta[$e[$id-1]]->type == '::') &&
+				      	     ($ta[$e[$id]]->type == T_STRING)&&
+				      	     ($ta[$e[$id+1]]->type == '(')){
+				      	     	$this->arrFF[$ta[$e[$id]]->str]++;
+				      	     }elseif
+				      	     (($ta[$e[$id]]->type == T_STRING) &&
+				      	     ($ta[$e[$id+1]]->type == '(')){
+				     	
+				     	 	/*if(($ta[$e[$id]]->type == T_STRING) &&
+				      	     ($ta[$e[$id+1]]->type == '(')){*/
+				          
 				            // Масив с ключ името на функцията и стойност колко пъти се среща
 				            $this->arrF[$ta[$e[$id]]->str]++;
+				         				          
 				         }
+				      
 				     }
 				}
 
+				$a = array_diff($this->arrF, $this->arrFF);
+				
 				   // $r++;
 		     		//if($r > 500)  bp($this->arrF, $info);
      		}	
 
      	}
-     
+     bp($a, $this->arrF);
     	return $this->arrF;
     }
     
@@ -332,13 +353,16 @@ class php_Test extends core_Manager
     	
      // Намираме всички активни модули	
      $modules = get_loaded_extensions();
-     
+     $a =  extension_loaded ('curl');
+     bp($a, $modules);
      foreach ($modules as $mod){
      	
      	// За всеки модул търсим, кои функции спадат към него
      	$functions = get_extension_funcs($mod);
     
      	if (is_array($functions)) {
+     		//expect(!strpos($file, "TCW12"), $functions);
+     		bp($functions);
 	     	foreach ($functions as $fun){
 	     		
 	     		// Масив с ключ името на функцията и стойност модула му
@@ -360,7 +384,7 @@ class php_Test extends core_Manager
      			}
      		}
      	}
-   bp($mods);
+   //bp($mods);
      	return $mods;
     }
     
