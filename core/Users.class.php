@@ -797,7 +797,7 @@ class core_Users extends core_Manager
         $rolesArr[$roleId] = $roleId;
         $uRec->roles = type_Keylist::fromArray($rolesArr);
         
-        core_Users::save($uRec);
+        core_Users::save($uRec, 'roles');
     }
     
     
