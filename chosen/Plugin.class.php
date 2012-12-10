@@ -24,7 +24,7 @@ defIfNot('CHOSEN_PATH', 'chosen/0.9.8');
 class chosen_Plugin extends core_Plugin
 {
     
-    function on_BeforeRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
+    function on_BeforeRenderInput(&$invoker, &$tpl, $name, &$value, $attr = array())
     {
         if(is_array($value) && isset($value['chosen'])) {
             unset($value['chosen']);
@@ -77,9 +77,16 @@ class chosen_Plugin extends core_Plugin
             $selected = '';
             
             $newKey = "|{$key}|";
+ 
+            if(is_array($value)) {
+                if ($value[$key]) {
+                    $attr['selected'] = 'selected';
+                }
 
-            if (strstr($value, $newKey)) {
-                $attr['selected'] = 'selected';
+            } else {
+                if (strstr($value, $newKey)) {
+                    $attr['selected'] = 'selected';
+                }
             }
             
             $attr['value'] = $key;
