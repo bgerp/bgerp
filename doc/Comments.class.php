@@ -150,12 +150,22 @@ class doc_Comments extends core_Master
         //Ако добавяме нови данни
         if (!$rec->id) {
             
-            //Ако имаме originId и добавяме нов запис
+            //Ако имаме originId
             if ($rec->originId) {
+                
+                $cid = $rec->originId;
+            } elseif ($rec->threadId) {
+                
+                // Ако добавяме коментар в нишката
+                $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+            }
+            
+            if ($cid) {
+                
                 //Добавяме в полето Относно отговор на съобщението
-                $oDoc = doc_Containers::getDocument($rec->originId);
+                $oDoc = doc_Containers::getDocument($cid);
                 $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'За: ' . html_entity_decode($oRow->title);
+                $rec->subject = 'За: ' . html_entity_decode($oRow->title);    
             }
         }
     }
