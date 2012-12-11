@@ -11,7 +11,7 @@ function loginFormSubmit(form, passSalt, hashFactor, nickType)
 {   
 	var pass = form.pass.value;
 	form.pass.value = '';
-	form.time.value = parseInt(form.time.value) + Math.round((new Date().getTime() - scriptStart)/1000 );
+	
 	if (nickType == 'email') {
 		var nick = form.email.value;
 	} else {
@@ -20,6 +20,7 @@ function loginFormSubmit(form, passSalt, hashFactor, nickType)
 	var passwordHash = encodePwd(pass, nick, passSalt, hashFactor);
 
 	form.hash.value = applyChallenge(passwordHash, form.time.value);
+	form.time.value = parseInt(form.time.value) + Math.round((new Date().getTime() - scriptStart)/1000 );
 
 	return true;
 }
