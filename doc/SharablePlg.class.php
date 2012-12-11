@@ -48,14 +48,14 @@ class doc_SharablePlg extends core_Plugin
             // В режим на печат, маркираме документа като видян.
             // Ако не сме в режим печат, маркирането става в on_AfterRenderDocument() 
             static::markViewed($mvc, $data);
-        } elseif (!Mode::is('text', 'xhtml')) {
-            $history = static::prepareHistory($data->rec);
+        } 
+        
+        $history = static::prepareHistory($data->rec);
                 
-            // показваме (ако има) с кого е споделен файла
-            if (!empty($history)) {
-                $tpl->replace(static::renderSharedHistory($history), 'shareLog');
-            }
-        }
+        // показваме (ако има) с кого е споделен файла
+        if (!empty($history)) {
+            $tpl->replace(static::renderSharedHistory($history), 'shareLog');
+        }        
     }
 
     
