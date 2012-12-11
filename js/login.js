@@ -15,6 +15,7 @@ function loginFormSubmit(form, passSalt, hashFactor, nickType)
 		var nick = form.nick.value;
 	}
 	var passwordHash = encodePwd(form.pass.value, nick, passSalt, hashFactor);
+	
 	form.time.value = parseInt(form.time.value) + Math.round((new Date().getTime() - scriptStart)/1000 ); 
 	form.hash.value = applyChallenge(passwordHash, form.time.value);
 	form.pass.value = '';
