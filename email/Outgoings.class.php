@@ -775,7 +775,7 @@ class email_Outgoings extends core_Master
             $rec->recipient = tr($contragentData->company);
             $rec->attn      = tr($contragentData->name);
             $rec->country   = tr($contragentData->country);
-            $rec->pcode     = $contragentData->pcode;
+            $rec->pcode     = $contragentData->pCode;
             $rec->place     = tr($contragentData->place);
             
             //Телефонен номер. Ако има се взема от компанията, aко няма, от мобилния. В краен случай от персоналния (домашен).
@@ -1162,7 +1162,7 @@ class email_Outgoings extends core_Master
         $contrData->tel = $posting->tel;
         $contrData->fax = $posting->fax;
         $contrData->country = $posting->country;
-        $contrData->pcode = $posting->pcode;
+        $contrData->pCode = $posting->pcode;
         $contrData->place = $posting->place;
         $contrData->address = $posting->address;
         $contrData->email = $posting->email;
