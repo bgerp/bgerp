@@ -194,6 +194,9 @@ class type_Richtext extends type_Text
 
         // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
         
+        // Вкарваме даден текст, в richText [b] [/b] тагове
+        // \n и/или интервали \n[Главна буква][една или повече малки букви и или интервали]:[интервал][произволен текст]\n
+        $html = preg_replace_callback("/(?'begin'[\n]{1}\s*[\n]{1})(?'text'(?'leftText'[A-ZА-Я]{1}[a-zа-я\s]+)\:\ (?'rightText'.+))(?'end'\n)/u", array($this, '_catchBold'), $html);
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') {
@@ -312,6 +315,18 @@ class type_Richtext extends type_Text
             $res = " o {$text}\n";
         }
         
+        return $res;
+    }
+    
+    
+    /**
+     * Вкарва текста който е в следната последователност: 
+     * // \n и/или интервали \n[Главна буква][една или повече малки букви и или интервали]:[интервал][произволен текст]\n
+     * в болд таг на richText
+     */
+    function _catchBold($match)
+    {
+        $res = $match['begin'] . '[b]' . trim($match['text']) . '[/b]' . $match['end'];
         return $res;
     }
     
