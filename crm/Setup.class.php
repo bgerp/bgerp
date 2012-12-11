@@ -104,7 +104,7 @@ class crm_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Органайзер', 'Визитник', 'crm_Companies', 'default', "user");
+        $html .= $Menu->addItem(1, 'Указател', 'Визитник', 'crm_Companies', 'default', "user");
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
