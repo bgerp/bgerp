@@ -284,7 +284,7 @@ class acc_Lists extends core_Manager {
                 $result [$rec->id] = self::getVerbal($rec, 'title');
             }
         }
-        
+       
         return $result;
     }
     
@@ -365,16 +365,24 @@ class acc_Lists extends core_Manager {
             $oldLists = type_Keylist::toArray($itemRec->lists);
         }
         
-        // Ако поелто $forced е FALSE, то не ъпдейтваме старите номенклатури на перото
+        // Ако поелто $forced е FALSE, към списъка със старите номенклатури добавяме новата
+        // ( ако тя вече не е в него). Ако е TRUE, заместваме старите номенклатури с новите 
         if($forced !== TRUE) {
         	if(count($oldLists) > 0) {
+        		foreach($lists as $list) {
+	      			if(!in_array($list, $oldLists)){
+	      				$oldLists[$list] = $list;     			
+	      			}
+	      		}
+	      		
+	      		// Добавяме новата номенклатура към старите
 	      		$lists = $oldLists;
+	      		$removedFromLists = array();
         	}
-	    }
-        
-	    $removedFromLists = array_diff($oldLists, $lists);
-         
-        if ($itemRec || $lists) {
+	    } else 
+	    	$removedFromLists = array_diff($oldLists, $lists);
+	    
+       if ($itemRec || $lists) {
             if (!$itemRec) {
                 $itemRec = new stdClass();
                 $itemRec->classId = core_Classes::getId($class);
