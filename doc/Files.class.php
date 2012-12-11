@@ -342,44 +342,18 @@ class doc_Files extends core_Manager
      * 
      * @param doc_Folders $folderId - id' то на папката, за която търсим
      * 
-     * @return integer $count - Броя на достъпните файлове
+     * @return integer $count - Броя файловете
      */
     static function getCountInFolder($folderId=NULL) 
     {
-        // Опитваме се да намерим броя на файловете в документа
-        try {
-            
-            // Създаваме обекта $data
-            $data = new stdClass();
-            
-            // Ако е зададено id' то на папката
-            if ($folderId) {
-                
-                // Използваме него
-                $data->listFilter->rec->folderId = $folderId;    
-            } else {
-                
-                // Ако не е зададено, тогава използва id' то на последно активната папка
-                $data->listFilter->rec->folderId = mode::get('lastfolderId');
-            }
-            
-            // Инстанция на класа
-            $inst = cls::get('doc_Files');
-            
-            // Създаваме заявката
-            $data->query = $inst->getQuery();
-            
-            // Подготвяме записите за таблицата
-            $inst->prepareListRecs($data);  
-
-            // Вземаме броя на файловете
-            $count = count($data->recs);
-            
-        } catch (Exception $e) {
-            
-            // Ако възникне греша, броя да е 0
-            $count = 0;    
-        }
+        // Ако не е подадено $folderId, използваме id' то на последно активната папка
+        $folderId = ($folderId) ? ($folderId) : mode::get('lastfolderId');
+        
+        // Ако все още няма папка, връщаме 0
+        if (!$folderId) return 0;
+        
+        // Вземаме броя на файловете в папката
+        $count = static::count("#folderId = '{$folderId}'");
         
         return $count;
     }

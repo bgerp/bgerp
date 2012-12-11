@@ -9,13 +9,7 @@ defIfNot('CMS_THEME', 'cms/themes/default');
 /**
  * Изображение което ще се показва в Ографа
  */
-defIfNot('CMS_OGRAPH_IMAGE', 'cms/img/bgERP-small.jpg');
-
-
-/**
- * Максималната дължина на изображението показвано в Ографа
- */
-defIfNot('CMS_OGRAPH_IMAGE_MAX_WIDTH', '250');
+defIfNot('CMS_OGRAPH_IMAGE', '');
 
 
 /**
@@ -71,10 +65,11 @@ class cms_Setup
 	 */
 	var $configDescription = array(
 	
-			// Константи за инициализиране на таблицата с контактите
 			'CMS_THEME' => array ('varchar'),
 
             'CMS_SHARE' => array ('html'),
+	
+			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)'),
 	
 	);
 
