@@ -32,24 +32,45 @@ class acc_TransactionSourceIntf
      *
      * Резултатът е обект със следната структура:
      *
-     * - reason            string
+     * - reason         string
      * - valior date    string (date)
      * - totalAmount    number
      * - entries        array
      *
      * Член-променливата `entries` е масив от обекти, всеки със следната структура:
      *
-     * - quantity        number
-     * - price            number
-     * - amount            number
-     * - debitAccId        key(mvc=acc_Accounts)
-     * - debitEnt1        key(mvc=acc_Items) - перо от 1-вата разбивка на `debitAccId`
-     * - debitEnt2        key(mvc=acc_Items) - перо от 2-рата разбивка на `debitAccId`
-     * - debitEnt3        key(mvc=acc_Items) - перо от 3-тата разбивка на `debitAccId`
-     * - creditAccId    key(mvc=acc_Accounts)
-     * - creditEnt1        key(mvc=acc_Items) - перо от 1-вата разбивка на `creditAccId`
-     * - creditEnt2        key(mvc=acc_Items) - перо от 2-рата разбивка на `creditAccId`
-     * - creditEnt3        key(mvc=acc_Items) - перо от 3-тата разбивка на `creditAccId`
+     * - quantity           number
+     * - price              number
+     * - amount             number
+     *
+     * - debitAcc           key(mvc=acc_Accounts, key=sid)
+     * - debitAccId         key(mvc=acc_Accounts)
+     *
+     * - debitItem1         '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
+     * - debitItem1Id        key(mvc=acc_Items) - перо от 1-вата разбивка на `debitAccId`
+     *
+     * - debitItem2          '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
+     * - debitItem2Id        key(mvc=acc_Items) - перо от 2-рата разбивка на `debitAccId`
+     *
+     * - debitItem3          '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
+     * - debitItem3Id        key(mvc=acc_Items) - перо от 3-тата разбивка на `debitAccId`
+     *
+     * - creditAcc          key(mvc=acc_Accounts, key=sid)
+     * - creditAccId        key(mvc=acc_Accounts)
+     *
+     * - creditItem1        '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
+     * - creditItem1Id      key(mvc=acc_Items) - перо от 1-вата разбивка на `creditAccId`
+     *
+     * - creditItem2        '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
+     * - creditItem2Id      key(mvc=acc_Items) - перо от 2-рата разбивка на `creditAccId`
+
+     * - creditItem3        '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
+     * - creditItem3Id        key(mvc=acc_Items) - перо от 3-тата разбивка на `creditAccId`
+
+          
+     
+     
+
      *
      * @param int $id ид на документ
      * @return stdClass
