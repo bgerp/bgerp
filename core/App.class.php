@@ -388,10 +388,6 @@ class core_App
 
         $url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
 
-        if (class_exists('core_Session', FALSE)) {
-            $url = core_Session::addSidToUrl($url);
-        }
-
         if (isset($msg)) {
             $Nid = rand(1000000, 9999999);
             core_Mode::setPermanent('Notification_' . $Nid, $msg);

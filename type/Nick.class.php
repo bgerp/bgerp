@@ -34,7 +34,7 @@ class type_Nick extends type_Varchar {
         
         $value = mb_strtolower($value);
         
-        if (!self::isValid($value)) {
+        if (!$this->isValid($value)) {
             $this->error = 'Въвели сте недопустима стойност:|* ' . parent::escape($value);
 
             return FALSE;
@@ -85,6 +85,8 @@ class type_Nick extends type_Varchar {
      */
     function convertValueToNick($value)
     {
+        $value = trim($value);
+
         //Дължина на стринга
         $len = strlen($value);
         

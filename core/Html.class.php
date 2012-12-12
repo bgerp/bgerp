@@ -39,7 +39,7 @@ class core_Html
                          * в стойностите на HTML атрибутите?
                          * 
                          */
-                        $content = str_replace(array('&quot;', "\""), array('&amp;quot;', "&quot;"), $content);
+                        $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
                     }
 
                     $attrStr .= " " . $atr . "=\"" . $content . "\"";

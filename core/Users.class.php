@@ -2,10 +2,17 @@
 
 
 /**
- * Дефинира, ако не е, колко време записът
- * за текущия потребител да е валиден в сесията
+ * Дефинира, колко секунди записът за 
+ * текущия потребител да е валиден в сесията
  */
-defIfNot('EF_USERS_CURRENT_REC_LIFETIME', 20);
+defIfNot('EF_USER_REC_REFRESH_TIME', 20); // config
+
+
+/**
+ * Колко секунди след последното действие на потребителя
+ * ще се пази неговата сесия?
+ */
+defIfNot('EF_USERS_SESS_TIMEOUT', 1200);
 
 
 /**
@@ -15,13 +22,25 @@ defIfNot('EF_USERS_CURRENT_REC_LIFETIME', 20);
  * това трябва да е повече от времето за http трансфер
  * на логин формата и заявката за логване
  */
-defIfNot('EF_USERS_LOGIN_DELAY', 20);
+defIfNot('EF_USERS_LOGIN_DELAY', 10);
 
 
 /**
  * 'Подправка' за кодиране на паролите
  */
-defIfNot('EF_USERS_PASS_SALT', '');
+defIfNot('EF_USERS_PASS_SALT', hash('sha256', (EF_SALTH . 'EF_USERS_PASS_SALT')));
+
+
+/**
+ * Колко пъти по дължината на паролата, тя да се хешира?
+ */
+defIfNot('EF_USERS_HASH_FACTOR', 0);
+
+
+/**
+ * Колко да е минималната дължина на паролата?
+ */
+defIfNot('EF_USERS_PASS_MIN_LEN', 6);
 
 
 /**
@@ -78,7 +97,7 @@ class core_Users extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools';
+    var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools,plg_CryptStore';
     
     
     /**
@@ -101,17 +120,19 @@ class core_Users extends core_Manager
         //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
         if (EF_USSERS_EMAIL_AS_NICK) {
             //Ако използваме имейлите вместо никове, скриваме полето ник
-            $this->FLD('nick', 'email', 'caption=Ник,notNull, input=none');
+            $this->FLD('nick', 'email(link=no)', 'caption=Ник,notNull, input=none,width=15em');
         } else {
             //Ако не използвам никовете, тогава полето трябва да е задължително
-            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory');
+            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory,width=15em');
         }
         
-        $this->FLD('ps5Enc', 'varchar(38)', 'caption=Ключ,column=none,input=none');
-        $this->FNC('password', 'password(autocomplete=on)', 'caption=Парола,column=none,input');
+        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=15em');
         
-        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=100%');
-        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=100%');
+        // Поле за съхраняване на хеша на паролата
+        $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
+        
+        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=15em');
+        
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли,oldFieldName=Role');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,deleted=Изтрит)',
@@ -144,9 +165,27 @@ class core_Users extends core_Manager
             $data->form->setOptions('state' , array('active' => 'active'));
             $data->form->setOptions('roles' , array($mvc->core_Roles->fetchByName('admin') => 'admin'));
             $data->form->title = 'Първоначална регистрация на администратор';
-            $data->form->setField('nick,email,password,names', 'width=15em');
-            $data->form->showFields = 'nick,email,password,names';
+            
+            $data->form->setField("state", 'input=none');
+            $data->form->setField("roles", 'input=none');
+            
+            if(EF_USSERS_EMAIL_AS_NICK) {
+                $data->form->setField("nick", 'input=none');    
+            }
+            
+            $data->form->setField("avatar", 'input=none');
         }
+
+        // Нова парола и нейния производен ключ
+        $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
+        $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},width=15em");
+        $data->form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
+        
+        // Повторение на новата парола
+        $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
+        $data->form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},width=15em");
+
+        self::setUserFormJS($data->form);
     }
     
     
@@ -154,12 +193,14 @@ class core_Users extends core_Manager
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     static function on_AfterInputEditForm($mvc, $form)
-    {
+    { 
         //Ако не сме субмитнали формата връщаме управлението
         if (!$form->isSubmitted()) return ;
         
+        $rec = $form->rec;
+
         //id' то на текущия запис
-        $recId = $form->rec->id;
+        $recId = $rec->id;
         
         //Проверяваме дали има такъв имейл
         if ($newRecId = $mvc->fetchField("LOWER(#email)=LOWER('{$form->rec->email}')")) {
@@ -169,21 +210,30 @@ class core_Users extends core_Manager
                 $form->setError('email', "Има друг регистриран потребител с този имейл.");
             }
         }
+
+        // Ако използваме имейла за ник, то полето nick копира стойността на email
+        if(EF_USSERS_EMAIL_AS_NICK) {
+            $rec->nick = $rec->email;
+        }
+
+        self::calcUserForm($form);  
         
-        //Ако използваме имейл вместо ник и няма грешки
-        if ((EF_USSERS_EMAIL_AS_NICK) && (!$form->gotErrors())) {
-            
-            //Задаваме ник-а да е равен на имейл-а
-            $form->rec->nick = $form->rec->email;
-            
-            //Вземаме частта локалната част на имейл-а
-            $nick = type_Nick::parseEmailToNick($form->rec->nick);
-            
-            //Проверяваме дали имаме такава папка
-            if (!type_Nick::isValid($nick)) {
-                //Ако има, тогава показваме съобщение за грешка
-                $form->setError('email', 'Въвели сте недопустима стойност:|* ' . $form->rec->email);
+       
+        // Ако имаме въведена нова парола
+        if($rec->passNewHash) {
+            if($rec->isLenOK == -1) {
+                $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
+            } elseif($rec->passNew != $rec->passRe) {
+                $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
+            } else {
+                // Ако няма грешки, задаваме да се модифицира хеша в DB
+                $rec->ps5Enc = $rec->passNewHash;
             }
+        }
+
+        if($form->gotErrors()) {
+            $form->rec->passNewHash   = '';
+            $form->rec->passExHash = '';
         }
     }
     
@@ -218,6 +268,9 @@ class core_Users extends core_Manager
                 'name' => 'login'
             ));
         
+        // Парола за ауторизация (логване)
+        $form->FNC('pass', 'password(allowEmpty)', "caption=Парола,input,width=15em");
+ 
         if (Request::get('popup')) {
             $form->setHidden('ret_url', toUrl(array('core_Browser', 'close'), 'local'));
         } else {
@@ -227,7 +280,7 @@ class core_Users extends core_Manager
         $form->setHidden('hash', '');
         $form->setHidden('loadTime', '');
         
-        $form->addAttr('nick,password,email', array('style' => 'width:240px;'));
+        $form->addAttr('nick,pass,email', array('style' => 'width:240px;'));
         $form->toolbar->addSbBtn('Вход', 'default', NULL,  array('class' => 'noicon'));
         
         $this->invoke('PrepareLoginForm', array(&$form));
@@ -241,29 +294,36 @@ class core_Users extends core_Manager
         if (!$currentUserRec->state == 'active') {
             // Ако е зададено да се използва имейл-а за ник
             if (EF_USSERS_EMAIL_AS_NICK) {
-                $inputs = $form->input('email,password,ps5Enc,ret_url,time,hash');
+                $inputs = $form->input('email,pass,ret_url,time,hash');
             } else {
-                $inputs = $form->input('nick,password,ps5Enc,ret_url,time,hash');
+                $inputs = $form->input('nick,pass,ret_url,time,hash');
             }
-            
-            if (($inputs->nick || $inputs->email) && !$form->gotErrors()) {
-                if ($inputs->password) {
-                    $inputs->ps5Enc = core_Users::encodePwd($inputs->password);
-                }
-                
+
+            // Изчислява хешовете
+           
+
+            if (($inputs->nick || $inputs->email) && $form->isSubmitted()) {
+
+                self::calcLoginForm($form);
+ 
                 if (EF_USSERS_EMAIL_AS_NICK) {
                     $userRec = $this->fetch(array(
                             "LOWER(#email) = LOWER('[#1#]')",
                             $inputs->email
-                        ));
-                    $wrongLoginErr = 'Грешна парола или Имейл|*!';
+                        ));              
+
+                    $wrongLoginErr = 'Грешна парола или имейл|*!';
                     $wrongLoginLog = 'wrong_email';
                 } else {
                     $userRec = $this->fetch(array("LOWER(#nick) = LOWER('[#1#]')", $inputs->nick));
                     $wrongLoginErr = 'Грешна парола или ник|*!';
                     $wrongLoginLog = 'wrong_nick';
                 }
-                
+
+		if(!$userRec) {
+                    $userRec = new stdClass();
+                }
+
                 if ($userRec->state == 'deleted') {
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
                     $this->logLogin($inputs, 'missing_password');
@@ -273,17 +333,20 @@ class core_Users extends core_Manager
                 } elseif ($userRec->state == 'draft') {
                     $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за активация|*.');
                     $this->logLogin($inputs, 'draft_user');
-                } elseif (!$inputs->password && !$inputs->hash) {
-                    $form->setError('password', 'Липсва парола!');
+                } elseif (!$inputs->hash || $inputs->isEmptyPass) {
+                    $form->setError('pass', 'Липсва парола!');
                     $this->logLogin($inputs, 'missing_password');
-                } elseif (abs(time() - $inputs->time) > EF_USERS_LOGIN_DELAY) {
-                    $form->setError('password', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
+                } elseif (!$inputs->pass && abs(time() - $inputs->time) > EF_USERS_LOGIN_DELAY) {  
+                    $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
                     $this->logLogin($inputs, 'too_long_login');
+                } elseif ($userRec->lastLoginTime && abs(time() - dt::mysql2timestamp($userRec->lastLoginTime)) <  EF_USERS_LOGIN_DELAY) {
+                    $form->setError('pass', 'Прекалено кратко време за ре-логване|*!<br>|Изчакайте и опитайте пак|*.');
+                    $this->logLogin($inputs, 'too_fast_relogin');
                 } elseif (!$userRec->state) {
-                    $form->setError('password', $wrongLoginErr);
+                    $form->setError('pass', $wrongLoginErr);
                     $this->logLogin($inputs, $wrongLoginLog);
-                } elseif (($userRec->ps5Enc != $inputs->ps5Enc) && (md5($userRec->ps5Enc . $inputs->time) != $inputs->hash)) {
-                    $form->setError('password', $wrongLoginErr);
+                } elseif (self::applyChallenge($userRec->ps5Enc, $inputs->time) != $inputs->hash) {
+                    $form->setError('pass', $wrongLoginErr);
                     $this->logLogin($inputs, 'wrong_password');
                 }
             } else {
@@ -293,15 +356,6 @@ class core_Users extends core_Manager
                     $assumeRec = $this->fetch($uId);
                     $inputs->email = $assumeRec->email;
                     $inputs->nick = $assumeRec->nick;
-                }
-                
-                // Ако издават параметри от URL
-                if (Request::get('email')) {
-                    $inputs->email = Request::get('email');
-                }
-                
-                if (Request::get('nick')) {
-                    $inputs->nick = Request::get('nick');
                 }
             }
             
@@ -327,16 +381,24 @@ class core_Users extends core_Manager
                 } else {
                     $layout = new ET("<table ><tr><td style='padding:50px;'>[#FORM#]</td></tr></table>");
                 }
-                
+                 
                 if (EF_USSERS_EMAIL_AS_NICK) {
-                    $layout->append($form->renderHtml('email,password,ret_url', $inputs), 'FORM');
+                    $layout->append($form->renderHtml('email,pass,ret_url', $inputs), 'FORM');
                 } else {
-                    $layout->append($form->renderHtml('nick,password,ret_url', $inputs), 'FORM');
+                    $layout->append($form->renderHtml('nick,pass,ret_url', $inputs), 'FORM');
                 }
                 
                 $layout->prepend(tr('Вход') . ' » ', 'PAGE_TITLE');
-                $layout->push('js/login.js', 'JS');
-                $layout->replace('LoginFormSubmit(this,\'' . EF_USERS_PASS_SALT . '\');', 'ON_SUBMIT');
+                if(EF_USERS_HASH_FACTOR > 0) {
+                    $layout->push('js/login.js', 'JS');
+                } else {
+                    $layout->push('js/loginOld.js', 'JS');
+                }
+                $layout->replace("loginFormSubmit(this, '" . 
+                                 EF_USERS_PASS_SALT . "', '" . 
+                                 EF_USERS_HASH_FACTOR . "', '" . 
+                                 (EF_USSERS_EMAIL_AS_NICK ? 'email' : 'nick') .
+                                 "');", 'ON_SUBMIT');
                 
                 return $layout;
             }
@@ -392,10 +454,11 @@ class core_Users extends core_Manager
      */
     static function on_BeforeSave($mvc, &$id, &$rec)
     {
+        if($rec->id) {
+            return;
+        }
         $haveUsers = !!$mvc->fetch('1=1');
         
-        if(!$haveUsers && !isDebug())
-        error('Първия потребител може да бъде регистриран само в debug режим!');
         
         $rolesArr = type_Keylist::toArray($rec->roles);
         
@@ -420,9 +483,6 @@ class core_Users extends core_Manager
             $rec->roles .= $roleId . '|';
         }
         
-        if ($rec->password) {
-            $rec->ps5Enc = core_Users::encodePwd($rec->password);
-        }
     }
     
     
@@ -562,13 +622,15 @@ class core_Users extends core_Manager
             
             // Помним в сесията, кога сме се логнали
             $userRec->loginTime = $now;
+            $userRec->lastHitUT = time();
+            $userRec->maxIdleTime = 0;
         } else {
             // Дали нямаме дублирано ползване?
             if ($userRec->lastLoginIp != $Users->getRealIpAddr() &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
-                dt::mysql2timestamp($userRec->lastLoginTime) -
-                dt::mysql2timestamp($sessUserRec->loginTime) <
-                EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
+                dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING
+               
+                ) {
                 
                 // Блокираме потребителя
                 $userRec->state = 'blocked';
@@ -584,8 +646,16 @@ class core_Users extends core_Manager
             $userRec->loginTime = $sessUserRec->loginTime;
             $userRec->lastLoginIp = $sessUserRec->lastLoginIp;
             $userRec->lastLoginTime = $sessUserRec->lastLoginTime;
+            
+            $userRec->maxIdleTime = max($sessUserRec->maxIdleTime, time() - $sessUserRec->lastHitUT);
+            if(!Request::get('ajax_mode')) {
+                $userRec->lastHitUT   = time();
+            } else {
+                $userRec->lastHitUT   = $sessUserRec->lastHitUT;
+            }
         }
         
+        // Ако потребителя е блокиран - излизаме от сесията и показваме грешка        
         if ($userRec->state == 'blocked') {
             $Users->logout();
             error('Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
@@ -597,7 +667,7 @@ class core_Users extends core_Manager
                 '|На имейлът от регистрацията е изпратена информация и инструкция за активация.');
         }
         
-        if ($userRec->state != 'active') {
+        if ($userRec->state != 'active' || $userRec->maxIdleTime > 1200) {
             $Users->logout();
             
             global $_GET;
@@ -608,19 +678,8 @@ class core_Users extends core_Manager
         }
         
         $userRec->refreshTime = $now;
-        
+         
         Mode::setPermanent('currentUserRec', $userRec);
-        
-        // Ако не е дефинирана константата EF_DEBUG и потребителя
-        // има роля 'admin', то дефинираме EF_DEBUG = TRUE
-        if(!defined('EF_DEBUG') && core_Users::haveRole('admin')) {
-            
-            
-            /**
-             * Включен ли е дебъга? Той ще бъде включен и когато текущия потребител има роля 'tester'
-             */
-            DEFINE('EF_DEBUG', TRUE);
-        }
         
         $Users->invoke('afterLogin', array(&$userRec));
         
@@ -690,7 +749,7 @@ class core_Users extends core_Manager
         
         $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
         
-        if (abs(time() - $refreshTime) > EF_USERS_CURRENT_REC_LIFETIME) {
+        if (abs(time() - $refreshTime) > EF_USER_REC_REFRESH_TIME) {
             Users::loginUser($currentUserRec->id);
         }
     }
@@ -740,7 +799,7 @@ class core_Users extends core_Manager
         $rolesArr[$roleId] = $roleId;
         $uRec->roles = type_Keylist::fromArray($rolesArr);
         
-        core_Users::save($uRec);
+        core_Users::save($uRec, 'roles');
     }
     
     
@@ -947,15 +1006,8 @@ class core_Users extends core_Manager
      */
     static function getRealIpAddr()
     {
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            
-            $ip = $_SERVER['HTTP_CLIENT_IP'];
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } else {
-            $ip = $_SERVER['REMOTE_ADDR'];
-        }
+ 
+        $ip = $_SERVER['REMOTE_ADDR'];
         
         return $ip;
     }
@@ -1008,11 +1060,141 @@ class core_Users extends core_Manager
     /**
      * Функция, с която паролата се кодира еднопосочно
      */
-    static function encodePwd($password)
+    static function encodePwd($password, $nick, $salt = EF_USERS_PASS_SALT, $hashFactor = EF_USERS_HASH_FACTOR)
+    {   
+        if($hashFactor <= 0) {
+            $res = md5($password . md5($password) . $salt);
+        } else {
+            $nick = strtolower($nick);
+            $hashFactor = min(10, strlen($password)) * $hashFactor;
+            for($i = 0; $i <= $hashFactor; $i++) {
+                $res = hash('sha256', $res . $nick . $salt . $i . $password);
+            }
+        }
+
+        return $res;
+    }
+
+
+
+    /**
+     * Хешира хеша на паролата и времето
+     */
+    static function applyChallenge($ps5Enc, $time)
     {
-        return md5($password . md5($password) . EF_USERS_PASS_SALT);
+        return hash('sha256', $ps5Enc . $time);
+    }
+
+    
+    /**
+     * Промяна на паролата на съществуващ потребител
+     * 
+     * @param unknown_type $passHash - хеша на новата парола
+     * @param unknown_type $userId - id на потребителя
+     */
+    public static function setPassword($passHash, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = static::getCurrent('id');
+        }
+        
+        expect($rec = static::fetch($userId));
+        
+        $rec->ps5Enc = $passHash;
+        
+        return static::save($rec, 'ps5Enc');
+    }
+
+
+    /**
+     * Изчислява хешовете във формата за логване
+     */
+    static function calcLoginForm($form)
+    {   
+        $rec = $form->rec;
+
+        $nick = EF_USSERS_EMAIL_AS_NICK ? $rec->email : $rec->nick;
+
+        if(!$nick) {
+            $nick = core_Users::getCurrent('nick');
+        }
+
+        if ($rec->pass) {
+            $rec->passHash = self::encodePwd($rec->pass, $nick);
+            $rec->ps5Enc   = $rec->passHash;
+            if($rec->time) {
+                $rec->hash   = self::applyChallenge($rec->ps5Enc, $rec->time);
+            }
+        }
+    }
+
+
+    /**
+     * Изчислява хешовете в потребителския запис
+     * Вариянт 1: Логване на потребнител
+     * Вариянт 2: Редкатиране на потребител (първи или следващ)
+     * Вариянт 3: Смяна на паролата на потребител
+     * Вариянт 4: Смяна на паролата на потребител през имейл интерфейса
+     */
+    static function calcUserForm($form)
+    {   
+        $rec = $form->rec;
+
+        $nick = EF_USSERS_EMAIL_AS_NICK ? $rec->email : $rec->nick;
+
+        if(!$nick) {
+            $nick = core_Users::getCurrent('nick');
+        }
+
+        // Калкулиране на хеша на старата парола
+        // Стара парола трябва да имаме винаги, когато потребителя е логнат
+        if ($rec->passEx) {
+            $rec->passExHash = self::encodePwd($rec->passEx, $nick);
+        }
+        
+        // Калкулиране на хеша на новата парола
+        if ($rec->passNew) {
+            $rec->passNewHash = self::encodePwd($rec->passNew, $nick);
+            if(mb_strlen($rec->passNew) < EF_USERS_PASS_MIN_LEN) {
+                $rec->isLenOK = -1;
+            }
+            if($rec->passNew != $rec->passRe) {
+                $rec->isRetypeOK = -1;
+            }
+        }
     }
     
+
+    /**
+     * Добавя необходимия JS на форма за промяна на паролата на потребител
+     */
+    static function setUserFormJS($form)
+    {   
+        $rec = $form->rec;
+
+        $nickType = EF_USSERS_EMAIL_AS_NICK ? 'email' : 'nick';
+
+ 
+        $tpl = new ET();
+        if(EF_USERS_HASH_FACTOR > 0) {
+            $tpl->push('js/login.js', 'JS');
+        } else {
+            $tpl->push('js/loginOld.js', 'JS');
+        }
+
+        $tpl->append("return userFormSubmit(this, '" . 
+                                 EF_USERS_PASS_SALT . "', '" . 
+                                 EF_USERS_HASH_FACTOR . "', '" . 
+                                 $nickType . "', '" .
+                                 EF_USERS_PASS_MIN_LEN . "', '" . 
+                                 core_Lg::getCurrent() .
+                                 "');", 'ON_SUBMIT');
+
+        $form->info = new ET($form->info);
+        $form->info->appendOnce($tpl, 'ON_SUBMIT');
+    }
+
+
     
     /**
      * Връща id' то на първия срещнат администратор в системата
@@ -1039,21 +1221,4 @@ class core_Users extends core_Manager
     }
 
     
-    /**
-     * Промяна на паролата на съществуващ потребител
-     * 
-     * @param unknown_type $newPassword
-     * @param unknown_type $userId
-     */
-    public static function setPassword($newPassword, $userId = NULL)
-    {
-        if (!isset($userId)) {
-            $userId = static::getCurrent('id');
-        }
-        
-        expect($rec = static::fetch($userId));
-        $rec->password = $newPassword;
-        
-        return static::save($rec);
-    }
 }

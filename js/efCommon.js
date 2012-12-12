@@ -234,7 +234,7 @@ function comboSelectOnChange(id, value, suffix)
 	if(exVal != '' && inp.getAttribute('data-role') == 'list') {
 		get$(id).value += ', ' +  value; 
 	} else {
-		get$(id).value =  value; 
+		get$(id).value = value.replace(/&lt;/g, '<'); 
 	}
 
 	get$(id).focus();

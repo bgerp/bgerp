@@ -278,7 +278,7 @@ class core_Form extends core_FieldSet
         if (!$this->layout) {
             if($this->view == 'horizontal') {
                 $this->layout = new ET(
-                    "<form style='margin:0px;' id='" .
+                    "<form  id='" .
                     $this->formAttr['id'] .
                     "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 horizontal' style='margin-top:5px;'>" .
@@ -293,7 +293,7 @@ class core_Form extends core_FieldSet
                 );
             } else {
                 $this->layout = new ET(
-                    "<form style='margin:0px;' id='" .
+                    "<form id='" .
                     $this->formAttr['id'] .
                     "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 vertical' style='margin-top:5px;'>" .
@@ -431,6 +431,7 @@ class core_Form extends core_FieldSet
             $i = 1;
             
             foreach ($fields as $name => $field) {
+                expect(is_object($fields[$name]), $fields);
                 $fields[$name]->formOrder = (float) $field->formOrder ? $field->formOrder : $i++;
             }
             
@@ -859,7 +860,7 @@ class core_Form extends core_FieldSet
             }
         } else {
             $name = arr::make($name, TRUE);
-            
+
             foreach ($name as $n) {
                 $this->fields[$n]->attr = arr::union($this->fields[$n]->attr, $attr);
             }
