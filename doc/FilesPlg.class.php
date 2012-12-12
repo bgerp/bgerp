@@ -41,6 +41,7 @@ class doc_FilesPlg extends core_Plugin
         // Рендираме изгледа
         $res = $docFilesInst->renderWrapping($tpl, $data);
         
+        // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
         Mode::set('pageSubMenu', 'Общи');
         
