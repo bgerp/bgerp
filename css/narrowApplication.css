@@ -794,6 +794,7 @@ div.sharing-history {
 	color: #555;
     font-size: 0.9em;
 	clear: both;
+	padding-right:120px;
 }
 
 span.sharing-history-title {

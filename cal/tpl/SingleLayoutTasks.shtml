@@ -8,9 +8,12 @@
 		<div class='antetka' style='line-height:150%;'>
 			<b>[#title#]</b><br>
 			<small>
-			Приоритет: [#priority#]<br>
-			Отговорници: [#shareLog#]<br>
-			
+			<div>
+				Приоритет: [#priority#]
+			</div>
+			<div>
+				Отговорници: [#shareLog#]
+			</div>
 			<!--ET_BEGIN timeStart-->
             Начало: [#timeStart#]<br>
             <!--ET_END timeStart-->
