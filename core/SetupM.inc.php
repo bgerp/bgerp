@@ -576,7 +576,7 @@ if ($step == '5') {
     
     $appUri = substr($selfUrl, 0, strpos($selfUrl,'/?'));
     
-    $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent"); //echo($l); die;
+    $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent");
     $l = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($l));
     contentFlush("<script>
         				document.getElementById('startHeader').innerHTML = '" .
@@ -700,6 +700,7 @@ function linksToHtml($links, $target='_self')
 function gitHasNewVersion($repoPath, &$log)
 {
 	$repoName = basename($repoPath);
+	
 	$command = "git --git-dir={$repoPath}/.git remote show origin";
 
 	exec($command, $arrRes, $returnVar);
@@ -709,7 +710,7 @@ function gitHasNewVersion($repoPath, &$log)
 	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");
 	
 	if($hasNewVersion !== FALSE) {
-        $log[] = "new:Има нова версия на  [<b>$repoName</b>]";
+        $log[] = "new:[<b>$repoName</b>] Има нова версия.";
         
         return TRUE;
     }
@@ -721,6 +722,7 @@ function gitHasNewVersion($repoPath, &$log)
  */
 function gitHasChanges($repoPath, &$log)
 {
+	$repoName = basename($repoPath);
 	
 	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} status -s";
 
@@ -731,8 +733,9 @@ function gitHasChanges($repoPath, &$log)
 	    foreach ($arrRes as $row) {
 	        $row = trim($row);
 	        $arr = split(" ", $row);
-	        $log[] = "wrn:" . $states[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
+	        $log[] = "wrn:<b>[{$repoName}]</b> " . $states[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
 	    }
+	    
     	return TRUE;
 	}
 }
@@ -745,7 +748,7 @@ function gitPullRepo($repoPath, &$log)
 {
 	$repoName = basename($repoPath);
 	
-	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} pull origin master";
+	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} pull origin master 2>&1";
 
 	exec($command, $arrRes, $returnVar);
 	
@@ -753,11 +756,22 @@ function gitPullRepo($repoPath, &$log)
 	
 	foreach ($success as $needle) {
 		if (array_search($needle, $arrRes) !== FALSE) {
-			$log[] = "new:Репозиторито <b>[{$repoName}]</b> е обновено";
+			$log[] = "new:<b>[{$repoName}]</b> е обновено.";
 			
 			return TRUE;
 		}
 	}
+	
+	// Показваме грешката, ако не е сработило горното условие
+    foreach ($arrRes as $res) { //die($command);
+    	if (strpos($res, 'error:') !== FALSE || strpos($res, 'fatal:') !== FALSE) {
+    		$err = substr($res, strrpos($res, ":")+1);
+    		$log[] = "err:<b>[{$repoName}]</b> НЕ е обновено: {$err}";
+    		
+    		return FALSE;
+    	}
+    }
+	
 }
 
 
@@ -766,12 +780,21 @@ function gitPullRepo($repoPath, &$log)
  */
 function gitRevertRepo($repoPath, &$log)
 {
-    $command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} reset --hard origin/master";
-    
-    exec($command, $arrRes, $returnVar);
-    
     $repoName = basename($repoPath);
     
+    $command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} reset --hard origin/master 2>&1";
+    
+    exec($command, $arrRes, $returnVar);
+
+    foreach ($arrRes as $res) { 
+    	if (strpos($res, 'fatal:') !== FALSE) {
+    		$err = substr($res, strrpos($res, ":")+1);
+    		$log[] = "err:<b>[{$repoName}]</b> НЕ е възстановено: {$err}";
+    		
+    		return FALSE;
+    	}
+    }
+
     $log[] = "msg:Репозиторито <b>[{$repoName}]</b> е възстановено";
 }
 
@@ -799,9 +822,3 @@ function contentFlush ($content)
     flush();
     
 }
-
-
-
-
-
-?>
