@@ -61,6 +61,9 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $headersArr = static::getHeaders($mime, $emlRec);
         $headersStr = type_Varchar::escape($headersArr['string']);
         
+        // Добавяме стилове
+        $headersStr = "<div style='background-color: transparent; font-family: monospace \"courier new\";'>{$headersStr}</div>";
+        
         // Вземаме линковете към файловете
         $filesStr = static::getFiles($mime, $emlRec);
        
