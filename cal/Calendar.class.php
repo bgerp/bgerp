@@ -185,8 +185,8 @@ class cal_Calendar extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('persons', 'users', 'caption=Потребител,input,silent');
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px');
+        $data->listFilter->FNC('persons', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->view = 'horizontal';
@@ -195,7 +195,7 @@ class cal_Calendar extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'persons, from';
+        $data->listFilter->showFields = 'from, persons';
         
         $data->listFilter->input('persons, from', 'silent');
     }
