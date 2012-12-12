@@ -292,7 +292,7 @@ class fileman_webdrv_Generic extends core_Manager
             $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
             
             // Линка, който ще се показва
-            $linkText = tr("|Линк|*: <span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOn})</small>");
+            $linkText = tr("Линк|*: <span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOn})</small>");
             
             // Добавяме към съдържанието на инфо
             $contentInfo = $linkText . "\n";
@@ -340,11 +340,14 @@ class fileman_webdrv_Generic extends core_Manager
         // Добавяме в текста
         $content = $contentInfo . core_Type::escape($content);
         
+        // Инстанция на класа
+        $t = cls::get('page_PreText');
+        
         // Добавяме стилове
-        $content = "<div style='line-height:150%;'> {$content} </div>";
+        $t->appendOnce('body{line-height:150%;}', 'STYLES');
         
         // Връщаме съдържанието
-        return $content;
+        return $t->output($content);
     }
 	
 	
