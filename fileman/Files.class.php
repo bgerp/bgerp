@@ -685,6 +685,9 @@ class fileman_Files extends core_Master
         
         $form->input('name');
         
+        // Размера да е максимален
+        $form->setField('name', 'width=100%');
+        
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
 
