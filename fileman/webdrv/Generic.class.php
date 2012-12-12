@@ -318,7 +318,7 @@ class fileman_webdrv_Generic extends core_Manager
         try {
 		    
 		    // Опитваме се да вземем, документите, в които се използва файла
-		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec);    
+		    $documentWithFile = tr("Съдържа се в|*: ") . fileman_Files::getDocumentsWithFile($fRec);    
 		} catch (Exception $e) {}
 		
 		// Ако сме намерили някой файлове, където се използва
