@@ -627,7 +627,11 @@ class crm_Profiles extends core_Master
     {   
         if(!$title) {
             $userRec = core_Users::fetch($userId);
-            $title = str_replace(' ', '&nbsp;', mb_convert_case(str_replace(array('.', '_'), array(' ', ' '), $userRec->nick), MB_CASE_TITLE, "UTF-8"));
+            list($l, $r) = explode('@', $userRec->nick);
+            $title = str_replace(' ', '&nbsp;', mb_convert_case(str_replace(array('.', '_'), array(' ', ' '), $l), MB_CASE_TITLE, "UTF-8"));
+            if($r) {
+                $title .= '@' . $r;
+            }
         }
 
         $link = $title;
