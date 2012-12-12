@@ -340,6 +340,9 @@ class fileman_webdrv_Generic extends core_Manager
         // Добавяме в текста
         $content = $contentInfo . core_Type::escape($content);
         
+        // Добавяме стилове
+        $content = "<div style='line-height:150%;> {$content} </div>";
+        
         // Връщаме съдържанието
         return $content;
     }
