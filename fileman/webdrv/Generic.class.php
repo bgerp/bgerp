@@ -282,21 +282,38 @@ class fileman_webdrv_Generic extends core_Manager
         // Записите за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
     
+        // Текста пред линковете
+        $linkText = tr("Линк|*: ");
+        
+        // URL' то за генериране на линкове
+        $linkUrl = array('fileman_Download', 'GenerateLink', 'fh' => $fileHnd, 'ret_url' => array('fileman_Files', 'single', $fileHnd, 'currentTab' => 'info', '#' => 'fileDetail'));
+        
         // Ако има активен линк за сваляне
         if (($dRec = fileman_Download::fetch("#fileId = {$fRec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
             
             // Линк за сваляне
             $link = fileman_Download::getSbfDownloadUrl($dRec, TRUE);
-            
+
             // До кога е активен линка
             $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
             
-            // Линка, който ще се показва
-            $linkText = tr("Линк|*: <span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOn})</small>");
+            // Датата, когато изтича да е линк, към генериране на линкове
+            $expireOnLink = ht::createLink($expireOn, $linkUrl);
             
-            // Добавяме към съдържанието на инфо
-            $contentInfo = $linkText . "\n";
+            // Линка, който ще се показва
+            $linkText .= tr("|*<span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOnLink})</small>");
+            
+        } else {
+            
+            // Създаваме линк, за генерира на линкове
+            $link = ht::createLink('[' . tr('Вземи') . ']', $linkUrl);
+            
+            // Добавяме към текста на линка
+            $linkText .= $link;
         }
+        
+        // Добавяме към съдържанието
+        $contentInfo = $linkText . "\n";
         
         try {
 		    
@@ -341,13 +358,16 @@ class fileman_webdrv_Generic extends core_Manager
         $content = $contentInfo . core_Type::escape($content);
         
         // Инстанция на класа
-        $t = cls::get('page_PreText');
+        $pageInst = cls::get(Mode::get('wrapper'));
+        
+        // Линковете вътре в документа, да се отварят в родителската страница
+        $pageInst->appendOnce('<base target="_parent" />', 'HEAD');
         
         // Добавяме стилове
-        $t->appendOnce('body{line-height:150%;}', 'STYLES');
+        $pageInst->appendOnce('body{line-height:150%;}', 'STYLES');
         
         // Връщаме съдържанието
-        return $t->output($content);
+        return $pageInst->output($content);
     }
 	
 	
