@@ -342,7 +342,7 @@ class cal_Tasks extends core_Master
         $prefix = "TSK-{$id}";
 
         // Подготвяме запис за началната дата
-        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed')) {
+        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft')) {
             
             $calRec = new stdClass();
                 
@@ -359,10 +359,13 @@ class cal_Tasks extends core_Master
             $calRec->type  = 'task';
 
             // Заглавие за записа в календара
-            $calRec->title = "Задача: \"{$rec->title}\"";
+            $calRec->title = "{$rec->title}";
 
             // В чии календари да влезе?
             $calRec->users = $rec->sharedUsers;
+            
+            // Статус на задачата
+            $calRec->state = $rec->state;
 
             // Какъв да е приоритета в числово изражение
             $calRec->priority = self::getNumbPriority($rec);

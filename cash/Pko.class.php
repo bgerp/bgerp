@@ -116,10 +116,19 @@ class cash_Pko extends core_Master
      */
     var $searchFields = 'number, date, contragentFolder';
     
-    // Параметри за принтиране
+    
+    /**
+     * Параметри за принтиране
+     */
     var $printParams = array( array('Оригинал'),
     						  array('Копие'),); 
-    						  
+
+    /**
+     * Коя сметка отговаря на касата
+     */
+   	static $caseAccount = '501';
+    
+    
     /**
      * Описание на модела
      */
@@ -131,6 +140,7 @@ class cash_Pko extends core_Master
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory');
     	$this->FLD('contragentFolder', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент->Вносител,mandatory,width=100%');
     	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
+    	$this->FLD('creditAccounts', 'acc_type_Account(maxColumns=1)', 'caption=Контрагент->Сметка,mandatory');
     	$this->FLD('peroCase', 'int', 'caption=Каса,input=hidden');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс');
@@ -199,15 +209,82 @@ class cash_Pko extends core_Master
     	$data->form->setDefault('date', $today);
     	$data->form->setHidden('peroCase', cash_Cases::getCurrent());
     	$data->form->setDefault('currencyId', $currencyId);
+    	
+    	//$data->form->getField("creditAccounts")->type->params['root'] = $conf->CASH_PKO_CREDIT_ACC;
+    	//$contragentClass = doc_Folders::fetchCoverClassName($folderId);
+    	$options = static::getPossibleAccs(); 
+    	$data->form->setOptions('creditAccounts', $options);
     }
 
+    
+    /**
+     * Между кои сметки можем да избираме да запишем контрагента
+     * @return array $options между кои сметки можем да избираме
+     **/
+    static function getPossibleAccs()
+    {
+    	$options = array();
+    	$conf = core_Packs::getConfig('cash');
+    	$array = type_Keylist::toArray($conf->CASH_PKO_CREDIT_ACC);
+    	foreach($array as $id) {
+    		$rec = acc_Accounts::fetch($id);
+    		$options[$rec->id] = acc_Accounts::getRecTitle($rec);
+    	}
+    	
+    	return $options;
+    }
 
+    
     /**
      * Проверка и валидиране на формата
      */
     function on_AfterInputEditForm($mvc, $form)
     {
         acc_Periods::checkDocumentDate($form);
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+    	
+    	if(!$rec->id) {
+	    	if(!$rec->rate){
+	    		
+	    		// Ако не е посочен курс, преизчисляваме курса на посочената валута към този
+    			// на основната валута за периода
+	    		$accPeriods = cls::get('acc_Periods');
+	            
+	            // Взема периода за който се отнася документа, според датата му
+	    		$period = $accPeriods->fetchByDate($rec->date);
+	    		if(!$period->baseCurrencyId){
+	    			$period->baseCurrencyId = currency_Currencies::getIdByCode();
+	    		}
+	    		
+	    		// Ако не е зададен курс на валутата
+	    		$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$rec->currencyId}");
+	    		
+	    		// Ако текущата валута е основната валута 
+	    		($currencyRates) ? $rec->rate = round($currencyRates->rate, 4) : $rec->rate = 1;
+	    		
+	    		// Коя е базовата валута, и нейния курс
+	    		$baseCurrencyRate = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
+	    			
+	    		// Ако основната валута за периода не фигурира в currency_CurrencyRates, 
+	    		// то приемаме че тя е Евро
+	    		if(!$baseCurrencyRate){
+	    			$baseCurrencyRate = new stdClass();
+	    			$baseCurrencyRate->currencyId = currency_Currencies::getIdByCode('EUR');
+	    			$baseCurrency->code = 'EUR';
+	    			$baseCurrencyRate->rate = 1;
+	    		}
+	    		
+	    		// Преизчисляваме колко е курса на подадената валута към основната за периода
+	    		$rec->rate = round($baseCurrencyRate->rate/$rec->rate, 4);
+	    	}
+    	}
     }
     
     
@@ -221,12 +298,15 @@ class cash_Pko extends core_Master
     	if($fields['-single']){
     		
     		$contragentData = doc_Folders::getContragentData($rec->contragentFolder);
-    		if($contragentData->company)
+    		if($contragentData->company){
     			$row->contragent = $contragentData->company;
-    		elseif($contragentData->name)
+    		}
+    		elseif($contragentData->name){
     			$row->contragent = $contragentData->name;
-    		else 
+    		}
+    		else {
     			$row->contragent = '';
+    		}
     		
     		// Адреса на контрагента
     		$row->contragent .= trim(
@@ -241,50 +321,17 @@ class cash_Pko extends core_Master
             
             // Взема периода за който се отнася документа, според датата му
     		$period = $accPeriods->fetchByDate($rec->date);
-    		if(!$period->baseCurrencyId){
-    				
-    				// Ако периода е без посочена валута, то зимаме по дефолт BGN
-    				$period->baseCurrencyId = currency_Currencies::getIdByCode();
-    		}
+    		if(!$period->baseCurrencyId)
+    			$period->baseCurrencyId = currency_Currencies::getIdByCode();
     		
-    		// Ако избраната валута е различна от основната за периода
-    		if($rec->currencyId != $period->baseCurrencyId) {
-    			
-    			// Ако не е зададен курс на валутата
-    			if(!$rec->rate){
-    				$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$rec->currencyId}");
-    				
-    				// Ако текущата валута е основната валута 
-    				($currencyRates) ? $row->rate = round($currencyRates->rate, 4) : $row->rate = 1;
-    			}
-    			
-    			// Коя е базовата валута, и нейния курс
-    			$baseCurrencyRate = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
-    			
-    			// Ако основната валута за периода не фигурира в currency_CurrencyRates, 
-    			// то приемаме че тя е Евро
-    			if(!$baseCurrencyRate){
-    				$baseCurrencyRate = new stdClass();
-    				$baseCurrencyRate->currencyId = currency_Currencies::getIdByCode('EUR');
-    				$baseCurrency->code = 'EUR';
-    				$baseCurrencyRate->rate = 1;
-    			}
-    			
-    			$baseCurrency = currency_Currencies::fetch($baseCurrencyRate->currencyId);
-    			
-    			// Каква е равостойноста на сумата към текущата валута, и кода на основната валута
-    			$row->baseCurrency = $baseCurrency->code;
-    			
-    			// Преизчисляваме колко е курса на подадената валута към основната за периода
-    			$row->rate = round($baseCurrencyRate->rate/$row->rate, 4);
-    			
-    			// Намираме равностойноста на подадената валута в основната за периода
-    			$row->equals = round($rec->amount * $row->rate, 2);
-    			$num = cls::get('type_Double');
-    			$num->params['decimals']= 2;
-    			$row->rate = $num->toVerbal($row->rate);
-    			$row->equals = $num->toVerbal($row->equals);
-    		}
+    		$baseCurrencyCode = currency_Currencies::fetchField($period->baseCurrencyId,'code');
+    		$row->baseCurrency = $baseCurrencyCode;
+    		
+    		// Намираме равностойноста на подадената валута в основната за периода
+    		$row->equals = round($rec->amount * $rec->rate, 2);
+    		$num = cls::get('type_Double');
+    		$num->params['decimals'] = 2;
+    		$row->equals = $num->toVerbal($row->equals);
     		
     		$spellNumber = cls::get('core_SpellNumber');
 	    	$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
@@ -307,13 +354,13 @@ class cash_Pko extends core_Master
 	    	if(core_Users::haveRole('cash', core_Users::getCurrent())){
 	    		
 	    		// Получателят е текущия потребител, ако има роля касиер
-	    		$row->cashier =  core_Users::getCurrent('names');
+	    		$row->cashier = core_Users::getCurrent('names');
 	    	}
         }
        
         // Показваме заглавието само ако не сме в режим принтиране
     	if(!Mode::is('printing')){
-    		$row->header = $mvc->singleTitle . " <b>{$row->ident}</b>" . " ({$row->state})" ;
+    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	}
     }
     
@@ -328,45 +375,53 @@ class cash_Pko extends core_Master
     
     
    	/**
+   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
    	 */
     public static function getTransaction($id)
     {
        	// Извличаме записа
-        $rec = self::fetch($id);
-        expect($rec);
+        expect($rec = self::fetch($id));
         
         // classId-то на касата
         $caseClassId = core_Classes::getId('cash_Cases');
+         
+        // Сметките която ще дебитираме ( сметка 501 - Каси )
+       	$debitAcc = acc_Accounts::fetch(array ("#systemId = '[#1#]'", self::$caseAccount));
         
-        // classId-то на валутата
-        $currencyClassId = core_Classes::getId('currency_Currencies');
+       	// Перото съответсващо на касата
+        expect(cls::haveInterface('cash_CaseAccRegIntf', $caseClassId), "Класът не поддържа  'cash_CaseAccRegIntf'");
+        $casePero = acc_Lists::updateItem($caseClassId, $rec->peroCase, 'case', FALSE);
         
         // Намираме класа на контрагента
         $contragentId = doc_Folders::fetchCoverId($rec->folderId);
         $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
         $contragentClassId = core_Classes::getId($contragentClass);
        	
-        // Сметките които ще дебитираме/кредитираме
-       	$debitAcc = acc_Accounts::fetch(array ("#systemId = '[#1#]'", '501'));
-        $creditAcc = acc_Accounts::fetch(array ("#systemId = '[#1#]'", '411'));
-       	
-        // @TODO Проверка дали класа поддържа зададен интерфейс !!!
-        // Перото съответсващо на касата
-        $casePero = acc_Lists::updateItem($caseClassId, $rec->peroCase, 'clients', FALSE);
+       	// Сметката която ще кредитираме
+       	$creditAcc = acc_Accounts::fetch($rec->creditAccounts);
         
         // Перото съответстващо на контрагента
-        $contragentPero =  acc_Lists::updateItem($contragentClassId, $contragentId, 'clients', FALSE);
+        expect(cls::haveInterface('crm_ContragentAccRegIntf', $contragentClassId), "Класът {$contragentClass} не поддържа 'crm_ContragentAccRegIntf'");
+        $contragentPero = acc_Lists::updateItem($contragentClassId, $contragentId, $creditAcc->groupId1, FALSE);
+        
+        // classId-то на валутата
+        $currencyClassId = core_Classes::getId('currency_Currencies');
         
         // Перото съответстващо на валутата
+        expect(cls::haveInterface('currency_CurrenciesAccRegIntf', $currencyClassId), "Класът не поддържа 'crm_ContragentAccRegIntf'");
         $peroCurrency = acc_Lists::updateItem($currencyClassId, $rec->currencyId, 'currencies', FALSE);
+        $debitEnt2 = $peroCurrency;
+        $debitPrice = $rec->rate;
+        
+        // Ако сметката има поддържа номенклатура 'Валута'
+        if($creditAcc->groupId2) {
+        	$creditEnt2 = $peroCurrency;
+        	$creditPrice = $rec->rate;
+        }
         
         // Курса по който се обменя валутата  на ордера към основната валута за периода
-        // @TODO отделна функция която да изчислява курса от една валута в друга
-        $price = static::recToVerbal($rec, 'rate,-single');
-        $double = cls::get('type_Double');
-        $price = $double->fromVerbal($price->rate);
-        $entrAmount = $price * $rec->amount; 
+        $entrAmount = $rec->rate * $rec->amount; 
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
@@ -377,14 +432,14 @@ class cash_Pko extends core_Master
                 'amount' => $entrAmount,	// равностойноста на сумата в основната валута
                 'debitAccId' => $debitAcc->id, // дебитната сметка
                 'debitEnt1' => $casePero,  // перо каса
-        		'debitEnt2' => $peroCurrency, // перо валута
+        		'debitEnt2' => $debitEnt2, // перо валута
                 'debitQuantity' => $rec->amount,  // каква е сумата
-                'debitPrice' => $price,	// обменния курс между сумата и основната валута за периода
+                'debitPrice' => $debitPrice,	// обменния курс между сумата и основната валута за периода
                 'creditAccId' => $creditAcc->id, // кредитна сметка
                 'creditEnt1' => $contragentPero, // перо контрагент
-                'creditEnt2' => $peroCurrency, // перо валута
+                'creditEnt2' => $creditEnt2, // перо валута
                 'creditQuantity' => $rec->amount, // каква е сумата
-                'creditPrice' => $price, // обменния курс между сумата и основната валута за периода
+                'creditPrice' => $creditPrice, // обменния курс между сумата и основната валута за периода
             ))
         );
         

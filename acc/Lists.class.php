@@ -284,7 +284,7 @@ class acc_Lists extends core_Manager {
                 $result [$rec->id] = self::getVerbal($rec, 'title');
             }
         }
-        
+       
         return $result;
     }
     
@@ -338,10 +338,11 @@ class acc_Lists extends core_Manager {
 	        		
 	        		// Ако елементите на масива са стрингове намираме на кои записи
 	        		// отговарят те
-	        		if(!is_numeric($list)) 
+	        		if(!is_numeric($list)) {
 	        			$str .= static::fetchBySystemId($list)->id . "|";
-	        		else 
+	        		} else {
 	        			$str .= $list ."|";
+	        		}
 	        	}
 	        	
 	        	// Заместваме подадения стрингов списък с списък от ключове
@@ -365,16 +366,26 @@ class acc_Lists extends core_Manager {
             $oldLists = type_Keylist::toArray($itemRec->lists);
         }
         
-        // Ако поелто $forced е FALSE, то не ъпдейтваме старите номенклатури на перото
+        // Ако поелто $forced е FALSE, към списъка със старите номенклатури добавяме новата
+        // ( ако тя вече не е в него). Ако е TRUE, заместваме старите номенклатури с новите 
         if($forced !== TRUE) {
         	if(count($oldLists) > 0) {
+        		foreach($lists as $list) {
+	      			if(!in_array($list, $oldLists)){
+	      				$oldLists[$list] = $list;     			
+	      			}
+	      		}
+	      		
+	      		// Добавяме новата номенклатура към старите
 	      		$lists = $oldLists;
-        	}
+	      	}
+	      	
+	      	$removedFromLists = array();
+	    } else {
+	    	$removedFromLists = array_diff($oldLists, $lists);
 	    }
-        
-	    $removedFromLists = array_diff($oldLists, $lists);
-         
-        if ($itemRec || $lists) {
+	   
+       if ($itemRec || $lists) {
             if (!$itemRec) {
                 $itemRec = new stdClass();
                 $itemRec->classId = core_Classes::getId($class);
@@ -394,7 +405,7 @@ class acc_Lists extends core_Manager {
            
             if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
                 $AccRegister->itemInUse($objectId, true);
-                 
+                
                 // Нотифициране на номенклатурите, от които перото е било премахнато
                 foreach ($removedFromLists as $lid) {
                     self::updateSummary($lid);

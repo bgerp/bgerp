@@ -1,6 +1,6 @@
 <?php
 
-
+defIfNot('CASH_PKO_CREDIT_ACC_DEF', '4');
 
 /**
  * class cash_Setup
@@ -50,6 +50,14 @@ class cash_Setup
     var $info = "Каси, кешови операции и справки";
     
     
+    /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+				'CASH_PKO_CREDIT_ACC' => array ("acc_type_Accounts(root=4,maxColumns=2)"),
+	);
+	
+	
     /**
      * Инсталиране на пакета
      */
