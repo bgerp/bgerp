@@ -41,6 +41,9 @@ class doc_FilesPlg extends core_Plugin
         // Рендираме изгледа
         $res = $docFilesInst->renderWrapping($tpl, $data);
         
+        Mode::set('pageMenu', 'Документи');
+        Mode::set('pageSubMenu', 'Общи');
+        
         // За да не се изпълнява по - нататък
         return FALSE;
     }
