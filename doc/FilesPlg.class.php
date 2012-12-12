@@ -110,13 +110,13 @@ class doc_FilesPlg extends core_Plugin
             $attr['title'] = tr('Документ') . ': ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
-            $documentLink = ht::createLink(str::limitLen($docRow->title, 70), array($doc, 'single', $doc->that), NULL, $attr);
+            $documentLink = ht::createLink(str::limitLen($docRow->title, 35), array($doc, 'single', $doc->that), NULL, $attr);
             
             // id' то на контейнера на пъривя документ
             $firstContainerId = doc_Threads::fetchField($fRec->threadId, 'firstContainerId');
             
-            // Ако има първи контейнер и не е равен на съответния контейнер
-            if (($firstContainerId) && ($firstContainerId != $fRec->containerId)) {
+            // Ако има първи контейнер
+            if (($firstContainerId) && (!$threadArr[$fRec->threadId])) {
                 
                 // Първия документ в нишката
                 $docProxy = doc_Containers::getDocument($firstContainerId);
@@ -130,7 +130,14 @@ class doc_FilesPlg extends core_Plugin
                 $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
                 
                 // Темата да е линк към single' а на първиа документ документа
-                $threadLink = ht::createLink(str::limitLen($docProxyRow->title, 70), array($docProxy, 'single', $docProxy->that), NULL, $attr);    
+                $threadLink = ht::createLink(str::limitLen($docProxyRow->title, 35), array($docProxy, 'single', $docProxy->that), NULL, $attr);    
+                
+                // Отбелязваме, че сме отработили нишката
+                $threadArr[$fRec->threadId] = $threadLink;
+            } else {
+                
+                // Вземаме от масива, в който сме генерирали
+                $threadLink = $threadArr[$fRec->threadId];
             }
             
             // Ако не сме минавали от папката
@@ -146,34 +153,20 @@ class doc_FilesPlg extends core_Plugin
                 $folderLink = $folderRow->title;   
 
                 // Отбелязваме, че сме отработили папката
-                $folderArr[$fRec->folderId] = TRUE;
+                $folderArr[$fRec->folderId] = $folderLink;
+            } else {
                 
-                // Добавяме линка към папката
-                $str .= $folderLink . "\n";
+                // Вземаме от масива, в който сме генерирали
+                $folderLink = $folderArr[$fRec->folderId];   
             }
             
-            // Ако има линк към нишката и не сме минавали през нишката
-            if (!$threadArr[$fRec->threadId] && $threadLink) {
-                
-                // Отбелязваме, че сме отработили нишката
-                $threadArr[$fRec->threadId] = TRUE;
-                
-                // Добавяме линка към нишката
-                $str .= "\t" . $threadLink . "\n";
-            }
-            
-            // Ако сме вътре в нишката, отместваме документите
-            if ($threadArr[$fRec->threadId]) $str .= "\t";
-            
-            // Добавяме документа
-            $str .= "\t" . $documentLink;
+            // Създаваме стринга за съответния път
+            $str = "{$documentLink} « {$threadLink} « {$folderLink}";
             
             // Добавяме към ресурса
             $res .= ($res) ? ("\n") . $str : $str;
-            
         }
     }
-    
     
     
     /**
