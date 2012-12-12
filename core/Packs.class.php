@@ -519,6 +519,16 @@ class core_Packs extends core_Manager
         
         DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
         
+        GLOBAL $setupLog, $setupFlag;
+        
+        if($setupFlag) {
+			if ($setupLog) { // Зануляваме лога ако инсталацията минава за първи път
+				file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
+				$setupLog = FALSE;
+			}
+        	file_put_contents(EF_SBF_PATH . '/setupLog.html', $res, FILE_APPEND);
+        }
+        
         return $res;
     }
 

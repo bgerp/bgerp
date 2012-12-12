@@ -106,31 +106,57 @@ h1 {
     line-height:1.5em;
 }
 
-li.progress {
+#progress {
 	list-style-type: none;
 	background-color: #00f;
 	position:absolute;
 	left: 0px;
-	top: 110px;
+	top: 95px;
 }
 
-span.progressTitle {
+#progressTitle {
 	width: 180px;
 	display: block;
 	float: left;
 	text-align:right;
 }
 
-span.progressIndicator {
+#progressIndicator {
  text-align: right;
  padding-right: 2px;
  background-color: #ffcc00;
 }
 
-span.progressPercents {
+#progressPercents {
 	font-size: .8em;
 	font-weight: bold;
 	margin-left:3px;
+}
+
+#init {
+	border: 0px;
+	margin: 0;
+	madding: 0;
+	width: 790px;
+	height: 610px;
+	overflow: hidden;
+}
+
+#setupLog {
+	position:absolute;
+	left: 0px;
+	top: 180px;
+	border-top: #000 1px solid;
+	width: 790;
+	height: 425;
+	overflow:auto;
+	background-color: #00f;
+}
+
+#success {
+	position:absolute;
+	top:110px;
+	padding-left:190px;'
 }
 </style>
 ";
@@ -300,7 +326,7 @@ if($step == 2) {
     // Статистика за различните класове съобщения
     $stat = array();
 
-    $texts['body'] .=  logToHtml($log, $stat);
+    $texts['body'] .= logToHtml($log, $stat);
 
 }
 
@@ -448,8 +474,7 @@ if($step == 3) {
 
 // Ако се намираме на етапа на инициализиране, по-долу стартираме setup-а
 if($step == 4) {
-	$texts['body'] .= "<iframe src='{$selfUrl}&step=5' frameborder=1 name='init' id='init' width=750 height=500 ></iframe>";
-	
+	$texts['body'] .= "<iframe src='{$selfUrl}&step=5' name='init' id='init'></iframe>";
 }
 
 /**********************************
@@ -457,8 +482,8 @@ if($step == 4) {
  **********************************/
 if ($step == '5') {
 	$calibrate = 1000;
-    $totalRecords = 136676;
-    $totalTables = 173;
+    $totalRecords = 136720;
+    $totalTables = 201;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($styles);
@@ -466,14 +491,27 @@ if ($step == '5') {
     $res = file_get_contents("{$selfUrl}&step=55", FALSE, NULL, 0, 2);
     
     if ($res == 'OK') {
-        progressFlush ("<h3>Инициализацията стартирана ...</h3>");
+        contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
-        progressFlush ("<h3 style='color: red;'>Грешка при стартиране на Setup!</h3>");
+        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3>");
         
         exit;
     }
+	
+    // Слагаме div за лог-а и шаблон за прогрес бар-а
+    contentFlush("<div id='setupLog'></div>
+        			<li id=\"progress\" >
+        			<span id=\"progressTitle\">Прогрес:&nbsp</span>
+        			<span id=\"progressIndicator\" style=\"padding-left:0px;\">
+        			<span style=\"width: 0;\">&nbsp;</span>
+        			</span>
+        			<span id=\"progressPercents\">0 %</span>
+        			</li>
+        		");
     
     mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
+    
+    static $cnt = 0;
     
     do {
         $recordsRes = mysql_query("SELECT SUM(TABLE_ROWS) AS RECS
@@ -484,19 +522,42 @@ if ($step == '5') {
         $rows = mysql_fetch_object($recordsRes);
         $tables = mysql_fetch_object($tablesRes);
         $tables->TABLES; $rows->RECS;
-        progressFlush("Прогрес:&nbsp", round(($rows->RECS+$calibrate*$tables->TABLES)/$total,2)*100);
+        
+        $percents = round(($rows->RECS+$calibrate*$tables->TABLES)/$total,2)*100;
+        
+        // Прогресбар
+        if ($percents > 100) $percents = 100;
+        $width = 4.5*$percents;
+        contentFlush("<script>
+						document.getElementById(\"progressIndicator\").style.paddingLeft=\"" . $width ."px\";
+						document.getElementById(\"progressPercents\").innerHTML = '" . $percents . " %';
+					</script>");
+        
+        // Лог
+        $setupLog = file_get_contents(EF_SBF_PATH . '/setupLog.html');
+	    file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
+	    
+	    $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
+        
+        contentFlush("<script>
+        				document.getElementById('setupLog').innerHTML += '" . $setupLog . "';
+						var objDiv = document.getElementById('setupLog');
+						objDiv.scrollTop = objDiv.scrollHeight;
+				</script>");
+                
         sleep(2);
     } while ($rows->RECS < $totalRecords && $tables->TABLES < $totalTables);
     
-    progressFlush("<h3 style='position:relative; top:150px; padding-left:190px;'>Инициализирането завърши успешно!</h3>");
+    contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
     
-    echo ("
-    <SCRIPT language=\"javascript\">
-        parent.document.getElementById('next1').disabled = false;
-        parent.document.getElementById('start').disabled = false;
-        parent.document.getElementById('next1').value = 'Стартирай bgERP';
-    </SCRIPT>
-    ");
+    $appUri = substr($selfUrl, 0, strpos($selfUrl,'/?'));
+    
+    $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent"); //echo($l); die;
+    $l = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($l));
+    contentFlush("<script>
+        				document.getElementById('startHeader').innerHTML = '" .
+						 $l . "';
+				</script>");
     
     exit;
 }
@@ -520,6 +581,10 @@ if($step == 55) {
     ob_end_flush();
     flush();
     ob_end_clean();
+
+	GLOBAL $setupFlag, $setupLog;
+	$setupLog = TRUE;
+	$setupFlag = TRUE;
     
     $Plugins = cls::get('core_Plugins');
     $Plugins->setupMVC();
@@ -592,12 +657,12 @@ function logToHtml($log, &$stat)
  * Стринговете имат следния формат: "class|url|message";
  * Връща string с html
  */
-function linksToHtml($links)
+function linksToHtml($links, $target='_self')
 {
     foreach($links as $l) {
         list($class, $url, $text) = explode('|', $l, 3);
         $html .= "\n<br><table width='100%' class='msg'><tr><th>" .
-            "\n<a href='{$url}' class='{$class}'>{$text}</a>\n</th></tr></table><br>";
+            "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n</th></tr></table><br>";
     }
 
     return $html;
@@ -616,7 +681,7 @@ function gitHasNewVersion($repoPath, &$log)
 	exec($command, $arrRes, $returnVar);
 	
 	// В последния ред на резултата се намира индикацията на промени
-	$lastKey = key(array_slice( $arrRes, -1, 1, TRUE ));
+	$lastKey = key(array_slice( $arrRes, -1, 1, TRUE));
 	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");
 	
 	if($hasNewVersion !== FALSE) {
@@ -687,16 +752,12 @@ function gitRevertRepo($repoPath, &$log)
 }
 
 
-
-function progressFlush ($text, $percents=NULL)
+/**
+ * Праща съдържание към клиента
+ */
+function contentFlush ($content)
 {
     static $started = 0;
-    
-    static $absoluteTop = array();
-    
-    if (!isset($absoluteTop["$text"])) {
-        $absoluteTop["$text"] = 35*count($absoluteTop)+50;
-    } 
     
     ob_clean();
     ob_start();
@@ -704,23 +765,10 @@ function progressFlush ($text, $percents=NULL)
     if ($started == 0) {
         echo str_repeat(" ", 1024), "\n";
         echo ("<!DOCTYPE html>");
+        $started++;
     }
-    $started++;
-    // Прогресбар
-    if (is_numeric($percents)) {
-        if ($percents > 100) $percents = 100;
-        $width = 4.5*$percents;
-        echo("<li class=\"progress\" style='z-index: {$started};'>");
-        echo("<span class=progressTitle>{$text}</span>");
-        echo("<span class=progressIndicator style=\"padding-left:{$width}px;\">");
-        echo("<span style=\"width: 0;\">&nbsp;</span>");
-        echo("</span>");
-        echo("<span class=progressPercents>{$percents} %</span>");
-        echo("</li>");
-    } else {
-        // Изкарваме само текст
-        echo("$text");
-    }
+
+    echo($content);
     
     ob_flush();
     ob_end_flush();
@@ -729,7 +777,7 @@ function progressFlush ($text, $percents=NULL)
 }
 
 
-$URI_PATH = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],'/?'));
+
 
 
 ?>
