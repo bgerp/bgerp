@@ -313,7 +313,7 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Добавяме към съдържанието
-        $contentInfo = $linkText . "\n";
+        $linkText .= "\n";
         
         try {
 		    
@@ -325,7 +325,7 @@ class fileman_webdrv_Generic extends core_Manager
         if ($documentWithFile) {
             
             // Добавяме към съдържанието на инфото
-            $contentInfo .= tr("Съдържа се в|*: ") . $documentWithFile . "\n";    
+            $containsIn = tr("Съдържа се в|*: ") . $documentWithFile . "\n";    
         }
         
         // Типа на файла
@@ -341,7 +341,7 @@ class fileman_webdrv_Generic extends core_Manager
             $sizeText = tr("|Размер|*: {$size}");  
             
             // Добавяме към съдържанието на инфо
-            $contentInfo .= $sizeText . "\n";
+            $sizeText .= "\n";
         }
         
         // Информация за създаването
@@ -349,13 +349,10 @@ class fileman_webdrv_Generic extends core_Manager
         $createdBy = fileman_Files::getVerbal($fRec, 'createdBy');
         
         // Показване на създаването
-        $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}");
-        
-        // Добавяме към съдържанието на инфо
-        $contentInfo .= $createdText . "\n";
+        $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}") . "\n";
         
         // Добавяме в текста
-        $content = $contentInfo . core_Type::escape($content);
+        $content = $containsIn . $createdText . $sizeText . $linkText . core_Type::escape($content);
         
         // Инстанция на класа
         $pageInst = cls::get(Mode::get('wrapper'));
