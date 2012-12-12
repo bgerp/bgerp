@@ -2,38 +2,39 @@
            
 	<div class='document'>
 		<div class='header'>
-			<span style='[#iconStyle#]'>[#title#]</span><br/>
-			<span style='width:150px;'>[#from#]</span>
+			<p class="calTitle">[#title#]</p>
+			<span style='width:15%;'>[#from#]</span>
 		</div>
 
 	
 		<!--ET_BEGIN event-->	
          <div class='block_left'>
          </br>
-                <table cellspacing='1' class='listTable'>
+                <table cellspacing='1' class='calTable'>
 				<tr>
-					 <td class="calWeek" style='width:50px'><b>Време</b></td>
-                     <td class="calWeek"><b>[#0#]</b></td>
-                     <td class="calWeek"><b>[#1#]</b></td>
-                     <td class="calWeek"><b>[#2#]</b></td>
-                     <td class="calWeek" style='background-color:LightGoldenRodYellow ;'><b>[#3#]</b></td>
-                     <td class="calWeek"><b>[#4#]</b></td>
-                     <td class="calWeek"><b>[#5#]</b></td>
-                     <td class="calWeek"><b>[#6#]</b></td>
+					 <td class="calWeekTime"><b>Време</b></td>
+                     <td class="calWeekTime"><b>[#0#]</b></td>
+                     <td class="calWeekTime"><b>[#1#]</b></td>
+                     <td class="calWeekTime"><b>[#2#]</b></td>
+                     <td class="calWeekTime" style='color:#ee0'><b>[#3#]</b></td>
+                     <td class="calWeekTime"><b>[#4#]</b></td>
+                     <td class="calWeekTime"><b>[#5#]</b></td>
+                     <td class="calWeekTime"><b>[#6#]</b></td>
+                   
                  </tr>
                 
                  
                  <!--ET_BEGIN COMMENT_LI-->
-                 <tr data-cal-time="[#timeJs#]"> 
+                 <tr data-cal-time="[#timeJs#]">
                  
-                     <td class="calWeek" style='width:50px'>[#time#]</td>
-                     <td class="calWeek" data-cal-date="[#date0Js#]">[#d0#]</td>
-                     <td class="calWeek" data-cal-date="[#date1Js#]">[#d1#]</td>
-                     <td class="calWeek" data-cal-date="[#date2Js#]">[#d2#]</td>
-                     <td class="[#now#]" data-cal-date="[#date3Js#]"style='background-color:LightGoldenRodYellow ;'>[#d3#]</td>
-                     <td class="calWeek" data-cal-date="[#date4Js#]">[#d4#]</td>
-                     <td class="calWeek" data-cal-date="[#date5Js#]">[#d5#]</td>
-                     <td class="calWeek" data-cal-date="[#date6Js#]">[#d6#]</td>
+                     <td class="calWeekH">[#time#]</td>
+                     <td [#over0#][#out0#] class="calWeek" data-cal-date="[#date0Js#]">[#d0#]<a href='/cal_Tasks/add/?timeStart[d]=[#date0Js#]+[#timeJs#]:00'>[#href0#]</a></td>
+                     <td [#over1#][#out1#] class="calWeek" data-cal-date="[#date1Js#]">[#d1#]<a href='/cal_Tasks/add/?timeStart[d]=[#date0Js#]+[#timeJs#]:00'>[#href1#]</a></td>
+                     <td [#over2#][#out2#] class="calWeek" data-cal-date="[#date2Js#]">[#d2#]<a href='/cal_Tasks/add/?timeStart[d]=[#date0Js#]+[#timeJs#]:00'>[#href2#]</a></td>
+                     <td [#over3#][#out3#] class="[#now#]" data-cal-date="[#date3Js#]">[#d3#]<a href='/cal_Tasks/add/?timeStart[d]=[#date0Js#]+[#timeJs#]:00'>[#href3#]</a></td>
+                     <td [#over4#][#out4#] class="calWeek" data-cal-date="[#date4Js#]">[#d4#]<a href='/cal_Tasks/add/?timeStart[d]=[#date0Js#]+[#timeJs#]:00'>[#href4#]</a></td>
+                     <td [#over5#][#out5#] class="calWeek" data-cal-date="[#date5Js#]">[#d5#]<a href='/cal_Tasks/add/?timeStart[d]=[#date0Js#]+[#timeJs#]:00'>[#href5#]</a></td>
+                     <td [#over6#][#out6#] class="calWeek" data-cal-date="[#date6Js#]">[#d6#]<a href='/cal_Tasks/add/?timeStart[d]=[#date0Js#]+[#timeJs#]:00'>[#href6#]</a></td>
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                

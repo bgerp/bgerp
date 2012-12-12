@@ -3,49 +3,154 @@
 	
 }
 
+
+table.calTable{
+	max-width:87em;
+	font: small Arial,sans-serif;
+	font-size: 0.7em;
+	margin:0px;
+    border: 1px solid #999;
+    border-collapse: collapse;
+	cellspacing: 2;
+    colspan: 2;
+
+}
+
 td.calWeek {
-	colspan: 2;
-	color:black;
-	max-width:120px;
 	
+	color:black;
+	width:12em;
+	border: 1px solid #999;
+    border-collapse: collapse;
+	colspan: 2;
+	height:2em;
+
+}
+
+td.calWeekTime {
+	
+	color:black;
+	max-width:3em;
+	min-width:3em;
+	border: 1px solid #999;
+    border-collapse: collapse;
+	colspan: 2;
+	color:#ffffff;
+	background-color:#47476B;
+	text-align:center;
+	height:2em;
+}
+
+td.calWeekH {
+	
+	color:black;
+	max-width:3em;
+	min-width:3em;
+	border: 1px solid #999;
+    border-collapse: collapse;
+	colspan: 2;
+	color:#000000;
+	height:2em;
 }
 
 a.calWeek{
-	border: 0px;
-	font-size: 12px;
-	font: small Arial,sans-serif;
+	border: 0px #999;
 	white-space: nowrap;
-	max-width:100px;
+	colspan: 2;
+	position:static;
+	
 }
 
 img.calWeek{
 	float: right;
-	position: absolute;
+	position: relative;
 	display:none;
-	
 }
 
-table.listTable td.mc-today {
-	border:solid 2px red;
+img.calWeekAdd{
+	float: right;
+	position: relative;
+	display:none;
+
 }
 
-p{
+img.calImg{
+	float: left;
+	position: relative;
+
+}
+
+td.mc-today {
+	border:solid 2px #cc0;
+	colspan: 2;
+	height:2em;
+
+}
+
+p.calWeek{
 	
 	border: 1px solid rgb(159, 198, 231);
 	background-image: url("nqkvo_pole4c.png");
-	margin-top:0px;
-	margin-bottom:8px;
+	margin-top:0.2em;
+	margin-bottom:0.5em;
+	margin-left:0.2em;
 	background-position: center; 
-    font: small Arial,sans-serif;
-	line-height: 14px;
-    font-size: 12px;
+	line-height: 1em;
 	color: #1d1d1d;
 	white-space: nowrap;
-	max-width:100px;
+	max-width:10em;
 	overflow:hidden;
+	
 }
 
-td.calMonth {
+p.calTitle{
+	font: small Arial,sans-serif;
+	font-size: 1em;
+	text-align:left;
+	font-weight:bold;
+}
+
+
+/*.calTable>tbody>tr>td div.document {
+	border: none; 
+	background: transparent;
+    -moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
+	padding: 5px;
+	margin-bottom: 0px;
+	float: left;
+	margin-right: 0px;
+	margin-top: 0px;
+    width:850px !important;
+}
+
+.calTable .document h2 {
+	margin-top:3px;
+}
+
+.calTable .toolbar {
+	padding:3px;
+}
+
+.document .header {
+	-moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+	padding:3px;
+	font-size:1em;
+	margin-top:5px;
+	margin-bottom:5px;
+}
+
+.document .header span {
+    background-position: 3px center;
+    padding-left:24px;  
+    background-repeat:no-repeat;
+	font-weight:bold;
+}
+
+/*td.calMonth {
 	text-align:left;
  	border:none;
 	background-color: #e8efe8;
@@ -107,4 +212,4 @@ table.mc-calendar td.mc-today {
 
 table.mc-header a {
 	color:#999;
-}
+}*/

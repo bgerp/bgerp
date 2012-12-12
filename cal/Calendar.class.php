@@ -732,11 +732,13 @@ class cal_Calendar extends core_Master
         
         //Генерираме масив с дните и масив за обратна връзка
         for($i = 0; $i < 7; $i++){
-        	$days[$i] = dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'l d-m-Y');
+        	$days[$i] = dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'l'). "<br>".
+        				dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'d-m-Y');
         	$dates[date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year))] = "d" . $i;
+        	
         	$dateJs["date".$i."Js"] = date("d-m-Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
-        }
-//        bp($dates, $days, $dateJs);
+         }
+      
         $fromDate = date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day - 3, $year));
         $toDate = date("Y-m-d 23:59:59", mktime(0, 0, 0, $month, $day + 3, $year));
               
@@ -764,19 +766,31 @@ class cal_Calendar extends core_Master
     		$url = getRetUrl($rec->url);
     		$id = substr(strrchr($rec->url, "/"),1);
     		
+    		$edit = "<a class='calWeek' href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png' ) . "></a></div>";
+    		$div = "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'><img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+    		$clock = "<a class='calWeek' href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/clock.png') .  "></a></div>";
+    		$linkHour = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 13), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		$linkNormal = ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    		
     		$color = array_pop($colors);
     		
-        	if (dt::mysql2verbal($rec->time, 'i') != "00"){
-    			$weekData[$hourKey][$dayKey] .= "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'>".
-    											ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 13), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)).
-    											"<a href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png' ) . "></a></div>";
+        	if (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state == "draft"){
+    			$weekData[$hourKey][$dayKey] .= $div.$linkHour.$edit;
     			
-    		} elseif($hourKey != "allDay") { 
-    			$weekData[$hourKey][$dayKey] .= "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'>".
-    											ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title)).
-    											"<a href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png') .  "></a></div>";
+    		} elseif (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state == "active"){
+    			$weekData[$hourKey][$dayKey] .= $div.$linkHour.$clock;
+    			
+    		} elseif($hourKey != "allDay" && $rec->state == "draft") { 
+    			$weekData[$hourKey][$dayKey] .= $div.$linkNormal.$edit;
+    			
+    		} elseif($hourKey != "allDay" && $rec->state == "active") { 
+    			$weekData[$hourKey][$dayKey] .= $div.$linkNormal.$clock;
+    			
+    		} elseif($hourKey != "allDay" && $rec->state == "closed") {
+    			$weekData[$hourKey][$dayKey] .= "<div style='background-color:#4b4b4b; '><img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;".ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek', 'style' => 'color:#fff;', 'title' => $rec->title))."</div>";
+    		
     		} else {
-    			$weekData[$hourKey][$dayKey] .= ht::createLink("<p>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('class' => 'calWeek', 'title' => $rec->title));
+    			$weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('title' => $rec->title));
     			
     		}
     		
@@ -815,8 +829,9 @@ class cal_Calendar extends core_Master
     	//Рендираме масива с дните
     	$tpl->placeArray($days);
     	$tpl->placeArray($dateJs);
-    	//bp($days, $dates);
-    	    	
+    	
+    	//bp($dateJs);
+    	
    		foreach($hours as $h => $t){
    			
    			if($h === 'allDay' || ($h >= $tr && $h <= $tk)){
@@ -828,10 +843,23 @@ class cal_Calendar extends core_Master
    			
     		if($h == $nowTime){
     			$cTpl->replace('mc-today', 'now');
+    		} else {
+    			$cTpl->replace('calWeek', 'now');
     		}
     		
-   			$cTpl->placeArray($hourArr);
-    		
+   			for($j = 0; $j < 26; $j++){
+   				   					
+	        	$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
+	   				
+	        	$overs["over".$j] = "onmouseover='ViewImage($h$j)'";
+	        	$outs["out".$j] = "onmouseout='NoneImage($h$j)'";
+         	}   
+         	 		
+    		$cTpl->placeArray($aHrefs);
+    		$cTpl->placeArray($overs);
+    		$cTpl->placeArray($outs);
+    		$cTpl->placeArray($hourArr);
+   			
     
     		$cTpl->append2master();
    			}

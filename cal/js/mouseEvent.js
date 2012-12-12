@@ -16,7 +16,7 @@ function NoneImage(id)
 
 
 $(function () {
-	$('table.listTable td.calWeek').dblclick(function () {
+	$('table.calTable td.calWeek').dblclick(function () {
 		var date = $(this).attr('data-cal-date');
 		var time = $(this).parent().attr('data-cal-time');
 		
@@ -25,3 +25,4 @@ $(function () {
 		document.location = "/cal_Tasks/add/?timeStart[d]=" + dateTime;
 	});
 });
+
