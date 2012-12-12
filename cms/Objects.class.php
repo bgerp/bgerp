@@ -56,7 +56,7 @@ class cms_Objects extends core_Master
     function description()
     {   
         // Таг за показване на обекта
-        $this->FLD('tag', 'varchar', 'caption=Tag,width=100%');
+        $this->FLD('tag', 'varchar', 'caption=Таг,width=100%');
 
         // Мениджър-източник на обекта
         $this->FLD('sourceClass', 'class(interface=cms_ObjectSourceIntf)', 'caption=Източник,input=hidden,silent');
@@ -73,6 +73,15 @@ class cms_Objects extends core_Master
         $this->setDbUnique('tag');
          
         Request::setProtected('sourceClass,type,sourceId');
+    }
+
+
+    /**
+     * Премхваме бутона за добавяне
+     */
+    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    {
+        $data->toolbar->removeBtn('btnAdd');
     }
 
 
