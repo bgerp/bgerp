@@ -108,7 +108,7 @@ h1 {
 
 #progress {
 	list-style-type: none;
-	background-color: #00f;
+	background-color: #119;
 	position:absolute;
 	left: 0px;
 	top: 95px;
@@ -150,7 +150,7 @@ h1 {
 	width: 790;
 	height: 425;
 	overflow:auto;
-	background-color: #00f;
+	background-color: #119;
 }
 
 #success {
@@ -229,7 +229,6 @@ var hexcase=0;function hex_md5(a){return rstr2hex(rstr_md5(str2rstr_utf8(a)))}fu
 </div>
 </body>
 </html>";
-
 
 if($_GET['SetupKey'] != BGERP_SETUP_KEY) {
     halt('Wrong Setup Key!');
