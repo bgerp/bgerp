@@ -14,14 +14,32 @@
  * @since     v 0.1
  * @link
  */
-class type_Time extends type_Int {
+class type_Time extends type_Varchar {
+    
+    /**
+     * MySQL тип на полето в базата данни
+     */
+    var $dbFieldType = 'int';
+    
+    
+    /**
+     * Дължина на полето в mySql таблица
+     */
+    var $dbFieldLen = '11';
+    
+    
+    /**
+     * Стойност по подразбиране
+     */
+    var $defaultValue = 0;
     
     
     /**
      * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
      */
-    var $cellAttr = 'align="center"';
-    
+    var $cellAttr = 'align="right"';
+   
+     
     
     /**
      * Конвертира от вербална стойност
@@ -147,7 +165,6 @@ class type_Time extends type_Int {
                     '7 дена'  => '7 дена');
             }
         }
-        
         
         return parent::renderInput_($name, $value, $attr);
     }
