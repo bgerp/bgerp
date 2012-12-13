@@ -135,7 +135,7 @@ class core_Users extends core_Manager
         
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли,oldFieldName=Role');
         
-        $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,deleted=Изтрит)',
+        $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Изтрит)',
             'caption=Състояние,notNull,default=draft');
         
         $this->FLD('lastLoginTime', 'datetime', 'caption=Последно->Логване,input=none');
@@ -324,7 +324,7 @@ class core_Users extends core_Manager
                     $userRec = new stdClass();
                 }
 
-                if ($userRec->state == 'deleted') {
+                if ($userRec->state == 'rejected') {
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
                     $this->logLogin($inputs, 'missing_password');
                 } elseif ($userRec->state == 'blocked') {
