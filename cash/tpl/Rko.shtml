@@ -1,5 +1,5 @@
 [#SingleToolbar#]
-<!-- END container -->
+<!-- BEGIN container -->
 <div class='document'>
 	<!--ET_BEGIN blank-->
 		[#blank#]
@@ -15,14 +15,17 @@
 		<td  rowspan='2' class='title-order'>
 			<h2 style='margin-bottom:15px;margin-top:0px'>РАЗХОДЕН<br> КАСОВ ОРДЕР</h2>
 			№:&nbsp;&nbsp;<b>[#number#]</b><br>
-			Дата:&nbsp;&nbsp;<b>[#date#]</b>
+			Дата:&nbsp;&nbsp;<b>[#valior#]</b>
 			<h3 style='margin:10px'>[#state#]</h3>
 		</td>
 		<td class='top-head'><b>Организация</b></td>
 	</tr>
 	<tr>
-		<td style='padding-top:10px;' class='align-top-td'>[#contragent#]</td>
-		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]</td>
+		<td style='padding-top:10px;'>
+		<b>[#contragentName#]</b><br><br>[#debitAccounts#]</td>
+		<td style='padding-top:10px;' class='align-top-td'>
+		<b>[#organisation#]</b><br><br>[#peroCase#]
+		</td>
 	</tr>
 	</table>
 	<table border='1px' cellpadding='5px'>
@@ -48,14 +51,14 @@
 			<tr>
 				<td id='notes' >Бележки: &nbsp;&nbsp;[#notes#]</td>
 				<td>
-				<!--ET_BEGIN rate-->
+				<!--ET_BEGIN equals-->
 					<div id ='misc'>
 					<span class='labels'>Курс:</span> &nbsp;&nbsp;<b>[#rate#]</b><br>
 					<div style='margin-top:7px;'>
 					<span class='labels'>Равностойност:</span>
 					<span id='cCode'>[#baseCurrency#]</span>&nbsp;&nbsp;<b>[#equals#]</b></div>
 					</div>
-				<!--ET_END rate-->
+				<!--ET_END equals-->
 				</td>
 			</tr>
 			</table>
@@ -63,7 +66,7 @@
 		<tr>
 			<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 				<br>
-				Броил &nbsp;&nbsp;..........................<br>
+				Получил &nbsp;&nbsp;..........................<br>
 				<span class='sign_names'>( <b>[#beneficiary#]</b> )</span>
 			</td>
 			<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
@@ -74,4 +77,4 @@
 		</tr>
 	</table>
 </div>
-<!-- BEGIN container -->
+<!-- END container -->

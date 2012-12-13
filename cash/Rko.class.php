@@ -20,7 +20,7 @@ class cash_Rko extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
     
     
     /**
@@ -32,15 +32,21 @@ class cash_Rko extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
+     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,
-                     plg_Search, doc_ActivatePlg, doc_plg_MultiPrint, bgerp_plg_Blank';
+                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, reason, date, amount, currencyId, rate, createdOn, createdBy";
+    var $listFields = "id, number, reason, valior, amount, currencyId, rate, state, createdOn, createdBy";
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsField = 'tools';
     
     
     /**
@@ -86,6 +92,14 @@ class cash_Rko extends core_Master
     
     
     /**
+     * Кой може да го контира?
+     */
+    var $canConto = 'acc,admin';
+    
+    var $canRevert = 'cash, ceo';
+    
+    
+    /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'cash, ceo';
@@ -100,34 +114,61 @@ class cash_Rko extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number, date, contragentFolder';
+    var $searchFields = 'number, valior, contragentName';
     
-      
+    
+    /**
+     * Параметри за принтиране
+     */
+    var $printParams = array( array('Оригинал'),
+    						  array('Копие'),); 
+
+    /**
+     * Коя сметка отговаря на касата
+     */
+   	static $caseAccount = '501';
+    
+    
     /**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('number', 'int', 'caption=Номер,width=50%');
-    	$this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,mandatory');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory');
-    	$this->FLD('contragentFolder', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент->Вносител,mandatory,width=100%');
-    	$this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=30%,mandatory');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
+    	$this->FLD('number', 'int', 'caption=Номер,width=50%,width=30%');
+    	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Получател,mandatory,width=100%');
+    	$this->FLD('contragentCoverId', 'varchar(255)', 'input=hidden,notNull');
+    	$this->FLD('contragentCoverClass', 'varchar(255)', 'input=hidden,notNull');
+        $this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
+    	$this->FLD('debitAccounts', 'acc_type_Account(maxColumns=1)', 'caption=Контрагент->Сметка,mandatory');
+    	$this->FLD('peroCase', 'key(mvc=cash_Cases,select=name)', 'caption=Каса,input=hidden');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=20%');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс');
     	$this->FLD('notes', 'richtext(rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-    	
+    	$this->FNC('isContable', 'int', 'column=none');
+    	 
         // Поставяне на уникален индекс
     	$this->setDbUnique('number');
     }
     
     
 	/**
+     * @todo Чака за документация...
+     */
+    static function on_CalcIsContable($mvc, $rec)
+    {
+        $rec->isContable =
+        ($rec->state == 'draft');
+    }
+    
+    
+    /**
      *  Обработка на формата за редакция и добавяне
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
@@ -135,22 +176,21 @@ class cash_Rko extends core_Master
     	$folderId = $data->form->rec->folderId;
     	
     	// Информацията за контрагента на папката
-    	try {
-    		$contragentData = doc_Folders::getContragentData($folderId);
-    	} catch(Exception $e) {
-    		$contragentData = NULL;
-    	};
+    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
     	
     	if($contragentData) {
-    		$data->form->setDefault('contragentFolder', $folderId);
-    		$data->form->setReadOnly('contragentFolder');
-    		if($contragentData->name) {
+    		if($contragentData->company) {
+    			
+    			$data->form->setDefault('contragentName', $contragentData->company);
+    		} elseif ($contragentData->name) {
     			
     			// Ако папката е на лице, то вносителя по дефолт е лицето
+    			$data->form->setDefault('contragentName', $contragentData->name);
     			$data->form->setDefault('beneficiary', $contragentData->name);
     		}
     		
-    	}
+    		$data->form->setReadOnly('contragentName');
+    	} 
 
     	if($originId = $data->form->rec->originId) {
     		 $doc = doc_Containers::getDocument($originId);
@@ -169,14 +209,35 @@ class cash_Rko extends core_Master
     		$currencyId = currency_Currencies::getIdByCode();
     	}
     	
-    	
     	$today = date("d-m-Y", time());
     	
     	// Поставяме стойности по подразбиране
-    	$data->form->setDefault('date', $today);
+    	$data->form->setDefault('valior', $today);
+    	$data->form->setHidden('peroCase', cash_Cases::getCurrent());
     	$data->form->setDefault('currencyId', $currencyId);
+    	
+    	$options = static::getPossibleAccs(); 
+    	$data->form->setOptions('debitAccounts', $options);
     }
+
     
+    /**
+     * Между кои сметки можем да избираме да запишем контрагента
+     * @return array $options между кои сметки можем да избираме
+     **/
+    static function getPossibleAccs()
+    {
+    	$options = array();
+    	$conf = core_Packs::getConfig('cash');
+    	$array = type_Keylist::toArray($conf->CASH_RKO_DEBIT_ACC);
+    	foreach($array as $id) {
+    		$rec = acc_Accounts::fetch($id);
+    		$options[$rec->id] = acc_Accounts::getRecTitle($rec);
+    	}
+    	
+    	return $options;
+    }
+
     
     /**
      * Проверка и валидиране на формата
@@ -185,27 +246,72 @@ class cash_Rko extends core_Master
     {
         acc_Periods::checkDocumentDate($form);
     }
-
+    
+    
+    /**
+     *  Обработки по модела преди записването му
+     */
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+    	if (!empty($rec->folderId)) {
+            
+            $rec->contragentCoverClass = doc_Folders::fetchCoverClassName($rec->folderId);
+            $rec->contragentCoverId = doc_Folders::fetchCoverId($rec->folderId);
+    	}
+    	
+    	if(!$rec->id) {
+	    	if(!$rec->rate){
+	    		
+	    		// Ако не е посочен курс, преизчисляваме курса на посочената валута към този
+    			// на основната валута за периода
+	    		$accPeriods = cls::get('acc_Periods');
+	            
+	            // Взема периода за който се отнася документа, според датата му
+	    		$period = $accPeriods->fetchByDate($rec->valior);
+	    		if(!$period->baseCurrencyId){
+	    			$period->baseCurrencyId = currency_Currencies::getIdByCode();
+	    		}
+	    		
+	    		// Ако не е зададен курс на валутата
+	    		$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$rec->currencyId}");
+	    		
+	    		// Ако текущата валута е основната валута 
+	    		($currencyRates) ? $rec->rate = round($currencyRates->rate, 4) : $rec->rate = 1;
+	    		
+	    		// Коя е базовата валута, и нейния курс
+	    		$baseCurrencyRate = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
+	    			
+	    		// Ако основната валута за периода не фигурира в currency_CurrencyRates, 
+	    		// то приемаме че тя е Евро
+	    		if(!$baseCurrencyRate){
+	    			$baseCurrencyRate = new stdClass();
+	    			$baseCurrencyRate->currencyId = currency_Currencies::getIdByCode('EUR');
+	    			$baseCurrency->code = 'EUR';
+	    			$baseCurrencyRate->rate = 1;
+	    		}
+	    		
+	    		// Преизчисляваме колко е курса на подадената валута към основната за периода
+	    		$rec->rate = round($baseCurrencyRate->rate/$rec->rate, 4);
+	    	}
+    	}
+    }
+    
     
     /**
      *  Обработки по вербалното представяне на данните
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    $row->number = static::getHandle($rec->id);
+    	$row->number = static::getHandle($rec->id);
     	
     	if($fields['-single']){
+    		$class = $rec->contragentCoverClass;
+    		$contragentFolder = $class::fetch($rec->contragentCoverId)->folderId;
     		
-    		$contragentData = doc_Folders::getContragentData($rec->contragentFolder);
-    		if($contragentData->company)
-    			$row->contragent = $contragentData->company;
-    		elseif($contragentData->name)
-    			$row->contragent = $contragentData->name;
-    		else 
-    			$row->contragent = '';
-
+    		$contragentData = doc_Folders::getContragentData($contragentFolder);
+    		
     		// Адреса на контрагента
-    		$row->contragent .= trim(
+    		$row->contragentName .= trim(
                 sprintf("<br>%s %s<br> %s", 
                     $contragentData->place,
                     $contragentData->pCode,
@@ -213,83 +319,57 @@ class cash_Rko extends core_Master
                 )
             );
             
-    		$accPeriods = cls::get('acc_Periods');
-            
-            // Взема периода за който се отнася документа, според датата му
-    		$period = $accPeriods->fetchByDate($rec->date);
-    		if(!$period->baseCurrencyId){
-    				
-    				// Ако периода е без посочена валута, то зимаме по дефолт BGN
-    				$period->baseCurrencyId = currency_Currencies::getIdByCode();
-    		}
+           $accRec = acc_Accounts::fetch($rec->debitAccounts);
+    	   $row->debitAccounts = acc_Accounts::getRecTitle($accRec);
     		
-    		// Ако избраната валута е различна от основната за периода
-    		if($rec->currencyId != $period->baseCurrencyId) {
-    			
-    			// Ако не е зададен курс на валутата
-    			if(!$rec->rate){
-    				$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$rec->currencyId}");
-    				
-    				// Ако текущата валута е основната валута 
-    				($currencyRates) ? $row->rate = round($currencyRates->rate, 4) : $row->rate = 1;
-    			}
-    			
-    			// Коя е базовата валута, и нейния курс
-    			$baseCurrencyRate = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
-    			
-    			// Ако основната валута за периода не фигурира в currency_CurrencyRates, 
-    			// то приемаме че тя е Евро
-    			if(!$baseCurrencyRate){
-    				$baseCurrencyRate = new stdClass();
-    				$baseCurrencyRate->currencyId = currency_Currencies::getIdByCode('EUR');
-    				$baseCurrency->code = 'EUR';
-    				$baseCurrencyRate->rate = 1;
-    			}
-    			
-    			$baseCurrency = currency_Currencies::fetch($baseCurrencyRate->currencyId);
-    			
-    			// Каква е равостойноста на сумата към текущата валута, и кода на основната валута
-    			$row->baseCurrency = $baseCurrency->code;
-    			
-    			// Преизчисляваме колко е курса на подадената валута към основната за периода
-    			$row->rate = round($baseCurrencyRate->rate/$row->rate, 4);
-    			
-    			// Намираме равностойноста на подадената валута в основната за периода
-    			$row->equals = round($rec->amount * $row->rate, 2);
-    			$num = cls::get('type_Double');
-    			$num->params['decimals']= 2;
-    			$row->rate = $num->toVerbal($row->rate);
-    			$row->equals = $num->toVerbal($row->equals);
-    		}
-    		
-    		$spellNumber = cls::get('core_SpellNumber');
-	    	$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-	    	$row->amountVerbal = $amountVerbal;
-	    	
+           if($rec->rate != '1.00') {
+	    		$accPeriods = cls::get('acc_Periods');
+	            
+	            // Взема периода за който се отнася документа, според датата му
+	    		$period = $accPeriods->fetchByDate($rec->valior);
+	    		if(!$period->baseCurrencyId) {
+	    			$period->baseCurrencyId = currency_Currencies::getIdByCode();
+	    		}
+	    		
+	    		$baseCurrencyCode = currency_Currencies::fetchField($period->baseCurrencyId,'code');
+	    		$row->baseCurrency = $baseCurrencyCode;
+	    		
+	    		// Намираме равностойноста на подадената валута в основната за периода
+	    		$row->equals = round($rec->amount * $rec->rate, 2);
+	    		$num = cls::get('type_Double');
+	    		$num->params['decimals'] = 2;
+	    		$row->equals = $num->toVerbal($row->equals);
+	    	} else {
+	    		
+	    		//не показваме курса ако валутата на документа съвпада с тази на периода
+	    		unset($row->rate);
+	    	}
+           
+	    	$spellNumber = cls::get('core_SpellNumber');
+		    $amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
+		    $row->amountVerbal = $amountVerbal;
+		    	
     		// Вземаме данните за нашата фирма
     		$conf = core_Packs::getConfig('crm');
     		$companyId = $conf->BGERP_OWN_COMPANY_ID;
         	$myCompany = crm_Companies::fetch($companyId);
-        	$row->adress = trim(
-                sprintf("%s %s<br> %s", 
+        	$row->organisation = $myCompany->name;
+        	$row->organisation .= trim(
+                sprintf("<br>%s %s<br> %s", 
                     $myCompany->place,
                     $myCompany->pCode,
                     $myCompany->address
                 )
             );
             
-    		$row->organisation = $myCompany->name;
-    		
-	    	if(core_Users::haveRole('cash', core_Users::getCurrent())){
-	    		
-	    		// Получателят е текущия потребител, ако има роля касиер
-	    		$row->cashier =  core_Users::getCurrent('names');
-	    	}
+    		// Получателят е текущия потребител, ако има роля касиер
+	    	$row->cashier = core_Users::getCurrent('names');
+	    	
         }
-    	
+       
         // Показваме заглавието само ако не сме в режим принтиране
-    	if(!Mode::is('printing')){ //bp('daa');
-    		$row->header = $mvc->singleTitle . " <b>{$row->ident}</b>" . " ({$row->state})" ;
+    	if(!Mode::is('printing')){
+    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	}
     }
     
@@ -303,7 +383,109 @@ class cash_Rko extends core_Master
     }
     
     
-    /*
+   	/**
+   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
+   	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 */
+    public static function getTransaction($id)
+    {
+       		// Извличаме записа
+        expect($rec = self::fetch($id));
+        
+        // classId-то на касата
+        $caseClassId = core_Classes::getId('cash_Cases');
+         
+        // Сметките която ще дебитираме ( сметка 501 - Каси )
+       	$creditAcc = acc_Accounts::fetch(array ("#systemId = '[#1#]'", self::$caseAccount));
+        
+       	// Перото съответсващо на касата
+        expect(cls::haveInterface('cash_CaseAccRegIntf', $caseClassId), "Класът не поддържа  'cash_CaseAccRegIntf'");
+        $casePero = acc_Lists::updateItem($caseClassId, $rec->peroCase, 'case', FALSE);
+        
+        // Намираме класа на контрагента
+        $contragentClassId = core_Classes::getId($rec->contragentCoverClass);
+       	
+       	// Сметката която ще кредитираме
+       	$debitAcc = acc_Accounts::fetch($rec->debitAccounts);
+        
+        // Перото съответстващо на контрагента
+        expect(cls::haveInterface('crm_ContragentAccRegIntf', $contragentClassId), "Класът {$rec->contragentCoverClass} не поддържа 'crm_ContragentAccRegIntf'");
+        $contragentPero = acc_Lists::updateItem($contragentClassId, $rec->contragentCoverId, $debit->groupId1, FALSE);
+        
+        // classId-то на валутата
+        $currencyClassId = core_Classes::getId('currency_Currencies');
+        
+        // Перото съответстващо на валутата
+        expect(cls::haveInterface('currency_CurrenciesAccRegIntf', $currencyClassId), "Класът не поддържа 'crm_ContragentAccRegIntf'");
+        $peroCurrency = acc_Lists::updateItem($currencyClassId, $rec->currencyId, 'currencies', FALSE);
+        $creditEnt2 = $peroCurrency;
+        $creditPrice = $rec->rate;
+        
+        // Ако сметката има поддържа номенклатура 'Валута'
+        if($debitAcc->groupId2) {
+        	$debitEnt2 = $peroCurrency;
+        	$debitPrice = $rec->rate;
+        }
+        
+        // Курса по който се обменя валутата  на ордера към основната валута за периода
+        $entrAmount = $rec->rate * $rec->amount; 
+        
+        // Подготвяме информацията която ще записваме в Журнала
+        $result = (object)array(
+            'reason' => $rec->reason, // основанието за ордера
+            'valior' => $rec->valior,   // датата на ордера
+            'totalAmount' => $entrAmount,
+            'entries' =>array( (object)array(
+                'amount' => $entrAmount,	// равностойноста на сумата в основната валута
+                'debitAccId' => $debitAcc->id, // дебитната сметка
+                'debitEnt1' => $contragentPero,  // перо контрагент
+        		'debitEnt2' => $debitEnt2, // перо валута
+                'debitQuantity' => $rec->amount,  // каква е сумата
+                'debitPrice' => $debitPrice,	// обменния курс между сумата и основната валута за периода
+                'creditAccId' => $creditAcc->id, // кредитна сметка
+                'creditEnt1' => $casePero, // перо каса
+                'creditEnt2' => $creditEnt2, // перо валута
+                'creditQuantity' => $rec->amount, // каква е сумата
+                'creditPrice' => $creditPrice, // обменния курс между сумата и основната валута за периода
+            ))
+        );
+        
+        return $result;
+    }
+    
+	
+	/**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::getTransaction
+     */
+    public static function finalizeTransaction($id)
+    {
+        $rec = (object)array(
+            'id' => $id,
+            'state' => 'active'
+        );
+        
+        return self::save($rec);
+    }
+    
+    
+    /**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::rejectTransaction
+     */
+    public static function rejectTransaction($id)
+    {
+        $rec = self::fetch($id, 'id,state,valior');
+        
+        if ($rec) {
+            static::reject($id);
+        }
+    }
+    
+    
+   	/*
      * Реализация на интерфейса doc_DocumentIntf
      */
     
@@ -318,7 +500,6 @@ class cash_Rko extends core_Master
         $row->title = $rec->reason;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->recTitle = $rec->reason;
         
         return $row;
     }
@@ -342,13 +523,22 @@ class cash_Rko extends core_Master
     
     
     /**
-     * Имплементиране на интерфейсен метод 
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     static function getHandle($id)
     {
     	$rec = static::fetch($id);
-    	$me = cls::get(get_called_class());
+    	$self = cls::get(get_called_class());
     	
-    	return $me->abbr . $rec->number;
+    	return $self->abbr . $rec->number;
     }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function fetchByHandle($parsedHandle)
+    {
+        return static::fetch("#number = '{$parsedHandle['id']}'");
+    } 
 }
