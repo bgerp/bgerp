@@ -13,6 +13,14 @@
  */
 class fileman_webdrv_Text extends fileman_webdrv_Generic
 {
+    
+    
+    /**
+     * Кой таб да е избран по подразбиране
+     * @Override
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    static $defaultTab = 'text';
 
 
 	/**
@@ -53,7 +61,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
 			array(
 				'title' => 'Текст',
 				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Текст</legend> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
-				'order' => 2,
+				'order' => 4,
 			);
         
         return $tabsArr;

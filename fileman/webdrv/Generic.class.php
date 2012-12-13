@@ -14,6 +14,13 @@
 class fileman_webdrv_Generic extends core_Manager
 {
     
+    
+    /**
+     * Кой таб да е избран по подразбиране
+     */
+    static $defaultTab = 'info';
+    
+    
     /**
      * Връща всички табове, които ги има за съответния файл
      * 
@@ -34,9 +41,11 @@ class fileman_webdrv_Generic extends core_Manager
 				'title' => 'Информация',
 				'html'  => "<div class='webdrvTabBody'><fieldset  class='webdrvFieldset'><legend>Мета информация</legend>
 					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
-				'order' => 9,
+				'order' => 1,
 			);
         
+		$tabsArr['__defaultTab'] = static::$defaultTab;	
+			
         return $tabsArr;
     }
     

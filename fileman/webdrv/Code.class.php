@@ -16,6 +16,14 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
     
     
     /**
+     * Кой таб да е избран по подразбиране
+     * @Override
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    static $defaultTab = 'content';
+    
+    
+    /**
      * Връща всички табове, които ги има за съответния файл
      * 
      * @param object $fRec - Записите за файла
@@ -38,7 +46,7 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Съдържание',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Съдържание</legend>{$contentStr}</fieldset></div>",
-				'order' => 1,
+				'order' => 7,
 			);
         
         return $tabsArr;

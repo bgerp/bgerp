@@ -41,7 +41,7 @@ class fileman_webdrv_Xlsx extends fileman_webdrv_Office
 			array(
 				'title'   => 'Съдържание',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Съдържание</legend>{$contentStr}</fieldset></div>",
-				'order' => 3,
+				'order' => 7,
 			);
         
         return $tabsArr;
