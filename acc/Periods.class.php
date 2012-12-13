@@ -48,7 +48,7 @@ class acc_Periods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, reports=Справки, close=Приключване";
+    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, lastEntry, reports=Справки, close=Приключване";
     
     
     /**
@@ -84,6 +84,7 @@ class acc_Periods extends core_Manager
         $this->FLD('state', 'enum(draft=Бъдещ,active=Активен,closed=Приключен)', 'caption=Състояние,input=none');
         $this->FNC('start', 'date(format=d.m.Y)', 'caption=Начало', 'dependFromFields=end');
         $this->FNC('title', 'varchar', 'caption=Заглавие,dependFromFields=start|end');
+        $this->FLD('lastEntry', 'datetime', 'caption=Последен запис');
         $this->FLD('vatRate', 'percent', 'caption=Параметри->%ДДС,oldFieldName=vatPercent');
         $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Параметри->Валута');
     }
@@ -153,6 +154,23 @@ class acc_Periods extends core_Manager
         return $rec;
     }
 
+
+    /**
+     * Връща записа за периода предхождащ зададения.
+     *
+     * @param stdClass $rec запис за периода, чийто предшественик търсим.
+     * @return stdClass запис за предходния период или NULL ако няма
+     */
+    static function fetchPreviousPeriod($rec)
+    {
+        $query = self::getQuery();
+        $query->where("#end < '{$rec->end}'");
+        $query->limit(1);
+        $query->orderBy('end', 'DESC');
+        $recPrev = $query->fetch();
+        
+        return $recPrev;
+    }
 
     /**
      * Проверява датата в указаното поле на формата дали е в отворен период

@@ -206,6 +206,20 @@ class acc_Journal extends core_Master
         return self::save($transactionData);
     }
     
+
+    /**
+     * При всеки запис на транзакция, записва в мениджъра на периоди
+     * за коя дата има нови/променени Entries
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    {
+        $pRec = acc_Periods::fetchByDate($rec->valior);
+        
+        $pRec->lastEntry = max($pRec->lastEnry, dt::verbal2mysql());
+
+        acc_Periods::save($pRec);
+    }
+
     
     /**
      * @todo Чака за документация...

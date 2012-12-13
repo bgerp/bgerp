@@ -525,7 +525,7 @@ class acc_BalanceDetails extends core_Detail
         // Добавяме към баланса транзакциите от зададения период.
         //
         $this->calcBalanceForPeriod($balanceRec->fromDate, $balanceRec->toDate);
-        
+
         //
         // Записваме готовия баланс
         //
@@ -715,10 +715,10 @@ class acc_BalanceDetails extends core_Detail
         $ent1Id = !empty($rec->{"{$type}Ent1"}) ? $rec->{"{$type}Ent1"} : null;
         $ent2Id = !empty($rec->{"{$type}Ent2"}) ? $rec->{"{$type}Ent2"} : null;
         $ent3Id = !empty($rec->{"{$type}Ent3"}) ? $rec->{"{$type}Ent3"} : null;
-        
+         
         if ($ent1Id != null || $ent2Id != null || $ent3Id != null) {
             
-            $b = $this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
+            $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
             
             $b['accountId'] = $accId;
             $b['ent1Id'] = $ent1Id;
@@ -736,7 +736,7 @@ class acc_BalanceDetails extends core_Detail
                 continue;
             }
             
-            $b = $this->balance[$accId][null][null][null];
+            $b = &$this->balance[$accId][null][null][null];
             
             $b['accountId'] = $accId;
             $b['ent1Id'] = NULL;
@@ -785,5 +785,17 @@ class acc_BalanceDetails extends core_Detail
         if (!in_array($action, array('list', 'read'))) {
             $requiredRoles = 'no_one';
         }
+    }
+
+
+    /**
+     * Компресира диапазона на id-tata
+     */
+    function cron_CompressIds()
+    {
+     //   set @id:=0;
+     //   update mytable
+     //   set id = (@id := @id + 1)
+     //   order by id;
     }
 }
