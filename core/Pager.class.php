@@ -69,7 +69,7 @@ class core_Pager extends core_BaseClass
     /**
      * До колко страници около текущата да показва?
      */
-    var $pagesAround = 5;
+    var $pagesAround;
     
     
     /**
@@ -81,6 +81,12 @@ class core_Pager extends core_BaseClass
         setIfNot($this->itemsPerPage, 20);
         setIfNot($this->pageVar, 'P');
         setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
+        if(Mode::is('screenMode', 'narrow')) {
+            setIfNot($this->pagesAround, 3);
+        } else {
+            setIfNot($this->pagesAround, 5);
+        }
+
     }
     
     
