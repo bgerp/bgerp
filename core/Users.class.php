@@ -12,7 +12,7 @@ defIfNot('EF_USER_REC_REFRESH_TIME', 20); // config
  * Колко секунди след последното действие на потребителя
  * ще се пази неговата сесия?
  */
-defIfNot('EF_USERS_SESS_TIMEOUT', 1200);
+defIfNot('EF_USERS_SESS_TIMEOUT', 3600);
 
 
 /**
