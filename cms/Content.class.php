@@ -135,7 +135,8 @@ class cms_Content extends core_Manager
         } elseif($rec->url) {
             $url = arr::make($rec->url);
         } else {
-            expect(FALSE);
+            // expect(FALSE);
+            $url = '';
         }
 
         return $url;
