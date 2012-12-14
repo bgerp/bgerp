@@ -146,7 +146,7 @@ class fileman_Files extends core_Master
         Request::push(array('id' => $fRec->id));
         
         // Заглавието на таба
-        $this->title = static::getVerbal($fRec, 'name');
+        $this->title = "|*" . static::getVerbal($fRec, 'name');
         
         return parent::act_Single();
     }
