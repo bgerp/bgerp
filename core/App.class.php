@@ -383,7 +383,7 @@ class core_App
      * Добавя сесийния идентификатор, ако е необходимо
      */
     public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
-    {
+    { bp($msg);
         expect(ob_get_length() <= 3, ob_get_length(), ob_get_contents());
 
         $url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
