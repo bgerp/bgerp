@@ -13,6 +13,14 @@
  */
 class fileman_webdrv_Image extends fileman_webdrv_Generic
 {
+    
+    
+    /**
+     * Кой таб да е избран по подразбиране
+     * @Override
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    static $defaultTab = 'preview';
 
 
 	/**
@@ -37,7 +45,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
 		$tabsArr['preview'] = new stdClass();
         $tabsArr['preview']->title = 'Преглед';
         $tabsArr['preview']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Преглед</legend> {$preview} </fieldset></div>";
-        $tabsArr['preview']->order = 1;
+        $tabsArr['preview']->order = 2;
         
         // URL за показване на текстовата част на файловете
         $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
@@ -46,7 +54,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
 		$tabsArr['text'] = new stdClass();
         $tabsArr['text']->title = 'Текст';
         $tabsArr['text']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Текст</legend><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></fieldset></iframe></div>";
-        $tabsArr['text']->order = 2;
+        $tabsArr['text']->order = 4;
         
         return $tabsArr;
     }

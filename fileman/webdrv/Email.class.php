@@ -15,6 +15,14 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 {
     
     
+    /**
+     * Кой таб да е избран по подразбиране
+     * @Override
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    static $defaultTab = 'html';
+    
+    
 	/**
      * Връща всички табове, които ги има за съответния файл
      * 
@@ -61,6 +69,9 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $headersArr = static::getHeaders($mime, $emlRec);
         $headersStr = type_Varchar::escape($headersArr['string']);
         
+        // Добавяме стилове
+        $headersStr = "<div style='background-color: transparent; font-family: monospace \"courier new\";'>{$headersStr}</div>";
+        
         // Вземаме линковете към файловете
         $filesStr = static::getFiles($mime, $emlRec);
        
@@ -77,7 +88,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     			array(
     				'title' => 'HTML',
     				'html'  => $htmlPart,
-    				'order' => 1,
+    				'order' => 3,
     			);    
         }
         
@@ -89,7 +100,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     			array(
     				'title' => 'Текст',
     				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Текстовата част на имейла</legend>{$textPart}</fieldset></div>",
-    				'order' => 2,
+    				'order' => 4,
     			);    
         }
         
@@ -101,7 +112,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     			array(
     				'title'   => 'Файлове',
     				'html'    => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Прикачените файлове</legend>{$filesStr}</fieldset></div>",
-    				'order' => 3,
+    				'order' => 5,
     			);
 	    }
 			
@@ -110,7 +121,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Хедъри',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Хедърите на имейла</legend>{$headersStr}</fieldset></div>",
-				'order' => 4,
+				'order' => 8,
 			);
 			
         // Таб за сорса
@@ -118,7 +129,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Сорс',
 				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Сорса на имейла</legend>{$sourceShow}</fieldset></div>",
-				'order' => 5,
+				'order' => 9,
 			);
 			
         return $tabsArr;

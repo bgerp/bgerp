@@ -30,7 +30,7 @@ class jquery_Jquery {
      */
     static function enable(&$tpl)
     {
-        $tpl->push("http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", "JS");
+        $tpl->push("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", "JS");
     }
     
     

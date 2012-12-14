@@ -14,6 +14,13 @@
 class fileman_webdrv_Generic extends core_Manager
 {
     
+    
+    /**
+     * Кой таб да е избран по подразбиране
+     */
+    static $defaultTab = 'info';
+    
+    
     /**
      * Връща всички табове, които ги има за съответния файл
      * 
@@ -34,9 +41,11 @@ class fileman_webdrv_Generic extends core_Manager
 				'title' => 'Информация',
 				'html'  => "<div class='webdrvTabBody'><fieldset  class='webdrvFieldset'><legend>Мета информация</legend>
 					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
-				'order' => 9,
+				'order' => 1,
 			);
         
+		$tabsArr['__defaultTab'] = static::$defaultTab;	
+			
         return $tabsArr;
     }
     
@@ -275,28 +284,48 @@ class fileman_webdrv_Generic extends core_Manager
             // Връщаме съобщението за грешка
             return $content->errorProc;       
         }
-
+        
+        // Парсираме информцията и превеждаме таговете на редовете
+        $content = static::parseInfo($content);
+        
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
         
         // Записите за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
     
+        // Текста пред линковете
+        $linkText = tr("Линк|*: ");
+        
+        // URL' то за генериране на линкове
+        $linkUrl = array('fileman_Download', 'GenerateLink', 'fh' => $fileHnd, 'ret_url' => array('fileman_Files', 'single', $fileHnd, 'currentTab' => 'info', '#' => 'fileDetail'));
+        
         // Ако има активен линк за сваляне
         if (($dRec = fileman_Download::fetch("#fileId = {$fRec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
             
             // Линк за сваляне
             $link = fileman_Download::getSbfDownloadUrl($dRec, TRUE);
-            
+
             // До кога е активен линка
             $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
             
-            // Линка, който ще се показва
-            $linkText = tr("|Линк|*: <span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOn})</small>");
+            // Датата, когато изтича да е линк, към генериране на линкове
+            $expireOnLink = ht::createLink($expireOn, $linkUrl);
             
-            // Добавяме към съдържанието на инфо
-            $contentInfo = $linkText . "\n";
+            // Линка, който ще се показва
+            $linkText .= tr("|*<span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOnLink})</small>");
+            
+        } else {
+            
+            // Създаваме линк, за генерира на линкове
+            $link = ht::createLink('[' . tr('Вземи') . ']', $linkUrl);
+            
+            // Добавяме към текста на линка
+            $linkText .= $link;
         }
+        
+        // Добавяме към съдържанието
+        $linkText .= "\n";
         
         try {
 		    
@@ -308,7 +337,7 @@ class fileman_webdrv_Generic extends core_Manager
         if ($documentWithFile) {
             
             // Добавяме към съдържанието на инфото
-            $contentInfo .= $documentWithFile . "\n";    
+            $containsIn = tr("Съдържа се в|*: ") . $documentWithFile . "\n";    
         }
         
         // Типа на файла
@@ -324,7 +353,7 @@ class fileman_webdrv_Generic extends core_Manager
             $sizeText = tr("|Размер|*: {$size}");  
             
             // Добавяме към съдържанието на инфо
-            $contentInfo .= $sizeText . "\n";
+            $sizeText .= "\n";
         }
         
         // Информация за създаването
@@ -332,16 +361,22 @@ class fileman_webdrv_Generic extends core_Manager
         $createdBy = fileman_Files::getVerbal($fRec, 'createdBy');
         
         // Показване на създаването
-        $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}");
-        
-        // Добавяме към съдържанието на инфо
-        $contentInfo .= $createdText . "\n";
+        $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}") . "\n";
         
         // Добавяме в текста
-        $content = $contentInfo . core_Type::escape($content);
+        $content = $containsIn . $createdText . $sizeText . $linkText . core_Type::escape($content);
+        
+        // Инстанция на класа
+        $pageInst = cls::get(Mode::get('wrapper'));
+        
+        // Линковете вътре в документа, да се отварят в родителската страница
+        $pageInst->appendOnce('<base target="_parent" />', 'HEAD');
+        
+        // Добавяме стилове
+        $pageInst->appendOnce('body{line-height:150%;}', 'STYLES');
         
         // Връщаме съдържанието
-        return $content;
+        return $pageInst->output($content);
     }
 	
 	
@@ -1030,5 +1065,60 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         return $htmlPart;
+    }
+    
+    
+    /**
+     * Парсира стринга, превежда стринговете, които се явяват таговете на реда
+     * 
+     * @param string $content - Стринга, който ще обработваме
+     * 
+     * @return $newContent
+     */
+    static function parseInfo($content)
+    {
+        // Разделяме съдържанието в масив
+        $contentArr = explode("\n", $content);
+        
+        // Обхождаме масива
+        foreach ($contentArr as $contentLine) {
+            
+            // Ако няма съдържание прескачаме
+            if (!trim($contentLine)) continue;
+            
+            // Разделяме реда на тагове и стойност
+            list($tag, $value) = explode(': ', $contentLine, 2);
+            
+            // Създаваме ред от съдържанието
+            $nLink = '';
+            
+            // Ако все още има двуеточние
+            if (strripos($tag, ':') !== FALSE) {
+                
+                // Разделяма тага на части
+                $partTagArr = explode(':', $tag);  
+                
+                // Обхождаме всички части
+                foreach ($partTagArr as $partTag) {
+                    
+                    // Добавяме към реда и превеждаме
+                    $nLink .= ($nLink) ? ":" . tr($partTag) : tr($partTag);
+                }
+                
+            } else {
+                
+                // Ако няма двуеточни, само превеждаме и добавяме към реда
+                $nLink .= tr($tag);
+            }
+            
+            // Към реда добавяме и стойността, без да я превеждаме
+            $nLink .= ": " . $value;
+            
+            // Получения ред го добавяме към новото съдържание
+            $newContent .= ($newContent) ? "\n" . $nLink : $nLink;
+        }
+        
+        // Връщаме новото съдържание
+        return $newContent;
     }
 }

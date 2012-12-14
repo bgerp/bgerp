@@ -14,6 +14,14 @@
 class fileman_webdrv_Office extends fileman_webdrv_Generic
 {
     
+    
+    /**
+     * Кой таб да е избран по подразбиране
+     * @Override
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    static $defaultTab = 'preview';
+    
 
 	/**
      * Връща всички табове, които ги има за съответния файл
@@ -38,7 +46,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Преглед',
 				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Преглед</legend> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
-				'order' => 1,
+				'order' => 2,
 			);
         
         // URL за показване на текстовата част на файловете
@@ -49,7 +57,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 			array(
 				'title' => 'Текст',
 				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Текст</legend> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
-				'order' => 2,
+				'order' => 4,
 			);
         
 		$htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);	
@@ -59,7 +67,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 			array(
 				'title' => 'HTML',
 				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML</legend> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
-				'order' => 4,
+				'order' => 3,
 			);
 
 

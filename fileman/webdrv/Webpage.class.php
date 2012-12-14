@@ -15,6 +15,14 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
 {
     
     
+    /**
+     * Кой таб да е избран по подразбиране
+     * @Override
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    static $defaultTab = 'html';
+    
+    
 	/**
      * Връща всички табове, които ги има за съответния файл
      * 
@@ -46,7 +54,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
 			array(
 				'title' => 'HTML',
                 'html'  => $htmlPart,
-				'order' => 1,
+				'order' => 3,
 			);
         
         // Таб за текстовата част
@@ -54,7 +62,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
 			array(
 				'title' => 'Текст',
 				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Текст</legend>{$textPart}</fieldset></div>",
-				'order' => 2,
+				'order' => 4,
 			);
 			
         return $tabsArr;

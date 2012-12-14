@@ -20,7 +20,7 @@
     <i>|Служебни|*:</i> [#workPhones#]<!--ET_END workPhones--><!--ET_BEGIN homePhones-->
     <i>|Домашни|*:</i> [#homePhones#]<!--ET_END homePhones--><!--ET_BEGIN voicePhones-->
     <i>|Гласови|*:</i> [#voicePhones#]<!--ET_END voicePhones--><!--ET_BEGIN faxPhones-->
-    <i>|факсове|*:</i> [#faxPhones#]<!--ET_END faxPhones--><!--ET_BEGIN otherPhones-->
+    <i>|Факсове|*:</i> [#faxPhones#]<!--ET_END faxPhones--><!--ET_BEGIN otherPhones-->
     <i>|Други|*:</i> [#otherPhones#]<!--ET_END otherPhones-->
 <!--ET_END phonesRemover--><!--ET_BEGIN addressRemover-->[#addressRemover#]|Адреси|*:<!--ET_BEGIN homeAddress-->
     <i>|Домашен|*:</i> [#homeAddress#]<!--ET_END homeAddress--><!--ET_BEGIN workAddress-->

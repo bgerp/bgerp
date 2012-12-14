@@ -16,6 +16,14 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
     
     
     /**
+     * Кой таб да е избран по подразбиране
+     * @Override
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    static $defaultTab = 'preview';
+    
+    
+    /**
      * Връща всички табове, които ги има за съответния файл
      * 
      * @param object $fRec - Записите за файла
@@ -47,15 +55,15 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 			array(
 				'title'   => 'Преглед',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Преглед</legend>{$previewStr}</fieldset></div>",
-				'order' => 1,
+				'order' => 2,
 			);
 			
 		// Таб за съдържанието
-		$tabsArr['contetn'] = (object) 
+		$tabsArr['content'] = (object) 
 			array(
 				'title'   => 'Съдържание',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Съдържание</legend>{$contentStr}</fieldset></div>",
-				'order' => 2,
+				'order' => 7,
 			);
         
         return $tabsArr;
@@ -188,9 +196,13 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	        
 	        // Заместваме версияна на визитката
 	        if ($vcardArr['revision']) {
-	            $revision = date('d-m-Y G:i', $vcardArr['revision']);
+	            
+	            // Вземаме датата във вербална форма
+	            $revision = dt::mysql2verbal(dt::timestamp2Mysql($vcardArr['revision']), 'smartTime');
+	            
+	            // Заместваме
+	            $tpl->replace($revision, 'revision');
 	        }
-	        $tpl->replace($revision, 'revision');
 	        
 	        // Заместваме рожденния ден
 	        $tpl->replace($vcardArr['bDay'], 'bDay');
@@ -214,6 +226,9 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	            $tpl->append($photoUrl, 'photoUrl');    
 	        }
 	        
+	        // Инстанция на класа
+	        $Email = cls::get('type_Email');
+	        
 	        // Обхождаме всички имейли в масива
 	        foreach ((array)$vcardArr['Emails'] as $type => $emailsArr) {
 	            
@@ -223,6 +238,9 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	            $firstOther = TRUE;
 	            // Обхождаме всички имейли
 	            foreach ((array)$emailsArr as $email) {
+	                
+	                // Вземаме вербалния имейл
+	                $email = $Email->toVerbal($email);
 	                
 	                // В зависимост от типа
 	                switch (strtolower($type)) {
@@ -258,6 +276,9 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	            }
 	        }
 	        
+	        // Инстанция на класа
+	        $Phone = cls::get('drdata_PhoneType');
+	        
 	        // Обхождаме всички телефони в масива
 	        foreach ((array)$vcardArr['tel'] as $type => $phonesArr) {
 	            
@@ -271,6 +292,9 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	            $firstOther = TRUE;
 	            // Обхождаме всички телефони
 	            foreach ((array)$phonesArr as $phone) {
+	                
+	                // Вземаме вербалния телефон
+	                $phone = $Phone->toVerbal($phone);
 	                
 	                // В зависимост от типа
 	                switch (strtolower($type)) {
@@ -351,6 +375,9 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	            // Обхождаме всички телефони
 	            foreach ((array)$addressArr as $address) {
 	                
+	                // Обработваме адреса
+	                $address = drdata_Address::canonizePlace($address);
+	                
 	                // В зависимост от типа
 	                switch (strtolower($type)) {
 	                    case 'home':
@@ -402,7 +429,6 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	    }
 	    
 	    return $content;
-	    
 	}
 	
 	

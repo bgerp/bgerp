@@ -146,7 +146,7 @@ class fileman_Files extends core_Master
         Request::push(array('id' => $fRec->id));
         
         // Заглавието на таба
-        $this->title = static::getVerbal($fRec, 'name');
+        $this->title = "|*" . static::getVerbal($fRec, 'name');
         
         return parent::act_Single();
     }
@@ -685,6 +685,9 @@ class fileman_Files extends core_Master
         
         $form->input('name');
         
+        // Размера да е максимален
+        $form->setField('name', 'width=100%');
+        
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
 
@@ -892,10 +895,6 @@ class fileman_Files extends core_Master
         // Добавяме бутон за сваляне
         $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
         $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download,class=btn-download', array('order=8'));
-        
-        // Генериране на линк сваляне на файла от sbf директорията
-        $createLinkUrl = toUrl(array('fileman_Download', 'GenerateLink', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
-        $data->toolbar->addBtn('Линк', $createLinkUrl, 'id=btn-createLink,class=btn-createLink', 'order=40');
     }
     
     

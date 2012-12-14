@@ -120,15 +120,32 @@ class fileman_Indexes extends core_Manager
         // Подреждаме масивити според order
         $tabsArr = static::orderTabs($tabsArr);
 
-        // Текущия таб, ако не е зададен или ако няма такъв е първия
-        $currentTab = $tabsArr[$data->currentTab] ? $data->currentTab : key($tabsArr);
-
+        // Ако е избран някой таб
+        if ($tabsArr[$data->currentTab]) {
+            
+            // Задаваме той да е текущия
+            $currentTab = $data->currentTab;    
+        } elseif ($tabsArr[$tabsArr['__defaultTab']]) {
+            
+            // Ако не е избран таб, избираме таба по подразбиране зададен от класа
+            $currentTab = $tabsArr['__defaultTab'];
+        } else {
+            
+            unset($tabsArr['__defaultTab']);
+            
+            // Ако нито едно от двете не сработи, вземаме първия таб
+            $currentTab = key($tabsArr);    
+        }
+        
         // Създаваме рендер на табове
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
         
         // Обикаляме всички табове
         foreach($tabsArr as $name => $rec) {
-            
+           
+            // Ако не е таб
+            if (strpos($name, '__') === 0) continue;
+
             // Ако е текущия таб таб
             if($name == $currentTab) {
                  $tabs->TAB($name, $rec->title,  array('currentTab' => $name, 'id' => $data->rec->fileHnd, '#' => 'fileDetail'));
@@ -136,7 +153,7 @@ class fileman_Indexes extends core_Manager
                  // Вземаме съдържанеито на тялот
                  $body = $rec->html;
             } else {
-                
+
                 // Създаваме таб
                 $tabs->TAB($name, $rec->title, array('currentTab' => $name, 'id' => $data->rec->fileHnd, '#' => 'fileDetail'));
             }
