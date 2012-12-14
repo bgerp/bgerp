@@ -667,7 +667,7 @@ class core_Users extends core_Manager
                 '|На имейлът от регистрацията е изпратена информация и инструкция за активация.');
         }
         
-        if ($userRec->state != 'active' || $userRec->maxIdleTime > 1200) {
+        if ($userRec->state != 'active' || $userRec->maxIdleTime > EF_USERS_SESS_TIMEOUT) {
             $Users->logout();
             
             global $_GET;
