@@ -614,20 +614,26 @@ class cal_Calendar extends core_Master
     		//Линк към събитието
     		$url = getRetUrl($rec->url);
     		$id = substr(strrchr($rec->url, "/"),1);
+    		
+    	
+    		$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+    		
+    		$linkHour = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title, $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		$linkNormal = ht::createLink($rec->title, $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    		
     		$color = array_pop($colors);
     		
-    		//Проверяваме дали събитието не започва на различен от кръгал час и показваме реалния му час
-    		if (dt::mysql2verbal($rec->time, 'i') != "00"){
-    			$dayData[$hourKey][$dayKey] .= "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'>". 
-    			 								ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 13), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)) .
-    			 								"<a href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png') . " ></a></div>";
+        	if (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state != "closed"){
+    			$dayData[$hourKey][$dayKey] .= $img.$linkHour;
     			
-    		} elseif($hourKey != "allDay") { 
-    			$dayData[$hourKey][$dayKey] .= "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'>".
-    											ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title)) .
-    											"<a href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png') . "></a></div>";
+    		} elseif($hourKey != "allDay" && $rec->state != "closed") { 
+    			$dayData[$hourKey][$dayKey] .= $img.$linkNormal;
+    			
+    		} elseif($hourKey != "allDay" && $rec->state == "closed") {
+    			$dayData[$hourKey][$dayKey] .= $img.ht::createLink($rec->title, $url, NULL, array('class'=>'calWeek', 'style' => 'color:#4b4b4b;;', 'title' => $rec->title));
+    		
     		} else {
-    			$dayData[$hourKey][$dayKey] .= ht::createLink("<p>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('class' => 'calWeek', 'title' => $rec->title));
+    			$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calDay'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
     			
     		}
     		
@@ -675,8 +681,21 @@ class cal_Calendar extends core_Master
     		
     		if($h == $nowTime){
     			$cTpl->replace('mc-today', 'now');
+    		} else {
+    			$cTpl->replace('calDay', 'now');
     		}
     		
+    		for($j = 0; $j < 26; $j++){
+   				   					
+	        	$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
+	   				
+	        	$overs["over".$j] = "onmouseover='ViewImage($h$j)'";
+	        	$outs["out".$j] = "onmouseout='NoneImage($h$j)'";
+         	} 
+         	
+    		$cTpl->placeArray($aHrefs);
+    		$cTpl->placeArray($overs);
+    		$cTpl->placeArray($outs);
     		$cTpl->placeArray($hourArr);
     		$cTpl->append2master();
     		}
@@ -766,28 +785,22 @@ class cal_Calendar extends core_Master
     		$url = getRetUrl($rec->url);
     		$id = substr(strrchr($rec->url, "/"),1);
     		
-    		$edit = "<a class='calWeek' href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/edit-icon.png' ) . "></a></div>";
-    		$div = "<div onmouseover='ViewImage($id)' , onmouseout='NoneImage($id)'><img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
-    		$clock = "<a class='calWeek' href='/cal_Tasks/edit/$id'><img class='calWeek' id=$id src=" . sbf('img/16/clock.png') .  "></a></div>";
-    		$linkHour = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 13), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		
+    		$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+    		
+    		$linkHour = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
     		$linkNormal = ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
     		
     		$color = array_pop($colors);
     		
-        	if (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state == "draft"){
-    			$weekData[$hourKey][$dayKey] .= $div.$linkHour.$edit;
+        	if (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state != "closed"){
+    			$weekData[$hourKey][$dayKey] .= $img.$linkHour;
     			
-    		} elseif (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state == "active"){
-    			$weekData[$hourKey][$dayKey] .= $div.$linkHour.$clock;
-    			
-    		} elseif($hourKey != "allDay" && $rec->state == "draft") { 
-    			$weekData[$hourKey][$dayKey] .= $div.$linkNormal.$edit;
-    			
-    		} elseif($hourKey != "allDay" && $rec->state == "active") { 
-    			$weekData[$hourKey][$dayKey] .= $div.$linkNormal.$clock;
+    		} elseif($hourKey != "allDay" && $rec->state != "closed") { 
+    			$weekData[$hourKey][$dayKey] .= $img.$linkNormal;
     			
     		} elseif($hourKey != "allDay" && $rec->state == "closed") {
-    			$weekData[$hourKey][$dayKey] .= "<div style='background-color:#4b4b4b; '><img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;".ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek', 'style' => 'color:#fff;', 'title' => $rec->title))."</div>";
+    			$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek', 'style' => 'color:#4b4b4b;;', 'title' => $rec->title));
     		
     		} else {
     			$weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('title' => $rec->title));

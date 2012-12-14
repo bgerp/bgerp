@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'currency_CurrencyRates' -
+ * Валутни курсове
  *
  *
  * @category  bgerp
@@ -13,9 +13,13 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class currency_CurrencyRates extends core_Manager
+class currency_CurrencyRates extends core_Detail
 {
     
+	/**
+     * Име на поле от модела, външен ключ към мастър записа
+     */
+    var $masterKey = 'currencyId';
     
     /**
      * Плъгини за зареждане

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class currency_Currencies extends core_Manager {
+class currency_Currencies extends core_Master {
     
     
     /**
@@ -40,6 +40,8 @@ class currency_Currencies extends core_Manager {
      */
     var $listFields = "id, name, code, lastUpdate, lastRate, state, createdOn, createdBy";
     
+    
+    var $details = "currency_CurrencyRates";
     
     /**
      * Описание на модела

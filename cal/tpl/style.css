@@ -20,6 +20,7 @@ td.calWeek {
 	
 	color:black;
 	width:12em;
+	min-width:8em;
 	border: 1px solid #999;
     border-collapse: collapse;
 	colspan: 2;
@@ -41,6 +42,20 @@ td.calWeekTime {
 	height:2em;
 }
 
+td.calDayTime {
+	
+	color:black;
+	max-width:6em;
+	min-width:6em;
+	border: 1px solid #999;
+    border-collapse: collapse;
+	colspan: 2;
+	color:#ffffff;
+	background-color:#47476B;
+	text-align:center;
+	height:2em;
+}
+
 td.calWeekH {
 	
 	color:black;
@@ -48,16 +63,45 @@ td.calWeekH {
 	min-width:3em;
 	border: 1px solid #999;
     border-collapse: collapse;
+	color:#ffffff;
+	background-color:#47476B;
+	text-align:center;
 	colspan: 2;
-	color:#000000;
+	//color:#000000;
 	height:2em;
+}
+
+td.calDayH {
+	
+	color:black;
+	max-width:6em;
+	min-width:6em;
+	border: 1px solid #999;
+    border-collapse: collapse;
+	color:#ffffff;
+	background-color:#47476B;
+	text-align:center;
+	colspan: 2;
+	height:2em;
+}
+
+td.calDay {
+	
+	color:black;
+	width:25em;
+	min-width:23em;
+	border: 1px solid #999;
+    border-collapse: collapse;
+	colspan: 2;
+	height:2em;
+
 }
 
 a.calWeek{
 	border: 0px #999;
 	white-space: nowrap;
 	colspan: 2;
-	position:static;
+	position:absolute;
 	
 }
 
@@ -99,6 +143,22 @@ p.calWeek{
 	color: #1d1d1d;
 	white-space: nowrap;
 	max-width:10em;
+	overflow:hidden;
+	
+}
+
+p.calDay{
+	
+	border: 1px solid rgb(159, 198, 231);
+	background-image: url("nqkvo_pole4c.png");
+	margin-top:0.2em;
+	margin-bottom:0.5em;
+	margin-left:0.2em;
+	background-position: center; 
+	line-height: 1em;
+	color: #1d1d1d;
+	white-space: nowrap;
+	max-width:23em;
 	overflow:hidden;
 	
 }

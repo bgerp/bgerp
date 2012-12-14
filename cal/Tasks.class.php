@@ -303,6 +303,7 @@ class cal_Tasks extends core_Master
     {
         if($data->rec->state == 'active') {
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
+            $data->toolbar->addBtn('Отлагане', array('act_Postpone', 'edit', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/clock.png');
         }
     }
 
@@ -482,6 +483,13 @@ class cal_Tasks extends core_Master
     static function getShared($id)
     {
         return static::fetchField($id, 'sharedUsers');
+    }
+    
+    function act_Postpone()
+    {
+    	 $res = '1';
+
+        return $this->renderWrapping($res);
     }
        
 }

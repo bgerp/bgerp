@@ -2,7 +2,7 @@
            
 	<div class='document'>
 		<div class='header'>
-			<span style='[#iconStyle#]'>[#title#]</span><br/>
+			<p class="calTitle">[#title#]</p>
 			<span>[#from#]</span>
 		</div>
 
@@ -27,18 +27,18 @@
 		<!--ET_BEGIN event-->	
          <div class='block_left'>
          </br>
-                <table cellspacing='1' class='listTable'>
+                <table cellspacing='1' class='calTable'>
 				<tr>
-                     <td class="calWeek" style='width:50px'>Време</td>
-                     <td class="calWeek"'>Заглавие</td>
+                     <td class="calDayTime" style='width:50px'>Време</td>
+                     <td class="calDayTime">Заглавие</td>
                      
                  </tr>
                 
                  
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr data-cal-time="[#timeJs#]"> 
-                     <td class="calWeek" style='width:50px'>[#time#]</td>
-                     <td class="[#now#]" data-cal-date="[#dateJs#]">[#tasktitle#]</td>
+                     <td class="calDayH">[#time#]</td>
+                     <td [#over0#][#out0#] class="[#now#]" data-cal-date="[#dateJs#]">[#tasktitle#]<a href='/cal_Tasks/add/?timeStart[d]=[#dateJs#]+[#timeJs#]:00'>[#href0#]</a></td>
                      
                  </tr>
                  <!--ET_END COMMENT_LI-->

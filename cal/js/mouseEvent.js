@@ -26,3 +26,14 @@ $(function () {
 	});
 });
 
+$(function () {
+	$('table.calTable td.calDay').dblclick(function () {
+		var date = $(this).attr('data-cal-date');
+		var time = $(this).parent().attr('data-cal-time');
+		
+		var dateTime = date + ' ' + time + ':00';
+		
+		document.location = "/cal_Tasks/add/?timeStart[d]=" + dateTime;
+	});
+});
+
