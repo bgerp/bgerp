@@ -284,7 +284,10 @@ class fileman_webdrv_Generic extends core_Manager
             // Връщаме съобщението за грешка
             return $content->errorProc;       
         }
-
+        
+        // Парсираме информцията и превеждаме таговете на редовете
+        $content = static::parseInfo($content);
+        
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
         
@@ -1062,5 +1065,60 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         return $htmlPart;
+    }
+    
+    
+    /**
+     * Парсира стринга, превежда стринговете, които се явяват таговете на реда
+     * 
+     * @param string $content - Стринга, който ще обработваме
+     * 
+     * @return $newContent
+     */
+    static function parseInfo($content)
+    {
+        // Разделяме съдържанието в масив
+        $contentArr = explode("\n", $content);
+        
+        // Обхождаме масива
+        foreach ($contentArr as $contentLine) {
+            
+            // Ако няма съдържание прескачаме
+            if (!trim($contentLine)) continue;
+            
+            // Разделяме реда на тагове и стойност
+            list($tag, $value) = explode(': ', $contentLine, 2);
+            
+            // Създаваме ред от съдържанието
+            $nLink = '';
+            
+            // Ако все още има двуеточние
+            if (strripos($tag, ':') !== FALSE) {
+                
+                // Разделяма тага на части
+                $partTagArr = explode(':', $tag);  
+                
+                // Обхождаме всички части
+                foreach ($partTagArr as $partTag) {
+                    
+                    // Добавяме към реда и превеждаме
+                    $nLink .= ($nLink) ? ":" . tr($partTag) : tr($partTag);
+                }
+                
+            } else {
+                
+                // Ако няма двуеточни, само превеждаме и добавяме към реда
+                $nLink .= tr($tag);
+            }
+            
+            // Към реда добавяме и стойността, без да я превеждаме
+            $nLink .= ": " . $value;
+            
+            // Получения ред го добавяме към новото съдържание
+            $newContent .= ($newContent) ? "\n" . $nLink : $nLink;
+        }
+        
+        // Връщаме новото съдържание
+        return $newContent;
     }
 }
