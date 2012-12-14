@@ -28,7 +28,7 @@ class jquery_Jquery {
     /**
      * @todo Чака за документация...
      */
-    function enable(&$tpl)
+    static function enable(&$tpl)
     {
         $tpl->push("http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", "JS");
     }
@@ -37,9 +37,9 @@ class jquery_Jquery {
     /**
      * @todo Чака за документация...
      */
-    function enableUI(&$tpl)
+    static function enableUI(&$tpl)
     {
-        $this->enable($tpl);
+        self::enable($tpl);
         
         $tpl->push("jquery/ui-1.8.2/js/jquery-ui-1.8.2.custom.min.js", "JS");
         $tpl->push("jquery/ui-1.8.2/css/custom-theme/jquery-ui-1.8.2.custom.css", "CSS");
@@ -49,7 +49,7 @@ class jquery_Jquery {
     /**
      * @todo Чака за документация...
      */
-    function enableDatePicker(&$tpl)
+    static function enableDatePicker(&$tpl)
     {
         $this->enableUI($tpl);
         $tpl->push("jquery/ui/i18n/jquery.ui.i18n.all.js", "JS");
@@ -59,7 +59,7 @@ class jquery_Jquery {
     /**
      * @todo Чака за документация...
      */
-    function enableTableSorter(&$tpl)
+    static function enableTableSorter(&$tpl)
     {
         $this->enable($tpl);
         
@@ -77,7 +77,7 @@ class jquery_Jquery {
     /**
      * @todo Чака за документация...
      */
-    function run(&$tpl, $code, $once = FALSE)
+    static function run(&$tpl, $code, $once = FALSE)
     {
         $tpl->appendOnce(new ET("\n$(document).ready(function(){ \n[#JQUERY_CODE#]\n });\n"), "JQRUN");
         
