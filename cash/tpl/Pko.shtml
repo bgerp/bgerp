@@ -15,14 +15,17 @@
 		<td  rowspan='2' class='title-order'>
 			<h2 style='margin-bottom:15px;margin-top:0px'>ПРИХОДЕН<br> КАСОВ ОРДЕР</h2>
 			№:&nbsp;&nbsp;<b>[#number#]</b><br>
-			Дата:&nbsp;&nbsp;<b>[#date#]</b>
+			Дата:&nbsp;&nbsp;<b>[#valior#]</b>
 			<h3 style='margin:10px'>[#state#]</h3>
 		</td>
 		<td class='top-head'><b>Организация</b></td>
 	</tr>
 	<tr>
-		<td style='padding-top:10px;' class='align-top-td'>[#contragent#]</td>
-		<td style='padding-top:10px;' class='align-top-td'>[#organisation#]</td>
+		<td style='padding-top:10px;'>
+		<b>[#contragentName#]</b><br><br>[#creditAccounts#]</td>
+		<td style='padding-top:10px;' class='align-top-td'>
+		<b>[#organisation#]</b><br><br>[#peroCase#]
+		</td>
 	</tr>
 	</table>
 	<table border='1px' cellpadding='5px'>
@@ -48,14 +51,14 @@
 			<tr>
 				<td id='notes' >Бележки: &nbsp;&nbsp;[#notes#]</td>
 				<td>
-				<!--ET_BEGIN rate-->
+				<!--ET_BEGIN equals-->
 					<div id ='misc'>
 					<span class='labels'>Курс:</span> &nbsp;&nbsp;<b>[#rate#]</b><br>
 					<div style='margin-top:7px;'>
 					<span class='labels'>Равностойност:</span>
 					<span id='cCode'>[#baseCurrency#]</span>&nbsp;&nbsp;<b>[#equals#]</b></div>
 					</div>
-				<!--ET_END rate-->
+				<!--ET_END equals-->
 				</td>
 			</tr>
 			</table>

@@ -26,8 +26,8 @@ class acc_Balances extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State, acc_Wrapper,Accounts=acc_Accounts,
-                    plg_Sorting';
+    var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting';
+                    
     
     
     /**
@@ -57,14 +57,19 @@ class acc_Balances extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'no_one';
     
+
+    /**
+     * Кой може да добавя?
+     */
+    var $canAdd = 'no_one';
     
     /**
      * @var acc_Accounts
@@ -81,6 +86,7 @@ class acc_Balances extends core_Master
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от');
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до');
         $this->FLD('state', 'enum(draft=Горещ,active=Активен,rejected=Изтрит)', 'caption=Тип,input=none');
+        $this->FLD('lastCalculate', 'datetime', 'input=none,caption=Последно изчисляване');
     }
     
     
@@ -175,5 +181,50 @@ class acc_Balances extends core_Master
         }
         
         return $balanceId;
+    }
+    
+
+    /**
+     * Презичислява балансите за периодите, в които има промяна ежеминутно
+     */
+    function cron_Recalc()
+    {
+        // Взема всички периоди (без closed) от най-стария, към най-новия
+        // За всеки период, ако има стойност в lastEntry:
+        //  - взема съответстващия му баланс (мастера)
+        //  - ако няма такъв баланс, то той се изчислява
+        //  - ако има такъв баланс, то той се изчислява, само ако неговото поле lastCalc <= lastEntry
+        // след преизчисляване на баланс, полето lastCalc се попълва с времето, когато е започнало неговото изчисляване
+        // продължава се със слеващия баланс
+        
+        $pQuery = acc_Periods::getQuery();
+        $pQuery->orderBy('#end', 'ASC');
+        $pQuery->where("#state != 'closed'");
+        while($pRec = $pQuery->fetch()) {
+            
+            if($pRec->lastEntry) {
+                $rec = self::fetch("#periodId = $pRec->id");
+                if(!$rec || ($rec->lastCalculate <= $pRec->lastEntry)) {
+
+                    if(!$rec) {
+                        $rec = new stdClass();
+                    }
+                    $lastCalculate = dt::verbal2mysql();
+
+                    $rec->periodId = $pRec->id;
+
+                    self::save($rec);
+
+                    $bDetail = cls::get('acc_BalanceDetails');
+
+                    $bDetail->calculateBalance($rec);
+
+                    $rec->lastCalculate = $lastCalculate;
+
+                    self::save($rec);
+                }
+            }
+        }
+
     }
 }

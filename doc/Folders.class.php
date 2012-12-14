@@ -102,8 +102,8 @@ class doc_Folders extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
-        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent');
+        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         $data->listFilter->view = 'horizontal';
         
@@ -111,8 +111,8 @@ class doc_Folders extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'users,order,search';
-        $data->listFilter->input('users,order,search', 'silent');
+        $data->listFilter->showFields = 'search,users,order';
+        $data->listFilter->input('search,users,order', 'silent');
     }
     
     

@@ -100,6 +100,26 @@ class acc_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
+
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'RecalcBalances';
+        $rec->description = 'Преизчисляване на баланси';
+        $rec->controller = 'acc_Balances';
+        $rec->action = 'Recalc';
+        $rec->period = 1;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 55;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $html .= "<li><font color='green'>Задаване по крон да преизчислява баланси</font></li>";
+        } else {
+            $html .= "<li>Отпреди Cron е бил нагласен да преизчислява баланси</li>";
+        }
+
         $Menu = cls::get('bgerp_Menu');
         
         $html .= $Menu->addItem(2, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "{$role}, admin");

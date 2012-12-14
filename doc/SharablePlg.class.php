@@ -48,14 +48,15 @@ class doc_SharablePlg extends core_Plugin
             // В режим на печат, маркираме документа като видян.
             // Ако не сме в режим печат, маркирането става в on_AfterRenderDocument() 
             static::markViewed($mvc, $data);
-        } 
+        }  
         
         $history = static::prepareHistory($data->rec);
                 
         // показваме (ако има) с кого е споделен файла
         if (!empty($history)) {
             $tpl->replace(static::renderSharedHistory($history), 'shareLog');
-        }        
+        }
+            
     }
 
     
@@ -159,7 +160,7 @@ class doc_SharablePlg extends core_Plugin
         
         $htmlStr = implode(', ', $html);
         
-        $htmlStr = "<div style='max-width: 87%;'>$htmlStr</div>";
+        $htmlStr = "$htmlStr";
         
         return $htmlStr;
     }

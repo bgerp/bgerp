@@ -80,7 +80,7 @@ class doc_SequencerPlg extends core_Plugin
     
     
     /**
-     * При активиране на документ слага пореден номер.
+     * При Създаване на документ слага пореден номер.
      *
      * @param core_Mvc $mvc
      * @param int $id
@@ -89,10 +89,11 @@ class doc_SequencerPlg extends core_Plugin
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         $seqField = static::getSeqField($mvc);
-        
-        if (empty($rec->{$seqField})) {
-            $rec->{$seqField} = $mvc::getNextNumber();
-        }
+      	if(!$rec->id) {
+	        if (empty($rec->{$seqField})) {
+	            $rec->{$seqField} = $mvc::getNextNumber();
+	        }
+      	}
     }
     
     

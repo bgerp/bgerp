@@ -289,7 +289,7 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
+        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setDefault('users', 'all_users'); 
        
         // Подготовка на полето за подредба
@@ -299,10 +299,10 @@ class crm_Persons extends core_Master
         $orderType = cls::get('type_Enum');
         $orderType->options = $options;
 
-        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent');
+        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
                                          
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent');
-        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
+        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();')));
 
         $data->listFilter->view = 'horizontal';
 

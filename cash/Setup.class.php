@@ -54,7 +54,10 @@ class cash_Setup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-				'CASH_PKO_CREDIT_ACC' => array ("acc_type_Accounts(root=4,maxColumns=2)"),
+				
+			'CASH_PKO_CREDIT_ACC' => array ("acc_type_Accounts(root=4,maxColumns=2)"),
+	
+			'CASH_RKO_DEBIT_ACC' => array ("acc_type_Accounts(root=4,maxColumns=2)"),
 	);
 	
 	
