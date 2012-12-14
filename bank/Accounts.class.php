@@ -64,7 +64,7 @@ class bank_Accounts extends core_Master {
     {
         $this->FLD('contragentCls', 'class', 'caption=Контрагент->Клас,mandatory,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory,width=6em');
         $this->FLD('type', 'enum(current=Разплащателна,
             deposit=Депозитна,
             loan=Кредитна,
@@ -226,8 +226,17 @@ class bank_Accounts extends core_Master {
         return $tpl;
     }
 
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	// Банкови сметки немогат да се добавят от мениджъра bank_Accounts
+    	$data->toolbar->removeBtn('btnAdd');
+    }
 
-
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */

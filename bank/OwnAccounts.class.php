@@ -48,6 +48,18 @@ class bank_OwnAccounts extends core_Manager {
     
     
     /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'bank, ceo';
+    
+    
+    /**
+     * Кой може да пише?
+     */
+    var $canWrite = 'bank, ceo';
+    
+    
+    /**
      * Заглавие
      */
     var $title = 'Банкови сметки на фирмата';
@@ -67,75 +79,71 @@ class bank_OwnAccounts extends core_Manager {
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
         $this->FNC('title', 'varchar(128)', 'caption=Наименование, input=none');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');
-        $this->FLD('together', 'enum(no,yes)', 'caption=Титуляри->Заедно / поотделно');
-        $this->FLD('operators', 'keylist(mvc=core_Users, select=names)', 'caption=Оператори');     // type=User(role=fin)
+        $this->FLD('together', 'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
+        $this->FLD('operators', 'keylist(mvc=core_Users, select=names)', 'caption=Оператори');
     }
     
     
     /**
+     * Обработка по формата
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param stdClass $data
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-    	$conf = core_Packs::getConfig('crm');
-    	
-        /*
-        $Companies = cls::get('crm_Companies');
-        $ownCompanyId = $Companies->fetchField("#name='" . BGERP_OWN_COMPANY_NAME . "'", 'id'); 
+    	$optionAccounts = static::getPossibleBankAccounts($data->form);
+    	$operators = static::getOperators();
         
-        $BankAccounts = cls::get('bank_Accounts');
-        $queryBankAccounts = $BankAccounts->getQuery();
-        
-
-        $where = "#contragentId = {$ownCompanyId}";
-        */
-        
-        $BankAccounts = cls::get('bank_Accounts');
-        $queryBankAccounts = $BankAccounts->getQuery();
-        cls::load('crm_Companies');
-        
-        $where = "#contragentId = " . $conf->BGERP_OWN_COMPANY_ID;
-        $where .= ' AND #contragentCls = ' . core_Classes::fetchIdByName('crm_Companies');
-        
-        $selectOptBankOwnAccounts = array();
-        
-        while($rec = $queryBankAccounts->fetch($where)) {
-            if (!$mvc->fetchField("#bankAccountId = " . $rec->id . " AND #id != '{$data->form->rec->id}'", 'id')) {
-                $selectOptBankOwnAccounts[$rec->id] = $BankAccounts->getVerbal($rec, 'iban');
-            }
-        }
-        
-        //
-        
-        $data->form->setField('bankAccountId', 'caption=Сметка');
-        $data->form->setOptions('bankAccountId', $selectOptBankOwnAccounts);
-        
+        $data->form->setOptions('bankAccountId', $optionAccounts);
+        $data->form->setSuggestions('operators', $operators);
     }
     
     
     /**
-     * Ако текущия потребител е сред елементите на 'operators'
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
+     * Подготовка на списъка от банкови сметки, между които можем да избираме
+     * @return array $options масив от потребители
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    static function getPossibleBankAccounts($form)
     {
-        if($action == 'doselect')
-        {
-            $cu = core_Users::getCurrent();
-            
-            if(type_Keylist::isIn($cu, $rec->operators)) {
-                $requiredRoles = 'every_one';
-            } else {
-                $requiredRoles = 'fin_master,admin';
-            }
+    	$conf = core_Packs::getConfig('crm');
+    	$bankAccounts = cls::get('bank_Accounts');
+    	
+    	// Извличаме само онези сметки, които са на нашата фирма и не са
+        // записани в OwnAccounts класа
+        $queryBankAccounts = $bankAccounts->getQuery();
+        $queryBankAccounts->where("#contragentId = {$conf->BGERP_OWN_COMPANY_ID}");
+        $queryBankAccounts->where("#contragentCls = " . core_Classes::getId('crm_Companies'));
+        $options = array();
+        
+        while($rec = $queryBankAccounts->fetch()) {
+           if (!static::fetchField("#bankAccountId = " . $rec->id . " AND #id != '{$form->rec->id}'", 'id')) {
+               $options[$rec->id] = $bankAccounts->getVerbal($rec, 'iban');
+           }
         }
+        
+        return $options;
     }
+    
+    
+    /**
+     * Извличаме само потребителите с роли bank, ceo
+     * @return array $suggestions масив от потребители
+     */
+    static function getOperators()
+    {
+    	$suggestions = array();
+    	$query = core_Users::getQuery();
+    	while($rec = $query->fetch()) {
+    		if(core_Users::haveRole('bank', $rec->id)) {
+    			$row = core_Users::recToVerbal($rec);
+    			$suggestions[$rec->id] = $row->names;
+    		}
+    	}
+    
+    	return $suggestions;
+    }    
+    
     
     /*******************************************************************************************
      * 
@@ -150,14 +158,12 @@ class bank_OwnAccounts extends core_Manager {
      */
     static function getItemRec($objectId)
     {
-        $self = cls::get(__CLASS__);
         $result = NULL;
         
-        if ($rec = $self->fetch($objectId)) {
+        if ($rec = static::fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->id,
-//                'title' => strip_tags(bank_Accounts::fetchField($rec->bankAccountId, 'iban')),
-                'title' => bank_Accounts::fetchField($rec->bankAccountId, 'iban'),
+				'title' => bank_Accounts::fetchField($rec->bankAccountId, 'iban'),
                 'features' => 'foobar' // @todo!
             );
         }
