@@ -2,6 +2,12 @@
 
 defIfNot('CASH_PKO_CREDIT_ACC_DEF', '4');
 
+defIfNot('CASH_CASE_ACCOUNT', '501');
+
+defIfNot('CASH_PKO_CREDIT_ACC', '|95|105|');
+
+defIfNot('CASH_RKO_DEBIT_ACC', '|96|98|105|');
+
 /**
  * class cash_Setup
  *
