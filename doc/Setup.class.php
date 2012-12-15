@@ -157,7 +157,7 @@ class doc_Setup
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Документи', 'Общи', 'doc_Folders', 'default', "user");
+        $html .= $Menu->addItem(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', "user");
         
         return $html;
     }

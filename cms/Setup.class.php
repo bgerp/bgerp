@@ -115,7 +115,7 @@ class cms_Setup
         $html .= "<li>Закачане на cms_plg_RichTextPlg към полетата за RichEdit - (Активно)";
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3, 'Сайт', 'CMS', 'cms_Content', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.5, 'Сайт', 'CMS', 'cms_Content', 'default', "{$role}, admin");
         
         return $html;
     }

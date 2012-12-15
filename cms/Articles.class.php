@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cms_Articles extends core_Master
+class cms_Articles extends core_Manager
 {
     
     
@@ -114,7 +114,7 @@ class cms_Articles extends core_Master
      *
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
+    {  
         $row->title = ht::createLink($row->title, array($mvc, 'Article', $rec->vid ? $rec->vid : $rec->id));
     }
 

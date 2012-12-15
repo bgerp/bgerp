@@ -31,13 +31,13 @@ class cms_GalleryImages extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = 'Групи от картинки';
+    var $title = 'Картинки в Галерията';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,cms_Wrapper,plg_Created,plg_Vid";
+    var $loadList = "plg_RowTools,cms_Wrapper,cms_GalleryWrapper,plg_Created,plg_Vid";
     
     
     /**

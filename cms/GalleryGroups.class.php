@@ -33,7 +33,7 @@ class cms_GalleryGroups extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,cms_Wrapper,plg_Created";
+    var $loadList = "plg_RowTools,cms_Wrapper,cms_GalleryWrapper,plg_Created";
     
     
     /**

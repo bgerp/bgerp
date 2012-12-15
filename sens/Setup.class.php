@@ -92,7 +92,7 @@ class sens_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
+        $Menu->addItem(3.4, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
         
         $Cron = cls::get('core_Cron');
         

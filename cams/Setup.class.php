@@ -129,7 +129,7 @@ class cams_Setup
         core_Classes::add('cams_driver_UIC9272');
         
         $Menu = cls::get('bgerp_Menu');
-        $Menu->addItem(3, 'Мониторинг', 'Камери', 'cams_Cameras', 'default', "{$role}, admin");
+        $Menu->addItem(3.4, 'Мониторинг', 'Камери', 'cams_Cameras', 'default', "{$role}, admin");
         
         return $html;
     }

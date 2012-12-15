@@ -71,7 +71,7 @@ class cal_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Указател', 'Календар', 'cal_Calendar', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(1.33, 'Указател', 'Календар', 'cal_Calendar', 'default', "{$role}, admin");
         
         return $html;
     }

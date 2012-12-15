@@ -64,7 +64,7 @@ class mp_Setup
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(3, 'Производство', 'Планиране', 'mp_Jobs', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.2, 'Производство', 'Планиране', 'mp_Jobs', 'default', "{$role}, admin");
         
         return $html;
     }

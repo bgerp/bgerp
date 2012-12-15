@@ -16,7 +16,7 @@ table {
 	width:34%;
 	height:16px;
 	vertical-align:top;
-	background-color:rgb(221, 221, 221);
+	background-color:rgba(200, 200, 200, 0.4);
 }
 
 .title-order{
@@ -31,7 +31,7 @@ h2{
 }
 
 th {
-	background-color: rgb(221, 221, 221);
+	background-color: rgba(200, 200, 200, 0.4);
 }
 
 #notes {
@@ -65,7 +65,7 @@ th {
 }
 
 #with-words {
-	background-color:rgb(221, 221, 221);
+	background-color:rgba(200, 200, 200, 0.4);
 	text-align:right;
 	padding-top:3px;
 	padding-bottom:3px;
@@ -92,7 +92,7 @@ th {
 	padding-right:15px;
 	border:1px solid red;
 	border:solid 1px #ccc;
-	background-color:#eee;
+	background-color:rgba(200, 200, 200, 0.4);
 }
 
 .labels {

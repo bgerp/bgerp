@@ -133,7 +133,7 @@ class blogm_Setup
         $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
 
 		$Menu  = cls::get('bgerp_Menu');
-		$html .= $Menu->addItem(3, 'Сайт', 'Блог', 'blogm_Articles', 'list', "cms, {$role}, admin");
+		$html .= $Menu->addItem(3.5, 'Сайт', 'Блог', 'blogm_Articles', 'list', "cms, {$role}, admin");
 
 		return $html;
 	}

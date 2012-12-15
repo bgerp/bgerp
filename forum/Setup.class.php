@@ -76,7 +76,7 @@ class forum_Setup
 		}
         
         $Menu  = cls::get('bgerp_Menu');
-		$html .= $Menu->addItem(3, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms, {$role}, admin");
+		$html .= $Menu->addItem(3.5, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms, {$role}, admin");
 
 		return $html;
 	}
