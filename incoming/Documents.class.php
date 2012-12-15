@@ -7,13 +7,13 @@
  * Създава на документи от файлове.
  *
  * @category  bgerp
- * @package   doc
+ * @package   incoming
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_Incomings extends core_Master
+class incoming_Documents extends core_Master
 {
     
     
@@ -92,7 +92,7 @@ class doc_Incomings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, plg_RowTools, doc_DocumentPlg, 
+    var $loadList = 'incoming_Wrapper, plg_RowTools, doc_DocumentPlg, 
          plg_Printing, plg_Sorting, plg_Search, doc_ActivatePlg, bgerp_plg_Blank';
     
     
@@ -105,7 +105,7 @@ class doc_Incomings extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutIncomings.shtml';
+    var $singleLayoutFile = 'incoming/tpl/SingleLayoutIncomings.shtml';
     
     
     /**
@@ -333,7 +333,7 @@ class doc_Incomings extends core_Master
         $dataId = $fRec->dataId;
 
         // Ако има документ със същото id
-        if (doc_Incomings::fetch("#dataId = '{$dataId}'")) {
+        if (static::fetch("#dataId = '{$dataId}'")) {
 
             return ;
         }
@@ -356,7 +356,7 @@ class doc_Incomings extends core_Master
         $rec->state = 'closed';
         
         // Създаваме документа
-        $id = doc_Incomings::save($rec);
+        $id = static::save($rec);
         
         return $id;
     }

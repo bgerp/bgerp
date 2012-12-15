@@ -121,7 +121,6 @@ class doc_Setup
             'doc_Folders',
             'doc_Threads',
             'doc_Containers',
-            'doc_Incomings',
             'doc_Search',
             'doc_Folders',
             'doc_Comments',
@@ -149,9 +148,6 @@ class doc_Setup
         
         // Променя линка за сваляне на файла
         $html .= $Plugins->installPlugin('Линкове за сваляне', 'bgerp_plg_File', 'fileman_Download', 'private');
-        
-        // Добавяне на плъгина за създаване на входящи документи
-        $html .= $Plugins->installPlugin('Създаване на входящ документ', 'doc_IncomingCreatePlg', 'fileman_Files', 'private');
         
         // Плъгин за работа с файлове в документите
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
