@@ -196,7 +196,7 @@ class type_Richtext extends type_Text
         
         // Вкарваме даден текст, в richText [b] [/b] тагове
         // \n и/или интервали \n или в началото[Главна буква][една или повече малки букви и или интервали и или големи букви]:[интервал][произволен текст]\n или край на текста
-        $html = preg_replace_callback("/(?'begin'([\n]{1}|^\s*[\n]{1})|^)(?'text'(?'leftText'[A-ZА-Я]{1}[a-zа-яA-ZА-Я\s]+)\:\ (?'rightText'.+))(?'end'\n|$)/u", array($this, '_catchBold'), $html);
+        $html = preg_replace_callback("/(?'begin'([\n]{1}|^\s*[\n]{1})|^)(?'text'(?'leftText'[A-ZА-Я]{1}[a-zа-яA-ZА-Я\ \t]+)\:\ (?'rightText'.+))(?'end'\n|$)/u", array($this, '_catchBold'), $html);
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') {
@@ -326,7 +326,11 @@ class type_Richtext extends type_Text
      */
     function _catchBold($match)
     {
+        // Ако лявата част на текст е по - голямо от 32 символа, връща се текста, без обработка
+        if (mb_strlen($match['leftText']) >= 32) return $match[0];
+        
         $res = $match['begin'] . '[b]' . trim($match['text']) . '[/b]' . $match['end'];
+        
         return $res;
     }
     
