@@ -31,9 +31,9 @@ class bank_Accounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected, plg_RowNumbering';
+    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected';
     
-    
+  
     /**
      * Кои полета да се показват в листовия изглед
      */
@@ -49,7 +49,6 @@ class bank_Accounts extends core_Master {
      * Икона на единичния обект
      */
     var $singleIcon = 'img/16/money.png';
-    
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -73,7 +72,7 @@ class bank_Accounts extends core_Master {
         $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory');     // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка,width=100%');
-        $this->FLD('comment', 'richtext', 'caption=Информация,width=100%');
+        $this->FLD('comment', 'richtext(rows=6)', 'caption=Информация,width=100%');
         
         // Задаваме индексите и уникалните полета за модела
         $this->setDbIndex('contragentCls,contragentId');

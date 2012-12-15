@@ -38,7 +38,7 @@ class bank_OwnAccounts extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'bankAccountId, tools=Пулт';
+    var $listFields = 'title, bankAccountId, tools=Пулт';
     
     
     /**
@@ -68,7 +68,7 @@ class bank_OwnAccounts extends core_Manager {
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Банкова сметка';
+    var $singleTitle = 'Банкова сметка на фирмата';
     
     
     /**
@@ -77,7 +77,7 @@ class bank_OwnAccounts extends core_Manager {
     function description()
     {
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
-        $this->FNC('title', 'varchar(128)', 'caption=Наименование, input=none');
+        $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');
         $this->FLD('together', 'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
         $this->FLD('operators', 'keylist(mvc=core_Users, select=names)', 'caption=Оператори');
@@ -97,6 +97,12 @@ class bank_OwnAccounts extends core_Manager {
         
         $data->form->setOptions('bankAccountId', $optionAccounts);
         $data->form->setSuggestions('operators', $operators);
+    	
+        // Номера на сметката неможе да се променя ако редактираме, за смяна на
+        // сметката да се прави от bank_accounts
+        if($data->form->rec->id) {
+        	$data->form->setReadOnly('bankAccountId');
+        }
     }
     
     
@@ -117,11 +123,11 @@ class bank_OwnAccounts extends core_Manager {
         $options = array();
         
         while($rec = $queryBankAccounts->fetch()) {
-           if (!static::fetchField("#bankAccountId = " . $rec->id . " AND #id != '{$form->rec->id}'", 'id')) {
+           if (!static::fetchField("#bankAccountId = " . $rec->id , 'id')) {
                $options[$rec->id] = $bankAccounts->getVerbal($rec, 'iban');
            }
         }
-        
+       // bp($options,$conf->BGERP_OWN_COMPANY_ID);
         return $options;
     }
     
@@ -143,6 +149,42 @@ class bank_OwnAccounts extends core_Manager {
     
     	return $suggestions;
     }    
+    
+    
+    /**
+     * Проверка дали може да се добавя банкова сметка в ownAccounts(Ако броя
+     * на собствените сметки отговаря на броя на сметките на Моята компания в
+     * bank_Accounts то неможем да добавяме нова сметка от този мениджър
+     * @return boolean TRUE/FALSE - можем ли да добавяме нова сметка
+     */
+    function canAddOwnAccount()
+    {
+    	$conf = core_Packs::getConfig('crm');
+    	$accountsQuery = bank_Accounts::getQuery();
+    	$accountsQuery->where("#contragentId = {$conf->BGERP_OWN_COMPANY_ID}");
+        $accountsQuery->where("#contragentCls = " . core_Classes::getId('crm_Companies'));
+        $accountsNumber = $accountsQuery->count();
+    	$ownAccountsQuery = $this->getQuery();
+    	$ownAccountsNumber = $ownAccountsQuery->count();
+    	if($ownAccountsNumber == $accountsNumber) {
+    		return FALSE;
+    	}
+    	
+    	return TRUE;
+    }
+    
+    
+    /**
+     * Обработка на ролите 
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action)
+    {
+     	if($action == 'add') {
+     		if(!$mvc->canAddOwnAccount()) {
+     			$res = 'no_one';
+     		}
+     	}
+    }
     
     
     /*******************************************************************************************
