@@ -909,17 +909,17 @@ class doc_DocumentPlg extends core_Plugin
         //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
         //     o има зададен екшън - log_Documents::hasAction()
         if (!Mode::is('text', 'html') && log_Documents::hasAction()) {
-            if (!isset($options->__mid)) {
+            if (!isset($options->rec->__mid)) {
                 $data->__MID__ = log_Documents::saveAction(
                     array('containerId' => $data->rec->containerId)
                 );
                 if (is_object($options)) {
-                    $options->__mid = $data->__MID__;
+                    $options->rec->__mid = $data->__MID__;
                 }
             }
         }
         
-        if (!isset($data->__MID__) && isset($options->__mid)) {
+        if (!isset($data->__MID__) && isset($options->rec->__mid)) {
             $data->__MID__ = $options->__mid;
         }
     }

@@ -1,0 +1,65 @@
+[#SingleToolbar#]
+                 
+	<div class='document'>
+		<div class='header [#STATE_CLASS#]'>
+		<span >Проект » [#name#] ([#state#])</span>
+		</div>
+
+        <!-- BEGIN Блок ляво -->
+        <div class='block_left'>
+        
+			 <table cellspacing='1' class='top-table'>
+			     
+	             <tr>
+	                 <td class="quiet" align="left" width='50%'>Ключови думи:</td>
+	                 <td>[#searchKeywords#]</td>
+	             </tr>
+	            
+	             <tr>
+	                 <td class="quiet" align="left" width='1%'>Папка:</td>
+	                 <td>[#folderId#]</td>
+	             </tr>
+
+				<tr>
+					<td class="quiet" align="left" width='1%'>Отговорници:</td>
+					<td>[#inCharge#] ([#createdOn#])</td>
+				
+				</tr>
+
+				<tr>
+                     <td class="quiet" align="left" width='1%'>Достъп:</td>
+                     <td>[#access#]</td>
+              
+                </tr>
+                
+                <tr>
+                     <td class="quiet" align="left" width='1%'>Споделяне:</td>
+                     <td>[#shared#]</td>
+              
+                </tr>
+                
+                              
+                <tr>
+                     <td class="quiet" align="left" width='1%'>Последна промяна:</td>
+                     <td>[#lastUsedOn#]</td>
+              
+                </tr>
+              
+                <tr>
+                     <td class="quiet" align="left" width='1%'>Създаден от:</td>
+                     <td>[#createdBy#]</td>
+              
+                </tr>
+                
+                 <tr>
+                     <td class="quiet" align="left" width='1%'>Предишно състояние:</td>
+                     <td>[#exState#]</td>
+              
+                 </tr>
+    
+             </table>
+         </div>    
+         <!-- END Блок ляво -->   
+                     
+         <div style='clear: both;'></div>
+    </div>         

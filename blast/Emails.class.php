@@ -1015,14 +1015,14 @@ class blast_Emails extends core_Master
         
         // Добавяме обработения rec към опциите
         $options->rec = $rec;
-        $options->__mid = $rec->__mid;
+        $options->rec->__mid = $rec->__mid;
         $options->__toEmail = $emailTo;
         
         // Вземаме тялото на имейла
         $res = static::getDocumentBody($rec->id, 'xhtml', $options);
         
         // За да вземем mid'а който се предава на $options
-        $rec->__mid = $options->__mid;
+        $rec->__mid = $options->rec->__mid;
         
         // За да вземем subject'а със заменените данни
         $rec->subject = $options->rec->subject;
@@ -1072,14 +1072,14 @@ class blast_Emails extends core_Master
         
         // Добавяме обработения rec към опциите
         $options->rec = $rec;
-        $options->__mid = $rec->__mid;
+        $options->rec->__mid = $rec->__mid;
         $options->__toEmail = $emailTo;
         
         // Вземаме тялото на имейла
         $res = static::getDocumentBody($rec->id, 'plain', $options);
         
         // За да вземем mid'а който се предава на $options
-        $rec->__mid = $options->__mid;
+        $rec->__mid = $options->rec->__mid;
         
         // За да вземем subject'а със заменените данни
         $rec->subject = $options->rec->subject;

@@ -52,6 +52,10 @@ class doc_UnsortedFolders extends core_Master
      */
     var $singleIcon = 'img/16/basket.png';
     
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'doc/tpl/SingleLayoutUnsortedFolder.shtml';
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
