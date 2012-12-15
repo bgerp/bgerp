@@ -616,13 +616,23 @@ class crm_Companies extends core_Master
             }
         }
         
-        if(count($groupsCnt)) {
-            foreach($groupsCnt as $groupId => $cnt) {
-                $groupsRec = new stdClass();
-                $groupsRec->companiesCnt = $cnt;
-                $groupsRec->id = $groupId;
-                $this->Groups->save($groupsRec, 'companiesCnt');
-            }
+        // Вземаме id' тата на всички групи
+        $groupsArr = crm_Groups::getGroupRecsId();
+        
+        // Обхождаме масива
+        foreach ($groupsArr as $id) {
+            
+            // Записа, който ще обновим
+            $groupsRec = new stdClass();
+            
+            // Броя на фирмите в съответната група
+            $groupsRec->companiesCnt = (int)$groupsCnt[$id];
+            
+            // id' то на групата
+            $groupsRec->id = $id;
+            
+            // Обновяваме броя на фирмите
+            crm_Groups::save($groupsRec, 'companiesCnt');    
         }
     }
     

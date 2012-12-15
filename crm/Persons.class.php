@@ -706,14 +706,24 @@ class crm_Persons extends core_Master
                 $groupsCnt[$groupId]++;
             }
         }
-
-        if(count($groupsCnt)) {
-            foreach($groupsCnt as $groupId => $cnt) {
-                $groupsRec = new stdClass();
-                $groupsRec->personsCnt = $cnt;
-                $groupsRec->id = $groupId;
-                crm_Groups::save($groupsRec, 'personsCnt');
-            }
+        
+        // Вземаме id' тата на всички групи
+        $groupsArr = crm_Groups::getGroupRecsId();
+        
+        // Обхождаме масива
+        foreach ($groupsArr as $id) {
+            
+            // Записа, който ще обновим
+            $groupsRec = new stdClass();
+            
+            // Броя на потребителите в съответната група
+            $groupsRec->personsCnt = (int)$groupsCnt[$id];
+            
+            // id' то на групата
+            $groupsRec->id = $id;
+            
+            // Обновяваме броя на потребителите
+            crm_Groups::save($groupsRec, 'personsCnt');    
         }
     }
 
