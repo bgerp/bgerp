@@ -326,7 +326,11 @@ class type_Richtext extends type_Text
      */
     function _catchBold($match)
     {
+        // Ако лявата част на текст е по - голямо от 32 символа, връща се текста, без обработка
+        if (mb_strlen($match['leftText']) >= 32) return $match[0];
+        
         $res = $match['begin'] . '[b]' . trim($match['text']) . '[/b]' . $match['end'];
+        
         return $res;
     }
     
