@@ -30,6 +30,16 @@ class currency_Currencies extends core_Master {
     
     
     /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'currency/tpl/SingleLayoutCurrency.shtml';
+    
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = "Валута";
+    
+    /**
      * Заглавие
      */
     var $title = 'Списък с всички валути';
@@ -39,6 +49,11 @@ class currency_Currencies extends core_Master {
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, name, code, lastUpdate, lastRate, state, createdOn, createdBy";
+    
+    /**
+     * Полетата, които ще се показват в единичния изглед
+     */
+    var $singleFields = 'name, code, lastUpdate, lastRate, groups';
     
     
     var $details = "currency_CurrencyRates";
@@ -98,6 +113,11 @@ class currency_Currencies extends core_Master {
         }
     }
     
+    function on_BeforeRenderDetails($mvc, $res, &$data)
+    {
+    	bp($res, $data);
+    	return FALSE;
+    }
     
     /**
      * Смяна на бутона

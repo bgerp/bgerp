@@ -1,0 +1,50 @@
+[#SingleToolbar#]
+                 
+	<div class='document'>
+		<div class='header'>
+			<p style='font: small Arial,sans-serif;
+	font-size: 1em;
+	text-align:left;
+	font-weight:bold;'>Към дата: [#lastUpdate#]</p>
+		</div>
+
+        <!-- BEGIN Блок ляво -->
+        <div class='block_left'>
+        
+			 <table cellspacing='1' class='top-table'>
+			     
+	             <tr>
+	                 <td class="quiet" align="left" width='1%'>Име:</td>
+	                 <td>[#name#]</td>
+	             </tr>
+	            
+	             <tr>
+	                 <td class="quiet" align="left" width='1%'>Код:</td>
+	                 <td>[#code#]</td>
+	             </tr>
+				
+				<!--ET_BEGIN info-->
+				<tr>
+					<td class="quiet" align="left" width='1%'>Курс:</td>
+					<td>[#lastRate#]</td>
+				
+				</tr>
+				<!--ET_END info-->
+
+				<!--ET_BEGIN nameday-->
+				<tr>
+                     <td class="quiet" colspan="2" style='padding-top:10px;'>Детайли:</td>
+                 </tr>
+
+                 <tr>
+                     <td colspan="2">[#DETAILS#]</td>
+                 </tr>
+				<!--ET_END nameday-->
+                 
+                
+             </table>
+         </div>    
+         <!-- END Блок ляво -->   
+                     
+         <div style='clear: both;'></div>
+    </div>         
