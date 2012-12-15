@@ -50,7 +50,7 @@ class cms_GalleryGroups extends core_Manager {
         $this->FLD('vid', 'varchar(32)', 'caption=Идентификатор');
         
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
-
+        
         $this->FLD('tpl', 'html', 'caption=Шаблон');
         
         $this->FLD('columns', 'int', 'caption=Колони');
@@ -62,5 +62,13 @@ class cms_GalleryGroups extends core_Manager {
         $this->FLD('height', 'int', 'caption=Картинка->височина');
          
         $this->setDbUnique('vid');
+    }
+    
+    /**
+     * допълнение към подготовката на вербално представяне
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    {
+     	$row->vid = "[gallery=#" . $rec->vid . "]";
     }
 }

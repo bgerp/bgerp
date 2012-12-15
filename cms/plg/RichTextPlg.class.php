@@ -26,7 +26,51 @@ class cms_plg_RichTextPlg extends core_Plugin
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         // Обработваме елементите [images=????]  
         $html = preg_replace_callback("/\[img(=\#([^\]]*)|)\]\s*/si", array($this, 'catchImages'), $html);
+        $html = preg_replace_callback("/\[gallery(=\#([^\]]*)|)\]\s*/si", array($this, 'catchGallery'), $html);
     }
+
+    
+    /**
+     * Обработва тагове от вида [#gallery=#xyz#], които са имена на групи от галерията
+     * и показва всички изображения от тази група в таблица
+     */
+    function catchGallery($match)
+    {
+    	$vid = $match[2];
+        $groupRec = cms_GalleryGroups::fetch(array("#vid = '[#1#]'", $vid));
+    	if(!$groupRec) return "[img=#{$groupRec}]";
+    	
+    	$tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
+        $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
+        
+        $imgagesRec = cms_GalleryImages::getQuery();
+        $imgagesRec->where("#groupId={$groupRec->id}");
+        $tpl = new ET(getFileContent('cms/tpl/gallery.shtml'));
+        $tpl->replace($groupRec->tWidth,'width');
+        
+        $Fancybox = cls::get('fancybox_Fancybox');
+        $table = new ET();
+        
+        // извличаме изображенията от групата и генерираме шаблона им
+        $count = 1;
+        while($img = $imgagesRec->fetch()) {
+        	 $res = $Fancybox->getImage($img->src, $tArr, $mArr, $img->title, array('style' => $img->style));
+        	 $row = $tpl->getBlock('ROW');;
+        	 
+        	 $row->replace($res,'TPL');
+        	 if($count % $groupRec->columns == 0) {
+        	 	$row->append("</tr><tr>");
+        	 }
+        	 $row->removeBlocks;
+        	 $row->append2master();
+        	 $count++;
+         }
+         
+         $place = $this->mvc->getPlace();
+         $this->mvc->_htmlBoard[$place] = $tpl;
+        
+         return "[#{$place}#]";
+     }
     
     
     /**
