@@ -200,7 +200,7 @@ function isIE()
 
 // Инициализира комбобокса
 function comboBoxInit(id, suffix) 
-{
+{ 
 	var txtCombo = get$(id);
 	var selCombo = get$(id + suffix);
 	var width = txtCombo.offsetWidth;
