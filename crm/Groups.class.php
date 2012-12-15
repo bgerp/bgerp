@@ -202,4 +202,26 @@ class crm_Groups extends groups_Manager
         
         // END В случай, че няма данни в таблицата, зареждаме от масив.        
     }
+    
+    
+    /**
+     * Връща id' тата на всички записи в групите
+     * 
+     * @return array $idArr - Масив с id' тата на групите
+     */
+    static function getGroupRecsId()
+    {
+        //Масив с id' тата на групите
+        $idArr = array();
+        
+        // Обхождаме всички записи
+        $query = static::getQuery();
+        while($rec = $query->fetch()) {
+            
+            // Добавяме id' тата им в масива
+            $idArr[$rec->id] = $rec->id;
+        }
+        
+        return $idArr;
+    }
 }
