@@ -66,7 +66,7 @@ class budget_Setup
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(2, 'Финанси', 'Бюджетиране', 'budget_Assets', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.2, 'Финанси', 'Бюджетиране', 'budget_Assets', 'default', "{$role}, admin");
         
         return $html;
     }

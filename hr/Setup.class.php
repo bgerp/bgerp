@@ -70,7 +70,7 @@ class hr_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "{$role}, admin");
         
         return $html;
     }

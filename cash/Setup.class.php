@@ -91,7 +91,7 @@ class cash_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Каси', 'cash_Cases', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', "{$role}, admin");
         
         return $html;
     }

@@ -78,7 +78,7 @@ class store_Setup
         core_Classes::add('store_ArrangeStrategyMain');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3, 'Логистика', 'Складове', 'store_Stores', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.3, 'Логистика', 'Складове', 'store_Stores', 'default', "{$role}, admin");
         
         return $html;
     }

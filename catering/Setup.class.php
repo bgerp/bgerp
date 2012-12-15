@@ -77,7 +77,7 @@ class catering_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Персонал', 'Кетъринг', 'catering_Menu', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.39, 'Персонал', 'Кетъринг', 'catering_Menu', 'default', "{$role}, admin");
         
         return $html;
     }

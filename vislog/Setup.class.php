@@ -62,7 +62,7 @@ class vislog_Setup
         
         // Меню
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3, 'Сайт', 'Лог', 'vislog_History', 'default', "admin, ceo, cms");
+        $html .= $Menu->addItem(3.5, 'Сайт', 'Лог', 'vislog_History', 'default', "admin, ceo, cms");
         
         return $html;
 

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cms_Articles extends core_Master
+class cms_Articles extends core_Manager
 {
     
     
@@ -26,7 +26,7 @@ class cms_Articles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid';
+    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid, plg_Ordering';
     
 
     /**
@@ -114,7 +114,7 @@ class cms_Articles extends core_Master
      *
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
+    {  
         $row->title = ht::createLink($row->title, array($mvc, 'Article', $rec->vid ? $rec->vid : $rec->id));
     }
 

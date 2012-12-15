@@ -75,7 +75,7 @@ class bank_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', "{$role}, admin");
         
         return $html;
     }

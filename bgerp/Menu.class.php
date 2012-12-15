@@ -37,7 +37,7 @@ class bgerp_Menu extends core_Manager
      */
     function description()
     {
-        $this->FLD('row', 'int', 'caption=Ред, mandatory');
+        $this->FLD('row', 'double', 'caption=Ред, mandatory');
         $this->FLD('menu', 'varchar(64)', 'caption=Меню, mandatory');
         $this->FLD('subMenu', 'varchar(64)', 'caption=Под меню, mandatory');
         $this->FLD('ctr', 'varchar(128)', 'caption=Контролер,mandatory');
@@ -63,9 +63,10 @@ class bgerp_Menu extends core_Manager
         
             $query = $this->getQuery();
             
-            $query->orderBy("#id", "ASC");
+            $query->orderBy("#row,#id", "ASC");
              
             while($rec = $query->fetch()) {
+                $rec->row = (int) $rec->row;
                 $rec->menuTr = tr($rec->menu);
                 $rec->subMenuTr = tr($rec->subMenu);
                 $ctrArr = explode('_', $rec->ctr);

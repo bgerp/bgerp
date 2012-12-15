@@ -72,7 +72,7 @@ class rfid_Setup
         // core_Classes::add('rfid_driver_RfidNrj');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3, 'Мониторинг', 'RFID', 'rfid_Events', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.4, 'Мониторинг', 'RFID', 'rfid_Events', 'default', "{$role}, admin");
         
         return $html;
     }

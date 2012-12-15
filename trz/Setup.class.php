@@ -68,7 +68,7 @@ class trz_Setup
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(2, 'Персонал', 'ТРЗ', 'trz_Salaries', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.32, 'Персонал', 'ТРЗ', 'trz_Salaries', 'default', "{$role}, admin");
         
         return $html;
     }
