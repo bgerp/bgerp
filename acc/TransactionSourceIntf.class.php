@@ -34,14 +34,18 @@ class acc_TransactionSourceIntf
      *
      * - reason         string
      * - valior date    string (date)
-     * - totalAmount    number
+     * - totalAmount    number - опционално
      * - entries        array
      *
      * Член-променливата `entries` е масив от обекти, всеки със следната структура:
      *
-     * - quantity           number
-     * - price              number
      * - amount             number
+     *
+     * - debitQuantity           number
+     * - debitPrice              number
+     * 
+     * - creditQuantity          number
+     * - debitPrice              number
      *
      * - debitAcc           key(mvc=acc_Accounts, key=sid)
      * - debitAccId         key(mvc=acc_Accounts)

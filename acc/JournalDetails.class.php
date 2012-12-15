@@ -59,17 +59,52 @@ class acc_JournalDetails extends core_Detail
             'silent,caption=Дебит->Сметка и пера,mandatory,input=hidden');
         $this->FLD('creditAccId', 'key(mvc=acc_Accounts,select=title,remember)',
             'silent,caption=Кредит->Сметка и пера,mandatory,input=hidden');
-        $this->FLD('debitEnt1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 1');
-        $this->FLD('debitEnt2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 2');
-        $this->FLD('debitEnt3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 3');
+        $this->FLD('debitItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 1');
+        $this->FLD('debitItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 2');
+        $this->FLD('debitItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 3');
         $this->FLD('debitQuantity', 'double', 'caption=Дебит->К-во');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
-        $this->FLD('creditEnt1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 1');
-        $this->FLD('creditEnt2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 2');
-        $this->FLD('creditEnt3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 3');
+        $this->FLD('creditItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 1');
+        $this->FLD('creditItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 2');
+        $this->FLD('creditItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 3');
         $this->FLD('creditQuantity', 'double', 'caption=Кредит->К-во');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Обороти->Сума');
+    }
+    
+    public static function on_BeforeSave(acc_JournalDetails $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+        // Гарантира съществуването на всички пера, указани в реда
+        if (!$mvc::forceItems($rec)) {
+            return FALSE;
+        }
+    }
+    
+    
+    public static function forceItems($entry, $type = NULL)
+    {
+        if (!isset($type)) {
+            return static::forceItems($entry, 'debit')
+                && static::forceItems($entry, 'credit');
+        }
+        
+        foreach (range(1, 3) as $i) {
+            $item = $entry->{"{$type}Item{$i}"};
+            
+            if (!isset($item)) {
+                continue;
+            }
+            
+            expect($item->cls && $item->id && $item->listId, $item);
+            
+            if (!$itemRec = acc_Lists::updateItem($item->cls, $item->id, $item->listId, TRUE)) {
+                return FALSE;
+            }
+            
+            $entry->{"{$type}Item{$i}"} = $itemRec->id;
+        }
+        
+        return TRUE;
     }
     
     
@@ -97,7 +132,7 @@ class acc_JournalDetails extends core_Detail
                     $accRec = $Accounts->fetch($rec->{"{$type}AccId"});
                     
                     foreach (range(1, 3) as $i) {
-                        $ent = "{$type}Ent{$i}";
+                        $ent = "{$type}Item{$i}";
                         
                         if ($rec->{$ent}) {
                             $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};

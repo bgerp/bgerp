@@ -502,17 +502,60 @@ class acc_Accounts extends core_Manager
     public static function fetchById($id = NULL, $systemId = NULL)
     {
         // Поне едно от id или systemId трябва да е зададено
-        expect(!empty($id) || !empty($systemId));
+        expect(!empty($id) || !empty($systemId), 'Очаква се поне едно от `id` или `systemId` на сметка');
         
         if (!empty($id)) {
-            expect($rec = static::fetch($id));
-            expect(empty($systemId) || $rec->systemId == $systemId);
+            expect($rec = static::fetch($id), "Липсва сметка с `id`={$id}");
+            expect(empty($systemId) || $rec->systemId == $systemId, "Несъвпадащи `systemId` на сметка `id`={$id}: поискано {$systemId}, намерено {$rec->systemId}");
         } else {
-            expect($rec = static::fetch(array("#systemId = '[#1#]'", $systemId)));
+            expect($rec = static::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
         }
         
         return $rec;
     }
+    
+    
+    /**
+     * @TODO Ако изобщо има нужда от този метод, мястото му е в core_Mvc.
+     * 
+     * Извлича запис по първата не-NULL стойност в списък с ключове
+     * 
+     * @param array $keys масив: име на поле-ключ => стойност или NULL. Първата не-NULL стойност 
+     *                    определя по кой ключ ще се извлече записа. Ако има такъв запис, 
+     *                    очаква се (expect) всички не-NULL стойности в $keys съвпадат със 
+     *                    стойностите на съответните му полета.
+     *                    
+     *                    Очаква се (с expect) поне една от стойностите в $keys да е не-NULL
+     *                    
+     *                    На изхода, NULL-стойностите в $keys се заместват със съотв. полета на 
+     *                    извлечения запис.
+     * @param $fields списък от полета на модела (@see core_Mvc::fetch())                   
+     * @return stdClass запис на модела; FALSE ако няма такъв запис.
+     */
+    public static function fetchByKey($keys, $fields = NULL)
+    {
+        $keys = (array)$keys;
+        
+        foreach ($keys as $field=>$value) {
+            if (isset($value)) {
+                break;
+            }
+        }
+        
+        expect(!empty($field) && !empty($value), $keys);
+        
+        if (!$rec = static::fetch(array("#{$field} = '[#1#]'", $value), $fields)) {
+            return FALSE;
+        }
+        
+        foreach ($keys as $field=>&$value) {
+            expect(!isset($value) || $rec->{$field} == $value);
+            $value = $rec->{$field};
+        }
+        
+        return $rec;
+    }
+    
         
     
     /**
