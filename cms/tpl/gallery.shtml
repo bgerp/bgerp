@@ -1,0 +1,7 @@
+<table border='1' width='[#width#]px'>
+<tr>
+<!--ET_BEGIN ROW-->
+<td>[#TPL#]</td>
+<!--ET_END ROW-->
+</tr>
+</table>
