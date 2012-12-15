@@ -8,7 +8,6 @@ syntax: regexp
 ^common/Deleteme\.class\.php$
 syntax: regexp
 ^tests$
-/lab/Hora.class.php
 /.settings
 /.project
 /.buildpath
