@@ -331,10 +331,7 @@ class bgerp_Menu extends core_Manager
         
         $tpl = new ET(
             "<div class='menuPage'>
-                        <div class=\"menuRow\" style='float:left;width:140px;'>[#MENU_ROW1#] </div>
-                        <div class=\"menuRow\" style='float:left;width:140px;'>[#MENU_ROW2#] </div>
-                        <div class=\"menuRow\" style='float:left;width:140px;'>[#MENU_ROW3#] </div>
-                        <div style='clear:both;'></div>
+                        <div>[#MENU_ROW#] </div>
                     </div>
                 ");
         
@@ -345,13 +342,18 @@ class bgerp_Menu extends core_Manager
             if(!isset($menu[$rec->menu])) {
                 $menu[$rec->menu] = $rec;
             }
+
+            $subMenu[$rec->menu][$rec->subMenu] = $rec;
         }
         
         foreach($menu as $rec) {
-            $link = ht::createLink($rec->menuTr, array($rec->ctr, $rec->act));
-            $row = 'MENU_ROW' . $rec->row;
-            
+            $link = ht::createLink($rec->menuTr, array($rec->ctr, $rec->act),  NULL, array('style' => 'padding:1px; background-color:#ddd; '));
+            $row = 'MENU_ROW';
             $tpl->append($link, $row);
+            foreach($subMenu[$rec->menu] as $subRec) {
+                $link = ht::createLink($subRec->subMenuTr, array($subRec->ctr, $subRec->act), NULL, array('style' => 'font-size:0.9em; margin-bottom:10px; display:inline-block !important; margin-right:10px;'));
+                $tpl->append($link, $row);
+            }
         }
         
         return $tpl;
