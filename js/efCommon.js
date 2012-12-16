@@ -214,7 +214,7 @@ function comboBoxInit(id, suffix)
 
 	if(txtCombo.offsetHeight != selCombo.offsetHeight) {
 		txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
-		txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
+		// txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
 		txtCombo.style.marginTop = '2px';
 		selCombo.style.marginTop = '2px';
 	}
