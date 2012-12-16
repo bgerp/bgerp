@@ -50,14 +50,17 @@ class cms_plg_RichTextPlg extends core_Plugin
         
         $Fancybox = cls::get('fancybox_Fancybox');
         $table = new ET();
-        
+
+        // Задаваме броя на колонките по подразбиране
+        setIfNot($groupRec->columns, 3);
+
         // извличаме изображенията от групата и генерираме шаблона им
         $count = 1;
         while($img = $imgagesRec->fetch()) {
         	 $res = $Fancybox->getImage($img->src, $tArr, $mArr, $img->title, array('style' => $img->style));
         	 $row = $tpl->getBlock('ROW');;
         	 
-        	 $row->replace($res,'TPL');
+        	 $row->replace($res, 'TPL');
         	 if($count % $groupRec->columns == 0) {
         	 	$row->append("</tr><tr>");
         	 }

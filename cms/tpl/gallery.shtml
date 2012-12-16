@@ -1,7 +1,7 @@
-<table border='1' width='[#width#]px'>
+<table cellspacing='5'>
 <tr>
 <!--ET_BEGIN ROW-->
-<td>[#TPL#]</td>
+<td align='center' style='padding:5px;border:solid 1px #ccc; border-radius:3px;vertical-align:center;'>[#TPL#]</td>
 <!--ET_END ROW-->
 </tr>
 </table>
