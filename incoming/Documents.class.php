@@ -15,7 +15,10 @@
  */
 class incoming_Documents extends core_Master
 {
-    
+    /**
+     * Старото име на класа
+     */
+    var $oldClassName = 'doc_Incomings';
     
     /**
      * Поддържани интерфейси
