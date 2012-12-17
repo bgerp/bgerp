@@ -501,6 +501,8 @@ class core_Mvc extends core_FieldSet
 
         if($tpl) {
             
+            $tpl = new ET($tpl);
+
             //Ескейпваме всички записи, които имат шаблони преди да ги заместим
             if($escaped) {
                 $places = $tpl->getPlaceholders();
