@@ -261,13 +261,18 @@ class type_Richtext extends type_Text
             $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $html);
         }
         
-
-        $html =  new ET("<div class=\"richtext\">{$html}</div>");
-
-        if(count($this->_htmlBoard)) {
-           $html->placeArray($this->_htmlBoard);
+       
+        // Подготовка и заместване на плейсхолдерите
+        foreach($this->_htmlBoard as $place => $text) {
+            $places[] = "[#{$place}#]";
         }
 
+        if(count($this->_htmlBoard)) {
+           $html = str_replace($places, $this->_htmlBoard, $html);
+           $html = str_replace($places, $this->_htmlBoard, $html);
+        }
+        
+        $html =  new ET("<div class=\"richtext\">{$html}</div>");
          
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
