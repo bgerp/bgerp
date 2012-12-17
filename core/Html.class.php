@@ -144,14 +144,14 @@ class core_Html
                     if ($title->group) {
                         if ($openGroup) {
                             // затваряме групата
-                            //$select->append("</optgroup>", 'OPTIONS');
+                            $select->append("</optgroup>", 'OPTIONS');
                         }
                         $element = 'optgroup';
                         $attr = $title->attr;
                         $attr['label'] = $title->title;
                         $option = ht::createElement($element, $attr);
                         $select->append($option, 'OPTIONS');
-                        $select->append("</optgroup>", 'OPTIONS');
+                        // $select->append("</optgroup>", 'OPTIONS');
                         $openGroup = TRUE;
                         continue;
                     } else {
@@ -181,6 +181,12 @@ class core_Html
                 $select->append("\n", 'OPTIONS');
                 $select->append($option, 'OPTIONS');
             }
+
+            if ($openGroup) {
+                // затваряме групата
+                $select->append("</optgroup>", 'OPTIONS');
+            }
+
         }
 
         if($openGroup) {
