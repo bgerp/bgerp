@@ -287,6 +287,7 @@ class bgerp_Menu extends core_Manager
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
+            $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
         } else {
             $attr['class'] = 'noNtf';
         }
