@@ -165,7 +165,7 @@ class type_Key extends type_Int {
             if(!count($options)) {
                 
                 if($this->params['allowEmpty']) {
-                    $options = array('' => '');
+                    $options = array('' => '&nbsp;');
                 }
                 
                 if (!is_array($this->options)) {
