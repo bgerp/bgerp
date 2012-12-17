@@ -162,16 +162,21 @@ class cal_Calendar extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	$currentId = core_Users::getCurrent();
     	
         $data->query->orderBy("#time=ASC,#priority=DESC");
         
         if($from = $data->listFilter->rec->from) {
         	
             $data->query->where("#time >= date('$from')");
-           // $data->query->where("#users = '' OR #users LIKE '|{$currentID}|'");
-            $data->query->where("#users = '' OR  #users IS NULL OR #users LIKE '|{$currentID}|'");
+        
         }
+        
+        if($data->listFilter->rec->selectedUsers) {
+            if($data->listFilter->rec->selectedUsers != 'all_users') {
+                $data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
+                $data->query->orWhere('#users IS NULL');
+            }
+        } 
     }
     
     
@@ -186,7 +191,7 @@ class cal_Calendar extends core_Master
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px');
-        $data->listFilter->FNC('persons', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->view = 'horizontal';
@@ -195,9 +200,9 @@ class cal_Calendar extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'from, persons';
+        $data->listFilter->showFields = 'from, selectedUsers';
         
-        $data->listFilter->input('persons, from', 'silent');
+        $data->listFilter->input('selectedUsers, from', 'silent');
     }
 
     
@@ -403,11 +408,17 @@ class cal_Calendar extends core_Master
 
         $state = new stdClass();
         $state->query = self::getQuery();
+    
+        // Само събитията за текущия потребител или за всички потребители
+        $cu = core_Users::getCurrent();
+        $state->query->where('#users IS NULL');
+        $state->query->orLikeKeylist('users', "|$cu|");
+
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
 
         $Calendar = cls::get('cal_Calendar');
         $Calendar->prepareListFields($state);
-        $Calendar->prepareListRecs($state);
+        $Calendar->prepareListRecs($state); //bp($state->recs);
         $Calendar->prepareListRows($state);
         
         // Подготвяме лентата с инструменти
@@ -452,6 +463,12 @@ class cal_Calendar extends core_Master
        
         $state = new stdClass();
         $state->query = self::getQuery();
+
+        // Само събитията за текущия потребител или за всички потребители
+        $cu = core_Users::getCurrent();
+        $state->query->where('#users IS NULL');
+        $state->query->orLikeKeylist('users', "|$cu|");
+
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
 
         $Calendar->prepareListFields($state);

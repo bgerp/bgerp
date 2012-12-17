@@ -308,7 +308,7 @@ class email_Sent extends core_Manager
             $PML->Body = $message->html;
             
             //Вкарваме всички статични файлове в съобщението
-            self::embedSbfImg($PML);
+            self::embedSbfImg($PML); 
             $PML->IsHTML(TRUE);
         }
         
@@ -891,6 +891,8 @@ class email_Sent extends core_Manager
      */
     static function absoluteUrlToReal($link)
     {
+        $link = urldecode($link);
+
         //sbf директорията
         $sbfPath = str_ireplace(EF_INDEX_PATH, '', EF_SBF_PATH);
         
