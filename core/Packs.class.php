@@ -421,7 +421,8 @@ class core_Packs extends core_Manager
         // Максиламно време за инсталиране на пакет
         set_time_limit(400);
         
-
+        static $f = 0;
+        
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         
         // Имената на пакетите са винаги с малки букви
@@ -433,6 +434,18 @@ class core_Packs extends core_Manager
         // Отбелязваме, че на текущия хит, този пакет е установен
         $this->alreadySetup[$pack] = TRUE;
 
+        GLOBAL $setupLog, $setupFlag;
+        
+        if($setupFlag) {
+			if ($setupLog) { // Зануляваме лога ако инсталацията минава за първи път
+				file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
+				//file_put_contents(EF_SBF_PATH . '/packLog.txt', "");
+				$setupLog = FALSE;
+			}
+        	file_put_contents(EF_SBF_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND);
+			//file_put_contents(EF_SBF_PATH . '/packLog.txt', "Installing " . $pack . " ... " . date("d-m-Y h:i:s") . " \n", FILE_APPEND);
+        }
+        
         // Проверка дали Setup класа съществува
         if(!cls::load($pack . "_Setup", TRUE)) {
             return "<h4>Невъзможност да се инсталира <font color='red'>{$pack}</font>. " .
@@ -453,7 +466,7 @@ class core_Packs extends core_Manager
         }
 
         // Започваме самото инсталиране
-        if($setup->startCtr) {
+        if($setup->startCtr && !$setupFlag) {
             $res .= "<h2>Инсталиране на пакета \"<a href=\"" .
             toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"&nbsp;";
         } else {
@@ -462,11 +475,10 @@ class core_Packs extends core_Manager
 
         try {
             $conf = self::getConfig($pack);
-            if($conf->getConstCnt()) {  
+            if($conf->getConstCnt() && !$setupFlag) {  
                $res .= ht::createBtn("Конфигуриране", array('core_Packs', 'config', 'pack' => $pack), NULL, NULL, 'class=btn-settings');
             }
-        } catch (core_exception_Expect $e) {
-        }
+        } catch (core_exception_Expect $e) {}
 
         $res .= '</h2>';
         
@@ -517,19 +529,16 @@ class core_Packs extends core_Manager
         
         $res .= "</ul>";
         
-        DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
-        
-        GLOBAL $setupLog, $setupFlag;
-        
         if($setupFlag) {
-			if ($setupLog) { // Зануляваме лога ако инсталацията минава за първи път
-				file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
-				$setupLog = FALSE;
-			}
-        	file_put_contents(EF_SBF_PATH . '/setupLog.html', $res, FILE_APPEND);
+			//file_put_contents(EF_SBF_PATH . '/packLog.txt', "Success " . $pack . " ... " . date("d-m-Y h:i:s") . " \n", FILE_APPEND);
+			// Махаме <h3> тага на заглавието
+			$res = substr($res, strpos($res, "</h2>"), strlen($res));
+			file_put_contents(EF_SBF_PATH . '/setupLog.html', $res, FILE_APPEND);
         }
         
-        return $res;
+        DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
+        
+       return $res;
     }
 
 
