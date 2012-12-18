@@ -40,6 +40,11 @@ class currency_Currencies extends core_Master {
     var $singleTitle = "Валута";
     
     /**
+     * Кой може да изтрива
+     */
+    var $canDelete = 'no_one';
+    
+    /**
      * Заглавие
      */
     var $title = 'Списък с всички валути';
