@@ -65,9 +65,11 @@ class plg_ProtoWrapper extends core_Plugin
     function on_AfterRenderWrapping($invoker, &$tpl)
     { 
         $tpl= new ET($tpl);
-
+        
+        $this->invoke('deforeDescription');
         $this->description();
- 
+        $this->invoke('afterDescription');
+
         if($this->pageMenu && !Mode::get('pageMenu')) {
             Mode::set('pageMenu', $this->pageMenu);
         }
@@ -76,6 +78,7 @@ class plg_ProtoWrapper extends core_Plugin
         if($this->title) {
             $title = ' « ' . tr($this->title);
         }
+
         $tpl->prepend(tr($invoker->title) . $title . ' « ', 'PAGE_TITLE');
         
         // Проверяваме дали текущия таб не е изрично зададен
