@@ -116,7 +116,7 @@ class doc_UnsortedFolders extends core_Master
      */
     function description()
     {
-        $this->FLD('name' , 'varchar(128)', 'caption=Наименование,width=400px');
+        $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory,width=400px');
         $this->setDbUnique('name');
     }
     
