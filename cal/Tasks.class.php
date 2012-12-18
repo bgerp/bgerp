@@ -73,6 +73,10 @@ class cal_Tasks extends core_Master
      */
     var $canRead = 'user';
     
+    /**
+     * Кой може да отлага задачата?
+     */    
+    var $canPostpone = 'user';
     
     /**
      * Кой може да го промени?
@@ -126,6 +130,7 @@ class cal_Tasks extends core_Master
      * Абревиатура
      */
     var $abbr = "Tsk";
+
     
     
     /**
@@ -303,7 +308,10 @@ class cal_Tasks extends core_Master
     {
         if($data->rec->state == 'active') {
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
-            $data->toolbar->addBtn('Отлагане', array('act_Postpone', 'edit', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/clock.png');
+        }
+        
+        if($mvc->haveRightFor('postpone', $data->rec)) {
+        	$data->toolbar->addBtn('Отлагане', array($mvc,'Postpone', 'postpone', 'taskId' => $data->rec->id), 'ef_icon=img/16/clock.png');
         }
     }
 
@@ -320,6 +328,22 @@ class cal_Tasks extends core_Master
         }
     }
 
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+    	//bp(&$roles, $action, $rec, $userId);
+    	if($action == 'postpone'){
+	    	if ($rec->id) {
+	        	if ($rec->state !== 'active' || (!$rec->timeStart) ) { 
+	                $requiredRoles = 'no_one';
+	            }  else {
+	                if(!haveRole('ceo') && !($userId != $rec->createdBy) &&
+	                !type_Keylist::isIn($userId, $rec->sharedUsers)) {
+	                	$requiredRoles = 'no_one';
+	                }
+	            }
+    	     }
+         }
+    }
 
     /**
      * Обновява информацията за задачата в календара
@@ -487,9 +511,61 @@ class cal_Tasks extends core_Master
     
     function act_Postpone()
     {
-    	 $res = '1';
+    	requireRole('ceo, cal');
+    	
+    	//Очакваме началната дата на задачата и нейното id
+    	$taskId = Request::get('taskId');
+    	    	
+    	$rec = self::fetch($taskId);
+    	
+    	// Правил форма само с едно поле - датата и часа за отлагане
+    	$form = cls::get('core_Form');
+        
+        $form->FNC('postponeTime', 'datetime', 'caption=Отложи за ,input,mandatory,width=9em');
+        $form->setDefault('postponeTime', $rec->timeStart);
+ 
+        $form->title = "Отлагане на задача";
+        
+        $form->toolbar->addSbBtn("Отлагане");
+        $form->toolbar->addSbBtn("Отказ");
+        
+        $form->input();
+        
+        //Проверяваме за "изпратена" форма
+        if($form->isSubmitted()) {
+        	
+        	//Взимаме времето от формата
+        	$postpone = $form->rec->postponeTime;
+        	
+        	//Времето за отлагане в секунди
+            $secundes = strtotime($postpone)-strtotime($rec->timeStart);
+        	$time = cls::get('type_Time');
+        	$postponeData = $time->toVerbal($secundes);
+        	
+        	//Записваме съобщение с колкo време е отложена задачата
+        	$state = new stdClass();
+            $state->query = cal_TaskProgresses::getQuery();
+            
+            $state->taskId = $taskId;
+            $state->message = "Задачате е отложена с " . $postponeData;
+          
+            cal_TaskProgresses::save($state);
+            
+        	//Проверка за коректност на входни данни
+        	if ($postpone <= $rec->timeStart){
+                $form->setError('postponeTime', "Некоректни дата или час.</n> Задачата може да се отложи след ".$rec->timeStart);
+                
+                return $this->renderWrapping($form->renderHtml(), $this->error);
+            }
+            
+            $nRec->id = $taskId;
+       		$nRec->timeStart = $postpone;
+       		self::save($nRec);
+       		
+       		return Redirect(array('cal_Tasks', 'single', $taskId));
+        }
 
-        return $this->renderWrapping($res);
+        return $this->renderWrapping($form->renderHtml());
     }
        
 }

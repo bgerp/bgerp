@@ -67,7 +67,7 @@ class catpr_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.44, 'Продукти', 'Ценобразуване', 'catpr_Costs', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(1.44, 'Продукти', 'Ценообразуване', 'catpr_Costs', 'default', "{$role}, admin");
         
         return $html;
     }
