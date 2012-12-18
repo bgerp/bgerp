@@ -146,7 +146,7 @@ h1 {
 	position:absolute;
 	left: 0px;
 	top: 180px;
-	border-top: #000 1px solid;
+	1border-top: #000 1px solid;
 	width: 790;
 	height: 425;
 	overflow:auto;
@@ -230,8 +230,10 @@ var hexcase=0;function hex_md5(a){return rstr2hex(rstr_md5(str2rstr_utf8(a)))}fu
 </body>
 </html>";
 
-if($_GET['SetupKey'] != BGERP_SETUP_KEY) {
-    halt('Wrong Setup Key!');
+if (defined('BGERP_SETUP_KEY')) {
+	if($_GET['SetupKey'] != BGERP_SETUP_KEY) {
+	    halt('Wrong Setup Key!');
+	}
 }
 
 // Определяме масива с локалните IP-та
@@ -506,7 +508,7 @@ if($step == 4) {
  **********************************/
 if ($step == '5') {
 	$calibrate = 1000;
-    $totalRecords = 136720;
+    $totalRecords = 137008;
     $totalTables = 201;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
@@ -559,7 +561,7 @@ if ($step == '5') {
         
         // Лог
         $setupLog = file_get_contents(EF_SBF_PATH . '/setupLog.html');
-	    file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
+	    //file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
 	    
 	    $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
         
@@ -610,6 +612,9 @@ if($step == 55) {
 	$setupLog = TRUE;
 	$setupFlag = TRUE;
     
+	// Локал за функции като basename, fgetcsv
+	setlocale(LC_ALL, 'en_US.UTF8');
+		
     $Plugins = cls::get('core_Plugins');
     $Plugins->setupMVC();
 
@@ -648,9 +653,6 @@ if($step == 55) {
 foreach($texts as $place => $str) {
     $layout = str_replace("[#{$place}#]", $str, $layout);
 }
-
-  
- 
 
 echo $layout;
 ob_flush();
@@ -763,7 +765,7 @@ function gitPullRepo($repoPath, &$log)
 	}
 	
 	// Показваме грешката, ако не е сработило горното условие
-    foreach ($arrRes as $res) { //die($command);
+    foreach ($arrRes as $res) {
     	if (strpos($res, 'error:') !== FALSE || strpos($res, 'fatal:') !== FALSE) {
     		$err = substr($res, strrpos($res, ":")+1);
     		$log[] = "err:<b>[{$repoName}]</b> НЕ е обновено: {$err}";
