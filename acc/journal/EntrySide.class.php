@@ -86,19 +86,19 @@ class acc_journal_EntrySide
         );
 
         if (isset($data->{"{$type}Acc"})) {
-            $result['account'] = acc_journal_Account::system($data->{"{$type}Acc"});
+            $result['account'] = new acc_journal_Account($data->{"{$type}Acc"});
         } elseif (isset($data->{"{$type}AccId"})) {
-            $result['account'] = acc_journal_Account::id($data->{"{$type}AccId"});
+            $result['account'] = acc_journal_Account::byId($data->{"{$type}AccId"});
         }
 
         if (isset($data->{"{$type}Quantity"})) {
-            $result['quantity'] = isset($data->{"{$type}Quantity"});
+            $result['quantity'] = $data->{"{$type}Quantity"};
         }
         if (isset($data->{"{$type}Price"})) {
-            $result['price'] = isset($data->{"{$type}Price"});
+            $result['price'] = $data->{"{$type}Price"};
         }
         if (isset($data->{"{$type}Amount"})) {
-            $result['amount'] = isset($data->{"{$type}Amount"});
+            $result['amount'] = $data->{"{$type}Amount"};
         }
 
         foreach (range(1, 3) as $n) {
@@ -118,9 +118,9 @@ class acc_journal_EntrySide
     {
         $data = (object)$data;
 
-        $this->amount   = isset($data->amount) ? $data->amount : NULL;
-        $this->quantity = isset($data->quantity) ? $data->quantity : NULL;
-        $this->price    = isset($data->price) ? $data->price : NULL;
+        $this->amount   = isset($data->amount)   ? floatval($data->amount) : NULL;
+        $this->quantity = isset($data->quantity) ? floatval($data->quantity) : NULL;
+        $this->price    = isset($data->price)    ? floatval($data->price) : NULL;
         $this->account  = $data->account instanceof acc_journal_Account ? $data->account :
                                 new acc_journal_Account($data->account);
 
@@ -132,24 +132,44 @@ class acc_journal_EntrySide
                                     new acc_journal_Item($item);
             }
         }
+        
+        // Изчисляване на незададената цена (price), количество (quantity) или сума (amount)
+        $this->evaluate();
 
         $this->isInitialized = TRUE;
     }
-
-
-    public function setAmount($amount)
+    
+    
+    /**
+     * Има ли зададена стойност поле на класа
+     * 
+     * @param string $name
+     * @return boolean
+     */
+    public function __isset($name)
     {
-        $this->amount = $amount;
+        if (!property_exists($this, $name)) {
+            return FALSE;
+        }
+    
+        return isset($this->{$name});
     }
+    
 
-
+    /**
+     * Readonly достъп до полетата на обекта
+     * 
+     * @param string $name
+     * @return mixed
+     * @throws core_exception_Expect когато полето не е дефинирано в класа
+     */
     public function __get($name)
     {
         expect(property_exists($this, $name));
-
+    
         return $this->{$name};
     }
-
+    
 
     /**
      * Ще приеме ли сметката зададените пера?
@@ -158,32 +178,28 @@ class acc_journal_EntrySide
      *
      * @return boolean
      */
-    public function checkAcceptable()
+    public function checkItems()
     {
         expect($this->account->accepts($this->items));
-    }
-
-
-    /**
-     * Съгласуван ли е записа с размерностите на сметката
-     *
-     * @see acc_journal_Account::accepts()
-     *
-     * @return boolean
-     */
-    public function checkDimensions()
-    {
-        expect(!($this->account->isDimensional() xor isset($this->quantity)));
         
         return TRUE;
     }
     
 
+    /**
+     * Изчислява, ако е възможно, незададеното amount/price/quantity
+     * 
+     *  amount = price * quantity
+     *  
+     * Ако са зададени:
+     *  
+     *   o точно две стойности  - изчислява третата, така че да задоволи горното тъждество
+     *   o в останалите случаи (< 2 или точно 3 ст-сти) - не прави нищо
+     */
     public function evaluate()
     {
         switch (true) {
             case isset($this->amount) && isset($this->quantity) && isset($this->price):
-                expect($this->amount == $this->quantity * $this->price);
                 break;
             case isset($this->quantity) && isset($this->price):
                 $this->amount = $this->quantity * $this->price;
@@ -194,8 +210,6 @@ class acc_journal_EntrySide
             case isset($this->amount) && isset($this->quantity):
                 $this->price = $this->amount / $this->quantity;
                 break;
-            default:
-                expect(isset($this->quantity));
         }
     }
 }

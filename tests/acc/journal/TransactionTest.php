@@ -53,8 +53,8 @@ class acc_journal_TransactionTest extends PHPUnit_Framework_TestCase
             ->add()
             ->setDebit(
                 array(
-                    'account' => acc_journal_Account::system(cash_Pko::$caseAccount),
-                    'items'   => array(
+                    'account' => '501',
+                    'items' => array(
                         array('cash_Cases', $rec->peroCase),
                         array('currency_Currencies', $rec->currencyId),
                     ),
@@ -64,7 +64,7 @@ class acc_journal_TransactionTest extends PHPUnit_Framework_TestCase
             )
             ->setCredit(
                 array(
-                    'account' => acc_journal_Account::id($rec->creditAccounts),
+                    'account' => acc_journal_Account::byId($rec->creditAccounts),
                     'items'   => array(
                         array($contragentClass, $contragentId),
                         array('currency_Currencies', $rec->currencyId),

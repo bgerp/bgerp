@@ -13,7 +13,7 @@ class acc_journal_Entry
      * 
      * @var acc_journal_EntrySide
      */
-    protected $debit;
+    public $debit;
     
     
     /**
@@ -21,7 +21,7 @@ class acc_journal_Entry
      *
      * @var acc_journal_EntrySide
      */
-    protected $credit;
+    public $credit;
     
     
     /**
@@ -29,7 +29,7 @@ class acc_journal_Entry
      * 
      * @var float
      */
-    protected $amount;
+    public $amount;
 
     
     /**
@@ -85,43 +85,67 @@ class acc_journal_Entry
         return $this;
     }
     
+    
+    /**
+     * Удостоверяване на допустимостта на един ред от счетоводна транзакция.
+     * 
+     * @return boolean
+     */
     public function check()
     {
-           $this->debit->checkAcceptable() && $this->credit->checkAcceptable()
-        && $this->checkBalanced()
-        && $this->debit->checkDimensions() && $this->credit->checkDimensions()
-           ;
+        // Проверка за съответствие между разбивките на сметката и зададените пера  
+        expect($this->debit->checkItems() && $this->credit->checkItems(), 
+            'Зададените пера не съответстват по брой или интерфейс на аналитичностите на сметката');
         
+        // Цена по кредита е позволена единствено и само, когато кредит-сметка няма зададена 
+        // стратегия (LIFO, FIFO, MAP).
+        if ($this->credit->account->hasStrategy()) {
+            expect($this->credit->account->isDimensional(), 'Сметките със стратегия трябва да са с размерна аналитичност');
+            expect(!isset($this->credit->price), 'Зададена цена при кредитиране на сметка със стратегия');
+        } else {
+            if (empty($this->credit->price)) {
+                var_dump($this->credit->price);
+                exit;
+            }
+            expect(!empty($this->credit->price), 'Липсва цена при кредитиране на сметка без стратегия');
+        }
+        
+        // Количеството по кредита е задължително за сметки с размерна аналитичност
+        if ($this->debit->account->isDimensional()) {
+            expect(isset($this->debit->quantity), 'Липсва количество при кредитиране на сметка с размерна аналитичност');
+        }
+        
+        // Цената и количеството по дебита са задължителни за сметки с размерна аналитичност
+        if ($this->debit->account->isDimensional()) {
+            expect(isset($this->debit->price), 'Липсва цена при дебитиране на сметка с размерна аналитичност');
+            expect(isset($this->debit->quantity), 'Липсва количество при дебитиране на сметка с размерна аналитичност');
+        } 
+        
+        // Проверка дали сумата по дебита е същата като сумата по кредита
+        expect(!isset($this->debit->amount) || 
+               !isset($this->credit->amount) ||
+               ($this->debit->amount == $this->credit->amount && 
+                   $this->debit->amount == $this->amount()),
+                   "Дебит-стойността на транзакцията не съвпада с кредит-стойността");
+       
         return TRUE;
     }
+
     
+    /**
+     * Връща сумата на реда от транзакция или NULL, ако е неопределена
+     * 
+     * @return number
+     */
     public function amount()
     {
-        if (!isset($this->amount)) {
-            $this->check();
+        if (isset($this->amount)) {
+            return $this->amount;
+        }
+        if (isset($this->debit->amount)) {
+            return $this->debit->amount;
         }
         
-        return $this->amount;
-    }
-    
-    
-    protected function checkBalanced()
-    {
-        $this->debit->evaluate();
-        $this->credit->evaluate();
-        
-        if (!isset($this->debit->amount) && isset($this->credit->amount)) {
-            $this->debit->setAmount($this->credit->amount);
-            $this->debit->evaluate();
-        }
-        if (isset($this->debit->amount) && !isset($this->credit->amount)) {
-            $this->credit->setAmount($this->debit->amount);
-            $this->credit->evaluate();
-        }
-        
-        expect(isset($this->debit->amount) && isset($this->credit->amount) && $this->debit->amount == $this->credit->amount);
-        expect(!isset($this->amount) || $this->amount == $this->debit->amount);
-        
-        $this->amount = $this->debit->amount;
+        return $this->credit->amount;
     }
 }

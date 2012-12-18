@@ -2,26 +2,35 @@
 class acc_journal_Account
 {
     /**
+     * Запис на модела acc_Accounts
      *
      * @var stdClass
      */
     protected $rec;
-     
+    
+
+    /**
+     * Конструктор
+     * 
+     * @param stdClass|string $rec systemId на сметка или запис на модела acc_Accounts 
+     */
     public function __construct($rec)
     {
+        if (is_scalar($rec)) {
+            $systemId = $rec;
+            expect($rec = acc_Accounts::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
+        }
+        
         $this->rec = $rec;
     }
 
 
-    public static function system($systemId)
-    {
-        expect($rec = acc_Accounts::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
-
-        return new static($rec);
-    }
-
-
-    public static function id($id)
+    /**
+     * Фабрика за създаване на acc_journal_Account (този клас) по първичен ключ
+     * 
+     * @param int $id key(mvc=acc_Accounts)
+     */
+    public static function byId($id)
     {
         expect($rec = acc_Accounts::fetch($id), "Липсва сметка с `id`={$id}");
 
@@ -85,5 +94,16 @@ class acc_journal_Account
         return !empty($this->rec->groupId3) && acc_Lists::isDimensional($this->rec->groupId3)
             || !empty($this->rec->groupId2) && acc_Lists::isDimensional($this->rec->groupId2)
             || !empty($this->rec->groupId1) && acc_Lists::isDimensional($this->rec->groupId1);
+    }
+    
+    
+    /**
+     * Има ли сметката зададана стратегия за изчисляване на цената при кредитиране
+     * 
+     * @return boolean
+     */
+    public function hasStrategy()
+    {
+        return !empty($this->rec->strategy);
     }
 }
