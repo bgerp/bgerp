@@ -1137,7 +1137,7 @@ div.attachments .file {
 	border-radius:0.3em;
 }
 
-.thread-opened table.listTable>tbody>tr>td {
+.thread-opened>div>table.listTable>tbody>tr>td {
 	border:solid 1px green !important;
 }
 

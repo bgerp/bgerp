@@ -108,12 +108,7 @@ class cal_TaskProgresses extends core_Detail
             return NULL;
         }
         
-        $tpl = new ET('<style>
-                        .taskProgress table.listTable {width:auto !important; margin-top:10px; border:none !important;} 
-                        .taskProgress table.listTable th {display:none; border:none; font-size:0.8em;} 
-                        .taskProgress td {font-size:0.8em; border:none !important; border-top:dotted 1px #ccc !important; vertical-align:top !important;} 
-                        </style>
-                        <div class="clearfix21 taskProgress" style="margin-top:20px;background-color:transparent;">
+        $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
                             <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black;margin-top:-30px;">Прогрес</div>
                                 <div class="listRows">
                                 [#TABLE#]
