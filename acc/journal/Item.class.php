@@ -6,7 +6,7 @@ class acc_journal_Item
      *
      * @var int key(mvc=acc_Items)
      */
-    protected $id;
+    public $id;
 
 
     /**
@@ -81,5 +81,19 @@ class acc_journal_Item
         }
         
         return cls::haveInterface($iface, $this->classId);
+    }
+    
+    
+    public function force($listId)
+    {
+        $itemId = acc_Lists::updateItem($this->classId, $this->objectId, $listId, TRUE);
+        
+        if (isset($this->id)) {
+            expect($this->id == $itemId);
+        }
+        
+        $this->id = $itemId;
+        
+        return $this->id;
     }
 }

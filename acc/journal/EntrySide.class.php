@@ -2,14 +2,25 @@
 /**
  * Помощен клас моделиращ дебитна или кредитна част на ред от счетоводна транзакция
  *
+ * Използва се само от acc_journal_Entry.
+ * 
  * @author developer
- *
+ * @see acc_journal_Entry
  */
 class acc_journal_EntrySide
 {
+    /**
+     * @var string
+     */
     const DEBIT  = 'debit';
+    
+    
+    /**
+     * @var string
+     */
     const CREDIT = 'credit';
 
+    
     /**
      *
      * @var acc_journal_Account
@@ -44,24 +55,23 @@ class acc_journal_EntrySide
      */
     protected $price;
 
-
+    
     /**
-     *
-     * @var boolean
+     * @var string
      */
-    private $isInitialized = FALSE;
+    protected $type;
 
 
     /**
      * Конструктор
      *
      * @param array|object $data
+     * @param string $type debit или credit
      */
-    public function __construct($data = NULL)
+    public function __construct($data, $type)
     {
-        if (isset($data)) {
-            $this->init($data);
-        }
+        $this->init($data);
+        $this->type = $type;
     }
 
 
@@ -70,10 +80,10 @@ class acc_journal_EntrySide
      *
      * @param array|stdClass $data
      */
-    public function initFromTransactionSource($data, $type)
+    public function initFromTransactionSource($data)
     {
         $data = (object)$data;
-        $type = strtolower($type);
+        $type = strtolower($this->type);
 
         expect ($type == self::DEBIT || $type == self::CREDIT);
 
@@ -135,8 +145,6 @@ class acc_journal_EntrySide
         
         // Изчисляване на незададената цена (price), количество (quantity) или сума (amount)
         $this->evaluate();
-
-        $this->isInitialized = TRUE;
     }
     
     
@@ -165,7 +173,7 @@ class acc_journal_EntrySide
      */
     public function __get($name)
     {
-        expect(property_exists($this, $name));
+        expect(property_exists($this, $name), $name);
     
         return $this->{$name};
     }
@@ -211,5 +219,35 @@ class acc_journal_EntrySide
                 $this->price = $this->amount / $this->quantity;
                 break;
         }
+    }
+    
+    
+    public function forceItems()
+    {
+        /* @var $item acc_journal_Item */
+        foreach ($this->items as $i=>$item) {
+            $item->force($this->account->{'groupId' . ($i+1)});
+        }
+    }
+    
+    
+    /**
+     * 
+     * @return array
+     */
+    public function getData()
+    {
+        $type = $this->type;
+        
+        $rec = array(
+            "{$type}AccId"    => $this->account->id,  // 'key(mvc=acc_Accounts,select=title,remember)',
+            "{$type}Item1"    => isset($this->items[0]) ? $this->items[0]->id : NULL, // 'key(mvc=acc_Items,select=titleLink)'
+            "{$type}Item2"    => isset($this->items[1]) ? $this->items[1]->id : NULL, // 'key(mvc=acc_Items,select=titleLink)'
+            "{$type}Item3"    => isset($this->items[2]) ? $this->items[2]->id : NULL, // 'key(mvc=acc_Items,select=titleLink)'
+            "{$type}Quantity" => $this->quantity, // 'double'
+            "{$type}Price"    => $this->price, // 'double(minDecimals=2)'
+        );
+
+        return $rec;
     }
 }

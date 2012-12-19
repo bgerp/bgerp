@@ -72,41 +72,6 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('amount', 'double(decimals=2)', 'caption=Обороти->Сума');
     }
     
-    public static function on_BeforeSave(acc_JournalDetails $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
-    {
-        // Гарантира съществуването на всички пера, указани в реда
-        if (!$mvc::forceItems($rec)) {
-            return FALSE;
-        }
-    }
-    
-    
-    public static function forceItems($entry, $type = NULL)
-    {
-        if (!isset($type)) {
-            return static::forceItems($entry, 'debit')
-                && static::forceItems($entry, 'credit');
-        }
-        
-        foreach (range(1, 3) as $i) {
-            $item = $entry->{"{$type}Item{$i}"};
-            
-            if (!isset($item)) {
-                continue;
-            }
-            
-            expect($item->cls && $item->id && $item->listId, $item);
-            
-            if (!$itemRec = acc_Lists::updateItem($item->cls, $item->id, $item->listId, TRUE)) {
-                return FALSE;
-            }
-            
-            $entry->{"{$type}Item{$i}"} = $itemRec->id;
-        }
-        
-        return TRUE;
-    }
-    
     
     /**
      * След преобразуване на записа в четим за хора вид.

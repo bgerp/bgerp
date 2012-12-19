@@ -173,46 +173,6 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Записва транзакция в Журнала
-     *
-     * @param stdClass @see acc_TransactionSourceIntf::getTransaction
-     * @return boolean
-     */
-    private static function recordTransaction(&$transactionData)
-    {
-        $transactionData->state = 'draft';
-
-        if (!static::validateTransaction($transactionData)) {
-            // Някой от редовете на транзакцията е невалиден
-            return FALSE;
-        }
-        
-        // Начало на транзакция: създаваме draft мастър запис, за да имаме ключ за детайлите
-        if (!self::save($transactionData)) {
-            // Не стана създаването на мастър запис, аборт!
-            
-            return FALSE;
-        }
-        
-        foreach ($transactionData->entries as &$entry) {
-            $entry->journalId = $transactionData->id;
-            
-            if (!acc_JournalDetails::save($entry)) {
-                // Проблем при записването на детайл-запис. Rollback!!!
-                self::rollbackTransaction($transactionData->id);
-                
-                return false;
-            }
-        }
-        
-        //  Транзакцията е записана. Активираме
-        $transactionData->state = 'active';
-        
-        return self::save($transactionData);
-    }
-    
-    
-    /**
      * @todo Чака за документация...
      * @todo Имплементация
      */
@@ -292,21 +252,6 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Заличава (изтрива от БД) транзакция
-     *
-     * Заличава всички записи, свързани със счетоводна транзакция - както мастър записа, така и
-     * детайл-записите
-     *
-     * @param int $id ид на мастър запис
-     */
-    private static function rollbackTransaction($id)
-    {
-        acc_JournalDetails::delete("#journalId = {$id}");
-        self::delete($id);
-    }
-    
-    
-    /**
      * Контиране на счетоводен документ.
      *
      * Документа се задава чрез двойката параметри в URL `docId` и `docType`. Класът, зададен
@@ -339,7 +284,9 @@ class acc_Journal extends core_Master
         $transaction->docType = $docClassId;
         $transaction->docId = $docId;
         
-        if (!self::recordTransaction($transaction)) {
+        $transaction = new acc_journal_Transaction($transaction);
+        
+        if (!$transaction->save()) {
             core_Message::redirect(
                 "Невъзможно контиране",
                 'page_Error',

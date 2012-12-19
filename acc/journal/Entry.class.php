@@ -33,6 +33,12 @@ class acc_journal_Entry
 
     
     /**
+     * @var acc_JournalDetails
+     */
+    public $JournalDetails;
+    
+    
+    /**
      * Конструктор
      * 
      * @param object|array $debitData дебитната част на реда
@@ -40,8 +46,10 @@ class acc_journal_Entry
      */
     public function __construct($debitData = NULL, $creditData = NULL)
     {
-        $this->debit  = new acc_journal_EntrySide($debitData);
-        $this->credit = new acc_journal_EntrySide($creditData);
+        $this->debit  = new acc_journal_EntrySide($debitData, acc_journal_EntrySide::DEBIT);
+        $this->credit = new acc_journal_EntrySide($creditData, acc_journal_EntrySide::CREDIT);
+        
+        $this->JournalDetails = cls::get('acc_JournalDetails');
     }
 
 
@@ -53,8 +61,8 @@ class acc_journal_Entry
      */
     public function initFromTransactionSource($data)
     {
-        $this->debit->initFromTransactionSource($data, acc_journal_EntrySide::DEBIT);
-        $this->credit->initFromTransactionSource($data, acc_journal_EntrySide::CREDIT);
+        $this->debit->initFromTransactionSource($data);
+        $this->credit->initFromTransactionSource($data);
         
         return $this;
     }
@@ -147,5 +155,22 @@ class acc_journal_Entry
         }
         
         return $this->credit->amount;
+    }
+    
+    
+    public function save($transactionId)
+    {
+        $this->debit->forceItems();
+        $this->credit->forceItems();
+        
+        $entryRec = $this->debit->getData() 
+                    + $this->credit->getData()
+                    + array(
+                          'journalId' => $transactionId,
+                          'amount'    => $this->amount()
+                      );
+        
+        
+        return $this->JournalDetails->save((object)$entryRec);
     }
 }
