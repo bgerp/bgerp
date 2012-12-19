@@ -500,13 +500,17 @@ if($step == 3) {
 
 // Ако се намираме на етапа на инициализиране, по-долу стартираме setup-а
 if($step == 4) {
-	$texts['body'] .= "<iframe src='{$selfUrl}&step=5' name='init' id='init'></iframe>";
+	$texts['body'] .= linksToHtml(array("new|{$selfUrl}&step=5| Стартиране инициализация »"));
+}
+
+if($step == 5) {
+	$texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
 }
 
 /**********************************
  * Setup на bgerp
  **********************************/
-if ($step == '5') {
+if ($step == 'setup') {
 	$calibrate = 1000;
     $totalRecords = 137008;
     $totalTables = 201;
@@ -514,7 +518,7 @@ if ($step == '5') {
     // Пращаме стиловете
     echo ($styles);
 
-    $res = file_get_contents("{$selfUrl}&step=55", FALSE, NULL, 0, 2);
+    $res = file_get_contents("{$selfUrl}&step=start", FALSE, NULL, 0, 2);
     
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
@@ -591,7 +595,7 @@ if ($step == '5') {
 /**********************************
  * Setup на bgerp самостоятелно инсталиране
  **********************************/
-if($step == 55) {
+if($step == start) {
     // Затваряме връзката с извикване
     
     // Следващият ред генерира notice,
