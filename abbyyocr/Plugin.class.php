@@ -16,6 +16,12 @@ class abbyyocr_Plugin extends core_Plugin
     
     
     /**
+     * Позволените разширения
+     */ 
+    static $allowedExt = array('pdf', 'bmp', 'pcx', 'dcx', 'jpeg', 'jpg', 'tiff', 'tif', 'gif', 'png');
+    
+    
+    /**
      * Добавя бутон за разглеждане на документи
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
@@ -28,11 +34,8 @@ class abbyyocr_Plugin extends core_Plugin
                 //Разширението на файла
                 $ext = strtolower(fileman_Files::getExt($rec->name));
                 
-                // Позволените разширения
-                $allowedExt = array('pdf', 'bmp', 'pcx', 'dcx', 'jpeg', 'jpg', 'tiff', 'tif', 'gif', 'png');
-                
                 // Ако разширението не е в позволените
-                if (!in_array($ext, $allowedExt)) return ;
+                if (!in_array($ext, static::$allowedExt)) return ;
                 
                 // Ако е извлечена текстовата част
                 $params['type'] = 'text';
@@ -106,6 +109,18 @@ class abbyyocr_Plugin extends core_Plugin
      */
     static function getText($fileHnd, $params)
     {
+        // Вземам записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има такъв запис
+        expect($fRec);
+        
+        // Вземаме разширението на файла
+        $ext = fileman_Files::getExt($fRec->name);
+
+        // Очакваме разширението да е в допустимите
+        expect(in_array($ext, static::$allowedExt));
+        
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
         
