@@ -1,0 +1,40 @@
+<div class="singleView" style="display:inline-block">
+	[#SingleToolbar#]<br>
+	<h2>[#SingleTitle#]</h2>
+	<table border='0' style='' cellpadding='1px'>
+		<tr>
+			<td width='120px'>Контрагент:</td>
+			<td><b>[#contragent#]</b></td>
+		</tr>
+		<tr>
+			<td>Валута:</td>
+			<td><b>[#currencyId#]</b></td>
+		</tr>
+		<tr>
+			<td>IBAN:</td>
+			<td>[#iban#]</td>
+		</tr>
+		<tr>
+			<td>Тип:</td>
+			<td>[#type#]</td>
+		</tr>
+		<!--ET_BEGIN bank-->
+		<tr>
+			<td>Банка:</td>
+			<td>[#bank#]</td>
+		</tr>
+		<!--ET_END bank-->
+		<!--ET_BEGIN bic-->
+		<tr>
+			<td>BIC:</td>
+			<td>[#bic#]</td>
+		</tr>
+		<!--ET_END bic-->
+		<tr>
+		<!--ET_BEGIN lastUsedOn-->
+			<td>Последно:</td>
+			<td>[#lastUsedOn#]</td>
+		<!--ET_END lastUsedOn-->
+		</tr>
+	</table>
+</div>

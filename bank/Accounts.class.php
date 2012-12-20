@@ -37,7 +37,8 @@ class bank_Accounts extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'id, iban, contragent=Контрагент, currencyId, type, bank';
+    var $listFields = 'id, iban, contragent=Контрагент, currencyId, type';
+    
     
     /**
      * Наименование на единичния обект
@@ -50,12 +51,30 @@ class bank_Accounts extends core_Master {
      */
     var $singleIcon = 'img/16/money.png';
     
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsSingleField = 'iban';
 
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'bank, ceo';
     
+    
+    /**
+     * Кой може да пише?
+     */
+    var $canWrite = 'bank, ceo';
+    
+    
+    /**
+	 * Файл за единичен изглед
+	 */
+	var $singleLayoutFile = 'bank/tpl/SingleAccountLayout.shtml';
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -89,16 +108,14 @@ class bank_Accounts extends core_Master {
         $rec = $data->form->rec;
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
-//         $details = arr::make($Contragents->details);
-//         expect($details['ContragentBankAccounts'] == 'bank_Accounts');
-        
         $contragentRec   = $Contragents->fetch($rec->contragentId);
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         
         if($rec->id) {
             $data->form->title = 'Редактиране на банкова с-ка на |*' . $contragentTitle;
         } else {
-            // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
+            
+        	// По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
                 $countryRec = drdata_Countries::fetch($contragentRec->country);
                 $cCode = $countryRec->currencyCode;
@@ -106,6 +123,10 @@ class bank_Accounts extends core_Master {
             }
                     
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
+        }
+        
+        if(Request::get('iban')) {
+        	$data->form->setDefault('iban', Request::get('iban'));
         }
     }
     
@@ -131,7 +152,7 @@ class bank_Accounts extends core_Master {
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $cMvc = cls::get($rec->contragentCls);
+    	$cMvc = cls::get($rec->contragentCls);
         $field = $cMvc->rowToolsSingleField;
         $cRec = $cMvc->fetch($rec->contragentId);
         $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
@@ -167,7 +188,6 @@ class bank_Accounts extends core_Master {
         
         if(count($data->rows)) {
 
-            
             foreach($data->rows as $id => $row) {
 
                 $rec = $data->recs[$id];
@@ -192,7 +212,8 @@ class bank_Accounts extends core_Master {
                 
                 if(!Mode::is('printing')) {
                     if($this->haveRightFor('edit', $id)) {
-                        // Добавяне на линк за редактиране
+                        
+                    	// Добавяне на линк за редактиране
                         $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'edit', $id, 'ret_url' => TRUE);
                         $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' height='16'>";
@@ -201,7 +222,8 @@ class bank_Accounts extends core_Master {
                     }
                     
                     if($this->haveRightFor('delete', $id)) {
-                        // Добавяне на линк за изтриване
+                        
+                    	// Добавяне на линк за изтриване
                         $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'delete', $id, 'ret_url' => TRUE);
                         $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16'  height='16'>";
@@ -234,7 +256,7 @@ class bank_Accounts extends core_Master {
     	// Банкови сметки немогат да се добавят от мениджъра bank_Accounts
     	$data->toolbar->removeBtn('btnAdd');
     }
-
+ 	
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -248,5 +270,27 @@ class bank_Accounts extends core_Master {
         }
         
         return $title;
+    }
+    
+    
+    /**
+     * Връща банковите сметки на даден контрагент
+     * @param int $contragendId - Id на контрагента
+     * @param int $contragentClassId - ClassId  на контрагента
+     * @return array() $suggestions - Масив от сметките на клиента
+     */
+    static function getContragentIbans($contragentId, $contragentClassId)
+    {
+    	$suggestions[''] = '';
+    	$query = static::getQuery();
+    	$query->where("#contragentId = {$contragentId}");
+    	$query->where("#contragentCls = {$contragentClassId}");
+    	
+    	while($rec = $query->fetch()) {
+    		$iban = static::getVerbal($rec, 'iban');
+	    	$suggestions[$iban] = $iban;
+	    }
+	    
+	    return $suggestions;
     }
 }

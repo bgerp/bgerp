@@ -1,4 +1,17 @@
 <?php
+defIfNot('BANK_PO_CREDIT_ACC_DEF', '4');
+
+// При Платежно нареждане кои сметки дебитираме и кредитираме
+defIfNot('BANK_PO_CREDIT_SYSID', '503');
+defIfNot('BANK_PO_DEBIT_ACC', '|96|98|105|');
+
+// При Вносна бележка кои сметки дебитираме и кредитираме
+defIfNot('BANK_VB_CREDIT_SYSID', '422');
+defIfNot('BANK_VB_DEBIT_ACC', '|96|98|105|148|');
+
+
+defIfNot('BANK_CASE_SYSID', '501');
+defIfNot('BANK_NR_DEBIT_ACC', '|96|98|105|148|');
 
 
 
@@ -50,6 +63,16 @@ class bank_Setup
     var $info = "Банкови сметки, операции и справки";
     
     
+    var $configDescription = array(
+				
+			'BANK_PO_DEBIT_ACC' => array ("acc_type_Accounts(root=4,maxColumns=2)"),
+			
+    		'BANK_NR_DEBIT_ACC' => array ("acc_type_Accounts(root=4,maxColumns=2)"),
+    
+    		'BANK_VB_DEBIT_ACC' => array ("acc_type_Accounts(root=4,maxColumns=2)"),
+	);
+	
+	
     /**
      * Инсталиране на пакета
      */
@@ -58,7 +81,9 @@ class bank_Setup
         $managers = array(
             'bank_Accounts',
             'bank_OwnAccounts',
-            'bank_Documents',
+        	'bank_PaymentOrders',
+            'bank_CashWithdrawOrders',
+        	'bank_DepositSlips',
             'bank_PaymentMethods',
             'bank_PaymentMethodDetails'
         );

@@ -92,7 +92,7 @@ class bank_OwnAccounts extends core_Manager {
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-    	$optionAccounts = static::getPossibleBankAccounts($data->form);
+    	$optionAccounts = static::getPossibleBankAccounts();
     	$operators = static::getOperators();
         
         $data->form->setOptions('bankAccountId', $optionAccounts);
@@ -108,15 +108,15 @@ class bank_OwnAccounts extends core_Manager {
     
     /**
      * Подготовка на списъка от банкови сметки, между които можем да избираме
-     * @return array $options масив от потребители
+     * @return array $options - масив от потребители
      */
-    static function getPossibleBankAccounts($form)
+    static function getPossibleBankAccounts()
     {
     	$conf = core_Packs::getConfig('crm');
     	$bankAccounts = cls::get('bank_Accounts');
     	
     	// Извличаме само онези сметки, които са на нашата фирма и не са
-        // записани в OwnAccounts класа
+        // записани в bank_OwnAccounts
         $queryBankAccounts = $bankAccounts->getQuery();
         $queryBankAccounts->where("#contragentId = {$conf->BGERP_OWN_COMPANY_ID}");
         $queryBankAccounts->where("#contragentCls = " . core_Classes::getId('crm_Companies'));
@@ -127,14 +127,14 @@ class bank_OwnAccounts extends core_Manager {
                $options[$rec->id] = $bankAccounts->getVerbal($rec, 'iban');
            }
         }
-       // bp($options,$conf->BGERP_OWN_COMPANY_ID);
+       
         return $options;
     }
     
     
     /**
-     * Извличаме само потребителите с роли bank, ceo
-     * @return array $suggestions масив от потребители
+     * Извличаме само потребителите с роля bank
+     * @return array $suggestions - масив от потребители
      */
     static function getOperators()
     {
@@ -173,6 +173,18 @@ class bank_OwnAccounts extends core_Manager {
     	return TRUE;
     }
     
+    
+    /**
+     * Изчличане на цялата информация за сметката която е активна
+     * @return bank_Accounts $acc - записа отговарящ на текущата ни сметка
+     */
+    static function getOwnAccountInfo()
+    {
+    	$ownAcc = static::fetch(static::getCurrent());
+    	$acc = bank_Accounts::fetch($ownAcc->bankAccountId);
+    	
+    	return $acc;
+    }
     
     /**
      * Обработка на ролите 

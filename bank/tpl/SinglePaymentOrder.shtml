@@ -1,31 +1,23 @@
-﻿<?php
-
-
-
-/**
- * Клас 'bank_tpl_SinglePrevodnoLayout' -
- *
- *
- * @category  bgerp
- * @package   bank
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
- * @license   GPL 3
- * @since     v 0.1
- */
-class bank_tpl_SinglePrevodnoLayout extends core_ET
-{
-    
-    
-    /**
-     * Инициализиране на обекта.
-     */
-    public function init($params = array())
-    {
-        $html = "
-    <div class='belejka_container'>
-    
-        <div class='belejka_header'>
+[#SingleToolbar#]
+<!--ET_BEGIN header-->
+<div class='header [#STATE_CLASS#]' style='width:99%'>
+	<div class='docBgIcon' style='[#iconStyle#]'>[#header#]</div>
+</div>
+<!--ET_END header-->
+<!--ET_BEGIN createdOn-->	
+	<table border='1px' cellpadding='3px'  width='99%' class='sysInfo'>
+		<tr>
+			<td width='30%'>Създадено на: &nbsp;&nbsp;<b>[#createdOn#]</b></td>
+			<td>Дебитна сметка: &nbsp;&nbsp;<b>[#debitAccount#]</b></td>
+		</tr>
+		<tr>
+			<td>Създадено от: &nbsp;&nbsp;<b>[#createdBy#]</b></td>
+			<td>Кредитна сметка:&nbsp;&nbsp;<b>[#creditAccount#]</b></td>
+		</tr>
+	</table>
+<!--ET_END createdOn-->	
+<div class='belejka_container'>
+	<div class='belejka_header'>
             <div class='container'>
                 <div class='label_left'>До</div>
                 <div class='right_block'>
@@ -63,7 +55,7 @@ class bank_tpl_SinglePrevodnoLayout extends core_ET
                 <div class='label_left'>&nbsp;</div>
                 <div class='right_block'>
                     <div class='text border_b'>
-                        [#issueDate#]
+                        [#valior#]
                     </div>
                     <div class='label_mid'>
                         дата на представяне
@@ -101,112 +93,108 @@ class bank_tpl_SinglePrevodnoLayout extends core_ET
         <div class='belejka'>
             <div class='bg_white line'>
                    <div class='text pos_rel'>
-                      [#beneficiaryName#]
-                      <span class='pos_abs small_text_top_left'>Платете на - име на получателя</span>
+                   	  <span class='pos_abs small_text_top_left'>Платете на - име на получателя</span><br>
+                      [#contragentName#]
                    </div>                                        
             </div>
                
             <div class='bg_blue line'>
                 <div class='text border_r' style='width: 450px;'>
-                   [#beneficiaryIban#]
-                   <span class='pos_abs small_text_top_left'>IBAN на получателя</span>
+                   <span class='pos_abs small_text_top_left'>IBAN на получателя</span><br>
+                   [#contragentIban#]
+                   
                 </div>                                       
-                <div class='text border_r bg_white' style='width: 50px;'>
+                <div class='text border_r bg_white' style='width: 50px;height:30px'>
                     &nbsp;
                 </div>
                 <div class='text' style='width: 170px;'>
-                   [#beneficiaryBic#]
-                   <span class='pos_abs small_text_top_left'>BIC на банката на получателя</span>
+                   <span class='pos_abs small_text_top_left'>BIC на банката на получателя</span><br>
+                   [#contragentBankBic#]
+                   
                 </div>                                        
             </div>
             
             <div class='bg_white line'>
                 <div class='text'>
-                   [#beneficiaryBank#]
-                   <span class='pos_abs small_text_top_left'>При банка - име на банката на получателя</span>
+                   <span class='pos_abs small_text_top_left'>При банка - име на банката на получателя</span><br>
+                   [#contragentBank#] &nbsp;
                 </div>                                       
             </div>                              
         
             <div class='bg_blue line'>
                 <div class='bg_white text a_center border_r' style='width: 484px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
-                   <span class='b'>ПРЕВОДНО НАРЕЖДАНЕ</span>
+                   <span class='b'>ПЛАТЕЖНО НАРЕЖДАНЕ</span>
                    <br/>
                    <span style='text-transform: none;'>за кредитен превод</span>
                 </div>
-                <div class='text bg_blue border_r'>
+                <div class='text bg_blue border_r'  style='width:9%'>
+                   <span class='pos_abs small_text_top_left'>Вид валута</span><br>
                    [#currencyId#]
-                   <span class='pos_abs small_text_top_left'>Вид валута</span>
                 </div>
                 <div class='text bg_blue a_right' style='width: 148px;'>
+                    <span class='pos_abs small_text_top_left'>Сума</span><br>
                    [#amount#]
-                   <span class='pos_abs small_text_top_left'>Сума</span>
                 </div>                                        
             </div>
             
             <div class='bg_white line'>
                 <div class='text'>
+                   <span class='pos_abs small_text_top_left'>Основание за превод - информация за получателя</span><br>
                    [#reason#]
-                   <span class='pos_abs small_text_top_left'>Основание за превод - информация за получателя</span>
                 </div>                                       
             </div>                
             
             <div class='bg_white line'>
                 <div class='text'>
-                   [#moreReason#]
-                   <span class='pos_abs small_text_top_left'>Още пояснения</span>
+                   <span class='pos_abs small_text_top_left'>Още пояснения</span><br>
+                   [#moreReason#]&nbsp;
                 </div>                                       
             </div>                
             
             <div class='bg_white line'>
                 <div class='text'>
-                   [#ordererName#]
-                   <span class='pos_abs small_text_top_left'>Наредител - име</span>
+                <span class='pos_abs small_text_top_left'>Наредител - име</span><br>
+                   [#orderer#]
+                   
                 </div>                                       
             </div>                
             
             <div class='bg_blue line'>
                 <div class='text border_r' style='width: 450px;'>
-                   [#ordererIban#]
-                   <span class='pos_abs small_text_top_left'>IBAN на наредителя</span>
+                 <span class='pos_abs small_text_top_left'>IBAN на наредителя</span><br>
+                   [#ownAccount#]
+                  
                 </div>                                       
-                <div class='text border_r bg_white' style='width: 50px;'>
+                <div class='text border_r bg_white' style='width: 50px;height:30px;'>
                     &nbsp;
                 </div>
                 <div class='text' style='width: 170px;'>
-                   [#ordererBic#]
-                   <span class='pos_abs small_text_top_left'>BIC на банката на наредителя</span>
+                <span class='pos_abs small_text_top_left'>BIC на банката на наредителя</span><br>
+                   [#execBankBic#]
+                   
                 </div>                                        
             </div>
             
             <div class='bg_white line'>
                 <div class='text border_r' style='width: 250px;'>
+                <span class='pos_abs small_text_top_left'>Платежна система</span><br>
                    [#paymentSystem#]
-                   <span class='pos_abs small_text_top_left'>Платежна система</span>
+                   
                 </div>                                       
-                <div class='text a_right border_r' style='width: 80px;'>
+                <div class='text a_right border_r' style='width: 100px;'>
+                   <span class='pos_abs small_text_top_left'>Такси</span><br>
                    &nbsp;
-                   <span class='pos_abs small_text_top_left'>Такси</span>
+                   
                 </div>
-                <div class='text a_right border_r' style='width: 149px;'>
+                <div class='text a_right border_r' style='width: 139px;height:30px'>
                    &nbsp;
                 </div>
-                <div class='text a_right' style='width: 80px;'>
+                <div class='text a_right' style='width: 60px;'>
+                   <span class='pos_abs small_text_top_left'>Дата на изпълнение</span><br>
                    &nbsp;
-                   <span class='pos_abs small_text_top_left'>Дата на изпълнение</span>
                 </div>                                                                                
             </div>
-                                            
-        </div>
+         </div>
         <!-- END belejka -->
-        
-    </div>
-    <!-- END belejka_container -->
-    
-    <div style='clear: both;'></div>";
-        
-        parent::core_ET($html);
-        $this->push("bank/tpl/css/belejka.css", 'CSS');
-        
-        return $this;
-    }
-}
+     </div>
+<!-- END belejka_container -->

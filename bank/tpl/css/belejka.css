@@ -1,6 +1,7 @@
 ﻿.belejka_container {
-    width: 758px;
+	width: 758px;
     margin: 0;
+	margin-top:10px;
     padding: 0;
     border: none;
     outline: none;
@@ -108,8 +109,11 @@
         }
         
     .belejka_container .belejka div.line div.text {
-        padding: 10px 10px 0 10px; 
-        line-height: 30px;
+        //padding: 10px 10px 0 10px; 
+        padding-left:10px;
+        padding-bottom:5px;
+        padding-top:5px;
+        line-height: 15px;
         position: relative;
         letter-spacing: 8px;
         text-transform: uppercase;    
@@ -118,11 +122,32 @@
     .belejka_container .belejka div.line div.text span {text-transform: none;}
     
     .belejka_container .belejka div.line div.text span.small_text_top_left {
-        top: -5px; 
+        top: 1px; 
         left: 10px; 
         color: #888888; 
         font-size: 11px;
         white-space: nowrap;
         letter-spacing: normal;
         }
-/* END belejka_container */
+	/* END belejka_container */
+	.sysInfo {
+		margin-top:10px;
+		font-size:11px;
+	    border-collapse:collapse;
+        background-color:rgba(136,204,153,0.4);
+	    padding:2px;
+	    border:1px solid rgb(204, 204, 204);
+	}
+	
+	.sysInfo td {
+		border:1px solid rgb(204, 204, 204);
+		padding-left:6px;
+		font-family:verdana;
+		color:rgb(88,88,91);
+		leter-spacing:0px;
+	}
+	.header {
+		padding-top:3px;padding-bottom:3px;
+		text-indent:3px;
+		font-size:1em;
+	}

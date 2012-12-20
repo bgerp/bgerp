@@ -1,31 +1,24 @@
-﻿<?php
-
-
-
-/**
- * Клас 'bank_tpl_SingleRazpiskaLayout' -
- *
- *
- * @category  bgerp
- * @package   bank
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
- * @license   GPL 3
- * @since     v 0.1
- */
-class bank_tpl_SingleRazpiskaLayout extends core_ET
-{
-    
-    
-    /**
-     * Инициализиране на обекта
-     */
-    public function init($params = array())
-    {
-        $html = "
-    <div class='belejka_container'>
-    
-        <div class='belejka_header'>
+[#SingleToolbar#]
+<!--ET_BEGIN header-->
+<!--ET_BEGIN header-->
+<div class='header [#STATE_CLASS#]' style='width:99%'>
+	<div class='docBgIcon' style='[#iconStyle#]'>[#header#]</div>
+</div>
+<!--ET_END header-->
+<!--ET_BEGIN createdOn-->	
+	<table border='1px' cellpadding='3px'  width='99%' class='sysInfo'>
+		<tr>
+			<td width='30%'>Създадено на: &nbsp;&nbsp;<b>[#createdOn#]</b></td>
+			<td>Дебитна сметка: &nbsp;&nbsp;<b>[#debitAccount#]</b></td>
+		</tr>
+		<tr>
+			<td>Създадено от: &nbsp;&nbsp;<b>[#createdBy#]</b></td>
+			<td>Кредитна сметка:&nbsp;&nbsp;<b>[#creditAccount#]</b></td>
+		</tr>
+	</table>
+<!--ET_END createdOn-->	
+<div class='belejka_container'>
+    <div class='belejka_header'>
             <div class='container'>
                 <div class='label_left'>До</div>
                 <div class='right_block'>
@@ -104,22 +97,25 @@ class bank_tpl_SingleRazpiskaLayout extends core_ET
         <div class='belejka'>
             <div class='bg_white line'>
                    <div class='text pos_rel'>
+                   <span class='pos_abs small_text_top_left'>Наредител - име</span><br>
                       [#ordererName#] 
-                      <span class='pos_abs small_text_top_left'>Наредител - име</span>
+                      
                    </div>                                        
             </div>
                
             <div class='bg_white line'>
                 <div class='bg_red text border_r' style='width: 450px;'>
+                <span class='pos_abs small_text_top_left'>IBAN на наредителя</span><br>
                    [#ordererIban#]
-                   <span class='pos_abs small_text_top_left'>IBAN на наредителя</span>
+                   
                 </div>                                       
             </div>
             
             <div class='bg_white line'>
                 <div class='text'>
+                 <span class='pos_abs small_text_top_left'>При банка (банка, клон)</span><br>
                    [#ordererBank#]
-                   <span class='pos_abs small_text_top_left'>При банка (банка, клон)</span>
+                  
                 </div>                                       
             </div>
             
@@ -132,41 +128,47 @@ class bank_tpl_SingleRazpiskaLayout extends core_ET
                 </div>          
                 
                 <div class='text border_r'>
+                 <span class='pos_abs small_text_top_left'  style='width:50px'>Вид валута</span><br>
                    [#currencyId#]
-                   <span class='pos_abs small_text_top_left'>Вид валута</span>
                 </div>
                 <div class='text bg_red a_right' style='width: 310px;'>
+                   <span class='pos_abs small_text_top_left'>Сума</span><br>
                    [#amount#]
-                   <span class='pos_abs small_text_top_left'>Сума</span>
+                   
                 </div>                                        
             </div>        
             
             <div class='bg_white line'>
                 <div class='text'>
+                <span class='pos_abs small_text_top_left'>С думи</span><br>
                    [#sayWords#]
-                   <span class='pos_abs small_text_top_left'>С думи</span>
+                   
                 </div>                                       
             </div>        
             
             <div class='bg_white line'>
                 <div class='text'>
+                <span class='pos_abs small_text_top_left'>Упълномощавам - трите имена на лицето, упълномощено да получи стоката</span><br>
                    [#proxyName#]
-                   <span class='pos_abs small_text_top_left'>Упълномощавам - трите имена на лицето, упълномощено да получи стоката</span>
+                   
                 </div>                                       
             </div>                
             
             <div class='bg_red line'>
                 <div class='text border_r' style='width: 250px;'>
+                <span class='pos_abs small_text_top_left'>Документ за самоличност №</span><br>
                    [#proxyIdentityCardNumber#]
-                   <span class='pos_abs small_text_top_left'>Документ за самоличност №</span>
+                   
                 </div>
                 <div class='text border_r' style='width: 249px;'>
+                <span class='pos_abs small_text_top_left'>ЕГН</span><br>
                    [#proxyEgn#]
-                   <span class='pos_abs small_text_top_left'>ЕГН</span>
+                   
                 </div>          
                 <div class='text''>
+                 <span class='pos_abs small_text_top_left'>Получател</span><br>
                    &nbsp;
-                   <span class='pos_abs small_text_top_left'>Получател</span>
+                  
                 </div>
             </div>
             
@@ -175,16 +177,19 @@ class bank_tpl_SingleRazpiskaLayout extends core_ET
                    <span style='text-transform: none; letter-spacing: normal;'>Получих сумата</span>
                 </div>
                 <div class='text border_r' style='width: 114px;'>
+                   <span class='pos_abs small_text_top_left'>Контролен подпис</span><br>
                    &nbsp;
-                   <span class='pos_abs small_text_top_left'>Контролен подпис</span>
+                   
                 </div>          
                 <div class='text border_r' style='width: 114px;'>
+                   <span class='pos_abs small_text_top_left'>Банков служител</span><br>
                    &nbsp;
-                   <span class='pos_abs small_text_top_left'>Банков служител</span>
+                   
                 </div>
                 <div class='text'>
+                <span class='pos_abs small_text_top_left'>Касиер</span><br>
                    &nbsp;
-                   <span class='pos_abs small_text_top_left'>Касиер</span>
+                   
                 </div>            
             </div>
 
@@ -192,13 +197,4 @@ class bank_tpl_SingleRazpiskaLayout extends core_ET
         <!-- END belejka -->    
     
     </div>
-    <!-- END belejka_container -->
-    
-    <div style='clear: both;'></div>";
-        
-        parent::core_ET($html);
-        $this->push("bank/tpl/css/belejka.css", 'CSS');
-        
-        return $this;
-    }
-}
+<!-- END belejka_container -->
