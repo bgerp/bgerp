@@ -33,7 +33,13 @@ class cms_GalleryGroups extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,cms_Wrapper,cms_GalleryWrapper,plg_Created";
+    var $loadList = "plg_RowTools,cms_Wrapper,cms_GalleryWrapper,plg_Created,plg_Vid";
+    
+    
+    /**
+     * Полета за изглед
+     */
+    var $listFields = 'id,vid=Код,title,columns,tWidth,tHeight,width,height,createdOn,createdBy';
     
     
     /**
@@ -47,8 +53,6 @@ class cms_GalleryGroups extends core_Manager {
      */
     function description()
     {
-        $this->FLD('vid', 'varchar(32)', 'caption=Идентификатор');
-        
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
         
         $this->FLD('tpl', 'html', 'caption=Шаблон');
@@ -60,8 +64,6 @@ class cms_GalleryGroups extends core_Manager {
         
         $this->FLD('width', 'int', 'caption=Картинка->широчина');
         $this->FLD('height', 'int', 'caption=Картинка->височина');
-         
-        $this->setDbUnique('vid');
     }
     
     /**
