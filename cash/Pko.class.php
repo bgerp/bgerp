@@ -399,6 +399,13 @@ class cash_Pko extends core_Master
             ))
         );
         
+        // Ако кредитната сметка не поддържа втора номенклатура, премахваме
+        // от масива второто перо на кредитната сметка
+        $cAcc = acc_journal_Account::byId($rec->creditAccounts);
+        if(!$cAcc->groupId2){
+        	unset($result->entries[0]->creditItem2);
+        }
+        
         return $result;
     }
     
