@@ -32,6 +32,7 @@ class drdata_Wrapper extends plg_ProtoWrapper
         $this->TAB('drdata_Vats', 'ЗДДС №');
         $this->TAB('drdata_Mvr', 'МВР', 'admin, common');
         $this->TAB('drdata_DistrictCourts', 'Съдилища', 'admin, common');
+        $this->TAB('drdata_Banks', 'Банки');
         
         $this->title = 'Адресни данни';
     }
