@@ -31,15 +31,15 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper,
-     	plg_Sorting,doc_DocumentPlg, plg_Printing,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';//, doc_plg_BusinessDoc
+    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
+     	plg_Sorting,doc_DocumentPlg,
+     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, number=Номер, reason, valior, amount, currencyId, state, createdOn, createdBy";
+    var $listFields = "id, reason, valior, amount, currencyId, state, createdOn, createdBy";
     
     
     /**
@@ -168,6 +168,7 @@ class bank_CashWithdrawOrders extends core_Master
     	$data->form->setDefault('ordererIban', bank_OwnAccounts::getCurrent());
     	$data->form->setReadOnly('ordererIban');
     	$data->form->setReadOnly('ordererName');
+    	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode());
     	
     	$account = bank_OwnAccounts::getOwnAccountInfo();
     	$data->form->setDefault('execBank', $account->bank);
@@ -177,8 +178,26 @@ class bank_CashWithdrawOrders extends core_Master
     	$data->form->setDefault('valior', $today);
     	
     	static::getProxyInfo($data->form);
-    	
+    	static::getPossibleAccounts($data->form);
     	//@TODO метод в за извличане на информацията от избраната собствена сметка
+    }
+    
+    
+ 	/**
+     * Попълва формата със 
+     * Списък от Сч.сметки които можем да дебитираме 
+     */
+    static function getPossibleAccounts(core_Form $form)
+    {
+    	$options = array();
+    	$conf = core_Packs::getConfig('bank');
+    	$array = type_Keylist::toArray($conf->BANK_NR_CREDIT_ACC);
+    	foreach($array as $id) {
+    		$rec = acc_Accounts::fetch($id);
+    		$options[$rec->id] = acc_Accounts::getRecTitle($rec);
+    	}
+    	
+    	$form->setOptions('debitAccount', $options);
     }
     
     
@@ -202,13 +221,6 @@ class bank_CashWithdrawOrders extends core_Master
     	}
     
     	$form->setSuggestions('proxyName',$suggestions);
-    	/*
-    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
-    	$proxyRec = $folderClass::fetch($proxyId);
-    	$form->setDefault('proxyName', $proxyRec->name);
-    	$form->setDefault('proxyEgn', $proxyRec->egn);
-    	$form->setReadOnly('proxyName');
-    	$form->setReadOnly('proxyEgn');*/
     }
     
     

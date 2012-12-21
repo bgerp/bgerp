@@ -125,9 +125,26 @@ class bank_Accounts extends core_Master {
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
         }
         
-        if(Request::get('iban')) {
-        	$data->form->setDefault('iban', Request::get('iban'));
+        if($iban = Request::get('iban')) {
+        	$data->form->setDefault('iban', $iban);
+        	$data->form->setDefault('bank', drdata_Banks::getBankName($iban));
+        	$data->form->setDefault('bic', drdata_Banks::getBankBic($iban));
         }
+    }
+    
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+    	if(!$rec->bank) {
+    		$rec->bank = drdata_Banks::getBankName($rec->iban);
+    	}
+    	
+    	if(!$rec->bic) {
+    		$rec->bic = drdata_Banks::getBankBic($rec->iban);
+    	}
     }
     
     

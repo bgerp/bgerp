@@ -199,6 +199,7 @@ class bank_PaymentOrders extends core_Master
 
     	// Поставяме стойности по подразбиране
     	$today = date("d-m-Y", time());
+        $form->setDefault('currencyId', currency_Currencies::getIdByCode());
     	$form->setDefault('valior', $today);
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
     	$form->setReadOnly('ownAccount');
@@ -285,27 +286,15 @@ class bank_PaymentOrders extends core_Master
     		$contragentIban = $form->rec->contragentIban;
     		$form->rec->contragentId = $contragentId;
     		$form->rec->contragentClassId = $contragentClassId;
-    		$accRec = bank_Accounts::fetch("#iban = '{$contragentIban}'");
-    		if(!$accRec) {
-    			
-    			// Ако няма такъв IBAN  в системата редиректваме към формата
-    			// за добавяне на IBAN
-    			return Redirect(array( 'bank_Accounts',
-    			'add',
-    			'contragentCls' => $contragentClassId,
-    			'contragentId' => $contragentId,
-    			'iban' => $contragentIban,
-    			'ret_url' => array($this, 
-    							 'add', 
-    							 'folderId' => $form->rec->folderId
-    			)));
+    		if(!$form->rec->contragentBank) {
+    			$form->rec->contragentBank = drdata_Banks::getBankName($contragentIban);
     		}
-    		$form->rec->contragentBank = $accRec->bank;
-    		$form->rec->contragentBankBic = $accRec->bic;
+    		if(!$form->rec->contragentBankBic) {
+    			$form->rec->contragentBankBic = drdata_Banks::getBankBic($contragentIban);
+    		}
     	}
     }
     
-    	
     
     /**
      *  Обработки по вербалното представяне на данните
@@ -325,6 +314,9 @@ class bank_PaymentOrders extends core_Master
     	
     	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_PO_CREDIT_SYSID}");
     	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
+    	
+    	// Временно решение за рендирането на знака # пред iban-a ако го има
+    	$row->contragentIban = $rec->contragentIban;
     	
     	// При принтирането на 'Чернова' скриваме системите полета и заглавието
     	if(Mode::is('printing')){
@@ -351,10 +343,52 @@ class bank_PaymentOrders extends core_Master
     /**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 *  @TODO правилно изчисляване на цената на кредита
    	 */
     public static function getTransaction($id)
     {
-    	//@TODO
+    	// Извличаме записа
+        expect($rec = self::fetch($id));
+        $conf = core_Packs::getConfig('bank');
+        $cAcc = new acc_journal_Account($conf->BANK_PO_CREDIT_SYSID);
+        $dAcc = acc_journal_Account::byId($rec->debitAccount);
+        
+        // Курса по който се обменя валутата  на ордера към основната валута за периода
+        $entrAmount = $rec->amount; 
+        
+        // Намираме класа на контрагента
+        $contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    	
+        // Подготвяме информацията която ще записваме в Журнала
+        $result = (object)array(
+            'reason' => $rec->reason, // основанието за ордера
+            'valior' => $rec->valior,   // датата на ордера
+            'totalAmount' => $entrAmount,
+            'entries' =>array( (object)array(
+                'amount' => $rec->amount,	// равностойноста на сумата в основната валута
+                
+                'debitAcc' => $dAcc->systemId, // дебитната сметка
+                'debitItem1' => (object)array('cls'=>$contragentClass, 'id'=>$contragentId),  // перо каса
+        		'debitItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),// перо валута
+                'debitQuantity' => $rec->amount,
+                'debitPrice' => 1,
+        		
+                'creditAccId' => $cAcc->id, // кредитна сметка
+                'creditItem1' => (object)array('cls'=>'bank_OwnAccounts', 'id'=>$rec->ownAccount), // перо контрагент
+                'creditQuantity' => $rec->amount,
+                'creditPrice' => 1,
+            ))
+        );
+       
+        // Ако дебитната сметка няма втора аналитичност, премахваме
+        // втория елемент
+        $dAcc = acc_journal_Account::byId($rec->debitAccount);
+    	if(!$dAcc->groupId2){
+        	unset($result->entries[0]->debitItem2);
+        }
+        
+        return $result;
     }
     
     

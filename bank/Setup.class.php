@@ -3,7 +3,7 @@ defIfNot('BANK_PO_CREDIT_ACC_DEF', '4');
 
 // При Платежно нареждане кои сметки дебитираме и кредитираме
 defIfNot('BANK_PO_CREDIT_SYSID', '503');
-defIfNot('BANK_PO_DEBIT_ACC', '|96|98|105|');
+defIfNot('BANK_PO_DEBIT_ACC', '|87|98|97|105|');
 
 // При Вносна бележка кои сметки дебитираме и кредитираме
 defIfNot('BANK_VB_CREDIT_SYSID', '422');
@@ -11,7 +11,7 @@ defIfNot('BANK_VB_DEBIT_ACC', '|96|98|105|148|');
 
 
 defIfNot('BANK_CASE_SYSID', '501');
-defIfNot('BANK_NR_DEBIT_ACC', '|96|98|105|148|');
+defIfNot('BANK_NR_CREDIT_ACC', '|148|');
 
 
 

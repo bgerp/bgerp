@@ -25,7 +25,7 @@ class bank_OwnAccounts extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
+    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper,
                      plg_Sorting, plg_Current, plg_LastUsedKeys';
     
     
@@ -78,9 +78,9 @@ class bank_OwnAccounts extends core_Manager {
     {
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory');
-        $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');
+        $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име,mandatory');
         $this->FLD('together', 'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
-        $this->FLD('operators', 'keylist(mvc=core_Users, select=names)', 'caption=Оператори');
+        $this->FLD('operators', 'keylist(mvc=core_Users, select=names)', 'caption=Оператори,mandatory');
     }
     
     
@@ -182,7 +182,12 @@ class bank_OwnAccounts extends core_Manager {
     {
     	$ownAcc = static::fetch(static::getCurrent());
     	$acc = bank_Accounts::fetch($ownAcc->bankAccountId);
-    	
+    	if(!$acc->bank) {
+    		$acc->bank = drdata_Banks::getBankName($acc->iban);
+    	}
+    	if(!$acc->bic) {
+    		$acc->bic = drdata_Banks::getBankBic($acc->iban);
+    	}
     	return $acc;
     }
     
