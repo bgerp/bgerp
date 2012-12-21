@@ -144,8 +144,6 @@ class bank_DepositSlips extends core_Master
         );
         $this->FNC('isContable', 'int', 'column=none');
     	 
-        // Поставяне на уникален индекс
-    	$this->setDbUnique('number');
     }
     
     
