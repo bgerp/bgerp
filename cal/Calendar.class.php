@@ -1016,18 +1016,56 @@ class cal_Calendar extends core_Master
      */
     function act_Month()
     {
+    	// Очакваме дата от формата
     	$from = Request::get('from');
-                
+
+    	// Разбиваме я на ден, месец и година
         $day = dt::mysql2Verbal($from, 'd');
         $month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
       
         //Избрана дата
         $currentDay = date('j-n-Y', mktime(0, 0, 0, $month, $day, $year));
-       
-        $tpl = new ET(getFileContent('cal/tpl/SingleLayoutMonth.shtml'));
         
-        // Добавяне на първия хедър
+        // Таймстамп на първия ден на месеца
+        $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
+        
+        // Броя на дните в месеца
+        $lastDay = date('t', $firstDayTms);
+        
+        // От началото на месеца
+        $fromDate = date("Y-m-d 00:00:00", $firstDayTms);
+
+        // До края на месеца
+        $toDate = date('Y-m-t 23:59:59', $firstDayTms);
+        
+        // Генерираме масив масива на месеца => номер на седмицата[ден от седмицата][ден]
+        for($i = 1; $i <= $lastDay; $i++) {
+            $t = mktime(0, 0, 0, $month, $i, $year);
+            $monthArr[date('W', $t)]["d".date('N', $t)] = $i;
+        }
+        
+    
+        //Извличане на събитията за целия месец
+        $state = new stdClass();
+        $state->query = self::getQuery();
+         
+        // Кой ни е текущия потребител? 
+        // Показване на календара и събитията според потребителя
+        $cu = core_Users::getCurrent();
+        $state->query->where('#users IS NULL');
+        $state->query->orLikeKeylist('users', "|$cu|");
+        
+        $state->query->orderBy('time', 'ASC');     
+        while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
+        	$data[] = $rec;
+        	// Какъв ден е
+        	$dayKey = dt::mysql2verbal($rec->time, 'Y-m-d');
+
+        }
+
+        bp($data, $dayKey);
+        // Изчисляваме предходния и следващия месец
         $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
 
         $pm = $month-1;
@@ -1053,34 +1091,40 @@ class cal_Calendar extends core_Master
         $nextLink = Url::addParams($link, array('from' => $day . '-' . $nm . '-' . $ny));
         $prevtLink = Url::addParams($link, array('from' => $day . '-' . $pm . '-' . $py));
 
+        
+        // Зареждаме шаблона
+        $tpl = new ET(getFileContent('cal/tpl/SingleLayoutMonth.shtml'));
+        
+        // Рендираме филтъра
+        $Calendar = cls::get('cal_Calendar'); 
+    	$Calendar->prepareListFilter($state);
+        $tpl->replace($Calendar->renderListFilter($state), 'from');
+        
+        // Добавяне на първия хедър
         $tpl->replace($prevtLink, 'prevtLink');
         $tpl->replace($prevMonth, 'prevMonth');
         $tpl->replace($currentMonth, 'currentMonth');
         $tpl->replace($nextLink, 'nextLink');
         $tpl->replace($nextMonth, 'nextMonth');
-    
-                
-        // Таймстамп на първия ден на месеца
-        $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
-        
-        $fromDate = date("Y-m-d 00:00:00", $firstDayTms);
 
-        // Броя на дните в месеца (= на последната дата в месеца);
-        $toDate = date('Y-m-t 23:59:59', $firstDayTms);
+        // Заместваме дните от седмицата с техните вербални съкратени стойности
+        $tpl->placeArray(dt::$weekDays);
         
-        //Извличане на събитията за целия месец
-        $state = new stdClass();
-        $state->query = self::getQuery();
-        $state->query->orderBy('time', 'ASC');     
-        while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
-        	$data[] = $rec;
+        foreach($monthArr as $weekNum => $weekArr) {
+        	
+        	$cTpl = $tpl->getBlock("COMMENT_LI");
+        	            
+        	$cTpl->replace($weekNum, 'weekNum');
+        	$cTpl->placeArray($weekArr);
+        	
+            $cTpl->append2master();
+         }
 
-//        	bp($data);
-        }
     	
+        // Заглавието на страницата
     	$tpl->replace('Събития за месеца', 'title');
-    	//$tpl = self::renderCalendar($year, $month, $data, $header);
-    	
+
+    	// Рендираме страницата
         return $this->renderWrapping($tpl);
 
     }
