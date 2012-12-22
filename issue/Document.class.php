@@ -135,13 +135,16 @@ class issue_Document extends core_Master
      */
     function description()
     {
-        $systemId = issue_Systems::getCurrentIssueSystemId();
+    	// В description не може да се прави нищо друго, освен да се дефинират безусловно полета и техни свойства
+    	//    $systemId = issue_Systems::getCurrentIssueSystemId(); 
         
-        $componentWhere = "#systemId = '{$systemId}'";
+        //   $componentWhere = "#systemId = '{$systemId}'";
         
-        $this->FLD('componentId', 
-        	new type_Key(array('mvc' => 'issue_Components', 'select' => 'name', 'where' => $componentWhere)),
-        	'caption=Компонент, mandatory');
+        //  $this->FLD('componentId', 
+        //	new type_Key(array('mvc' => 'issue_Components', 'select' => 'name', 'where' => $componentWhere)),
+        //	'caption=Компонент, mandatory');
+        
+        $this->FLD('componentId', "key(mvc=issue_Components,select=name)", 'caption=Компонент, mandatory');
         $this->FLD('typeId', 'key(mvc=issue_Types, select=type)', 'caption=Тип, mandatory');
         $this->FLD('description', 'text', "caption=Описание");
     }
