@@ -373,40 +373,15 @@ class cash_Rko extends core_Master
         expect($rec = self::fetch($id));
         $conf = core_Packs::getConfig('cash');
         
-        // classId-то на касата
-        $caseClassId = core_Classes::getId('cash_Cases');
-         
-        // Сметките която ще дебитираме ( сметка 501 - Каси )
-       	$creditAcc = acc_Accounts::fetch(array ("#systemId = '[#1#]'", $conf->CASH_CASE_ACCOUNT));
-        
-       	// Перото съответсващо на касата
-        expect(cls::haveInterface('cash_CaseAccRegIntf', $caseClassId), "Класът не поддържа  'cash_CaseAccRegIntf'");
-        $casePero = acc_Lists::updateItem($caseClassId, $rec->peroCase, 'case', FALSE);
-        
-       	// Сметката която ще кредитираме
-       	$debitAcc = acc_Accounts::fetch($rec->debitAccounts);
-        
-        // Перото съответстващо на контрагента
-        expect(cls::haveInterface('crm_ContragentAccRegIntf', $rec->contragentClassId), "Класът не поддържа 'crm_ContragentAccRegIntf'");
-        $contragentPero = acc_Lists::updateItem($rec->contragentClassId, $rec->contragentId, $creditAcc->groupId1, FALSE);
-        
-        // classId-то на валутата
-        $currencyClassId = core_Classes::getId('currency_Currencies');
-        
-        // Перото съответстващо на валутата
-        expect(cls::haveInterface('currency_CurrenciesAccRegIntf', $currencyClassId), "Класът не поддържа 'crm_ContragentAccRegIntf'");
-        $peroCurrency = acc_Lists::updateItem($currencyClassId, $rec->currencyId, 'currencies', FALSE);
-        $creditEnt2 = $peroCurrency;
-        $creditPrice = $rec->rate;
-        
-        // Ако сметката има поддържа номенклатура 'Валута'
-        if($debitAcc->groupId2) {
-        	$debitEnt2 = $peroCurrency;
-        	$debitPrice = $rec->rate;
-        }
         
         // Курса по който се обменя валутата  на ордера към основната валута за периода
         $entrAmount = $rec->rate * $rec->amount; 
+        // Намираме класа на контрагента
+        $contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        
+        $cAcc = new acc_journal_Account($conf->CASH_CASE_ACCOUNT);
+        $dAcc = acc_journal_Account::byId($rec->debitAccounts);
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
@@ -414,19 +389,28 @@ class cash_Rko extends core_Master
             'valior' => $rec->valior,   // датата на ордера
             'totalAmount' => $entrAmount,
             'entries' =>array( (object)array(
-                'amount' => $entrAmount,	// равностойноста на сумата в основната валута
-                'debitAccId' => $debitAcc->id, // дебитната сметка
-                'debitEnt1' => $contragentPero,  // перо контрагент
-        		'debitEnt2' => $debitEnt2, // перо валута
-                'debitQuantity' => $rec->amount,  // каква е сумата
-                'debitPrice' => $debitPrice,	// обменния курс между сумата и основната валута за периода
-                'creditAccId' => $creditAcc->id, // кредитна сметка
-                'creditEnt1' => $casePero, // перо каса
-                'creditEnt2' => $creditEnt2, // перо валута
-                'creditQuantity' => $rec->amount, // каква е сумата
-                'creditPrice' => $creditPrice, // обменния курс между сумата и основната валута за периода
+                'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
+                
+                'debitAcc' => $dAcc->systemId, // дебитната сметка
+                'debitItem1' => (object)array('cls'=>$contragentClass, 'id'=>$contragentId),  // перо каса
+        		'debitItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),// перо валута
+                'debitQuantity' => $rec->amount,
+                'debitPrice' => $rec->rate,
+        		
+                'creditAccId' => $cAcc->id, // кредитна сметка
+                'creditItem1' => (object)array('cls'=>'cash_Cases', 'id'=>$rec->peroCase), // перо контрагент
+                'creditItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId), // перо валута
+                'creditQuantity' => $rec->amount,
+                'creditPrice' => $rec->rate,
             ))
         );
+        
+        // Ако кредитната сметка не поддържа втора номенклатура, премахваме
+        // от масива второто перо на кредитната сметка
+        $dAcc = acc_journal_Account::byId($rec->debitAccounts);
+        if(!$dAcc->groupId2){
+        	unset($result->entries[0]->debitItem2);
+        }
         
         return $result;
     }

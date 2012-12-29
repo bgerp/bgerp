@@ -568,9 +568,11 @@ class cal_Calendar extends core_Master
      */
     function act_Day()
     {
-    	
+    	// Очакваме дата от филтъра
     	$from = Request::get('from');
     	$currentDate = dt::mysql2Verbal($from, 'd F Y, l');
+    	
+    	//  Текущото време на потребителя
     	$nowTime = strstr(dt::now(), " ");
     	
     	// Масив с цветове за събитията
@@ -608,9 +610,17 @@ class cal_Calendar extends core_Master
        	//До края на същия ден
        	$toDate = str_replace("00:00:00", "23:59:59",dt::verbal2mysql ($from));
        	
-       	//Извличане на събитията за целия ден
+       	// Правим заявка към базата
        	$state = new stdClass();
         $state->query = self::getQuery();
+        
+        // Кой е текущия потребите?
+        // Показваме неговия календар
+        $cu = core_Users::getCurrent();
+        $state->query->where('#users IS NULL');
+        $state->query->orLikeKeylist('users', "|$cu|");
+        
+        //Извличане на събитията за целия ден
     	while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
 
     		//Деня, за който взимаме събитията
@@ -630,27 +640,50 @@ class cal_Calendar extends core_Master
     		
     		//Линк към събитието
     		$url = getRetUrl($rec->url);
+    		// Ид-то на събитието
     		$id = substr(strrchr($rec->url, "/"),1);
     		
-    	
+    	    // Картинката за задачите
     		$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
     		
-    		$linkHour = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title, $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
-    		$linkNormal = ht::createLink($rec->title, $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    	    $linkHour = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		$linkNormal = ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
     		
+    		$linkHourDraft = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'draftColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		$linkNormalDraft = ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title));
+
+    		// Взимаме всеки път различен цвят за титлите на задачите
     		$color = array_pop($colors);
     		
-        	if (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state != "closed"){
-    			$dayData[$hourKey][$dayKey] .= $img.$linkHour;
+        	if (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state == "active"){
+    			$dayData[$hourKey][$dayKey] .= $img.$linkHour."</br>";
     			
-    		} elseif($hourKey != "allDay" && $rec->state != "closed") { 
+    		} elseif (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state == "draft"){
+    			$dayData[$hourKey][$dayKey] .= $img.$linkHourDraft;
+    			
+    		} elseif($hourKey != "allDay" && $rec->state == "draft") { 
+    			$dayData[$hourKey][$dayKey] .= "<div class='draftColor'>".$img.$linkNormal."</div>";
+    			
+    		} elseif($hourKey != "allDay" && $rec->state == "active") { 
     			$dayData[$hourKey][$dayKey] .= $img.$linkNormal;
     			
     		} elseif($hourKey != "allDay" && $rec->state == "closed") {
-    			$dayData[$hourKey][$dayKey] .= $img.ht::createLink($rec->title, $url, NULL, array('class'=>'calWeek', 'style' => 'color:#4b4b4b;;', 'title' => $rec->title));
+    			$dayData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		
+    		}elseif($hourKey != "allDay" && $rec->state == "closed") {
+    			$dayData[$hourKey][$dayKey] .= $img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		
+    		} elseif($hourKey == "allDay" && $rec->type == "task" && $rec->state == "active") { 
+    			$dayData[$hourKey][$dayKey] .= $img.$linkNormal;
+    			
+    		} elseif($hourKey == "allDay" && $rec->type == "task" &&  $rec->state == "draft") { 
+    			$dayData[$hourKey][$dayKey] .= $img.$linkNormalDraft;
+    			
+    		} elseif($hourKey == "allDay" && $rec->type == "task" &&  $rec->state == "closed") {
+    			$dayData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
     		
     		} else {
-    			$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calDay'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+    			$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('title' => $rec->title));
     			
     		}
     		
@@ -664,29 +697,40 @@ class cal_Calendar extends core_Master
 
     	if(is_array($minMax)){
 	    	
+    		if($minMax[0] == 'allDay'){
+    			unset($minMax[0]);
+    		}
+    
     		// Определяме началото и края на деня спрямо началните стойнности
-	        if(min($minMax) < $tr && min($minMax) !== 'allDay'){ 
+	        if(min($minMax) < $tr ){ 
 	        	$tr = min($minMax);
+	        	if(max($minMax) > $tk ){
+	        		$tk = max($minMax);
+	        	}
+	        	
 	        } elseif(min($minMax) > $tk){
 	        	$tr = 8;
 	        	$tk = min($minMax);
-	        } elseif(max($minMax) > $tk){
+	        } elseif(max($minMax) > $tk ){
 	        	$tk = max($minMax);
 	        }
     	}
-    	
+
     	//Рендираме деня
     	$tpl = new ET(getFileContent('cal/tpl/SingleLayoutDays.shtml'));
     	
     	$Calendar = cls::get('cal_Calendar');
+    	$Calendar->prepareListRecs($state);
     	$Calendar->prepareListFilter($state);
-        
+    	
+        // Рендираме филтара "календар"
         $tpl->replace($Calendar->renderListFilter($state), 'from');
     	
+        // Заместваме титлата на страницата
     	$tpl->replace('Събития за изпълнение', 'title');
     	$tpl->replace($currentDate, 'date');
     	
-    	
+    
     	foreach($hours as $h => $t){
     		if($h === 'allDay' || ($h >= $tr && $h <= $tk)){
     		$hourArr = $dayData[$h];
@@ -694,31 +738,41 @@ class cal_Calendar extends core_Master
     		$hourArr['timeJs'] = $h;
     		$hourArr['dateJs'] = $from;
  
+    		// Взимаме блока от шаблона
     		$cTpl = $tpl->getBlock("COMMENT_LI");
     		
+    		// Ако времето е равно на текущото време на потребителя
+    		// ограждаме визуално клетката
     		if($h == $nowTime){
     			$cTpl->replace('mc-today', 'now');
     		} else {
     			$cTpl->replace('calDay', 'now');
     		}
     		
+    		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
+    	    // задаваме уникално ид
     		for($j = 0; $j < 26; $j++){
-   				   					
+    			
+   				// Линкове на картинката
 	        	$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
-	   				
+
+	        	// javaScript функциите		
 	        	$overs["over".$j] = "onmouseover='ViewImage($h$j)'";
 	        	$outs["out".$j] = "onmouseout='NoneImage($h$j)'";
          	} 
          	
+         	// Заместваме всички масиви
     		$cTpl->placeArray($aHrefs);
     		$cTpl->placeArray($overs);
     		$cTpl->placeArray($outs);
     		$cTpl->placeArray($hourArr);
+    		
+    		//Връщаме към мастера
     		$cTpl->append2master();
     		}
    		}
     	
-    	
+    	// Рендираме страницата
     	return  $this->renderWrapping($tpl);
  
     }
@@ -729,14 +783,16 @@ class cal_Calendar extends core_Master
      */
     function act_Week()
     {
+    	// Очакваме дата от филтъра
         $from = Request::get('from');
         $currentDate = dt::mysql2Verbal($from, 'l d-m-Y');
        
-        
+        // Разбиваме получената дата на ден, месец, година
         $day = dt::mysql2Verbal($from, 'd');
         $month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
         
+        // Текущото време на потребителя
         $nowTime = strstr(dt::now(), " ");
         
         // Масив с цветове за събитията
@@ -761,35 +817,48 @@ class cal_Calendar extends core_Master
    
         $hours = array( "allDay" => "Цял ден");
         
-        //Генерираме масив с часовете
+        // Генерираме масив с часовете
         for($i = 0; $i < 24; $i++){
         	$hours[$i] = str_pad($i, 2, "0", STR_PAD_LEFT). ":00";
         }
         
-        //Генерираме масив с дните и масив за обратна връзка
+        // Генерираме масив с дните и масив за обратна връзка
         for($i = 0; $i < 7; $i++){
         	$days[$i] = dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'l'). "<br>".
         				dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'d-m-Y');
         	$dates[date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year))] = "d" . $i;
         	
+        	// Помощен масив за javaScripta
         	$dateJs["date".$i."Js"] = date("d-m-Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
          }
       
+        // От коя до коя дата ще извличаме събитията 
         $fromDate = date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day - 3, $year));
         $toDate = date("Y-m-d 23:59:59", mktime(0, 0, 0, $month, $day + 3, $year));
               
-        //Извличане на събитията за цялата седмица
+        // Извличане на събитията за цялата седмица
         $state = new stdClass();
         $state->query = self::getQuery();
-        $state->query->orderBy('time', 'ASC');     
+        
+        // Кой ни е текущия потребител? 
+        // Показване на календара и събитията според потребителя
+        $cu = core_Users::getCurrent();
+        $state->query->where('#users IS NULL');
+        $state->query->orLikeKeylist('users', "|$cu|");
+        
+        // Сортираме по времето на събитията
+        $state->query->orderBy('time', 'ASC'); 
+
+        // Извличаме записите
         while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
         	
-        	//какъв ден е
+        	// Какъв ден е
         	$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
     		
     		// Начален час на събитието
     		$hourKey = dt::mysql2verbal($rec->time, 'G');
     		
+    		// Събитието за целия ден ли ще отнася?
     		if($rec->allDay == "yes"){
     			$hourKey = "allDay";
     		}
@@ -799,25 +868,50 @@ class cal_Calendar extends core_Master
     			$minMax[] = $hourKey;
     		}
     		
+    		// Линк към събитието
     		$url = getRetUrl($rec->url);
+    		// Ид-то на събитието
     		$id = substr(strrchr($rec->url, "/"),1);
     		
-    		
+    		// Картинката която ще стои пред титлета на задачите
     		$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+    		
     		
     		$linkHour = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
     		$linkNormal = ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
     		
+    		$linkHourDraft = ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'draftColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		$linkNormalDraft = ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title));
+
+    		// Взимаме всеки път различен цвят за титлите на задачите
     		$color = array_pop($colors);
     		
-        	if (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state != "closed"){
+        	if (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state == "active"){
     			$weekData[$hourKey][$dayKey] .= $img.$linkHour;
     			
-    		} elseif($hourKey != "allDay" && $rec->state != "closed") { 
+    		} elseif (dt::mysql2verbal($rec->time, 'i') != "00" && $rec->state == "draft"){
+    			$weekData[$hourKey][$dayKey] .= $img.$linkHourDraft;
+    			
+    		} elseif($hourKey != "allDay" && $rec->state == "draft") { 
+    			$weekData[$hourKey][$dayKey] .= "<div class='draftColor'>".$img.$linkNormal."</div>";
+    			
+    		} elseif($hourKey != "allDay" && $rec->state == "active") { 
     			$weekData[$hourKey][$dayKey] .= $img.$linkNormal;
     			
     		} elseif($hourKey != "allDay" && $rec->state == "closed") {
-    			$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek', 'style' => 'color:#4b4b4b;;', 'title' => $rec->title));
+    			$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		
+    		} elseif($hourKey != "allDay" && $rec->state == "closed") {
+    			$weekData[$hourKey][$dayKey] .= $img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    		
+    		} elseif($hourKey == "allDay" && $rec->type == "task" && $rec->state == "active") { 
+    			$weekData[$hourKey][$dayKey] .= $img.$linkNormal;
+    			
+    		} elseif($hourKey == "allDay" && $rec->type == "task" &&  $rec->state == "draft") { 
+    			$weekData[$hourKey][$dayKey] .= $img.$linkNormalDraft;
+    			
+    		} elseif($hourKey == "allDay" && $rec->type == "task" &&  $rec->state == "closed") {
+    			$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
     		
     		} else {
     			$weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('title' => $rec->title));
@@ -833,10 +927,17 @@ class cal_Calendar extends core_Master
     	$tk = 18;
 
     	if(is_array($minMax)){
+    		
+    	    if($minMax[0] == 'allDay'){
+    			unset($minMax[0]);
+    		}
 	    	
     		// Определяме началото и края на деня спрямо началните стойнности
 	        if(min($minMax) < $tr && min($minMax) !== 'allDay'){ 
 	        	$tr = min($minMax);
+	            if(max($minMax) > $tk ){
+	        		$tk = max($minMax);
+	        	}
 	        } elseif(min($minMax) > $tk){
 	        	$tr = 8;
 	        	$tk = min($minMax);
@@ -849,52 +950,63 @@ class cal_Calendar extends core_Master
     	//Рендиране на седмицата	
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutWeek.shtml'));
     	
+        // Рендираме филтъра за избор на дата
     	$Calendar = cls::get('cal_Calendar');
     	$Calendar->prepareListFilter($state);
         
         $tpl->replace($Calendar->renderListFilter($state), 'from');
     	
+        // Заглавие на страницата
     	$tpl->replace('Събития за седмицата', 'title');
     	
-    	//Рендираме масива с дните
+    	// Рендираме масивите с дните и javaScript масива
     	$tpl->placeArray($days);
     	$tpl->placeArray($dateJs);
-    	
-    	//bp($dateJs);
+  
     	
    		foreach($hours as $h => $t){
    			
+   			// Ограничаваме часовета в таблицата до цел ден и най-малкия и най-големия час
    			if($h === 'allDay' || ($h >= $tr && $h <= $tk)){
     		$hourArr = $weekData[$h];
     		$hourArr['time'] = $t;
     		$hourArr['timeJs'] = $h;
-    	    		
+
+    		// Взимаме блока от шаблона
     		$cTpl = $tpl->getBlock("COMMENT_LI");
    			
+    		// Ако времето е равно на текущото време на потребителя
+    		// Ограждаме кутийката
     		if($h == $nowTime){
     			$cTpl->replace('mc-today', 'now');
     		} else {
     			$cTpl->replace('calWeek', 'now');
     		}
     		
+    		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
+    		// задаваме уникално ид
    			for($j = 0; $j < 26; $j++){
-   				   					
+
+   				// Линкове на картинката
 	        	$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
-	   				
+
+	        	// javaScript функциите
 	        	$overs["over".$j] = "onmouseover='ViewImage($h$j)'";
 	        	$outs["out".$j] = "onmouseout='NoneImage($h$j)'";
          	}   
-         	 		
+
+         	// Заместваме всички масиви в шаблона
     		$cTpl->placeArray($aHrefs);
     		$cTpl->placeArray($overs);
     		$cTpl->placeArray($outs);
     		$cTpl->placeArray($hourArr);
    			
-    
+            // Връщаме се към мастера
     		$cTpl->append2master();
    			}
    		}
    		
+   		// Рендираме страницата
         return $this->renderWrapping($tpl);
     }
 
@@ -904,16 +1016,56 @@ class cal_Calendar extends core_Master
      */
     function act_Month()
     {
+    	// Очакваме дата от формата
     	$from = Request::get('from');
-                
+
+    	// Разбиваме я на ден, месец и година
         $day = dt::mysql2Verbal($from, 'd');
         $month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
       
         //Избрана дата
         $currentDay = date('j-n-Y', mktime(0, 0, 0, $month, $day, $year));
-       
-        // Добавяне на първия хедър
+        
+        // Таймстамп на първия ден на месеца
+        $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
+        
+        // Броя на дните в месеца
+        $lastDay = date('t', $firstDayTms);
+        
+        // От началото на месеца
+        $fromDate = date("Y-m-d 00:00:00", $firstDayTms);
+
+        // До края на месеца
+        $toDate = date('Y-m-t 23:59:59', $firstDayTms);
+        
+        // Генерираме масив масива на месеца => номер на седмицата[ден от седмицата][ден]
+        for($i = 1; $i <= $lastDay; $i++) {
+            $t = mktime(0, 0, 0, $month, $i, $year);
+            $monthArr[date('W', $t)]["d".date('N', $t)] = $i;
+        }
+        
+    
+        //Извличане на събитията за целия месец
+        $state = new stdClass();
+        $state->query = self::getQuery();
+         
+        // Кой ни е текущия потребител? 
+        // Показване на календара и събитията според потребителя
+        $cu = core_Users::getCurrent();
+        $state->query->where('#users IS NULL');
+        $state->query->orLikeKeylist('users', "|$cu|");
+        
+        $state->query->orderBy('time', 'ASC');     
+        while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
+        	$data[] = $rec;
+        	// Какъв ден е
+        	$dayKey = dt::mysql2verbal($rec->time, 'Y-m-d');
+
+        }
+
+        bp($data, $dayKey);
+        // Изчисляваме предходния и следващия месец
         $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
 
         $pm = $month-1;
@@ -939,34 +1091,40 @@ class cal_Calendar extends core_Master
         $nextLink = Url::addParams($link, array('from' => $day . '-' . $nm . '-' . $ny));
         $prevtLink = Url::addParams($link, array('from' => $day . '-' . $pm . '-' . $py));
 
-        $header = "<table class='mc-header' width='100%' cellpadding='0'>
-                <tr>
-                    <td align='left'><a href='{$prevtLink}'>{$prevMonth}</a></td>
-                    <td align='center'><b>{$currentMonth}</b></td>
-                    <td align='right'><a href='{$nextLink}'>{$nextMonth}</a></td>
-                </tr>
-            </table>";
-                
-        // Таймстамп на първия ден на месеца
-        $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
         
-        $fromDate = date("Y-m-d 00:00:00", $firstDayTms);
-
-        // Броя на дните в месеца (= на последната дата в месеца);
-        $toDate = date('Y-m-t 23:59:59', $firstDayTms);
+        // Зареждаме шаблона
+        $tpl = new ET(getFileContent('cal/tpl/SingleLayoutMonth.shtml'));
         
-        //Извличане на събитията за целия месец
-        $state = new stdClass();
-        $state->query = self::getQuery();
-        $state->query->orderBy('time', 'ASC');     
-        while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
-        	$data[] = $rec;
+        // Рендираме филтъра
+        $Calendar = cls::get('cal_Calendar'); 
+    	$Calendar->prepareListFilter($state);
+        $tpl->replace($Calendar->renderListFilter($state), 'from');
+        
+        // Добавяне на първия хедър
+        $tpl->replace($prevtLink, 'prevtLink');
+        $tpl->replace($prevMonth, 'prevMonth');
+        $tpl->replace($currentMonth, 'currentMonth');
+        $tpl->replace($nextLink, 'nextLink');
+        $tpl->replace($nextMonth, 'nextMonth');
 
-//        	bp($data);
-        }
-    	$tpl = new ET('');
-    	$tpl = self::renderCalendar($year, $month, $data, $header);
+        // Заместваме дните от седмицата с техните вербални съкратени стойности
+        $tpl->placeArray(dt::$weekDays);
+        
+        foreach($monthArr as $weekNum => $weekArr) {
+        	
+        	$cTpl = $tpl->getBlock("COMMENT_LI");
+        	            
+        	$cTpl->replace($weekNum, 'weekNum');
+        	$cTpl->placeArray($weekArr);
+        	
+            $cTpl->append2master();
+         }
+
     	
+        // Заглавието на страницата
+    	$tpl->replace('Събития за месеца', 'title');
+
+    	// Рендираме страницата
         return $this->renderWrapping($tpl);
 
     }

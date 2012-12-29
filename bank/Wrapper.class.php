@@ -22,15 +22,10 @@ class bank_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        
-        
-        $this->TAB('bank_Accounts', 'Банкови сметки', 'admin, bank');
-        $this->TAB('bank_OwnAccounts', 'Наши сметки', 'admin, bank');
-        $this->TAB('bank_Documents', 'Банкови документи', 'admin, bank');
-        
-        $this->TAB('bank_PaymentMethods', 'Начини на плащане', 'admin, common');
-        
-        $this->title = 'Банка';
-     
+       $this->TAB('bank_Accounts', 'Банкови сметки', 'admin, bank');
+       $this->TAB('bank_OwnAccounts', 'Наши сметки', 'admin, bank');
+       $this->TAB('bank_PaymentOrders', 'Банкови документи', 'admin, bank');
+       $this->TAB('bank_PaymentMethods', 'Начини на плащане', 'admin, common');
+       $this->title = 'Банка';
     }
 }

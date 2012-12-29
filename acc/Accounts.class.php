@@ -494,28 +494,6 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * Извлича запис на сметка по зададен id или systemId
-     * 
-     * @param string $systemId
-     * @return stdClass
-     */
-    public static function fetchById($id = NULL, $systemId = NULL)
-    {
-        // Поне едно от id или systemId трябва да е зададено
-        expect(!empty($id) || !empty($systemId));
-        
-        if (!empty($id)) {
-            expect($rec = static::fetch($id));
-            expect(empty($systemId) || $rec->systemId == $systemId);
-        } else {
-            expect($rec = static::fetch(array("#systemId = '[#1#]'", $systemId)));
-        }
-        
-        return $rec;
-    }
-        
-    
-    /**
      * Извиква се преди изпълняването на екшън
      */
     static function on_BeforeAction($mvc, &$res, $action)

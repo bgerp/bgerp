@@ -1,0 +1,53 @@
+[#SingleToolbar#]
+           
+	<div class='document'>
+		<div class='header'>
+			<p class="calTitle">[#title#]</p>
+			<span style='width:150px;'>[#from#]</span>
+			
+		</div>
+
+	</br>
+		<!--ET_BEGIN event-->	
+         <div class='block_left'>
+       
+	            <table class='mc-header' width='100%' cellpadding='0'>
+	                <tr>
+	                    <td align='left'><a href='[#prevtLink#]'>[#prevMonth#]</a></td>
+	                    <td align='center'><b>[#currentMonth#]</b></td>
+	                    <td align='right'><a href='[#nextLink#]'>[#nextMonth#]</a></td>
+	                </tr>
+	            </table>
+	    </br>
+                <table class='mc-calendar'>
+				     
+				 <tr>
+				 	<td class='mc-wd-name'>Сд</td>
+				 	<td class='mc-wd-name'>[#0#]</td>
+				 	<td class='mc-wd-name'>[#1#]</td>
+				 	<td class='mc-wd-name'>[#2#]</td>
+				 	<td class='mc-wd-name'>[#3#]</td>
+				 	<td class='mc-wd-name'>[#4#]</td>
+				 	<td class='mc-wd-name'>[#5#]</td>
+				 	<td class='mc-wd-name'>[#6#]</td>
+				 </tr>  
+			            
+                 <!--ET_BEGIN COMMENT_LI-->
+                 <tr> 
+                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <td class="mc-day">[#c0#][#d1#]</td>
+                     <td class="mc-day">[#c1#][#d2#]</td>
+                     <td class="mc-day">[#c2#][#d3#]</td>
+                     <td class="mc-day">[#c3#][#d4#]</td>
+                     <td class="mc-day">[#c4#][#d5#]</td>
+                     <td class="mc-day">[#c5#][#d6#]</td>
+                     <td class="mc-day">[#c6#][#d7#]</td>
+                 </tr>
+                 <!--ET_END COMMENT_LI-->
+                               
+                 </table>
+			</div>
+         <!--ET_END event-->
+         
+         <div style='clear: both;'></div>
+    </div>         

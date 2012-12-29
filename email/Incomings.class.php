@@ -1671,8 +1671,18 @@ class email_Incomings extends core_Master
         // Превръщаме в масив
         $filesArr = type_Keylist::toArray($rec->files);
          
-        // Обхождаме всички файлове
-        foreach ($filesArr as $fileId) {
+         // Ако има HTML файл
+         if ($rec->htmlFile) {
+             
+             // Добавяме го към файловете
+             $filesArr[$rec->htmlFile] = $rec->htmlFile;
+         }
+         
+         // Добавяме EML файла, към файловете
+         $filesArr[$rec->emlFile] = $rec->emlFile;
+         
+         // Обхождаме всички файлове
+         foreach ($filesArr as $fileId) {
              
             // Вземаме записите за файловете
             $fRec = fileman_Files::fetch($fileId);

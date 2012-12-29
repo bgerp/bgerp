@@ -26,7 +26,7 @@ class cms_Articles extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid';
+    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid, plg_Ordering,plg_LastUsedKeys';
     
 
     /**
@@ -53,25 +53,22 @@ class cms_Articles extends core_Manager
      */
     var $canRead = 'cms,admin';
     
+
+    /**
+     * 
+     */
+    var $orderingGroupBy = 'menuId';
+    
  
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('level', 'order', 'caption=Номер,mandatory');
+        $this->FLD('level', 'order', 'caption=Номер,mandatory,input=none,column=none');
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext', 'caption=Текст,column=none');
-    }
-
-    
-    /**
-     *  Задава подредбата
-     */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
-        $data->query->orderBy('#menuId,#level');
     }
 
 
@@ -97,7 +94,7 @@ class cms_Articles extends core_Manager
     {
         $query = self::getQuery();
         $query->where("#menuId = {$menuId}");
-        $query->orderBy("#level");
+        $query->orderBy("#orderingRow");
 
         $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
 
@@ -148,8 +145,6 @@ class cms_Articles extends core_Manager
 
             $menuId = $rec->menuId;
 
-            $lArr = explode('.', self::getVerbal($rec, 'level'));
-
             $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
 
             // Рендираме тулбара за споделяне
@@ -169,18 +164,12 @@ class cms_Articles extends core_Manager
         // Подготвя навигацията
         $query = self::getQuery();
         $query->where("#menuId = {$menuId}");
-        $query->orderBy("#level");
+        $query->orderBy("#menuId,#orderingRow" , 'ASC');
 
         $navTpl = new ET();
 
         while($rec1 = $query->fetch()) {
             
-            $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
-
-            if($lArr) {
-                if($lArr1[2] && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) continue;
-            }
-
             $title = self::getVerbal($rec1, 'title');
 
 
@@ -194,8 +183,6 @@ class cms_Articles extends core_Manager
 
                 $menuId = $rec->menuId;
 
-                $lArr = explode('.', self::getVerbal($rec, 'level'));
-
                 $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
 
                 $ptitle   = self::getVerbal($rec, 'title') . " » ";
@@ -204,17 +191,12 @@ class cms_Articles extends core_Manager
                 
             }
 
-            $class = ($rec->id == $rec1->id) ? $class = 'sel_page' : '';
+            $class = ($rec->id == $rec1->id) ?'sel_page' : '';
 
 
-            if($lArr1[2]) {
-                $class .= ' level3';
-            } elseif($lArr1[1]) {
-                $class .= ' level2';
-            } elseif($lArr1[0]) {
-                $class .= ' level1';
-            }
-
+          
+            $class .= ' level' . $rec1->orderingLevel;
+ 
             $navTpl->append("<div class='nav_item {$class}'>");
             if(trim($rec1->body)) {
                 $navTpl->append(ht::createLink($title, array('cms_Articles', 'Article', $rec1->vid ? $rec1->vid : $rec1->id)));

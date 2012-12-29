@@ -36,6 +36,9 @@ class crm_Persons extends core_Master
 
         //Интерфейс за данните на контрагента
         'doc_ContragentDataIntf',
+        
+        // Интерфейс за входящ документ
+        'incoming_CreateDocumentIntf',
     );
 
 
@@ -371,8 +374,8 @@ class crm_Persons extends core_Master
             $data->title = '';
         }
     }
-
-
+    
+    
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
@@ -380,68 +383,13 @@ class crm_Persons extends core_Master
     {
         $rec = $form->rec;
         
-        list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
-
-        if(isset($rec->egn) && !($y>0 || $m>0 || $d>0)) {
-            try {
-                $Egn = new drdata_BulgarianEGN($rec->egn);
-            } catch(Exception $e) {
-                $err = $e->getMessage();
-            }
-
-            if(!$err) {
-                $rec->birthday = type_Combodate::create($Egn->birth_year, $Egn->birth_month, $Egn->birth_day);
-            }
-        }
+        // Подготвяме рожденния ден
+        static::prepareBirthday($rec);
 
         if($form->isSubmitted()) {
 
-            // Правим проверка за дублиране с друг запис
-            if(!$rec->id) {
-                $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
-
-                $query = $mvc->getQuery();
-
-                while($similarRec = $query->fetch(array("#searchKeywords LIKE '% [#1#] %'", $nameL))) {
-                    $similars[$similarRec->id] = $similarRec;
-                    $similarName = TRUE;
-                }
-
-                $egnNumb = preg_replace("/[^0-9]/", "", $rec->egn);
-
-                if($egnNumb) {
-                    $query = $mvc->getQuery();
-
-                    while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", $egnNumb))) {
-                        $similars[$similarRec->id] = $similarRec;
-                    }
-                    $similarEgn = TRUE;
-                }
-
-                if(count($similars)) {
-                    foreach($similars as $similarRec) {
-                        $similarPersons .= "<li>";
-                        $similarPersons .= ht::createLink($mvc->getVerbal($similarRec, 'name'), array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
-
-                        if($similarRec->egn) {
-                            $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'egn');
-                        } elseif($birthday = $mvc->getverbal($similarRec, 'birthday')) {
-                            $similarPersons .= ", " . $birthday;
-                        }
-
-                        if(trim($similarRec->place)) {
-                            $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'place');
-                        }
-                        $similarPersons .= "</li>";
-                    }
-
-                    $fields = ($similarEgn && $similarName) ? "name,egn" : ($similarName ? "name" : "egn");
-
-                    $sledniteLica = (count($similars) == 1) ? "следното лице" : "следните лица";
-
-                    $form->setWarning($fields, "Възможно е дублиране със {$sledniteLica}|*: <ul>{$similarPersons}</ul>");
-                }
-            }
+            // Проверяваме да няма дублиране на записи
+            static::checkSimilarWarning($mvc, $form);
 
             if($rec->place) {
                 $rec->place = drdata_Address::canonizePlace($rec->place);
@@ -1444,6 +1392,383 @@ class crm_Persons extends core_Master
             $Countries = cls::get('drdata_Countries');
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
                     $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+        }
+    }
+    
+    
+    /**
+     * Интерфейсен метод на incoming_CreateDocumentIntf
+     * 
+     * Връща масив, от който се създава бутона за създаване на входящ документ
+     * 
+     * @param fileman_Files $fRec - Обект са данни от модела
+     * 
+     * @return array $arr - Масив с данните
+     * $arr['class'] - Името на класа
+     * $arr['action'] - Екшъна
+     * $arr['title'] - Заглавието на бутона
+     * $arr['icon'] - Иконата
+     */
+    static function canCreate_($fRec)
+    {
+        // Позволените разширения, за създаване на визитка 
+        $vCardExtArr = array('vcf', 'vcard');
+        
+        // Разширението на файла
+        $ext = fileman_Files::getExt($fRec->name);
+        
+        // Ако разширението е в допустимите, имамем права за добваня и имаме права за single' а на файла
+        if (in_array($ext, $vCardExtArr) && (static::haveRightFor('add') && (fileman_Files::haveRightFor('single', $fRec)))) {
+            
+            // Създаваме масива за съзване на визитка
+            $arr['vcard']['class'] = 'crm_Persons';
+            $arr['vcard']['action'] = 'extractVcard';
+            $arr['vcard']['title'] = 'Лице';
+            $arr['vcard']['icon'] = '/img/16/extract_foreground_objects.png';
+        }
+
+        return (array)$arr;
+    }
+    
+    
+    /**
+     * Екшън за извличане на информация за създаване на лице от визитка.
+     */
+    function act_ExtractVcard()
+    {
+        // Трябва да има права за добавяне
+        static::requireRightFor('add');
+        
+        // Манипулатора на файла
+        $fh = Request::get('fh');
+        
+        // Очакваме да има подаден манипулатор
+        expect($fh);
+        
+        // Очакваме да има такъв запис
+        expect($fRec = fileman_Files::fetchByFh($fh));
+        
+        // Очакваме да има права за single'а на файла
+        fileman_Files::requireRightFor('single', $fRec);
+        
+        // Разширението на файла
+        $ext = fileman_Files::getExt($fRec->name);
+        
+        // Драйверите на файла
+        $drivers = fileman_Indexes::getDriver($ext);
+        
+        // Масив с всички визитки в съответния файл
+        $allVcards = array();
+        
+        // Обхождаме всички драйвери
+        foreach ($drivers as $driver) {
+            
+            // Данните за визитката от съответния драйвер
+            $data = array();
+            
+            // Опитваме се да подготвим данните
+            try {
+                
+                // Подготвяме данните
+                $data = $driver->prepareData($fRec);
+            } catch (Exception $e) { }
+
+            // Събираме всички данни
+            $allVcards = array_merge($allVcards, $data);
+        }
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+
+        // Въвеждаме съдържанието на полетата
+        $form->input();
+
+        static::prepareBirthday($rec);
+        
+        // Ако формата е субмитната
+        if ($form->isSubmitted()) {
+            
+            // Инстанция на класа
+            $class = cls::get('crm_Persons');
+            
+            // Проверявяме да няма дублирани полета
+            static::checkSimilarWarning($class, $form);
+        }
+        
+        // Ако формата е субмитнара успешно
+        if($form->isSubmitted()) {
+            
+            // Опитваме се да форматираме населеното място
+            if($rec->place) {
+                $rec->place = drdata_Address::canonizePlace($rec->place);
+            }
+            
+            // Записваме данните
+            $id = static::save($form->rec);
+            
+            // Създаваме обект
+            $data = new stdClass();
+            
+            // Добавяме формата към него
+            $data->form = $form;
+            
+            // Подготяваме URL' то където ще редиректваме след записа
+            static::prepareRetUrl($data);
+            
+            // Ако не може да се подготви URL' то
+            $retUrl = ($data->retUrl) ? $data->retUrl : array('crm_Persons', 'single', $id);
+            
+            // Редиректваме
+            return Redirect($retUrl);
+        }
+        
+        // Задаваме текущия потребител да е отговорник по подразбиране
+        $form->setDefault('inCharge', core_Users::getCurrent());
+
+        // TODO какво ще се направи, когато имаме повече от една визитка в един файл?
+//        $cntOfVcards = count($allVcards);
+        
+        // Добавяме титлата на формата
+        $form->title = "Създавяне на потребител от визитка";
+        
+        // За сега вземаме първата визитка във файла
+        $currVcard = $allVcards[0];
+        
+        // Ако няма визитка
+        if (!$currVcard) {
+            
+            return static::renderWrapping($form->renderHtml());
+        }
+        
+        // Опитваме се да извлечем името
+        if (!($names = $currVcard['formattedName'])) {
+            $names = "{$currVcard['name']['given']} {$currVcard['name']['additional']} {$currVcard['name']['surname']}";    
+        }
+        
+        // Задаваме да е избрано по подразбиране името, което сме определили
+        $form->setDefault('name', $names);
+        
+        // Опитваме се да намерим обръщението
+        if ($currVcard['name']['prefix']) {
+            
+            // Вземаме всички допустими обръщения
+            $salutationOpt = $form->getOptions('salutation');
+            
+            // Проверяваме дали обръщението го има в масив, като го превеждаме
+            $salutationKey = array_search(tr($currVcard['name']['prefix']), $salutationOpt);
+            
+            // Задаваме по подразбиране да е избано обръщението, което сме определили
+            $form->setDefault('salutation', $salutationKey);    
+        }
+        
+        // Ако има зададен рожден ден
+        if ($currVcard['bDay']) {
+            
+            // Задаваме рожденния ден
+            $form->setDefault('birthday', $currVcard['bDay']);    
+        }
+
+        // TODO не работи с линкове, а само с fileHnd
+        // Вземаме първия линк от масива URL'та
+//        $photoKey = key($currVcard['photoUrl']);
+        // Ако има въведено URL
+//        if ($photoKey !== NULL) {
+
+            // Задаваме да е избран по подразбиране
+//            $form->setDefault('photo', $currVcard['photoUrl'][$photoKey]);    
+//        }
+        
+        // Вземаме всички телефонни номера и ги групираме в масив в зависимост от вида им
+        $phonesStrArr['work'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'work');
+        $phonesStrArr['voice'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'voice');
+        $phonesStrArr['home'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'home');
+        $phonesStrArr['fax'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'fax');
+        $phonesStrArr['cell'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'cell');
+        $phonesStrArr['pref'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'pref');
+        
+        // Добавяме номерата, които са pref в стринга
+        if ($phonesStrArr['pref']) {
+            $personePhone .= ($personePhone) ? ', ' . $phonesStrArr['pref'] : $phonesStrArr['pref'];    
+        }
+        
+        // Добавяме номерата, които са home в стринга
+        if ($phonesStrArr['home']) {
+            $personePhone .= ($personePhone) ? ', ' . $phonesStrArr['home'] : $phonesStrArr['home'];    
+        }
+        
+        // Добавяме номерата, които са voice в стринга
+        if ($phonesStrArr['voice']) {
+            $personePhone .= ($personePhone) ? ', ' . $phonesStrArr['voice'] : $phonesStrArr['voice'];   
+        }
+        
+        // Задаваме съответните стойности да са избрани по подразбиране
+        $form->setDefault('buzTel', $phonesStrArr['work']);
+//        $form->setDefault('buzFax', $phonesStrArr['fax']);    
+        $form->setDefault('fax', $phonesStrArr['fax']);    
+        $form->setDefault('mobile', $phonesStrArr['cell']);
+        $form->setDefault('tel', $personePhone);
+        
+        // Вземаме всички имейли
+        $emails = core_Array::extractMultidimensionArray($currVcard['Emails']);
+        
+        // Задаваме полето имейли, да съдържа всички намерени имейли
+        $form->setDefault('email', $emails);
+        
+        // Опитваме се да извлечем адреса от масива
+        if ($currVcard['addressLabel']) {
+            
+            // Ако сме взели адреса, като стринга
+            // Създавме масив за всички адреси
+            $addressLabel = $currVcard['addressLabel'];
+            
+            // Вземаме адреса на фирмата
+            $workAddr = core_Array::extractMultidimensionArray($addressLabel, 'work', " | ");
+            
+            // Премахваме го от масива
+            unset($addressLabel['work']);
+            
+            // Създаваме нов масив, където на първо място са домашните
+            $newAddLabel['home'] = $addressLabel['home'];
+            $newAddLabel['dom'] = $addressLabel['dom'];
+            $newAddLabel += (array)$addressLabel;
+            
+            // Вземаме всички адреси, без служебния, като на първо място е домашния
+            $homeAddr = core_Array::extractMultidimensionArray($addressLabel, FALSE, " | ");
+        } else {
+            
+            // Създавме масив за всички адреси
+            $addressArr = $currVcard['Address'];
+            
+            // Вземаме адреса на фирмата
+            $workAddr = core_Array::extractMultidimensionArray($addressArr, 'work', " | ");
+            
+            // Премахваме го от масива
+            unset($addressArr['work']);
+            
+            // Създаваме нов масив, където на първо място са домашните
+            $newAddrArr['home'] = $addressArr['home'];
+            $newAddrArr['dom'] = $addressArr['dom'];
+            $newAddrArr += (array)$addressArr;
+            
+            // Вземаме всички адреси, без служебния, като на първо място е домашния
+            $homeAddr = core_Array::extractMultidimensionArray($newAddrArr, FALSE, " | ");
+        }
+        
+        // Задаваме адреса на фирмата
+        $form->setDefault('buzAddress', $workAddr);
+        
+        // Задаваме адреса на лицето
+        $form->setDefault('address', $homeAddr);
+        
+        // Ако има задедена организация
+        if ($currVcard['organization']) {
+            
+            // Името на фирмата в долния регистър
+            $organization = mb_strtolower($currVcard['organization']);
+            
+            // Гледаме дали има такава въведена фирма
+            $companyId = crm_Companies::fetch(array("LOWER(#name) LIKE '%[#1#]%'", $organization), 'id')->id;
+            
+            // Избираме я по подразбиране
+            $form->setDefault('buzCompanyId', $companyId);    
+        }
+        
+        // Името на работата
+        $jobTitle = tr($currVcard['jobTitle']);
+        
+        // Ролята
+        $role = tr($currVcard['role']);
+        
+        // Съединяваме името на работата с ролята
+        $buzPosition = ($role) ? "$jobTitle - $role" : $jobTitle;
+        
+        // Задаваме позицията на работата
+        $form->setDefault('buzPosition', $buzPosition);
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'), array('order' => 1));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'), array('order' => 10));
+        
+        // Добавяме във формата информация, за да знаем коя визитка добавяме
+//        $form->info = "Извличане на информация за първата визитка";
+        
+        return static::renderWrapping($form->renderHtml());
+    }
+    
+
+    /**
+     * Подготвяме рожденния ден. Ако няма въведение хубави данни, използваме ЕГН' то
+     */
+    protected static function prepareBirthday(&$rec)
+    {
+        list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
+    
+        if(isset($rec->egn) && !($y>0 || $m>0 || $d>0)) {
+            try {
+                $Egn = new drdata_BulgarianEGN($rec->egn);
+            } catch(Exception $e) {
+                $err = $e->getMessage();
+            }
+
+            if(!$err) {
+                $rec->birthday = type_Combodate::create($Egn->birth_year, $Egn->birth_month, $Egn->birth_day);
+            }
+        }
+    }
+    
+    
+    /**
+     * Проверява дали полето име и полето ЕГН се дублират. Ако се дублират сетваме грешка.
+     */
+    protected static function checkSimilarWarning($mvc, &$form)
+    {
+        $rec = $form->rec;
+        
+        // Правим проверка за дублиране с друг запис
+        if(!$rec->id) {
+            $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
+
+            $query = $mvc->getQuery();
+
+            while($similarRec = $query->fetch(array("#searchKeywords LIKE '% [#1#] %'", $nameL))) {
+                $similars[$similarRec->id] = $similarRec;
+                $similarName = TRUE;
+            }
+
+            $egnNumb = preg_replace("/[^0-9]/", "", $rec->egn);
+
+            if($egnNumb) {
+                $query = $mvc->getQuery();
+
+                while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", $egnNumb))) {
+                    $similars[$similarRec->id] = $similarRec;
+                }
+                $similarEgn = TRUE;
+            }
+
+            if(count($similars)) {
+                foreach($similars as $similarRec) {
+                    $similarPersons .= "<li>";
+                    $similarPersons .= ht::createLink($mvc->getVerbal($similarRec, 'name'), array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
+
+                    if($similarRec->egn) {
+                        $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'egn');
+                    } elseif($birthday = $mvc->getverbal($similarRec, 'birthday')) {
+                        $similarPersons .= ", " . $birthday;
+                    }
+
+                    if(trim($similarRec->place)) {
+                        $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'place');
+                    }
+                    $similarPersons .= "</li>";
+                }
+
+                $fields = ($similarEgn && $similarName) ? "name,egn" : ($similarName ? "name" : "egn");
+
+                $sledniteLica = (count($similars) == 1) ? "следното лице" : "следните лица";
+
+                $form->setWarning($fields, "Възможно е дублиране със {$sledniteLica}|*: <ul>{$similarPersons}</ul>");
+            }
         }
     }
 }

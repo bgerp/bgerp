@@ -47,7 +47,7 @@ class cms_Content extends core_Manager
      */
     var $canRead = 'cms,admin';
     
-    
+    var $recTitleTpl = '[#menu#]';
     
     /**
      * Описание на модела (таблицата)
@@ -59,6 +59,7 @@ class cms_Content extends core_Manager
         $this->XPR('order', 'double', '0+#menu', 'caption=Подредба,column=none');
         $this->FLD('url',  'varchar(128)', 'caption=URL');
         $this->FLD('layout', 'html', 'caption=Лейаут');
+        $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване,input=none,column=none');
 
         $this->setDbUnique('menu');
     }
@@ -214,6 +215,20 @@ class cms_Content extends core_Manager
             return new Redirect(array('bgerp_Portal', 'Show'));
         }
     }
-   
+    
+
+    /**
+     * Калкулиране на необходимите роли
+     */
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL) 
+    {
+        if ($action == 'delete') {
+            if($rec->id && cms_Articles::count("#menuId = $rec->id")) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+    
     
  }

@@ -458,4 +458,58 @@ class incoming_Documents extends core_Master
          
          return $fhArr;
      }
+     
+     
+    /**
+     * Показва меню от възможности за създаване на входящи документие
+     */
+    function act_ShowDocMenu()
+    {
+        // Манипулатора на файла
+        $fh = Request::get('fh');
+        
+        // Очаква да има такъв манипулатор
+        expect($fh);
+        
+        // Очакваме да има такъв файл
+        expect($fRec = fileman_Files::fetchByFh($fh));
+        
+        // Изискваме да има права за single на файла
+        fileman_Files::requireRightFor('single', $fRec);
+        
+        // Шаблон
+        $tpl = new ET();
+        
+        // Създаваме заглавие
+        $tpl->append("\n<h3>" . tr('Създаване на входящ документ') . ":</h3>");
+        
+        // Създаваме таблица в шаблона
+        $tpl->append("\n<table>");
+        
+        // Вземаме всички класове, които имплементират интерфейса
+        $classesArr = core_Classes::getOptionsByInterface('incoming_CreateDocumentIntf');
+        
+        // Обхождаме всички класове, които имплементират интерфейса
+        foreach ($classesArr as $className) {
+            
+            // Вземаме масива с документите, които може да създаде
+            $arrCreate = $className::canCreate($fRec);
+            
+            // Обхождаме масива
+            foreach ((array)$arrCreate as $arr) {
+                
+                // Ако има полета, създаваме бутона
+                if (count($arr)) {
+                    $tpl->append("\n<tr><td>");
+                    $tpl->append(ht::createBtn($arr['title'], array($arr['class'], $arr['action'], 'fh' => $fh, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($arr['icon'], '') . ");width:100%;text-align:left;"));
+                    $tpl->append("</td></tr>");
+                }    
+            }
+        }
+        
+        // Добавяме края на таблицата
+        $tpl->append("\n</table>");
+        
+        return $this->renderWrapping($tpl);
+    }
 }

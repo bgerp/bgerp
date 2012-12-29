@@ -104,7 +104,7 @@ a.calWeek{
 	position:absolute;
 	
 }
-
+                               
 img.calWeek{
 	float: right;
 	position: relative;
@@ -170,6 +170,19 @@ p.calTitle{
 	font-weight:bold;
 }
 
+a.closedColor{
+	position:absolute;
+	background-color:#eee; 
+	text-decoration:line-through;
+	
+}
+
+a.draftColor{
+	position:absolute;
+	background-color:#88cc99;
+	
+}
+
 
 /*.calTable>tbody>tr>td div.document {
 	border: none; 
@@ -208,9 +221,9 @@ p.calTitle{
     padding-left:24px;  
     background-repeat:no-repeat;
 	font-weight:bold;
-}
+}*/
 
-/*td.calMonth {
+td.mc-calendar {
 	text-align:left;
  	border:none;
 	background-color: #e8efe8;
@@ -234,42 +247,72 @@ table.mc-calendar td.mc-day {
 	font-weight:bold;
 	cursor: pointer;
 	font-family:Arial,sans-serif;
-	height: 80px;
+	height:8em;
+	min-width:8em;
 
 }
 
 table.mc-calendar td.mc-week-nb {
- 	border:none;
+	border: 1px solid #999;
+    border-collapse: collapse;
+	colspan: 2;
+	color:#ffffff;
+	background-color:#47476B;
  	padding:0px;
+	text-align:center;
 }
 
 table.mc-calendar td.mc-wd-name {
-	text-align:left;
+	text-align:center;
  	padding-left:1px;
+	border: 1px solid #999;
+    border-collapse: collapse;
+	colspan: 2;
+	color:#ffffff;
+	background-color:#47476B;
 }
 
 
-table.mc-calendar td.mc-sunday {
+table.mc-calendar td.mc-sunday{
 	color:green;
+	text-align:left;
+	vertical-align:top;
+	background-color: #ffffff;
+	border:solid 1px #dddddd;
+	font-weight:bold;
+	cursor: pointer;
+	font-family:Arial,sans-serif;
+	height: 80px;
 }
 
-table.mc-calendar td.mc-holiday {
+table.mc-calendar td.mc-holiday{
 	color:red !important;
 }
 
-table.mc-calendar td.mc-saturday {
+table.mc-calendar td.mc-saturday{
 	color:#006030;
+	text-align:left;
+	vertical-align:top;
+	background-color: #ffffff;
+	border:solid 1px #dddddd;
+	font-weight:bold;
+	cursor: pointer;
+	font-family:Arial,sans-serif;
+	height: 80px;
 }
 
 
-table.mc-calendar td.mc-day:hover {
+table.mc-calendar td.mc-day:hover{
 	background-color: LightGoldenRodYellow ;
 }
 
-table.mc-calendar td.mc-today {
-	border:solid 2px red;
+table.mc-calendar td.mc-today{
+	//border:solid 2px red;
+	border:solid 2px #cc0;
+	colspan: 2;
+	height:2em;
 }
 
 table.mc-header a {
 	color:#999;
-}*/
+}
