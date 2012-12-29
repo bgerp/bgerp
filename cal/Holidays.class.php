@@ -436,8 +436,8 @@ class cal_Holidays extends core_Master
         } else {
             $pData = new stdClass();
 
-            $pData->namesArr = self::getLatinNames($row->nameday);
-           
+            $pData->namesArr = self::getLatinNames($rec->nameday);
+
             crm_Persons::prepareNamedays($pData);
             
             $tpl = crm_Persons::renderNamedays($pData);
@@ -459,16 +459,16 @@ class cal_Holidays extends core_Master
      * Връща масив с имена на латиница от описание на именници
      */
     static function getLatinNames($names)
-    {
-	    	$needle = array('<div class="richtext">', "<br>
-	</div>");
-	    	$names = str_replace($needle, "", $names->content);
-    	    $namesArr = explode(',', str::utf2ascii($names));
+    {   
+        // Това долното е недопустимо
+	    // $needle = array('<div class="richtext">', "<br></div>");
+	
+        $names = str_replace(array('и др', '.'), array('', ''), $names);
+        $namesArr = explode(',', str::utf2ascii($names));
 
         foreach($namesArr as $n) {
             $n = strtolower(trim($n));
-            $nArr = explode(' ', $n);
-            $res[$nArr[0]] = $nArr[0];
+            $res[$n] = $n;
         }
 
         return $res;
