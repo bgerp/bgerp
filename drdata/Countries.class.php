@@ -47,7 +47,7 @@ class drdata_Countries extends core_Manager {
     function description()
     {
         $this->FLD('commonName', 'varchar', 'caption=Наименование');
-        $this->FLD('commonNameBg', 'varchar', 'caption=Наименование на Български');
+        $this->FLD('commonNameBg', 'varchar', 'caption=НаименованиеBG');
         $this->FLD('formalName', 'varchar', 'caption=Формално име');
         $this->FLD('type', 'varchar', 'caption=Тип');
         $this->FLD('sovereignty', 'varchar', 'caption=Суверинитет');
