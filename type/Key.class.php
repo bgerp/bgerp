@@ -26,6 +26,19 @@ class type_Key extends type_Int {
     
     
     /**
+     * Инициализиране на типа
+     */
+    function init($params = array())
+    {
+        if($params['params']['selectBg'] && core_Lg::getCurrent() == 'bg') {
+            $params['params']['select'] = $params['params']['selectBg'];
+        }
+
+        parent::init($params);
+    }
+
+    
+    /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function toVerbal_($value)
