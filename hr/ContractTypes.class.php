@@ -19,7 +19,7 @@ class hr_ContractTypes extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Шаблони";
+    var $title = "Шаблони за трудови договори";
     
     
     /**
@@ -59,9 +59,36 @@ class hr_ContractTypes extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
-        $this->FLD('script', 'text', "caption=Текст");
-        $this->FLD('employersCnt', 'datetime', "caption=Служители,input=none");
+        $this->FLD('script', 'text', "caption=Текст,column=none");
+        $this->FLD('employersCnt', 'int', "caption=Служители,input=none");
         
         $this->setDbUnique('name');
+    }
+
+
+    /**
+     * Създава начални шаблони за трудови договори, ако такива няма
+     */
+    function loadSetupData()
+    {
+        if(!self::count()) {
+            // Безсрочен трудов договор
+            $rec = new stdClass();
+            $rec->name = 'Безсрочен трудов договор';
+            $rec->script = getFileContent('hr/tpl/PermanentContract.ls.shtml');
+            self::save($rec);
+
+            // Срочен трудов договор
+            $rec = new stdClass();
+            $rec->name = 'Срочен трудов договор';
+            $rec->script = getFileContent('hr/tpl/FixedTermContract.ls.shtml');
+            self::save($rec);
+            
+            // Срочен трудов договор
+            $rec = new stdClass();
+            $rec->name = 'Трудов договор за заместване';
+            $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
+            self::save($rec);
+        }
     }
 }

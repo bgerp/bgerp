@@ -99,11 +99,11 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('managerId', 'key(mvc=crm_Persons,select=name)', 'caption=Управител, mandatory');
         
         // Служител
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory');
-        $this->FLD('education', 'varchar', 'caption=Служител->Образование');
-        $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност');
-        $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
-        $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от');
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory,width=100%');
+        $this->FLD('education', 'varchar', 'caption=Служител->Образование,width=100%');
+        $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност,width=100%');
+        $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №,width=100%');
+        $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от,width=100%');
         $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
         
         // Работа
@@ -112,8 +112,8 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност, mandatory,oldField=possitionId');
         
         // УСЛОВИЯ
-        $this->FLD('startFrom', 'date', "caption=Условия->Начало,mandatory");
-        $this->FLD('endOn', 'date', "caption=Условия->Край");
+        $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Условия->Начало,mandatory");
+        $this->FLD('endOn', 'date(format=d.m.Y)', "caption=Условия->Край");
         $this->FLD('term', 'int', "caption=Условия->Срок,unit=месеца");
         $this->FLD('annualLeave', 'int', "caption=Условия->Годишен отпуск,unit=дни");
         $this->FLD('notice', 'int', "caption=Условия->Предизвестие,unit=дни");
@@ -171,14 +171,27 @@ class hr_EmployeeContracts extends core_Master
         
         $row->num = $data->rec->id;
         
-        $row->employeeRec = crm_Persons::fetch($rec->personId);
+        $row->employeeRec         = crm_Persons::fetch($rec->personId);
+        $row->employeeRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->personId}");
+
+        if(!$row->employeeRec->egn) {  
+            unset($row->employeeRec->egn);
+        }
+
+
         
         $row->employerRec = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
         
         $row->managerRec = crm_Persons::fetch($rec->managerId);
-        
+        $row->managerRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->managerId}");
+
+        if(!$row->managerRec->egn) {
+            unset($row->managerRec->egn);
+        }
+
         $row->positionRec = hr_Positions::fetch($rec->positionId);
         
+
         $res = $data;
     }
     
@@ -196,8 +209,10 @@ class hr_EmployeeContracts extends core_Master
         
         $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script));
         
+        unset($row->script);
+
         $contract = $lsTpl->render($row);
-        
+
         $res = new ET("[#toolbar#]
         <div class='document'>[#contract#]</div> <div style='clear:both;'></div>
         

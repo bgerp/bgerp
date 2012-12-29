@@ -58,11 +58,9 @@ class hr_Departments extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
-        $this->FLD('parentId', 'key(mvc=hr_Departments, select=name, allowEmpty)', "caption=В състава на,input=none");
-        $this->FLD('orderId', 'varchar(100)', "caption=Подредба, input=none,1column=none");
+        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,width=100%');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('employersCnt', 'datetime', "caption=Служители,input=none");
-        $this->XPR('orderSum', 'varchar', 'CONCAT(#id, #orderId)');
         
         $this->setDbUnique('name');
     }
@@ -73,9 +71,7 @@ class hr_Departments extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        if($mvc->fetch('1=1')) {
-            $data->form->setField('parentId', 'input');
-        }
+        $data->form->setOptions('locationId', array('' => '&nbsp;') + crm_Locations::getOwnLocations());
     }
     
     
@@ -85,7 +81,7 @@ class hr_Departments extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         
-        $data->query->orderBy("#orderSum");
+      //  $data->query->orderBy("#orderSum");
     }
     
     

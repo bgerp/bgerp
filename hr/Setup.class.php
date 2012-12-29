@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class hr_Setup
+class hr_Setup extends core_ProtoSetup
 {
     
     
@@ -43,47 +43,24 @@ class hr_Setup
      */
     var $info = "Човешки ресурси";
     
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = 'hr_WorkingCycles, hr_WorkingCycleDetails, hr_Shifts, hr_Departments, hr_Positions, hr_ContractTypes, hr_EmployeeContracts';
+    
     
     /**
-     * Инсталиране на пакета
+     * Роли за достъп до модула
      */
-    function install()
-    {
-        $managers = array(
-            'hr_WorkingCycles',
-            'hr_Shifts',
-            'hr_Departments',
-            'hr_Positions',
-            'hr_ContractTypes',
-            'hr_EmployeeContracts',
+    var $roles = 'hr';
+
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+         array(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "hr, admin"),
         );
-        
-        // Роля за power-user на този модул
-        $role = 'hr';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "{$role}, admin");
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
+
 }

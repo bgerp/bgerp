@@ -19,7 +19,7 @@ class hr_WorkingCycles extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Работни Цикли";
+    var $title = "Работни цикли";
     
     
     /**
@@ -33,6 +33,9 @@ class hr_WorkingCycles extends core_Master
      */
     var $pageMenu = "Персонал";
     
+
+    var $details = 'hr_WorkingCycleDetails';
+
     
     /**
      * Плъгини за зареждане
@@ -51,6 +54,9 @@ class hr_WorkingCycles extends core_Master
      * Кой може да пише?
      */
     var $canWrite = 'admin,dma';
+
+
+    var $singleFields = 'id,name,cycleDuration,info';
     
     
     /**
@@ -58,9 +64,43 @@ class hr_WorkingCycles extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
-        $this->FLD('serial', 'text', "caption=Последователност,hint=На всеки ред запишете: \nчасове работа&#44; минути почивка&#44; неработни часове");
+        $this->FLD('name', 'varchar', 'caption=Наименование, width=100%,mandatory');
+        $this->FLD('cycleDuration', 'int(min=1)', 'caption=Брой дни, width=50px, mandatory');
+        // $this->FLD('cycleMeasure', 'enum(days=Дни,weeks=Седмици)', 'caption=Цикъл->Мярка, maxRadio=4,mandatory');
+        // $this->FLD('serial', 'text', "caption=Последователност,hint=На всеки ред запишете: \nчасове работа&#44; минути почивка&#44; неработни часове");
         
         $this->setDbUnique('name');
     }
+
+
+ 
+    
+    
+    /**
+     *
+     */
+    function on_AfterPrepareSingle($mvc, $res, $data)
+    {
+        $maxNight = 0;
+        $rec = $data->rec;
+        $tTime = core_Type::getByName("time(format=H:M)");
+
+        for($i = 1; $i <= $rec->cycleDuration; $i++) {
+            $night = 0;
+            for($j = 0; $j < 7; $j++) {
+                $day = (($i + $j) % $rec->cycleDuration) + 1;
+                $dRec = hr_WorkingCycleDetails::fetch("#cycleId = {$rec->id} AND #day = {$day}"); 
+                $night += hr_WorkingCycleDetails::getSection($dRec->start, $dRec->duration, 22*60*60, 7*60*60);
+            } 
+            echo "<li> $night";
+
+            $maxNight = max($maxNight, $night);
+        }
+
+       
+        $maxNight = $tTime->toVerbal($maxNight);
+
+        $data->row->info = "Max night: $maxNight<br>";
+    }
+
 }
