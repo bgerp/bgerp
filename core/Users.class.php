@@ -135,7 +135,7 @@ class core_Users extends core_Manager
         
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли,oldFieldName=Role');
         
-        $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Изтрит)',
+        $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
             'caption=Състояние,notNull,default=draft');
         
         $this->FLD('lastLoginTime', 'datetime', 'caption=Последно->Логване,input=none');
@@ -388,7 +388,7 @@ class core_Users extends core_Manager
                     $layout->append($form->renderHtml('nick,pass,ret_url', $inputs), 'FORM');
                 }
                 
-                $layout->prepend(tr('Вход') . ' » ', 'PAGE_TITLE');
+                $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
                 if(EF_USERS_HASH_FACTOR > 0) {
                     $layout->push('js/login.js', 'JS');
                 } else {

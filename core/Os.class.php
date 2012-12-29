@@ -322,7 +322,7 @@ class core_Os
     /**
      * Връща уникален глобален идентификатор
      */
-    function getUniqId($base = 'id')
+    static function getUniqId($base = 'id')
     {
         static $i, $uniqId;
         
