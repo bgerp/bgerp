@@ -286,7 +286,8 @@
 }
 .chzn-container .chzn-results .group-result {
   cursor: default;
-  color: #999;
+  color: #fff;
+  background-color:#333;
   font-weight: bold;
 }
 .chzn-container .chzn-results .group-option {

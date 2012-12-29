@@ -35,7 +35,12 @@ class fancybox_Fancybox {
         $Thumb = cls::get('thumbnail_Thumbnail');
         $jQuery = cls::get('jquery_Jquery');
         
-        $info['baseName'] = $baseName;
+        if(Mode::is('text', 'xhtml') || Mode::is('printing')) {
+            $info['baseName'] = str::utf2ascii($baseName);
+            $info['baseName'] = preg_replace('/[^a-zA-Z0-9\-_\.]+/', '_', $info['baseName']);
+        } else {
+            $info['baseName'] = $baseName;
+        }
         
         // Създаваме изображението
         $imgAttr['src']    = $Thumb->getLink($fh, $thumbSize, $info);

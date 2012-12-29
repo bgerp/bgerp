@@ -34,7 +34,11 @@ class chosen_PluginSelect extends core_Plugin
      * Изпълнява се след рендирането на input
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
-    {
+    {   
+        // За да не влиза в конфликт с комбо-бокса
+        if($attr['ajaxAutoRefreshOptions']) {
+            return;
+        }
     	
         // Определяме при колко минимално опции ще правим chosen
         if(!$invoker->params['chosenMinItems']) {

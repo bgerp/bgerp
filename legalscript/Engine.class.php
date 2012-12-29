@@ -179,7 +179,8 @@ class legalscript_Engine extends core_BaseClass
      */
     function numberToRoman($num, $type = 1)
     {
-        if($type == 1){ //upper character number
+        if($type == 1){ 
+            //upper character number
             // Make sure that we only use the integer portion of the value
             
             $n = intval($num);
