@@ -47,9 +47,9 @@ class bgerp_data_Translations
                 
                 //Създаден от системата
                 $rec->createdBy = -1;
-                
+
                 //Ако запишем успешно, добава единица в общия брой записи
-                if (core_Lg::save($rec, NULL, 'IGNORE')) {
+                if (core_Lg::save($rec, NULL, 'REPLACE')) {
                     $created++;    
                 }
             }
