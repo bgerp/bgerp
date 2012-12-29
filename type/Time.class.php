@@ -179,16 +179,35 @@ class type_Time extends type_Varchar {
         
         $v = abs($value);
         
-        if($v == 0) {
-            
-            return '0 ' . tr('мин.');
-        }
+
         
         $weeks    = floor($v / (7 * 24 * 60 * 60));
         $days     = floor(($v - $weeks * (7 * 24 * 60 * 60)) / (24 * 60 * 60));
         $hours    = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60)) / (60 * 60));
         $minutes  = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60) / 60);
         $secundes = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60 - $minutes * 60));
+        
+        if($format = $this->params['format']) {
+
+            $repl['w'] = "$weeks";
+            $repl['d'] = "$days";
+            $repl['h'] = "$hours";
+            $repl['H'] = sprintf('%02d', $hours);
+            $repl['m'] = "$minutes";
+            $repl['M'] = sprintf('%02d', $minutes);
+            $repl['s'] = "$secundes";
+            $repl['S'] = sprintf('%02d', $secundes);
+
+            $res = str_replace(array_keys($repl), $repl, $format);
+
+            return $res;
+        }
+
+        
+        if($v == 0) {
+            
+            return '0 ' . tr('мин.');
+        }
 
         if($weeks > 0) {
             if($days == 0) {
