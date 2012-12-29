@@ -30,15 +30,16 @@ class unit_Tests extends core_Manager
             $classes[] = $act;
         } else {
             $classes += $this->readClasses(EF_EF_PATH, $act);
-            $classes += $this->readClasses(EF_APP_PATH, $act);
-            $classes += $this->readClasses(EF_VENDORS_PATH, $act);
+            $classes = array_merge($classes, $this->readClasses(EF_APP_PATH, $act));
+            $classes += array_merge($classes, $this->readClasses(EF_VENDORS_PATH, $act));
         }
-
-        foreach($classes as $class) {
-            if($p = strrpos($class, '_')) {
-                $testClass = substr($class, 0, $p) . '_tests' . substr($class, $p);
-                if(cls::load($testClass, TRUE)) {
-                    $tests[$class] = $testClass;
+        foreach($classes as $testClass) { 
+            if(strrpos($testClass, '_tests_')) {
+                if(cls::load($testClass, TRUE)) { 
+                    $class = str_replace('_tests_', '_', $testClass);
+                    if(cls::load($class, TRUE)) {
+                        $tests[$class] = $testClass;
+                    }
                 }
             }
         }
@@ -49,7 +50,7 @@ class unit_Tests extends core_Manager
         if(count($tests)) {
             foreach($tests as $class => $testClass) {
 
-                $this->testLog[] = "<h3>Тестване на <b style='color:blue;'>{$class}</b></h3>";
+                $this->testLog[] = "<h3>Тестване на <b style='color:blue;'>{$class}</b></h3><ul>";
 
                 $reflector = new ReflectionClass($testClass);
                 $testClass = cls::get($testClass);
@@ -59,8 +60,9 @@ class unit_Tests extends core_Manager
                     if(stripos($mName, 'test_') === 0) {
                         $testMethod = substr($mName, 5);
                         if(!$requestMethod || ($requestMethod == $testMethod)) {
+                            $unitClass = cls::get($class);
                             try {
-                                call_user_func(array($testClass, $mName));
+                                call_user_func(array($testClass, $mName), $unitClass);
                             } catch (core_Exception_Expect $expect) {
                                 $this->errorLog .= ' exeption';  
                             }
@@ -82,7 +84,9 @@ class unit_Tests extends core_Manager
                             $this->errorLog = '';    
                         }
                     }
-                }
+                } 
+                
+                $this->testLog[] = "</ul>";
             }
         }
 
