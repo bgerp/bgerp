@@ -217,4 +217,79 @@ class core_Array
 
         return $result;
     }
+    
+    
+	/**
+     * Превръща многомерен масив в стринг
+     * 
+     * @param array $array - Многомерен масив, който ще извличаме
+     * @param string $field - Полето, което ще извличаме. Ако не е зададено, извлича всички елементи
+     * @param string $delimiter - Разделителя между елементите на масива
+     * 
+     * @return string $str - Стринга, който ще връщаме
+     */
+    function extractMultidimensionArray($array, $field=FALSE, $delimiter=', ') 
+    { 
+        // Стринга, който ще връщаме
+        $str = '';
+        
+        // Ако има елементи в масива
+        if (count($array)) {
+            
+            // Ако е зададено полето
+            if ($field !== FALSE) {
+                
+                // Ако има елементи в подмасива със съответните елементи
+                if (count($array[$field])) {
+                    
+                    // Обхождаме подмасива
+                    foreach ($array[$field] as $key => $value) {
+                        
+                        // Ако все още е масив
+                        if (is_array($value)) {
+                            
+                            // Извикаваме функцията рекурсивно
+                            $strRecurs = self::extractMultidimensionArray($array[$field], $key);
+                            
+                            // Получения резултат го добавяме към стринга
+                            $str .= ($str) ? $delimiter . $strRecurs : $strRecurs;    
+                        } else {
+                            
+                            // Ако е стринг, добавяме го към стринга
+                            $str .= ($str) ? $delimiter . $value : $value;    
+                        }
+                    }
+                }    
+            } else {
+                
+                // Обхождаме масива
+                foreach ($array as $key => $value) {
+                    
+                    // Ако има елементи в подмасива със съответните елементи
+                    if (count($array[$key])) {
+                        
+                        // Обхождаме подмасива
+                        foreach ($array[$key] as $keyV => $val) {
+                            
+                            // Ако все още е масив
+                            if (is_array($val)) {
+                                
+                                // Извикаваме функцията рекурсивно
+                                $strRecurs = self::extractMultidimensionArray($array[$key], $keyV);
+                                
+                                // Получения резултат го добавяме към стринга
+                                $str .= ($str) ? $delimiter . $strRecurs : $strRecurs;
+                            } else {
+                                
+                                // Ако е стринг, добавяме го към стринга
+                                $str .= ($str) ? $delimiter . $val : $val;
+                            }
+                        }    
+                    }
+                }
+            }
+        }
+        
+        return $str;
+    }
 }

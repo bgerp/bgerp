@@ -66,7 +66,7 @@ class plg_ProtoWrapper extends core_Plugin
     { 
         $tpl= new ET($tpl);
         
-        $this->invoke('deforeDescription');
+        $this->invoke('beforeDescription');
         $this->description();
         $this->invoke('afterDescription');
 

@@ -439,11 +439,9 @@ class core_Packs extends core_Manager
         if($setupFlag) {
 			if ($setupLog) { // Зануляваме лога ако инсталацията минава за първи път
 				file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
-				//file_put_contents(EF_SBF_PATH . '/packLog.txt', "");
 				$setupLog = FALSE;
 			}
         	file_put_contents(EF_SBF_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND);
-			//file_put_contents(EF_SBF_PATH . '/packLog.txt', "Installing " . $pack . " ... " . date("d-m-Y h:i:s") . " \n", FILE_APPEND);
         }
         
         // Проверка дали Setup класа съществува
@@ -530,10 +528,10 @@ class core_Packs extends core_Manager
         $res .= "</ul>";
         
         if($setupFlag) {
-			//file_put_contents(EF_SBF_PATH . '/packLog.txt', "Success " . $pack . " ... " . date("d-m-Y h:i:s") . " \n", FILE_APPEND);
-			// Махаме <h3> тага на заглавието
+			// Махаме <h2> тага на заглавието
 			$res = substr($res, strpos($res, "</h2>"), strlen($res));
-			file_put_contents(EF_SBF_PATH . '/setupLog.html', $res, FILE_APPEND);
+			file_put_contents(EF_SBF_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+			unset($res);
         }
         
         DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
