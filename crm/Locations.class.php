@@ -73,7 +73,7 @@ class crm_Locations extends core_Master {
     {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
-        $this->FLD('title', 'varchar(255)', 'caption=Наименование,mandatory,width=100%');
+        $this->FLD('title', 'varchar', 'caption=Наименование,mandatory,width=100%');
         $this->FLD('type', 'enum(correspondence=За кореспонденция,
             headquoter=Главна квартира,
             shipping=За получаване на пратки,
@@ -221,6 +221,27 @@ class crm_Locations extends core_Master {
             $contragent = cls::get($rec->contragentCls);
             $requiredRoles = $contragent->getRequiredRoles($action, $rec->contragentId, $userId);
         }
+    }
+
+
+    /**
+     * Връща масив със собствените локации
+     */
+    static function getOwnLocations()
+    {
+        cls::load('crm_Setup');
+
+        $query = self::getQuery();
+        
+        $query->where("#contragentCls = " . core_Classes::fetchIdByName('crm_Companies'));
+
+        $query->where("#contragentId = " . BGERP_OWN_COMPANY_ID);
+
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->title;
+        }
+
+        return $res;
     }
 
 
