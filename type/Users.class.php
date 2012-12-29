@@ -50,7 +50,7 @@ class type_Users extends type_Keylist
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
-    private function prepareOptions()
+    private function prepareOptions($defUser =  NULL)
     {
         if (isset($this->options)) {
             return;
@@ -72,7 +72,15 @@ class type_Users extends type_Keylist
         } else {
             
             $uQuery = core_Users::getQuery();
-            $uQuery->where("#state = 'active'");
+            
+            $defUser = trim($defUser, '|');
+            if(is_numeric($defUser) && $defUser > 0) { 
+                $defUserCond = " || (#id = {$defUser})";
+            } 
+                
+            if ($defUser != 'all') {
+                $uQuery->where("(#state != 'rejected'){$defUserCond}");
+            }
             
             // Потребителите, които ще покажем, трябва да имат посочените роли
             $roles = core_Roles::keylistFromVerbal($this->params['roles']);
@@ -146,7 +154,7 @@ class type_Users extends type_Keylist
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $this->prepareOptions();
+        $this->prepareOptions($value);
         
         if(empty($value)) {
             $value = '|' . core_Users::getCurrent() . '|';
@@ -167,7 +175,7 @@ class type_Users extends type_Keylist
      */
     function fromVerbal_($value)
     {
-        $this->prepareOptions();
+        $this->prepareOptions('all');
         
         return $this->options[$value]->keylist;
     }
