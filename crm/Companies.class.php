@@ -180,7 +180,7 @@ class crm_Companies extends core_Master
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember,class=contactData');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
         $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
@@ -257,8 +257,8 @@ class crm_Companies extends core_Master
         if(!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
-        
-        if($data->listFilter->rec->users != 'all_users') {
+
+        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }

@@ -169,7 +169,7 @@ class crm_Persons extends core_Master
         $this->FLD('birthday', 'combodate(minYear=1850,maxYear=' . date('Y') . ')', 'caption=Рожден ден');
 
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember,class=contactData');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=Пощ. код,recently,class=pCode');
         $this->FLD('place', 'varchar(64)', 'caption=Нас. място,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
@@ -267,8 +267,8 @@ class crm_Persons extends core_Master
         if(!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
-        
-        if($data->listFilter->rec->users != 'all_users') {
+
+        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }
@@ -929,7 +929,7 @@ class crm_Persons extends core_Master
         if(!count($data->rows)) return '';
 
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('От визитника') . "</legend>
+                            <legend class='groupTitle'>" . tr('Именници във визитника') . "</legend>
                                 <div class='groupList,clearfix21'>
                                  [#persons#]
                             </div>
