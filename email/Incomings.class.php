@@ -571,7 +571,8 @@ class email_Incomings extends core_Master
             $mime->parts[1] = new stdClass();
             
             $mime->parts[1]->headersArr = $mime->parseHeaders($headers);
-            
+            $mime->parts[1]->headersStr = $headers;
+
             // Извличаме информация за получателя (към кого е насочено писмото)
             $toEml = $mime->getHeader('X-Original-To', '*');
             
@@ -1658,35 +1659,35 @@ class email_Incomings extends core_Master
      * 
      * @param object $rec - Запис
      */
-     function getLinkedFiles($rec)
-     {
-         // Ако не е обект
-         if (!is_object($rec)) {
+    function getLinkedFiles($rec)
+    {
+        // Ако не е обект
+        if (!is_object($rec)) {
              
-             // Вземаме записите за файла
-             $rec = $this->fetch($rec);    
-         }
+            // Вземаме записите за файла
+            $rec = $this->fetch($rec);    
+        }
          
-         // Превръщаме в масив
-         $filesArr = type_Keylist::toArray($rec->files);
+        // Превръщаме в масив
+        $filesArr = type_Keylist::toArray($rec->files);
          
-         // Обхождаме всички файлове
-         foreach ($filesArr as $fileId) {
+        // Обхождаме всички файлове
+        foreach ($filesArr as $fileId) {
              
-             // Вземаме записите за файловете
-             $fRec = fileman_Files::fetch($fileId);
+            // Вземаме записите за файловете
+            $fRec = fileman_Files::fetch($fileId);
              
-             // Създаваме масив с прикачените файлове
-             $fhArr[$fRec->fileHnd] = $fRec->name;
-         }
+            // Създаваме масив с прикачените файлове
+            $fhArr[$fRec->fileHnd] = $fRec->name;
+        }
          
-         return $fhArr;
-     }
+        return $fhArr;
+    }
 
      
-     /**
-      * Връща иконата на документа
-      */
+    /**
+     * Връща иконата на документа
+     */
     function getIcon_($id)
     {
         $rec = self::fetch($id);

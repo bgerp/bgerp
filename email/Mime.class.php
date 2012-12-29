@@ -317,7 +317,7 @@ class email_Mime extends core_BaseClass
      * - ако $id == '*'конкатенация между всички записи за дадения хедър
      * разделени с интервал
      */
-    function getHeader($name, $part = 1, $id = 0)
+    function getHeader($name, $part = 1, $headerIndex = 0)
     {
         if(is_object($part)) {
             $headersArr = $part->headersArr;
@@ -343,19 +343,19 @@ class email_Mime extends core_BaseClass
         
         $name = strtolower($name);
         
-        if ($id == "*") {
+        if ($headerIndex == "*") {
             if (is_array($headersArr[$name])) {
                 $res = implode(' ', $headersArr[$name]);
             }
         } else {
             
-            if($id < 0) {
-                $id = count($headersArr[$name]) + $id;
+            if($headerIndex < 0) {
+                $headerIndex = count($headersArr[$name]) + $headerIndex;
             }
             
-            expect(is_int($id));
+            expect(is_int($headerIndex));
             
-            $res = $headersArr[$name][$id];
+            $res = $headersArr[$name][$headerIndex];
         }
 
         return $this->decodeHeader($res);
@@ -396,15 +396,15 @@ class email_Mime extends core_BaseClass
      */
     function getSenderIp()
     {
-        $ip = trim($this->getHeader('X-Originating-IP'), '[]');
+        $ip = trim($this->getHeader('X-Originating-IP', 1, -1), '[]');
         
         if(empty($ip) || (!type_Ip::isPublic($ip))) {
             
-            $ip = trim($this->getHeader('X-Sender-IP'), '[]');
+            $ip = trim($this->getHeader('X-Sender-IP', 1, -1), '[]');
         }
-        
+     
         if(empty($ip) || (!type_Ip::isPublic($ip))) {
-            $regExp = '/Received:.*\[((?:\d+\.){3}\d+)]/';
+            $regExp = '/Received:.*\[((?:\d+\.){3}\d+)\]/';
             preg_match_all($regExp, $this->getHeadersStr(), $matches);
             
             if($ipCnt = count($matches[1])) {
@@ -430,7 +430,7 @@ class email_Mime extends core_BaseClass
                 }
             }
         }
-        
+         
         return $ip;
     }
     
