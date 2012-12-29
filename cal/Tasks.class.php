@@ -117,7 +117,7 @@ class cal_Tasks extends core_Master
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/task.png';
+    var $singleIcon = 'img/16/task-normal.png';
     
     
     /**
@@ -164,12 +164,6 @@ class cal_Tasks extends core_Master
         
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time',     'caption=Отработено време,input=none');
-
-        // Край на задача ю, която има продължителност
-        $this->FLD('reminder1',   'type_Time(suggestions=1 седмица|2 седмици|3 седмици)', 'caption=Предизвестие->Първо');
-        $this->FLD('reminder2',   'type_Time(suggestions=1 ден|2 дни|3 дни)', 'caption=Предизвестие->Второ');
-        $this->FLD('reminder3',   'type_Time(suggestions=10 минути|20 минути|30 минути|1 час|2 часа|3 часа)', 'caption=Предизвестие->Трето');
-
     }
 
 
@@ -497,6 +491,17 @@ class cal_Tasks extends core_Master
         return $row;
     }
     
+    
+    /**
+     * Връща иконата на документа
+     */
+    function getIcon_($id)
+    {
+        $rec = self::fetch($id);
+
+        return "img/16/task-" . $rec->priority . ".png";
+    }
+
     
     /**
      * Потребителите, с които е споделен този документ
