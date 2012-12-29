@@ -21,7 +21,7 @@ class trz_Bonuses extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Бонуси';
+    var $title = 'Премии';
     
     
     /**

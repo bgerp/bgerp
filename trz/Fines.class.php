@@ -21,7 +21,7 @@ class trz_Fines extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Глоби и Премии';
+    var $title = 'Глоби';
     
     
     /**

@@ -21,7 +21,7 @@ class trz_Payrolls extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Ведомости за заплати';
+    var $title = 'Ведомост за заплати';
     
     
     /**
