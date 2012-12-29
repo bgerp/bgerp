@@ -24,7 +24,7 @@ class doc_Files extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Файлове в папките";
+    var $title = "Файлове в папка";
     
     
     /**
@@ -63,8 +63,7 @@ class doc_Files extends core_Manager
             array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
         $this->FNC('date', 'datetime', 'caption=Дата,input=none');
-        
-        
+
         $this->setDbUnique('containerId, fileHnd');
     }
     
