@@ -39,10 +39,16 @@ class plg_RowTools extends core_Plugin
                     'id' => $rec->id,
                     'ret_url' => TRUE
                 ));
+
+            if(cls::haveInterface('doc_DocumentIntf', $mvc)) {
+                $icon = $mvc->getIcon($rec->id);
+            } else {
+                $icon = $mvc->singleIcon;
+            }
             
             if($singleField = $mvc->rowToolsSingleField) { 
                 $attr1['class'] = 'linkWithIcon';
-                $attr1['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+                $attr1['style'] = 'background-image:url(' . sbf($icon) . ');';
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
                 $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);  
             } else {
