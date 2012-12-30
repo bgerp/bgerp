@@ -78,13 +78,13 @@ class crm_Persons extends core_Master
     /**
      * Полета, които се показват в листови изглед
      */
-    var $listFields = 'numb=№,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,tools=Пулт,name=';
+    var $listFields = 'id=№,id,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
 
 
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
 
 
     /**
@@ -407,8 +407,6 @@ class crm_Persons extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
-        $row->numb = $rec->id;
-        
         if($fields['-single']) {
 
             // Fancy ефект за картинката
