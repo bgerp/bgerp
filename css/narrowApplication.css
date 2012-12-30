@@ -232,7 +232,7 @@ div.tab-control div.tab-row .tab.selected {
     z-index:        3;
     padding:        5px 5px 4px 5px; 
     margin:         1px -16px -3px 18px;
-    top:            -1px;
+    top:            0px;
     font-weight:    bold;
 }
 
