@@ -21,7 +21,7 @@ class jqdatepick_Plugin extends core_Plugin {
      */
     function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
     {
-        if(Mode::is('screenMode', 'narrow')) return;
+       
         ht::setUniqId($attr);
     }
     
@@ -32,15 +32,15 @@ class jqdatepick_Plugin extends core_Plugin {
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
     	$conf = core_Packs::getConfig('jqdatepick');
-    	
-        if(Mode::is('screenMode', 'narrow')) return;
-        
+    	        
         $JQuery = cls::get('jquery_Jquery');
         $JQuery->enable($tpl);
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.css", "CSS");
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.js", "JS");
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick-" . core_Lg::getCurrent() . ".js", "JS");
         
-        $JQuery->run($tpl, "$('#" . $attr['id'] . "').datepick({dateFormat: 'dd-mm-yyyy'});");
+        $alignment = Mode::is('screenMode', 'narrow') ? 'top' : 'bottom';
+
+        $JQuery->run($tpl, "$('#" . $attr['id'] . "').datepick({dateFormat: 'dd.mm.yyyy', alignment: '{$alignment}'});");
     }
 }
