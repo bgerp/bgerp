@@ -127,7 +127,7 @@
                    <span class='b'>Платете<br/>в брой</span>
                 </div>          
                 
-                <div class='text border_r'>
+                <div class='text border_r' style = 'width:67px'>
                  <span class='pos_abs small_text_top_left'  style='width:50px'>Вид валута</span><br>
                    [#currencyId#]
                 </div>

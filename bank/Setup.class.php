@@ -11,8 +11,8 @@ defIfNot('BANK_VB_DEBIT_ACC', '|96|98|105|148|');
 
 
 defIfNot('BANK_CASE_SYSID', '501');
-defIfNot('BANK_NR_CREDIT_ACC', '|148|');
-
+defIfNot('BANK_NR_CREDIT_ACC', '503');
+defIfNot('BANK_NR_DEBIT_ACC', '|96|98|105|');
 
 
 /**

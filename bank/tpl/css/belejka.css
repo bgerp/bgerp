@@ -1,7 +1,7 @@
 ﻿.belejka_container {
 	width: 758px;
     margin: 0;
-	margin-top:10px;
+	margin-top:5px;
     padding: 0;
     border: none;
     outline: none;
@@ -131,12 +131,24 @@
         }
 	/* END belejka_container */
 	.sysInfo {
-		margin-top:10px;
+		margin-top:5px;
 		font-size:11px;
 	    border-collapse:collapse;
         background-color:rgba(136,204,153,0.4);
 	    padding:2px;
 	    border:1px solid rgb(204, 204, 204);
+	}
+	
+	#doc-notification {
+		margin-top:5px;
+		font-size:14px;
+		width:98%;
+		color:red;
+		font-weight:bold;
+	 	background-color:rgba(237,252,174,0.4);
+		border-collapse:collapse;
+		padding:3px;
+		border:1px solid rgb(204, 204, 204);
 	}
 	
 	.sysInfo td {

@@ -164,9 +164,10 @@ class bank_DepositSlips extends core_Master
     {
     	// Поставяме стойности по подразбиране
     	$today = date("d-m-Y", time());
+    	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode());
     	$data->form->setDefault('valior', $today);
-    	$data->form->setDefault('peroCase', cash_Cases::getCurrent());
     	$data->form->setOptions('depositorName', static::getAccountableItems());
+    	//$data->form->setDefault('peroCase', cash_Cases::getCurrent());
     	
     	static::getContragentInfo($data->form);
     	static::getPossibleAccounts($data->form);
@@ -265,6 +266,7 @@ class bank_DepositSlips extends core_Master
     		$contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
     		$form->rec->beneficiaryId = $contragentId;
     		$form->rec->beneficiaryClassId = $contragentClassId;
+    		
     		$accRec = bank_Accounts::fetch("#iban = '{$form->rec->beneficiaryIban}'");
     		$form->rec->beneficiaryBank = $accRec->bank;
     	}
@@ -293,31 +295,36 @@ class bank_DepositSlips extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	$row->number = static::getHandle($rec->id);
-    	$conf = core_Packs::getConfig('crm');
-    	$myCompany = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
-    	$row->orderer = $myCompany->name;
     	
-    	$spellNumber = cls::get('core_SpellNumber');
-		$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-        
-		$conf = core_Packs::getConfig('bank');
-    	$debitRec = acc_Accounts::fetch($rec->debitAccount);
-    	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
-    	
-    	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_VB_CREDIT_SYSID}");
-    	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
-    	
-    	// При принтирането на 'Чернова' скриваме системите полета и заглавието
-    	if(Mode::is('printing')){
-    		if($rec->state == 'draft') {
-    			unset($row->header);
-    			unset($row->createdBy);
-    			unset($row->createdOn);
-    			unset($row->debitAccount);
-    			unset($row->creditAccount);
-    		}
+    	if($fields['-single']) {
+    		
+    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+    		
+	    	$conf = core_Packs::getConfig('crm');
+	    	$myCompany = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
+	    	$row->orderer = $myCompany->name;
+	    	
+	    	$spellNumber = cls::get('core_SpellNumber');
+			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
+	        
+			$conf = core_Packs::getConfig('bank');
+	    	$debitRec = acc_Accounts::fetch($rec->debitAccount);
+	    	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
+	    	
+	    	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_VB_CREDIT_SYSID}");
+	    	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
+	    	
+	    	// При принтирането на 'Чернова' скриваме системите полета и заглавието
+	    	if(Mode::is('printing')){
+	    		if($rec->state == 'draft') {
+	    			unset($row->header);
+	    			unset($row->createdBy);
+	    			unset($row->createdOn);
+	    			unset($row->debitAccount);
+	    			unset($row->creditAccount);
+	    		}
+	    	}
     	}
     }
     

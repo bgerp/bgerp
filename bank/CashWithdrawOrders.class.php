@@ -39,7 +39,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, reason, valior, amount, currencyId, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, state, createdOn, createdBy";
     
     
     /**
@@ -127,11 +127,10 @@ class bank_CashWithdrawOrders extends core_Master
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,width=16em,mandatory');
-    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=До->Клон,width=16em');
-        $this->FLD('execBankAdress', 'varchar(255)', 'caption=До->Адрес,width=16em');
-    	$this->FLD('ordererName', 'varchar(255)', 'caption=Наредител->Име,mandatory,width=16em');
-    	$this->FLD('ordererIban', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=Наредител->IBAN,mandatory,width=16em');
+    	$this->FLD('ordererIban', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Сметка,mandatory,width=16em');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=От->Банка,width=16em,mandatory');
+    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=От->Клон,width=16em');
+        $this->FLD('execBankAdress', 'varchar(255)', 'caption=От->Адрес,width=16em');
     	$this->FLD('proxyName', 'varchar(255)', 'caption=Упълномощено лице->Име,mandatory');
     	$this->FLD('proxyEgn', 'drdata_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory');
     	$this->FLD('proxyIdcard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory');
@@ -162,12 +161,8 @@ class bank_CashWithdrawOrders extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	$conf = core_Packs::getConfig('crm');
-    	$myCompany = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
-    	$data->form->setDefault('ordererName', $myCompany->name);
     	$data->form->setDefault('ordererIban', bank_OwnAccounts::getCurrent());
     	$data->form->setReadOnly('ordererIban');
-    	$data->form->setReadOnly('ordererName');
     	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode());
     	
     	$account = bank_OwnAccounts::getOwnAccountInfo();
@@ -179,7 +174,6 @@ class bank_CashWithdrawOrders extends core_Master
     	
     	static::getProxyInfo($data->form);
     	static::getPossibleAccounts($data->form);
-    	//@TODO метод в за извличане на информацията от избраната собствена сметка
     }
     
     
@@ -189,9 +183,9 @@ class bank_CashWithdrawOrders extends core_Master
      */
     static function getPossibleAccounts(core_Form $form)
     {
-    	$options = array();
+    	$options[''] = '';
     	$conf = core_Packs::getConfig('bank');
-    	$array = type_Keylist::toArray($conf->BANK_NR_CREDIT_ACC);
+    	$array = type_Keylist::toArray($conf->BANK_NR_DEBIT_ACC);
     	foreach($array as $id) {
     		$rec = acc_Accounts::fetch($id);
     		$options[$rec->id] = acc_Accounts::getRecTitle($rec);
@@ -206,7 +200,7 @@ class bank_CashWithdrawOrders extends core_Master
      */
     static function getProxyInfo(core_Form $form)
     {
-    $suggestions = array();
+    	$suggestions[''] = '';
     	$cu = core_Users::getCurrent();
     	$cuRow = core_Users::recToVerbal($cu);
     	
@@ -220,7 +214,7 @@ class bank_CashWithdrawOrders extends core_Master
     		$suggestions[$personRec->name] = $personRec->name;
     	}
     
-    	$form->setSuggestions('proxyName',$suggestions);
+    	$form->setSuggestions('proxyName', $suggestions);
     }
     
     
@@ -229,20 +223,39 @@ class bank_CashWithdrawOrders extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	//@TODO
+    	$row->number = static::getHandle($rec->id);
     	
-    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-    	// При принтирането на 'Чернова' скриваме системите полета и заглавието
-    	if(Mode::is('printing')){
-    		if($rec->state == 'draft') {
-    			unset($row->header);
-    			unset($row->createdBy);
-    			unset($row->createdOn);
-    			unset($row->debitAccount);
-    			unset($row->creditAccount);
-    		}
+    	if($fields['-single']) {
+	    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+	    	
+	    	// Коя сметка дебитираме/кредитираме
+	    	$conf = core_Packs::getConfig('bank');
+	    	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_NR_CREDIT_ACC}");
+	    	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
+	    	$debitRec = acc_Accounts::fetch($rec->debitAccount);
+	    	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
+	    	
+	    	//
+	    	$spellNumber = cls::get('core_SpellNumber');
+			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
+			
+			$conf = core_Packs::getConfig('crm');
+    		$myCompany = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
+			$row->ordererName = $myCompany->name;
+	    	
+			// При принтирането на 'Чернова' скриваме системите полета и заглавието
+	    	if(Mode::is('printing')){
+	    		if($rec->state == 'draft') {
+	    			unset($row->header);
+	    			unset($row->createdBy);
+	    			unset($row->createdOn);
+	    			unset($row->debitAccount);
+	    			unset($row->creditAccount);
+	    		}
+	    	}
     	}
     }
+    
     
 	/**
      * Вкарваме css файл за единичния изглед

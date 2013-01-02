@@ -93,7 +93,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc,bank';
+    var $canConto = 'acc, bank';
     
     
     /**
@@ -133,24 +133,19 @@ class bank_PaymentOrders extends core_Master
     	$this->FLD('moreReason', 'text(rows=2)', 'caption=Допълнително,width=100%');
     	$this->FLD('paymentSystem', 'enum(bisera=БИСЕРА,rings=РИНГС)','caption=Пл. система,default=bisera,width=6em');
     	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От сметка->IBAN,mandatory,width=16em');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=От сметка->Банка,mandatory,width=16em');
-        $this->FNC('accCurrency', 'varchar', 'caption=От сметка->Валута,width=6em,input');
-    	$this->FLD('execBankBic', 'varchar(255)', 'caption=От сметка->Bic,width=6em,input=hidden');
+    	$this->FNC('accCurrency', 'varchar', 'caption=От сметка->Валута,width=6em,input');
     	$this->FLD('execBranch', 'varchar(255)', 'caption=От сметка->Клон,width=16em');
         $this->FLD('execBranchAddress', 'varchar(255)', 'caption=От сметка->Адрес,width=16em');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
     	$this->FLD('contragentIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
         $this->FLD('debitAccount', 'acc_type_Account(maxColumns=1)', 'caption=Получател->Сч. сметка,mandatory');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
-    	$this->FLD('contragentBank', 'varchar(255)', 'caption=Получател->Банка,input=hidden');
-    	$this->FLD('contragentBankBic', 'varchar(255)', 'caption=Получател->Bic,input=hidden');
-        $this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
+    	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
         $this->FNC('isContable', 'int', 'column=none');
-    	
     }
     
     
@@ -173,8 +168,6 @@ class bank_PaymentOrders extends core_Master
     	static::getContragentInfo($data->form);
     	static::getOwnAccountBankInfo($data->form);
     	static::getPossibleAccounts($data->form);
-    	
-    	
     }
     
     
@@ -189,7 +182,6 @@ class bank_PaymentOrders extends core_Master
     	$query->orderBy('createdOn', 'DESC');
     	$query->limit(1);
     	if($lastRec = $query->fetch()) {
-    		$form->setDefault('execBank', $lastRec->execBank);
     		$form->setDefault('execBranch', $lastRec->execBranch);
     		$form->setDefault('currencyId', $lastRec->currencyId);
     		$form->setDefault('execBranchAddress', $lastRec->execBranchAddress);
@@ -262,15 +254,9 @@ class bank_PaymentOrders extends core_Master
     {
     	$rec = bank_OwnAccounts::fetch($form->rec->ownAccount);
     	$accRec = bank_Accounts::fetch($rec->bankAccountId);
-    	$form->setDefault('execBank', $accRec->bank);
-    	$form->setDefault('execBankBic', $accRec->bic);
-    	if($accRec->bic) {
-    		$form->setDefault('execBankBic', $accRec->bic);
-    	}
     	$accCode = currency_Currencies::fetchField($accRec->currencyId, 'code');
     	$accCode = $form->getField('accCurrency')->type->toVerbal($accCode);
     	$form->setDefault('accCurrency', $accCode);
-    	$form->setReadOnly('execBank');
     	$form->setReadOnly('accCurrency');
     }
     
@@ -286,12 +272,6 @@ class bank_PaymentOrders extends core_Master
     		$contragentIban = $form->rec->contragentIban;
     		$form->rec->contragentId = $contragentId;
     		$form->rec->contragentClassId = $contragentClassId;
-    		if(!$form->rec->contragentBank) {
-    			$form->rec->contragentBank = drdata_Banks::getBankName($contragentIban);
-    		}
-    		if(!$form->rec->contragentBankBic) {
-    			$form->rec->contragentBankBic = drdata_Banks::getBankBic($contragentIban);
-    		}
     	}
     }
     
@@ -301,32 +281,58 @@ class bank_PaymentOrders extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-    	
     	$row->number = static::getHandle($rec->id);
-    	$conf = core_Packs::getConfig('crm');
-    	$myCompany = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
-    	$row->orderer = $myCompany->name;
     	
-    	$debitRec = acc_Accounts::fetch($rec->debitAccount);
-    	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
-    	$conf = core_Packs::getConfig('bank');
-    	
-    	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_PO_CREDIT_SYSID}");
-    	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
-    	
-    	// Временно решение за рендирането на знака # пред iban-a ако го има
-    	$row->contragentIban = $rec->contragentIban;
-    	
-    	// При принтирането на 'Чернова' скриваме системите полета и заглавието
-    	if(Mode::is('printing')){
-    		if($rec->state == 'draft') {
-    			unset($row->header);
-    			unset($row->createdBy);
-    			unset($row->createdOn);
-    			unset($row->debitAccount);
-    			unset($row->creditAccount);
-    		}
+    	if($fields['-single']) {
+    		
+    		// Проверяваме дали контрагента има такъв IBAN-a ако няма 
+    		// показваме съобщение с линк за добавянето IBAN-a на към него
+    		if(!bank_Accounts::fetch("#iban = '{$rec->contragentIban}'")) {
+    			$url = array ('bank_Accounts', 
+    						  'Add', 'contragentCls' => $rec->contragentClassId,
+    						  'contragentId' => $rec->contragentId,
+    						  'iban'=> $rec->contragentIban,
+    						  'ret_url' => TRUE);
+    			$link = ht::createLink(tr('тук'), $url);
+    			$row->notification =  tr('IBAN-a на контрагента не фигурира в системата! За да го добавите натиснете ');	
+    			$row->notification .= $link;
+    		} 
+    		
+	    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+	    	
+	    	$conf = core_Packs::getConfig('crm');
+	    	$myCompany = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
+	    	$row->orderer = $myCompany->name;
+	    	
+	    	// Извличаме името на банката и BIC-а  от нашата сметка
+	    	$row->execBank = drdata_Banks::getBankName($row->ownAccount);
+	    	$row->execBankBic = drdata_Banks::getBankBic($row->ownAccount);
+	    	
+	    	$debitRec = acc_Accounts::fetch($rec->debitAccount);
+	    	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
+	    	$conf = core_Packs::getConfig('bank');
+	    	
+	    	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_PO_CREDIT_SYSID}");
+	    	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
+	    	
+	    	// Временно решение за рендирането на знака # пред iban-a ако го има
+	    	$row->contragentIban = $rec->contragentIban;
+	    	
+	    	// Извличаме името на банката и BIC-а на получателя от IBAN-а му
+	    	$row->contragentBank = drdata_Banks::getBankName($rec->contragentIban);
+	    	$row->contragentBankBic = drdata_Banks::getBankBic($rec->contragentIban);
+	    	
+	    	// При принтирането на 'Чернова' скриваме системните полета и заглавието
+	    	if(Mode::is('printing')){
+	    		if($rec->state == 'draft') {
+	    			unset($row->header);
+	    			unset($row->createdBy);
+	    			unset($row->createdOn);
+	    			unset($row->debitAccount);
+	    			unset($row->creditAccount);
+	    		}
+	    		unset($row->notification);
+	    	}
     	}
     }
     
@@ -350,8 +356,6 @@ class bank_PaymentOrders extends core_Master
     	// Извличаме записа
         expect($rec = self::fetch($id));
         $conf = core_Packs::getConfig('bank');
-        $cAcc = new acc_journal_Account($conf->BANK_PO_CREDIT_SYSID);
-        $dAcc = acc_journal_Account::byId($rec->debitAccount);
         
         // Курса по който се обменя валутата  на ордера към основната валута за периода
         $entrAmount = $rec->amount; 
@@ -368,21 +372,20 @@ class bank_PaymentOrders extends core_Master
             'entries' =>array( (object)array(
                 'amount' => $rec->amount,	// равностойноста на сумата в основната валута
                 
-                'debitAcc' => $dAcc->systemId, // дебитната сметка
+                'debitAccId' => $rec->debitAccount, // дебитната сметка
                 'debitItem1' => (object)array('cls'=>$contragentClass, 'id'=>$contragentId),  // перо каса
         		'debitItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),// перо валута
                 'debitQuantity' => $rec->amount,
                 'debitPrice' => 1,
         		
-                'creditAccId' => $cAcc->id, // кредитна сметка
+                'creditAcc' => $conf->BANK_PO_CREDIT_SYSID, // кредитна сметка
                 'creditItem1' => (object)array('cls'=>'bank_OwnAccounts', 'id'=>$rec->ownAccount), // перо контрагент
                 'creditQuantity' => $rec->amount,
                 'creditPrice' => 1,
             ))
         );
        
-        // Ако дебитната сметка няма втора аналитичност, премахваме
-        // втория елемент
+        // Ако дебитната сметка няма втора аналитичност, премахваме втория елемент
         $dAcc = acc_journal_Account::byId($rec->debitAccount);
     	if(!$dAcc->groupId2){
         	unset($result->entries[0]->debitItem2);

@@ -188,8 +188,10 @@ class bank_OwnAccounts extends core_Manager {
     	if(!$acc->bic) {
     		$acc->bic = drdata_Banks::getBankBic($acc->iban);
     	}
+    	
     	return $acc;
     }
+    
     
     /**
      * Обработка на ролите 
