@@ -2,12 +2,12 @@
 
 
 /**
- * 
+ * Поддържани компоненти от сигналите
  *
  * @category  bgerp
- * @package   issue
+ * @package   support
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -36,25 +36,25 @@ class support_Components extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, issue';
+    var $canRead = 'admin, support';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, issue';
+    var $canEdit = 'admin, support';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, issue';
+    var $canAdd = 'admin, support';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, issue';
+    var $canView = 'admin, support';
     
     
     /**
@@ -83,6 +83,8 @@ class support_Components extends core_Manager
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory');
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
         $this->FLD('description', 'text', "caption=Описание");
+        
+        $this->setDbUnique('systemId, name');
     }
     
     
@@ -97,24 +99,44 @@ class support_Components extends core_Manager
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent');
         
+        // Добавяме поле за избор на система
+        $data->listFilter->FNC('systemIdFnc', 'key(mvc=support_Systems, select=name, allowEmpty=true)', 'input, caption=Система');
+        
+        // Да са разпрелени хоризонтално
         $data->listFilter->view = 'horizontal';
         
+        // Добавяме бутон за филтриране
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'systemId, search';
+        $data->listFilter->showFields = 'systemIdFnc, search';
         
-        $data->listFilter->setDefault('systemId', support_Systems::getCurrentIssueSystemId());
-        
+        // Вземаме systemId
+        $systemId = Request::get('systemIdFnc', 'key(mvc=support_Systems, select=name)');
+    
         $filter = $data->listFilter->input();
         
-        expect($filter->systemId);
+        // Ако се търси в система
+        if ($systemId) {
+            
+            // Задаваме да е избран по подразбиране
+            $data->listFilter->setDefault('systemIdFnc', $systemId);
         
-        $data->query->where("#systemId = '{$filter->systemId}'");
+            // Очакваме да е зададено
+            expect($filter->systemIdFnc);
+            
+            // Добавяме във where клаузата
+            $data->query->where("#systemId = '{$filter->systemIdFnc}'");    
+        }
         
+        // Ако сме добавили текст за търсене
         if($filter->search) {
+            
+            // Да е в долния регистър
             $filter->search = mb_strtolower($filter->search);
+            
+            // Добавяме във where клаузата
             $data->query->where(array("LOWER(#name) LIKE '[#1#]' OR LOWER(#description) LIKE '[#1#]'", "%{$filter->search}%"));
         }
     }

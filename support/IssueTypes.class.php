@@ -5,9 +5,9 @@
  * Mодел, който представлява множество от различните типове сигнали.
  *
  * @category  bgerp
- * @package   issue
+ * @package   support
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -36,31 +36,31 @@ class support_IssueTypes extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, issue';
+    var $canRead = 'admin, support';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, issue';
+    var $canEdit = 'admin, support';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, issue';
+    var $canAdd = 'admin, support';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, issue';
+    var $canView = 'admin, support';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, issue';
+    var $canList = 'admin, support';
     
     
     /**
@@ -139,15 +139,4 @@ class support_IssueTypes extends core_Manager
         
         return __DIR__ . "/csv/IssueTypes.csv";
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }

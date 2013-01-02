@@ -5,9 +5,9 @@
  * Документ с който се сигнализара някакво несъответствие
  *
  * @category  bgerp
- * @package   issue
+ * @package   support
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -66,13 +66,13 @@ class support_Issues extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, issue';
+    var $canList = 'admin, support';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'admin, issue';
+    var $canReject = 'admin, support';
     
     
     /**
@@ -97,7 +97,7 @@ class support_Issues extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, doc_SharablePlg';
-    //plg_Created
+
     
     /**
      * Дали може да бъде само в началото на нишка
@@ -106,28 +106,15 @@ class support_Issues extends core_Master
     
     
     /**
-     * Първоначално състояние на документа
-     */
-//    var $firstState = 'opened';
-    
-    
-    /**
-     * Име на папката по подразбиране при създаване на нови документи от този тип.
-     * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
-     */
-//    var $defaultFolder = 'Системи';
-    
-    
-    /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'issue/tpl/SingleLayoutDocument.shtml';
+    var $singleLayoutFile = 'support/tpl/SingleLayoutIssue.shtml';
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-//    var $singleIcon = 'img/16/.png';
+    var $singleIcon = 'img/16/support.png';
 
     
     /**
@@ -136,44 +123,21 @@ class support_Issues extends core_Master
     var $searchFields = 'componentId, typeId, description';
     
     
+    /**
+     * 
+     */
+    var $listFields = 'id, title, componentId, typeId, createdOn, createdBy, sharedUsers';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
     function description()
     {
-    	// В description не може да се прави нищо друго, освен да се дефинират безусловно полета и техни свойства
-    	//    $systemId = support_Systems::getCurrentIssueSystemId(); 
-        
-        //   $componentWhere = "#systemId = '{$systemId}'";
-        
-        //  $this->FLD('componentId', 
-        //	new type_Key(array('mvc' => 'support_Components', 'select' => 'name', 'where' => $componentWhere)),
-        //	'caption=Компонент, mandatory');
-        
         $this->FLD('componentId', "key(mvc=support_Components,select=name)", 'caption=Компонент, mandatory');
-        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory');
+        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
+        $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
         $this->FLD('description', 'text', "caption=Описание");
-    }
-    
-    
-	/**
-     * Интерфейсен метод на doc_DocumentInterface
-     */
-    function getDocumentRow($id)
-    {
-        $rec = $this->fetch($id);
-     
-        $row = new stdClass();
-        $row->title = $this->getVerbal($rec, 'description');
-        
-        $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        
-        $row->state = $rec->state;
-        
-        $row->recTitle = $rec->description;
-        
-        return $row;
     }
     
     
@@ -192,40 +156,126 @@ class support_Issues extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
-        $folderId = $data->form->rec->folderId;
+        // Вземаме systemId' то на документа от URL' то
+        $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
-        //id' то на класа, който е корица
+        // Ако има systemId
+        if ($systemId) {
+            
+            // Вземаме записите
+            $iRec = support_Systems::fetch($systemId);
+            
+            // Форсираме създаването на папката
+            $folderId = support_Systems::forceCoverAndFolder($iRec);
+            
+            // Задаваме id' то на папката
+            $data->form->rec->folderId = $folderId;    
+        } else {
+            
+            // Ако няма подадено systemId, вземаме id' то на папката по подразбиране
+            $folderId = $data->form->rec->folderId;
+        }
+        
+        // Записите за класа, който се явява корица
         $coverClassRec = doc_Folders::fetch($folderId);
         
+        //id' то на класа, който е корица
         $coverClassId = $coverClassRec->coverClass;
         
         //Името на корицата на класа
         $coverClassName = cls::getClassName($coverClassId);
-        
+
+        // Ако ковъра на класа не е supportSystems
         if ($coverClassName != 'support_Systems') {
-            $systemId = support_Systems::getCurrentIssueSystemId();
-            $iRec = support_Systems::fetch($systemId);
-            $folderId = support_Systems::forceCoverAndFolder($iRec);
-            $data->form->rec->folderId = $folderId;        
+            
+            // Редиректваме към избор на система
+            return redirect(array($mvc, 'selectSystem', 'ret_url' => getRetUrl()));
         } else {
-            Mode::setPermanent('currentIssueSystemId', $coverClassRec->coverId);
             
-            $query = support_Components::getQuery();
-            $query->where("#systemId = '{$coverClassRec->coverId}'");
-            
-            while ($rec = $query->fetch()) {
-                $components[$rec->id] = support_Systems::getVerbal($rec, 'name');
-            }
-            
-            $data->form->setOptions('componentId', $components);
+            // Задаваме systemId да е id' то на ковъра
+            $systemId = $coverClassRec->coverId;
         }
+        
+        // Извличаме всички компоненти, със съответното systemId
+        $query = support_Components::getQuery();
+        $query->where("#systemId = '{$systemId}'");
+        
+        // Обхождаме всички открити резултати
+        while ($rec = $query->fetch()) {
+            
+            // Създаваме масив с компонентите
+            $components[$rec->id] = support_Systems::getVerbal($rec, 'name');
+        }
+        
+        // Променяме съдържанието на полето компоненти с определения от нас масив
+        $data->form->setOptions('componentId', $components);
     }
     
     
+    /**
+     * Екшън за избиранер на система
+     */
+    function act_SelectSystem()
+    {
+        // Проверяваме за права
+        self::requireRightFor('add');
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Създаваме поле за избор на система
+        $form->FNC('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory');;
+        
+        // Въвеждаме съдържанието на полетата
+        $form->input('systemId');
+        
+        // Ако формата е изпратена
+        if($form->isSubmitted()) {
+            
+            // Очакваме да е сетнат systemId
+            expect($systemId = $form->rec->systemId);
+            
+            // Редиректваме към създаването на сигнал с избраната система
+            return redirect(array($this, 'add', 'systemId' => $systemId, 'ret_url' => TRUE));
+        }
+        
+        // Кои полета да се показват
+        $form->showFields = 'systemId';
+        
+        // URL' то където ще редиректвамеа
+        $retUrl = getRetUrl();
+        
+        // Ако, няма създаваме си
+        $retUrl = ($retUrl) ? $retUrl : array('support_Issues');
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Избор', 'select', array('class' => 'btn-select'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        
+        // Титлата на формата
+        $form->title = 'Избор на система';
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
     
     
-    
-    
-    
-    
+	/**
+     * Интерфейсен метод на doc_DocumentInterface
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+     
+        $row = new stdClass();
+        $row->title = $this->getVerbal($rec, 'title');
+        
+        $row->authorId = $rec->createdBy;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        $row->state = $rec->state;
+        
+        $row->recTitle = $rec->title;
+        
+        return $row;
+    }
 }
