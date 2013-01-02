@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class issue_Wrapper extends plg_ProtoWrapper
+class support_Wrapper extends plg_ProtoWrapper
 {
     
     /**
@@ -19,9 +19,9 @@ class issue_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {        
-        $this->TAB('issue_Document', 'Документи');
-        $this->TAB('issue_Systems', 'Системи', 'admin, issue');
-        $this->TAB('issue_Components', 'Компоненти', 'admin, issue');
-        $this->TAB('issue_Types', 'Типове', 'admin, issue');
+        $this->TAB('support_Issues', 'Сигнали');
+        $this->TAB('support_Systems', 'Поддържани системи', 'admin, issue');
+        $this->TAB('support_Components', 'Поддържани компоненти', 'admin, issue');
+        $this->TAB('support_IssueTypes', 'Типове сигнали', 'admin, issue');
     }
 }

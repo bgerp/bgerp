@@ -11,8 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class issue_Types extends core_Manager
+class support_IssueTypes extends core_Manager
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'issue_Types';
     
     
     /**
@@ -66,7 +72,7 @@ class issue_Types extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'issue_Wrapper';
+    var $loadList = 'support_Wrapper';
     
     
     /**

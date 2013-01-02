@@ -11,14 +11,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class issue_Systems extends core_Manager
+class support_Systems extends core_Manager
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'issue_Systems';
     
     
     /**
      * Заглавие на модела
      */
-    var $title = 'Системи';
+    var $title = 'Поддържани системи';
     
     
     /**
@@ -78,7 +84,7 @@ class issue_Systems extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'issue_Wrapper, doc_FolderPlg';
+    var $loadList = 'support_Wrapper, doc_FolderPlg';
     
     
     /**
@@ -115,7 +121,7 @@ class issue_Systems extends core_Manager
     {
         $name = $mvc->getVerbal($rec, 'name');
         
-        $rec->nameLink = ht::createLink($name, array ('issue_Components', 'list', 'systemId' => $rec->id));
+        $rec->nameLink = ht::createLink($name, array ('support_Components', 'list', 'systemId' => $rec->id));
     }
     
     
@@ -128,7 +134,7 @@ class issue_Systems extends core_Manager
      */
     static function getCurrentIssueSystemId()
     {
-        $systemId = Request::get('systemId', 'key(mvc=issue_Systems, select=name)');
+        $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
         if(!$systemId) {
             $systemId = Mode::get('currentIssueSystemId');
@@ -144,7 +150,7 @@ class issue_Systems extends core_Manager
         if($systemId) {
             Mode::setPermanent('currentIssueSystemId', $systemId);
         } else {
-            redirect(array('issue_Systems'));
+            redirect(array('support_Systems'));
         }
         
         return $systemId;

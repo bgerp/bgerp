@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class issue_Setup
+class support_Setup
 {
     
     
@@ -24,7 +24,7 @@ class issue_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'issue_Document';
+    var $startCtr = 'support_Issues';
     
     
     /**
@@ -46,10 +46,10 @@ class issue_Setup
     {
         // Инсталиране на мениджърите
         $managers = array(
-            'issue_Document',
-            'issue_Components',
-            'issue_Systems',
-            'issue_Types',
+            'support_Issues',
+            'support_Components',
+            'support_Systems',
+            'support_IssueTypes',
         );
         
         $instances = array();
@@ -60,9 +60,9 @@ class issue_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.14, 'Обслужване', 'Поддръжка', 'issue_Document', 'default', "user");
+        $html .= $Menu->addItem(2.14, 'Обслужване', 'Поддръжка', 'support_Issues', 'default', "user");
         
-        $html .= issue_Types::loadData();
+        $html .= support_IssueTypes::loadData();
         
         $role = 'issue';
         $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';

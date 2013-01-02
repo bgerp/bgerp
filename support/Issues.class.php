@@ -11,8 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class issue_Document extends core_Master
+class support_Issues extends core_Master
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'issue_Document';
     
     
     /**
@@ -90,7 +96,7 @@ class issue_Document extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'issue_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, doc_SharablePlg';
+    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, doc_SharablePlg';
     //plg_Created
     
     /**
@@ -136,16 +142,16 @@ class issue_Document extends core_Master
     function description()
     {
     	// В description не може да се прави нищо друго, освен да се дефинират безусловно полета и техни свойства
-    	//    $systemId = issue_Systems::getCurrentIssueSystemId(); 
+    	//    $systemId = support_Systems::getCurrentIssueSystemId(); 
         
         //   $componentWhere = "#systemId = '{$systemId}'";
         
         //  $this->FLD('componentId', 
-        //	new type_Key(array('mvc' => 'issue_Components', 'select' => 'name', 'where' => $componentWhere)),
+        //	new type_Key(array('mvc' => 'support_Components', 'select' => 'name', 'where' => $componentWhere)),
         //	'caption=Компонент, mandatory');
         
-        $this->FLD('componentId', "key(mvc=issue_Components,select=name)", 'caption=Компонент, mandatory');
-        $this->FLD('typeId', 'key(mvc=issue_Types, select=type)', 'caption=Тип, mandatory');
+        $this->FLD('componentId', "key(mvc=support_Components,select=name)", 'caption=Компонент, mandatory');
+        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory');
         $this->FLD('description', 'text', "caption=Описание");
     }
     
@@ -196,19 +202,19 @@ class issue_Document extends core_Master
         //Името на корицата на класа
         $coverClassName = cls::getClassName($coverClassId);
         
-        if ($coverClassName != 'issue_Systems') {
-            $systemId = issue_Systems::getCurrentIssueSystemId();
-            $iRec = issue_Systems::fetch($systemId);
-            $folderId = issue_Systems::forceCoverAndFolder($iRec);
+        if ($coverClassName != 'support_Systems') {
+            $systemId = support_Systems::getCurrentIssueSystemId();
+            $iRec = support_Systems::fetch($systemId);
+            $folderId = support_Systems::forceCoverAndFolder($iRec);
             $data->form->rec->folderId = $folderId;        
         } else {
             Mode::setPermanent('currentIssueSystemId', $coverClassRec->coverId);
             
-            $query = issue_Components::getQuery();
+            $query = support_Components::getQuery();
             $query->where("#systemId = '{$coverClassRec->coverId}'");
             
             while ($rec = $query->fetch()) {
-                $components[$rec->id] = issue_Systems::getVerbal($rec, 'name');
+                $components[$rec->id] = support_Systems::getVerbal($rec, 'name');
             }
             
             $data->form->setOptions('componentId', $components);

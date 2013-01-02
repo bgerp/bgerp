@@ -11,14 +11,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class issue_Components extends core_Manager
+class support_Components extends core_Manager
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'issue_Components';
     
     
     /**
      * Заглавие на модела
      */
-    var $title = 'Компоненти';
+    var $title = 'Поддържани компоненти';
     
     
     /**
@@ -66,7 +72,7 @@ class issue_Components extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'issue_Wrapper';
+    var $loadList = 'support_Wrapper';
     
     
 	/**
@@ -74,7 +80,7 @@ class issue_Components extends core_Manager
      */
     function description()
     {
-        $this->FLD('systemId', 'key(mvc=issue_Systems, select=name)', 'caption=Система, mandatory');
+        $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory');
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
         $this->FLD('description', 'text', "caption=Описание");
     }
@@ -99,7 +105,7 @@ class issue_Components extends core_Manager
         // на модела ще се появят
         $data->listFilter->showFields = 'systemId, search';
         
-        $data->listFilter->setDefault('systemId', issue_Systems::getCurrentIssueSystemId());
+        $data->listFilter->setDefault('systemId', support_Systems::getCurrentIssueSystemId());
         
         $filter = $data->listFilter->input();
         
