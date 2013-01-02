@@ -125,26 +125,10 @@ class bank_Accounts extends core_Master {
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
         }
         
+        // Ако има зададен IBAN в заявката то попълваме формата
         if($iban = Request::get('iban')) {
         	$data->form->setDefault('iban', $iban);
-        	$data->form->setDefault('bank', drdata_Banks::getBankName($iban));
-        	$data->form->setDefault('bic', drdata_Banks::getBankBic($iban));
         }
-    }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    static function on_BeforeSave($mvc, &$id, $rec)
-    {
-    	if(!$rec->bank) {
-    		$rec->bank = drdata_Banks::getBankName($rec->iban);
-    	}
-    	
-    	if(!$rec->bic) {
-    		$rec->bic = drdata_Banks::getBankBic($rec->iban);
-    	}
     }
     
     
@@ -160,7 +144,17 @@ class bank_Accounts extends core_Master {
             return;
         }
         
-        $rec = &$form->rec;
+        // Ако формата е без грешки и не е посочена банка или бик на сметката
+        // то ние ги извличаме от IBAN-a
+        if(!$form->gotErrors()) {
+	        if(!$form->rec->bank) {
+	    		$form->rec->bank = drdata_Banks::getBankName($form->rec->iban);
+	    	}
+	    	
+	    	if(!$form->rec->bic) {
+	    		$form->rec->bic = drdata_Banks::getBankBic($form->rec->iban);
+	    	}
+        }
     }
     
     
