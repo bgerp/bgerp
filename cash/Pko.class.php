@@ -221,7 +221,7 @@ class cash_Pko extends core_Master
      **/
     static function getPossibleAccs()
     {
-    	$options = array();
+    	$options[''] = '';
     	$conf = core_Packs::getConfig('cash');
     	$array = type_Keylist::toArray($conf->CASH_PKO_CREDIT_ACC);
     	foreach($array as $id) {
