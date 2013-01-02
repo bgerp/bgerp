@@ -11,7 +11,6 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class drdata_Banks extends core_Manager
 {
@@ -158,8 +157,7 @@ class drdata_Banks extends core_Manager
     static function getBankName($iban)
     {
     	$parts = iban_Type::getParts($iban);
-    	
-    	if($rec = static::fetch("#bic LIKE '%{$parts->bic}%'")) {
+    	if($rec = static::fetch("#bic LIKE '%{$parts['bank']}%'")) {
     		return $rec->name;
     	} else {
     		return NULL;
@@ -174,7 +172,8 @@ class drdata_Banks extends core_Manager
      */
     static function getBankBic($iban)
     {
-    	if($rec = static::fetch("#bic LIKE '%{$parts->bic}%'")) {
+    	$parts = iban_Type::getParts($iban);
+    	if($rec = static::fetch("#bic LIKE '%{$parts['bank']}%'")) {
     		return $rec->bic;
     	} else {
     		return NULL;
