@@ -11,8 +11,10 @@
 	</div>
 	
 	<div  class='clearfix21 antetka'>
-		<div class='clearfix21'>  <small>  
-		<b>[#componentId#] - [#typeId#]</b>
+		<div class='clearfix21'>  <small>
+		<div><b>[#title#]</b></div>
+		<div>Компонент: [#componentId#]</div>
+		<div>Тип: [#types#]</div>
 		</small>
 		</div>
 	</div>

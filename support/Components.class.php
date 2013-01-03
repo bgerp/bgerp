@@ -140,4 +140,28 @@ class support_Components extends core_Manager
             $data->query->where(array("LOWER(#name) LIKE '[#1#]' OR LOWER(#description) LIKE '[#1#]'", "%{$filter->search}%"));
         }
     }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Формата
+        $form = &$data->form;
+        
+        // Ако формата не е субмитната или не редактиреме
+        if (!$form->isSubmitted() && !$form->rec->id) {
+            
+            // Вземаме systemId от параметрите
+            $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
+            
+            // Ако спе подали система
+            if ($systemId) {
+                
+                // Избираме я по подразбиране
+                $form->setDefault('systemId',$systemId);
+            }
+        }
+    }
 }

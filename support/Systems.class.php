@@ -36,7 +36,7 @@ class support_Systems extends core_Master
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/question.png';
+    var $singleIcon = 'img/16/system-monitor.png';
     
     
     /**
@@ -96,7 +96,7 @@ class support_Systems extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, plg_RowTools, plg_Search';
+    var $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, plg_RowTools, plg_Search, plg_State';
 
     
     /**
@@ -110,13 +110,13 @@ class support_Systems extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'nameLink=Наименование, description, folderId, inCharge, access, shared';
+    var $listFields = 'name, description, folderId, inCharge, access, shared';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'description';
+    var $rowToolsSingleField = 'name';
     
     
     /**
@@ -132,21 +132,5 @@ class support_Systems extends core_Master
     {
         $this->FLD('name', 'varchar', "caption=Наименование,mandatory");
         $this->FLD('description', 'text', "caption=Описание");
-        
-        // Титла - хипервръзка
-        $this->FNC('nameLink', 'html', 'column=none');
-    }
-    
-    
-	/**
-     * Изчислява полето 'nameLink', като име с хипервръзка към перата от тази номенклатура
-     */
-    static function on_CalcNameLink($mvc, $rec)
-    {
-        // Вербаната стойнст на полето
-        $name = $mvc->getVerbal($rec, 'name');
-        
-        // Създаваме линк към компонентите
-        $rec->nameLink = ht::createLink($name, array ('support_Components', 'list', 'systemIdFnc' => $rec->id));
     }
 }

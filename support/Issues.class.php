@@ -120,22 +120,28 @@ class support_Issues extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'componentId, typeId, description';
+    var $searchFields = 'componentId, types, description';
     
     
     /**
      * 
      */
-    var $listFields = 'id, title, componentId, typeId, createdOn, createdBy, sharedUsers';
+    var $listFields = 'id, title, componentId, types, sharedUsers';
     
     
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'title';
+    
+    var $cloneFields = 'componentId, types, title, description';
 	/**
      * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('componentId', "key(mvc=support_Components,select=name)", 'caption=Компонент, mandatory');
-        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
+        $this->FLD('types', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, oldFieldName=typeId');
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
         $this->FLD('description', 'text', "caption=Описание");
     }
@@ -159,6 +165,10 @@ class support_Issues extends core_Master
         // Вземаме systemId' то на документа от URL' то
         $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
+        // Опитваме се да вземеме return ult' то
+        $retUrl = getRetUrl();
+        $retUrl = ($retUrl) ? $retUrl : array('support_Issues', 'selectSystem');
+
         // Ако има systemId
         if ($systemId) {
             
@@ -189,7 +199,7 @@ class support_Issues extends core_Master
         if ($coverClassName != 'support_Systems') {
             
             // Редиректваме към избор на система
-            return redirect(array($mvc, 'selectSystem', 'ret_url' => getRetUrl()));
+            return redirect(array($mvc, 'selectSystem', 'ret_url' => $retUrl));
         } else {
             
             // Задаваме systemId да е id' то на ковъра
@@ -205,6 +215,27 @@ class support_Issues extends core_Master
             
             // Създаваме масив с компонентите
             $components[$rec->id] = support_Systems::getVerbal($rec, 'name');
+        }
+        
+        // Ако няма въведен компонент
+        if (!$components) {
+            
+            // Добавяме съобщение за грешка
+            core_Statuses::add(tr('Няма въведен компонент на системата.'));
+            
+            // Ако има права за добавяне на компонент
+            if (support_Components::haveRightFor('add')) {
+                
+                // Линк за препращаме към станицата за добавяне на компонент
+                $redirectArr = array('support_Components', 'add', 'systemId' => $systemId, 'ret_url' => $retUrl);    
+            } else {
+                
+                // Ако нямаме права, препащаме където сочи return URL' то
+                $redirectArr = $retUrl;
+            }
+            
+            // Препащаме
+            return redirect($redirectArr);
         }
         
         // Променяме съдържанието на полето компоненти с определения от нас масив
@@ -277,5 +308,17 @@ class support_Issues extends core_Master
         $row->recTitle = $rec->title;
         
         return $row;
+    }
+    
+
+	/**
+     * Потребителите, с които е споделен този документ
+     *
+     * @return string keylist(mvc=core_Users)
+     * @see doc_DocumentIntf::getShared()
+     */
+    static function getShared($id)
+    {
+        return static::fetchField($id, 'sharedUsers');
     }
 }

@@ -2,7 +2,7 @@
                  
 	<div class='document'>
 		<div class='header [#STATE_CLASS#]'>
-		<span >Сигнал » [#name#]</span>
+		<span >|Поддръжка на|* "[#name#]"</span>
 		</div>
 
         <!-- BEGIN Блок ляво -->
