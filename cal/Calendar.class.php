@@ -242,7 +242,7 @@ class cal_Calendar extends core_Master
       
         list($rec->date,) = explode(' ', $rec->time);
 
-        $row->date = dt::mysql2verbal($rec->time, 'd-m-Y');        
+        $row->date = dt::mysql2verbal($rec->time, 'd.m.Y');        
 
         if($rec->date == $today) {
             $row->ROW_ATTR['style'] .= 'background-color:#ffc;';
@@ -785,7 +785,7 @@ class cal_Calendar extends core_Master
     {
     	// Очакваме дата от филтъра
         $from = Request::get('from');
-        $currentDate = dt::mysql2Verbal($from, 'l d-m-Y');
+        $currentDate = dt::mysql2Verbal($from, 'l d.m.Y');
        
         // Разбиваме получената дата на ден, месец, година
         $day = dt::mysql2Verbal($from, 'd');
@@ -825,11 +825,11 @@ class cal_Calendar extends core_Master
         // Генерираме масив с дните и масив за обратна връзка
         for($i = 0; $i < 7; $i++){
         	$days[$i] = dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'l'). "<br>".
-        				dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'d-m-Y');
+        				dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year)),'d.m.Y');
         	$dates[date("Y-m-d", mktime(0, 0, 0, $month, $day + $i - 3, $year))] = "d" . $i;
         	
         	// Помощен масив за javaScripta
-        	$dateJs["date".$i."Js"] = date("d-m-Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
+        	$dateJs["date".$i."Js"] = date("d.m.Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
          }
       
         // От коя до коя дата ще извличаме събитията 
