@@ -367,9 +367,9 @@ class core_App
     public static function halt($err)
     {
         if (static::isDebug()) {
-            echo "<li>" . $err . " | Halt on " . date('d-m-Y H:i.s');
+            echo "<li>" . $err . " | Halt on " . date('d.m.Y H:i:s');
         } else {
-            echo "On " . date('d-m-Y H:i.s') . ' a System Error has occurred';
+            echo "On " . date('d.m.Y H:i:s') . ' a System Error has occurred';
         }
 
         error_log("HALT: " . $err);

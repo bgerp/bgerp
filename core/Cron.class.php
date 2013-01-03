@@ -280,8 +280,8 @@ class core_Cron extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // За по-голяма точност, показваме и секундите
-        $row->lastStart = dt::mysql2verbal($rec->lastStart, "d-m-y  H:i:s");
-        $row->lastDone = dt::mysql2verbal($rec->lastDone, "d-m-y  H:i:s");
+        $row->lastStart = dt::mysql2verbal($rec->lastStart, "d.m.y  H:i:s");
+        $row->lastDone = dt::mysql2verbal($rec->lastDone, "d.m.y  H:i:s");
         
         $row->description = $mvc->getVerbal($rec, 'description');
         $row->controller = $mvc->getVerbal($rec, 'controller');

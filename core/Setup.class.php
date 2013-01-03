@@ -23,12 +23,12 @@ defIfNot('EF_STATUSE_SALT', '');
 /**
  * Формат по подразбиране за датите
  */
-defIfNot('EF_DATE_FORMAT', 'd-m-YEAR');
+defIfNot('EF_DATE_FORMAT', 'd.m.YEAR');
 
 /**
  * Формат по подразбиране за датата при тесни екрани
  */
-defIfNot('EF_DATE_NARROW_FORMAT', 'd-m-year');
+defIfNot('EF_DATE_NARROW_FORMAT', 'd.m.year');
 
 /**
  * @todo Чака за документация...

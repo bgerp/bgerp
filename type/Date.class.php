@@ -91,7 +91,7 @@ class type_Date extends core_Type {
         setIfNot($attr['size'], 20);
         
         if($value && !$this->error) {
-            $value = dt::mysql2verbal($value, 'd-m-Y');
+            $value = dt::mysql2verbal($value, 'd.m.Y');
         } else {
             $value = $attr['value'];
         }
