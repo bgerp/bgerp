@@ -869,8 +869,11 @@ class expert_Expert extends core_FieldSet {
                         
                         if($value === NULL && $form->fields[$name]->notNull) {
                             $value = $form->fields[$name]->value ? $form->fields[$name]->value : $form->fields[$name]->type->defVal();
+                            if($value === NULL) {
+                                $value = '';
+                            }
                         }
-                        
+
                         if($value !== NULL) {
                             $this->setValue($name, $value);
                             $this->fromDialog[$name] = TRUE;
