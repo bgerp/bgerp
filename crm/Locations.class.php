@@ -81,7 +81,7 @@ class crm_Locations extends core_Master {
             storage=Склад,
             factory=Фабрика,
             other=Друг)', 'caption=Тип,mandatory');
-        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, allowEmpty)', 'caption=Юрисдикция,mandatory');
+        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Юрисдикция,mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Град,mandatory,oldFieldName=city');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,mandatory');
