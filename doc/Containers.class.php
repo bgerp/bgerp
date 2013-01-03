@@ -403,13 +403,13 @@ class doc_Containers extends core_Manager
                 // Нотифицираме всички абонати на дадената нишка
                 $subscribed = doc_ThreadUsers::getSubscribed($rec->threadId);
                 $subscribedArr = type_Keylist::toArray($subscribed);
-                if(count($subscribedArr)) {
+                if(count($subscribedArr)) { 
                     $message = "{$nick} добави  {$docSingleTitle} в \"{$threadTitle}\"";
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
                     $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $docHnd, '#' => $docHnd);
                     $priority = 'normal';
-                    foreach($subscribedArr as $userId) {
-                        if($userId > 0 && $userId != $cu && (!$notifiedUsers[$userId]) && 
+                    foreach($subscribedArr as $userId) {  
+                        if($userId > 0  && (!$notifiedUsers[$userId]) && 
                             doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
                             bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
                         }
