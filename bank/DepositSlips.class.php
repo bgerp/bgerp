@@ -163,7 +163,7 @@ class bank_DepositSlips extends core_Master
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	// Поставяме стойности по подразбиране
-    	$today = date("d-m-Y", time());
+    	$today = dt::verbal2mysql();
     	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode());
     	$data->form->setDefault('valior', $today);
     	$data->form->setOptions('depositorName', static::getAccountableItems());
