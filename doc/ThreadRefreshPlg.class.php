@@ -27,7 +27,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
 
         $lastModify = $data->threadRec->modifiedOn;
 
-        if(($threadsLastModify[$threadId] == $lastModify) && $ajaxMode) { // bp($threadsLastModify, $lastModify);
+        if(($threadsLastModify[$threadId] == $lastModify) && $ajaxMode) {  //bp($threadsLastModify, $lastModify);
             header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
             header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
             header("Cache-Control: no-store, no-cache, must-revalidate");
@@ -57,9 +57,10 @@ class doc_ThreadRefreshPlg extends core_Plugin
 
         if ($ajaxMode) {
 
-             
             $status = $tpl->getContent();
-                 
+            
+            $res = new stdClass();
+
             $res->content = $status;
 
             if($data->lastRefresh && count($data->recs)) {
