@@ -648,7 +648,7 @@ class core_Mvc extends core_FieldSet
 
                 // Нулираме флаговете за промяна
                 $updateName = $updateType = $updateOptions = $updateSize =
-                $updateNotNull = $updateSigned = $updateDefault = FALSE;
+                $updateNotNull = $updateSigned = $updateDefault = $updateCollation = FALSE;
 
                 // Пропускаме PRI полето
                 if($name == 'id') continue;
@@ -706,7 +706,11 @@ class core_Mvc extends core_FieldSet
                 // Обновяване на типа
                 $updateType = ($mfAttr->type != $dfAttr->type);
                 $style = $updateType ? $green : '';
-                $info .= "<span{$style}>{$mfAttr->type}</span>";
+                $_tt   = $mfAttr->type;
+                if ($updateType) {
+                    $_tt .= " ({$dfAttr->type})";
+                }
+                $info .= "<span{$style}>$_tt</span>";
 
                 // Обновяване на опциите
                 if($this->db->isType($mfAttr->type, 'have_options')) {
