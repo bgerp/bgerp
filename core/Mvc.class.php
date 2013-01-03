@@ -370,7 +370,7 @@ class core_Mvc extends core_FieldSet
 
         if ($fields) {
             $query->show($fields);
-            $query->show("id");
+            $query->show($index);
             $query->orderBy($fields);
         }
         
