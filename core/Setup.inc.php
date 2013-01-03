@@ -687,7 +687,7 @@ function getGitCmd(&$gitCmd)
 		return TRUE;
 	}
 	
-	echo ("<pre>"); print_r($output); die;
+	//echo ("<pre>"); print_r($output); die;
 	// Проверяваме дали не идва от installBuilder-a
 	exec(EF_ROOT_PATH . "/git", $output, $returnVar);
 	if (strpos($output['0'], "usage: git") !== FALSE) {
