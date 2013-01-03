@@ -360,11 +360,16 @@ if($step == 2) {
 }
 
 
-// Ако се намираме на стъпка 2: Проверки
+// Ако се намираме на стъпка 3: Проверки
 if($step == 3) {
     
     $log = array();
 
+    // Проверка за наличие на Git
+    $log[] = 'h:Проверка за наличие на Git:';
+    if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    }
     // Проверяваме дали имаме достъп за четене/запис до следните директории
     $log[] = 'h:Проверка и създаване на работните директории:';
 
@@ -507,21 +512,6 @@ if($step == 4) {
 }
 
 if($step == 5) {
-	// Вкарваме javascript-a за smooth скрол-а
-//	$texts['scripts'] .= "
-//	<script>
-//	function scroll()
-//     {
-//        var objDiv = window.frames[\"init\"].document.getElementById('setupLog');
-//	    if ((objDiv.scrollTop+objDiv.offsetHeight) < objDiv.scrollHeight)
-//        {
-//           objDiv.scrollTop+=4;
-//           
-//        }
-//        
-//    }
-//    var handle=setInterval('scroll()', 5);
-//	</script>";
 	$texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
 }
 
@@ -685,6 +675,32 @@ die;
 //=======================
 
 /**
+ * Връща абсолютният път до git командата или FALSE, ако не го намери
+ */
+function getGitCmd(&$gitCmd)
+{
+	// Проверяваме дали Git не е инсталиран
+	exec('git', $output, $returnVar);
+	if (strpos($output['0'], "usage: git") !== FALSE) {
+		$gitCmd = 'git';
+		
+		return TRUE;
+	}
+	
+	echo ("<pre>"); print_r($output); die;
+	// Проверяваме дали не идва от installBuilder-a
+	exec(EF_ROOT_PATH . "/git", $output, $returnVar);
+	if (strpos($output['0'], "usage: git") !== FALSE) {
+		$gitCmd = EF_ROOT_PATH . "/git";
+		
+		return TRUE;
+	}
+	
+	return FALSE;
+}
+
+
+/**
  * Преобразува лог от вътрешни операции към HTML
  */
 function logToHtml($log, &$stat)
@@ -722,9 +738,15 @@ function linksToHtml($links, $target='_self')
  */
 function gitHasNewVersion($repoPath, &$log)
 {
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+	
 	$repoName = basename($repoPath);
 	
-	$command = "git --git-dir={$repoPath}/.git remote show origin";
+	$command = "$gitCmd --git-dir={$repoPath}/.git remote show origin";
 
 	exec($command, $arrRes, $returnVar);
 	
@@ -745,9 +767,15 @@ function gitHasNewVersion($repoPath, &$log)
  */
 function gitHasChanges($repoPath, &$log)
 {
-	$repoName = basename($repoPath);
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
 	
-	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} status -s";
+    $repoName = basename($repoPath);
+	
+	$command = "$gitCmd --git-dir={$repoPath}/.git --work-tree={$repoPath} status -s";
 
 	exec($command, $arrRes, $returnVar);
 	
@@ -769,9 +797,15 @@ function gitHasChanges($repoPath, &$log)
  */
 function gitPullRepo($repoPath, &$log)
 {
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+	
 	$repoName = basename($repoPath);
 	
-	$command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} pull origin master 2>&1";
+	$command = "$gitCmd --git-dir={$repoPath}/.git --work-tree={$repoPath} pull origin master 2>&1";
 
 	exec($command, $arrRes, $returnVar);
 	
@@ -803,9 +837,15 @@ function gitPullRepo($repoPath, &$log)
  */
 function gitRevertRepo($repoPath, &$log)
 {
-    $repoName = basename($repoPath);
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+	
+	$repoName = basename($repoPath);
     
-    $command = "git --git-dir={$repoPath}/.git --work-tree={$repoPath} reset --hard origin/master 2>&1";
+    $command = "$gitCmd --git-dir={$repoPath}/.git --work-tree={$repoPath} reset --hard origin/master 2>&1";
     
     exec($command, $arrRes, $returnVar);
 
