@@ -204,7 +204,7 @@ class cash_Pko extends core_Master
     		$currencyId = currency_Currencies::getIdByCode();
     	}
     	
-    	$today = date("d-m-Y", time());
+    	$today = dt::verbal2mysql();
     	
     	// Поставяме стойности по подразбиране
     	$data->form->setDefault('valior', $today);

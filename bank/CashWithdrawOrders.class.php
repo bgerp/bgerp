@@ -169,7 +169,7 @@ class bank_CashWithdrawOrders extends core_Master
     	$data->form->setDefault('execBank', $account->bank);
     	$data->form->setReadOnly('execBank');
     	
-    	$today = date("d-m-Y", time());
+    	$today = dt::verbal2mysql();
     	$data->form->setDefault('valior', $today);
     	
     	static::getProxyInfo($data->form);
