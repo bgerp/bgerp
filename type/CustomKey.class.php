@@ -363,4 +363,15 @@ class type_CustomKey extends type_Key
         
         return $tpl;
     }
+
+    
+    /**
+     * Връща атрибутите на MySQL полето
+     */
+    public function getMysqlAttr()
+    {
+        // Извикваме базовата имплементация (дефинирана в core_Type), за да прескочим 
+        // имплементацията на type_Int
+        return $this->_baseGetMysqlAttr();
+    }
 }
