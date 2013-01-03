@@ -36,7 +36,7 @@ class support_Systems extends core_Master
     /**
      * Път към картинка 16x16
      */
-//    var $singleIcon = 'img/16/support.png';
+    var $singleIcon = 'img/16/question.png';
     
     
     /**
@@ -111,6 +111,12 @@ class support_Systems extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'nameLink=Наименование, description, folderId, inCharge, access, shared';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'description';
     
     
     /**
