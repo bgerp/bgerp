@@ -157,7 +157,7 @@ class doc_Folders extends core_Master
         return doc_Folders::haveRightToObject($rec, $userId);
     }
     
-    
+
     /**
      * Дали посоченият (или текущият ако не е посочен) потребител има право на достъп до този обект
      * Обекта трябва да има полета inCharge, access и shared
@@ -172,7 +172,7 @@ class doc_Folders extends core_Master
         $teamMembers = core_Users::getTeammates($userId);
         
         // 'ceo' има достъп до всяка папка
-        if(haveRole('ceo')) return TRUE;
+        if(core_Users::haveRole('ceo', $userId)) return TRUE;
         
         // Всеки има право на достъп до папката за която отговаря
         if($rec->inCharge === $userId) return TRUE;
@@ -193,7 +193,7 @@ class doc_Folders extends core_Master
         if(core_Users::haveRole('manager,ceo', $rec->inCharge)) return FALSE;
         
         // Ако папката е лична на член от екипа, и потребителя има права 'manager' - има достъп
-        if($rec->access == 'private' && $fromTeam && haveRole('manager')) return TRUE;
+        if($rec->access == 'private' && $fromTeam && core_Users::haveRole('manager', $userId)) return TRUE;
         
         // Ако никое от горните не е изпълнено - отказваме достъпа
         return FALSE;
