@@ -151,10 +151,10 @@ class catpr_Discounts extends core_Master
             
             
             //Вземаме вербалната стойност
-            $paramName = $mvc->getVerbal($paramRec, 'name');
+            $paramName = $mvc->getVerbal($paramRec, $paramName);
             
             //Заместваме равното с ASCII стойността му
-            $paramName = str_replace('=', '&#61;', 'name');
+            $paramName = str_replace('=', '&#61;', $paramName);
             
                 
             $form->FLD("value_{$paramRec->id}", $valueType, "input,caption=Отстъпки->" . $paramName);
