@@ -5,7 +5,7 @@
 			<p style='font: small Arial,sans-serif;
 	font-size: 1em;
 	text-align:left;
-	font-weight:bold;'>Към дата: [#lastUpdate#]</p>
+	font-weight:bold;'>[#name#]</p>
 		</div>
 
         <!-- BEGIN Блок ляво -->
@@ -14,8 +14,8 @@
 			 <table cellspacing='1' class='top-table'>
 			     
 	             <tr>
-	                 <td class="quiet" align="left" width='1%'>Име:</td>
-	                 <td>[#name#]</td>
+	                 <td class="quiet" align="left" width='18%'>Към дата:</td>
+	                 <td> [#lastUpdate#]</td>
 	             </tr>
 	            
 	             <tr>
@@ -33,7 +33,7 @@
 
 				<!--ET_BEGIN nameday-->
 				<tr>
-                     <td class="quiet" colspan="2" style='padding-top:10px;'>Детайли:</td>
+                     <td class="quiet" colspan="2" style='padding-top:10px;'>Исторически курсове:</td>
                  </tr>
 
                  <tr>

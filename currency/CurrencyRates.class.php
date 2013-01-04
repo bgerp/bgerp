@@ -42,7 +42,7 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = 500;
+    var $listItemsPerPage = 20;
     
     
     /**
