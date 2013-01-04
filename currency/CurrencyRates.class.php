@@ -176,4 +176,61 @@ class currency_CurrencyRates extends core_Detail
     {
         $data->toolbar->addBtn('Зареди от ECB', array($mvc, 'RetrieveCurrencies'));
     }
+    
+
+    /**
+     *  Изчислява обменния курс от една валута в друга, за дадена дата
+     *  @param date $from - Трибуквения код на валутата, която ще обменяме
+     *  @param date $to - Трибуквения код на валутата, към която ще изчисляваме
+     *  @param date $date - датата към която ще изчисляваме курса, ако няма
+     *  дата, взима последната дата за която има запис и е най-близо.
+     *  @return double - Курса по който се обменя едната валута към другата
+     */
+    static function getRate($from, $to, $date = NULL)
+    {
+    	// Обръща,е датата в правилен формат, ако е NULL  взимаме текущата
+    	$date = dt::verbal2mysql($date);
+    	
+    	// Проверяваме дали подадените валути са в правилния формат 'XXX'
+    	// където 'XXX' е стринг точно с 3 символа, които са Главни букви 
+    	expect(preg_match('/^[A-Z]{3}$/', $from), 'Валутния Код трябва да е в правилен формат');
+    	expect(preg_match('/^[A-Z]{3}$/', $to), 'Валутния Код трябва да е в правилен формат');
+    	
+    	// Ако подадените валути са еднакви, то обменния им курс е 1
+    	if($from == $to) return 1;
+    	
+    	// Очакваме да има запис в мениджъра за подадените валути
+    	expect($fromId = currency_Currencies::getIdByCode($from), 'Няма такава валута');
+    	expect($toId = currency_Currencies::getIdByCode($to), 'Няма такава валута');
+    	
+    	// Проверяваме дали има директен запис за обменния курс от едната
+    	// валута към другата, ако има го връщаме
+    	$checkQuery = static::getQuery();
+    	$checkQuery->where("#currencyId = '{$fromId}'");
+    	$checkQuery->where("#baseCurrencyId = '{$toId}'");
+    	$checkQuery->where("#date <= '{$date}'");
+	    $checkQuery->orderBy("#date");
+	    $checkQuery->limit(1);
+    	if($rate = $checkQuery->fetch()->rate) return $rate;
+	    
+    	// Ако няма директен запис то изчисляваме курса на двете валути, към
+    	// основната валута за подадения период, ако няма запис за този
+    	// период  връща последния запис най-близо до подадената дата
+    	$rates = array($fromId, $toId);
+    	foreach($rates as &$element) {
+	    	$query = static::getQuery();
+	    	$query->where("#currencyId = '{$element}'");
+	    	$query->where("#date <= '{$date}'");
+	    	$query->orderBy("#date");
+	    	$query->limit(1);
+	    	$rate = $query->fetch()->rate;
+	    	if(!$rate){
+	    		$rate  = 1;
+	    	}
+	    	$element = $rate;
+    	}
+    	
+    	// Връщаме обменния курс, като разделяме единия курс на другия
+    	return round($rates[1] / $rates[0], 4);
+    }
 }
