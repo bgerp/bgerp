@@ -90,7 +90,7 @@ class currencies_CurrencyRatesTest extends framework_TestCase
     public function testExisting()
     {
         $RON_EUR = 4.4203; // към 03.01.2013 (записано)
-        $rate = $this->CurrencyRates->getRate('RON', 'EUR', '03-01-2013');
+        $rate = $this->CurrencyRates->getRateBetween('RON', 'EUR', '03-01-2013');
         $this->assertEquals($RON_EUR, $rate);
     }
     
@@ -101,7 +101,7 @@ class currencies_CurrencyRatesTest extends framework_TestCase
     public function testExistingHistory()
     {
         $USD_EUR = 1.3102; // към 02.01.2013 (наследено от 01.01.2013)
-        $rate = $this->CurrencyRates->getRate('USD', 'EUR', '02-01-2013');
+        $rate = $this->CurrencyRates->getRateBetween('USD', 'EUR', '02-01-2013');
         $this->assertEquals(1.3102, $rate);
     }
     
@@ -115,7 +115,7 @@ class currencies_CurrencyRatesTest extends framework_TestCase
         $RON_EUR = 4.3;    // към 1.1.2013
         $BGN_RON = round($RON_EUR / $BGN_EUR, 4);
         
-        $rate = $this->CurrencyRates->getRate('BGN', 'RON', '01-01-2013');
+        $rate = $this->CurrencyRates->getRateBetween('BGN', 'RON', '01-01-2013');
         $this->assertEquals($BGN_RON, $rate);
     }
     
@@ -129,7 +129,7 @@ class currencies_CurrencyRatesTest extends framework_TestCase
         $RON_EUR = 4.4203; // към 3.1.2013 (записано)
         $BGN_RON = round($RON_EUR / $BGN_EUR, 4);
                 
-        $rate = $this->CurrencyRates->getRate('BGN', 'RON', '03-01-2013');
+        $rate = $this->CurrencyRates->getRateBetween('BGN', 'RON', '03-01-2013');
         $this->assertEquals($BGN_RON, $rate);
     }
     
@@ -139,7 +139,7 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
     public function testSameCurrency()
     {
-        $rate = $this->CurrencyRates->getRate('CHF', 'CHF', '08-04-2011');
+        $rate = $this->CurrencyRates->getRateBetween('CHF', 'CHF', '08-04-2011');
         
         $this->assertEquals(1, $rate);
     }
@@ -151,6 +151,6 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
     public function testMissingRate()
     {
-        $rate = $this->CurrencyRates->getRate('CHF', 'EUR', '01-01-2013');
+        $rate = $this->CurrencyRates->getRateBetween('CHF', 'EUR', '01-01-2013');
     }
 }

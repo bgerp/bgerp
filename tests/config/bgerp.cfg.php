@@ -24,11 +24,11 @@ DEFINE('EF_APP_TITLE', 'The BGERP');
 DEFINE('EF_DB_NAME', 'bgerp_test');
 
 // Потребителско име. По подразбиране е същото, като името на приложението
-DEFINE('EF_DB_USER', 'webdeveloper');
+DEFINE('EF_DB_USER', 'bgerp_test');
 
 // По-долу трябва да се постави реалната парола за връзка
 // с базата данни на потребителят дефиниран в предходния ред
-DEFINE('EF_DB_PASS', 'webdeveloper'); 
+DEFINE('EF_DB_PASS', 'bgerp_test'); 
 
 // Сървъра за на базата данни
 DEFINE('EF_DB_HOST', 'localhost');

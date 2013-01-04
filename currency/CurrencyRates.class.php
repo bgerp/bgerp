@@ -176,17 +176,17 @@ class currency_CurrencyRates extends core_Detail
     {
         $data->toolbar->addBtn('Зареди от ECB', array($mvc, 'RetrieveCurrencies'));
     }
-    
 
+    
     /**
      *  Изчислява обменния курс от една валута в друга, за дадена дата
-     *  @param date $from - Трибуквения код на валутата, която ще обменяме
-     *  @param date $to - Трибуквения код на валутата, към която ще изчисляваме
+     *  @param varchar(3) $from - Трибуквения код на валутата, която ще обменяме
+     *  @param varchar(3) $to - Трибуквения код на валутата, към която ще изчисляваме
      *  @param date $date - датата към която ще изчисляваме курса, ако няма
      *  дата, взима последната дата за която има запис и е най-близо.
      *  @return double - Курса по който се обменя едната валута към другата
      */
-    static function getRate($from, $to, $date = NULL)
+    static function getRateBetween($from, $to, $date = NULL)
     {
     	// Обръща,е датата в правилен формат, ако е NULL  взимаме текущата
     	$date = dt::verbal2mysql($date);
@@ -209,28 +209,63 @@ class currency_CurrencyRates extends core_Detail
     	$checkQuery->where("#currencyId = '{$fromId}'");
     	$checkQuery->where("#baseCurrencyId = '{$toId}'");
     	$checkQuery->where("#date <= '{$date}'");
-	    $checkQuery->orderBy("#date");
-	    $checkQuery->limit(1);
+	    $checkQuery->orderBy("#date", "DESC");
     	if($rate = $checkQuery->fetch()->rate) return $rate;
 	    
-    	// Ако няма директен запис то изчисляваме курса на двете валути, към
-    	// основната валута за подадения период, ако няма запис за този
-    	// период  връща последния запис най-близо до подадената дата
-    	$rates = array($fromId, $toId);
-    	foreach($rates as &$element) {
-	    	$query = static::getQuery();
-	    	$query->where("#currencyId = '{$element}'");
-	    	$query->where("#date <= '{$date}'");
-	    	$query->orderBy("#date");
-	    	$query->limit(1);
-	    	$rate = $query->fetch()->rate;
-	    	if(!$rate){
-	    		$rate  = 1;
-	    	}
-	    	$element = $rate;
+    	// Изчислява курса на двете валути към основната валута
+    	$fromRate = static::getBaseRate($fromId, $date);
+    	$toRate = static::getBaseRate($toId, $date);
+    	
+    	if($fromRate == '1'){
+    		
+    		// Ако обръщаме от основната валута към друга, 
+    		$res = round($fromRate / $toRate, 4);
+    	} else {
+    		
+    		// Ако обръщаме от някаква валута към друга, 
+    		$res = round($toRate / $fromRate, 4);
     	}
     	
     	// Връщаме обменния курс, като разделяме единия курс на другия
-    	return round($rates[1] / $rates[0], 4);
+    	return $res;
+    }
+    
+    
+    /**
+     * Функция която изчислява обменния курс на валута към основната валута
+     * за даден период. Ако няма запис за посочения период връща последния
+     * запис който е най-близо до подадената дата, ако не е подадена дата
+     * взима по подразбиране последната дата. последния запис най-близо до подадената дата
+     * @param int $currencyId - Ид на валутата която ще обръщаме
+     * @param date $date - Дата към която търсим обменния курс
+     * @return double $rate - Обменния курс към основната валута за периода
+     */
+    static function getBaseRate($currencyId, $date = NULL)
+    {
+    	if(!$date) {
+    		$date = dt::verbal2mysql();
+    	}
+    	
+    	// Провряваме дали някоя от валутите е основната валута за съответния
+    	// период ако е то нейния рейт е 1
+    	$checkQuery = static::getQuery();
+	    $checkQuery->where("#date <= '{$date}'");
+	    $checkQuery->orderBy("#date", "DESC");
+	    if($checkQuery->fetch()->baseCurrencyId == $currencyId) {
+	    	
+	    	return $rate = 1;
+	    }
+	    
+	    // Ако валутата не е основната за периода, извличаме нейния запис
+	    $query = static::getQuery();
+	    $query->where("#date <= '{$date}'");
+	    $query->orderBy("#date", "DESC");
+	    $query->where("#currencyId = '{$currencyId}'");
+	    
+	    // Очакваме да има запис на валутата( в случай че не е базовата валута)
+	    expect($rec = $query->fetch(), "Нямаме запис за тази валута");
+    	$rate = $rec->rate;
+	    	
+    	return $rate;
     }
 }
