@@ -14,4 +14,7 @@ if (!defined('EF_WEB_INDEX')) {
     die('Не е зададена входната точка на приложението' . PHP_EOL);
 }
 
+PHPUnit_Framework_Error_Warning::$enabled = FALSE;
+PHPUnit_Framework_Error_Notice::$enabled = FALSE;
+
 require EF_WEB_INDEX;
