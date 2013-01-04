@@ -326,10 +326,10 @@ class support_Issues extends core_Master
         $type = static::getVerbal($rec, 'typeId');
         
         // Съкръщаме тима да е до 15 символа
-        $type = str::limitLen($type, '20');
+        $type = str::limitLen($type, '25');
         
         // Добавяме типа към заглавието
-        $row->title = $this->getVerbal($rec, 'title') . " \"<small>{$type}</small>\"";
+        $row->title = "<small><" .$type . "></small>" . $this->getVerbal($rec, 'title');
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
