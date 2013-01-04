@@ -151,7 +151,7 @@ class catpr_Discounts extends core_Master
             
             
             //Вземаме вербалната стойност
-            $paramName = $mvc->getVerbal($paramRec, $paramName);
+            $paramName = $mvc->getVerbal($paramRec, 'name');
             
             //Заместваме равното с ASCII стойността му
             $paramName = str_replace('=', '&#61;', $paramName);
