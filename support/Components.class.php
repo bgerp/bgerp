@@ -72,7 +72,7 @@ class support_Components extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, plg_RowTools';
+    var $loadList = 'support_Wrapper, plg_RowTools, plg_Sorting';
     
     
     /**
@@ -110,58 +110,4 @@ class support_Components extends core_Detail
 
         $this->setDbUnique('systemId, name');
     }
-    
-    
-	/**
-     * Добавя филтър към перата
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-//    static function on_AfterPrepareListFilter($mvc, $data)
-//    {
-//        // Добавяме поле във формата за търсене
-//        $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent');
-//        
-//        // Добавяме поле за избор на система
-//        $data->listFilter->FNC('systemIdFnc', 'key(mvc=support_Systems, select=name, allowEmpty=true)', 'input, caption=Система');
-//        
-//        // Да са разпрелени хоризонтално
-//        $data->listFilter->view = 'horizontal';
-//        
-//        // Добавяме бутон за филтриране
-//        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
-//        
-//        // Показваме само това поле. Иначе и другите полета 
-//        // на модела ще се появят
-//        $data->listFilter->showFields = 'systemIdFnc, search';
-//        
-//        // Вземаме systemId
-//        $systemId = Request::get('systemIdFnc', 'key(mvc=support_Systems, select=name)');
-//    
-//        $filter = $data->listFilter->input();
-//        
-//        // Ако се търси в система
-//        if ($systemId) {
-//            
-//            // Задаваме да е избран по подразбиране
-//            $data->listFilter->setDefault('systemIdFnc', $systemId);
-//        
-//            // Очакваме да е зададено
-//            expect($filter->systemIdFnc);
-//            
-//            // Добавяме във where клаузата
-//            $data->query->where("#systemId = '{$filter->systemIdFnc}'");    
-//        }
-//        
-//        // Ако сме добавили текст за търсене
-//        if($filter->search) {
-//            
-//            // Да е в долния регистър
-//            $filter->search = mb_strtolower($filter->search);
-//            
-//            // Добавяме във where клаузата
-//            $data->query->where(array("LOWER(#name) LIKE '[#1#]' OR LOWER(#description) LIKE '[#1#]'", "%{$filter->search}%"));
-//        }
-//    }
 }
