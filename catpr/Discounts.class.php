@@ -32,7 +32,7 @@ class catpr_Discounts extends core_Master
     
     
     /**
-     * Детайла, на модела
+     * Детайла на модела
      */
     var $details = 'catpr_discounts_Details';
     
@@ -91,6 +91,13 @@ class catpr_Discounts extends core_Master
     var $cssClass = 'document';
     
     
+            //Вземаме вербалната стойност
+            $paramName = $mvc->getVerbal($paramRec, 'name');
+            
+            //Заместваме равното с ASCII стойността му
+            $paramName = str_replace('=', '&#61;', $paramName);
+            
+            
     /**
      * Описание на модела (таблицата)
      */
@@ -148,12 +155,6 @@ class catpr_Discounts extends core_Master
                 $id = $detailRec->id;
                 $val = $detailRec->discount;
             }
-            
-            //Вземаме вербалната стойност
-            //$paramName = $mvc->getVerbal($paramRec, 'name');
-            
-            //Заместваме равното с ASCII стойността му
-            $paramName = str_replace('=', '&#61;', $paramName);
             
             $form->FLD("value_{$paramRec->id}", $valueType, "input,caption=Отстъпки->" . $paramName);
             $form->setDefault("value_{$paramRec->id}", $val);
