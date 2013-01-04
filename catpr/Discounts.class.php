@@ -91,13 +91,6 @@ class catpr_Discounts extends core_Master
     var $cssClass = 'document';
     
     
-            //Вземаме вербалната стойност
-            $paramName = $mvc->getVerbal($paramRec, 'name');
-            
-            //Заместваме равното с ASCII стойността му
-            $paramName = str_replace('=', '&#61;', $paramName);
-            
-            
     /**
      * Описание на модела (таблицата)
      */
@@ -105,6 +98,13 @@ class catpr_Discounts extends core_Master
     {
         $this->FLD('name', 'varchar', 'input,caption=Наименование');
     }
+    
+    
+            //Вземаме вербалната стойност
+            $paramName = $mvc->getVerbal($paramRec, 'name');
+            
+            //Заместваме равното с ASCII стойността му
+            $paramName = str_replace('=', '&#61;', $paramName);
     
     
     /**
