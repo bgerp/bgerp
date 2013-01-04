@@ -4,27 +4,12 @@
 		<div class='header'>
 			<p class="calTitle">[#title#]</p>
 			<span>[#from#]</span>
-		</div>
+	</div>
 
-        <!-- BEGIN info -->
-        <br/>
-        <div class='block_left'>
-        
-            <br/>
-			 <table cellspacing='1' class='top-table'>
-	             
-	             <tr>
-	             	 <td class="quiet" align="center" width='1%'>Дата: &nbsp; </td>
-	                 <td>[#date#]</td>
-	             </tr>
-							
-				</table>
-          </div> 
-         
-			<!--ET_END info-->
 			
 						
-		<!--ET_BEGIN event-->	
+		<!--ET_BEGIN event-->
+		 </br></br>	
          <div class='block_left'>
          </br>
                 <table cellspacing='1' class='calTable'>

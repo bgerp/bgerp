@@ -223,6 +223,55 @@ a.draftColor{
 	font-weight:bold;
 }*/
 
+p.mc-calendar{
+	
+	border: 1px solid rgb(159, 198, 231);
+	background-image: url("nqkvo_pole4c.png");
+	margin-top:0.2em;
+	margin-bottom:0.5em;
+	margin-left:0.2em;
+	background-position: center; 
+	line-height: 1em;
+	color: #1d1d1d;
+	white-space: nowrap;
+	max-width:11em;
+	overflow:hidden;
+	font: small Arial,sans-serif;
+	font-size: 0.8em;
+	
+	
+}
+
+a.mc-calendar-calWeek{
+	border: 0px #999;
+	white-space: nowrap;
+	colspan: 2;
+	position:absolute;
+	width:11em;
+	font: small Arial,sans-serif;
+	font-size: 0.8em;
+}
+
+a.mc-calendar-draftColor{
+	position:absolute;
+	background-color:#88cc99;
+	width:11em;
+	font: small Arial,sans-serif;
+	font-size: 0.8em;
+	
+}
+
+a.mc-calendar-closedColor{
+	position:absolute;
+	background-color:#eee; 
+	text-decoration:line-through;
+	width:11em;
+	font: small Arial,sans-serif;
+	font-size: 0.8em;
+	
+}
+
+
 td.mc-calendar {
 	text-align:left;
  	border:none;
