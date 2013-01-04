@@ -353,7 +353,7 @@ class doc_Threads extends core_Manager
         $exp->DEF('#names', 'varchar', 'caption=Лице,width=100%,mandatory,remember=info');
         
         // Адресни данни
-        $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember,notNull');
+        $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,notNull');
         $exp->DEF('#pCode', 'varchar(255)', 'caption=П. код,recently');
         $exp->DEF('#place', 'varchar(255)', 'caption=Град,width=100%');
         $exp->DEF('#address', 'varchar(255)', 'caption=Адрес,width=100%');

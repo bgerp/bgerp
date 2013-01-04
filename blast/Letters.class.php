@@ -369,7 +369,7 @@ class blast_Letters extends core_Master
         $tpl->replace($this->letterTemp->sender, 'sender');
         $tpl->replace($this->letterTemp->date, 'date');
         $tpl->replace($this->letterTemp->outNumber, 'outNumber');
-        $tpl->replace(dt::mysql2verbal($this->letterTemp->modifiedOn, "d-m-Y"), 'date');
+        $tpl->replace(dt::mysql2verbal($this->letterTemp->modifiedOn, "d.m.Y"), 'date');
         
         //Връщаме шаблона
         return $tpl;

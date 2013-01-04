@@ -32,7 +32,7 @@ class catpr_Discounts extends core_Master
     
     
     /**
-     * Детайла, на модела
+     * Детайла на модела
      */
     var $details = 'catpr_discounts_Details';
     
@@ -99,7 +99,7 @@ class catpr_Discounts extends core_Master
         $this->FLD('name', 'varchar', 'input,caption=Наименование');
     }
     
-    
+        
     /**
      * @param core_Manager $mvc
      * @param string $requiredRoles
@@ -149,13 +149,15 @@ class catpr_Discounts extends core_Master
                 $val = $detailRec->discount;
             }
             
+            
             //Вземаме вербалната стойност
             $paramName = $mvc->getVerbal($paramRec, 'name');
             
             //Заместваме равното с ASCII стойността му
             $paramName = str_replace('=', '&#61;', $paramName);
             
-            $form->FLD("value_{$paramRec->id}", $valueType, "input,caption=Отстъпки->" . $paramName);
+                
+            $form->FLD("value_{$paramRec->id}", $valueType, "input,caption=Отстъпки->" . 'name');
             $form->setDefault("value_{$paramRec->id}", $val);
             
             $form->FLD("id_{$paramRec->id}", "key(mvc={$detailsMgr->className})", "input=hidden");

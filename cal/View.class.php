@@ -11,7 +11,7 @@ class cal_View extends core_Plugin
             
         }
 		
-        $from = dt::mysql2verbal($from, 'd-m-Y');
+        $from = dt::mysql2verbal($from, 'd.m.Y');
         
         $act = strtolower(Request::get('Act'));
          

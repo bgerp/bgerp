@@ -149,7 +149,7 @@ class sales_Invoices extends core_Master
         $this->FLD('contragentAccItemId', 
             'acc_type_Item(lists=' . self::CLIENTS_ACC_LIST . ')', 'notNull,input=none,column=none');
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory,width=100%');
-        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Получател->Държава,mandatory,width=100%');
+        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,width=100%');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->ЕИК/VAT №, mandatory');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData');
@@ -282,7 +282,7 @@ class sales_Invoices extends core_Master
             // Най-новата валидна ф-ра в БД е по-нова от настоящата.
             $form->setWarning('date', 
                 'Има фактура с по-нова дата (от|* ' . 
-                    dt::mysql2verbal($newestInvoiceRec->date, 'd-m-y') .
+                    dt::mysql2verbal($newestInvoiceRec->date, 'd.m.y') .
                 ')'
             );
         }

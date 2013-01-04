@@ -175,7 +175,7 @@ class bank_PaymentOrders extends core_Master
      * Попълваме стойностите по-подразбиране взети от последния документ
      * от същия тип в папката
      */
-    function setDefaults(core_Form $form)
+    static function setDefaults(core_Form $form)
     {
     	$query = static::getQuery();
     	$query->where("#folderId = {$form->rec->folderId}");
@@ -202,7 +202,7 @@ class bank_PaymentOrders extends core_Master
      * Попълва формата със 
      * Списък от Сч.сметки които можем да дебитираме 
      */
-    function getPossibleAccounts(core_Form $form)
+    static function getPossibleAccounts(core_Form $form)
     {
     	$options = array();
     	$conf = core_Packs::getConfig('bank');
