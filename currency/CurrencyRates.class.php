@@ -189,12 +189,9 @@ class currency_CurrencyRates extends core_Detail
     static function getRateBetween($from, $to, $date = NULL)
     {
     	// Обръща,е датата в правилен формат, ако е NULL  взимаме текущата
-    	$date = dt::verbal2mysql($date);
-    	
-    	// Проверяваме дали подадените валути са в правилния формат 'XXX'
-    	// където 'XXX' е стринг точно с 3 символа, които са Главни букви 
-    	expect(preg_match('/^[A-Z]{3}$/', $from), 'Валутния Код трябва да е в правилен формат');
-    	expect(preg_match('/^[A-Z]{3}$/', $to), 'Валутния Код трябва да е в правилен формат');
+    	if(!$date) {
+    		$date = dt::verbal2mysql();
+    	}
     	
     	// Ако подадените валути са еднакви, то обменния им курс е 1
     	if($from == $to) return 1;

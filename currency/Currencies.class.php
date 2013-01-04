@@ -89,9 +89,29 @@ class currency_Currencies extends core_Master {
             $code = $conf->CURRENCY_BASE_CODE;
         }
 
-        $id = self::fetchField("#code = '{$code}'", 'id');
-
+        $id = self::fetchField(array("#code = '[#1#]'", $code), 'id');
+		
         return $id;
+    }
+    
+    
+    /**
+     * Връща кода на валутата по зададено ид, ако не е зададено 
+     * връща кода на основната валута
+     * @param int $id - ид на валутата
+     * @return varchar(3) $code - код на валутата
+     */
+    static function getCodeById($id = NULL)
+    {
+    	if(!$id) {
+            $conf = core_Packs::getConfig('currency');
+            
+            return $conf->CURRENCY_BASE_CODE;
+        }
+
+        $code = self::fetchField($id, 'code');
+
+        return $code;
     }
     
     

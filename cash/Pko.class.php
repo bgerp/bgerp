@@ -240,14 +240,16 @@ class cash_Pko extends core_Master
     {
     	if ($form->isSubmitted()){
     		
-	    	$form->rec->contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
-	        $form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-	    	$contragentData = doc_Folders::getContragentData($form->rec->folderId);
-	    	$form->rec->contragentCountry = $contragentData->country;
-	    	$form->rec->contragentPcode = $contragentData->pCode;
-	    	$form->rec->contragentPlace = $contragentData->place;
-	    	$form->rec->contragentAdress = $contragentData->adress;
-	    	$form->rec->peroCase = cash_Cases::getCurrent();
+    		$rec = &$form->rec;
+	    	
+    		$rec->contragentClassId = doc_Folders::fetchField($rec->folderId, 'coverClass');
+	        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+	    	$contragentData = doc_Folders::getContragentData($rec->folderId);
+	    	$rec->contragentCountry = $contragentData->country;
+	    	$rec->contragentPcode = $contragentData->pCode;
+	    	$rec->contragentPlace = $contragentData->place;
+	    	$rec->contragentAdress = $contragentData->adress;
+	    	$rec->peroCase = cash_Cases::getCurrent();
 	    	
 	    	// Взема периода за който се отнася документа, според датата му
 	    	$accPeriods = cls::get('acc_Periods');
@@ -256,35 +258,24 @@ class cash_Pko extends core_Master
 		    	$period->baseCurrencyId = currency_Currencies::getIdByCode();
 		    }
 		    
-		    if(!$form->rec->rate){
-		       
-	    		// Ако не е зададен курс на валутата
-		    	$currencyRates = currency_CurrencyRates::fetch("#currencyId = {$form->rec->currencyId}");
-		    		
-		    	// Ако текущата валута е основната валута 
-		    	($currencyRates) ? $form->rec->rate = round($currencyRates->rate, 4) : $form->rec->rate = 1;
-		    		
-		    	// Коя е базовата валута, и нейния курс
-		    	$baseCurrencyRate = currency_CurrencyRates::fetch("#currencyId = {$period->baseCurrencyId}");
-		    			
-		    	// Ако основната валута за периода не фигурира в currency_CurrencyRates, 
-		    	// то приемаме че тя е Евро
-		    	if(!$baseCurrencyRate){
-		    		$baseCurrencyRate = new stdClass();
-		    		$baseCurrencyRate->currencyId = currency_Currencies::getIdByCode('EUR');
-		    		$baseCurrency->code = 'EUR';
-		    		$baseCurrencyRate->rate = 1;
-		    	}
-		    		
-		    	// Преизчисляваме колко е курса на подадената валута към основната за периода
-		    	$form->rec->rate = round($baseCurrencyRate->rate/$form->rec->rate, 4);
-		    }
+		    // Ако нямаме обменен курс изчисляваме този между посочената
+		    // валута и основната валута за датата на документа
+		    if(!$rec->rate){
+		    	
+		    	// Кода на валутата
+		    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+		    	
+		    	// Кода на основната валута на периода
+		    	$baseCurrencyCode = currency_Currencies::getCodeById($period->baseCurrencyId);
+		    	
+		    	$rec->rate = currency_CurrencyRates::getRateBetween($currencyCode, $baseCurrencyCode, $rec->valior);
+		     }
 		    
-		    if($form->rec->rate != 1) {
-		   		$form->rec->equals = round($form->rec->amount * $form->rec->rate, 2);
+		    if($rec->rate != 1) {
+		   		$rec->equals = round($rec->amount * $rec->rate, 2);
 		    } 
 		    
-	    	$form->rec->baseCurrency = $period->baseCurrencyId;
+	    	$rec->baseCurrency = $period->baseCurrencyId;
     	}
     	
     	acc_Periods::checkDocumentDate($form);
