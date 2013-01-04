@@ -275,7 +275,7 @@ class core_FieldSet extends core_BaseClass
      */
     function getOptions($name)
     {
-        return $this->fields[$name]->type->options;
+        return $this->fields[$name]->options;
     }
     
     
