@@ -120,13 +120,13 @@ class support_Issues extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'componentId, types, description';
+    var $searchFields = 'componentId, typeId, description';
     
     
     /**
      * 
      */
-    var $listFields = 'id, title, componentId, types, sharedUsers';
+    var $listFields = 'id, title, componentId, typeId';
     
     
     /**
@@ -134,16 +134,22 @@ class support_Issues extends core_Master
      */
     var $rowToolsSingleField = 'title';
     
-    var $cloneFields = 'componentId, types, title, description';
+    
+    /**
+     * 
+     */
+    var $cloneFields = 'componentId, typeId, title, description';
+	
+	
 	/**
      * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('componentId', "key(mvc=support_Components,select=name)", 'caption=Компонент, mandatory');
-        $this->FLD('types', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, oldFieldName=typeId');
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
-        $this->FLD('description', 'text', "caption=Описание");
+        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
+        $this->FLD('description', 'richtext', "caption=Описание, width=100%");
     }
     
     
@@ -240,6 +246,23 @@ class support_Issues extends core_Master
         
         // Променяме съдържанието на полето компоненти с определения от нас масив
         $data->form->setOptions('componentId', $components);
+        
+        // Вземаме записа за съответната система
+        $sRec = support_Systems::fetch($systemId);
+        
+        // Разрешените типове за съответната система
+        $allowedTypesArr = type_Keylist::toArray($sRec->allowedTypes);
+
+        // Обхождаме масива с всички разрешени типове
+        foreach ($allowedTypesArr as $allowedType) {
+            
+            // Добавяме в масива вербалната стойност на рарешените типове
+            $types[$allowedType] = support_IssueTypes::getVerbal($allowedType, 'type');
+        }
+        
+        // Променяме съдържанието на полето тип с определения от нас масив, за да се показват само избраните
+        $data->form->setOptions('typeId', $types);
+        
     }
     
     
@@ -298,7 +321,15 @@ class support_Issues extends core_Master
         $rec = $this->fetch($id);
      
         $row = new stdClass();
-        $row->title = $this->getVerbal($rec, 'title');
+        
+        // Типа
+        $type = static::getVerbal($rec, 'typeId');
+        
+        // Съкръщаме тима да е до 15 символа
+        $type = str::limitLen($type, '20');
+        
+        // Добавяме типа към заглавието
+        $row->title = $this->getVerbal($rec, 'title') . " \"<small>{$type}</small>\"";
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');

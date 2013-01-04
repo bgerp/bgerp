@@ -72,7 +72,7 @@ class support_IssueTypes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper';
+    var $loadList = 'support_Wrapper, plg_RowTools';
     
     
     /**
@@ -80,7 +80,7 @@ class support_IssueTypes extends core_Manager
      */
     function description()
     {
-        $this->FLD('type', 'varchar', "caption=Тип");
+        $this->FLD('type', 'varchar', "caption=Тип, width=100%");
         
         $this->setDbUnique('type');
     }

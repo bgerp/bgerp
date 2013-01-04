@@ -110,19 +110,31 @@ class support_Systems extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name, description, folderId, inCharge, access, shared';
+    var $listFields = 'id, name=Система, folderId, description';
     
+    
+    /**
+     * 
+     */
+    var $rowToolsField = 'id';
+
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
     
-    
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'name, description';
+    
+    
+    /**
+     * Детайла, на модела
+     */
+    var $details = 'support_Components';
     
     
 	/**
@@ -130,7 +142,60 @@ class support_Systems extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar', "caption=Наименование,mandatory");
-        $this->FLD('description', 'text', "caption=Описание");
+        $this->FLD('name', 'varchar', "caption=Наименование,mandatory, width=100%");
+        $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Позволени типове, mandatory, width=100%');
+        $this->FLD('description', 'richtext', "caption=Описание, width=100%");
+        
+        $this->setDbUnique('name');
+    }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        // Ако имаме създадена папка
+        if ($rec->folderId) {
+            
+            // Записите за папката
+            $folderRec = doc_Folders::fetch($rec->folderId);
+            
+            // Вземаме линка към папката
+            $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
+        } else {
+            
+            // Заглавието на папката
+            $title = $mvc->getFolderTitle($rec->id);
+            
+            // Добавяме бутон за създаване на папка
+            $row->folderId = ht::createBtn('Папка', array($mvc, 'createFolder', $rec->id), "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?", 
+                             FALSE, array('class' => 'btn-new-folder'));
+        }
+    }
+    
+    
+    /**
+     * След създаване на папка, сменяма състоянието на активно
+     */
+    function on_AfterForceCoverAndFolder($mvc, &$folderId, $rec)
+    {
+        $nRec = new stdClass();
+        $nRec->id = $rec->id;
+        $nRec->state = 'active';
+        $mvc->save($nRec);
+    }
+    
+    
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($action == 'edit') {
+            if ($rec->state == 'active') {
+//                $requiredRoles = 'no_one';    
+            } 
+        }
     }
 }
