@@ -115,10 +115,7 @@ class core_Type extends core_BaseClass
     }
     
     
-    /**
-     * Връща атрибутите на MySQL полето
-     */
-    function getMysqlAttr()
+    protected function _baseGetMysqlAttr()
     {
         $res = new stdClass();
         
@@ -144,6 +141,15 @@ class core_Type extends core_BaseClass
         }
         
         return $res;
+    }
+
+    
+    /**
+     * Връща атрибутите на MySQL полето
+     */
+    public function getMysqlAttr()
+    {
+        return $this->_baseGetMysqlAttr();
     }
     
     

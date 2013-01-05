@@ -369,7 +369,10 @@ if($step == 3) {
     $log[] = 'h:Проверка за наличие на Git:';
     if (!getGitCmd($gitCmd)) {
     	$log[] = "err:Не е открит Git!";
+    } else {
+    	$log[] = "inf:Git - OK";
     }
+    
     // Проверяваме дали имаме достъп за четене/запис до следните директории
     $log[] = 'h:Проверка и създаване на работните директории:';
 
@@ -687,11 +690,10 @@ function getGitCmd(&$gitCmd)
 		return TRUE;
 	}
 	
-	//echo ("<pre>"); print_r($output); die;
 	// Проверяваме дали не идва от installBuilder-a
-	exec(EF_ROOT_PATH . "/git", $output, $returnVar);
+	exec(BGERP_GIT_PATH, $output, $returnVar);
 	if (strpos($output['0'], "usage: git") !== FALSE) {
-		$gitCmd = EF_ROOT_PATH . "/git";
+		$gitCmd = BGERP_GIT_PATH;
 		
 		return TRUE;
 	}
@@ -746,7 +748,7 @@ function gitHasNewVersion($repoPath, &$log)
 	
 	$repoName = basename($repoPath);
 	
-	$command = "$gitCmd --git-dir={$repoPath}/.git remote show origin";
+	$command = "$gitCmd --git-dir=\"{$repoPath}/.git\" remote show origin";
 
 	exec($command, $arrRes, $returnVar);
 	
@@ -775,7 +777,7 @@ function gitHasChanges($repoPath, &$log)
 	
     $repoName = basename($repoPath);
 	
-	$command = "$gitCmd --git-dir={$repoPath}/.git --work-tree={$repoPath} status -s";
+	$command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" status -s";
 
 	exec($command, $arrRes, $returnVar);
 	
@@ -805,7 +807,7 @@ function gitPullRepo($repoPath, &$log)
 	
 	$repoName = basename($repoPath);
 	
-	$command = "$gitCmd --git-dir={$repoPath}/.git --work-tree={$repoPath} pull origin master 2>&1";
+	$command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" pull origin master 2>&1";
 
 	exec($command, $arrRes, $returnVar);
 	
@@ -845,7 +847,7 @@ function gitRevertRepo($repoPath, &$log)
 	
 	$repoName = basename($repoPath);
     
-    $command = "$gitCmd --git-dir={$repoPath}/.git --work-tree={$repoPath} reset --hard origin/master 2>&1";
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/master 2>&1";
     
     exec($command, $arrRes, $returnVar);
 
