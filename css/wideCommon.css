@@ -260,7 +260,6 @@ table.listTable>thead>tr>th {
 }
 
 .listTopContainer {
-	overflow:auto; 
 	width:100%;
 }
 
@@ -303,7 +302,7 @@ form {
 	float:left;
 }
 
-.horizontal .formFields div {
+div.hFormField {
 	float:left;
 	margin-right:7px;
 	margin-bottom:2px;
