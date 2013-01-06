@@ -677,8 +677,8 @@ table.mc-header a {
 
 .threadSubTitle {
 	font-size:0.75em;
-	margin:2px;
-	margin-bottom:0px;
+	padding:2px;
+	padding-bottom:0px;
 	color:#353;
 }
 
