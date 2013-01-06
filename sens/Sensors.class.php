@@ -135,7 +135,7 @@ class sens_Sensors extends core_Master
         }
         
         // Инициализираме драйвера
-        $driver = cls::get($rec->driver, array('id'=>$rec->id)); 
+        $driver = cls::get($rec->driver, array('id'=>$rec->id, 'readonly' => TRUE)); 
         
         $settingsArr = (array)$driver->settings;
         
