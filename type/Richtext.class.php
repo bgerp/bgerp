@@ -201,7 +201,7 @@ class type_Richtext extends type_Text
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') {
             $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]');
-            $to = array("\n", "\n", "\n", "<br>", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>');
+            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>');
         } else {
             $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]');
             $to   = array("\n",   "\n",   "\n",  "    ", '',         '',      '*',   '*',    '',    '',     '',    '',     str_repeat('_', 84), '', '', '', '');
@@ -228,20 +228,36 @@ class type_Richtext extends type_Text
             $sp = "";
             
             for($i = 0; $i<strlen($html); $i++) {
+                
                 $c = substr($html, $i, 1);
                 
                 if ($c == "\n") {
                     $newLine = TRUE;
                 } else {
-                    if ($c == " ") $c = $newLine ? ("&nbsp;") : (" ");
-                    else $newLine = FALSE;
+                    if ($c == " ") {
+                        $c = $newLine ? ("&nbsp;") : (" ");
+                    } else {
+                        $newLine = FALSE;
+                    }
                 }
                 $out .= $c;
             }
             
             $st1 = '';
+            
+            $out = str_replace(array(
+                "\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>\n",
+                "\n&nbsp;&nbsp;&nbsp;&nbsp;<br>\n",
+                "\n&nbsp;&nbsp;&nbsp;<br>\n", 
+                "\n&nbsp;&nbsp;<br>\n", 
+                "\n&nbsp;<br>\n"), 
+                array("\n<br>\n", 
+                      "\n<br>\n", 
+                      "\n<br>\n",
+                      "\n<br>\n",
+                      "\n<br>\n"), $out);
 
-            $lines = explode("<br>", $out);
+            $lines = explode("<br>\n", $out);
             $empty = 0;
             
             foreach($lines as $l) {
