@@ -1,54 +1,58 @@
-[#SingleToolbar#]
-                 
-	<div class='document'>
-		<div class='header [#STATE_CLASS#]'>
-		<span >Сигнал » [#name#]</span>
-		</div>
-
-        <!-- BEGIN Блок ляво -->
-        <div class='block_left'>
-        
-			 <table cellspacing='1' class='top-table'>
-			     
-	             <tr>
-	                 <td class="quiet" align="left" width='50%'>Папка:</td>
-	                 <td>[#folderId#]</td>
-	             </tr>
-
+<div style="display: inline-block;">
+	[#SingleToolbar#]
+	<div class="folder-cover">
+		<div class="block_title [#STATE_CLASS#]">
+	         |Поддръжка на|* "[#name#]"
+        </div>
+		
+		<table cellspacing='1' class='top-table'>
+			
+			<!--ET_BEGIN folderId-->     
 				<tr>
-					<td class="quiet" align="left" width='50%'>Отговорници:</td>
-					<td>[#inCharge#] ([#createdOn#])</td>
-				
+				    <td align="left" width='auto'>|Папка|*:</td>
+				    <td>[#folderId#]</td>
 				</tr>
-
+			<!--ET_END folderId-->
+			
+			<tr>
+				<td align="left" width='auto'>|Отговорник|*:</td>
+				<td>[#inCharge#]</td>
+			
+			</tr>
+		
+			<tr>
+	        	<td align="left" width='auto'>|Достъп|*:</td>
+	        	<td>[#access#]</td>
+	       
+	        </tr>
+		         
+			<!--ET_BEGIN shared-->
 				<tr>
-                     <td class="quiet" align="left" width='50%'>Достъп:</td>
-                     <td>[#access#]</td>
-              
-                </tr>
-                
-                <tr>
-                     <td class="quiet" align="left" width='50%'>Споделяне:</td>
-                     <td>[#shared#]</td>
-              
-                </tr>
-                
-                              
-                <tr>
-                     <td class="quiet" align="left" width='50%'>Последна промяна:</td>
-                     <td>[#lastUsedOn#]</td>
-              
-                </tr>
-              
-                <tr>
-                     <td class="quiet" align="left" width='50%'>Създаден от:</td>
-                     <td>[#createdBy#]</td>
-              
-                </tr>
-                    
-             </table>
-         </div>    
-         <!-- END Блок ляво -->   
-                     
-         <div style='clear: both;'></div>
-    </div>         
+		     		<td align="left" width='auto'>|Споделяне|*:</td>
+		     		<td>[#shared#]</td>
+				</tr>
+			<!--ET_END shared-->
+		
+			<!--ET_BEGIN lastUsedOn-->              
+				<tr>
+				    <td align="left" width='auto'>|Последна промяна|*:</td>
+				    <td>[#lastUsedOn#]</td>
+				</tr>
+			<!--ET_END lastUsedOn-->
+			
+		    <tr>
+		    	<td align="left" width='auto'>|Създаден от|*:</td>
+		        <td>[#createdBy#] |на|* [#createdOn#]</td>
+		    </tr>
+		    
+	    	<tr>
+			    <td align="left" width='auto'>|Позволени типове|*:</td>
+			    <td>[#allowedTypes#]</td>
+			</tr>
+		</table>
+		
+		<div>
+			[#DETAILS#]
+		</div>
+	</div>
+</div>

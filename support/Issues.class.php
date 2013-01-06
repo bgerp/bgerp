@@ -126,18 +126,30 @@ class support_Issues extends core_Master
     /**
      * 
      */
-    var $listFields = 'id, title, componentId, typeId, createdOn, createdBy, sharedUsers';
+    var $listFields = 'id, title, componentId, typeId';
     
     
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'title';
+    
+    
+    /**
+     * 
+     */
+    var $cloneFields = 'componentId, typeId, title, description';
+	
+	
 	/**
      * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('componentId', "key(mvc=support_Components,select=name)", 'caption=Компонент, mandatory');
-        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
-        $this->FLD('description', 'text', "caption=Описание");
+        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
+        $this->FLD('description', 'richtext', "caption=Описание, width=100%");
     }
     
     
@@ -159,6 +171,10 @@ class support_Issues extends core_Master
         // Вземаме systemId' то на документа от URL' то
         $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
+        // Опитваме се да вземеме return ult' то
+        $retUrl = getRetUrl();
+        $retUrl = ($retUrl) ? $retUrl : array('support_Issues', 'selectSystem');
+
         // Ако има systemId
         if ($systemId) {
             
@@ -189,7 +205,7 @@ class support_Issues extends core_Master
         if ($coverClassName != 'support_Systems') {
             
             // Редиректваме към избор на система
-            return redirect(array($mvc, 'selectSystem', 'ret_url' => getRetUrl()));
+            return redirect(array($mvc, 'selectSystem', 'ret_url' => $retUrl));
         } else {
             
             // Задаваме systemId да е id' то на ковъра
@@ -207,8 +223,46 @@ class support_Issues extends core_Master
             $components[$rec->id] = support_Systems::getVerbal($rec, 'name');
         }
         
+        // Ако няма въведен компонент
+        if (!$components) {
+            
+            // Добавяме съобщение за грешка
+            core_Statuses::add(tr('Няма въведен компонент на системата.'));
+            
+            // Ако има права за добавяне на компонент
+            if (support_Components::haveRightFor('add')) {
+                
+                // Линк за препращаме към станицата за добавяне на компонент
+                $redirectArr = array('support_Components', 'add', 'systemId' => $systemId, 'ret_url' => $retUrl);    
+            } else {
+                
+                // Ако нямаме права, препащаме където сочи return URL' то
+                $redirectArr = $retUrl;
+            }
+            
+            // Препащаме
+            return redirect($redirectArr);
+        }
+        
         // Променяме съдържанието на полето компоненти с определения от нас масив
         $data->form->setOptions('componentId', $components);
+        
+        // Вземаме записа за съответната система
+        $sRec = support_Systems::fetch($systemId);
+        
+        // Разрешените типове за съответната система
+        $allowedTypesArr = type_Keylist::toArray($sRec->allowedTypes);
+
+        // Обхождаме масива с всички разрешени типове
+        foreach ($allowedTypesArr as $allowedType) {
+            
+            // Добавяме в масива вербалната стойност на рарешените типове
+            $types[$allowedType] = support_IssueTypes::getVerbal($allowedType, 'type');
+        }
+        
+        // Променяме съдържанието на полето тип с определения от нас масив, за да се показват само избраните
+        $data->form->setOptions('typeId', $types);
+        
     }
     
     
@@ -267,7 +321,15 @@ class support_Issues extends core_Master
         $rec = $this->fetch($id);
      
         $row = new stdClass();
-        $row->title = $this->getVerbal($rec, 'title');
+        
+        // Типа
+        $type = static::getVerbal($rec, 'typeId');
+        
+        // Съкръщаме тима да е до 15 символа
+        $type = str::limitLen($type, '25');
+        
+        // Добавяме типа към заглавието
+        $row->title = "<small><" .$type . "></small>" . $this->getVerbal($rec, 'title');
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
@@ -277,5 +339,17 @@ class support_Issues extends core_Master
         $row->recTitle = $rec->title;
         
         return $row;
+    }
+    
+
+	/**
+     * Потребителите, с които е споделен този документ
+     *
+     * @return string keylist(mvc=core_Users)
+     * @see doc_DocumentIntf::getShared()
+     */
+    static function getShared($id)
+    {
+        return static::fetchField($id, 'sharedUsers');
     }
 }
