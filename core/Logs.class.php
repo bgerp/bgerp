@@ -98,6 +98,27 @@ class core_Logs extends core_Manager
     }
     
     
+
+    /**
+     * Форма за търсене по дадена ключова дума
+     */
+    static function on_AfterPrepareListFilter($mvs, &$res, $data)
+    {   
+        
+        $data->listFilter->FNC('user', 'key(mvc=core_Users,select=nick,allowEmpty)', 'placeholder=Потребител');
+        $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
+        $data->listFilter->FNC('class', 'customKey(mvc=core_Classes,select=name,key=name,allowEmpty)', 'placeholder=Клас');
+
+        $data->listFilter->showFields = 'user,date,class';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->input('user,date,class', 'silent');  
+        
+    }
+    
+
+
+
     /**
      * Подготвя заявката
      */
@@ -106,6 +127,23 @@ class core_Logs extends core_Manager
         $query = $data->query;
         $query->orderBy('#createdOn=DESC');
         $query->orderBy('#id=DESC');
+        
+        // Заявка за филтриране
+        $fRec = $data->listFilter->rec;
+
+        if($fRec->user) {
+            $query->where("#createdBy = {$fRec->user}");
+        }
+        
+        if($fRec->date) {
+            $query->where("#createdOn >= '{$fRec->date}' AND #createdOn <= '{$fRec->date} 23:59:59'");
+        }
+        
+        if($fRec->class) {
+            $query->where("#className = '$fRec->class'");
+        }
+
+
         
         $className = Request::get('className', 'varchar');
         $objectId = Request::get('objectId', 'int');
