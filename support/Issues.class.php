@@ -327,13 +327,12 @@ class support_Issues extends core_Master
 
         // Компонента
         $component = static::getVerbal($rec, 'componentId');
-
-        // Съкръщаме тима да е до 15 символа
-        $type = str::limitLen($type, '25');
         
         // Добавяме типа към заглавието
-        $row->title =  $this->getVerbal($rec, 'title') . "<br><small>[{$type}, {$component}]</small>";
-        
+        $row->title    =  $this->getVerbal($rec, 'title');
+
+        $row->subTitle = "{$type}, {$component}";
+
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         
