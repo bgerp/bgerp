@@ -1340,8 +1340,10 @@ class log_Documents extends core_Manager
             static::save($action);
             $count++;
         }
-        
-        core_Logs::add(get_called_class(), NULL, "Записани {$count} действия");
+
+        if($count > 0) {
+            core_Logs::add(get_called_class(), NULL, "Записани {$count} действия");
+        }
     }
     
 }
