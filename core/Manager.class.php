@@ -565,7 +565,7 @@ class core_Manager extends core_Mvc
         $listLayout = new ET("
             <div style='display:table' class='clearfix21 {$className}'>
                 [#ListTitle#]
-                <div class='listTopContainer'>
+                <div class='listTopContainer clearfix21'>
                     [#ListFilter#]
                     [#ListSummary#]
                 </div>
