@@ -179,6 +179,9 @@ class cal_Calendar extends core_Master
         // Обновяваме информацията за новопостъпилите събития
         if(count($events)) {
             foreach($events as $e) {
+                if(!trim($e->users)) {
+                    unset($e->users);
+                }
                 if(($e->id = $exEvents[$e->key]->id) ||
                    ($e->id = self::fetchField("#key = '{$e->key}'", 'id')) ) {
                     unset($exEvents[$e->key]);
@@ -455,7 +458,7 @@ class cal_Calendar extends core_Master
     
         // Само събитията за текущия потребител или за всички потребители
         $cu = core_Users::getCurrent();
-        $state->query->where('#users IS NULL');
+        $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
 
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
@@ -510,13 +513,13 @@ class cal_Calendar extends core_Master
 
         // Само събитията за текущия потребител или за всички потребители
         $cu = core_Users::getCurrent();
-        $state->query->where('#users IS NULL');
+        $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
 
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
 
-        $Calendar->prepareListFields($state);
-        $Calendar->prepareListRecs($state);
+        $Calendar->prepareListFields($state); 
+        $Calendar->prepareListRecs($state); 
         $Calendar->prepareListRows($state);
 
         $tpl->replace($Calendar->renderListTable($state), 'AGENDA');
