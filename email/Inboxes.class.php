@@ -184,7 +184,7 @@ class email_Inboxes extends core_Master
         
         //Вземаме всички имейли
         $emailsArr = email_Mime::extractEmailsFrom(strtolower($str));
-        
+         
         //Ако има имейли
         if (is_array($emailsArr) && count($emailsArr)) {
 
@@ -198,8 +198,16 @@ class email_Inboxes extends core_Master
                 }
             }
             
+            // Опит за форсиране на кутия на потребител. Трябва ли ни?
+
             // Вземаме масив от PowerUsers, като индекса е ника на потребителя
             $powerUsers = static::getPowerUsers();
+            
+            // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
+            $corpAccRec = email_Accounts::getCorporateAcc();
+                
+            // Ако няма такава сметка - прекратяваме обработката
+            if(!$corpAccRec) return;
             
             // Ако имейла е съставен от ник на потребител и домейн на корпоративна сметка
             // тогава създаваме кутия за този имейл, вързана към съответния потребител
@@ -207,17 +215,13 @@ class email_Inboxes extends core_Master
                 
                 list($nick, $domain) = explode('@', $eml);
                 
+                if(!$nick || !$domain) break;
+
                 // Намираме потребител, съответстващ на емейл адреса
                 $userRec = $powerUsers[$nick];
                 
                 // Ако няма такъв потребител - прекратяваме обработката
                 if(!$userRec) break;
-
-                // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
-                $corpAccRec = email_Accounts::getCorporateAcc();
-                
-                // Ако няма такава сметка - прекратяваме обработката
-                if(!$corpAccRec) break;
                 
                 // Ако домейна на имейла  корпоративния домейн, то 
                 // Създаваме кутия (основна) на потребителя, към този домейн
@@ -505,7 +509,7 @@ class email_Inboxes extends core_Master
             $powerRoles = core_Roles::keylistFromVerbal('executive,officer,manager,ceo');
             $userQuery->likeKeylist('roles', $roles);
             while($uRec = $userQuery->fetch()) {
-                $powerUsers[$userRec->nick] = $uRec;
+                $powerUsers[$uRec->nick] = $uRec;
             }
         }
 
