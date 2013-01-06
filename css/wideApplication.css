@@ -868,6 +868,12 @@ table.top-table td {
 	background-color:#eeffee !important;
 }
  
+.threadSubTitle {
+	font-size:0.75em;
+	padding:2px;
+	padding-bottom:0px;
+	color:#353;
+}
 
 .document {
 	border: solid 1px #bbbbbb; 

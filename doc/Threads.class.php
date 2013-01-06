@@ -16,7 +16,6 @@
 class doc_Threads extends core_Manager
 {
     
-    
     /**
      * Плъгини за зареждане
      */
@@ -270,6 +269,10 @@ class doc_Threads extends core_Manager
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId),
             NULL, $attr);
+
+        if($docRow->subTitle) {
+            $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
+        }
 
         if($docRow->authorId>0) {
             $row->author = crm_Profiles::createLink($docRow->authorId);

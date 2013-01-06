@@ -670,9 +670,16 @@ table.mc-header a {
 	border:solid 1px green !important;
 }
 
-.thread-opened TH  {
+.thread-opened th  {
 	border:solid 1px green !important;
 	background-color:#aea  !important;
+}
+
+.threadSubTitle {
+	font-size:0.75em;
+	padding:2px;
+	padding-bottom:0px;
+	color:#353;
 }
 
 #notificationsCnt {
