@@ -870,8 +870,8 @@ table.top-table td {
  
 .threadSubTitle {
 	font-size:0.75em;
-	padding:2px;
-	padding-bottom:0px;
+	margin:2px;
+	margin-bottom:0px;
 	color:#353;
 }
 
