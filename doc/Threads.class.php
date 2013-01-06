@@ -28,7 +28,8 @@ class doc_Threads extends core_Manager
      */
     var $canList = 'user';
     
-    
+    var $canWrite = 'no_one';
+
     /**
      * Заглавие
      */
