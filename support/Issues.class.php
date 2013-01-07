@@ -342,16 +342,4 @@ class support_Issues extends core_Master
         
         return $row;
     }
-    
-
-	/**
-     * Потребителите, с които е споделен този документ
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    static function getShared($id)
-    {
-        return static::fetchField($id, 'sharedUsers');
-    }
 }

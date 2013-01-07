@@ -164,4 +164,14 @@ class doc_SharablePlg extends core_Plugin
         
         return $htmlStr;
     }
+    
+    
+    /**
+     * Метод по подразбиране, който връща потребителите, на които е споделен документа
+     */
+    function on_AfterGetShared($mvc, &$res, $id)
+    {
+        
+        $res = $mvc->fetchField($id, 'sharedUsers');
+    }
 }

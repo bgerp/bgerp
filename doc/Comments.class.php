@@ -237,18 +237,6 @@ class doc_Comments extends core_Master
 
 
     /**
-     * Потребителите, с които е споделен този документ
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    static function getShared($id)
-    {
-        return static::fetchField($id, 'sharedUsers');
-    }
-    
-    
-    /**
      * Изпълнява се след създаването на модела
      */
     static function on_AfterSetupMVC($mvc, &$res)
