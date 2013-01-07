@@ -174,7 +174,7 @@ class core_Lg extends core_Manager
                 $query = self::getQuery();
                 
                 while($rec = $query->fetch("#lg = '{$lg}'")) {
-                    $this->dict[$rec->kstring][$lg] = $rec->translated;
+                    $this->dict[$rec->kstring][$lg] = type_Varchar::escape($rec->translated);
                 }
                 core_Cache::set('translation', $lg, $this->dict, 2 * 60 * 24, array('core_Lg'));
             }
