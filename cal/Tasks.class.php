@@ -504,6 +504,17 @@ class cal_Tasks extends core_Master
     }
 
     
+    /**
+     * Потребителите, с които е споделен този документ
+     *
+     * @return string keylist(mvc=core_Users)
+     * @see doc_DocumentIntf::getShared()
+     */
+    static function getShared($id)
+    {
+        return static::fetchField($id, 'sharedUsers');
+    }
+    
     function act_Postpone()
     {
     	self::requireRightFor('postpone');
