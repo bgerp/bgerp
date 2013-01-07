@@ -78,10 +78,8 @@ class acc_Items extends core_Manager
      */
     function description()
     {
-        // Разпознаваем от човек номер на перото. При показване, това число се допълва с водещи 
-        // нули, докато броят на цифрите му достигне стойността на полето padding, зададено в 
-        // съответната му мастър номенклатура.
-        $this->FLD('num', 'int', "caption=№,mandatory,remember=info,notNull,input=none");
+        // Разпознаваем от човек код на перото.
+        $this->FLD('num', 'varchar(64)', "caption=Код,mandatory,remember=info,notNull,input=none");
         
         // Заглавие
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info,input=none');
