@@ -81,7 +81,7 @@ class cal_Holidays extends core_Master
     {
     	$this->FLD('key', 'varchar', 'caption=Ключ,export');
         $this->FLD('day', 'int', 'caption=Ден,export');
-        $this->FLD('base', 'enum(0=&nbsp;,
+        $this->FLD('base', 'enum(0=,
         						 01=Януари,
                                  02=Февруари,
                                  03=Март,
@@ -96,7 +96,7 @@ class cal_Holidays extends core_Master
                                  12=Декември,
                                  EST=Великден,
                                  CEST=Кат. Великден)', 'caption=База,export');
-        $this->FLD('weekday', 'enum(0=&nbsp;,
+        $this->FLD('weekday', 'enum(0=,
         						 first-monday=Първи понеделник,
                                  last-monday=Последен понеделник,
                                  first-tuesday=Първи вторник,
@@ -113,8 +113,8 @@ class cal_Holidays extends core_Master
                                  last-sunday=Последна неделя,
                                  )', 'caption=Ден от седмицата,export');
         $this->FLD('year', 'int', 'caption=Година,export');
-        $this->FLD('title', 'varchar', 'caption=Празник->Заглавие,export');
-        $this->FLD('type', 'enum(0=&nbsp;,
+        $this->FLD('title', 'varchar', 'caption=Празник->Заглавие,placeholder=Заглавие,export');
+        $this->FLD('type', 'enum(0=,
         								holiday=Празник,
         								non-working=Неработен,
                                         workday=Отработване,
@@ -252,14 +252,14 @@ class cal_Holidays extends core_Master
 										HR=Хърватия,
 										CF=Централноафриканската република,
 										TD=Чад,
-										ME=Черна гора,                                                                                                         
+										ME=Черна гора,
 										CZ=Чехия,
 										CL=Чили,
 										CH=Швейцария,
 										SE=Швеция,                                   
 										ZA=ЮАР,
 										JM=Ямайка,
-										JP=Япония)', 'caption=Празник->Тип,export');
+										JP=Япония)', 'caption=Празник->Тип,placeholder=Тип на празника,export');
         $this->FLD('info', 'richtext', 'caption=Празник->Данни,export');
         
         $this->FLD('nameday', 'richtext', 'caption=Именници,export');
