@@ -1,11 +1,17 @@
 <?php
 
 
-
 /**
  * Тип на записите в кеша
  */
 defIfNot('RICHTEXT_CACHE_TYPE', 'RichText');
+
+
+/**
+ * Текстове, които ще се удебеляват автоматично
+ * @type type_Set
+ */
+defIfNot('RICHTEXT_BOLD_TEXT', 'За,Отн,Относно,回复,转发,SV,VS,VS,VL,RE,FW,FRW,TR,AW,WG,ΑΠ,ΣΧΕΤ,ΠΡΘ,R,RIF,I,SV,FS,SV,VB,RE,RV,RES,ENC,Odp,PD,YNT,İLT');
 
 
 /**
@@ -34,6 +40,12 @@ class type_Richtext extends type_Text
         'think' => ' :-? '
     );
     
+    
+    /**
+     * Шаблон за болдване на текст
+     */
+    static $boldPattern = NULL;
+
     
     /**
      * Шаблон за намиране на линкове в текст
@@ -194,10 +206,16 @@ class type_Richtext extends type_Text
 
         // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
         
-        // Вкарваме даден текст, в richText [b] [/b] тагове
-        // \n и/или интервали \n или в началото[Главна буква][една или повече малки букви и или интервали и или големи букви]:[интервал][произволен текст]\n или край на текста
-        $html = preg_replace_callback("/(?'begin'((((\r\n)|(\n^\r)|(\r^\n)){1}[\ \t]*)+((\r\n)|(\n^\r)|(\r^\n)){1}[\ \t]*)|^[\ \t]*)+(?'text'(?'leftText'[A-ZА-Я]{1}[a-zа-яA-ZА-Я\ \t]+)\:\ (?'rightText'.+))(?'end'\n|$)/u", array($this, '_catchBold'), $html);
+        // Вземаме шаблона за намиране на текста, който ще се болдва
+        $patternBold = static::getRichTextPatternForBold();
         
+        // Ако има шаблон
+        if ($patternBold) {
+            
+            // Търсим в шаблона
+            $html = preg_replace_callback($patternBold, array($this, '_catchBold'), $html);   
+        }
+            
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') {
             $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]');
@@ -342,16 +360,56 @@ class type_Richtext extends type_Text
     
     
     /**
+     * Шаблон за вкарване даден текст, в richText [b] [/b] тагове
+     * нов ред или начало на текст и/или интервали един от текстовете RICHTEXT_BOLD_TEXT две точки интервал произволен текст нов ред или край на текст
+     * 
+     */
+    static function getRichTextPatternForBold()
+    {
+        // Ако не е сетнат шаблона
+        if (!isset(static::$boldPattern)) {
+            
+            // Разбиваме текстовете на масив
+            $boldTextTypeArr = type_Set::toArray(RICHTEXT_BOLD_TEXT);
+            
+            // Обхождаме масива
+            foreach ($boldTextTypeArr as $boldTextType) {
+                
+                // Ако е празен стринг прескачаме
+                if (!($boldTextType = trim($boldTextType))) continue;
+                
+                // Ескейпваме текста
+                $boldTextType = preg_quote($boldTextType, '/');
+                
+                // Добавяме към шаблона
+                $boldTextPattern .= ($boldTextPattern) ? '|' . $boldTextType : $boldTextType;
+            }
+            
+            // Ако има текст за шаблона
+            if ($boldTextPattern) {
+                
+                // Добавяме текста в шаблона
+                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n|^$]+))/ui";    
+            } else {
+                
+                // Добавяме FALSE, за да не се опитваме да го определим пак
+                static::$boldPattern = FALSE;
+            }
+        }
+        
+        // Връщаме резултата
+        return static::$boldPattern;
+    }
+    
+    
+    /**
      * Вкарва текста който е в следната последователност: 
      * \n и/или интервали \n или в началото[Главна буква][една или повече малки букви и или интервали и или големи букви]:[интервал][произволен текст]\n или край на текста
      * в болд таг на richText
      */
     function _catchBold($match)
     {
-        // Ако лявата част на текст е по - голямо от 32 символа, връща се текста, без обработка
-        if (mb_strlen($match['leftText']) >= 32) return $match[0];
-        
-        $res = $match['begin'] . '[b]' . trim($match['text']) . '[/b]' . $match['end'];
+        $res = $match['begin'] . '[b]' . $match['text'] . '[/b]';
         
         return $res;
     }
