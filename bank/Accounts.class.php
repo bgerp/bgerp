@@ -88,7 +88,7 @@ class bank_Accounts extends core_Master {
             loan=Кредитна,
             personal=Персонална,
             capital=Набирателна)', 'caption=Тип,mandatory');
-        $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory,silent');     // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
+        $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory');     // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка,width=100%');
         $this->FLD('comment', 'richtext(rows=6)', 'caption=Информация,width=100%');
@@ -124,6 +124,10 @@ class bank_Accounts extends core_Master {
                     
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
         }
+        
+        if($iban = Request::get('iban')) {
+        	$data->form->setDefault('iban', $iban);
+        }
     }
     
     
@@ -139,10 +143,10 @@ class bank_Accounts extends core_Master {
         // извличаме от IBAN-a
     	if($form->isSubmitted()){
 	        if(!$form->rec->bank){
-		    		$form->rec->bank = drdata_Banks::getBankName($form->rec->iban);
+		    		//$form->rec->bank = drdata_Banks::getBankName($form->rec->iban);
 		    	}
 		    if(!$form->rec->bic) {
-		    		$form->rec->bic = drdata_Banks::getBankBic($form->rec->iban);
+		    		//$form->rec->bic = drdata_Banks::getBankBic($form->rec->iban);
 		    	}
 		}
     }
