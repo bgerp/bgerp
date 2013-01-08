@@ -144,7 +144,7 @@ class support_Systems extends core_Master
     {
         $this->FLD('name', 'varchar', "caption=Наименование,mandatory, width=100%");
         $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Позволени типове, mandatory, width=100%');
-        $this->FLD('description', 'richtext', "caption=Описание, width=100%");
+        $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%");
         
         $this->setDbUnique('name');
     }
