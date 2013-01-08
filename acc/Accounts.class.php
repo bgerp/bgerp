@@ -502,4 +502,29 @@ class acc_Accounts extends core_Manager
     {
         $mvc->setField('state', 'export');
     }
+    
+    
+	/**
+     * Информация за сч. сметка
+     */
+	static function getAccountInfo($accountId)
+    {
+        $acc = (object)array(
+            'rec' => acc_Accounts::fetch($accountId),
+            'groups' => array(),
+            'isDimensional' => false
+        );
+        
+        foreach (range(1, 3) as $i) {
+            $listPart = "groupId{$i}";
+            
+            if (!empty($acc->rec->{$listPart})) {
+                $listId = $acc->rec->{$listPart};
+                $acc->groups[$i]->rec = acc_Lists::fetch($listId);
+                $acc->isDimensional = acc_Lists::isDimensional($listId);
+            }
+        }
+        
+        return $acc;
+    }
 }
