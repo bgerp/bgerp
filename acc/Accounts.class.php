@@ -336,6 +336,8 @@ class acc_Accounts extends core_Manager
         if (!$where) {
             $fields = 'id, num, title, isSynthetic';
             $query->show($fields);
+            $query->show($index);
+            $query->show('id');
         }
         
         $query->orderBy('#num');
