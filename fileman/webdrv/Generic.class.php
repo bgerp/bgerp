@@ -22,6 +22,12 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
+     * Zip инстанции на отворените архиви
+     */
+    static $archiveInst = array();
+    
+    
+    /**
      * Връща всички табове, които ги има за съответния файл
      * 
      * @param object $fRec - Записите за файла
@@ -694,33 +700,19 @@ class fileman_webdrv_Generic extends core_Manager
      */
     static function getArchiveContent($fRec, $path = NULL) 
     {
-        // Конфигурационните константи
-        $conf = core_Packs::getConfig('fileman');
-        
-        // Записите за файла
-        $dataRec = fileman_Data::fetch($fRec->dataId);
-        
-        // Дължината на файла
-        $fLen = $dataRec->fileLen;
-        
-        // Ако дължината на файла е по голяма от максимално допустимата
-        if ($fLen >= $conf->FILEINFO_MAX_ARCHIVE_LEN) {
+        // Опитваме се да вземем инстанция на архива
+        try {
             
-            // Инстанция на класа
-            $fileSizeInst = cls::get('fileman_FileSize');
+            // Инстанция на архива
+            $zip = static::getArchiveInst($fRec);
+        } catch (Exception $e) {
             
-            // Създаваме съобщение за грешка
-            $text = "Архива е много голям: " . fileman_Data::getVerbal($dataRec, 'fileLen');
-            $text .= "\nДопустимият размер е: " . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
+            // Ако възникне exception
+            $debug = $e->getDebug();
             
-            return $text;
+            // Връщаме грешката
+            return $debug[1];
         }
-        
-        // Създаваме инстанция
-        $zip = new ZipArchive();
-        
-        // Очакваме да може да се създане инстация
-        expect($zip);
         
         // Резултата, който ще върнем
         $dirsAndFilesStr = '';
@@ -737,15 +729,6 @@ class fileman_webdrv_Generic extends core_Manager
             // Добавяме към стринга линк с икона
             $dirsAndFilesStr = "<span class='linkWithIcon' style='background-image:url($sbfIcon);'>{$link}</span>";
         }
-
-        // Пътя до архива
-        $filePath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
-        
-        // Отваряме архива да четем от него
-        $open = $zip->open($filePath, ZIPARCHIVE::CHECKCONS);
-
-        // Очакваме да няма грешки при отварянето
-        expect(($open === TRUE), 'Възникна грешка при отварянето на файла.');
         
         // Броя на всички документи в архива
         $numFiles = $zip->numFiles;
@@ -806,20 +789,22 @@ class fileman_webdrv_Generic extends core_Manager
         // Изискваме да име права за single
         fileman_Files::requireRightFor('single', $rec);
         
-        // Инстанция на класа
-        $zip = new ZipArchive();
-        
-        // Очакваме да няма грешка
-        expect($zip);
+        // Опитваме се да създададем инстанция на класа
+        try {
+            
+            // Инстанция на архива
+            $zip = static::getArchiveInst($rec);
+        } catch (Exception $e) {
+            
+            // Ако възникне exception
+            $debug = $e->getDebug();
+            
+            // Връщаме грешката
+            return $debug[1];
+        };
         
         //Пътя до файла
         $filePath = fileman_Files::fetchByFh($fh, 'path');
-        
-        // Отваряме файла за четене
-        $open = $zip->open($filePath, ZIPARCHIVE::CHECKCONS);
-
-        // Очакваме да няма проблеми при отварянето
-        expect(($open === TRUE), 'Възникна грешка при отварянето на файла.');
         
         // Вземаме съдържанието на файла
         $fileContent = $zip->getFromIndex($index);
@@ -948,6 +933,8 @@ class fileman_webdrv_Generic extends core_Manager
             // Променяме пътя
             $url['path'] = $newPath;
             
+            $url['#'] = 'fileDetail';
+            
             // Създаваме линк
             $link = ht::createLink($file, $url);
             
@@ -1007,7 +994,9 @@ class fileman_webdrv_Generic extends core_Manager
     {
         // Вземаме текущото URL
         $url = getCurrentUrl();
-
+        
+        $url['#'] = 'fileDetail';
+        
         // Ако няма път, връщаме
         if (!$url['path']) return;
         
@@ -1024,6 +1013,74 @@ class fileman_webdrv_Generic extends core_Manager
         
         return $url;        
     }
+    
+    
+	/**
+     * Връща инстанцията на архива
+     */
+    static function getArchiveInst($fRec)
+    {
+        // Ако не сме създали инстанция преди
+        if (!static::$archiveInst[$fRec->fileHnd]) {
+            
+            // Проверяваме големината на архива
+            static::checkArchiveLen($fRec->dataId);
+            
+            // Пътя до архива
+            $filePath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
+            
+            // Създаваме инстанция
+            $zip = new ZipArchive();
+            
+            // Очакваме да може да се създане инстация
+            expect($zip, 'Не може да се създаде инстанция.');
+            
+            // Отваряме архива да четем от него
+            $open = $zip->open($filePath, ZIPARCHIVE::CHECKCONS);
+    
+            // Очакваме да няма грешки при отварянето
+            expect(($open === TRUE), 'Възникна грешка при отварянето на файла.', TRUE);
+            
+            static::$archiveInst[$fRec->fileHnd] = $zip;
+        } else {
+            
+            // Вземаме инстанцията от предишното генерa
+            $zip = static::$archiveInst[$fRec->fileHnd];
+        }
+    
+        return $zip;
+    }
+	
+	
+	/**
+     * Проверява дали архива е в допустимите размери за обработка
+     */
+    static function checkArchiveLen($dataId)
+    {
+        // Конфигурационните константи
+        $conf = core_Packs::getConfig('fileman');
+        
+        // Записите за файла
+        $dataRec = fileman_Data::fetch($dataId);
+        
+        // Дължината на файла
+        $fLen = $dataRec->fileLen;
+        
+        // Ако дължината на файла е по голяма от максимално допустимата
+        if ($fLen >= $conf->FILEINFO_MAX_ARCHIVE_LEN) {
+            
+            // Инстанция на класа
+            $fileSizeInst = cls::get('fileman_FileSize');
+            
+            // Създаваме съобщение за грешка
+            $text = "Архива е много голям: " . fileman_Data::getVerbal($dataRec, 'fileLen');
+            $text .= "\nДопустимият размер е: " . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
+            
+            // Очакваме да не сме влезли тука
+            expect(FALSE, $text);
+        }
+    }
+    
     
     //
     //END: Функции за работа с архиви
