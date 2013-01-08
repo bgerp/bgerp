@@ -19,6 +19,7 @@ class test_Key extends test_Manager
             array('code'=>'CODE1', 'title'=>'title 1'),
             array('code'=>'CODE2', 'title'=>'title 2'),
             array('code'=>'CODE3', 'title'=>'title 3'),
+            array('code'=>'CODE4', 'title'=>'CODE2'),
         );
         
         // Изтриване на (евентуални) стари данни

@@ -122,6 +122,22 @@ class type_CustomKey extends type_Key
         } else {
             $options = $this->options;
         }
+
+        if (count($options) <= $maxSuggestions) {
+            // Това е сигнал, че renderInput() е генерирал <select>, следователно $value не е
+            // вербална стойност на полето а директно стойността на ключовото поле.
+            if ($rec = $this->fetchForeignRec(trim($value))) {
+		        $keyField = $this->getKeyField();
+                return $rec->{$keyField};
+            }
+            
+            // Липсващ запис във външния модел
+            $this->error = 'Несъществуващ обект';
+            
+            return FALSE;
+        }
+        
+        // $value е вербална стойност, правим обратна трансформация към стойност на ключа
         
         foreach($options as $id => $v) {
             if (!is_string($v)) {
