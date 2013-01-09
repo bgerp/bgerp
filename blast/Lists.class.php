@@ -172,10 +172,13 @@ class blast_Lists extends core_Master
                 
                 //Ескейпваме заглавието
 //                $caption = htmlspecialchars($caption);
-                $caption = core_Type::escape($caption);
+//                $caption = core_Type::escape($caption);
                 
                 //Ескейпваме непозволените символи в заглавието
-                $caption = str_replace(array('=', '\'', '$', '|'), array('&#61;', '&#39;', '&#36;', '&#124;'), $caption);
+//                $caption = str_replace(array('=', '\'', '$', '|'), array('&#61;', '&#39;', '&#36;', '&#124;'), $caption);
+                
+                //Заместваме само равното с долна черта
+                $caption = str_replace('=', '_', $caption);
                 
                 //Изчистваме заглавието на полето и го съединяваме със заглавието
                 $newValue = $fieldName . '=' . $caption;

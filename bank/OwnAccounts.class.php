@@ -25,7 +25,7 @@ class bank_OwnAccounts extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper,
+    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_Current, plg_LastUsedKeys';
     
     
@@ -69,6 +69,16 @@ class bank_OwnAccounts extends core_Manager {
      * Заглавие в единствено число
      */
     var $singleTitle = 'Банкова сметка на фирмата';
+    
+    
+    /**
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
+     * $autoList.
+     * 
+     * @see acc_plg_Registry
+     * @var string
+     */
+    var $autoList = 'bankAcc';
     
     
     /**

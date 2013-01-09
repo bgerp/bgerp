@@ -23,5 +23,9 @@ class support_Wrapper extends plg_ProtoWrapper
         $this->TAB('support_Systems', 'Системи', 'admin, support');
 //        $this->TAB('support_Components', 'Компоненти', 'admin, support');
         $this->TAB('support_IssueTypes', 'Типове', 'admin, support');
+        $this->TAB('support_Corrections', 'Корекции', 'admin, support');
+        $this->TAB('support_Preventions', 'Превенции', 'admin, support');
+        $this->TAB('support_Ratings', 'Оценки', 'admin, support');
+        $this->TAB('support_Resolutions', 'Резолюции', 'admin, support');
     }
 }

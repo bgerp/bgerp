@@ -50,6 +50,10 @@ class support_Setup
             'support_Components',
             'support_Systems',
             'support_IssueTypes',
+            'support_Corrections',
+            'support_Preventions',
+            'support_Ratings',
+            'support_Resolutions',
         );
         
         $instances = array();
@@ -69,6 +73,10 @@ class support_Setup
         // Добавяме роля за поддръжка на модула support
         $role = 'support';
         $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        
+        //инсталиране на кофата
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('Support', 'Прикачени файлове в поддръжка', NULL, '300 MB', 'user', 'user');
         
         return $html;
     }

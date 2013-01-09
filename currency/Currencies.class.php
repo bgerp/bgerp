@@ -271,7 +271,7 @@ class currency_Currencies extends core_Master {
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id,
+                'num' => $rec->code,
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );

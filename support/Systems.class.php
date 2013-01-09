@@ -97,7 +97,13 @@ class support_Systems extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, plg_RowTools, plg_Search, plg_State';
-
+    
+    
+    /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    var $autoCreateFolder = 'instant';
+    
     
     /**
      * Интерфейси, поддържани от този мениджър
@@ -144,7 +150,7 @@ class support_Systems extends core_Master
     {
         $this->FLD('name', 'varchar', "caption=Наименование,mandatory, width=100%");
         $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Позволени типове, mandatory, width=100%');
-        $this->FLD('description', 'richtext', "caption=Описание, width=100%");
+        $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%");
         
         $this->setDbUnique('name');
     }

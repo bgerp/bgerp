@@ -336,6 +336,8 @@ class acc_Accounts extends core_Manager
         if (!$where) {
             $fields = 'id, num, title, isSynthetic';
             $query->show($fields);
+            $query->show($index);
+            $query->show('id');
         }
         
         $query->orderBy('#num');
@@ -499,5 +501,41 @@ class acc_Accounts extends core_Manager
     static function on_BeforeAction($mvc, &$res, $action)
     {
         $mvc->setField('state', 'export');
+    }
+    
+    
+    /**
+     * 
+     */
+    static function getRecBySystemId($systemId)
+    {
+    	expect($rec = static::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
+    
+    	return $rec;
+    }
+    
+    
+	/**
+     * Информация за сч. сметка
+     */
+	static function getAccountInfo($accountId)
+    {
+        $acc = (object)array(
+            'rec' => acc_Accounts::fetch($accountId),
+            'groups' => array(),
+            'isDimensional' => false
+        );
+        
+        foreach (range(1, 3) as $i) {
+            $listPart = "groupId{$i}";
+            
+            if (!empty($acc->rec->{$listPart})) {
+                $listId = $acc->rec->{$listPart};
+                $acc->groups[$i]->rec = acc_Lists::fetch($listId);
+                $acc->isDimensional = acc_Lists::isDimensional($listId);
+            }
+        }
+        
+        return $acc;
     }
 }
