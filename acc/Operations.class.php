@@ -95,9 +95,9 @@ class acc_Operations extends core_Manager
     function description()
     {
     	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory');
-    	$this->FLD('document', 'key(mvc=core_Classes, interface=doc_documentIntf, select=title)','caption=Документ,mandatory');
-    	$this->FLD('debitAccount','customKey(mvc=acc_Accounts,key=systemId, select=title)','caption=Дебит сметка,mandatory');
-    	$this->FLD('creditAccount','customKey(mvc=acc_Accounts,key=systemId, select=title)','caption=Кредит сметка,mandatory');
+    	$this->FLD('document', 'key(mvc=core_Classes, interface=doc_documentIntf, select=title)', 'caption=Документ,mandatory');
+    	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory');
+    	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory');
     }
     
     
@@ -164,6 +164,6 @@ class acc_Operations extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	
+    	//@TODO
     }
 }

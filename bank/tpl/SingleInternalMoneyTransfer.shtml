@@ -31,8 +31,8 @@
 	<br>
 	<table width='99%' border='1' cellpadding='5px' cellspacing='0' style='border-collapse:collapse;'>
 		<tr>
-			<th style='background-color:rgb(221,221,221);text-align:left'>От</th>
-			<th style='background-color:rgb(221,221,221);text-align:left''>Към</th>
+			<th style='background-color:rgb(221,221,221);text-align:left' width='50%'>От</th>
+			<th style='background-color:rgb(221,221,221);text-align:left' width='50%'>Към</th>
 		</tr>
 		<tr>
 			<td>[#creditAccId#]</td>
@@ -43,12 +43,16 @@
 			<td>[#debitEnt1#]</td>
 		</tr>
 		<tr>
+		<td>
 		<!--ET_BEGIN creditEnt2-->
-			<td>Валута: [#creditEnt2#]</td>
+			Валута: [#creditEnt2#]
 		<!--ET_END creditEnt2-->
+		</td>
+		<td>
 		<!--ET_BEGIN debitEnt2-->
-			<td>Валута: [#debitEnt2#]</td>
+			Валута: [#debitEnt2#]
 		<!--ET_END debitEnt2-->
+		</td>
 		</tr>
 	</table>
 </div>

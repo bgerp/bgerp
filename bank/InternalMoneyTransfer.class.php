@@ -113,12 +113,6 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     //var $searchFields = 'valior, contragentName';
     
-    
-    /**
-     * Параметри за принтиране
-     */
-    var $printParams = array( array('Оригинал'),
-    						  array('Копие'),); 
 
     /**
      * Описание на модела
@@ -144,12 +138,20 @@ class bank_InternalMoneyTransfer extends core_Master
         $this->FNC('isContable', 'int', 'column=none');
     }
     
+    
+    /**
+     * @TODO
+     */
 	static function on_CalcIsContable($mvc, $rec)
     {
         $rec->isContable =
         ($rec->state == 'draft');
     }
     
+    
+    /**
+     *  Добавяме помощник за избиране на сч. операция
+     */
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
     	if ($action != 'add') {
@@ -177,6 +179,7 @@ class bank_InternalMoneyTransfer extends core_Master
         return FALSE;
     }
     
+    
     /**
      * Подготвяме формата от която ще избираме посоката на движението
      */
@@ -200,9 +203,14 @@ class bank_InternalMoneyTransfer extends core_Master
      * Подготовка на формата за добавяне
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
+    { 
     	// Очакваме и намираме коя е извършената операция
-    	expect($operationId = Request::get('operationId'));
+    	if(!$data->form->rec->id) {
+    		expect($operationId = Request::get('operationId'));
+    	} else {
+    		$operationId = $data->form->rec->operationId;
+    	}
+    	
     	$operation = acc_Operations::getOperationInfo($operationId);
         
     	// Трябва документа да поддържа тази операция
@@ -236,7 +244,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $data->form->setDefault('valior', $today);
         $data->form->setReadOnly('operationId');
 
-        // Перото на валутата по пдоразбиране
+        // Перото на валутата по подразбиране
         $currencyClassId = currency_Currencies::getClassId();
         $currencyId = currency_Currencies::getIdByCode();
         $currencyItem = acc_Items::fetch("#objectId={$currencyId} AND #classId={$currencyClassId}");
@@ -259,7 +267,7 @@ class bank_InternalMoneyTransfer extends core_Master
     	if ($form->isSubmitted()){
     		if($form->rec->debitEnt1 == $form->rec->creditEnt1) {
     			
-    			// Неможе началното и крайното перо да е същото
+    			// Неможе началното и крайното перо да съвпадат
     			$form->setError('creditEnt1', 'Началната и крайната дестинация са същите !!!');
     		}
     		
@@ -280,12 +288,118 @@ class bank_InternalMoneyTransfer extends core_Master
     	if($fields['-single']) {
     		
     		// Пълни имена на дебитната и кредитната сметка
-    		$debitRec = acc_Accounts::fetch($rec->debitAccId);
+    		$debitRec = acc_Accounts::getRecBySystemId($rec->debitAccId);
 	    	$row->debitAccId = acc_Accounts::getRecTitle($debitRec);
 	    	
-	    	$creditRec = acc_Accounts::fetch($rec->creditAccId);
+	    	$creditRec = acc_Accounts::getRecBySystemId($rec->creditAccId);
 	    	$row->creditAccId = acc_Accounts::getRecTitle($creditRec);
     	}
+    }
+    
+    
+	/**
+   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
+   	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 */
+    public static function getTransaction($id)
+    {
+    	// Извличаме записа
+        expect($rec = self::fetch($id));
+        
+    	// Счетоводния период, в който ще се контира документа
+        $accPeriods = cls::get('acc_Periods');
+		$period = $accPeriods->fetchByDate($rec->valior);
+		
+		// За всеки дебитен и кредитен запис намираме перото му
+		foreach(array('debit', 'credit') as $type) {
+			${"{$type}Quantity"} = $rec->amount;
+			${"{$type}Price"} = 1;
+			foreach (range(1, 3) as $n) {
+				if(!$rec->{"{$type}Ent{$n}"}) {
+					
+					// Ако записа е празен го скипваме
+					${"{$type}Item{$n}"} = NULL;
+					
+					continue;
+				}
+				
+				// Намираме кое перо съответства на записа
+				${"{$type}Item{$n}Rec"} = acc_Items::fetch($rec->{"{$type}Ent{$n}"});
+				if($n == 2) {
+					
+					// Очакваме второто перо да е валута
+					expect(cls::haveInterface('currency_CurrenciesAccRegIntf', ${"{$type}Item{$n}Rec"}->classId));
+					$itemCode = currency_Currencies::getCodeById(${"{$type}Item{$n}Rec"}->objectId);
+					$baseCurrencyCode = currency_Currencies::getCodeById($period->baseCurrencyId);
+					$rate = currency_CurrencyRates::getRateBetween($baseCurrencyCode, $itemCode, $rec->valior);
+					${"{$type}Quantity"} = $rec->amount / $rate;
+					${"{$type}Price"} = $rate;
+				}
+				
+				// Инстанцираме обект който ще подадем в масива за контиране
+				// с име (debit/credit)Item(1/2/3);
+				${"{$type}Item{$n}"} = new stdClass();
+				$className = cls::getClassName(${"{$type}Item{$n}Rec"}->classId);
+				${"{$type}Item{$n}"}->cls = $className;
+				${"{$type}Item{$n}"}->id = ${"{$type}Item{$n}Rec"}->objectId;
+			}
+		}
+		
+		// Подготвяме информацията която ще записваме в Журнала
+        $result = (object)array(
+            'reason' => $rec->reason,   // основанието за ордера
+            'valior' => $rec->valior,   // датата на ордера
+            'totalAmount' => $rec->amount,
+            'entries' => array( (object)array(
+                'amount' => $rec->amount,
+                'debitAcc' => $rec->debitAccId,
+                'debitItem1' => $debitItem1,
+                'debitItem2' => $debitItem2,
+                'debitItem3' => $debitItem3,
+                'debitQuantity' => $debitQuantity,
+                'debitPrice' => $debitPrice,
+                'creditAcc' => $rec->creditAccId,
+                'creditItem1' => $creditItem1,
+                'creditItem2' => $creditItem2,
+                'creditItem3' => $creditItem3,
+                'creditQuantity' => $creditQuantity,
+                'creditPrice' => $creditPrice,
+            ))
+        );
+       
+        //bp($result);
+        return $result;
+    }
+    
+    
+	/**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::getTransaction
+     */
+    public static function finalizeTransaction($id)
+    {
+        $rec = (object)array(
+            'id' => $id,
+            'state' => 'active'
+        );
+        
+        return self::save($rec);
+    }
+    
+    
+    /**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::rejectTransaction
+     */
+    public static function rejectTransaction($id)
+    {
+        $rec = self::fetch($id, 'id,state,valior');
+        
+        if ($rec) {
+            static::reject($id);
+        }
     }
     
     
