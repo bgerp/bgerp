@@ -106,10 +106,10 @@ class acc_Operations extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$debitRec = acc_Accounts::fetch("#systemId = '{$rec->debitAccount}'");
+    	$debitRec = acc_Accounts::getRecBySystemId($rec->debitAccount);
     	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
     	
-    	$creditRec = acc_Accounts::fetch("#systemId = '{$rec->creditAccount}'");
+    	$creditRec = acc_Accounts::getRecBySystemId($rec->creditAccount);
     	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
     }
     
@@ -144,8 +144,13 @@ class acc_Operations extends core_Manager
     static function getOperationInfo($id)
     {
     	$rec = static::fetch($id);
-    	$rec->debitAccount = acc_Accounts::getAccountInfo($rec->debitAccount);
-    	$rec->creditAccount = acc_Accounts::getAccountInfo($rec->creditAccount);
+    	
+    	// Извличаме записите на сметките с подадените systemId-та
+    	$debitRec = acc_Accounts::getRecBySystemId($rec->debitAccount);
+    	$creditRec = acc_Accounts::getRecBySystemId($rec->creditAccount);
+    	
+    	$rec->debitAccount = acc_Accounts::getAccountInfo($debitRec->id);
+    	$rec->creditAccount = acc_Accounts::getAccountInfo($creditRec->id);
         
     	return $rec;
     }
