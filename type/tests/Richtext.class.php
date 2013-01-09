@@ -24,11 +24,17 @@ class type_tests_Richtext extends unit_Class
     {
        $rt = new type_Richtext();
         
-       $sample1 = 'Test: tasdasdasd';
+       $sample1 = 'За: tasdasdasd';
+       $sample2 = 'отНосНо: tasdasdasd';
+       $sample3 = 'не трябва да има отНосНо: tasdasdasd';
        
-       $res = $rt->toVerbal($sample1);
+       $res1 = $rt->toVerbal($sample1);
+       $res2 = $rt->toVerbal($sample2);
+       $res3 = $rt->toVerbal($sample3);
        
-       UT::expectEqual(stripos(" ". $res, '<b>' . $sample1 . '</b>'), TRUE);
+       UT::expectEqual(stripos(" ". $res1, '<b>' . $sample1 . '</b>'), TRUE);
+       UT::expectEqual(stripos(" ". $res2, '<b>' . $sample2 . '</b>'), TRUE);
+       UT::expectEqual(stripos(" ". $res3, '<b>' . $sample3 . '</b>'), FALSE);
     }
 
     

@@ -129,54 +129,71 @@ class type_CustomKey extends type_Key
         }
         
         $conf = core_Packs::getConfig('core');
-        $mvc  = $this->getForeignModel();
         
         setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
         
         if (count($this->options) == 0 && !empty($this->params['select'])) {
+            $mvc     = $this->getForeignModel();
             $options = $mvc->makeArray4select($this->params['select'], '', $this->getKeyField());
         } else {
             $options = $this->options;
         }
         
-        foreach($options as $id => $v) {
-            if (!is_string($v)) {
-                if(!$v->group) {
-                    $optionsR[trim($v->title)] = $id;
+        $value = trim($value);
+
+        if (count($options) > $maxSuggestions) {
+            // $value е вербална стойност, търсим на кой ключ съответства.
+            foreach($options as $id => $verbal) {
+                if (!is_string($verbal)) {
+                    if ($verbal->group) {
+                        // Групите ги пропускаме
+                        continue;
+                    }
+                    
+                    $verbal = $verbal->title;
+                } else {
+                    /**
+                     * $verbal (косвено) се сравнява с субмитнатата чрез HTML `<select>` елемент
+                     * стойност $value. Оказа се, че (поне при някои браузъри) специалните HTML
+                     * символи (`&amp;`, `&nbsp` и пр.) биват декодирани при такъв субмит. Така
+                     * ако $verbal съдържа такива символи, сравнението ще пропадне, въпреки, че
+                     * стойностите може да изглеждат визуално еднакви. Напр. ако
+                     *
+                     *  $verbal = "Тестов&nbsp;пример"; $value = "Тестов пример"
+                     *
+                     *  очевидно $v != $value
+                     *
+                     *  По тази причина декодираме специалните символи предварително.
+                     *
+                     */
+                    $verbal = html_entity_decode($verbal, ENT_NOQUOTES, 'UTF-8');
                 }
-            } else {
                 
-                /**
-                 * $v (косвено) се сравнява с субмитнатата чрез HTML `<select>` елемент
-                 * стойност $value. Оказа се, че (поне при някои браузъри) специалните HTML
-                 * символи (`&amp;`, `&nbsp` и пр.) биват декодирани при такъв субмит. Така
-                 * ако $v съдържа такива символи, сравнението ще пропадне, въпреки, че
-                 * стойностите може да изглеждат визуално еднакви. Напр. ако
-                 *
-                 *  $v = "Тестов&nbsp;пример"; $value = "Тестов пример"
-                 *
-                 *  очевидно $v != $value
-                 *
-                 *  По тази причина декодираме специалните символи предварително.
-                 *
-                 */
-                $v = html_entity_decode($v, ENT_NOQUOTES, 'UTF-8');
-                $optionsR[trim($v)] = $id;
+                if ($value == trim($verbal)) {
+                    // Намерихме вербалната стойност в опциите, ключа е в $id
+                    $keyValue = $id;
+                    break;
+                }
+            }
+        } else {
+            // Това е сигнал, че renderInput() е генерирал <select>, следователно $value не е
+            // вербална стойност на полето, а директно стойността на ключовото поле.
+            $keyValue = $value;
+        }
+
+        if (isset($keyValue)) {
+            if ($rec = $this->fetchForeignRec($keyValue)) {
+		        $keyName = $this->getKeyField();
+		        expect ($keyValue == $rec->{$keyName});
+		        
+                return $rec->{$keyName};
             }
         }
         
-        $value = $optionsR[trim($value)];
+        // Грешка - не е намерен ключ за зададената вербална стойност.
+        $this->error = 'Несъществуващ обект';
         
-        $rec = $this->fetchForeignRec($value);
-        
-        if(!$rec) {
-            $this->error = 'Несъществуващ обект';
-            
-            return FALSE;
-        } else {
-            
-            return $value;
-        }
+        return FALSE;
     }
 
 
