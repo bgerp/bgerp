@@ -34,23 +34,39 @@
 class type_CustomKey extends type_Key 
 {
     /**
+    
      * MySQL тип на полето в базата данни
+    
      */
+  
     var $dbFieldType = 'varchar';
     
     
+    
+    
+
     /**
+    
      * Дължина на полето в mySql таблица
+    
      */
+    
     var $dbFieldLen = '32';
     
     
+    
+
+
     /**
+    
      * Стойност по подразбиране
+    
      */
+    
     var $defaultValue = '';
 
     
+
     /**
      * Конвертира стойността от вербална към
      */
