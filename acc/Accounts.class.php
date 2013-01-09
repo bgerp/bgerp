@@ -504,6 +504,17 @@ class acc_Accounts extends core_Manager
     }
     
     
+    /**
+     * 
+     */
+    static function getRecBySystemId($systemId)
+    {
+    	expect($rec = static::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
+    
+    	return $rec;
+    }
+    
+    
 	/**
      * Информация за сч. сметка
      */
