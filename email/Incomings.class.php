@@ -1031,7 +1031,7 @@ class email_Incomings extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Потребителско рутиране
      */
     static function routeByRule($rec, $type)
     {

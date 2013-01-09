@@ -119,6 +119,7 @@ class email_Setup
             'email_Addresses',
             'email_FaxSent',
             'email_Filters',
+            'email_Unparsable',
         );
         
 
