@@ -96,10 +96,8 @@ class acc_Operations extends core_Manager
     {
     	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory');
     	$this->FLD('document', 'key(mvc=core_Classes, interface=doc_documentIntf, select=title)','caption=Документ,mandatory');
-    	
-    	//@TODO да се замени с customKey
-    	$this->FLD('debitAccount','key(mvc=acc_Accounts, select=title)','caption=Дебит сметка,mandatory');
-    	$this->FLD('creditAccount','key(mvc=acc_Accounts, select=title)','caption=Кредит сметка,mandatory');
+    	$this->FLD('debitAccount','customKey(mvc=acc_Accounts,key=systemId, select=title)','caption=Дебит сметка,mandatory');
+    	$this->FLD('creditAccount','customKey(mvc=acc_Accounts,key=systemId, select=title)','caption=Кредит сметка,mandatory');
     }
     
     
@@ -108,10 +106,10 @@ class acc_Operations extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$debitRec = acc_Accounts::fetch($rec->debitAccount);
+    	$debitRec = acc_Accounts::fetch("#systemId = '{$rec->debitAccount}'");
     	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
     	
-    	$creditRec = acc_Accounts::fetch($rec->creditAccount);
+    	$creditRec = acc_Accounts::fetch("#systemId = '{$rec->creditAccount}'");
     	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
     }
     
