@@ -286,7 +286,7 @@ class doc_FolderPlg extends core_Plugin
         } else {
             
             //Ako няма папка и autoCreateFolder е TRUE, тогава създава папка
-            if ($mvc->autoCreateFolder) {
+            if ($mvc->autoCreateFolder == 'instant') {
                 $mvc->forceCoverAndFolder($rec);
             }
         }   
