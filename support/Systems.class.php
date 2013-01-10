@@ -186,10 +186,8 @@ class support_Systems extends core_Master
      */
     function on_AfterForceCoverAndFolder($mvc, &$folderId, $rec)
     {
-        $nRec = new stdClass();
-        $nRec->id = $rec->id;
-        $nRec->state = 'active';
-        $mvc->save($nRec);
+        $rec->state = 'active';
+        $mvc->save($rec, 'state');
     }
     
     
