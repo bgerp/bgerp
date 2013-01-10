@@ -200,21 +200,9 @@ class support_Resolutions extends core_Master
      */
     public static function canAddToThread($threadId, $firstClass)
     {
-        // Ако не сме подали името на класа
-        if (empty($firstClass)) {
-            
-            // Взмаме id' то на първия контейнер
-            $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
-            
-            // Вземаме документа от първия контейнер
-            $docProxy = doc_Containers::getDocument($firstContainerId);
-            
-            // Взеамем името на класа
-            $firstClass = $docProxy->className;
-        }
         
-        // Ако името на първия документ в класа е support_issue, тогава даваме възможност за добавяне
-        return (boolean)(strtolower($firstClass) == 'support_issues');
+        // Ако някой от документите в нишката, е support_Issue
+        return doc_Containers::checkDocumentExistInThread($threadId, 'support_Issues');
     }
     
     

@@ -102,6 +102,7 @@ class support_Issues extends core_Master
     /**
      * Дали може да бъде само в началото на нишка
      */
+    // TODO може да се добави в папки на някои фирми, където да се добави по средата на нишката
     var $onlyFirstInThread = TRUE;
     
     
