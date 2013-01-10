@@ -138,7 +138,7 @@ class support_Issues extends core_Master
     /**
      * 
      */
-    var $cloneFields = 'componentId, typeId, title, description';
+    var $cloneFields = 'componentId, typeId, title, description, priority';
 	
 	
 	/**
@@ -150,6 +150,7 @@ class support_Issues extends core_Master
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%, mandatory");
+        $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
     }
     
     
@@ -168,6 +169,9 @@ class support_Issues extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
+        // Нормален приоритет по подразбиране
+        $data->form->setDefault('priority', 'normal');
+        
         // Вземаме systemId' то на документа от URL' то
         $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
@@ -353,5 +357,95 @@ class support_Issues extends core_Master
     static function getShared($id)
     {
         return static::fetchField($id, 'sharedUsers');
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+        // След като субмитнем формата
+        if ($form->isSubmitted()) {
+            
+            // Ако активираме, добавям флаг
+            if ($form->rec->state == 'active') $form->rec->__activating = TRUE;    
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterSave($mvc, &$id, &$rec)
+    {
+        // Ако активираме
+        if ($rec->__activating) {
+            
+            // Добавяме нотификация към отговорниците
+            static::notificateMaintainers($rec->id);
+        }
+    }
+    
+    
+    /**
+     * Нотифицира отговорниците на компонента, който активираме
+     */
+    static function notificateMaintainers($id)
+    {
+        // Записа за съответния сигнал
+        $iRec = static::fetch($id);
+        
+        // Нишката
+        $threadId = $iRec->threadId;
+        
+        // Документа
+        $containerId = $iRec->containerId;
+        
+        // Заглавието на сигнала във вербален вид
+        $title = str::limitLen(static::getVerbal($iRec, 'title'), 90);
+        
+        // Отговорниците
+        $maintainers = support_Components::fetchField($iRec->componentId, 'maintainers');
+        
+        // Превръщаме отговорниците в масив
+        $maintainersArr = type_Keylist::toArray($maintainers);
+        
+        // Ако има отговорници
+        if(count($maintainersArr)) {
+            
+            // id' то на потребителя, който активира
+            $currUserId = core_Users::getCurrent('id');
+            
+            // Вербалния ник на потребителя
+            $nick = core_Users::getVerbal($currUserId, 'nick');
+            
+            // Манипулатора на документа
+            $docHnd = static::getHandle($id);
+            
+            // Съобщението, което ще се показва и URL' то
+            $message = tr("|*{$nick} |активира сигнал|*: \"{$title}\"");
+            $url = array('doc_Containers', 'list', 'threadId' => $threadId);
+            $customUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'docId' => $docHnd, '#' => $docHnd);
+            
+            // Обхождаме всички отговорници
+            foreach($maintainersArr as $userId) {
+                
+                // Ако, активиращие също е отговорник прескачаме
+                if ($maintainersArr == $currUserId) continue;
+                
+                // Масив с всички отговорници, без активиращия
+                $sharedUserArr[$userId] = $userId;
+                
+                // Добавяме им нотофикации
+                bgerp_Notifications::add($message, $url, $userId, $rec->priority, $customUrl);
+            }
+            
+            // Добавяме потребителе, за да имат достъп до нишката
+            doc_ThreadUsers::addShared($threadId, $containerId, $sharedUserArr);
+            
+            // Упдейтваме нишката
+            doc_Threads::updateThread($threadId);
+        }
     }
 }

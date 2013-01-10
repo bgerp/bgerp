@@ -15,6 +15,7 @@
 		<div><b>[#title#]</b></div>
 		<div>|Компонент|*: [#componentId#]</div>
 		<div>|Тип|*: [#typeId#]</div>
+		<div>|Приоритет|*: [#priority#]</div>
 		</small>
 		</div>
 	</div>
