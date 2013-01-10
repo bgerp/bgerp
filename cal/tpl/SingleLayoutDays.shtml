@@ -2,7 +2,7 @@
            
 	<div class='document'>
 		<div class='header'>
-			<p class="calTitle">[#title#]</p>
+			<p class="calTitle" style='color:[#colTitle#]'>[#title#]</p>
 			<span>[#from#]</span>
 	</div>
 
@@ -12,7 +12,7 @@
 		 </br></br>	
          <div class='block_left'>
          </br>
-                <table cellspacing='1' class='calTable'>
+                <table cellspacing='1' class='mc_calendar'>
 				<tr>
                      <td class="calDayTime" style='width:50px'>Време</td>
                      <td class="calDayTime">Заглавие</td>

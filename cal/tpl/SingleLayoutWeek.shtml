@@ -2,7 +2,7 @@
            
 	<div class='document'>
 		<div class='header'>
-			<p class="calTitle">[#title#]</p>
+			<p class="calTitle" >[#title#]</p>
 			<span style='width:15%;'>[#from#]</span>
 		</div>
 
@@ -10,7 +10,7 @@
 		<!--ET_BEGIN event-->	
          <div class='block_left'>
          </br>
-                <table cellspacing='1' class='calTable'>
+                <table cellspacing='1' class='mc_calendar'>
 				<tr>
 					 <td class="calWeekTime"><b>Време</b></td>
                      <td class="calWeekTime"><b>[#0#]</b></td>

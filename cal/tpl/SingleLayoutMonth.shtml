@@ -35,13 +35,13 @@
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr> 
                      <td class='mc-week-nb'>[#weekNum#]</td>
-                     <td class="[#now#]">[#c0#][#d1#]</td>
-                     <td class="[#now#]">[#c1#][#d2#]</td>
-                     <td class="[#now#]">[#c2#][#d3#]</td>
-                     <td class="[#now#]">[#c3#][#d4#]</td>
-                     <td class="[#now#]">[#c4#][#d5#]</td>
-                     <td class="[#now#]">[#c5#][#d6#]</td>
-                     <td class="[#now#]">[#c6#][#d7#]</td>
+                     <td class="[#mon#]">[#c0#][#d1#]</td>
+                     <td class="[#tue#]">[#c1#][#d2#]</td>
+                     <td class="[#wed#]">[#c2#][#d3#]</td>
+                     <td class="[#thu#]">[#c3#][#d4#]</td>
+                     <td class="[#fri#]">[#c4#][#d5#]</td>
+                     <td class="[#sat#]">[#c5#][#d6#]</td>
+                     <td class="[#sun#]">[#c6#][#d7#]</td>
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                

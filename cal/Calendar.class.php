@@ -619,7 +619,15 @@ class cal_Calendar extends core_Master
     	
     	// Очакваме дата от филтъра
     	$from = Request::get('from');
-    	$currentDate = dt::mysql2Verbal($from, 'd F Y, l');
+    	
+    	// Разбиваме я на ден, месец и година
+        $day = dt::mysql2Verbal($from, 'd');
+        $month = dt::mysql2Verbal($from, 'm');
+        $year = dt::mysql2Verbal($from, 'Y');
+      
+        // Избрана дата
+        $currentDate = dt::mysql2Verbal($from, 'd F Y, l');
+        $currentKey = date('N', mktime(0, 0, 0, $month, $day, $year));
     	
     	// Текущото време на потребителя
     	$nowTime = strstr(dt::now(), " ");
@@ -647,14 +655,14 @@ class cal_Calendar extends core_Master
         // Кой е текущия потребите?
         // Показваме неговия календар
         $cu = core_Users::getCurrent();
-        $state->query->where('#users IS NULL');
+        $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
         
         // Извличане на събитията за целия ден
     	while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
 
     		// Проверка за конкретния запис
-    	    self::requireRightFor('user,cal,admin', $rec);
+    	    self::requireRightFor('user', $rec);
     	    
     	    // Деня, за който взимаме събитията
     		$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
@@ -662,7 +670,7 @@ class cal_Calendar extends core_Master
     		// Начален час на събитието 
     		$hourKey = dt::mysql2verbal($rec->time, 'G');
 		  
-    		
+    		$type[$rec->type] = $from;
     		// Ако събитието е отбелязано да е активно през целия ден
     		if($rec->allDay == "yes"){
     			$hourKey = "allDay";
@@ -727,25 +735,50 @@ class cal_Calendar extends core_Master
     		
     	}
     	
-    	if(count($minMax) > 1){
-	    	
+    	if(count($minMax) > 1){	
     		if($minMax[0] == 'allDay'){
     			unset($minMax[0]);
     		}
     
-    		// Определяме началото и края на деня спрямо началните стойнности
-	        if(min($minMax) < self::$tr ){ 
-	        	self::$tr = min($minMax);
-	        	if(max($minMax) > self::$tk ){
-	        		self::$tk = max($minMax);
-	        	}
-	        	
-	        } elseif(min($minMax) > self::$tk){
-	        	self::$tr = 8;
-	        	self::$tk = min($minMax);
-	        } elseif(max($minMax) > self::$tk ){
-	        	self::$tk = max($minMax);
-	        }
+    		if(count($minMax) > 1){
+	    		// Определяме началото и края на деня спрямо началните стойнности
+		        if(min($minMax) < self::$tr && min($minMax) !== 'allDay'){
+		        	self::$tr = min($minMax);
+		        	if(max($minMax) > self::$tk ){
+		        		self::$tk = max($minMax);
+		        	}
+		        	
+		        } elseif(min($minMax) > self::$tk){
+		        	self::$tr = 8;
+		        	self::$tk = min($minMax);
+		        } elseif(max($minMax) > self::$tk ){
+		        	self::$tk = max($minMax);
+		        }
+    	    } else{
+    	    	if(min($minMax) == min($minMax) && min($minMax) < self::$tr && min($minMax) !== 'allDay'){
+    	    		self::$tr = min($minMax);
+    	    	}elseif(min($minMax) == min($minMax) && min($minMax) > self::$tk){
+    	    		self::$tk = min($minMax);
+    	    	}else{
+    	    		self::$tr = 8;
+    				self::$tk = 18;
+    	    	}
+    	    }
+    	}elseif(count($minMax) == 1){
+    		for($i = 0; $i <=0; $i++){
+    			if($minMax[$i] < self::$tr && $minMax[$i] !== 'allDay'){
+    				self::$tr = $minMax[$i];
+    			}elseif($minMax[$i] > self::$tk && $minMax[$i] !== 'allDay'){
+    				self::$tk = $minMax[$i];
+    			} else {
+    				self::$tr = 8;
+    				self::$tk = 18;
+    			}
+    		}
+    		
+    	} else {
+    		self::$tr = 8;
+    		self::$tk = 18;
     	}
 
     	// Рендираме деня
@@ -757,10 +790,39 @@ class cal_Calendar extends core_Master
     	
         // Рендираме филтара "календар"
         $tpl->replace($Calendar->renderListFilter($state), 'from');
-    	
+    
         // Заместваме титлата на страницата
     	$tpl->replace($currentDate, 'title');
-    	//$tpl->replace($currentDate, 'date');
+
+    	// Оцветяване на заглавието
+    	if(is_array($type)){
+    		// Ако е делничен ден или работен ден
+	    	if($currentKey >=1 && $currentKey <= 5 && !(array_key_exists('holiday', $type)) && !(array_key_exists('non-working', $type)) || (array_key_exists('workday', $type) && $currentKey >= "6")){
+	    		$tpl->replace('black', 'colTitle');
+	    	}
+	    	// Ако е събта или неработен ден по близко до събота 
+	    	elseif($currentKey == "6" && !(array_key_exists('holiday', $type)) || (array_key_exists('non-working', $type) && $currentKey >= "4")){
+	    		$tpl->replace('#006030', 'colTitle');
+	    	}
+	    	// Ако е неделя или неработен ден по близко до неделя 
+	    	elseif($currentKey == "7" && !(array_key_exists('holiday', $type)) || (array_key_exists('non-working', $type) && $currentKey < "4")){
+	    		$tpl->replace('green', 'colTitle');
+	    	} 
+	    	// Деня е официален празник
+	    	else {
+	    		if(array_key_exists('holiday', $type)){
+	    		$tpl->replace('red', 'colTitle');	
+	    		}
+	    	}
+    	} else {
+    		if($currentKey >=1 && $currentKey <= 5){
+	    		$tpl->replace('black', 'colTitle');
+	    	} elseif($currentKey == "6"){
+	    		$tpl->replace('#006030', 'colTitle');
+	    	}elseif($currentKey == "7"){
+	    		$tpl->replace('green', 'colTitle');
+	    	}
+    	}
     	
     
     	foreach($hours as $h => $t){
@@ -776,7 +838,7 @@ class cal_Calendar extends core_Master
     		// Ако времето е равно на текущото време на потребителя
     		// ограждаме визуално клетката
     		if($h == $nowTime){
-    			$cTpl->replace('mc-today', 'now');
+    			$cTpl->replace('mc-todayD', 'now');
     		} else {
     			$cTpl->replace('calDay', 'now');
     		}
@@ -870,7 +932,7 @@ class cal_Calendar extends core_Master
         // Кой ни е текущия потребител? 
         // Показване на календара и събитията според потребителя
         $cu = core_Users::getCurrent();
-        $state->query->where('#users IS NULL');
+        $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
         
         // Сортираме по времето на събитията
@@ -880,7 +942,7 @@ class cal_Calendar extends core_Master
         while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
         	
         	// Проверка за конкретния запис
-    	    self::requireRightFor('user,cal,admin', $rec);
+    	    self::requireRightFor('user', $rec);
         	
         	// Какъв ден е
         	$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
@@ -893,7 +955,7 @@ class cal_Calendar extends core_Master
     			$hourKey = "allDay";
     		}
     		
-    		//Помощен масив за определяне на най-ранното и най-късното събитие
+    		// Помощен масив за определяне на най-ранното и най-късното събитие
     		if($hourKey !== "allDay"){
     			$minMax[] = $hourKey;
     		}
@@ -975,7 +1037,7 @@ class cal_Calendar extends core_Master
     	}
      
           
-    	//Рендиране на седмицата	
+    	// Рендиране на седмицата	
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutWeek.shtml'));
     	
         // Рендираме филтъра за избор на дата
@@ -1006,7 +1068,7 @@ class cal_Calendar extends core_Master
     		// Ако времето е равно на текущото време на потребителя
     		// Ограждаме кутийката
     		if($h == $nowTime){
-    			$cTpl->replace('mc-today', 'now');
+    			$cTpl->replace('mc-todayD', 'now');
     		} else {
     			$cTpl->replace('calWeek', 'now');
     		}
@@ -1055,9 +1117,11 @@ class cal_Calendar extends core_Master
         $month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
       
-        //Избрана дата
-        $currentDay = date('j-n-Y', mktime(0, 0, 0, $month, $day, $year));
-        
+        // Избрана дата
+        //$currentDay = date('d.m.Y', mktime(0, 0, 0, $month, $day, $year));
+        $currentWeek = date('W', mktime(0, 0, 0, $month, $day, $year));
+        $currentKey = "d".date('N', mktime(0, 0, 0, $month, $day, $year));
+     
         // Таймстамп на първия ден на месеца
         $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
         
@@ -1076,23 +1140,23 @@ class cal_Calendar extends core_Master
             $monthArr[date('W', $t)]["d".date('N', $t)] = $i;
             
         }
-       
-    
-        //Извличане на събитията за целия месец
+
+        // Извличане на събитията за целия месец
         $state = new stdClass();
         $state->query = self::getQuery();
          
         // Кой ни е текущия потребител? 
         // Показване на календара и събитията според потребителя
         $cu = core_Users::getCurrent();
-        $state->query->where('#users IS NULL');
+        $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
         
         $state->query->orderBy('time', 'ASC');     
         while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
         	// Проверка за конкретния запис
-    	    self::requireRightFor('user,cal,admin', $rec);
+    	    self::requireRightFor('user', $rec);
         	
+    	    
         	// Времето на събитието от базата
             $recTime = $rec->time;
             
@@ -1128,6 +1192,7 @@ class cal_Calendar extends core_Master
     		//sbf('img/16/task-normal.png')
     		//$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
     		
+    		$type[$weekKey][$dayKey] .= "<br>". $rec->type;
     		
     		// Взимаме всеки път различен цвят за титлите на задачите
     		$color = array_pop(self::$colors);
@@ -1174,7 +1239,7 @@ class cal_Calendar extends core_Master
     				$monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='mc-calendar'>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('title' => $rec->title));
      		 }
 
-        }
+        }//bp($type);
 
         // Изчисляваме предходния и следващия месец
         $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
@@ -1221,15 +1286,91 @@ class cal_Calendar extends core_Master
         // Дните от седмицата
         static $weekDays = array('Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота', 'Неделя');
         $tpl->placeArray($weekDays);
-        
+     
+    	
         foreach($monthArr as $weekNum => $weekArr) {
         	
-        	//bp($monthArr, $weekNum, $weekArr, "d".date('N', $currentDay), $day);
-        	$hourArr = $weekData[$h];
         	$cTpl = $tpl->getBlock("COMMENT_LI");
+        	
+            // Проверка за текущия ден 
+        	if($weekNum == $currentWeek){
+	        	switch ($currentKey){
+	    				case "d1":
+	    					$cTpl->replace('mc-today', 'mon');
+	    					$cTpl->replace('mc-day', 'tue');
+				        	$cTpl->replace('mc-day', 'wed');
+				        	$cTpl->replace('mc-day', 'thu');
+				        	$cTpl->replace('mc-day', 'fri');
+				        	$cTpl->replace('mc-saturday', 'sat');
+				        	$cTpl->replace('mc-sunday', 'sun');
+	    					break;
+	    				case "d2":
+							$cTpl->replace('mc-today', 'tue');
+							$cTpl->replace('mc-day', 'mon');
+				        	$cTpl->replace('mc-day', 'wed');
+				        	$cTpl->replace('mc-day', 'thu');
+				        	$cTpl->replace('mc-day', 'fri');
+				        	$cTpl->replace('mc-saturday', 'sat');
+				        	$cTpl->replace('mc-sunday', 'sun');    				
+							break;
+	    				case "d3":
+	    					$cTpl->replace('mc-today', 'wed');
+	    					$cTpl->replace('mc-day', 'mon');
+				        	$cTpl->replace('mc-day', 'tue');
+				        	$cTpl->replace('mc-day', 'thu');
+				        	$cTpl->replace('mc-day', 'fri');
+				        	$cTpl->replace('mc-saturday', 'sat');
+				        	$cTpl->replace('mc-sunday', 'sun');
+	    					break;
+	    				case "d4":
+	    					$cTpl->replace('mc-today', 'thu');
+	    					$cTpl->replace('mc-day', 'mon');
+				        	$cTpl->replace('mc-day', 'tue');
+				        	$cTpl->replace('mc-day', 'wed');
+				        	$cTpl->replace('mc-day', 'fri');
+				        	$cTpl->replace('mc-saturday', 'sat');
+				        	$cTpl->replace('mc-sunday', 'sun');
+	    					break;
+	    				case "d5":
+	    					$cTpl->replace('mc-today', 'fri');
+	    					$cTpl->replace('mc-day', 'mon');
+				        	$cTpl->replace('mc-day', 'tue');
+				        	$cTpl->replace('mc-day', 'wed');
+				        	$cTpl->replace('mc-day', 'thu');
+				        	$cTpl->replace('mc-saturday', 'sat');
+				        	$cTpl->replace('mc-sunday', 'sun');
+	    					break;
+	    				case "d6":
+	    					$cTpl->replace('mc-today', 'sat');
+	    					$cTpl->replace('mc-day', 'mon');
+				        	$cTpl->replace('mc-day', 'tue');
+				        	$cTpl->replace('mc-day', 'wed');
+				        	$cTpl->replace('mc-day', 'thu');
+				        	$cTpl->replace('mc-day', 'fri');
+				        	$cTpl->replace('mc-sunday', 'sun');
+	    					break;
+	    				case "d7":
+	    					$cTpl->replace('mc-today', 'sun');
+	    					$cTpl->replace('mc-day', 'mon');
+				        	$cTpl->replace('mc-day', 'tue');
+				        	$cTpl->replace('mc-day', 'wed');
+				        	$cTpl->replace('mc-day', 'thu');
+				        	$cTpl->replace('mc-day', 'fri');
+				        	$cTpl->replace('mc-saturday', 'sat');
+				        	break;
 
-        	$cTpl->replace('mc-day', 'now');
-
+	    		}
+        	} else {
+        		$cTpl->replace('mc-day', 'mon');
+				$cTpl->replace('mc-day', 'tue');
+				$cTpl->replace('mc-day', 'wed');
+				$cTpl->replace('mc-day', 'thu');
+				$cTpl->replace('mc-day', 'fri');
+				$cTpl->replace('mc-saturday', 'sat');
+				$cTpl->replace('mc-sunday', 'sun');
+        	}
+        
+          
         	$cTpl->replace($weekNum, 'weekNum');
         	$cTpl->placeArray($weekArr);
         	

@@ -16,19 +16,21 @@ table.calTable{
 
 }
 
-td.calWeek {
+table.mc_calendar td.calWeek {
 	
 	color:black;
 	width:12em;
 	min-width:8em;
-	border: 1px solid #999;
-    border-collapse: collapse;
-	colspan: 2;
+	border: 1px solid #ddd;
 	height:2em;
+    font: small Arial,sans-serif;
+	font-size: 0.7em;
+	padding:1px;
+	cursor: pointer;
 
 }
 
-td.calWeekTime {
+table.mc_calendar td.calWeekTime {
 	
 	color:black;
 	max-width:3em;
@@ -40,9 +42,11 @@ td.calWeekTime {
 	background-color:#47476B;
 	text-align:center;
 	height:2em;
+	font: small Arial,sans-serif;
+	font-size: 0.7em;
 }
 
-td.calDayTime {
+table.mc_calendar td.calDayTime {
 	
 	color:black;
 	max-width:6em;
@@ -54,9 +58,11 @@ td.calDayTime {
 	background-color:#47476B;
 	text-align:center;
 	height:2em;
+	font: small Arial,sans-serif;
+	font-size: 0.7em;
 }
 
-td.calWeekH {
+table.mc_calendar td.calWeekH {
 	
 	color:black;
 	max-width:3em;
@@ -69,9 +75,11 @@ td.calWeekH {
 	colspan: 2;
 	//color:#000000;
 	height:2em;
+	font: small Arial,sans-serif;
+	font-size: 0.7em;
 }
 
-td.calDayH {
+table.mc_calendar td.calDayH {
 	
 	color:black;
 	max-width:6em;
@@ -83,17 +91,21 @@ td.calDayH {
 	text-align:center;
 	colspan: 2;
 	height:2em;
+	font: small Arial,sans-serif;
+	font-size: 0.7em;
 }
 
-td.calDay {
+table.mc_calendar td.calDay {
 	
 	color:black;
-	width:25em;
-	min-width:23em;
-	border: 1px solid #999;
+	width:14em;
+	min-width:8em;
+	border: 1px solid #ddd;
     border-collapse: collapse;
 	colspan: 2;
 	height:2em;
+	font: small Arial,sans-serif;
+	font-size: 0.7em;
 
 }
 
@@ -124,10 +136,12 @@ img.calImg{
 
 }
 
-td.mc-today {
-	border:solid 2px #cc0;
+table.mc_calendar td.mc-todayD {
+	border:solid 2px red;
 	colspan: 2;
 	height:2em;
+	font: small Arial,sans-serif;
+	font-size: 0.7em;
 
 }
 
@@ -355,11 +369,29 @@ table.mc-calendar td.mc-day:hover{
 	background-color: LightGoldenRodYellow ;
 }
 
+table.mc-calendar td.mc-saturday:hover {
+	background-color: LightGoldenRodYellow ;
+}
+
+table.mc-calendar td.mc-sunday:hover{
+	background-color: LightGoldenRodYellow ;
+}
+
+table.mc-calendar td.mc-today:hover{
+	background-color: LightGoldenRodYellow ;
+}
+
 table.mc-calendar td.mc-today{
-	//border:solid 2px red;
-	border:solid 2px #cc0;
+	border:solid 2px red;
 	colspan: 2;
-	height:2em;
+	text-align:left;
+	vertical-align:top;
+	background-color: #ffffff;
+	font-weight:bold;
+	cursor: pointer;
+	font-family:Arial,sans-serif;
+	height:8em;
+	min-width:8em;
 }
 
 table.mc-header a {
