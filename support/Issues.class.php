@@ -185,12 +185,19 @@ class support_Issues extends core_Master
             // Вземаме записите
             $iRec = support_Systems::fetch($systemId);
             
-            // Форсираме създаването на папката
-            $folderId = support_Systems::forceCoverAndFolder($iRec);
-            
-            // Задаваме id' то на папката
-            $data->form->rec->folderId = $folderId;    
-        } else {
+            // Ако имаме права за single до папката
+            if ($iRec->folderId && doc_Folders::haveRightFor('single', $iRec->folderId)) {    
+                
+                // Форсираме създаването на папката
+                $folderId = support_Systems::forceCoverAndFolder($iRec);
+                
+                // Задаваме id' то на папката
+                $data->form->rec->folderId = $folderId;    
+            }
+        } 
+        
+        // Ако все още не сме определили папката
+        if (!$folderId) {
             
             // Ако няма подадено systemId, вземаме id' то на папката по подразбиране
             $folderId = $data->form->rec->folderId;
