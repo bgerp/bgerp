@@ -50,6 +50,7 @@ class sales_Setup
             'sales_Deals',
             'sales_Invoices',
             'sales_InvoiceDetails',
+            'sales_Sales',
         );
         
         // Роля за power-user на този модул
