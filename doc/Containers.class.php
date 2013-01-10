@@ -878,5 +878,23 @@ class doc_Containers extends core_Manager
 
         return $res;
     }
-
+    
+    
+    /**
+     * Проверява дали даден тип документ, се съдържа в нишката
+     * 
+     * @param integer $threadId - id от doc_Threads
+     * @param sting $documentName - Името на класа на документа
+     */
+    static function checkDocumentExistInThread($threadId, $documentName) 
+    {
+        // Името на документа с малки букви
+        $documentName = strtolower($documentName);
+        
+        // Вземаме id' то на класа
+        $documentClassId = core_Classes::fetch("LOWER(#name) = '{$documentName}'")->id;
+        
+        // Ако има такъв запис, връщаме TRUE
+        return (boolean)static::fetch("#threadId = '{$threadId}' AND #docClass = '{$documentClassId}'");
+    }
 }
