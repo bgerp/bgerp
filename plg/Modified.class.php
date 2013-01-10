@@ -47,6 +47,7 @@ class plg_Modified extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
     }
 }
