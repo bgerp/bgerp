@@ -134,7 +134,7 @@ class sales_Sales extends core_Master
         $this->FLD('pricesAtDate', 'date', 'caption=Цени към');
         $this->FLD('note', 'text', 'caption=Забележка', array('attr'=>array('rows'=>3)));
         $this->FLD('makeInvoice', 'enum(yes=Да,monthend=Периодично,no=Не)', 
-            'caption=Фактуриране,maxRadio=4');
+            'caption=Фактуриране,maxRadio=4,mandatory');
         
         /*
          * Стойности
@@ -221,6 +221,15 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Задаване на стойности на полетата на формата по подразбиране
+        
+        /* @var $form core_Form */
+        $form = $data->form;
+        
+        $form->setDefault('date', dt::now());
+        
+        $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent());
+        $form->setDefault('caseId', cash_Cases::getCurrent());
     }
     
     
