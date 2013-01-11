@@ -36,7 +36,7 @@ class sales_Sales extends core_Master
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
-                    doc_SequencerPlg, doc_plg_BusinessDoc';
+                    doc_plg_BusinessDoc';
     
     
     /**
@@ -123,17 +123,15 @@ class sales_Sales extends core_Master
     {
         
         $this->FLD('date', 'date', 'caption=Дата, mandatory');
-        $this->FLD('pricesAtDate', 'date', 'caption=Цени към');
-        $this->FLD('note', 'text', 'caption=Забележка', array('attr'=>array('rows'=>3)));
-        $this->FLD('makeInvoice', 'enum(yes=Да,monthend=Периодично,no=Не)', 
-            'caption=Фактуриране,maxRadio=4');
+        $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 
+            'caption=Фактуриране,maxRadio=3,columns=3');
         
         /*
          * Стойности
          */
-        $this->FLD('amountDeal', 'float', 'caption=Стойности->Продажба'); // Сумата на договорената стока
-        $this->FLD('amountDelivered', 'float', 'caption=Стойности->Доставено'); // Сумата на доставената стока
-        $this->FLD('amountPaid', 'float', 'caption=Стойности->Платено'); // Сумата която е платена
+        $this->FLD('amountDeal', 'float', 'caption=Стойности->Продажба,input=none'); // Сумата на договорената стока
+        $this->FLD('amountDelivered', 'float', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
+        $this->FLD('amountPaid', 'float', 'caption=Стойности->Платено,input=none'); // Сумата която е платена
         
         /*
          * Контрагент
@@ -164,6 +162,13 @@ class sales_Sales extends core_Master
             'caption=Плащане->Банкова сметка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
             'caption=Плащане->Каса');
+
+        /*
+         * Допълнително
+         */
+        $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
+        $this->FLD('note', 'richtext', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
+
     }
 
 
