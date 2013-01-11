@@ -678,9 +678,9 @@ class core_Db extends core_BaseClass
                     expect(count($matches) > 0);
                     
                     if (count($matches[1] == 1)) {
-                    	$statusMsg = "Пакета {$matches[1][0]} беше обновен";
+                    	$statusMsg = "Пакета {$matches[1][0]} беше обновен" . (isDebug() ? ": $error" : "");
                     } else {
-                        $statusMsg = "Пакетите " . implode(', ', $matches[1]) . " бяха обновени";
+                        $statusMsg = "Пакетите " . implode(', ', $matches[1]) . " бяха обновени" . (isDebug() ? ": $error" : "");
                     }
                     
                     redirect(array('core_Packs'), FALSE, $statusMsg);
