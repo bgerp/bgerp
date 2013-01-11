@@ -36,7 +36,7 @@ class sales_Sales extends core_Master
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
-                    doc_SequencerPlg, doc_plg_BusinessDoc';
+                    doc_plg_BusinessDoc';
     
     
     /**
@@ -172,6 +172,16 @@ class sales_Sales extends core_Master
             'caption=Плащане->Банкова сметка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
             'caption=Плащане->Каса');
+        
+        /*
+         * Наш персонал
+         */
+        $this->FLD('initiatorId', 'user(roles=user,allowEmpty)',
+            'caption=Наш персонал->Инициатор');
+        $this->FLD('dealerId', 'user(roles=sales,allowEmpty)',
+            'caption=Наш персонал->Търговец');
+        // По подразбиране е отговорника на папката на контрагента, ако той има такава роля, 
+        // иначе е текущият потребител, ако той има такава роля, иначе е празен        
     }
 
 
