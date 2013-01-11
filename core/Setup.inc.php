@@ -590,8 +590,8 @@ if ($step == 'setup') {
 					</script>");
         
         // Лог
-        $setupLog = file_get_contents(EF_SBF_PATH . '/setupLog.html');
-	    file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
+        $setupLog = @file_get_contents(EF_SBF_PATH . '/setupLog.html');
+	    @file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
 	    
 	    $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
         
