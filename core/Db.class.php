@@ -123,7 +123,7 @@ class core_Db extends core_BaseClass
     function connect()
     {
         if (!isset($this->link)) {
-            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or
+            $link = mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or
             error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             
             // След успешно осъществяване на връзката изтриваме паролата
