@@ -613,7 +613,12 @@ class core_Mvc extends core_FieldSet
         ": <i>" . $this->className . "</i></h3><ol style='margin-bottom:10px;'>";
 
         // Запалваме събитието on_BeforeSetup
-        $this->invoke('BeforeSetupMVC', array(&$html));
+        if ($this->invoke('BeforeSetupMVC', array(&$html)) === FALSE) {
+            
+            $html .= "Пропускаме началното установяване на модела <li> ";
+
+            return "$html</ol>";
+        }
 
         if($this->oldClassName) {
 
