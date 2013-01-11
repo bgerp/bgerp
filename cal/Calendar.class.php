@@ -262,6 +262,13 @@ class cal_Calendar extends core_Master
     	
     }
     
+ 	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+    	//bp(&$roles, $action, $rec, $userId);
+    	if($action == 'day' || $action == 'week' || $action == 'month' || $action == 'year'){
+	    	 $requiredRoles = 'user';
+         }
+    }
     
     /**
      * Конвертира един запис в разбираем за човека вид
@@ -615,7 +622,7 @@ class cal_Calendar extends core_Master
      */
     function act_Day()
     {
-    	self::requireRightFor('user');
+    	self::requireRightFor('day');
     	
     	// Очакваме дата от филтъра
     	$from = Request::get('from');
@@ -662,7 +669,7 @@ class cal_Calendar extends core_Master
     	while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
 
     		// Проверка за конкретния запис
-    	    self::requireRightFor('user', $rec);
+    	    self::requireRightFor('day', $rec);
     	    
     	    // Деня, за който взимаме събитията
     		$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
@@ -877,7 +884,7 @@ class cal_Calendar extends core_Master
      */
     function act_Week()
     {
-    	self::requireRightFor('user');
+    	self::requireRightFor('week');
     	
     	// Очакваме дата от филтъра
         $from = Request::get('from');
@@ -942,7 +949,7 @@ class cal_Calendar extends core_Master
         while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
         	
         	// Проверка за конкретния запис
-    	    self::requireRightFor('user', $rec);
+    	    self::requireRightFor('week', $rec);
         	
         	// Какъв ден е
         	$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
@@ -1107,7 +1114,7 @@ class cal_Calendar extends core_Master
     function act_Month()
     {
     	
-    	self::requireRightFor('user');
+    	self::requireRightFor('month');
     	
     	// Очакваме дата от формата
     	$from = Request::get('from');
@@ -1154,7 +1161,7 @@ class cal_Calendar extends core_Master
         $state->query->orderBy('time', 'ASC');     
         while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
         	// Проверка за конкретния запис
-    	    self::requireRightFor('user', $rec);
+    	    self::requireRightFor('month', $rec);
         	
     	    
         	// Времето на събитието от базата
@@ -1392,7 +1399,7 @@ class cal_Calendar extends core_Master
      */
     function act_Year()
     {
-    	self::requireRightFor('user,cal,admin');
+    	self::requireRightFor('year');
     	
         $res = '1';
 
