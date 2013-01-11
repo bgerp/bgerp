@@ -18,13 +18,13 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string
      */
-    var $title = 'Продажби';
+    public $title = 'Продажби';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'saleId';
+    public $masterKey = 'saleId';
     
     
     /**
@@ -32,7 +32,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * var string|array
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, sales_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, sales_Wrapper';
     
     
     /**
@@ -40,14 +40,14 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string
      */
-    var $menuPage = 'Търговия:Продажби';
+    public $menuPage = 'Търговия:Продажби';
     
     /**
      * Кой има право да чете?
      * 
      * @var string|array
      */
-    var $canRead = 'admin, sales';
+    public $canRead = 'admin, sales';
     
     
     /**
@@ -55,7 +55,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    var $canEdit = 'admin, sales';
+    public $canEdit = 'admin, sales';
     
     
     /**
@@ -63,7 +63,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    var $canAdd = 'admin, sales';
+    public $canAdd = 'admin, sales';
     
     
     /**
@@ -71,7 +71,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    var $canView = 'admin, sales';
+    public $canView = 'admin, sales';
     
     
     /**
@@ -79,7 +79,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    var $canDelete = 'admin, sales';
+    public $canDelete = 'admin, sales';
     
     
     /**
@@ -87,13 +87,13 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var integer
      */
-    var $listItemsPerPage;
+    public $listItemsPerPage;
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields;
+    public $listFields;
     
     
     /**
@@ -101,13 +101,13 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string
      */
-    var $rowToolsField;
+    public $rowToolsField;
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'notNull,silent,hidden,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Продукт,notNull,mandatory');
@@ -126,7 +126,7 @@ class sales_SalesDetails extends core_Detail
      * @param mixed $res
      * @param string $action
      */
-    static function on_BeforeAction($mvc, &$res, $action)
+    public static function on_BeforeAction($mvc, &$res, $action)
     {
     }
     
@@ -140,7 +140,7 @@ class sales_SalesDetails extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     }
     
@@ -152,7 +152,7 @@ class sales_SalesDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     }
     
@@ -163,7 +163,7 @@ class sales_SalesDetails extends core_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     }
     
@@ -174,7 +174,7 @@ class sales_SalesDetails extends core_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
     }
     
@@ -186,7 +186,7 @@ class sales_SalesDetails extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     }
 }

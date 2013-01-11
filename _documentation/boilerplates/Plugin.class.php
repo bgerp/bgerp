@@ -2,7 +2,7 @@
 /**
  * Клас 'boilerplate_Plugin'
  *
- * Шаблон за bgerp плъгин наследник на core_Mvc
+ * Шаблон за bgerp плъгин към наследник на core_Mvc
  *
  *
  * @category  bgerp
