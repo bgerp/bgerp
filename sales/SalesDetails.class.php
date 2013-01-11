@@ -18,7 +18,15 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string
      */
-    public $title = 'Продажби';
+    public $title = 'Детайли на Продажби';
+
+
+    /**
+     * Заглавие в единствено число
+     *
+     * @var string
+     */
+    public $singleTitle = 'Продукт';
     
     
     /**
@@ -32,7 +40,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, sales_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering';
     
     
     /**
@@ -109,13 +117,21 @@ class sales_SalesDetails extends core_Detail
      */
     public function description()
     {
-        $this->FLD('saleId', 'key(mvc=sales_Sales)', 'notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Продукт,notNull,mandatory');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings)', 'caption=Опаковка,notNull,mandatory');
+        $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
         $this->FLD('price', 'float', 'caption=Цена');
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FLD('quantityOrdered', 'float', 'caption=Поръчано');
         $this->FLD('quantityDelivered', 'float', 'caption=Доставено');
+    }
+    
+    
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+        // Скриване на полетата за създаване
+        $mvc->setField('createdOn', 'column=none');
+        $mvc->setField('createdBy', 'column=none');
     }
 
 

@@ -106,6 +106,14 @@ class sales_Sales extends core_Master
      * @var string
      */
     public $rowToolsField;
+
+
+    /**
+     * Детайла, на модела
+     *
+     * @var string|array
+     */
+    public $details = 'sales_SalesDetails' ;
     
 
     /**

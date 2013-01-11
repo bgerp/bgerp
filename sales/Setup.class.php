@@ -51,6 +51,7 @@ class sales_Setup
             'sales_Invoices',
             'sales_InvoiceDetails',
             'sales_Sales',
+            'sales_SalesDetails',
         );
         
         // Роля за power-user на този модул
@@ -66,7 +67,7 @@ class sales_Setup
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(3.1, 'Търговия', 'Продажби', 'sales_Deals', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "{$role}, admin");
         
         return $html;
     }
