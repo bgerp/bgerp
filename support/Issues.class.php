@@ -88,6 +88,12 @@ class support_Issues extends core_Master
     
     
     /**
+     * Кой може да възлага задачата
+     */
+    var $canAssign = 'support, admin, ceo';
+    
+    
+    /**
      * Поддържани интерфейси
      */
     var $interfaces = 'doc_DocumentIntf';
@@ -96,7 +102,7 @@ class support_Issues extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, doc_SharablePlg';
+    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, doc_SharablePlg, doc_AssignPlg';
 
     
     /**
@@ -410,8 +416,8 @@ class support_Issues extends core_Master
         // Документа
         $containerId = $iRec->containerId;
         
-        // Заглавието на сигнала във вербален вид
-        $title = str::limitLen(static::getVerbal($iRec, 'title'), 90);
+        // Заглавието на сигнала във НЕвербален вид
+        $title = str::limitLen($iRec->title, 90);
         
         // Отговорниците
         $maintainers = support_Components::fetchField($iRec->componentId, 'maintainers');
@@ -435,6 +441,7 @@ class support_Issues extends core_Master
             $message = tr("|*{$nick} |активира сигнал|*: \"{$title}\"");
             $url = array('doc_Containers', 'list', 'threadId' => $threadId);
             $customUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'docId' => $docHnd, '#' => $docHnd);
+//            $url = $customUrl = array('support_Issues', 'single', $id);
             
             // Обхождаме всички отговорници
             foreach($maintainersArr as $userId) {
@@ -446,7 +453,7 @@ class support_Issues extends core_Master
                 $sharedUserArr[$userId] = $userId;
                 
                 // Добавяме им нотофикации
-                bgerp_Notifications::add($message, $url, $userId, $rec->priority, $customUrl);
+                bgerp_Notifications::add($message, $url, $userId, $iRec->priority, $customUrl);
             }
             
             // Добавяме потребителе, за да имат достъп до нишката
@@ -455,5 +462,14 @@ class support_Issues extends core_Master
             // Упдейтваме нишката
             doc_Threads::updateThread($threadId);
         }
+    }
+    
+    
+    /**
+     * Прихваща извикване на функцията afterSubmitAssign @see doc_AssignPlg->on_BeforeAction
+     */
+    function on_AfterSubmitAssign($mvc, $rec)
+    {
+        // TODO да се записва в лога
     }
 }
