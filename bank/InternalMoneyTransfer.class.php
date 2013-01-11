@@ -120,6 +120,7 @@ class bank_InternalMoneyTransfer extends core_Master
     function description()
     {
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,width=6em,mandatory');
+    	$this->FLD('conversion', 'enum(no=Не,yes=Да)', 'caption=Превалутиране,default=no,');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=6em,mandatory,silent');
@@ -127,10 +128,14 @@ class bank_InternalMoneyTransfer extends core_Master
     	$this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 1');
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 3');
+        $this->FLD('creditQuantity', 'double(minDecimals=2)', 'width=6em,caption=От->Сума');
+        $this->FLD('creditPrice', 'double(minDecimals=2)', 'width=6em,caption=От->Курс');
         $this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
         $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 1');
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 3');
+        $this->FLD('debitQuantity', 'double(minDecimals=2)', 'width=6em,caption=Към->Сума');
+        $this->FLD('debitPrice', 'double(minDecimals=2)', 'width=6em,caption=Към->Курс');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
@@ -188,6 +193,7 @@ class bank_InternalMoneyTransfer extends core_Master
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
     	$form->FNC('operationId', 'key(mvc=acc_Operations, select=name)', 'input,caption=Операция');
+    	$form->FNC('conversion', 'enum(no=Не, yes=Да)', 'caption=Превалутиране,default=no,input');
     	$form->title = 'Нов Вътрешен Паричен Трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class'=>'btn-next btn-move'));
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')), array('class'=>'btn-cancel'));
@@ -204,14 +210,22 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
+    	$form = &$data->form;
+    	
     	// Очакваме и намираме коя е извършената операция
     	if(!$data->form->rec->id) {
     		expect($operationId = Request::get('operationId'));
+    		expect($conversion = Request::get('conversion'));
+    		$form->setDefault('conversion', $conversion);
     	} else {
-    		$operationId = $data->form->rec->operationId;
+    		$operationId = $form->rec->operationId;
+    		$conversion = $form->rec->conversion;
     	}
     	
     	$operation = acc_Operations::getOperationInfo($operationId);
+    	if($conversion == 'yes'){
+        		$form->setField("amount", 'input=none');
+    	}
         
     	// Трябва документа да поддържа тази операция
     	$classId = core_Classes::fetchIdByName(get_called_class());
@@ -220,60 +234,247 @@ class bank_InternalMoneyTransfer extends core_Master
         $debitAcc = $operation->debitAccount;
         $creditAcc = $operation->creditAccount;
         
+        $quantityOnly = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) ||
+        ($creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
+        
     	foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
             
             $acc = ${"{$type}Acc"};
             
             // Скриваме всички полета за пера, и после показваме само тези, за които съответната
             // (дебит или кредит) сметка има аналитичност.
-            $data->form->setField("{$type}Ent1", 'input=none');
-            $data->form->setField("{$type}Ent2", 'input=none');
-            $data->form->setField("{$type}Ent3", 'input=none');
-    		($type == 'debit') ? $division = tr('Към') : $division = tr('От');
+            $form->setField("{$type}Ent1", 'input=none');
+            $form->setField("{$type}Ent2", 'input=none');
+            $form->setField("{$type}Ent3", 'input=none');
+    		
+            ($type == 'debit') ? $division = tr('Към') : $division = tr('От');
             
+    		// Намираме на коя позиция се намира номенклатурата Валути, ако я има
+    		$pos = acc_Lists::getPosition(${"{$type}Acc"}->rec->systemId, 'currency_CurrenciesAccRegIntf');
     		foreach ($acc->groups as $i => $list) {
                 if (!$list->rec->itemsCnt) {
                     return Redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"{$list->rec->name}\""));
                 }
-                $data->form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-                $data->form->setField("{$type}Ent{$i}", "mandatory,input,caption={$division}->" . $list->rec->name);
+               
+                $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
+                $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$division}->" . $list->rec->name);
+    			
+                // Ако няма превалутиране и ако номенклатурата е Валути
+                // и типа е дебит, ние скриваме полето за валути,
+                // то ще се попълни със стойнсота от кредитното поле
+                
+				if($type=='debit' && $conversion == 'no') {
+					
+					// Ако няма превалутираме и дебитната сметка има перо валута,
+					// ние правим това поле скрито, то ще се попълни със
+					// стойнста от кредитното поле
+					if($pos == $i) {
+						$form->setField("{$type}Ent{$i}", "input=hidden");
+					}
+				}
+				
+	    		// Ако не превалутираме нямаме нужда да показваме количествоо
+	            if($conversion == 'no'){
+	        		$form->setField("{$type}Quantity", 'input=hidden');
+	        		$form->setField("{$type}Price", 'input=hidden');
+	        	} else {
+		        	if ($quantityOnly) {
+		                $form->setField("{$type}Price", 'input=none');
+		                $form->setField("{$type}Quantity", 'mandatory');
+		            }
+	        	}
             }
         }
         
         $today = dt::verbal2mysql();
-        $data->form->setDefault('valior', $today);
-        $data->form->setReadOnly('operationId');
-
+        $form->setDefault('valior', $today);
+        $form->setReadOnly('operationId');
+		$form->setReadOnly('conversion');
+		
         // Перото на валутата по подразбиране
         $currencyClassId = currency_Currencies::getClassId();
         $currencyId = currency_Currencies::getIdByCode();
         $currencyItem = acc_Items::fetch("#objectId={$currencyId} AND #classId={$currencyClassId}");
-        
+       
         // Ако имаме втора аналитичност валута, слагаме и дефолт стойност
-        if($data->form->getField('debitEnt2')->input != 'none') {
-        	$data->form->setDefault('debitEnt2', $currencyItem->id);
+        if($form->getField('debitEnt2')->input != 'none') {
+        	$form->setDefault('debitEnt2', $currencyItem->id);
         }
-    	if($data->form->getField('creditEnt2')->input != 'none') {
-        	$data->form->setDefault('creditEnt2', $currencyItem->id);
+    	if($form->getField('creditEnt2')->input != 'none') {
+        	$form->setDefault('creditEnt2', $currencyItem->id);
         }
-    }
+     }
     
      
     /**
      * Проверка след изпращането на формата
      */
     function on_AfterInputEditForm($mvc, $form)
-    {
+    { 
     	if ($form->isSubmitted()){
-    		if($form->rec->debitEnt1 == $form->rec->creditEnt1) {
-    			
-    			// Неможе началното и крайното перо да съвпадат
-    			$form->setError('creditEnt1', 'Началната и крайната дестинация са същите !!!');
-    		}
     		
-    		$operation = acc_Operations::fetch($form->rec->operationId);
-    		$form->rec->debitAccId = $operation->debitAccount;
-    		$form->rec->creditAccId = $operation->creditAccount;
+    		$rec = &$form->rec;
+    		
+    		$accPeriods = cls::get('acc_Periods');
+		    $period = $accPeriods->fetchByDate($rec->valior);
+		    $baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
+		    
+    		$operation = acc_Operations::fetch($rec->operationId);
+    		$rec->debitAccId = $operation->debitAccount;
+    		$rec->creditAccId = $operation->creditAccount;
+    		
+    		// Ако няма превалутиране  проверяваме дали валутите на
+    		// дебитната сметка съвпадат с тези на кредитната
+    		if($rec->conversion == 'no') {
+    			$mvc->validateForm($form);
+    			
+    			// Ако непревалутираме количествата съвпадат а цените са им 1
+    			$rec->debitQuantity = $rec->amount;
+    			$rec->debitPrice = 1;
+    			$rec->creditQuantity = $rec->amount;
+    			$rec->creditPrice = 1;
+    		} else {
+    			
+    			// Неможе и двете количества да не са въведени
+    			if(!$rec->creditQuantity) {
+    				$form->setError("creditQuantity", "Въведете Съмата която ще прехвърляте !!!");
+    			} else {
+	    			if(!$rec->creditPrice) {
+	    				
+		    			// Кредитната цена ако не е въведена е курса на 
+		    			// кредитната валута към базовата за периода
+		    			$creditCurrency = static::getCurrency('credit', $rec);
+		    			$currencyCode = currency_Currencies::getCodeById($creditCurrency);
+		    			$rate = currency_CurrencyRates::getRateBetween($currencyCode,$baseCurrency,$rec->valior);
+		    			$rec->creditPrice =  round($rate, 2);
+	    			}
+	    		
+	    			$creditAmount = $rec->creditPrice * $rec->creditQuantity;
+	    			$rec->amount = $creditAmount;
+		    		// Изчиславаме евентуално липсващите дебитни данни, и проверява
+		    		// дали са верни
+		    		if($rec->debitPrice && $rec->debitQuantity) {
+	    				$debitAmount = $rec->debitPrice * $rec->debitQuantity;
+	    				if($debitAmount != $creditAmount) {
+	    					$form->setError("debitQuantity,debitPrice", "Въведените стойности не съответстват !!!");
+	    				}
+		    		} elseif($rec->debitPrice && !$rec->debitQuantity) {
+		    			$rec->debitQuantity = round($creditAmount / $rec->debitPrice, 2);
+		    		} elseif(!$rec->debitPrice && $rec->debitQuantity) {
+		    			$rec->debitPrice = round($creditAmount / $rec->debitQuantity, 4);
+		    		} elseif(!$rec->debitPrice && !$rec->debitQuantity) {
+		    			$form->setError("debitQuantity,debitPrice", "Въведените или Курса или Сумата !!!");
+		    		}
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Функция която се извиква, когато няма превалутиране:
+     * При Каса -> Каса
+     *    Валутата на касата към която местим става същата като тази на
+     *    касата от която местим
+     * При Каса -> Банка
+     * 	  Проверява дали валутата на касата отговаря на тази на избраната
+     * 	  банкова сметка, ако не - сетва грешка
+     * При Банка -> Каса
+     *    Валутата на касата към която прехвърляме приема стойноста на
+     *    валутата на сметката от която местим
+     * При Банка -> Банка 
+     *    Проверява дали банковата сметка към която прехвърляме да е 
+     *    същата като тази на банката от която местим, ако не - сетва 
+     *    грешка
+     * 
+     * @param core_Form $form 
+     */
+    function validateForm($form)
+    {
+    		$rec = &$form->rec;
+    		
+    		// Намираме дали перо от кредита и дебита и дали е банкова сметка
+    		// Ако е банкова сметка намераме на коя позиция е точно, ако няма
+    		// съответната променлива е NULL ако в дебитния или кредитния акаунт
+    		// няма номенклатура банкови сметки 
+    		$debitAcc = $rec->debitAccId;
+    		$creditAcc = $rec->creditAccId;
+    		$debitBankPos = acc_Lists::getPosition($debitAcc, 'bank_OwnAccRegIntf');
+    		$creditBankPos = acc_Lists::getPosition($creditAcc, 'bank_OwnAccRegIntf');	
+    		
+    		if($debitBankPos && $creditBankPos) {
+    			
+    			// Ако и Имаме Банкови сметки от двете страни
+    			$debitCurrency = static::getCurrency('debit', $rec);
+    			$creditCurrency = static::getCurrency('credit', $rec);
+    			if($debitCurrency != $creditCurrency) {
+    				$form->setError("debitEnt{$debitBankPos}", 'Банковата сметка е в друга валута !!!');
+    			}
+    			
+    		} elseif(!$debitBankPos && !$creditBankPos) { 
+    			
+    			// Ако няма банкови сметки и движението е Каса -> Каса
+    			$debitCurrencyPos = acc_Lists::getPosition($debitAcc, 'currency_CurrenciesAccRegIntf');
+    			$creditCurrencyPos = acc_Lists::getPosition($creditAcc, 'currency_CurrenciesAccRegIntf');
+    			
+    			// Приемаме че дебитната валута е същата като кредитната
+    			// ако няма превалутиране
+    			$rec->{"debitEnt{$debitCurrencyPos}"} = $rec->{"creditEnt{$creditCurrencyPos}"};
+    		
+    		
+    		} elseif($debitBankPos && !$creditBankPos) {
+    			
+    			// Ако движението е Каса -> Банка
+    			$debitCurrency = static::getCurrency('debit', $rec);
+    			$creditCurrency = static::getCurrency('credit', $rec);
+    			if($debitCurrency != $creditCurrency) {
+    				$form->setError("debitEnt{$debitBankPos}", 'Банковата сметка е в друга валута !!!');
+    			}
+    		
+    		} elseif(!$debitBankPos && $creditBankPos) {
+    			
+    			// Ако движението е Банка -> Каса
+    			$creditBank = acc_Items::fetchField($rec->{"creditEnt{$creditBankPos}"},'objectId');
+    			$creditOwnAcc = bank_OwnAccounts::getOwnAccountInfo($creditBank);
+    			$debitCurrencyPos = acc_Lists::getPosition($debitAcc, 'currency_CurrenciesAccRegIntf');
+    			$currencyClassId = currency_Currencies::getClassId();
+        		$currencyItem = acc_Items::fetch("#objectId={$creditOwnAcc->currencyId} AND #classId={$currencyClassId}");
+    			
+        		// Валутата на касата е същата като тази на банковата сметка
+        		// ако не превалутираме
+        		$rec->{"debitEnt{$debitCurrencyPos}"} = $currencyItem->id;
+    		}
+    }
+    
+    
+    /**
+     * Проверява дебитните или кредитните пера и намира номера на валутата
+     * от дебита или кредита
+     * @param string $type - дебитно или кредитно перо обхождаме
+     * @param stdClass $rec - Запис от модела
+     * @return int $id - Id на валутата която е в сметката
+     */
+    static function getCurrency($type, $rec)
+    {
+    	expect($type == 'debit' || $type == 'credit');
+    	$accId = $rec->{"{$type}AccId"};
+    	
+    	$bankItemPos = acc_Lists::getPosition($accId, 'bank_OwnAccRegIntf');
+    	
+    	// Ако има Банкова номенклатура намираме валутата от банковата сметка
+    	if($bankItemPos) {
+    		${"{$type}BankItem"} = acc_Items::fetchField($rec->{"{$type}Ent{$bankItemPos}"},'objectId');
+    		${"{$type}Bank"} = bank_OwnAccounts::getOwnAccountInfo(${"{$type}BankItem"});
+    		
+    		return ${"{$type}Bank"}->currencyId;
+    	} else {
+    		
+    		// Ако няма номенклатура Банки, очакваме да има номенклатура 
+    		// Валути и намираме ид-то на валутата
+    		$currencyItemPos = acc_Lists::getPosition($accId, 'currency_CurrenciesAccRegIntf');
+    		${"{$type}currencyItem"} = acc_Items::fetchField($rec->{"{$type}Ent{$currencyItemPos}"},'objectId');
+    		
+    		return ${"{$type}currencyItem"};
     	}
     }
     

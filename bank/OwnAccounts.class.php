@@ -188,9 +188,14 @@ class bank_OwnAccounts extends core_Manager {
      * Изчличане на цялата информация за сметката която е активна
      * @return bank_Accounts $acc - записа отговарящ на текущата ни сметка
      */
-    static function getOwnAccountInfo()
+    static function getOwnAccountInfo($id = NULL)
     {
-    	$ownAcc = static::fetch(static::getCurrent());
+    	if($id) {
+    		$ownAcc = static::fetch($id);
+    	} else {
+    		$ownAcc = static::fetch(static::getCurrent());
+    	}
+    	
     	$acc = bank_Accounts::fetch($ownAcc->bankAccountId);
     	if(!$acc->bank) {
     		$acc->bank = drdata_Banks::getBankName($acc->iban);
