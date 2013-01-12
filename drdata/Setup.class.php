@@ -32,7 +32,7 @@ class drdata_Setup extends core_Manager {
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    var $version = '0.15';
     
     
     /**
