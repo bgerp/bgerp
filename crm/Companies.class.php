@@ -512,7 +512,7 @@ class crm_Companies extends core_Master
             }
         }
         
-        $row->country = tr($mvc->getVerbal($rec, 'country'));
+        $row->country = $mvc->getVerbal($rec, 'country');
         
         $pCode = $mvc->getVerbal($rec, 'pCode');
         $place = $mvc->getVerbal($rec, 'place');
@@ -788,9 +788,9 @@ class crm_Companies extends core_Master
         $title = $rec->name;
         
         if($rec->country) {
-            $country = drdata_Countries::fetchField($rec->country, 'commonName');
+            $country = self::getVerbal($rec, 'country');
         } else {
-            $country = '??????????';
+            $country = '';
         }
         
         if($rec->place && ($country == $conf->BGERP_OWN_COMPANY_COUNTRY)) {

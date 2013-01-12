@@ -518,12 +518,10 @@ class doc_Folders extends core_Master
             
             //Ако има въведена държава
             if ($classRec->country) {
-                //Проверяваме дали е българия
-                $country = $coverClass::getVerbal($classRec, 'country');
-                
+
                 //Ако държавата е българия
-                if (strtolower($country) == 'bulgaria') {
-                    $lg = 'bg';
+                if (drdata_Countries::fetchField($classRec->country, 'letterCode2') == 'BG') {
+                    $lg = 'bg'; 
                 } else {
                     $lg = 'en';
                 }
