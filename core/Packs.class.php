@@ -421,7 +421,7 @@ class core_Packs extends core_Manager
         // Максиламно време за инсталиране на пакет
         set_time_limit(400);
         
-        static $f = 0;
+        static $f = 0, $setupLog, $setupFlag;
         
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         
@@ -434,7 +434,6 @@ class core_Packs extends core_Manager
         // Отбелязваме, че на текущия хит, този пакет е установен
         $this->alreadySetup[$pack] = TRUE;
 
-        GLOBAL $setupLog, $setupFlag;
         
         if($setupFlag) {
 			if ($setupLog) { // Зануляваме лога ако инсталацията минава за първи път
@@ -503,9 +502,16 @@ class core_Packs extends core_Manager
             // Форсираме системния потребител
             core_Users::forceSystemUser();
             
+            // Форсираме Full инсталиране, ако имаме промяна на версиите
+            if($rec && ($rec->version != $setup->version)) {
+                Request::push(array('Full' => 1), 'full');
+            }
+ 
             // Правим началното установяване
             $res .= $setup->install();
-                        
+            
+            Request::pop('full');
+
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
             
