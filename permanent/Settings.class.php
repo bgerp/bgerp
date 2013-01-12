@@ -24,7 +24,7 @@ class permanent_Settings extends core_Manager
      */
     static function setObject($object)
     {
-        $data = permanent_Data::read($object->getSettingsKey());
+        $data = permanent_Data::read($object->getSettingsKey(), !$object->readOnly);
         $object->setSettings($data);
         
         return $object;

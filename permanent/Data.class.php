@@ -100,15 +100,15 @@ class permanent_Data extends core_Manager {
     
     
     /**
-     * Връща данните за посочения ключ, като го заключва
+     * Връща данните за посочения ключ, като го заключва по подразбиране
      *
      * @param varchar $key
      */
-    static function read($key)
+    static function read($key, $lock = TRUE)
     {
         $PermData = cls::get('permanent_Data');
         
-        if (!core_Locks::get($key)) {
+        if ($lock && !core_Locks::get($key)) {  
             $PermData->Log("Грешка при четене - заключен обект");
             exit (1);
         }
