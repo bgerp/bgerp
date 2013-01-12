@@ -209,6 +209,11 @@ class core_Manager extends core_Mvc
      */
     function act_Manage()
     {
+        // Експериментално: Трябва да има поне 1 от тези 2 роли
+        if(!$this->haveRightFor('Edit')) {
+            $this->requireRightFor('Add');
+        }
+
         $data = new stdClass();
 
         $data->action = 'manage';
