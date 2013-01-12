@@ -112,12 +112,11 @@ class email_Mime extends core_BaseClass
             $hash = $this->hash;
         } elseif ($internalHeaders = $this->getHeadersStr()) {
             $hash = md5($internalHeaders);
+            $this->hash = $hash;
         } else {
             expect($headers);
             $hash = md5($headers);
         }
-        
-        $this->hash = $hash;
  
         return $hash;
     }
