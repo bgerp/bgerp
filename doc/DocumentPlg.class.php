@@ -790,7 +790,7 @@ class doc_DocumentPlg extends core_Plugin
             if(Request::get('Clone') && ($rec->originId)) {
                 $form->title = 'Копие на|* ';
             } else {
-                $form->title = 'Нов|* ';
+                $form->title = 'Създаване на|* ';
             }
         }
         
