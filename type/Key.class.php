@@ -28,13 +28,15 @@ class type_Key extends type_Int {
     /**
      * Инициализиране на типа
      */
-    function init($params = array())
+    function getSelectFld()
     {
-        if($params['params']['selectBg'] && core_Lg::getCurrent() == 'bg') {
-            $params['params']['select'] = $params['params']['selectBg'];
-        }
+        if(core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
+            
+            return $this->params['selectBg'];
+        } else {
 
-        parent::init($params);
+            return $this->params['select'];
+        }
     }
 
     
@@ -45,12 +47,13 @@ class type_Key extends type_Int {
     {
         
         if(empty($value)) return NULL;
+
         
         if($this->params['mvc']) {
             $mvc = &cls::get($this->params['mvc']);
             
-            if(($part = $this->params['select']) && $part != '*') {
-                
+            if(($part = $this->getSelectFld()) && $part != '*') {
+
                 $rec = $mvc->fetch($value);
                 
                 if(!$rec) return '??????????????';
@@ -91,7 +94,7 @@ class type_Key extends type_Int {
         
         $options = $this->options;
         
-        if(($field = $this->params['select']) && (!count($options))) {
+        if(($field = $this->getSelectFld()) && (!count($options))) {
             $options = $mvc->makeArray4select($field);
         }
         
@@ -155,12 +158,12 @@ class type_Key extends type_Int {
             $value = $attr['value'];
         }
         
-        if($this->params['select'] || count($this->options)) {
+        if($this->getSelectFld() || count($this->options)) {
             
-            if($this->params['select'] == '*') {
+            if($this->getSelectFld() == '*') {
                 $field = NULL;
             } else {
-                $field = $this->params['select'];
+                $field = $this->getSelectFld();
             }
             
 
