@@ -87,6 +87,9 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
             // Вземаме записа за новосъздадения файл
             $nRec = fileman_Files::fetchByFh($fh);
             
+            // Стартираме процеса на конвертиране към JPG формат
+            fileman_webdrv_Bmp::convertToJpg($nRec);
+            
             // Показваме thumbnail'а
             return fileman_webdrv_Bmp::getThumbPrev($nRec);
         } catch (Exception $e) {

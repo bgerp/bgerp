@@ -328,6 +328,13 @@ class fileman_Indexes extends core_Manager
                 return FALSE;   
             } else {
                 
+                // Ако е обект
+                if (is_object($content)) {
+                    
+                    // Вземаме грешката
+                    $content = $content->errorProc;
+                }
+                
                 // Ако е задедено да се провери съдържанието
                 if (($trim) && (!trim($content))) return FALSE;
                 
