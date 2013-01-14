@@ -4,7 +4,6 @@
 /**
  * Скрипт 'SetupM.inc.php' -  Инсталиране на bgERP
  *
- *
  * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
