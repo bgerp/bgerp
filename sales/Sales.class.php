@@ -246,6 +246,8 @@ class sales_Sales extends core_Master
         if (empty($data->form->rec->dealerId)) {
             $form->setDefault('dealerId', $mvc::getDefaultDealer($data->form->rec));
         }
+        
+        $form->setDefault('makeInvoice', 'yes');
     }
     
     
