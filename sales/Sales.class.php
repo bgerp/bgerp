@@ -178,8 +178,6 @@ class sales_Sales extends core_Master
             'caption=Наш персонал->Инициатор');
         $this->FLD('dealerId', 'user(roles=sales,allowEmpty)',
             'caption=Наш персонал->Търговец');
-        // По подразбиране е отговорника на папката на контрагента, ако той има такава роля, 
-        // иначе е текущият потребител, ако той има такава роля, иначе е празен        
 
         /*
          * Допълнително
@@ -244,6 +242,43 @@ class sales_Sales extends core_Master
         
         $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
         $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
+        
+        if (empty($data->form->rec->dealerId)) {
+            $form->setDefault('dealerId', $mvc::getDefaultDealer($data->form->rec));
+        }
+    }
+    
+    
+    /**
+     * Помощен метод за определяне на търговец по подразбиране.
+     * 
+     * Правило за определяне:
+     * 
+     *  1/ Отговорника на папката на контрагента, ако той има роля sales;
+     *  2/ Текущият потребител, ако той има роля sales
+     *  3/ иначе е празен (NULL)
+     *
+     * @param stdClass $rec запис на модела sales_Sales
+     * @return int|NULL user(roles=sales)
+     */
+    public static function getDefaultDealer($rec)
+    {
+        expect($rec->folderId);
+        
+        $requiredRole   = 'sales';
+
+        $inChargeUserId = doc_Folders::fetchField($rec->folderId, 'inCharge');
+        if (core_Users::haveRole($requiredRole, $inChargeUserId)) {
+            // Отговорника на папката има роля 'sales'
+            return $inChargeUserId;
+        }
+        
+        $currentUserId = core_Users::getCurrent('id');
+        if (core_Users::haveRole($requiredRole, $currentUserId)) {
+            return $currentUserId;
+        }
+        
+        return NULL;
     }
     
     
