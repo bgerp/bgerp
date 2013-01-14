@@ -163,3 +163,11 @@
 		text-indent:3px;
 		font-size:1em;
 	}
+	
+#cCode {
+	border:solid 1px #ccc;
+	background-color:#eee;
+	padding:2px;
+    font-size:12px;
+    vertical-align:middle;
+}
