@@ -233,7 +233,7 @@ class fileman_Download extends core_Manager {
             
             $htmlRes .= "<hr />";
             
-            $dir = EF_DOWNLOAD_DIR . '/' . $rec->prefix;
+            $dir = static::getDownloadDir($rec);
             
             if (self::delete("#id = '{$rec->id}'")) {
                 $htmlRes .= "\n<li> Deleted record #: $rec->id</li>";
@@ -596,5 +596,47 @@ class fileman_Download extends core_Manager {
         $link = sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $fileName, '', $absolute);
         
         return $link;
+    }
+    
+    
+    /**
+     * Връща директорията, в който е записан файла
+     * 
+     * @param fileman_Download $rec - Записа, за който търсим директорията
+     */
+    static function getDownloadDir($rec)
+    {
+        // Очакваме да е обект
+        expect(is_object($rec), 'Не сте подали запис');
+        
+        // Директорията на файла
+        $dir = EF_DOWNLOAD_DIR . '/' . $rec->prefix;
+        
+        return $dir;
+    }
+    
+    
+    /**
+     * Изтрива подадени файл от sbf директорията и от модела
+     * 
+     * @param fileman_Files $fileId - id' то на записа, който ще изтриваме
+     */
+    static function deleteFileFromSbf($fileId)
+    {
+        // Очакваме да има 
+        expect($fileId);
+        
+        // Ако има такъм запис
+        if ($rec = static::fetch("#fileId = '{$fileId}'")) {
+            
+            // Директорията, в която се намира
+            $dir = static::getDownloadDir($rec);
+        
+            // Изтриваме директорията
+            core_Os::deleteDir($dir);
+            
+            // Изтриваме записа от модела
+            $deleted = static::delete("#fileId = '{$fileId}'");    
+        }
     }
 }

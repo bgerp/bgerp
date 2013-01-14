@@ -700,6 +700,9 @@ class fileman_Files extends core_Master
             // Ако сме редактирали името
             if ($newFileName != $oldFileName) {
                 
+                // Изтриваме файла от sbf и от модела
+                fileman_Download::deleteFileFromSbf($fRec->id);
+                
                 // Вземамем новото възможно име
                 $newFileName = $this->getPossibleName($newFileName, $fRec->bucketId);
                 
@@ -720,7 +723,7 @@ class fileman_Files extends core_Master
                     
                     // Изтриваме всички предишни индекси за файла
                     fileman_Indexes::deleteIndexesForData($fRec->dataId);
-
+                    
                     // Ако има разширение
                     if ($newExt) {
                         
