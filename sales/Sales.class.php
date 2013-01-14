@@ -131,15 +131,8 @@ class sales_Sales extends core_Master
     {
         
         $this->FLD('date', 'date', 'caption=Дата, mandatory');
-<<<<<<< HEAD
-        $this->FLD('pricesAtDate', 'date', 'caption=Цени към');
-        $this->FLD('note', 'text', 'caption=Забележка', array('attr'=>array('rows'=>3)));
-        $this->FLD('makeInvoice', 'enum(yes=Да,monthend=Периодично,no=Не)', 
-            'caption=Фактуриране,maxRadio=4,mandatory');
-=======
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 
             'caption=Фактуриране,maxRadio=3,columns=3');
->>>>>>> origin/master
         
         /*
          * Стойности
@@ -177,7 +170,6 @@ class sales_Sales extends core_Master
             'caption=Плащане->Банкова сметка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
             'caption=Плащане->Каса');
-<<<<<<< HEAD
         
         /*
          * Наш персонал
@@ -188,15 +180,12 @@ class sales_Sales extends core_Master
             'caption=Наш персонал->Търговец');
         // По подразбиране е отговорника на папката на контрагента, ако той има такава роля, 
         // иначе е текущият потребител, ако той има такава роля, иначе е празен        
-=======
 
         /*
          * Допълнително
          */
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
-
->>>>>>> origin/master
     }
 
 
