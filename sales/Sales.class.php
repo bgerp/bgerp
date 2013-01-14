@@ -242,8 +242,8 @@ class sales_Sales extends core_Master
         
         $form->setDefault('date', dt::now());
         
-        $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent());
-        $form->setDefault('caseId', cash_Cases::getCurrent());
+        $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
+        $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
     }
     
     
