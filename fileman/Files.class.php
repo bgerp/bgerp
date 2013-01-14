@@ -725,7 +725,7 @@ class fileman_Files extends core_Master
                     if ($newExt) {
                         
                         // Вземаме драйверите
-                        $drivers = fileman_Indexes::getDriver('pdf');    
+                        $drivers = fileman_Indexes::getDriver($newExt);    
                         
                         // Обикаляме всички открити драйвери
                         foreach($drivers as $drv) {
