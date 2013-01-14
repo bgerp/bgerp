@@ -750,7 +750,7 @@ class email_Outgoings extends core_Master
         } else {
             
             // Определяме езика на който трябва да е имейла
-            $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);    
+            $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId); 
         }
         
         //Сетваме езика, който сме определили за превод на съобщението
@@ -1277,7 +1277,7 @@ class email_Outgoings extends core_Master
     {
         //Търсим езика в контейнера
         $lg = doc_Containers::getLanguage($originId);
-        
+
         //Ако не сме открили езика
         if (!$lg) {
             //Търсим езика в нишката
@@ -1289,18 +1289,18 @@ class email_Outgoings extends core_Master
             //Търсим езика в папката
             $lg = doc_Folders::getLanguage($folderId);
         }
-        
+
         //Ако не сме открили езика
         if (!$lg) {
             //Вземаме езика на текущия интерфейс
             $lg = core_Lg::getCurrent();
         }
-        
+
         //Ако езика не е bg, използваме en
         if ($lg != 'bg') {
             $lg = 'en';
         }
-        
+
         return $lg;
     }
     

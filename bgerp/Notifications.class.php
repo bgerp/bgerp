@@ -111,7 +111,10 @@ class bgerp_Notifications extends core_Manager
      * Отбелязва съобщение за прочетено
      */
     static function clear($urlArr, $userId = NULL)
-    {
+    {   
+        // Не изчистваме от опресняващи ajax заявки
+        if(Request::get('ajax_mode')) return;
+
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }

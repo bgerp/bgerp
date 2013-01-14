@@ -538,4 +538,44 @@ class acc_Lists extends core_Manager {
         
         return $result;
     }
+    
+    
+	/**
+     * Намира дали дадена номенклатура се намира в някоя от групуте на сметката
+     * и на коя позиция
+     * @param $accSysId - systemId на сметката
+     * @param $iface - Име или Ид на Интефейса, който искаме да поддържа номенклатурата
+     * @return mixed 1/2/3/NULL - Позицията на която е номенклатурата или
+     * NULL ако не се среща
+     */
+     static function getPosition($accSysId, $iface) {
+     	
+    	// Ако е подаден Ид на интерфейса очакваме да има такъв запис
+     	if (is_numeric($iface)) {
+    		expect($iface = core_Interfaces::fetch($iface), 'Няма такъв интерфейс');
+    	} else {
+    		
+    		expect($iface = core_Interfaces::fetch(array("#name='[#1#]'",$iface)), 'Няма такъв интерфейс2');
+    	}
+    	$ifaceId = $iface->id;
+    	
+    	// Очакваме да има сметка с това systemId
+    	expect($acc = acc_Accounts::getRecBySystemId($accSysId), "Няма сметка със systemId {$accSysId}");
+    	
+    	// Извличаме информацията за номенклатурите на сметката
+    	$acc = acc_Accounts::getAccountInfo($acc->id);
+    	
+    	foreach ($acc->groups as $i => $list)  {
+    		
+    		// За всяка номенклатура проверяваме дали отговаря на този интерфейс
+    		if($list->rec->regInterfaceId == $ifaceId) {
+    			
+    			// Ако отговаря връщаме позицията на номенклатурата
+    			return $i;
+    		}
+    	}
+    	
+    	// Ако никоя номенклатура е поддържа интерфейса връщаме NULL
+    	return NULL;
+    }
 }

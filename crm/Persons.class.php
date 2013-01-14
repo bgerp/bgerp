@@ -488,16 +488,16 @@ class crm_Persons extends core_Master
                     $dateType = 'Роден(а)';
                 }
             }
-            $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>$dateType:&nbsp;{$birthday}</div>";
+            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>$dateType:&nbsp;{$birthday}</div>";
         } elseif($rec->egn) {
             $egn = $mvc->getVerbal($rec, 'egn');
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
-            $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>{$egn}</div>";
+            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";
         }
 
         if($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId)) {
             $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
-            $row->nameList .= "<div>{$row->buzCompanyId}</div>";
+            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$row->buzCompanyId}</div>";
         }
     }
 
@@ -849,7 +849,7 @@ class crm_Persons extends core_Master
         $query = self::getQuery();
         
         foreach($data->namesArr as $name) { 
-            $query->orWhere("#searchKeywords LIKE ' {$name} %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')");
+            $query->orWhere(array("#searchKeywords LIKE ' [#1#] %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')"), $name);
         }
         
         $self = cls::get('crm_Persons');

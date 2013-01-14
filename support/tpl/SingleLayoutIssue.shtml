@@ -16,6 +16,9 @@
 		<div>|Компонент|*: [#componentId#]</div>
 		<div>|Тип|*: [#typeId#]</div>
 		<div>|Приоритет|*: [#priority#]</div>
+		<!--ET_BEGIN assign-->
+			<div>|Възложено на|*: <i>[#assign#]</i> |от|* <i>[#assignedBy#]</i> |в|* [#assignedOn#]</div>
+		<!--ET_END assign-->
 		</small>
 		</div>
 	</div>

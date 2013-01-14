@@ -36,7 +36,7 @@ class support_Preventions extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Превенция";
+    var $singleTitle = "Превантивни действия";
     
     
     /**
@@ -219,5 +219,15 @@ class support_Preventions extends core_Master
     {
         // Да не може да се добавя в папка, като начало на нишка
         return FALSE;
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        
+        $data->row->subject = tr("ПД|*: {$data->row->subject}");
     }
 }

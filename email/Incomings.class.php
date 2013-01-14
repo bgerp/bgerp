@@ -246,8 +246,8 @@ class email_Incomings extends core_Master
                 // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
                 for ($i = $firstUnreadMsg; $i <= $numMsg && ($maxTime > time()); $i++) {
                     
-                    if(($i % 100) == 1) {
-                        $this->log("Fetching message {$i}");
+                    if(($i % 100) == 1 || ( ($i -$firstUnreadMsg) < 100)) {
+                        $this->log("Fetching message {$i} from {$accRec->server}");
                     }
                     
                     $rec = $this->fetchSingleMessage($i, $imapConn);

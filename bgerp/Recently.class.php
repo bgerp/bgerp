@@ -72,6 +72,12 @@ class bgerp_Recently extends core_Manager
      */
     static function add($type, $objectId, $userId = NULL)
     {
+        // Не добавяме от опресняващи ajax заявки
+        if(Request::get('ajax_mode')) return;
+        
+        // Debug
+        self::log("$type, $objectId " . $_SERVER['SCRIPT_NAME'] . '?' . $_SERVER['QUERY_STRING']);
+
         $rec = new stdClass();
         
         $rec->type      = $type;

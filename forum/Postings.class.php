@@ -806,7 +806,7 @@ class forum_Postings extends core_Detail {
 					
 					// Намираме от коя тема е коментара
 					$themeRec = $this->fetch($rec->themeId);
-					if(array_key_exists($themeRec->id, $data->recs)) {
+					if(is_array($data->recs) && array_key_exists($themeRec->id, $data->recs)) {
 						
 						// Ако темата на коментара е вече в масива, продължаваме на следващата
 						// итерация, така коментара не се добавя в резултатите, защото неговата
