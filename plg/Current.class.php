@@ -22,14 +22,15 @@ class plg_Current extends core_Plugin
      *
      * @param core_Mvc $mvc
      * @param stdClass $res
-     * @return FALSE
+     * @param string $part поле от модела-домакин
+     * @param boolean $bForce Дали да редирек. към мениджъра ако не е избран текущ обект
      */
-    function on_AfterGetCurrent($mvc, &$res, $part = 'id')
+    function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = TRUE)
     {
         if(!$res) {
             $res = Mode::get('currentPlg_' . $mvc->className)->{$part};
             
-            if((!$res) && ($mvc->className != Request::get('Ctr'))) {
+            if($bForce && (!$res) && ($mvc->className != Request::get('Ctr'))) {
                 redirect(array($mvc), FALSE, "Моля, изберете текущ/а {$mvc->singleTitle}");
             }
         }
