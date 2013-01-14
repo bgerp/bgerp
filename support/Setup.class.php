@@ -63,16 +63,16 @@ class support_Setup
             $html .= $instances[$manager]->setupMVC();
         }
 
-        // Добавяме менюто
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.14, 'Обслужване', 'Поддръжка', 'support_Issues', 'default', "user");
-        
         // Зареждаме всички данни след инсталацията
         $html .= support_IssueTypes::loadData();
         
         // Добавяме роля за поддръжка на модула support
         $role = 'support';
         $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        
+        // Добавяме менюто
+        $Menu = cls::get('bgerp_Menu');
+        $html .= $Menu->addItem(2.14, 'Обслужване', 'Поддръжка', 'support_Issues', 'default', "{$role}, admin");
         
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
