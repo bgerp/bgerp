@@ -247,6 +247,10 @@ class sales_Sales extends core_Master
             $form->setDefault('dealerId', $mvc::getDefaultDealer($data->form->rec));
         }
         
+        if (empty($data->form->rec->currencyId)) {
+            $form->setDefault('currencyId', $mvc::getDefaultCurrencyCode($data->form->rec));
+        }
+        
         $form->setDefault('makeInvoice', 'yes');
     }
     
@@ -281,6 +285,20 @@ class sales_Sales extends core_Master
         }
         
         return NULL;
+    }
+    
+    
+    /**
+     * Определяне на валутата по подразбиране при нова продажба.
+     * 
+     * @param stdClass $rec
+     * @param string 3-буквен ISO код на валута (ISO 4217) 
+     */
+    public static function getDefaultCurrencyCode($rec)
+    {
+        $currencyBaseCode = core_Packs::getConfig('currency')->CURRENCY_BASE_CODE;
+         
+        return $currencyBaseCode;
     }
     
     
