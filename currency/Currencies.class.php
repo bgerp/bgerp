@@ -61,7 +61,21 @@ class currency_Currencies extends core_Master {
     var $singleFields = 'name, code, lastUpdate, lastRate, groups';
     
     
+    /**
+     * Детайли на модела
+     */
     var $details = "currency_CurrencyRates";
+    
+    
+    /**
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
+     * $autoList.
+     * 
+     * @see acc_plg_Registry
+     * @var string
+     */
+    var $autoList = 'currencies';
+    
     
     /**
      * Описание на модела
@@ -140,7 +154,7 @@ class currency_Currencies extends core_Master {
     
     function on_BeforeRenderDetails($mvc, $res, &$data)
     {
-    	bp($res, $data);
+    	
     	return FALSE;
     }
     
