@@ -176,7 +176,7 @@ class currency_CurrencyRates extends core_Detail
     {
         $data->toolbar->addBtn('Зареди от ECB', array($mvc, 'RetrieveCurrencies'));
     }
-
+    
     
     /**
      *  Изчислява обменния курс от една валута в друга, за дадена дата
@@ -216,7 +216,7 @@ class currency_CurrencyRates extends core_Detail
     	if($fromRate == '1'){
     		
     		// Ако обръщаме от основната валута към друга, 
-    		$res = round($fromRate / $toRate, 4);
+    		$res = round($toRate, 4);
     	} else {
     		
     		// Ако обръщаме от някаква валута към друга, 
