@@ -19,7 +19,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf';
    
     
     /**
@@ -31,9 +31,9 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
      	plg_Sorting,doc_DocumentPlg,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
     
     
     /**
@@ -134,25 +134,10 @@ class bank_CashWithdrawOrders extends core_Master
     	$this->FLD('proxyName', 'varchar(255)', 'caption=Упълномощено лице->Име,mandatory');
     	$this->FLD('proxyEgn', 'drdata_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory');
     	$this->FLD('proxyIdcard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory');
-    	$this->FLD('debitAccount', 'acc_type_Account(maxColumns=1)', 'caption=Упълномощено лице->Сч. сметка,mandatory');
-    	$this->FLD('peroCase', 'key(mvc=cash_Cases,select=name)', 'caption=От каса,input=hidden');
-    	$this->FLD('proxyId', 'int', 'input=hidden,notNull');
-    	$this->FLD('proxyClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
-    	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
-            'caption=Статус, input=none'
-        );
-        $this->FNC('isContable', 'int', 'column=none');
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
+    	//$this->FLD('debitAccount', 'acc_type_Account(maxColumns=1)', 'caption=Упълномощено лице->Сч. сметка,mandatory');
+    	//$this->FLD('peroCase', 'key(mvc=cash_Cases,select=name)', 'caption=От каса,input=hidden');
+    	//$this->FLD('proxyId', 'int', 'input=hidden,notNull');
+    	//$this->FLD('proxyClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
     }
     
     
@@ -173,7 +158,7 @@ class bank_CashWithdrawOrders extends core_Master
     	$data->form->setDefault('valior', $today);
     	
     	static::getProxyInfo($data->form);
-    	static::getPossibleAccounts($data->form);
+    	//static::getPossibleAccounts($data->form);
     }
     
     
@@ -232,16 +217,15 @@ class bank_CashWithdrawOrders extends core_Master
 	    	$conf = core_Packs::getConfig('bank');
 	    	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_NR_CREDIT_ACC}");
 	    	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
-	    	$debitRec = acc_Accounts::fetch($rec->debitAccount);
-	    	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
+	    	//$debitRec = acc_Accounts::fetch($rec->debitAccount);
+	    	//$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
 	    	
 	    	//
 	    	$spellNumber = cls::get('core_SpellNumber');
 			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
 			
-			$conf = core_Packs::getConfig('crm');
-    		$myCompany = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
-			$row->ordererName = $myCompany->name;
+			$myCompany = crm_Companies::fetchOwnCompany();
+			$row->ordererName = $myCompany->company;
 	    	
 			// При принтирането на 'Чернова' скриваме системите полета и заглавието
 	    	if(Mode::is('printing')){
@@ -249,7 +233,7 @@ class bank_CashWithdrawOrders extends core_Master
 	    			unset($row->header);
 	    			unset($row->createdBy);
 	    			unset($row->createdOn);
-	    			unset($row->debitAccount);
+	    			//unset($row->debitAccount);
 	    			unset($row->creditAccount);
 	    		}
 	    	}
@@ -263,47 +247,6 @@ class bank_CashWithdrawOrders extends core_Master
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$tpl->push('bank/tpl/css/belejka.css', 'CSS');
-    }
-    
-    
-    /**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 */
-    public static function getTransaction($id)
-    {
-    	//@TODO
-    }
-    
-    
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = (object)array(
-            'id' => $id,
-            'state' => 'active'
-        );
-        
-        return self::save($rec);
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::rejectTransaction
-     */
-    public static function rejectTransaction($id)
-    {
-        $rec = self::fetch($id, 'id,state,valior');
-        
-        if ($rec) {
-            static::reject($id);
-        }
     }
     
     

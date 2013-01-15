@@ -39,7 +39,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, state, createdOn, createdBy";
     
     
     /**
@@ -484,7 +484,7 @@ class bank_InternalMoneyTransfer extends core_Master
 					// Ако записа е празен го скипваме
 					${"{$type}Item{$n}"} = NULL;
 					continue;
-				} // cls::getClassName(
+				}
 			${"{$type}Item{$n}"} = new stdClass();
 			${"{$type}ItemRec{$n}"} = acc_Items::fetch($rec->{"{$type}Ent{$n}"});
         	${"{$type}Item{$n}"}->cls = ${"{$type}ItemRec{$n}"}->classId;

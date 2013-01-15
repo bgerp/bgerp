@@ -4,21 +4,6 @@
 	<div class='docBgIcon' style='[#iconStyle#]'>[#header#]</div>
 </div>
 <!--ET_END header-->
-<!--ET_BEGIN reminder-->
-[#reminder#]
-<!--ET_END reminder-->
-<!--ET_BEGIN createdOn-->	
-	<table border='1px' cellpadding='3px'  width='99%' class='sysInfo'>
-		<tr>
-			<td width='30%'>Създадено на: &nbsp;&nbsp;<b>[#createdOn#]</b></td>
-			<td>Дебитна сметка: &nbsp;&nbsp;<b>[#debitAccount#]</b></td>
-		</tr>
-		<tr>
-			<td>Създадено от: &nbsp;&nbsp;<b>[#createdBy#]</b></td>
-			<td>Кредитна сметка:&nbsp;&nbsp;<b>[#creditAccount#]</b></td>
-		</tr>
-	</table>
-<!--ET_END createdOn-->	
 <div class='belejka_container'>
 	<div class='belejka_header'>
             <div class='container'>

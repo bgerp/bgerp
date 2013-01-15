@@ -17,7 +17,6 @@
 					<!--ET_BEGIN createdBy--><tr><td class=\"quiet\" align=\"right\">|Създаден|*</td><td><span class=\"quiet\">|на|*</span> <b>[#createdDate#] </b><span class=\"quiet\">|от|*</span> <b>[#createdBy#]</b></td></tr><!--ET_END createdBy-->	
 					<tr><td class=\"quiet\" align=\"right\">|Вальор|*:</td><td><b>[#valior#]</b></td></tr>
 					<tr><td class=\"quiet\" align=\"right\">|Операция|*:</td><td><b>[#operationId#]</b></td></tr>
-					<tr><td class=\"quiet\" align=\"right\">|Превалутиране|*:</td><td><b>[#conversion#]</b></td></tr>
 					<tr><td class=\"quiet\" align=\"right\">|Основание|*:</td><td>[#reason#]</td></tr>
 				</table>
 			</td>
@@ -25,14 +24,13 @@
 			<td valign="top">
 				<div class="amounts">
 					<!--ET_BEGIN amount-->
-					|Оборот|*: <b><span style='color:darkgreen'>[#amount#]</span></b><br>
+					|Оборот|*: &nbsp; <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#currency#]</span> &nbsp;
+					<b><span style='color:darkgreen'>[#amount#]</span></b><br>
 					<!--ET_END amount-->
-					<!--ET_BEGIN creditQuantity-->
-					|Прехвърлено|*: <b><span style='color:darkgreen'>[#creditQuantity#]</span></b><br>
-					<!--ET_END creditQuantity-->
-					<!--ET_BEGIN debitQuantity-->
-					|Получено|*: <b><span style='color:darkgreen'>[#debitQuantity#]</span></b><br>
-					<!--ET_END debitQuantity-->
+					<!--ET_BEGIN equals-->
+					|Равностойност|*: &nbsp; <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#baseCurrency#]</span> &nbsp;
+					<b><span style='color:darkgreen'>[#equals#]</span></b><br>
+					<!--ET_END equals-->
 				</div>
 			</td>
 		</tr>
@@ -51,7 +49,7 @@
 			<td>[#creditEnt1#]</td>
 			<td>[#debitEnt1#]</td>
 		</tr>
-		<!--ET_BEGIN creditEnt2-->
+		
 		<tr>
 		<td>
 		<!--ET_BEGIN creditEnt2-->
@@ -64,6 +62,6 @@
 		<!--ET_END debitEnt2-->
 		</td>
 		</tr>
-		<!--ET_END creditEnt2-->
+		
 	</table>
 </div>
