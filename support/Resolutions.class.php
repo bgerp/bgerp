@@ -30,13 +30,13 @@ class support_Resolutions extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Финална резолюция";
+    var $title = "Резолюция на сигнал";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Резолюция";
+    var $singleTitle = "Резолюция на сигнал";
     
     
     /**
@@ -219,5 +219,15 @@ class support_Resolutions extends core_Master
     {
         // Да не може да се добавя в папка, като начало на нишка
         return FALSE;
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        
+        $data->row->subject = tr("Резолюция|*: {$data->row->subject}");
     }
 }

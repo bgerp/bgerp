@@ -19,7 +19,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf';
    
     
     /**
@@ -33,7 +33,7 @@ class bank_PaymentOrders extends core_Master
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
      	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
     
     
     /**
@@ -120,7 +120,6 @@ class bank_PaymentOrders extends core_Master
     var $printParams = array( array('Оригинал'),
     						  array('Копие'),); 
 
-    
     /**
      * Описание на модела
      */
@@ -145,17 +144,6 @@ class bank_PaymentOrders extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-        $this->FNC('isContable', 'int', 'column=none');
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     
@@ -175,7 +163,7 @@ class bank_PaymentOrders extends core_Master
      * Попълваме стойностите по-подразбиране взети от последния документ
      * от същия тип в папката
      */
-    static function setDefaults(core_Form $form)
+    function setDefaults(core_Form $form)
     {
     	$query = static::getQuery();
     	$query->where("#folderId = {$form->rec->folderId}");
@@ -202,7 +190,7 @@ class bank_PaymentOrders extends core_Master
      * Попълва формата със 
      * Списък от Сч.сметки които можем да дебитираме 
      */
-    static function getPossibleAccounts(core_Form $form)
+    function getPossibleAccounts(core_Form $form)
     {
     	$options = array();
     	$conf = core_Packs::getConfig('bank');
@@ -285,24 +273,17 @@ class bank_PaymentOrders extends core_Master
     	
     	if($fields['-single']) {
     		
-    		// Проверяваме дали контрагента има такъв IBAN-a ако няма 
-    		// показваме съобщение с линк за добавянето IBAN-a на към него
-    		if(!bank_Accounts::fetch("#iban = '{$rec->contragentIban}'")) {
-    			$url = array ('bank_Accounts', 
-    						  'Add', 'contragentCls' => $rec->contragentClassId,
-    						  'contragentId' => $rec->contragentId,
-    						  'iban'=> $rec->contragentIban,
-    						  'ret_url' => TRUE);
-    			$link = ht::createLink(tr('тук'), $url);
-    			$row->notification =  tr('IBAN-a на контрагента не фигурира в системата! За да го добавите натиснете ');	
-    			$row->notification .= $link;
-    		} 
+    		$params = array('contragentCls' => $rec->contragentClassId,
+    						'contragentId' => $rec->contragentId,);
+    		$test = new bank_AskForSave('bank_Accounts', 'iban', $rec->contragentIban, $params);
+    		if($test->hasToSave) {
+    			$row->reminder = $test->placeReminder();
+    		}
     		
-	    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	
-	    	$conf = core_Packs::getConfig('crm');
-	    	$myCompany = crm_Companies::fetch($conf->BGERP_OWN_COMPANY_ID);
-	    	$row->orderer = $myCompany->name;
+	    	$myCompany = crm_Companies::fetchOwnCompany();
+	    	$row->orderer = $myCompany->company;
 	    	
 	    	// Извличаме името на банката и BIC-а  от нашата сметка
 	    	$row->execBank = drdata_Banks::getBankName($row->ownAccount);
@@ -331,6 +312,7 @@ class bank_PaymentOrders extends core_Master
 	    			unset($row->debitAccount);
 	    			unset($row->creditAccount);
 	    		}
+	    		
 	    		unset($row->notification);
 	    	}
     	}
@@ -343,86 +325,6 @@ class bank_PaymentOrders extends core_Master
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$tpl->push('bank/tpl/css/belejka.css', 'CSS');
-    }
-    
-    
-    /**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 *  @TODO правилно изчисляване на цената на кредита
-   	 */
-    public static function getTransaction($id)
-    {
-    	// Извличаме записа
-        expect($rec = self::fetch($id));
-        $conf = core_Packs::getConfig('bank');
-        
-        // Курса по който се обменя валутата  на ордера към основната валута за периода
-        $entrAmount = $rec->amount; 
-        
-        // Намираме класа на контрагента
-        $contragentId = doc_Folders::fetchCoverId($rec->folderId);
-        $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
-    	
-        // Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
-            'reason' => $rec->reason, // основанието за ордера
-            'valior' => $rec->valior,   // датата на ордера
-            'totalAmount' => $entrAmount,
-            'entries' =>array( (object)array(
-                'amount' => $rec->amount,	// равностойноста на сумата в основната валута
-                
-                'debitAccId' => $rec->debitAccount, // дебитната сметка
-                'debitItem1' => (object)array('cls'=>$contragentClass, 'id'=>$contragentId),  // перо каса
-        		'debitItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),// перо валута
-                'debitQuantity' => $rec->amount,
-                'debitPrice' => 1,
-        		
-                'creditAcc' => $conf->BANK_PO_CREDIT_SYSID, // кредитна сметка
-                'creditItem1' => (object)array('cls'=>'bank_OwnAccounts', 'id'=>$rec->ownAccount), // перо контрагент
-                'creditQuantity' => $rec->amount,
-                'creditPrice' => 1,
-            ))
-        );
-       
-        // Ако дебитната сметка няма втора аналитичност, премахваме втория елемент
-        $dAcc = acc_journal_Account::byId($rec->debitAccount);
-    	if(!$dAcc->groupId2){
-        	unset($result->entries[0]->debitItem2);
-        }
-        
-        return $result;
-    }
-    
-    
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = (object)array(
-            'id' => $id,
-            'state' => 'active'
-        );
-        
-        return self::save($rec);
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::rejectTransaction
-     */
-    public static function rejectTransaction($id)
-    {
-        $rec = self::fetch($id, 'id,state,valior');
-        
-        if ($rec) {
-            static::reject($id);
-        }
     }
     
     

@@ -30,13 +30,13 @@ class support_Ratings extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Оценки на щетите";
+    var $title = "Оценка на сигнал";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Оценка";
+    var $singleTitle = "Оценка на сигнал";
     
     
     /**
@@ -219,5 +219,15 @@ class support_Ratings extends core_Master
     {
         // Да не може да се добавя в папка, като начало на нишка
         return FALSE;
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        
+        $data->row->subject = tr("Оценка|*: {$data->row->subject}");
     }
 }

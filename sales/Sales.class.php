@@ -19,13 +19,13 @@ class sales_Sales extends core_Master
      * 
      * @var string
      */
-    var $title = 'Продажби';
+    public $title = 'Продажби';
     
     
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -33,7 +33,7 @@ class sales_Sales extends core_Master
      * 
      * var string|array
      */
-    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
                     doc_plg_BusinessDoc';
@@ -44,14 +44,14 @@ class sales_Sales extends core_Master
      * 
      * @var string
      */
-    var $menuPage = 'Търговия:Продажби';
+    public $menuPage = 'Търговия:Продажби';
     
     /**
      * Кой има право да чете?
      * 
      * @var string|array
      */
-    var $canRead = 'admin,sales';
+    public $canRead = 'admin,sales';
     
     
     /**
@@ -59,7 +59,7 @@ class sales_Sales extends core_Master
      * 
      * @var string|array
      */
-    var $canEdit = 'admin,sales';
+    public $canEdit = 'admin,sales';
     
     
     /**
@@ -67,7 +67,7 @@ class sales_Sales extends core_Master
      * 
      * @var string|array
      */
-    var $canAdd = 'admin,sales';
+    public $canAdd = 'admin,sales';
     
     
     /**
@@ -75,7 +75,7 @@ class sales_Sales extends core_Master
      * 
      * @var string|array
      */
-    var $canView = 'admin,sales';
+    public $canView = 'admin,sales';
     
     
     /**
@@ -83,7 +83,7 @@ class sales_Sales extends core_Master
      * 
      * @var string|array
      */
-    var $canDelete = 'admin,sales';
+    public $canDelete = 'admin,sales';
     
     
     /**
@@ -91,13 +91,13 @@ class sales_Sales extends core_Master
      * 
      * @var integer
      */
-//     var $listItemsPerPage;
+     public $listItemsPerPage;
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-//     var $listFields;
+     public $listFields;
     
     
     /**
@@ -105,21 +105,29 @@ class sales_Sales extends core_Master
      * 
      * @var string
      */
-    var $rowToolsField;
+    public $rowToolsField;
 
+
+    /**
+     * Детайла, на модела
+     *
+     * @var string|array
+     */
+    public $details = 'sales_SalesDetails' ;
+    
 
     /**
      * Заглавие в единствено число
      *
      * @var string
      */
-    var $singleTitle = 'Документ за Продажба';
+    public $singleTitle = 'Документ за Продажба';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         
         $this->FLD('date', 'date', 'caption=Дата, mandatory');
@@ -162,13 +170,22 @@ class sales_Sales extends core_Master
             'caption=Плащане->Банкова сметка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
             'caption=Плащане->Каса');
+        
+        /*
+         * Наш персонал
+         */
+        $this->FLD('initiatorId', 'user(roles=user,allowEmpty)',
+            'caption=Наш персонал->Инициатор');
+        $this->FLD('dealerId', 'user(roles=sales,allowEmpty)',
+            'caption=Наш персонал->Търговец');
+        // По подразбиране е отговорника на папката на контрагента, ако той има такава роля, 
+        // иначе е текущият потребител, ако той има такава роля, иначе е празен        
 
         /*
          * Допълнително
          */
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
-
     }
 
 
@@ -179,7 +196,7 @@ class sales_Sales extends core_Master
      * @param mixed $res
      * @param string $action
      */
-    static function on_BeforeAction($mvc, &$res, $action)
+    public static function on_BeforeAction($mvc, &$res, $action)
     {
     }
     
@@ -193,7 +210,7 @@ class sales_Sales extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     }
     
@@ -205,7 +222,7 @@ class sales_Sales extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     }
     
@@ -216,8 +233,17 @@ class sales_Sales extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Задаване на стойности на полетата на формата по подразбиране
+        
+        /* @var $form core_Form */
+        $form = $data->form;
+        
+        $form->setDefault('date', dt::now());
+        
+        $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent());
+        $form->setDefault('caseId', cash_Cases::getCurrent());
     }
     
     
@@ -227,7 +253,7 @@ class sales_Sales extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
     }
     
@@ -239,7 +265,7 @@ class sales_Sales extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     }
     

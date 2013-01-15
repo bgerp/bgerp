@@ -491,7 +491,11 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterReject($mvc, &$res, $id, $mode = 'reject')
     {
         if(!$res) {
+            
             $rec = $mvc->fetch($id);
+            
+            // URL' то което ще се премахва или показва от нотификациите
+            $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
             
             if($mode == 'reject') {
                 if($rec->state != 'rejected') {
@@ -526,7 +530,6 @@ class doc_DocumentPlg extends core_Plugin
                     $res = new Redirect(array('doc_Threads', 'folderId' => $tRec->folderId));
 
                     // Премахваме този документ от нотификациите
-                    $keyUrl = array('doc_Threads', 'list', 'threadId' => $rec->threadId);
                     bgerp_Notifications::setHidden($keyUrl, 'yes');
     
                 }
@@ -562,7 +565,6 @@ class doc_DocumentPlg extends core_Plugin
                     doc_Threads::save($tRec);
 
                     // Показваме този документ в нотификациите
-                    $keyUrl = array('doc_Threads', 'list', 'threadId' => $rec->threadId);
                     bgerp_Notifications::setHidden($keyUrl, 'no');
 
                 }

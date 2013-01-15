@@ -849,7 +849,7 @@ class crm_Persons extends core_Master
         $query = self::getQuery();
         
         foreach($data->namesArr as $name) { 
-            $query->orWhere("#searchKeywords LIKE ' {$name} %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')");
+            $query->orWhere(array("#searchKeywords LIKE ' [#1#] %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')"), $name);
         }
         
         $self = cls::get('crm_Persons');

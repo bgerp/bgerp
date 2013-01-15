@@ -634,7 +634,7 @@ class cal_Calendar extends core_Master
       
         // Избрана дата
         $currentDate = dt::mysql2Verbal($from, 'd F Y, l');
-        $currentKey = date('N', mktime(0, 0, 0, $month, $day, $year));
+        $currentKey = date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day, $year));
     	
     	// Текущото време на потребителя
     	$nowTime = strstr(dt::now(), " ");
@@ -801,36 +801,8 @@ class cal_Calendar extends core_Master
         // Заместваме титлата на страницата
     	$tpl->replace($currentDate, 'title');
 
-    	// Оцветяване на заглавието
-    	if(is_array($type)){
-    		// Ако е делничен ден или работен ден
-	    	if($currentKey >=1 && $currentKey <= 5 && !(array_key_exists('holiday', $type)) && !(array_key_exists('non-working', $type)) || (array_key_exists('workday', $type) && $currentKey >= "6")){
-	    		$tpl->replace('black', 'colTitle');
-	    	}
-	    	// Ако е събта или неработен ден по близко до събота 
-	    	elseif($currentKey == "6" && !(array_key_exists('holiday', $type)) || (array_key_exists('non-working', $type) && $currentKey >= "4")){
-	    		$tpl->replace('#006030', 'colTitle');
-	    	}
-	    	// Ако е неделя или неработен ден по близко до неделя 
-	    	elseif($currentKey == "7" && !(array_key_exists('holiday', $type)) || (array_key_exists('non-working', $type) && $currentKey < "4")){
-	    		$tpl->replace('green', 'colTitle');
-	    	} 
-	    	// Деня е официален празник
-	    	else {
-	    		if(array_key_exists('holiday', $type)){
-	    		$tpl->replace('red', 'colTitle');	
-	    		}
-	    	}
-    	} else {
-    		if($currentKey >=1 && $currentKey <= 5){
-	    		$tpl->replace('black', 'colTitle');
-	    	} elseif($currentKey == "6"){
-	    		$tpl->replace('#006030', 'colTitle');
-	    	}elseif($currentKey == "7"){
-	    		$tpl->replace('green', 'colTitle');
-	    	}
-    	}
-    	
+    	$titleColor = static::color($currentKey);
+    	$tpl->replace($titleColor, 'colTitle');
     
     	foreach($hours as $h => $t){
     		if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
@@ -844,10 +816,21 @@ class cal_Calendar extends core_Master
     		
     		// Ако времето е равно на текущото време на потребителя
     		// ограждаме визуално клетката
-    		if($h == $nowTime){
+    		if($h == $nowTime && ($h % 2 == 0 && $h != 0)){
+    			$cTpl->replace('mc-todayN', 'now');
+    			
+    			$cTpl->replace('#D1D7D1', 'colTr');
+    			
+    		}elseif($h == $nowTime && ($h % 2 != 0 && $h != 0)){
     			$cTpl->replace('mc-todayD', 'now');
-    		} else {
+    		}elseif($h % 2 == 0 && $h != 0){
+    			$cTpl->replace('calDayN', 'now');
+    			
+    			$cTpl->replace('#D1D7D1', 'colTr');
+    		}else {
+    			
     			$cTpl->replace('calDay', 'now');
+    			
     		}
     		
     		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
@@ -914,6 +897,10 @@ class cal_Calendar extends core_Master
         	
         	// Помощен масив за javaScripta
         	$dateJs["date".$i."Js"] = date("d.m.Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
+        	$dayWeek[$i] = date("N", mktime(0, 0, 0, $month, $day + $i - 3, $year));
+        	
+        	// Цветовете на деня според типа им
+        	$colorTitle["c".$i] = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day + $i - 3, $year)));
          }
       
         // От коя до коя дата ще извличаме събитията 
@@ -993,26 +980,26 @@ class cal_Calendar extends core_Master
     		 } elseif($hourKey != "allDay"){
     			switch ($rec->state){
     				case "active":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
     					break;
     				case "draft":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title));
     					break;
     				case "closed":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 13), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
     					break;
     			}
     			
     		 } elseif($hourKey == "allDay" && $rec->type == "task"){
     			switch ($rec->state){
     				case "active":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
     					break;
     				case "draft":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title));
     					break;
     				case "closed":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
     					break;
 
     			}
@@ -1021,7 +1008,7 @@ class cal_Calendar extends core_Master
      		 }
     		
     		  		
-        }
+        }//bp($holidayKey, $nonWorking, $workday);
       
     	if(count($minMax) > 1){
     		
@@ -1059,7 +1046,8 @@ class cal_Calendar extends core_Master
     	// Рендираме масивите с дните и javaScript масива
     	$tpl->placeArray($days);
     	$tpl->placeArray($dateJs);
-  
+    	$tpl->placeArray($colorTitle);
+        
     	
    		foreach($hours as $h => $t){
    			
@@ -1074,11 +1062,23 @@ class cal_Calendar extends core_Master
    			
     		// Ако времето е равно на текущото време на потребителя
     		// Ограждаме кутийката
-    		if($h == $nowTime){
+    		if($h == $nowTime && ($h % 2 == 0 && $h != 0)){
+    			$cTpl->replace('mc-todayN', 'now');
+    			$cTpl->replace('calWeekN', 'col');
+    			$cTpl->replace('#D1D7D1', 'colTr');
+    			
+    		}elseif($h % 2 == 0 && $h != 0){
+    			$cTpl->replace('calWeekN', 'now');
+    			$cTpl->replace('calWeekN', 'col');
+    			$cTpl->replace('#D1D7D1', 'colTr');
+    		}elseif($h == $nowTime && ($h % 2 != 0 && $h != 0)){
     			$cTpl->replace('mc-todayD', 'now');
-    		} else {
+    			$cTpl->replace('calWeek', 'col');
+    		}else {
     			$cTpl->replace('calWeek', 'now');
+    			$cTpl->replace('calWeek', 'col');
     		}
+    		
     		
     		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
     		// задаваме уникално ид
@@ -1146,6 +1146,8 @@ class cal_Calendar extends core_Master
             $t = mktime(0, 0, 0, $month, $i, $year);
             $monthArr[date('W', $t)]["d".date('N', $t)] = $i;
             
+           // Цветовете на деня според типа им
+        	$colorTitle["m".$i][date('W', $t)]["d".date('N', $t)] = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $i, $year)));
         }
 
         // Извличане на събитията за целия месец
@@ -1289,6 +1291,7 @@ class cal_Calendar extends core_Master
         $tpl->replace($currentMonth, 'currentMonth');
         $tpl->replace($nextLink, 'nextLink');
         $tpl->replace($nextMonth, 'nextMonth');
+        $tpl->placeArray($colorTitle);
 
         // Дните от седмицата
         static $weekDays = array('Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота', 'Неделя');
@@ -1423,6 +1426,61 @@ class cal_Calendar extends core_Master
     	
 	    return $taskEndHour;
     	
+    }
+    
+    /**
+     * По зададена mysql-ска дата връща цвят според типа й:
+     * черен - работни дни
+     * червен - официални празници
+     * тъмно зелено - събота
+     * свето зелено - неделя
+     */
+    static function color($date){
+    	
+    	// Разбиваме подадената дата
+    	$day = dt::mysql2Verbal($date, 'd');
+        $month = dt::mysql2Verbal($date, 'm');
+        $year = dt::mysql2Verbal($date, 'Y');
+        
+        // Взимаме кой ден от седмицата е 1=пон ... 7=нед
+        $weekName = date('N', mktime(0, 0, 0, $month, $day, $year));
+    	
+        // Ако е събота или неделя, пресвояваме цвят
+    	if($weekName == "6"){
+    		$color = '#006030';
+    	}elseif($weekName == "7"){
+    		$color = 'green';
+    	}
+    	
+    	// проверяваме дали има записи за този ден
+        $query = static::getQuery();
+        $query->where("#time = '{$date}'");
+        
+    	while($rec = $query->fetch()){
+    		
+    		// Ако деня е празник, подаваме цвета и не ни трябват повече проверки
+    		if($rec->type == 'holiday'){
+	        	$color = 'red';// bp($color);
+	        	break;
+	        }
+	        // Ако деня е работе, подаваме цвета и не ни трябват повече проверки
+	        elseif($rec->type == 'workday'){
+	        	$color = 'black';
+	        	break;
+	        }
+	        // Ако деня е събота или неработен ден по близко до събота
+	        elseif(($weekName == "6" || ($rec->type == 'non-working' && $weekName >= "4"))  && $rec->type !== 'workday'){
+	        	$color = '#006030';
+	        	
+	        }
+	        // Ако деня е неделя или неработен ден по близко до неделя
+	        elseif(($weekName == "7" || ($rec->type == 'non-working' && $weekName < "4") ) && $rec->type !== 'workday'){
+	        	$color = 'green';
+	        	
+	        }
+    	}
+    	
+        return $color;
     }
 
 }
