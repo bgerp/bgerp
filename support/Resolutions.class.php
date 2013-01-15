@@ -171,15 +171,8 @@ class support_Resolutions extends core_Master
      */
     static function getThreadState($id)
     {
-        // Вземаме записа
-        $rec = static::fetch($id);
 
-		// Ако състоянието е активно
-        if ($rec->state == 'active') {
-            
-			// Затваряме нишката
-            return 'closed'; 
-        }
+        return 'closed';
     }
 
 

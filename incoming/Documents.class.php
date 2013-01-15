@@ -397,15 +397,7 @@ class incoming_Documents extends core_Master
      */
     static function getThreadState($id)
     {
-        // Вземаме записа
-        $rec = static::fetch($id);
-        
-        // Ако състоянието е активно
-        if ($rec->state == 'active') {
-            
-            // Отваряме нишката
-            return 'opened'; 
-        }
+        return 'opened';
     }
     
     
