@@ -993,15 +993,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetThreadState($mvc, &$state, $id)
     {
-        // Вземаме записа// Ако състоянието е активно
-        $rec = $mvc->fetch($id);
-        
-        // Ако състоянието е активно
-        if ($rec->state == 'active') {
-            
-            // Затваряме
-            $state = 'closed';    
-        }
+        $state = 'closed';
     }
     
     
