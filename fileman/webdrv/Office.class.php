@@ -388,9 +388,13 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         ksort($filesArr);
         
         foreach ($filesArr as $file) {
-        
-            // Качваме файла в кофата и му вземаме манипулатора
-            $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
+            
+            // Ако възникне грешка при качването на файла (липса на права)
+            try {
+                
+                // Качваме файла в кофата и му вземаме манипулатора
+                $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
+            } catch (Exception $e) {}
             
             // Ако се качи успешно записваме манипулатора в масив
             if ($fileHnd) {

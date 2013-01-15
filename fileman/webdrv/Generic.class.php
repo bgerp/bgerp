@@ -823,9 +823,13 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Инстанция на fileman
         $filesInst = cls::get('fileman_Files');
-    
-        // Добавяме файла в кофата
-        $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
+        
+        // Ако възникне грешка при качването на файла (липса на права)
+        try {
+            
+            // Добавяме файла в кофата
+            $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
+        } catch (Exception $e) {}
         
         // Очакваме да няма грешка при добавянето
         expect($fh, 'Възникна грешка при обработката на файла');

@@ -250,8 +250,12 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Инстанция на класа
         $Fileman = cls::get('fileman_Files');
         
-        // Качваме файла в кофата и му вземаме манипулатора
-        $fileHnd = $Fileman->addNewFile($script->outFilePath, 'fileIndex'); 
+        // Ако възникне грешка при качването на файла (липса на права)
+        try {
+            
+            // Качваме файла в кофата и му вземаме манипулатора
+            $fileHnd = $Fileman->addNewFile($script->outFilePath, 'fileIndex');
+        } catch (Exception $e) {}
         
         // Ако се качи успешно записваме манипулатора в масив
         if ($fileHnd) {

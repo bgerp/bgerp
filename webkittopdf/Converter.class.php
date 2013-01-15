@@ -90,7 +90,13 @@ class webkittopdf_Converter extends core_Manager
         
         //Качвания новосъздадения PDF файл
         $Fileman = cls::get('fileman_Files');
-        $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName);
+        
+        // Ако възникне грешка при качването на файла (липса на права)
+        try {
+            
+            // Качваме файла в кофата и му вземаме манипулатора
+            $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName); 
+        } catch (Exception $e) {}
         
         //Изтриваме временната директория заедно с всички създадени папки
         core_Os::deleteDir($tempPath);
