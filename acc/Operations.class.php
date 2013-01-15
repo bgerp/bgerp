@@ -4,7 +4,8 @@
 
 /**
  * Мениджър на Счетоводни Операции
- *
+ * Една "Операция" може да се обвърза само с документи които генерират
+ * счетоводни транзакции (@see acc_TransactionSourceIntf)
  *
  * @category  bgerp
  * @package   acc
@@ -15,14 +16,6 @@
  */
 class acc_Operations extends core_Manager
 {
-    
-    
-    /**
-     * Какви интерфейси поддържа този мениджър
-     */
-    //var $interfaces = 'acc_TransactionSourceIntf';
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -45,7 +38,7 @@ class acc_Operations extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "tools=Пулт, name, document, debitAccount, creditAccount";
-    
+   
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -95,9 +88,12 @@ class acc_Operations extends core_Manager
     function description()
     {
     	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory');
-    	$this->FLD('document', 'key(mvc=core_Classes, interface=doc_documentIntf, select=title)', 'caption=Документ,mandatory');
+    	$this->FLD('document', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory');
+    
+    	// Поставяне на уникални индекси
+    	$this->setDbUnique('name');
     }
     
     
