@@ -183,13 +183,12 @@ class fconv_Script
     function callBack($callback)
     {
         $url = toUrl(array('fconv_Processes',
-                'CallBack', 'func' => $callback, 'pid' => $this->id));
+                'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
         
         if (stristr(PHP_OS, 'WIN')) {
         
         } else {
-            $serverName = $_SERVER['SERVER_NAME'];
-            $cmdLine = "wget -q --spider 'http://{$serverName}{$url}'";
+            $cmdLine = "wget -q --spider '{$url}'";
         }
         
         $this->lineExec($cmdLine);
