@@ -270,6 +270,12 @@ class email_Incomings extends core_Master
                         // Ново писмо. 
                         $htmlRes .= "\n<li style='color:green'> Get: {$rec->hash}</li>";
                         $rec->accId = $accRec->id;
+
+                        // Hack: Ако сметката е самостоятелна, то toBox винаги е равно на имейла на сметката
+                        if($accRec->type == 'single') {
+                            $rec->toBox = $accRec->email;
+                        }
+
                         $newEmails++;
                         $rec->uid = $imapConn->getUid($i);
 
