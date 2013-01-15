@@ -246,8 +246,9 @@ class email_Incomings extends core_Master
                 // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
                 for ($i = $firstUnreadMsg; $i <= $numMsg && ($maxTime > time()); $i++) {
                     
-                    if(($i % 100) == 1 || ( ($i -$firstUnreadMsg) < 100)) {
+                    if(($i % 100) == 1 || ( ($i - $firstUnreadMsg) < 100)) {
                         $this->log("Fetching message {$i} from {$accRec->server}");
+                        echo "<li> Fetching message {$i} from {$accRec->server}";
                     }
                     
                     $rec = $this->fetchSingleMessage($i, $imapConn);
@@ -300,12 +301,8 @@ class email_Incomings extends core_Master
                             $rec->createdOn = $rec->date;
                         }
                         
-
                         $saved = email_Incomings::save($rec);
-                        
-                        // Задава вербални (човешки) имена на файловете .html и .eml
-                        $this->setEmlAndHtmlFileNames($rec);
-                        
+                                               
                         // Ако парсера е издал предупреждения - добавяме ги и към двете статусни съобщения
                         if($rec->parserWarning) {
                             $logMsg  .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>"  . $rec->parserWarning;
@@ -350,6 +347,7 @@ class email_Incomings extends core_Master
         if($imapConn->accRec->protocol == 'imap') {
             $query = self::getQuery();
             $query->XPR('maxUid', 'int', 'max(#uid)');
+            $query->show('maxUid');
             $maxRec = $query->fetch("#accId = {$imapConn->accRec->id}");
         }
  
@@ -376,6 +374,7 @@ class email_Incomings extends core_Master
                 // Ако и двете не са свалени; Изпълнява се няколко пъти последователно в началото
                 if(!$isDownB && !$isDownT) {
                     if($t == $b) {
+
                         return $t;
                     }
                     $t = $b;
@@ -406,10 +405,12 @@ class email_Incomings extends core_Master
             } while($change);
 
         } else {
-            $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid) + 1;
+            $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid);
             
-            if($maxReadMsgNo > $maxMsgNo) {
+            if(($maxReadMsgNo == FALSE) || ($maxReadMsgNo >= $maxMsgNo)) {
                 $maxReadMsgNo = NULL;
+            } else {
+                $maxReadMsgNo++;
             }
 
             return $maxReadMsgNo;
@@ -423,11 +424,13 @@ class email_Incomings extends core_Master
         
         // Номерата почват от 1
         if($msgNum < 1) {
-             $this->log('TRUE: $msgNum < 1');
+            $this->log('TRUE: $msgNum < 1');
 
             return TRUE;
         }
+        
         echo "<li> ID {$imapConn->accRec->id} $msgNum </li> <br>";
+        $this->log( "<li> ID {$imapConn->accRec->id} $msgNum </li> <br>");
 
         if(!isset($isDown[$imapConn->accRec->id][$msgNum])) {
 
@@ -442,7 +445,7 @@ class email_Incomings extends core_Master
             
             $mimeParser = new email_Mime();
             
-            $hash    = $mimeParser->getHash($headers);
+            $hash = $mimeParser->getHash($headers);
             
             $res = $isDown[$imapConn->accRec->id][$msgNum] = $this->fetchField("#hash = '{$hash}'", 'id');
             $this->log(($res ? 'TRUE' : 'FALSE' ) . ":{$imapConn->accRec->id} $res $hash");
@@ -511,27 +514,6 @@ class email_Incomings extends core_Master
         
         return $matches[1];
     }
-    
-
-
-    /**
-     * Поставя вербалните имена на файловете Msg{$id}.eml (сорса на писмото) и Msg{$id}.html
-     */
-    function setEmlAndHtmlFileNames(&$rec)
-    {
-        expect($rec->id);
-
-        if($rec->htmlFile) {
-            $newName = $this->abbr . $rec->id . '.html';
-          //  fileman_Files::rename($rec->htmlFile, $newName);
-        }
-        
-        if($rec->emlFile) {
-            $newName = $this->abbr . $rec->id . '.eml';
-           // fileman_Files::rename($rec->emlFile, $newName);
-        }
-    }
-
 
 
     /**
@@ -573,7 +555,7 @@ class email_Incomings extends core_Master
             $mime->parts[1]->headersArr = $mime->parseHeaders($headers);
             $mime->parts[1]->headersStr = $headers;
 
-            // Извличаме информация за получателя (към кого е насочено писмото)
+            // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
             $toEml = $mime->getHeader('X-Original-To', '*');
             
             if(!preg_match('/^.+\+([a-z]+)=([a-z]+)@/i', $toEml)) {
@@ -1552,17 +1534,6 @@ class email_Incomings extends core_Master
         }
     }
 
-    
-    function act_ConvertFN()
-    {   
-        set_time_limit(300);
-        $query = self::getQuery();
-
-        while($rec = $query->fetch()) {
-            $this->setEmlAndHtmlFileNames($rec); 
-        }
-    }
-    
     
     /**
      * Добавя бутони
