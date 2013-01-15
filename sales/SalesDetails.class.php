@@ -125,7 +125,6 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('price', 'float(minDecimals=2)', 'caption=Цена');
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FNC('amount', 'float(minDecimals=2)', 'caption=Сума');
-        $this->FLD('quantityDelivered', 'float', 'caption=Доставено,input=none');
     }
     
     
