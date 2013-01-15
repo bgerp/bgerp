@@ -255,7 +255,7 @@ class doc_AssignPlg extends core_Plugin
         doc_ThreadUsers::addShared($threadId, $containerId, $assignUserId);
         
         // Упдейтваме нишката
-        doc_Threads::updateThread($threadId);
+        doc_Threads::updateThread($threadId, 'opened');
     }
     
     
