@@ -242,6 +242,7 @@ class sales_Sales extends core_Master
         
         $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
         $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
+        $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
         
         if (empty($data->form->rec->dealerId)) {
             $form->setDefault('dealerId', $mvc::getDefaultDealer($data->form->rec));
