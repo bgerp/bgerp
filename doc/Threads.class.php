@@ -571,8 +571,12 @@ class doc_Threads extends core_Manager
     /**
      * Обновява информацията за дадена тема.
      * Обикновено се извиква след промяна на doc_Containers
+     * 
+     * @param doc_Threads $id - id' на нишката
+     * @param mixed $updateState - Ако е boolean, тогава се опитваме да вземем състояниято на нишката от документа.
+     * Ако е string, тогава го използваме за промяна на стринга
      */
-    function updateThread_($id)
+    function updateThread_($id, $updateState=TRUE)
     {
         // Вземаме записа на треда
         $rec = doc_Threads::fetch($id, NULL, FALSE);
@@ -616,9 +620,8 @@ class doc_Threads extends core_Manager
             // Последния документ в треда
             $rec->last = $lastDcRec->createdOn;
             
-            // Ако имаме добавяне/махане на документ от треда, тогава състоянието му
-            // се определя от последния документ в него
-            if($rec->allDocCnt != $exAllDocCnt) {
+            // Ако е зададено да се направи опит за промяна на състоянието на нишката
+            if ($updateState === TRUE) {
                 if($lastDcRec) {
                     $doc = doc_Containers::getDocument($lastDcRec->id);
                     $newState = $doc->getThreadState();
@@ -626,7 +629,11 @@ class doc_Threads extends core_Manager
                     if($newState) {
                         $rec->state = $newState;
                     }
-                }
+                }    
+            } elseif ($updateState) {
+                
+                // Ако е въведено състоянието, използваме него
+                $rec->state = $updateState;
             }
             
             // Състоянието по подразбиране за треда е затворено
@@ -635,7 +642,7 @@ class doc_Threads extends core_Manager
             }
             
             doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy');
-            
+
             // Първия документ 
             if($firstDcRec->state == 'rejected' && $rec->state != 'rejected') {
             }
@@ -788,7 +795,7 @@ class doc_Threads extends core_Manager
         
         $this->save($rec);
         
-        $this->updateThread($rec->id);
+        $this->updateThread($rec->id, FALSE);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
@@ -821,7 +828,7 @@ class doc_Threads extends core_Manager
         
         $this->save($rec);
         
-        $this->updateThread($rec->id);
+        $this->updateThread($rec->id, FALSE);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }

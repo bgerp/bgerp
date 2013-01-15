@@ -166,8 +166,15 @@ class support_Issues extends core_Master
      */
     static function getThreadState($id)
     {
+        // Вземаме записа
+        $rec = static::fetch($id);
         
-        return 'opened';
+        // Ако състоянието е активно
+        if ($rec->state == 'active') {
+            
+            // Отваряме нишката
+            return 'opened'; 
+        }
     }
     
     
@@ -460,7 +467,7 @@ class support_Issues extends core_Master
             doc_ThreadUsers::addShared($threadId, $containerId, $sharedUserArr);
             
             // Упдейтваме нишката
-            doc_Threads::updateThread($threadId);
+            doc_Threads::updateThread($threadId, 'opened');
         }
     }
     
