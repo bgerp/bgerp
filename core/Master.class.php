@@ -348,7 +348,11 @@ class core_Master extends core_Manager
                 return FALSE;
             }
             
-            return $detailName == $this->details[$detailAlias];
+            if (isset($detailName)) {
+                return $detailName == $this->details[$detailAlias];
+            }
+            
+            return TRUE;
         } elseif (isset($detailName)) {
             foreach ($this->details as $alias=>$name) {
                 if ($name == $detailName) {
