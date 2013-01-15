@@ -37,6 +37,8 @@ class thumbnail_Thumbnail extends core_Manager {
     {
         $attr['src'] = thumbnail_Thumbnail::getLink($fh, $size, $attr);
         
+        if (!$attr['src']) return FALSE;
+        
         if(!isset($attr['alt'])) {
             $attr['alt'] = $attr['baseName'];
         }
@@ -92,9 +94,11 @@ class thumbnail_Thumbnail extends core_Manager {
                  */
                 return FALSE;
             } else {
-                static::saveImage($thumbFile, $thumbFilePath);
+                $res = static::saveImage($thumbFile, $thumbFilePath);
             }
         }
+        
+        if (!$res) return FALSE;
         
         $info = getimagesize($thumbFilePath);
         
