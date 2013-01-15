@@ -81,13 +81,9 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
             // Създаваме новото име на файла
             $name = $nameArr['name'] . '_thumb.bmp';
             
-            // Ако възникне грешка при качването на файла (липса на права)
-            try {
+            // Добавяме файла в кофата
+            $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
                 
-                // Добавяме файла в кофата
-                $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
-            } catch (Exception $e) {}
-            
             // Вземаме записа за новосъздадения файл
             $nRec = fileman_Files::fetchByFh($fh);
             
