@@ -94,11 +94,9 @@ class thumbnail_Thumbnail extends core_Manager {
                  */
                 return FALSE;
             } else {
-                $res = static::saveImage($thumbFile, $thumbFilePath);
+                if (!static::saveImage($thumbFile, $thumbFilePath)) return FALSE;
             }
         }
-        
-        if (!$res) return FALSE;
         
         $info = getimagesize($thumbFilePath);
         
