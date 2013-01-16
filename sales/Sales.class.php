@@ -25,7 +25,8 @@ class sales_Sales extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
+                          acc_RegisterIntf=sales_RegisterImpl';
     
     
     /**
@@ -36,7 +37,7 @@ class sales_Sales extends core_Master
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
-                    doc_plg_BusinessDoc';
+                    doc_plg_BusinessDoc, acc_plg_Registry';
     
     
     /**
@@ -125,6 +126,14 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Списък от systemId-та на номеклатури, в които документа се добавя автоматично
+     * 
+     * @var string|array
+     */
+    public $autoList = 'sales';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -184,6 +193,10 @@ class sales_Sales extends core_Master
          */
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
+    }
+    
+    public static function on_AfterSave($mvc)
+    {
     }
 
 
