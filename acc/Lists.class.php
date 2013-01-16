@@ -474,7 +474,7 @@ class acc_Lists extends core_Manager {
         $classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId);     // Интерфейсите на класа
         foreach ($lists as $listId) {
             $listIfaceId = static::fetchField($listId, 'regInterfaceId');     // Интерф. на номенклатурата
-            expect(in_array($listIfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
+            expect(empty($listIfaceId) || in_array($listIfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
         }
         
         /*
