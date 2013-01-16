@@ -234,18 +234,6 @@ class doc_Comments extends core_Master
     {
         return NULL;
     }
-
-
-    /**
-     * Потребителите, с които е споделен този документ
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    static function getShared($id)
-    {
-        return static::fetchField($id, 'sharedUsers');
-    }
     
     
     /**

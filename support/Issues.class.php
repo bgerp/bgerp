@@ -363,14 +363,20 @@ class support_Issues extends core_Master
     
 
 	/**
-     * Потребителите, с които е споделен този документ
+     * Отговорниците на компонента
      *
      * @return string keylist(mvc=core_Users)
      * @see doc_DocumentIntf::getShared()
      */
-    static function getShared($id)
+    static function getShared_($id)
     {
-        return static::fetchField($id, 'sharedUsers');
+        // Записа за съответния сигнал
+        $iRec = static::fetch($id);
+        
+        // Отговорниците на компонента
+        $maintainers = support_Components::fetchField($iRec->componentId, 'maintainers');
+        
+        return $maintainers;
     }
     
     
@@ -455,12 +461,6 @@ class support_Issues extends core_Master
                 // Добавяме им нотофикации
                 bgerp_Notifications::add($message, $url, $userId, $iRec->priority, $customUrl);
             }
-            
-            // Добавяме потребителе, за да имат достъп до нишката
-            doc_ThreadUsers::addShared($threadId, $containerId, $sharedUserArr);
-            
-            // Упдейтваме нишката
-            doc_Threads::updateThread($threadId);
         }
     }
     
