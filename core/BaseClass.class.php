@@ -272,7 +272,7 @@ class core_BaseClass
      */
     public function getInterface($interface)
     {
-        $this->interfaces = arr::make($classObj->interfaces, TRUE);
+        $this->interfaces = arr::make($this->interfaces, TRUE);
         
         if (!isset($this->interfaces[$interface])) {
             return FALSE;
