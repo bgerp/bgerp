@@ -128,6 +128,9 @@ class acc_Operations extends core_Manager
         	$options[$rec->id] = $rec->name;
         }
         
+        if(count($options) == 0) {
+        	$options[] = tr('Няма операции за този документ');
+        }
         return $options;
     }
     
