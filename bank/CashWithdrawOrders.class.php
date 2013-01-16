@@ -32,8 +32,7 @@ class bank_CashWithdrawOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
-     	plg_Sorting,doc_DocumentPlg,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
+     	plg_Sorting,doc_DocumentPlg,  plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
     
     
     /**
@@ -112,13 +111,6 @@ class bank_CashWithdrawOrders extends core_Master
     
     
     /**
-     * Параметри за принтиране
-     */
-    var $printParams = array( array('Оригинал'),
-    						  array('Копие'),); 
-
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -134,10 +126,6 @@ class bank_CashWithdrawOrders extends core_Master
     	$this->FLD('proxyName', 'varchar(255)', 'caption=Упълномощено лице->Име,mandatory');
     	$this->FLD('proxyEgn', 'drdata_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory');
     	$this->FLD('proxyIdcard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory');
-    	//$this->FLD('debitAccount', 'acc_type_Account(maxColumns=1)', 'caption=Упълномощено лице->Сч. сметка,mandatory');
-    	//$this->FLD('peroCase', 'key(mvc=cash_Cases,select=name)', 'caption=От каса,input=hidden');
-    	//$this->FLD('proxyId', 'int', 'input=hidden,notNull');
-    	//$this->FLD('proxyClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
     }
     
     
@@ -146,60 +134,54 @@ class bank_CashWithdrawOrders extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	$data->form->setDefault('ordererIban', bank_OwnAccounts::getCurrent());
-    	$data->form->setReadOnly('ordererIban');
-    	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode());
+    	$form = &$data->form;
+    	$originId = $form->rec->originId;
     	
-    	$account = bank_OwnAccounts::getOwnAccountInfo();
-    	$data->form->setDefault('execBank', $account->bank);
-    	$data->form->setReadOnly('execBank');
+    	// Намираме кой е последния запис от този клас в същия тред
+    	$query = static::getQuery();
+    	$query->where("#folderId = {$form->rec->folderId}");
+    	$query->orderBy('createdOn', 'DESC');
+    	$query->limit(1);
+    	if($lastRec = $query->fetch()) {
+    		$form->setDefault('ordererIban', $lastRec->ordererIban);
+    		$form->setDefault('execBank', $lastRec->execBank);
+    		$form->setDefault('execBankBranch', $lastRec->execBankBranch);
+    		$form->setDefault('execBankAdress', $lastRec->execBankAdress);
+    		$form->setDefault('proxyEgn', $lastRec->proxyEgn);
+    		$form->setDefault('proxyIdcard', $lastRec->proxyIdcard);
+    	} 
     	
-    	$today = dt::verbal2mysql();
-    	$data->form->setDefault('valior', $today);
-    	
-    	static::getProxyInfo($data->form);
-    	//static::getPossibleAccounts($data->form);
-    }
-    
-    
- 	/**
-     * Попълва формата със 
-     * Списък от Сч.сметки които можем да дебитираме 
-     */
-    static function getPossibleAccounts(core_Form $form)
-    {
-    	$options[''] = '';
-    	$conf = core_Packs::getConfig('bank');
-    	$array = type_Keylist::toArray($conf->BANK_NR_DEBIT_ACC);
-    	foreach($array as $id) {
-    		$rec = acc_Accounts::fetch($id);
-    		$options[$rec->id] = acc_Accounts::getRecTitle($rec);
+    	if($originId) {
+    		$doc = doc_Containers::getDocument($originId);
+    		$class = $doc->className;
+    		$dId = $doc->that;
+    		$rec = $class::fetch($dId);
+    		
+    		// Извличаме каквато информация можем от оригиналния документ
+    		$form->setDefault('currencyId', $rec->currencyId);
+    		$form->setDefault('ordererIban',$rec->ordererIban);
+    		$form->setDefault('amount', $rec->amount);
+    		$form->setDefault('reason', $rec->reason);
+    		$form->setDefault('valior', $rec->valior);
+    		$account = bank_OwnAccounts::getOwnAccountInfo($rec->ordererIban);
+    		$form->setDefault('execBank', $account->bank);
+    		
+    		// Ако контрагента е лице, слагаме името му за получател
+    		$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
+    		if( $coverClass == 'crm_Persons') {
+    			$form->setDefault('proxyName', $rec->contragentName);
+    		}
+    	} else {
+    		
+    		$form->setDefault('currencyId', currency_Currencies::getIdByCode());
+    		$form->setDefault('ordererIban', bank_OwnAccounts::getCurrent());
+    		$account = bank_OwnAccounts::getOwnAccountInfo();
+    		$form->setDefault('execBank', $account->bank);
+    		$today = dt::verbal2mysql();
+    		$form->setDefault('valior', $today);
     	}
     	
-    	$form->setOptions('debitAccount', $options);
-    }
-    
-    
-    /**
-     * 
-     */
-    static function getProxyInfo(core_Form $form)
-    {
-    	$suggestions[''] = '';
-    	$cu = core_Users::getCurrent();
-    	$cuRow = core_Users::recToVerbal($cu);
-    	
-    	//@TODO да го оптимизирам още
-    	$suggestions[$cuRow->names] = $cuRow->names;
-    	$list = acc_Lists::fetchBySystemId('accountableInd');
-    	$itemsQuery = acc_Items::getQuery();
-    	$itemsQuery->where("#lists LIKE '%{$list->id}%'");
-    	while($itemRec = $itemsQuery->fetch()) {
-    		$personRec = crm_Persons::fetch($itemRec->objectId);
-    		$suggestions[$personRec->name] = $personRec->name;
-    	}
-    
-    	$form->setSuggestions('proxyName', $suggestions);
+    	//static::getProxyInfo($data->form);
     }
     
     
@@ -213,29 +195,15 @@ class bank_CashWithdrawOrders extends core_Master
     	if($fields['-single']) {
 	    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	
-	    	// Коя сметка дебитираме/кредитираме
-	    	$conf = core_Packs::getConfig('bank');
-	    	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_NR_CREDIT_ACC}");
-	    	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
-	    	//$debitRec = acc_Accounts::fetch($rec->debitAccount);
-	    	//$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
-	    	
-	    	//
 	    	$spellNumber = cls::get('core_SpellNumber');
 			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
 			
 			$myCompany = crm_Companies::fetchOwnCompany();
 			$row->ordererName = $myCompany->company;
 	    	
-			// При принтирането на 'Чернова' скриваме системите полета и заглавието
+			// При принтирането на 'Чернова' скриваме заглавието
 	    	if(Mode::is('printing')){
-	    		if($rec->state == 'draft') {
-	    			unset($row->header);
-	    			unset($row->createdBy);
-	    			unset($row->createdOn);
-	    			//unset($row->debitAccount);
-	    			unset($row->creditAccount);
-	    		}
+	    		unset($row->header);
 	    	}
     	}
     }

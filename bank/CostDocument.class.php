@@ -105,7 +105,7 @@ class bank_CostDocument extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    //var $singleLayoutFile = 'bank/tpl/SingleIncomeDocument.shtml';
+    var $singleLayoutFile = 'bank/tpl/SingleCostDocument.shtml';
     
     
     /**
@@ -119,12 +119,12 @@ class bank_CostDocument extends core_Master
      */
     function description()
     {
+    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=100%,mandatory,silent');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Код,width=6em');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=100%,mandatory,silent');
     	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Б. сметка,mandatory,width=16em');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory,width=16em');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -155,10 +155,46 @@ class bank_CostDocument extends core_Master
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$form = &$data->form;
-    	//@TODO
+    	
+    	$today = dt::verbal2mysql();
+        $form->setDefault('valior', $today);
+        $form->setDefault('currencyId', currency_Currencies::getIdByCode());
+    	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
+    	$form->setReadOnly('ownAccount');
+    	
+        $options = acc_Operations::getPossibleOperations(get_called_class());
+        $form->setOptions('operationId', $options);
+    
+        static::getContragentInfo($form);
     }
     
     
+/**
+      * @TODO
+      */
+     static function getContragentInfo(core_Form $form)
+     {
+     	$folderId = $form->rec->folderId;
+    	$contragentId = doc_Folders::fetchCoverId($folderId);
+    	$contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
+    	
+   		// Информацията за контрагента на папката
+    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
+    	
+    	if($contragentData) {
+    		if($contragentData->company) {
+    			
+    			$form->setDefault('contragentName', $contragentData->company);
+    		} elseif ($contragentData->name) {
+    			
+    			// Ако папката е на лице, то вносителя по дефолт е лицето
+    			$form->setDefault('contragentName', $contragentData->name);
+    		}
+    		$form->setReadOnly('contragentName');
+    	}
+    }
+     
+     
     /**
      * Проверка след изпращането на формата
      */
@@ -167,7 +203,32 @@ class bank_CostDocument extends core_Master
     	if ($form->isSubmitted()){
     		
     		$rec = &$form->rec;
-    		//@TODO
+    		
+    		$rec->contragentClassId = doc_Folders::fetchField($rec->folderId, 'coverClass');
+	        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+	        
+	        // Коя е дебитната и кредитната сметка
+	        $operation = acc_Operations::fetch($rec->operationId);
+    		$rec->debitAccId = $operation->debitAccount;
+    		$rec->creditAccId = $operation->creditAccount;
+    		
+    		// Проверяваме дали банковата сметка е в същата валута
+    		$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);	
+	   	 	if($ownAcc->currencyId != $rec->currencyId) {
+	   	 		$form->setError('currencyId', 'Банковата сметка е в друга валута');
+	   	 	}
+	   	 	
+	   	 	// Ако няма валутен курс, взимаме този от системата
+    		if(!$rec->rate && !$form->gotErrors()) {
+	    		$accPeriods = cls::get('acc_Periods');
+			    $period = $accPeriods->fetchByDate($rec->valior);
+			    $baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
+			    $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+	    		$rate = currency_CurrencyRates::getRateBetween($currencyCode, $baseCurrency, $rec->valior);
+	    		
+	    		$rec->rate = $rate;
+    		}
+    		
     	}
     }
     
@@ -177,7 +238,32 @@ class bank_CostDocument extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	//@TODO
+    	$row->number = static::getHandle($rec->id);
+    	
+    	if($fields['-single']) {
+    		
+    		$row->currencyId = currency_Currencies::getCodeById($rec->currencyId);
+    		
+    		if($rec->rate != '1') {
+	    		$accPeriods = cls::get('acc_Periods');
+			    $period = $accPeriods->fetchByDate($rec->valior);
+			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
+    		 
+			    $double = cls::get('type_Double');
+	    		$double->params['decimals'] = 2;
+	    		$row->equals = $double->toVerbal($rec->amount * $rec->rate);
+    		} else {
+    			unset($row->rate);
+    		}
+    		
+    		$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);	
+    		$row->accCurrency = currency_Currencies::getCodeById($ownAcc->currencyId);
+    	
+	    	// Показваме заглавието само ако не сме в режим принтиране
+	    	if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+	    	}
+    	}
     }
     
     
@@ -187,7 +273,22 @@ class bank_CostDocument extends core_Master
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	//@TODO
+    	$operation = acc_Operations::fetch($data->rec->operationId);
+    	
+    	// Ако дебитната сметка е за разплащания с контрагенти слагаме
+    	// бутони за генериране на платежно нареждане и вносна бележка
+    	// Ако е за разплащания с подочетни лице, слагаме бутон за
+    	// генерирането на нареждане-разписка
+    	if(acc_Lists::getPosition($operation->debitAccount, 'crm_ContragentAccRegIntf')) {
+    		
+    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    		$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	} elseif(acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf')) {
+    		
+    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	}
+    	
+    	
     }
     
     

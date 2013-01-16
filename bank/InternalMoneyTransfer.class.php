@@ -39,7 +39,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, state, createdOn, createdBy";
     
     
     /**
@@ -113,12 +113,12 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     function description()
     {
+    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=6em,mandatory,silent');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,width=6em,mandatory');
     	$this->FLD('currencyItem', 'acc_type_Item(select=numTitleLink)', 'caption=Валута,input=none');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=20em,input,mandatory');
-    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=6em,mandatory,silent');
-        $this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
+    	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
     	$this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 1');
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 3');
@@ -462,6 +462,11 @@ class bank_InternalMoneyTransfer extends core_Master
 			    $period = $accPeriods->fetchByDate($rec->valior);
 			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
     		}
+    		
+    		// Показваме заглавието само ако не сме в режим принтиране
+	    	if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+	    	}
     	}
     }
     

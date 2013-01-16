@@ -82,14 +82,14 @@
             <div class='bg_white line'>
                    <div class='text pos_rel'>
                    	  <span class='pos_abs small_text_top_left'>Платете на - име на получателя</span><br>
-                      [#contragentName#]
+                      [#beneficiaryName#]
                    </div>                                        
             </div>
                
             <div class='bg_blue line'>
                 <div class='text border_r' style='width: 450px;'>
                    <span class='pos_abs small_text_top_left'>IBAN на получателя</span><br>
-                   [#contragentIban#]
+                   [#beneficiaryIban#]
                    
                 </div>                                       
                 <div class='text border_r bg_white' style='width: 50px;height:30px'>
@@ -150,7 +150,7 @@
             <div class='bg_blue line'>
                 <div class='text border_r' style='width: 450px;'>
                  <span class='pos_abs small_text_top_left'>IBAN на наредителя</span><br>
-                   [#ownAccount#]
+                   [#ordererIban#]
                   
                 </div>                                       
                 <div class='text border_r bg_white' style='width: 50px;height:30px;'>

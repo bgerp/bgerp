@@ -119,12 +119,12 @@ class bank_IncomeDocument extends core_Master
      */
     function description()
     {
+    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=100%,mandatory,silent');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Код,width=6em');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=100%,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory,width=16em');
     	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=В->Сметка,mandatory,width=16em');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -194,7 +194,7 @@ class bank_IncomeDocument extends core_Master
      }
      
      
-     /**
+    /**
      * Проверка след изпращането на формата
      */
     function on_AfterInputEditForm($mvc, $form)
@@ -255,6 +255,11 @@ class bank_IncomeDocument extends core_Master
     		
     		$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);	
     		$row->accCurrency = currency_Currencies::getCodeById($ownAcc->currencyId);
+    	
+	    	// Показваме заглавието само ако не сме в режим принтиране
+	    	if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+	    	}
     	}
     }
     
@@ -265,13 +270,12 @@ class bank_IncomeDocument extends core_Master
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
-    	
-    	// Ако кредитната сметка има интерфейса на Подочетните лица
     	$operation = acc_Operations::fetch($data->rec->operationId);
-    	if(acc_Lists::getPosition($operation->creditAccount, 'crm_PersonAccRegIntf')) {
-    		$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	if(acc_Lists::getPosition($operation->creditAccount, 'crm_ContragentAccRegIntf')) {
+    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     	}
+    	
+    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     }
     
     

@@ -112,12 +112,6 @@ class bank_PaymentOrders extends core_Master
      */
     var $searchFields = 'valior, beneficiaryName';
     
-    
-    /**
-     * Параметри за принтиране
-     */
-    var $printParams = array( array('Оригинал'),
-    						  array('Копие'),); 
 
     /**
      * Описание на модела
@@ -132,8 +126,8 @@ class bank_PaymentOrders extends core_Master
     	$this->FLD('paymentSystem', 'enum(bisera=БИСЕРА,rings=РИНГС)','caption=Пл. система,default=bisera,width=6em');
     	$this->FLD('orderer', 'varchar(255)', 'caption=Наредител->Име,mandatory,width=16em');
     	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Б. Сметка,mandatory,width=16em');
-    	$this->FNC('accCurrency', 'varchar', 'caption=Наредител->Валута,width=6em,input');
     	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em');
+    	$this->FLD('execBankBic', 'varchar(255)', 'caption=Наредител->BIC,width=16em');
     	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em');
         $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em');
         $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
@@ -147,24 +141,28 @@ class bank_PaymentOrders extends core_Master
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$form = &$data->form;
-    	$originId = Request::get('originId');
+    	$originId = $form->rec->originId;
     	
+    	// Намираме кой е последния запис от този клас в същия тред
     	$query = static::getQuery();
     	$query->where("#folderId = {$form->rec->folderId}");
+    	if($form->rec->threadId) {
+    		$query->where("#threadId = {$form->rec->threadId}");
+    	} 
     	$query->orderBy('createdOn', 'DESC');
     	$query->limit(1);
     	if($lastRec = $query->fetch()) {
     		$form->setDefault('execBranch', $lastRec->execBranch);
     		$form->setDefault('currencyId', $lastRec->currencyId);
     		$form->setDefault('execBank', $lastRec->execBank);
+    		$form->setDefault('execBankBic', $lastRec->execBankBic);
     		$form->setDefault('execBranch', $lastRec->execBranch);
     		$form->setDefault('execBranchAddress', $lastRec->execBranchAddress);
+    		$form->setDefault('orderer', $lastRec->orderer);
     		$form->setDefault('ordererIban', $lastRec->ordererIban);
     		$form->setDefault('beneficiaryName', $lastRec->beneficiaryName);
     		$form->setDefault('beneficiaryIban', $lastRec->beneficiaryIban);
-    	} else {
-    		$form->setDefault('currencyId', currency_Currencies::getIdByCode());
-	    }
+    	} 
 	    
     	if($originId) {
     		$doc = doc_Containers::getDocument($originId);
@@ -176,53 +174,55 @@ class bank_PaymentOrders extends core_Master
     		$form->setDefault('amount', $rec->amount);
     		$form->setDefault('reason', $rec->reason);
     		$form->setDefault('valior', $rec->valior);
+    		$myCompany = crm_Companies::fetchOwnCompany();
     		
     		if($class == 'bank_IncomeDocument') {
     			
     			// Ако оригиналния документ е приходен, наредителя е контрагента
     			// а получателя е моята фирма
-    			$myCompany = crm_Companies::fetchOwnCompany();
+    			
     			$form->setDefault('beneficiaryName', $myCompany->company);
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
     			$form->setDefault('beneficiaryIban', $ownAcc->iban);
     			$form->setDefault('orderer', $rec->contragentName);
     			$orderIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
     			$form->setSuggestions('ordererIban', $orderIbans);
+    		} elseif($class == 'bank_CostDocument') {
     			
-    			
-    		} else {
     			// Ако оригиналния документ е приходен, наредителя е моята фирма
     			// а получателя е контрагента
-    			//@TODO 
+    			$form->setDefault('orderer', $myCompany->company);
+    			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+    			$form->setDefault('ordererIban', $ownAcc->iban);
+    			$beneficiaryIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
+    			$form->setSuggestions('beneficiaryIban', $beneficiaryIbans);
+    			$form->setDefault('beneficiaryName', $rec->contragentName);
     		}
-    		$accCode = currency_Currencies::getCodeById($rec->currencyId);
-    		$accCode = $form->getField('accCurrency')->type->toVerbal($accCode);
-    		$form->setDefault('accCurrency', $accCode);
-    		$form->setReadOnly('accCurrency');
     		
     	} else {
-    		//static::getOwnAccountBankInfo($data->form);
-    		
     		
     		// Поставяме стойности по подразбиране
 	    	$today = dt::verbal2mysql();
 	    	$form->setDefault('valior', $today);
-	    	//$form->setReadOnly('ownAccount');
+	    	$form->setDefault('currencyId', currency_Currencies::getIdByCode());
+    		static::getContragentInfo($data->form);
     	}
-    	
-    	static::getContragentInfo($data->form);
     }
     
     
     /**
-     * 
+     *  След изпращане на формата попълваме банката и бика ако неса
+     *  попълнени
      */
     static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		if(!$form->rec->execBank){
-		    		$form->rec->execBank = drdata_Banks::getBankName($form->rec->ordererIban);
-		    	}
+		    	$form->rec->execBank = drdata_Banks::getBankName($form->rec->ordererIban);
+		    }
+		    if(!$form->rec->execBankBic){
+		    	$form->rec->execBankBic = drdata_Banks::getBankBic($form->rec->ordererIban);
+		    }
     	}
     }
     
@@ -250,24 +250,6 @@ class bank_PaymentOrders extends core_Master
     			$form->setDefault('beneficiaryName', $contragentData->name);
     		}
     	}
-    	
-    	$options = bank_Accounts::getContragentIbans($contragentId, $contragentClassId);
-	   // $form->setSuggestions('beneficiaryIban', $options);
-    }
-    
-    
-    /**
-     *  Попълва формата с
-     *  Информацията за текущия банков акаунт и неговата банка
-     */
-    static function getOwnAccountBankInfo(core_Form $form)
-    {
-    	$rec = bank_OwnAccounts::fetch($form->rec->ownAccount);
-    	$accRec = bank_Accounts::fetch($rec->bankAccountId);
-    	$accCode = currency_Currencies::fetchField($accRec->currencyId, 'code');
-    	$accCode = $form->getField('accCurrency')->type->toVerbal($accCode);
-    	$form->setDefault('accCurrency', $accCode);
-    	$form->setReadOnly('accCurrency');
     }
     
     
@@ -282,19 +264,16 @@ class bank_PaymentOrders extends core_Master
     		
     		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	
-	    	$myCompany = crm_Companies::fetchOwnCompany();
-	    	$row->orderer = $myCompany->company;
-	    	
-	    	// Извличаме името на банката и BIC-а  от нашата сметка
-	    	//$row->execBank = drdata_Banks::getBankName($row->account);
-	    	//$row->execBankBic = drdata_Banks::getBankBic($row->account);
+	    	//$myCompany = crm_Companies::fetchOwnCompany();
+	    	//$row->orderer = $myCompany->company;
 	    	
 	    	// Временно решение за рендирането на знака # пред iban-a ако го има
-	    	$row->beneficiaryIban = $rec->beneficiaryIban;
+	    	//$row->beneficiaryIban = $rec->beneficiaryIban;
 	    	
 	    	// Извличаме името на банката и BIC-а на получателя от IBAN-а му
 	    	$row->contragentBank = drdata_Banks::getBankName($rec->beneficiaryIban);
 	    	$row->contragentBankBic = drdata_Banks::getBankBic($rec->beneficiaryIban);
+	    	
 	    	
 	    	// При принтирането на 'Чернова' скриваме системните полета и заглавието
 	    	if(Mode::is('printing')){

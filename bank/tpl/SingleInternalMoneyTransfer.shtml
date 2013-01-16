@@ -4,11 +4,9 @@
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
-
 	<div class='header [#STATE_CLASS#]'>
-	   <div class='docBgIcon' style='[#iconStyle#]'>Вътрешен Паричен Трансфер [#number#]/[#valior#] ([#state#])</div>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
-	
 	<table>
 		<tr>
 			<td valign="top" style="padding-right: 5em;">

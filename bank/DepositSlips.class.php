@@ -115,13 +115,6 @@ class bank_DepositSlips extends core_Master
     
     
     /**
-     * Параметри за принтиране
-     */
-    var $printParams = array( array('Оригинал'),
-    						  array('Копие'),); 
-
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -130,7 +123,7 @@ class bank_DepositSlips extends core_Master
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,width=16em');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,width=16em,mandatory');
     	$this->FLD('execBankBranch', 'varchar(255)', 'caption=До->Клон,width=16em');
         $this->FLD('execBankAdress', 'varchar(255)', 'caption=До->Адрес,width=16em');
     	$this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
@@ -146,11 +139,14 @@ class bank_DepositSlips extends core_Master
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$form = &$data->form;
-    	$originId = Request::get('originId');
+    	$originId = $form->rec->originId;
     	
     	//Извличаме дефолт информацията от последния запис в папката
     	$query = static::getQuery();
     	$query->where("#folderId = {$form->rec->folderId}");
+    	if($form->rec->threadId) {
+    		$query->where("#threadId = {$form->rec->threadId}");
+    	}
     	$query->orderBy('createdOn', 'DESC');
     	$query->limit(1);
     	if($lastRec = $query->fetch()) {
@@ -171,7 +167,7 @@ class bank_DepositSlips extends core_Master
     		$dId = $doc->that;
     		$rec = $class::fetch($dId);
     		$data->origin = $rec;
-    		//bp($doc);
+    		
     		// Извличаме каквато информация можем от оригиналния документ
     		$form->setDefault('currencyId', $rec->currencyId);
     		$form->setDefault('amount', $rec->amount);
@@ -187,11 +183,18 @@ class bank_DepositSlips extends core_Master
 	    		$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
 	    		$form->setDefault('beneficiaryIban', $ownAccount->iban);
 	    		$form->setDefault('beneficiaryBank', $ownAccount->bank);
-	    		$form->setDefault('depositor', $rec->contragentName);
+	    		
+	    		// Ако контрагента е лице, слагаме името му за получател
+	    		if($rec->contragentClassId != crm_Companies::getClassId()){
+	    			$form->setDefault('depositor', $rec->contragentName);
+	    		}
     		
     		} else {
-    			// @TODO ако е Разходен банков документ
-    		}
+    			$myCompany = crm_Companies::fetchOwnCompany();
+	    		$form->setDefault('beneficiaryName', $rec->contragentName);
+	    		$beneficiaryIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
+    			$form->setSuggestions('beneficiaryIban', $beneficiaryIbans);
+	    	}
     		
     	} else {
     	
@@ -274,6 +277,15 @@ class bank_DepositSlips extends core_Master
     	}
     }
     
+    
+ static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		if(!$form->rec->beneficiaryIban){
+		    	$form->rec->beneficiaryIban = drdata_Banks::getBankName($form->rec->beneficiaryIban);
+		    }
+    	}
+    }
     
 	/**
      * Вкарваме css файл за единичния изглед
