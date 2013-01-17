@@ -143,7 +143,7 @@ class bgerp_Notifications extends core_Manager
      * Скрива посочените записи
      * Обикновено след Reject
      */
-    static function setHidden($urlArr, $hidden = 'yes') 
+    static function setHidden($urlArr, $hidden = 'yes', $userId=NULL) 
     {
         $url = toUrl($urlArr, 'local');
         
@@ -151,6 +151,10 @@ class bgerp_Notifications extends core_Manager
 
         $query->where("#url = '{$url}'");
 
+        if ($userId) {
+            $query->where("#userId = '{$userId}'");
+        }
+        
         while($rec = $query->fetch()) {
             $rec->hidden = $hidden;
             self::save($rec);
