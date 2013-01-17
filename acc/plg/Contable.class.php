@@ -24,22 +24,9 @@ class acc_plg_Contable extends core_Plugin
      */
     function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->interfaces = arr::make($mvc->interfaces);
-        $mvc->interfaces['acc_TransactionSourceIntf'] = 'acc_TransactionSourceIntf';
-        $mvc->fields['state']->type->options['revert'] = 'Сторниран';
+        $mvc->declareInterface('acc_TransactionSourceIntf');
         
-        if (!$mvc->getField('isContable', FALSE)) {
-            $mvc->FNC('isContable', 'int', 'column=none');
-        }
-    }
-
-
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable = ($rec->state == 'draft');
+        $mvc->fields['state']->type->options['revert'] = 'Сторниран';
     }
     
     
@@ -98,10 +85,8 @@ class acc_plg_Contable extends core_Plugin
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'conto') {
-            if ($rec->id) {
-                if (!$rec->isContable) {
-                    $requiredRoles = 'no_one';
-                }
+            if ($rec->id && $rec->state != 'draft') {
+                $requiredRoles = 'no_one';
             }
         } elseif ($action == 'revert') {
             if ($rec->id) {
