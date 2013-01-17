@@ -80,6 +80,22 @@ class doc_Threads extends core_Manager
         // Манипулатор на нишката (thread handle)
         $this->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
         
+        // Състоянието на последния документ в нишката
+        $this->FLD('lastState', 'enum(draft=Чернова,
+                  pending=Чакащо,
+                  active=Активирано,
+                  opened=Отворено,
+                  waiting=Чакащо,
+                  closed=Приключено,
+                  hidden=Скрито,
+                  rejected=Оттеглено,
+                  stopped=Спряно,
+                  wakeup=Събудено,
+                  free=Освободено)','caption=Последно->състояние, input=none');
+        
+        // Създателя на последния документ в нишката
+        $this->FLD('lastAuthor', 'key(mvc=core_Users)', 'caption=Последно->От, input=none');
+        
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
     }
@@ -616,10 +632,10 @@ class doc_Threads extends core_Manager
             // Последния документ в треда
             $rec->last = $lastDcRec->createdOn;
             
-            // Ако имаме добавяне/махане на документ от треда, тогава състоянието му
-            // се определя от последния документ в него
-            if($rec->allDocCnt != $exAllDocCnt) {
-                if($lastDcRec) {
+            // Ако имаме добавяне/махане на документ от треда или промяна на състоянието към активно
+            // тогава състоянието му се определя от последния документ в него
+            if(($rec->allDocCnt != $exAllDocCnt) || ($rec->lastState && ($lastDcRec->state != $rec->lastState))) {
+                if($lastDcRec && $lastDcRec->state == 'active') {
                     $doc = doc_Containers::getDocument($lastDcRec->id);
                     $newState = $doc->getThreadState();
                     
@@ -629,12 +645,29 @@ class doc_Threads extends core_Manager
                 }
             }
             
+            if ($lastDcRec) {
+                
+                // Състоянието на последния документ
+                $rec->lastState = $lastDcRec->state;
+                
+                if (isset($lastDcRec->createdBy)) {
+                    
+                    // Създателя на последния докуемент
+                    $rec->lastAuthor = $lastDcRec->createdBy;    
+                }
+            }
+            
+            // Състоянието по подразбиране за последния документ е затворено
+            if(!$rec->lastState) {
+                $rec->lastState = 'closed';
+            }
+            
             // Състоянието по подразбиране за треда е затворено
             if(!$rec->state) {
                 $rec->state = 'closed';
             }
             
-            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy');
+            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor');
             
             // Първия документ 
             if($firstDcRec->state == 'rejected' && $rec->state != 'rejected') {
