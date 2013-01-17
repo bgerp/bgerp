@@ -437,10 +437,10 @@ class core_Packs extends core_Manager
         
         if($setupFlag) {
 			if ($setupLog) { // Зануляваме лога ако инсталацията минава за първи път
-				file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
+				file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
 				$setupLog = FALSE;
 			}
-        	file_put_contents(EF_SBF_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND);
+        	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND);
         }
         
         // Проверка дали Setup класа съществува
