@@ -772,14 +772,14 @@ class email_Outgoings extends core_Master
         if ($contragentData) {
             
             //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
-            $rec->recipient = tr($contragentData->company);
-            $rec->attn      = tr($contragentData->name);
-            $rec->country   = tr($contragentData->country);
+            $rec->recipient = $contragentData->company;
+            $rec->attn      = $contragentData->name;
+            $rec->country   = $contragentData->country;
             $rec->pcode     = $contragentData->pCode;
-            $rec->place     = tr($contragentData->place);
+            $rec->place     = $contragentData->place;
             
             //Телефонен номер. Ако има се взема от компанията, aко няма, от мобилния. В краен случай от персоналния (домашен).
-            ($contragentData->tel) ? ($rec->tel = $contragentData->tel) : ($rec->tel = $contragentData->pMobile);
+            $rec->tel = ($contragentData->tel) ? ($rec->tel = $contragentData->tel) : ($rec->tel = $contragentData->pMobile);
             
             if (!$rec->tel) $rec->tel = $contragentData->pTel;
             
@@ -787,7 +787,7 @@ class email_Outgoings extends core_Master
             $rec->fax = $contragentData->fax ? $contragentData->fax : $contragentData->pFax;
             
             //Адрес. Прави опит да вземе адреса на компанията. Ако няма тогава взема персоналния.
-            $rec->address = tr($contragentData->address ? $contragentData->address : $contragentData->pAddress);
+            $rec->address = $contragentData->address ? $contragentData->address : $contragentData->pAddress;
             
             //Имейл. Прави опит да вземе имейл-а на компанията. Ако няма тогава взема персоналния.
             $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
@@ -869,7 +869,7 @@ class email_Outgoings extends core_Master
         //Заместваме шаблоните
         $tpl->replace(tr($data['hello']), 'hello');
         $tpl->replace(tr($data['salutation']), 'salutation');
-        $tpl->replace(tr($data['name']), 'name');
+        $tpl->replace($data['name'], 'name');
 
         return $tpl->getContent();
     }
@@ -925,7 +925,7 @@ class email_Outgoings extends core_Master
             unset($country);
         }
         
-        $tpl = new ET(tr(getFileContent("email/tpl/OutgoingFooter.shtml")));
+        $tpl = new ET(tr('|*' . getFileContent("email/tpl/OutgoingFooter.shtml")));
         
         //Заместваме шаблоните
         $tpl->replace(tr($userName), 'name');
@@ -1123,18 +1123,6 @@ class email_Outgoings extends core_Master
         
         return $row;
     }
-    
-    //    /**
-    //     * Потребителите, с които е споделен този документ
-    //     *
-    //     * @return string keylist(mvc=core_Users)
-    //     * @see doc_DocumentIntf::getShared()
-    //     */
-    //    function getShared($id)
-    //    {
-    ////        return static::fetchField($id, 'sharedUsers');
-    //    }
-    
     
     
     /**

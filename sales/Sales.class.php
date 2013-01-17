@@ -25,7 +25,8 @@ class sales_Sales extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
+                          acc_RegisterIntf=sales_RegisterImpl';
     
     
     /**
@@ -36,7 +37,7 @@ class sales_Sales extends core_Master
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
-                    doc_plg_BusinessDoc';
+                    doc_plg_BusinessDoc, acc_plg_Registry';
     
     
     /**
@@ -125,6 +126,14 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Списък от systemId-та на номеклатури, в които документа се добавя автоматично
+     * 
+     * @var string|array
+     */
+    public $autoList = 'sales';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -178,14 +187,16 @@ class sales_Sales extends core_Master
             'caption=Наш персонал->Инициатор');
         $this->FLD('dealerId', 'user(roles=sales,allowEmpty)',
             'caption=Наш персонал->Търговец');
-        // По подразбиране е отговорника на папката на контрагента, ако той има такава роля, 
-        // иначе е текущият потребител, ако той има такава роля, иначе е празен        
 
         /*
          * Допълнително
          */
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
+    }
+    
+    public static function on_AfterSave($mvc)
+    {
     }
 
 
@@ -242,8 +253,66 @@ class sales_Sales extends core_Master
         
         $form->setDefault('date', dt::now());
         
-        $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent());
-        $form->setDefault('caseId', cash_Cases::getCurrent());
+        $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
+        $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
+        $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
+        
+        if (empty($data->form->rec->dealerId)) {
+            $form->setDefault('dealerId', $mvc::getDefaultDealer($data->form->rec));
+        }
+        
+        if (empty($data->form->rec->currencyId)) {
+            $form->setDefault('currencyId', $mvc::getDefaultCurrencyCode($data->form->rec));
+        }
+        
+        $form->setDefault('makeInvoice', 'yes');
+    }
+    
+    
+    /**
+     * Помощен метод за определяне на търговец по подразбиране.
+     * 
+     * Правило за определяне:
+     * 
+     *  1/ Отговорника на папката на контрагента, ако той има роля sales;
+     *  2/ Текущият потребител, ако той има роля sales
+     *  3/ иначе е празен (NULL)
+     *
+     * @param stdClass $rec запис на модела sales_Sales
+     * @return int|NULL user(roles=sales)
+     */
+    public static function getDefaultDealer($rec)
+    {
+        expect($rec->folderId);
+        
+        $requiredRole   = 'sales';
+
+        $inChargeUserId = doc_Folders::fetchField($rec->folderId, 'inCharge');
+        if (core_Users::haveRole($requiredRole, $inChargeUserId)) {
+            // Отговорника на папката има роля 'sales'
+            return $inChargeUserId;
+        }
+        
+        $currentUserId = core_Users::getCurrent('id');
+        if (core_Users::haveRole($requiredRole, $currentUserId)) {
+            return $currentUserId;
+        }
+        
+        return NULL;
+    }
+    
+    
+    /**
+     * Определяне на валутата по подразбиране при нова продажба.
+     * 
+     * @param stdClass $rec
+     * @param string 3-буквен ISO код на валута (ISO 4217) 
+     */
+    public static function getDefaultCurrencyCode($rec)
+    {
+        $currencyBaseCode = core_Packs::getConfig('currency')->CURRENCY_BASE_CODE;
+         
+        return $currencyBaseCode;
     }
     
     

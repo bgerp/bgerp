@@ -413,12 +413,12 @@ class email_Incomings extends core_Master
         } else {
             $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid);
             
-            if(($maxReadMsgNo == FALSE) || ($maxReadMsgNo >= $maxMsgNo)) {
+            if(($maxReadMsgNo === FALSE) || ($maxReadMsgNo >= $maxMsgNo)) {
                 $maxReadMsgNo = NULL;
             } else {
                 $maxReadMsgNo++;
             }
-
+            
             return $maxReadMsgNo;
         }
     }

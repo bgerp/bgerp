@@ -31,15 +31,14 @@ class bank_PaymentOrders extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
+    var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
+     	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg,doc_plg_MultiPrint, bgerp_plg_Blank';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, createdOn, createdBy";
     
     
     /**
@@ -111,14 +110,8 @@ class bank_PaymentOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, contragentName';
+    var $searchFields = 'valior, beneficiaryName';
     
-    
-    /**
-     * Параметри за принтиране
-     */
-    var $printParams = array( array('Оригинал'),
-    						  array('Копие'),); 
 
     /**
      * Описание на модела
@@ -131,20 +124,15 @@ class bank_PaymentOrders extends core_Master
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('moreReason', 'text(rows=2)', 'caption=Допълнително,width=100%');
     	$this->FLD('paymentSystem', 'enum(bisera=БИСЕРА,rings=РИНГС)','caption=Пл. система,default=bisera,width=6em');
-    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От сметка->IBAN,mandatory,width=16em');
-    	$this->FNC('accCurrency', 'varchar', 'caption=От сметка->Валута,width=6em,input');
-    	$this->FLD('execBranch', 'varchar(255)', 'caption=От сметка->Клон,width=16em');
-        $this->FLD('execBranchAddress', 'varchar(255)', 'caption=От сметка->Адрес,width=16em');
-        $this->FLD('contragentName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
-    	$this->FLD('contragentIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
-        $this->FLD('debitAccount', 'acc_type_Account(maxColumns=1)', 'caption=Получател->Сч. сметка,mandatory');
-    	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
-    	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
-        $this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
-            'caption=Статус, input=none'
-        );
-    }
+    	$this->FLD('orderer', 'varchar(255)', 'caption=Наредител->Име,mandatory,width=16em');
+    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Б. Сметка,mandatory,width=16em');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em');
+    	$this->FLD('execBankBic', 'varchar(255)', 'caption=Наредител->BIC,width=16em');
+    	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em');
+        $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em');
+        $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
+    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
+     }
     
     
     /**
@@ -152,55 +140,90 @@ class bank_PaymentOrders extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	static::setDefaults($data->form);
-    	static::getContragentInfo($data->form);
-    	static::getOwnAccountBankInfo($data->form);
-    	static::getPossibleAccounts($data->form);
-    }
-    
-    
-    /**
-     * Попълваме стойностите по-подразбиране взети от последния документ
-     * от същия тип в папката
-     */
-    function setDefaults(core_Form $form)
-    {
+    	$form = &$data->form;
+    	$originId = $form->rec->originId;
+    	
+    	// Намираме кой е последния запис от този клас в същия тред
     	$query = static::getQuery();
     	$query->where("#folderId = {$form->rec->folderId}");
+    	if($form->rec->threadId) {
+    		$query->where("#threadId = {$form->rec->threadId}");
+    	} 
     	$query->orderBy('createdOn', 'DESC');
     	$query->limit(1);
     	if($lastRec = $query->fetch()) {
     		$form->setDefault('execBranch', $lastRec->execBranch);
     		$form->setDefault('currencyId', $lastRec->currencyId);
+    		$form->setDefault('execBank', $lastRec->execBank);
+    		$form->setDefault('execBankBic', $lastRec->execBankBic);
+    		$form->setDefault('execBranch', $lastRec->execBranch);
     		$form->setDefault('execBranchAddress', $lastRec->execBranchAddress);
-    		$form->setDefault('ownAccount', $lastRec->ownAccount);
-    		$form->setDefault('contragentIban', $lastRec->contragentIban);
+    		$form->setDefault('orderer', $lastRec->orderer);
+    		$form->setDefault('ordererIban', $lastRec->ordererIban);
+    		$form->setDefault('beneficiaryName', $lastRec->beneficiaryName);
+    		$form->setDefault('beneficiaryIban', $lastRec->beneficiaryIban);
+    	} 
+	    
+    	if($originId) {
+    		$doc = doc_Containers::getDocument($originId);
+    		$class = $doc->className;
+    		$dId = $doc->that;
+    		$rec = $class::fetch($dId);
+    		
+    		$form->setDefault('currencyId', $rec->currencyId);
+    		$form->setDefault('amount', $rec->amount);
+    		$form->setDefault('reason', $rec->reason);
+    		$form->setDefault('valior', $rec->valior);
+    		$myCompany = crm_Companies::fetchOwnCompany();
+    		
+    		if($class == 'bank_IncomeDocument') {
+    			
+    			// Ако оригиналния документ е приходен, наредителя е контрагента
+    			// а получателя е моята фирма
+    			
+    			$form->setDefault('beneficiaryName', $myCompany->company);
+    			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+    			$form->setDefault('beneficiaryIban', $ownAcc->iban);
+    			$form->setDefault('orderer', $rec->contragentName);
+    			$orderIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
+    			$form->setSuggestions('ordererIban', $orderIbans);
+    		} elseif($class == 'bank_CostDocument') {
+    			
+    			// Ако оригиналния документ е приходен, наредителя е моята фирма
+    			// а получателя е контрагента
+    			$form->setDefault('orderer', $myCompany->company);
+    			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+    			$form->setDefault('ordererIban', $ownAcc->iban);
+    			$beneficiaryIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
+    			$form->setSuggestions('beneficiaryIban', $beneficiaryIbans);
+    			$form->setDefault('beneficiaryName', $rec->contragentName);
+    		}
+    		
+    	} else {
+    		
+    		// Поставяме стойности по подразбиране
+	    	$today = dt::verbal2mysql();
+	    	$form->setDefault('valior', $today);
+	    	$form->setDefault('currencyId', currency_Currencies::getIdByCode());
+    		static::getContragentInfo($data->form);
     	}
-
-    	// Поставяме стойности по подразбиране
-    	$today = dt::verbal2mysql();
-        $form->setDefault('currencyId', currency_Currencies::getIdByCode());
-    	$form->setDefault('valior', $today);
-    	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
-    	$form->setReadOnly('ownAccount');
     }
     
     
     /**
-     * Попълва формата със 
-     * Списък от Сч.сметки които можем да дебитираме 
+     *  След изпращане на формата попълваме банката и бика ако неса
+     *  попълнени
      */
-    function getPossibleAccounts(core_Form $form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$options = array();
-    	$conf = core_Packs::getConfig('bank');
-    	$array = type_Keylist::toArray($conf->BANK_PO_DEBIT_ACC);
-    	foreach($array as $id) {
-    		$rec = acc_Accounts::fetch($id);
-    		$options[$rec->id] = acc_Accounts::getRecTitle($rec);
+    	if($form->isSubmitted()){
+    		if(!$form->rec->execBank){
+		    	$form->rec->execBank = drdata_Banks::getBankName($form->rec->ordererIban);
+		    }
+		    if(!$form->rec->execBankBic){
+		    	$form->rec->execBankBic = drdata_Banks::getBankBic($form->rec->ordererIban);
+		    }
     	}
-    	
-    	$form->setOptions('debitAccount', $options);
     }
     
     
@@ -220,46 +243,12 @@ class bank_PaymentOrders extends core_Master
     	if($contragentData) {
     		if($contragentData->company) {
     			
-    			$form->setDefault('contragentName', $contragentData->company);
+    			$form->setDefault('beneficiaryName', $contragentData->company);
     		} elseif ($contragentData->name) {
     			
     			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('contragentName', $contragentData->name);
+    			$form->setDefault('beneficiaryName', $contragentData->name);
     		}
-    		$form->setReadOnly('contragentName');
-    	}
-    	
-    	$options = bank_Accounts::getContragentIbans($contragentId, $contragentClassId);
-	    $form->setSuggestions('contragentIban', $options);
-    }
-    
-    
-    /**
-     *  Попълва формата с
-     *  Информацията за текущия банков акаунт и неговата банка
-     */
-    static function getOwnAccountBankInfo(core_Form $form)
-    {
-    	$rec = bank_OwnAccounts::fetch($form->rec->ownAccount);
-    	$accRec = bank_Accounts::fetch($rec->bankAccountId);
-    	$accCode = currency_Currencies::fetchField($accRec->currencyId, 'code');
-    	$accCode = $form->getField('accCurrency')->type->toVerbal($accCode);
-    	$form->setDefault('accCurrency', $accCode);
-    	$form->setReadOnly('accCurrency');
-    }
-    
-    
-    /**
-     * Обработка след като формата е събмитната
-     */
-    function on_AfterInputEditForm($mvc, $form)
-    {
-    	if ($form->isSubmitted()){
-    		$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-    		$contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
-    		$contragentIban = $form->rec->contragentIban;
-    		$form->rec->contragentId = $contragentId;
-    		$form->rec->contragentClassId = $contragentClassId;
     	}
     }
     
@@ -273,49 +262,24 @@ class bank_PaymentOrders extends core_Master
     	
     	if($fields['-single']) {
     		
-    		$params = array('contragentCls' => $rec->contragentClassId,
-    						'contragentId' => $rec->contragentId,);
-    		$test = new bank_AskForSave('bank_Accounts', 'iban', $rec->contragentIban, $params);
-    		if($test->hasToSave) {
-    			$row->reminder = $test->placeReminder();
-    		}
-    		
     		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	
-	    	$myCompany = crm_Companies::fetchOwnCompany();
-	    	$row->orderer = $myCompany->company;
-	    	
-	    	// Извличаме името на банката и BIC-а  от нашата сметка
-	    	$row->execBank = drdata_Banks::getBankName($row->ownAccount);
-	    	$row->execBankBic = drdata_Banks::getBankBic($row->ownAccount);
-	    	
-	    	$debitRec = acc_Accounts::fetch($rec->debitAccount);
-	    	$row->debitAccount = acc_Accounts::getRecTitle($debitRec);
-	    	$conf = core_Packs::getConfig('bank');
-	    	
-	    	$creditRec = acc_Accounts::fetch("#systemId = {$conf->BANK_PO_CREDIT_SYSID}");
-	    	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
+	    	//$myCompany = crm_Companies::fetchOwnCompany();
+	    	//$row->orderer = $myCompany->company;
 	    	
 	    	// Временно решение за рендирането на знака # пред iban-a ако го има
-	    	$row->contragentIban = $rec->contragentIban;
+	    	//$row->beneficiaryIban = $rec->beneficiaryIban;
 	    	
 	    	// Извличаме името на банката и BIC-а на получателя от IBAN-а му
-	    	$row->contragentBank = drdata_Banks::getBankName($rec->contragentIban);
-	    	$row->contragentBankBic = drdata_Banks::getBankBic($rec->contragentIban);
+	    	$row->contragentBank = drdata_Banks::getBankName($rec->beneficiaryIban);
+	    	$row->contragentBankBic = drdata_Banks::getBankBic($rec->beneficiaryIban);
+	    	
 	    	
 	    	// При принтирането на 'Чернова' скриваме системните полета и заглавието
 	    	if(Mode::is('printing')){
-	    		if($rec->state == 'draft') {
 	    			unset($row->header);
-	    			unset($row->createdBy);
-	    			unset($row->createdOn);
-	    			unset($row->debitAccount);
-	    			unset($row->creditAccount);
-	    		}
-	    		
-	    		unset($row->notification);
 	    	}
-    	}
+	    }
     }
     
     

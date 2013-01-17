@@ -20,10 +20,9 @@ class acc_plg_Registry extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->interfaces = arr::make($mvc->interfaces);
-        $mvc->interfaces['acc_RegisterIntf'] = 'acc_RegisterIntf';
+        $mvc->declareInterface('acc_RegisterIntf');
         
         // Подсигуряваме, че първичния ключ на регистъра-приемник ще се запомни преди изтриване
         $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
@@ -76,7 +75,7 @@ class acc_plg_Registry extends core_Plugin
      */
     function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
-        if (static::supportExtenders($mvc) || static::hasDetail($mvc, 'ObjectLists')) {
+        if (static::supportExtenders($mvc)) {
             return;
         }
         

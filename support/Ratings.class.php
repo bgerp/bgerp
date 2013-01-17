@@ -177,19 +177,6 @@ class support_Ratings extends core_Master
 
 
     /**
-     * Потребителите, с които е споделен този документ
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    static function getShared($id)
-    {
-
-        return static::fetchField($id, 'sharedUsers');
-    }
-    
-    
-    /**
      * Проверка дали нов документ може да бъде
      * добавен в посочената нишк-а
      *

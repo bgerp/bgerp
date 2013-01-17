@@ -1,38 +1,26 @@
 <?php
 /**
- * Клас 'sales_SalesSales'
+ * Клас 'boilerplate_Manager'
  *
- * Детайли на мениджър на документи за продажба на продукти от каталога (@see sales_Sales)
+ * Шаблон за bgerp мениджър
+ *
  *
  * @category  bgerp
- * @package   sales
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @package   [име на пакет]
+ * @author    [Име на автора] <[имейл на автора]>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @todo      Текстовете в [правоъгълни скоби] да се заменят със съотв. стойности
  */
-class sales_SalesDetails extends core_Detail
+class boilerplate_Manager extends core_Manager
 {
     /**
-     * Заглавие
+     * Заглавие в множествено число
      * 
      * @var string
      */
-    public $title = 'Детайли на Продажби';
-
-
-    /**
-     * Заглавие в единствено число
-     *
-     * @var string
-     */
-    public $singleTitle = 'Продукт';
-    
-    
-    /**
-     * Име на поле от модела, външен ключ към мастър записа
-     */
-    public $masterKey = 'saleId';
+    public $title;
     
     
     /**
@@ -40,8 +28,15 @@ class sales_SalesDetails extends core_Detail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
-                        plg_AlignDecimals';
+    public $loadList;
+
+
+    /**
+     * Поддържани интерфейси
+     * 
+     * var string|array
+     */
+    public $interfaces;
     
     
     /**
@@ -49,14 +44,14 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string
      */
-    public $menuPage = 'Търговия:Продажби';
+    public $menuPage;
     
     /**
      * Кой има право да чете?
      * 
      * @var string|array
      */
-    public $canRead = 'admin, sales';
+    public $canRead;
     
     
     /**
@@ -64,7 +59,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canEdit = 'admin, sales';
+    public $canEdit;
     
     
     /**
@@ -72,7 +67,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canAdd = 'admin, sales';
+    public $canAdd;
     
     
     /**
@@ -80,7 +75,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canView = 'admin, sales';
+    public $canView;
     
     
     /**
@@ -88,7 +83,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canDelete = 'admin, sales';
+    public $canDelete;
     
     
     /**
@@ -109,97 +104,48 @@ class sales_SalesDetails extends core_Detail
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      * 
      * @var string
+     * @see plg_RowTools
      */
     public $rowToolsField;
     
+
+    /**
+     * Заглавие в единствено число
+     * 
+     * @var string
+     */
+    public $singleTitle;
+
     
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
-        $this->FLD('quantityOrdered', 'float', 'caption=Количество');
-        $this->FLD('price', 'float(minDecimals=2)', 'caption=Цена');
-        $this->FLD('discount', 'percent', 'caption=Отстъпка');
-        $this->FNC('amount', 'float(minDecimals=2)', 'caption=Сума');
-    }
-    
-    
-    /**
-     * Изчисляване на сумата на реда
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     */
-    public function on_CalcAmount(core_Mvc $mvc, $rec)
-    {
-        if (empty($rec->price) || empty($rec->quantityOrdered)) {
-            return;
-        }
-        
-        $rec->amount = $rec->price * $rec->quantityOrdered;
-        
-        if (!empty($rec->discount)) {
-            $rec->amount *= (1-$rec->discount);
-        }
-    }
-    
-    
-    public static function on_AfterDescription(core_Mvc $mvc)
-    {
-        // Скриване на полетата за създаване
-        $mvc->setField('createdOn', 'column=none');
-        $mvc->setField('createdBy', 'column=none');
     }
 
+
+    /**
+     * След дефиниране на полетата на модела
+     * 
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+    }
+    
 
     /**
      * Извиква се след успешен запис в модела
-     * 
-     * @param core_Detail $mvc
+     *
+     * @param core_Mvc $mvc
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Detail $mvc, &$id, $rec)
+    public static function on_AfterSave(coreMvc $mvc, &$id, $rec)
     {
-        // Подсигуряваме наличието на ключ към мастър записа
-        if (empty($rec->{$mvc->masterKey})) {
-            $rec->{$mvc->masterKey} = $mvc->fetchField($rec->id, $mvc->masterKey);
-        }
-        
-        $mvc->updateMasterSummary($rec->{$mvc->masterKey}, $rec);
     }
-
     
-    /**
-     * Обновява агрегатни стойности в мастър записа
-     * 
-     * @param int $masterId ключ на мастър модела
-     * @param stdClass $hotRec запис на модела, промяната на който е предизвикала обновяването
-     */
-    public function updateMasterSummary($masterId, $hotRec = NULL)
-    {
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        
-        $amountDeal = 0;
-        
-        $query->where("#{$this->masterKey} = '{$masterId}'");
-        
-        while ($rec = $query->fetch()) {
-            $amountDeal += $rec->amount;
-        }
-        
-        sales_Sales::save(
-            (object)array(
-                'id' => $masterId,
-                'amountDeal' => $amountDeal
-            )
-        );
-    }
 
     /**
      * Извиква се преди изпълняването на екшън

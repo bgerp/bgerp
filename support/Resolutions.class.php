@@ -175,19 +175,6 @@ class support_Resolutions extends core_Master
         return 'closed';
     }
 
-
-    /**
-     * Потребителите, с които е споделен този документ
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    static function getShared($id)
-    {
-
-        return static::fetchField($id, 'sharedUsers');
-    }
-    
     
     /**
      * Проверка дали нов документ може да бъде

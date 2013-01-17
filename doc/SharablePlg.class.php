@@ -164,4 +164,17 @@ class doc_SharablePlg extends core_Plugin
         
         return $htmlStr;
     }
+    
+    
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::getShared()
+     */
+    function on_AfterGetShared($mvc, &$shared, $id)
+    {
+        // Потребители на коит е споделен документа
+        $sharedInDocs = $mvc->fetchField($id, 'sharedUsers');
+        
+        // Обединяваме потребителите, на които е споделен
+        $shared = type_Keylist::merge($sharedInDocs, $shared);    
+    }
 }

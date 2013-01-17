@@ -250,12 +250,6 @@ class doc_AssignPlg extends core_Plugin
         
         // Добавяме нотофикация
         bgerp_Notifications::add($message, $url, $assignUserId, $priority, $customUrl);
-        
-        // Добавяме потребителя, за да има достъп до нишката
-        doc_ThreadUsers::addShared($threadId, $containerId, $assignUserId);
-        
-        // Упдейтваме нишката
-        doc_Threads::updateThread($threadId);
     }
     
     
@@ -277,5 +271,18 @@ class doc_AssignPlg extends core_Plugin
             // Вербалната стойност
             $row->assignedDate = dt::mysql2verbal($rec->assignedDate, 'd-m-Y');    
         }
+    }
+    
+    
+    /**
+     * Потребителя, на когото е възложена задачата
+     */
+    function on_AfterGetShared($mvc, &$shared, $id)
+    {
+        // Възложен на
+        $assignedUser = $mvc->fetchField($id, 'assign');
+        
+        // Обединява с другите шерната потребители
+        $shared = type_Keylist::merge($assignedUser, $shared);
     }
 }

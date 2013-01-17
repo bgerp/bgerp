@@ -2,7 +2,7 @@
 
 
 /**
- * Приходен Банков Документ
+ * Разходен Банков Документ
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_IncomeDocument extends core_Master
+class bank_CostDocument extends core_Master
 {
     
     
@@ -25,7 +25,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Приходен Банков Документ";
+    var $title = "Разходни Банкови Документи";
     
     
     /**
@@ -57,7 +57,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Приходен Банков Документ';
+    var $singleTitle = 'Разходен Банков Документ';
     
     
     /**
@@ -69,7 +69,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Pbd";
+    var $abbr = "Rbd";
     
     
     /**
@@ -105,7 +105,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'bank/tpl/SingleIncomeDocument.shtml';
+    var $singleLayoutFile = 'bank/tpl/SingleCostDocument.shtml';
     
     
     /**
@@ -125,8 +125,8 @@ class bank_IncomeDocument extends core_Master
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Код,width=6em');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory,width=16em');
-    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=В->Сметка,mandatory,width=16em');
+    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Б. сметка,mandatory,width=16em');
+    	$this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory,width=16em');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
     	$this->FLD('debitAccId', 'acc_type_Account()','caption=debit,width=300px,input=none');
@@ -139,7 +139,7 @@ class bank_IncomeDocument extends core_Master
     }
     
     
-	/**
+    /**
      * 
      */
 	static function on_CalcIsContable($mvc, $rec)
@@ -155,6 +155,7 @@ class bank_IncomeDocument extends core_Master
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$form = &$data->form;
+    	
     	$today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', currency_Currencies::getIdByCode());
@@ -163,12 +164,12 @@ class bank_IncomeDocument extends core_Master
     	
         $options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationId', $options);
-     
+    
         static::getContragentInfo($form);
     }
     
-     
-     /**
+    
+/**
       * @TODO
       */
      static function getContragentInfo(core_Form $form)
@@ -191,7 +192,7 @@ class bank_IncomeDocument extends core_Master
     		}
     		$form->setReadOnly('contragentName');
     	}
-     }
+    }
      
      
     /**
@@ -227,10 +228,12 @@ class bank_IncomeDocument extends core_Master
 	    		
 	    		$rec->rate = $rate;
     		}
+    		
     	}
     }
-     
-     /**
+    
+    
+    /**
      *  Обработки по вербалното представяне на данните
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -271,11 +274,21 @@ class bank_IncomeDocument extends core_Master
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$operation = acc_Operations::fetch($data->rec->operationId);
-    	if(acc_Lists::getPosition($operation->creditAccount, 'crm_ContragentAccRegIntf')) {
+    	
+    	// Ако дебитната сметка е за разплащания с контрагенти слагаме
+    	// бутони за генериране на платежно нареждане и вносна бележка
+    	// Ако е за разплащания с подочетни лице, слагаме бутон за
+    	// генерирането на нареждане-разписка
+    	if(acc_Lists::getPosition($operation->debitAccount, 'crm_ContragentAccRegIntf')) {
+    		
     		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    		$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	} elseif(acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf')) {
+    		
+    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     	}
     	
-    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	
     }
     
     
@@ -318,38 +331,11 @@ class bank_IncomeDocument extends core_Master
    	 */
     public static function getTransaction($id)
     {
-    	// Извличаме записа
-        expect($rec = self::fetch($id));
-        
-        $entrAmount = $rec->amount * $rec->rate;
-		
-        // Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
-            'reason' => $rec->reason,   // основанието за ордера
-            'valior' => $rec->valior,   // датата на ордера
-            'totalAmount' => $rec->amount * $rec->rate,
-            'entries' => array( (object)array(
-                'amount' => $entrAmount,
-                'debitAcc' => $rec->debitAccId,
-                'debitItem1' => (object)array('cls'=>'bank_OwnAccounts', 'id'=>$rec->ownAccount),
-                'debitItem2' => NULL,
-                'debitItem3' => NULL,
-                'debitQuantity' => $rec->amount,
-                'debitPrice' => $rec->rate,
-                'creditAcc' => $rec->creditAccId,
-                'creditItem1' => (object)array('cls'=>$rec->contragentClassId,'id'=>$rec->contragentId),
-                'creditItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),
-                'creditItem3' => NULL,
-                'creditQuantity' => $rec->amount,
-                'creditPrice' => $rec->rate,
-            ))
-        );
-        
-        return $result;
+    	//@TODO
     }
     
     
-    /**
+	/**
      * @param int $id
      * @return stdClass
      * @see acc_TransactionSourceIntf::rejectTransaction

@@ -999,13 +999,14 @@ class doc_DocumentPlg extends core_Plugin
     
     /**
      * Реализация по подразбиране на интерфейсния метод ::getShared()
+     * За фунцкии, които не използват doc_SharablePlg
      */
     function on_AfterGetShared($mvc, &$shared, $id)
-    {
-        $shared = NULL;
-    }
+    {  
+        
+    }  
     
-    
+        
     /**
      * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
      */
@@ -1293,5 +1294,4 @@ class doc_DocumentPlg extends core_Plugin
             $res = $mvc->singleIcon;
         }
     }
-
 }

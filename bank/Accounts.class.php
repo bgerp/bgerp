@@ -25,7 +25,7 @@ class bank_Accounts extends core_Master {
     /**
      * Заглавие
      */
-    var $title = 'Банкови сметки';
+    var $title = 'Всички сметки';
     
     
     /**
