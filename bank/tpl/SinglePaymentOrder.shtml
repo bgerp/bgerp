@@ -5,6 +5,9 @@
 </div>
 <!--ET_END header-->
 <div class='belejka_container'>
+<!--ET_BEGIN blank-->
+		[#blank#]
+<!--ET_END blank-->
 	<div class='belejka_header'>
             <div class='container'>
                 <div class='label_left'>До</div>

@@ -110,7 +110,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, beneficiaryName';
+    var $searchFields = 'valior, reason, beneficiaryName';
     
 
     /**
@@ -132,7 +132,8 @@ class bank_PaymentOrders extends core_Master
         $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em');
         $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
     	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
-     }
+     	$this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
+    }
     
     
     /**
@@ -170,6 +171,7 @@ class bank_PaymentOrders extends core_Master
     		$dId = $doc->that;
     		$rec = $class::fetch($dId);
     		
+    		$form->setDefault('originClassId', $class::getClassId());
     		$form->setDefault('currencyId', $rec->currencyId);
     		$form->setDefault('amount', $rec->amount);
     		$form->setDefault('reason', $rec->reason);
@@ -180,13 +182,13 @@ class bank_PaymentOrders extends core_Master
     			
     			// Ако оригиналния документ е приходен, наредителя е контрагента
     			// а получателя е моята фирма
-    			
     			$form->setDefault('beneficiaryName', $myCompany->company);
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
     			$form->setDefault('beneficiaryIban', $ownAcc->iban);
     			$form->setDefault('orderer', $rec->contragentName);
     			$orderIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
     			$form->setSuggestions('ordererIban', $orderIbans);
+    		
     		} elseif($class == 'bank_CostDocument') {
     			
     			// Ако оригиналния документ е приходен, наредителя е моята фирма
@@ -262,18 +264,9 @@ class bank_PaymentOrders extends core_Master
     	
     	if($fields['-single']) {
     		
-    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	
-	    	//$myCompany = crm_Companies::fetchOwnCompany();
-	    	//$row->orderer = $myCompany->company;
-	    	
-	    	// Временно решение за рендирането на знака # пред iban-a ако го има
-	    	//$row->beneficiaryIban = $rec->beneficiaryIban;
-	    	
-	    	// Извличаме името на банката и BIC-а на получателя от IBAN-а му
+    		// Извличаме името на банката и BIC-а на получателя от IBAN-а му
 	    	$row->contragentBank = drdata_Banks::getBankName($rec->beneficiaryIban);
 	    	$row->contragentBankBic = drdata_Banks::getBankBic($rec->beneficiaryIban);
-	    	
 	    	
 	    	// При принтирането на 'Чернова' скриваме системните полета и заглавието
 	    	if(Mode::is('printing')){
@@ -282,6 +275,27 @@ class bank_PaymentOrders extends core_Master
 	    }
     }
     
+    
+	/**
+	  * Функция която скрива бланката с логото на моята фирма
+	  * при принтиране ако документа е базиран на
+	  * "приходен банков документ"
+	  */
+	 function renderSingleLayout_($data)
+	 {
+	 	$tpl = parent::renderSingleLayout_($data);
+	 	if(Mode::is('printing')){
+	 		
+		 	if($data->row->originClassId == 'bank_IncomeDocument') {
+		 		
+		 		// скриваме логото на моята фирма
+		 		$tpl->replace('','blank');
+		 	}
+	 	}
+	 	
+	 	return $tpl;
+	 }
+	 
     
     /**
      * Вкарваме css файл за единичния изглед
@@ -339,5 +353,4 @@ class bank_PaymentOrders extends core_Master
     	
     	return $self->abbr . $rec->id;
     }
-    
 }

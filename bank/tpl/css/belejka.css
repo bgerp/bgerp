@@ -130,14 +130,6 @@
         letter-spacing: normal;
         }
 	/* END belejka_container */
-	.sysInfo {
-		margin-top:5px;
-		font-size:11px;
-	    border-collapse:collapse;
-        background-color:rgba(136,204,153,0.4);
-	    padding:2px;
-	    border:1px solid rgb(204, 204, 204);
-	}
 	
 	#doc-reminder {
 		margin-top:5px;
@@ -150,16 +142,7 @@
 		padding:3px;
 		border:1px solid rgb(204, 204, 204);
 	}
-	
-	.sysInfo td {
-		border:1px solid rgb(204, 204, 204);
-		padding-left:6px;
-		font-family:verdana;
-		color:rgb(88,88,91);
-		leter-spacing:0px;
-	}
-	
-	
+		
 #cCode {
 	border:solid 1px #ccc;
 	background-color:#eee;

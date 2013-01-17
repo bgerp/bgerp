@@ -97,7 +97,7 @@ class bank_DepositSlips extends core_Master
     
     
     /**
-     * 
+     * Кой може да сторнира
      */
     var $canRevert = 'bank, ceo';
     
@@ -111,7 +111,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, beneficiaryName';
+    var $searchFields = 'valior, reason, beneficiaryName';
     
     
     /**
@@ -130,6 +130,7 @@ class bank_DepositSlips extends core_Master
     	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
     	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка,width=16em');
     	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
+    	$this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
     }
     
     
@@ -166,7 +167,7 @@ class bank_DepositSlips extends core_Master
     		$class = $doc->className;
     		$dId = $doc->that;
     		$rec = $class::fetch($dId);
-    		$data->origin = $rec;
+    		$form->setDefault('originClassId', $class::getClassId());
     		
     		// Извличаме каквато информация можем от оригиналния документ
     		$form->setDefault('currencyId', $rec->currencyId);
@@ -189,7 +190,7 @@ class bank_DepositSlips extends core_Master
 	    			$form->setDefault('depositor', $rec->contragentName);
 	    		}
     		
-    		} else {
+    		} elseif($class == 'bank_CostDocument'){
     			$myCompany = crm_Companies::fetchOwnCompany();
 	    		$form->setDefault('beneficiaryName', $rec->contragentName);
 	    		$beneficiaryIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
@@ -263,11 +264,7 @@ class bank_DepositSlips extends core_Master
     	
     	if($fields['-single']) {
     		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" ;
-    		
-	    	$myCompany = crm_Companies::fetchOwnCompany();
-	    	$row->orderer = $myCompany->company;
-	    	
-	    	$spellNumber = cls::get('core_SpellNumber');
+    		$spellNumber = cls::get('core_SpellNumber');
 			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
 	        
 	    	// При принтирането на 'Чернова' скриваме системите полета и заглавието
@@ -278,15 +275,40 @@ class bank_DepositSlips extends core_Master
     }
     
     
- static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	if($form->isSubmitted()){
-    		if(!$form->rec->beneficiaryIban){
-		    	$form->rec->beneficiaryIban = drdata_Banks::getBankName($form->rec->beneficiaryIban);
-		    }
-    	}
-    }
+    /**
+     * Обработка след изпращане на формата
+     */
+	static function on_AfterInputEditForm($mvc, &$form)
+	{
+		if($form->isSubmitted()){
+		    if(!$form->rec->beneficiaryBank){
+				 $form->rec->beneficiaryBank = drdata_Banks::getBankName($form->rec->beneficiaryIban);
+			}
+		}
+	 }
     
+	 
+	 /**
+	  * Функция която скрива бланката с логото на моята фирма
+	  * при принтиране ако документа е базиран на
+	  * "приходен банков документ"
+	  */
+	 function renderSingleLayout_($data)
+	 {
+	 	$tpl = parent::renderSingleLayout_($data);
+	 	if(Mode::is('printing')){
+	 		
+		 	if($data->row->originClassId == 'bank_IncomeDocument') {
+		 		
+		 		// скриваме логото на моята фирма
+		 		$tpl->replace('','blank');
+		 	}
+	 	}
+	 	
+	 	return $tpl;
+	 }
+
+	 
 	/**
      * Вкарваме css файл за единичния изглед
      */

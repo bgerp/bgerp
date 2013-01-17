@@ -107,7 +107,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, proxyName';
+    var $searchFields = 'valior, reason, proxyName';
     
     
     /**
@@ -170,7 +170,16 @@ class bank_CashWithdrawOrders extends core_Master
     		$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     		if( $coverClass == 'crm_Persons') {
     			$form->setDefault('proxyName', $rec->contragentName);
-    		}
+    			
+    			// EGN на контрагента 
+    			$proxyEgn = crm_Persons::fetchField($rec->contragentId, 'egn');
+				$form->setDefault('proxyEgn', $proxyEgn);
+    			
+				// Номер на Л. картата на лицето ако е записана в системата
+				if($idCard = crm_ext_IdCards::fetch("#personId = {$rec->contragentId}")) {
+					$form->setDefault('proxyIdcard', $idCard);
+				}
+			}
     	} else {
     		
     		$form->setDefault('currencyId', currency_Currencies::getIdByCode());
@@ -180,8 +189,6 @@ class bank_CashWithdrawOrders extends core_Master
     		$today = dt::verbal2mysql();
     		$form->setDefault('valior', $today);
     	}
-    	
-    	//static::getProxyInfo($data->form);
     }
     
     
@@ -265,5 +272,4 @@ class bank_CashWithdrawOrders extends core_Master
     	
     	return $self->abbr . $rec->id;
     }
-    
 }
