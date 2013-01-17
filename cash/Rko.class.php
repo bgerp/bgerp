@@ -370,7 +370,7 @@ class cash_Rko extends core_Master
             ))
         );
         
-        // Ако кредитната сметка не поддържа втора номенклатура, премахваме
+        // Ако дебитната сметка не поддържа втора номенклатура, премахваме
         // от масива второто перо на кредитната сметка
     	$dAcc = acc_Accounts::getRecBySystemId($rec->debitAccount);
         if(!$dAcc->groupId2){
