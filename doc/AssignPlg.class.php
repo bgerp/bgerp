@@ -121,6 +121,31 @@ class doc_AssignPlg extends core_Plugin
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
         if($form->isSubmitted()) {
             
+            // На кого е била възложена задачата преди това
+            $oldAssigned = $mvc->fetchField($form->rec->id, 'assign');
+            
+            // Ако е била възложена на някой друг преди това
+            if ($oldAssigned && ($oldAssigned != $form->rec->assign)) {
+                
+                // URL' то което ще се премахва или показва от нотификациите
+                $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                
+                // Премахваме контейнера от достъпните
+                doc_ThreadUsers::removeContainer($rec->containerId);
+                
+                // Премахваме този документ от нотификациите за стария потребител
+                bgerp_Notifications::setHidden($keyUrl, 'yes', $oldAssigned);
+                
+                // Добавяме документа в нотификациите за новия потреибител
+                bgerp_Notifications::setHidden($keyUrl, 'no', $form->rec->assign);
+                
+                // Премахваме документа от "Последно" за стария потребител
+                bgerp_Recently::setHidden('document', $rec->containerId, 'yes', $oldAssigned);
+                
+                // Добавяме документа в "Последно" за новия потребител
+                bgerp_Recently::setHidden('document', $rec->containerId, 'no', $form->rec->assign);
+            }
+            
             // Определяме кой е модифицирал записа
             $form->rec->assignedBy = Users::getCurrent();
             
