@@ -95,11 +95,15 @@ class bgerp_Recently extends core_Manager
      * Скрива посочените записи
      * Обикновено след Reject
      */
-    static function setHidden($type, $objectId, $hidden = 'yes') 
+    static function setHidden($type, $objectId, $hidden = 'yes', $userId=NULL) 
     {
         $query = self::getQuery();
 
         $query->where("#type = '{$type}'  AND #objectId = $objectId");
+        
+        if ($userId) {
+            $query->where("#userId = '{$userId}'");
+        }
 
         while($rec = $query->fetch()) {
             $rec->hidden = $hidden;
