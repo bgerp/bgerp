@@ -55,7 +55,6 @@ class cash_Setup
     {
         $managers = array(
             'cash_Cases',
-            'cash_Documents',
         	'cash_Pko',
         	'cash_Rko',
         );

@@ -25,14 +25,14 @@ class bank_IncomeDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Приходен Банков Документ";
+    var $title = "Приходни Банкови Документи";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg,
+     	plg_Sorting, doc_plg_BusinessDoc, doc_DocumentPlg,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
@@ -111,7 +111,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, contragentName';
+    var $searchFields = 'valior, reason, contragentName';
     
 
     /**
@@ -140,7 +140,7 @@ class bank_IncomeDocument extends core_Master
     
     
 	/**
-     * 
+     * @TODO
      */
 	static function on_CalcIsContable($mvc, $rec)
     {
@@ -230,7 +230,8 @@ class bank_IncomeDocument extends core_Master
     	}
     }
      
-     /**
+    
+    /**
      *  Обработки по вербалното представяне на данните
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -242,14 +243,15 @@ class bank_IncomeDocument extends core_Master
     		$row->currencyId = currency_Currencies::getCodeById($rec->currencyId);
     		
     		if($rec->rate != '1') {
+    			
 	    		$accPeriods = cls::get('acc_Periods');
 			    $period = $accPeriods->fetchByDate($rec->valior);
 			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
-    		 
-			    $double = cls::get('type_Double');
+    		    $double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
 	    		$row->equals = $double->toVerbal($rec->amount * $rec->rate);
     		} else {
+    			
     			unset($row->rate);
     		}
     		
@@ -344,6 +346,13 @@ class bank_IncomeDocument extends core_Master
                 'creditPrice' => $rec->rate,
             ))
         );
+        
+    	// Ако дебитната сметка не поддържа втора номенклатура, премахваме
+        // от масива второто перо на кредитната сметка
+    	$cAcc = acc_Accounts::getRecBySystemId($rec->creditAccId);
+        if(!$cAcc->groupId2){
+        	unset($result->entries[0]->creditItem2);
+        }
         
         return $result;
     }

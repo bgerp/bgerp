@@ -111,7 +111,7 @@ class bank_CostDocument extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, contragentName';
+    var $searchFields = 'valior, reason, contragentName';
     
 
     /**
@@ -140,7 +140,7 @@ class bank_CostDocument extends core_Master
     
     
     /**
-     * 
+     * @TODO
      */
 	static function on_CalcIsContable($mvc, $rec)
     {
@@ -169,7 +169,7 @@ class bank_CostDocument extends core_Master
     }
     
     
-/**
+	 /**
       * @TODO
       */
      static function getContragentInfo(core_Form $form)
@@ -228,7 +228,6 @@ class bank_CostDocument extends core_Master
 	    		
 	    		$rec->rate = $rate;
     		}
-    		
     	}
     }
     
@@ -245,14 +244,15 @@ class bank_CostDocument extends core_Master
     		$row->currencyId = currency_Currencies::getCodeById($rec->currencyId);
     		
     		if($rec->rate != '1') {
+    			
 	    		$accPeriods = cls::get('acc_Periods');
 			    $period = $accPeriods->fetchByDate($rec->valior);
 			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
-    		 
-			    $double = cls::get('type_Double');
+    		 	$double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
 	    		$row->equals = $double->toVerbal($rec->amount * $rec->rate);
     		} else {
+    			
     			unset($row->rate);
     		}
     		
@@ -287,8 +287,6 @@ class bank_CostDocument extends core_Master
     		
     		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     	}
-    	
-    	
     }
     
     
@@ -331,7 +329,41 @@ class bank_CostDocument extends core_Master
    	 */
     public static function getTransaction($id)
     {
-    	//@TODO
+    	// Извличаме записа
+        expect($rec = self::fetch($id));
+        
+        $entrAmount = $rec->amount * $rec->rate;
+		
+        // Подготвяме информацията която ще записваме в Журнала
+        $result = (object)array(
+            'reason' => $rec->reason,   // основанието за ордера
+            'valior' => $rec->valior,   // датата на ордера
+            'totalAmount' => $rec->amount * $rec->rate,
+            'entries' => array( (object)array(
+                'amount' => $entrAmount,
+                'debitAcc' => $rec->debitAccId,
+                'debitItem1' => (object)array('cls'=>$rec->contragentClassId,'id'=>$rec->contragentId),
+                'debitItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),
+                'debitItem3' => NULL,
+                'debitQuantity' => $rec->amount,
+                'debitPrice' => $rec->rate,
+                'creditAcc' => $rec->creditAccId,
+                'creditItem1' => (object)array('cls'=>'bank_OwnAccounts', 'id'=>$rec->ownAccount),
+                'creditItem2' => NULL,
+                'creditItem3' => NULL,
+                'creditQuantity' => $rec->amount,
+                'creditPrice' => $rec->rate,
+            ))
+        );
+        
+    	// Ако дебитната сметка не поддържа втора номенклатура, премахваме
+        // от масива второто перо на кредитната сметка
+    	$dAcc = acc_Accounts::getRecBySystemId($rec->debitAccId);
+        if(!$dAcc->groupId2){
+        	unset($result->entries[0]->debitItem2);
+        }
+        
+        return $result;
     }
     
     
