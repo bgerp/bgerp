@@ -474,7 +474,6 @@ class bank_InternalMoneyTransfer extends core_Master
     		$row->currency = currency_Currencies::getCodeById($currencyId);
     		
     		// Изчисляваме равностойността на сумата в основната валута
-    		
     		if($rec->rate != '1') {
 	    		$double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
@@ -489,6 +488,30 @@ class bank_InternalMoneyTransfer extends core_Master
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
+    	}
+    }
+    
+    
+    /**
+     * Поставя бутони за генериране на други банкови документи възоснова
+     * на този.
+     */
+	static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	$operationSysId = acc_Operations::fetchSysId($rec->operationId);
+    	
+    	// Взависимост от операцията определяме пораждащите документи
+    	switch($operationSysId) {
+    		case 'bank2bank':
+    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+    			break;
+    		case 'bank2case':
+    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+    			break;
+    		case 'case2bank':
+    			$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+    			break;
     	}
     }
     

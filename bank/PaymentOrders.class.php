@@ -90,18 +90,6 @@ class bank_PaymentOrders extends core_Master
     
     
     /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'acc, bank';
-    
-    
-    /**
-     * Кой може да сторнира
-     */
-    var $canRevert = 'bank, ceo';
-    
-    
-    /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'bank/tpl/SinglePaymentOrder.shtml';
@@ -268,9 +256,10 @@ class bank_PaymentOrders extends core_Master
 	    	$row->contragentBank = drdata_Banks::getBankName($rec->beneficiaryIban);
 	    	$row->contragentBankBic = drdata_Banks::getBankBic($rec->beneficiaryIban);
 	    	
+	    	
 	    	// При принтирането на 'Чернова' скриваме системните полета и заглавието
-	    	if(Mode::is('printing')){
-	    			unset($row->header);
+	    	if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
 	    }
     }
@@ -281,9 +270,10 @@ class bank_PaymentOrders extends core_Master
 	  * при принтиране ако документа е базиран на
 	  * "приходен банков документ"
 	  */
-	 function renderSingleLayout_($data)
+	 function renderSingleLayout_(&$data)
 	 {
 	 	$tpl = parent::renderSingleLayout_($data);
+	 	
 	 	if(Mode::is('printing')){
 	 		
 		 	if($data->row->originClassId == 'bank_IncomeDocument') {
