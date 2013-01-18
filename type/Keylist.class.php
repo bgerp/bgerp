@@ -303,6 +303,27 @@ class type_Keylist extends core_Type {
     
     
     /**
+     * Съединяваме два keylist стринга
+     * 
+     * @param type_Keylist $klist1
+     * @param type_Keylist $klist2
+     * 
+     * @return type_Keylist $newKlist
+     */
+    static function merge($klist1, $klist2)
+    {
+        $klist1Arr = self::toArray($klist1);
+        $klist2Arr = self::toArray($klist2);
+        
+        $newArr = $klist1Arr + $klist2Arr;
+        
+        $newKlist = self::fromArray($newArr);
+        
+        return $newKlist;
+    }
+    
+    
+    /**
      * Премахва ключ от keylist
      *
      * @param mixed $klist масив ([`key`] => `key`) или стринг (`|key1|key2|...|`)

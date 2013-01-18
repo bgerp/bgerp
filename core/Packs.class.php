@@ -421,7 +421,7 @@ class core_Packs extends core_Manager
         // Максиламно време за инсталиране на пакет
         set_time_limit(400);
         
-        static $f = 0, $setupLog, $setupFlag;
+        static $f = 0;
         
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         
@@ -434,13 +434,14 @@ class core_Packs extends core_Manager
         // Отбелязваме, че на текущия хит, този пакет е установен
         $this->alreadySetup[$pack] = TRUE;
 
+        GLOBAL $setupLog, $setupFlag;
         
         if($setupFlag) {
 			if ($setupLog) { // Зануляваме лога ако инсталацията минава за първи път
-				file_put_contents(EF_SBF_PATH . '/setupLog.html', "");
+				file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
 				$setupLog = FALSE;
 			}
-        	file_put_contents(EF_SBF_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND);
+        	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND);
         }
         
         // Проверка дали Setup класа съществува

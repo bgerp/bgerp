@@ -320,6 +320,8 @@ class core_Cls
      */
     static function haveInterface($interface, $class)
     {
+        /* @var $classObj core_BaseClass */
+        
         if(is_scalar($class)) {
             $classObj = cls::get($class);
         } else {
@@ -329,9 +331,7 @@ class core_Cls
         // Очакваме, че $classObj е обект
         expect(is_object($classObj), $class);
         
-        $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
-        
-        return isset($classObj->interfaces[$interface]) ;
+        return $classObj->getInterface($interface);
     }
     
     

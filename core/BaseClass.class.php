@@ -47,6 +47,14 @@ class core_BaseClass
     
     
     /**
+     * Списък от поддъраните от класа интерфейси
+     * 
+     * @var string|array
+     */
+    public $interfaces;
+    
+    
+    /**
      * Конструктор. Дава възможност за инициализация
      */
     function core_BaseClass($params = NULL)
@@ -253,5 +261,45 @@ class core_BaseClass
         }
         
         return $this->{$method}();
+    }
+    
+    
+    /**
+     * Помощен метод за определяне дали класа поддържа зададен интерфейс.
+     * 
+     * @param string $interface
+     * @return string|boolean
+     */
+    public function getInterface($interface)
+    {
+        $this->interfaces = arr::make($this->interfaces, TRUE);
+        
+        if (!isset($this->interfaces[$interface])) {
+            return FALSE;
+        }
+        
+        return $this->interfaces[$interface];
+    }
+    
+    
+    /**
+     * Помощен метод за деклариране на нов интерфейс на класа
+     * 
+     * Ако не е деклариран интерфейса, метода го добавя, иначе не прави нищо
+     * 
+     * @param string $interface
+     * @param string $implementationClass име на клас-имплементация
+     */
+    public function declareInterface($interface, $implementationClass = NULL)
+    {
+        if (!isset($implementationClass)) {
+            $implementationClass = $interface;
+        }
+        
+        if ($this->getInterface($interface) !== FALSE) {
+            return;
+        }
+        
+        $this->interfaces[$interface] = $implementationClass;
     }
 }
