@@ -83,7 +83,7 @@ class doc_Setup
         );
         
         foreach($rangRoles as $role) {
-            $html .= ($rangRolesSet[$role] = core_Roles::addRole($role, NULL, 'rang')) ?
+            $html .= ($rangRolesSet[$role] = core_Roles::addRole($role, ($role != 'contractor') ? 'powerUser' : '', 'rang')) ?
             "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         }
         

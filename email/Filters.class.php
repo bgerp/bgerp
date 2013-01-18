@@ -149,7 +149,7 @@ class email_Filters extends core_Manager
         );
         
         // Извличаме всичко имейл адреси от супата ...
-        $emails = email_Mime::extractEmailsFrom($soup);
+        $emails = type_Email::extractEmails($soup);
 
         // ... махаме нашите имейли
         $emails = static::filterOurEmails($emails);

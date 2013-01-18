@@ -183,7 +183,7 @@ class email_Inboxes extends core_Master
         $allBoxes = static::getAllInboxes();
         
         //Вземаме всички имейли
-        $emailsArr = email_Mime::extractEmailsFrom(strtolower($str));
+        $emailsArr = type_Email::extractEmails(strtolower($str));
          
         //Ако има имейли
         if (is_array($emailsArr) && count($emailsArr)) {
