@@ -148,7 +148,11 @@ class sales_SalesDetails extends core_Detail
     }
     
     
-    public static function on_AfterDescription(core_Mvc $mvc)
+    /**
+     * 
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(&$mvc)
     {
         // Скриване на полетата за създаване
         $mvc->setField('createdOn', 'column=none');
@@ -163,7 +167,7 @@ class sales_SalesDetails extends core_Detail
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Detail $mvc, &$id, $rec)
+    public static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
     {
         // Подсигуряваме наличието на ключ към мастър записа
         if (empty($rec->{$mvc->masterKey})) {
