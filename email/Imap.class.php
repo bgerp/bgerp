@@ -174,11 +174,11 @@ class email_Imap extends core_BaseClass
      *
      * @return array
      */
-    function lists($msgId = FALSE)
+    function lists($msgNo = FALSE)
     {
         
-        if ($msgId) {
-            $range = $msgId;
+        if ($msgNo) {
+            $range = $msgNo;
         } else {
             $MC = imap_check($this->connection);
             $range = "1:" . $MC->Nmsgs;
@@ -202,10 +202,10 @@ class email_Imap extends core_BaseClass
      *
      * @return string
      */
-    function getHeaders($msgId)
+    function getHeaders($msgNo)
     {
-        $header = trim(imap_fetchheader($this->connection, $msgId, FT_INTERNAL));
-        
+        $header = trim(imap_fetchheader($this->connection, $msgNo, FT_INTERNAL));
+
         return $header;
     }
     
@@ -217,9 +217,9 @@ class email_Imap extends core_BaseClass
      *
      * @return string
      */
-    function getEml($msgId)
+    function getEml($msgNo)
     {
-        return imap_fetchbody($this->connection, $msgId, NULL);
+        return imap_fetchbody($this->connection, $msgNo, NULL);
     }
     
     
@@ -230,9 +230,9 @@ class email_Imap extends core_BaseClass
      *
      * @return boolean
      */
-    function delete($msgId)
+    function delete($msgNo)
     {
-        $res = imap_delete($this->connection, $msgId);
+        $res = imap_delete($this->connection, $msgNo);
         
         return $res;
     }
@@ -273,9 +273,9 @@ class email_Imap extends core_BaseClass
     /**
      * и връща структурата на имейл-а
      */
-    function fetchStructure($msgNum)
+    function fetchStructure($msgNo)
     {
-        $structure = imap_fetchstructure($this->connection, $msgNum);
+        $structure = imap_fetchstructure($this->connection, $msgNo);
         
         return $structure;
     }
@@ -284,9 +284,9 @@ class email_Imap extends core_BaseClass
     /**
      * Фетчва избраната част от структурата на имейл-а
      */
-    function getPartData($msgNum, $prefix)
+    function getPartData($msgNo, $prefix)
     {
-        $partData = imap_fetchbody($this->connection, $msgNum, $prefix);
+        $partData = imap_fetchbody($this->connection, $msgNo, $prefix);
         
         return $partData;
     }

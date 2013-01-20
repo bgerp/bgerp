@@ -158,57 +158,70 @@ class email_Inboxes extends core_Master
     
     /**
      * Връща масив с ключове - кутите (имейлите) и стойности - id-тата на сметките към които са
+     * Ако е зададена $accId филтрира и оставя само кутиите, които са към посочената сметка
      */
-    static function getAllInboxes()
+    static function getAllInboxes($acId = 0)
     {
-        if (!self::$allBoxes) {
+        if (!self::$allBoxes[$acId]) {
             $query = static::getQuery();
             $query->show('id, email, accountId');
             
             while ($rec = $query->fetch()) {
-                self::$allBoxes[$rec->email] = $rec->accountId;
+                if(($accId == 0) || ($accId == $rec->accountId)) {
+                    self::$allBoxes[$acId][$rec->email] = $rec->accountId;
+                }
             }
         }
         
-        return self::$allBoxes;
+        return  self::$allBoxes[$acId];
     }
     
     
     /**
      * Намира първия имейл в стринга, който е записан в системата
      */
-    static function findFirstInbox($str)
+    static function getToBox($mime, $accId)
     {   
-        //Всички пощенски кутии
-        $allBoxes = static::getAllInboxes();
+        $accRec = email_Accounts::fetch($accId);
+
+        // Ако сметката е частна, то $toBox е нейния имейл
+        if($accRec->type == 'private') {
+
+            return $accRec->email;
+        }
         
-        //Вземаме всички имейли
-        $emailsArr = type_Email::extractEmails(strtolower($str));
-         
-        //Ако има имейли
+        // Вземаме всички имейли
+        $emailsArr = type_Email::extractEmails(strtolower( 
+            $mime->getHeader('X-Original-To', '*') . ' ' .
+            $mime->getHeader('Delivered-To', '*') . ' ' .
+            $mime->getHeader('To') . ' ' .
+            $mime->getHeader('Cc')));
+
+        // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
         if (is_array($emailsArr) && count($emailsArr)) {
 
-            // Търсим във всички съществуващи кутии
-            foreach ($emailsArr as  $eml) {
-                
-                //Намираме първото съвпадение на имейл, който е 'internal'
-                if ($allBoxes[$eml]) {
-                    
-                    return $eml;
-                }
-            }
-            
-            // Опит за форсиране на кутия на потребител. Трябва ли ни?
+            return $accRec->email;
+        }
 
+        // Всички вътрешни кутии към тази сметка
+        $allBoxes = static::getAllInboxes($accId);
+        
+        // Търсим във всички съществуващи кутии
+        foreach ($emailsArr as  $eml) {
+                
+            // Първия имейл, който отговаря на кутия е $toBox
+            if ($allBoxes[$eml]) {
+                    
+                return $eml;
+            }
+        }
+        
+        // Ако сметката е корпоративна, то разглеждаме и евентуалните не-създадени-още кутии на powerUser-ите
+        if($accRec->type == 'corporate') {
+            
             // Вземаме масив от PowerUsers, като индекса е ника на потребителя
             $powerUsers = static::getPowerUsers();
-            
-            // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
-            $corpAccRec = email_Accounts::getCorporateAcc();
-                
-            // Ако няма такава сметка - прекратяваме обработката
-            if(!$corpAccRec) return;
-            
+
             // Ако имейла е съставен от ник на потребител и домейн на корпоративна сметка
             // тогава създаваме кутия за този имейл, вързана към съответния потребител
             foreach ($emailsArr as $eml) {
@@ -226,11 +239,11 @@ class email_Inboxes extends core_Master
                 // Ако домейна на имейла  корпоративния домейн, то 
                 // Създаваме кутия (основна) на потребителя, към този домейн
                 // и връщаме имейла на тази кутия
-                if($corpAccRec->domain == $domain)  {
+                if($accRec->domain == $domain)  {
 
                     $rec = new stdClass();
                     $rec->email = $eml;
-                    $rec->accountId = $corpAccRec->id;
+                    $rec->accountId = $accRec->id;
                     $rec->inCharge  = $userRec->id;
                     $rec->access    = "private";
                     
@@ -238,10 +251,11 @@ class email_Inboxes extends core_Master
 
                     return $rec->email;
                 }
-            }
+            }            
         }
         
-        return NULL;
+        // По подразбиране, $toBox е емейла на кутията от където се тегли писмото
+        return $accRec->email;
     }
 
     
