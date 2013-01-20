@@ -9,10 +9,10 @@
 
 /* Стилове за елемента 'combobox' */
 input.combo {	
-	height:auto;;
+	height:auto; /*diff*/
  }
 
-select.combo {  
+select.combo {  /*diff*/
 	position: absolute; 
     visibility:hidden;
     overflow:hidden;
@@ -23,17 +23,17 @@ select.combo {
 
 /* Стилове за елемента 'RichEdit' */
 span.richEdit div.richedit-toolbar {
-    background: #ddc; 
-    border: 1px solid #9999ff; 
-    border-top: none; 
-    padding: 5px; 
-    font-size: 0.85em; 
-    text-align: left;
+    background: #ddc;  /*common*/
+    border: 1px solid #9999ff; /*common*/
+    border-top: none; /*common*/
+    padding: 5px; /*common*/
+    font-size: 0.85em; /*common*/
+    text-align: left; /*common*/
     padding-top:8px;
     padding-bottom:6px; 
 	font-family: Verdana, Geneva, sans-serif;
-	color:#333;
-    font-size:0.9em;
+	color:#333; /*common*/
+    font-size:0.9em; /*common*/
 	margin-top:0px;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
@@ -44,16 +44,16 @@ span.richEdit div.richedit-toolbar {
 	margin-top:-4px;
 }
 
-span.richEdit {
+span.richEdit { /*common*/
 	display:table;
 	width:100%;
 }
 
-.richEdit textarea {
-	border-bottom: 1px solid white;
+.richEdit textarea { /*common*/
+	border-bottom: 1px solid white; /*diff*/
 	margin-bottom:0px;
 	overflow:auto;
-	width:600px;
+	width:600px; /*diff*/
 }
 
 
@@ -70,21 +70,21 @@ a.rtbutton:hover {
     border-style: outset;
 }
 
-p.richtext {
+p.richtext { /*common*/
 	border: solid 1px red;
 }
 
-.richtext h1 {
+.richtext h1 { /*common*/
 	margin-top:0px;
 	margin-bottom:0px;
 	line-height:1.2em;
 }
 
 .richtext h3 {
-    margin:5px;
+    margin:5px; /*common*/
 }
 
-pre.richtext {
+pre.richtext { /*common*/
     font-family: Courier New,monospace;
     padding:10px;
     background-color:#ffe;
@@ -94,130 +94,123 @@ pre.richtext {
 	white-space: pre-wrap;	
 }
 
-.richtext .code {
+.richtext .code { /*common*/
 	white-space:pre;
 }
 
-div.richtext li {
+div.richtext li { /*common*/
     margin:0px;
     padding:0px;
     margin-left:1.5em;
     padding-top:0.2em;
 }
 
-div.richtext li {
-    margin:0px;
-    padding:0px;
-    margin-left:1.5em;
-    padding-top:0.2em;
-}
-
-div.richtext ul {
+div.richtext ul { /*common*/
 	margin-top: -20px;
 	margin-bottom: -15px;
 	list-style-type: circle;
 }
 
-div.richtext ul ul {
+div.richtext ul ul { /*common*/
 	list-style-type: square;
 }
 
-div.richtext ol {
+div.richtext ol { /*common*/
 	margin-top: -20px;
 	margin-bottom: -15px;
 	list-style-type: decimal;
 }
 
-div.richtextHide {
+div.richtextHide { /*common*/
 	display:none;
 	margin-left:4px;
 	border-left:dotted 1px #ccc;
 	padding:10px; 
 }
 
-a.rtbutton {
+a.rtbutton { /*common*/
     border: 1px solid #bba;
     background: #eed;
     padding: 0.1em 0.3em;
     cursor: pointer;
 }
 
-a.rtbutton1 {
+a.rtbutton1 { /*common*/
 	padding-right:3px;
     cursor: pointer;
 }
 
-a.rtbutton:hover {
+a.rtbutton:hover { /*common*/
     background: white;
     border-style: outset;
 }
 
 
-input, select, textarea {
+input, select, textarea { /*common*/
 	-ms-box-sizing:border-box;
 	box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 	-moz-box-sizing:border-box;
 	border: solid 1px #9999ff;
-	font-size:1.1em;
+	font-size:1.1em; /*diff*/
 }
 
 
 /* Стилове за елемента 'list Table' */
-table.listTable { 
+table.listTable { /*common*/
     margin:0px;
     border: 1px solid #999;
     border-collapse: collapse;
 }
 
-table.listTable>tbody>tr:hover  {
+table.listTable>tbody>tr:hover  { /*common*/
     background-color:#ffc !important;
 }
 
-table.listTable>tbody>tr>td {
+table.listTable>tbody>tr>td { /*common*/
     border: 1px solid #999;
     padding: 3px; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
 }
 
-table.listTable>thead>tr>th {
+table.listTable>thead>tr>th { /*common*/
     border: 1px solid #999;
     padding: 3px;
     background-color:#ddd;
     font-weight:bold;
 }
 
-.listTitle {
+.listTitle { /*common*/
 	margin-bottom:10px;
 	font-size:1.3em;
 	padding-bottom:5px;
 }
 
-.listToolbar {
+.listToolbar { /*common*/
 	margin-top:10px;
 } 
 
-.listFilter {
+.listFilter { /*common*/
 	padding-bottom:5px; 
 	float:left;
 }
 
-.listSummary {
+.listSummary { /*common*/
 	padding-bottom:5px; 
 	float:right;
 }
 
-.listPager{
+.listPager{ /*common*/
 	padding-bottom:5px; 
 	clear:both;
 }
 
-.listTopContainer {
+.listTopContainer { /*common*/
 	width:100%;
 }
 
-.linkWithIcon, .docBgIcon {
+.linkWithIcon, .docBgIcon { /*common*/
     padding-left:22px !important;;  
     background-repeat:no-repeat;
     background-position: 3px center;
@@ -227,90 +220,87 @@ table.listTable>thead>tr>th {
 /* Стилове за показване на формите */
 
 form {
-    margin: 0px;
+    margin: 0px; /*common*/
 }
 
 .formError {
-    width:auto; 
-    border:solid 1px red;
-    background-color:#ff6;
-    padding:2px;
-    font-family:Arial,Verdana;
-    font-size:0.9em;
+    width:auto; /*diff*/
+    border:solid 1px red; /*common*/
+    background-color:#ff6; /*common*/
+    padding:2px; /*diff*/
+    font-family:Arial,Verdana; /*diff*/
+    font-size:0.9em; /*common*/
 }
 
-.formError UL {
+.formError ul { /*diff*/
     padding-left:1em;
 }
 
-.formError LI.ignored{
+.formError li.ignored{ /*common*/
     color:#aaa;
 }
 
 .formInfo, .formFields, .formWarning, .formError  {
-    margin-bottom:3px;
+    margin-bottom:3px; /*diff*/
 }
 
-.vertical .formGroup {
+.vertical .formGroup { /*common*/
     padding:4px;
     background-color: #99f;
 	color:white;
     border-radius: 3px;
 }
 
-.vertical .formTitle {
-    padding:    4px;
-    font-size:  1.2em;
-    font-family: Verdana;
+.vertical .formTitle { /*common*/
+    padding:    4px; /*diff*/
+    font-size:  1.2em; /*diff*/
+    font-family: Verdana; /*diff*/
     padding:    10px;
     font-size:  20px;
 	background-color:blue;
 	color:white;
 }
 
-.formAll {
+.formAll { /*diff*/
     display:table;
 }
 
-.vertical .formSection {
-    padding:2px;
+.vertical .formSection { /*common*/
+    padding:2px; /*diff*/
     color:black;
     background-color:#ffe;
     vertical-align:top;
 }
 
-.vertical .formToolbar {
+.vertical .formToolbar { /*diff*/
     padding:2px;
     background-color:#ffe;
 }
 
-.vertical .formToolbar input {
+.vertical .formToolbar input { /*diff*/
     margin-right:5px;
 }
 
-.horizontal .formFields {
-}
-
-.horizontal .formFields div {
+.horizontal .formFields div { /*diff*/
 	margin-bottom:5px;
 }
 
 
-form[method=post] input[type=submit]:first-child { 
+form[method=post] input[type=submit]:first-child { /*diff*/
 	background-color:#99f !important;
 	color:white;
 }
 
-a.pager {
+a.pager { /*diff*/
 	font-size: 0.9em;
 	margin:5px;
 	margin-left:0px;
 	font-family:Verdana;
-	font-weight:bold;
+	font-weight:bold; /*common*/
 	padding:1px;
 }
 
-a.pagerSelected {
+a.pagerSelected { /*common*/
 	border:solid 1px #aaaaaa;
 	-moz-border-radius:4px;
 	-webkit-border-radius: 4px;
@@ -321,19 +311,17 @@ a.pagerSelected {
 	font-weight:bold;
 }
 
-
-
-a.button, input[type=button], input[type=submit] {
-	background-color:#eee;
+a.button, input[type=button], input[type=submit] { /*common*/
+	background-color:#eee; /*diff*/
 	color:#036;
     font-weight:bold;
-	border:1px solid #999;
-	-moz-border-radius:5px;
-	-webkit-border-radius: 5px;
-    border-radius: 5px;
-    font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
-    font-size:100%;
-    line-height:130%;
+	border:1px solid #999; /*diff*/
+	-moz-border-radius:5px; /*diff*/
+	-webkit-border-radius: 5px; /*diff*/
+    border-radius: 5px; /*diff*/
+    font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif; /*diff*/
+    font-size:100%;/*diff*/
+    line-height:130%; /*diff*/
     text-decoration:none;
     cursor:pointer;
     width:auto;
@@ -342,7 +330,7 @@ a.button, input[type=button], input[type=submit] {
 	display:inline-block;
 }
 
-.btn-left {
+.btn-left { /*diff*/
 	-moz-border-radius-topright:0px !important; 
 	-moz-border-radius-bottomright:0px !important; 
 	border-bottom-right-radius: 0px !important; 
@@ -351,7 +339,7 @@ a.button, input[type=button], input[type=submit] {
 	margin:0px !important;
 }
 
-.btn-right {
+.btn-right { /*diff*/
 	-moz-border-radius-bottomleft:0px !important;
 	-moz-border-radius-topleft:0px !important; 
 	border-bottom-left-radius: 0px !important;
@@ -359,7 +347,7 @@ a.button, input[type=button], input[type=submit] {
 	margin:0px !important;
 }
 
-.btn-middle {
+.btn-middle { /*diff*/
 	-moz-border-radius:0px !important;
 	border-radius: 0px !important;
 	border-right: none !important;
@@ -367,37 +355,37 @@ a.button, input[type=button], input[type=submit] {
 }
 
 
-a.button, input:hover[type=button] , input:hover[type=submit] {
+a.button, input:hover[type=button] , input:hover[type=submit] { /*common*/
 	background-color:#ffb; 
 }
   
-input[type=checkbox] + LABEL {
+input[type=checkbox] + label { /*common*/
 	color:#666; 
-	background-color:transparent !important;
+	background-color:transparent !important; /*diff*/
 }
 
-input[type=checkbox]:checked + LABEL {
+input[type=checkbox]:checked + label { /*common*/
 	color:#000;
 } 
 
-input[type=radio] + LABEL {
+input[type=radio] + label { /*common*/
 	color:#666;  
-	background-color:transparent !important;
+	background-color:transparent !important; /*diff*/
 }
 
-input[type=radio]:checked + LABEL {
+input[type=radio]:checked + label { /*common*/
 	color:#000;
 }
 
-.inputError {
+.inputError { /*common*/
 	border:solid 1px red;
 }
 
-.inputWarning {
+.inputWarning { /*common*/
 	border:solid 1px #ff9900;
 }
 
-.keylist-group {
+.keylist-group { /*common*/
 	padding:3px;
 	font-size:0.9em;
 	font-weight:bold;
@@ -405,14 +393,14 @@ input[type=radio]:checked + LABEL {
 	color: #666;
 }
 
-.warningMsg {
+.warningMsg { /*common*/
 	background:yellow;
 	padding:5px;
 	border:dotted 1px green;
 	color:green;
 }
 
-.errorMsg {
+.errorMsg { /*common*/
 	background:yellow;
 	padding:5px; 
 	border:dotted 1px red; 
@@ -420,28 +408,28 @@ input[type=radio]:checked + LABEL {
 }
 
 
-DIV.rowtools {
+div.rowtools {  /*common*/
 	display:inline;
 	width:100%; 
 }
  
-.rowtools .r {
+.rowtools .r {  /*common*/
 	vertical-align:middle;
 	display:table-cell;
 	text-align:right;
 }
  
-.rowtools .l {
+.rowtools .l {  /*common*/
 	vertical-align:middle;
 	display:table-cell;
 	text-align:left;
 }
 
-.rowtools .nw {
+.rowtools .nw {  /*common*/
 	white-space:nowrap;
 }
 
-.rowtools .l IMG {
+.rowtools .l img {  /*common*/
 	vertical-align:middle;
 	margin-right:5px;
 	border:none;
@@ -449,37 +437,37 @@ DIV.rowtools {
 
 div.notification-info {
 	display: table;
-	margin-top:5px;
-	margin-bottom:5px;
+	margin-top:5px; /*diff*/
+	margin-bottom:5px; /*diff*/
 	border:solid 1px #f90;
 	background-color:#ffffcc;
-	padding:5px;
+	padding:5px; /*diff*/
 	text-align:center;
 	font-weight:bold;
-	font-size: 1.5em;
+	font-size: 1.5em; /*diff*/
 }
 
-div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-error {
+div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-error {/*common*/
     display: table;
-	margin-top:5px;
-	margin-bottom:5px;
+	margin-top:5px; /*diff*/
+	margin-bottom:5px; /*diff*/
 	border:solid 1px #f90;
 	background-color:#ffffcc;
-	padding:5px;
+	padding:5px; /*diff*/
 	text-align:center;
-	font-weight:bold;
-	font-size: 1.5em;
+	font-weight:bold; 
+	font-size: 1.5em; /*diff*/
 }
 
-DIV.statuses-success {
+div.statuses-success { /*common*/
 	background-color:#ffffcc;	
 }
 
-DIV.statuses-warning {
+div.statuses-warning { /*common*/
 	background-color:#ffffcc;	
 }
 
-DIV.statuses-error {
+div.statuses-error { /*common*/
 	background-color:#ffffcc;	
 }
 
@@ -489,43 +477,43 @@ DIV.statuses-error {
  *  Класове за състояния                                                                *
  *                                                                                      *
  ****************************************************************************************/
-.state-draft {
+.state-draft { /*common*/
     background-color: #88cc99;
 }
 
-.state-active {
+.state-active { /*common*/
     background-color: #ffeedd;
 }
 
-.state-opened {
+.state-opened { /*common*/
     background-color: #aaffbb;
 }
 
-.state-waiting {
+.state-waiting { /*common*/
     background-color: #cceeff;
 }
 
-.state-closed {
+.state-closed { /*common*/
     background-color: #eee;
 }
 
-.state-stopped {
+.state-stopped { /*common*/
     background-color: #ffaa00;
 }
 
-.state-rejected {
+.state-rejected { /*common*/
     background-color: #cc6666;
 }
 
-.state-free {
+.state-free { /*common*/
     background-color: #33cccc;
 }
 
-.state-hidden {
+.state-hidden { /*common*/
     background-color: #ffee77;
 }
 
-.clearfix21:after {
+.clearfix21:after { /*common*/
     content: " ";
     display: block;
     height: 0;
@@ -533,16 +521,16 @@ DIV.statuses-error {
     visibility: hidden;
 }
 
-tr.zebra0 {
+tr.zebra0 { /*common*/
     background-color:#eee;
 }
 
-tr.zebra1 {
+tr.zebra1 { /*common*/
     background-color:#fff;
 }
 
 
-.btn-disabled {
+.btn-disabled { /*common*/
 	color:#bbb !important;
 	cursor:default !important;
 }
@@ -550,37 +538,21 @@ tr.zebra1 {
 .btn-with-selected[type=submit] {
 }
 
-.btn-with-selected-disabled[type=submit] {
+.btn-with-selected-disabled[type=submit] { /*common*/
 	color:#999 !important;
 	cursor:default !important;
 }
 
-.btn-with-selected-disabled[type=submit]:hover {
+.btn-with-selected-disabled[type=submit]:hover { /*common*/
 	background-color:#ddd !important;
 }
 
-input[type=checkbox] + label {
-    color:#666;   
-}
-
-input[type=checkbox]:checked + label {
-    color:#000;
-} 
-
-input[type=radio] + label {
-    color:#666;   
-}
-
-input[type=radio]:checked + label {
-    color:#000;
-}
-
-.checkbox {
+.checkbox { /*common*/
 	border: none !important;
 }
 
 /* Стилове за елемента 'tab' */
-div.tab-control div.tab-row .tab {
+div.tab-control div.tab-row .tab { /*common*/
     display:        table;
     margin:         1px -15px 1px 18px;
     float:          left; 
@@ -601,7 +573,7 @@ div.tab-control div.tab-row .tab {
 
 
 
-div.tab-control div.tab-row .tab.selected {
+div.tab-control div.tab-row .tab.selected { /*common*/
     background:     #ffffff;
     border:         1px solid #bbb;
     border-top:     3px solid #036;
@@ -613,7 +585,7 @@ div.tab-control div.tab-row .tab.selected {
     font-weight:    bold;
 }
 
-div.tab-control div.tab-page {
+div.tab-control div.tab-page { /*common*/
     clear:          both;
     border:         1px solid #bbb;
     background:     #ffffff;
@@ -627,6 +599,6 @@ div.tab-control div.tab-page {
     border-radius: 5px;
 }
 
-div.tab-control .tab-title {
+div.tab-control .tab-title { /*common*/
 	font-weight: bold;
 }

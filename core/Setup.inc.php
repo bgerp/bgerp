@@ -646,6 +646,8 @@ if($step == start) {
 	GLOBAL $setupFlag, $setupLog;
 	$setupLog = TRUE;
 	$setupFlag = TRUE;
+	// Създаваме празен Log файл
+	file_put_contents(EF_TEMP_PATH . '/setupLog.html', '');
     
 	// Локал за функции като basename, fgetcsv
 	setlocale(LC_ALL, 'en_US.UTF8');

@@ -43,7 +43,7 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->" .
             "\n</head>" .
             "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD-->" .
-            (Mode::is('screenMode', 'narrow') ? " class=\"narrow\"" : "") . ">" .
+            (Mode::is('screenMode', 'narrow') ? " class=\"narrow\"" : " class=\"wide\"") . ">" .
             "<!--ET_BEGIN PAGE_CONTENT-->[#PAGE_CONTENT#]<!--ET_END PAGE_CONTENT-->" .
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
             "<!--ET_BEGIN BROWSER_DETECT-->[#BROWSER_DETECT#]<!--ET_END BROWSER_DETECT-->" .

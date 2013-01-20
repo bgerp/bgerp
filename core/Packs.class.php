@@ -434,13 +434,10 @@ class core_Packs extends core_Manager
         // Отбелязваме, че на текущия хит, този пакет е установен
         $this->alreadySetup[$pack] = TRUE;
 
-        GLOBAL $setupLog, $setupFlag;
+        GLOBAL $setupFlag;
         
+        // Ако е пуснат от сетъп-а записваме в Лог-а 
         if($setupFlag) {
-			if ($setupLog) { // Зануляваме лога ако инсталацията минава за първи път
-				file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
-				$setupLog = FALSE;
-			}
         	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND);
         }
         
@@ -537,7 +534,7 @@ class core_Packs extends core_Manager
         if($setupFlag) {
 			// Махаме <h2> тага на заглавието
 			$res = substr($res, strpos($res, "</h2>"), strlen($res));
-			file_put_contents(EF_SBF_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+			file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
 			unset($res);
         }
         
