@@ -35,6 +35,12 @@ class core_Cron extends core_Manager
     
     
     /**
+     * Списък с плъгини, които се прикачат при конструиране на мениджъра
+     */
+    var $loadList = "plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_RefreshRows";
+    
+    
+    /**
      * Време за опресняване информацията при лист на събитията
      */
     var $refreshRowsTime = 5000;
@@ -56,11 +62,20 @@ class core_Cron extends core_Manager
         $this->FLD('state', 'enum(free=Свободно,locked=Заключено,stopped=Спряно)', 'caption=Състояние,1input=none');
         $this->FLD('lastStart', 'datetime', 'caption=Последно->Стартиране,input=none');
         $this->FLD('lastDone', 'datetime', 'caption=Последно->Приключване,input=none');
-        
-        $this->load('plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_RefreshRows');
+
+        $this->setDbUnique('systemId,offset,delay');
     }
     
+
+    /**
+     * Преди извличането на записите за листовия изглед
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $data->query->orderBy('#period'); 
+    }
     
+
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -163,7 +178,7 @@ class core_Cron extends core_Manager
         if (!$rec) {
             $msg = "Error: ProcessRun -> missing record for  id = {$id}";
             $this->log($msg);
-            echo("$msg");
+            echo(core_Debug::getLog());
             shutdown();
         }
         
@@ -171,7 +186,7 @@ class core_Cron extends core_Manager
         if ($rec->state == 'locked' && !$forced) {
             $msg = "Error: Process \"{$rec->systemId}\" is locked!";
             $this->log($msg);
-            echo("$msg");
+            echo(core_Debug::getLog());
             shutdown();
         }
         
@@ -181,7 +196,7 @@ class core_Cron extends core_Manager
         if ($nowMinute <= $rec->lastStart && !$forced) {
             $msg = "Error: Process \"{$rec->systemId}\" have been started after $nowMinute!";
             $this->log($msg);
-            echo("$msg");
+            echo(core_Debug::getLog());
             shutdown();
         }
         
@@ -234,20 +249,20 @@ class core_Cron extends core_Manager
                 $msg = "Error: ProcessRun -> missing method \"$act\" on class  {$rec->controller}";
                 $this->log($msg, $rec->id);
                 $this->unlockProcess($rec);
-                echo("$msg");
+                echo(core_Debug::getLog());
                 shutdown();
             }
         } else {
             $msg = "Error: ProcessRun -> missing class  {$rec->controller} in process ";
             $this->log($msg, $rec->id);
             $this->unlockProcess($rec);
-            echo("$msg");
+            echo(core_Debug::getLog());
             shutdown();
         }
         
         // Отключваме процеса и му записваме текущото време за време на последното приключване
         $this->unlockProcess($rec);
-        echo("$msg");
+        echo(core_Debug::getLog());
         shutdown();
     }
     
