@@ -74,7 +74,7 @@ class core_Logs extends core_Manager
         if (is_object($className)) {
             $className = cls::getClassName($className);
         }
-        
+        core_Debug::log("$className, $objectId, $detail");
         expect(is_string($className));
         
         $rec = new stdClass();
