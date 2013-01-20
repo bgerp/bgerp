@@ -363,10 +363,12 @@ class core_Roles extends core_Manager
         $inhArr = array();
         
         // Обхождаме масива с наследените роли
-        foreach ($recInhArr as $inhId) {
-            
-            // Добавяме в масива всички наследени роли на съответната наследена роля
-            $inhArr += self::getRolesArr($inhId);
+        if(is_array($recInhArr) && count($recInhArr)) {
+            foreach ($recInhArr as $inhId) {
+                
+                // Добавяме в масива всички наследени роли на съответната наследена роля
+                $inhArr += self::getRolesArr($inhId);
+            }
         }
         
         // Променяма записа за наследените роли
@@ -579,7 +581,7 @@ class core_Roles extends core_Manager
     static function getInheritRoles($id)
     {
         // Вземаме записа за съответната роля
-        $roleRec = core_Roles::fetch($id);//bp(core_Roles::fetch(81), $roleRec);
+        $roleRec = core_Roles::fetch($id);
         
         // Ако няма запис, връщаме
         if (!$roleRec) return ;
