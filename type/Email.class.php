@@ -179,9 +179,9 @@ class type_Email extends type_Varchar {
      * Връща масив от всички под-стрингове, които
      * приличат на е-имейл адреси от дадения стринг
      */
-    static function extractEmailsFrom($string)
+    static function extractEmails($string)
     {
-        preg_match_all("/[=\+\._a-zA-Z0-9-]+@[\._a-zA-Z0-9-]+/i", $string, $matches);
+        preg_match_all('/[=\+\/\._a-zA-Z0-9-]+@[\._a-zA-Z0-9-]+/i', $string, $matches);
         
         return $matches[0];
     }
