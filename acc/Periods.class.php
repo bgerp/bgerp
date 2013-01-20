@@ -469,11 +469,10 @@ class acc_Periods extends core_Manager
         $rec->description = "Създава нови счетоводни периоди";
         $rec->controller = "acc_Periods";
         $rec->action = "createFuturePeriods";
-        $rec->period = 24*60*60;
+        $rec->period = 24*60*30;
         $rec->offset = 3777;
         
         $Cron->addOnce($rec);
-
 
         return $this->actLog;
     }
