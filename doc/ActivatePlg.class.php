@@ -32,13 +32,7 @@ class doc_ActivatePlg extends core_Plugin
             $mvc->threadId = $exRec->threadId;
         }
         
-        if($exRec) {
-            $state = $exRec->state;
-        } else {
-            $state = 'draft';
-        }
-        
-        if (($state == 'draft') && ($mvc->haveRightFor('edit', $exRec))) {
+        if ($mvc->haveRightFor('activate', $exRec)) {
             $data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate,class=btn-activation,order=9');
         }
     }
@@ -63,8 +57,18 @@ class doc_ActivatePlg extends core_Plugin
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if (($data->rec->state == 'draft') && ($mvc->haveRightFor('edit', $data->rec))) {
+        if ($mvc->haveRightFor('activate', $data->rec)) {
             $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation');
+        }
+    }
+    
+    
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($action == 'activate') {
+            if (!empty($rec->id) && ($rec->state != 'draft' || !$mvc->haveRightFor('edit', $rec))) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
 }

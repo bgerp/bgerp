@@ -91,21 +91,9 @@ class bank_DepositSlips extends core_Master
     
     
     /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'acc, bank';
-    
-    
-    /**
-     * Кой може да сторнира
-     */
-    var $canRevert = 'bank, ceo';
-    
-    
-    /**
      * Файл с шаблон за единичен изглед на статия
      */
-     var $singleLayoutFile = 'bank/tpl/SingleDepositSlip.shtml';
+    var $singleLayoutFile = 'bank/tpl/SingleDepositSlip.shtml';
     
     
     /**
@@ -130,7 +118,7 @@ class bank_DepositSlips extends core_Master
     	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
     	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка,width=16em');
     	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
-    	$this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
+    	//$this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
     }
     
     
@@ -167,7 +155,6 @@ class bank_DepositSlips extends core_Master
     		$class = $doc->className;
     		$dId = $doc->that;
     		$rec = $class::fetch($dId);
-    		$form->setDefault('originClassId', $class::getClassId());
     		
     		// Извличаме каквато информация можем от оригиналния документ
     		$form->setDefault('currencyId', $rec->currencyId);
@@ -175,27 +162,17 @@ class bank_DepositSlips extends core_Master
     		$form->setDefault('reason', $rec->reason);
     		$form->setDefault('valior', $rec->valior);
 
-    		if($class == 'bank_IncomeDocument') {
-    			
-    			// Ако оригиналния документ е "Приходен банков документ", то
-    			// бенефициента на вносната бележка е "Моята Фирма"
-    			$myCompany = crm_Companies::fetchOwnCompany();
-	    		$form->setDefault('beneficiaryName', $myCompany->company);
-	    		$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
-	    		$form->setDefault('beneficiaryIban', $ownAccount->iban);
-	    		$form->setDefault('beneficiaryBank', $ownAccount->bank);
+    		$myCompany = crm_Companies::fetchOwnCompany();
+	    	$form->setDefault('beneficiaryName', $myCompany->company);
+	    	$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+	    	$form->setDefault('beneficiaryIban', $ownAccount->iban);
+	    	$form->setDefault('beneficiaryBank', $ownAccount->bank);
 	    		
-	    		// Ако контрагента е лице, слагаме името му за получател
-	    		if($rec->contragentClassId != crm_Companies::getClassId()){
-	    			$form->setDefault('depositor', $rec->contragentName);
-	    		}
-    		
-    		} elseif($class == 'bank_CostDocument'){
-    			$myCompany = crm_Companies::fetchOwnCompany();
-	    		$form->setDefault('beneficiaryName', $rec->contragentName);
-	    		$beneficiaryIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
-    			$form->setSuggestions('beneficiaryIban', $beneficiaryIbans);
+	    	// Ако контрагента е лице, слагаме името му за получател
+	    	if($rec->contragentClassId != crm_Companies::getClassId()){
+	    		$form->setDefault('depositor', $rec->contragentName);
 	    	}
+    		
     		
     	} else {
     	
@@ -268,8 +245,8 @@ class bank_DepositSlips extends core_Master
 			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
 	        
 	    	// При принтирането на 'Чернова' скриваме системите полета и заглавието
-	    	if(Mode::is('printing')){
-	    			unset($row->header);
+    		if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
     	}
     }
@@ -287,15 +264,10 @@ class bank_DepositSlips extends core_Master
 		}
 	 }
     
-	 
-	 /**
-	  * Функция която скрива бланката с логото на моята фирма
-	  * при принтиране ако документа е базиран на
-	  * "приходен банков документ"
-	  */
+	 /*
 	 function renderSingleLayout_($data)
 	 {
-	 	$tpl = parent::renderSingleLayout_($data);
+	 	$tpl =  new ET(getFileContent($this->singleLayoutFile));
 	 	if(Mode::is('printing')){
 	 		
 		 	if($data->row->originClassId == 'bank_IncomeDocument') {
@@ -306,7 +278,7 @@ class bank_DepositSlips extends core_Master
 	 	}
 	 	
 	 	return $tpl;
-	 }
+	 }*/
 
 	 
 	/**

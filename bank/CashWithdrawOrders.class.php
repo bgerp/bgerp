@@ -90,15 +90,6 @@ class bank_CashWithdrawOrders extends core_Master
     
     
     /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'acc, bank';
-    
-    
-    var $canRevert = 'bank, ceo';
-    
-    
-    /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'bank/tpl/SingleCashWithdrawOrder.shtml';
@@ -189,6 +180,15 @@ class bank_CashWithdrawOrders extends core_Master
     		$today = dt::verbal2mysql();
     		$form->setDefault('valior', $today);
     	}
+    }
+    
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+    	
     }
     
     

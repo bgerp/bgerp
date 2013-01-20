@@ -19,11 +19,13 @@ class acc_plg_Contable extends core_Plugin
     
     /**
      * Извиква се след описанието на модела
+     * 
+     * @param core_Mvc $mvc
      */
-    function on_AfterDescription(&$mvc)
+    function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->interfaces = arr::make($mvc->interfaces);
-        $mvc->interfaces['acc_TransactionSourceIntf'] = 'acc_TransactionSourceIntf';
+        $mvc->declareInterface('acc_TransactionSourceIntf');
+        
         $mvc->fields['state']->type->options['revert'] = 'Сторниран';
     }
     
@@ -54,6 +56,12 @@ class acc_plg_Contable extends core_Plugin
             );
             $data->toolbar->addBtn('Сторниране', $rejectUrl, 'id=revert,class=btn-revert,warning=Наистина ли желаете документа да бъде сторниран?');
         }
+        
+    		if($data->rec->state == 'closed' && acc_Journal::haveRightFor('read')) {
+        		$journalRec = acc_Journal::fetch("#docId={$data->rec->id} && #docType='{$mvc::getClassId()}'");
+        		$journalUrl = array('acc_Journal', 'single', $journalRec->id);
+        		$data->toolbar->addBtn('Журнал', $journalUrl, '');
+        	}
     }
     
     
@@ -83,10 +91,8 @@ class acc_plg_Contable extends core_Plugin
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'conto') {
-            if ($rec->id) {
-                if (!$rec->isContable) {
-                    $requiredRoles = 'no_one';
-                }
+            if ($rec->id && $rec->state != 'draft') {
+                $requiredRoles = 'no_one';
             }
         } elseif ($action == 'revert') {
             if ($rec->id) {

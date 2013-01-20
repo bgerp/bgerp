@@ -212,8 +212,14 @@ class cash_Pko extends core_Master
     	$form->setDefault('valior', $today);
         $form->setDefault('currencyId', $currencyId);
     	
+        $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
+    	$form->setDefault('contragentId', $contragentId);
+        $form->setDefault('contragentClassId', $contragentClassId);
+        
     	$options = acc_Operations::getPossibleOperations(get_called_class());
-        $form->setOptions('operationId', $options);
+        $options = acc_Operations::filter($options, $contragentClassId);
+    	$form->setOptions('operationId', $options);
     }
 
     
@@ -231,9 +237,7 @@ class cash_Pko extends core_Master
     		$rec->debitAccount = $operation->debitAccount;
     		$rec->creditAccount = $operation->creditAccount;
     		
-    		$rec->contragentClassId = doc_Folders::fetchField($rec->folderId, 'coverClass');
-	        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-	    	$contragentData = doc_Folders::getContragentData($rec->folderId);
+    		$contragentData = doc_Folders::getContragentData($rec->folderId);
 	    	$rec->contragentCountry = $contragentData->country;
 	    	$rec->contragentPcode = $contragentData->pCode;
 	    	$rec->contragentPlace = $contragentData->place;
@@ -259,10 +263,9 @@ class cash_Pko extends core_Master
 		    } 
 		    
 	    	$rec->baseCurrency = $period->baseCurrencyId;
-	    	
-    	}
+	    }
     	
-    	acc_Periods::checkDocumentDate($form);
+	    acc_Periods::checkDocumentDate($form);
     }
    
     
@@ -313,8 +316,7 @@ class cash_Pko extends core_Master
     		$cashierRec = core_Users::fetch($rec->createdBy);
     		$cashierRow = core_Users::recToVerbal($cashierRec);
 	    	$row->cashier = $cashierRow->names;
-	    	
-        }
+	    }
        
         // Показваме заглавието само ако не сме в режим принтиране
     	if(!Mode::is('printing')){
