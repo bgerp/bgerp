@@ -126,7 +126,22 @@ class type_Blob extends core_Type {
      */
     public function toMysql($value, $db, $notNull, $defValue)
     {
+        // Ако е указано - сериализираме
+        if($value !== NULL && $this->params['serialize']) {
+            $value = serialize($value);
+        }
+        
+        // Ако е указано - компресираме
+        if($value !== NULL && $this->params['compress']) {
+            if(($level = (int) $this->params['compress']) > 0) {
+                $value = gzcompress($value, $level);
+            } else {
+                $value = gzcompress($value);
+            }
+        }
+
         if($value !== NULL) {
+            
             $value = (string) $value;
             
             if($value) {
@@ -140,4 +155,26 @@ class type_Blob extends core_Type {
         
         return $res;
     }
+
+
+    /**
+     * @see core_Type::fromMysql()
+     * @param string $value
+     * @return mixed
+     */
+    public function fromMysql($value)
+    {   
+        // Ако е указано - декомпресираме
+        if($value !== NULL && $this->params['compress']) {
+            $value = @gzuncompress($value);
+        }
+        
+        // Ако е указано - десериализираме
+        if ($value !== NULL && $this->params['serialize']) {
+            $value = @unserialize($value);
+        }
+        
+        return parent::fromMysql($value);
+    }
+
 }
