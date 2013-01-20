@@ -65,7 +65,10 @@ class doc_Setup
      * Инсталиране на пакета
      */
     function install()
-    {
+    {   
+        core_Roles::addRole('powerUser', NULL, 'system');
+        $html .= "<li style='color:green'>Добавена е роля <b>powerUser</b></li>";
+
         // Добавяне на ролите за Ранг
         $rangRoles = array(
             'ceo',       // Pъководител на организацията. Достъпни са му всички папки и документите в тях
