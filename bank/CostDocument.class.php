@@ -132,7 +132,7 @@ class bank_CostDocument extends core_Master
     	$this->FLD('debitAccId', 'acc_type_Account()','caption=debit,width=300px,input=none');
         $this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
         $this->FNC('isContable', 'int', 'column=none');
@@ -314,7 +314,7 @@ class bank_CostDocument extends core_Master
     {
         $rec = (object)array(
             'id' => $id,
-            'state' => 'active'
+            'state' => 'closed'
         );
         
         return self::save($rec);

@@ -69,7 +69,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Vpt";
+    var $abbr = "Vtp";
     
     
     /**
@@ -130,7 +130,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $this->FLD('debitQuantity', 'double(minDecimals=2)', 'width=6em,caption=Към->Сума');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=none');
         $this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
         $this->FNC('isContable', 'int', 'column=none');
@@ -579,7 +579,7 @@ class bank_InternalMoneyTransfer extends core_Master
     {
         $rec = (object)array(
             'id' => $id,
-            'state' => 'active'
+            'state' => 'closed'
         );
         
         return self::save($rec);
@@ -613,8 +613,15 @@ class bank_InternalMoneyTransfer extends core_Master
         if (empty($folderClass)) {
             $folderClass = doc_Folders::fetchCoverClassName($folderId);
         }
-    
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons';
+    	
+        // Може да създаваме документ-а само в дефолт папката му
+        if($folderId == static::getDefaultFolder()) {
+        	
+        	return TRUE;
+        } 
+        	
+       return FALSE;
+        
     }
     
     
