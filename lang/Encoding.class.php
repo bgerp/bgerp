@@ -300,6 +300,112 @@ class lang_Encoding {
     
     
     /**
+     * Конвертира от зададена кодова таблица, към UTF-8
+     * Прави проверка, кодовата таблица да е неправилно зададена
+     */
+    static function convertToUtf8($text, $fromCharset)
+    {   
+        // Ако текста е 7 битов, го връщаме както е, зашото ASCII е подмножество на UTF-8
+        if (lang_Encoding::is7Bit($text)) {
+            
+            return $text;
+        } 
+        
+        // Вземаме кононичното име на чарсета
+        $fromCharset = lang_Encoding::canonizeCharset($fromCharset);
+        
+        // Ако чарсета е ASCII, а имаме 8-битово кодиране, значи има грешка
+        if($fromCharset == 'US-ASCII') unset($fromCharset);
+        
+        // Ако текста е валиден UTF-8 текст, очакваме чарсета да е UTF-8 или го правим неизвестен
+        if(mb_detect_encoding($text, "UTF-8", TRUE) == "UTF-8") {
+            if(empty($fromCharset) || $fromCharset == 'UTF-8') {
+                $fromCharset = 'UTF-8';
+            } else {
+                $possibleUtf8 = TRUE;
+                unset($fromCharset);
+            }
+        }
+
+        // Ако нямаме зададена кодировка на текста, опитваме се да я познаем
+        if(!$fromCharset) {
+            // Махаме от текста всякакви HTML елементи
+            $textTmp = preg_replace('/\n/', ' ', $text);
+            $textTmp = preg_replace('/<script.*<\/script>/U', ' ', $textTmp);
+            $textTmp = preg_replace('/<style.*<\/style>/U', ' ', $textTmp);
+            $textTmp = strip_tags($textTmp);
+            $textTmp = str_replace('&nbsp;', ' ', $textTmp);
+            $textTmp = html_entity_decode($textTmp, ENT_QUOTES, 'UTF-8');
+            
+            // Анализираме текста и определяме предполагаемия енкодинг
+            if($textTmp) {
+                $res = lang_Encoding::analyzeCharsets($textTmp);
+            }
+            if(is_array($res)) {
+                if(!$possibleUtf8) {
+                    unset($res->rates['UTF-8']);
+                } else {
+                    $res->rates['UTF-8'] *= 1.5;
+                }
+            }
+            $fromCharset = arr::getMaxValueKey($res->rates);
+        }
+        
+        // Ако чарсета не е установен или той е 'UTF-8' връщаме текста без промяна
+        if(empty($fromCharset) || $fromCharset == 'UTF-8') {
+
+            return $text;
+        }
+        
+        // Конвертираме текста в "UTF-8"
+        $d = iconv($fromCharset, "UTF-8//IGNORE", $text);
+        
+        // Правим проверка само на първите 1000 символа
+        $len = min(mb_strlen($d), 1000);
+        
+        // Дали чарсета не грешно зададен като ISO-8859-1, а той всъщност да е CP1251?
+        if($fromCharset == 'ISO-8859-1' && $len > 2) {
+                
+            $badAlpha = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕ×ÖÜÚÞßàáâãäåæçèéêëìíîïðñòóôõ÷öüúþÿ';
+            $bad = 0;
+            for($i = 0; $i < $len; $i++) {
+                if(strpos($badAlpha, mb_substr($d, $i, 1)) !== FALSE) {
+                    $bad++;
+                }
+            }
+
+            if($bad > $len/2) {
+                $d = iconv('CP1251', "UTF-8//IGNORE", $text);
+            }
+        }
+ 
+        return $d;
+    }
+    
+    
+    /**
+     * Проверява дали аргумента е 7 битов стринг
+     *
+     * @param string $str - Стринга, който ще се проверява
+     *
+     * @return boolean
+     */
+    static function is7Bit($str)
+    {
+        $len = strlen($str);
+        
+        for ($i = 0; $i < $len; $i++) {
+            if (ord($str{$i}) > 127) {
+                
+                return FALSE;
+            }
+        }
+        
+        return TRUE;
+    }
+
+    
+    /**
      * Подготвя анализатора за езици
      */
     private static function prepareLgAnalyzer()
