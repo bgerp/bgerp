@@ -105,7 +105,7 @@ class email_Fingerprints extends core_Manager
         $hash = self::getHeaderHash($headers);
 
         $res = self::fetchField("#hash = '{$hash}'", 'id') > 0;
-self::log("<li> $hash $res");
+
         return $res;
     }
 
