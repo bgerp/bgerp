@@ -232,14 +232,16 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 </body>
 </html>";
 
+// Определяме масива с локалните IP-та
+$localIpArr = array('::1', '127.0.0.1');
+
 if (defined('BGERP_SETUP_KEY')) {
 	if($_GET['SetupKey'] != BGERP_SETUP_KEY) {
 	    halt('Wrong Setup Key!');
 	}
+	$localIpArr += array($_SERVER['REMOTE_ADDR']);
 }
 
-// Определяме масива с локалните IP-та
-$localIpArr = array('::1', '127.0.0.1');
 session_name('SID');
 session_start();
 if($ip = $_SESSION[EF_APP_NAME . 'admin_ip']) {
@@ -683,18 +685,19 @@ die;
  */
 function getGitCmd(&$gitCmd)
 {
-	// Проверяваме дали Git не е инсталиран
-	exec('git', $output, $returnVar);
-	if (strpos($output['0'], "usage: git") !== FALSE) {
-		$gitCmd = 'git';
-		
-		return TRUE;
-	}
 	
 	// Проверяваме дали не идва от installBuilder-a
 	exec(BGERP_GIT_PATH, $output, $returnVar);
 	if (strpos($output['0'], "usage: git") !== FALSE) {
 		$gitCmd = BGERP_GIT_PATH;
+		
+		return TRUE;
+	}
+	
+	// Проверяваме дали Git не е инсталиран
+	exec('git', $output, $returnVar);
+	if (strpos($output['0'], "usage: git") !== FALSE) {
+		$gitCmd = 'git';
 		
 		return TRUE;
 	}
