@@ -48,6 +48,7 @@ function ef_autoload($className)
         'url' => 'core_Url',
         'users' => 'core_Users',
         'ut' => 'unit_Tests',
+        'fileman' => 'fileman_Files2',
     );
     
     if($fullName = $aliases[strtolower($className)]) {
