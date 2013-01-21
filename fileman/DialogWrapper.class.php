@@ -80,7 +80,7 @@ class fileman_DialogWrapper extends core_Plugin
             
             $tpl->prepend('<br>');
             
-            $tpl->prepend(tr($this->info->title) . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
+            $tpl->prepend($this->info->title . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
             
             $tpl->prepend("<style> 
             .filemanUpload .tab-title {
