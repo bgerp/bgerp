@@ -306,6 +306,10 @@ div.alphabet div.tab-page {
 	padding: 0px;
 }
 
+.narrow div.alphabet  div.tab-row {
+	width: 330px;
+}
+
 div.crmImage {
 	padding:18px 0px 8px 8px;
 	float:right;
@@ -452,6 +456,15 @@ dl dd {
 
 .narrow .vertical .formToolbar {
 	background-image:none;
+	padding:8px;
+	-moz-border-radius-bottomleft: 5px;
+    -moz-border-radius-bottomright: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
+	border:solid 1px #bbb;
+	border-top:none;
 }
 
 .formSection {
@@ -691,6 +704,7 @@ div.acc-detail {
 
 .narrow .folder-cover{
 	line-height:1.5em;
+	font-size:0.8em;
 }
 
 .printing .folder-cover {
@@ -939,6 +953,10 @@ table.mc-header a {
 	float: left;
 	margin-right: 0px;
 	margin-top: 0px;
+}
+
+.wide .listTable>tbody>tr>td div.document{
+	width:850px !important;
 }
 
 .doc_Containers table.listTable td {
