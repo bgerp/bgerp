@@ -284,12 +284,18 @@ form {
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px; 
     border-radius: 5px; 
+ }
+ 
+ .wide .formError{
+ 	-moz-border-radius: 5px; 
+    -webkit-border-radius: 5px; 
+    border-radius: 5px; 
     text-align:left;
     min-width:300px;
  }
  
  .narrow .formError {
-    min-width:auto; 
+ 	width:auto;
     padding:2px; 
     font-family:Arial,Verdana;
 }
@@ -304,6 +310,10 @@ form {
 
 .narrow .formInfo, .narrow .formFields, .narrow .formWarning, .formError  {
     margin-bottom:3px;
+}
+
+.narrow .formError ul { /*diff*/
+    padding-left:1em;
 }
 
 .formFields table {
@@ -354,6 +364,11 @@ div.hFormField {
     color:white;
 }
 
+.narrow .vertical .formTitle{
+	font-size:  1.2em; 
+    font-family: Verdana; 
+}
+
 .vertical .formAll { 
     background-color:blue;
     color:white;
@@ -386,19 +401,29 @@ div.hFormField {
     margin-right:10px;
 }
 
+.narrow .vertical .formToolbar input {
+    margin-right:5px;
+}
+
 .wide form[method="post"] input[type="submit"] {
 	border: solid 1px #888 !important;
 	background-color: #99f !important;
 	color: white;
 }
 
-.narrow .vertical .formToolbar input { 
-    margin-right:5px;
+.wide form[method=post]  input[type=button], .wide form[method=post]  a.button { 
+	border:solid 1px #888;
+	background-color:#999;
+	color:white;
 }
 
 .narrow form[method=post] input[type=submit]:first-child { 
 	background-color:#99f !important;
 	color:white;
+}
+
+.narrow .formAll { /*diff*/
+    display:table;
 }
 
 /* Стилове за страньора 'hlp_Pager' */
@@ -531,7 +556,7 @@ a.button, input[type=button], input[type=submit] {
     padding:1px 4px 1px 4px; /* IE6 */
 }
 
-.narrow .btn-left { /*diff*/
+.narrow .btn-left { 
 	-moz-border-radius-topright:0px !important; 
 	-moz-border-radius-bottomright:0px !important; 
 	border-bottom-right-radius: 0px !important; 
@@ -540,7 +565,7 @@ a.button, input[type=button], input[type=submit] {
 	margin:0px !important;
 }
 
-.narrow .btn-right { /*diff*/
+.narrow .btn-right {
 	-moz-border-radius-bottomleft:0px !important;
 	-moz-border-radius-topleft:0px !important; 
 	border-bottom-left-radius: 0px !important;
@@ -548,7 +573,7 @@ a.button, input[type=button], input[type=submit] {
 	margin:0px !important;
 }
 
-.narrow .btn-middle { /*diff*/
+.narrow .btn-middle { 
 	-moz-border-radius:0px !important;
 	border-radius: 0px !important;
 	border-right: none !important;
@@ -923,4 +948,10 @@ tr.zebra1 {
     height: 0;
     clear: both;
     visibility: hidden;
+}
+
+.core_Cron  .listTable td p { 
+	margin:5px; 
+	font-family:monospace;
+	font-size:0.85em;
 }
