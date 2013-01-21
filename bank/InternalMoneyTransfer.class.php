@@ -208,7 +208,7 @@ class bank_InternalMoneyTransfer extends core_Master
     	if(!$form->rec->id) {
     		expect($operationId = Request::get('operationId'));
     	} else {
-    		$operationId = $form->operationId;
+    		$operationId = $form->rec->operationId;
     	}
     	
     	$operation = acc_Operations::getOperationInfo($operationId);
@@ -494,24 +494,26 @@ class bank_InternalMoneyTransfer extends core_Master
     
     /**
      * Поставя бутони за генериране на други банкови документи възоснова
-     * на този.
+     * на този, само ако документа е "чернова".
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$rec = $data->rec;
-    	$operationSysId = acc_Operations::fetchSysId($rec->operationId);
-    	
-    	// Взависимост от операцията определяме пораждащите документи
-    	switch($operationSysId) {
-    		case 'bank2bank':
-    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-    			break;
-    		case 'bank2case':
-    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-    			break;
-    		case 'case2bank':
-    			$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-    			break;
+    	if($data->rec->state == 'draft') {
+	    	$rec = $data->rec;
+	    	$operationSysId = acc_Operations::fetchSysId($rec->operationId);
+	    	
+	    	// Взависимост от операцията определяме пораждащите документи
+	    	switch($operationSysId) {
+	    		case 'bank2bank':
+	    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+	    			break;
+	    		case 'bank2case':
+	    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+	    			break;
+	    		case 'case2bank':
+	    			$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+	    			break;
+	    	}
     	}
     }
     
