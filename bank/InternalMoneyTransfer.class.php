@@ -69,7 +69,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Vpt";
+    var $abbr = "Vtp";
     
     
     /**
@@ -130,7 +130,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $this->FLD('debitQuantity', 'double(minDecimals=2)', 'width=6em,caption=Към->Сума');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=none');
         $this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
         $this->FNC('isContable', 'int', 'column=none');
@@ -208,7 +208,7 @@ class bank_InternalMoneyTransfer extends core_Master
     	if(!$form->rec->id) {
     		expect($operationId = Request::get('operationId'));
     	} else {
-    		$operationId = $form->operationId;
+    		$operationId = $form->rec->operationId;
     	}
     	
     	$operation = acc_Operations::getOperationInfo($operationId);
@@ -494,24 +494,26 @@ class bank_InternalMoneyTransfer extends core_Master
     
     /**
      * Поставя бутони за генериране на други банкови документи възоснова
-     * на този.
+     * на този, само ако документа е "чернова".
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$rec = $data->rec;
-    	$operationSysId = acc_Operations::fetchSysId($rec->operationId);
-    	
-    	// Взависимост от операцията определяме пораждащите документи
-    	switch($operationSysId) {
-    		case 'bank2bank':
-    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-    			break;
-    		case 'bank2case':
-    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-    			break;
-    		case 'case2bank':
-    			$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-    			break;
+    	if($data->rec->state == 'draft') {
+	    	$rec = $data->rec;
+	    	$operationSysId = acc_Operations::fetchSysId($rec->operationId);
+	    	
+	    	// Взависимост от операцията определяме пораждащите документи
+	    	switch($operationSysId) {
+	    		case 'bank2bank':
+	    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+	    			break;
+	    		case 'bank2case':
+	    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+	    			break;
+	    		case 'case2bank':
+	    			$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+	    			break;
+	    	}
     	}
     }
     
@@ -577,7 +579,7 @@ class bank_InternalMoneyTransfer extends core_Master
     {
         $rec = (object)array(
             'id' => $id,
-            'state' => 'active'
+            'state' => 'closed'
         );
         
         return self::save($rec);
@@ -611,8 +613,15 @@ class bank_InternalMoneyTransfer extends core_Master
         if (empty($folderClass)) {
             $folderClass = doc_Folders::fetchCoverClassName($folderId);
         }
-    
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons';
+    	
+        // Може да създаваме документ-а само в дефолт папката му
+        if($folderId == static::getDefaultFolder()) {
+        	
+        	return TRUE;
+        } 
+        	
+       return FALSE;
+        
     }
     
     

@@ -269,16 +269,17 @@ class bank_IncomeDocument extends core_Master
     
     /**
      * Поставя бутони за генериране на други банкови документи възоснова
-     * на този.
+     * на този, само ако документа е "чернова"
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$operation = acc_Operations::fetch($data->rec->operationId);
-    	if(acc_Lists::getPosition($operation->creditAccount, 'crm_ContragentAccRegIntf')) {
-    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	if($data->rec->state == 'draft') {
+	    	$operation = acc_Operations::fetch($data->rec->operationId);
+	    	if(acc_Lists::getPosition($operation->creditAccount, 'crm_ContragentAccRegIntf')) {
+	    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+	    	}
+	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     	}
-    	
-    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     }
     
     

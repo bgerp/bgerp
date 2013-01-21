@@ -1298,6 +1298,32 @@ fieldset.sharing-history i {
 	font-size: 0.9em;
 }
 
+.wide .icon { 
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background-repeat: no-repeat;
+	background-position: left center;
+}
+
+
+.wide input.contactData, .wide textarea.contactData, .wide select.contactData {
+	width:400px;
+}
+
+.narrow input.contactData {
+	width:100%;
+}
+
+.wide input.pCode { 
+	width:80px;
+}
+
+.wide select {
+    max-width:500px;
+}
+
+
 /* CMS */
 #cmsTop {
 	background-repeat: no-repeat;
@@ -1323,6 +1349,10 @@ fieldset.sharing-history i {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+}
+
+.narrow #cmsMenu { 
+      min-width:610px;
 }
 
 #cmsMenu a {
@@ -1589,14 +1619,11 @@ fieldset.sharing-history i {
 .webdrvIframe {
 	width: 100%;
 	border: solid 0px transparent;
+	min-height: 600px;
 }
 
 .narrow .webdrvIframe { 
 	min-height:300px; 
-}
-
-.webdrvFieldset { 
-	min-height: 600px;
 }
 
 .narrow .webdrvFieldset {

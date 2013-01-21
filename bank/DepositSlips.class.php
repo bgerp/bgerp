@@ -240,7 +240,6 @@ class bank_DepositSlips extends core_Master
     	$row->number = static::getHandle($rec->id);
     	
     	if($fields['-single']) {
-    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" ;
     		$spellNumber = cls::get('core_SpellNumber');
 			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
 	        
