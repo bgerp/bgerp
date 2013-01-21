@@ -116,7 +116,8 @@ class acc_Operations extends core_Manager
     /**
      * Кои операции са възможни на даден документ
      * @param string $name - името на класа на документа
-     * @return array $options - масив от позволените операции
+     * @return array $options - масив от позволените операции, ако няма
+     * операции за този документ редиректваме към формата за добавяне
      */
     static function getPossibleOperations($name)
     {
@@ -132,7 +133,7 @@ class acc_Operations extends core_Manager
         }
         
         if(count($options) == 0) {
-        	$options[] = tr('Няма операции за този документ');
+        	 return Redirect(array('acc_Operations', 'add'), FALSE, tr("Моля създайте операции за този документ"));
         }
         
         return $options;
