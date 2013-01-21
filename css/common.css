@@ -7,7 +7,7 @@
  
  
  
-.narrow select.combo {  
+select.combo {  
 	position: absolute; 
     visibility:hidden;
     overflow:hidden;
@@ -310,7 +310,7 @@ form {
 	width:100%;
 }
 
-.horizontal .formFields {
+.wide .horizontal .formFields {
 	float:left; 
 }
 
@@ -323,6 +323,10 @@ div.hFormField {
 .narrow div.hFormField{
 	float:none;
 	margin:0;
+}
+
+.narrow .horizontal .formFields div {
+	margin-bottom: 5px;
 }
 
 .wide .horizontal .formToolbar { 
@@ -382,8 +386,19 @@ div.hFormField {
     margin-right:10px;
 }
 
+.wide form[method="post"] input[type="submit"] {
+	border: solid 1px #888 !important;
+	background-color: #99f !important;
+	color: white;
+}
+
 .narrow .vertical .formToolbar input { 
     margin-right:5px;
+}
+
+.narrow form[method=post] input[type=submit]:first-child { 
+	background-color:#99f !important;
+	color:white;
 }
 
 /* Стилове за страньора 'hlp_Pager' */
@@ -514,6 +529,30 @@ a.button, input[type=button], input[type=submit] {
     font-size:100%;
     line-height:130%; 
     padding:1px 4px 1px 4px; /* IE6 */
+}
+
+.narrow .btn-left { /*diff*/
+	-moz-border-radius-topright:0px !important; 
+	-moz-border-radius-bottomright:0px !important; 
+	border-bottom-right-radius: 0px !important; 
+	border-top-right-radius: 0px !important;
+	border-right: none !important;
+	margin:0px !important;
+}
+
+.narrow .btn-right { /*diff*/
+	-moz-border-radius-bottomleft:0px !important;
+	-moz-border-radius-topleft:0px !important; 
+	border-bottom-left-radius: 0px !important;
+	border-top-left-radius: 0px !important;
+	margin:0px !important;
+}
+
+.narrow .btn-middle { /*diff*/
+	-moz-border-radius:0px !important;
+	border-radius: 0px !important;
+	border-right: none !important;
+	margin:0px !important;
 }
 
 a.button:hover, input:hover[type=button] , input:hover[type=submit]{
@@ -818,6 +857,16 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
 
 div.statuses-success , div.statuses-error, div.statuses-warning{
 	background-color:#ffffcc;	
+}
+
+.state-draft {
+    background-color: #88cc99;
+}
+
+.state-active {
+    background-color: #ffeedd;
+	background: rgba(250, 221, 187, 0.5);
+
 }
 
 .state-opened {
