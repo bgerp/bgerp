@@ -683,18 +683,19 @@ die;
  */
 function getGitCmd(&$gitCmd)
 {
-	// Проверяваме дали Git не е инсталиран
-	exec('git', $output, $returnVar);
-	if (strpos($output['0'], "usage: git") !== FALSE) {
-		$gitCmd = 'git';
-		
-		return TRUE;
-	}
 	
 	// Проверяваме дали не идва от installBuilder-a
 	exec(BGERP_GIT_PATH, $output, $returnVar);
 	if (strpos($output['0'], "usage: git") !== FALSE) {
 		$gitCmd = BGERP_GIT_PATH;
+		
+		return TRUE;
+	}
+	
+	// Проверяваме дали Git не е инсталиран
+	exec('git', $output, $returnVar);
+	if (strpos($output['0'], "usage: git") !== FALSE) {
+		$gitCmd = 'git';
 		
 		return TRUE;
 	}
