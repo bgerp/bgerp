@@ -118,13 +118,13 @@ class fileman_Data extends core_Manager {
     /**
      * Увеличава с 1 брояча, отчиташ броя на свързаните файлове
      */
-    function increaseLinks($id)
+    static function increaseLinks($id)
     {
-        $rec = $this->fetch($id);
+        $rec = static::fetch($id);
         
         if($rec) {
             $rec->links++;
-            $this->save($rec, 'links');
+            static::save($rec, 'links');
         }
     }
     
@@ -195,8 +195,31 @@ class fileman_Data extends core_Manager {
             $rec = self::fetch($rec);
         }
         
-        $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
+        $path = FILEMAN_UPLOADS_PATH . "/" . static::getFileName($rec);
         
         return $path;
+    }
+    
+    
+    /**
+     * Връща името на файла
+     * 
+     * @param mixed $rec - id' на файла или записа на файла
+     * 
+     * @return string $name - Името на файла
+     */
+    static function getFileName($rec)
+    {
+        // Ако не е обектс
+        if (is_numeric($rec)) {
+        
+            // Вземаме записа
+            $rec = static::fetch($rec);
+        }    
+        
+        // Генерираме името
+        $name = $rec->md5 . "_" . $rec->fileLen;
+        
+        return $name;
     }
 }

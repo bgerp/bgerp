@@ -120,4 +120,18 @@ class avatar_Plugin extends core_Plugin
         
         return $img;
     }
+    
+    
+    /**
+     * Изпълнява се след създаване на формата за добавяне/редактиране
+     */
+    static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        // При добавяне на първия потребител в core_Users
+        if(($mvc->className == 'core_Users') && (!$mvc->fetch('1=1'))) {
+            
+            // Да не се показва полето за аватар
+            $data->form->setField("avatar", 'input=none');
+        }
+    }
 }

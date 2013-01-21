@@ -83,7 +83,7 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
             
             // Добавяме файла в кофата
             $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
-            
+                
             // Вземаме записа за новосъздадения файл
             $nRec = fileman_Files::fetchByFh($fh);
             

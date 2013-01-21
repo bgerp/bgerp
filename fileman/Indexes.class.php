@@ -423,6 +423,21 @@ class fileman_Indexes extends core_Manager
         // Ако има файл
         if ($isValid) return FALSE;
 
+        // Създаваме запис за грешка
+        static::createError($params);
+
+        // Записваме грешката в лога
+        static::createErrorLog($params['dataId'], $params['type']);
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Записваме грешка в модела
+     */
+    static function createError($params) 
+    {
         // Ако няма файл, записваме грешката
         $error = new stdClass();
         $error->errorProc = tr("Възникна грешка при обработка") . '...';
@@ -432,11 +447,6 @@ class fileman_Indexes extends core_Manager
 
         // Обновяваме данните за запис във fileman_Indexes
         $savedId = fileman_Indexes::saveContent($params);
-
-        // Записваме грешката в лога
-        static::createErrorLog($params['dataId'], $params['type']);
-        
-        return TRUE;
     }
     
     
