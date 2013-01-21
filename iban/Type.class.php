@@ -59,7 +59,9 @@ class iban_Type extends type_Varchar
      */
     static function getCountryPart($iban)
     {
-        $validIban = self::isValid($iban);
+        $self = cls::get(get_called_class());
+        
+    	$validIban = $self->isValid($iban);
         
         expect(!$validIban['error']);
         
@@ -74,7 +76,9 @@ class iban_Type extends type_Varchar
      */
     static function getBankPart($iban)
     {
-        $validIban = self::isValid($iban);
+        $self = cls::get(get_called_class());
+        
+    	$validIban = $self->isValid($iban);
         
         expect(!$validIban['error']);
         
@@ -89,7 +93,9 @@ class iban_Type extends type_Varchar
      */
     static function getParts($iban)
     {
-        $validIban = self::isValid($iban);
+        $self = cls::get(get_called_class());
+        
+    	$validIban = $self->isValid($iban);
         
         expect(!$validIban['error']);
         
