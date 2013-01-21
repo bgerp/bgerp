@@ -49,4 +49,35 @@ class fileman_Versions extends core_Manager {
         
         $this->setDbIndex('fileHnd');
     }
+    
+    
+    /**
+     * Създава нова версия на файла
+     * 
+     * @param string $fileHnd - Манипулатора на файла
+     * @param fileman_Data - id на данните
+     * 
+     * @return fileman_Versions $id - id' то на записа
+     */
+    public static function createNew($fileHnd, $dataId)
+    {
+        // Проверяваме дали има запис
+        $rec = static::fetch(array("#fileHnd = '[#1#]' AND #dataId = '[#2#]'", $fileHnd, $dataId));
+        
+        // Ако същетстува запис връщаме резултата
+        if ($rec) return $rec->id;
+        
+        // Създаваме нов запис
+        $nRec = new stdClass();
+        $nRec->fileHnd = $fileHnd;
+        $nRec->dataId = $dataId;
+        $nRec->state = 'active';
+        
+        $id = static::save($nRec);
+        
+        // Увеличаваме брой на файловете, към които сочат данните
+        fileman_Data::increaseLinks($dataId);
+        
+        return $id;
+    }
 }

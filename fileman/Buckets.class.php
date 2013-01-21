@@ -56,9 +56,11 @@ class fileman_Buckets extends core_Manager {
     /**
      * Връща id на кофата, според името и
      */
-    function fetchByName($bucketName, $part = 'id')
+    static function fetchByName($bucketName, $part = 'id')
     {
-        $rec = $this->fetch(array("#name = '[#1#]'", $bucketName));
+        // Името да е в долен регистър
+        $bucketName = mb_strtolower($bucketName);
+        $rec = static::fetch(array("LOWER(#name) = '[#1#]'", $bucketName));
 
         if($part == '*') {
 
@@ -115,7 +117,8 @@ class fileman_Buckets extends core_Manager {
         }
 
         // Попълване на информацията
-        $info->title = tr("|* &quot;|$row->name|*&quot; - добавяне на файл");
+        $info->title = tr("|* &quot;|$row->name|*&quot; - |добавяне на файл");
+
         $info->maxFileSize = $row->maxSize;
 
         return $info;

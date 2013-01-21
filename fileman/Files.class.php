@@ -93,6 +93,9 @@ class fileman_Files extends core_Master
         $this->load('plg_Created,plg_Modified,Data=fileman_Data,Buckets=fileman_Buckets,' .
             'Download=fileman_Download,Versions=fileman_Versions,fileman_Wrapper');
         
+        // 
+        $this->FLD('extractedOn', 'datetime(format=smartTime)', 'caption=Екстрактнато->На,input=none');
+        
         // Индекси
         $this->setDbUnique('fileHnd');
         $this->setDbUnique('name,bucketId', 'uniqName');
@@ -911,10 +914,10 @@ class fileman_Files extends core_Master
      * 
      * @return fileman_Files $fileHnd - Манипулатора на файла
      */
-    function checkFileName($dataId, $bucketId, $inputFileName)
+    static function checkFileName($dataId, $bucketId, $inputFileName)
     {
         // Вземаме всички файлове, които са в съответната кофа и със същите данни
-        $query = $this->getQuery();
+        $query = static::getQuery();
         $query->where("#bucketId = '{$bucketId}' AND #dataId = '{$dataId}'");
         $query->show('fileHnd, name');
         

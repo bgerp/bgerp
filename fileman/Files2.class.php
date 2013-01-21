@@ -1,0 +1,582 @@
+<?php
+
+
+/**
+ * Директория, в която ще се държат екстрактнатите файлове
+ */
+defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
+
+
+/**
+ * Клас 'fileman_Files2' -
+ *
+ * @category  vendors
+ * @package   fileman
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2013 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class fileman_Files2 extends core_Master 
+{
+    
+    
+    /**
+     * Създаване на файл от файл в ОС. Връща fh на новосъздания файл.
+     * 
+     * @param string $path - Пътя до файла в ОС
+     * @param string $bucket - Името на кофата
+     * @param string $name - Името на файла 
+     * 
+     * @return fileHnd $fh - Манипулатора на файла
+     */
+    public static function absorb($path, $bucket, $name = NULL)
+    {
+        // Очакваме да има валиден файл
+        expect(is_file($path));
+        
+        // Очакваме да има такава кофа
+        expect($bucketId = fileman_Buckets::fetchByName($bucket));
+
+        // Опитваме се да определим името на файла
+        if($fname === NULL) $fname = basename($path);
+        
+        // Качваме файла и вземаме id' то на данните
+        expect($dataId = fileman_Data::absorbFile($path));
+
+        // Проверяваме дали същия файл вече съществува
+        $fh = fileman_Files::checkFileName($dataId, $bucketId, $fname);
+
+        // Ако няма съвпадения с друг файл в системата
+        if (!$fh) {
+            
+            // Създаваме запис за файла
+            $fh = static::createFile($fname, $bucketId, $dataId);    
+        }
+        
+        return $fh;
+    }
+    
+    
+    /**
+     * Създаване на файл от стринг. Връща fh на новосъздания файл.
+     * 
+     * @param string $data - Данните от които ще се създаде файла
+     * @param string $bucket - Името на кофата
+     * @param string $name - Името на файла 
+     * 
+     * @return fileHnd $fh - Манипулатора на файла
+     */
+    public static function absorbStr($data, $bucket, $name)
+    {
+        // Очакваме да има валидна кофа
+        expect($bucketId = fileman_Buckets::fetchByName($bucket));
+        
+        // Качваме файла и вземаме id' то на данните
+        expect($dataId = fileman_Data::absorbString($data));
+
+        // Проверяваме дали същия файл вече съществува
+        $fh = fileman_Files::checkFileName($dataId, $bucketId, $name);
+
+        // Ако няма съвпадения с друг файл в системата
+        if (!$fh) {
+            
+            // Създаваме запис за файла
+            $fh = static::createFile($name, $bucketId, $dataId);    
+        }
+        
+        return $fh;
+    }
+
+    
+    /**
+     * Нова версия от файл в ОС
+     * 
+     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
+     * @param string $path - Пътя до новата версия на файла
+     * 
+     * @return fileman_Versions $versionId - id от запис
+     */
+    public static function addVersion($fh, $path)
+    {
+        // Очакваме да има подаден файл
+        expect(is_file($path));
+        
+        // Очакваме да има такъв файл
+        $fRec = fileman_Files::fetchByFh($fh);
+        expect($fRec);
+        
+        // Качваме файла и вземаме id' то на данните
+        expect($dataId = fileman_Data::absorbFile($path));
+        
+        // Ако данните са същите, като на оригиналния файл
+        if ($fRec->dataId == $dataId) {
+            // TODO?
+        }
+        
+        // Създаваме версия на файла
+        $versionId = fileman_Versions::createNew($fh, $dataId);
+        
+        return $versionId;
+    }
+
+    
+    /**
+     * Нова версия от стринг
+     * 
+     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
+     * @param string $data - Данните от които ще се създаде весия на файла
+     * 
+     * @return fileman_Versions $versionId - id от запис
+     */
+    public static function addVersionStr($fh, $data)
+    {
+        // Очакваме да има такъв файл
+        $fRec = fileman_Files::fetchByFh($fh);
+        expect($fRec);
+        
+        // Качваме файла и вземаме id' то на данните
+        expect($dataId = fileman_Data::absorbString($data));
+        
+        // Ако данните са същите, като на оригиналния файл
+        if ($fRec->dataId == $dataId) {
+            // TODO?
+        }
+        
+        // Създаваме версия на файла
+        $versionId = fileman_Versions::createNew($fh, $dataId);
+        
+        return $versionId;
+    }
+
+    
+    /**
+     * Екстрактване на файл в ОС. Връща пълния път до новия файл
+     * 
+     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
+     * 
+     * @return string $copyPath - Пътя до файла
+     */
+    public static function extract($fh)
+    {
+        // Вземаме записите за файла
+        expect($rec = fileman_Files::fetchByFh($fh));
+        
+        // Вземаме пътя до данните на файла
+        $originalPath = fileman_Files::fetchByFh($fh, 'path');
+        
+        // Пътя до файла
+        $copyPath = static::getTempPath() . "/" . $rec->name;
+        
+        // Копираме файла
+        $copied = copy($originalPath, $copyPath);
+        
+        // Ако копирането не премине успешно
+        if (!$copied) {
+            expect($copied, 'Не може да бъде копиран файла');
+            core_Logs::log("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$copyPath}'");
+        }
+        
+        // Времето на екстрактване
+        $rec->extractedOn = dt::verbal2Mysql();
+
+        // Записваме информация за екстрактването
+        fileman_Files::save($rec, 'extractedOn');
+        
+        return $copyPath;
+    }
+
+    
+    /**
+     * Екстрактване на файл в string. Връща стринга.
+     * 
+     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
+     * 
+     * @return string $content - Данните на файла
+     */
+    public static function extractStr($fh)
+    {
+        // Екстрактваме файла във временена директория
+        $tempFile = static::extract($fh);
+        
+        // Вземаме съдържанието му
+        $content = file_get_contents($tempFile);
+        
+        // Изтриване на временния файл
+        static::deleteTempPath($tempFile);
+        
+        return $content;
+    }
+    
+    
+    /**
+     * Преименуване на файл
+     * 
+     * @param string $fh - Манипулатор на файла
+     * @param string $newName - Новото име на файла
+     * 
+     * @param string $rec->name -Новото име на файла
+     */
+    public static function rename($fh, $newName)
+    {
+        // Очакваме да има валиден запис
+        expect($rec = fileman_Files::fetchByFh($fh));
+        
+        // Ако имена не са еднакви
+        if($rec->name != $newName) {
+            
+            // Вземаме възможното има за съответната кофа
+            $rec->name = fileman_Files::getPossibleName($newName, $rec->bucketId); 
+            
+            // Записваме
+            fileman_Files::save($rec);
+            
+            // Изтриваме файла от sbf и от модела
+            fileman_Download::deleteFileFromSbf($rec->id);
+            
+            // Изтриваме всички предишни индекси за файла
+            fileman_Indexes::deleteIndexesForData($rec->dataId);
+        }
+        
+        return $rec->name;
+    }
+
+    
+    /**
+     * Копиране на файл
+     * 
+     * @param string $fh - Манипулатора на файла
+     * @param string $newBucket - Името на новата кофа
+     * @param string $newName - Новото име на файла
+     * 
+     * @return string $newRec->fileHnd - Манипулатора на файла
+     */
+    public static function copy($fh, $newBucket = NULL, $newName = NULL)
+    {
+        // Очакваме да има такъв файл
+        expect($rec = fileman_Files::fetchByFh($fh));
+        
+        // Името на новия файл
+        $newName = ($newName) ? $newName : $rec->name;
+        
+        // Ако е подадена кофа
+        if ($newBucket) {
+            
+            // Очакваме да има валидна кофа
+            expect($bucketId = fileman_Buckets::fetchByName($newBucket), 'Няма такава кофа');
+        } else {
+            
+            // Ако не е подадена кофа, използваме кофата на файла
+            $bucketId = $rec->bucketId;
+        }
+        
+        // Името на новия файла
+        $possibleName = fileman_Files::getPossibleName($newName, $bucketId);
+        
+        // Записваме данните
+        $newRec = new stdClass();
+        $newRec->name = $possibleName;
+        $newRec->bucketId = $bucketId;
+        $newRec->dataId = $rec->dataId;
+        $newRec->state = 'active';
+        
+        $id = fileman_Files::save($newRec);
+        
+        // Очакваме записа да е преминал успешно
+        expect($id);
+        
+        // Увеличаваме броя на линковете, които сочат към данните
+        fileman_Data::increaseLinks($rec->dataId);
+        
+        // Връщаме манипулатора на файла
+        return $newRec->fileHnd;
+    }
+
+    
+    /**
+     * Връща id на посочения fileHnd
+     * 
+     * @param string $fh - Манипулатора на файла
+     * 
+     * @return fileman_Files $id - id на файла
+     */
+    public static function fhToId($fh)
+    {
+        // Вземаме id' то на файла
+        $id = fileman_Files::fetchByFh($fh, 'id');
+        
+        return $id;
+    }
+
+    
+    /**
+     * Връща масив от id-та  на файлове. Като аргумент получава масив или keylist от fileHandles.
+     * 
+     * @param array $fhKeylist - масив или keylist от манипулатора на файлове
+     * 
+     * @return array $idsArr - Масив с id' то във fileman_Files
+     */
+    public static function fhKeylistToIds($fhKeylist)
+    {
+        // Ако не е масив
+        if (!is_array($fhKeylist)) {
+            
+            // Превъращаме keyList в масив
+            $fhArr = type_Keylist::toArray($fhKeylist);
+        } else {
+            
+            // Използваме масива
+            $fhArr = $fhKeylist;
+        }
+        
+        //Създаваме променлива за id' тата
+        $idsArr = array();
+        
+        // Обхождаме масива
+        foreach ($fhArr as $fh) {
+            
+            //Ако няма стойност, прескачаме
+            if (!$fh) continue;
+            
+            try {
+                
+                // Вземема id'то на файла
+                $id = static::fhToId($fh);
+            } catch (Exception $e) {
+                
+                // Ако възникне грешка
+                continue;
+            }   
+            
+            // Добавяме в масива
+            $idsArr[$id] = $id;
+        }
+        
+        return $idsArr;
+    }
+
+    
+    /**
+     * Връща fileHnd на посоченото id
+     * 
+     * @param fileman_Files $id - id на файла
+     * 
+     * @return string $fh - Манипулатора на файла
+     */
+    public static function idToFh($id)
+    {
+        // Вземаме манипулатора на файла
+        $fh = fileman_Files::fetchField($id, 'fileHnd');
+        
+        return $fh;
+    }
+
+    
+    /**
+     * Връща масив от fh-ри  на файлове. Като аргумент получава масив или keylist от id-та на файлове
+     * 
+     * @param array $idKeylist - масив или keylist от id (от fileman_Files) на файлове
+     * 
+     * @return array $idsArr - Масив с манипулатор
+     */
+    public static function idKeylistToFhs($idKeylist)
+    {
+        // Ако не е масив
+        if (!is_array($idKeylist)) {
+            
+            // Превъращаме keyList в масив
+            $idArr = type_Keylist::toArray($idKeylist);
+        } else {
+            
+            // Използваме масива
+            $idArr = $idKeylist;
+        }
+        
+        //Създаваме променлива за id' тата
+        $fhsArr = array();
+        
+        foreach ($idArr as $id) {
+            
+            //Ако няма стойност, прескачаме
+            if (!$id) continue;
+            
+            try {
+                
+                // Вземаме манипуалтора
+                $fh = static::idToFh($id);
+            } catch (Exception $e) {
+                
+                // Ако няма такъв fh, тогава прескачаме
+                continue;
+            }   
+            
+            // Добавяме в масива
+            $fhsArr[$fh] = $fh;
+        }
+        
+        return $fhsArr;
+    }
+
+    
+    /**
+     * Връща всички мета-характеристики на файла
+     * 
+     * @param strign $fh - Манипулатор на файла
+     * 
+     * @param return array(
+     *      'name' => '...',
+     *      'bucket' => '...',
+     *      'size' => ...,
+     *      'creationDate' => '...',
+     *      'modificationDate' => '...',
+     *      'extractDate' => '...',
+     *   )
+     */
+    public static function getMeta($fh)
+    {
+        // Масив с мета данни
+        $metaDataArr = array();
+        
+        // Вземаме записите
+        $rec = fileman_Files::fetchByFh($fh);
+        $data = fileman_Data::fetch($rec->dataId);
+
+        // Очакваме да има такъв запис
+        expect($rec && $data);
+        
+        // Попълваме масива
+        $metaDataArr['name'] = $rec->name;
+        $metaDataArr['bucket'] = $rec->bucketId;
+        $metaDataArr['size'] = $data->fileLen;
+        $metaDataArr['creationDate'] = $rec->createdOn;
+        $metaDataArr['modificationDate'] = $rec->modifiedOn;
+        $metaDataArr['extractDate'] = $rec->extractedOn;
+        
+        return $metaDataArr;
+    }
+    
+    
+	/**
+     * Създава нов файл
+     * 
+     * @param string $fname - Името на файла
+     * @param fileman_Buckets $bucketId - Кофата, в която ще създадем
+     * @param fileman_Data $dataId - Данните за файла
+     * 
+     * @return string $rec->fileHnd - Манипуалатор на файла
+     */
+    protected static function createFile($fname, $bucketId, $dataId)
+    {
+        // Създаваме записите
+        $rec = new stdClass();
+        $rec->name = fileman_Files::getPossibleName($fname, $bucketId);
+        $rec->bucketId = $bucketId;
+        $rec->state = 'active';
+        $rec->dataId = $dataId;
+        
+        // Записваме
+        fileman_Files::save($rec);
+        
+        // Увеличаваме с единица броя на файловете за които отговаря файла
+        fileman_Data::increaseLinks($dataId);
+        
+        return $rec->fileHnd;
+    }
+    
+    
+    /**
+     * Създава нова директория, където ще се записват файловете
+     * 
+     * @return string $tempPath - Пътя до новата директория
+     */
+    public static function getTempPath()
+    {
+        // Вземаме директорията за временните файлове
+        $dir = static::getTempDir();
+        
+        // Сканираме директорията
+        $dirs = @scandir($dir);
+        
+        // Опитваме се да генерираме име, което не се среща в директория
+        do {
+            $newName = str::getRand();
+        }while(in_array($newName, (array)$dirs));
+        
+        // Пътя на директорията
+        $tempPath = $dir . '/' . $newName;
+        
+        // Създаваме диркторията
+        expect(mkdir($tempPath, 0777, TRUE));
+        
+        return $tempPath;
+    }
+    
+    
+    /**
+     * Връща директорията с временните файлове
+     * 
+     * @return $tempDir - Пътя до директорията, където се съхраняват времените файлове
+     */
+    public static function getTempDir()
+    {
+        // TODO
+//    	$conf = core_Packs::getConfig('fileman');
+//    	$tempPath = $conf->FILEMAN_TEMP_PATH;
+    	
+        // Пътя до директория с временните файлове
+        $tempDir = FILEMAN_TEMP_PATH;
+        
+        return $tempDir;
+    }
+    
+    
+    /**
+     * Изтрива временната директория
+     * 
+     * @param string $tempFile - Файла, който ще бъде изтрит с директорията
+     * 
+     * @return boolean $deleted - Връща TRUE, ако изтриването протече коректно
+     */
+    public static function deleteTempPath($tempFile)
+    {
+        // Очакваме да е подаден валиден файл
+        expect(is_file($tempFile));
+        
+        // Вземаме директорията, в която се намира файла
+        $dirName = dirname($tempFile);
+        
+        // Очакваме папката, която ще изтриваме да е от темп директорията за файлове
+        expect(stripos($dirName, static::getTempDir() . '/') === 0);
+        
+        // Изтриваме директорията
+        $deleted = core_Os::deleteDir($dirName);
+        
+        return $deleted;
+    }
+    
+    
+	/**
+	 * 
+	 */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        // Пътя до временните файлове
+        $tempPath = static::getTempDir();
+        
+        // Ако не същестува
+        if(!is_dir($tempPath)) {
+            
+            // Ако не може да се създаде
+            if(!mkdir($tempPath, 0777, TRUE)) {
+                
+                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията|*: ') . '"' . $tempPath . '</font>';
+            } else {
+                $res .= '<li>' . tr('Създадена е директорията|*: ') . '<font color=green>"' . $tempPath . '"</font>';
+            }
+        } else {
+            $res .= '<li>' . tr('Директорията съществува|*: ') . '<font color=black>"' . $tempPath . '"</font>';
+        }
+        
+        return $res;
+    }
+}
