@@ -700,8 +700,12 @@ class core_App
             $s = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
             $slashPos = strpos($_SERVER["SERVER_PROTOCOL"], '/');
             $protocol = substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0, $slashPos) . $s;
-
-            $boot = $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']);
+            
+            $dirName = dirname($_SERVER['SCRIPT_NAME']);
+            
+            $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
+            
+            $boot = $protocol . "://" . $_SERVER['HTTP_HOST'] . $dirName;
         } else {
 
             $scriptName = $_SERVER['SCRIPT_NAME'];
