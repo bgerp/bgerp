@@ -30,7 +30,7 @@ class fconv_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'fconv_Porcesses';
+    var $startCtr = 'fconv_Processes';
     
     
     /**
