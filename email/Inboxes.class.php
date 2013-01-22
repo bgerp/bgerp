@@ -198,7 +198,7 @@ class email_Inboxes extends core_Master
             $mime->getHeader('Cc')));
 
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
-        if (is_array($emailsArr) && count($emailsArr)) {
+        if (!is_array($emailsArr) || !count($emailsArr)) {
 
             return $accRec->email;
         }
