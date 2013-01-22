@@ -26,7 +26,8 @@ class sales_Sales extends core_Master
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
-                          acc_RegisterIntf=sales_RegisterImpl';
+                          acc_RegisterIntf=sales_RegisterImpl,
+                          acc_TransactionSourceIntf=sales_TransactionSourceImpl';
     
     
     /**
@@ -37,7 +38,7 @@ class sales_Sales extends core_Master
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
-                    doc_plg_BusinessDoc, acc_plg_Registry';
+                    doc_plg_BusinessDoc, acc_plg_Registry, acc_plg_Contable';
     
     
     /**
@@ -193,6 +194,11 @@ class sales_Sales extends core_Master
          */
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
+    	
+    	$this->FLD('state', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'caption=Статус, input=none'
+        );
     }
     
     public static function on_AfterSave($mvc)
@@ -223,6 +229,50 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+        switch ($action) {
+            case 'conto':
+            case 'activate':
+                if (empty($rec->id)) {
+                    // Незаписаните продажби не могат нито да се контират, нито да се активират
+                    $requiredRoles = 'no_one';
+                } else {
+                    $transaction  = $mvc->getValidatedTransaction($rec);
+                    
+                    if ($transaction === FALSE) {
+                        // Възникнала е грешка при генериране на транзакция
+                        $requiredRoles = 'no_one';
+                    } else {
+                        // Активиране е позволено само за продажби, които не генерират транзакции
+                        // Контиране е позволено само за продажби, които генерират транзакции
+                        $deniedAction = (empty($transaction) ? 'conto' : 'activate');
+                        
+                        if ($action == $deniedAction) {
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+                break;
+        }
+    }
+    
+    
+    public function getValidatedTransaction($rec)
+    {
+        try {
+            $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $this);
+            $transaction       = $transactionSource->getTransaction($rec);
+            
+            if (!empty($transaction)) {
+                // Проверяваме валидността на транзакцията
+                $transaction = new acc_journal_Transaction($transaction);
+                expect($transaction->check());
+            } 
+        } catch (core_exception_Expect $ex) {
+            // Транзакцията не се валидира
+            $transaction = FALSE;
+        }
+        
+        return $transaction;
     }
     
     

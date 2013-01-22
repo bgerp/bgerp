@@ -531,4 +531,17 @@ class cat_Products extends core_Master {
         
         return $result;
     }
+    
+    
+    /**
+     * Реализация на интерфейсен метод @see cat_ProductAccRegIntf::getProductInfo()
+     * 
+     * @param int $productId
+     * @param mixed $contragentObj
+     * @param string $date
+     */
+    public static function getProductInfo($productId, $contragentObj, $date)
+    {
+        bp(func_get_args());
+    }
 }

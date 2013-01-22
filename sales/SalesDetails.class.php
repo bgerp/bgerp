@@ -121,8 +121,19 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
-        $this->FLD('quantityOrdered', 'float', 'caption=Количество');
-        $this->FLD('price', 'float(minDecimals=2)', 'caption=Цена');
+        
+        // Количество в брой опаковки
+        $this->FLD('packQuantity', 'float', 'caption=Количество');
+        
+        // Количество в основна мярка
+        $this->FLD('quantity', 'float', 'input=none,caption=Количество');
+        
+        // Цена за опаковка
+        $this->FLD('packPrice', 'float(minDecimals=2)', 'caption=Цена');
+        
+        // Цена за единица продукт в основна мярка
+        $this->FLD('price', 'float(minDecimals=2)', 'input=none,caption=Ед.Цена');
+        
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FNC('amount', 'float(minDecimals=2)', 'caption=Сума');
     }
@@ -260,8 +271,22 @@ class sales_SalesDetails extends core_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
+        if (false && $form->isSubmitted() && !$form->gotErrors()) {
+            // Извличане на информация за продукта - количество в опаковка, единична цена
+            
+            $rec        = $form->rec;
+            $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
+            bp($masterRec);
+            $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
+            
+            /* @var $productRef cat_ProductAccRegIntf */
+            $productRef  = new core_ObjectReference('cat_Products', $form->rec->productId);
+            $productInfo = $productRef->getProductInfo($contragent, $form->rec->date);
+            
+            bp($productInfo);
+        }
     }
     
     
