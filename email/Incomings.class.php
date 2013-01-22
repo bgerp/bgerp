@@ -232,7 +232,7 @@ class email_Incomings extends core_Master
         $numMsg = $imapConn->getStatistic('messages');
             
         $firstUnreadMsgNo = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
-            
+ 
         $startTime = time();
 
         if($firstUnreadMsgNo > 0) {
@@ -321,7 +321,7 @@ class email_Incomings extends core_Master
                 
                 // Кой е UID на писмото?
                 $uid = $imapConn->getUid($msgNo);
-
+ 
                 // Записа на имейл сметката, от където се тегли
                 $accId = $imapConn->accRec->id;
 
@@ -493,7 +493,7 @@ class email_Incomings extends core_Master
         } else {
 
             $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid);
-            
+             
             if(($maxReadMsgNo === FALSE) || ($maxReadMsgNo >= $maxMsgNo)) {
                 $maxReadMsgNo = NULL;
             } else {

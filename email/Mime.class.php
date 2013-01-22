@@ -500,7 +500,9 @@ class email_Mime extends core_BaseClass
                 $fileName = $this->getFileName($index);
                 
                 $p->fileId = $this->addFile($p->data, $fileName, 'part', $p->subType);
+
                 $fRec = $this->files[$p->fileId];
+ 
                 $fRec->fmId = $this->addFileToFileman($fRec->data, $fRec->name);
 
                 if($index == $this->firstHtmlIndex) {
@@ -566,7 +568,8 @@ class email_Mime extends core_BaseClass
                 
                 foreach($patterns as $ptr => $q) {
                     if(stripos($html, $ptr) !== FALSE) {
-                        $fileUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fRec->fh));
+                        $fh = fileman_Files::fetchField($fRec->fmId, 'fileHnd');
+                        $fileUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh));
                         $html = str_ireplace($ptr, "{$q}{$fileUrl}{$q}", $html);
                     }
                 }
@@ -994,7 +997,7 @@ class email_Mime extends core_BaseClass
         }
 
         // Ако липсва файлово разширение се опитваме да го определим от 'Content-Type'
-        if(!strpos($fileName, '.')) {
+        if(!fileman_Files::getExt($fileName)) {
             $ctParts = $this->extractHeader($partIndex, 'Content-Type');
             $mimeT = strtolower($ctParts[0]);
             $fileName = fileman_mimes::addCorrectFileExt($fileName, $mimeT);
