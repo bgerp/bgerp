@@ -100,12 +100,14 @@ class Emogrifier {
             $unprocessableHTMLTags = implode('|',$this->unprocessableHTMLTags);
             $body = preg_replace("/<\/?($unprocessableHTMLTags)[^>]*>/i",'',$body);
         }
-
-        $encoding = mb_detect_encoding($body);
-        $body = mb_convert_encoding($body, 'HTML-ENTITIES', $encoding);
+        
+        if(!$this->encoding) {
+            $this->encoding = mb_detect_encoding($body);
+        }
+        $body = mb_convert_encoding($body, 'HTML-ENTITIES', $this->encoding);
 
         $xmldoc = new DOMDocument;
-        $xmldoc->encoding = $encoding;
+        $xmldoc->encoding = $this->encoding;
         $xmldoc->strictErrorChecking = false;
         $xmldoc->formatOutput = true;
         $xmldoc->loadHTML($body);
@@ -235,7 +237,7 @@ class Emogrifier {
         if ($nodes->length > 0) foreach ($nodes as $node) if ($node->parentNode && is_callable(array($node->parentNode,'removeChild'))) $node->parentNode->removeChild($node);
 
         if ($this->preserveEncoding) {
-            return mb_convert_encoding($xmldoc->saveHTML(), $encoding, 'HTML-ENTITIES');
+            return mb_convert_encoding($xmldoc->saveHTML(), $this->encoding, 'HTML-ENTITIES');
         } else {
             return $xmldoc->saveHTML();
         }

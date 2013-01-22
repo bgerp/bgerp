@@ -51,8 +51,11 @@ class csstoinline_Emogrifier extends core_Manager
         
         // Създава проблеми при енкодинга на някои файлове
         // Запазваме енкодинга
-//        $Emogrifier->preserveEncoding = TRUE;
+        //$Emogrifier->preserveEncoding = TRUE;
         
+        // Задаваме кодировката на такста
+        $Emogrifier->encoding = lang_Encoding::detectCharset($html);
+
         //Вкарва CSS във html, като inline
         $processedHTML = @$Emogrifier->emogrify();
         
