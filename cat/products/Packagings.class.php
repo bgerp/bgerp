@@ -62,6 +62,16 @@ class cat_products_Packagings extends cat_products_Detail
     }
     
     
+    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    {
+        if ($action == 'add') {
+            if (isset($rec) && !count($mvc::getPackagingOptions($rec->productId))) {
+                $requiredRoles = 'no_one';
+            } 
+        }
+    }
+    
+    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -69,7 +79,7 @@ class cat_products_Packagings extends cat_products_Detail
     {
         $data->toolbar->removeBtn('*');
         
-        if ($mvc->haveRightFor('add') && count($mvc::getPackagingOptions($data->masterId)) > 0) {
+        if ($mvc->haveRightFor('add', (object)array('productId'=>$data->masterId)) && count($mvc::getPackagingOptions($data->masterId) > 0)) {
         //    $data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId, 'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
             $data->addUrl = array(
                 $mvc,
@@ -109,7 +119,6 @@ class cat_products_Packagings extends cat_products_Detail
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         $options = $mvc::getPackagingOptions($data->form->rec->productId, $data->form->rec->id);
-        
         
         if (empty($options)) {
             // Няма повече недефинирани опаковки
