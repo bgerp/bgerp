@@ -30,12 +30,15 @@
 					<!--ET_END creditQuantity-->
 				</div>
 				<div style='margin-top:7px'>
-					<!--ET_BEGIN equals-->
+					<!--ET_BEGIN rate-->
+					|При курс|*: &nbsp;<b><span style='color:darkgreen'>[#rate#]</span></b><br>
+					<!--ET_END rate-->
+				</div> <!--  
+				<div style='margin-top:7px'>
 					|Равностойност|*: &nbsp; <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#baseCurrency#]</span> &nbsp;
 					<b><span style='color:darkgreen'>[#equals#]</span></b><br>
-					<!--ET_END equals-->
 				</div>
-				</div>
+				</div>-->
 			</td>
 		</tr>
 	</table>

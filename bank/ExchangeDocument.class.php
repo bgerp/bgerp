@@ -2,7 +2,7 @@
 
 
 /**
- * Документ за Вътрешно Парични трансфери с превалутиране
+ * Документ за Смяна на валута
  *
  *
  * @category  bgerp
@@ -25,7 +25,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Вътрешни трансфери с превалутиране";
+    var $title = "Смяна на валута";
     
     
     /**
@@ -57,7 +57,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Вътрешни трансфери с превалутиране';
+    var $singleTitle = 'Смяна на валута';
     
     
     /**
@@ -69,7 +69,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Vtp";
+    var $abbr = "Sv";
     
     
     /**
@@ -121,14 +121,15 @@ class bank_ExchangeDocument extends core_Master
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 3');
         $this->FLD('creditQuantity', 'double(minDecimals=2)', 'width=6em,caption=От->Сума');
-        $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=От->Курс');
+        $this->FLD('creditPrice', 'double(minDecimals=4)', 'input=none');
         $this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
         $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 1');
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 3');
         $this->FLD('debitQuantity', 'double(minDecimals=2)', 'width=6em,caption=Към->Сума');
-        $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Към->Курс');
-       	$this->FLD('state', 
+        $this->FLD('debitPrice', 'double(minDecimals=4)', 'input=none');
+       	$this->FLD('rate', 'double(decimals=4)', 'input=none');
+        $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
@@ -218,10 +219,7 @@ class bank_ExchangeDocument extends core_Master
         
         $debitAcc = $operation->debitAccount;
         $creditAcc = $operation->creditAccount;
-        
-      	$quantityOnly = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) ||
-        ($creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
-        
+       
         // Перото на валутата по подразбиране
         $currencyClassId = currency_Currencies::getClassId();
         $currencyId = currency_Currencies::getIdByCode();
@@ -254,10 +252,6 @@ class bank_ExchangeDocument extends core_Master
                 $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$division}->" . $singleName);
     		 
             }
-    		
-        	if ($quantityOnly) {
-		         $form->setField("{$type}Price", 'input=none');
-		    }
 		   
 		    // Ако поддържа номенклатура валута, слагаме и стойност по дефолт
 		    if($pos = acc_Lists::getPosition($acc->rec->systemId, 'currency_CurrenciesAccRegIntf')) {
@@ -265,7 +259,6 @@ class bank_ExchangeDocument extends core_Master
 		    }
       	}
       	
-      	//$form->FNC('toCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=Към Валута,width=6em,input');
       	$today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
         $form->setReadOnly('operationId');
@@ -289,38 +282,42 @@ class bank_ExchangeDocument extends core_Master
     		$rec->debitAccId = $operation->debitAccount;
     		$rec->creditAccId = $operation->creditAccount;
     		
-    		if(!$rec->creditQuantity) {
-    				$form->setError("creditQuantity", "Въведете Сумата която ще прехвърляте !!!");
-    			} else {
-	    			if(!$rec->creditPrice) {
-	    				
-		    			// Кредитната цена ако не е въведена е курса на 
-		    			// кредитната валута към базовата за периода
-		    			$creditCurrency = static::getCurrency('credit', $rec);
-		    			$currencyCode = currency_Currencies::getCodeById($creditCurrency);
-		    			$rate = currency_CurrencyRates::getRateBetween($currencyCode, $baseCurrency, $rec->valior);
-		    			$rec->creditPrice =  round($rate, 2);
-		    		}
-	    		
-	    			$creditAmount = $rec->creditPrice * $rec->creditQuantity;
-	    			$rec->amount = $creditAmount;
-	    			
-		    		// Изчиславаме евентуално липсващите дебитни данни,
-		    		// и проверява дали са верни
-		    		if($rec->debitPrice && $rec->debitQuantity) {
-	    				$debitAmount = $rec->debitPrice * $rec->debitQuantity;
-	    				if($debitAmount != $creditAmount) {
-	    					$form->setError("debitQuantity,debitPrice", "Въведените стойности не съответстват !!!");
-	    				}
-		    		} elseif($rec->debitPrice && !$rec->debitQuantity) {
-		    			$rec->debitQuantity = round($creditAmount / $rec->debitPrice, 4);
-		    		
-		    		} elseif(!$rec->debitPrice && $rec->debitQuantity) {
-		    			$rec->debitPrice = round($creditAmount / $rec->debitQuantity, 4);
-		    		} elseif(!$rec->debitPrice && !$rec->debitQuantity) {
-		    			$form->setError("debitQuantity, debitPrice", "Въведените или Курса или Сумата !!!");
-		    		}
-    			}
+    		if(!$rec->creditQuantity || !$rec->debitQuantity) {
+    			$form->setError("creditQuantity, debitQuantity", "Трябва да са въведени и двете суми !!!");
+    		} else {
+    			$creditCurrency = static::getCurrency('credit', $rec);
+		    	$debitCurrency = static::getCurrency('debit', $rec);
+    			$cCode = currency_Currencies::getCodeById($creditCurrency);
+		    	$dCode = currency_Currencies::getCodeById($debitCurrency);
+		    	if($cCode == $dCode) {
+		    		$form->setWarning('creditEnt1,debitEnt1', 'Валутите са едни и същи, няма смяна на валута !!!');
+		    	}
+		    	
+		    	$cRate = currency_CurrencyRates::getRateBetween($cCode, $baseCurrency, $rec->valior);
+		    	$dRate = currency_CurrencyRates::getRateBetween($dCode, $baseCurrency, $rec->valior);
+		    	$rec->creditPrice = $cRate;
+		    	$rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
+		    	$rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
+		    	
+		    	// Записваме Курса от едната валута към другата
+		    	$expRate = $cRate / $dRate;
+		    	
+		    	// Изчисляваме въведената дебитна сума по курса
+		    	$debitAmount = $rec->debitQuantity;
+		    	
+		    	// Изчисляваме кредитната сума по курса към който я обменяме
+		    	$expDebitAmount = $rec->creditQuantity * $expRate;
+		    	
+		    	// Намираме разликата в проценти между реалната и очакваната
+		    	// дебитна сума. Ако разликата им е по-голяма от 5%
+		    	// слагаме Предупреждение в формата
+		    	$difference = abs($debitAmount - $expDebitAmount) / min($debitAmount, $expDebitAmount) * 100;
+		    	if(round($difference, 2) > 5) {
+		    		$form->setWarning('creditQuantity, debitQuantity',
+		    		   'Новата сума има разлика от 5 % спрямо очаквания курс. Сигурни ли сте че искате да продължите  !!!'
+		    		);
+		    	} 
+    		}
     	}
     }
     
@@ -336,7 +333,6 @@ class bank_ExchangeDocument extends core_Master
     {
     	expect($type == 'debit' || $type == 'credit');
     	$accId = $rec->{"{$type}AccId"};
-    	
     	$bankItemPos = acc_Lists::getPosition($accId, 'bank_OwnAccRegIntf');
     	
     	// Ако има Банкова номенклатура намираме валутата от банковата сметка
@@ -375,7 +371,7 @@ class bank_ExchangeDocument extends core_Master
 	    	
     		$currencyId = static::getCurrency('debit', $rec);
     		$row->currency = currency_Currencies::getCodeById($currencyId);
-    	
+    		
     		$double = cls::get('type_Double');
 	    	$double->params['decimals'] = 2;
 	    	$row->creditQuantity = $double->toVerbal($rec->creditQuantity);
@@ -420,6 +416,8 @@ class bank_ExchangeDocument extends core_Master
         expect($rec = self::fetch($id));
         
       	foreach(array('debit', 'credit') as $type) {
+      		${"{$type}Quantity"} = $rec->{"{$type}Quantity"};
+      		${"{$type}Price"} = NULL;
 	      	foreach (range(1, 3) as $n) {
 					if(!$rec->{"{$type}Ent{$n}"}) {
 						
@@ -457,7 +455,7 @@ class bank_ExchangeDocument extends core_Master
                 'creditPrice' => $rec->creditPrice,
             ))
         );
-       
+       //bp($result);
         return $result;
     }
     
