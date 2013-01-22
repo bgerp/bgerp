@@ -57,14 +57,18 @@ class hclean_JSSanitizer extends core_Manager
         // Вземаме съдържанието на линка
         $content = static::getHtmlFromLink($htmlLink);
         
+
         // Конфигурационни константи
         $conf = core_Packs::getConfig('hclean');        
         
         // Ако е зададено да се вкара CSS' а като inline
         if ($conf->HCLEAN_PLACE_CSS_TO_INLINE == 'yes') {
-            $content = csstoinline_ToInline::inlineCssFromHtml($content);
-            $content = csstoinline_ToInline::inlineCssFromHtmlLink($content);
+          $content = csstoinline_ToInline::inlineCssFromHtml($content);
+          $content = csstoinline_ToInline::inlineCssFromHtmlLink($content);
         }
+        
+
+        $content = lang_Encoding::convertToUtf8($content, $charset, 'HTML');
         
         // Преобразуваме HTML' а в текст, който може да се използва в променливи на JS
         $jsHtml = static::htmlToJsText($content);
