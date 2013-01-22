@@ -235,11 +235,12 @@ class bank_OwnAccounts extends core_Manager {
     static function getItemRec($objectId)
     {
         $result = NULL;
-        
         if ($rec = static::fetch($objectId)) {
+        	$account = bank_Accounts::fetch($rec->bankAccountId);
+        	$cCode = currency_Currencies::getCodeById($account->currencyId);
             $result = (object)array(
                 'num' => $rec->id,
-				'title' => bank_Accounts::fetchField($rec->bankAccountId, 'iban'),
+				'title' => $cCode . " - " . $account->iban,
                 'features' => 'foobar' // @todo!
             );
         }
