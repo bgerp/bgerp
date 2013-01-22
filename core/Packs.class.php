@@ -250,6 +250,8 @@ class core_Packs extends core_Manager
         $form->toolbar = cls::get('core_Toolbar');
         $form->setHidden(array('Act' => 'install'));
         $form->toolbar->addSbBtn('Инсталирай', 'default', 'class=btn-install');
+        defIfNot('BGERP_SETUP_KEY', " ");
+        $form->toolbar->addBtn('Сетъп', array("SetupKey" => BGERP_SETUP_KEY, "step"=>2), 'class=btn-install');
         
         return $form->renderHtml();
     }
