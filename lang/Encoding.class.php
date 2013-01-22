@@ -85,9 +85,22 @@ class lang_Encoding {
     /**
      * Намира кой е предполагаемия charset
      */
-    static function detectCharset($html)
+    static function detectCharset($text, $html = TRUE)
     {
-        $res = static::analyzeCharsets($html);
+        if($html) {
+            if(preg_match('~charset=([-a-z0-9_]+)~i', $text, $matches)) {
+                $savedCharset = self::canonizeCharset($matches[1]);
+            }
+            
+            $text = strip_tags($text);
+        }
+
+        $res = static::analyzeCharsets($text);
+ 
+        // Магия за увеличаване рейтинга на намерената кодировка
+        if(count($res->rates)) {
+            $res->rates[$savedCharset] = $res->rates[$savedCharset] * 2 + 0.1;
+        }
         
         //Взема charset' а, който е с най - голяма вероятност
         $charset = arr::getMaxValueKey($res->rates);
@@ -303,14 +316,14 @@ class lang_Encoding {
      * Конвертира от зададена кодова таблица, към UTF-8
      * Прави проверка, кодовата таблица да е неправилно зададена
      */
-    static function convertToUtf8($text, $fromCharset)
+    static function convertToUtf8($text, $fromCharset = NULL, $type = 'HTML')
     {   
         // Ако текста е 7 битов, го връщаме както е, зашото ASCII е подмножество на UTF-8
         if (lang_Encoding::is7Bit($text)) {
             
             return $text;
         } 
-        
+         
         // Вземаме кононичното име на чарсета
         $fromCharset = lang_Encoding::canonizeCharset($fromCharset);
         
@@ -330,12 +343,14 @@ class lang_Encoding {
         // Ако нямаме зададена кодировка на текста, опитваме се да я познаем
         if(!$fromCharset) {
             // Махаме от текста всякакви HTML елементи
-            $textTmp = preg_replace('/\n/', ' ', $text);
-            $textTmp = preg_replace('/<script.*<\/script>/U', ' ', $textTmp);
-            $textTmp = preg_replace('/<style.*<\/style>/U', ' ', $textTmp);
-            $textTmp = strip_tags($textTmp);
-            $textTmp = str_replace('&nbsp;', ' ', $textTmp);
-            $textTmp = html_entity_decode($textTmp, ENT_QUOTES, 'UTF-8');
+            if($type == 'HTML') {
+                $textTmp = preg_replace('/\n/', ' ', $text);
+                $textTmp = preg_replace('/<script.*<\/script>/U', ' ', $textTmp);
+                $textTmp = preg_replace('/<style.*<\/style>/U', ' ', $textTmp);
+                $textTmp = strip_tags($textTmp);
+                $textTmp = str_replace('&nbsp;', ' ', $textTmp);
+                $textTmp = html_entity_decode($textTmp, ENT_QUOTES, 'UTF-8');
+            }
             
             // Анализираме текста и определяме предполагаемия енкодинг
             if($textTmp) {
@@ -359,7 +374,7 @@ class lang_Encoding {
         
         // Конвертираме текста в "UTF-8"
         $d = iconv($fromCharset, "UTF-8//IGNORE", $text);
-        
+       
         // Правим проверка само на първите 1000 символа
         $len = min(mb_strlen($d), 1000);
         
