@@ -132,7 +132,7 @@ class bank_CostDocument extends core_Master
     	$this->FLD('debitAccId', 'acc_type_Account()','caption=debit,width=300px,input=none');
         $this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
         $this->FNC('isContable', 'int', 'column=none');
@@ -162,7 +162,13 @@ class bank_CostDocument extends core_Master
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
     	$form->setReadOnly('ownAccount');
     	
+    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
+    	$form->setDefault('contragentId', $contragentId);
+        $form->setDefault('contragentClassId', $contragentClassId);
+    	
         $options = acc_Operations::getPossibleOperations(get_called_class());
+        $options = acc_Operations::filter($options, $contragentClassId);
         $form->setOptions('operationId', $options);
     
         static::getContragentInfo($form);
@@ -175,10 +181,8 @@ class bank_CostDocument extends core_Master
      static function getContragentInfo(core_Form $form)
      {
      	$folderId = $form->rec->folderId;
-    	$contragentId = doc_Folders::fetchCoverId($folderId);
-    	$contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
     	
-   		// Информацията за контрагента на папката
+    	// Информацията за контрагента на папката
     	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
     	
     	if($contragentData) {
@@ -204,9 +208,6 @@ class bank_CostDocument extends core_Master
     		
     		$rec = &$form->rec;
     		
-    		$rec->contragentClassId = doc_Folders::fetchField($rec->folderId, 'coverClass');
-	        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-	        
 	        // Коя е дебитната и кредитната сметка
 	        $operation = acc_Operations::fetch($rec->operationId);
     		$rec->debitAccId = $operation->debitAccount;
@@ -269,23 +270,20 @@ class bank_CostDocument extends core_Master
     
     /**
      * Поставя бутони за генериране на други банкови документи възоснова
-     * на този.
+     * на този, само ако документа е "чернова".
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$operation = acc_Operations::fetch($data->rec->operationId);
-    	
-    	// Ако дебитната сметка е за разплащания с контрагенти слагаме
-    	// бутони за генериране на платежно нареждане и вносна бележка
-    	// Ако е за разплащания с подочетни лице, слагаме бутон за
-    	// генерирането на нареждане-разписка
-    	if(acc_Lists::getPosition($operation->debitAccount, 'crm_ContragentAccRegIntf')) {
-    		
-    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
-    		$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
-    	} elseif(acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf')) {
-    		
-    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	if($data->rec->state == 'draft') {
+	    	$operation = acc_Operations::fetch($data->rec->operationId);
+	    	
+	    	// Ако дебитната сметка е за работа с контрагент слагаме бутон за
+	    	// платежно нареждане ако е подочетно лице генерираме нареждане разписка
+	    	if(acc_Lists::getPosition($operation->debitAccount, 'crm_ContragentAccRegIntf')) {
+	    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+	    	} elseif(acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf')) {
+	    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+	    	}
     	}
     }
     
@@ -316,7 +314,7 @@ class bank_CostDocument extends core_Master
     {
         $rec = (object)array(
             'id' => $id,
-            'state' => 'active'
+            'state' => 'closed'
         );
         
         return self::save($rec);

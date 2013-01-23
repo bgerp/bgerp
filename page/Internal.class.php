@@ -32,8 +32,8 @@ class page_Internal extends page_Html {
 
         $this->replace("UTF-8", 'ENCODING');
         
-        $this->push(array(Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
-                Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'), 'CSS');
+        $this->push('css/common.css','CSS');
+        $this->push('css/Application.css','CSS');
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");

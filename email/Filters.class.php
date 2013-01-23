@@ -96,7 +96,7 @@ class email_Filters extends core_Manager
      *     
      * Забележка: Този метод е част от процедурата за рутиране на входяща поща. Той се изпълнява
      *            веднага след (неуспешен) опит за рутиране директно в нишка 
-     *            (@see email_Incomings::routeByThread()).
+     *            (@see email_Router::doByThread()).
      * 
      * @param stdClass $rec запис от модела email_Incomings
      */
@@ -123,6 +123,8 @@ class email_Filters extends core_Manager
                 $rec->_skipRouterRules = TRUE;
                 break;
         }
+
+        return $rec->folderId;
     }
     
     
@@ -149,7 +151,7 @@ class email_Filters extends core_Manager
         );
         
         // Извличаме всичко имейл адреси от супата ...
-        $emails = email_Mime::extractEmailsFrom($soup);
+        $emails = type_Email::extractEmails($soup);
 
         // ... махаме нашите имейли
         $emails = static::filterOurEmails($emails);

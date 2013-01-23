@@ -176,7 +176,7 @@ class cash_Rko extends core_Master
     {
     	$folderId = $data->form->rec->folderId;
     	$form = &$data->form;
-    	
+     
     	// Информацията за контрагента на папката
     	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
     	
@@ -216,6 +216,10 @@ class cash_Rko extends core_Master
     	$form->setDefault('valior', $today);
     	$form->setDefault('currencyId', $currencyId);
     	
+    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
+    	$form->setDefault('contragentId', $contragentId);
+        $form->setDefault('contragentClassId', $contragentClassId);
     	$options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationId', $options);
     }
@@ -333,6 +337,17 @@ class cash_Rko extends core_Master
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$tpl->push('cash/tpl/styles.css', 'CSS');
+    }
+    
+    
+    /**
+     * Поставя бутони за генериране на други банкови документи възоснова
+     * на този.
+     */
+	static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	//$operation = acc_Operations::fetch($data->rec->operationId);
+    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     }
     
     

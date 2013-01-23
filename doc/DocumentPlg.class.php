@@ -992,8 +992,10 @@ class doc_DocumentPlg extends core_Plugin
      * и само тогава да се приема състоянието за затворено
      */
     function on_AfterGetThreadState($mvc, &$state, $id)
-    {
-        $state = 'closed';
+    {   
+        if(!$state) {
+            $state = 'closed';
+        } 
     }
     
     

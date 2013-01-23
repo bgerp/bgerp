@@ -32,7 +32,7 @@ class bank_CashWithdrawOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
-     	plg_Sorting,doc_DocumentPlg,  plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
+     	plg_Sorting, doc_DocumentPlg,  plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank';
     
     
     /**
@@ -87,15 +87,6 @@ class bank_CashWithdrawOrders extends core_Master
      * Кой може да го изтрие?
      */
     var $canDelete = 'bank, ceo';
-    
-    
-    /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'acc, bank';
-    
-    
-    var $canRevert = 'bank, ceo';
     
     
     /**
@@ -200,8 +191,6 @@ class bank_CashWithdrawOrders extends core_Master
     	$row->number = static::getHandle($rec->id);
     	
     	if($fields['-single']) {
-	    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	
 	    	$spellNumber = cls::get('core_SpellNumber');
 			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
 			
@@ -209,8 +198,8 @@ class bank_CashWithdrawOrders extends core_Master
 			$row->ordererName = $myCompany->company;
 	    	
 			// При принтирането на 'Чернова' скриваме заглавието
-	    	if(Mode::is('printing')){
-	    		unset($row->header);
+	    	if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
     	}
     }

@@ -8,6 +8,8 @@ class bank_DocumentWrapper extends bank_Wrapper
 		$tabs->TAB('bank_IncomeDocument', 'Приходни Банкови Документи');
 		$tabs->TAB('bank_CostDocument', 'Разходни Банкови Документи');
         $tabs->TAB('bank_InternalMoneyTransfer', 'Вътрешно Парични Трансфери');
+        $tabs->TAB('bank_ExchangeDocument', 'Превалутиране');
+        
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
         $mvc->currentTab = 'Документи';
     }

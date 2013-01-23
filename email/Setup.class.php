@@ -33,6 +33,11 @@ defIfNot('EMAIL_MAXIMUM_CID_LEN', 10240);
 
 
 /**
+ * Ниво за score на SpamAssassin, над което писмото се обявява за твърд СПАМ
+ */
+defIfNot('SPAM_SA_SCORE_LIMIT', 7);
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -99,6 +104,9 @@ class email_Setup
 
             // Максималната големина на файловете, които ще се приемат за CID
             'EMAIL_MAXIMUM_CID_LEN' => array ('int'),
+            
+            // Ниво за score на SpamAssassin, над което писмото се обявява за твърд СПАМ
+            'SPAM_SA_SCORE_LIMIT' => array ('int'),
 
             
         );
@@ -119,6 +127,10 @@ class email_Setup
             'email_Addresses',
             'email_FaxSent',
             'email_Filters',
+            'email_Returned',
+            'email_Receipts',
+            'email_Spam',
+            'email_Fingerprints',
             'email_Unparsable',
         );
         

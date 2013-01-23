@@ -91,7 +91,7 @@ class email_Accounts extends core_Master
         $this->FLD("protocol", "enum(imap=IMAP, pop3=POP3)", 'caption=Получаване->Протокол,notNull');
         $this->FLD('security', 'enum(default=По подразбиране,tls=TLS,notls=No TLS,ssl=SSL)', 'caption=Получаване->Сигурност,notNull');
         $this->FLD('cert', 'enum(noValidate=Без валидиране,validate=С валидиране)', 'caption=Получаване->Сертификат,notNull');
-        $this->FLD('folder', 'identifier(64)', 'caption=Получаване->IMAP папка,value=INBOX');
+        $this->FLD('folder', 'varchar(64)', 'caption=Получаване->IMAP папка,value=INBOX');
         $this->FLD('user', 'varchar', 'caption=Получаване->Потребител,width=100%');
         $this->FLD('password', 'password(64,autocomplete=off)', 'caption=Получаване->Парола,width=100%,crypt');
         

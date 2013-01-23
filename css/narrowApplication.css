@@ -3,50 +3,50 @@ body{
 	padding: 0;
 	border: 0;
 	background-color:#ddd;
-	font-family:Helvetica,Verdana,Sans-serif;
-	font-size:18px;
+	font-family:Helvetica,Verdana,Sans-serif; /*diff*/
+	font-size:18px /*diff*/;
 }
 
-input, select {
+input, select { /*diff*/
 	font-size:1em;
 
 }
  
 #framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
-	display:inline-block	;
+	display:inline-block; /*diff*/
 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
 	background-color:#ddd;
 	color: #048;
  }
 
-#framecontentTop {
+#framecontentTop { /*diff*/
  	display:block;
 }
 
-#framecontentBottom {
-	clear:both;
-	padding: 7px;
+#framecontentBottom { /*common*/
+	clear:both;  /*diff*/
+	padding: 7px; /*diff*/
 	border-top:solid 2px #048;
-	display:block;
+	display:block; /*diff*/
 }
 
-#subMenu {
+#subMenu { /*common*/
   padding:5px;
   background-color:#eee;
 }
 
-#mainMenu {
+#mainMenu { /*common*/
 	background-color:#ddd;
 	padding:5px;
 	border-bottom:solid 2px #048;
 }
 
-#maincontent{
-	padding:5px;
-	background-color:#eee;
+#maincontent{ 
+	padding:5px; /*diff*/
+	background-color:#eee; /*common*/
 }
 
-#navBar{
+#navBar{ /*common*/
 	position: relative;
 	margin-top:5px;
 	margin-bottom:10px;
@@ -54,11 +54,11 @@ input, select {
 	display:block;
  }
 
-.innertube{
+.innertube{ /*common*/
 	margin: 5px; /*Margins for inner DIV inside each DIV (to provide padding)*/
 }
 
-.menuRow {
+.menuRow { /*common*/
 	color:#997;
 	font-family:Arial;
     padding:1px;
@@ -66,76 +66,76 @@ input, select {
 	font-weight:bold; 
 }
 
-.menuPage a {
+.menuPage a { /*diff*/
 	margin: 2px;
 	display:block;
  	border:solid 1px transparent;
 }
 
-.menuRow a:link, .menuRow a:visited {
+.menuRow a:link, .menuRow a:visited { /*common*/
 	color:#048;
 	text-decoration:none; 
-	border:solid 1px transparent;
+	border:solid 1px transparent; /*diff*/
 }
  
 .menuRow a:hover, .menuRow a:focus { 
 	color:white;
 	background-color:#f90;
-	border:solid 1px #c60;
+	border:solid 1px #c60; /*diff*/
 }
 
-a.selected { 
+a.selected { /*diff*/
 	color:white !important; 
 	background-color:#048;
 	-moz-border-radius:2px; 
 	-webkit-border-radius:2px;
 }
 
-a.selected:hover {
+a.selected:hover { /*diff*/
 	color:#fdc;
 }
  
 
 /* Общи стилове за елементите */
-a:link, a:visited {
+a:link, a:visited { /*common*/
 	text-decoration:none; 
 	color:#048;
 }
 
 a:hover {
-	color:#cc0000; 
+	color:#cc0000; /*diff*/
 }
 
-a.out {
+a.out { /*common*/
 	color:#0066ff; 
-	font-weight:bold;
-	text-decoration:underline;
+	font-weight:bold /*diff*/;
+	text-decoration:underline; /*diff*/
 }
 
-a.out:visited {
-	font-weight:bold;
-	color:#6600cc
+a.out:visited { /*common*/
+	font-weight:bold; /*diff*/ 
+	color:#6600cc; 
 } 
 
-.stateIndicator {
+.stateIndicator { /*common*/
 	height:0.6em;
 	width:0.6em;
 	border:solid 1px #999;
 	border-radius:0.3em;
 }
 
-.ListTitle { 
+.ListTitle {  /*diff*/
 	font-size:1.2em;
 	font-weight:bold;
 	padding-top:5px;
 	padding-bottom:5px;
 }
 
-.ListToolbar, .SingleToolbar {
+.ListToolbar, .SingleToolbar {  /*diff*/
 	margin-top: 10px;
 }
 
-.vertical .formTitle {
+.vertical .formTitle { /*common*/
 	background-color:#99f !important;
 	border:solid 1px #88e;
 	border-bottom:none;
@@ -148,11 +148,11 @@ a.out:visited {
     border-top-right-radius:5px;
 }
 
-.formGroup {
+.formGroup { /*common*/
     margin-top:10px;
 }
 
-.vertical .formToolbar {
+.vertical .formToolbar { /*common*/
 	padding:8px;
 	-moz-border-radius-bottomleft: 5px;
     -moz-border-radius-bottomright: 5px;
@@ -164,44 +164,45 @@ a.out:visited {
 	border-top:none;
 }
 
-.formSection {
+.formSection { /*common*/
 	border-left:solid 1px #bbb;
 	border-right:solid 1px #bbb;
 }
 
-option.team {
+option.team { /*common*/
 	background:black;
 	color: #fc0;
 }
 
-a img {
+a img { /*common*/
 	border: none;
 }
 
-.state-revert {
+.state-revert { /*diff*/
     background-color: #ee8888;
 }
 
-div.crm_Companies div.tab-row .tab.selected, div.crm_Companies  div.tab-page {
+div.crm_Companies div.tab-row .tab.selected, div.crm_Companies  div.tab-page { /*common*/
     background:#f0f8ff;
 }
 
-div.crm_Persons  div.tab-page,  div.crm_Persons div.tab-row .tab.selected {
+div.crm_Persons  div.tab-page,  div.crm_Persons div.tab-row .tab.selected { /*common*/
     background:#f0fff0;
 }
 
-div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
+div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page { /*common*/
     background:#ffffe8;
 }
 
-div.crmImage {
-	padding:18px  8px  8px 0px;float:left;
+div.crmImage { /*diff*/
+	padding:18px  8px  8px 0px;
+	float:left;
 }
 
 
 
 /* Стилове за елемента 'tab' */
-div.tab-control div.tab-row .tab {
+div.tab-control div.tab-row .tab { /*common*/
     font-family:    arial;
     display:        inline;
     margin:         1px -16px -3px 18px;
@@ -224,7 +225,7 @@ div.tab-control div.tab-row .tab {
 
 
 
-div.tab-control div.tab-row .tab.selected {
+div.tab-control div.tab-row .tab.selected { /*common*/
     background:     #ffffff;
     border:         1px solid #bbb;
     border-top:     2px solid #048;
@@ -232,11 +233,11 @@ div.tab-control div.tab-row .tab.selected {
     z-index:        3;
     padding:        5px 5px 4px 5px; 
     margin:         1px -16px -3px 18px;
-    top:            0px;
+    top:            0px; /*diff*/
     font-weight:    bold;
 }
 
-div.tab-control div.tab-page {
+div.tab-control div.tab-page { /*common*/
     clear:          both;
     border:         1px solid #bbb;
     background:     #ffffff;
@@ -249,11 +250,11 @@ div.tab-control div.tab-page {
 	z-index:        2;
 }
 
-div.alphabet div.tab-row .tab {
-    background:     #ddd;
-	font-size:      8pt;
-	padding:        5px;
-    border:         1px solid #aaa;
+div.alphabet div.tab-row .tab { /*common*/
+    background: #ddd;
+	font-size: 8pt;
+	padding: 5px;
+    border: 1px solid #aaa;
 	margin: 2px;
 	-moz-border-radius: 5px;
     -webkit-border-radius: 5px;
@@ -263,51 +264,57 @@ div.alphabet div.tab-row .tab {
 	margin-bottom: 10px;
 }
 
-div.alphabet div.tab-row .tab:hover {
+div.alphabet div.tab-row .tab:hover { /*common*/
 	margin-top:-1px;
 	margin-bottom:13px;
-
 	background-color: #ffffcc !important;
 }
 
-div.alphabet div.tab-row .tab:hover a {
+div.alphabet div.tab-row .tab:hover a { /*common*/
 	color:red !important;
 }
 
-div.alphabet  div.tab-row .tab.selected {
-    background:     #ffffcc;
-    border:         1px solid #aaa;
-    top:            0px;
-	margin:         2px;
-	padding:        5px;
-    box-shadow: 0px 0px 2px 0px  #ccc;
+div.alphabet  div.tab-row .tab.selected { /*common*/
+    background: #ffffcc;
+    border: 1px solid #aaa;
+    top: 0px;
+	margin: 2px;
+	padding: 5px;
 	margin-top:-1px;
 	margin-bottom:13px;
 	box-shadow: 0px 0px 3px 1px  #ccc;
 }
-
  
-div.alphabet div.tab-page {
-    border:         none;
-    background:     transparent;
+div.alphabet div.tab-page { /*common*/
+    border: none;
+    background: transparent;
 	margin: 0px; 
-	padding:0px;
+	padding: 0px;
 }
 
-div.alphabet  div.tab-row {
+div.alphabet  div.tab-row { /*diff*/
 	width: 330px;	
 }
 
- 
-.quiet { color: #888; }
-.red { color: #800; }
-.green { color: #080; }
-.future { background-color: #9ec; }
-.future td { background-color: #9ec; }
+.quiet { /*common*/
+	color: #888; 
+}
+.red { /*common*/
+	color: #800; 
+}
+.green { /*common*/
+	color: #080; 
+}
+.future { /*common*/
+	background-color: #9ec; 
+}
+.future td {  /*diff*/
+	background-color: #9ec; 
+}
 
 /*Стилове за acc*/
-div.acc-detail {
- font-size:0.8em;
+div.acc-detail { /*common*/
+ font-size:0.8em; 
  margin:3px;
  padding:3px;
  font-family:Arial;
@@ -316,7 +323,7 @@ div.acc-detail {
 }
 
 /* стилове за 'contacts/tpl/ViewSingleLayout' */
-.folder-cover {
+.folder-cover { /*common*/
     border: solid 1px #bbbbbb; 
     border-radius: 5px;
 	font-size:0.8em;
@@ -326,11 +333,11 @@ div.acc-detail {
 	display: inline-block;
 	min-width:600px;
 	max-width:750px;
-    line-height:1.5em;
+    line-height:1.5em; /*diff*/
 	margin-top:16px;
 }
 
-.printing .folder-cover {
+.printing .folder-cover { /*common*/
     border: none; 
 	font-size:0.8em;
     background: #ffffff;
@@ -343,16 +350,16 @@ div.acc-detail {
 	margin-top:0px;
 }
 
-option.team {
+option.team { /*common*/
 	background:black;
 	color:#fc0;
 }
 
-#crm_Persons-EditForm  INPUT {
+#crm_Persons-EditForm  input { /*common*/
    max-width:600px;
 }
 
-.detail-info {
+.detail-info { /*common*/
 	margin-top:10px;
 	padding:5px;
 	border:solid 1px #ccc;
@@ -361,40 +368,46 @@ option.team {
 	border-radius:5px;
 }
  
-.detail-info IMG {
+.detail-info img { /*common*/
 	margin-left:5px;
 	vertical-align:middle;
 }
 
-.folder-cover .groupTitle {
+.folder-cover .groupTitle { /*common*/
 	color: #333;
 	font-weight: bold;
 }
  
-.groupList DIV {
+.groupList div { /*common*/
 	padding:1px;
 }
 
-div.folder-cover .label {
+div.folder-cover .label { /*common*/
 	color: #777777;
 	font-size: 13px;
 	width: 70px; 
 	float: left;
 } 
                      
-div.folder-cover A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
-div.folder-cover A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
-div.folder-cover A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
-div.folder-cover A.sky:hover      {font-size: 13px; color: #4a66b0; text-decoration: underline;}
+div.folder-cover A.sky:link, div.folder-cover A.sky:visited,div.folder-cover A.sky:active{/*common*/
+	font-size: 13px; 
+	color: #4a66b0; 
+	text-decoration: none;
+}
+
+div.folder-cover A.sky:hover { /*common*/
+	font-size: 13px; 
+	color: #4a6z6b0; 
+	text-decoration: underline;
+}
                               
-div.folder-cover .fancybox img {
+div.folder-cover .fancybox img { /*common*/
 	background: #f0f0f0; 
-    border: solid 1px #dddddd; 
-    padding: 3px; 
+    border: solid 1px #dddddd;
     padding: 10px;
 }
 
-div.folder-cover .block_title {
+div.folder-cover .block_title { /*common*/
     border-bottom: solid 1px #dddddd; 
     padding: 7px;
 	font-size: 1.4em;
@@ -402,7 +415,7 @@ div.folder-cover .block_title {
 	text-shadow: 1px 1px 1px #ddd;
 }
 
-div.folder-cover .block_left {
+div.folder-cover .block_left { /*common*/
     clear: left;
     background: #ffffff;
     font-size: 12px;     
@@ -413,31 +426,30 @@ div.folder-cover .block_left {
     position: relative;    
 }
 
-div.folder-cover .block_left .address {
+div.folder-cover .block_left .address { /*common*/
     max-width: 240px;
     margin-bottom: 15px;	
 }	
 
-div.folder-cover .block_right {
+div.folder-cover .block_right { /*common*/
 	background: #ffffff;
 	min-width: 100px;
 	font-size: 12px; 
 	padding: 0 0 10px 10px;
 	float: left;
-	float: left;	
 }
 
-.toolbar {
+.toolbar { /*diff*/
 	white-space:nowrap;
 }
 
-div.attachments {
+div.attachments { /*common*/
 	display:inline-block; 
 	float: left; 
 	margin:2px;
  }
 
-div.attachments .aHeader {
+div.attachments .aHeader { /*common*/
 	background-color:#e0e0e0;
 	padding:3px;
 	padding-left:26px;
@@ -447,29 +459,28 @@ div.attachments .aHeader {
 	border-bottom:solid 1px #e0e0e0;
 }
 
-div.attachments .file {
+div.attachments .file { /*common*/
 	display:block;
 	margin-bottom:2px;
 }
 
-.document .header {
+.document .header { /*common*/
 	-moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;
 	padding:3px;
 	font-size:1em;
-	margin-top:5px;
-	margin-bottom:5px;
+	margin:5px 0;
 }
 
-.document .header SPAN {
+.document .header span { /*common*/
     padding-left:24px;  
     background-repeat:no-repeat;
     background-position: 3px center;
 	font-weight:bold;
 }
 
-.printing .document {
+.printing .document { /*common*/
 	border: none; 
 	/* -moz-border-radius: 5px; */
     /* -webkit-border-radius: 5px; */
@@ -486,7 +497,7 @@ div.attachments .file {
 	min-width:0px;
 }
 
-.portal {
+.portal { /*common*/
 	margin-top:15px;
 	padding:10px;
 	padding-top:18px;
@@ -497,7 +508,7 @@ div.attachments .file {
 	background-color:white;
  }
 
-.portal .legend {
+.portal .legend { /*common*/
 	position:absolute;
 	margin-top:-35px;
 	margin-left:10px;
@@ -509,34 +520,34 @@ div.attachments .file {
 	border-radius:5px;
 	font-weight:bold;
 }
-.portal table.listTable {
+.portal table.listTable { /*common*/
 	width:100% !important;
 	border:none;
 }
 
-.portal table.listTable td {
+.portal table.listTable td { /*common*/
 	border:none !important;
 	border-top:dotted 1px #ccc !important;
 	vertical-align:top !important;
 }
 
-.portal table.listTable>tbody>tr:first-child>TD {
+.portal table.listTable>tbody>tr:first-child>td { /*common*/
 	border-top:none !important;
 }
 
-.portal table.listTable TH {
+.portal table.listTable th { /*common*/
 	display:none;
 	border:none;
 	vertical-align:top !important;
 }
 
 
-table.mc-calendar {
+table.mc-calendar { /*common*/
 	width:100%;
 	font-size:0.8em;
 }
 
-table.mc-calendar td.mc-day {
+table.mc-calendar td.mc-day { /*common*/
 	text-align:right;
  	border:none;
 	background-color: #e8efe8;
@@ -547,50 +558,50 @@ table.mc-calendar td.mc-day {
 	cursor: pointer;
 }
 
-table.mc-calendar td.mc-week-nb {
+table.mc-calendar td.mc-week-nb { /*common*/
  	border:none;
  	padding:3px;
 }
 
-table.mc-calendar td.mc-wd-name {
+table.mc-calendar td.mc-wd-name { /*common*/
 	text-align:right;
  	padding-right:3px;
 }
 
 
-table.mc-calendar td.mc-sunday {
+table.mc-calendar td.mc-sunday { /*common*/
 	color:green;
 }
 
-table.mc-calendar td.mc-holiday {
+table.mc-calendar td.mc-holiday { /*common*/
 	color:red !important;
 }
 
-table.mc-calendar td.mc-saturday {
+table.mc-calendar td.mc-saturday { /*common*/
 	color:#006030;
 }
 
 
-table.mc-calendar td.mc-day:hover {
+table.mc-calendar td.mc-day:hover { /*common*/
 	background-color: #ffff66;
 }
 
-table.mc-calendar td.mc-today {
+table.mc-calendar td.mc-today { /*common*/
 	border:solid 2px red;
 }
 
-table.mc-header a {
+table.mc-header a { /*common*/
 	color:#999;
 }
 
-.antetka {
+.antetka { /*common*/
 	margin-top: 10px; 
 	padding:5px; 
 	border:solid 1px #ddd; 
 	background-color:#eee;
 }
 
-.document {
+.document { /*common*/
 	border: solid 1px #bbbbbb; 
 	background: #ffffff;
     -moz-box-shadow: 5px 5px 10px #999999;
@@ -603,7 +614,7 @@ table.mc-header a {
 	margin-top: 10px;
 }
 
-.listTable>tbody>tr>td div.document {
+.listTable>tbody>tr>td div.document { /*common*/
 	border: none; 
 	background: transparent;
     -moz-box-shadow: none;
@@ -616,57 +627,53 @@ table.mc-header a {
 	margin-top: 0px;
 }
 
-.doc_Containers table.listTable TD  {
+.doc_Containers table.listTable TD  { /*common*/
     vertical-align:top !important;
 }
 
-.doc_Containers table.listTable.listTable>tbody>tr:hover  {
+.doc_Containers table.listTable.listTable>tbody>tr:hover  { /*common*/
     background-color:transparent !important;
 }
 
-.doc_Containers table.listTable.listTable>tbody>tr  {
+.doc_Containers table.listTable.listTable>tbody>tr  { /*common*/
     background-color:transparent !important;
 }
 
 
-.doc_Containers .thread-opened table.listTable>tbody>tr:hover  {
+.doc_Containers .thread-opened table.listTable>tbody>tr:hover  { /*common*/
     background-color:#f4fff4 !important;
 }
 
- .doc_Containers .thread-opened table.listTable>tbody>tr  {
+ .doc_Containers .thread-opened table.listTable>tbody>tr  { /*common*/
     background-color:#f4fff4 !important;
 }
 
-.listTable .document H2 {
+.listTable .document h2 { /*common*/
 	margin-top:3px;
 }
 
-.listTable .toolbar {
+.listTable .toolbar { /*common*/
 	padding:3px;
 }
 
-.document .header {
+.document .header { /*common*/
 	-moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;
 	padding:3px;
 	font-size:1em;
-	margin-top:5px;
-	margin-bottom:5px;
+	matgin:5px 0;
 }
 
-
-
-
-.thread-opened .antetka {
+.thread-opened .antetka { /*common*/
 	background-color:#eeffee !important;
 }
 
-.thread-opened div.attachments .aHeader {
+.thread-opened div.attachments .aHeader { /*common*/
 	background-color:#e0f0e0;
 }
 
-.thread-opened>div>table.listTable>tbody>tr>td {
+.thread-opened>div>table.listTable>tbody>tr>td { /*common*/
 	border:solid 1px green !important;
 }
 
@@ -675,21 +682,21 @@ table.mc-header a {
 	background-color:#aea  !important;
 }
 
-.threadSubTitle {
+.threadSubTitle { /*common*/
 	font-size:0.75em;
 	padding:2px;
 	padding-bottom:0px;
 	color:#353;
 }
 
-#notificationsCnt {
-    position: absolute;
+#notificationsCnt { /*diff*/
+    position: absolute; /*common*/
 	margin-right:5px;
 	right:10px;
 	display: inline-block;
 }
 
-.narrow #notificationsCnt a  {
+.narrow #notificationsCnt a  { /*diff*/
 	display:block;
 	font-size:0.8em;
 	color:white;
@@ -700,30 +707,26 @@ table.mc-header a {
 	border-radius:3px;
 }
 
-.narrow #notificationsCnt a.haveNtf {
+.narrow #notificationsCnt a.haveNtf {/*common*/
 	background-color:red;
 	border:solid 1px #c33 !important;
 }
 
-
-.narrow #notificationsCnt a.noNtf {
+.narrow #notificationsCnt a.noNtf { /*diff*/
 	background-color: #bbb !important; 
 	border: solid 1px #999 !important;
 }
 
 
-legend img {
+legend img { /*common*/
 	vertical-align:middle; 
 }
 
-input.contactData {
+input.contactData { /*diff*/
 	width:100%;
 }
 
-
-
-
-ul.history {
+ul.history { /*common*/
 	padding: 0;
 	margin: 0;
 	list-style: none;
@@ -731,13 +734,13 @@ ul.history {
 	display:inline-block;
 }
 
-ul.history.summary {
+ul.history.summary { /*common*/
     width: 85%;
     margin: 0 auto;
     font-size: 0.75em;
 }
 
-ul.history li {
+ul.history li { /*common*/
 	margin: 3px 0;
 	padding: 2px 0;
 	line-height: 1.2;
@@ -745,11 +748,11 @@ ul.history li {
 	margin-left:10px;
 }
 
-ul.history.summary li span {
+ul.history.summary li span { /*common*/
     color: #333;
-	display:block;
-	padding-top:8px;
-	font-size:0.8em;
+	display:block; /*diff*/
+	padding-top:8px; /*diff*/
+	font-size:0.8em; /*diff*/
 }
 
 ul.history b {
@@ -762,41 +765,41 @@ ul.history b {
 }
 
  
-ul.history .action.send b {
+ul.history .action.send b { /*common*/
     background-color:green;	
 }
 
-.action._received b {
+.action._received b { /*common*/
     background-color:blue;
     color: white;
 }
-.action._returned b {
+.action._returned b { /*common*/
     background-color:red !important;
     color: white;
 }
-ul.history .action.print b {
+ul.history .action.print b {  /*common*/
     background-color:#777;
 }
 
-ul.history .action.open b {
+ul.history .action.open b {  /*common*/
     background-color:#ccc;
 	color: #333;
 }
 
-ul.history .action.download b {
+ul.history .action.download b {  /*common*/
     background-color:purple;
 }
 
-ul.history .action.pdf b {
+ul.history .action.pdf b {  /*common*/
     background-color:#888;
 	color: #fff;
 }
 
-ul.history .detailed b {
+ul.history .detailed b {  /*common*/
     background-color:#ccc;
 }
 
-div.sharing-history {
+div.sharing-history { /*common*/
 	border: none;
 	border-top: 1px solid #ccc;
 	padding: 5px;
@@ -810,7 +813,7 @@ div.sharing-history {
 	padding-right:120px;
 }
 
-span.sharing-history-title {
+span.sharing-history-title { /*common*/
 	padding: 2px 5px;
 	padding-left: 23px;
 	background: #eee url(../img/share.png) no-repeat 3px center;
@@ -823,51 +826,46 @@ span.sharing-history-title {
     color: #777;
 }
 
-fieldset.sharing-history ul {
+fieldset.sharing-history ul { /*common*/
 	margin: 0;
 	padding: 0;
 	list-style-position: inside;
 }
 
-fieldset.sharing-history ul li .user {
+fieldset.sharing-history ul li .user { /*common*/
 	color: #333;
 }
 
-fieldset.sharing-history ul li.seen {
+fieldset.sharing-history ul li.seen { /*common*/
     list-style-type: disc;
     color: green;
 }
 
-fieldset.sharing-history ul li.unseen {
+fieldset.sharing-history ul li.unseen { /*common*/
     list-style-type: circle;
     color: red;
 }
 
-fieldset.sharing-history i {
+fieldset.sharing-history i { /*common*/
 	color: #888;
 	font-size: 0.9em;
 }
 
-
-
-
-
 /* CMS */
 
-#cmsTop {
+#cmsTop { /*common*/
 	background-repeat:no-repeat;
 	display: block;
 	height: 287px;
-
 	-moz-border-radius-topright:10px;
 	-moz-border-radius-topleft:10px;
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
-	min-width:610px; 
+	min-width:610px;  /*diff*/
 }
 
-#cmsMenu {
-      min-width:610px; 
+#cmsMenu { /*common*/
+      min-width:610px;  /*diff*/
 	  padding-top:10px;
 	  padding-bottom:10px;
 	  text-align:left;
@@ -879,7 +877,7 @@ fieldset.sharing-history i {
 	  user-select: none;
 }
 
-#cmsMenu a {
+#cmsMenu a { /*common*/
 	font-size:1.2em;
 	padding:4px;
 	margin-left:20px;
@@ -887,41 +885,38 @@ fieldset.sharing-history i {
 	white-space:nowrap;
 }
 
-#cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
+#cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a { /*common*/
 	display:block;
  	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
 }
 
-#cmsBottom {
+#cmsBottom { /*common*/
 	font-size:1.2em;
 	padding:0px;
 	padding-top:7px;
 	height:29px;
 	display:block;
 	width:1000px;
-	min-width:610px; 
+	min-width:610px; /*diff*/
 }
 
-#all {
+#all { /*common*/
 	width:1000px;
 	display:block;
-	margin-left: auto ;
-	margin-right: auto ;
-	margin-top: 10px ;
+	margin:10px auto;
 	text-align:left;
 	-moz-border-radius-topright:10px;
 	-moz-border-radius-topleft:10px;
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
-	margin-bottom:10px;
 }
 
-#cmsNavigation div.nav_item {
+#cmsNavigation div.nav_item { /*common*/
 	padding:1px;
 	font-family:Trebuchet MS, Geneva, Tahoma, sans-serif;
 }
 
-#cmsNavigation a {
+#cmsNavigation a { /*common*/
 	-moz-border-radius:3px;
 	border-radius: 3px;
 	padding-left:3px;
@@ -930,25 +925,25 @@ fieldset.sharing-history i {
 	border:solid 1px transparent;
 }
 
-#cmsNavigation .level1 {
+#cmsNavigation .level1 { /*common*/
 	font-size:16px;
 	font-weight:bold;
 	margin-top:10px;
 	margin-bottom:2px;
 }
 
-#cmsNavigation div:first-child {
+#cmsNavigation div:first-child { /*common*/
 	margin-top:0px !important;
 }
 
-#cmsNavigation .level2 {
+#cmsNavigation .level2 {/*common*/
 	margin-top:0px;
 	margin-bottom:2px;
 	font-size:15px;
 	margin-left:10px;
 }
 
-#cmsNavigation .level3 {
+#cmsNavigation .level3 {/*common*/
 	margin-top:1px;
 	margin-bottom:2px;
 	font-size:14px;
@@ -959,12 +954,12 @@ fieldset.sharing-history i {
 /* ! The 1140px Grid V2 by Andy Taylor \ http://cssgrid.net \ http://www.twitter.com/andytlr \ http://www.andytlr.com   */
 /* ==================================================================================================================== */
 
-.cms-container {
+.cms-container { /*common*/
 	padding-left: 20px;
 	padding-right: 20px;
 }
 
-.cms-row {
+.cms-row { /*common*/
 	width: 100%;
 	max-width: 1024px;
 	min-width: 755px;
@@ -972,68 +967,68 @@ fieldset.sharing-history i {
 	overflow: hidden;
 }
 
-.onecol, .twocol, .threecol, .fourcol, .fivecol, .sixcol, .sevencol, .eightcol, .ninecol, .tencol, .elevencol {
+.onecol, .twocol, .threecol, .fourcol, .fivecol, .sixcol, .sevencol, .eightcol, .ninecol, .tencol, .elevencol { /*common*/
 	margin-right: 3.8%;
 	float: left;
 	min-height: 1px;
 }
 
-.cms-row .onecol {
+.cms-row .onecol { /*common*/
 	width: 4.85%;
 }
 
-.cms-row .twocol {
+.cms-row .twocol { /*common*/
 	width: 13.45%;
 }
 
-.cms-row .threecol {
+.cms-row .threecol { /*common*/
 	width: 22.05%;
 }
 
-.cms-row .fourcol {
+.cms-row .fourcol { /*common*/
 	width: 30.73%;
 }
 
-.cms-row .fivecol {
+.cms-row .fivecol { /*common*/
 	width: 39.45%;
 }
 
-.cms-row .sixcol {
+.cms-row .sixcol { /*common*/
 	width: 48%;
 }
 
-.cms-row .sevencol {
+.cms-row .sevencol { /*common*/
 	width: 56.75%;
 }
 
-.cms-row .eightcol {
+.cms-row .eightcol { /*common*/
 	width: 65.3%;
 }
 
-.cms-row .ninecol {
+.cms-row .ninecol { /*common*/
 	width: 74.05%;
 }
 
-.cms-row .tencol {
+.cms-row .tencol { /*common*/
 	width: 82.7%;
 }
 
-.cms-row .elevencol {
+.cms-row .elevencol { /*common*/
 	width: 91.35%;
 }
 
-.cms-row .twelvecol {
+.cms-row .twelvecol { /*common*/
 	width: 100%;
 	float: left;
 }
 
-.cms-last {
+.cms-last { /*common*/
 	margin-right: 0px;
 }
 
 
 
-@media handheld, only screen and (max-width: 1000px) {
+@media handheld, only screen and (max-width: 1000px) { 
 
 	#cmsTop {
 		-moz-border-radius-topright:0px;
@@ -1055,7 +1050,7 @@ fieldset.sharing-history i {
 
 /* Mobile */
 
-@media handheld, only screen and (max-width: 950px) {
+@media handheld, only screen and (max-width: 950px) { /*diff*/
 
 	body {
 		-webkit-text-size-adjust: none;
@@ -1076,7 +1071,7 @@ fieldset.sharing-history i {
 	}
 	
 	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol, 
-	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol {
+	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol { 
 		width: auto;
 		float: none;
 		margin-left: 0px;
@@ -1093,7 +1088,7 @@ fieldset.sharing-history i {
 }
 
 
-@media handheld, only screen and (max-width: 800px) {
+@media handheld, only screen and (max-width: 800px) { /*diff*/
 	#cmsMenu a {
 		margin-left:5px;
 		margin-right:5px;
@@ -1101,7 +1096,7 @@ fieldset.sharing-history i {
     }
 }
 
-@media handheld, only screen and (max-width: 760px) {
+@media handheld, only screen and (max-width: 760px) { /*diff*/
 	#cmsMenu a {
 		margin-left:3px;
 		margin-right:3px;
@@ -1109,15 +1104,15 @@ fieldset.sharing-history i {
     }
 }
 
-@media handheld, only screen and (max-width: 700px) {
-	#cmsMenu a {
+@media handheld, only screen and (max-width: 700px) { /*diff*/
+	#cmsMenu a { 
 		margin-left:2px;
 		margin-right:2px;
 		font-size:0.85em;
     }
 }
 
-@media handheld, only screen and (max-width: 600px) {
+@media handheld, only screen and (max-width: 600px) { /*diff*/
 	#cmsMenu a {
 		margin-left:2px;
 		margin-right:2px;
@@ -1125,47 +1120,47 @@ fieldset.sharing-history i {
     }
 }
 	
-.webdrvTabBody {
+.webdrvTabBody { /*diff*/
 	max-width: 600px;
 	min-width: 400px;
 	min-height: 300px;
 }
 
-.webdrvIframe {
+.webdrvIframe { /*common*/
 	width:100%;
-	min-height:300px;
+	min-height:300px; /*diff*/
 	border:solid 0px transparent;
 }
 
-.webdrvFieldset {
+.webdrvFieldset { /*diff*/
 	min-height: 300px;
 }
 
 /*
  * Хипервръзки към профилите на потребители
  */
-a.profile {
+a.profile { /*common*/
     padding:2px;
     border-radius:2px;
 }
-
-a.profile.ceo {
+ 
+a.profile.ceo { /*common*/
 	color:blue;
 }
 
-a.profile.manager {
+a.profile.manager { /*common*/
 	color:#009999;
 }
 
-a.profile.officer {
+a.profile.officer { /*common*/
 	color:green;
 }
 
-a.profile.executive {
+a.profile.executive { /*common*/
 	color:#aa6600;
 }
 
-a.profile.contractor {
+a.profile.contractor { /*common*/
 	color:#f00;
 }
 
@@ -1174,11 +1169,11 @@ a.profile.contractor {
 /**
  * Defnition lists: DL, DT, DD
  */
-dl {
+dl { /*common*/
     margin: 0 0 0.5em 0;
 }
 
-dl dt {
+dl dt { /*common*/
     display: block;
     float: left; 
     width: 150px;
@@ -1190,7 +1185,7 @@ dl dt {
 	line-height: 1.5em;
 }
 
-dl dd {
+dl dd { /*common*/
     margin-left: 155px;
     margin-right: 0;
     line-height: 1.5em;

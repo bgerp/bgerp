@@ -1,5 +1,5 @@
 ﻿.belejka_container {
-	width: 758px;
+	width: 848px;
     margin: 0;
 	margin-top:5px;
     padding: 0;
@@ -47,32 +47,33 @@
 /* belejka_header */
     .belejka_container .belejka_header {
         font-size: 13px;
-        border: solid 1px #cccccc; 
-        width: 748px; 
+       /* border: solid 1px #cccccc; */ 
+       /* width: 845px; */
+        width:847px;
         -moz-box-shadow: 2px 2px 2px #cccccc;
         background: #fff;
         }
         
     .belejka_container .belejka_header .container {
-        width: 374px; 
-        height: 45px;
+        width: 420px; 
+        height: 40px;
         }    
         
     .belejka_container .belejka_header .container .label_left {
         width: 30px; 
         padding: 0 10px; 
-        line-height: 45px;
+        line-height: 40px;
         font-size: 11px;
         }    
     
     .belejka_container .belejka_header .container .right_block {
-        width: 274px; 
-        height: 45px; 
-        margin-right: 50px;
+        width: 360px; 
+        height: 40px; 
+   		margin-right: 10px; 
         }
         
     .belejka_container .belejka_header .container .right_block .text {    
-        width: 274px; 
+        width: 360px; 
         height: 15px; 
         line-height: 15px; 
         padding-top: 10px;
@@ -81,7 +82,7 @@
         
     .belejka_container .belejka_header .container .right_block .label_mid {
         clear: left; 
-        width: 274px; 
+        width: 360px; 
         text-align: center; 
         font-size: 11px; 
         color: #888888;
@@ -95,7 +96,7 @@
         border-left:  solid 1px #cccccc;
         border-right: solid 1px #cccccc;
         padding: 0px;
-        width: 748px;
+        width: 845px;
         margin-top: 10px;
         margin-bottom: 10px;
         -moz-box-shadow: 2px 2px 2px #cccccc;
@@ -103,13 +104,12 @@
     
     .belejka_container .belejka div.line {
         line-height: 40px;
-        width: 748px;
+        width: 845px;
         padding: 0px;
         border-bottom: solid 1px #cccccc;
         }
         
     .belejka_container .belejka div.line div.text {
-        //padding: 10px 10px 0 10px; 
         padding-left:10px;
         padding-bottom:5px;
         padding-top:5px;
@@ -118,7 +118,7 @@
         letter-spacing: 8px;
         text-transform: uppercase;    
         }
-        
+      
     .belejka_container .belejka div.line div.text span {text-transform: none;}
     
     .belejka_container .belejka div.line div.text span.small_text_top_left {

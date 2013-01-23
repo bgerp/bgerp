@@ -147,6 +147,9 @@ class acc_Setup
         //Зарежда данни за инициализация от CSV файл за acc_Accounts
         $html .= acc_setup_Accounts::loadData();
         
+        //Зарежда данни за инициализация от CSV файл за acc_Operations
+        $html .= acc_setup_Operations::loadData();
+        
         return $html;
     }
     

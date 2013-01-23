@@ -309,7 +309,247 @@ class email_Router extends core_Manager
         
         return $priority;
     }
+
+
+    /**
+     * Рутиране по номер на нишка
+     *
+     * Извлича при възможност нишката от наличната информация в писмото
+     * Местата, където очакваме информация за манипулатор на тред са:
+     *     o `In-Reply-To` (MIME хедър)
+     *     o `Subject`
+     *
+     * @param stdClass $rec
+     */
+    static function doRuleThread($rec)
+    {
+        $rec->threadId = static::extractThreadFromReplyTo($rec);
+        
+        if (!$rec->threadId) {
+            $rec->threadId = static::extractThreadFromSubject($rec);
+        }
+        
+        if ($rec->threadId) {
+            if($rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId')) {
+                // Премахване на манипулатора на нишката от събджекта
+                static::stripThreadHandle($rec);
+            } else {
+                // Зануляваме треда, защото съответстващата и папка не съществува
+                unset($rec->threadId);
+            }
+        }
+
+        return $rec->folderId;
+    }
     
+    
+    /**
+     * Извлича нишката от 'In-Reply-To' MIME хедър
+     *
+     * @param stdClass $rec
+     * @return int първичен ключ на нишка или NULL
+     */
+    protected static function extractThreadFromReplyTo($rec)
+    {
+        if (!$rec->inReplyTo) {
+            return NULL;
+        }
+        
+        if (!($mid = email_util_ThreadHandle::extractMid($rec->inReplyTo))) {
+            return NULL;
+        }
+        
+        if (!($sentRec = email_Sent::fetchByMid($mid, 'containerId, threadId'))) {
+            return NULL;
+        }
+        
+        $rec->originId = $sentRec->containerId;
+        
+        return $sentRec->threadId;
+    }
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    static function stripThreadHandle($rec)
+    {
+        expect($rec->threadId);
+        
+        $threadHandle = doc_Threads::getHandle($rec->threadId);
+        
+        $rec->subject = email_util_ThreadHandle::strip($rec->subject, $threadHandle);
+    }
+
+    
+    /**
+     * Извлича нишката от 'Subject'-а
+     *
+     * @param stdClass $rec
+     * @return int първичен ключ на нишка или NULL
+     */
+    protected static function extractThreadFromSubject($rec)
+    {
+        $subject = $rec->subject;
+        
+        // Списък от манипулатори на нишки, за които е сигурно, че не са наши
+        $blackList = array();
+        
+        if ($rec->bgerpSignature) {
+            // Възможно е това писмо да идва от друга инстанция на BGERP.
+            list($foreignThread, $foreignDomain) = preg_split('/\s*;\s*/', $rec->bgerpSignature, 2);
+            
+            if ($foreignDomain != BGERP_DEFAULT_EMAIL_DOMAIN) {
+                // Да, друга инстанция;
+                $blackList[] = $foreignThread;
+            }
+        }
+        
+        // Списък от манипулатори на нишка, които може и да са наши
+        $whiteList = email_util_ThreadHandle::extract($subject);
+        
+        // Махаме 'чуждите' манипулатори
+        $whiteList = array_diff($whiteList, $blackList);
+        
+        // Проверяваме останалите последователно 
+        foreach ($whiteList as $handle) {
+            if ($threadId = doc_Threads::getByHandle($handle)) {
+                break;
+            }
+        }
+        
+        return $threadId;
+    }
+
+    
+
+    /**
+     * Рутира по правилото `From`
+     */
+    static function doRuleFrom($rec)
+    {
+        $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleFrom);
+
+        return $folderId;
+    }
+
+    
+    /**
+     * Рутира по правилото `FromTo`
+     */
+    static function doRuleFromTo($rec)
+    {
+        $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleFromTo);
+
+        return $folderId;
+    }
+    
+    
+    /**
+     * Рутира по правилото `Domain`
+     */
+    static function doRuleDomain($rec)
+    {
+        $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleDomain);
+
+        return $folderId;
+    }
+    
+    
+    /**
+     * Рутиране според държавата на изпращача
+     */
+    static function doRuleCountry($rec)
+    {
+        if ($rec->country) {
+            //
+            // Ако се наложи създаване на папка за несортирани писма от държава, отговорника
+            // трябва да е отговорника на кутията, до която е изпратено писмото.
+            //
+            $inChargeUserId = email_Inboxes::getEmailInCharge($rec->toBox);
+            
+            $rec->folderId = static::forceCountryFolder(
+                $rec->country /* key(mvc=drdata_Countries) */,
+                $inChargeUserId
+            );
+        }
+
+        return $rec->folderId;
+    }
+
+
+
+    /**
+     * Създава при нужда и връща ИД на папката на държава
+     *
+     * @param int $countryId key(mvc=drdata_Countries)
+     * @return int key(mvc=doc_Folders)
+     */
+    static function forceCountryFolder($countryId, $inCharge)
+    {
+        $folderId = NULL;
+        
+        $conf = core_Packs::getConfig('email');
+
+        /**
+         * @TODO: Идея: да направим клас email_Countries (или може би bgerp_Countries) наследник
+         * на drdata_Countries и този клас да стане корица на папка. Тогава този метод би
+         * изглеждал така:
+         *
+         * $folderId = email_Countries::forceCoverAndFolder(
+         *         (object)array(
+         *             'id' => $countryId
+         *         )
+         * );
+         *
+         * Това е по-ясно, а и зависимостта от константата EMAILІUNSORTABLE_COUNTRY отива на
+         * 'правилното' място.
+         */
+        
+        $countryName = static::getCountryName($countryId);
+        
+
+        if (!empty($countryName)) {
+            $folderId = doc_UnsortedFolders::forceCoverAndFolder(
+                (object)array(
+                    'name'     => sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $countryName),
+                    'inCharge' => $inCharge
+                )
+            );
+        }
+        
+        return $folderId;
+    }
+    
+    
+    /**
+     * Връща името на държавата от която е пратен имейл-а
+     */
+    protected static function getCountryName($countryId)
+    {
+        if ($countryId) {
+            $countryName = drdata_Countries::fetchField($countryId, 'commonName');
+        }
+        
+        return $countryName;
+    }
+
+
+    /**
+     * Рутиране според `toBox`
+     * 
+     * Ако е необходимо, форсира се папката, съответстваща на `toBox`
+     *
+     * @param stdClass $rec
+     */
+    static function doRuleToBox($rec)
+    {
+        $rec->folderId = email_Inboxes::forceFolder($rec->toBox);
+
+        return $rec->folderId;
+    }
+
+
     
     static function act_TestDateToPriority()
     {

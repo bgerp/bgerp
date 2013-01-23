@@ -60,6 +60,7 @@ class bank_Setup
             'bank_IncomeDocument',
         	'bank_CostDocument',
             'bank_InternalMoneyTransfer',
+            'bank_ExchangeDocument',
         	'bank_PaymentOrders',
             'bank_CashWithdrawOrders',
         	'bank_DepositSlips',

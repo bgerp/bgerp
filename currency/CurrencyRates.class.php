@@ -212,16 +212,7 @@ class currency_CurrencyRates extends core_Detail
     	// Изчислява курса на двете валути към основната валута
     	$fromRate = static::getBaseRate($fromId, $date);
     	$toRate = static::getBaseRate($toId, $date);
-    	
-    	if($fromRate == '1'){
-    		
-    		// Ако обръщаме от основната валута към друга, 
-    		$res = round($toRate, 4);
-    	} else {
-    		
-    		// Ако обръщаме от някаква валута към друга, 
-    		$res = round($toRate / $fromRate, 4);
-    	}
+    	$res = round($toRate / $fromRate, 4);
     	
     	// Връщаме обменния курс, като разделяме единия курс на другия
     	return $res;
