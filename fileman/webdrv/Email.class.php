@@ -46,40 +46,43 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // Подгорвяме сорса за показване
         $sourceShow = static::prepareSource($source);
-    
-        // Очакваме да няма проблем при парсирането
-        expect($emlRec = $mime->getEmail($source));
+        
+//        // Очакваме да няма проблем при парсирането
+//        expect($emlRec = $mime->getEmail($source));
 
+        $mime->parseAll($source);
+        $mime->saveFiles();
+//        bp($mime);
         // Променяме Id' то на EML и HTML файла
-        static::changeEmlAndHtmlFileId($emlRec);
+//        static::changeEmlAndHtmlFileId($emlRec);
         
         // Вземаме текстовата част
         $textPart = static::getTextPart($mime, TRUE);
         
         // Проверяаваме дали има текстова част и дали има съдържание
-        $textPartCheck = static::checkTextPart($mime);
+//        $textPartCheck = static::checkTextPart($mime);
         
         // Вземаме HTML частта
-        $htmlPartUrl = static::getHtmlPart($mime, $emlRec);
+        $htmlPartUrl = static::getHtmlPart($mime);
         
         // Проверяваме дали има HTML част и дали има съдържание
-        $htmlPartCheck = static::checkHtmlPart($htmlPartUrl);
+//        $htmlPartCheck = static::checkHtmlPart($htmlPartUrl);
         
         // Вземаме хедърите
-        $headersArr = static::getHeaders($mime, $emlRec);
-        $headersStr = type_Varchar::escape($headersArr['string']);
+        $headersStr = static::getHeaders($mime);
+        $headersStr = type_Varchar::escape($headersStr);
         
         // Добавяме стилове
         $headersStr = "<div style='background-color: transparent; font-family: monospace \"courier new\";'>{$headersStr}</div>";
         
         // Вземаме линковете към файловете
-        $filesStr = static::getFiles($mime, $emlRec);
+        $filesStr = static::getFiles($mime);
        
         // Подготвяме табовете
         
         // Ако има HTML част
-        if ($htmlPartCheck) {
-            
+//        if ($htmlPartCheck) {
+//            bp($htmlPartUrl);
             // Вземаме съдържанието на таба за HTML
             $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
             
@@ -90,10 +93,10 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     				'html'  => $htmlPart,
     				'order' => 3,
     			);    
-        }
+//        }
         
         // Ако има текстова част
-        if ($textPartCheck) {
+//        if ($textPartCheck) {
             
             // Таб за текстовата част
             $tabsArr['text'] = (object) 
@@ -102,7 +105,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>Текстовата част на имейла</legend>{$textPart}</fieldset></div>",
     				'order' => 4,
     			);    
-        }
+//        }
         
 	    // Ако има прикачени файлове
 	    if ($filesStr) {
@@ -161,15 +164,15 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     static function getTextPart($mime, $escape=TRUE)
     {
         // Текстовата част
-        $textPart = $mime->getJustTextPart();
-        
+//        $textPart = $mime->getJustTextPart();
+         $textPart = $mime->textPart;       
         // Ако е зададено да се ескейпва
         if ($escape) {
             
             // Ескейпваме текстовата част
             $textPart = core_Type::escape($textPart);    
         }
-        
+
         return $textPart;
     }
     
@@ -181,15 +184,25 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * 
      * return string - HTML частта на файла
      */
-    static function getHtmlPart($mime, $emlRec)
+    static function getHtmlPart($mime)
     {
+        $htmlFile = $mime->getHtmlFile();
+        
         // Ако липсва HTML част
-        if (!$emlRec->htmlFile) return ;
+        if (!$htmlFile) return ;
         
         // Манипулатора на html файла
-        $htmlFileHnd = fileman_Files::fetchField($emlRec->htmlFile, 'fileHnd');
+        $htmlFileHnd = fileman_Files::fetchField($htmlFile, 'fileHnd');
         
         return fileman_Download::getDownloadUrl($htmlFileHnd);
+        
+//        // Ако липсва HTML част
+//        if (!$emlRec->htmlFile) return ;
+//        
+//        // Манипулатора на html файла
+//        $htmlFileHnd = fileman_Files::fetchField($emlRec->htmlFile, 'fileHnd');
+//        
+//        return fileman_Download::getDownloadUrl($htmlFileHnd);
     }
     
     
@@ -202,13 +215,18 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * 
      * return array $headersArr - Масив с хедърите
      */
-    static function getHeaders($mimeInst, $emlRec, $parseHeaders=FALSE)
+    static function getHeaders($mimeInst, $parseHeaders=FALSE)
     {
+        $headersStr = $mimeInst->getHeadersStr();
+        
+        return $headersStr;
+        
+//        $headersArr = $mimeInst->parseHeaders($headersStr);
         // 
-        $emlFileHnd = fileman_Files::fetchField($emlRec->emlFile, 'fileHnd');
-
-        // Вземаме хедърите от EML файла
-        $headersArr = $mimeInst->getHeadersFromEmlFile($emlFileHnd);
+//        $emlFileHnd = fileman_Files::fetchField($emlRec->emlFile, 'fileHnd');
+//
+//        // Вземаме хедърите от EML файла
+//        $headersArr = $mimeInst->getHeadersFromEmlFile($emlFileHnd);
         
         // Връщаме хедърите
         return $headersArr;
@@ -222,10 +240,26 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * 
      * return string - html стринг с прикачените файлове
      */
-    static function getFiles($mime, $emlRec)
+    static function getFiles($mime)
     {
+        
+        $filesKeyList = $mime->getFiles();
+        $filesArr = type_Keylist::toArray($filesKeyList);
         // Масив с всички прикачени файлове
-        $filesArr = type_Keylist::toArray($emlRec->files);
+        $filesArr = type_Keylist::toArray($filesKeyList);
+        
+        foreach ($filesArr as $keyD => $dummy) {
+            $filesStr .= fileman_Download::getDownloadLinkById($keyD) . "\n";
+        }
+
+        // Връщаме стринга
+        return $filesStr;
+        
+        
+        
+        
+        
+        
         
         // Масив за HTML файла
         $htmlFile = array();
@@ -328,7 +362,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $mime = new email_Mime();
         
         // Очакваме да няма проблем при парсирането
-        expect($emlRec = $mime->getEmail(static::getSource($fRec)));
+//        expect($emlRec = $mime->getEmail(static::getSource($fRec)));
         
         // В зависимост от типа пускаме различни методи
         switch ($type) {
