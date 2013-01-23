@@ -242,24 +242,20 @@ class cash_Pko extends core_Master
 	    	$rec->contragentPcode = $contragentData->pCode;
 	    	$rec->contragentPlace = $contragentData->place;
 	    	$rec->contragentAdress = $contragentData->adress;
+	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
 	    	// Взема периода за който се отнася документа, според датата му
 	    	$accPeriods = cls::get('acc_Periods');
 		    $period = $accPeriods->fetchByDate($rec->valior);
-	    	if(!$period->baseCurrencyId){
-		    	$period->baseCurrencyId = currency_Currencies::getIdByCode();
-		    }
 		    
 		    if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-		    	$baseCurrencyCode = currency_Currencies::getCodeById($period->baseCurrencyId);
-		    	$rec->rate = currency_CurrencyRates::getRateBetween($currencyCode, $baseCurrencyCode, $rec->valior);
-		     }
+		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode);
+		    }
 		    
 		    if($rec->rate != 1) {
-		   		$rec->equals = round($rec->amount * $rec->rate, 2);
+		   		$rec->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
 		    } 
 		    
 	    	$rec->baseCurrency = $period->baseCurrencyId;

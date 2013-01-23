@@ -145,6 +145,7 @@ class cash_Rko extends core_Master
     	$this->FLD('creditAccount', 'acc_type_Account()', 'input=hidden');
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=hidden');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
+    	$this->FLD('equals', 'int', 'caption=Валута->Равностойност,input=none');
     	$this->FLD('baseCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Основна,input=hidden');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(rows=6)', 'caption=Допълнително->Бележки');
@@ -247,24 +248,20 @@ class cash_Rko extends core_Master
 	    	$rec->contragentPlace = $contragentData->place;
 	    	$rec->contragentAdress = $contragentData->adress;
 	    	$rec->peroCase = cash_Cases::getCurrent();
+	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
 	    	// Взема периода за който се отнася документа, според датата му
 	    	$accPeriods = cls::get('acc_Periods');
 		    $period = $accPeriods->fetchByDate($rec->valior);
-	    	if(!$period->baseCurrencyId){
-		    	$period->baseCurrencyId = currency_Currencies::getIdByCode();
-		    }
 		    
 		    if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-		    	$baseCurrencyCode = currency_Currencies::getCodeById($period->baseCurrencyId);
-		    	$rec->rate = currency_CurrencyRates::getRateBetween($currencyCode, $baseCurrencyCode, $rec->valior);
+		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode);
 		    }
 		    
 		    if($rec->rate != 1) {
-		   		$rec->equals = round($rec->amount * $rec->rate, 2);
+		   		$rec->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
 		    } 
 		    
 		    $rec->baseCurrency = $period->baseCurrencyId;
@@ -292,7 +289,6 @@ class cash_Rko extends core_Master
                     $row->contragentAdress
                 )
             );
-    	
     	   if(!$rec->equals) {
 	    		
 	    		//не показваме курса ако валутата на документа съвпада с тази на периода

@@ -300,11 +300,7 @@ class bank_InternalMoneyTransfer extends core_Master
     		
     		$rec = &$form->rec;
     		
-    		$accPeriods = cls::get('acc_Periods');
-		    $period = $accPeriods->fetchByDate($rec->valior);
-		    $baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
-		    
-    		$operation = acc_Operations::fetch($rec->operationId);
+		    $operation = acc_Operations::fetch($rec->operationId);
     		$rec->debitAccId = $operation->debitAccount;
     		$rec->creditAccId = $operation->creditAccount;
     		
@@ -320,8 +316,7 @@ class bank_InternalMoneyTransfer extends core_Master
     		if(!$quantityOnly) {
     			$currencyId = static::getCurrency('debit', $rec);
 		    	$currencyCode = currency_Currencies::getCodeById($currencyId);
-    			$rate = currency_CurrencyRates::getRateBetween($currencyCode, $baseCurrency, $rec->valior);
-    			$rec->rate = $rate;
+    			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode);
     		}
     	}
     }

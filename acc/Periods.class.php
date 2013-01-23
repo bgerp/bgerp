@@ -86,7 +86,7 @@ class acc_Periods extends core_Manager
         $this->FNC('title', 'varchar', 'caption=Заглавие,dependFromFields=start|end');
         $this->FLD('lastEntry', 'datetime', 'caption=Последен запис');
         $this->FLD('vatRate', 'percent', 'caption=Параметри->%ДДС,oldFieldName=vatPercent');
-        $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Параметри->Валута');
+        $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Параметри->Валута,width=5em');
     }
 
 

@@ -902,21 +902,63 @@ class email_Outgoings extends core_Master
      */
     function getFooter()
     {
-    	$conf = core_Packs::getConfig('crm');
-    	
-        //Вземаме езика
+        // Вземаме езика
         $lg = core_Lg::getCurrent();
         
-        //Зареждаме класа, за да имаме достъп до променливите
-        cls::load('crm_Companies');
+        // Профила на текущият потребител
+        $crmPersonRec = crm_Profiles::getProfile();
         
-        $companyId = $conf->BGERP_OWN_COMPANY_ID;
+        // Ако текущия потребител няма фирма
+        if (!($companyId = $crmPersonRec->buzCompanyId)) {
+            
+            // Вземаме фирмата по подразбиране
+            $conf = core_Packs::getConfig('crm');
+            $companyId = $conf->BGERP_OWN_COMPANY_ID;        
+        }
         
-        //Вземаме данните за нашата фирма
+        // Вземаме данните за нашата фирма
         $myCompany = crm_Companies::fetch($companyId);
         
-        $userName = core_Users::getCurrent('names');
+        // Името на компанията
+        $companyName = $myCompany->name;
+
+        // Името на потребителя
+        $userName = $crmPersonRec->name;
         
+        // Телефон
+        $tel = $crmPersonRec->buzTel;
+        $tel = ($tel) ? ($tel) : $myCompany->tel;
+        
+        // Факс
+        $fax = $crmPersonRec->buzFax;
+        $fax = ($fax) ? ($fax) : $myCompany->fax;
+        
+        // Имейл
+        $email = $crmPersonRec->buzEmail;
+        $email = ($email) ? ($email) : $myCompany->email;
+        
+        // Длъжност
+        $buzPosition = $crmPersonRec->buzPosition;
+        
+        // Адреса
+        $buzAddress = $crmPersonRec->buzAddress;
+        
+        // Ако няма въведен адрес на бизнеса на потребителя
+        if (!$buzAddress) {
+            
+            // Определяме адреса от фирмата
+            $pCode = $myCompany->pCode;
+            $city = $myCompany->place;
+            $address = $myCompany->address;
+            $country = crm_Companies::getVerbal($myCompany, 'country');
+        } else {
+            $address = $buzAddress;
+        }
+        
+        // Страницата
+        $webSite = $myCompany->website;
+        
+        // Държавата
         $country = crm_Companies::getVerbal($myCompany, 'country');
         
         //Ако езика е на български и държавата е България, да не се показва държавата
@@ -925,19 +967,21 @@ class email_Outgoings extends core_Master
             unset($country);
         }
         
+        // Зареждаме шаблона
         $tpl = new ET(tr('|*' . getFileContent("email/tpl/OutgoingFooter.shtml")));
-        
+
         //Заместваме шаблоните
         $tpl->replace(tr($userName), 'name');
-        $tpl->replace(tr($myCompany->name), 'company');
-        $tpl->replace($myCompany->tel, 'tel');
-        $tpl->replace($myCompany->fax, 'fax');
-        $tpl->replace($myCompany->email, 'email');
-        $tpl->replace($myCompany->website, 'website');
+        $tpl->replace(tr($companyName), 'company');
+        $tpl->replace($tel, 'tel');
+        $tpl->replace($fax, 'fax');
+        $tpl->replace($email, 'email');
+        $tpl->replace($webSite, 'website');
         $tpl->replace(tr($country), 'country');
-        $tpl->replace($myCompany->pCode, 'pCode');
-        $tpl->replace(tr($myCompany->place), 'city');
-        $tpl->replace(tr($myCompany->address), 'street');
+        $tpl->replace($pCode, 'pCode');
+        $tpl->replace(tr($city), 'city');
+        $tpl->replace(tr($address), 'street');
+        $tpl->replace(tr($buzPosition), 'position');
          
         return $tpl->getContent();
     }
