@@ -147,11 +147,11 @@ class sales_SalesDetails extends core_Detail
      */
     public function on_CalcAmount(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->price) || empty($rec->quantityOrdered)) {
+        if (empty($rec->packPrice) || empty($rec->packQuantity)) {
             return;
         }
         
-        $rec->amount = $rec->price * $rec->quantityOrdered;
+        $rec->amount = $rec->packPrice * $rec->packQuantity;
         
         if (!empty($rec->discount)) {
             $rec->amount *= (1-$rec->discount);
