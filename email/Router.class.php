@@ -430,7 +430,7 @@ class email_Router extends core_Manager
     {
         $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleFrom);
 
-        return $folderId;
+        return $rec->folderId;
     }
 
     
@@ -441,7 +441,7 @@ class email_Router extends core_Manager
     {
         $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleFromTo);
 
-        return $folderId;
+        return $rec->folderId;
     }
     
     
@@ -452,7 +452,7 @@ class email_Router extends core_Manager
     {
         $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleDomain);
 
-        return $folderId;
+        return $rec->folderId;
     }
     
     
