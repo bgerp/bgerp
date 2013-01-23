@@ -312,7 +312,7 @@ class sales_SalesDetails extends core_Detail
                 }
                 
                 $rec->quantity = $rec->packQuantity * $productsPerPack;
-                $rec->price    = $rec->packPrice * $productsPerPack;
+                $rec->price    = $rec->packPrice / $productsPerPack;
             }
         }
     }
