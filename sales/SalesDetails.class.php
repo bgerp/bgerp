@@ -123,16 +123,16 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
         
         // Количество в брой опаковки
-        $this->FLD('packQuantity', 'float', 'caption=Количество');
+        $this->FLD('packQuantity', 'float', 'mandatory,caption=К-во');
         
         // Количество в основна мярка
-        $this->FLD('quantity', 'float', 'input=none,caption=Количество');
+        $this->FLD('quantity', 'float', 'input=none,caption=К-во (ед.)');
         
         // Цена за опаковка
-        $this->FLD('packPrice', 'float(minDecimals=2)', 'caption=Цена');
+        $this->FLD('packPrice', 'float(minDecimals=2)', 'caption=Цена за опаковка');
         
         // Цена за единица продукт в основна мярка
-        $this->FLD('price', 'float(minDecimals=2)', 'input=none,caption=Ед.Цена');
+        $this->FLD('price', 'float(minDecimals=2)', 'input=none,caption=Цена');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FNC('amount', 'float(minDecimals=2)', 'caption=Сума');
@@ -273,19 +273,47 @@ class sales_SalesDetails extends core_Detail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-        if (false && $form->isSubmitted() && !$form->gotErrors()) {
-            // Извличане на информация за продукта - количество в опаковка, единична цена
+        if ($form->isSubmitted() && !$form->gotErrors()) {
             
-            $rec        = $form->rec;
-            $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
-            bp($masterRec);
-            $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
-            
-            /* @var $productRef cat_ProductAccRegIntf */
-            $productRef  = new core_ObjectReference('cat_Products', $form->rec->productId);
-            $productInfo = $productRef->getProductInfo($contragent, $form->rec->date);
-            
-            bp($productInfo);
+            if (empty($form->rec->packPrice) || empty($form->rec->discount)) {
+                // Извличане на информация за продукта - количество в опаковка, единична цена
+                
+                $rec        = $form->rec;
+                $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
+                $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
+                
+                /* @var $productRef cat_ProductAccRegIntf */
+                $productRef  = new core_ObjectReference('cat_Products', $form->rec->productId);
+                $productInfo = $productRef->getProductInfo($contragent, $form->rec->date);
+                
+                expect($productInfo);
+                
+                // Определяне на цена, количество и отстъпка за опаковка
+                
+                if (empty($rec->packagingId)) {
+                    // В продажба в основна мярка
+                    $pricePerPack    = $productInfo->price;
+                    $productsPerPack = 1;
+                    $discount        = 0;
+                } else {
+                    // Продажба на опаковки
+                    expect($packInfo = $productInfo->packs[$rec->packagingId]);
+                    
+                    $pricePerPack    = $packInfo->price;
+                    $productsPerPack = $packInfo->quantity;
+                    $discount        = $packInfo->discount;
+                }
+                
+                if (empty($rec->packPrice)) {
+                    $rec->packPrice = $pricePerPack;
+                }
+                if (empty($rec->discount)) {
+                    $rec->discount = $discount;
+                }
+                
+                $rec->quantity = $rec->packQuantity * $productsPerPack;
+                $rec->price    = $rec->packPrice * $productsPerPack;
+            }
         }
     }
     
