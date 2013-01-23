@@ -542,6 +542,38 @@ class cat_Products extends core_Master {
      */
     public static function getProductInfo($productId, $contragentObj, $date)
     {
-        bp(func_get_args());
+        expect($productRec = static::fetch($productId));
+        
+        $Packagings = cls::get('cat_products_Packagings');
+        
+        $productRec->packagings = $Packagings->fetchDetails($productId);
+
+        $price = rand(1, 100) / 50; // Mockup имплементация
+        $cost  = $price / 2; // Mockup имплементация
+        
+        $result = (object)array(
+            'id'    => $productRec->id,
+            'title' => $productRec->name,
+            'code'  => $productRec->code,
+            'uomId' => $productRec->measureId,
+            'price' => $price,
+            'cost'  => $cost,
+            'packs' => array(),
+        );
+        
+        foreach ($productRec->packagings as $pack) {
+            $price = 20 * rand(1, 100) / 50; // Mockup имплементация
+            $cost  = $price / 2; // Mockup имплементация
+        
+            $result->packs[$pack->packagingId] = (object)array(
+                'eanCode'      => $pack->eanCode,
+                'customerCode' => $pack->customCode,
+                'quantity'     => $pack->quantity,
+                'price'        => $price,
+                'discount'     => 0.1,
+            );
+        }
+        
+        return $result;
     }
 }

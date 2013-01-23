@@ -17,4 +17,15 @@ class cat_products_Detail extends core_Detail
         
         $tpl = $wrapTpl;
     }
+    
+    public function fetchDetails($masterId)
+    {
+        /* @var $query core_Query */ 
+        $query = static::getQuery();
+        $query->where("#{$this->masterKey} = '{$masterId}'");
+        
+        $result = $query->fetchAll();
+        
+        return $result;
+    }
 }

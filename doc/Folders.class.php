@@ -631,6 +631,12 @@ class doc_Folders extends core_Master
     }
     
     
+    public static function fetchCoverClassId($id)
+    {
+        return static::fetchField($id, 'coverClass');
+    }
+    
+    
     /**
      * Името на класа на корицата на папка
      * 
@@ -639,7 +645,7 @@ class doc_Folders extends core_Master
      */
     public static function fetchCoverClassName($id)
     {
-        $folderClass = static::fetchField($id, 'coverClass');
+        $folderClass = static::fetchCoverClassId($id);
         $folderClassName = cls::getClassName($folderClass);
         
         return $folderClassName;
