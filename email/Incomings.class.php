@@ -217,7 +217,11 @@ class email_Incomings extends core_Master
         $statusSum = array();
  
         // Връзка по IMAP към сървъра на посочената сметка
-        $imapConn = cls::get('email_Imap', array('accRec' => $accRec));  
+        if($accRec->email == 'team@ep-bags.com') {
+            $imapConn = cls::get('email_ImapEP', array('accRec' => $accRec)); 
+        } else {
+            $imapConn = cls::get('email_Imap', array('accRec' => $accRec)); 
+        }
 
         // Логването и генериране на съобщение при грешка е винаги в контролерната част
         if ($imapConn->connect() === FALSE) {
@@ -283,6 +287,7 @@ class email_Incomings extends core_Master
         foreach($statusSum as $status => $cnt) {
             $msg .= ", {$status}:{$cnt}";
         }
+
         $this->log($msg);
     }
 
@@ -309,40 +314,44 @@ class email_Incomings extends core_Master
             try {
                 // Парсира съдържанието на писмото
                 $mime->parseAll($rawEmail);
-                
-                // Вземаме хедърите, този път от самото писмо
-                $headers = $mime->getHeadersStr();
-
-                // Отново правим проверка дали писмото е сваляно
-                if(email_Fingerprints::isDown($headers)) {
-                    
-                    return 'duplicated';
-                }
-                
-                // Кой е UID на писмото?
-                $uid = $imapConn->getUid($msgNo);
- 
-                // Записа на имейл сметката, от където се тегли
-                $accId = $imapConn->accRec->id;
-
-                // Пробваме дали това не е служебно писмо
-                // Ако не е служебно, пробваме дали не е SPAM
-                // Ако не е нищо от горните, записваме писмото в този модел
-                if(email_Returned::process($mime, $accId, $uid)) {
-                    $status = 'returned';
-                } elseif(email_Receipts::process($mime, $accId, $uid)) {
-                    $status = 'receipt';
-                } elseif(email_Spam::process($mime, $accId, $uid)) {
-                    $status = 'spam';
-                } elseif(self::process($mime, $accId, $uid)) {
-                    $status = 'incoming';
-                }
-                
-            } catch(core_exception_Expect $exp) {
+             } catch(core_exception_Expect $exp) {
                 // Не-парсируемо
+                if(Request::get('forced')) {
+                    echo $exp->getAsHtml();
+                    die;
+                }
                 email_Unparsable::add($rawEmail, $accId, $uid);
                 $status = 'misformatted';
             }
+               
+            // Вземаме хедърите, този път от самото писмо
+            $headers = $mime->getHeadersStr();
+
+            // Отново правим проверка дали писмото е сваляно
+            if(email_Fingerprints::isDown($headers)) {
+                
+                return 'duplicated';
+            }
+            
+            // Кой е UID на писмото?
+            $uid = $imapConn->getUid($msgNo);
+ 
+            // Записа на имейл сметката, от където се тегли
+            $accId = $imapConn->accRec->id;
+
+            // Пробваме дали това не е служебно писмо
+            // Ако не е служебно, пробваме дали не е SPAM
+            // Ако не е нищо от горните, записваме писмото в този модел
+            if(email_Returned::process($mime, $accId, $uid)) {
+                $status = 'returned';
+            } elseif(email_Receipts::process($mime, $accId, $uid)) {
+                $status = 'receipt';
+            } elseif(email_Spam::process($mime, $accId, $uid)) {
+                $status = 'spam';
+            } elseif(self::process($mime, $accId, $uid)) {
+                $status = 'incoming';
+            }
+                
 
             // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
             if(in_array($status, array('returned', 'receipt', 'spam', 'incoming', 'misformatted'))) {
@@ -351,6 +360,11 @@ class email_Incomings extends core_Master
             }
             
         } catch (core_exception_Expect $exp) {
+            // Обща грешка
+            if(Request::get('forced')) {
+                 echo $exp->getAsHtml();
+                die;
+            }
             $status = 'error';
         }
         
@@ -941,61 +955,49 @@ class email_Incomings extends core_Master
      */
     public function route_($rec)
     {
-        // Правилата за рутиране, подредени по приоритет. Първото правило, след което съобщението
-        // има нишка и/или папка прекъсва процеса - рутирането е успешно.
-        $rules = array(
-            'self::routeByThread',
-            'email_Filters::preroute',
-            'self::routeByFromTo',
-            'self::routeByFrom',
-            'self::routeSpam',
-            'self::routeByDomain',
-            'self::routeByPlace',
-            'self::routeByTo',
-        );
+        // Винаги рутираме по номер на тред
+        if(email_Router::doRuleThread($rec)) return;
         
-        foreach ($rules as $rule) {
-            if (is_callable($rule)) {
-                call_user_func($rule, $rec);
+        // Първо рутираме по ръчно зададените правила
+        if(email_Filters::preroute($rec)) return;
+        
+        // Извличаме записа на сметката, от която е изтеглено това писмо
+        $accRec = email_Accounts::fetch($rec->accId);
+
+        // Ако сметката е с рутиране
+        if($accRec->applyRouting == 'yes') {
+        
+            // Ако `boxTo` е обща кутия, прилагаме последователно `From`, `Domain`, `Country`
+            if($accRec->email == $rec->toBox && $accRec->type != 'single') {
                 
-                if ($rec->folderId || $rec->threadId) {
-                    break;
-                }
+                // Ако папката е с рутиране и boxTo е обща кутия, прилагаме `From`
+                if(email_Router::doRuleFrom($rec)) return;
+                
+                // Рутиране по домейn
+                if(email_Router::doRuleDomain($rec)) return;
+                
+                // Рутиране по място (държава)
+                if(email_Router::doRuleCountry($rec)) return;
+                
+            } else {
+                
+                // Ако `boxTo` е частна кутия, то прилагаме `FromTo`
+                if(email_Router::doRuleFromTo($rec)) return;
             }
         }
+        
+        // Накрая безусловно вкарваме в кутията на `toBox`
+        email_Router::doRuleToBox($rec); 
+        
+        expect($rec->folderId);
     }
     
     
-    /**
-     * Извлича при възможност нишката от наличната информация в писмото
-     *
-     * Местата, където очакваме информация за манипулатор на тред са:
-     *
-     * o `In-Reply-To` (MIME хедър)
-     * o `Subject`
-     *
-     * @param stdClass $rec
-     */
-    static function routeByThread($rec)
-    {
-        $rec->threadId = static::extractThreadFromReplyTo($rec);
-        
-        if (!$rec->threadId) {
-            $rec->threadId = static::extractThreadFromSubject($rec);
-        }
-        
-        if ($rec->threadId) {
-            // Премахване на манипулатора на нишката от събджекта
-            static::stripThreadHandle($rec);
-            
-            // Зануляваме папката - тя е еднозначно определена от вече намерената нишка.
-            $rec->folderId = NULL;
-        }
-    }
+
     
     
     /**
-     * @todo Чака за документация...
+     * @todo Чака за документация...---------------------------------------------------------------------------------
      */
     static function routeByFromTo($rec)
     {
@@ -1040,28 +1042,6 @@ class email_Incomings extends core_Master
     }
     
     
-    /**
-     * @todo Чака за документация...
-     */
-    static function routeByPlace($rec)
-    {
-        if (empty($rec->toBox)) {
-            $rec->toBox = email_Inboxes::fetchField($rec->accId, 'email');
-        }
-        
-        if (static::isGenericRecipient($rec) && !$rec->isSpam && $rec->country) {
-            //
-            // Ако се наложи създаване на папка за несортирани писма от държава, отговорника
-            // трябва да е отговорника на кутията, до която е изпратено писмото.
-            //
-            $inChargeUserId = email_Inboxes::getEmailInCharge($rec->toBox);
-            
-            $rec->folderId = static::forceCountryFolder(
-                $rec->country /* key(mvc=drdata_Countries) */,
-                $inChargeUserId
-            );
-        }
-    }
     
     
     /**
@@ -1083,138 +1063,7 @@ class email_Incomings extends core_Master
         return email_Router::route($rec->fromEml, $rec->toBox, $type);
     }
     
-    /**
-     * Извлича нишката от 'In-Reply-To' MIME хедър
-     *
-     * @param stdClass $rec
-     * @return int първичен ключ на нишка или NULL
-     */
-    protected static function extractThreadFromReplyTo($rec)
-    {
-        if (!$rec->inReplyTo) {
-            return NULL;
-        }
-        
-        if (!($mid = email_util_ThreadHandle::extractMid($rec->inReplyTo))) {
-            return NULL;
-        }
-        
-        if (!($sentRec = email_Sent::fetchByMid($mid, 'containerId, threadId'))) {
-            return NULL;
-        }
-        
-        $rec->originId = $sentRec->containerId;
-        
-        return $sentRec->threadId;
-    }
-    
-    /**
-     * Извлича нишката от 'Subject'-а
-     *
-     * @param stdClass $rec
-     * @return int първичен ключ на нишка или NULL
-     */
-    protected static function extractThreadFromSubject($rec)
-    {
-        $subject = $rec->subject;
-        
-        // Списък от манипулатори на нишки, за които е сигурно, че не са наши
-        $blackList = array();
-        
-        if ($rec->bgerpSignature) {
-            // Възможно е това писмо да идва от друга инстанция на BGERP.
-            list($foreignThread, $foreignDomain) = preg_split('/\s*;\s*/', $rec->bgerpSignature, 2);
-            
-            if ($foreignDomain != BGERP_DEFAULT_EMAIL_DOMAIN) {
-                // Да, друга инстанция;
-                $blackList[] = $foreignThread;
-            }
-        }
-        
-        // Списък от манипулатори на нишка, които може и да са наши
-        $whiteList = email_util_ThreadHandle::extract($subject);
-        
-        // Махаме 'чуждите' манипулатори
-        $whiteList = array_diff($whiteList, $blackList);
-        
-        // Проверяваме останалите последователно 
-        foreach ($whiteList as $handle) {
-            if ($threadId = static::getThreadByHandle($handle)) {
-                break;
-            }
-        }
-        
-        return $threadId;
-    }
-    
-    /**
-     * Намира тред по хендъл на тред.
-     *
-     * @param string $handle хендъл на тред
-     * @return int key(mvc=doc_Threads) NULL ако няма съответен на хендъла тред
-     */
-    protected static function getThreadByHandle($handle)
-    {
-        return doc_Threads::getByHandle($handle);
-    }
-    
-    
-    /**
-     * Създава при нужда и връща ИД на папката на държава
-     *
-     * @param int $countryId key(mvc=drdata_Countries)
-     * @return int key(mvc=doc_Folders)
-     */
-    static function forceCountryFolder($countryId, $inCharge)
-    {
-        $folderId = NULL;
-        
-        $conf = core_Packs::getConfig('email');
-
-        /**
-         * @TODO: Идея: да направим клас email_Countries (или може би bgerp_Countries) наследник
-         * на drdata_Countries и този клас да стане корица на папка. Тогава този метод би
-         * изглеждал така:
-         *
-         * $folderId = email_Countries::forceCoverAndFolder(
-         *         (object)array(
-         *             'id' => $countryId
-         *         )
-         * );
-         *
-         * Това е по-ясно, а и зависимостта от константата EMAILІUNSORTABLE_COUNTRY отива на
-         * 'правилното' място.
-         */
-        
-        $countryName = static::getCountryName($countryId);
-        
-
-        if (!empty($countryName)) {
-            $folderId = doc_UnsortedFolders::forceCoverAndFolder(
-                (object)array(
-                    'name'     => sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $countryName),
-                    'inCharge' => $inCharge
-                )
-            );
-        }
-        
-        return $folderId;
-    }
-    
-    
-    /**
-     * Връща името на държавата от която е пратен имейл-а
-     */
-    protected static function getCountryName($countryId)
-    {
-        if ($countryId) {
-            $countryName = drdata_Countries::fetchField($countryId, 'commonName');
-        }
-        
-        return $countryName;
-    }
-    
-    
+     
     /**
      * @todo Чака за документация...
      */
@@ -1235,21 +1084,8 @@ class email_Incomings extends core_Master
             $rec->_isNew = TRUE;
         }
     }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function stripThreadHandle($rec)
-    {
-        expect($rec->threadId);
-        
-        $threadHandle = doc_Threads::getHandle($rec->threadId);
-        
-        $rec->subject = email_util_ThreadHandle::strip($rec->subject, $threadHandle);
-    }
-    
-    
+
+
     /**
      * Извиква се след вкарване на запис в таблицата на модела
      */
