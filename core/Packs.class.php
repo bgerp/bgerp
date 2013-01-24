@@ -251,7 +251,7 @@ class core_Packs extends core_Manager
         $form->setHidden(array('Act' => 'install'));
         $form->toolbar->addSbBtn('Инсталирай', 'default', 'class=btn-install');
         defIfNot('BGERP_SETUP_KEY', " ");
-        $form->toolbar->addBtn('Сетъп', array("SetupKey" => BGERP_SETUP_KEY, "step"=>2), 'class=btn-install');
+        $form->toolbar->addBtn('Обновяване на системата', array("SetupKey" => BGERP_SETUP_KEY, "step"=>2, "bgerp"=>1), 'class=btn-install');
         
         return $form->renderHtml();
     }
@@ -440,7 +440,7 @@ class core_Packs extends core_Manager
         
         // Ако е пуснат от сетъп-а записваме в Лог-а 
         if($setupFlag) {
-        	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND);
+        	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND|LOCK_EX);
         }
         
         // Проверка дали Setup класа съществува
@@ -509,7 +509,6 @@ class core_Packs extends core_Manager
  
             // Правим началното установяване
             $res .= $setup->install();
-            
             Request::pop('full');
 
             // Де-форсираме системния потребител

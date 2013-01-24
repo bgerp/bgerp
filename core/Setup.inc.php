@@ -257,6 +257,7 @@ if(!$isLocal) {
 
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
+$bgerp = $_GET['bgerp'] ? TRUE : FALSE;
 $texts['currentStep'] = $step;
 
 // Собственото URL
@@ -283,81 +284,100 @@ if($step == 1) {
         "\n<a href='$nextUrl'>&#9746; Ако приемате лиценза по-горе, може да продължите »</a></th></tr></table>";
 }
 
+
 // Стъпка 2: Обновяване
 if($step == 2) {
+	
+	$log = array();
+	
+	switch ($bgerp) {
+		// Изисква се сетъп от bgerp-a
+		case TRUE :
+			// Показваме бутони за ъпдейтване 
+			$links[] = "inf|{$selfUrl}|Проверка за по-нова версия »";
+			$links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
 
- 
-    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения 
-    // 1. В системата има локално променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
-    // 2. Продължете, без да възстановявате променените файлове (отива на следваща стъпка)
-
-    // Ако GIT-а открие по-нова версия на bgERP, трябва да се изведат следните съобщения:
-    // 1. Има по-нова версия на bgERP. Обновете системата (прави pull на най-новото от мастер-бранч и остава на тази стъпка)
-    // 2. Има по-нова версия на PRIVATE. Обновете системата (прави pull на най-новото от мастер-бранч и остава на тази стъпка)
-    
-    // Накрая, в зависимост от това дали има обновления
-    // 3. Продължете, без да променяте системата (отива на следваща стъпка)
-
-    // Ако нито едно от горните не е вярно, да се изведе:
-    // 1. Имате най-новата версия на bgERP, може да продължите (отива на следваща стъпка)
-    
-    if(defined('EF_PRIVATE_PATH')) {
-        $repos = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
-    } else {
-        $repos = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
-    }
-    
-    // Парамерти от Request, команди => репозиторита
-    $update = $_GET['update'];
-    $revert = $_GET['revert'];
-
-    // Масив - лог за извършените действия
-    $log = array();
-
-    $newVer = 0;
-    $changed = 0;
-    $redirect = FALSE;
-    foreach($repos as $repoPath) {
-        
-        $repoName = basename($repoPath);
-        
-        // Ако имаме команда за revert на репозиторито - изпълняваме я
-        if($revert == $repoName) {
-            gitRevertRepo($repoPath, $log);
-        }
-        
-        // Ако имаме команда за обновяване на репозитори - изпълняваме я
-        if($update == $repoName ||  $update == 'all') {
-            gitPullRepo($repoPath, $log);
-        }
-         
-        // Проверяваме за променени файлове в репозитори или за нова версия
-        if(gitHasChanges($repoPath, $log)) {
-            $links[] = "wrn|{$selfUrl}&amp;revert={$repoName}|В <b>[{$repoName}]</b> има променени файлове. Възстановете ги »";
-            $changed++;
-        } elseif(gitHasNewVersion($repoPath, $log)) {
-            $links[] = "new|{$selfUrl}&amp;update={$repoName}|Има по-нова версия на <b>[{$repoName}]</b>. Обновете я »";
-            $newVer++;
-        }
-    }
-    
-    if($newVer > 1 && !$changed) {
-        $links[] = "new|$selfUrl&amp;update=all|Обновете едновременно цялата система »";
-    }
-    
-    if($newVer || $changed) {
-        $links[] = "wrn|{$nextUrl}|Продължете, без да променяте системата »";
-    } else {
-        $links[] = "inf|{$nextUrl}|Вие имате последната версия на <b>bgERP</b>, може да продължите »";
-    }
-    
+		    break;
+		case FALSE :
+			// Проверки за Гит и новости на пакети 
+		    // Проверка за наличие на Git
+		    if (!getGitCmd($gitCmd)) {
+		        $links[] = "wrn|{$nextUrl}|Не може да бъде открит Git. Продължете без обновяване »";
+		    } else {
+			    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения 
+			    // 1. В системата има локално променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
+			    // 2. Продължете, без да възстановявате променените файлове (отива на следваща стъпка)
+			
+			    // Ако GIT-а открие по-нова версия на bgERP, трябва да се изведат следните съобщения:
+			    // 1. Има по-нова версия на bgERP. Обновете системата (прави pull на най-новото от мастер-бранч и остава на тази стъпка)
+			    // 2. Има по-нова версия на PRIVATE. Обновете системата (прави pull на най-новото от мастер-бранч и остава на тази стъпка)
+			    
+			    // Накрая, в зависимост от това дали има обновления
+			    // 3. Продължете, без да променяте системата (отива на следваща стъпка)
+			
+			    // Ако нито едно от горните не е вярно, да се изведе:
+			    // 1. Имате най-новата версия на bgERP, може да продължите (отива на следваща стъпка)
+			    
+			    if(defined('EF_PRIVATE_PATH')) {
+			        $repos = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+			    } else {
+			        $repos = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+			    }
+			    
+			    // Парамерти от Request, команди => репозиторита
+			    $update = $_GET['update'];
+			    $revert = $_GET['revert'];
+			
+			    // Масив - лог за извършените действия
+			
+			    $newVer = 0;
+			    $changed = 0;
+		
+			    foreach($repos as $repoPath) {
+			        
+			        $repoName = basename($repoPath);
+			        
+			        // Ако имаме команда за revert на репозиторито - изпълняваме я
+			        if($revert == $repoName) {
+			            gitRevertRepo($repoPath, $log);
+			        }
+			        
+			        // Ако имаме команда за обновяване на репозитори - изпълняваме я
+			        if($update == $repoName ||  $update == 'all') {
+			            gitPullRepo($repoPath, $log);
+			        }
+			         
+			        // Проверяваме за променени файлове в репозитори или за нова версия
+			        if(gitHasChanges($repoPath, $log)) {
+			            $links[] = "wrn|{$selfUrl}&amp;revert={$repoName}|В <b>[{$repoName}]</b> има променени файлове. Възстановете ги »";
+			            $changed++;
+			        } elseif(gitHasNewVersion($repoPath, $log)) {
+			            $links[] = "new|{$selfUrl}&amp;update={$repoName}|Има по-нова версия на <b>[{$repoName}]</b>. Обновете я »";
+			            $newVer++;
+			        }
+			    }
+			    if($newVer > 1 && !$changed) {
+			        $links[] = "new|$selfUrl&amp;update=all|Обновете едновременно цялата система »";
+			    }
+			    
+			    if($newVer || $changed) {
+			        $links[] = "wrn|{$nextUrl}|Продължете, без да променяте системата »";
+			    } else {
+			        $links[] = "inf|{$nextUrl}|Вие имате последната версия на <b>bgERP</b>, може да продължите »";
+			    }
+		    }
+		    
+			break;
+		}
+	    
+	
     $texts['body'] = linksToHtml($links);
-        
-    // Статистика за различните класове съобщения
-    $stat = array();
-
-    $texts['body'] .= logToHtml($log, $stat);
-
+	        
+	// Статистика за различните класове съобщения
+	$stat = array();
+	
+	$texts['body'] .= logToHtml($log, $stat);
+    
 }
 
 
@@ -366,14 +386,6 @@ if($step == 3) {
     
     $log = array();
 
-    // Проверка за наличие на Git
-    $log[] = 'h:Проверка за наличие на Git:';
-    if (!getGitCmd($gitCmd)) {
-    	$log[] = "err:Не е открит Git!";
-    } else {
-    	$log[] = "inf:Git - OK";
-    }
-    
     // Проверяваме дали имаме достъп за четене/запис до следните директории
     $log[] = 'h:Проверка и създаване на работните директории:';
 
@@ -591,8 +603,9 @@ if ($step == 'setup') {
 					</script>");
         
         // Лог
+        // Изчитаме лог-а ако е отключен и го изтриваме 
         $setupLog = file_get_contents(EF_TEMP_PATH . '/setupLog.html');
-	    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
+	    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
 	    
 	    $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
         
