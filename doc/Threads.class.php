@@ -170,7 +170,7 @@ class doc_Threads extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
-        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'allowEmpty,caption=Подредба,input,silent');
+        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'allowEmpty,caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         
         $data->listFilter->view = 'horizontal';
