@@ -853,7 +853,7 @@ class email_Incomings extends core_Master
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        static::needFields($rec, 'fromEml, toBox, date, containerId,threadId');
+        static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         
         if ($rec->state == 'rejected') {
             $mvc->removeRouterRules($rec);
