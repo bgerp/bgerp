@@ -274,11 +274,7 @@ class bank_ExchangeDocument extends core_Master
     		
     		$rec = &$form->rec;
     		
-    		$accPeriods = cls::get('acc_Periods');
-		    $period = $accPeriods->fetchByDate($rec->valior);
-		    $baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
-		    
-    		$operation = acc_Operations::fetch($rec->operationId);
+		    $operation = acc_Operations::fetch($rec->operationId);
     		$rec->debitAccId = $operation->debitAccount;
     		$rec->creditAccId = $operation->creditAccount;
     		
@@ -290,35 +286,51 @@ class bank_ExchangeDocument extends core_Master
     			$cCode = currency_Currencies::getCodeById($creditCurrency);
 		    	$dCode = currency_Currencies::getCodeById($debitCurrency);
 		    	if($cCode == $dCode) {
-		    		$form->setWarning('creditEnt1,debitEnt1', 'Валутите са едни и същи, няма смяна на валута !!!');
+		    		$form->setWarning('creditEnt1, debitEnt1', 'Валутите са едни и същи, няма смяна на валута !!!');
 		    	}
 		    	
-		    	$cRate = currency_CurrencyRates::getRateBetween($cCode, $baseCurrency, $rec->valior);
-		    	$dRate = currency_CurrencyRates::getRateBetween($dCode, $baseCurrency, $rec->valior);
+		    	// Изчисляваме курса на превалутирането спрямо входните данни
+		    	$cRate = currency_CurrencyRates::getRate($rec->valior, $cCode);
 		    	$rec->creditPrice = $cRate;
 		    	$rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    	$rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
 		    	
-		    	// Записваме Курса от едната валута към другата
-		    	$expRate = $cRate / $dRate;
+		    	// Каква сума очакваме да е въведена
+		    	$expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode);
 		    	
-		    	// Изчисляваме въведената дебитна сума по курса
-		    	$debitAmount = $rec->debitQuantity;
-		    	
-		    	// Изчисляваме кредитната сума по курса към който я обменяме
-		    	$expDebitAmount = $rec->creditQuantity * $expRate;
-		    	
-		    	// Намираме разликата в проценти между реалната и очакваната
-		    	// дебитна сума. Ако разликата им е по-голяма от 5%
-		    	// слагаме Предупреждение в формата
-		    	$difference = abs($debitAmount - $expDebitAmount) / min($debitAmount, $expDebitAmount) * 100;
-		    	if(round($difference, 2) > 5) {
-		    		$form->setWarning('creditQuantity, debitQuantity',
-		    		   'Новата сума има разлика от 5 % спрямо очаквания курс. Сигурни ли сте че искате да продължите  !!!'
-		    		);
-		    	} 
+		    	// Проверяваме дали дебитната сума има голяма разлика
+		    	// спрямо очакваната, ако да сетваме предупреждение
+		    	if(!$mvc->compareAmounts($expAmount, $rec->debitQuantity)) {
+		    		$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    						   Сигурни ли сте че искате да запишете документа');
+		    	}
     		}
     	}
+    }
+    
+    
+    /**
+     *  Функция проверяваща колко '%' е отклонението от очакваната
+     *  сума и тази получена след превалутирането
+     *  @param double $givenAmount - Въведената сума
+     *  @param double $expAmount - Очакваната сума
+     *  @return boolean TRUE/FALSE - Имали голямо отклонение
+     */
+    function compareAmounts($givenAmount, $expAmount)
+    {
+    	$conf = core_Packs::getConfig('bank');
+    	$percent = $conf->BANK_EXCHANGE_DIFFERENCE;
+		    	
+		// Намираме разликата в проценти между реалната и очакваната
+		// дебитна сума. Ако разликата им е по-голяма от 5%
+		// връщаме FALSE
+		$difference = abs($givenAmount - $expAmount) / min($givenAmount, $expAmount) * 100;
+		if(round($difference, 2) > $percent) {
+		    
+			return FALSE;
+		} 
+		
+		return TRUE;
     }
     
     

@@ -922,7 +922,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (!isset($data->__MID__) && isset($options->rec->__mid)) {
-            $data->__MID__ = $options->__mid;
+            $data->__MID__ = $options->rec->__mid;
         }
     }
     

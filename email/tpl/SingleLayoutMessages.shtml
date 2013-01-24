@@ -21,7 +21,7 @@
 			<!--ET_BEGIN toBox-->          
 				<tr>
 				    <td  align='right'>|До|*:</td>
-				    <td>[#toBox#]</td>
+				    <td>[#toEml#]</td>
 				</tr>
 			<!--ET_END toBox-->
 			<!--ET_BEGIN from-->          

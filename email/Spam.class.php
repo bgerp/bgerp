@@ -58,7 +58,8 @@ class email_Spam extends core_Manager
     {
         if(self::detectSpam($mime, $accId, $uid)) {      
             $rec = new stdClass();
-            $rec->data = $mime->getData();
+            // Само първите 100К от писмото
+            $rec->data = substr($mime->getData(), 0, 100000);
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();

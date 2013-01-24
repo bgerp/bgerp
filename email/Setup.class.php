@@ -16,7 +16,7 @@ defIfNot('EMAIL_MAX_ALLOWED_MEMORY', '800M');
  * Шаблон за име на папките, където отиват писмата от дадена държава и неподлежащи на
  * по-адекватно сортиране
  */
-defIfNot('EMAIL_UNSORTABLE_COUNTRY', 'Unsorted - %s');
+defIfNot('EMAIL_UNSORTABLE_COUNTRY', 'Несортирани - %s');
 
 
 /**

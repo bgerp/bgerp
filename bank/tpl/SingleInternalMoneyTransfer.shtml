@@ -25,10 +25,12 @@
 					|Оборот|*: &nbsp; <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#currency#]</span> &nbsp;
 					<b><span style='color:darkgreen'>[#amount#]</span></b><br>
 					<!--ET_END amount-->
+					<div style='margin-top:7px'>
 					<!--ET_BEGIN equals-->
 					|Равностойност|*: &nbsp; <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#baseCurrency#]</span> &nbsp;
 					<b><span style='color:darkgreen'>[#equals#]</span></b><br>
 					<!--ET_END equals-->
+					</div>
 				</div>
 			</td>
 		</tr>

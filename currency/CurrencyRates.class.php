@@ -179,26 +179,69 @@ class currency_CurrencyRates extends core_Detail
     
     
     /**
-     *  Изчислява обменния курс от една валута в друга, за дадена дата
-     *  @param varchar(3) $from - Трибуквения код на валутата, която ще обменяме
-     *  @param varchar(3) $to - Трибуквения код на валутата, към която ще изчисляваме
-     *  @param date $date - датата към която ще изчисляваме курса, ако няма
-     *  дата, взима последната дата за която има запис и е най-близо.
-     *  @return double - Курса по който се обменя едната валута към другата
+     *  Функция обръщаща сума от една валута в друга към дадена дата
+     *  @param date $date - Дата, ако не е въведена взема текущата
+     *  @param string $from - Код на валутата от която ще обръщаме
+     *  @param string $to - Код на валутата към която ще обръщаме, ако
+     *  не е подадена, изпозлваме валутата която е основна за текущия
+     *  сч. период
+     *  @param double $amount - Сума която ще обърнем
+     *  @return double $amount - Конвертираната стойност на сумата
      */
-    static function getRateBetween($from, $to, $date = NULL)
+    static function convertAmount($amount, $date, $from, $to = NULL)
     {
-    	// Обръща,е датата в правилен формат, ако е NULL  взимаме текущата
+    	// Проверяваме входните данни
+    	expect(currency_Currencies::getIdByCode($from), 'Няма валута с такъв код');
+    	expect(currency_Currencies::getIdByCode($to), 'Няма валута с такъв код');
+    	expect(is_numeric($amount), 'Не е подадена валудна сума');
+    	
     	if(!$date) {
     		$date = dt::verbal2mysql();
     	}
     	
+    	// Намираме Курса между двете валути към дадената дата
+    	expect($rate = static::getRate($date, $from, $to), 'Нямаме информация за курса между валутите');
+    	
+    	// Намираме курса на първата към основната валута в модела
+    	// ако курса е 1 то валутата е основната в модела
+    	$fromRate = static::getBaseRate(currency_Currencies::getIdByCode($from), $date);
+    	
+    	// Ако валутата е основната в модела, обръщаме рейта
+    	if($fromRate != 1) {
+    		$rate = 1/$rate;
+    	}
+    	
+    	// Изчислява стойноста на сумата в новата валута
+    	$amount = round($amount * $rate, 2);
+    	
+    	return $amount;
+    }
+    
+    
+    /**
+     *  Изчислява обменния курс от една валута в друга, за дадена дата
+     *  @param date $date - датата към която ще изчисляваме курса, датата
+     *  трябва да е във валиден mysql-ски формат !!!
+     *  @param varchar(3) $from - Трибуквения код на валутата, която ще обменяме
+     *  @param varchar(3) $to - Трибуквения код на валутата, към която
+     *  ще изчисляваме, ако не е въведена използваме основната валута
+     *  за текущият счетоводен период
+     *  @return double - Курса по който се обменя едната валута към другата
+     */
+    static function getRate($date, $from, $to = NULL)
+    {
     	// Ако подадените валути са еднакви, то обменния им курс е 1
     	if($from == $to) return 1;
     	
-    	// Очакваме да има запис в мениджъра за подадените валути
+    	if(!$to) {
+    		$accPeriods = cls::get('acc_Periods');
+			$period = $accPeriods->fetchByDate($date);
+			$toId = $period->baseCurrencyId;
+    	} else {
+    		expect($toId = currency_Currencies::getIdByCode($to), 'Няма такава валута');
+    	}
+    	
     	expect($fromId = currency_Currencies::getIdByCode($from), 'Няма такава валута');
-    	expect($toId = currency_Currencies::getIdByCode($to), 'Няма такава валута');
     	
     	// Проверяваме дали има директен запис за обменния курс от едната
     	// валута към другата, ако има го връщаме
@@ -221,14 +264,15 @@ class currency_CurrencyRates extends core_Detail
     
     /**
      * Функция която изчислява обменния курс на валута към основната валута
-     * за даден период. Ако няма запис за посочения период връща последния
+     * за дадена дата, от  таблицата на модела 
+     * Ако няма запис за посочения период връща последния
      * запис който е най-близо до подадената дата, ако не е подадена дата
      * взима по подразбиране последната дата. последния запис най-близо до подадената дата
      * @param int $currencyId - Ид на валутата която ще обръщаме
      * @param date $date - Дата към която търсим обменния курс
      * @return double $rate - Обменния курс към основната валута за периода
      */
-    static function getBaseRate($currencyId, $date = NULL)
+    private static function getBaseRate($currencyId, $date = NULL)
     {
     	if(!$date) {
     		$date = dt::verbal2mysql();
@@ -249,7 +293,7 @@ class currency_CurrencyRates extends core_Detail
 	    $query->where("#date <= '{$date}'");
 	    $query->orderBy("#date", "DESC");
 	    $query->where("#currencyId = '{$currencyId}'");
-	    
+	   
 	    // Очакваме да има запис на валутата( в случай че не е базовата валута)
 	    expect($rec = $query->fetch(), "Нямаме запис за тази валута");
     	$rate = $rec->rate;
