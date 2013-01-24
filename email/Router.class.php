@@ -528,7 +528,7 @@ class email_Router extends core_Manager
     protected static function getCountryName($countryId)
     {
         if ($countryId) {
-            $countryName = drdata_Countries::fetchField($countryId, 'commonName');
+            $countryName = drdata_Countries::fetchField($countryId, 'commonNameBg');
         }
         
         return $countryName;

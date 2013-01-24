@@ -217,11 +217,7 @@ class email_Incomings extends core_Master
         $statusSum = array();
  
         // Връзка по IMAP към сървъра на посочената сметка
-        if($accRec->email == 'team@ep-bags.com') {
-            $imapConn = cls::get('email_ImapEP', array('accRec' => $accRec)); 
-        } else {
-            $imapConn = cls::get('email_Imap', array('accRec' => $accRec)); 
-        }
+        $imapConn = cls::get('email_Imap', array('accRec' => $accRec)); 
 
         // Логването и генериране на съобщение при грешка е винаги в контролерната част
         if ($imapConn->connect() === FALSE) {
