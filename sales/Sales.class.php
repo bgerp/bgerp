@@ -317,7 +317,11 @@ class sales_Sales extends core_Master
         
         $form->setDefault('makeInvoice', 'yes');
         
-        expect($folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
+        if (empty($form->rec->id)) {
+            expect($folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
+        } else {
+            $folderId = $form->rec->folderId;
+        }
         
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($folderId));
