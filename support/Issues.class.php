@@ -102,7 +102,8 @@ class support_Issues extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, doc_SharablePlg, doc_AssignPlg';
+    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
+    				doc_SharablePlg, doc_AssignPlg, plg_Sorting';
 
     
     /**
@@ -133,7 +134,7 @@ class support_Issues extends core_Master
     /**
      * 
      */
-    var $listFields = 'id, title, componentId, typeId';
+    var $listFields = 'id, title, systemIdShow, componentId, typeId';
     
     
     /**
@@ -158,8 +159,22 @@ class support_Issues extends core_Master
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%, mandatory");
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
+        
+        $this->FNC('systemIdShow', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory, input=none');
     }
     
+    
+    /**
+     * 
+     */
+    function on_CalcSystemIdShow($mvc, $rec)
+    {
+        // systemId на съответния компонент
+        $systemId = support_Components::fetchField($rec->componentId, 'systemId');
+        
+        $rec->systemIdShow = $systemId;
+    }
+
     
 	/**
      * Реализация  на интерфейсния метод ::getThreadState()
