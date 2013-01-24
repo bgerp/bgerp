@@ -281,8 +281,14 @@ class email_Incomings extends core_Master
         // Генерираме и записваме лог съобщение
         $msg = "{$accRec->email}: ($duration) s; Total: {$numMsg}";
         foreach($statusSum as $status => $cnt) {
+            if($status == 'incoming') {
+                $status = 'new';
+            }
+            $status{0} = strtoupper($status{0});
             $msg .= ", {$status}:{$cnt}";
         }
+
+        echo "<h3> $msg </h3>";
 
         $this->log($msg);
     }
