@@ -127,18 +127,36 @@ class acc_journal_Entry
         if ($this->debit->account->isDimensional()) {
             expect(isset($this->debit->price), 'Липсва цена при дебитиране на сметка с размерна аналитичност');
             expect(isset($this->debit->quantity), 'Липсва количество при дебитиране на сметка с размерна аналитичност');
-        } 
+        }
         
-        // Проверка дали сумата по дебита е същата като сумата по кредита
-        expect(!isset($this->debit->amount) || 
-               !isset($this->credit->amount) ||
-               ($this->debit->amount == $this->credit->amount && 
-                   $this->debit->amount == $this->amount()),
-                   "Дебит-стойността на транзакцията не съвпада с кредит-стойността");
+        $this->checkAmounts();
+        
+//         // Проверка дали сумата по дебита е същата като сумата по кредита
+//         expect(!isset($this->debit->amount) || 
+//                !isset($this->credit->amount) ||
+//                ($this->debit->amount == $this->credit->amount && 
+//                    $this->debit->amount == $this->amount()),
+//                    "Дебит-стойността на транзакцията не съвпада с кредит-стойността");
        
         return TRUE;
     }
 
+    
+    protected function checkAmounts()
+    {
+        $PRECISION = 0.001;
+        
+        if (isset($this->debit->amount) && isset($this->credit->amount)) {
+            expect(
+                abs($this->debit->amount - $this->credit->amount) < $PRECISION 
+                &&
+                abs($this->debit->amount - $this->amount()) < $PRECISION,
+                "Дебит-стойността на транзакцията не съвпада с кредит-стойността"
+            );
+        }
+        
+        return TRUE;
+    }
     
     /**
      * Връща сумата на реда от транзакция или NULL, ако е неопределена

@@ -221,7 +221,7 @@ class bank_IncomeDocument extends core_Master
 	   	 	// Ако няма валутен курс, взимаме този от системата
     		if(!$rec->rate && !$form->gotErrors()) {
 	    		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-	    		$rec->rate = currency_CurrencyRates::getRate($currencyCode, $rec->valior);
+	    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode);
 	    	}
     	}
     }
@@ -240,8 +240,7 @@ class bank_IncomeDocument extends core_Master
     		
     		if($rec->rate != '1') {
     			
-	    		$accPeriods = cls::get('acc_Periods');
-			    $period = $accPeriods->fetchByDate($rec->valior);
+	    		$period = acc_Periods::fetchByDate($rec->valior);
 			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
     		    $double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;

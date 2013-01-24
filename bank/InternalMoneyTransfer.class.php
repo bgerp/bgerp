@@ -69,7 +69,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Vtp";
+    var $abbr = "Vpt";
     
     
     /**
@@ -122,13 +122,13 @@ class bank_InternalMoneyTransfer extends core_Master
     	$this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 1');
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 3');
-        $this->FLD('creditQuantity', 'double(minDecimals=2)', 'width=6em,caption=От->Сума');
+        $this->FLD('creditQuantity', 'float', 'width=6em,caption=От->Сума');
         $this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
         $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 1');
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 3');
-        $this->FLD('debitQuantity', 'double(minDecimals=2)', 'width=6em,caption=Към->Сума');
-        $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=none');
+        $this->FLD('debitQuantity', 'float', 'width=6em,caption=Към->Сума');
+        $this->FLD('rate', 'float', 'caption=Валута->Курс,width=6em,input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -474,8 +474,8 @@ class bank_InternalMoneyTransfer extends core_Master
 	    		$double->params['decimals'] = 2;
 	    		$row->equals = $double->toVerbal($rec->amount * $rec->rate);
     		
-	    		$accPeriods = cls::get('acc_Periods');
-			    $period = $accPeriods->fetchByDate($rec->valior);
+	    		
+			    $period = acc_Periods::fetchByDate($rec->valior);
 			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
     		}
     		
@@ -607,6 +607,7 @@ class bank_InternalMoneyTransfer extends core_Master
     {
         if (empty($folderClass)) {
             $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        
         }
     	
         // Може да създаваме документ-а само в дефолт папката му
