@@ -120,15 +120,15 @@ class bank_ExchangeDocument extends core_Master
     	$this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 1');
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 3');
-        $this->FLD('creditQuantity', 'double(minDecimals=2)', 'width=6em,caption=От->Сума');
-        $this->FLD('creditPrice', 'double(minDecimals=4)', 'input=none');
+        $this->FLD('creditQuantity', 'float', 'width=6em,caption=От->Сума');
+        $this->FLD('creditPrice', 'float', 'input=none');
         $this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
         $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 1');
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 3');
-        $this->FLD('debitQuantity', 'double(minDecimals=2)', 'width=6em,caption=Към->Сума');
-        $this->FLD('debitPrice', 'double(minDecimals=4)', 'input=none');
-       	$this->FLD('rate', 'double(decimals=4)', 'input=none');
+        $this->FLD('debitQuantity', 'float', 'width=6em,caption=Към->Сума');
+        $this->FLD('debitPrice', 'float', 'input=none');
+       	$this->FLD('rate', 'float', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -283,24 +283,24 @@ class bank_ExchangeDocument extends core_Master
     		} else {
     			$creditCurrency = static::getCurrency('credit', $rec);
 		    	$debitCurrency = static::getCurrency('debit', $rec);
-    			$cCode = currency_Currencies::getCodeById($creditCurrency);
-		    	$dCode = currency_Currencies::getCodeById($debitCurrency);
-		    	if($cCode == $dCode) {
+    			if($creditCurrency == $debitCurrency) {
 		    		$form->setWarning('creditEnt1, debitEnt1', 'Валутите са едни и същи, няма смяна на валута !!!');
 		    	}
 		    	
 		    	// Изчисляваме курса на превалутирането спрямо входните данни
+		    	$cCode = currency_Currencies::getCodeById($creditCurrency);
+		    	$dCode = currency_Currencies::getCodeById($debitCurrency);
 		    	$cRate = currency_CurrencyRates::getRate($rec->valior, $cCode);
 		    	$rec->creditPrice = $cRate;
 		    	$rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    	$rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
 		    	
 		    	// Каква сума очакваме да е въведена
-		    	$expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode);
+		    	$expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode, $dCode);
 		    	
 		    	// Проверяваме дали дебитната сума има голяма разлика
 		    	// спрямо очакваната, ако да сетваме предупреждение
-		    	if(!$mvc->compareAmounts($expAmount, $rec->debitQuantity)) {
+		    	if(!$mvc->compareAmounts($rec->debitQuantity, $expAmount)) {
 		    		$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
 		    						   Сигурни ли сте че искате да запишете документа');
 		    	}
@@ -388,10 +388,10 @@ class bank_ExchangeDocument extends core_Master
 	    	$double->params['decimals'] = 2;
 	    	$row->creditQuantity = $double->toVerbal($rec->creditQuantity);
 	    	$row->debitQuantity = $double->toVerbal($rec->debitQuantity);
-	    		
+	    	$row->rate = (float)$rec->rate;
+	    	
 	    	$row->equals = $double->toVerbal($rec->creditQuantity * $rec->creditPrice);
-    		$accPeriods = cls::get('acc_Periods');
-			$period = $accPeriods->fetchByDate($rec->valior);
+    		$period = acc_Periods::fetchByDate($rec->valior);
 			$row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
     		
 			$dCurrency = static::getCurrency('debit', $rec);
@@ -429,7 +429,7 @@ class bank_ExchangeDocument extends core_Master
         
       	foreach(array('debit', 'credit') as $type) {
       		${"{$type}Quantity"} = $rec->{"{$type}Quantity"};
-      		${"{$type}Price"} = NULL;
+      		${"{$type}Price"} = $rec->{"{$type}Price"};
 	      	foreach (range(1, 3) as $n) {
 					if(!$rec->{"{$type}Ent{$n}"}) {
 						
@@ -457,17 +457,18 @@ class bank_ExchangeDocument extends core_Master
                 'debitItem1' => $debitItem1,
                 'debitItem2' => $debitItem2,
                 'debitItem3' => $debitItem3,
-                'debitQuantity' => $rec->debitQuantity,
-                'debitPrice' => $rec->debitPrice,
+                'debitQuantity' => $debitQuantity,
+                'debitPrice' => $debitPrice,
                 'creditAcc' => $rec->creditAccId,
                 'creditItem1' => $creditItem1,
                 'creditItem2' => $creditItem2,
                 'creditItem3' => $creditItem3,
-                'creditQuantity' => $rec->creditQuantity,
-                'creditPrice' => $rec->creditPrice,
+                'creditQuantity' => $creditQuantity,
+                'creditPrice' => $creditPrice,
             ))
         );
-       //bp($result);
+        //bp($rec->creditQuantity,$rec->creditPrice, $rec->debitQuantity,$rec->debitPrice);
+      // bp($result);
         return $result;
     }
     
@@ -514,7 +515,7 @@ class bank_ExchangeDocument extends core_Master
     {
         if (empty($folderClass)) {
             $folderClass = doc_Folders::fetchCoverClassName($folderId);
-        }
+       }
     
         // Може да създаваме документ-а само в дефолт папката му
         if($folderId == static::getDefaultFolder()) {
