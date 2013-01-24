@@ -348,7 +348,6 @@ class email_Incomings extends core_Master
                 $status = 'incoming';
             }
                 
-
             // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
             if(in_array($status, array('returned', 'receipt', 'spam', 'incoming', 'misformatted'))) {
                 // Записваме статуса на сваленото писмо (service, misformatted, normal);
@@ -544,187 +543,23 @@ class email_Incomings extends core_Master
 
             $isDown[$accId][$msgNum] = email_Fingerprints::isDown($headers);
         }
+        
         $this->log("Result: $msgNum  " . $isDown[$accId][$msgNum]);
 
         return $isDown[$accId][$msgNum];
     }
 
 
-    
-    /**
-     * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
-     *
-     * Вдига флага $rec->isServiceMail в случай, че $rec съдържа служебно писмо.Обработката на
-     * служебни писма включва запис в log_Documents.
-     *
-     * @param stdClass $rec запис на модел email_Incomings
-     * @return boolean TRUE ако писмото е служебно
-     */
-    static function processServiceMail($toEml, $date, $fromIp)
-    {
-        $isServiceMail = FALSE;
-        
-        if ($mid = static::isReturnedMail($toEml)) {
-            // Върнато писмо
-            $isServiceMail = log_Documents::returned($mid, $date);
-        } elseif ($mid = static::isReceipt($toEml)) {
-            // Разписка
-            $isServiceMail = log_Documents::received($mid, $date, $fromIp);
-        } else {
-            // Не служебна поща
-        }
-        
-        return $isServiceMail;
-    }
-    
-    
-    /**
-     * Проверява дали писмо е върнато.
-     *
-     * @param string имейл адрес
-     * @return string MID на писмото, ако наистина е върнато; FALSE в противен случай.
-     */
-    static function isReturnedMail($toEml)
-    {
-        if (!preg_match('/^.+\+returned=([a-z]+)@/i', $toEml, $matches)) {
-            return FALSE;
-        }
-        
-        return $matches[1];
-    }
-    
-    
-    /**
-     * Проверява дали съобщението е разписка за получено писмо
-     *
-     * @param string имейл адрес
-     * @return string MID на писмото, ако наистина е разписка; FALSE в противен случай.
-     */
-    static function isReceipt($toEml)
-    {
-        if (!preg_match('/^.+\+received=([a-z]+)@/i', $toEml, $matches)) {
-            return FALSE;
-        }
-        
-        return $matches[1];
-    }
-
-
-    /**
-     * Извлича едно писмо от пощенския сървър.
-     *
-     * Следи и пропуска (не извлича) вече извлечените писма.
-     *
-     * @param int $msgNum пореден номер на писмото за извличане
-     * @param email_Imap $conn обект-връзка с пощенския сървър
-     * @param email_Mime $mimeParser инстанция на парсер на MIME съобщения
-     * @return stdClass запис на модел email_Incomings
-     */
-    function fetchSingleMessage($msgNum, $conn)
-    {
-        // Debug::log("Започва обработката на е-имейл MSG_NUM = $msgNum");
-        
-        $headers = $conn->getHeaders($msgNum);
-        
-        // Ако няма хедъри, значи има грешка
-        if(!$headers) {
-            $rec = new stdClass();
-            $rec->error = 'Missed headers';
-            $rec->hash  = 'none';
-            
-            return $rec;;
-        }
-        
-        
-        if ( !$this->isDownloaded($msgNum, $conn) ) {
-            
-            // Писмото не е било извличано до сега. Извличаме го.
-            // Debug::log("Сваляне на имейл MSG_NUM = $msgNum");
-            $rawEmail = $conn->getEml($msgNum);
-                
-            if(empty($rawEmail)) {
-                $rec = new stdClass();
-                $rec->error = 'Липсва сорса на имейла';
-                        
-                return;
-            }
-            
-            // Тук парсираме писмото и проверяваме дали не е системно
-            $mime = new email_Mime();
-
-            // Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
-            try {
-
-                $rec = $mime->getEmail($rawEmail);
-
-            } catch (Exception $exc) {
-                    
-                // Не можем да парсираме е-мейла
-                if(Request::get('forced')) {
-                    $exc->getAsHtml();
-                }
-
-                email_Unparsable::add($rawEmail);
-                    
-                $rec = new stdClass();
-                $rec->error = 'Не може да се парсира имейла';
-                        
-                return;
-            }
-            
-            // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
-            $toEml = $mime->getHeader('X-Original-To', '*');
-            
-            if(!preg_match('/^.+\+([a-z]+)=([a-z]+)@/i', $toEml)) {
-                $toEml = $mime->getHeader('Delivered-To', '*');
-            }
-            
-            if(!preg_match('/^.+\+([a-z]+)=([a-z]+)@/i', $toEml)) {
-                $toEml = $mime->getToEmail();
-            }
-            
-            // Намираме датата на писмото
-            $date = $mime->getDate();
-            
-            // Опитваме се да намерим IP-то на изпращача
-            $fromIp = $mime->getSenderIp();
-            
-            // Ако е-мейла е сервизен, връщаме празен запис;
-            if(!static::processServiceMail($toEml, $date, $fromIp)) {
-                
-                // Ако не е получен запис, значи има грешка
-                if(!$rec) {
-                    $rec = new stdClass();
-                    $rec->error = 'Error in parsing';
-                } else {
-                    // Само за дебъг. Todo - да се махне
-                    $rec->boxIndex = $msgNum;
-
-                    // Все пак да вземем хеша на хедърите от истинското писмо, вместо от $conn->getHeaders($msgNum)
-                    $hash = $mimeParser->getHash();
-    
-                    // Проверка дали междувременно друг процес не е свалил и записал писмото
-                    $rec->isDublicate = $this->fetchField("#hash = '{$hash}'", 'id');
-                }
-            } else {
-                $rec = new stdClass();
-                $rec->isService =  TRUE;
-            }
-        } else {
-            $rec->isDublicate = TRUE;
-        }
-        
-                
-        return $rec;
-    }
-    
-    
     /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
     static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
     {
         $rec->textPart = trim($rec->textPart);
+
+        if(empty($rec->toEml)) {
+            $rec->toEml = $rec->toBox;
+        }
     }
     
     
@@ -987,86 +822,17 @@ class email_Incomings extends core_Master
         
         expect($rec->folderId);
     }
-    
-    
 
-    
-    
-    /**
-     * @todo Чака за документация...---------------------------------------------------------------------------------
-     */
-    static function routeByFromTo($rec)
+
+    static function isCommonToBox($rec)
     {
-        if (!static::isGenericRecipient($rec)) {
-            // Това правило не се прилага за "общи" имейли
-            $rec->folderId = static::routeByRule($rec, email_Router::RuleFromTo);
-        }
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function routeByFrom($rec)
-    {
-        if (static::isGenericRecipient($rec)) {
-            // Това правило се прилага само за "общи" имейли
-            $rec->folderId = static::routeByRule($rec, email_Router::RuleFrom);
-        }
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function routeSpam($rec)
-    {
-        if (static::isSpam($rec)) {
-            $rec->isSpam = TRUE;
-        }
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function routeByDomain($rec)
-    {
-        if (static::isGenericRecipient($rec) && !$rec->isSpam) {
-            $rec->folderId = static::routeByRule($rec, email_Router::RuleDomain);
-        }
-    }
-    
-    
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function routeByTo($rec)
-    {
-        $rec->folderId = email_Inboxes::forceFolder($rec->toBox);
+        $accRec = email_Accounts::fetch($rec->accId);
         
-        expect($rec->folderId);
+        $isCommon = ($accRec->email == $rec->toBox && $accRec->type != 'single');
+
+        return $isCommon;
     }
     
-    
-    /**
-     * Потребителско рутиране
-     */
-    static function routeByRule($rec, $type)
-    {
-        return email_Router::route($rec->fromEml, $rec->toBox, $type);
-    }
-    
-     
-    /**
-     * @todo Чака за документация...
-     */
-    static function isGenericRecipient($rec)
-    {
-        return empty($rec->toBox) || email_Inboxes::isGeneric($rec->toBox);
-    }
     
     
     /**
@@ -1195,7 +961,7 @@ class email_Incomings extends core_Master
      */
     static function makeFromToRule($rec)
     {
-        if (!static::isGenericRecipient($rec)) {
+        if (!static::isCommonToBox($rec)) {
             $key = email_Router::getRoutingKey($rec->fromEml, $rec->toBox, email_Router::RuleFromTo);
             
             // Най-висок приоритет, нарастващ с времето
@@ -1245,7 +1011,7 @@ class email_Incomings extends core_Master
      */
     static function makeDomainRule($rec)
     {
-        if (static::isGenericRecipient($rec) && ($key = email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleDomain))) {
+        if (static::isCommonToBox($rec) && ($key = email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleDomain))) {
             
             // До тук: получателя е общ и домейна не е публичен (иначе нямаше да има ключ).
             
