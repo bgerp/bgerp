@@ -127,7 +127,7 @@ class doc_UnsortedFolders extends core_Master
     function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако е субмитната формата
-        if ($data->form->isSubmitted()) {
+        if ($data->form && $data->form->isSubmitted()) {
             
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
