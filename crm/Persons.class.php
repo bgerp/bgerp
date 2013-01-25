@@ -434,7 +434,7 @@ class crm_Persons extends core_Master
             }
         }
 
-        $country = tr($mvc->getVerbal($rec, 'country'));
+        $row->country = $mvc->getVerbal($rec, 'country');
         $pCode = $mvc->getVerbal($rec, 'pCode');
         $place = $mvc->getVerbal($rec, 'place');
         $address = $mvc->getVerbal($rec, 'address');
@@ -443,7 +443,7 @@ class crm_Persons extends core_Master
         if($fields['-list']) {
             $row->nameList = $row->name;
 
-            $row->addressBox = $country;
+            $row->addressBox = $row->country;
             $row->addressBox .= ($pCode || $place) ? "<br>" : "";
 
             $row->addressBox .= $pCode ? "{$pCode} " : "";
@@ -470,7 +470,7 @@ class crm_Persons extends core_Master
 
         $row->title = $row->name;
 
-        $row->title .= ($row->country ? ", " : "") . $country;
+        $row->title .= ($row->country ? ", " : "") . $row->country;
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
