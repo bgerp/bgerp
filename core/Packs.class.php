@@ -250,8 +250,7 @@ class core_Packs extends core_Manager
         $form->toolbar = cls::get('core_Toolbar');
         $form->setHidden(array('Act' => 'install'));
         $form->toolbar->addSbBtn('Инсталирай', 'default', 'class=btn-install');
-        defIfNot('BGERP_SETUP_KEY', " ");
-        $form->toolbar->addBtn('Обновяване на системата', array("SetupKey" => BGERP_SETUP_KEY, "step"=>2, "bgerp"=>1), 'class=btn-install');
+        $form->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'class=btn-install');
         
         return $form->renderHtml();
     }
@@ -544,6 +543,18 @@ class core_Packs extends core_Manager
        return $res;
     }
 
+    
+    /**
+     * Стартира обновяване на системата
+     */
+    function act_systemUpdate()
+	{
+        requireRole('admin');
+
+		$SetupKey = md5(BGERP_SETUP_KEY . round(time()/10));
+		
+		return new Redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
+	}    
 
 
     /****************************************************************************************

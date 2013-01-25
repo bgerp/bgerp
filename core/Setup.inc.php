@@ -235,23 +235,35 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 // Определяме масива с локалните IP-та
 $localIpArr = array('::1', '127.0.0.1');
 
-if (defined('BGERP_SETUP_KEY')) {
-	if($_GET['SetupKey'] != BGERP_SETUP_KEY) {
-	    halt('Wrong Setup Key!');
-	}
-	$localIpArr += array($_SERVER['REMOTE_ADDR']);
+$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
+
+if (!defined('BGERP_SETUP_KEY')) {
+	halt('Not defined BGERP_SETUP_KEY!');
 }
 
 session_name('SID');
 session_start();
-if($ip = $_SESSION[EF_APP_NAME . 'admin_ip']) {
-    $localIpArr += array($ip);
+
+if (($_GET['SetupKey'] == BGERP_SETUP_KEY && $isLocal ) ||
+	$_GET['SetupKey'] == md5(BGERP_SETUP_KEY . round(time()/10)) ||
+	$_GET['SetupKey'] == md5(BGERP_SETUP_KEY . round((time()-1)/10))) {
+
+	$_SESSION[EF_APP_NAME . 'admin_ip'] = $_SERVER['REMOTE_ADDR'];
+	
+}
+	
+$authorizedIpArr = array();
+
+if(!empty($_SESSION[EF_APP_NAME . 'admin_ip'])) {
+    $authorizedIpArr += array($_SESSION[EF_APP_NAME . 'admin_ip']);
 }
 
-// Оторизация. Засега само проверява дали е от локалния хост
-$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
+// Оторизация.
+$isAuthorized = in_array($_SERVER['REMOTE_ADDR'], $authorizedIpArr);
+//echo ("<pre>"); print_r($_SESSION); die;
+//echo ("<pre>"); print_r($authorizedIpArr); die;
 
-if(!$isLocal) {
+if(!$isAuthorized) {
     halt("Non-authorized IP for Setup (" . $_SERVER['REMOTE_ADDR'] . ")");
 }
 
@@ -445,7 +457,6 @@ if($step == 3) {
         }
     }
     
-
     // Проверка за връзка с MySQL сървъра
     $log[] = 'h:Проверка на сървъра на базата данни:';
     if (defined('EF_DB_USER') && defined('EF_DB_HOST') && defined('EF_DB_PASS')) {
@@ -541,9 +552,9 @@ if ($step == 'setup') {
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
-
+// echo ("{$selfUrl}&step=start"); die;
     $res = file_get_contents("{$selfUrl}&step=start", FALSE, NULL, 0, 2);
-    
+//    echo ("$res"); die;
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
