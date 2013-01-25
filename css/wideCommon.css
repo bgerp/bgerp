@@ -784,7 +784,7 @@ tr.zebra1 { /*common*/
     background-color:#fff;
 }
 
-/* core_Cron */ /*useless*/
+/* core_Cron */ 
 .core_Cron  .listTable td p { /*diff*/
 	margin:5px; 
 	font-family:monospace;
