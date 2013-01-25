@@ -279,15 +279,34 @@ class email_Incomings extends core_Master
         $duration = time() - $startTime;
         
         // Генерираме и записваме лог съобщение
-        $msg = "{$accRec->email}: ($duration) s; Total: {$numMsg}";
-        foreach($statusSum as $status => $cnt) {
-            if($status == 'incoming') {
-                $status = 'new';
+        $msg = "{$accRec->email}: ($duration s); Total: {$numMsg}";
+        
+        // Обхождаме всички статуси
+        foreach((array)$statusSum as $status => $cnt) {
+            
+            // В зависимост от типа на статуса
+            switch ($status) {
+                case 'incoming':
+                    $newStatusArr['new'] = $cnt;
+                break;
+                
+                default:
+                    $newStatusArr[$status] = $cnt;
+                break;
             }
-            $status{0} = strtoupper($status{0});
-            $msg .= ", {$status}:{$cnt}";
         }
-
+        
+        // Обхождаме новия масив
+        foreach ((array)$newStatusArr as $statusKey => $statusCnt) {
+            
+            // Първата буква да главна
+            $statusKey = ucfirst(strtolower($statusKey));
+            
+            // Добавяме към съотбщението
+            $msg .= ", {$statusKey}: {$statusCnt}";
+        }
+        
+        // Показваме стринга
         echo "<h3> $msg </h3>";
 
         $this->log($msg);
