@@ -134,6 +134,12 @@ class sales_Sales extends core_Master
     
     
     /**
+     * 
+     */
+   var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoiceSale.shtml';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -225,6 +231,10 @@ class sales_Sales extends core_Master
     {
     }
     
+    function on_beforeRenderSingle($mvc, $res, $data)
+    {
+      //bp($data);
+    }
     
     /**
      * Преди извличане на записите от БД

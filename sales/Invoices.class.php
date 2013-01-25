@@ -118,6 +118,13 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * 
+     * Икона за фактура
+     */
+    var $singleIcon = 'img/16/invoice.png';
+    
+    
+    /**
      * SystemId на номенклатура "Клиенти"
      * 
      * @var string
