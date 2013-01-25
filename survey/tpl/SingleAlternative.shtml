@@ -1,0 +1,11 @@
+<!--ET_BEGIN ROW-->
+<table border ='0' class='question-head'>
+	<tr>
+		<td>[#image#]</td>
+		<td style='padding-top:7px'><b>[#label#] </b></td>
+	</tr>
+</table>
+<ul class='answers'>
+[#answers#]
+</ul>
+<!--ET_END ROW-->

@@ -1,0 +1,15 @@
+#survey-header {
+	
+}
+
+.answers {
+	list-style:none;
+	margin-top:10px;
+	margin-left:40px;
+	padding-left:0px;
+}
+
+.question-head {
+	margin-left:40px;
+	margin-top:15px;
+}
