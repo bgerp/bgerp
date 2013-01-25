@@ -1228,7 +1228,7 @@ class email_Incomings extends core_Master
                 'class=btn-eml, order=21');    
                 
                 // Добавяме бутон за препращане на имейла
-                $data->toolbar->addBtn('Препаращне', array(
+                $data->toolbar->addBtn('Препращане', array(
                         'email_Outgoings',
                         'forward',
                         $data->rec->id,
