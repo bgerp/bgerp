@@ -467,10 +467,8 @@ class crm_Persons extends core_Master
             $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
             $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
         }
-
-        $row->title = $row->name;
-
-        $row->title .= ($row->country ? ", " : "") . $row->country;
+        
+        $row->title =  $mvc->getTitleById($rec->id);
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
@@ -500,7 +498,48 @@ class crm_Persons extends core_Master
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$row->buzCompanyId}</div>";
         }
     }
-
+	
+	
+	/**
+     * Връща заглавието на папката
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        // Конфигурационните данните
+    	$conf = core_Packs::getConfig('crm');
+    	
+    	// Заглавието
+        $title = $rec->name;
+        
+        // Ако е зададена държава
+        if ($rec->country) {
+            
+            // Името на дръжавата
+            $commonName = mb_strtolower(drdata_Countries::fetchField($rec->country, 'commonName'));    
+            $country = self::getVerbal($rec, 'country');
+        }
+        
+        // Ако е зададен града и държавата не е същата
+        if($rec->place && ($commonName == mb_strtolower($conf->BGERP_OWN_COMPANY_COUNTRY))) {
+            
+            // Добавяме града
+            $title .= ' - ' . $rec->place;
+        } elseif ($country) {
+            
+            // Или ако има държава
+            $title .= ' - ' . $country;
+        }
+        
+        // Ако е зададено да се ескейпва
+        if($escaped) {
+            
+            // Ескейпваваме заглавието
+            $title = type_Varchar::escape($title);
+        }
+        
+        return $title;
+    }
+    
 
     /**
      * Извиква се преди вкарване на запис в таблицата на модела

@@ -783,23 +783,35 @@ class crm_Companies extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
+        // Конфигурационните данните
     	$conf = core_Packs::getConfig('crm');
     	
+    	// Заглавието
         $title = $rec->name;
         
-        if($rec->country) {
+        // Ако е зададена държава
+        if ($rec->country) {
+            
+            // Името на дръжавата
+            $commonName = mb_strtolower(drdata_Countries::fetchField($rec->country, 'commonName'));    
             $country = self::getVerbal($rec, 'country');
-        } else {
-            $country = '';
         }
         
-        if($rec->place && ($country == $conf->BGERP_OWN_COMPANY_COUNTRY)) {
+        // Ако е зададен града и държавата не е същата
+        if($rec->place && ($commonName == mb_strtolower($conf->BGERP_OWN_COMPANY_COUNTRY))) {
+            
+            // Добавяме града
             $title .= ' - ' . $rec->place;
-        } else {
+        } elseif ($country) {
+            
+            // Или ако има държава
             $title .= ' - ' . $country;
         }
         
+        // Ако е зададено да се ескейпва
         if($escaped) {
+            
+            // Ескейпваваме заглавието
             $title = type_Varchar::escape($title);
         }
         
