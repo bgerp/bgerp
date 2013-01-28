@@ -111,11 +111,7 @@ class acc_journal_Entry
             expect($this->credit->account->isDimensional(), 'Сметките със стратегия трябва да са с размерна аналитичност');
             expect(!isset($this->credit->price), 'Зададена цена при кредитиране на сметка със стратегия');
         } else {
-            if (empty($this->credit->price)) {
-                var_dump($this->credit->price);
-                exit;
-            }
-            expect(!empty($this->credit->price), 'Липсва цена при кредитиране на сметка без стратегия');
+            expect(!empty($this->credit->price), 'Липсва цена при кредитиране на сметка без стратегия', (array)$this);
         }
         
         // Количеството по кредита е задължително за сметки с размерна аналитичност
