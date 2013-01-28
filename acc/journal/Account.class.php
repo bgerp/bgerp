@@ -65,7 +65,7 @@ class acc_journal_Account
             + intval(isset($this->rec->groupId3));
 
         // колкото са пера - толкова аналитичности на сметката 
-        expect($countAnalit == count($items), "Броя на аналитичностите на сметката не съвпада с броя на перата");
+        expect($countAnalit == count($items), "Броя на аналитичностите на сметката не съвпада с броя на перата", (array)$this);
         
         /* @var $item acc_journal_Entry */
         foreach (array_values($items) as $N=>$item) {
@@ -74,7 +74,7 @@ class acc_journal_Account
             
             // Съпоставка на интерфейсите
             $listInterfaceId = acc_Lists::fetchField($listId, 'regInterfaceId');
-            expect($item->implementsInterface($listInterfaceId), "Перото не поддържа нужния интерфейс");
+            expect(empty($listInterfaceId) || $item->implementsInterface($listInterfaceId), "Перото {$nn} не поддържа нужния интерфейс", (array)$this, (array)$item, $listInterfaceId);
         } 
         
         return TRUE;
