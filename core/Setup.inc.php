@@ -251,7 +251,7 @@ if (($_GET['SetupKey'] == BGERP_SETUP_KEY && $isLocal ) ||
 	$_SESSION[EF_APP_NAME . 'admin_ip'] = $_SERVER['REMOTE_ADDR'];
 	
 }
-	
+
 $authorizedIpArr = array();
 
 if(!empty($_SESSION[EF_APP_NAME . 'admin_ip'])) {
@@ -260,8 +260,12 @@ if(!empty($_SESSION[EF_APP_NAME . 'admin_ip'])) {
 
 // Оторизация.
 $isAuthorized = in_array($_SERVER['REMOTE_ADDR'], $authorizedIpArr);
-//echo ("<pre>"); print_r($_SESSION); die;
+//
 //echo ("<pre>"); print_r($authorizedIpArr); die;
+// if ($_GET['step'] == 'start') {
+// 	echo ($_SESSION[EF_APP_NAME . 'admin_ip']); die;
+// 	echo ("<pre>"); print_r($_SESSION); die;
+// }
 
 if(!$isAuthorized) {
     halt("Non-authorized IP for Setup (" . $_SERVER['REMOTE_ADDR'] . ")");
@@ -271,7 +275,7 @@ if(!$isAuthorized) {
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $bgerp = $_GET['bgerp'] ? TRUE : FALSE;
 $texts['currentStep'] = $step;
-
+// file_put_contents("log.txt", "step = {$step}, IP: {$_SESSION[EF_APP_NAME . 'admin_ip']} \n");
 // Собственото URL
 $selfUrl = "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
 list($selfUrl,) = explode('&', $selfUrl);
@@ -429,7 +433,7 @@ if($step == 3) {
     $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
                                 'exif', 'filter', 'ftp', 'gd', 'iconv', 'json',
                                 'mbstring', 'mysql', 'pcre', 'session', 'SimpleXML',
-                                'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap');
+                                'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap', 'curl');
     
     $activePhpModules = get_loaded_extensions();
     
@@ -552,8 +556,21 @@ if ($step == 'setup') {
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
-// echo ("{$selfUrl}&step=start"); die;
-    $res = file_get_contents("{$selfUrl}&step=start", FALSE, NULL, 0, 2);
+
+    // Изпозползваме cUrl  за да изпратим и данните за сесията
+//    $ch = curl_init();    
+//     curl_setopt($ch, CURLOPT_URL, "{$selfUrl}&step=start");
+//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+//     curl_setopt($ch, CURLOPT_HEADER, 1);
+//     $sess = session_name() . '=' . session_id(); //echo ($sess); die;
+//     curl_setopt($ch, CURLOPT_COOKIE, $sess);
+//     if( ($res = curl_exec($ch)) === false) {
+//     	echo 'Curl error: ' . curl_error($ch);
+//     }
+//     echo ("$res"); die;
+//     $res = curl_exec($ch);
+//     curl_close($ch);
+    $res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . md5(BGERP_SETUP_KEY . round(time()/10)), FALSE, NULL, 0, 2);
 //    echo ("$res"); die;
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
@@ -632,7 +649,7 @@ if ($step == 'setup') {
 
     contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
     
-    $appUri = substr($selfUrl, 0, strpos($selfUrl,'/?'));
+    $appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate/?'));
     
     $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent");
     $l = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($l));
