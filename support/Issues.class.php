@@ -311,7 +311,7 @@ class support_Issues extends core_Master
         $form = $this->getForm();
         
         // Създаваме поле за избор на система
-        $form->FNC('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory');;
+        $form->FNC('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory');
         
         // Въвеждаме съдържанието на полетата
         $form->input('systemId');
@@ -326,14 +326,49 @@ class support_Issues extends core_Master
             return redirect(array($this, 'add', 'systemId' => $systemId, 'ret_url' => TRUE));
         }
         
-        // Кои полета да се показват
-        $form->showFields = 'systemId';
-        
         // URL' то където ще редиректвамеа
         $retUrl = getRetUrl();
         
         // Ако, няма създаваме си
         $retUrl = ($retUrl) ? $retUrl : array('support_Issues');
+        
+        // Вземаме всички системи, до които имаме достъп
+        $accessedSystemsArr = support_Systems::getAccessed();
+        
+        // Броя на системите, до които имаме достъп
+        $accessedSystemsCnt = count($accessedSystemsArr);
+        
+        // Ако няма нито една система, до която да имаме достъп
+        if (!$accessedSystemsCnt) {
+            
+            // Добавяме съобщение за грешка
+            core_Statuses::add(tr('Няма достъпна система|*.'));
+            
+            // Ако има права за добавяне на система
+            if (support_Systems::haveRightFor('add')) {
+                
+                // Линк за препращаме към станицата за добавяне на система
+                $redirectArr = array('support_Systems', 'add', 'ret_url' => $retUrl);    
+            } else {
+                
+                // Ако нямаме права, препащаме където сочи return URL' то
+                $redirectArr = $retUrl;
+            }
+            
+            // Препащаме
+            return redirect($redirectArr);
+            
+        } elseif ($accessedSystemsCnt == 1) {
+
+            // Ако има само една достъпна система, препращане към създаването на докумев в нея
+            return redirect(array('support_Issues', 'add', 'systemId' => key($accessedSystemsArr), 'ret_Url' => $retUrl));
+        } 
+        
+        // Ако достъпните ситеми са повече от 1, тогава ги показваме
+        $form->setOptions('systemId', $accessedSystemsArr);
+
+        // Кои полета да се показват
+        $form->showFields = 'systemId';
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Избор', 'select', array('class' => 'btn-select'));
