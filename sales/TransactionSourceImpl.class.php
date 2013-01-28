@@ -34,7 +34,7 @@ class sales_TransactionSourceImpl
      * 
      * 2. Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 702 - Приходи от продажби на стоки (Клиент, Докум. за продажба)
+     *    Dt: 702 - Приходи от продажби на стоки (Стандартен продукт, Докум. за продажба)
      *    Ct: 322 - Стандартни продукти          (Склад, Стандартен продукт)
      *
      *    Цените, по които се изписват продуктите от с/ка 322 са според зададената стратегия 
@@ -185,12 +185,9 @@ class sales_TransactionSourceImpl
         $currencyRate = $this->getCurrencyRate($rec);
 
         foreach ($rec->details as $detailRec) {
-            $creditQuantity = $detailRec->quantity; // @TODO: Количество в основната мярка на продукта
-            $creditPrice    = $detailRec->price * $currencyRate; // В основна валута
-            
-            $debitQuantity  = $detailRec->price * $detailRec->quantity; // "брой пари" във 
-                                                                        // валутата на продажбата 
-            $debitPrice     = $currencyRate;
+            $creditQuantity = $detailRec->quantity; // Количество в основната мярка на продукта
+            $debitQuantity  = $detailRec->amount; // "брой пари" във валутата на продажбата 
+            $amount         = $detailRec->amount * $currencyRate; // В основна валута
 
             $entries[] = array(
                 // Дебит
@@ -207,8 +204,6 @@ class sales_TransactionSourceImpl
                     'cls' => 'currency_Currencies',
                     'id'  => $rec->currencyId,
                 ),
-                'debitAmount'  => $amount,       // Сума в осн. валута
-                'debitPrice'   => $currencyRate, // Курс на валутата към основната валута
                 
                 // Кредит
                 'creditAcc' => '702', // Сметка "702. Приходи от продажби на стоки"
@@ -220,8 +215,18 @@ class sales_TransactionSourceImpl
                     'cls' => 'sales_Sales',
                     'id'  => $rec->id,
                 ),
-                'creditQuantity' => $quantity,  // Количество продукти
-                'creditPrice'    => $price,     // Единична цена на продукт в осн. валута 
+                
+                'credit' => array(
+                    '401', 
+                    array('sales_Sales',  $rec->id),
+                    
+                ),
+                
+                // Обороти
+                'debitQuantity' => $debitQuantity,    // Сума в осн. валута
+                'debitAmount'   => $amount,           // Курс на валутата към основната валута
+                'creditQuantity' => $creditQuantity,  // Количество продукти
+                'creditAmount'   => $amount,          // Единична цена на продукт в осн. валута 
             );
         }
         
