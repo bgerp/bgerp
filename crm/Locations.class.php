@@ -67,6 +67,12 @@ class crm_Locations extends core_Master {
 
     
     /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'crm/tpl/SingleLayoutLocation.shtml';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

@@ -217,6 +217,15 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	vertical-align: top;
 }
 
+table select{
+	background: #fff !important;
+}
+
+table .btn-filter{
+	position:relative;
+	top:4px;
+}
+
 /* Стилове за елемента 'tab' */
 div.tab-control div.tab-row .tab {
 	font-family: arial;
@@ -1706,3 +1715,53 @@ fieldset.sharing-history i {
 		border-top:none !important; 
 	}
 }
+
+/*стилове за емейл кутии*/
+
+	.styled-table{
+		border-collapse:collapse;
+	}
+	.styled-table th{
+		text-align:left;
+	}
+	.styled-table th, .styled-table td{
+		border:1px solid #ccc;
+		padding:2px 5px;
+	}
+	.styled-table th{
+		border-bottom:none;
+	}
+	.styled-table .title-style{
+		color:#666;
+	}
+	.styled-table .border-bottom td{
+		border-bottom:1px solid #999;
+	}
+	
+/*стилове за локации*/
+		.info-table ul{
+		padding:0;
+		margin:0;
+	}
+	
+	.info-table .gray-title{
+		color:#666;
+	}
+	
+	.info-table ul .part{
+		float:left;
+		width:50%;
+	}
+	
+	.detail-info ul{
+		list-style:none;
+	}
+	
+	.loc-map{
+		margin-top:20px;
+		text-align:center;
+	}
+	
+	.loc-map > div{
+	 	width:99% !important;
+	}

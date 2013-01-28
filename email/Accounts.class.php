@@ -47,6 +47,12 @@ class email_Accounts extends core_Master
     
     
     /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'email/tpl/SingleLayoutAccounts.shtml';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     var $singleTitle = 'Имейл акаунт';

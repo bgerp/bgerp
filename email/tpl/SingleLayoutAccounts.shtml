@@ -1,0 +1,73 @@
+<div style="display:inline-block" class="singleView">
+[#SingleToolbar#]
+	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Е-кутия <b style="color:green;">[#email#]</b></div></h2>
+<table class="styled-table" width="100%">
+    <tbody>
+		<tr class="border-bottom">
+			<td class="title-style">email</td>
+			<td> [#email#]</td>
+			
+		</tr>
+		<tr class="border-bottom">
+			<td class="title-style">Рутиране</td>
+			<td>[#applyRouting#]</td>
+		</tr>
+		<tr class="border-bottom">
+			<td class="title-style">Тип</td>
+			<td>[#type#]</td>
+		</tr>
+		<tr>
+			<th colspan="2">Получаване</th>
+		</tr>
+		<tr>
+			<td><span class="title-style">Сървър:</span> [#server#]</td>
+			<td><span class="title-style">Протокол:</span> [#protocol#]</td>
+		</tr>
+		<tr>
+			<td><span class="title-style">Сигурност:</span> [#security#]</td>
+			<td><span class="title-style">Сертификат:</span> [#cert#]</td>
+		</tr>
+		<tr>
+			<td><span class="title-style">IMAP папка:</span> [#folder#]</td>
+			<td></td>
+		</tr>
+		<tr class="border-bottom">
+			<td><span class="title-style">Потребител:</span> [#user#]</td>
+			<td><span class="title-style">Парола:</span> [#password#]</td>
+		</tr>
+		<tr>
+			<th colspan="2">Изтегляне</th>
+		</tr>
+		<tr class="border-bottom">
+			<td><span class="title-style">Статус: </span> [#state#]</td>
+			<td><span class="title-style">Период: </span> [#period#]</td>
+		</tr>
+		<tr class="border-bottom">
+			<td class="title-style">Изтриване?</td>
+			<td>[#deleteAfterRetrieval#]</td>
+		</tr>
+		<tr>
+			<th colspan="2">Изпращане</th>
+		</tr>
+		<tr class="border-bottom">
+			<td><span class="title-style">Сигурност:</span> [#smtpSecure#]</td>
+			<td><span class="title-style">Аутентикация:</span> [#smtpAuth#]</td>
+		</tr>
+		<tr>
+			<th colspan="2">Модифициране</th>
+		</tr>
+		<tr class="border-bottom">
+			<td><span class="title-style">от</span> [#modifiedBy#]</td>
+			<td><span class="title-style">на</span> [#modifiedOn#]</td>
+		</tr>
+		<tr>
+			<th colspan="2">Създаване</th>
+		</tr>
+		<tr class="border-bottom">
+			<td><span class="title-style">от</span> [#createdBy#]</td>
+			<td><span class="title-style">на</span> [#createdOn#]</td>
+		</tr>
+		
+	</tbody>
+</table>
+</div>
