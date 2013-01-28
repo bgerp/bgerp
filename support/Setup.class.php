@@ -63,9 +63,6 @@ class support_Setup
             $html .= $instances[$manager]->setupMVC();
         }
 
-        // Зареждаме всички данни след инсталацията
-        $html .= support_IssueTypes::loadData();
-        
         // Добавяме роля за поддръжка на модула support
         $role = 'support';
         $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';

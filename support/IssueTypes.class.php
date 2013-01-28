@@ -110,7 +110,7 @@ class support_IssueTypes extends core_Manager
                 $rec->type = $csvRow[0];
                 
                 //Ако запишем успешно, добава единица в общия брой записи
-                if (static::save($rec, NULL, 'IGNORE')) {
+                if (static::save($rec)) {
                     $created++;    
                 }
             }
@@ -138,5 +138,19 @@ class support_IssueTypes extends core_Manager
     {
         
         return __DIR__ . "/csv/IssueTypes.csv";
+    }
+    
+    
+	/**
+     * Създаваме типовете сиганли
+     */
+    static function on_AfterSetupMVC($mvc, &$result)
+    {
+        // Ако няма нито един запис тогава да се добавят
+        if (!$mvc->fetch('1=1')) {
+            
+            // Зареждаме всички данни след инсталацията
+            $result .= support_IssueTypes::loadData();    
+        }
     }
 }
