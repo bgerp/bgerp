@@ -403,12 +403,12 @@ class email_Mime extends core_BaseClass
                 
                 $p->fileId = $this->addFile($p->data, $fileName, 'part', $p->subType);
 
-                $fRec = $this->files[$p->fileId];
+                $FRecText = $this->files[$p->fileId];
  
-                $fRec->fmId = $this->addFileToFileman($fRec->data, $fRec->name);
+                $FRecText->fmId = $this->addFileToFileman($FRecText->data, $FRecText->name);
 
                 if($index == $this->firstHtmlIndex) {
-                    $this->htmlFile = $fRec->fmId;
+                    $this->htmlFile = $FRecText->fmId;
                 } 
             }
         }

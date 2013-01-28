@@ -217,6 +217,15 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	vertical-align: top;
 }
 
+table select{
+	background: #fff !important;
+}
+
+table .btn-filter{
+	position:relative;
+	top:4px;
+}
+
 /* Стилове за елемента 'tab' */
 div.tab-control div.tab-row .tab {
 	font-family: arial;
@@ -1626,10 +1635,25 @@ fieldset.sharing-history i {
 	min-height:300px; 
 }
 
+.wide .webdrvFieldset{
+	min-height:620px;
+}
+
 .narrow .webdrvFieldset {
 	min-height: 300px;
 }
 
+.wide .webdrvFieldset pre.richtext{
+	max-width: 845px;
+	/*height:560px; */
+	/*overflow:auto; */
+	margin-bottom:0;
+	margin-top:0;
+}
+
+.wide .webdrvFieldset  .richtext .code{
+	
+}
 #blog-article-details .listTable th{
 	display:none;
 }
@@ -1637,3 +1661,107 @@ fieldset.sharing-history i {
 #blog-article-details .listTable { 
 	background:rgb(229,229,229);
 }
+
+/*стилове за фактура и плащане*/
+
+
+.sales-document table:first-child{
+	width:100%;
+}
+
+.sales-document table th {
+	background-color:#ddd !important;
+	border:1px solid #000 !important;
+	border-top:none !important;
+}
+
+.sales-document .listTable > tbody > tr > td {
+	border:1px solid #000 !important;
+}
+
+.sales-document .invTable{
+	border-top: 1px solid #000 !important;
+}
+
+.sales-document .detail-info{
+	display:none;
+}
+
+.sales_InvoiceDetails .listTable {
+	width:100%;
+	border:none !important;
+}
+.sales_InvoiceDetails .listTable th, .sales_InvoiceDetails .listTable td{
+	border:1px solid #000 !important;
+	border-top:none !important;
+}
+
+  .smallData {padding:1px; font-size:1em; }
+  .bigData {font-family:"Courier New"; font-size:1em; font-weight:bold;}
+  .cell {border:1px solid #000;}
+  .topCell { border: 1px solid #000;} 
+  .invTable { border-collapse:collapse;}
+  .rowData {font-size:0.9em;}
+  .footer-notes{font-size:14px;}
+  .topCell div {padding-bottom:2px;}
+  
+ @media print{
+	.sales-document .invTable{
+		border-top:none !important; 
+	}
+	
+	.topCell{
+		vertival-align:top !important;
+		border-top:none !important; 
+	}
+}
+
+/*стилове за емейл кутии*/
+
+	.styled-table{
+		border-collapse:collapse;
+	}
+	.styled-table th{
+		text-align:left;
+	}
+	.styled-table th, .styled-table td{
+		border:1px solid #ccc;
+		padding:2px 5px;
+	}
+	.styled-table th{
+		border-bottom:none;
+	}
+	.styled-table .title-style{
+		color:#666;
+	}
+	.styled-table .border-bottom td{
+		border-bottom:1px solid #999;
+	}
+	
+/*стилове за локации*/
+		.info-table ul{
+		padding:0;
+		margin:0;
+	}
+	
+	.info-table .gray-title{
+		color:#666;
+	}
+	
+	.info-table ul .part{
+		float:left;
+		width:50%;
+	}
+	
+	.detail-info ul{
+		list-style:none;
+	}
+	
+	.loc-map{
+		margin-top:20px;
+		text-align:center;
+	}
+	
+	.loc-map > div{
+	 	width:99% !important;
+	}

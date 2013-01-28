@@ -22,7 +22,7 @@
 			<td valign="top">
 				<div class="amounts">
 					<!--ET_BEGIN amount-->
-					|Оборот|*: &nbsp; <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#currency#]</span> &nbsp;
+					|Сума|*: &nbsp; <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#currency#]</span> &nbsp;
 					<b><span style='color:darkgreen'>[#amount#]</span></b><br>
 					<!--ET_END amount-->
 					<div style='margin-top:7px'>

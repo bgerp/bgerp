@@ -201,5 +201,56 @@ class support_Systems extends core_Master
 //                $requiredRoles = 'no_one';    
             } 
         }
+        
+        // Ако листваме
+        if ($action == 'list') {
+            
+            // Ако е активен
+            if ($rec->state == 'active') {
+                
+                // Ако няма папка
+                if (!$folderId = $rec->folderId) {
+                    
+                    // Вземаме id' то на папката
+                    $folderId = support_Systems::forceCoverAndFolder($rec);
+                }
+                
+                // Проверяваме дали имаме права в папката
+                if (!doc_Folders::haveRightFor('single', $folderId, $userId)) {
+                    
+                    // Ако няма права в папката няма права и за листване
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща масив с допустимите системи
+     * 
+     * @param core_Users $userId - id' то на потребителя
+     * 
+     * @return array $accessedArr - Масив с допустимите ситеми
+     */
+    static function getAccessed($userId=NULL)
+    {
+        // Масив с допустимите
+        $accessedArr = array();
+        
+        $query = static::getQuery();
+        
+        // Обхождаме записите
+        while($rec = $query->fetch()) {
+            
+            // Ако има права за листване
+            if (support_Systems::haveRightFor('list', $rec, $userId)) {
+                
+                // Добавяме към допустимите
+                $accessedArr[$rec->id] = support_Systems::getVerbal($rec, 'name');
+            }
+        }
+
+        return $accessedArr;
     }
 }

@@ -251,8 +251,7 @@ class cash_Rko extends core_Master
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
 	    	// Взема периода за който се отнася документа, според датата му
-	    	$accPeriods = cls::get('acc_Periods');
-		    $period = $accPeriods->fetchByDate($rec->valior);
+	    	$period = acc_Periods::fetchByDate($rec->valior);
 		    
 		    if(!$rec->rate){
 		    	

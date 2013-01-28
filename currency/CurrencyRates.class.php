@@ -51,7 +51,7 @@ class currency_CurrencyRates extends core_Detail
     function description()
     {
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,chart=diff');
-        $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Към основна валута');
+        $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Към основна валута,width=6em');
         $this->FLD('date', 'date', 'caption=Курс->дата,chart=ax');
         $this->FLD('rate', 'double', 'caption=Курс->стойност,chart=ay');
         
@@ -79,8 +79,6 @@ class currency_CurrencyRates extends core_Detail
         foreach($XML->Cube->Cube->Cube as $item){
             $rate = $item['rate']->__toString();
             $currency = $item['currency']->__toString();
-            
-            // $currencyId = $this->Currencies->fetchField("#code='{$currency}'", 'id');
             $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
             if(!$currencyId) continue;
@@ -195,10 +193,6 @@ class currency_CurrencyRates extends core_Detail
     	expect(currency_Currencies::getIdByCode($to), 'Няма валута с такъв код');
     	expect(is_numeric($amount), 'Не е подадена валудна сума');
     	
-    	if(!$date) {
-    		$date = dt::verbal2mysql();
-    	}
-    	
     	// Намираме Курса между двете валути към дадената дата
     	expect($rate = static::getRate($date, $from, $to), 'Нямаме информация за курса между валутите');
     	
@@ -208,7 +202,7 @@ class currency_CurrencyRates extends core_Detail
     	
     	// Ако валутата е основната в модела, обръщаме рейта
     	if($fromRate != 1) {
-    		$rate = 1/$rate;
+    		$rate = 1 / $rate;
     	}
     	
     	// Изчислява стойноста на сумата в новата валута
@@ -234,8 +228,7 @@ class currency_CurrencyRates extends core_Detail
     	if($from == $to) return 1;
     	
     	if(!$to) {
-    		$accPeriods = cls::get('acc_Periods');
-			$period = $accPeriods->fetchByDate($date);
+			expect($period = acc_Periods::fetchByDate($date), 'Няма активен счетоводен период за датата !!!');
 			$toId = $period->baseCurrencyId;
     	} else {
     		expect($toId = currency_Currencies::getIdByCode($to), 'Няма такава валута');
@@ -272,12 +265,8 @@ class currency_CurrencyRates extends core_Detail
      * @param date $date - Дата към която търсим обменния курс
      * @return double $rate - Обменния курс към основната валута за периода
      */
-    private static function getBaseRate($currencyId, $date = NULL)
+    private static function getBaseRate($currencyId, $date)
     {
-    	if(!$date) {
-    		$date = dt::verbal2mysql();
-    	}
-    	
     	// Провряваме дали някоя от валутите е основната валута за съответния
     	// период ако е то нейния рейт е 1
     	$checkQuery = static::getQuery();
@@ -299,5 +288,18 @@ class currency_CurrencyRates extends core_Detail
     	$rate = $rec->rate;
 	    	
     	return $rate;
+    }
+    
+    
+    /**
+     * Модификации по ролите
+     */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action== 'add' && !isset($rec->currencyId)) {
+			
+			// Предпазване от добавяне на нов постинг в act_List
+			$res = 'no_one';
+		}
     }
 }

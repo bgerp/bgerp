@@ -97,6 +97,12 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'email/tpl/SingleLayoutInboxes.shtml';
+    
+    
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'email';

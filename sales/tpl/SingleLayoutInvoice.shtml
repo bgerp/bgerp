@@ -4,32 +4,15 @@
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
-<style>
-.sales_InvoiceDetails .listTable {
-	width:100%;
-}
 
-.sales_InvoiceDetails td,  .sales_InvoiceDetails th, .sales_InvoiceDetails {
-	border:solid 1px black !important;
-}
-</style>
 <table width=100%>
     <tbody>
 
 
     <tr>
         <td style="padding-top: 10px; ">
-            <style type="text/css"> 
-                .smallData {padding:1px; font-size:1em; }
-                .bigData {font-family:"Courier New"; font-size:1em; font-weight:bold;}
-                .cell {border:1px solid    #000;}
-                .topCell { border-top:none; border-left: 1px solid #000; border-bottom: 1px solid #000; border-right: 1px solid #000;} 
-                .invTable { border-collapse:collapse;  }
-                .rowData {font-size:0.9em;}
-            </style>
-
-             
-            <table class="invTable"  cellpadding="1" cellspacing="0" width="100%">
+         
+            <table class="invTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="cell" width="35%"><b>Получател / <i>Buyer</i></b></td>
                     <td class="cell" rowspan="3" align="center" width="30%">
@@ -103,60 +86,70 @@
 
             [#DETAILS#]
             
-            <table class="invTable" border="0" cellpadding="5" cellspacing="0" width="100%">
+            <table class="invTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="topCell" valign="top" width="30%">
-                        <small><br><b>Отговорен за стопанската операция:</b><br><br>
+                       <div style="padding-top: 5px;">Отговорен за стопанската операция:<br><br>
                         ...........................................................
-                        <br></small><br><hr>
+                        </div>
+                        <br><br>
                              
         
                             
                         <span class="richtext"> </span>      
                     </td>
                     <td class="topCell" valign="top" width="40%">
-                        <div style="font-size:8pt;">Плащане / <i>Payment</i><div>
-                        <div class="smallData">Плащане 35 дни след датата на данъчното събитие</div>
-                        <div class="smallData">Краен срок за плащане: <b>[#DUE_DATE#]</b></div>
+                        <div>Плащане / <i>Payment</i><div>
+                        <div>Плащане 35 дни след датата на данъчното събитие</div>
+                        <div>Краен срок за плащане: <b>[#DUE_DATE#]</b></div>
+                        <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
                         <div class="smallData">Лихва за просрочено плащане <b>[#OVERDUE_INTEREST_RATE#]</b> на ден</div>
-                        <div style="font-size:8pt;"><hr>Банкова с-ка / <i>Bank account</i><div>
+                         <!--ET_END OVERDUE_INTEREST_RATE-->
+                        <div><hr>Банкова с-ка / <i>Bank account</i><div>
                         <div class="smallData">[#BANK_NAME#]</div>
                         <div class="smallData">[#BANK_ACCOUNT#]</b></div>
                         <div class="smallData">[#BIC#]</div>
                         </div></div></div></div>
                     </td>
        
-                    <td class="topCell" align="right" valign="bottom" width="30%">
+                    <td class="topCell" align="right" valign="top" width="30%">
                         <table>
                             <tbody><tr>
-                                <td style="padding-top: 10px; text-align: right;">
-                                    <small><b>Съставил:</b>..................................&nbsp;
+                                <td style="padding-top: 5px; text-align: right;">
+                                    Съставил: ..................................&nbsp;
                                     <br>
-                                    </small>
+                             
                                 </td>
                             </tr>
                             <tr>
                                 <td align="RIGHT">[#RESPONSABLE#]</td>
                             </tr>
+                             <!--ET_BEGIN vatDate-->  
                             <tr>
-                                <td style="padding-top: 10px; text-align: right;"><small><b>Дата на данъчното събитие</b></small></td>
+                                <td style="padding-top: 10px; text-align: right;">Дата на данъчното събитие:</td>
+                            </tr>
+                             
+                            <tr>
+                                <td align="RIGHT"><b>[#vatDate#]</b></td>
+                            </tr>
+                             <!--ET_END vatDate--> 
+                             
+                             <!--ET_BEGIN VAT_REASON--> 
+                            <tr>
+                                <td style="padding-top:10px; text-align:right;">Основание за размера на ДДС:</td>
                             </tr>
                             <tr>
-                                <td align="RIGHT">[#vatDate#]</td>
+                                <td align="RIGHT"><b>[#VAT_REASON#]</b></td>
                             </tr>
-                            <tr>
-                                <td style="padding-top:10px; text-align:right;"><small><b>Основание за размера на ДДС</b></small></td>
-                            </tr>
-                            <tr>
-                                <td align="RIGHT">[#VAT_REASON#]</td>
-                            </tr>
+                            <!--ET_END VAT_REASON--> 
                             </tbody>
                         </table>
-                          
+                        <!--ET_BEGIN TO_SALES-->  
                         <div style="padding:10px;">
                             <div style="padding-top:5px;">Към продажба / <i>To sale</i></div>
                             <div class="bigData">[#TO_SALES#]</div>
                         </div>
+                           <!--ET_END TO_SALES-->  
                     </td>
                 </tr>           
                 </tbody>

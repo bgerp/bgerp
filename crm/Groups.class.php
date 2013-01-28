@@ -156,23 +156,49 @@ class crm_Groups extends groups_Manager
             $data = array(
                 array(
                     'name' => 'КЛИЕНТИ',
-                    'sortId' => 30
+                    'sortId' => 30,
+                	'extenders' => 'lists,locations'
                 ),
                 array(
                     'name' => 'ДОСТАВЧИЦИ',
-                    'sortId' => 31
+                    'sortId' => 31,
+                	'extenders' => 'bankAccount,lists,locations',
                 ),
                 array(
                     'name' => 'ДЕБИТОРИ',
-                    'sortId' => 32
+                    'sortId' => 32,
+                	'extenders' => 'locations'
                 ),
                 array(
                     'name' => 'КРЕДИТОРИ',
-                    'sortId' => 33
+                    'sortId' => 33,
+                	'extenders' => 'bankAccount,locations'
                 ),
                 array(
                     'name' => 'СЛУЖИТЕЛИ',
-                    'sortId' => 34
+                    'sortId' => 34,
+                	'extenders' => 'bankAccount,locations,idCard'
+                ),
+                array(
+                    'name' => 'ПОТРЕБИТЕЛСКИ ПРОФИЛИ',
+                    'sortId' => 35,
+                    'extenders' => 'profile'
+                	
+                ),
+                array(
+                    'name' => 'УПРАВИТЕЛИ',
+                    'sortId' => 36,
+                	'extenders' => 'bankAccount,profile,idCard,lists'
+                ),
+                array(
+                    'name' => 'СВЪРЗАНИ ЛИЦА',
+                    'sortId' => 37,
+                	'extenders' => 'bankAccount,idCard,lists'
+                ),
+                array(
+                    'name' => 'ОРГАНИЗАЦИИ И ИНСТИТУЦИИ',
+                    'sortId' => 38,
+                	'extenders' => 'bankAccount,locations,lists'
                 )
             );
             
@@ -223,5 +249,10 @@ class crm_Groups extends groups_Manager
         }
         
         return $idArr;
+    }
+    
+    function act_Test ()
+    {
+    	bp(crm_Profiles::fetchCrmGroup());
     }
 }

@@ -1,0 +1,40 @@
+
+<div style="display:inline-block" class="singleView">
+[#SingleToolbar#]
+	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Е-кутия <b style="color:green;">[#email#]</b></div></h2>
+<table class="styled-table" width="100%">
+    <tbody>
+		<tr class="border-bottom">
+			<td class="title-style">email</td>
+			<td> [#email#]</td>
+			
+		</tr>
+		<tr class="border-bottom">
+			<td class="title-style">сметка</td>
+			<td>[#accountId#]</td>
+		</tr>
+		<tr>
+			<th colspan="2">Права</th>
+		</tr>
+		<tr class="border-bottom">
+			<td><span class="title-style">Отговорник:</span> Невенa</td>
+			<td><span class="title-style">Достъп:</span> Личен</td>
+		</tr>
+		<tr>
+			<th colspan="2">Модифициране</th>
+		</tr>
+		<tr class="border-bottom">
+			<td><span class="title-style">от</span> [#modifiedBy#]</td>
+			<td><span class="title-style">на</span> [#modifiedOn#]</td>
+		</tr>
+		<tr>
+			<th colspan="2">Създаване</th>
+		</tr>
+		<tr class="border-bottom">
+			<td><span class="title-style">от</span> [#createdBy#]</td>
+			<td><span class="title-style">на</span> [#createdOn#]</td>
+		</tr>
+		
+	</tbody>
+</table>
+</div>
