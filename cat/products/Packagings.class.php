@@ -118,7 +118,20 @@ class cat_products_Packagings extends cat_products_Detail
         $data->form->setOptions('packagingId', $options);
         
         $productRec = cat_Products::fetch($data->form->rec->productId);
-        $data->form->title = 'Добавяне на опаковка за |*' . cat_Products::getVerbal($productRec, 'name');
+        
+        // Променяме заглавието в зависимост от действието
+        if (!$data->form->rec->id) {
+            
+            // Ако добавяме нова опаковка
+            $titleMsg = 'Добавяне на опаковка за';    
+        } else {
+            
+            // Ако редактираме съществуваща
+            $titleMsg = 'Редактиране на опаковка за';
+        }
+        
+        // Добавяме заглавието
+        $data->form->title = "{$titleMsg} |*" . cat_Products::getVerbal($productRec, 'name');
     }
     
     
