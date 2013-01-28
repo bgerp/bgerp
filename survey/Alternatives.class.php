@@ -19,7 +19,7 @@ class survey_Alternatives extends core_Detail {
     /**
      * Заглавие
      */
-    var $title = 'Анкетни Въпроси';
+    var $title = 'Въпроси';
     
     
     /**
@@ -43,7 +43,7 @@ class survey_Alternatives extends core_Detail {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Анкетни отговори";
+    var $singleTitle = "Въпрос";
     
     
     /**
@@ -77,6 +77,12 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
+     * Кой таб да бъде отворен
+     */
+    var $currentTab = 'Въпроси';
+    
+    
+    /**
 	 * Файл за единичен изглед
 	 */
 	//var $singleLayoutFile = 'survey/tpl/SingleAccountLayout.shtml';
@@ -95,19 +101,12 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
-     * 
+     * Рендиране на въпросите
      */
     function renderDetail_($data)
     {
-    	if($data->masterMvc) {
-    		
-    		//$tpl= $cls->renderQuestions($data);
-    		$tpl = $this->renderAlternatives($data);
-    		$tpl->append($this->renderListToolbar($data), 'ListToolbar');
-    	} else {
-    		
-    		$tpl = $this->renderDetail($data);
-    	}
+    	$tpl = $this->renderAlternatives($data);
+    	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
     	
     	return $tpl;
     }
@@ -119,78 +118,59 @@ class survey_Alternatives extends core_Detail {
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if($fields['-list']) {
-			$row->answers = $mvc->verbalAnswers($rec->answers);
+			$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
 			
 			if(!$rec->image) {
 				$imgLink = sbf('survey/img/question.png', '');
 			}else {
 				$attr = array('isAbsolute' => FALSE, 'qt' => '');
-				$imgLink = thumbnail_Thumbnail::getLink($rec->image, array('36','36'), $attr);
+				$imgLink = thumbnail_Thumbnail::getLink($rec->image, array('18','18'), $attr);
 			}
 			
-			$row->image = ht::createElement('img', array('src' => $imgLink));
+			$row->image = ht::createElement('img', array('src' => $imgLink, 'width' => '18px'));
 		}
 	}
 	
 	
-	function verbalAnswers($text)
+	/**
+	 * Подготвя отговорите на въпроса, от текст във вида на радио бутони
+	 * с връзки към екшъна Vote на survey_Votes
+	 * @param text $text - Отговорите на въпроса във вида на текст
+	 * @param int $id - ид на въпроса
+	 */
+	function verbalAnswers($text, $id)
 	{
-		$tpl = new ET('');
+		$tpl = new ET("");
+		$altTpl = new ET("<li><input type='radio' onClick='go(&#39;[#url#]&#39;);' [#checked#]>&nbsp;&nbsp;[#answer#]</li>\n");
+		
+		// Разбиваме подадения текст по редове
 		$txtArr = explode("\n", $text);
-		$n = 1;
-		foreach($txtArr as $an) {
-			$tpl->append("<li><input type='radio' name='{}' value = '{$n}'/>&nbsp;&nbsp;&nbsp;{$an}</li>\n");
-			$n++;
+		$arr = array('survey_Votes', 'vote', 'id' => NULL, 'alternativeId' => $id, 'ret_url' => TRUE);
+		$rowAnswered = survey_Votes::hasUserVoted($id);
+		for($i = 1; $i <= count($txtArr); $i++) {
+			
+			// Всеки ред от текста е отговор, рендираме го във вида на радио
+			if($mid = Request::get('m')) {
+				$arr['m'] = $mid;
+			}
+			$arr['id'] = $i;
+			$url = toUrl($arr);
+			$copyTpl = clone($altTpl);
+			$copyTpl->replace($url, 'url');
+			$copyTpl->replace($txtArr[$i-1], 'answer');
+			if($i == $rowAnswered) {
+				$copyTpl->replace('checked', 'checked');
+			}
+			$tpl->append($copyTpl);
 		}
 		
 		return $tpl;
 	}
-	/*
-	function verbalAnswers($text)
-	{
-		$ansArray = array();
-		//$tpl = new ET('');
-		$txtArr = explode("\n", $text);
-		$n = 1;
-		foreach($txtArr as $an) {
-			$ansArray[$n] = $an;
-			$n++;
-			//$tpl->append("<li><input type='radio' name='{}' value = '{$n}'/>{$an}</li>\n");
-			//
-		}
-		
-		return $ansArray;
-	}*/
 	
-	/*
-function renderQuestions($data)
-	{
-		$form = cls::get('core_Form');
-		$form->method = 'POST';
-        $form->action = array ('survey_Surveys', 'vote',);
-		$form->layout = new ET(getFileContent('survey/tpl/SurveyForm.shtml'));
-		$fieldLayout = new ET('');
-		foreach($data->rows as $row) {
-			$fieldLayout->append(new ET("<br>"));
-			$answers = '';
-			$name = $row->id;
-			foreach($row->answers as $key=>$value) {
-				$answers .= "{$key}={$value},";
-			}
-			$answers = trim($answers,", ");
-			$form->FLD($name, "enum($answers)", "maxRadio=4,columns=1,notNull");
-			$fieldLayout->append(new ET($row->label . "<br>"));
-			$fieldLayout->append(new ET("[#{$name}#]"));
-		}
-		
-		$form->fieldsLayout = $fieldLayout;
-		$form->toolbar->addSbBtn('Изпрати');
-		
-		return $form->renderHtml();
-	}*/
 	
     /**
-     * 
+     *  Рендираме въпросите от анкетата
+     *  @return core_ET $tpl
      */
     function renderAlternatives($data)
     {
@@ -202,10 +182,35 @@ function renderQuestions($data)
     		$rowTpl->removeBlocks();
     		$tpl->append($rowTpl);
     	}
-    	
     	$tpl->append(new ET('[#ListToolbar#]'));
-    	
     	
     	return $tpl;
     }
+    
+    
+ 	/**
+	 * Модификация на ролите, които могат да видят избраната тема
+	 */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{  
+   		if($action == 'write' && isset($rec)) {
+   			
+   			/* Неможем да добавяме/редактираме нови въпроси в следните случаи:
+   			 * Анкетата е затворена, Анкетата е активиранам, потребителят не е
+   			 * създател на анкетата
+   			 */
+   			$surveyRec = survey_Surveys::fetch($rec->surveyId);
+   			if(survey_Surveys::isClosed($surveyRec->id) || 
+   			   $surveyRec->state != 'draft' || 
+   			   $surveyRec->createdBy != core_Users::getCurrent()) {
+   			   $res = 'no_one';
+   			} 
+   		}
+   		
+		if($action== 'add' && !isset($rec)) {
+			
+			// Предпазване от добавяне на нов постинг в act_List
+			$res = 'no_one';
+		}
+   	}
 }

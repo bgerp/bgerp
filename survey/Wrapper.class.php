@@ -23,7 +23,7 @@ class survey_Wrapper extends plg_ProtoWrapper
     function description()
     {
        $this->TAB('survey_Surveys', 'Анкети', 'admin, survey');
-       $this->TAB('survey_Alternatives', 'Отговори', 'admin, survey');
+       $this->TAB('survey_Alternatives', 'Въпроси', 'admin, survey');
        $this->TAB('survey_Votes', 'Гласуване', 'admin, survey');
        $this->title = 'Анкети';
     }

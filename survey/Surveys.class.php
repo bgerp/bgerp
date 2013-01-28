@@ -32,7 +32,7 @@ class survey_Surveys extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,
-     	plg_Sorting,  doc_DocumentPlg, bgerp_plg_Blank';
+     	plg_Sorting,  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg';
     
   
     /**
@@ -66,6 +66,12 @@ class survey_Surveys extends core_Master {
     
     
     /**
+     * Кой има право да чете?
+     */
+    var $canSummarise = 'user';
+    
+    
+    /**
 	 * Коментари на статията
 	 */
 	var $details = 'survey_Alternatives';
@@ -74,7 +80,7 @@ class survey_Surveys extends core_Master {
 	/**
      * Абревиатура
      */
-    var $abbr = "An";
+    var $abbr = "Ank";
     
     
     /**
@@ -103,6 +109,20 @@ class survey_Surveys extends core_Master {
     
     
     /**
+     * Обработки след като изпратим формата
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()) {
+    		$today = dt::now();
+	    	if($form->rec->deadline <= $today) {
+	    		$form->setError('deadline', 'Крайния срок на анкетата не е валиден');
+	    	} 
+    	}
+    }
+    
+    
+    /**
      *  Обработки по вербалното представяне на данните
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -119,21 +139,154 @@ class survey_Surveys extends core_Master {
     }
     
     
+    /**
+     * Метод проверяващ дали дадена анкета е отворена
+     * @param int id - id на анкетата
+     * @return boolean $res - затворена ли е анкетата или не
+     */
+    static function isClosed($id)
+    {
+    	expect($rec = static::fetch($id), 'Няма такъв запис');
+    	$now = dt::now();
+    	($rec->deadline <= $now) ? $res = TRUE : $res = FALSE;
+    	
+    	return $res;
+    }
+    
+    
    /**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
-   		
+   		//  Кой може да обобщава резултатите
+		if($action == 'summarise' && isset($rec->id)) {
+   			switch($rec->summary) {
+   				case 'internal':
+   					$res = $mvc->canSummarise;
+   					break;
+   				case 'personal':
+   					if($rec->createdBy != core_Users::getCurrent()) {
+   						$res = 'no_one';
+   					}
+   					break;
+   				case 'public':
+   					$res = 'every_one';
+   					break;
+   			}
+   		} 
    	}
     
    	
+   	/**
+   	 * Обработка на SingleToolbar-a
+   	 */
+   	static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if($mvc::haveRightFor('summarise', $data->rec->id)) {
+    		$data->toolbar->addBtn('Обобщение', array($mvc, 'summarise', $data->rec->id, 'ret_url' => TRUE, ''));
+    	}
+    }
+   	
+    
+    /**
+     *  Екшън обобщаващ резултатите на анкетата
+     */
+    function act_Summarise()
+    {
+    	$this->requireRightFor('summarise', $data->rec->id);
+    	expect($id = Request::get('id'));
+    	expect($rec = $this->fetch($id));
+    	
+    	$data = new stdClass();
+    	$data->rec = $rec;
+    	$data->action = 'summarise';
+    	
+    	// Подготвяме резултатите от анкетата
+    	$this->prepareSummarise($data);
+    	
+    	// Рендираме резултатите
+    	$layout = $this->renderSummarise($data);  	
+    	
+    	return $layout;
+     }
+    
+    
+    /**
+     *  Подготовка на Обобщението на анкетата, Подготвяме резултатите във вида
+     *  на масив от обекти, като всеки въпрос съдържа  информацията за неговите
+     *  възможни отговори и техния брой гласове
+     */
+    function prepareSummarise($data)
+    {
+    	$rec = &$data->rec;
+    	$recs = array();
+    	$queryAlt = survey_Alternatives::getQuery();
+    	$queryAlt->where("#surveyId = {$rec->id}");
+    	while($altRec = $queryAlt->fetch()) {
+    		$txtArr = explode("\n", $altRec->answers);
+    		$answers = array();
+    		for($i = 0; $i<count($txtArr); $i++) {
+    			$op = new stdClass();
+    			$op->text = $txtArr[$i];
+    			$op->count = survey_Votes::countVotes($altRec->id, $i+1);
+    			$answers[] = $op;
+    		}
+			
+    		$rec = new stdClass();
+    		$rec->label = $altRec->label;
+    		$rec->answers = $answers;
+    		$recs[$altRec->id] = $rec;
+    	}
+    	
+    	$data->recs = $recs;
+    }
+    
+    
+    /**
+     * Рендиране на Обобщените резултати
+     */
+	function renderSummarise($data)
+    {
+    	$tpl = new ET(getFileContent('survey/tpl/Summarise.shtml'));
+    	$blockTpl = $tpl->getBlock('ROW');
+    	$varcharType = cls::get('type_Varchar');
+    	
+    	// За всеки въпрос от анкетата го рендираме заедно с отговорите
+    	foreach($data->recs as $rec) {
+    		$questionTpl = clone($blockTpl);
+    		$subRow = $questionTpl->getBlock('subRow');
+    		$label = $varcharType->toVerbal($rec->label);
+    		$questionTpl->replace($label, 'QUESTION');
+    		
+    		// Рендираме всеки отговор от въпроса с неговите гласове
+    		foreach($rec->answers as $answer) {
+    			$answersTpl = clone($subRow);
+    			$text = $varcharType->toVerbal($answer->text);
+    			$answersTpl->replace($text, 'OPTION');
+    			$answersTpl->replace($answer->count, 'VOTES');
+    			$answersTpl->removeBlocks();
+    			$answersTpl->append2master();
+    		}
+    		
+    		$questionTpl->removeBlocks();
+    		$questionTpl->append2master();
+    	}
+    	
+    	$tpl = $this->renderWrapping($tpl);
+    	$tpl->push('survey/tpl/css/styles.css', 'CSS');
+    	
+    	return $tpl;
+    }
+    
+    
    	/**
      * Пушваме css файла
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
     	$tpl->push('survey/tpl/css/styles.css', 'CSS');
+    	$tpl->push('survey/js/scripts.js', 'JS');
     }
     
     

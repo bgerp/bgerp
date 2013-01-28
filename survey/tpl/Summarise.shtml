@@ -1,0 +1,13 @@
+<h3>Обобщение</h3>
+<ul id = 'summary'>
+	<li>[#TOPIC#]</li>
+<!--ET_BEGIN ROW-->
+	<li>[#QUESTION#]&nbsp;<br>
+		<ul class='summarise-answers'>
+			<!--ET_BEGIN subRow-->
+			<li>[#OPTION#] - [#VOTES#] Гласа</li>
+			<!--ET_END subRow-->
+	</ul>
+	</li>
+<!--ET_END ROW-->
+</ul>
