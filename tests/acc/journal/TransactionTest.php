@@ -1,43 +1,74 @@
 <?php
 
-class acc_journal_TransactionTest extends PHPUnit_Framework_TestCase
+class acc_journal_TransactionTest extends framework_TestCase
 {
+    protected function setUp()
+    {
+        /*
+         * Подготовка на фикстурите
+         */
+        
+        // Почистваме данните
+        $this->truncate('doc_Folders, doc_Threads, doc_Containers, crm_Companies, cash_Pko, 
+            acc_Items, cash_Cases');
+    }
+    
     public function testBuild()
     {
-        $id = 1;
+        // 1. Контрагент
+        $contragentId = crm_Companies::save(
+            (object)array(
+                'name' => 'Тестова фирма',
+            )
+        );
         
-        expect($rec = cash_Pko::fetch($id));
+        // 2. Перо за контрагента в номенкл. Доставчици (systemId: suppliers) 
+       // acc_Lists::updateItem('crm_Companies', $contragentId, 'suppliers');
         
-        // Намираме класа на контрагента
-        $contragentId = doc_Folders::fetchCoverId($rec->folderId);
-        $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        // 3. Тестова каса (перото за нея се създава автоматично)
+        $caseId = cash_Cases::save(
+            (object)array(
+                'name' => 'Тестова каса',
+            )
+        );
         
+        $currencyId = currency_Currencies::getIdByCode('BGN');
+
+        $rec = (object)array(
+            'valior' => dt::now(),
+            'amount' => 100,
+            'currencyId' => currency_Currencies::getIdByCode('BGN'),
+            'rate' => 1,
+        );
+        
+        // Транзакция: Доставчик плаща на каса 100 лв.
         $transaction = new acc_journal_Transaction(
             array(
-                'reason' => $rec->reason, // основанието за ордера
-                'valior' => $rec->date,   // датата на ордера
-                'entries' => array(
-                    array(
-                        'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
-                        
-                        'debitAcc' => cash_Pko::$caseAccount, // дебитната сметка
-                        'debitItem1' => array('cls'=>'cash_Cases', 'id'=>$rec->peroCase),  // перо каса
-                		'debitItem2' => array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),// перо валута
-                        'debitQuantity' => $rec->amount,
-                        'debitPrice' => $rec->rate,
-                		
-                        'creditAccId' => $rec->creditAccounts, // кредитна сметка
-                        'creditItem1' => array('cls'=>$contragentClass, 'id'=>$contragentId), // перо контрагент
-                        'creditItem2' => array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId), // перо валута
-                        'creditQuantity' => $rec->amount,
-                        'creditPrice' => $rec->rate,
+                'valior' => $rec->valior,   // датата на ордера
+                'entries' =>array( 
+                    (object)array(
+                        'amount' => $rec->amount * $rec->rate,	// равностойноста на сумата в основната валута
+                        'debit' => array(
+                            '501', // Каси,
+                                array('cash_Cases', $caseId),
+                                array('currency_Currencies', $currencyId),
+                            'quantity' => $rec->amount,
+                        ),
+                        'credit' => array(
+                            '401', // Задължения към доставчици
+                                array('crm_Companies', $contragentId),
+                                array('currency_Currencies', $currencyId),
+                            'quantity' => $rec->amount,
+                        )
                     )
                 )
             )
         );
+        
+        $this->assertTrue($transaction->check());
     }
 
-    public function testBuildSteps()
+    public function xtestBuildSteps()
     {
         $id = 1;
         

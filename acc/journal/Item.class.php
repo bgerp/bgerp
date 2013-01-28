@@ -42,6 +42,8 @@ class acc_journal_Item
         }
 
         if (!isset($objectId)) {
+            print_r(func_get_args());
+            exit;
             expect(is_null($classId) || is_numeric($classId));
 
             $this->id = $classId;

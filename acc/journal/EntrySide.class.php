@@ -79,8 +79,9 @@ class acc_journal_EntrySide
      * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
      * @param array|stdClass $data
+     * @deprecated
      */
-    public function initFromTransactionSource($data)
+    public function xinitFromTransactionSource($data)
     {
         $data = (object)$data;
         $type = strtolower($this->type);
@@ -123,6 +124,39 @@ class acc_journal_EntrySide
         return $this->init($result);
     }
 
+
+    /**
+     * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
+     *
+     * @param array|stdClass $data
+     */
+    public function initFromTransactionSource($data)
+    {
+        $data = (array)$data;
+        
+        expect($d = $data[$this->type], "Липсва {$this->type} част на транзакция", $data);
+        
+        $this->amount = $data['amount']; // Сума в основна валута
+        
+        if (isset($d['quantity'])) {
+            $this->quantity = $d['quantity'];
+            unset($d['quantity']);
+        }
+        
+        $accountSystemId = array_shift($d);
+        
+        $this->account = new acc_journal_Account($accountSystemId);
+        
+        // Сега в $d останаха само перата
+        expect(count($d) <= 3, "{$this->type}: Макс 3 пера", $data);
+        
+        foreach ($d as $item) {
+            $this->items[] = new acc_journal_Item($item);
+        }
+        
+        $this->evaluate();
+    }
+    
 
     public function init($data)
     {
