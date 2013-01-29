@@ -413,104 +413,17 @@ class support_Issues extends core_Master
     
 
 	/**
-     * Отговорниците на компонента
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    static function getShared_($id)
-    {
-        // Записа за съответния сигнал
-        $iRec = static::fetch($id);
-        
-        // Отговорниците на компонента
-        $maintainers = support_Components::fetchField($iRec->componentId, 'maintainers');
-        
-        return $maintainers;
-    }
-    
-    
-    /**
      * 
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    function on_BeforeSave($mvc, &$id, &$rec)
     {
-        // След като субмитнем формата
-        if ($form->isSubmitted()) {
+        if ($rec->componentId) {
             
-            // Ако активираме, добавям флаг
-            if ($form->rec->state == 'active') $form->rec->__activating = TRUE;    
-        }
-    }
-    
-    
-    /**
-     * 
-     */
-    function on_AfterSave($mvc, &$id, &$rec)
-    {
-        // Ако активираме
-        if ($rec->__activating) {
+            // Отговорниците на компонента
+            $maintainers = support_Components::fetchField($rec->componentId, 'maintainers');
             
-            // Добавяме нотификация към отговорниците
-            static::notificateMaintainers($rec->id);
-        }
-    }
-    
-    
-    /**
-     * Нотифицира отговорниците на компонента, който активираме
-     */
-    static function notificateMaintainers($id)
-    {
-        // Записа за съответния сигнал
-        $iRec = static::fetch($id);
-        
-        // Нишката
-        $threadId = $iRec->threadId;
-        
-        // Документа
-        $containerId = $iRec->containerId;
-        
-        // Заглавието на сигнала във НЕвербален вид
-        $title = str::limitLen($iRec->title, 90);
-        
-        // Отговорниците
-        $maintainers = support_Components::fetchField($iRec->componentId, 'maintainers');
-        
-        // Превръщаме отговорниците в масив
-        $maintainersArr = type_Keylist::toArray($maintainers);
-        
-        // Ако има отговорници
-        if(count($maintainersArr)) {
-            
-            // id' то на потребителя, който активира
-            $currUserId = core_Users::getCurrent('id');
-            
-            // Вербалния ник на потребителя
-            $nick = core_Users::getVerbal($currUserId, 'nick');
-            
-            // Манипулатора на документа
-            $docHnd = static::getHandle($id);
-            
-            // Съобщението, което ще се показва и URL' то
-            $message = tr("|*{$nick} |активира сигнал|*: \"{$title}\"");
-            $url = array('doc_Containers', 'list', 'threadId' => $threadId);
-            $customUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'docId' => $docHnd, '#' => $docHnd);
-//            $url = $customUrl = array('support_Issues', 'single', $id);
-            
-            // Обхождаме всички отговорници
-            foreach($maintainersArr as $userId) {
-                
-                // Ако, активиращие също е отговорник прескачаме
-                if ($maintainersArr == $currUserId) continue;
-                
-                // Масив с всички отговорници, без активиращия
-                $sharedUserArr[$userId] = $userId;
-                
-                // Добавяме им нотофикации
-                bgerp_Notifications::add($message, $url, $userId, $iRec->priority, $customUrl);
-            }
+            // Обядиняваме отговорниците и споделените потребители
+            $rec->sharedUsers = type_Keylist::merge($rec->sharedUsers, $maintainers);    
         }
     }
     
