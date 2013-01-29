@@ -143,15 +143,19 @@ class acc_journal_EntrySide
             unset($d['quantity']);
         }
         
+        // SystemID на сметката е винаги първия елемент
         $accountSystemId = array_shift($d);
         
         $this->account = new acc_journal_Account($accountSystemId);
         
-        // Сега в $d останаха само перата
+        // Приемаме, че всичко останало в $d е пера.
         expect(count($d) <= 3, "{$this->type}: Макс 3 пера", $data);
         
         foreach ($d as $item) {
-            $this->items[] = new acc_journal_Item($item);
+            if (!($item instanceof acc_journal_Item)) {
+                $item = new acc_journal_Item($item);
+            }
+            $this->items[] = $item;
         }
         
         $this->evaluate();
