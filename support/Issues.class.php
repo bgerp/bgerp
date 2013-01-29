@@ -296,6 +296,19 @@ class support_Issues extends core_Master
         // Променяме съдържанието на полето тип с определения от нас масив, за да се показват само избраните
         $data->form->setOptions('typeId', $types);
         
+        // Масив с всички потребители, които имат достъп до папката
+        $sharedUsersArr = doc_Folders::getSharedUsersArr($folderId, TRUE);
+        
+        // Ако няма нито един потребители
+        if (!count($sharedUsersArr)) {
+            
+            // Не показваме полето
+            $data->form->setField('sharedUsers', 'input=none');
+        } else {
+            
+            // Задаваме да се показват потребителите, които имат достъп
+            $data->form->setSuggestions('sharedUsers', $sharedUsersArr);    
+        }
     }
     
     
