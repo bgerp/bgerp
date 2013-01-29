@@ -439,7 +439,7 @@ class bank_ExchangeDocument extends core_Master
             ),
         );
         
-      	foreach(array_keys($entry) as $type) {
+      	foreach(array('debit', 'credit') as $type) {
       	    foreach (range(1, 3) as $n) {
           	    if (!$rec->{"{$type}Ent{$n}"}) {
     				// Ако не е зададено перо - пропускаме
