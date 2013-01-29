@@ -222,7 +222,11 @@ class acc_journal_EntrySide
      */
     public function checkItems()
     {
-        expect($this->account->accepts($this->items));
+        try {
+            $this->account->accepts($this->items);
+        } catch (core_exception_Expect $ex) {
+            expect(FALSE, "Грешка в {$this->type}: " . $ex->args(1));
+        }
         
         return TRUE;
     }
