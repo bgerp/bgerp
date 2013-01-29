@@ -585,19 +585,25 @@ class doc_Containers extends core_Manager
         $document = doc_Containers::getDocument($containerId);
         $class = $document->className;
         
+        // Инстанция на класа
+        $clsInst = cls::get($class);
+        
         // Очакваме да има такъв запис
         expect($rec = $class::fetch("#containerId='{$containerId}'"));
         
         // Очакваме потребителя да има права за активиране
-        $class::requireRightFor('activate', $rec);
+        $clsInst->requireRightFor('activate', $rec);
         
         //Променяме състоянието
         $recAct = new stdClass();
         $recAct->id = $rec->id;
         $recAct->state = 'active';
         
+        // Извикваме фунцкията
+        $clsInst->invoke('Activation', array(&$recAct));
+        
         //Записваме данните в БД
-        $class::save($recAct);
+        $clsInst->save($recAct);
         
         //Редиректваме към сингъла на съответния клас, от къде се прехвърляме към треда
         redirect(array($class, 'single', $rec->id));
