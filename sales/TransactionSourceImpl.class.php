@@ -185,48 +185,23 @@ class sales_TransactionSourceImpl
         $currencyRate = $this->getCurrencyRate($rec);
 
         foreach ($rec->details as $detailRec) {
-            $creditQuantity = $detailRec->quantity; // Количество в основната мярка на продукта
-            $debitQuantity  = $detailRec->amount; // "брой пари" във валутата на продажбата 
-            $amount         = $detailRec->amount * $currencyRate; // В основна валута
-
             $entries[] = array(
-                // Дебит
-                'debitAcc' => '411', // Сметка "411. Вземания от клиенти"
-                'debitItem1' => (object)array( // Перо 1 - Клиент
-                    'cls' => $rec->contragentClassId,
-                    'id'  => $rec->contragentId,
-                ),
-                'debitItem2' => (object)array( // Перо 2 - Документ-продажба
-                    'cls' => 'sales_Sales',
-                    'id'  => $rec->id,
-                ),
-                'debitItem3' => (object)array( // Перо 3 - Валута
-                    'cls' => 'currency_Currencies',
-                    'id'  => $rec->currencyId,
-                ),
+                'amount' => $detailRec->amount * $currencyRate, // В основна валута
                 
-                // Кредит
-                'creditAcc' => '702', // Сметка "702. Приходи от продажби на стоки"
-                'creditItem1' => (object)array( // Перо 1 - Продукт
-                    'cls' => 'cat_Products',
-                    'id'  => $detailRec->productId,
-                ),
-                'creditItem2' => (object)array( // Перо 2 - Документ-продажба
-                    'cls' => 'sales_Sales',
-                    'id'  => $rec->id,
+                'debit' => array(
+                    '411', // Сметка "411. Вземания от клиенти"
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array('sales_Sales', $rec->id),                     // Перо 2 - Документ-продажба
+                        array('currency_Currencies', $rec->currencyId),     // Перо 3 - Валута
+                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
-                    '401', 
-                    array('sales_Sales',  $rec->id),
-                    
+                    '702', // Сметка "702. Приходи от продажби на стоки"
+                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
+                        array('sales_Sales', 'id'  => $rec->id),      // Перо 2 - Документ-продажба
+                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
-                
-                // Обороти
-                'debitQuantity' => $debitQuantity,    // Сума в осн. валута
-                'debitAmount'   => $amount,           // Курс на валутата към основната валута
-                'creditQuantity' => $creditQuantity,  // Количество продукти
-                'creditAmount'   => $amount,          // Единична цена на продукт в осн. валута 
             );
         }
         
@@ -260,7 +235,7 @@ class sales_TransactionSourceImpl
             
         }
         
-        return array();
+        return array();// @TODO
     }
     
     
