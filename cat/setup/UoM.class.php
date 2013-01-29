@@ -25,7 +25,7 @@ class cat_setup_UoM extends core_Mvc
         $Units = cls::get('cat_UoM');
         
         if (($handle = fopen(__DIR__ . "/csv/UoM.csv", "r")) !== FALSE) {
-            while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            while (($csvRow = fgetcsv($handle, 2000, ",")) !== FALSE) {
                 $rec = new stdClass();
                 $rec->name = $csvRow[0];
                 $rec->shortName = $csvRow[1];
