@@ -135,6 +135,15 @@ class cat_Packagings extends core_Manager
             array(
                 'name' => 'Палет',
             ),
+            array(
+                'name' => 'Клетка',
+            ),
+            array(
+                'name' => 'Бройка',
+            ),
+            array(
+                'name' => 'Бака',
+            )
         );
         
         foreach ($initData as $rec) {

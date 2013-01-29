@@ -168,6 +168,16 @@ class cat_Params extends core_Manager
                 'type' => 'varchar',
                 'suffix' => '',
             ),
+            array(
+                'name' => 'Дебелина',
+                'type' => 'double',
+                'suffix' => 'микрон',
+            ),
+            array(
+                'name' => 'Обем',
+                'type' => 'double',
+                'suffix' => 'литри',
+            )
         );
         
         foreach ($initData as $rec) {
