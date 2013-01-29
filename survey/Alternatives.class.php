@@ -41,6 +41,12 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
+	 *  Брой елементи на страница 
+	 */
+	var $listItemsPerPage = "15";
+	
+	
+    /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Въпрос";
@@ -101,11 +107,42 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
+     * Подготовка на Детайлите
+     */
+    function prepareDetail_($data)
+    {
+    	/*
+    	 * Рендираме резултатите вместо въпросите в следните случаи:
+    	 * В режим за "обобщение" сме и имаме права да обобщаваме,
+    	 * или Анкетата е изтекла
+    	 */
+    	if((Request::get('summary') && 
+    		survey_Surveys::haveRightFor('summarise', $data->masterId))
+    		|| survey_Surveys::isClosed($data->masterId)) {
+	    	$data->rec = survey_Surveys::fetch($data->masterId);
+	    	$this->prepareSummariseDetails($data);	
+    	}
+    	
+    	parent::prepareDetail_($data);
+    }
+    
+    
+    /**
      * Рендиране на въпросите
      */
     function renderDetail_($data)
     {
-    	$tpl = $this->renderAlternatives($data);
+    	if($data->action == 'summarise') {
+    		
+    		// Ако трябва да показваме обобщения изглед го рендираме
+    		$tpl = $this->renderSummariseDetails($data);
+    	} else {
+    		
+    		// Ако не обобщаваме рендираме въпросите с възможност за
+    		// отговор
+    		$tpl = $this->renderAlternatives($data);
+    	}
+    	
     	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
     	
     	return $tpl;
@@ -118,7 +155,7 @@ class survey_Alternatives extends core_Detail {
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if($fields['-list']) {
-			$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
+			$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id, $rec->surveyId);
 			
 			if(!$rec->image) {
 				$imgLink = sbf('survey/img/question.png', '');
@@ -137,31 +174,46 @@ class survey_Alternatives extends core_Detail {
 	 * с връзки към екшъна Vote на survey_Votes
 	 * @param text $text - Отговорите на въпроса във вида на текст
 	 * @param int $id - ид на въпроса
+	 * @param int $surveyId - id на анкетата
+	 * @return core_ET $tpl
 	 */
-	function verbalAnswers($text, $id)
+	function verbalAnswers($text, $id, $surveyId)
 	{
 		$tpl = new ET("");
-		$altTpl = new ET("<li><input type='radio' onClick='go(&#39;[#url#]&#39;);' [#checked#]>&nbsp;&nbsp;[#answer#]</li>\n");
+		$altTpl = new ET("<li><input name= 'quest{$id}' type='radio' [#onClick#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>\n");
+		
+		// Ако анкетата е активна тогава радио бутоните могат да
+		// изпращат гласове
+		$surveyState = survey_Surveys::fetchField($surveyId, 'state');
+		if($surveyState == 'active') {
+			$altTpl->replace(new ET("onClick='go(&#39;[#url#]&#39;);'"), 'onClick');
+		}
 		
 		// Разбиваме подадения текст по редове
 		$txtArr = explode("\n", $text);
 		$arr = array('survey_Votes', 'vote', 'id' => NULL, 'alternativeId' => $id, 'ret_url' => TRUE);
 		$rowAnswered = survey_Votes::hasUserVoted($id);
+		
 		for($i = 1; $i <= count($txtArr); $i++) {
-			
-			// Всеки ред от текста е отговор, рендираме го във вида на радио
-			if($mid = Request::get('m')) {
-				$arr['m'] = $mid;
+			if($txtArr[$i-1] != '') {
+				
+				// Всеки непразен ред от текста е отговор, 
+				// рендираме го във вида на радио бутон
+				if($mid = Request::get('m')) {
+					$arr['m'] = $mid;
+				}
+				
+				$arr['id'] = $i;
+				$url = toUrl($arr);
+				$copyTpl = clone($altTpl);
+				$copyTpl->replace($url, 'url');
+				$copyTpl->replace($txtArr[$i-1], 'answer');
+				if($i == $rowAnswered) {
+					$copyTpl->replace('checked', 'checked');
+				}
+				
+				$tpl->append($copyTpl);
 			}
-			$arr['id'] = $i;
-			$url = toUrl($arr);
-			$copyTpl = clone($altTpl);
-			$copyTpl->replace($url, 'url');
-			$copyTpl->replace($txtArr[$i-1], 'answer');
-			if($i == $rowAnswered) {
-				$copyTpl->replace('checked', 'checked');
-			}
-			$tpl->append($copyTpl);
 		}
 		
 		return $tpl;
@@ -182,9 +234,108 @@ class survey_Alternatives extends core_Detail {
     		$rowTpl->removeBlocks();
     		$tpl->append($rowTpl);
     	}
+    	
     	$tpl->append(new ET('[#ListToolbar#]'));
     	
     	return $tpl;
+    }
+    
+    
+ 	/**
+     *  Подготовка на Обобщението на анкетата, Подготвяме резултатите във вида
+     *  на масив от обекти, като всеки въпрос съдържа  информацията за неговите
+     *  възможни отговори и техния брой гласове
+     */
+    function prepareSummariseDetails(&$data)
+    {
+    	$rec = &$data->rec;
+    	$data->action = 'summarise';
+    	$recs = array();
+    	
+    	$queryAlt = survey_Alternatives::getQuery();
+    	$queryAlt->where("#surveyId = {$rec->id}");
+    	while($altRec = $queryAlt->fetch()) {
+    		$recs[$altRec->id] = $this->prepareResults($altRec);
+    	}
+    	
+    	$data->summary = $recs;
+    }
+    
+    
+    /**
+     * Метод преброяващ колко гласа е получила всяка от опциите на въпроса
+     * @param stdClass $rec - запис на въпрос
+     * @return stdClass $res - Обект показващ колко гласа е получил 
+     * Всеки възможен отговор
+     */
+    function prepareResults($rec)
+    {
+    	// Преброяваме колко гласа е получил всеки ред от отговорите
+    	$txtArr = explode("\n", $rec->answers);
+    	$answers = array();
+    	for($i = 0; $i<count($txtArr); $i++) {
+    		$op = new stdClass();
+    		$op->text = $txtArr[$i];
+    		$op->count = survey_Votes::countVotes($rec->id, $i+1);
+    		$answers[] = $op;
+    	}
+    	
+		$res = new stdClass();
+    	$res->label = $rec->label;
+    	$res->answers = $answers;
+    	
+    	return $res;
+    }
+    
+    
+ 	/**
+     * Рендиране на Обобщените резултати
+     */
+	function renderSummariseDetails($data)
+    {
+    	$tpl = new ET(getFileContent('survey/tpl/Summarise.shtml'));
+    	$blockTpl = $tpl->getBlock('ROW');
+    	$varcharType = cls::get('type_Varchar');
+    	$tpl->replace($varcharType->toVerbal($data->rec->title), 'TOPIC');
+    	
+    	// За всеки въпрос от анкетата го рендираме заедно с отговорите
+    	foreach($data->summary as $rec) {
+    		$questionTpl = clone($blockTpl);
+    		$subRow = $questionTpl->getBlock('subRow');
+    		$label = $varcharType->toVerbal($rec->label);
+    		$questionTpl->replace($label, 'QUESTION');
+    		
+    		// Рендираме всеки отговор от въпроса с неговите гласове
+    		foreach($rec->answers as $answer) {
+    			$answersTpl = clone($subRow);
+    			$text = $varcharType->toVerbal($answer->text);
+    			$answersTpl->replace($text, 'OPTION');
+    			$answersTpl->replace($answer->count, 'VOTES');
+    			$answersTpl->removeBlocks();
+    			$answersTpl->append2master();
+    		}
+    		$questionTpl->removeBlocks();
+    		$questionTpl->append2master();
+    	}
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Метод връщащ подаден ред от отговорите на даден въпрос
+     * @param alternativeId $id - ид ана въпроса
+     * @param int $rate - номер на реда
+     * @return varchar $res - текста, който се намира на този ред
+     */
+    static function getAnswerRow($id, $rate)
+    {
+    	expect($rec = static::fetch($id));
+    	
+    	// Разбираме отговорите по нови редове, и връщаме търсения ред
+    	$txtArr = explode("\n", $rec->answers);
+    	
+    	return $txtArr[$rate-1];
     }
     
     
@@ -195,16 +346,17 @@ class survey_Alternatives extends core_Detail {
 	{  
    		if($action == 'write' && isset($rec)) {
    			
-   			/* Неможем да добавяме/редактираме нови въпроси в следните случаи:
-   			 * Анкетата е затворена, Анкетата е активиранам, потребителят не е
-   			 * създател на анкетата
+   			/* Неможем да добавяме/редактираме нови въпроси
+   			 * в следните случаи: Анкетата е затворена,
+   			 * Анкетата е активиранам,
+   			 * потребителят не е създател на анкетата
    			 */
    			$surveyRec = survey_Surveys::fetch($rec->surveyId);
    			if(survey_Surveys::isClosed($surveyRec->id) || 
    			   $surveyRec->state != 'draft' || 
    			   $surveyRec->createdBy != core_Users::getCurrent()) {
    			   $res = 'no_one';
-   			} 
+   			}  
    		}
    		
 		if($action== 'add' && !isset($rec)) {
