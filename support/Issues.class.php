@@ -160,6 +160,9 @@ class support_Issues extends core_Master
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%, mandatory");
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
         
+        // Възлагане на задача (за doc_AssignPlg)
+        $this->FLD('assign', 'user(roles=powerUser)', 'caption=Възложен на,input=none');
+        
         $this->FNC('systemIdShow', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory, input=none');
     }
     
@@ -296,6 +299,19 @@ class support_Issues extends core_Master
         // Променяме съдържанието на полето тип с определения от нас масив, за да се показват само избраните
         $data->form->setOptions('typeId', $types);
         
+        // Масив с всички потребители, които имат достъп до папката
+        $sharedUsersArr = doc_Folders::getSharedUsersArr($folderId, TRUE);
+        
+        // Ако няма нито един потребители
+        if (!count($sharedUsersArr)) {
+            
+            // Не показваме полето
+            $data->form->setField('sharedUsers', 'input=none');
+        } else {
+            
+            // Задаваме да се показват потребителите, които имат достъп
+            $data->form->setSuggestions('sharedUsers', $sharedUsersArr);    
+        }
     }
     
     
@@ -411,106 +427,31 @@ class support_Issues extends core_Master
         return $row;
     }
     
-
-	/**
-     * Отговорниците на компонента
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    static function getShared_($id)
-    {
-        // Записа за съответния сигнал
-        $iRec = static::fetch($id);
-        
-        // Отговорниците на компонента
-        $maintainers = support_Components::fetchField($iRec->componentId, 'maintainers');
-        
-        return $maintainers;
-    }
-    
     
     /**
-     * 
+     * Функция, която прихваща след активирането на документа
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_Activation($mvc, &$rec)
     {
-        // След като субмитнем формата
-        if ($form->isSubmitted()) {
+        // Ако няма компонент и имаме id
+        if ((!$rec->componentId) && ($rec->id)) {
             
-            // Ако активираме, добавям флаг
-            if ($form->rec->state == 'active') $form->rec->__activating = TRUE;    
+            // Извличаме записите
+            $nRec = $mvc->fetch($rec->id);   
+        } elseif ($rec->componentId) {
+            
+            // Клонираме
+            $nRec = clone($rec);
         }
-    }
-    
-    
-    /**
-     * 
-     */
-    function on_AfterSave($mvc, &$id, &$rec)
-    {
-        // Ако активираме
-        if ($rec->__activating) {
-            
-            // Добавяме нотификация към отговорниците
-            static::notificateMaintainers($rec->id);
-        }
-    }
-    
-    
-    /**
-     * Нотифицира отговорниците на компонента, който активираме
-     */
-    static function notificateMaintainers($id)
-    {
-        // Записа за съответния сигнал
-        $iRec = static::fetch($id);
         
-        // Нишката
-        $threadId = $iRec->threadId;
-        
-        // Документа
-        $containerId = $iRec->containerId;
-        
-        // Заглавието на сигнала във НЕвербален вид
-        $title = str::limitLen($iRec->title, 90);
-        
-        // Отговорниците
-        $maintainers = support_Components::fetchField($iRec->componentId, 'maintainers');
-        
-        // Превръщаме отговорниците в масив
-        $maintainersArr = type_Keylist::toArray($maintainers);
-        
-        // Ако има отговорници
-        if(count($maintainersArr)) {
+        // Ако има компоненти
+        if ($nRec->componentId) {
             
-            // id' то на потребителя, който активира
-            $currUserId = core_Users::getCurrent('id');
+            // Отговорниците на компонента
+            $maintainers = support_Components::fetchField($nRec->componentId, 'maintainers');
             
-            // Вербалния ник на потребителя
-            $nick = core_Users::getVerbal($currUserId, 'nick');
-            
-            // Манипулатора на документа
-            $docHnd = static::getHandle($id);
-            
-            // Съобщението, което ще се показва и URL' то
-            $message = tr("|*{$nick} |активира сигнал|*: \"{$title}\"");
-            $url = array('doc_Containers', 'list', 'threadId' => $threadId);
-            $customUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'docId' => $docHnd, '#' => $docHnd);
-//            $url = $customUrl = array('support_Issues', 'single', $id);
-            
-            // Обхождаме всички отговорници
-            foreach($maintainersArr as $userId) {
-                
-                // Ако, активиращие също е отговорник прескачаме
-                if ($maintainersArr == $currUserId) continue;
-                
-                // Масив с всички отговорници, без активиращия
-                $sharedUserArr[$userId] = $userId;
-                
-                // Добавяме им нотофикации
-                bgerp_Notifications::add($message, $url, $userId, $iRec->priority, $customUrl);
-            }
+            // Обядиняваме отговорниците и споделените потребители
+            $rec->sharedUsers = type_Keylist::merge($rec->sharedUsers, $maintainers);      
         }
     }
     

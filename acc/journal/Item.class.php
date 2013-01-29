@@ -96,4 +96,14 @@ class acc_journal_Item
         
         return $this->id;
     }
+    
+    
+    public function className()
+    {
+        if (empty($this->classId)) {
+            return 'Неизвестен клас';
+        }
+        
+        return core_Cls::getClassName($this->classId);
+    }
 }

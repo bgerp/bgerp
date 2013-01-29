@@ -27,7 +27,7 @@ class acc_Operations extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, acc_WrapperSettings,  plg_Search';
+    var $loadList = 'plg_RowTools, acc_WrapperSettings, plg_Search, plg_Created';
     
     
     /**
@@ -39,7 +39,7 @@ class acc_Operations extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, name, document, debitAccount, creditAccount, systemId";
+    var $listFields = "tools=Пулт, name, document, debitAccount, creditAccount, systemId, createdOn, createdBy";
    
     
     /**

@@ -30,7 +30,7 @@ class doc_AssignPlg extends core_Plugin
         if(!$mvc->fields['assign']) {
             
             // Добавяме в модела
-            $mvc->FLD('assign', 'key(mvc=core_Users,select=nick)', 'caption=Възложен на,input=none');
+            $mvc->FLD('assign', 'user(roles=user)', 'caption=Възложен на,input=none');
         }
         
         // Ако няма такова поле

@@ -287,6 +287,7 @@ class doc_Containers extends core_Manager
             $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-add');
             
             if($data->threadRec->state == 'opened') {
+                // TODO може да се направи бутона да не е активен
                 $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'class=btn-close');
             } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
                 $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'class=btn-open');
@@ -584,19 +585,25 @@ class doc_Containers extends core_Manager
         $document = doc_Containers::getDocument($containerId);
         $class = $document->className;
         
+        // Инстанция на класа
+        $clsInst = cls::get($class);
+        
         // Очакваме да има такъв запис
         expect($rec = $class::fetch("#containerId='{$containerId}'"));
         
         // Очакваме потребителя да има права за активиране
-        $class::haveRightFor('activation', $rec);
+        $clsInst->requireRightFor('activate', $rec);
         
         //Променяме състоянието
         $recAct = new stdClass();
         $recAct->id = $rec->id;
         $recAct->state = 'active';
         
+        // Извикваме фунцкията
+        $clsInst->invoke('Activation', array(&$recAct));
+        
         //Записваме данните в БД
-        $class::save($recAct);
+        $clsInst->save($recAct);
         
         //Редиректваме към сингъла на съответния клас, от къде се прехвърляме към треда
         redirect(array($class, 'single', $rec->id));

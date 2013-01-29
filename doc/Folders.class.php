@@ -764,4 +764,40 @@ class doc_Folders extends core_Master
 
         return $sbfImg;        
     }
+
+    /**
+     * Връща масив с всички активни потребители, които имат достъп до дадена папка
+     * 
+     * @param doc_Folders $folderId - id на папката
+     * @param boolean $removeCurrent - Дали да се премахне текущия потребител от резултатите
+     * 
+     * @return array $sharedUsersArr - Масив с всички споделени потребители
+     */
+    static function getSharedUsersArr($folderId, $removeCurrent=FALSE)
+    {
+        // Масив с потребителите, които имат права за папката
+        $sharedUsersArr = array();
+        
+        // Вземаме всички активни потребители
+        $userQuery = core_Users::getQuery();
+        $userQuery->where("#state='active'");
+        while ($rec = $userQuery->fetch()) {
+            
+            // Ако потребителя има права за single в папката
+            if (doc_Folders::haveRightFor('single', $folderId, $rec->id)) {
+                
+                // Добавяме в масива
+                $sharedUsersArr[$rec->id] = core_Users::getVerbal($rec, 'nick');
+            }
+        }
+        
+        // Ако е зададен да се премахне текущия потребител от масива и има такъв потребител
+        if ($removeCurrent && ($currUser = core_Users::getCurrent())) {
+            
+            // Премахваме от масива текущия потребител
+            unset($sharedUsersArr[$currUser]);
+        }
+        
+        return $sharedUsersArr;
+    }
 }

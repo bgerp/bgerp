@@ -32,7 +32,7 @@ class survey_Surveys extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,
-     	plg_Sorting,  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg';
+     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg';
     
   
     /**
@@ -58,6 +58,12 @@ class survey_Surveys extends core_Master {
      */
     var $rowToolsSingleField = 'title';
 
+    
+    /**
+	 *  Брой елементи на страница 
+	 */
+    var $listItemsPerPage = "15";
+    
     
     /**
      * Кой има право да чете?
@@ -102,9 +108,9 @@ class survey_Surveys extends core_Master {
     {
     	$this->FLD('title', 'varchar(50)', 'caption=Заглавие, mandatory, width=400px');
 		$this->FLD('description', 'text(rows=2)', 'caption=Oписание, mandatory, width=100%');
-    	$this->FLD('deadline', 'date(format=d.m.Y)', 'caption=Краен срок,width=8em,mandatory');
+    	$this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,width=8em,mandatory');
     	$this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory,width=8em');
-    	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory,width=8em');
+    	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена,closed=Изтекла)', 'caption=Състояние,mandatory,width=8em');
     }
     
     
@@ -115,9 +121,13 @@ class survey_Surveys extends core_Master {
     {
     	if($form->isSubmitted()) {
     		$today = dt::now();
-	    	if($form->rec->deadline <= $today) {
-	    		$form->setError('deadline', 'Крайния срок на анкетата не е валиден');
+	    	if($form->rec->enddate <= $today) {
+	    		$form->setError('enddate', 'Крайния срок на анкетата не е валиден');
 	    	} 
+	    	
+	    	if($form->rec->state == 'closed') {
+	    		$form->setError('state', "Състоянието неможе да е 'затворено'");
+	    	}
     	}
     }
     
@@ -148,7 +158,7 @@ class survey_Surveys extends core_Master {
     {
     	expect($rec = static::fetch($id), 'Няма такъв запис');
     	$now = dt::now();
-    	($rec->deadline <= $now) ? $res = TRUE : $res = FALSE;
+    	($rec->state == 'closed' || $rec->enddate <= $now) ? $res = TRUE : $res = FALSE;
     	
     	return $res;
     }
@@ -160,19 +170,27 @@ class survey_Surveys extends core_Master {
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		//  Кой може да обобщава резултатите
-		if($action == 'summarise' && isset($rec->id)) {
-   			switch($rec->summary) {
-   				case 'internal':
-   					$res = $mvc->canSummarise;
-   					break;
-   				case 'personal':
-   					if($rec->createdBy != core_Users::getCurrent()) {
-   						$res = 'no_one';
-   					}
-   					break;
-   				case 'public':
-   					$res = 'every_one';
-   					break;
+		if($action == 'summarise' && isset($rec->id) ) {
+   			
+			/*
+			 * Можем да Обобщим резултатите само ако анкетата не е чернова
+			 */
+			if($rec->state == 'active' && !static::isClosed($rec->id)) {
+				switch($rec->summary) {
+	   				case 'internal':
+	   					$res = $mvc->canSummarise;
+	   					break;
+	   				case 'personal':
+	   					if($rec->createdBy != core_Users::getCurrent()) {
+	   						$res = 'no_one';
+	   					}
+	   					break;
+	   				case 'public':
+	   					$res = 'every_one';
+	   					break;
+	   			}
+   			} else {
+   				$res = 'no_one';
    			}
    		} 
    	}
@@ -183,104 +201,20 @@ class survey_Surveys extends core_Master {
    	 */
    	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc::haveRightFor('summarise', $data->rec->id)) {
-    		$data->toolbar->addBtn('Обобщение', array($mvc, 'summarise', $data->rec->id, 'ret_url' => TRUE, ''));
+    	$summary = Request::get('summary');
+    	if($mvc::haveRightFor('summarise', $data->rec->id) && !$summary) {
+    		$url = getCurrentUrl();
+    		$url['summary'] = 'ok';
+    		$data->toolbar->addBtn('Обобщение', $url);
+    	} 
+    	
+    	if($summary && $data->rec->state == 'active') {
+    		$data->toolbar->addBtn('Анкета',  array($mvc, 'single', $data->rec->id));
     	}
-    }
-   	
-    
-    /**
-     *  Екшън обобщаващ резултатите на анкетата
-     */
-    function act_Summarise()
-    {
-    	$this->requireRightFor('summarise', $data->rec->id);
-    	expect($id = Request::get('id'));
-    	expect($rec = $this->fetch($id));
-    	
-    	$data = new stdClass();
-    	$data->rec = $rec;
-    	$data->action = 'summarise';
-    	
-    	// Подготвяме резултатите от анкетата
-    	$this->prepareSummarise($data);
-    	
-    	// Рендираме резултатите
-    	$layout = $this->renderSummarise($data);  	
-    	
-    	return $layout;
-     }
-    
-    
-    /**
-     *  Подготовка на Обобщението на анкетата, Подготвяме резултатите във вида
-     *  на масив от обекти, като всеки въпрос съдържа  информацията за неговите
-     *  възможни отговори и техния брой гласове
-     */
-    function prepareSummarise($data)
-    {
-    	$rec = &$data->rec;
-    	$recs = array();
-    	$queryAlt = survey_Alternatives::getQuery();
-    	$queryAlt->where("#surveyId = {$rec->id}");
-    	while($altRec = $queryAlt->fetch()) {
-    		$txtArr = explode("\n", $altRec->answers);
-    		$answers = array();
-    		for($i = 0; $i<count($txtArr); $i++) {
-    			$op = new stdClass();
-    			$op->text = $txtArr[$i];
-    			$op->count = survey_Votes::countVotes($altRec->id, $i+1);
-    			$answers[] = $op;
-    		}
-			
-    		$rec = new stdClass();
-    		$rec->label = $altRec->label;
-    		$rec->answers = $answers;
-    		$recs[$altRec->id] = $rec;
-    	}
-    	
-    	$data->recs = $recs;
     }
     
     
     /**
-     * Рендиране на Обобщените резултати
-     */
-	function renderSummarise($data)
-    {
-    	$tpl = new ET(getFileContent('survey/tpl/Summarise.shtml'));
-    	$blockTpl = $tpl->getBlock('ROW');
-    	$varcharType = cls::get('type_Varchar');
-    	
-    	// За всеки въпрос от анкетата го рендираме заедно с отговорите
-    	foreach($data->recs as $rec) {
-    		$questionTpl = clone($blockTpl);
-    		$subRow = $questionTpl->getBlock('subRow');
-    		$label = $varcharType->toVerbal($rec->label);
-    		$questionTpl->replace($label, 'QUESTION');
-    		
-    		// Рендираме всеки отговор от въпроса с неговите гласове
-    		foreach($rec->answers as $answer) {
-    			$answersTpl = clone($subRow);
-    			$text = $varcharType->toVerbal($answer->text);
-    			$answersTpl->replace($text, 'OPTION');
-    			$answersTpl->replace($answer->count, 'VOTES');
-    			$answersTpl->removeBlocks();
-    			$answersTpl->append2master();
-    		}
-    		
-    		$questionTpl->removeBlocks();
-    		$questionTpl->append2master();
-    	}
-    	
-    	$tpl = $this->renderWrapping($tpl);
-    	$tpl->push('survey/tpl/css/styles.css', 'CSS');
-    	
-    	return $tpl;
-    }
-    
-    
-   	/**
      * Пушваме css файла
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
@@ -314,5 +248,41 @@ class survey_Surveys extends core_Master {
     	$self = cls::get(get_called_class());
     	
     	return $self->abbr . $rec->id;
+    }
+    
+    
+    /**
+     * Крон функция, която заключва изтеклите анкети
+     */
+    function cron_CloseSurveys()
+    {
+    	$query = $this->getQuery();
+    	$query->where("#state = 'active'");
+    	while($rec = $query->fetch()) {
+    		if(static::isClosed($rec->id)) {
+    			$rec->state = 'closed';
+    			$this->save($rec);
+    		}
+    	}
+    }
+    
+    
+ 	/**
+     * Настройки на Cron-a
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        $Cron = cls::get('core_Cron');
+        
+        $rec = new stdClass();
+        $rec->systemId = "close_old_surveys";
+        $rec->description = "Затваряне на изтекли анкети";
+        $rec->controller = 'survey_Surveys';
+        $rec->action = "CloseSurveys";
+        $rec->period = 24 * 60;
+        $rec->offset = 17 * 60;
+    	if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да заключва изтекли статии.</font></li>";
+        }
     }
 }

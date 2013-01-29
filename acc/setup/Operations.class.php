@@ -31,7 +31,8 @@ class acc_setup_Operations
                 
                 $rec = new stdClass();
                 $rec->name = $csvRow [0];
-                $rec->document = $csvRow [1];
+               	$classId = core_Classes::fetchIdByName($csvRow [1]);
+               	$rec->document = $classId;
                 $rec->debitAccount = $csvRow [2];
                 $rec->creditAccount = $csvRow [3];
                 $rec->systemId = $csvRow [4];

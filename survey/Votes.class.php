@@ -59,7 +59,7 @@ class survey_Votes extends core_Manager {
     {
     	$this->FLD('alternativeId', 'key(mvc=survey_Alternatives)', 'caption=Въпрос, input=hidden, silent');
     	$this->FLD('rate', 'int', 'caption=Отговор');
-    	$this->FLD('userUid', 'varchar(32)', 'caption=Потребител');
+    	$this->FLD('userUid', 'varchar(80)', 'caption=Потребител');
     	
     	$this->setDbUnique('alternativeId, userUid');
     }
@@ -70,11 +70,10 @@ class survey_Votes extends core_Manager {
      */
     function act_Vote()
     {
-    	$this->requireRightFor('add');
-    	
     	//Намираме на кой въпрос, кой отговор е избран
     	expect($alternativeId = Request::get('alternativeId'));
     	expect($rowId = Request::get('id'));
+    	$this->requireRightFor('add', $alternativeId);
     	
     	// Подготвяме записа
     	$rec = new stdClass();
@@ -82,7 +81,7 @@ class survey_Votes extends core_Manager {
     	$rec->rate = $rowId;
     	$rec->userUid = static::getUserUid();
     	
-    	if($this->haveRightFor('add')) {
+    	if($this->haveRightFor('add', $alternativeId)) {
     		
     		// Записваме Гласа
     		$this->save($rec, NULL, 'ignore');
@@ -103,15 +102,18 @@ class survey_Votes extends core_Manager {
      */
     static function getUserUid()
     {
+    	$uid = new stdClass();
+    	
     	if(core_Users::haveRole('user')) {
-    		$userUid = core_Users::getCurrent();
+    		$uid->id = core_Users::getCurrent();
     	} elseif($mid = Request::get('m')) {
-    		$userUid = $mid;
+    		$uid->mid = $mid;
     	} else {
-    		$userUid = $_SERVER['REMOTE_ADDR'];
+    		$uid->ip = $_SERVER['REMOTE_ADDR'];
     	}
     	
-    	return $userUid;
+    	// Сериализираме uid-a  за да знаем от какъв е int/mid/Ip
+    	return serialize($uid);
     }
     
     
@@ -138,11 +140,50 @@ class survey_Votes extends core_Manager {
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-list']) {
-    		$altRec = survey_Alternatives::fetch($rec->alternativeId);
-    		$altRow = survey_Alternatives::RecToVerbal($altRec,'label,-list');
+    		$varchar = cls::get('type_Varchar');
     		
-    		$row->alternativeId = $altRow->label;
+    		// На кой въпрос е отговорено
+    		$altRec = survey_Alternatives::fetch($rec->alternativeId);
+    		$row->alternativeId = $varchar->toVerbal($altRec->label);
+    		
+    		// Кой отговор е избран
+    		$rate = survey_Alternatives::getAnswerRow($rec->alternativeId, $rec->rate);
+    		$row->rate = $varchar->toVerbal($rate);
+    		
+    		// Кой го е отговорил
+    		$row->userUid = $mvc->verbalUserUid($rec->userUid);
     	}
+    }
+    
+    
+    /**
+     * Връща вербалната стойност на подадения userUid
+     * @param varchar(32) $userUid - ид на потребител/мид/Ип на
+     * гласувалия потребител
+     */
+    function verbalUserUid($userUid)
+    {
+    	// десериализираме уид-а от базата 
+    	$uid = unserialize($userUid);
+    	$varchar = cls::get('type_Varchar');
+    	
+    	if($uid->id) {
+    		
+    		// ако е ид, намираме ника на потребителя
+    		$nick = core_Users::fetchField($uid->id, 'nick');
+    		$userUid = $varchar->toVerbal($nick);
+    	} elseif($uid->mid) {
+    		
+    		// ако е mid
+    		$userUid = $varchar->toVerbal("mid: {$uid->mid}");
+    	} elseif($uid->ip) {
+    		
+    		// ако е Ип на потребител
+    		$userUid = $varchar->toVerbal($uid->ip);
+    		$userUid = ht::createLink("IP: {$userUid}", "http://bgwhois.com/?query={$uid->ip}", NULL, array('target' => '_blank'));
+    	}
+    	
+    	return $userUid;
     }
     
     
@@ -155,8 +196,8 @@ class survey_Votes extends core_Manager {
     {
     	$userUid = static::getUserUid();
     	$query = static::getQuery();
-    	$query->where("#alternativeId = {$alternativeId}");
-    	$query->where("#userUid = '{$userUid}'");
+    	$query->where(array("#alternativeId = [#1#]", $alternativeId));
+    	$query->where(array("#userUid = '[#1#]'", $userUid));
     	if($rec = $query->fetch()) {
     		
     		return $rec->rate;
@@ -171,7 +212,7 @@ class survey_Votes extends core_Manager {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
-		if($action== 'add' && !isset($rec)) {
+		if($action == 'add' && !isset($rec)) {
 			
 			// Предпазване от добавяне на нов постинг в act_List
 			$res = 'no_one';

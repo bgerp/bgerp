@@ -102,4 +102,60 @@ class lab_Parameters extends core_Manager
     {
         $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
     }
+    
+/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+ 		// Изтриваме съдържанието й
+		$mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
+		
+    	$res .= static::loadData();
+       
+    }
+    
+    
+    /**
+     * Зареждане на началните празници в базата данни
+     */
+    static function loadData()
+    {
+    	
+        $csvFile = __DIR__ . "/csv/lab_Parameters.csv";
+        
+        $created = $updated = 0;
+        
+        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
+         
+            while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
+               
+                $rec = new stdClass();
+              
+               
+                $rec->name = $csvRow[0];
+               
+                $rec->type = $csvRow[1];
+                
+                $rec->dimension = $csvRow[2]; 
+                
+                $rec->precision = $csvRow[3];
+              
+                $rec->description = $csvRow[4];
+                            
+                
+                static::save($rec);
+
+                $ins++;
+            }
+            
+            fclose($handle);
+            
+            $res .= "<li style='color:green;'>Създадени са записи за {$ins} лабораторни параметри</li>";
+        } else {
+            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+        }
+        
+        return $res;
+    }
 }

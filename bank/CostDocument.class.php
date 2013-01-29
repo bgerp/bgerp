@@ -324,35 +324,35 @@ class bank_CostDocument extends core_Master
     	// Извличаме записа
         expect($rec = self::fetch($id));
         
-        $entrAmount = $rec->amount * $rec->rate;
-		
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'totalAmount' => $rec->amount * $rec->rate,
-            'entries' => array( (object)array(
-                'amount' => $entrAmount,
-                'debitAcc' => $rec->debitAccId,
-                'debitItem1' => (object)array('cls'=>$rec->contragentClassId,'id'=>$rec->contragentId),
-                'debitItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),
-                'debitItem3' => NULL,
-                'debitQuantity' => $rec->amount,
-                'debitPrice' => $rec->rate,
-                'creditAcc' => $rec->creditAccId,
-                'creditItem1' => (object)array('cls'=>'bank_OwnAccounts', 'id'=>$rec->ownAccount),
-                'creditItem2' => NULL,
-                'creditItem3' => NULL,
-                'creditQuantity' => $rec->amount,
-                'creditPrice' => $rec->rate,
-            ))
+            'entries' => array(
+                array(
+                    'amount' => $rec->amount * $rec->rate,
+                    
+                    'debit' => array(
+                        $rec->debitAccId,
+                            array($rec->contragentClassId, $rec->contragentId),
+                            array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $rec->amount,
+                    ),
+                    
+                    'credit' => array(
+                        $rec->creditAccId,
+                            array('bank_OwnAccounts', $rec->ownAccount),
+                        'quantity' => $rec->amount,
+                    ),
+                ),
+            )
         );
         
     	// Ако дебитната сметка не поддържа втора номенклатура, премахваме
         // от масива второто перо на кредитната сметка
     	$dAcc = acc_Accounts::getRecBySystemId($rec->debitAccId);
         if(!$dAcc->groupId2){
-        	unset($result->entries[0]->debitItem2);
+        	unset($result->entries[0]['debit'][2]);
         }
         
         return $result;

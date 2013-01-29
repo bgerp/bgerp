@@ -142,8 +142,8 @@ class cash_Rko extends core_Master
         $this->FLD('contragentPcode', 'varchar(255)', 'input=hidden');
         $this->FLD('contragentCountry', 'varchar(255)', 'input=hidden');
     	$this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
-    	$this->FLD('creditAccount', 'acc_type_Account()', 'input=hidden');
-    	$this->FLD('debitAccount', 'acc_type_Account()', 'input=hidden');
+    	$this->FLD('creditAccount', 'acc_type_Account()', 'input=none');
+    	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('equals', 'int', 'caption=Валута->Равностойност,input=none');
     	$this->FLD('baseCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Основна,input=hidden');
@@ -355,36 +355,37 @@ class cash_Rko extends core_Master
        	// Извличаме записа
         expect($rec = self::fetch($id));
         
-        // Курса по който се обменя валутата  на ордера към основната валута за периода
-        $entrAmount = $rec->rate * $rec->amount; 
-        
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
-            'reason' => $rec->reason, // основанието за ордера
-            'valior' => $rec->valior,   // датата на ордера
-            'totalAmount' => $entrAmount,
-            'entries' =>array( (object)array(
-                'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
-                
-                'debitAcc' => $rec->debitAccount, // дебитната сметка
-                'debitItem1' => (object)array('cls'=>$rec->contragentClassId, 'id'=>$rec->contragentId),  // перо каса
-        		'debitItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId),// перо валута
-                'debitQuantity' => $rec->amount,
-                'debitPrice' => $rec->rate,
-        		
-                'creditAcc' => $rec->creditAccount, // кредитна сметка
-                'creditItem1' => (object)array('cls'=>'cash_Cases', 'id'=>cash_Cases::getCurrent()), // перо контрагент
-                'creditItem2' => (object)array('cls'=>'currency_Currencies', 'id'=>$rec->currencyId), // перо валута
-                'creditQuantity' => $rec->amount,
-                'creditPrice' => $rec->rate,
-            ))
+            'reason'  => $rec->reason,   // основанието за ордера
+            'valior'  => $rec->valior,   // датата на ордера
+            'entries' => array(
+                array(
+                    'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
+                    
+                    'debit' => array(
+                        $rec->debitAccount, // дебитната сметка
+                            array($rec->contragentClassId, $rec->contragentId),  // перо контрагент
+                            array('currency_Currencies', $rec->currencyId),      // перо валута
+                        'quantity' => $rec->amount,
+                    ),
+                    
+                    'credit' => array(
+                        $rec->creditAccount, // кредитна сметка
+                            array('cash_Cases', cash_Cases::getCurrent()), // перо каса
+                            array('currency_Currencies', $rec->currencyId), // перо валута
+                        'quantity' => $rec->amount,
+                    ),
+                ),
+            )
         );
         
         // Ако дебитната сметка не поддържа втора номенклатура, премахваме
         // от масива второто перо на кредитната сметка
     	$dAcc = acc_Accounts::getRecBySystemId($rec->debitAccount);
+    	
         if(!$dAcc->groupId2){
-        	unset($result->entries[0]->debitItem2);
+        	unset($result->entries[0]['debit'][2]);
         }
         
         return $result;

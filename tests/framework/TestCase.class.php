@@ -47,32 +47,48 @@ class framework_TestCase extends PHPUnit_Framework_TestCase
 	 */
     protected function loadFixtureData($fixtureData)
     {
-        foreach (array_keys($fixtureData) as $mvc) {
-            $this->truncate($mvc);
+        $result = array();
+        
+        if (isset($data)) {
+            expect(is_scalar($fixtureData));
+            $fixtureData = array($fixtureData=>$data);
         }
+        
+        $this->truncate(array_keys($fixtureData));
         
         foreach ($fixtureData as $mvcName => $data) {
             $mvc = cls::get($mvcName);
             
             foreach ($data as $r) {
                 try {
-                    $mvc->save((object)$r);
+                    $result[$mvcName][] = $mvc->save((object)$r);
                 } catch (core_exception_Expect $ex) {
                     var_dump($ex->args());
                 }
             }
         }
+        
+        return $result;
     }
     
     /**
-     * Изчиства всички данни на модел
+     * Изчиства всички данни на модели
      * 
-     * @param string|core_Mvc $mvc
+     * @param array|string|core_Mvc $models
      */
-    protected function truncate($mvc)
+    protected function truncate($models)
     {
-        $mvc = cls::get($mvc);
+        if (is_string($models)) {
+            $models = arr::make($models);
+        } elseif ($models instanceof core_Mvc) {
+            $models = array($models);
+        }
         
-        $mvc->db->query("TRUNCATE TABLE `{$mvc->dbTableName}`");
+        expect(is_array($models));
+        
+        foreach ($models as $mvc) {
+            $mvc = cls::get($mvc);
+            $mvc->db->query("TRUNCATE TABLE `{$mvc->dbTableName}`");
+        }
     }
 }
