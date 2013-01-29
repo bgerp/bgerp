@@ -17,9 +17,14 @@
 			<th colspan="2">Права</th>
 		</tr>
 		<tr class="border-bottom">
-			<td><span class="title-style">Отговорник:</span> Невенa</td>
-			<td><span class="title-style">Достъп:</span> Личен</td>
+			<td><span class="title-style">Отговорник:</span> [#inCharge#] </td>
+			<td><span class="title-style">Достъп:</span> [#access#]</td>
 		</tr>
+		 <!--ET_BEGIN shared-->
+		<tr>
+			<td colspan="2"><span class="title-style">Права:</span> [#shared#]</td>
+		</tr>
+		 <!--ET_END shared-->
 		<tr>
 			<th colspan="2">Модифициране</th>
 		</tr>
