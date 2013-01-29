@@ -411,19 +411,31 @@ class support_Issues extends core_Master
         return $row;
     }
     
-
-	/**
-     * 
+    
+    /**
+     * Функция, която прихваща след активирането на документа
      */
-    function on_BeforeSave($mvc, &$id, &$rec)
+    public static function on_Activation($mvc, &$rec)
     {
-        if ($rec->componentId) {
+        // Ако няма компонент и имаме id
+        if ((!$rec->componentId) && ($rec->id)) {
+            
+            // Извличаме записите
+            $nRec = $mvc->fetch($rec->id);   
+        } elseif ($rec->componentId) {
+            
+            // Клонираме
+            $nRec = clone($rec);
+        }
+        
+        // Ако има компоненти
+        if ($nRec->componentId) {
             
             // Отговорниците на компонента
-            $maintainers = support_Components::fetchField($rec->componentId, 'maintainers');
+            $maintainers = support_Components::fetchField($nRec->componentId, 'maintainers');
             
             // Обядиняваме отговорниците и споделените потребители
-            $rec->sharedUsers = type_Keylist::merge($rec->sharedUsers, $maintainers);    
+            $rec->sharedUsers = type_Keylist::merge($rec->sharedUsers, $maintainers);      
         }
     }
     
