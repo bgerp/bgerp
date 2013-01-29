@@ -427,46 +427,37 @@ class bank_ExchangeDocument extends core_Master
     	// Извличаме записа
         expect($rec = self::fetch($id));
         
-      	foreach(array('debit', 'credit') as $type) {
-      		${"{$type}Quantity"} = $rec->{"{$type}Quantity"};
-      		${"{$type}Price"} = NULL;
-	      	foreach (range(1, 3) as $n) {
-					if(!$rec->{"{$type}Ent{$n}"}) {
-						
-						// Ако записа е празен го скипваме
-						${"{$type}Item{$n}"} = NULL;
-						continue;
-					}
-				${"{$type}Item{$n}"} = new stdClass();
-				${"{$type}ItemRec{$n}"} = acc_Items::fetch($rec->{"{$type}Ent{$n}"});
-	        	${"{$type}Item{$n}"}->cls = ${"{$type}ItemRec{$n}"}->classId;
-	        	${"{$type}Item{$n}"}->id = ${"{$type}ItemRec{$n}"}->objectId;
-	        	}
+        $entry = array(
+            'amount' => $rec->debitQuantity * $rec->debitPrice,
+            'debit' => array(
+                $rec->debitAccId,
+                'quantity' => $rec->debitQuantity
+            ),
+            'credit' => array(
+                $rec->creditAccId,
+                'quantity' => $rec->creditQuantity
+            ),
+        );
+        
+      	foreach(array_keys($entry) as $type) {
+      	    foreach (range(1, 3) as $n) {
+          	    if (!$rec->{"{$type}Ent{$n}"}) {
+    				// Ако не е зададено перо - пропускаме
+    				continue;
+    			}
+    			
+    			$entry[$type][] = new acc_journal_Item($rec->{"{$type}Ent{$n}"});
+      	    }
       	}
       	
-      	$amountEnt = $rec->debitQuantity * $rec->debitPrice;
       	
       	// Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'totalAmount' => $amountEnt,
-            'entries' => array( (object)array(
-                'amount' => $amountEnt,
-                'debitAcc' => $rec->debitAccId,
-                'debitItem1' => $debitItem1,
-                'debitItem2' => $debitItem2,
-                'debitItem3' => $debitItem3,
-                'debitQuantity' => $rec->debitQuantity,
-                'debitPrice' => $rec->debitPrice,
-                'creditAcc' => $rec->creditAccId,
-                'creditItem1' => $creditItem1,
-                'creditItem2' => $creditItem2,
-                'creditItem3' => $creditItem3,
-                'creditQuantity' => $rec->creditQuantity,
-                'creditPrice' => $rec->creditPrice,
-            ))
+            'entries' => array($entry)
         );
+        
        //bp($result);
         return $result;
     }
