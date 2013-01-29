@@ -160,6 +160,9 @@ class support_Issues extends core_Master
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%, mandatory");
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
         
+        // Възлагане на задача (за doc_AssignPlg)
+        $this->FLD('assign', 'user(roles=powerUser)', 'caption=Възложен на,input=none');
+        
         $this->FNC('systemIdShow', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory, input=none');
     }
     
