@@ -39,10 +39,11 @@ class acc_journal_Item
         if (isset($classId) && is_array($classId)) {
             expect(count($classId) == 2);
             list($classId, $objectId) = $classId;
+            $classId = core_Classes::getClassId($classId);
         }
 
         if (!isset($objectId)) {
-            expect(is_null($classId) || is_numeric($classId));
+            expect(is_null($classId) || is_numeric($classId), (array)$classId, $objectId);
 
             $this->id = $classId;
 
