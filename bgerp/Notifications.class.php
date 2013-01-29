@@ -252,7 +252,7 @@ class bgerp_Notifications extends core_Manager
         
         if($userId > 0) {
             $query = self::getQuery();
-            $cnt = $query->count("#userId = $userId AND #state = 'active'");
+            $cnt = $query->count("#userId = $userId AND #state = 'active' AND #hidden = 'no'");
         } else {
             $cnt = 0;
         }
