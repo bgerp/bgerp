@@ -30,51 +30,65 @@ class acc_TransactionSourceIntf
     /**
      * Връща счетоводната транзакция, породена от документа.
      *
-     * Резултатът е обект със следната структура:
+     * Резултатът е обект или масив със следната структура:
      *
      * - reason         string
      * - valior date    string (date)
-     * - totalAmount    number - опционално
      * - entries        array
      *
-     * Член-променливата `entries` е масив от обекти, всеки със следната структура:
+     * Член-променливата `entries` е масив от обекти или масиви, всеки със следната структура:
      *
      * - amount             number
-     *
-     * - debitQuantity           number
-     * - debitPrice              number
      * 
-     * - creditQuantity          number
-     * - debitPrice              number
-     *
-     * - debitAcc           key(mvc=acc_Accounts, key=sid)
-     * - debitAccId         key(mvc=acc_Accounts)
-     *
-     * - debitItem1         '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
-     * - debitItem1Id        key(mvc=acc_Items) - перо от 1-вата разбивка на `debitAccId`
-     *
-     * - debitItem2          '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
-     * - debitItem2Id        key(mvc=acc_Items) - перо от 2-рата разбивка на `debitAccId`
-     *
-     * - debitItem3          '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
-     * - debitItem3Id        key(mvc=acc_Items) - перо от 3-тата разбивка на `debitAccId`
-     *
-     * - creditAcc          key(mvc=acc_Accounts, key=sid)
-     * - creditAccId        key(mvc=acc_Accounts)
-     *
-     * - creditItem1        '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
-     * - creditItem1Id      key(mvc=acc_Items) - перо от 1-вата разбивка на `creditAccId`
-     *
-     * - creditItem2        '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
-     * - creditItem2Id      key(mvc=acc_Items) - перо от 2-рата разбивка на `creditAccId`
-
-     * - creditItem3        '->cls' = име на мениджър/инстанция с acc_RegistryIntf, '->id' = ид на обект от този мениджър
-     * - creditItem3Id        key(mvc=acc_Items) - перо от 3-тата разбивка на `creditAccId`
-
-          
-     
-     
-
+     * - credit         array
+     *     [0]          string          systemId на счетоводна сметка
+     *     [1]          array(клас, ид) перо на първата аналитичност (ако има)  
+     *     [2]          array(клас, ид) перо на втората аналитичност (ако има)  
+     *     [3]          array(клас, ид) перо на третата аналитичност (ако има)
+     *     [quantity]   numeric         количество, ако кредит сметката има размерна аналитичност
+     *     
+     * - debit          array           аналогично по структура на 'credit'
+     *     [0]          string          systemId на счетоводна сметка
+     *     [1]          array(клас, ид) перо на първата аналитичност (ако има)  
+     *     [2]          array(клас, ид) перо на втората аналитичност (ако има)  
+     *     [3]          array(клас, ид) перо на третата аналитичност (ако има)
+     *     [quantity]   numeric         количество, ако дебит сметката има размерна аналитичност
+     *     
+     *     
+     * @example Плащане на 100 евро в брой от каса по задължение към фирма-доставчик
+     * 
+     * Ако
+     *     $contragentId е ID-то на доставчика в crm_Companies
+     *     $caseId       е ID-то на касата в cash_Cases, откъдето излизат парите
+     *     $currencyId   е ID-то на EUR в currency_Currencies
+     *     
+     *     1.95583 e курса на BGN (осн. валута) спрямо EUR към 28 януари 2013
+     *     
+     * То 
+     *     следната транзакция описва това плащане счетоводно:
+     * 
+     * array(
+     *     'reason'  => 'Плащане към доставчик',
+     *     'valior   => '2013-01-28 17:33',
+     *     'entries' => array(
+     *         array(
+     *             'amount => 100 * 1.95583,
+     *             'credit' => array(
+     *                 '501', // Каси,
+     *                     array('cash_Cases', $caseId),
+     *                     array('currency_Currencies', $currencyId),
+     *                 'quantity' => 100, // бр. EUR
+     *             ),
+     *             'debit' => array(
+     *                 '401', // Задължения към доставчици
+     *                     array('crm_Companies', $contragentId),
+     *                     array('currency_Currencies', $currencyId),
+     *                 'quantity' => 100, // бр. EUR
+     *             )
+     *         )
+     *     )
+     * )
+     *             
      *
      * @param int $id ид на документ
      * @return stdClass

@@ -79,8 +79,9 @@ class acc_journal_EntrySide
      * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
      * @param array|stdClass $data
+     * @deprecated
      */
-    public function initFromTransactionSource($data)
+    public function xinitFromTransactionSource($data)
     {
         $data = (object)$data;
         $type = strtolower($this->type);
@@ -123,6 +124,43 @@ class acc_journal_EntrySide
         return $this->init($result);
     }
 
+
+    /**
+     * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
+     *
+     * @param array|stdClass $data
+     */
+    public function initFromTransactionSource($data)
+    {
+        $data = (array)$data;
+        
+        expect($d = $data[$this->type], "Липсва {$this->type} част на транзакция", $data);
+        
+        $this->amount = $data['amount']; // Сума в основна валута
+        
+        if (isset($d['quantity'])) {
+            $this->quantity = $d['quantity'];
+            unset($d['quantity']);
+        }
+        
+        // SystemID на сметката е винаги първия елемент
+        $accountSystemId = array_shift($d);
+        
+        $this->account = new acc_journal_Account($accountSystemId);
+        
+        // Приемаме, че всичко останало в $d е пера.
+        expect(count($d) <= 3, "{$this->type}: Макс 3 пера", $data);
+        
+        foreach ($d as $item) {
+            if (!($item instanceof acc_journal_Item)) {
+                $item = new acc_journal_Item($item);
+            }
+            $this->items[] = $item;
+        }
+        
+        $this->evaluate();
+    }
+    
 
     public function init($data)
     {
@@ -188,7 +226,11 @@ class acc_journal_EntrySide
      */
     public function checkItems()
     {
-        expect($this->account->accepts($this->items));
+        try {
+            $this->account->accepts($this->items);
+        } catch (core_exception_Expect $ex) {
+            expect(FALSE, "Грешка в {$this->type}: " . $ex->args(1));
+        }
         
         return TRUE;
     }
