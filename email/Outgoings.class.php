@@ -89,6 +89,12 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Кой може да активира
+     */
+    var $canActivate = 'user';
+    
+    
+    /**
      * Кой има право да изтрива?
      */
     var $canDelete = 'no_one';
