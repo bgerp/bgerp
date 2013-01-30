@@ -21,6 +21,10 @@
 // 4. Провека за необходимите модули на Apache
 // 6. Показване на прогрес барове
 // 7. Стартиране на инсталацията
+
+// "Ключ" за стартиране на Сетъпа
+defIfNot('BGERP_SETUP_KEY', '');
+
 ob_end_clean();
 header("Content-Type: text/html; charset=UTF-8");
 
