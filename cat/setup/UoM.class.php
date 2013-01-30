@@ -34,7 +34,7 @@ class cat_setup_UoM extends core_Mvc
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 // Ако има запис с този 'name'
                 $rec->id = $Units->fetchField(array("#name = '[#1#]'", $rec->name), 'id');     /* escape data! */
-                $Units->save($rec);
+                $Units->save($rec, NULL, 'IGNORE');
             }
             
             fclose($handle);
