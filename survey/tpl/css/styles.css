@@ -3,8 +3,9 @@
 
 .answers {
 	list-style:none;
-	margin-top:10px;
-	margin-left:40px;
+	margin-top:5px !important;
+	margin-bottom:5px !important;
+	margin-left:40px !important;
 	padding-left:0px;
 }
 
@@ -16,4 +17,14 @@
 #survey_title {
 	color:darkred;
 	font-weight:bold;
+}
+
+.summarise-answers {
+	margin-top:0px !important;
+	margin-bottom:0px !important;
+}
+
+#summary{
+	margin-top:0px !important;
+	margin-bottom:0px !important;
 }
