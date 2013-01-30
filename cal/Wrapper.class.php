@@ -27,8 +27,8 @@ class cal_Wrapper extends plg_ProtoWrapper
     {
         
         
-        $this->TAB('cal_Calendar', 'Календар', 'cal,admin');
-        $this->TAB('cal_Tasks', 'Задачи', 'admin,doc');
+        $this->TAB('cal_Calendar', 'Календар', 'user,admin');
+        $this->TAB('cal_Tasks', 'Задачи', 'admin,doc,user');
         $this->TAB('cal_Holidays', 'Празници', 'user');
        
         $this->title = 'Календар';

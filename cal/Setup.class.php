@@ -60,7 +60,7 @@ class cal_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'cal';
+        $role = 'user';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();

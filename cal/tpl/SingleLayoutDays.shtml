@@ -1,6 +1,5 @@
 [#SingleToolbar#]
-           
-	<div class='document'>
+
 		<div class='header'>
 			<p class="calTitle" style='color:[#colTitle#]'>[#title#]</p>
 			<span>[#from#]</span>
@@ -9,7 +8,7 @@
 			
 						
 		<!--ET_BEGIN event-->
-		 </br></br>	
+		 </br></br></br>
          <div class='block_left'>
          </br>
                 <table cellspacing='1' class='mc_calendar'>
@@ -33,4 +32,4 @@
          <!--ET_END event-->
          
          <div style='clear: both;'></div>
-    </div>         
+      

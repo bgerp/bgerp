@@ -66,7 +66,7 @@ class cal_Tasks extends core_Master
      * Поле в което да се показва иконата за единичен изглед
      */
     var $rowToolsSingleField = 'title';
-    
+ 
     
     /**
      * Кой може да чете?
@@ -230,7 +230,7 @@ class cal_Tasks extends core_Master
         
         // Подготвяме полетата за показване
         $data->listFields = 'timeStart,title,progress';
-        
+           
         // Подготвяме формата за филтриране
         // $this->prepareListFilter($data);
 
@@ -338,6 +338,53 @@ class cal_Tasks extends core_Master
 	            }
     	     }
          }
+    }
+    
+    /**
+     * Прилага филтъра, така че да се показват записите за определение потребител
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	
+        
+    	$userId = core_Users::getCurrent();
+        $data->query->orderBy("#timeStart=ASC,#state=DESC");
+        
+                
+        if($data->listFilter->rec->selectedUsers) {
+           
+            	$data->query->where("#createdBy = '{$userId}' || #sharedUsers = '{$data->listFilter->rec->selectedUsers}'");
+                
+           //bp($userId, $data->listFilter->rec->selectedUsers, $data->query->where("#createdBy = '{$data->listFilter->rec->selectedUsers}' || #shared_users LIKE '%|{$data->listFilter->rec->selectedUsers}|%'"));
+        } 
+    }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$cu = core_Users::getCurrent();
+  
+        
+        // Добавяме поле във формата за търсене
+       
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+                
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = 'selectedUsers';
+        
+        $data->listFilter->input('selectedUsers', 'silent');
     }
 
     /**

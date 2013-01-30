@@ -61,6 +61,11 @@ class cal_Calendar extends core_Master
      */
     var $canRead = 'user';
     
+    /**
+     * Кой има право да го види?
+     */
+    var $canView = 'user';
+    
     // Масив с цветове за събитията
     static $colors = array( "#610b7d", 
 				    	"#1b7d23",
@@ -664,7 +669,7 @@ class cal_Calendar extends core_Master
         $cu = core_Users::getCurrent();
         $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
-        
+        //bp($cu);
         // Извличане на събитията за целия ден
     	while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
 
@@ -1128,7 +1133,7 @@ class cal_Calendar extends core_Master
         //$currentDay = date('d.m.Y', mktime(0, 0, 0, $month, $day, $year));
         $currentWeek = date('W', mktime(0, 0, 0, $month, $day, $year));
         $currentKey = "d".date('N', mktime(0, 0, 0, $month, $day, $year));
-     
+     //bp($currentWeek, $currentKey);
         // Таймстамп на първия ден на месеца
         $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
         
@@ -1147,8 +1152,8 @@ class cal_Calendar extends core_Master
             $monthArr[date('W', $t)]["d".date('N', $t)] = $i;
             
            // Цветовете на деня според типа им
-        	$colorTitle["m".$i][date('W', $t)]["d".date('N', $t)] = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $i, $year)));
-        }
+        	$colorTitle[date('W', $t)]["m".date('N', $t)] = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $i, $year)));
+        }//bp($colorTitle, $monthArr);
 
         // Извличане на събитията за целия месец
         $state = new stdClass();
@@ -1200,9 +1205,7 @@ class cal_Calendar extends core_Master
             // Картинката която ще стои пред титлета на задачите
     		//sbf('img/16/task-normal.png')
     		//$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
-    		
-    		$type[$weekKey][$dayKey] .= "<br>". $rec->type;
-    		
+    	    		
     		// Взимаме всеки път различен цвят за титлите на задачите
     		$color = array_pop(self::$colors);
     		
@@ -1291,7 +1294,7 @@ class cal_Calendar extends core_Master
         $tpl->replace($currentMonth, 'currentMonth');
         $tpl->replace($nextLink, 'nextLink');
         $tpl->replace($nextMonth, 'nextMonth');
-        $tpl->placeArray($colorTitle);
+        
 
         // Дните от седмицата
         static $weekDays = array('Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота', 'Неделя');
@@ -1302,85 +1305,17 @@ class cal_Calendar extends core_Master
         	
         	$cTpl = $tpl->getBlock("COMMENT_LI");
         	
-            // Проверка за текущия ден 
-        	if($weekNum == $currentWeek){
-	        	switch ($currentKey){
-	    				case "d1":
-	    					$cTpl->replace('mc-today', 'mon');
-	    					$cTpl->replace('mc-day', 'tue');
-				        	$cTpl->replace('mc-day', 'wed');
-				        	$cTpl->replace('mc-day', 'thu');
-				        	$cTpl->replace('mc-day', 'fri');
-				        	$cTpl->replace('mc-saturday', 'sat');
-				        	$cTpl->replace('mc-sunday', 'sun');
-	    					break;
-	    				case "d2":
-							$cTpl->replace('mc-today', 'tue');
-							$cTpl->replace('mc-day', 'mon');
-				        	$cTpl->replace('mc-day', 'wed');
-				        	$cTpl->replace('mc-day', 'thu');
-				        	$cTpl->replace('mc-day', 'fri');
-				        	$cTpl->replace('mc-saturday', 'sat');
-				        	$cTpl->replace('mc-sunday', 'sun');    				
-							break;
-	    				case "d3":
-	    					$cTpl->replace('mc-today', 'wed');
-	    					$cTpl->replace('mc-day', 'mon');
-				        	$cTpl->replace('mc-day', 'tue');
-				        	$cTpl->replace('mc-day', 'thu');
-				        	$cTpl->replace('mc-day', 'fri');
-				        	$cTpl->replace('mc-saturday', 'sat');
-				        	$cTpl->replace('mc-sunday', 'sun');
-	    					break;
-	    				case "d4":
-	    					$cTpl->replace('mc-today', 'thu');
-	    					$cTpl->replace('mc-day', 'mon');
-				        	$cTpl->replace('mc-day', 'tue');
-				        	$cTpl->replace('mc-day', 'wed');
-				        	$cTpl->replace('mc-day', 'fri');
-				        	$cTpl->replace('mc-saturday', 'sat');
-				        	$cTpl->replace('mc-sunday', 'sun');
-	    					break;
-	    				case "d5":
-	    					$cTpl->replace('mc-today', 'fri');
-	    					$cTpl->replace('mc-day', 'mon');
-				        	$cTpl->replace('mc-day', 'tue');
-				        	$cTpl->replace('mc-day', 'wed');
-				        	$cTpl->replace('mc-day', 'thu');
-				        	$cTpl->replace('mc-saturday', 'sat');
-				        	$cTpl->replace('mc-sunday', 'sun');
-	    					break;
-	    				case "d6":
-	    					$cTpl->replace('mc-today', 'sat');
-	    					$cTpl->replace('mc-day', 'mon');
-				        	$cTpl->replace('mc-day', 'tue');
-				        	$cTpl->replace('mc-day', 'wed');
-				        	$cTpl->replace('mc-day', 'thu');
-				        	$cTpl->replace('mc-day', 'fri');
-				        	$cTpl->replace('mc-sunday', 'sun');
-	    					break;
-	    				case "d7":
-	    					$cTpl->replace('mc-today', 'sun');
-	    					$cTpl->replace('mc-day', 'mon');
-				        	$cTpl->replace('mc-day', 'tue');
-				        	$cTpl->replace('mc-day', 'wed');
-				        	$cTpl->replace('mc-day', 'thu');
-				        	$cTpl->replace('mc-day', 'fri');
-				        	$cTpl->replace('mc-saturday', 'sat');
-				        	break;
-
-	    		}
-        	} else {
-        		$cTpl->replace('mc-day', 'mon');
-				$cTpl->replace('mc-day', 'tue');
-				$cTpl->replace('mc-day', 'wed');
-				$cTpl->replace('mc-day', 'thu');
-				$cTpl->replace('mc-day', 'fri');
-				$cTpl->replace('mc-saturday', 'sat');
-				$cTpl->replace('mc-sunday', 'sun');
+        	foreach($colorTitle as $col => $c){
+        		if($col == $weekNum){
+        			$cTpl->placeArray($c);
+        		}
         	}
-        
-          
+        	/*if($weekNum == $currentWeek && array_key_exists($currentKey, $weekArr)){
+        		$cTpl->replace('mc-today', 'now');
+        	}else{*/
+        		$cTpl->replace('mc-day', 'now');
+        	//}
+        	
         	$cTpl->replace($weekNum, 'weekNum');
         	$cTpl->placeArray($weekArr);
         	
@@ -1404,9 +1339,276 @@ class cal_Calendar extends core_Master
     {
     	self::requireRightFor('year');
     	
-        $res = '1';
+    	// Очакваме дата от филтъра
+        $from = Request::get('from');
+               
+        // Разбиваме получената дата на ден, месец, година
+        //$day = dt::mysql2Verbal($from, 'd');
+        //$month = dt::mysql2Verbal($from, 'm');
+        $year = dt::mysql2Verbal($from, 'Y');
+        
+        for($m = 1; $m <= 12; $m++){
+	        // Таймстамп на първия ден на месеца
+	        $firstDayTms = mktime(0, 0, 0, $m, 1, $year);
+	        
+	        // Броя на дните в месеца
+        	$lastDay = date('t', $firstDayTms);
 
-        return $this->renderWrapping($res);
+        	// Изчисляваме предходния и следващия месец
+        	$currentMonth = tr(dt::$months[$m-1]);
+	        
+	        // Генерираме масив масива на месеца => номер на седмицата[ден от седмицата][ден]
+	        for($i = 1; $i <= $lastDay; $i++) {
+	            $t = mktime(0, 0, 0, $m, $i, $year);
+	            
+	            // Цветовете на деня според типа им
+	        	$color = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $m,  $i, $year)));
+	        	
+	            $yearArr["mon".$m][date('W', $t)]["d".date('N', $t)] = ht::createLink($i, '/cal_Calendar/week/?from='. $i. "." . $m. "." . $year, NULL, array('class'=>'mc-day', 'style' => 'color:'. $color));
+	            
+	            
+				
+	        	//$href["mon".$m][date('W', $t)]["href".date('N', $t)] = '/cal_Calendar/week/?from='. $i . "." . $m. "." . $year;
+			
+		        }
+	    	}
+	    	
+		    	// Таймстамп на първия ден на месеца
+		        $lastDayTms = mktime(0, 0, 0, 12, 1, $year);
+		        
+	    		// От началото на месеца
+		        $fromDate = date("Y-m-d 00:00:00", mktime(0, 0, 0, 1, 1, $year));
+		
+		        // До края на месеца
+		        $toDate = date('Y-m-t 23:59:59', $lastDayTms);
+
+		        // Извличане на събитията за целия месец
+		        $state = new stdClass();
+		        $state->query = self::getQuery();
+		         
+		        // Кой ни е текущия потребител? 
+		        // Показване на календара и събитията според потребителя
+		        $cu = core_Users::getCurrent();
+		        $state->query->where("#users IS NULL OR #users = ''");
+		        $state->query->orLikeKeylist('users', "|$cu|");
+		        
+		        $state->query->orderBy('time', 'ASC');     
+		        while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}' AND #type = 'task'")){
+		        	// Проверка за конкретния запис
+		    	    self::requireRightFor('year', $rec);
+		        	$a[]=$rec;
+		    	    
+		        	// Времето на събитието от базата
+		            $recTime = $rec->time;
+		            
+		            // Разбиваме това време на: ден, месец и година
+		            $recDay = dt::mysql2Verbal($recTime, 'j');
+			        $recMonth = dt::mysql2Verbal($recTime, 'n');
+			        $recYear = dt::mysql2Verbal($recTime, 'Y');
+
+			        // Таймстамп на всеки запис
+			        $recT = mktime(0, 0, 0, $recMonth, $recDay, $recYear);
+			        
+			        
+			        // В коя седмица е този ден
+			        $weekKey = date('W', $recT);
+			        
+			        // Кой ден от седмицата е
+			        $dayKey = "c".date('N', $recT);
+
+			        $eventsArr["mon".$recMonth][$weekKey][$dayKey]++;
+			
+			        
+	    }//bp($href);
+	   // bp($eventsArr, $yearArr, $a);
+	    $yearArr = array_merge_recursive($yearArr,$eventsArr);
+//bp($yearArr); 
+        $tpl = new ET(getFileContent('cal/tpl/SingleLayoutYear.shtml'));
+
+    	foreach($yearArr as $monthNum => $monthArr) {
+    		
+    		foreach($monthArr as $weekNum => $weekArr){
+    	
+			    			switch ($monthNum){
+			    				case "mon1":
+			    					$tpl->replace("Януари", 'month');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI");
+						        	
+						        							        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($evWeekArr);
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						          case "mon2":
+			    					$tpl->replace('Февруари', 'month2');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI2");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon3":
+			    					$tpl->replace('Март', 'month3');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI3");
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon4":
+			    					$tpl->replace('Април', 'month4');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI4");
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon5":
+			    					$tpl->replace('Май', 'month5');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI5");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon6":
+			    					$tpl->replace('Юни', 'month6');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI6");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon7":
+			    					$tpl->replace('Юли', 'month7');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI7");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon8":
+			    					$tpl->replace('Август', 'month8');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI8");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon9":
+			    					$tpl->replace('Септември', 'month9');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI9");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon10":
+			    					$tpl->replace('Октомври', 'month10');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI10");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon11":
+			    					$tpl->replace('Ноември', 'month11');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI11");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+						            
+						            case "mon12":
+			    					$tpl->replace('Декември', 'month12');
+						        	$lTpl = $tpl->getBlock("COMMENT_LI12");
+						        		        	
+						        	
+						        	
+						        	$lTpl->replace('mc-day', 'now');
+						        	
+						        	$lTpl->replace($weekNum, 'weekNum');
+						        	$lTpl->placeArray($weekArr);
+						        	
+						            $lTpl->append2master();
+						            break;
+			    			}
+
+    		}
+         }
+        
+        // Заглавието на страницата
+    	$tpl->replace('Събития за година » '. $year, 'title');
+    
+    	static $weekDays = array('Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед');
+        $tpl->placeArray($weekDays);
+        //$tpl->placeArray($href);
+        
+       
+
+        return $this->renderWrapping($tpl);
     }
     
     
@@ -1477,6 +1679,8 @@ class cal_Calendar extends core_Master
 	        elseif(($weekName == "7" || ($rec->type == 'non-working' && $weekName < "4") ) && $rec->type !== 'workday'){
 	        	$color = 'green';
 	        	
+	        } else {
+	        	$color = 'black';
 	        }
     	}
     	

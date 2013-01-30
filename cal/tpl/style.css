@@ -2,7 +2,21 @@
 	
 	
 }
+div.block_left{
+	clear: right;
+    padding: 0 10px 10px 0;
+    float: left;
+    margin: 0 50px 50px 0px;
+    position: relative;
+}
 
+
+div.event{
+	float: right; 
+	font-size: 0.7em;
+	position:absolute;
+	padding-left: 13px;
+}
 
 table.calTable{
 	max-width:87em;
@@ -456,4 +470,57 @@ table.mc-calendar td.mc-today{
 
 table.mc-header a {
 	color:#999;
+}
+
+table.mc-calendar-year {
+	width:25em;
+	font-size:0.8em;
+}
+
+table.mc-calendar-year td.mc-day {
+	text-align:right;
+ 	border:none;
+	background-color: #e8efe8;
+	border:solid 2px #e8efe8;
+	padding:1px;
+	font-weight:bold;
+	width:2.8em;
+	cursor: pointer;
+	
+}
+
+table.mc-calendar-year a.mc-day{
+	color:black;
+}
+
+table.mc-calendar-year td.mc-week-nb {
+ 	border:none;
+ 	padding:3px;
+}
+
+table.mc-calendar-year td.mc-wd-name {
+	text-align:right;
+ 	padding-right:3px;
+}
+
+
+table.mc-calendar-year td.mc-sunday {
+	color:green;
+}
+
+table.mc-calendar-year td.mc-holiday {
+	color:red !important;
+}
+
+table.mc-calendar-year td.mc-saturday {
+	color:#006030;
+}
+
+
+table.mc-calendar-year td.mc-day:hover {
+	background-color: #ffff66;
+}
+
+table.mc-calendar-year td.mc-today {
+	border:solid 2px red;
 }
