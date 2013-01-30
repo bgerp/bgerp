@@ -700,6 +700,9 @@ class core_Manager extends core_Mvc
                     
                     return $this->getRequiredRoles('read', $rec, $userId);
                 
+                case 'canActivate' :
+                    
+                    return $this->getRequiredRoles('add', $rec, $userId);
                 default :
                 
                 return $this->getRequiredRoles('admin', $rec, $userId);
