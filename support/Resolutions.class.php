@@ -217,4 +217,25 @@ class support_Resolutions extends core_Master
         
         $data->row->subject = tr("Резолюция|*: {$data->row->subject}");
     }
+    
+    
+	/**
+	 * 
+     */
+    public static function on_Activation($mvc, &$rec)
+    {
+        // Вземаме записа 
+        if (!$rec->threadId && $rec->id) {
+            $nRec = $mvc->fetch($rec->id);    
+        } elseif ($rec->threadId) {
+            $nRec = clone($rec);
+        }
+        
+        // Ако вече сме определили id' то на нишката
+        if ($nRec->threadId) {
+            
+            // Затваряме сигнала
+            support_Issues::closeIssue($nRec->threadId);   
+        }
+    }
 }

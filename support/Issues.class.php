@@ -463,4 +463,26 @@ class support_Issues extends core_Master
     {
         // TODO да се записва в лога
     }
+    
+    
+    /**
+     * Затваря сигналите в даден тред
+     * 
+     * $threadId doc_Threads - id на нишката
+     */
+    static function closeIssue($threadId)
+    {
+        // Вземаме всички сингнали от нишката 
+        //По сегашната логика трябва да е само един
+        $query = static::getQuery();
+        $query->where("#threadId = '{$threadId}'");
+        
+        // Обхождаме записите
+        while ($rec = $query->fetch()) {
+            
+            // Сменяме състоянието на нишката на затворена
+            $rec->state = 'closed';
+            static::save($rec);
+        }
+    }
 }
