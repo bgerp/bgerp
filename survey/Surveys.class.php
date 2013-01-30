@@ -32,7 +32,7 @@ class survey_Surveys extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,
-     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg';
+     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg';
     
   
     /**
@@ -110,7 +110,7 @@ class survey_Surveys extends core_Master {
 		$this->FLD('description', 'text(rows=2)', 'caption=Oписание, mandatory, width=100%');
     	$this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,width=8em,mandatory');
     	$this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory,width=8em');
-    	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена,closed=Изтекла)', 'caption=Състояние,mandatory,width=8em');
+    	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена,closed=Изтекла)', 'caption=Състояние,input=none,width=8em');
     }
     
     
@@ -125,9 +125,7 @@ class survey_Surveys extends core_Master {
 	    		$form->setError('enddate', 'Крайния срок на анкетата не е валиден');
 	    	} 
 	    	
-	    	if($form->rec->state == 'closed') {
-	    		$form->setError('state', "Състоянието неможе да е 'затворено'");
-	    	}
+	    	$form->rec->state = 'draft';
     	}
     }
     
@@ -158,7 +156,7 @@ class survey_Surveys extends core_Master {
     {
     	expect($rec = static::fetch($id), 'Няма такъв запис');
     	$now = dt::now();
-    	($rec->state == 'closed' || $rec->enddate <= $now) ? $res = TRUE : $res = FALSE;
+    	($rec->state == 'closed' || $rec->enddate <= $now ) ? $res = TRUE : $res = FALSE;
     	
     	return $res;
     }
@@ -192,7 +190,15 @@ class survey_Surveys extends core_Master {
    			} else {
    				$res = 'no_one';
    			}
-   		} 
+   		}
+
+   		if($action == 'activate' && isset($rec)) {
+   			if(static::alternativeCount($rec->id) == 0 ||
+   				$rec->enddate <= dt::now()) {
+   					
+   				$res = 'no_one';
+   			}
+   		}
    	}
     
    	
@@ -202,15 +208,36 @@ class survey_Surveys extends core_Master {
    	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$summary = Request::get('summary');
+    	$url = getCurrentUrl();
     	if($mvc::haveRightFor('summarise', $data->rec->id) && !$summary) {
-    		$url = getCurrentUrl();
     		$url['summary'] = 'ok';
     		$data->toolbar->addBtn('Обобщение', $url);
     	} 
     	
     	if($summary && $data->rec->state == 'active') {
-    		$data->toolbar->addBtn('Анкета',  array($mvc, 'single', $data->rec->id));
+    		unset($url['summary']);
+    		$data->toolbar->addBtn('Анкета',  $url);
     	}
+    	
+    	if($data->rec->state !='draft' && survey_Votes::haveRightFor('read')){
+    		$votesUrl = array('survey_Votes', 'list', 'surveyId' => $data->rec->id);
+    		$data->toolbar->addBtn('Гласувания', $votesUrl);
+    	}
+    }
+    
+    
+    /**
+     * Колко въпроса има дадена анкета
+     * @param int $id
+     * @return int - Броя въпроси които има анкетата
+     */
+    static function alternativeCount($id)
+    {
+    	expect(static::fetch($id), 'Няма такава анкета');
+    	$altQuery = survey_Alternatives::getQuery();
+    	$altQuery->where(array("#surveyId = [#1#]", $id));
+    	
+    	return $altQuery->count();
     }
     
     
@@ -220,7 +247,7 @@ class survey_Surveys extends core_Master {
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
     	$tpl->push('survey/tpl/css/styles.css', 'CSS');
-    	$tpl->push('survey/js/scripts.js', 'JS');
+    	//$tpl->push('survey/js/scripts.js', 'JS');
     }
     
     

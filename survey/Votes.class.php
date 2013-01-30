@@ -25,13 +25,13 @@ class survey_Votes extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, survey_Wrapper, plg_Sorting';
+    var $loadList = 'survey_Wrapper, plg_Sorting, plg_Created';
     
   
     /**
      * Кои полета да се показват в листовия изглед
      */
-    //var $listFields = 'id, iban, contragent=Контрагент, currencyId, type';
+    var $listFields = 'id, alternativeId, rate, userUid, createdOn';
     
     
     /**
@@ -41,6 +41,12 @@ class survey_Votes extends core_Manager {
 
     
     /**
+	 *  Брой елементи на страница 
+	 */
+	var $listItemsPerPage = "25";
+	
+	
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'survey, ceo, admin';
@@ -49,7 +55,7 @@ class survey_Votes extends core_Manager {
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'survey, ceo, admin';
+    var $canWrite = 'no_one';
 	
 	
     /**
@@ -73,7 +79,6 @@ class survey_Votes extends core_Manager {
     	//Намираме на кой въпрос, кой отговор е избран
     	expect($alternativeId = Request::get('alternativeId'));
     	expect($rowId = Request::get('id'));
-    	$this->requireRightFor('add', $alternativeId);
     	
     	// Подготвяме записа
     	$rec = new stdClass();
@@ -81,7 +86,7 @@ class survey_Votes extends core_Manager {
     	$rec->rate = $rowId;
     	$rec->userUid = static::getUserUid();
     	
-    	if($this->haveRightFor('add', $alternativeId)) {
+    	if(survey_Alternatives::haveRightFor('vote', $rec)) {
     		
     		// Записваме Гласа
     		$this->save($rec, NULL, 'ignore');
@@ -188,22 +193,38 @@ class survey_Votes extends core_Manager {
     
     
     /**
-     * Метод проверяващ дали даден потребител вече е отговорил на даден въпрос
-     * @return mixed $rec->rate/FALSE - отговора който е посочен или FALSE
-     * ако няма запис
+     * Модификация на списъка с резултати
      */
-    static function hasUserVoted($alternativeId)
+    function on_AfterPrepareListRecs($mvc, $res, $data)
+	{
+		// За коя анкета филтрираме гласовете
+		$surveyId = Request::get('surveyId', 'int');
+		if($data->recs && $surveyId){
+			foreach($data->recs as $rec) {
+				
+				// За всеки въпрос на който е отговорено, проверяваме дали
+				// принадлежи на посочената анкета, ако не го премахваме
+				$recSurveyId = survey_Alternatives::fetchField($rec->alternativeId, 'surveyId');	
+				if($recSurveyId != $surveyId) {
+					unset($data->recs[$rec->id]);
+				}
+			}
+		}
+	}
+    
+	
+	/**
+     * Извиква се преди подготовката на титлата в списъчния изглед
+     */
+    static function on_AfterPrepareListTitle($mvc, $data, $data)
     {
-    	$userUid = static::getUserUid();
-    	$query = static::getQuery();
-    	$query->where(array("#alternativeId = [#1#]", $alternativeId));
-    	$query->where(array("#userUid = '[#1#]'", $userUid));
-    	if($rec = $query->fetch()) {
-    		
-    		return $rec->rate;
+    	$surveyId = Request::get('surveyId', 'int');
+    	if(isset($surveyId)) {
+    		if($surveyTitleRec = survey_Surveys::fetch($surveyId)) {
+    			$title = survey_Surveys::getVerbal($surveyTitleRec, 'title');
+    			$data->title = "Гласуване за |* <font color=green>{$title}</font>";
+    		}
     	}
-    	
-    	return FALSE;
     }
     
     
@@ -212,10 +233,20 @@ class survey_Votes extends core_Manager {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
-		if($action == 'add' && !isset($rec)) {
-			
-			// Предпазване от добавяне на нов постинг в act_List
-			$res = 'no_one';
-		}
+		/*if($action == 'add') {
+			if(!isset($rec)) {
+				
+				// Предпазване от добавяне на нов постинг в act_List
+				$res = 'no_one';
+			} else {
+				$altRec = survey_Alternatives::fetch($rec->alternativeId);
+				$surveyRec = survey_Surveys::fetch($altRec->surveyId);
+				if($surveyRec->state == 'draft' || static::hasUserVoted($rec->alternativeId)) {
+					$res = 'no_one';
+				} else {
+					$res = 'every_one';
+				}
+			}
+		}*/
 	}
 }

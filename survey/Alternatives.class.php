@@ -50,18 +50,6 @@ class survey_Alternatives extends core_Detail {
      * Наименование на единичния обект
      */
     var $singleTitle = "Въпрос";
-    
-    
-    /**
-     * Икона на единичния обект
-     */
-    //var $singleIcon = 'img/16/money.png';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    //var $rowToolsSingleField = 'iban';
 
     
     /**
@@ -83,15 +71,15 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
-     * Кой таб да бъде отворен
+     * Кой може да гласува?
      */
-    var $currentTab = 'Въпроси';
+    var $canVote = 'every_one';
     
     
     /**
-	 * Файл за единичен изглед
-	 */
-	//var $singleLayoutFile = 'survey/tpl/SingleAccountLayout.shtml';
+     * Кой таб да бъде отворен
+     */
+    var $currentTab = 'Въпроси';
 	
     
      /**
@@ -155,7 +143,7 @@ class survey_Alternatives extends core_Detail {
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if($fields['-list']) {
-			$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id, $rec->surveyId);
+			$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
 			
 			if(!$rec->image) {
 				$imgLink = sbf('survey/img/question.png', '');
@@ -177,36 +165,34 @@ class survey_Alternatives extends core_Detail {
 	 * @param int $surveyId - id на анкетата
 	 * @return core_ET $tpl
 	 */
-	function verbalAnswers($text, $id, $surveyId)
+	function verbalAnswers($text, $id)
 	{
 		$tpl = new ET("");
-		$altTpl = new ET("<li><input name= 'quest{$id}' type='radio' [#onClick#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>\n");
+		$altTpl = new ET("<li><input name= 'quest{$id}' type='radio' [#data#] [#onClick#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>\n");
 		
 		// Ако анкетата е активна тогава радио бутоните могат да
 		// изпращат гласове
-		$surveyState = survey_Surveys::fetchField($surveyId, 'state');
-		if($surveyState == 'active') {
-			$altTpl->replace(new ET("onClick='go(&#39;[#url#]&#39;);'"), 'onClick');
-		}
+		$rec = static::fetch($id);
+		if($this->haveRightFor('vote', $rec)) {
+			//$altTpl->replace(new ET("onClick='goUrl(&#39;[#url#]&#39;);'"), 'onClick');
+		} 
 		
 		// Разбиваме подадения текст по редове
 		$txtArr = explode("\n", $text);
 		$arr = array('survey_Votes', 'vote', 'id' => NULL, 'alternativeId' => $id, 'ret_url' => TRUE);
-		$rowAnswered = survey_Votes::hasUserVoted($id);
+		$rowAnswered = static::hasUserVoted($id);
 		
 		for($i = 1; $i <= count($txtArr); $i++) {
 			if($txtArr[$i-1] != '') {
 				
 				// Всеки непразен ред от текста е отговор, 
 				// рендираме го във вида на радио бутон
+				$params = "rowId='{$i}' alternativeId='{$id}' ";
 				if($mid = Request::get('m')) {
-					$arr['m'] = $mid;
+					$params .= "mid='{$mid}'";
 				}
-				
-				$arr['id'] = $i;
-				$url = toUrl($arr);
 				$copyTpl = clone($altTpl);
-				$copyTpl->replace($url, 'url');
+				$copyTpl->replace($params, 'data');
 				$copyTpl->replace($txtArr[$i-1], 'answer');
 				if($i == $rowAnswered) {
 					$copyTpl->replace('checked', 'checked');
@@ -228,14 +214,24 @@ class survey_Alternatives extends core_Detail {
     {
     	$tpl = new ET(getFileContent('survey/tpl/SingleAlternative.shtml'));
     	$tplAlt = $tpl->getBlock('ROW');
-    	foreach($data->rows as $row) {
-    		$rowTpl = clone($tplAlt);
-    		$rowTpl->placeObject($row);
-    		$rowTpl->removeBlocks();
-    		$tpl->append($rowTpl);
+    	if($data->rows) {
+	    	foreach($data->rows as $row) {
+	    		$rowTpl = clone($tplAlt);
+	    		$rowTpl->placeObject($row);
+	    		$rowTpl->removeBlocks();
+	    		$tpl->append($rowTpl);
+	    	}
     	}
     	
     	$tpl->append(new ET('[#ListToolbar#]'));
+    	
+    	// Зареждаме JS файла за Ajax заявката
+    	$clickScript = new ET(getFileContent('survey/js/scripts.js'));
+    	$arr = array('survey_Votes', 'vote', 'ret_url' => TRUE);
+    	$url = toUrl($arr);
+    	$clickScript->replace($url, 'url');
+    	$tpl->append(new ET('<script>[#JS#]</script>'));
+    	$tpl->replace($clickScript, 'JS');
     	
     	return $tpl;
     }
@@ -339,24 +335,55 @@ class survey_Alternatives extends core_Detail {
     }
     
     
+	/**
+     * Метод проверяващ дали даден потребител вече е отговорил на даден въпрос
+     * @return mixed $rec->rate/FALSE - отговора който е посочен или FALSE
+     * ако няма запис
+     */
+    static function hasUserVoted($alternativeId)
+    {
+    	$userUid = survey_Votes::getUserUid();
+    	$query = survey_Votes::getQuery();
+    	$query->where(array("#alternativeId = [#1#]", $alternativeId));
+    	$query->where(array("#userUid = '[#1#]'", $userUid));
+    	if($rec = $query->fetch()) {
+    		
+    		return $rec->rate;
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
  	/**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
-   		if($action == 'write' && isset($rec)) {
+   		if($action == 'write' && isset($rec->id)) {
    			
    			/* Неможем да добавяме/редактираме нови въпроси
    			 * в следните случаи: Анкетата е затворена,
-   			 * Анкетата е активиранам,
+   			 * Анкетата е активирана,
    			 * потребителят не е създател на анкетата
    			 */
    			$surveyRec = survey_Surveys::fetch($rec->surveyId);
    			if(survey_Surveys::isClosed($surveyRec->id) || 
    			   $surveyRec->state != 'draft' || 
    			   $surveyRec->createdBy != core_Users::getCurrent()) {
-   			   $res = 'no_one';
+   			   
+   			   	$res = 'no_one';
    			}  
+   		}
+   		
+   		if($action == 'vote' && isset($rec->id)) {
+   			$altRec = survey_Alternatives::fetch($rec->id);
+			$surveyRec = survey_Surveys::fetch($altRec->surveyId);
+			if($surveyRec->state == 'draft' || static::hasUserVoted($rec->id)) {
+				$res = 'no_one';
+			} else {
+				$res = $mvc->canVote;
+			}
    		}
    		
 		if($action== 'add' && !isset($rec)) {

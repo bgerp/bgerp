@@ -5,7 +5,7 @@
 		<td style='padding-top:7px'><b>[#label#] </b></td>
 	</tr>
 </table>
-<ul class='answers'>
+<ul class='answers' style='padding-top:7px'>
 [#answers#]
 </ul>
 <!--ET_END ROW-->
