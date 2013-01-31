@@ -68,6 +68,18 @@ class doc_ActivatePlg extends core_Plugin
         if ($action == 'activate') {
             if (!empty($rec->id) && ($rec->state != 'draft' || !$mvc->haveRightFor('edit', $rec))) {
                 $requiredRoles = 'no_one';
+            } else {
+                
+                $canAction = $action;
+                $canAction{0} = strtoupper($canAction{0});
+                $canAction = 'can' . $canAction;
+                
+                // Ако не е зададено кой може да активира, тогава използваме правата за добавяне
+                if(isset($mvc->{$canAction})) {
+                    $requiredRoles = $mvc->{$canAction};
+                } else {
+                    $requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+                }
             }
         }
     }
