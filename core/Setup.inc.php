@@ -437,7 +437,7 @@ if($step == 3) {
     $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
                                 'exif', 'filter', 'ftp', 'gd', 'iconv', 'json',
                                 'mbstring', 'mysql', 'pcre', 'session', 'SimpleXML',
-                                'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap', 'curl');
+                                'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap');
     
     $activePhpModules = get_loaded_extensions();
     
