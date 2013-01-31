@@ -907,7 +907,7 @@ class cal_Calendar extends core_Master
         	// Цветовете на деня според типа им
         	$colorTitle["c".$i] = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day + $i - 3, $year)));
          }
-      
+   
         // От коя до коя дата ще извличаме събитията 
         $fromDate = date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day - 3, $year));
         $toDate = date("Y-m-d 23:59:59", mktime(0, 0, 0, $month, $day + 3, $year));
