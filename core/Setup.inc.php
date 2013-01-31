@@ -2,7 +2,7 @@
 
 
 /**
- * Скрипт 'SetupM.inc.php' -  Инсталиране на bgERP
+ * Скрипт 'Setup.inc.php' -  Инсталиране на bgERP
  *
  * @category  ef
  * @package   core
@@ -264,12 +264,6 @@ if(!empty($_SESSION[EF_APP_NAME . 'admin_ip'])) {
 
 // Оторизация.
 $isAuthorized = in_array($_SERVER['REMOTE_ADDR'], $authorizedIpArr);
-//
-//echo ("<pre>"); print_r($authorizedIpArr); die;
-// if ($_GET['step'] == 'start') {
-// 	echo ($_SESSION[EF_APP_NAME . 'admin_ip']); die;
-// 	echo ("<pre>"); print_r($_SESSION); die;
-// }
 
 if(!$isAuthorized) {
     halt("Non-authorized IP for Setup (" . $_SERVER['REMOTE_ADDR'] . ")");
@@ -437,7 +431,7 @@ if($step == 3) {
     $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
                                 'exif', 'filter', 'ftp', 'gd', 'iconv', 'json',
                                 'mbstring', 'mysql', 'pcre', 'session', 'SimpleXML',
-                                'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap');
+                                'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap', 'curl');
     
     $activePhpModules = get_loaded_extensions();
     
@@ -556,26 +550,13 @@ if($step == 5) {
 if ($step == 'setup') {
 	$calibrate = 1000;
     $totalRecords = 137008;
-    $totalTables = 201;
+    $totalTables = 215;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
 
-    // Изпозползваме cUrl  за да изпратим и данните за сесията
-//    $ch = curl_init();    
-//     curl_setopt($ch, CURLOPT_URL, "{$selfUrl}&step=start");
-//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-//     curl_setopt($ch, CURLOPT_HEADER, 1);
-//     $sess = session_name() . '=' . session_id(); //echo ($sess); die;
-//     curl_setopt($ch, CURLOPT_COOKIE, $sess);
-//     if( ($res = curl_exec($ch)) === false) {
-//     	echo 'Curl error: ' . curl_error($ch);
-//     }
-//     echo ("$res"); die;
-//     $res = curl_exec($ch);
-//     curl_close($ch);
     $res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . md5(BGERP_SETUP_KEY . round(time()/10)), FALSE, NULL, 0, 2);
-//    echo ("$res"); die;
+
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
@@ -654,6 +635,7 @@ if ($step == 'setup') {
     contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
     
     $appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate/?'));
+    $appUri = substr($selfUrl, 0, strpos($selfUrl,'/?'));
     
     $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent");
     $l = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($l));
