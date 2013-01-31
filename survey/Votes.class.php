@@ -41,9 +41,9 @@ class survey_Votes extends core_Manager {
 
     
     /**
-	 *  Брой елементи на страница 
-	 */
-	var $listItemsPerPage = "25";
+     * Брой записи на страница
+     */
+    var $listItemsPerPage = '40';
 	
 	
     /**
@@ -72,7 +72,7 @@ class survey_Votes extends core_Manager {
     
     
     /**
-     * Екшън който записва гласуването
+     * Екшън който записва гласуването, и се вика от Ajax заявка
      */
     function act_Vote()
     {
@@ -86,14 +86,19 @@ class survey_Votes extends core_Manager {
     	$rec->rate = $rowId;
     	$rec->userUid = static::getUserUid();
     	
-    	if(survey_Alternatives::haveRightFor('vote', $rec)) {
-    		
-    		// Записваме Гласа
+    	$altRec = new stdClass();
+    	$altRec->id = $alternativeId;
+  	
+    	// Ако анкетата е активна и потребителя не е гласувал, може да се гласува
+    	if(survey_Alternatives::haveRightFor('vote', $altRec)) {
     		$this->save($rec, NULL, 'ignore');
+    		echo  json_encode(array('success' => 'yes'));
+    		
+    	} else {
+    		echo  json_encode(array('success' => 'no'));
     	}
     	
-    	// Редиректваме след като вота е регистриран
-    	return new Redirect(getRetUrl());
+    	shutdown();
     }
     
     
@@ -108,7 +113,6 @@ class survey_Votes extends core_Manager {
     static function getUserUid()
     {
     	$uid = new stdClass();
-    	
     	if(core_Users::haveRole('user')) {
     		$uid->id = core_Users::getCurrent();
     	} elseif($mid = Request::get('m')) {
@@ -123,19 +127,22 @@ class survey_Votes extends core_Manager {
     
     
     /**
-     * Преброява гласовете
+     * Преброява гласовете които е получил даден въпрос, ако не е зададен 
+     * номер на ред, връща броя на всички гласувания на въпроса, ако е зададен
+     * преброява само гласовете които са дадени на въпросния ред
      * @param int alternativeId - ид на въпроса
      * @param int row - реда който е избран
-     * @return int $count - Броя гласове, които е получила всяка опция
+     * @return int - Броя гласове
      */
-    static function countVotes($alternativeId, $row)
+    static function countVotes($alternativeId, $row = NULL)
     {
     	$query = static::getQuery();
     	$query->where(array("#alternativeId = [#1#]", $alternativeId));
-    	$query->where(array("#rate = [#1#]", $row));
-    	$count = $query->count();
+    	if($row) {
+    		$query->where(array("#rate = [#1#]", $row));
+    	}
     	
-    	return $count;
+    	return $query->count();
     }
     
     
@@ -226,27 +233,4 @@ class survey_Votes extends core_Manager {
     		}
     	}
     }
-    
-    
-    /**
-	 * Модификация на ролите, които могат да видят избраната тема
-	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{ 
-		/*if($action == 'add') {
-			if(!isset($rec)) {
-				
-				// Предпазване от добавяне на нов постинг в act_List
-				$res = 'no_one';
-			} else {
-				$altRec = survey_Alternatives::fetch($rec->alternativeId);
-				$surveyRec = survey_Surveys::fetch($altRec->surveyId);
-				if($surveyRec->state == 'draft' || static::hasUserVoted($rec->alternativeId)) {
-					$res = 'no_one';
-				} else {
-					$res = 'every_one';
-				}
-			}
-		}*/
-	}
 }

@@ -1,4 +1,11 @@
 #survey-header {
+	margin-left:50px;
+	margin-top:15px;
+}
+
+#survey-title{
+	color:darkred;
+	font-weight:bold;
 }
 
 .answers {
@@ -11,10 +18,11 @@
 
 .question-head {
 	margin-left:40px;
-	margin-top:15px;
+	margin-bottom:7px;
+	margin-top: 10px;
 }
 
-#survey_title {
+#survey-header #survey_title {
 	color:darkred;
 	font-weight:bold;
 }
@@ -27,4 +35,34 @@
 #summary{
 	margin-top:0px !important;
 	margin-bottom:0px !important;
+	margin-left:25px;
+}
+
+#survey-header #survey-info {
+	margin-top:3px;
+	font-size:14px;
+	font-style:italic;
+	font-weight:bold;
+}
+
+#survey-header #title {
+	font-size:22px;
+}
+
+#survey-header #shortDesc {
+	margin-top:15px;
+	color:darkgreen;
+	font-weight:bold;
+}
+
+#enddate {
+	color:darkblue;
+}
+
+#summary-title {
+	margin-top:15px;
+	margin-bottom:15px;
+	font-size: 17px;
+	margin-left:50px;
+	font-weight:bold;
 }

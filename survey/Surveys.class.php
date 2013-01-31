@@ -115,6 +115,17 @@ class survey_Surveys extends core_Master {
     
     
     /**
+     * Модификации по формата
+     */
+	public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	// Премахваме бутона за активация от формата ! за да не активираме
+    	// анкета без въпроси
+    	$data->form->toolbar->removeBtn('activate');
+    }
+    
+    
+    /**
      * Обработки след като изпратим формата
      */
     static function on_AfterInputEditForm($mvc, &$form)
@@ -219,7 +230,7 @@ class survey_Surveys extends core_Master {
     		$data->toolbar->addBtn('Анкета',  $url);
     	}
     	
-    	if($data->rec->state !='draft' && survey_Votes::haveRightFor('read')){
+    	if($data->rec->state != 'draft' && survey_Votes::haveRightFor('read')){
     		$votesUrl = array('survey_Votes', 'list', 'surveyId' => $data->rec->id);
     		$data->toolbar->addBtn('Гласувания', $votesUrl);
     	}
@@ -275,6 +286,15 @@ class survey_Surveys extends core_Master {
     	$self = cls::get(get_called_class());
     	
     	return $self->abbr . $rec->id;
+    }
+    
+    
+	/**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->query->orderBy("#state=DESC");
     }
     
     
