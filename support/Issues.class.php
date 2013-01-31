@@ -397,6 +397,161 @@ class support_Issues extends core_Master
     }
     
     
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_Activation($mvc, &$rec)
+    {
+        // Ако няма компонент и имаме id
+        if ((!$rec->componentId) && ($rec->id)) {
+            
+            // Извличаме записите
+            $nRec = $mvc->fetch($rec->id);   
+        } elseif ($rec->componentId) {
+            
+            // Клонираме
+            $nRec = clone($rec);
+        }
+        
+        // Ако има компоненти
+        if ($nRec->componentId) {
+            
+            // Отговорниците на компонента
+            $maintainers = support_Components::fetchField($nRec->componentId, 'maintainers');
+            
+            // Обядиняваме отговорниците и споделените потребители
+            $rec->sharedUsers = type_Keylist::merge($rec->sharedUsers, $maintainers);      
+        }
+    }
+    
+    
+    /**
+     * Затваря сигналите в даден тред
+     * 
+     * @param doc_Threads $threadId - id на нишката
+     */
+    static function closeIssue($threadId)
+    {
+        // Вземаме всички сингнали от нишката 
+        // По сегашната логика трябва да е само един
+        $query = static::getQuery();
+        $query->where("#threadId = '{$threadId}'");
+        
+        // Обхождаме записите
+        while ($rec = $query->fetch()) {
+            
+            // Сменяме състоянието на нишката на затворена
+            $rec->state = 'closed';
+            static::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Подготовка на форма за филтър на списъчен изглед
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        // Подреждаме сиганлите активните отпред, затворените отзад а другите по между им
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
+        $data->query->orderBy('orderByState');
+        
+        // Подреждаме по приоритет - Критичен, Висок и нормален
+        $data->query->orderBy('priority=DESC');
+        
+        // Подреждаме по дата по - новите по - напред
+        $data->query->orderBy('modifiedOn', 'DESC');
+        
+        // Задаваме на полета да имат възможност за задаване на празна стойност
+        $data->listFilter->getField('systemIdShow')->type->params['allowEmpty'] = TRUE;
+        $data->listFilter->getField('componentId')->type->params['allowEmpty'] = TRUE;
+         
+        // Добавяме функционално поле за отговорници
+        $data->listFilter->FNC('maintainers', 'users', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        
+        // Кои полета да се показват
+        $data->listFilter->showFields = 'systemIdShow, componentId, maintainers';
+        
+        // Добавяме бутон за филтриране
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        
+        // Да се показват в хоризонтална подредба
+        $data->listFilter->view = 'horizontal';
+        
+        // По подразбиране кое да е избрано
+        $data->listFilter->setDefault('maintainers', 'all_users');
+        
+        // Полетата да не са задължителни и да се субмитва формата при промяната им
+        $data->listFilter->setField('componentId', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->setField('componentId', array('mandatory' => FALSE));
+        $data->listFilter->setField('systemIdShow', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->setField('systemIdShow', array('mandatory' => FALSE));
+    }
+    
+
+    /**
+     * 
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, &$data)
+    {
+        // id' то на системата
+        $systemId = $data->listFilter->rec->systemIdShow;
+        
+        // Ако е избрана система
+        if ($systemId) {
+            
+            // Добавяме външно поле за търсене
+            $data->query->EXT("systemId", 'support_Components', "externalName=systemId");
+
+            // Да се показват само сигнали от избраната система
+            $data->query->where("#systemId = '{$systemId}'");
+            $data->query->where("#componentId = `support_components`.`id`");
+            
+            // Вземаме всички компоненти от избраната система
+            $componentsArr = support_Components::getSystemsArr($systemId);
+            
+            // Задаваме ги да се показват те
+            $data->listFilter->setOptions('componentId', $componentsArr);
+        }
+        
+        // id' то на компонента
+        $componentId = $data->listFilter->rec->componentId;
+        
+        // Ако е избран компонент
+        if ($componentId) {
+            
+            // Ако няма система или избрания компонент е в системата
+            if (!$systemId || $componentsArr[$componentId]) {
+                
+                // Задаваме да се показват само те
+                $data->query->where("#componentId = '{$componentId}'");    
+            }
+        }
+        
+        // Отговорници
+        $maintainers = $data->listFilter->rec->maintainers;
+        
+        // Ако е избран отговорник
+        if($maintainers) {
+            
+            // Ако не е избран всички потребители
+            if($maintainers != 'all_users') {
+                
+                // Ако не са избрани всички потребители
+                if (stripos($maintainers, '|-1|') === FALSE) {
+                    
+                    // Добавяме външно поле за търсене
+                    $data->query->EXT("componentMaintainers", 'support_Components', "externalName=maintainers");
+            
+                    // Да се показват само сигнали за избран потребител
+                    $data->query->likeKeylist("componentMaintainers", $data->listFilter->rec->maintainers);
+                    $data->query->where("#componentId = `support_components`.`id`");
+                }        
+            }
+        }
+    }
+    
+    
 	/**
      * Интерфейсен метод на doc_DocumentInterface
      */
@@ -429,60 +584,10 @@ class support_Issues extends core_Master
     
     
     /**
-     * Функция, която прихваща след активирането на документа
-     */
-    public static function on_Activation($mvc, &$rec)
-    {
-        // Ако няма компонент и имаме id
-        if ((!$rec->componentId) && ($rec->id)) {
-            
-            // Извличаме записите
-            $nRec = $mvc->fetch($rec->id);   
-        } elseif ($rec->componentId) {
-            
-            // Клонираме
-            $nRec = clone($rec);
-        }
-        
-        // Ако има компоненти
-        if ($nRec->componentId) {
-            
-            // Отговорниците на компонента
-            $maintainers = support_Components::fetchField($nRec->componentId, 'maintainers');
-            
-            // Обядиняваме отговорниците и споделените потребители
-            $rec->sharedUsers = type_Keylist::merge($rec->sharedUsers, $maintainers);      
-        }
-    }
-    
-    
-    /**
      * Прихваща извикване на функцията afterSubmitAssign @see doc_AssignPlg->on_BeforeAction
      */
     function on_AfterSubmitAssign($mvc, $rec)
     {
         // TODO да се записва в лога
-    }
-    
-    
-    /**
-     * Затваря сигналите в даден тред
-     * 
-     * $threadId doc_Threads - id на нишката
-     */
-    static function closeIssue($threadId)
-    {
-        // Вземаме всички сингнали от нишката 
-        //По сегашната логика трябва да е само един
-        $query = static::getQuery();
-        $query->where("#threadId = '{$threadId}'");
-        
-        // Обхождаме записите
-        while ($rec = $query->fetch()) {
-            
-            // Сменяме състоянието на нишката на затворена
-            $rec->state = 'closed';
-            static::save($rec);
-        }
     }
 }

@@ -111,4 +111,35 @@ class support_Components extends core_Detail
 
         $this->setDbUnique('systemId, name');
     }
+    
+    
+    /**
+     * Връща масив всички компоненти от системата
+     * 
+     * @param support_Systems $systemId - id на системата
+     * 
+     * @return array $componentArr - Масив с компонентите
+     */
+    static function getSystemsArr($systemId = NULL)
+    {
+        // Масив с компонентите
+        $componentArr = array();
+        $query = static::getQuery();
+        
+        // Ако е зададено systemId
+        if ($systemId) {
+            
+            // Намира тези само от тази система
+            $query->where("#systemId = '{$systemId}'");
+        }
+        
+        // Обхождаме резултатите
+        while($rec = $query->fetch()) {
+            
+            // Добавяме в масива
+            $componentArr[$rec->id] = static::getVerbal($rec, 'name');
+        }
+        
+        return $componentArr;
+    }
 }
