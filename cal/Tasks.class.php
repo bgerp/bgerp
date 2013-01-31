@@ -156,6 +156,9 @@ class cal_Tasks extends core_Master
         // Краен срок на задачата
         $this->FLD('timeEnd', 'datetime',     'caption=Времена->Край');
         
+        // Изпратена ли е нотификация?
+        $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull');
+        
         // Дали началото на задачата не е точно определено в рамките на деня?
         $this->FLD('allDay', 'enum(no,yes)',     'caption=Цял ден?,input=none');
         
@@ -621,5 +624,61 @@ class cal_Tasks extends core_Master
 		// Рендиране на формата
         return $this->renderWrapping($form->renderHtml());
     }
+
+
+    /**
+     * Изпращане на нотификации за започването на задачите
+     */
+    function cron_SendNotifications()
+    {
+        $query = $this->getQuery();
+        $now = dt::verbal2mysql();
+        $query->where("#state = 'active'  AND #notifySent = 'no' AND #timeStart <= '{$now}'");
+        
+        while($rec = $query->fetch()) {
+            list($date, $time) = explode(' ', $rec->timeStart);  
+            if($time != '00:00:00') {
+                $subscribedArr = type_Keylist::toArray($rec->sharedUsers); 
+                if(count($subscribedArr)) { 
+                    $message = "Стартирана е задачата \"" . $this->getVerbal($rec, 'title') . "\"";
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                    $customUrl = array('cal_Tasks', 'single',  $rec->id);
+                    $priority = 'normal';
+                    foreach($subscribedArr as $userId) {  
+                        if($userId > 0  &&  
+                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
+                        }
+                    }
+                }
+            }
+
+            $rec->notifySent = 'yes';
+
+            $this->save($rec, 'notifySent');
+        }
+    }
+
+
+    /**
+     * Изпълнява се след начално установяване
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        $Cron = cls::get('core_Cron');
+        
+        $rec = new stdClass();
+        $rec->systemId = "StartTasks";
+        $rec->description = "Известява за стартирани задачи";
+        $rec->controller = "cal_Tasks";
+        $rec->action = "SendNotifications";
+        $rec->period = 1;
+        $rec->offset = 0;
+        
+        $Cron->addOnce($rec);
+        
+        $res .= "<li>Известяване за стартирани задачи по крон</li>";
+    }
+
        
 }
