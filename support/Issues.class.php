@@ -82,12 +82,6 @@ class support_Issues extends core_Master
     
     
     /**
-     *
-     */
-    var $canActivate = 'user';
-    
-    
-    /**
      * Кой може да възлага задачата
      */
     var $canAssign = 'support, admin, ceo';

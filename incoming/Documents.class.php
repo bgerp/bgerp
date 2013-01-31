@@ -81,12 +81,6 @@ class incoming_Documents extends core_Master
     
     
     /**
-     *
-     */
-    var $canActivate = 'user';
-    
-    
-    /**
      * Кой има права за
      */
     var $canDoc = 'admin, doc, user';

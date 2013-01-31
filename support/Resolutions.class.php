@@ -80,12 +80,6 @@ class support_Resolutions extends core_Master
      */
     var $canSingle = 'admin, support';
     
-
-    /**
-     *
-     */
-    var $canActivate = 'user';
-    
     
     /**
      * Плъгини за зареждане

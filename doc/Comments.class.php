@@ -82,11 +82,6 @@ class doc_Comments extends core_Master
     
 
     /**
-     *
-     */
-    var $canActivate = 'user';
-    
-    /**
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 

@@ -80,12 +80,6 @@ class support_Ratings extends core_Master
      */
     var $canSingle = 'admin, support';
     
-
-    /**
-     *
-     */
-    var $canActivate = 'user';
-    
     
     /**
      * Плъгини за зареждане
