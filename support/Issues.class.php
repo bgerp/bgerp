@@ -371,7 +371,7 @@ class support_Issues extends core_Master
         } elseif ($accessedSystemsCnt == 1) {
 
             // Ако има само една достъпна система, препращане към създаването на докумев в нея
-            return redirect(array('support_Issues', 'add', 'systemId' => key($accessedSystemsArr), 'ret_Url' => $retUrl));
+            return redirect(array('support_Issues', 'add', 'systemId' => key($accessedSystemsArr), 'ret_url' => $retUrl));
         } 
         
         // Ако достъпните ситеми са повече от 1, тогава ги показваме
