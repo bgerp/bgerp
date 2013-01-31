@@ -135,7 +135,7 @@ class sales_TransactionSourceImpl
         }
         
         // Експедиране от текущ склад?
-        if ($rec->shipmentStoreId != store_Stores::getCurrent(FALSE)) {
+        if ($rec->shipmentStoreId != store_Stores::getCurrent('id', FALSE)) {
             // Експедиране от склад, който не е зададен като текущ
             return FALSE;
         }
@@ -159,7 +159,7 @@ class sales_TransactionSourceImpl
         }
         
         // Плащане в текущата каса?
-        if ($rec->caseId != cash_Cases::getCurrent(FALSE)) {
+        if ($rec->caseId != cash_Cases::getCurrent('id', FALSE)) {
             // Избраната каса не е е текущата
             return FALSE;
         }
