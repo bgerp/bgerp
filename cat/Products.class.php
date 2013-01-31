@@ -336,6 +336,9 @@ class cat_Products extends core_Master {
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         if ($rec->id) {
+            if (!$rec->_old) {
+                $rec->_old = new stdClass();
+            }
             $rec->_old->categoryId = $mvc->fetchField($rec->id, 'categoryId');
             $rec->_old->groups = $mvc->fetchField($rec->id, 'groups');
         }
