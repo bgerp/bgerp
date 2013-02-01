@@ -175,14 +175,16 @@ class cal_Tasks extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
+    	$cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
+        $data->form->setDefault('sharedUsers', "|".$cu."|");
 
         $rec = $data->form->rec;
  
         if($rec->allDay == 'yes') {
             list($rec->timeStart,) = explode(' ', $rec->timeStart);
         }
-
+        
     }
 
 
@@ -280,7 +282,7 @@ class cal_Tasks extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
-
+  
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
 
         if($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
