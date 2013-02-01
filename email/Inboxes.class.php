@@ -191,7 +191,7 @@ class email_Inboxes extends core_Master
         $accRec = email_Accounts::fetch($accId);
 
         // Ако сметката е частна, то $toBox е нейния имейл
-        if($accRec->type == 'private') {
+        if($accRec->type == 'single') {
 
             return $accRec->email;
         }
