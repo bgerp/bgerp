@@ -38,7 +38,7 @@ class crm_Groups extends groups_Manager
     /**
      * Кои полета да се листват
      */
-    var $listFields = 'order,title=Заглавие,companiesCnt,personsCnt';
+    var $listFields = 'order,title=Заглавие,extenders';
     
     
     /**
@@ -132,13 +132,28 @@ class crm_Groups extends groups_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->companiesCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
-        $row->personsCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
-        
+    	$row->companiesCnt = $mvc->getVerbal($rec, 'companiesCnt');
+    	$row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
+    	
+    	$row->companiesCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+        $row->personsCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
+       
         $name = $mvc->getVerbal($rec, 'name');
         $info = $mvc->getVerbal($rec, 'info');
         
-        $row->title = "<b>$name</b><br><small>$info</small>";
+        $row->title = "<b>$name</b><br />";
+        if($info)  $row->title .= "<small>$info</small><br />";
+        $row->title .= "<span style='font-size:14px;'>Брой фирми:</span> ". $row->companiesCnt;
+        $row->title .= ", <span style='font-size:14px;'>Брой лица:</span> ".  $row->personsCnt;
+       
+        
+        $extArr  = arr::make($rec->extenders);
+        foreach($extArr as $ext) {
+        	$row->extenders .= $mvc->extendersArr[$ext]['title'] .", ";
+        }
+        $row->extenders = trim($row->extenders, ', ');
+        $row->extenders = "<span style='display:block; width:320px; font-size: 15px;'>".$row->extenders."</span>";
+        
     }
     
     
