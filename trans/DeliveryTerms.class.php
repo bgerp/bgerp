@@ -15,7 +15,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_DeliveryTerms extends core_Manager
+class trans_DeliveryTerms extends core_Master
 {
     
     
@@ -28,13 +28,32 @@ class trans_DeliveryTerms extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, term, codeName, forSeller, forBuyer, transport';
+    var $listFields = 'id, term, codeName';
     
+    /**
+     * Полетата, които ще се показват в единичния изглед
+     */
+    var $singleFields = 'id, term, codeName, forSeller, forBuyer, transport';
+    
+    /**
+     * @todo Чака за документация...
+     */
+    var $canSingle = 'user';
     
     /**
      * Заглавие
      */
     var $title = 'Условия на доставка';
+    
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = "Условие на доставка";
+    
+    /**
+     * Икона по подразбиране за единичния обект
+     */
+    var $singleIcon = 'img/16/delivery.png';
     
     
     /**
