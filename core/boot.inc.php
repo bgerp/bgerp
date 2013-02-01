@@ -260,7 +260,7 @@ defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);/**
 /**
  * Сетъп ключ, ако не е зададен
  */
-defIfNot('BGERP_SETUP_KEY', md5(EF_EF_SALT . '*9fbaknc'));
+defIfNot('BGERP_SETUP_KEY', md5(EF_SALT . '*9fbaknc'));
 
 // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
 ob_clean();
