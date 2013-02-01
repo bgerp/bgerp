@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class lab_Parameters extends core_Manager
+class lab_Parameters extends core_Master
 {
     
     
@@ -34,14 +34,13 @@ class lab_Parameters extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,tools=Пулт,name,type,dimension,
-                             precision,description,state';
+    var $listFields = 'id,name';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
     
     
     /**
@@ -55,11 +54,28 @@ class lab_Parameters extends core_Manager
      */
     var $canRead = 'lab,admin';
     
+    /**
+     * Полетата, които ще се показват в единичния изглед
+     */
+    var $singleFields = 'id,name,type,dimension,
+                             precision,description,state';
+    
+    
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = "Параметър";
+    
+         
+    /**
+     * Икона по подразбиране за единичния обект
+     */
+    var $singleIcon = 'img/16/pipette.png';
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'lab/tpl/SingleLayoutParameters.shtml';
+    //var $singleLayoutFile = 'lab/tpl/SingleLayoutParameters.shtml';
     
     
     /**
