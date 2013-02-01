@@ -103,7 +103,9 @@ class core_Statuses extends core_Manager
             mode::setPermanent('statusArr', $resArr);
         }
         
-        $openNtf = bgerp_Notifications::getOpenCnt();
+        if (cls::load("bgerp_Notifications", TRUE)) {
+        	$openNtf = bgerp_Notifications::getOpenCnt();
+        }
 
         $resArr[$i]['statusText'] = $openNtf;
         $resArr[$i]['statusType'] = 'open';
