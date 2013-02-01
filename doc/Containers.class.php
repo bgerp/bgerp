@@ -913,5 +913,8 @@ class doc_Containers extends core_Manager
     {
         // Обновяваме записите за файловете
         doc_Files::updateRec($rec);
+        
+        // Обновяваме записите за обръщенията
+        email_Salutations::updateRec($rec);
     }
 }

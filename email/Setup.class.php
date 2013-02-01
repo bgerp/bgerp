@@ -132,6 +132,7 @@ class email_Setup
             'email_Spam',
             'email_Fingerprints',
             'email_Unparsable',
+            'email_Salutations',
         );
         
 

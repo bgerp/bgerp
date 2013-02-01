@@ -583,6 +583,16 @@ class email_Outgoings extends core_Master
             
             static::_send($rec, (object)$options, $lg);
         }
+        
+        // Ако активираме имейла
+        if ($rec->__activation) {
+            
+            // Вземаме целия запис
+            $nRec = $mvc->fetch($rec->id);
+            
+            // Записваме обръщението в модела
+            email_Salutations::create($nRec);
+        }
     }
     
     
@@ -822,7 +832,7 @@ class email_Outgoings extends core_Master
         $contragentDataHeader['hello'] = $hello;
  
         //Създаваме тялото на постинга
-        $rec->body = $mvc->createDefaultBody($contragentDataHeader, $originId, $forward);
+        $rec->body = $mvc->createDefaultBody($contragentDataHeader, $rec, $forward);
         
         //След превода връщаме стария език
         core_Lg::pop();
@@ -841,13 +851,13 @@ class email_Outgoings extends core_Master
     /**
      * Създава тялото на постинга
      */
-    function createDefaultBody($HeaderData, $originId, $forward=FALSE)
+    function createDefaultBody($HeaderData, $rec, $forward=FALSE)
     {
         //Хедър на съобщението
-        $header = $this->getHeader($HeaderData);
+        $header = $this->getHeader($HeaderData, $rec);
         
         //Текста между заглавието и подписа
-        $body = $this->getBody($originId, $forward);
+        $body = $this->getBody($rec->originId, $forward);
         
         //Футър на съобщението
         $footer = $this->getFooter();
@@ -862,8 +872,14 @@ class email_Outgoings extends core_Master
     /**
      * Създава хедър към постинга
      */
-    function getHeader($data)
+    function getHeader($data, $rec)
     {  
+        // Вземаме обръщението
+        $salutation = email_Salutations::get($rec->folderId, $rec->threadId);
+        
+        // Ако сме открили обръщение използваме него
+        if ($salutation) return $salutation;
+        
         $tpl = new ET(getFileContent("email/tpl/OutgoingHeader.shtml"));
         
         //Заместваме шаблоните
@@ -1529,5 +1545,13 @@ class email_Outgoings extends core_Master
         $tpl = static::renderWrapping($tpl, $data);
 
         return $tpl;
+    }
+    
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_Activation($mvc, &$rec)
+    {
+        $rec->__activation = TRUE;
     }
 }
