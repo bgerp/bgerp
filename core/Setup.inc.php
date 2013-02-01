@@ -22,9 +22,6 @@
 // 6. Показване на прогрес барове
 // 7. Стартиране на инсталацията
 
-// "Ключ" за стартиране на Сетъпа
-defIfNot('BGERP_SETUP_KEY', '');
-
 ob_end_clean();
 header("Content-Type: text/html; charset=UTF-8");
 
@@ -276,6 +273,7 @@ $texts['currentStep'] = $step;
 // file_put_contents("log.txt", "step = {$step}, IP: {$_SESSION[EF_APP_NAME . 'admin_ip']} \n");
 // Собственото URL
 $selfUrl = "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
+
 list($selfUrl,) = explode('&', $selfUrl);
 
 // URL на следващата стъпка
@@ -634,10 +632,17 @@ if ($step == 'setup') {
 
     contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
     
-    $appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate/?'));
-    $appUri = substr($selfUrl, 0, strpos($selfUrl,'/?'));
+    $appUri = $selfUrl; 
+    if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
+    	$appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate'));
+    }
+
+    if (strpos($appUri,'/?') !== FALSE) {
+    	$appUri = substr($appUri, 0, strpos($appUri,'/?'));
+    } 
     
-    $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent");
+    
+    $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent"); 
     $l = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($l));
     contentFlush("<script>
         				document.getElementById('startHeader').innerHTML = '" .
