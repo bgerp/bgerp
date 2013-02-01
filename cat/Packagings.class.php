@@ -144,6 +144,10 @@ class cat_Packagings extends core_Manager
             array(
                 'name' => 'Бака',
             )
+            ,
+            array(
+                'name' => 'Метро опаковка(МЕ)',
+            )
         );
         
         foreach ($initData as $rec) {

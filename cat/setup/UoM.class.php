@@ -31,6 +31,7 @@ class cat_setup_UoM extends core_Mvc
                 $rec->shortName = $csvRow[1];
                 $rec->baseUnitId = $Units->fetchField(array("#name = '[#1#]'", $csvRow[2]), 'id');     /* escape data! */
                 $rec->baseUnitRatio = $csvRow[3];
+                $rec->state = $csvRow[4];
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 // Ако има запис с този 'name'
                 $rec->id = $Units->fetchField(array("#name = '[#1#]'", $rec->name), 'id');     /* escape data! */
