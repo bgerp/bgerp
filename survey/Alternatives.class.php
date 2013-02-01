@@ -89,6 +89,31 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
+     * Функция извиквана след като изпратим формата
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()) {
+    		$txtArr = explode("\n", $form->rec->answers);
+    		
+    		// Изчистваме подадените отговори от празни редове, и правим
+    		// проверка за тяхната дължина
+    		$txtArr = array_filter($txtArr, 'trim');
+			if(count($txtArr) == 1) {
+				$form->setWarning('answers', 
+								  'Въпросът има само един въжможен отговор. 
+				                   Сигурни ли сте че искате да го запишете ? ');
+			} elseif(count($txtArr) == 0) {
+				$form->setError('answers', 'Не сте подали възможни отговори !!!');
+			}
+    		
+			// преобразуваме изчистения масив във вида на текст, записвайки го
+			$form->rec->answers = implode("\n", $txtArr);
+    	}
+    }
+    
+    
+    /**
      * Подготовка на Детайлите
      */
     function prepareDetail_($data)
@@ -138,14 +163,15 @@ class survey_Alternatives extends core_Detail {
 		if($fields['-list']) {
 			$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
 			
-			if(!$rec->image) {
-				$imgLink = sbf('survey/img/question.png', '');
-			}else {
-				$attr = array('isAbsolute' => FALSE, 'qt' => '');
-				$imgLink = thumbnail_Thumbnail::getLink($rec->image, array('18','18'), $attr);
-			}
+			$imgLink = sbf('survey/img/question.png', '');
+			$row->icon = ht::createElement('img', array('src' => $imgLink, 'width' => '18px'));
 			
-			$row->image = ht::createElement('img', array('src' => $imgLink, 'width' => '18px'));
+			if($rec->image) {
+				$tArr = array(140, 140);
+       	 		$mArr = array(500, 500);
+				$Fancybox = cls::get('fancybox_Fancybox');
+				$row->image = $Fancybox->getImage($rec->image, $tArr, $mArr, null, array('class'=>'question-image'));
+			}
 		}
 	}
 	
@@ -161,44 +187,43 @@ class survey_Alternatives extends core_Detail {
 	function verbalAnswers($text, $id)
 	{
 		$tpl = new ET("");
-		$altTpl = new ET("<li><input name= 'quest{$id}' type='radio' [#data#] [#onClick#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>\n");
+		$altTpl = new ET("<li><input name= 'quest{$id}' type='radio' [#data#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>\n");
 		
 		// Ако анкетата е активна тогава радио бутоните могат да
 		// изпращат гласове
 		$rec = static::fetch($id);
 		($this->haveRightFor('vote', $rec)) ? $can = TRUE : $can = FALSE;
 		
-		// Разбиваме подадения текст по редове
+		// Разбиваме подадения текст по редове, и махаме празните такива
 		$txtArr = explode("\n", $text);
-		$arr = array('survey_Votes', 'vote', 'id' => NULL, 'alternativeId' => $id, 'ret_url' => TRUE);
-		$rowAnswered = static::hasUserVoted($id);
+		
+		// Кой е послед посочения отговор от потребителя
+		$lastVote = survey_Votes::lastUserVote($id);
 		
 		// Всеки непразен ред от текста е отговор, 
 		// рендираме го във вида на радио бутон
 		for($i = 1; $i <= count($txtArr); $i++) {
-			if($txtArr[$i-1] != '') {
-				$copyTpl = clone($altTpl);
+			$copyTpl = clone($altTpl);
 				
-				// Ако гласуването е позволено, слагаме в инпута
-				// атрибутите нужни за Ajax заявката
-				if($can) { 
-					$params = "rowId='{$i}' alternativeId='{$id}' ";
-					if($mid = Request::get('m')) {
-						$params .= "m='{$mid}'";
-					}
+			// Ако гласуването е позволено, слагаме в инпута
+			// атрибутите нужни за Ajax заявката
+			if($can) { 
+				$params = " data-rowId='{$i}'  data-alternativeId='{$id}' ";
+				if($mid = Request::get('m')) {
+					$params .= " data-m='{$mid}'";
+				}
 					
-					$copyTpl->replace($params, 'data');
-				}
-				
-				$copyTpl->replace($txtArr[$i-1], 'answer');
-				
-				// Ако потребителя вече е гласувал, чекваме радио бутона
-				if($i == $rowAnswered) {
-					$copyTpl->replace('checked', 'checked');
-				}
-				
-				$tpl->append($copyTpl);
+				$copyTpl->replace($params, 'data');
 			}
+				
+			$copyTpl->replace($txtArr[$i-1], 'answer');
+				
+			// Ако потребителя вече е гласувал, чекваме радио бутона
+			if($i == $lastVote->rate) {
+				$copyTpl->replace('checked', 'checked');
+			}
+				
+			$tpl->append($copyTpl);
 		}
 		
 		return $tpl;
@@ -222,15 +247,8 @@ class survey_Alternatives extends core_Detail {
 	    	}
     	}
     	
-    	$tpl->append(new ET('[#ListToolbar#]'));
-    	
-    	// Зареждаме JS файла за Ajax заявката
-    	$clickScript = new ET(getFileContent('survey/js/scripts.js'));
-    	$arr = array('survey_Votes', 'vote', 'ret_url' => TRUE);
-    	$url = toUrl($arr);
-    	$clickScript->replace($url, 'url');
-    	$tpl->append(new ET('<script>[#JS#]</script>'));
-    	$tpl->replace($clickScript, 'JS');
+    	$url = toUrl(array('survey_Votes', 'vote'));
+    	$tpl->appendOnce("voteUrl = '{$url}';", 'SCRIPTS');
     	
     	return $tpl;
     }
@@ -281,11 +299,15 @@ class survey_Alternatives extends core_Detail {
     			$op->votes = 0;
     			$op->percent = 0;
     		}
+    		
     		$answers[] = $op;
     	}
     	
-		$res = new stdClass();
+    	$res = new stdClass();
     	$res->label = $rec->label;
+    	
+    	arr::order($answers, 'votes');
+    	$answers = array_reverse($answers, true);
     	$res->answers = $answers;
     	
     	return $res;
@@ -342,19 +364,15 @@ class survey_Alternatives extends core_Detail {
     
     
 	/**
-     * Метод проверяващ дали даден потребител вече е отговорил на даден въпрос
-     * @return mixed $rec->rate/FALSE - отговора който е посочен или FALSE
-     * ако няма запис
+     * Метод проверяващ дали даден потребител вече е отговорил на
+     * даден въпрос
+     * @return boolean TRUE/FALSE дали е гласувал
      */
     static function hasUserVoted($alternativeId)
     {
-    	$userUid = survey_Votes::getUserUid();
-    	$query = survey_Votes::getQuery();
-    	$query->where(array("#alternativeId = [#1#]", $alternativeId));
-    	$query->where(array("#userUid = '[#1#]'", $userUid));
-    	if($rec = $query->fetch()) {
+    	if($rec = survey_Votes::lastUserVote($alternativeId)) {
     		
-    		return $rec->rate;
+    			return TRUE;
     	}
     	
     	return FALSE;
@@ -385,7 +403,7 @@ class survey_Alternatives extends core_Detail {
    		if($action == 'vote' && isset($rec->id)) {
    			$altRec = survey_Alternatives::fetch($rec->id);
 			$surveyRec = survey_Surveys::fetch($altRec->surveyId);
-			if($surveyRec->state != 'active' || static::hasUserVoted($rec->id)) {
+			if($surveyRec->state != 'active' || survey_Surveys::isClosed($altRec->surveyId)) {
 				$res = 'no_one';
 			} else {
 				$res = 'every_one';

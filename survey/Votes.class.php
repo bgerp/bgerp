@@ -89,16 +89,36 @@ class survey_Votes extends core_Manager {
     	$altRec = new stdClass();
     	$altRec->id = $alternativeId;
   	
-    	// Ако анкетата е активна и потребителя не е гласувал, може да се гласува
+    	// Докато потребителя може да гласува презаписваме отговора който
+    	// е посочил на дадения въпрос,
     	if(survey_Alternatives::haveRightFor('vote', $altRec)) {
-    		$this->save($rec, NULL, 'ignore');
+    		$this->save($rec, NULL, 'REPLACE');
     		echo  json_encode(array('success' => 'yes'));
-    		
     	} else {
-    		echo  json_encode(array('success' => 'no'));
-    	}
+	    	echo  json_encode(array('success' => 'no'));
+	    }
     	
     	shutdown();
+    }
+    
+    
+    /**
+     * 
+     * @param int $alternativeId - ид на въпроса
+     * @return mixed $rec/FALSE - Кой е последния отговор, ако има
+     */
+    static function lastUserVote($alternativeId)
+    {
+    	$userUid = static::getUserUid();
+    	$query = static::getQuery();
+    	$query->where(array("#alternativeId = [#1#]", $alternativeId));
+    	$query->where(array("#userUid = '[#1#]'", $userUid));
+    	if($rec = $query->fetch()) {
+    		
+    		return $rec;
+    	}
+    	
+    	return FALSE;
     }
     
     
@@ -112,17 +132,16 @@ class survey_Votes extends core_Manager {
      */
     static function getUserUid()
     {
-    	$uid = new stdClass();
-    	if(core_Users::haveRole('user')) {
-    		$uid->id = core_Users::getCurrent();
-    	} elseif($mid = Request::get('m')) {
-    		$uid->mid = $mid;
+    	$uid = "";
+    	if($mid = Request::get('m')) {
+    		$uid = "mid|" . $mid;
+    	} elseif(core_Users::haveRole('user')) {
+    		$uid = "id|" . core_Users::getCurrent();
     	} else {
-    		$uid->ip = $_SERVER['REMOTE_ADDR'];
+    		$uid = "ip|" . $_SERVER['REMOTE_ADDR'];
     	}
-    	
-    	// Сериализираме uid-a  за да знаем от какъв е int/mid/Ip
-    	return serialize($uid);
+
+    	return $uid;
     }
     
     
@@ -175,23 +194,22 @@ class survey_Votes extends core_Manager {
      */
     function verbalUserUid($userUid)
     {
-    	// десериализираме уид-а от базата 
-    	$uid = unserialize($userUid);
+    	list($type,$val) = explode("|", $userUid);
     	$varchar = cls::get('type_Varchar');
     	
-    	if($uid->id) {
+    	if($type == 'id') {
     		
     		// ако е ид, намираме ника на потребителя
-    		$nick = core_Users::fetchField($uid->id, 'nick');
+    		$nick = core_Users::fetchField($val, 'nick');
     		$userUid = $varchar->toVerbal($nick);
-    	} elseif($uid->mid) {
+    	} elseif($type == 'mid') {
     		
     		// ако е mid
-    		$userUid = $varchar->toVerbal("mid: {$uid->mid}");
-    	} elseif($uid->ip) {
+    		$userUid = $varchar->toVerbal("mid: {$val}");
+    	} elseif($type == 'ip') {
     		
     		// ако е Ип на потребител
-    		$userUid = $varchar->toVerbal($uid->ip);
+    		$userUid = $varchar->toVerbal($val);
     		$userUid = ht::createLink("IP: {$userUid}", "http://bgwhois.com/?query={$uid->ip}", NULL, array('target' => '_blank'));
     	}
     	

@@ -1,14 +1,16 @@
+$(document).ready(function() {
 $('ul.answers input[type=radio]').click(function vote() {
-    var url = '[#url#]';
-    var rowId = $(this).attr("rowId");
+    var url = voteUrl;
+    
+    var rowId = $(this).attr("data-rowId");
     if(typeof rowId === "undefined")  return;
-    var alternativeId = $(this).attr("alternativeId");
-    var mid = $(this).attr("m");
+    var alternativeId = $(this).attr("data-alternativeId");
+    var mid = $(this).attr("data-m");
     var data = {id:rowId, alternativeId:alternativeId};
     if(mid) {
-    	data.mid = mid;
+    	data.m = mid;
     }
-    	
+   
     $.ajax({
     	     type: "GET",
     	     url: url,
@@ -25,4 +27,5 @@ $('ul.answers input[type=radio]').click(function vote() {
     	    	 
     	     }
     	   });
+});
 });

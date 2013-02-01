@@ -1,11 +1,15 @@
 <!--ET_BEGIN ROW-->
-<table border ='0' class='question-head'>
+<table border ='0' class='question-head' width ='90%'>
 	<tr>
-		<td>[#image#]</td>
-		<td style='padding-top:7px'><b>[#label#] </b></td>
+		<td colspan='2'>[#icon#] &nbsp;&nbsp;<b>[#label#]</b> - [#tools#]</td>
 	</tr>
-</table>
+<tr>
+<td>
 <ul class='answers' style='padding-top:7px'>
 [#answers#]
 </ul>
+</td>
+<td width='30%'>[#image#]</td>
+</tr>
+</table>
 <!--ET_END ROW-->

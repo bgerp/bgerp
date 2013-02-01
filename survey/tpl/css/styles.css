@@ -4,7 +4,7 @@
 }
 
 #survey-title{
-	color:darkred;
+	color:darkblue;
 	font-weight:bold;
 }
 
@@ -12,7 +12,6 @@
 	list-style:none;
 	margin-top:5px !important;
 	margin-bottom:5px !important;
-	margin-left:40px !important;
 	padding-left:0px;
 }
 
@@ -65,4 +64,21 @@
 	font-size: 17px;
 	margin-left:50px;
 	font-weight:bold;
+}
+
+.question-image {
+	-moz-box-shadow: 0px 0px 6px #000000;
+	-webkit-box-shadow: 0px 0px 6px #000000;
+	box-shadow: 0px 0px 6px #000000;
+}
+
+#survey-closed {
+	margin-left:10px;
+	color:darkred;
+	font-style:italic;
+	font-weight:bold;
+}
+
+#survey-list-toolbar {
+	margin-left:40px;
 }

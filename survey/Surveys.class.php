@@ -110,7 +110,7 @@ class survey_Surveys extends core_Master {
 		$this->FLD('description', 'text(rows=2)', 'caption=Oписание, mandatory, width=100%');
     	$this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,width=8em,mandatory');
     	$this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory,width=8em');
-    	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена,closed=Изтекла)', 'caption=Състояние,input=none,width=8em');
+    	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
     }
     
     
@@ -154,6 +154,10 @@ class survey_Surveys extends core_Master {
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
+	    	
+	    	if(static::isClosed($rec->id)) {
+	    		$row->closed = tr("Анкетата е приключила");
+	    	}
     	}
     }
     
@@ -166,8 +170,7 @@ class survey_Surveys extends core_Master {
     static function isClosed($id)
     {
     	expect($rec = static::fetch($id), 'Няма такъв запис');
-    	$now = dt::now();
-    	($rec->state == 'closed' || $rec->enddate <= $now ) ? $res = TRUE : $res = FALSE;
+    	($rec->enddate <= dt::now() ) ? $res = TRUE : $res = FALSE;
     	
     	return $res;
     }
@@ -181,9 +184,7 @@ class survey_Surveys extends core_Master {
    		//  Кой може да обобщава резултатите
 		if($action == 'summarise' && isset($rec->id) ) {
    			
-			/*
-			 * Можем да Обобщим резултатите само ако анкетата не е чернова
-			 */
+			//Можем да Обобщим резултатите само ако анкетата не е чернова
 			if($rec->state == 'active' && !static::isClosed($rec->id)) {
 				switch($rec->summary) {
 	   				case 'internal':
@@ -206,7 +207,6 @@ class survey_Surveys extends core_Master {
    		if($action == 'activate' && isset($rec)) {
    			if(static::alternativeCount($rec->id) == 0 ||
    				$rec->enddate <= dt::now()) {
-   					
    				$res = 'no_one';
    			}
    		}
@@ -257,8 +257,9 @@ class survey_Surveys extends core_Master {
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
+    	jquery_Jquery::enable($tpl);
     	$tpl->push('survey/tpl/css/styles.css', 'CSS');
-    	//$tpl->push('survey/js/scripts.js', 'JS');
+    	$tpl->push(('survey/js/scripts.js'), 'JS');
     }
     
     
@@ -295,41 +296,5 @@ class survey_Surveys extends core_Master {
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy("#state=DESC");
-    }
-    
-    
-    /**
-     * Крон функция, която заключва изтеклите анкети
-     */
-    function cron_CloseSurveys()
-    {
-    	$query = $this->getQuery();
-    	$query->where("#state = 'active'");
-    	while($rec = $query->fetch()) {
-    		if(static::isClosed($rec->id)) {
-    			$rec->state = 'closed';
-    			$this->save($rec);
-    		}
-    	}
-    }
-    
-    
- 	/**
-     * Настройки на Cron-a
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        $Cron = cls::get('core_Cron');
-        
-        $rec = new stdClass();
-        $rec->systemId = "close_old_surveys";
-        $rec->description = "Затваряне на изтекли анкети";
-        $rec->controller = 'survey_Surveys';
-        $rec->action = "CloseSurveys";
-        $rec->period = 24 * 60;
-        $rec->offset = 17 * 60;
-    	if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да заключва изтекли статии.</font></li>";
-        }
     }
 }

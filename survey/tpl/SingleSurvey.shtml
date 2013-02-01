@@ -7,9 +7,10 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<div id='survey-header'>
-		<div id='title'> Заглавие: &nbsp;&nbsp;<span id='survey-title'>[#title#]</span> </div>
+		<div id='title'> Заглавие: &nbsp;&nbsp;<span id='survey-title'>[#title#]</span> <!--ET_BEGIN closed--><span id ='survey-closed'>- [#closed#]</span><!--ET_END closed--></div>
 		<div id='survey-info'>Пусната на [#createdOn#] от [#createdBy#], &nbsp;&nbsp;Краен срок за гласуване: <span id='enddate'>[#enddate#]</span></div>
 		<div id='shortDesc'>[#description#]</div>
 	</div>
 	[#DETAILS#]
+	<div id='survey-list-toolbar'>[#ListToolbar#]</div>
 </div>
