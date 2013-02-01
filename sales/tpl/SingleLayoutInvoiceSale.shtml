@@ -22,12 +22,10 @@
                     <td class="cell" align="center" width="30%">
                         <font style="font-size:16pt;"><b> ПРОДАЖБА</b> </font><br>
                         
-                        <div style="padding-top:5px;">Номер</div>
-                        <div class="bigData">[#id#]</div>
-                        
-                        <div style="padding-top:5px;">Дата</div>
-                        <div class="bigData">[#date#]</div>
-    
+                        <div style="padding-top:5px;">
+                        	№ <span class="bigData">[#id#]</span> / 
+                        	<span class="bigData">[#date#]</span>
+                        </div>
                     </td>
                     <td class="cell" width="35%" valign="top"><b>Доставчик</i></b>
                     <div>

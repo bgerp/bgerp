@@ -423,8 +423,9 @@ dl dt {
 }
 
 dl dd {
-	margin-left: 155px;
+	margin-left: 20px;
 	margin-right: 0;
+	float:left;
 	line-height: 1.5em;
 }
 
@@ -1643,6 +1644,10 @@ fieldset.sharing-history i {
 	min-height: 300px;
 }
 
+.wide .webdrvFieldset>div{
+	max-width:868px;
+	overflow:auto;
+}
 .wide .webdrvFieldset pre.richtext{
 	max-width: 845px;
 	/*height:560px; */
@@ -1720,11 +1725,12 @@ fieldset.sharing-history i {
 
 	.styled-table{
 		border-collapse:collapse;
+		margin-bottom:20px;
 	}
 	.styled-table th{
 		text-align:left;
 	}
-	.styled-table th, .styled-table td{
+	.styled-table td{
 		border:1px solid #ccc;
 		padding:2px 5px;
 	}
@@ -1734,12 +1740,12 @@ fieldset.sharing-history i {
 	.styled-table .title-style{
 		color:#666;
 	}
-	.styled-table .border-bottom td{
-		border-bottom:1px solid #999;
-	}
-	
+
+	table.styled-table tr:hover td {
+    background-color:#ffc !important;
+}
 /*стилове за локации*/
-		.info-table ul{
+	.info-table ul{
 		padding:0;
 		margin:0;
 	}

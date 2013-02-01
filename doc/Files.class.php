@@ -356,4 +356,35 @@ class doc_Files extends core_Manager
         
         return $count;
     }
+    
+    
+    /**
+     * Променяме folderId на папката
+     * 
+     * @param doc_Containers $cRec - Запис от doc_Containers
+     */
+    static function updateRec($cRec)
+    {
+        // Ако няма containerId не се прави ништо
+        if (!$cRec->containerId) return ;
+
+        // Вземаем всички записи от модела от съответния контейнер
+        $query = static::getQuery();
+        $query->where("#containerId = '{$cRec->containerId}'");
+        
+        // Обхождаме всички записи
+        while($rec = $query->fetch()) {
+            
+            // Ако се е променило id' то на папката
+            if ($rec->folderId != $cRec->folderId) {
+                
+                // Обновяваме id' то
+                $nRec = new stdClass();
+                $nRec->id = $rec->id;
+                $nRec->folderId = $cRec->folderId;
+                
+                static::save($nRec);
+            }
+        }
+    }
 }

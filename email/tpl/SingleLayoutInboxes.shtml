@@ -2,43 +2,36 @@
 <div style="display:inline-block" class="singleView">
 [#SingleToolbar#]
 	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Е-кутия <b style="color:green;">[#email#]</b></div></h2>
-<table class="styled-table" width="100%">
-    <tbody>
-		<tr class="border-bottom">
-			<td class="title-style">email</td>
+	<table class="styled-table" width="100%">
+		<tr>
+			<td class="title-style" width="150px">Имейл</td>
 			<td> [#email#]</td>
-			
 		</tr>
-		<tr class="border-bottom">
-			<td class="title-style">сметка</td>
+		<tr>
+			<td class="title-style">Сметка</td>
 			<td>[#accountId#]</td>
 		</tr>
+	</table>
+	<table class="styled-table" width="100%">
 		<tr>
 			<th colspan="2">Права</th>
 		</tr>
-		<tr class="border-bottom">
-			<td><span class="title-style">Отговорник:</span> [#inCharge#] </td>
-			<td><span class="title-style">Достъп:</span> [#access#]</td>
+		<tr>
+			<td width="150px"><span class="title-style">Отговорник:</span></td>
+			<td>[#inCharge#] </td>
+		<tr>
+			<td><span class="title-style">Достъп:</span></td>
+			<td> [#access#]</td>
 		</tr>
 		 <!--ET_BEGIN shared-->
 		<tr>
-			<td colspan="2"><span class="title-style">Права:</span> [#shared#]</td>
+			<td><span class="title-style">Споделяне:</span></td>
+			<td>[#shared#]</td>
 		</tr>
 		 <!--ET_END shared-->
-		<tr>
-			<th colspan="2">Модифициране</th>
-		</tr>
-		<tr class="border-bottom">
-			<td><span class="title-style">от</span> [#modifiedBy#]</td>
-			<td><span class="title-style">на</span> [#modifiedOn#]</td>
-		</tr>
-		<tr>
-			<th colspan="2">Създаване</th>
-		</tr>
-		<tr class="border-bottom">
-			<td><span class="title-style">от</span> [#createdBy#]</td>
-			<td><span class="title-style">на</span> [#createdOn#]</td>
-		</tr>
+	</table>
+		<div><span class="quiet">Модифициране: </span>от [#modifiedBy#] на [#modifiedOn#] </div>
+		<div><span class="quiet">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
 		
 	</tbody>
 </table>
