@@ -155,48 +155,42 @@ class crm_Groups extends groups_Manager
             // BEGIN масив с данни за инициализация
             $data = array(
                 array(
-                    'name' => 'КЛИЕНТИ',
+                    'name' => 'Клиенти',
                     'sortId' => 30,
                 	'extenders' => 'lists,locations'
                 ),
                 array(
-                    'name' => 'ДОСТАВЧИЦИ',
+                    'name' => 'Доставчици',
                     'sortId' => 31,
                 	'extenders' => 'bankAccount,lists,locations',
                 ),
                 array(
-                    'name' => 'ДЕБИТОРИ',
+                    'name' => 'Дебитори',
                     'sortId' => 32,
                 	'extenders' => 'locations'
                 ),
                 array(
-                    'name' => 'КРЕДИТОРИ',
+                    'name' => 'Кредитори',
                     'sortId' => 33,
                 	'extenders' => 'bankAccount,locations'
                 ),
                 array(
-                    'name' => 'СЛУЖИТЕЛИ',
+                    'name' => 'Служители',
                     'sortId' => 34,
                 	'extenders' => 'bankAccount,locations,idCard'
                 ),
                 array(
-                    'name' => 'ПОТРЕБИТЕЛСКИ ПРОФИЛИ',
-                    'sortId' => 35,
-                    'extenders' => 'profile'
-                	
-                ),
-                array(
-                    'name' => 'УПРАВИТЕЛИ',
+                    'name' => 'Управители',
                     'sortId' => 36,
                 	'extenders' => 'bankAccount,profile,idCard,lists'
                 ),
                 array(
-                    'name' => 'СВЪРЗАНИ ЛИЦА',
+                    'name' => 'Свързани лица',
                     'sortId' => 37,
                 	'extenders' => 'bankAccount,idCard,lists'
                 ),
                 array(
-                    'name' => 'ОРГАНИЗАЦИИ И ИНСТИТУЦИИ',
+                    'name' => 'Организации и институции',
                     'sortId' => 38,
                 	'extenders' => 'bankAccount,locations,lists'
                 )
