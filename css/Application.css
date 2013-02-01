@@ -1727,19 +1727,20 @@ fieldset.sharing-history i {
 		border-collapse:collapse;
 		margin-bottom:20px;
 	}
-	
 	.styled-table th{
 		text-align:left;
 	}
-	
+	.styled-table td{
+		border:1px solid #ccc;
+		padding:2px 5px;
+	}
 	.styled-table th{
 		border-bottom:none;
 	}
-	
 	.styled-table .title-style{
 		color:#666;
 	}
-	
+
 	table.styled-table tr:hover td {
     background-color:#ffc !important;
 }
