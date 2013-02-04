@@ -33,10 +33,10 @@ class fileman_Files2 extends core_Master
     public static function absorb($path, $bucket, $name = NULL)
     {
         // Очакваме да има валиден файл
-        expect(is_file($path));
+        expect(is_file($path), 'Не е подаден валиден файл.');
         
         // Очакваме да има такава кофа
-        expect($bucketId = fileman_Buckets::fetchByName($bucket));
+        expect($bucketId = fileman_Buckets::fetchByName($bucket), 'Несъществуваща кофа.');
 
         // Опитваме се да определим името на файла
         if(!$name) $name = basename($path);
@@ -68,11 +68,11 @@ class fileman_Files2 extends core_Master
     public static function absorbStr($data, $bucket, $name)
     {
         // Очакваме да има валидна кофа
-        expect($bucketId = fileman_Buckets::fetchByName($bucket));
+        expect($bucketId = fileman_Buckets::fetchByName($bucket), 'Несъществуваща кофа');
         
         // Качваме файла и вземаме id' то на данните
         $data = fileman_Data::absorb($data, 'string');
-        expect($dataId = $data->id);
+        expect($dataId = $data->id, 'Липсват данни.');
 
         // Проверяваме дали същия файл вече съществува
         if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
@@ -96,11 +96,11 @@ class fileman_Files2 extends core_Master
     public static function addVersion($fh, $path)
     {
         // Очакваме да има подаден файл
-        expect(is_file($path));
+        expect(is_file($path), 'Не е подаден валиден файл.');
         
         // Очакваме да има такъв файл
         $fRec = fileman_Files::fetchByFh($fh);
-        expect($fRec);
+        expect($fRec, 'Няма такъв запис');
         
         // Абсорбираме файла
         $data = fileman_Data::absorb($path, 'file');
@@ -130,11 +130,11 @@ class fileman_Files2 extends core_Master
     {
         // Очакваме да има такъв файл
         $fRec = fileman_Files::fetchByFh($fh);
-        expect($fRec);
+        expect($fRec, 'Няма такъв запис');
         
         // Качваме файла и вземаме id' то на данните
         $data = fileman_Data::absorb($data, 'string');
-        expect($dataId = $data->id);
+        expect($dataId = $data->id, 'Липсват данни.');
         
         // Ако данните са същите, като на оригиналния файл
         if ($fRec->dataId == $dataId) {
@@ -158,7 +158,7 @@ class fileman_Files2 extends core_Master
     public static function extract($fh)
     {
         // Вземаме записите за файла
-        expect($rec = fileman_Files::fetchByFh($fh));
+        expect($rec = fileman_Files::fetchByFh($fh), 'Няма такъв запис');
         
         // Вземаме пътя до данните на файла
         $originalPath = fileman_Files::fetchByFh($fh, 'path');
@@ -218,7 +218,7 @@ class fileman_Files2 extends core_Master
     public static function rename($fh, $newName)
     {
         // Очакваме да има валиден запис
-        expect($rec = fileman_Files::fetchByFh($fh));
+        expect($rec = fileman_Files::fetchByFh($fh), 'Няма такъв запис.');
         
         // Ако имена не са еднакви
         if($rec->name != $newName) {
@@ -252,7 +252,7 @@ class fileman_Files2 extends core_Master
     public static function copy($fh, $newBucket = NULL, $newName = NULL)
     {
         // Очакваме да има такъв файл
-        expect($rec = fileman_Files::fetchByFh($fh));
+        expect($rec = fileman_Files::fetchByFh($fh), 'Няма такъв запис');
         
         // Името на новия файл
         $newName = ($newName) ? $newName : $rec->name;
@@ -281,7 +281,7 @@ class fileman_Files2 extends core_Master
         $id = fileman_Files::save($newRec);
         
         // Очакваме записа да е преминал успешно
-        expect($id);
+        expect($id, 'Възникна грешка при записването.');
         
         // Увеличаваме броя на линковете, които сочат към данните
         fileman_Data::increaseLinks($rec->dataId);
@@ -440,7 +440,7 @@ class fileman_Files2 extends core_Master
         $data = fileman_Data::fetch($rec->dataId);
 
         // Очакваме да има такъв запис
-        expect($rec && $data);
+        expect($rec && $data, 'Няма такъв запис.');
         
         // Попълваме масива
         $metaDataArr['name'] = $rec->name;
@@ -504,7 +504,7 @@ class fileman_Files2 extends core_Master
         $tempPath = $dir . '/' . $newName;
         
         // Създаваме диркторията
-        expect(mkdir($tempPath, 0777, TRUE));
+        expect(mkdir($tempPath, 0777, TRUE), 'Не може да се създаде директория.');
         
         return $tempPath;
     }
@@ -538,13 +538,13 @@ class fileman_Files2 extends core_Master
     public static function deleteTempPath($tempFile)
     {
         // Очакваме да е подаден валиден файл
-        expect(is_file($tempFile));
+        expect(is_file($tempFile), 'Не е валиден файл.');
         
         // Вземаме директорията, в която се намира файла
         $dirName = dirname($tempFile);
         
         // Очакваме папката, която ще изтриваме да е от темп директорията за файлове
-        expect(stripos($dirName, static::getTempDir() . '/') === 0);
+        expect(stripos($dirName, static::getTempDir() . '/') === 0, 'Файла, който сте подали не е от позволените директории.');
         
         // Изтриваме директорията
         $deleted = core_Os::deleteDir($dirName);
