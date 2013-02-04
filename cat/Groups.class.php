@@ -104,6 +104,11 @@ class cat_Groups extends groups_Manager
             'prefix'    => 'ObjectLists',
             'title'     => 'Номенклатура',
         ),
+        'pricegroup' => array(
+            'className' => 'price_GroupOfProducts',
+            'prefix'    => 'PriceGroup',
+            'title'     => 'Ценова група',
+        ),
     );
     
     

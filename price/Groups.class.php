@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Ценоразписи
  */
-class price_Groups extends core_Master
+class price_Groups extends core_Manager
 {
     
     
@@ -31,15 +31,9 @@ class price_Groups extends core_Master
    
     
     /**
-     * Детайла, на модела
-     */
-    var $details = 'price_GroupOfProducts';
- 
-     
-    /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, itemId, type, value, createdOn, createdBy';
+    var $listFields = 'id, title, description';
     
     
     /**

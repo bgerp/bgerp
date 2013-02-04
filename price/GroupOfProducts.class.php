@@ -34,7 +34,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, itemId, type, value, createdOn, createdBy';
+    var $listFields = 'id, groupId, productId, validFrom';
     
     
     /**
@@ -70,7 +70,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Поле - ключ към мастера
      */
-    var $masterKey = 'groupId';
+    var $masterKey = 'productId';
    
 
     /**
@@ -83,4 +83,79 @@ class price_GroupOfProducts extends core_Detail
         $this->FLD('validFrom', 'datetime', 'caption=В сила oт');
     }
     
+    
+    public static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
+    {
+        // Историята на ценовите групи на продукта - в обратно хронологичен ред.
+        $data->query->orderBy("validFrom", 'DESC');
+    }
+
+
+    public function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    {
+        /**
+         * @TODO Кои от ценовите групи на продукт са редактируеми?
+         */
+    }
+    
+    
+    public static function on_AfterPrepareListRows(core_Detail $mvc, $data)
+    {
+        $now  = dt::now(true); // Текущото време (MySQL формат) с точност до секунда
+        $currentGroupId = NULL;// ID на настоящата ценова група на продукта
+        
+        /**
+         * @TODO следващата логика вероятно ще трябва и другаде. Да се рефакторира!
+         */
+        
+        // Цветово кодиране на историята на ценовите групи: добавя CSS клас на TR елементите
+        // както следва:
+        //
+        //  * 'future' за бъдещите ценови групи (невлезли все още в сила)
+        //  * 'active' за текущата ценова група
+        //  * 'past' за предишните ценови групи (които вече не са в сила)
+        foreach ($data->rows as $id=>&$row) {
+            $rec = $data->recs[$id];
+            
+            if ($rec->validFrom > $now) {
+                $row->ROW_ATTR['class'] = 'future';
+            } else {
+                $row->ROW_ATTR['class'] = 'past';
+
+                if (!isset($currentGroupId) || $rec->validFrom > $data->recs[$currentGroupId]->validFrom) {
+                    $currentGroupId = $id;
+                }
+            }
+        }
+        
+        if (isset($currentGroupId)) {
+            $data->rows[$currentGroupId]->ROW_ATTR['class'] = 'active';
+        }
+    }
+
+
+    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
+    {
+        $wrapTpl = new ET(getFileContent('cat/tpl/ProductDetail.shtml'));
+        $wrapTpl->append($mvc->title, 'TITLE');
+        $wrapTpl->append($tpl, 'CONTENT');
+        $wrapTpl->replace(get_class($mvc), 'DetailName');
+    
+        $tpl = $wrapTpl;
+    }
+
+
+    public static function preparePriceGroup($data)
+    {
+        static::prepareDetail($data);
+    }
+    
+    
+    public function renderPriceGroup($data)
+    {
+        // Премахваме продукта - в случая той е фиксиран и вече е показан 
+        unset($data->listFields[$this->masterKey]);
+        
+        return static::renderDetail($data);
+    }
 }
