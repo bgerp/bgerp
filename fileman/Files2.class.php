@@ -39,19 +39,17 @@ class fileman_Files2 extends core_Master
         expect($bucketId = fileman_Buckets::fetchByName($bucket));
 
         // Опитваме се да определим името на файла
-        if($fname === NULL) $fname = basename($path);
+        if(!$name) $name = basename($path);
         
-        // Качваме файла и вземаме id' то на данните
-        expect($dataId = fileman_Data::absorbFile($path));
+        // Абсорбираме файла
+        $data = fileman_Data::absorb($path, 'file');
+        $dataId = $data->id;
 
         // Проверяваме дали същия файл вече съществува
-        $fh = fileman_Files::checkFileName($dataId, $bucketId, $fname);
-
-        // Ако няма съвпадения с друг файл в системата
-        if (!$fh) {
+        if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
             
             // Създаваме запис за файла
-            $fh = static::createFile($fname, $bucketId, $dataId);    
+            $fh = static::createFile($name, $bucketId, $dataId);    
         }
         
         return $fh;
@@ -73,13 +71,11 @@ class fileman_Files2 extends core_Master
         expect($bucketId = fileman_Buckets::fetchByName($bucket));
         
         // Качваме файла и вземаме id' то на данните
-        expect($dataId = fileman_Data::absorbString($data));
+        $data = fileman_Data::absorb($data, 'string');
+        expect($dataId = $data->id);
 
         // Проверяваме дали същия файл вече съществува
-        $fh = fileman_Files::checkFileName($dataId, $bucketId, $name);
-
-        // Ако няма съвпадения с друг файл в системата
-        if (!$fh) {
+        if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
             
             // Създаваме запис за файла
             $fh = static::createFile($name, $bucketId, $dataId);    
@@ -106,8 +102,9 @@ class fileman_Files2 extends core_Master
         $fRec = fileman_Files::fetchByFh($fh);
         expect($fRec);
         
-        // Качваме файла и вземаме id' то на данните
-        expect($dataId = fileman_Data::absorbFile($path));
+        // Абсорбираме файла
+        $data = fileman_Data::absorb($path, 'file');
+        $dataId = $data->id;
         
         // Ако данните са същите, като на оригиналния файл
         if ($fRec->dataId == $dataId) {
@@ -136,7 +133,8 @@ class fileman_Files2 extends core_Master
         expect($fRec);
         
         // Качваме файла и вземаме id' то на данните
-        expect($dataId = fileman_Data::absorbString($data));
+        $data = fileman_Data::absorb($data, 'string');
+        expect($dataId = $data->id);
         
         // Ако данните са същите, като на оригиналния файл
         if ($fRec->dataId == $dataId) {
@@ -459,17 +457,17 @@ class fileman_Files2 extends core_Master
 	/**
      * Създава нов файл
      * 
-     * @param string $fname - Името на файла
+     * @param string $name - Името на файла
      * @param fileman_Buckets $bucketId - Кофата, в която ще създадем
      * @param fileman_Data $dataId - Данните за файла
      * 
      * @return string $rec->fileHnd - Манипуалатор на файла
      */
-    protected static function createFile($fname, $bucketId, $dataId)
+    protected static function createFile($name, $bucketId, $dataId)
     {
         // Създаваме записите
         $rec = new stdClass();
-        $rec->name = fileman_Files::getPossibleName($fname, $bucketId);
+        $rec->name = fileman_Files::getPossibleName($name, $bucketId);
         $rec->bucketId = $bucketId;
         $rec->state = 'active';
         $rec->dataId = $dataId;
@@ -578,5 +576,50 @@ class fileman_Files2 extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Проверява дали файла със съответните данни съществува
+     * 
+     * @param fileman_Data $dataId - id на данните на файла
+     * @param fileman_Buckets $bucketId - id на кофата
+     * @param string $inputFileName - Името на файла
+     * 
+     * @return string - Ако открие съвпадение връща манипулатора на файла
+     */
+    static function checkFileNameExist($dataId, $bucketId, $inputFileName)
+    {
+        // Името на файла в долния регистър
+        $inputFileName = strtolower($inputFileName);
+        
+        // Вземаме първия файл (по име) в съответната кофа със съответните данни
+        $query = fileman_Files::getQuery();
+        $query->where("#bucketId = '{$bucketId}' AND #dataId = '{$dataId}'");
+        $query->show('fileHnd, name');
+        $query->limit(1);
+        $query->orderBy('name', 'ASC');
+        
+        // Вземаме името на файла и разширението
+        $recFileNameArr = fileman_Files::getNameAndExt($inputFileName);
+        
+        // Ескейпваме името на файла
+        $recFileNameArr['name'] = preg_quote($recFileNameArr['name'], '/');
+        $recFileNameArr['ext'] = preg_quote($recFileNameArr['ext'], '/');
+        
+        // Регулярен израз за откриване на подобни файлове
+        $regExp = "^" . $recFileNameArr['name'] . "(\_[0-9]+)*\." . $recFileNameArr['ext'] . '$';
+        
+        // Добавяме регулярния израз за търсене
+        $query->where("LOWER(#name) REGEXP '{$regExp}'");
+
+        // Ако сме открили запис
+        if ($rec = $query->fetch()) {
+            
+            // Връщаме манипулатора му
+            return $rec->fileHnd;
+        }
+        
+        return FALSE;
     }
 }
