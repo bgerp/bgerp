@@ -19,7 +19,7 @@ class survey_Surveys extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, cms_ObjectSourceIntf';
     
     
     /**
@@ -156,8 +156,19 @@ class survey_Surveys extends core_Master {
 	    	}
 	    	
 	    	if(static::isClosed($rec->id)) {
-	    		$row->closed = tr("Анкетата е приключила");
+	    		$row->closed = tr("Анкетата е затворена");
 	    	}
+	    }
+    	
+    	if($fields['-list']) {
+    		if(static::isClosed($rec->id)) {
+    			$row->title = $row->title . " - <span style='color:darkred'>" .tr('затворена'). "</span>";
+    		}
+    		
+    		$txt = explode("\n", $rec->description);
+    		if(count($txt) > 1) {
+    			$row->description = $txt[0] . " ...";
+    		}
     	}
     }
     
@@ -226,14 +237,17 @@ class survey_Surveys extends core_Master {
     	} 
     	
     	if($summary && $data->rec->state == 'active') {
+    		
     		unset($url['summary']);
     		$data->toolbar->addBtn('Анкета',  $url);
+    		$data->toolbar->buttons['btnPrint']->url['summary'] = 'ok';
     	}
     	
     	if($data->rec->state != 'draft' && survey_Votes::haveRightFor('read')){
     		$votesUrl = array('survey_Votes', 'list', 'surveyId' => $data->rec->id);
     		$data->toolbar->addBtn('Гласувания', $votesUrl);
     	}
+    	
     }
     
     

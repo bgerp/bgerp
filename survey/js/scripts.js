@@ -19,7 +19,7 @@ $('ul.answers input[type=radio]').click(function vote() {
     	     success: function(result)
     	     { 
     	    	if(result.success == 'yes'){ 
-    	    		 alert('Гласът ви е записан');
+    	    		 //alert('Гласът ви е записан');
     	    	}
     	     },
     	     error: function()

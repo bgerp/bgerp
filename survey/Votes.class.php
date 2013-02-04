@@ -189,12 +189,12 @@ class survey_Votes extends core_Manager {
     
     /**
      * Връща вербалната стойност на подадения userUid
-     * @param varchar(32) $userUid - ид на потребител/мид/Ип на
+     * @param varchar(32) $userUid - ид на потребител/мид/ип на
      * гласувалия потребител
      */
     function verbalUserUid($userUid)
     {
-    	list($type,$val) = explode("|", $userUid);
+    	list($type, $val) = explode("|", $userUid);
     	$varchar = cls::get('type_Varchar');
     	
     	if($type == 'id') {
@@ -205,7 +205,7 @@ class survey_Votes extends core_Manager {
     	} elseif($type == 'mid') {
     		
     		// ако е mid
-    		$userUid = $varchar->toVerbal("mid: {$val}");
+    		$userUid = $varchar->toVerbal("mid:{$val}");
     	} elseif($type == 'ip') {
     		
     		// ако е Ип на потребител

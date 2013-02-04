@@ -1,10 +1,15 @@
 <div id='summary-title'>Резултати:</div>
 <ul id = 'summary'>
 <!--ET_BEGIN ROW-->
-	<li>[#QUESTION#]&nbsp;<br>
-		<ul class='summarise-answers'>
+	<li style='margin-top:10px;margin-bottom:10px;'>
+		<div class='summary-question'>[#QUESTION#]</div>
+		<ul class='summary-answers' style='list-style:none'>
 			<!--ET_BEGIN subRow-->
-			<li>[#text#] - [#percent#]%, [#votes#] Гласа</li>
+			<li>
+				<span class='summary-answer'>[#text#]</span> - 
+				<span class='summary-percent'>[#percent#]</span> %  
+				<span class='summary-votes'>( [#votes#] гласа )</span>
+			</li>
 			<!--ET_END subRow-->
 		</ul>
 	</li>

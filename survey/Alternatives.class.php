@@ -43,7 +43,7 @@ class survey_Alternatives extends core_Detail {
     /**
 	 *  Брой елементи на страница 
 	 */
-	var $listItemsPerPage = "15";
+	var $listItemsPerPage = "20";
 	
 	
     /**
@@ -164,13 +164,11 @@ class survey_Alternatives extends core_Detail {
 			$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
 			
 			$imgLink = sbf('survey/img/question.png', '');
-			$row->icon = ht::createElement('img', array('src' => $imgLink, 'width' => '18px'));
+			$row->icon = ht::createElement('img', array('src' => $imgLink, 'width' => '16px'));
 			
 			if($rec->image) {
-				$tArr = array(140, 140);
-       	 		$mArr = array(500, 500);
 				$Fancybox = cls::get('fancybox_Fancybox');
-				$row->image = $Fancybox->getImage($rec->image, $tArr, $mArr, null, array('class'=>'question-image'));
+				$row->image = $Fancybox->getImage($rec->image, array(140, 140), array(500, 500), null, array('class'=>'question-image'));
 			}
 		}
 	}
@@ -187,7 +185,7 @@ class survey_Alternatives extends core_Detail {
 	function verbalAnswers($text, $id)
 	{
 		$tpl = new ET("");
-		$altTpl = new ET("<li><input name= 'quest{$id}' type='radio' [#data#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>\n");
+		$altTpl = new ET("<li><input name='quest{$id}' type='radio' [#data#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>");
 		
 		// Ако анкетата е активна тогава радио бутоните могат да
 		// изпращат гласове
@@ -208,7 +206,7 @@ class survey_Alternatives extends core_Detail {
 			// Ако гласуването е позволено, слагаме в инпута
 			// атрибутите нужни за Ajax заявката
 			if($can) { 
-				$params = " data-rowId='{$i}'  data-alternativeId='{$id}' ";
+				$params = "data-rowId='{$i}' data-alternativeId='{$id}' ";
 				if($mid = Request::get('m')) {
 					$params .= " data-m='{$mid}'";
 				}
@@ -289,7 +287,7 @@ class survey_Alternatives extends core_Detail {
     	// Преброяваме колко гласа е получил всеки ред от отговорите
     	$txtArr = explode("\n", $rec->answers);
     	$answers = array();
-    	for($i = 0; $i<count($txtArr); $i++) {
+    	for($i = 0; $i < count($txtArr); $i++) {
     		$op = new stdClass();
     		$op->text = $txtArr[$i];
     		if($totalVotes != 0) {
