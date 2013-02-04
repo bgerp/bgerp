@@ -222,4 +222,86 @@ class fileman_Data extends core_Manager {
         
         return $name;
     }
+    
+
+    /**
+     * Абсорбира данните и връща обект с id' то или дали е създаден нов файл
+     * 
+     * @param string $data - Данните, които ще се абсорбират
+     * @param string $type - Типа. Стринг или файл
+     * 
+     * @return object $res - Обект с id' то на данните и дали е създаден нов или е използван съществуващ
+     * $res->id - id на данните
+     * $res->new - Нов запис
+     * $res->exist - Съществуващ запис
+     */
+    public static function absorb($data, $type='file') 
+    {
+        // Записа за даните
+        $rec = new stdClass();
+        
+        // Резултата
+        $res = new stdClass();
+        
+        // В зависимост от типа
+        switch ($type) {
+            case 'file':
+                // Ако типа на данните е файл
+                $rec->fileLen = filesize($data); 
+                $rec->md5 = md5_file($data);  
+            break;
+            
+            case 'string':
+                // Ако типа е стринг
+                $rec->fileLen = strlen($data);    
+                $rec->md5 = md5($data);
+            break;
+            
+            default:
+                // Типа трябва да е от посочените
+                expect(FALSE, 'Очаква се валиден тип.');
+            break;
+        }
+        
+        // Намираме id' то на файла, ако е съществувал
+        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+
+        // Ако не е имал такъв запис
+        if (!$rec->id) {
+            
+            // Пътя до файла
+            $path = self::getFilePath($rec);
+            
+            // Ако типа е файл
+            if ($type == 'file') {
+                
+                // Копираме файла
+                expect(@copy($data, $path), "Не може да бъде копиран файла");
+                
+            } else {
+                
+                // Ако е стринг, копираме стринга
+                expect(FALSE !== @file_put_contents($path, $data), "Не може да бъде копиран файла");
+            }
+            
+            // Броя на ликовете да е нула
+            $rec->links = 0;
+            
+            // Записваме
+            $res->id = static::save($rec);
+            
+            // Отбелязваме, че е нов файл
+            $res->new = TRUE;
+        } else {
+            
+            // Ако е бил записан вземаме id' то
+            $res->id = $rec->id;
+            
+            // Отбелязваме, че е съществуващ файл
+            $res->exist = TRUE;
+        }
+        
+        // Връщаме резултата
+        return $res;
+    }
 }
