@@ -92,6 +92,12 @@ class accda_Da extends core_Master
     
     
     /**
+     * Файл за единичен изглед
+     */
+    var $singleLayoutFile = 'accda/tpl/SingleLayoutDA.shtml';
+    
+    
+    /**
      * Поле за търсене
      */
     var $searchFields = 'num, serial, title';
@@ -111,7 +117,9 @@ class accda_Da extends core_Master
         
         $this->FLD('origin', 'text', 'caption=Произход,column=none,width=400px');
         
-        $this->FLD('inUseSince', 'date(format=d/m/Y)', 'caption=В&nbsp;употреба&nbsp;от');
+        $this->FLD('location', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,column=none,width=400px');
+        
+        $this->FLD('inUseSince', 'date(format=d.m.Y)', 'caption=В употреба от');
         
         $this->FLD('amortNorm', 'percent', 'caption=ГАН,hint=Годишна амортизационна норма');
         

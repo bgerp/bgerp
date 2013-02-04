@@ -1,0 +1,64 @@
+<style>
+	.calign{
+	text-align:center;
+	}
+	.sign-holder{
+		display:inline-block;
+	}
+	.sign-holder span{
+		display:inline-block;
+		float:right;
+		width:160px;
+		text-align:center;
+	}
+</style>
+
+<div class="singleView" style="display:inline-block">
+	<div class="document">
+		[#SingleToolbar#]<br>
+		<h2>[#SingleTitle#]</h2>
+		<h3 class="calign">П Р О Т О К О Л &nbsp; № [#id#]</h3>
+	
+		<p class="calign">За въвеждане в експлоатация на ДА</p>
+		<br />
+		
+		<p>Днес, [#inUseSince#] комисия в състав :</p>
+		
+		<p>1. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
+		
+		<p>2. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
+		
+		<p>3. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
+		
+		<br />
+		
+		<p>Въведе в експлоатация [#title#], </p>
+		
+		<p>с инвертарен № [#num#] и сериен № [#serial#].</p>
+		
+		<p>Описание на актива: [#info#].</p>
+		
+		<p>Произход на актива: [#origin#].</p>
+		
+		<p>Активът се намира на следната локация: [#location#].</p>
+		
+		<p>Годишна амортизационна норма : [#amortNorm#].</p>
+		
+		<br />
+		
+		<p>Подписи на лицата въвели актива в експлоатация :</p>
+		
+		<p>1. . . . . . . . . . . . . . . . . . . .</p>
+		
+		<p>2. . . . . . . . . . . . . . . . . . . .</p>
+		
+		<p>3. . . . . . . . . . . . . . . . . . . .</p>
+		
+		<br />
+		
+		<div class="sign-holder">
+			<p>Протоколът е създаден от  : . . . . . . . . . . . . . . . . . . . .</p>
+		                                         <span>/[#createdBy#]/</span>
+		</div>
+	</div>
+</div>

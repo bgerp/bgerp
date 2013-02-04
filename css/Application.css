@@ -1772,3 +1772,19 @@ fieldset.sharing-history i {
 	.loc-map > div{
 	 	width:99% !important;
 	}
+
+/*шаблон за пускане в експлоатация на ДА*/
+	.calign{
+	text-align:center;
+	}
+	
+	.sign-holder{
+		display:inline-block;
+	}
+	
+	.sign-holder span{
+		display:inline-block;
+		float:right;
+		width:160px;
+		text-align:center;
+	}

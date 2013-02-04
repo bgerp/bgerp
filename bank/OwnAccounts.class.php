@@ -102,11 +102,13 @@ class bank_OwnAccounts extends core_Manager {
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-    	$optionAccounts = static::getPossibleBankAccounts();
-    	$operators = static::getOperators();
+    	$optionAccounts = $mvc->getPossibleBankAccounts();
+    	$operators = $mvc->getOperators();
+    	$titulars = $mvc->getTitulars();
         
         $data->form->setOptions('bankAccountId', $optionAccounts);
         $data->form->setSuggestions('operators', $operators);
+        $data->form->setSuggestions('titulars', $titulars);
     	
         // Номера на сметката неможе да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
@@ -117,10 +119,28 @@ class bank_OwnAccounts extends core_Manager {
     
     
     /**
+     * Връща всички Всички лица, които могат да бъдат титуляри на сметка
+     * тези включени в група "Управители"
+     */
+    function getTitulars()
+    {
+    	$options = array();
+    	$groupId = crm_Groups::fetchField("#name = 'Управители'", 'id');
+    	$personQuery = crm_Persons::getQuery();
+    	$personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+    	while($personRec = $personQuery->fetch()) {
+    		$options[$personRec->id] = $personRec->name;
+    	}   	
+    	
+    	return $options;
+    }
+    
+    
+    /**
      * Подготовка на списъка от банкови сметки, между които можем да избираме
      * @return array $options - масив от потребители
      */
-    static function getPossibleBankAccounts()
+    function getPossibleBankAccounts()
     {
     	$conf = core_Packs::getConfig('crm');
     	$bankAccounts = cls::get('bank_Accounts');
@@ -146,7 +166,7 @@ class bank_OwnAccounts extends core_Manager {
      * Извличаме само потребителите с роля bank
      * @return array $suggestions - масив от потребители
      */
-    static function getOperators()
+    function getOperators()
     {
     	$suggestions = array();
     	$query = core_Users::getQuery();
