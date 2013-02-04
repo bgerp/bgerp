@@ -1130,10 +1130,13 @@ class cal_Calendar extends core_Master
         $year = dt::mysql2Verbal($from, 'Y');
       
         // Избрана дата
-        //$currentDay = date('d.m.Y', mktime(0, 0, 0, $month, $day, $year));
-        $currentWeek = date('W', mktime(0, 0, 0, $month, $day, $year));
-        $currentKey = "d".date('N', mktime(0, 0, 0, $month, $day, $year));
-     //bp($currentWeek, $currentKey);
+        $dayC = dt::mysql2Verbal(dt::now(), 'd');
+        $monthC = dt::mysql2Verbal(dt::now(), 'm');
+        $yearC = dt::mysql2Verbal(dt::now(), 'Y');
+        $currentDay = date('j', mktime(0, 0, 0, $monthC, $dayC, $yearC));
+        $currentWeek = date('W', mktime(0, 0, 0, $monthC, $dayC, $yearC));
+        $currentKey = "d".date('N', mktime(0, 0, 0, $monthC, $dayC, $yearC));
+     
         // Таймстамп на първия ден на месеца
         $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
         
@@ -1153,7 +1156,7 @@ class cal_Calendar extends core_Master
             
            // Цветовете на деня според типа им
         	$colorTitle[date('W', $t)]["m".date('N', $t)] = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $i, $year)));
-        }//bp($colorTitle, $monthArr);
+        }
 
         // Извличане на събитията за целия месец
         $state = new stdClass();
@@ -1251,7 +1254,7 @@ class cal_Calendar extends core_Master
     				$monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='mc-calendar'>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('title' => $rec->title));
      		 }
 
-        }//bp($type);
+        }
 
         // Изчисляваме предходния и следващия месец
         $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
@@ -1310,11 +1313,94 @@ class cal_Calendar extends core_Master
         			$cTpl->placeArray($c);
         		}
         	}
-        	/*if($weekNum == $currentWeek && array_key_exists($currentKey, $weekArr)){
-        		$cTpl->replace('mc-today', 'now');
-        	}else{*/
-        		$cTpl->replace('mc-day', 'now');
-        	//}
+        		foreach($weekArr as $key=>$events){
+        			
+		        	if($currentWeek == $weekNum && $currentKey == $key){
+		        	
+		        		switch ($key){
+		    				case "d1":
+		    					$cTpl->replace('mc-today', 'now1');
+		    					$cTpl->replace('mc-day', 'now2');
+		    					$cTpl->replace('mc-day', 'now3');
+		    					$cTpl->replace('mc-day', 'now4');
+		    					$cTpl->replace('mc-day', 'now5');
+		    					$cTpl->replace('mc-day', 'now6');
+		    					$cTpl->replace('mc-day', 'now7');
+		    					break;
+		    				case "d2":
+		    					$cTpl->replace('mc-today', 'now2');
+		    					$cTpl->replace('mc-day', 'now1');
+		    					$cTpl->replace('mc-day', 'now3');
+		    					$cTpl->replace('mc-day', 'now4');
+		    					$cTpl->replace('mc-day', 'now5');
+		    					$cTpl->replace('mc-day', 'now6');
+		    					$cTpl->replace('mc-day', 'now7');
+		    					break;
+		    				case "d3":
+		    					$cTpl->replace('mc-today', 'now3');
+		    					$cTpl->replace('mc-day', 'now1');
+		    					$cTpl->replace('mc-day', 'now2');
+		    					$cTpl->replace('mc-day', 'now4');
+		    					$cTpl->replace('mc-day', 'now5');
+		    					$cTpl->replace('mc-day', 'now6');
+		    					$cTpl->replace('mc-day', 'now7');
+		    					break;
+		    				case "d4":
+		    					$cTpl->replace('mc-today', 'now4');
+		    					$cTpl->replace('mc-day', 'now1');
+		    					$cTpl->replace('mc-day', 'now2');
+		    					$cTpl->replace('mc-day', 'now3');
+		    					$cTpl->replace('mc-day', 'now5');
+		    					$cTpl->replace('mc-day', 'now6');
+		    					$cTpl->replace('mc-day', 'now7');
+		    					break;
+		    				case "d5":
+		    					$cTpl->replace('mc-today', 'now5');
+		    					$cTpl->replace('mc-day', 'now1');
+		    					$cTpl->replace('mc-day', 'now2');
+		    					$cTpl->replace('mc-day', 'now3');
+		    					$cTpl->replace('mc-day', 'now4');
+		    					$cTpl->replace('mc-day', 'now6');
+		    					$cTpl->replace('mc-day', 'now7');
+		    					break;
+		    				case "d6":
+		    					$cTpl->replace('mc-today', 'now6');
+		    					$cTpl->replace('mc-day', 'now1');
+		    					$cTpl->replace('mc-day', 'now2');
+		    					$cTpl->replace('mc-day', 'now3');
+		    					$cTpl->replace('mc-day', 'now4');
+		    					$cTpl->replace('mc-day', 'now5');
+		    					$cTpl->replace('mc-day', 'now7');
+		    					break;
+		    				case "d7":
+		    					$cTpl->replace('mc-today', 'now7');
+		    					$cTpl->replace('mc-day', 'now1');
+		    					$cTpl->replace('mc-day', 'now2');
+		    					$cTpl->replace('mc-day', 'now3');
+		    					$cTpl->replace('mc-day', 'now4');
+		    					$cTpl->replace('mc-day', 'now5');
+		    					$cTpl->replace('mc-day', 'now6');
+		    					break;
+		    				
+		    					$cTpl->replace('mc-day', 'now1');
+		    					$cTpl->replace('mc-day', 'now2');
+		    					$cTpl->replace('mc-day', 'now3');
+		    					$cTpl->replace('mc-day', 'now4');
+		    					$cTpl->replace('mc-day', 'now5');
+		    					$cTpl->replace('mc-day', 'now6');
+		    					$cTpl->replace('mc-day', 'now7');
+		    			  	
+		    			}
+		        	} else {
+		        		$cTpl->replace('mc-day', 'now1');
+	    					$cTpl->replace('mc-day', 'now2');
+	    					$cTpl->replace('mc-day', 'now3');
+	    					$cTpl->replace('mc-day', 'now4');
+	    					$cTpl->replace('mc-day', 'now5');
+	    					$cTpl->replace('mc-day', 'now6');
+	    					$cTpl->replace('mc-day', 'now7');
+		        	}
+        		}
         	
         	$cTpl->replace($weekNum, 'weekNum');
         	$cTpl->placeArray($weekArr);
@@ -1333,7 +1419,7 @@ class cal_Calendar extends core_Master
 
     
     /**
-     *
+     * Общ поглед върху всички събития през годината
      */
     function act_Year()
     {
@@ -1343,8 +1429,6 @@ class cal_Calendar extends core_Master
         $from = Request::get('from');
                
         // Разбиваме получената дата на ден, месец, година
-        //$day = dt::mysql2Verbal($from, 'd');
-        //$month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
         
         for($m = 1; $m <= 12; $m++){
@@ -1366,10 +1450,6 @@ class cal_Calendar extends core_Master
 	        	
 	            $yearArr["mon".$m][date('W', $t)]["d".date('N', $t)] = ht::createLink($i, '/cal_Calendar/week/?from='. $i. "." . $m. "." . $year, NULL, array('class'=>'mc-day', 'style' => 'color:'. $color));
 	            
-	            
-				
-	        	//$href["mon".$m][date('W', $t)]["href".date('N', $t)] = '/cal_Calendar/week/?from='. $i . "." . $m. "." . $year;
-			
 		        }
 	    	}
 	    	
@@ -1414,15 +1494,16 @@ class cal_Calendar extends core_Master
 			        $weekKey = date('W', $recT);
 			        
 			        // Кой ден от седмицата е
-			        $dayKey = "c".date('N', $recT);
+			        $dayKey = "d".date('N', $recT);
 
-			        $eventsArr["mon".$recMonth][$weekKey][$dayKey]++;
+			        if($rec->type == 'task'){
+			        	$yearArr["mon".$recMonth][$weekKey][$dayKey] .= "<img class='starImg'  src=". sbf('img/16/star_2.png') .">&nbsp;";
+			        }
+			        
 			
 			        
-	    }//bp($href);
-	   // bp($eventsArr, $yearArr, $a);
-	    $yearArr = array_merge_recursive($yearArr,$eventsArr);
-//bp($yearArr); 
+	    }
+
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutYear.shtml'));
 
     	foreach($yearArr as $monthNum => $monthArr) {
@@ -1438,7 +1519,6 @@ class cal_Calendar extends core_Master
 						        	$lTpl->replace('mc-day', 'now');
 						        	
 						        	$lTpl->replace($weekNum, 'weekNum');
-						        	$lTpl->placeArray($evWeekArr);
 						        	$lTpl->placeArray($weekArr);
 						        	
 						            $lTpl->append2master();
@@ -1604,10 +1684,7 @@ class cal_Calendar extends core_Master
     
     	static $weekDays = array('Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед');
         $tpl->placeArray($weekDays);
-        //$tpl->placeArray($href);
         
-       
-
         return $this->renderWrapping($tpl);
     }
     

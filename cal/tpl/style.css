@@ -12,7 +12,7 @@ div.block_left{
 
 
 div.event{
-	float: right; 
+	float: left; 
 	font-size: 0.7em;
 	position:absolute;
 	padding-left: 13px;
@@ -175,6 +175,15 @@ img.calWeekAdd{
 img.calImg{
 	float: left;
 	position: relative;
+
+}
+
+img.starImg{
+	float: left;
+	position: relative;
+	width: 10px;
+	height: 10px;
+	margin-left: 5px;
 
 }
 

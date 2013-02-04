@@ -11,7 +11,7 @@
 		<!--ET_BEGIN event-->	
          <div class='block_left'>
        
-	            <table class='mc-header' width='80%' cellpadding='0'>
+	            <table class='mc-header' width='100%' cellpadding='0'>
 	                <tr>
 	                    <td align='left'><a href='[#prevtLink#]'>[#prevMonth#]</a></td>
 	                    <td align='center'><b>[#currentMonth#]</b></td>
@@ -35,13 +35,13 @@
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr> 
                      <td class='mc-week-nb'>[#weekNum#]</td>
-                     <td class="[#now#]" style="color:[#m1#]">[#c0#][#d1#]</td>
-                     <td class="[#now#]" style="color:[#m2#]">[#c1#][#d2#]</td>
-                     <td class="[#now#]" style="color:[#m3#]">[#c2#][#d3#]</td>
-                     <td class="[#now#]" style="color:[#m4#]">[#c3#][#d4#]</td>
-                     <td class="[#now#]" style="color:[#m5#]">[#c4#][#d5#]</td>
-                     <td class="[#now#]" style="color:[#m6#]">[#c5#][#d6#]</td>
-                     <td class="[#now#]" style="color:[#m7#]">[#c6#][#d7#]</td>
+                     <td class="[#now1#]" style="color:[#m1#]">[#c0#][#d1#]</td>
+                     <td class="[#now2#]" style="color:[#m2#]">[#c1#][#d2#]</td>
+                     <td class="[#now3#]" style="color:[#m3#]">[#c2#][#d3#]</td>
+                     <td class="[#now4#]" style="color:[#m4#]">[#c3#][#d4#]</td>
+                     <td class="[#now5#]" style="color:[#m5#]">[#c4#][#d5#]</td>
+                     <td class="[#now6#]" style="color:[#m6#]">[#c5#][#d6#]</td>
+                     <td class="[#now7#]" style="color:[#m7#]">[#c6#][#d7#]</td>
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                
