@@ -1497,7 +1497,7 @@ class cal_Calendar extends core_Master
 			        $dayKey = "d".date('N', $recT);
 
 			        if($rec->type == 'task'){
-			        	$yearArr["mon".$recMonth][$weekKey][$dayKey] .= "<img class='starImg'  src=". sbf('img/16/star_2.png') .">&nbsp;";
+			        	$yearArr["mon".$recMonth][$weekKey][$dayKey] .= "<img class='starImg'  src=". sbf('img/16/star_2.png') .">";
 			        }
 			        
 			
