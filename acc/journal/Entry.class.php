@@ -102,8 +102,7 @@ class acc_journal_Entry
     public function check()
     {
         // Проверка за съответствие между разбивките на сметката и зададените пера  
-        expect($this->debit->checkItems() && $this->credit->checkItems(), 
-            'Зададените пера не съответстват по брой или интерфейс на аналитичностите на сметката');
+        $this->debit->checkItems() && $this->credit->checkItems();
         
         // Цена по кредита е позволена единствено и само, когато кредит-сметка няма зададена 
         // стратегия (LIFO, FIFO, MAP).

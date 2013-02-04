@@ -39,7 +39,7 @@ class acc_journal_Item
         if (isset($classId) && is_array($classId)) {
             expect(count($classId) == 2);
             list($classId, $objectId) = $classId;
-            $classId = core_Classes::getClassId($classId);
+            $classId = core_Classes::getId($classId);
         }
 
         if (!isset($objectId)) {
@@ -48,7 +48,10 @@ class acc_journal_Item
             $this->id = $classId;
 
             if ($this->id) {
-                expect($this->itemRec = acc_Items::fetch($this->id));
+                if (!$this->itemRec = acc_Items::fetch($this->id)) {
+                    bp(func_get_args(), $classId, $objectId);
+                }
+                expect($this->itemRec = acc_Items::fetch($this->id), func_get_args(), $classId, $objectId);
                 $this->classId  = $itemRec->classId;
                 $this->objectId = $itemRec->objectId;
             }

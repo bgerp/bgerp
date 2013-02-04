@@ -84,6 +84,18 @@ class sales_TransactionSourceImpl
     }
     
     
+    public function finalizeTransaction($id)
+    {
+        $rec = $this->class->fetch($id);
+        
+        $rec->state = 'active';
+        
+        if ($this->class->save($rec)) {
+            $this->class->invoke('Activation', array($rec));
+        }
+    }
+    
+    
     /**
      * Помощен метод за извличане на данните на продажбата - мастър + детайли
      * 
@@ -199,7 +211,7 @@ class sales_TransactionSourceImpl
                 'credit' => array(
                     '702', // Сметка "702. Приходи от продажби на стоки"
                         array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
-                        array('sales_Sales', 'id'  => $rec->id),      // Перо 2 - Документ-продажба
+                        array('sales_Sales', $rec->id),               // Перо 2 - Документ-продажба
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );

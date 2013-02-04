@@ -236,9 +236,14 @@ class sales_Sales extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         switch ($action) {
+            /*
+             * Контират се само документи (продажби) които генерират *непразни* транзакции.
+             * Документите (продажбите), които не генерират счетоводни транзакции могат да се
+             * активират.
+             */
             case 'conto':
             case 'activate':
-                if (empty($rec->id)) {
+                if (empty($rec->id) || $rec->state != 'draft') {
                     // Незаписаните продажби не могат нито да се контират, нито да се активират
                     $requiredRoles = 'no_one';
                 } else {
@@ -246,11 +251,13 @@ class sales_Sales extends core_Master
                     
                     if ($transaction === FALSE) {
                         // Възникнала е грешка при генериране на транзакция
-                        $requiredRoles = 'no_one';
+                        if ($action == 'activate') {
+                            $requiredRoles = 'no_one';
+                        }
                     } else {
                         // Активиране е позволено само за продажби, които не генерират транзакции
                         // Контиране е позволено само за продажби, които генерират транзакции
-                        $deniedAction = (empty($transaction) ? 'conto' : 'activate');
+                        $deniedAction = ($transaction->isEmpty() ? 'conto' : 'activate');
                         
                         if ($action == $deniedAction) {
                             $requiredRoles = 'no_one';
@@ -271,7 +278,9 @@ class sales_Sales extends core_Master
             if (!empty($transaction)) {
                 // Проверяваме валидността на транзакцията
                 $transaction = new acc_journal_Transaction($transaction);
-                expect($transaction->check());
+                if (!$transaction->check()) {
+                    return FALSE;
+                }
             } 
         } catch (core_exception_Expect $ex) {
             // Транзакцията не се валидира

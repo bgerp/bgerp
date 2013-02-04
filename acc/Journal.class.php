@@ -284,15 +284,11 @@ class acc_Journal extends core_Master
         $transaction->docType = $docClassId;
         $transaction->docId = $docId;
         
-        $transaction = new acc_journal_Transaction($transaction);
-        
-        if (!$transaction->save()) {
-            core_Message::redirect(
-                "Невъзможно контиране",
-                'page_Error',
-                NULL,
-                array($mvc, 'single', $docId)
-            );
+        try {
+            $transaction = new acc_journal_Transaction($transaction);
+            $transaction->save();
+        } catch (core_exception_Expect $ex) {
+            redirect(array('acc_Accounts'), FALSE, "Грешка при контиране: " . $ex->args(1));
         }
         
         // Нотифицира мениджъра на документа за успешно приключилата транзакция

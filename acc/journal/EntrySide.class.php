@@ -226,11 +226,11 @@ class acc_journal_EntrySide
      */
     public function checkItems()
     {
-        try {
+//         try {
             $this->account->accepts($this->items);
-        } catch (core_exception_Expect $ex) {
-            expect(FALSE, "Грешка в {$this->type}: " . $ex->args(1));
-        }
+//         } catch (core_exception_Expect $ex) {
+//             throw new core_exception_Expect("Грешка в {$this->type}" , $ex->args());
+//         }
         
         return TRUE;
     }

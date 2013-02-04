@@ -42,7 +42,7 @@ class acc_journal_Transaction
         }
         
         $this->Journal = cls::get('acc_Journal');
-        $this->JournalDetals = cls::get('acc_JournalDetails');
+        $this->JournalDetails = cls::get('acc_JournalDetails');
     }
     
     
@@ -135,24 +135,28 @@ class acc_journal_Transaction
      */
     public function save()
     {
-        if (!$this->check()) {
-            // Невалидна транзакция
-            return FALSE;
-        }
-        
+        $this->check();
+
         if (!$this->begin()) {
             return FALSE;
         }
 
-        foreach ($this->entries as $entry) {
-            if (!$entry->save($this->rec->id)) {
-                // Проблем при записването на детайл-запис. Rollback!!!
-                $this->rollback();
-                return FALSE;
+        try {
+            foreach ($this->entries as $entry) {
+                if (!$entry->save($this->rec->id)) {
+                    // Проблем при записването на детайл-запис. Rollback!!!
+                    $this->rollback();
+                    return FALSE;
+                }
             }
+            
+            $this->commit();
+        } catch (core_exception_Expect $ex) {
+            $this->rollback();
+            throw $ex;
         }
         
-        return $this->commit();
+        return TRUE;
     }
     
     
@@ -201,5 +205,11 @@ class acc_journal_Transaction
         $this->Journal->delete($this->rec->id);
         
         return TRUE;
+    }
+    
+    
+    public function isEmpty()
+    {
+        return empty($this->entries);
     }
 }
