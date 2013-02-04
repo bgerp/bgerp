@@ -344,6 +344,11 @@ class sales_Sales extends core_Master
         
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($folderId));
+        
+        // Поле за избор на локация - само локациите на контрагента по продажбата
+        $form->getField('deliveryLocationId')->type->options = 
+            array(''=>'') +
+            crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
     }
     
     

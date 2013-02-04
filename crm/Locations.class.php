@@ -141,14 +141,13 @@ class crm_Locations extends core_Master {
      */
     function prepareContragentLocations($data)
     {
-        expect($data->contragentCls = core_Classes::fetchIdByName($data->masterMvc));
         expect($data->masterId);
-        $query = $this->getQuery();
-        $query->where("#contragentCls = {$data->contragentCls} AND #contragentId = {$data->masterId}");
+        expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         
-        while($rec = $query->fetch()) {
-            $data->recs[$rec->id] = $rec;
-            $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
+        $data->recs = static::getContragentLocations($data->contragentCls, $data->masterId);
+        
+        foreach ($data->recs as $rec) {
+            $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
     }
 
@@ -236,20 +235,51 @@ class crm_Locations extends core_Master {
     static function getOwnLocations()
     {
         cls::load('crm_Setup');
-
-        $query = self::getQuery();
         
-        $query->where("#contragentCls = " . core_Classes::fetchIdByName('crm_Companies'));
-
-        $query->where("#contragentId = " . BGERP_OWN_COMPANY_ID);
-
-        while($rec = $query->fetch()) {
-            $res[$rec->id] = $rec->title;
-        }
-
-        return $res;
+        return static::getContragentOptions('crm_Companies', BGERP_OWN_COMPANY_ID);
     }
 
 
+    /**
+     * Всички локации на зададен контрагент
+     * 
+     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
+     * @param int $contragentId първичен ключ на контрагента (в мениджъра му)
+     * @return array масив от записи crm_Locations
+     */
+    public static function getContragentLocations($contragentClassId, $contragentId)
+    {
+        expect($contragentClassId = core_Classes::getId($contragentClassId));
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#contragentCls = {$contragentClassId} AND #contragentId = {$contragentId}");
+        
+        $recs = array();
+        
+        while($rec = $query->fetch()) {
+            $recs[$rec->id] = $rec;
+        }
 
+        return $recs;
+    }
+    
+
+    /**
+     * Наименованията на всички локации на зададен контрагент
+     * 
+     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
+     * @param int $contragentId първичен ключ на контрагента (в мениджъра му)
+     * @return array масив от наименования на локации, ключ - ид на локации
+     */
+    public static function getContragentOptions($contragentClassId, $contragentId)
+    {
+        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId);
+        
+        foreach ($locationRecs as &$rec) {
+            $rec = $rec->title;
+        }
+
+        return $locationRecs;
+    }
 }
