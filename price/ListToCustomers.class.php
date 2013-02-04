@@ -17,7 +17,6 @@
 class price_ListToCustomers extends core_Detail
 {
     
-    
     /**
      * Заглавие
      */
@@ -29,8 +28,13 @@ class price_ListToCustomers extends core_Detail
      */
     var $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
                     
- 
-     
+    
+    /**
+     * Интерфейс за ценова политика
+     */
+    var $interfaces = 'price_PolicyIntf';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
