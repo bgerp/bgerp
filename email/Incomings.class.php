@@ -602,14 +602,21 @@ class email_Incomings extends core_Master
         
         if($fields['-single']) {
             if ($rec->files) {
+                
                 $vals = type_Keylist::toArray($rec->files);
                 
+                if($rec->htmlFile) {
+                    unset($vals[$rec->htmlFile]);
+                }
+
                 if (count($vals)) {
                     $row->files = '';
                     
                     foreach ($vals as $keyD) {
                         $row->files .= fileman_Download::getDownloadLinkById($keyD);
                     }
+                } else {
+                    $row->files = '';
                 }
             }
         }
@@ -1358,8 +1365,14 @@ class email_Incomings extends core_Master
     function getIcon_($id)
     {
         $rec = self::fetch($id);
+
+        $files = type_Keylist::toArray($rec->files);
  
-        if($rec->files) {
+        if($rec->htmlFile) {
+            unset($files[$rec->htmlFile]);
+        }
+ 
+        if(count($files)) {
              
             return "img/16/email-attach.png";
         }
