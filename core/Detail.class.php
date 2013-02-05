@@ -38,18 +38,10 @@ class core_Detail extends core_Manager
     {
         expect($mvc->masterKey);
         
-        expect($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']);
-        
         $mvc->fields[$mvc->masterKey]->silent = silent;
         
         if(!isset($mvc->fields[$mvc->masterKey]->input)) {
             $mvc->fields[$mvc->masterKey]->input = hidden;
-        }
-        
-        $mvc->Master = cls::get($mvc->masterClass);
-        
-        if (!isset($mvc->currentTab)) {
-            $mvc->currentTab = $mvc->Master->title;
         }
         
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
@@ -114,6 +106,9 @@ class core_Detail extends core_Manager
      */
     function renderDetail_($data)
     {
+        if (!isset($this->currentTab)) {
+            $this->currentTab = $this->Master->title;
+        }
         
         // Рендираме общия лейаут
         $tpl = $this->renderDetailLayout($data);
@@ -139,6 +134,7 @@ class core_Detail extends core_Manager
      */
     function prepareDetailQuery_($data)
     {
+        $this->Master = $data->masterMvc;
         
         // Създаваме заявката
         $data->query = $this->getQuery();
@@ -178,12 +174,26 @@ class core_Detail extends core_Manager
     }
     
     
+    protected function setupMaster($data)
+    {
+        if (!$this->Master) {
+            if ($this->masterClass = $this->fields[$this->masterKey]->type->params['mvc']) {
+                $this->Master = cls::get($this->masterClass);
+            }
+        }
+        
+        expect($this->Master instanceof core_Master);
+    }
+    
+    
     /**
      * Подготвя формата за редактиране
      */
     function prepareEditForm_($data)
     {
         parent::prepareEditForm_($data);
+        
+        $this->setupMaster($data);
         
         $masterKey = $this->masterKey;
         
