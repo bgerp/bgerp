@@ -237,7 +237,7 @@ class type_Richtext extends type_Text
         $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
         
         // Обработваме елемента [li]
-        $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n))/is", array($this, '_catchLi'), $html);
+        $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n)|($))/is", array($this, '_catchLi'), $html);
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
