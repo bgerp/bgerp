@@ -1,0 +1,61 @@
+#receipt-table {
+	text-indent:8px;
+	width:40%;
+	border-collapse:collapse;
+	border:1px solid black;
+	margin-top:15px;
+}
+
+#receipt-header {
+	background-color: rgb(221, 221, 221);
+}
+
+#receipt-title {
+	font-size: 26px;
+	font-weight:bold;
+}
+
+#receipt-contragent {
+	
+}
+
+#receipt-number {
+	text-align:right;
+	padding-right:10px;
+}
+
+#receipt-date {
+	text-align:right;
+	padding-right:10px;
+}
+
+#total {
+	font-weight:bold;
+	font-size: 20px;
+	float:right;
+	padding-right:10px;
+}
+
+#receipt-details-th {
+	background-color: rgb(200, 200, 200);
+}
+
+#receipt-details-th td {
+	padding-top:12px;
+	padding-bottom:12px;
+}
+
+.receipt-sale {
+	padding-top:8px;
+	padding-bottom:8px;
+	background-color: rgb(240, 240, 240);
+}
+
+#receipt-details-form {
+	width: 35%;
+	margin-top: 20px;
+}
+
+#receipt-details-form-table {
+	
+}

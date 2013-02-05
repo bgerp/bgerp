@@ -1,0 +1,11 @@
+<!--ET_BEGIN ROW-->
+<tr>
+	<td colspan='3' class='receipt-sale'>Продажба: &nbsp;&nbsp;[#productId#]</td>
+</tr>
+<tr>
+	<td class='receipt-quantity'>[#quantity#] бр.</td>
+	<td class='receipt-price'>[#price#] лв.</td>
+	<td class='receipt-amount'>[#amount#] лв.</td>
+</tr>
+<!--ET_END ROW-->
+<!-- [#ListToolbar#] -->
