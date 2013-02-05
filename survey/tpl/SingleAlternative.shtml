@@ -2,7 +2,7 @@
 <table border = '0' class='question-head' width ='90%' cellspacing='0' cellpadding='7px'>
 	<tr>
 		<td colspan='2' class='question-text'>
-			[#icon#] &nbsp;&nbsp;
+			[#icon#] &nbsp;
 			<span class='question-label'>[#label#]</span>
 			<span class='tools'>[#tools#]</span>
 		</td>
@@ -13,7 +13,7 @@
 [#answers#]
 </ul>
 </td>
-<td width='30%' align='right' style='padding:20px'>[#image#]</td>
+<td width='30%' align='right' style='padding:20px 20px 15px 20px'>[#image#]</td>
 </tr>
 </table>
 <!--ET_END ROW-->

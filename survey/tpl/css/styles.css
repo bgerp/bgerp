@@ -27,7 +27,7 @@ div.document ul {
 
 .answers {
 	list-style:none;
-	margin-top:5px !important;
+	margin-top:0px !important;
 	margin-bottom:5px !important;
 	padding-left:3px;
 }
@@ -92,7 +92,7 @@ div.document ul {
 	margin-top:15px;
 	margin-bottom:5px;
 	color:darkgreen;
-	min-height:45px;
+	min-height:30px;
 	margin-right:5px;
 }
 
@@ -137,7 +137,7 @@ div.document ul {
 }
 
 .question-text img{
-	border:1 px solid red;
+	vertical-align:middle;
 }
 
 #td-answers {
@@ -151,3 +151,12 @@ div.document ul {
 .question-label {
 	font-weight:bold;
 }
+
+div.richtext li {
+	margin-left:0;
+}
+
+.richtext {
+	line-height:normal !important;
+}
+
