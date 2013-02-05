@@ -85,6 +85,12 @@ class acc_Journal extends core_Master
     
     
     /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'acc/tpl/SingleLayoutJournal.shtml';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -119,49 +125,7 @@ class acc_Journal extends core_Master
             }
         }
     }
-    
-    
-    /**
-     * Подготвя шаблона за единичния изглед
-     */
-    function renderSingleLayout_(&$data)
-    {
-        
-        $fieldsHtml = "";
-        
-        $fieldsHtml .=
-        "<tr><td align=\"right\">{$data->singleFields['id']}:</td><td><b>[#id#]</b></td></tr>";
-        $fieldsHtml .=
-        "<tr><td align=\"right\">{$data->singleFields['valior']}:</td><td><b>[#valior#]</b></td></tr>";
-        $fieldsHtml .=
-        '<!--ET_BEGIN docType-->' .
-        "<tr><td align=\"right\">Документ:</td><td><b>[#docType#]</b> ([#docId#])</td></tr>" .
-        '<!--ET_END docType-->';
-        $fieldsHtml .=
-        "<tr><td align=\"right\">Създаване:</td><td><b>[#createdOn#]</b> <span class=\"quiet\">от</span> <b>[#createdBy#]</b></td></tr>";
-        
-        $res = new ET(
-            "[#SingleToolbar#]" .
-            "<h2>[#SingleTitle#]</h2>" .
-            '<table>' .
-            '<tr>' .
-            '<td valign="top" style="padding-right: 5em;">' .
-            "<table>{$fieldsHtml}</table>" .
-            '</td>' .
-            '<td valign="top">' .
-            '<div class="amounts">' .
-            'Оборот: <b>[#totalAmount#]</b>' .
-            '</div>' .
-            '</td>' .
-            '</tr>' .
-            '</table>' .
-            "[#DETAILS#]" .
-            ''
-        );
-        
-        return $res;
-    }
-    
+   
     
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед

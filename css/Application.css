@@ -1738,7 +1738,7 @@ fieldset.sharing-history i {
 	.styled-table th{
 		border-bottom:none;
 	}
-	.styled-table .title-style{
+	.singleView .title-style{
 		color:#666;
 	}
 
@@ -1787,4 +1787,18 @@ fieldset.sharing-history i {
 		float:right;
 		width:160px;
 		text-align:center;
+	}
+
+/*шаблон за журнал*/
+	.acc_JournalDetails {
+		margin-top:10px;
+	}
+	
+	.acc_JournalDetails ul{
+		margin-left:0 !important;
+		padding-left:0 !important;
+	}
+	
+	.acc_JournalDetails .listTable th, .acc_JournalDetails .listTable td{
+		padding: 5px;
 	}
