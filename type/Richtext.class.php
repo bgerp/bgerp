@@ -191,6 +191,9 @@ class type_Richtext extends type_Text
         // Обработваме [hide=caption] ... [/hide] елементите, които скриват/откриват текст
         $html = preg_replace_callback("/\[hide(=([^\]]*)|)\](.*?)\[\/hide\]/is", array($this, '_catchHide'), $html);
         
+        // Обработваме едноредовите кодове: стрингове
+        $html = preg_replace_callback("/(?'ap'\`|\'|\")(?'text'.+?)(\k<ap>)/", array($this, '_catchOneLineCode'), $html);
+        
         
         // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback(static::$urlPattern, array($this, '_catchUrls'), $html);
@@ -466,6 +469,30 @@ class type_Richtext extends type_Text
             $code1 = "<pre class='richtext'>" . rtrim($code) . "</pre>";;
         }
         
+        $this->_htmlBoard[$place] = $code1;
+        
+        return "[#{$place}#]";
+    }
+    
+    
+	/**
+     * За едноредови коментари между апострофите
+     */
+    function _catchOneLineCode($match)
+    {
+        // Мястото
+        $place = $this->getPlace();
+        
+        // Кода между апострофите
+        $code = $match['text'];
+        
+        // Ако е празен стринг
+        if(!($code = trim($code))) return "";
+        
+        // Добавяме кода в блок
+        $code1 = "<span class='oneLineCode'>{$code}</span>";
+        
+        // Доабавяме в масива
         $this->_htmlBoard[$place] = $code1;
         
         return "[#{$place}#]";

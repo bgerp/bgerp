@@ -148,6 +148,19 @@ pre.richtext {
 	white-space: pre-wrap;	
 }
 
+.richtext .oneLineCode {
+	NObackground-color: #F8F8F8;
+	NOborder: 1px solid #EAEAEA;
+	
+	font-family: Courier New,monospace;
+	white-space: nowrap;
+	background-color: #ffe;
+	border: 1px solid #ccc;
+	border-radius: 3px 3px 3px 3px;
+	margin: 0 2px;
+	padding: 0 5px;
+}
+
 .wide pre.richtext{
 	overflow: auto; 
 	max-width:800px;
