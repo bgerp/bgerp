@@ -21,7 +21,13 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Ценови групи за продукти';
+    var $title = 'Ценови групи';
+    
+    
+    /**
+     * Заглавие
+     */
+    var $singleTitle = 'Ценова група';
     
     
     /**
@@ -101,6 +107,10 @@ class price_GroupOfProducts extends core_Detail
     
     public static function on_AfterPrepareListRows(core_Detail $mvc, $data)
     {
+        if (!$data->rows) {
+            return;
+        }
+        
         $now  = dt::now(true); // Текущото време (MySQL формат) с точност до секунда
         $currentGroupId = NULL;// ID на настоящата ценова група на продукта
         

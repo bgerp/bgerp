@@ -97,6 +97,11 @@ class crm_Groups extends groups_Manager
             'prefix'    => 'ObjectLists',
             'title'     => 'Номенклатура',
         ),
+        'pricelists' => array(
+            'className' => 'price_ListToCustomers',
+            'prefix'    => 'Pricelists',
+            'title'     => 'Ценоразпис',
+        ),
     );
     
     
