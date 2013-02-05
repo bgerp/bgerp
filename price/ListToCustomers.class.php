@@ -20,7 +20,13 @@ class price_ListToCustomers extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Ценоразписи->Клиенти';
+    var $title = 'Ценоразписи';
+    
+    
+    /**
+     * Заглавие
+     */
+    var $singleTitle = 'Ценоразпис';
     
     
     /**
@@ -38,7 +44,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, itemId, type, value, createdOn, createdBy';
+    var $listFields = 'id, listId, cClass, cId, validFrom';
     
     
     /**
@@ -74,7 +80,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Поле - ключ към мастера
      */
-    var $masterKey = 'listId';
+    var $masterKey = 'cId';
     
 
     /**
@@ -83,9 +89,63 @@ class price_ListToCustomers extends core_Detail
     function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис');
-        $this->FLD('cClass', 'class', 'caption=Клиент->Клас');
+        $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила->От');
+        $this->FLD('validFrom', 'datetime', 'caption=В сила от');
     }
     
+
+    protected function setupMaster($data)
+    {
+        $this->Master = cls::get($data->form->rec->cClass);
+        
+        parent::setupMaster($data);
+    }
+
+    
+    public static function on_AfterPrepareDetailQuery($mvc, $data)
+    {
+        $cClassId = core_Classes::getId($mvc->Master);
+        
+        $data->query->where("#cClass = {$cClassId}");
+    }
+
+
+    /**
+     * След подготовка на лентата с инструменти за табличния изглед
+     */
+    function on_AfterPrepareListToolbar($mvc, $data)
+    {
+        if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $masterClassId = core_Classes::getId($this->Master);
+            $data->toolbar->buttons['btnAdd']->url += array('cClass'=>$masterClassId);
+        }
+    }
+
+
+    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
+    {
+        $wrapTpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        $wrapTpl->append($mvc->title, 'title');
+        $wrapTpl->append($tpl, 'content');
+        $wrapTpl->replace(get_class($mvc), 'DetailName');
+    
+        $tpl = $wrapTpl;
+    }
+    
+    
+    public static function preparePricelists($data)
+    {
+        static::prepareDetail($data);
+    }
+    
+    
+    public function renderPricelists($data)
+    {
+        // Премахваме контрагента - в случая той е фиксиран и вече е показан 
+        unset($data->listFields[$this->masterKey]);
+        unset($data->listFields['cClass']);
+        
+        return static::renderDetail($data);
+    }
 }
