@@ -377,7 +377,6 @@ class cal_Calendar extends core_Master
                     } else {
                         $class = '';
                     }
-
                     if($today == "{$d}-{$month}-{$year}") {
                         $class .= ' mc-today';
                     }
@@ -477,7 +476,7 @@ class cal_Calendar extends core_Master
 
         $Calendar = cls::get('cal_Calendar');
         $Calendar->prepareListFields($state);
-        $Calendar->prepareListRecs($state); //bp($state->recs);
+        $Calendar->prepareListRecs($state); 
         $Calendar->prepareListRows($state);
         
         // Подготвяме лентата с инструменти
@@ -485,19 +484,25 @@ class cal_Calendar extends core_Master
 
         if (is_array($state->recs)) {
             foreach($state->recs as $id => $rec) {
+            	//bp($id, $rec);
                 if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
                     $time = dt::mysql2timestamp($rec->time);
-                    $i = (int) date('j', $time);
+                    $i = (int) date('j', $time); bp($i);
                     if(!isset($data[$i])) {
                         $data[$i] = new stdClass();
+                      
                     }
                     $data[$i]->type = $rec->type;
+                   
                 } elseif($rec->type == 'workday') {
+                } elseif($rec->type == 'task'){
+                	$time = dt::mysql2timestamp($rec->time);
+                    $i = (int) date('j', $time);
+                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">";
                 }
                 
             }    
         }
-        
         for($i = 1; $i <= 31; $i++) {
             if(!isset($data[$i])) {
                 $data[$i] = new stdClass();
