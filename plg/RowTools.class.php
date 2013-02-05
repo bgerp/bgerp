@@ -57,6 +57,13 @@ class plg_RowTools extends core_Plugin
             }
         }
         
+        // URL за връщане след редакция/изтриване
+        if(method_exists($mvc, 'getSingleUrl')) {
+            $retUrl = $mvc->getSingleUrl($rec->id);
+        } else {
+            $retUrl = TRUE;
+        }
+        
         if ($mvc->haveRightFor('edit', $rec)) {
             
             $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
@@ -65,7 +72,7 @@ class plg_RowTools extends core_Plugin
                 $mvc,
                 'edit',
                 'id' => $rec->id,
-                'ret_url' => TRUE
+                'ret_url' => $retUrl
             );
             
             $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
@@ -79,7 +86,7 @@ class plg_RowTools extends core_Plugin
                 $mvc,
                 'delete',
                 'id' => $rec->id,
-                'ret_url' => TRUE
+                'ret_url' => $retUrl
             );
             
             $deleteLink = ht::createLink($deleteImg, $deleteUrl,

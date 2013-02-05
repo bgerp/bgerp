@@ -169,7 +169,7 @@ class core_Detail extends core_Manager
                     $this,
                     'add',
                     $this->masterKey => $data->masterId,
-                    'ret_url' => TRUE
+                    'ret_url' => array($this->Master, 'single', $rec->{$masterKey})
                 ),
                 'id=btnAdd,class=btn-add');
         }
@@ -187,7 +187,7 @@ class core_Detail extends core_Manager
         
         $masterKey = $this->masterKey;
         
-        expect($data->masterId = $data->form->rec->{$masterKey});
+        expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
         
         expect($data->masterRec = $this->Master->fetch($data->masterId));
         
@@ -269,4 +269,18 @@ class core_Detail extends core_Manager
             }
         }
     }
+
+
+    /**
+     * Връща URL към единичния изглед на мастера
+     */
+    function getSingleUrl($id)
+    {
+        $mRec = self::fetch($id);
+        $masterField = $this->masterKey;
+        $url = array($this->Master, 'single', $mRec->{$masterField});
+
+        return $url;
+    }
+
 }
