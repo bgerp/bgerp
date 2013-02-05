@@ -503,7 +503,7 @@ class fileman_Files2 extends core_Master
         // Пътя на директорията
         $tempPath = $dir . '/' . $newName;
         
-        // Създаваме диркторията
+        // Създаваме директорията
         expect(mkdir($tempPath, 0777, TRUE), 'Не може да се създаде директория.');
         
         return $tempPath;
