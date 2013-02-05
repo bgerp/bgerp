@@ -119,6 +119,8 @@ class sales_SalesDetails extends core_Detail
     public function description()
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent');
+        
         $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
         
@@ -262,6 +264,13 @@ class sales_SalesDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        if ($policyId = $data->form->rec->policyId) {
+            /* @var $Policy price_PolicyIntf */
+            $Policy = cls::get($policyId);
+            
+            $data->form->setField('policyId', 'input=hidden');
+            $data->form->setOptions('productId', $Policy->getProducts($data->masterRec->contragentClassId, $data->masterRec->contragentId));
+        }
     }
     
     
@@ -290,25 +299,36 @@ class sales_SalesDetails extends core_Detail
                 
                 // Определяне на цена, количество и отстъпка за опаковка
                 
+                /* @var $Policy price_PolicyIntf */
+                $Policy = cls::get($rec->policyId);
+                
+                $policyInfo = $Policy->getPriceInfo(
+                    $masterRec->contragentClassId, 
+                    $masterRec->contragentId, 
+                    $rec->productId,
+                    $rec->packagingId,
+                    $rec->quantity,
+                    $masterRec->date
+                );
+                
                 if (empty($rec->packagingId)) {
                     // В продажба в основна мярка
-                    $pricePerPack    = $productInfo->price;
                     $productsPerPack = 1;
-                    $discount        = 0;
                 } else {
                     // Продажба на опаковки
-                    expect($packInfo = $productInfo->packs[$rec->packagingId]);
+                    if (!$packInfo = $productInfo->packs[$rec->packagingId]) {
+                        $form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
+                        return;
+                    }
                     
-                    $pricePerPack    = $packInfo->price;
                     $productsPerPack = $packInfo->quantity;
-                    $discount        = $packInfo->discount;
                 }
                 
                 if (empty($rec->packPrice)) {
-                    $rec->packPrice = $pricePerPack;
+                    $rec->packPrice = $policyInfo->price;
                 }
                 if (empty($rec->discount)) {
-                    $rec->discount = $discount;
+                    $rec->discount = $policyInfo->discount;
                 }
                 
                 $rec->quantity = $rec->packQuantity * $productsPerPack;
@@ -327,5 +347,22 @@ class sales_SalesDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+    }
+    
+    
+    public static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+        $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf', 'title');
+        
+        if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $addUrl = $data->toolbar->buttons['btnAdd']->url;
+            
+            foreach ($pricePolicies as $policyId=>$title) {
+                $data->toolbar->addBtn($title, $addUrl + array('policyId' => $policyId,),
+                    "id=btnAdd-{$policyId},class=btn-add");
+            }
+            
+            unset($data->toolbar->buttons['btnAdd']);
+        }
     }
 }
