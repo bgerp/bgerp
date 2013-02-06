@@ -35,7 +35,7 @@ class core_Session {
      * @var bool
      * @access private
      */
-    var $_resumed;
+//    var $_resumed;
     
     
     /**
@@ -70,31 +70,32 @@ class core_Session {
         $this->_headers["Pragma"] = "no-cache";     // HTTP/1.0
         ini_set('session.gc_maxlifetime', 7200);
         session_name($name);
-        $this->_started = FALSE;
+        //$this->_started = FALSE;
         
+        $this->_start();
         // Проверка за съществуваща сесия
-        $sid = $this->getSid();
+//        $sid = $this->getSid();
         
-        $resumeSession = isset($sid) && preg_match("/^[0-9a-z]{5,}$/i", $sid);
-        
-        $this->_resumed = FALSE;
-        
-        if($resumeSession) {
-            $this->_start();
-            $this->_resumed = isset($_SESSION['session_is_valid']);
-            
-            if(!$this->_resumed) {
-                $this->destroy();
-            }
-        }
-        
-        if(!$this->_resumed) {
+//        $resumeSession = isset($sid) && preg_match("/^[0-9a-z]{5,}$/i", $sid);
+//        
+//        $this->_resumed = FALSE;
+//        
+//        if($resumeSession) {
+//            $this->_start();
+//            $this->_resumed = isset($_SESSION['session_is_valid']);
+//            
+//            if(!$this->_resumed) {
+//                $this->destroy();
+//            }
+//        }
+//        
+//        if(!$this->_resumed) {
             unset($_REQUEST[session_name()]);
             unset($_GET[session_name()]);
             unset($_POST[session_name()]);
             unset($_COOKIE[session_name()]);
             unset($GLOBALS[session_name()]);
-        }
+//        }
     }
     
     
@@ -154,12 +155,7 @@ class core_Session {
      */
     static function get($varName, $part = NULL)
     {
-        //if(is_a($this, 'core_Session')) {
-        //     $Session = $this;
-        //} else {
         $Session = cls::get('core_Session');
-        
-        // }
         
         if($Session->_started) {
             $dv = $Session->_decorate($varName);
@@ -252,9 +248,9 @@ class core_Session {
             ini_set('session.use_only_cookies', 1);
             @session_start();
             
-            if(!$this->_resumed) {
-                $_SESSION['session_is_valid'] = time();
-            }
+//            if(!$this->_resumed) {
+            $_SESSION['session_is_valid'] = time();
+//            }
             
             foreach($this->_headers as $hdrName=>$hdrValue) {
                 header("$hdrName: $hdrValue");
