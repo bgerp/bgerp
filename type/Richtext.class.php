@@ -192,7 +192,7 @@ class type_Richtext extends type_Text
         $html = preg_replace_callback("/\[hide(=([^\]]*)|)\](.*?)\[\/hide\]/is", array($this, '_catchHide'), $html);
         
         // Обработваме едноредовите кодове: стрингове
-        $html = preg_replace_callback("/(?'ap'\`|\'|\")(?'text'.+?)(\k<ap>)/", array($this, '_catchOneLineCode'), $html);
+        $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,72}?)(\k<ap>)/", array($this, '_catchOneLineCode'), $html);
         
         
         // Обработваме хипервръзките, зададени в явен вид
@@ -487,7 +487,7 @@ class type_Richtext extends type_Text
         $code = $match['text'];
         
         // Ако е празен стринг
-        if(!($code = trim($code))) return "";
+        if(!($code = trim($code))) return $match[0];
         
         // Добавяме кода в блок
         $code1 = "<span class='oneLineCode'>{$code}</span>";
