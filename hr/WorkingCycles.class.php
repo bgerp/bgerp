@@ -60,6 +60,12 @@ class hr_WorkingCycles extends core_Master
     
     
     /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'hr/tpl/SingleLayoutWorkingCycles.shtml';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -92,7 +98,7 @@ class hr_WorkingCycles extends core_Master
                 $dRec = hr_WorkingCycleDetails::fetch("#cycleId = {$rec->id} AND #day = {$day}"); 
                 $night += hr_WorkingCycleDetails::getSection($dRec->start, $dRec->duration, 22*60*60, 7*60*60);
             } 
-            echo "<li> $night";
+            //echo "<li> $night";
 
             $maxNight = max($maxNight, $night);
         }

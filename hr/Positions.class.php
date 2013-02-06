@@ -54,6 +54,12 @@ class hr_Positions extends core_Master
     
     
     /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'hr/tpl/SingleLayoutPosition.shtml';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -67,5 +73,9 @@ class hr_Positions extends core_Master
         $this->FLD('employersCnt', 'datetime', "caption=Служители,input=none");
         
         $this->setDbUnique('name');
+    }
+    static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	//bp($data->rec, $data->singleFields, $data);
     }
 }

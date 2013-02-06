@@ -54,6 +54,12 @@ class hr_Departments extends core_Master
     
     
     /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'hr/tpl/SingleLayoutDepartment.shtml';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -98,5 +104,4 @@ class hr_Departments extends core_Master
             }
         }
     }
-
 }

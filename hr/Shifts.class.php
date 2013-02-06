@@ -52,6 +52,12 @@ class hr_Shifts extends core_Master
      */
     var $canWrite = 'admin,hr';
     
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'hr/tpl/SingleLayoutShift.shtml';
+    
     
     /**
      * Описание на модела
