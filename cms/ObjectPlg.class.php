@@ -27,7 +27,7 @@ class cms_ObjectPlg extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if(haveRole('cms,admin,ceo')) {
-            $data->toolbar->addBtn('Публикуване', 
+            $data->toolbar->addBtn('Уеб', 
                     array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id),
                     'ef_icon=img/16/world_go.png,order=19,autohide');
 
