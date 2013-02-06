@@ -149,9 +149,6 @@ pre.richtext {
 }
 
 .richtext .oneLineCode {
-	NObackground-color: #F8F8F8;
-	NOborder: 1px solid #EAEAEA;
-	
 	font-family: Courier New,monospace;
 	white-space: nowrap;
 	background-color: #ffe;
