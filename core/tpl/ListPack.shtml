@@ -1,0 +1,16 @@
+<div class="elem-holder">
+	
+	<div class="fleft">
+		<div class="elem-img">
+			<img src="/sbf/ef/img/100/system.png" alt="" />
+		</div>
+		[#name#]
+		
+	</div>
+	<div class="fright">
+			[#config#]
+			[#install#]
+			[#deinstall#]
+	</div>
+	<div class="clearfix21"></div>
+</div>

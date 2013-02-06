@@ -439,8 +439,8 @@ div.hFormField {
 	color:white;
 }
 
-input[type="checkbox"]{
-	border:none;
+.wide .checkbox, .wide .radiobutton { 
+	border: none !important;
 }
 
 .narrow .formAll {
@@ -976,3 +976,74 @@ tr.zebra1 {
 	font-family:monospace;
 	font-size:0.85em;
 }
+
+/*стилове за пакети*/
+.elem-holder{
+		display:block;
+		width:385px;
+		padding:7px;
+		margin-right:20px;
+		margin-bottom:20px;
+		float:left;
+		height:76px;
+		background:#fcfae8;
+		box-shadow:1px 1px 6px rgba(0,0,0,0.4);
+	}
+	
+	.narrow .elem-holder{
+		width:365px;
+	}
+	
+	.elem-img{
+		width:74px;
+		height:74px;
+		float:left;
+		margin-right:7px;
+	}
+	
+	.elem-img img{
+		width:74px;
+		height:74px;
+	}
+	
+	.elem-holder .fleft{
+	    width:262px;
+		float:left;
+	}
+	
+	.narrow .elem-holder .fleft{
+	    width:258px;
+	}
+	
+	.elem-holder small{
+		line-height:18px;
+		display:block;
+	}
+	
+	.narrow .elem-holder small{
+		font-size:13px;
+		line-height:17px;
+	}
+	
+	.elem-holder .fleft b{
+		margin-bottom:-3px;
+	}
+
+	.elem-holder .fright{
+		width:116px;
+		float:right;
+	}
+	
+	.narrow .elem-holder .fright{
+		width:102px;
+	}
+	
+	.elem-holder .fright .button{
+		float:right;
+		font-size:11px;
+		margin-bottom:5px;
+	}
+	
+	.narrow .elem-holder .fright .button{
+		font-size:12px;
+	}

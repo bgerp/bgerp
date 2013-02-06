@@ -35,6 +35,7 @@ class core_Packs extends core_Manager
      */
     var $canDeinstall = 'admin';
     
+    var $listItemsPerPage=18;
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -293,12 +294,13 @@ class core_Packs extends core_Manager
         $rowNum++;
         $row->id = $rowNum;
         
-        $row->name = "<b style='font-size:1.2em;'>" . $mvc->getVerbal($rec, 'name') . "</b>&nbsp;&nbsp;[v&nbsp;" . str_replace(',', '.', $rec->version) . "]";
+        $row->name = "<b style='font-size:1.2em;'>" . $mvc->getVerbal($rec, 'name') . "</b>";
         
         if($rec->startCtr) {
             $row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct));
         }
-        
+        $row->name = new ET($row->name);
+        $row->name->append(' ' . str_replace(',', '.', $rec->version));
         $row->name .= "<div><small>{$rec->info}</small></div>";
         
         $row->install = ht::createBtn("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, NULL, array('class' => 'btn-software-update'));
@@ -735,5 +737,34 @@ class core_Packs extends core_Manager
         }
         
         return $resArr;
+    }
+    
+    function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	//Пътя до мастер шаблона
+    	$fullPath = getFullPath("core/tpl/ListPack.shtml");
+    	
+    	
+    	$res = new ET('<div class="clearfix21"></div><div style="width:100%">[#tpl#]</div><div class="clearfix21"></div>');
+    	
+    	foreach ($data->rows as $row) {
+    		$tpl = new ET(tr("|*".file_get_contents($fullPath)));
+     		//bp($row);
+    		$tpl->append($row->name, 'name');
+    		$tpl->append($row->id, 'id');
+    		$tpl->append($row->deinstall, 'deinstall');
+    		$tpl->append($row->install, 'install');
+    		$tpl->append($row->config, 'config');
+    		$res->append($tpl, 'tpl');
+    	}
+    	
+    	
+    	
+    	return FALSE; 
+    }
+    
+    function on_AfterPrepareListFields($mvc, $res, $data)
+    {
+//     	bp($data->query->fields);	
     }
 }
