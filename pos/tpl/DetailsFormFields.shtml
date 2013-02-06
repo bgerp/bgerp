@@ -1,20 +1,14 @@
 <table border='0' id='receipt-details-form-table'>
 <tr>
-	<td>Продукт</td><td>[#productId#]</td>
+	<td>[#param#]</td>
+	<td>[#ean#]</td>
+	<td>[#quantity#]</td>
 </tr>
 <tr>
-	<td>К-во </td><td>[#quantity#]</td>
-</tr>
-<tr>
-	<td>Цена </td><td>[#price#]</td>
-</tr>
-<tr>
-	<td colspan='2'>Отстъпка</td>
-</tr>
-<tr>
-	<td>Процент </td><td>[#discountPercent#]</td>
-</tr>
-<tr>
-	<td>Сума </td><td>[#discountSum#]</td>
+	<td colspan='2'>
+		<div class='buttons-row'>[#FIRST_ROW#]</div>
+		<div class='buttons-row'>[#SECOND_ROW#]</div>
+		<div class='buttons-row'>[#THIRD_ROW#]</div>
+	</td>
 </tr>
 </table>

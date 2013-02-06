@@ -68,7 +68,13 @@ class pos_Receipts extends core_Master {
     /**
      * Кой може да променя?
      */
-    var $canWrite = 'admin, pos';
+    var $canAdd = 'no_one';
+    
+    
+    /**
+     * Кой може да променя?
+     */
+    var $canEdit = 'pos, admin';
     
     
     /**
@@ -104,35 +110,11 @@ class pos_Receipts extends core_Master {
     
     
 	/**
-     * Екшъна по подразбиране е разглеждане на статиите
+     * Екшъна по подразбиране, Дефолт Екшъна е "Single"
      */
     function act_Default()
     {
         return Redirect(array($this, 'single'));
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$form = &$data->form;
-    	$form->setDefault('pointId', pos_Points::getCurrent());
-    	$form->setReadOnly('pointId');
-    }
-    
-    
-	/**
-     * Извиква се след въвеждането на данните
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	if($form->isSubmitted()) {
-	    	//$rec = &$form->rec;
-	    	//$rec->date = dt::now();
-	    	//$rec->total = 0;
-    	}
     }
     
     
@@ -141,23 +123,39 @@ class pos_Receipts extends core_Master {
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
-    	if($action == 'single') {
-    		$query = static::getQuery();
-    		if($query->count() != 0) {
-    			return;
-    		}
+    	$id = Request::get('id');
+    	if($action == 'single' && !$id) {
     		
-    		$rec = new stdClass();
-    		$rec->date = dt::now();
-    		$rec->contragentName = 'Анонимен Клиент';
-    		$rec->total = 0;
-    		$rec->pointId = pos_Points::getCurrent();
+    			// Ако не е зададено Ид, намираме кой е последно добавената бележка
+	    		$query = static::getQuery();
+	    		$query->orderBy("#createdOn", "DESC");
+	    		if($rec = $query->fetch()) {
+	    			
+	    			return Redirect(array($mvc, 'single', $rec->id));
+	    		}
     		
-    		if($id = static::save($rec)) {
-    			
-    			return Redirect(array($mvc, 'single', $id));
-    		}
+	    	// Ако няма последно добавена бележка създаваме нова
+    		return Redirect(array($mvc, 'new'));
     	}
+    }
+    
+    
+    /**
+     *  Екшън създаващ нова бележка, и редиректващ към Единичния и изглед
+     *  Добавянето на нова бележка става само през този екшън 
+     */
+    function act_New()
+    {
+    	$rec = new stdClass();
+    	$rec->date = dt::now();
+    	$rec->contragentName = 'Анонимен Клиент';
+    	$rec->total = 0;
+    	$rec->pointId = pos_Points::getCurrent();
+    	
+    	$this->requireRightFor('add', $rec);
+    	$id = static::save($rec);
+    	
+    	return Redirect(array($this, 'single', $id));
     }
     
     
@@ -179,6 +177,27 @@ class pos_Receipts extends core_Master {
     	//@TODO
     }
     
+    
+	/**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if($mvc->haveRightFor('list')) {
+    		
+    		// Добавяме бутон за достъп до 'List' изгледа
+    		$data->toolbar->addBtn('Всички',array($mvc, 'list', 'ret_url' => TRUE),
+    							   'ef_icon=img/16/application_view_list.png, order=18');    
+    								 
+    	}
+    	
+    	// Добавяне на бутон за създаване на нова дефолт Бележка
+    	$data->toolbar->addBtn('Нова Бележка', 
+    						    array($mvc, 'new'),'',
+    						   'id=btnAdd,class=btn-add,order=20');
+    }
+    
+    
     /**
      * Пушваме css файла
      */
@@ -186,5 +205,45 @@ class pos_Receipts extends core_Master {
     {	
     	jquery_Jquery::enable($tpl);
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+    	$tpl->push('pos/js/scripts.js', 'JS');
     }
+    
+    
+    /**
+     * 
+     */
+    function updateReceipt($detailRec)
+    {
+    	expect($rec = $this->fetch($detailRec->receiptId));
+    	switch($detailRec->param) {
+    		case 'sale':
+    			$rec->total = 0;
+    			$query = pos_ReceiptDetails::getQuery();
+    			$query->where("#receiptId = {$rec->id}");
+    			$query->where("#param = 'sale'");
+    			while($dRec = $query->fetch()) {
+    				$rec->total .= $dRec->amount;
+    			}
+    			break;
+    		case 'discount':
+    			break;
+    		case 'payment':
+    			break;
+    		case 'client':
+    			break;
+    	}
+    	
+    	$this->save($rec);
+    }
+    
+    
+    /**
+	 * Модификация на ролите, които могат да видят избраната тема
+	 */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{ 
+		if($action == 'add' && isset($rec)) {
+			$res = 'pos, ceo, admin';
+		}
+	}
 }

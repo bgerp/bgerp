@@ -59,3 +59,13 @@
 #receipt-details-form-table {
 	
 }
+
+.buttonForm, .paymentBtn, .clientBtn{
+	height:30px !important;
+	margin-right:16px !important;
+	font-size:16px !important;
+}
+
+.buttons-row {
+	margin-top:15px;
+}
