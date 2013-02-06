@@ -473,8 +473,19 @@ class support_Issues extends core_Master
         $data->listFilter->view = 'horizontal';
         
         // По подразбиране кое да е избрано
-        $data->listFilter->setDefault('maintainers', 'all_users');
-        
+        if (haveRole($data->listFilter->fields['maintainers']->type->params['rolesForAll'])) {
+            
+            // Ако има права за всички, да са избани всички
+            $data->listFilter->setDefault('maintainers', 'all_users');    
+        } else {
+            
+            // Текущия потребител
+            $currUserId = core_Users::getCurrent();
+
+            // Ако няма права за всички да е избран текущия потребител
+            $data->listFilter->setDefault('maintainers', "|$currUserId|"); 
+        }
+
         // Полетата да не са задължителни и да се субмитва формата при промяната им
         $data->listFilter->setField('componentId', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('componentId', array('mandatory' => FALSE));
@@ -524,24 +535,23 @@ class support_Issues extends core_Master
         
         // Отговорници
         $maintainers = $data->listFilter->rec->maintainers;
+
+        // Очакваме да има избран
+        expect($maintainers, 'Няма избран отговорник.');  
+            
+        // Ако не е избран всички потребители
+        if ($maintainers != 'all_users') {
+            
+            // Ако не са избрани всички потребители
+            if (stripos($maintainers, '|-1|') === FALSE) {
         
-        // Ако е избран отговорник
-        if($maintainers) {
-            
-            // Ако не е избран всички потребители
-            if($maintainers != 'all_users') {
-                
-                // Ако не са избрани всички потребители
-                if (stripos($maintainers, '|-1|') === FALSE) {
-                    
-                    // Добавяме външно поле за търсене
-                    $data->query->EXT("componentMaintainers", 'support_Components', "externalName=maintainers");
-            
-                    // Да се показват само сигнали за избран потребител
-                    $data->query->likeKeylist("componentMaintainers", $data->listFilter->rec->maintainers);
-                    $data->query->where("#componentId = `support_components`.`id`");
-                }        
-            }
+                // Добавяме външно поле за търсене
+                $data->query->EXT("componentMaintainers", 'support_Components', "externalName=maintainers");
+        
+                // Да се показват само сигнали за избран потребител
+                $data->query->likeKeylist("componentMaintainers", $maintainers);
+                $data->query->where("#componentId = `support_components`.`id`");
+            }        
         }
     }
     
