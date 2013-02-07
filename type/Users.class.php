@@ -189,10 +189,13 @@ class type_Users extends type_Keylist
         $this->prepareOptions();
         
         foreach($this->options as $key => $optObj) {
-            if($value == $optObj->keylist) {
+            if(isset($value) && $value == $optObj->keylist) {
+                $exist = TRUE;
                 break;
             }
         }
+        
+        if (!$exist) return NULL;
         
         return $this->options[$key]->title;
     }

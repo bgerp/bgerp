@@ -167,10 +167,13 @@ class type_User extends type_Key
         $this->prepareOptions();
         
         foreach($this->options as $key => $optObj) {
-            if($value == $optObj->value) {
+            if(isset($value) && $value == $optObj->value) {
+                $exist = TRUE;
                 break;
             }
         }
+        
+        if (!$exist) return NULL;
         
         return $this->options[$key]->title;
     }
