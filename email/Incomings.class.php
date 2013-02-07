@@ -471,7 +471,7 @@ class email_Incomings extends core_Master
             $query->show('maxUid');
             $maxRec = $query->fetch("#accountId = {$imapConn->accRec->id}");
         }
- bp($maxRec);
+ 
         if(!$maxRec->maxUid) {
             // Горен указател
             $t = $maxMsgNo; 

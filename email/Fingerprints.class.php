@@ -61,6 +61,7 @@ class email_Fingerprints extends core_Manager
         $this->FLD('status', 'enum(returned,receipt,spam,incoming,misformatted)', 'caption=Статус,notNull');
 
         $this->setDbUnique('hash');
+        $this->setDbIndex('accountId,uid');
     }
     
 
