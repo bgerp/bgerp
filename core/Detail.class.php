@@ -188,7 +188,7 @@ class core_Detail extends core_Manager
             }
         }
         
-        expect($this->Master instanceof core_Master);
+//         expect($this->Master instanceof core_Master);
     }
     
     
