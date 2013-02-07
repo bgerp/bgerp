@@ -45,6 +45,8 @@ class core_Detail extends core_Manager
         }
         
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
+        
+        $mvc->setupMaster(NULL);
     }
     
     
@@ -53,7 +55,6 @@ class core_Detail extends core_Manager
      */
     function prepareDetail_($data)
     {
-        
         // Очакваме да masterKey да е зададен
         expect($this->masterKey);
         
@@ -174,7 +175,12 @@ class core_Detail extends core_Manager
     }
     
     
-    protected function setupMaster($data)
+    /**
+     * Позволява задаване на Master-мениджър за всеки конкретен запис-детайл.
+     * 
+     * @param stdClass $rec
+     */
+    public function setupMaster($rec)
     {
         if (!$this->Master) {
             if ($this->masterClass = $this->fields[$this->masterKey]->type->params['mvc']) {
@@ -228,15 +234,13 @@ class core_Detail extends core_Manager
         if($action == 'write' && isset($rec)) {
             
             expect($masterKey = $this->masterKey);
-              
             expect($this->Master instanceof core_Master, $this);
             
             if($rec->{$masterKey}) {
                 $masterRec = $this->Master->fetch($rec->{$masterKey});
             }
             
-            if($masterRec) {
-            
+            if ($masterRec) {
                 return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
             }
         }
