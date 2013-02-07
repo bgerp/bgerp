@@ -48,7 +48,9 @@ class crm_ext_IdCards extends core_Detail
         }
 
         $data->IdCard->rec = static::fetch("#personId = {$data->masterId}");
-        $data->IdCard->row = static::recToVerbal($data->IdCard->rec);
+        if ($data->IdCard->rec) {
+            $data->IdCard->row = static::recToVerbal($data->IdCard->rec);    
+        }
         $data->canChange         = static::haveRightFor('edit');
     }
     
