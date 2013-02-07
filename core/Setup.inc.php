@@ -843,10 +843,16 @@ function gitPullRepo($repoPath, &$log)
 	
 	$repoName = basename($repoPath);
 	
-	$command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" pull origin master 2>&1";
+    $commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch 2>&1";
 
-	exec($command, $arrRes, $returnVar);
-	
+    $commandMerge = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/master 2>&1";
+
+    exec($commandFetch, $arrResFetch, $returnVar);
+    
+    exec($commandMerge, $arrResMerge, $returnVar);
+    
+    $arrRes = array_merge($arrResFetch + $arrResMerge);
+    	
 	$success = array("Alredy up-to-date.", "Fast-forward");
 	
 	foreach ($success as $needle) {
