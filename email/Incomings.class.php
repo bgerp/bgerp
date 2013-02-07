@@ -466,12 +466,12 @@ class email_Incomings extends core_Master
         }
         
         if($imapConn->accRec->protocol == 'imap') {
-            $query = self::getQuery();
+            $query = email_Fingerprints::getQuery();
             $query->XPR('maxUid', 'int', 'max(#uid)');
             $query->show('maxUid');
-            $maxRec = $query->fetch("#accId = {$imapConn->accRec->id}");
+            $maxRec = $query->fetch("#accountId = {$imapConn->accRec->id}");
         }
- 
+ bp($maxRec);
         if(!$maxRec->maxUid) {
             // Горен указател
             $t = $maxMsgNo; 
