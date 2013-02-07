@@ -161,15 +161,21 @@ class survey_Alternatives extends core_Detail {
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if($fields['-list']) {
-			$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
+			
+			// Обработваме представянето на въпросите от анкетата само ако
+			// тя е отворена;
+			if($this->haveRightFor('vote', $rec)) {
+				$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
+			}
 			
 			$imgLink = sbf('survey/img/question.png', '');
 			$row->icon = ht::createElement('img', array('src' => $imgLink, 'width' => '16px', 'valign' =>"middle"));
-			
+				
 			if($rec->image) {
 				$Fancybox = cls::get('fancybox_Fancybox');
 				$row->image = $Fancybox->getImage($rec->image, array(140, 140), array(500, 500), null, array('class'=>'question-image'));
 			}
+			
 		}
 	}
 	
@@ -187,11 +193,6 @@ class survey_Alternatives extends core_Detail {
 		$tpl = new ET("");
 		$altTpl = new ET("<li><input name='quest{$id}' type='radio' [#data#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>");
 		
-		// Ако анкетата е активна тогава радио бутоните могат да
-		// изпращат гласове
-		$rec = static::fetch($id);
-		($this->haveRightFor('vote', $rec)) ? $can = TRUE : $can = FALSE;
-		
 		// Разбиваме подадения текст по редове, и махаме празните такива
 		$txtArr = explode("\n", $text);
 		
@@ -203,17 +204,12 @@ class survey_Alternatives extends core_Detail {
 		for($i = 1; $i <= count($txtArr); $i++) {
 			$copyTpl = clone($altTpl);
 				
-			// Ако гласуването е позволено, слагаме в инпута
-			// атрибутите нужни за Ajax заявката
-			if($can) { 
-				$params = "data-rowId='{$i}' data-alternativeId='{$id}' ";
-				if($mid = Request::get('m')) {
-					$params .= " data-m='{$mid}'";
-				}
-					
-				$copyTpl->replace($params, 'data');
+			$params = "data-rowId='{$i}' data-alternativeId='{$id}' ";
+			if($mid = Request::get('m')) {
+				$params .= " data-m='{$mid}'";
 			}
-				
+			
+			$copyTpl->replace($params, 'data');
 			$copyTpl->replace($txtArr[$i-1], 'answer');
 				
 			// Ако потребителя вече е гласувал, чекваме радио бутона

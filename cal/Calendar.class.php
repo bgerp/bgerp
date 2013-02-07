@@ -487,7 +487,7 @@ class cal_Calendar extends core_Master
             	//bp($id, $rec);
                 if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
                     $time = dt::mysql2timestamp($rec->time);
-                    $i = (int) date('j', $time); bp($i);
+                    $i = (int) date('j', $time);
                     if(!isset($data[$i])) {
                         $data[$i] = new stdClass();
                       
@@ -498,7 +498,11 @@ class cal_Calendar extends core_Master
                 } elseif($rec->type == 'task'){
                 	$time = dt::mysql2timestamp($rec->time);
                     $i = (int) date('j', $time);
-                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">";
+                	if(!isset($data[$i])) {
+                        $data[$i] = new stdClass();
+                      
+                    }
+                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
                 }
                 
             }    
@@ -1257,6 +1261,7 @@ class cal_Calendar extends core_Master
     			}
     		 } else {
     				$monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='mc-calendar'>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('title' => $rec->title));
+    				
      		 }
 
         }
@@ -1321,7 +1326,7 @@ class cal_Calendar extends core_Master
         		foreach($weekArr as $key=>$events){
         			
 		        	if($currentWeek == $weekNum && $currentKey == $key){
-		        	
+		       
 		        		switch ($key){
 		    				case "d1":
 		    					$cTpl->replace('mc-today', 'now1');
@@ -1387,17 +1392,10 @@ class cal_Calendar extends core_Master
 		    					$cTpl->replace('mc-day', 'now6');
 		    					break;
 		    				
-		    					$cTpl->replace('mc-day', 'now1');
-		    					$cTpl->replace('mc-day', 'now2');
-		    					$cTpl->replace('mc-day', 'now3');
-		    					$cTpl->replace('mc-day', 'now4');
-		    					$cTpl->replace('mc-day', 'now5');
-		    					$cTpl->replace('mc-day', 'now6');
-		    					$cTpl->replace('mc-day', 'now7');
 		    			  	
 		    			}
 		        	} else {
-		        		$cTpl->replace('mc-day', 'now1');
+		        		    $cTpl->replace('mc-day', 'now1');
 	    					$cTpl->replace('mc-day', 'now2');
 	    					$cTpl->replace('mc-day', 'now3');
 	    					$cTpl->replace('mc-day', 'now4');
@@ -1501,8 +1499,11 @@ class cal_Calendar extends core_Master
 			        // Кой ден от седмицата е
 			        $dayKey = "d".date('N', $recT);
 
+			    
 			        if($rec->type == 'task'){
-			        	$yearArr["mon".$recMonth][$weekKey][$dayKey] .= "<img class='starImg'  src=". sbf('img/16/star_2.png') .">";
+			        	
+			        	$yearArr["mon".$recMonth][$weekKey][$dayKey] = "<img class='starImg'  src=". sbf('img/16/star_2.png') .">" . $yearArr["mon".$recMonth][$weekKey][$dayKey];
+			        
 			        }
 			        
 			

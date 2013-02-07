@@ -71,7 +71,12 @@ class cat_PricePolicyMockup extends core_Manager
     {
         expect($productId <= 4);
         
-        $customerClass = core_Classes::getId($customerClass);
+        if (!is_null($customerClass)) {
+            $customerClass = core_Classes::getId($customerClass);
+            expect($customerId);
+        } else {
+            $customerId = 0;
+        }
         
         $price = "{$productId}.{$customerId}";
         $discount = 0;
@@ -84,8 +89,12 @@ class cat_PricePolicyMockup extends core_Manager
             $discount += 0.1;
         }
         
-        if ($discount && cls::get($customerClass) instanceof crm_Persons) {
-            $discount = -$discount;
+        if ($customerClass) {
+            if ($discount && cls::get($customerClass) instanceof crm_Persons) {
+                $discount = -$discount;
+            }
+        } else {
+            $price *= 2; // Анонимни клиенти
         }
         
         return (object)compact('price', 'discount');

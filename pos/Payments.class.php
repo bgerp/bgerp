@@ -37,7 +37,7 @@ class pos_Payments extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, title';
+    var $listFields = 'id, tools=Пулт, title, show';
     
     
     /**
@@ -70,6 +70,7 @@ class pos_Payments extends core_Manager {
     function description()
     {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
+    	$this->FLD('show', 'enum(yes=Да,no=Не)', 'maxRadio=4,maxColumns=1,caption=Показване,value=yes');
     }
     
      /**
@@ -87,6 +88,7 @@ class pos_Payments extends core_Manager {
                 $rec = new stdClass();
                 $rec->id = $csvRow [0];
                 $rec->title = $csvRow [1];
+                $rec->show = $csvRow [2];
                	if ($rec->id = static::fetchField(array("#title = '[#1#]'", $rec->title), 'id')) {
                     $updated++;
                 } else {

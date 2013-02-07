@@ -231,7 +231,7 @@ class email_Outgoings extends core_Master
         $tpl = $data->form->renderHtml();
         
         // Добавяме превю на имейла, който ще изпратим
-        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#EMAIL_HTML#]<pre class=\"document\">[#EMAIL_TEXT#]</pre></div>");
+        $preview = new ET("<div style='width:896px'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#EMAIL_HTML#]<pre class=\"document\" style=\"width:95%; white-space: pre-wrap;\">[#EMAIL_TEXT#]</pre></div>");
        
         $preview->append($this->getEmailHtml($data->rec, $lg) , 'EMAIL_HTML');
         $preview->append(core_Type::escape($this->getEmailText($data->rec, $lg)) , 'EMAIL_TEXT');
@@ -525,6 +525,8 @@ class email_Outgoings extends core_Master
             
             if ($mvc->flagSendIt) {
                 $form->rec->state = 'active';
+                
+                $mvc->invoke('Activation', array($form->rec));
                 
                 //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
                 if (!trim($form->rec->email)) {

@@ -1,0 +1,30 @@
+<div style="display:inline-block" class="singleView">
+[#SingleToolbar#]
+	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Смяна <b style="color:green;">[#name#]</b></div></h2>
+	<table class="styled-table" width="100%">
+		<tr>
+			<td class="title-style"> №</td>
+			<td>[#id#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Наименование</td>
+			<td>[#name#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Раб. цикъл</td>
+			<td>[#cycle#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Започване на</td>
+			<td>[#startingOn#]</td>
+		</tr>
+		
+	 	<!--ET_BEGIN employersCnt-->
+		<tr>
+			<td class="title-style">Служители</td>
+			<td>[#employersCnt#]</td>
+		</tr>
+		<!--ET_END employersCnt-->
+	</table>
+	<div><span class="title-style">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
+</div>
