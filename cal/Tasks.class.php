@@ -157,7 +157,7 @@ class cal_Tasks extends core_Master
         $this->FLD('timeEnd', 'datetime',     'caption=Времена->Край');
         
         // Изпратена ли е нотификация?
-        $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull');
+        $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
         
         // Дали началото на задачата не е точно определено в рамките на деня?
         $this->FLD('allDay', 'enum(no,yes)',     'caption=Цял ден?,input=none');
