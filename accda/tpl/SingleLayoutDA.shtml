@@ -1,21 +1,7 @@
-<style>
-	.calign{
-	text-align:center;
-	}
-	.sign-holder{
-		display:inline-block;
-	}
-	.sign-holder span{
-		display:inline-block;
-		float:right;
-		width:160px;
-		text-align:center;
-	}
-</style>
-
 <div class="singleView" style="display:inline-block">
+	[#SingleToolbar#]
 	<div class="document">
-		[#SingleToolbar#]<br>
+		
 		<h2>[#SingleTitle#]</h2>
 		<h3 class="calign">П Р О Т О К О Л &nbsp; № [#id#]</h3>
 	
