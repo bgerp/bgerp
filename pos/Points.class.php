@@ -17,12 +17,6 @@ class pos_Points extends core_Manager {
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    //var $interfaces = 'acc_RegisterIntf';
-    
-    
-    /**
      * Заглавие
      */
     var $title = "Точки на Продажба";
@@ -77,6 +71,6 @@ class pos_Points extends core_Manager {
     function description()
     {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
-        $this->FLD('cashier', 'keylist(mvc=crm_Persons,select=name)', 'caption=Касиер');
+        $this->FLD('cashier', 'user(roles=pos|admin)', 'caption=Касиер');
     }
 }

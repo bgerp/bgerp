@@ -69,3 +69,20 @@
 .buttons-row {
 	margin-top:15px;
 }
+
+.selectedPayButton {
+	background-color:darkred !important;
+}
+
+input.error {
+   border:1px dotted red;
+}
+
+#error-place {
+	color:darkred;
+	font-style:italic;
+}
+
+.disabledSubmit {
+	background-color:green !important;
+}

@@ -53,14 +53,15 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$this->FLD('receiptId', 'key(mvc=pos_Receipts)', 'caption=Бележка, input=hidden, silent');
     	$this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em');
-    	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, width=16em, placeholder=ЕАН');
+    	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, width=14em');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
     	$this->FLD('price', 'float(minDecimals=2)', 'caption=Цена,input=none');
-        $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=7em');
+        $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=3em');
     	$this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума, input=none,input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
     	$this->FLD('discountPercent', 'percent', 'caption=Отстъпка->Процент,input=none');
         $this->FLD('discountSum', 'float(minDecimals=2)', 'caption=Отстъпка->Сума,input=none');
+        $this->FLD('fixbon', 'enum(yes=Да,no=Не)', 'caption=Фискален Бон,input=none,value=yes');
     }
     
     
@@ -71,7 +72,6 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$this->prepareAddForm($data);
     	parent::prepareDetail_($data);
-    	
     }
     
     
@@ -167,35 +167,54 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	if($form->isSubmitted()) {
     		$rec = &$form->rec;
-    		switch($rec->param) {
+    		$rec->ean = trim($rec->ean);
+    		$mvc->parseEan($form);
+    	}
+    }
+
+    
+    /**
+     * @TODO
+     */
+    function parseEan(&$form)
+    {
+    	$rec = &$form->rec;
+    	switch($rec->param) {
     			case 'sale':
-    				expect($rec->productId = $mvc->parseEan(trim($rec->ean), 'sale'), 'Няма продукт с такъв код');
-    				$rec->price = '10'; // ТЕСТОВО
+    				expect($rec->productId = cat_Products::fetchField(array("#code='[#1#]'", $rec->ean), 'id'), 'Няма продукт с такъв код');
+    				$priceCls = cls::get('cat_PricePolicyMockup');
+    				$receiptRec = pos_Receipts::fetch($rec->receiptId);
+    				if($receiptRec->contragentClass) {
+    					$price = $priceCls->getPriceInfo($receiptRec->contragentClass,
+    													 $receiptRec->contragentObjectId, 
+    													 $rec->productId,
+    													 NULL, $rec->quantity, $receiptRec->date
+    													 );
+    				} else {
+    					$price = $priceCls->getPriceInfo(NULL, NULL, $rec->productId);
+    				}
+    				$rec->price = $price->price;
     				$rec->amount = $rec->price * $rec->quantity;
     				break;
     			case 'payment':
+    				if(!is_numeric($rec->ean)) {
+    					$form->setError('ean', 'Не сте въвели валидно число');
+    				}
+    				
+    				$query = $this->getQuery();
+    				$query->where("#param = 'payment'");
+    				$query->where("#receiptId = '{$rec->receiptId}'");
+    				if($r = $query->fetch()) {
+    					$rec->id = $r->id;
+    				}
+    				$rec->amount = $rec->ean;
     				break;
     			case 'discount':
     				break;
     			case 'client':
     				break;
     		}
-    	}
-    }
-
-    function parseEan($ean, $type)
-    {
-    	switch($type) {
-    		case 'sale':
-    			if(!$res = cat_Products::fetchField(array("#code='[#1#]'", $ean), 'id')){
-    				$res = FALSE;
-    			}
-    			break;
-    		case 'client':
-    			break;
-    	}
     	
-    	return $res;
     }
     
     /**
@@ -229,7 +248,7 @@ class pos_ReceiptDetails extends core_Detail {
 	
 	
 	/**
-	 * 
+	 * След като създадем елемент, ъпдейтваме Бележката
 	 */
 	static function on_AfterCreate($mvc, $rec)
     {
