@@ -526,6 +526,8 @@ class email_Outgoings extends core_Master
             if ($mvc->flagSendIt) {
                 $form->rec->state = 'active';
                 
+                $mvc->invoke('Activation', array($form->rec));
+                
                 //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
                 if (!trim($form->rec->email)) {
                     $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресант->Имейл|*</b>.");    
