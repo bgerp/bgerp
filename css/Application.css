@@ -1197,6 +1197,11 @@ ul.history {
 	list-style: none;
 }
 
+.narrow ul.history{
+	white-space: nowrap;
+	display: inline-block;
+}
+
 ul.history.summary {
 	width: 85%;
 	margin: 0 auto;
@@ -1207,6 +1212,12 @@ ul.history li {
 	margin: 3px 0;
 	padding: 2px 0;
 	line-height: 1.2;
+}
+
+.narrow ul.history li{
+	line-height: 1.2;
+	display: inline-block;
+	margin-left: 10px;
 }
 
 ul.history.summary li span {
@@ -1817,4 +1828,5 @@ fieldset.sharing-history i {
 	.acc_JournalDetails .listTable th, .acc_JournalDetails .listTable td{
 		padding: 5px;
 	}
+	
 	
