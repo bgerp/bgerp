@@ -4,8 +4,9 @@
 	<td>[#ean#]</td>
 	<td>[#quantity#]</td>
 </tr>
+<tr><td></td><td colspan='2'><div id='error-place'></div></td></tr>
 <tr>
-	<td colspan='2'>
+	<td colspan='3'>
 		<div class='buttons-row'>[#FIRST_ROW#]</div>
 		<div class='buttons-row'>[#SECOND_ROW#]</div>
 		<div class='buttons-row'>[#THIRD_ROW#]</div>

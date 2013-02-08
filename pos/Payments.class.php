@@ -73,11 +73,9 @@ class pos_Payments extends core_Manager {
     	$this->FLD('show', 'enum(yes=Да,no=Не)', 'maxRadio=4,maxColumns=1,caption=Показване,value=yes');
     }
     
-     /**
+    
+    /**
      * Записи за инициализиране на таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
@@ -102,7 +100,7 @@ class pos_Payments extends core_Manager {
             
             $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
             
-            $res .= "Създадени {$created} нови Платежни метода, обновени {$updated} съществуващи операции.</li>";
+            $res .= "Създадени {$created} нови Платежни метода, обновени {$updated} съществуващи метода.</li>";
         } else {
             
             $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";

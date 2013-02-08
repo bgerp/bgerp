@@ -148,7 +148,7 @@ class pos_Receipts extends core_Master {
     {
     	$rec = new stdClass();
     	$rec->date = dt::now();
-    	$rec->contragentName = 'Анонимен Клиент';
+    	$rec->contragentName = tr('Анонимен Клиент');
     	$rec->total = 0;
     	$rec->pointId = pos_Points::getCurrent();
     	
@@ -169,12 +169,6 @@ class pos_Receipts extends core_Master {
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	$row->total = $double->toVerbal($rec->total);
-    }
-    
-    
-    static function on_AfterPrepareSingle($mvc, $res, $data)
-    {	
-    	//@TODO
     }
     
     
@@ -199,31 +193,26 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * Пушваме css файла
+     * Пушваме css и js файловете
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
     	jquery_Jquery::enable($tpl);
+    	jquery_Jquery::enableUI($tpl);
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     	$tpl->push('pos/js/scripts.js', 'JS');
     }
     
     
     /**
-     * 
+     * @TODO
      */
     function updateReceipt($detailRec)
     {
     	expect($rec = $this->fetch($detailRec->receiptId));
     	switch($detailRec->param) {
     		case 'sale':
-    			$rec->total = 0;
-    			$query = pos_ReceiptDetails::getQuery();
-    			$query->where("#receiptId = {$rec->id}");
-    			$query->where("#param = 'sale'");
-    			while($dRec = $query->fetch()) {
-    				$rec->total .= $dRec->amount;
-    			}
+    			$rec->total = $this->countTotal($rec->id);
     			break;
     		case 'discount':
     			break;
@@ -234,6 +223,25 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$this->save($rec);
+    }
+    
+    
+    /**
+     * @TODO
+     * @param int $id
+     * @return double $total;
+     */
+    function countTotal($id)
+    {
+    	$total = 0;
+    	$query = pos_ReceiptDetails::getQuery();
+    	$query->where("#receiptId = {$id}");
+    	$query->where("#param = 'sale'");
+    	while($dRec = $query->fetch()) {
+    		$total += $dRec->amount;
+    	}
+    	
+    	return $total;
     }
     
     

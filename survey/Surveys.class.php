@@ -267,11 +267,12 @@ class survey_Surveys extends core_Master {
     
     
     /**
-     * Пушваме css файла
+     * Пушваме css и js файла
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
     	jquery_Jquery::enable($tpl);
+    	jquery_Jquery::enableUI($tpl);
     	$tpl->push('survey/tpl/css/styles.css', 'CSS');
     	$tpl->push(('survey/js/scripts.js'), 'JS');
     }

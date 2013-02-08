@@ -10,7 +10,8 @@ $('ul.answers input[type=radio]').click(function vote() {
     if(mid) {
     	data.m = mid;
     }
-   
+    
+    var selected = $(this);
     $.ajax({
     	     type: "GET",
     	     url: url,
@@ -19,7 +20,7 @@ $('ul.answers input[type=radio]').click(function vote() {
     	     success: function(result)
     	     { 
     	    	if(result.success == 'yes'){ 
-    	    		 //alert('Гласът ви е записан');
+    	    		selected.parent('li').effect("highlight", {}, 3000);
     	    	}
     	     },
     	     error: function()
