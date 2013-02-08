@@ -78,7 +78,7 @@ class cms_Articles extends core_Manager
     /**
      * Подготвя някои полета на формата
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $cQuery = cms_Content::getQuery();
         

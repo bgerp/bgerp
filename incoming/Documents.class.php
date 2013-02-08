@@ -165,7 +165,7 @@ class incoming_Documents extends core_Master
      * 
      * 
      */
-    function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Предложения в полето Заглавие
         $titleSuggestions['Фактура'] = 'Фактура';

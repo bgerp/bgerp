@@ -673,7 +673,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Подготвя полетата threadId и folderId, ако има originId и threadId
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $rec = $data->form->rec;
         

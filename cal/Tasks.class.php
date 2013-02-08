@@ -173,7 +173,7 @@ class cal_Tasks extends core_Master
     /**
      * Подготовка на формата за добавяне/редактиране
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');

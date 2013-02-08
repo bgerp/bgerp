@@ -228,7 +228,7 @@ class crm_Profiles extends core_Master
     /**
      *
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $usersQuery = core_Users::getQuery();
 

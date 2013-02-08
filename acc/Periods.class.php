@@ -355,7 +355,7 @@ class acc_Periods extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
     {
         if ($data->form->rec->id) {
             $data->form->setReadOnly('end');

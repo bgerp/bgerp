@@ -186,7 +186,7 @@ class support_Issues extends core_Master
     /**
      * 
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Нормален приоритет по подразбиране
         $data->form->setDefault('priority', 'normal');

@@ -52,7 +52,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Извиква се след подготовка на фирмата за редактиране
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if($mvc->className == 'doc_Folders') return;
         

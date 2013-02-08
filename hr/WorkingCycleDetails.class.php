@@ -55,7 +55,7 @@ class hr_WorkingCycleDetails extends core_Detail
     /**
      * Подготовката на формата за въвеждане
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
  
         $data->form->setOptions('day', $mvc->getDayOptions($data->masterRec, $data->form->rec->day));

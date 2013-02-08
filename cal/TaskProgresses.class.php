@@ -79,7 +79,7 @@ class cal_TaskProgresses extends core_Detail
     /**
      * 
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {   
         expect($data->form->rec->taskId);
 

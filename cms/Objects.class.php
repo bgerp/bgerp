@@ -88,7 +88,7 @@ class cms_Objects extends core_Master
     /**
      *
      */
-    function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
 
