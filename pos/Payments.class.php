@@ -108,4 +108,25 @@ class pos_Payments extends core_Manager {
         
         return $res;
     }
+    
+    
+    /**
+     * Връща масив от обекти, които са ид-та и заглавията на методите
+     * @return array $payments
+     */
+    static function fetchSelected()
+    {
+    	$payments = array();
+    	$query = static::getQuery();
+	    $query->where("#show = 'yes'");
+	    while($rec = $query->fetch()) {
+	    	$payment = new stdClass();
+	    	$payment->id = $rec->id;
+	    	$payment->title = $rec->title;
+	    	
+	    	$payments[] = $payment;
+	    }
+	    
+    	return $payments;
+    }
 }

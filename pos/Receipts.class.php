@@ -101,6 +101,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('contragentObjectId', 'int', 'input=none');
     	$this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
     	$this->FLD('total', 'float', 'caption=Общо, input=none');
+    	$this->FLD('paid', 'float', 'caption=Платено, input=none');
     	$this->FLD('tax', 'float', 'caption=Такса, input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 
@@ -127,7 +128,9 @@ class pos_Receipts extends core_Master {
     	if($action == 'single' && !$id) {
     		
     			// Ако не е зададено Ид, намираме кой е последно добавената бележка
-	    		$query = static::getQuery();
+	    		$cu = core_Users::getCurrent();
+    			$query = static::getQuery();
+	    		$query->where("#createdBy = {$cu}");
 	    		$query->orderBy("#createdOn", "DESC");
 	    		if($rec = $query->fetch()) {
 	    			
@@ -150,6 +153,7 @@ class pos_Receipts extends core_Master {
     	$rec->date = dt::now();
     	$rec->contragentName = tr('Анонимен Клиент');
     	$rec->total = 0;
+    	$rec->paid = 0;
     	$rec->pointId = pos_Points::getCurrent();
     	
     	$this->requireRightFor('add', $rec);
@@ -169,6 +173,7 @@ class pos_Receipts extends core_Master {
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	$row->total = $double->toVerbal($rec->total);
+    	$row->paid = $double->toVerbal($rec->paid);
     }
     
     
@@ -210,13 +215,15 @@ class pos_Receipts extends core_Master {
     function updateReceipt($detailRec)
     {
     	expect($rec = $this->fetch($detailRec->receiptId));
-    	switch($detailRec->param) {
+    	$action = explode("|", $detailRec->action);
+    	switch($action[0]) {
     		case 'sale':
     			$rec->total = $this->countTotal($rec->id);
     			break;
     		case 'discount':
     			break;
     		case 'payment':
+    			$rec->paid = $this->countPaidAmount($rec->id);
     			break;
     		case 'client':
     			break;
@@ -227,7 +234,26 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * @TODO
+     * Изчислява всичко платено до момента
+     * @param int $id - запис от модела
+     * @return double $payed;
+     */
+    function countPaidAmount($id)
+    {
+    	$paid = 0;
+    	$query = pos_ReceiptDetails::getQuery();
+    	$query->where("#receiptId = {$id}");
+    	$query->where("#action LIKE '%payment%'");
+    	while($dRec = $query->fetch()) {
+    		$paid += $dRec->amount;
+    	}
+    	
+    	return $paid;
+    }
+    
+    
+    /**
+     * Изчислява дължимата сума
      * @param int $id
      * @return double $total;
      */
@@ -236,7 +262,7 @@ class pos_Receipts extends core_Master {
     	$total = 0;
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
-    	$query->where("#param = 'sale'");
+    	$query->where("#action LIKE '%sale%'");
     	while($dRec = $query->fetch()) {
     		$total += $dRec->amount;
     	}

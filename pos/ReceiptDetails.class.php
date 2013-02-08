@@ -37,7 +37,13 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    //var $listFields = 'tools=Пулт, surveyId, label, image';
+    //var $listFields = 'tools=Пулт';
+    
+    
+	/**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsField = 'tools';
     
     
     /**
@@ -52,14 +58,15 @@ class pos_ReceiptDetails extends core_Detail {
     function description()
     {
     	$this->FLD('receiptId', 'key(mvc=pos_Receipts)', 'caption=Бележка, input=hidden, silent');
-    	$this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em');
+    	$this->FLD('action', 'varchar(32)', 'caption=Действие,width=7em');
+    	$this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em,input=none');
     	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, width=14em');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
     	$this->FLD('price', 'float(minDecimals=2)', 'caption=Цена,input=none');
         $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=3em');
     	$this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума, input=none,input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
-    	$this->FLD('discountPercent', 'percent', 'caption=Отстъпка->Процент,input=none');
+    	$this->FLD('discountPercent', 'percent(Max=1)', 'caption=Отстъпка->Процент,input=none');
         $this->FLD('discountSum', 'float(minDecimals=2)', 'caption=Отстъпка->Сума,input=none');
         $this->FLD('fixbon', 'enum(yes=Да,no=Не)', 'caption=Фискален Бон,input=none,value=yes');
     }
@@ -87,9 +94,9 @@ class pos_ReceiptDetails extends core_Detail {
 	    	$form->fieldsLayout= $this->createFormFieldsLayout();
 	    	$form->action = array($this, 'save', 'ret_url' => TRUE);
 	    	$form->setDefault('receiptId', $data->masterId);
-	    	$form->toolbar->addSbBtn('Запис');
-	    	$this->invoke('AfterPrepareEditForm', array($form));
-	    	$data->addForm = $form;
+	    	$data->form = $form;
+	    	$this->invoke('AfterPrepareEditForm', array($data));
+	    	
 	    }
     }
     
@@ -100,18 +107,17 @@ class pos_ReceiptDetails extends core_Detail {
     function createFormFieldsLayout()
     {
     	$tpl = new ET(getFileContent("pos/tpl/DetailsFormFields.shtml"));
+    	$tpl->append(ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' =>  'buttonForm')), 'FIRST_ROW');
     	$tpl->append(ht::createFnBtn('+1', '','', array('id'=>'incBtn','class'=>'buttonForm')), 'FIRST_ROW');
 	    $tpl->append(ht::createFnBtn('-1', '','', array('id'=>'decBtn','class'=>'buttonForm')), 'FIRST_ROW');
-	    $tpl->append(ht::createFnBtn('Баркод', '','', array('id'=>'barkod','class'=>'buttonForm')), 'FIRST_ROW');
-	    $tpl->append(ht::createFnBtn('Маса', '','', array('class'=>'paymentBtn', 'data-type'=>'client')), 'THIRD_ROW');
-	    $tpl->append(ht::createFnBtn('Стая', '','', array('class'=>'paymentBtn', 'data-type'=>'client')), 'THIRD_ROW');
-	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class'=>'paymentBtn', 'data-type' =>'client')), 'THIRD_ROW');
-    	
-	    $paymentQuery = pos_Payments::getQuery();
-	    $paymentQuery->where("#show = 'yes'");
-	    while($pRec = $paymentQuery->fetch()) {
-	    	$attr = array('class' => 'paymentBtn', 'value'=>$pRec, 'data-type'=>'payment');
-	    	$tpl->append(ht::createFnBtn($pRec->title, '','', $attr), 'SECOND_ROW');
+	    $tpl->append(ht::createFnBtn('Баркод', "window.WebScan.scanThenLoadURL('[SCANVALUE]')", '', array('class'=>'webscan')), 'FIRST_ROW');
+	    $tpl->append(ht::createFnBtn('Маса', '','', array('class'=>'actionBtn', 'data-type'=>'client|table')), 'THIRD_ROW');
+	    $tpl->append(ht::createFnBtn('Стая', '','', array('class'=>'actionBtn', 'data-type'=>'client|room')), 'THIRD_ROW');
+	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class'=>'actionBtn', 'data-type' =>'client|ccard')), 'THIRD_ROW');
+    	$payments = pos_Payments::fetchSelected();
+	    foreach($payments as $payment) {
+	    	$attr = array('class' => 'actionBtn', 'data-type' =>"payment|" . $payment->id);
+	    	$tpl->append(ht::createFnBtn($payment->title, '','', $attr), 'SECOND_ROW');
 	    }
 	    
 	    return $tpl;
@@ -123,18 +129,23 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function renderDetail_($data)
     {
-    	$tpl = new ET(getFileContent('pos/tpl/ReceiptDetail.shtml'));
-    	$tplAlt = $tpl->getBlock('ROW');
+    	$tpl = new ET("");
+    	$blocksTpl = new ET(getFileContent('pos/tpl/ReceiptDetail.shtml'));
+    	$saleTpl = $blocksTpl->getBlock('sale');
+    	$discountTpl = $blocksTpl->getBlock('discount');
+    	$paymentTpl = $blocksTpl->getBlock('payment');
+    	$clientTpl = $blocksTpl->getBlock('client');
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
-	    		$rowTpl = clone($tplAlt);
+	    		$action = explode('|', $data->recs[$row->id]->action);
+	    		$rowTpl = clone(${"{$action[0]}Tpl"});
 	    		$rowTpl->placeObject($row);
 	    		$rowTpl->removeBlocks();
 	    		$tpl->append($rowTpl);
 	    	}
     	}
     	
-    	$tpl->append($data->addForm->renderHtml(), 'ADD_FORM');
+    	$tpl->append($data->form->renderHtml(), 'ADD_FORM');
     	return $tpl;
     }
     
@@ -155,7 +166,23 @@ class pos_ReceiptDetails extends core_Detail {
     	if($rec->productId) {
     		$row->productId = cat_Products::fetchField($rec->productId, 'name');
     		$row->productId = $varchar->toVerbal($row->productId);
+    	} 
+    	
+    	if($rec->discountPercent) {
+    		$row->discountPercent = $double->toVerbal($rec->discountPercent) . " %";
     	}
+    	
+    	if($rec->discountSum) {
+    		$row->discountSum = $double->toVerbal($rec->discountSum);
+    	}
+    	
+    	$action = explode("|", $rec->action);
+    	$row->actionType = $action[0];
+    	if($row->actionType == 'payment') {
+    		$value = pos_Payments::fetchField($action[1], 'title');
+    		$row->actionValue = $varchar->toVerbal($value);
+    	}
+    	
     	//@TODO
     }
     
@@ -168,20 +195,46 @@ class pos_ReceiptDetails extends core_Detail {
     	if($form->isSubmitted()) {
     		$rec = &$form->rec;
     		$rec->ean = trim($rec->ean);
-    		$mvc->parseEan($form);
-    	}
+    		$action = explode("|", $rec->action);
+	    	switch($action[0]) {
+	    		case 'sale':
+	    			$mvc->getProductInfo($rec);
+	    			break;
+	    		case 'payment':
+	    			if(!is_numeric($rec->ean)) {
+	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    			}
+	    			$rec->amount = $rec->ean;
+	    			break;
+	    		case 'discount':
+	    			$param = ucfirst(strtolower($action[1]));
+	    			$rec->{"discount{$param}"} = (double)$rec->ean;
+	    			break;
+	    		case 'client':
+	    			$mvc->getClientInfo($rec);
+	    			break;
+	    	}
+	    }
     }
-
+    
     
     /**
      * @TODO
+     * @param stdClass $rec
      */
-    function parseEan(&$form)
+    function getClientInfo(&$rec)
     {
-    	$rec = &$form->rec;
-    	switch($rec->param) {
-    			case 'sale':
-    				expect($rec->productId = cat_Products::fetchField(array("#code='[#1#]'", $rec->ean), 'id'), 'Няма продукт с такъв код');
+    	$rec->param = $rec->ean;	
+    }
+    
+    
+    /**
+     * @TODO
+     * @param stdClass $rec
+     */
+    function getProductInfo(&$rec)
+    {
+    	expect($rec->productId = cat_Products::fetchField(array("#code='[#1#]'", $rec->ean), 'id'), 'Няма продукт с такъв код');
     				$priceCls = cls::get('cat_PricePolicyMockup');
     				$receiptRec = pos_Receipts::fetch($rec->receiptId);
     				if($receiptRec->contragentClass) {
@@ -193,58 +246,74 @@ class pos_ReceiptDetails extends core_Detail {
     				} else {
     					$price = $priceCls->getPriceInfo(NULL, NULL, $rec->productId);
     				}
-    				$rec->price = $price->price;
-    				$rec->amount = $rec->price * $rec->quantity;
-    				break;
-    			case 'payment':
-    				if(!is_numeric($rec->ean)) {
-    					$form->setError('ean', 'Не сте въвели валидно число');
-    				}
     				
-    				$query = $this->getQuery();
-    				$query->where("#param = 'payment'");
-    				$query->where("#receiptId = '{$rec->receiptId}'");
-    				if($r = $query->fetch()) {
-    					$rec->id = $r->id;
-    				}
-    				$rec->amount = $rec->ean;
-    				break;
-    			case 'discount':
-    				break;
-    			case 'client':
-    				break;
-    		}
-    	
+    	$rec->price = $this->applyDiscount($price->price, $rec->receiptId);
+    	$rec->amount = $rec->price * $rec->quantity;
     }
+    
+    
+    /**
+     * @TODO
+     */
+    function applyDiscount($price, $receiptId)
+    {
+    	
+    	$query = $this->getQuery();
+    	$query->where("#receiptId = {$receiptId}");
+    	$query->where("#action LIKE '%discount%'");
+    	$query->orderBy("#id", "DESC");
+    	if($dRec = $query->fetch()) {
+    		$action = explode("|", $dRec->action);
+    		if($action[1] == 'percent') {
+    			$disc = round(($price * $dRec->discountPercent / 100), 2);
+    		} else {
+    			$disc = $dRec->discountSum;
+    		}
+    		
+    		return ($price - $disc);
+    		}
+    	 
+    	return $price;
+    }
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	if($data->form) {
-    		$form = &$data->form;
-    	} else {
-    		$form = &$data;
-    	}
     	
-    	$params = array();
-    	$params['sale'] = tr('Продажба');
-    	$params['discount'] = tr('Намаление');
-    	$params['payment'] = tr('Плащане');
-    	$params['client'] = tr('Клиент');
-    	$form->setOptions('param', $params);
-    	$form->setDefault('quantity', '1');
+    	
+    	$data->form->setOptions('action', $mvc->getActionOptions());
+    	$data->form->setDefault('quantity', '1');
     }
     
     
     /**
-	 *  Показваме Детайлите които са за продажба на стоки
-	 */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-	{
-		$data->query->where("#param = 'sale'");
-	}
+     * Подготвяме позволените операции
+     */
+    function getActionOptions()
+    {
+    	$params = array();
+    	
+    	$params[] = (object)array('title' => 'Продажба', 'group' =>TRUE);
+    	$params['sale|code'] = 'Продукт';
+    	$params['sale|barcod'] = 'Баркод';
+    	$params[] = (object)array('title' => tr('Намаление'), 'group' => TRUE);
+    	$params['discount|percent'] = 'Процент';
+    	$params['discount|sum'] = 'Сума';
+    	$params[] = (object)array('title' => tr('Плащане'), 'group' => TRUE);
+    	$patyments = pos_Payments::fetchSelected();
+	    foreach($patyments as $payment) {
+	    	$params["payment|{$payment->id}"] = $payment->title;
+	    }
+    	$params[] = (object)array('title' => tr('Клиент'), 'group' => TRUE);
+    	$params['client|ccard'] = tr('Кл. карта');
+    	$params['client|table'] = tr('Маса');
+    	$params['client|room'] = tr('Стая');
+    	
+    	return $params;
+    }
 	
 	
 	/**

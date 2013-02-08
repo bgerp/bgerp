@@ -1,6 +1,6 @@
 <table border='0' id='receipt-details-form-table'>
 <tr>
-	<td>[#param#]</td>
+	<td>[#action#]</td>
 	<td>[#ean#]</td>
 	<td>[#quantity#]</td>
 </tr>

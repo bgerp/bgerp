@@ -4,11 +4,22 @@
 		<tr id='receipt-header'>
 			<td colspan='2'>
 				<div id='receipt-title'>Касова Бележка</div>
+				<div id='receipt-number'>Номер: &nbsp;&nbsp;<b>[#number#]</b>,  &nbsp;&nbsp;Дата: &nbsp;&nbsp;<b>[#date#]</b></div>
 				<div id='receipt-contragent'>Клиент: &nbsp;[#contragentName#]</div>
 			</td>
-			<td>
-				<div id='receipt-number'>Номер: &nbsp;&nbsp;[#number#]</div>
-				<div id='receipt-date'>Дата: &nbsp;&nbsp;[#date#]</div>
+			<td id='receipt-info'>
+				<table border='0' width='100%'>
+				<tr>
+					<td>Общо</td>
+					<td>Платено</td>
+					<td>Ресто</td>
+				</tr>
+				<tr>
+					<td id='receipt-total'>[#total#]</td>
+					<td id='receipt-paid'>[#paid#]</td>
+					<td></td>
+				</tr>
+				</table>
 			</td>
 		</tr>
 		<tr id='receipt-details-th'>
@@ -16,16 +27,7 @@
 			<td>Цена</td>
 			<td>Стойност</td>
 		</tr>
-		<tr>
-			<td colspan='3' style='padding-top:8px;padding-bottom:8px;'>
-			Клиент: [#contragentName#]</td>
-		</tr>
 		[#DETAILS#]
-		<tr>
-			<td colspan='3'>
-				<div id='total'>Общо: [#total#]</div>
-			</td>
-		</tr>
 	</table>
 	[#ADD_FORM#]
 </div>

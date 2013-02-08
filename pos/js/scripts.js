@@ -1,47 +1,27 @@
 $(document).ready(function () {
 	$('#incBtn').click(function() {
-		if($('input[name=quantity]').css('display') != 'none') {
-			$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
-		}
+		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
 	});
 	
 	$('#decBtn').click(function() {
-		if(parseInt($("input[name=quantity]").val()) > 0 && $('input[name=quantity]').css('display') != 'none') {
-			$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
-		}
+		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
 	});
 	
-	$('#barkod').click(function() {
-		alert('smth. with barkod');
+	$('.actionBtn').click(function() {
+		var value = $(this).attr("data-type");
+		$("select[name=action]").val(value);
+		$("select[name=action]").trigger('change');
+		$(this).addClass('selectedPayButton');
+		$(".actionBtn").not(this).removeClass('selectedPayButton');
+		if($("input[name=ean]").val() != '') {
+			$("#receipt-details-form form").submit();
+		} 
 	});
-	
-	$('.paymentBtn').click(function() {
-		var payment = $(this).attr("data-type");
-		var value = $(this).val();
-		
-		$('input[name=value]').val(value.toString()).trigger('change');
-		$("select[name=param] option[value=" + payment +"]").attr("selected", "selected") ;
-		$('input[name=quantity]').hide();
-		$("input[name='ean']").val('');
-	});
-	
-	$('select[name=param]').change(function() {
-		if($('select[name=param]').val() == 'sale') {
-			$('input[name=quantity]').show();
-		}
-		
-		if($('select[name=param]').val() == 'payment') {
-			$("input[name='ean']").val('');
-		}
-		
-		if($('select[name=param]').val() != 'payment') {
-			$(".selectedPayButton").removeClass('selectedPayButton');
-		}
-	});
-	
-	$('input[name=value]').change(function() {
-		$(".paymentBtn[value="+$(this).val()+"]").addClass('selectedPayButton');
-		$(".paymentBtn[value!="+$(this).val()+"]").removeClass('selectedPayButton');
+
+   $(function(){
+	        if (typeof(window.WebScan) == "undefined" ) {
+	            $('.webscan').hide();
+	        }
 	});
 	
 	$("form input[type=button]").hover(function() {

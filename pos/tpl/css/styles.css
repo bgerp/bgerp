@@ -1,6 +1,6 @@
 #receipt-table {
 	text-indent:8px;
-	width:40%;
+	width:45%;
 	border-collapse:collapse;
 	border:1px solid black;
 	margin-top:15px;
@@ -20,20 +20,14 @@
 }
 
 #receipt-number {
-	text-align:right;
-	padding-right:10px;
+font-style:italic;	
 }
 
-#receipt-date {
-	text-align:right;
-	padding-right:10px;
-}
 
-#total {
+
+#receipt-total {
 	font-weight:bold;
 	font-size: 20px;
-	float:right;
-	padding-right:10px;
 }
 
 #receipt-details-th {
@@ -60,7 +54,7 @@
 	
 }
 
-.buttonForm, .paymentBtn, .clientBtn{
+.buttonForm, .actionBtn, .clientBtn, .webscan{
 	height:30px !important;
 	margin-right:16px !important;
 	font-size:16px !important;
@@ -85,4 +79,22 @@ input.error {
 
 .disabledSubmit {
 	background-color:green !important;
+}
+
+.receipt-discount {
+	background-color:lightgreen;
+}
+
+.receipt-payment {
+	background-color:pink;
+}
+
+.receipt-amount {
+	text-align:right;
+	padding-right: 10px;
+}
+
+#receipt-info{
+	padding:0px;
+	vertical-align:top;
 }
