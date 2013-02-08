@@ -164,7 +164,7 @@ class survey_Alternatives extends core_Detail {
 			
 			// Обработваме представянето на въпросите от анкетата само ако
 			// тя е отворена;
-			if($this->haveRightFor('vote', $rec)) {
+			if(!survey_Surveys::isClosed($rec->surveyId)) {
 				$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
 			}
 			
@@ -193,6 +193,9 @@ class survey_Alternatives extends core_Detail {
 		$tpl = new ET("");
 		$altTpl = new ET("<li><input name='quest{$id}' type='radio' [#data#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>");
 		
+		$rec = static::fetch($id);
+		($this->haveRightFor('vote', $rec)) ? $can = TRUE : $can = FALSE;
+		
 		// Разбиваме подадения текст по редове, и махаме празните такива
 		$txtArr = explode("\n", $text);
 		
@@ -203,13 +206,16 @@ class survey_Alternatives extends core_Detail {
 		// рендираме го във вида на радио бутон
 		for($i = 1; $i <= count($txtArr); $i++) {
 			$copyTpl = clone($altTpl);
+
+			if($can) {
+				$params = "data-rowId='{$i}' data-alternativeId='{$id}' ";
+				if($mid = Request::get('m')) {
+					$params .= " data-m='{$mid}'";
+				}
 				
-			$params = "data-rowId='{$i}' data-alternativeId='{$id}' ";
-			if($mid = Request::get('m')) {
-				$params .= " data-m='{$mid}'";
+				$copyTpl->replace($params, 'data');
 			}
 			
-			$copyTpl->replace($params, 'data');
 			$copyTpl->replace($txtArr[$i-1], 'answer');
 				
 			// Ако потребителя вече е гласувал, чекваме радио бутона
