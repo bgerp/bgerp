@@ -1033,6 +1033,28 @@ table.mc-header a {
 	min-width: 0px;
 }
 
+/*
+ * Стилове за счетоводството
+ */
+.wide .level-1 td { 
+	background-color: #008; 
+	color: #fff; 
+	font-weight: bold;
+}
+
+.wide .level-1 td a {
+	color: #fff; 
+}
+
+.wide .level-2 td { 
+	background-color: #fc6; 
+	color: #333; 
+}
+
+.wide .level-3 td, .wide .level-4 td, .wide .level-5 td { 
+	background-color: #fff;
+}
+	
 .state-revert {
  	background-color: #cc9933;
 }
@@ -1824,5 +1846,3 @@ fieldset.sharing-history i {
 	.acc_JournalDetails .listTable th, .acc_JournalDetails .listTable td{
 		padding: 5px;
 	}
-	
-	
