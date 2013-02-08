@@ -294,21 +294,25 @@ class core_Packs extends core_Manager
         $rowNum++;
         $row->id = $rowNum;
         
-        $row->name = "<b style='font-size:1.2em;'>" . $mvc->getVerbal($rec, 'name') . "</b>";
+        $row->name = "<b>" . $mvc->getVerbal($rec, 'name') . "</b>";
         
         if($rec->startCtr) {
             $row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct));
+            $row->open = ht::createBtn("Отваряне", array($rec->startCtr, $rec->startAct),NULL, NULL, array('class' => 'btn-open'));
         }
+       
+        
         $row->name = new ET($row->name);
         $row->name->append(' ' . str_replace(',', '.', $rec->version));
         $row->name .= "<div><small>{$rec->info}</small></div>";
         
+       
         $row->install = ht::createBtn("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, NULL, array('class' => 'btn-software-update'));
         
         if($rec->deinstall == 'yes') {
-            $row->deinstall = ht::createBtn("Оттегляне", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, NULL, 'class=btn-reject');
+           $row->deinstall = ht::createBtn("Оттегляне", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, NULL, 'class=btn-reject');
         } else {
-            $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-reject');
+           $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-reject');
         }
         
         try {
@@ -318,10 +322,10 @@ class core_Packs extends core_Manager
             $row->ROW_ATTR['style'] = 'background-color:red';
             return;
         }
-        
+       
 
         if($conf->getConstCnt()) {
-            $row->config = ht::createBtn("Конфигуриране", array($mvc, 'config', 'pack' => $rec->name), NULL, NULL, 'class=btn-settings');
+            $row->config = ht::createBtn("Настройки", array($mvc, 'config', 'pack' => $rec->name), NULL, NULL, 'class=btn-settings');
         }
 
         if($conf->haveErrors()) {
@@ -739,32 +743,21 @@ class core_Packs extends core_Manager
         return $resArr;
     }
     
+    
+    /**
+     * Променяме Списъчния изглед на пакетите
+     */
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-    	//Пътя до мастер шаблона
-    	$fullPath = getFullPath("core/tpl/ListPack.shtml");
+    	$res = new ET(getFileContent("core/tpl/ListPack.shtml"));
+    	$blockTpl = $res->getBlock('ROW');
     	
-    	
-    	$res = new ET('<div class="clearfix21"></div><div style="width:100%">[#tpl#]</div><div class="clearfix21"></div>');
-    	
-    	foreach ($data->rows as $row) {
-    		$tpl = new ET(tr("|*".file_get_contents($fullPath)));
-     		//bp($row);
-    		$tpl->append($row->name, 'name');
-    		$tpl->append($row->id, 'id');
-    		$tpl->append($row->deinstall, 'deinstall');
-    		$tpl->append($row->install, 'install');
-    		$tpl->append($row->config, 'config');
-    		$res->append($tpl, 'tpl');
+    	foreach($data->rows as $row) {
+    		$rowTpl = clone($blockTpl);
+    		$rowTpl->placeObject($row);
+    		$rowTpl->append2master();
     	}
     	
-    	
-    	
     	return FALSE; 
-    }
-    
-    function on_AfterPrepareListFields($mvc, $res, $data)
-    {
-//     	bp($data->query->fields);	
     }
 }

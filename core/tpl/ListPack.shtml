@@ -1,16 +1,20 @@
-<div class="elem-holder">
-	
-	<div class="fleft">
-		<div class="elem-img">
-			<img src="/sbf/ef/img/100/system.png" alt="" />
+<div class="clearfix21"></div><div style="width:100%">
+<!--ET_BEGIN ROW-->	
+	<div class="elem-holder">
+		<div class="">
+			<div class="elem-img">
+				<img src="/sbf/ef/img/100/system.png" alt="" />
+			</div>
+				[#name#]
+				[#open#] 
+			<div class="btns">
+				
+				[#config#]
+				[#install#]
+				[#deinstall#]
+			</div>
 		</div>
-		[#name#]
-		
+		<div class="clearfix21"></div>
 	</div>
-	<div class="fright">
-			[#config#]
-			[#install#]
-			[#deinstall#]
-	</div>
-	<div class="clearfix21"></div>
-</div>
+<!--ET_END ROW-->	
+</div><div class="clearfix21"></div>

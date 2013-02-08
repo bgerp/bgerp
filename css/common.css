@@ -976,13 +976,14 @@ tr.zebra1 {
 
 /*стилове за пакети*/
 .elem-holder{
+		position:relative;
 		display:block;
 		width:385px;
 		padding:7px;
 		margin-right:20px;
 		margin-bottom:20px;
 		float:left;
-		height:76px;
+		height:85px;
 		background:#fcfae8;
 		box-shadow:1px 1px 6px rgba(0,0,0,0.4);
 	}
@@ -992,55 +993,56 @@ tr.zebra1 {
 	}
 	
 	.elem-img{
-		width:74px;
-		height:74px;
+		width:84px;
+		height:85px;
 		float:left;
 		margin-right:7px;
 	}
 	
 	.elem-img img{
-		width:74px;
-		height:74px;
-	}
-	
-	.elem-holder .fleft{
-	    width:262px;
-		float:left;
-	}
-	
-	.narrow .elem-holder .fleft{
-	    width:258px;
+		width:84px;
+		height:85px;
 	}
 	
 	.elem-holder small{
-		line-height:18px;
+		line-height:16px;
 		display:block;
+		margin:3px 0 6px 0;
+		height:32px
 	}
 	
 	.narrow .elem-holder small{
 		font-size:13px;
 		line-height:17px;
+		margin:0px 0 8px 0;
 	}
 	
-	.elem-holder .fleft b{
-		margin-bottom:-3px;
-	}
-
-	.elem-holder .fright{
-		width:116px;
-		float:right;
+	.wide b{
+		font-size:1.2em;
 	}
 	
-	.narrow .elem-holder .fright{
-		width:102px;
+	.narrow b{
+		font-size:1.1em;
 	}
 	
-	.elem-holder .fright .button{
-		float:right;
-		font-size:11px;
-		margin-bottom:5px;
+	.elem-holder .btns{
+		margin-left:-8px;
+		display:inline-block;
 	}
 	
-	.narrow .elem-holder .fright .button{
+	.elem-holder .button{
+		float:left;
 		font-size:12px;
+		margin: 0 0px 0px 8px;
+	}
+	
+	.narrow .elem-holder  .button{
+		font-size:13px;
+		padding:1px 6px 1px 7px;
+	}
+	
+	.elem-holder .btn-open{
+		position:absolute;
+		top:8px;
+		right:7px;
 	}
