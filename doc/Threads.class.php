@@ -630,7 +630,11 @@ class doc_Threads extends core_Manager
             $rec->firstContainerId = $firstDcRec->id;
             
             // Последния документ в треда
-            $rec->last = $lastDcRec->createdOn;
+            if($lastDcRec->state != 'draft') {
+                $rec->last = max($lastDcRec->createdOn, $lastDcRec->modifiedOn);
+            } else {
+                $rec->last = $lastDcRec->createdOn;
+            }
             
             // Ако имаме добавяне/махане на документ от треда или промяна на състоянието към активно
             // тогава състоянието му се определя от последния документ в него
