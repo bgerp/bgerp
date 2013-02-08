@@ -93,14 +93,6 @@ class price_ListToCustomers extends core_Detail
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
     }
-    
-
-    protected function setupMaster($data)
-    {
-        $this->Master = cls::get($data->form->rec->cClass);
-        
-        parent::setupMaster($data);
-    }
 
     
     public static function on_AfterPrepareDetailQuery($mvc, $data)
@@ -110,6 +102,23 @@ class price_ListToCustomers extends core_Detail
         $data->query->where("#cClass = {$cClassId}");
     }
 
+    
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $data->masterMvc = cls::get($data->form->rec->cClass);
+    }
+    
+    
+    public static function on_AfterGetMasters($mvc, &$masters, $rec)
+    {
+        if (empty($masters)) {
+            $masters = array();
+        }
+        
+        $masters['cId']    = cls::get($rec->cClass);
+        $masters['listId'] = cls::get('price_Lists');
+    }
+    
 
     /**
      * След подготовка на лентата с инструменти за табличния изглед

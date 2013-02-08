@@ -92,7 +92,7 @@ class price_ListRules extends core_Detail
     /**
      *
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
        
         $form = $data->form;
