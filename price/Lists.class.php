@@ -89,6 +89,7 @@ class price_Lists extends core_Master
      */
     function description()
     {
+        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява');
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование');
         $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
