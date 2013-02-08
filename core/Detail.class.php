@@ -46,7 +46,9 @@ class core_Detail extends core_Manager
         
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
         
-        $mvc->setupMaster(NULL);
+        if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
+            $mvc->Master = cls::get($mvc->masterClass);
+        }
     }
     
     
@@ -55,8 +57,12 @@ class core_Detail extends core_Manager
      */
     function prepareDetail_($data)
     {
+        setIfNot($data->masterKey, $this->masterKey);
+        setIfNot($data->masterMvc, $this->Master);
+        
         // Очакваме да masterKey да е зададен
-        expect($this->masterKey);
+        expect($data->masterKey);
+        expect($data->masterMvc instanceof core_Master);
         
         // Подготвяме заявката за детайла
         $this->prepareDetailQuery($data);
@@ -108,7 +114,7 @@ class core_Detail extends core_Manager
     function renderDetail_($data)
     {
         if (!isset($this->currentTab)) {
-            $this->currentTab = $this->Master->title;
+            $this->currentTab = $data->masterMvc->title;
         }
         
         // Рендираме общия лейаут
@@ -135,13 +141,11 @@ class core_Detail extends core_Manager
      */
     function prepareDetailQuery_($data)
     {
-        $this->Master = $data->masterMvc;
-        
         // Създаваме заявката
         $data->query = $this->getQuery();
         
         // Добавяме връзката с мастер-обекта
-        $data->query->where("#{$this->masterKey} = {$data->masterId}");
+        $data->query->where("#{$data->masterKey} = {$data->masterId}");
         
         return $data;
     }
@@ -154,7 +158,7 @@ class core_Detail extends core_Manager
     {
         $data->toolbar = cls::get('core_Toolbar');
  
-        $masterKey = $this->masterKey;
+        $masterKey = $data->masterKey;
         
         if($data->masterId) {
             $rec = new stdClass();
@@ -166,7 +170,7 @@ class core_Detail extends core_Manager
                     $this,
                     'add',
                     $this->masterKey => $data->masterId,
-                    'ret_url' => array($this->Master, 'single', $rec->{$masterKey})
+                    'ret_url' => array($data->masterMvc, 'single', $rec->{$masterKey})
                 ),
                 'id=btnAdd,class=btn-add');
         }
@@ -176,48 +180,41 @@ class core_Detail extends core_Manager
     
     
     /**
-     * Позволява задаване на Master-мениджър за всеки конкретен запис-детайл.
-     * 
-     * @param stdClass $rec
-     */
-    public function setupMaster($rec)
-    {
-        if (!$this->Master) {
-            if ($this->masterClass = $this->fields[$this->masterKey]->type->params['mvc']) {
-                $this->Master = cls::get($this->masterClass);
-            }
-        }
-        
-//         expect($this->Master instanceof core_Master);
-    }
-    
-    
-    /**
      * Подготвя формата за редактиране
      */
     function prepareEditForm_($data)
     {
+        setIfNot($data->masterKey, $this->masterKey);
+        setIfNot($data->masterMvc, $this->Master);
+        setIfNot($data->singleTitle, $this->singleTitle);
+
         parent::prepareEditForm_($data);
         
-        $this->setupMaster($data);
+        return $data;
+    }
+    
+    
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        // Очакваме да masterKey да е зададен
+        expect($data->masterKey);
+        expect($data->masterMvc instanceof core_Master);
         
-        $masterKey = $this->masterKey;
+        $masterKey = $data->masterKey;
         
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
-        
-        expect($data->masterRec = $this->Master->fetch($data->masterId));
-        
-        $title = $this->Master->getTitleById($data->masterId);
-        
-        if($this->singleTitle) {
-            $single = ' на| ' . mb_strtolower($this->singleTitle) . '|';
+
+        expect($data->masterRec = $data->masterMvc->fetch($data->masterId));
+
+        $title = $data->masterMvc->getTitleById($data->masterId);
+
+        if ($data->singleTitle) {
+            $single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
         }
 
         $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-        
+
         $data->form->title .= "|* \"" . str::limitLen($title, 32) . "\"";
-        
-        return $data;
     }
     
     
@@ -231,10 +228,9 @@ class core_Detail extends core_Manager
             // return 'no_one';
         }
         
-        if($action == 'write' && isset($rec)) {
+        if($action == 'write' && isset($rec) && $this->Master instanceof core_Master) {
             
             expect($masterKey = $this->masterKey);
-            expect($this->Master instanceof core_Master, $this);
             
             if($rec->{$masterKey}) {
                 $masterRec = $this->Master->fetch($rec->{$masterKey});
@@ -244,8 +240,6 @@ class core_Detail extends core_Manager
                 return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
             }
         }
-
- 
         
         return parent::getRequiredRoles_($action, $rec, $userId);
     }
@@ -258,13 +252,17 @@ class core_Detail extends core_Manager
     {
         $masterKey = $mvc->masterKey;
         
-        if($rec->{$masterKey}) {
-            $masterId = $rec->{$masterKey};
-        } elseif($rec->id) {
-            $masterId = $mvc->fetchField($rec->id, $masterKey);
-        }
+        $masters = $mvc->getMasters($rec);
         
-        $mvc->Master->invoke('AfterUpdateDetail', array($masterId, $mvc));
+        foreach ($masters as $masterKey => $masterInstance) {
+            if($rec->{$masterKey}) {
+                $masterId = $rec->{$masterKey};
+            } elseif($rec->id) {
+                $masterId = $mvc->fetchField($rec->id, $masterKey);
+            }
+            
+            $masterInstance->invoke('AfterUpdateDetail', array($masterId, $mvc));
+        }
     }
     
     
@@ -273,15 +271,32 @@ class core_Detail extends core_Manager
      */
     static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
-        
-        if($numRows) {
-            $masterKey = $mvc->masterKey;
-            
+        if ($numRows) {
             foreach($query->getDeletedRecs() as $rec) {
-                $masterId = $rec->{$masterKey};
-                $mvc->Master->invoke('AfterUpdateDetail', array($masterId, $mvc));
+                $masters = $mvc->getMasters($rec);
+                
+                foreach ($masters as $masterKey=>$masterInstance) {
+                    $masterId = $rec->{$masterKey};
+                    $masterInstance->invoke('AfterUpdateDetail', array($masterId, $mvc));
+                }
             }
         }
+    }
+    
+    
+    /**
+     * Връща списъка от мастър-мениджъри на зададен детайл-запис.
+     * 
+     * Обикновено детайлите имат точно един мастър. Използваме този метод в случаите на детайли
+     * с повече от един мастър, който евентуално зависи и от данните в детайл-записа $rec.
+     * 
+     * @param stdClass $rec
+     * @return array масив от core_Master-и. Ключа е името на полето на $rec, където се 
+     *               съхранява външния ключ към съотв. мастър
+     */
+    public function getMasters_($rec)
+    {
+        return isset($this->Master) ? array($this->masterKey => $this->Master) : array();
     }
 
 
