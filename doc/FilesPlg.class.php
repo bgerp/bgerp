@@ -258,15 +258,17 @@ class doc_FilesPlg extends core_Plugin
              // Записите за съответната папка
             $folderRec = doc_Folders::fetch($fRec->folderId);
             
-            // Записите във вербален вид
-            $folderRow = doc_Folders::recToVerbal($folderRec);
-            
-            // Линка към папката
-            $folderLink = $folderRow->title;   
-            
-            // Добавяме в масива линка и id' то
-            $res['folder']['content'] = $folderLink;
-            $res['folder']['id'] = $fRec->folderId;
+            if($folderRec) {
+                // Записите във вербален вид
+                $folderRow = doc_Folders::recToVerbal($folderRec);
+                
+                // Линка към папката
+                $folderLink = $folderRow->title;   
+                
+                // Добавяме в масива линка и id' то
+                $res['folder']['content'] = $folderLink;
+                $res['folder']['id'] = $fRec->folderId;
+            }
             
             // Прекратяваме по нататъчното изпълнение
             break;
