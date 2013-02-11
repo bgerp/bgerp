@@ -821,6 +821,15 @@ class cal_Calendar extends core_Master
     	// Рендираме деня
     	$tpl = new ET(getFileContent('cal/tpl/SingleLayoutDays.shtml'));
     	
+    	$url = toUrl(array('cal_Tasks', 'add'));
+    	
+    	$jsFnc = "
+    	function createTask(dt)
+    	{
+    		document.location = '{$url}?timeStart[d]=' + dt;
+		}";
+    	
+    	$tpl->appendOnce($jsFnc, 'SCRIPTS');
     	$Calendar = cls::get('cal_Calendar');
     	//$Calendar->prepareListRecs($state);
     	$Calendar->prepareListFilter($state);
