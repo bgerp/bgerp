@@ -190,12 +190,6 @@ class core_Detail extends core_Manager
 
         parent::prepareEditForm_($data);
         
-        return $data;
-    }
-    
-    
-    public static function on_AfterPrepareEditForm($mvc, $data)
-    {
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
         expect($data->masterMvc instanceof core_Master);
@@ -203,20 +197,21 @@ class core_Detail extends core_Manager
         $masterKey = $data->masterKey;
         
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
-
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId));
-
         $title = $data->masterMvc->getTitleById($data->masterId);
-
         if ($data->singleTitle) {
             $single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
+       
         }
-
+        
         $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-
         $data->form->title .= "|* \"" . str::limitLen($title, 32) . "\"";
+
+        return $data;
     }
     
+    
+     
     
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
