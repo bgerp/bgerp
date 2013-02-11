@@ -221,11 +221,6 @@ table select{
 	background: #fff !important;
 }
 
-table .btn-filter{
-	position:relative;
-	top:4px;
-}
-
 /* Стилове за елемента 'tab' */
 div.tab-control div.tab-row .tab {
 	font-family: arial;
@@ -271,6 +266,10 @@ div.tab-control div.tab-page {
 	-webkit-border-radius: 5px;
 	border-radius: 5px;
 	z-index: 2;
+}
+
+.narrow div.alphabet{
+	margin-left:-2px;
 }
 
 div.alphabet div.tab-row .tab {
@@ -688,6 +687,9 @@ option.team {
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
 }
+.narrow .btn-add{
+	margin-left:0;
+}
 
 /*Стилове за acc*/
 div.acc-detail {
@@ -710,6 +712,7 @@ div.acc-detail {
 	min-width: 600px;
 	max-width: 750px;
 	margin-top: 16px;
+	margin-left:2px;
 	line-height:1.2em;
 }
 
@@ -729,6 +732,14 @@ div.acc-detail {
 	max-width: 750px;
 	line-height: 1.2em;
 	margin-top: 0px;
+}
+
+.folder-cover .block_title{
+	margin-bottom:10px;
+}
+
+.document .block_left{
+	margin-top:10px;
 }
 
 .narrow .printing .folder-cover{
@@ -811,13 +822,13 @@ div.folder-cover .label {
 	float: left;
 }
 
-div.folder-cover A.sky:link,div.folder-cover A.sky:visited,div.folder-cover A.sky:active{
+div.folder-cover a.sky:link,div.folder-cover a.sky:visited,div.folder-cover a.sky:active{
 	font-size: 13px;
 	color: #4a66b0;
 	text-decoration: none;
 }
 
-div.folder-cover A.sky:hover {
+div.folder-cover a.sky:hover {
 	font-size: 13px;
 	color: #4a6z6b0;
 	text-decoration: underline;
@@ -947,6 +958,11 @@ table.mc-header a {
 	float: left;
 	margin-right: 10px;
 	margin-top: 10px;
+	
+}
+.wide .document{
+	max-width:900px; 
+    min-width:800px;
 }
 
 .narrow .document {
@@ -1000,10 +1016,13 @@ table.mc-header a {
 
 .narrow .toolbar{
 	white-space:nowrap;
-	margin: 0px 4px 2px 4px ;
-	padding:2px 3px 3px 3px;
+	margin: 0px 0px 2px 0px ;
+	padding:2px 0px 3px 0px;
 }
 
+.narrow .listTable .toolbar {
+	margin: 0px 0px 2px 7px;
+}
 .document .header {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
@@ -1708,6 +1727,16 @@ fieldset.sharing-history i {
 	background:rgb(229,229,229);
 }
 
+.order-table{
+	margin-top:11px;
+}
+
+.wide .listRows{
+	margin-left:2px;
+}
+.wide .document .listRows{
+	margin-left:0;
+}
 /*стилове за фактура и плащане*/
 
 .sales-document{

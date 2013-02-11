@@ -32,8 +32,8 @@ class cms_tpl_Page extends page_Html {
 
         $this->replace("UTF-8", 'ENCODING');
         
-        $this->push(array(Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
-                Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'), 'CSS');
+        $this->push("css/common.css",'CSS');
+        $this->push("css/Application.css",'CSS');
         $this->push( 'cms/css/Wide.css', 'CSS');
         $this->push('js/efCommon.js', 'JS');
         
