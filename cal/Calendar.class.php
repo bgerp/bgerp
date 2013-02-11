@@ -862,11 +862,7 @@ class cal_Calendar extends core_Master
     			$cTpl->replace('calDay', 'now');
     			
     		}
-    		
-    		$rec = self::fetch('#type = "task"');
-    		
-    		$u = toUrl(getRetUrl($rec->url));
-    		$urlTask = strstr(str_replace('/Single/', " ", $u), " ", TRUE);
+ 
 
     		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
     	    // задаваме уникално ид
@@ -883,7 +879,7 @@ class cal_Calendar extends core_Master
          	
       
          	// Заместваме всички масиви
-			$cTpl->replace($urlTask, 'urlTask');
+		
     		$cTpl->placeArray($aHrefs);
     		$cTpl->placeArray($overs);
     		$cTpl->placeArray($outs);
