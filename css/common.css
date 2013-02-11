@@ -99,9 +99,8 @@ span.richEdit div.richedit-toolbar {
 	margin-top:-4px;
 }
 
-span.richEdit {
-	display:table;
-	width:100%;
+div.richEdit {
+	line-height:140%
 }
 
 .richEdit textarea {
@@ -110,6 +109,7 @@ span.richEdit {
 	border-bottom: 1px solid transparent; 
 	width:100%;
 }
+
 .narrow .richEdit textarea { 
 	border-bottom: 1px solid white; 
 	width:600px; 
