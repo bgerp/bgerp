@@ -5,12 +5,11 @@
 			<span>[#from#]</span>
 	</div>
 
-			
-						
+        <div class="clearfix" style="min-height:50px;"></div>
+					
 		<!--ET_BEGIN event-->
-		 </br></br></br>
-         <div class='block_left'>
-         </br>
+		<div class='block_left'>
+         
                 <table cellspacing='1' class='mc_calendar'>
 				<tr>
                      <td class="calDayTime" style='width:50px'>Време</td>
@@ -22,7 +21,7 @@
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr style="background-color:[#colTr#]" data-cal-time="[#timeJs#]"> 
                      <td class="calDayH">[#time#]</td>
-                     <td [#over0#][#out0#] class="[#now#]" data-cal-date="[#dateJs#]">[#tasktitle#]<a href='/cal_Tasks/add/?timeStart[d]=[#dateJs#]+[#timeJs#]:00'>[#href0#]</a></td>
+                     <td [#over0#][#out0#] class="[#now#]" data-cal-date="[#dateJs#]">[#tasktitle#]<a href='[#urlTask#]/add/?timeStart[d]=[#dateJs#]+[#timeJs#]:00'>[#href0#]</a></td>
                      
                  </tr>
                  <!--ET_END COMMENT_LI-->
@@ -32,4 +31,3 @@
          <!--ET_END event-->
          
          <div style='clear: both;'></div>
-      

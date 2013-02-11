@@ -717,6 +717,7 @@ class cal_Calendar extends core_Master
     		
     		// Линк към събитието
     		$url = getRetUrl($rec->url);
+            //bp(cal_Tasks::taskUrl());    	
     		// Ид-то на събитието
     		$id = substr(strrchr($rec->url, "/"),1);
     		
@@ -861,9 +862,16 @@ class cal_Calendar extends core_Master
     			$cTpl->replace('calDay', 'now');
     			
     		}
+    		
+    		$rec = self::fetch('#type = "task"');
+    		
+    		$u = toUrl(getRetUrl($rec->url));
+    		$urlTask = strstr(str_replace('/Single/', " ", $u), " ", TRUE);
+
     		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
     	    // задаваме уникално ид
     		for($j = 0; $j < 26; $j++){
+    			
     			
    				// Линкове на картинката
 	        	$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
@@ -873,7 +881,9 @@ class cal_Calendar extends core_Master
 	        	$outs["out".$j] = "onmouseout='NoneImage($h$j)'";
          	} //bp($aHrefs, $url);
          	
+      
          	// Заместваме всички масиви
+			$cTpl->replace($urlTask, 'urlTask');
     		$cTpl->placeArray($aHrefs);
     		$cTpl->placeArray($overs);
     		$cTpl->placeArray($outs);
