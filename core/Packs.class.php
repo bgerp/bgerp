@@ -297,7 +297,7 @@ class core_Packs extends core_Manager
         $row->name = "<b>" . $mvc->getVerbal($rec, 'name') . "</b>";
         
         if($rec->startCtr) {
-            $row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct));
+            
             $row->open = ht::createBtn("Отваряне", array($rec->startCtr, $rec->startAct),NULL, NULL, array('class' => 'btn-open'));
         }
        
@@ -305,14 +305,14 @@ class core_Packs extends core_Manager
         $row->name = new ET($row->name);
         $row->name->append(' ' . str_replace(',', '.', $rec->version));
         $row->name .= "<div><small>{$rec->info}</small></div>";
-        
+        $row->imageUrl = sbf("img/100/system.png","");
        
-        $row->install = ht::createBtn("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, NULL, array('class' => 'btn-software-update'));
+        $row->install = ht::createLink("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
         
         if($rec->deinstall == 'yes') {
-           $row->deinstall = ht::createBtn("Оттегляне", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, NULL, 'class=btn-reject');
+           $row->deinstall = ht::createLink("Оттегляне", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-deinstall"));
         } else {
-           $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-reject');
+           $row->deinstall = "";
         }
         
         try {
@@ -325,7 +325,7 @@ class core_Packs extends core_Manager
        
 
         if($conf->getConstCnt()) {
-            $row->config = ht::createBtn("Настройки", array($mvc, 'config', 'pack' => $rec->name), NULL, NULL, 'class=btn-settings');
+            $row->config = ht::createLink("Настройки", array($mvc, 'config', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-config"));
         }
 
         if($conf->haveErrors()) {
@@ -755,6 +755,7 @@ class core_Packs extends core_Manager
     	foreach($data->rows as $row) {
     		$rowTpl = clone($blockTpl);
     		$rowTpl->placeObject($row);
+    		$rowTpl->removeBlocks();
     		$rowTpl->append2master();
     	}
     	

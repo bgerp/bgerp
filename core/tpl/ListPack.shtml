@@ -3,15 +3,18 @@
 	<div class="elem-holder">
 		<div class="">
 			<div class="elem-img">
-				<img src="/sbf/ef/img/100/system.png" alt="" />
+				<img src="[#imageUrl#]" alt="" />
 			</div>
 				[#name#]
 				[#open#] 
 			<div class="btns">
-				
-				[#config#]
-				[#install#]
-				[#deinstall#]
+			<!--ET_BEGIN config-->				
+				[#config#] |
+			<!--ET_END config-->				
+				[#install#] 
+				<!--ET_BEGIN deinstall-->	
+				| [#deinstall#]
+				<!--ET_END deinstall-->	
 			</div>
 		</div>
 		<div class="clearfix21"></div>
