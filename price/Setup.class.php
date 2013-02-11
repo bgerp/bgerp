@@ -1,5 +1,8 @@
 <?php
 
+defIfNot('PRICE_LIST_COST', 1);
+
+defIfNot('PRICE_LIST_CATALOG', 2);
 
 
 /**
@@ -67,7 +70,8 @@ class price_Setup
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1.44, 'Продукти', 'Цени', 'price_Lists', 'default', "{$role}, ceo");
-        
+
+         
         return $html;
     }
     

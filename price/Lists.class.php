@@ -39,7 +39,7 @@ class price_Lists extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, createdOn, createdBy';
+    var $listFields = 'id, parent, title, createdOn, createdBy';
     
     
     /**
@@ -93,6 +93,34 @@ class price_Lists extends core_Master
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование');
         $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
+    }
+
+
+    function on_AfterSetupMVC($mvc, $res)
+    {
+        $conf = core_Packs::getConfig('price');
+
+        if(!$mvc->fetchField($conf->PRICE_LIST_COST, 'id')) {
+            $rec = new stdClass();
+            $rec->id = $conf->PRICE_LIST_COST;
+            $rec->parent = NULL;
+            $rec->title  = 'Себестойност';
+            $rec->createdOn = dt::verbal2mysql();
+            $rec->createdBy = -1;
+            $mvc->save($rec, NULL, 'REPLACE');
+        }
+        
+        if(!$mvc->fetchField($conf->PRICE_LIST_CATALOG, 'id')) {
+            $rec = new stdClass();
+            $rec->id = $conf->PRICE_LIST_CATALOG;
+            $rec->parent = $conf->PRICE_LIST_COST;
+            $rec->title  = 'Каталог';
+            $rec->createdOn = dt::verbal2mysql();
+            $rec->createdBy = -1;
+            $mvc->save($rec, NULL, 'REPLACE');
+        }
+
+
     }
     
 }

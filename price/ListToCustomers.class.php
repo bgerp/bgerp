@@ -157,4 +157,36 @@ class price_ListToCustomers extends core_Detail
         
         return static::renderDetail($data);
     }
+
+
+
+    /****************************************************************************************************
+     *                                                                                                  *
+     *    И Н Т Е Р Ф Е Й С   `price_PolicyIntf`                                                        *
+     *                                                                                                  *
+     ***************************************************************************************************/
+    
+    /**
+     * Връща продуктие, които могат да се продават на посочения клиент, 
+     * съгласно имплементиращата този интерфейс ценова политика
+     *
+     * @return array() - масив с опции, подходящ за setOptions на форма
+     */
+    public function getProducts($customerClass, $customerId, $date = NULL)
+    {
+         
+    }
+    
+    
+    /**
+     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     * 
+     * @return object
+     * $rec->price  - цена
+     * $rec->discount - отстъпка
+     */
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    {
+         
+    }
 }

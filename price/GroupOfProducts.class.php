@@ -80,13 +80,48 @@ class price_GroupOfProducts extends core_Detail
    
 
     /**
+     * Променлива за кеширане на актуалната информация, кой продукт в коя група е;
+     */
+    static $products = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('groupId', 'key(mvc=price_Groups,select=title)', 'caption=Група');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт');
+        $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт');
         $this->FLD('validFrom', 'datetime', 'caption=В сила oт');
+    }
+
+
+    /**
+     * Зарежда статична кеш информация за групите на продуктите към посочената дата
+     */
+    static function loadProducts($datetime)
+    {
+        if(count(self::$products[$datetime])) return;
+
+        $query = self::getQuery();
+        $query->orderBy('#validFrom', 'DESC');
+        $query->where("#validFrom <= $datetime");
+        while($rec = $query->fetch()) {
+            if(!isset(self::$products[$datetime][$rec->productId])) {
+                self:$products[$datetime][$rec->productId] = $rec->groupId ? $rec->groupId : FALSE;
+            }
+        }
+    }
+
+
+    /**
+     *
+     */
+    static function getGroupOfProduct($productId, $datetime)
+    {
+        self::loadProducts($datetime);
+
+
     }
     
     
