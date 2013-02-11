@@ -33,7 +33,7 @@ class doc_ActivatePlg extends core_Plugin
         }
         
         if ($mvc->haveRightFor('activate', $exRec)) {
-            $data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate,class=btn-activation,order=9');
+            $data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate,class=btn-activation,order=10.00019,warning=Наистина ли искате да активирате документа?');
         }
     }
     
@@ -58,7 +58,7 @@ class doc_ActivatePlg extends core_Plugin
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('activate', $data->rec)) {
-            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation');
+            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation,warning=Наистина ли искате да активирате документа?');
         }
     }
     
