@@ -243,20 +243,22 @@ class core_Detail extends core_Manager
     /**
      * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
-    static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
+    function save_(&$rec, $fieldsList = NULL, $mode = NULL)
     {
-        $masterKey = $mvc->masterKey;
+        parent::save_($rec, $fieldsList, $mode);
+
+        $masterKey = $this->masterKey;
         
-        $masters = $mvc->getMasters($rec);
+        $masters = $this->getMasters($rec);
         
         foreach ($masters as $masterKey => $masterInstance) {
             if($rec->{$masterKey}) {
                 $masterId = $rec->{$masterKey};
             } elseif($rec->id) {
-                $masterId = $mvc->fetchField($rec->id, $masterKey);
+                $masterId = $this->fetchField($rec->id, $masterKey);
             }
             
-            $masterInstance->invoke('AfterUpdateDetail', array($masterId, $mvc));
+            $masterInstance->invoke('AfterUpdateDetail', array($masterId, $this));
         }
     }
     
