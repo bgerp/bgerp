@@ -100,7 +100,8 @@ span.richEdit div.richedit-toolbar {
 }
 
 div.richEdit {
-	line-height:140%
+	display:table;
+	width:100%;
 }
 
 .richEdit textarea {
@@ -123,6 +124,12 @@ p.richtext {
 	margin-top:0px;
 	margin-bottom:0px;
 	line-height:1.2em;
+}
+
+.richtext{
+	color:#333;
+	font-family: sans-serif;
+	line-height: 1.4em;
 }
 
 .richtext h2 { 
@@ -262,6 +269,9 @@ table.listTable>thead>tr>th {
 	padding-bottom:5px; 
 	float:left;
 }
+.narrow .listFilter{
+	margin-left: -3px;
+}
 
 .listSummary {
 	padding-bottom:5px; 
@@ -279,7 +289,9 @@ table.listTable>thead>tr>th {
 
 .wide .toolbar{
 	display:block;
+	padding-top:2px !important;
  }
+
 
 /* Стилове за показване на формите */
 form {
@@ -326,7 +338,7 @@ form {
     margin-bottom:3px;
 }
 
-.narrow .formError ul { /*diff*/
+.narrow .formError ul {
     padding-left:1em;
 }
 
@@ -355,7 +367,6 @@ div.hFormField {
 
 .wide .horizontal .formToolbar { 
 	float:left;
-	margin-left:7px;
 }
 
 .vertical .formFieldCaption { 
@@ -396,7 +407,7 @@ div.hFormField {
 }
 
 .narrow .vertical .formSection {
-	padding:2px;
+	padding:10px;
 }
 
 .vertical .formToolbar {
@@ -406,7 +417,7 @@ div.hFormField {
 }
 
 .narrow .vertical .formToolbar { 
-    padding:2px;
+    padding:0 11px 5px 11px !important;
     background-color:#ffe;
     border:none;
 }
@@ -417,6 +428,10 @@ div.hFormField {
 
 .narrow .vertical .formToolbar input {
     margin-right:5px;
+}
+
+.formToolbar .btn-add{
+	margin-top:-3px;
 }
 
 .wide form[method="post"] input[type="submit"] {
@@ -436,6 +451,10 @@ div.hFormField {
 	color:white;
 }
 
+input[type="text"]{
+	padding:0 5px !inportant;
+}
+
 .wide .checkbox, .wide .radiobutton { 
 	border: none !important;
 }
@@ -443,7 +462,9 @@ div.hFormField {
 .narrow .formAll {
     display:table;
 }
-
+.hasDatepick{
+	margin-left:2px !important;
+}
 /* Стилове за страньора 'hlp_Pager' */
 a.pager {
     font-weight:bold;
@@ -974,15 +995,20 @@ tr.zebra1 {
 	font-size:0.85em;
 }
 
+table input[type=submit].btn-filter{
+	position:relative;
+	top:3px;
+}
 /*стилове за пакети*/
 .elem-holder{
+		position:relative;
 		display:block;
 		width:385px;
-		padding:7px;
+		padding:9px;
 		margin-right:20px;
 		margin-bottom:20px;
 		float:left;
-		height:76px;
+		height:85px;
 		background:#fcfae8;
 		box-shadow:1px 1px 6px rgba(0,0,0,0.4);
 	}
@@ -992,55 +1018,71 @@ tr.zebra1 {
 	}
 	
 	.elem-img{
-		width:74px;
-		height:74px;
+		width:84px;
+		height:85px;
 		float:left;
 		margin-right:7px;
 	}
 	
 	.elem-img img{
-		width:74px;
-		height:74px;
-	}
-	
-	.elem-holder .fleft{
-	    width:262px;
-		float:left;
-	}
-	
-	.narrow .elem-holder .fleft{
-	    width:258px;
+		width:84px;
+		height:85px;
 	}
 	
 	.elem-holder small{
-		line-height:18px;
+		line-height:16px;
 		display:block;
+		margin: 8px 0 7px 0;
+		height:32px
 	}
 	
 	.narrow .elem-holder small{
 		font-size:13px;
 		line-height:17px;
+		margin:4px 0 8px 0;
 	}
 	
-	.elem-holder .fleft b{
-		margin-bottom:-3px;
+	.wide .elem-holder b{
+		font-size:1.2em;
 	}
-
-	.elem-holder .fright{
-		width:116px;
+	
+	.narrow .elem-holder b{
+		font-size:1.1em;
+	}
+	
+	.elem-holder .btns{
+		display:block;
 		float:right;
+		color:#999;
+		font-size:0.8em;
+		margin-right:-1px;
 	}
 	
-	.narrow .elem-holder .fright{
-		width:102px;
+	.narrow .elem-holder .btns{
+		margin-right:-2px;
 	}
 	
-	.elem-holder .fright .button{
-		float:right;
-		font-size:11px;
-		margin-bottom:5px;
+	.elem-holder .btns a{
+		color:#999;
+		display:inline-block;
+		margin: 0 4px 0px 4px;
 	}
 	
-	.narrow .elem-holder .fright .button{
-		font-size:12px;
+	.elem-holder .btns a:hover{
+		text-decoration:underline;
+	}
+	
+	.narrow .elem-holder  a{
+		font-size:13px;
+		display:inline-block;
+		padding:1px 3px 1px 3px;
+	}
+	
+	.elem-holder .btn-open{
+		position:absolute;
+		top:8px;
+		right:7px;
+	}
+	.narrow .elem-holder .btn-open{
+		font-size:13px !important;
 	}

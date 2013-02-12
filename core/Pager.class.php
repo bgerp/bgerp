@@ -298,7 +298,7 @@ class core_Pager extends core_BaseClass
             }
         }
         
-        $tpl = new ET($html ? "<div style='margin:7px 0px 7px 0px;'>$html</div>" : "");
+        $tpl = new ET($html ? "<div style='margin:10px 2px 10px 2px;'>$html</div>" : "");
         
         return $tpl;
     }
