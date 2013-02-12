@@ -99,13 +99,28 @@ class price_ListRules extends core_Detail
         if(!$datetime) {
             $datetime = dt::verbal2mysql();
         }
+ 
+        
 
-        $productGroup = price_GroupOfProducts::getGroup($productId);
+        $price = price_History::getPrice($listId, $datetime, $productId, $packagingId);
+
+        if($price) {
+            return $price;
+        }
+
+        $datetime = price_History::canonizeTime($datetime);
+
+        $productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
+        
+        if(!$productGroup) {
+
+            return NULL;
+        }
 
         $query = self::getQuery();
         
         // Общи ограничения
-        $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#valudUntil IS NULL OR #validUntil > '{$datetime}')");
+        $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
 
         // Конкретни ограничения
         if($packagingId) {
@@ -118,19 +133,34 @@ class price_ListRules extends core_Detail
         $query->orderBy("#validFrom", "DESC");
         $query->limit(1);
 
-        $rec = self::fetch();
-
+        $rec = $query->fetch();
+  
         if($rec) {
-            if($rec->type = 'value') {
-                $value = $rec->value; // TODO конвертиране
+            if($rec->type == 'value') {
+                $price = $rec->price; // TODO конвертиране
+                $listRec = price_Lists::fetch($listId);
+                list($date, $time) = explode(' ', $datetime);
+                $price = currency_CurrencyRates::convertAmount($price, $date, $listRec->currency);
+                if($listRec->vat == 'yes') {
+
+                }
             } else {
-                $parent    = price_Lists::fetchField($listId, 'parent');
-                $value = self::getPrice($parent, $productId, $packagingId, $datetime);
-                $value = $value / (1 + $rec->discount);
+                $parent = price_Lists::fetchField($listId, 'parent');
+                $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+                $price  = $value / (1 + $rec->discount);
             }
         }
+        
+        // Записваме току-що изчислената цена в историята;
+        price_History::setPrice($price, $listId, $datetime, $productId, $packagingId);
 
-        return $value;
+        return $price;
+    }
+
+
+    function act_Test()
+    {
+        bp(self::getPrice(2, 1, NULL, '2013-02-13 01:00:00'));
     }
 
 
@@ -174,5 +204,15 @@ class price_ListRules extends core_Detail
         }
 
     }
+
+
+    /**
+     * Премахва кеша за интервалите от време
+     */
+    function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    {
+        price_History::removeTimeline();
+    }
+
     
 }

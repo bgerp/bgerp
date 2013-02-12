@@ -115,7 +115,8 @@ class sales_TransactionSourceImpl
         expect($rec->id);
         
         // Преобразуване на трибуквен ISO код на валута към първичен ключ на валута
-        $rec->currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+        $rec->currencyCode = $rec->currencyId;
+        $rec->currencyId   = currency_Currencies::getIdByCode($rec->currencyId);
         
         
         // Извличаме детайлите на продажбата
@@ -224,6 +225,10 @@ class sales_TransactionSourceImpl
     /**
      * Помощен метод - генерира платежната част от транзакцията за продажба (ако има)
      * 
+     *    Dt: 501 - Каси                  (Каса, Валута) или
+     *        503 - Разпл. с/ки           (Сметка, Валута)
+     *    Ct: 411 - Вземания от клиенти   (Клиент, Докум. за продажба, Валута)
+     *    
      * @param stdClass $rec
      * @return array
      */
@@ -231,35 +236,77 @@ class sales_TransactionSourceImpl
     {
         $entries = array();
         
-        foreach ($rec->details as $product) {
-            $entry['debitAcc'] = '411'; // Вземания от клиенти
-            $entry['debitItem1'] = (object)array(
-                'cls' => $rec->contragentClassId,
-                'id'  => $rec->contragentId,
-            ); // Аналитичност "клиенти"
+        // Изчисляваме курса на валутата на продажбата към базовата валута
+        $currencyRate = $this->getCurrencyRate($rec);
+        
+        expect($rec->caseId);
             
-            // Определяне на цената на $product
-            
-            
-//             $entry['creditPrice'] = 
-//             $entry['debitAmount'] =  
-            
-            
+        foreach ($rec->details as $detailRec) {
+            $entries[] = array(
+                'amount' => $detailRec->amount * $currencyRate, // В основна валута
+                
+                'debit' => array(
+                    '501', // Сметка "501. Каси"
+                        array('cash_Cases', $rec->caseId),              // Перо 1 - Каса
+                        array('currency_Currencies', $rec->currencyId), // Перо 3 - Валута
+                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+                ),
+                
+                'credit' => array(
+                    '411', // Сметка "411. Вземания от клиенти"
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array('sales_Sales', $rec->id),                     // Перо 2 - Документ-продажба
+                        array('currency_Currencies', $rec->currencyId),     // Перо 3 - Валута
+                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+                ),
+            );
         }
         
-        return array();// @TODO
+        return $entries;
     }
     
     
     /**
      * Помощен метод - генерира доставната част от транзакцията за продажба (ако има)
      * 
+     * Експедиране на стоката от склада (в някой случаи)
+     *
+     *    Dt: 702 - Приходи от продажби на стоки (Стандартен продукт, Докум. за продажба)
+     *    Ct: 322 - Стандартни продукти          (Склад, Стандартен продукт)
+     *    
      * @param stdClass $rec
      * @return array
      */
     protected function getDeliveryPart($rec)
     {
-        return array();
+        $entries = array();
+        
+        // Изчисляваме курса на валутата на продажбата към базовата валута
+        $currencyRate = $this->getCurrencyRate($rec);
+        
+        expect($rec->shipmentStoreId);
+            
+        foreach ($rec->details as $detailRec) {
+            $entries[] = array(
+                'amount' => $detailRec->amount * $currencyRate, // В основна валута
+                
+                'debit' => array(
+                    '702', // Сметка "702. Приходи от продажби на стоки"
+                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
+                        array('sales_Sales', $rec->id),               // Перо 2 - Документ-продажба
+                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                ),
+                
+                'credit' => array(
+                    '322', // Сметка "322. Стандартни продукти"
+                        array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Клиент
+                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
+                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+                ),
+            );
+        }
+        
+        return $entries;
     }
     
     
@@ -268,11 +315,9 @@ class sales_TransactionSourceImpl
      * 
      * @param stdClass $rec запис за продажба
      * @return float
-     * 
-     * @TODO Да се реализира, използвайки @see currency_CurrencyRates 
      */
     protected function getCurrencyRate($rec)
     {
-        return 1; // @TODO!!!
+        return currency_CurrencyRates::convertAmount(1, $rec->date, $rec->currencyCode);
     }
 }

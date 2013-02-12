@@ -152,6 +152,7 @@ class doc_Search extends core_Manager
         $data->listFilter->getField('search')->caption = 'Ключови думи';
         $data->listFilter->getField('search')->width = '100%';
         $data->listFilter->getField('docClass')->caption = 'Вид документ';
+        $data->listFilter->getField('docClass')->width = '300px';
         $data->listFilter->getField('docClass')->placeholder = 'Всички';
         $data->listFilter->showFields = 'search, scopeFolderId, docClass, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');

@@ -99,4 +99,17 @@ class cat_PricePolicyMockup extends core_Manager
         
         return (object)compact('price', 'discount');
     }
+    
+    
+    /**
+     * Заглавие на ценоразписа за конкретен клиент 
+     * 
+     * @param mixed $customerClass
+     * @param int $customerId
+     * @return string
+     */
+    public function getPolicyTitle($customerClass, $customerId)
+    {
+        return $this->title;
+    }
 }

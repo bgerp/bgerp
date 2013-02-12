@@ -158,6 +158,15 @@ class price_ListToCustomers extends core_Detail
         return static::renderDetail($data);
     }
 
+    
+    /**
+     * Премахва кеша за интервалите от време
+     */
+    function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    {
+        price_History::removeTimeline();
+    }
+
 
 
     /****************************************************************************************************
@@ -188,5 +197,21 @@ class price_ListToCustomers extends core_Detail
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {
          
+    }
+    
+
+
+    /**
+     * Заглавие на ценоразписа за конкретен клиент
+     *
+     * @see price_PolicyIntf
+     * @param mixed $customerClass
+     * @param int $customerId
+     * @return string
+     */
+    public function getPolicyTitle($customerClass, $customerId)
+    {
+        /* @TODO: Реализация на метода */
+        return 'ListToCustomer';
     }
 }

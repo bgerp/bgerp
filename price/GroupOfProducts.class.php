@@ -97,31 +97,20 @@ class price_GroupOfProducts extends core_Detail
 
 
     /**
-     * Зарежда статична кеш информация за групите на продуктите към посочената дата
+     * Връща групата на продукта към посочената дата
      */
-    static function loadProducts($datetime)
+    static function getGroup($productId, $datetime)
     {
-        if(count(self::$products[$datetime])) return;
-
         $query = self::getQuery();
         $query->orderBy('#validFrom', 'DESC');
-        $query->where("#validFrom <= $datetime");
-        while($rec = $query->fetch()) {
-            if(!isset(self::$products[$datetime][$rec->productId])) {
-                self:$products[$datetime][$rec->productId] = $rec->groupId ? $rec->groupId : FALSE;
-            }
+        $query->where("#validFrom <= '{$datetime}'");
+        $query->where("#productId = {$productId}");
+        $query->limit(1);
+
+        if($rec = $query->fetch()) {
+
+            return $rec->groupId;
         }
-    }
-
-
-    /**
-     *
-     */
-    static function getGroupOfProduct($productId, $datetime)
-    {
-        self::loadProducts($datetime);
-
-
     }
     
     
@@ -203,4 +192,14 @@ class price_GroupOfProducts extends core_Detail
         
         return static::renderDetail($data);
     }
+
+    
+    /**
+     * Премахва кеша за интервалите от време
+     */
+    function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    {
+        price_History::removeTimeline();
+    }
+
 }
