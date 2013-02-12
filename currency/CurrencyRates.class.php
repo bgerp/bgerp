@@ -191,7 +191,7 @@ class currency_CurrencyRates extends core_Detail
     	// Проверяваме входните данни
     	expect(currency_Currencies::getIdByCode($from), 'Няма валута с такъв код');
     	expect(currency_Currencies::getIdByCode($to), 'Няма валута с такъв код');
-    	expect(is_numeric($amount), 'Не е подадена валудна сума');
+    	expect(is_numeric($amount), 'Не е подадена валидна сума');
     	
     	// Намираме Курса между двете валути към дадената дата
     	expect($rate = static::getRate($date, $from, $to), 'Нямаме информация за курса между валутите');

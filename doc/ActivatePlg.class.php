@@ -33,7 +33,7 @@ class doc_ActivatePlg extends core_Plugin
         }
         
         if ($mvc->haveRightFor('activate', $exRec)) {
-            $data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate,class=btn-activation,order=10.00019,warning=Наистина ли искате да активирате документа?');
+            $data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate,class=btn-activation,order=10.00019');
         }
     }
     

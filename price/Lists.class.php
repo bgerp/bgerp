@@ -39,7 +39,7 @@ class price_Lists extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, parent, title, createdOn, createdBy';
+    var $listFields = 'id, title, parent, createdOn, createdBy';
     
     
     /**
@@ -91,6 +91,8 @@ class price_Lists extends core_Master
     {
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява');
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование');
+        $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'mandatory,caption=Валута');
+        $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,caption=ДДС');
         $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
     }

@@ -55,6 +55,7 @@ class price_Setup
             'price_Lists',
             'price_ListToCustomers',
             'price_ListRules',
+            'price_History',
         );
         
         // Роля за power-user на този модул
