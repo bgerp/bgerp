@@ -4,6 +4,7 @@
 <div class="formError">
 	[#FORM_ERROR#]
 </div>
+<br>
 <!--ET_END FORM_ERROR-->
 <div class='formFields'>
 	[#FORM_FIELDS#]

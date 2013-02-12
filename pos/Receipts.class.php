@@ -16,6 +16,12 @@
 class pos_Receipts extends core_Master {
     
     
+	/**
+     * Какви интерфейси поддържа този мениджър
+     */
+    var $interfaces = 'acc_TransactionSourceIntf';
+    
+    
     /**
      * Заглавие
      */
@@ -102,6 +108,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
     	$this->FLD('total', 'float', 'caption=Общо, input=none');
     	$this->FLD('paid', 'float', 'caption=Платено, input=none');
+    	$this->FLD('change', 'float', 'caption=Ресто, input=none');
     	$this->FLD('tax', 'float', 'caption=Такса, input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 
@@ -150,11 +157,15 @@ class pos_Receipts extends core_Master {
     function act_New()
     {
     	$rec = new stdClass();
+    	$pos = pos_Points::getCurrent();
     	$rec->date = dt::now();
     	$rec->contragentName = tr('Анонимен Клиент');
+    	$rec->contragentClass = core_Classes::getId('crm_Persons');
+    	$rec->contragentObjectId = pos_Points::defaultContragent($pos);
     	$rec->total = 0;
     	$rec->paid = 0;
-    	$rec->pointId = pos_Points::getCurrent();
+    	$rec->change = 0;
+    	$rec->pointId = $pos;
     	
     	$this->requireRightFor('add', $rec);
     	$id = static::save($rec);
@@ -169,13 +180,13 @@ class pos_Receipts extends core_Master {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->number = $mvc->abbr . $row->number;
-    	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	$row->total = $double->toVerbal($rec->total);
     	$row->paid = $double->toVerbal($rec->paid);
+    	$row->change = $double->toVerbal($rec->change);
     }
-    
+
     
 	/**
      * След подготовка на тулбара на единичен изглед.
@@ -185,7 +196,7 @@ class pos_Receipts extends core_Master {
     	if($mvc->haveRightFor('list')) {
     		
     		// Добавяме бутон за достъп до 'List' изгледа
-    		$data->toolbar->addBtn('Всички',array($mvc, 'list', 'ret_url' => TRUE),
+    		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
     							   'ef_icon=img/16/application_view_list.png, order=18');    
     								 
     	}
@@ -194,6 +205,15 @@ class pos_Receipts extends core_Master {
     	$data->toolbar->addBtn('Нова Бележка', 
     						    array($mvc, 'new'),'',
     						   'id=btnAdd,class=btn-add,order=20');
+    	
+    	if(haveRole('pos,admin')) {
+	    $data->toolbar->addBtn('Приключи', array(
+	                			   'acc_Journal',
+	                               'conto',
+	                               'docId' => $data->rec->id,
+	                               'docType' => $mvc->className,
+	                               'ret_url' => TRUE), '', 'order=34');
+    	}
     }
     
     
@@ -210,7 +230,37 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * @TODO
+     * Извлича информацията за всички продукти които са продадени чрез
+     * тази бележки, във вид подходящ за контирането
+     * @param int id - ид на бележката
+     * @return array $products - Масив от продукти
+     */
+    static function fetchProducts($id)
+    {
+    	expect($rec = static::fetch($id), 'Несъществуваща бележка');
+    	$products = array();
+    	$currencyId = currency_Currencies::getIdByCode();
+    	
+    	$query = pos_ReceiptDetails::getQuery();
+    	$query->where("#receiptId = {$id}");
+    	$query->where("#action LIKE '%sale%'");
+    	while($rec = $query->fetch()) {
+    		$products[] = (object) array(
+    			'productId' =>$rec->productId,
+	    		'contragentClassId' => $rec->contragentClass,
+	    		'contragentId' => $rec->contragentObjectId,
+    			'currencyId' => $currencyId,
+	    		'amount' => $rec->amount,
+	    		'quantity' => $rec->quantity);
+    	}
+    	
+    	return $products;
+    }
+    
+    
+    /**
+     * Ъпдейтва бележката след като и се създаде нов детайл
+     * @param stdClass $detailRec - запис от pos_ReceiptDetails
      */
     function updateReceipt($detailRec)
     {
@@ -224,6 +274,7 @@ class pos_Receipts extends core_Master {
     			break;
     		case 'payment':
     			$rec->paid = $this->countPaidAmount($rec->id);
+    			$rec->change = $rec->paid - $rec->total;
     			break;
     		case 'client':
     			break;
@@ -236,7 +287,7 @@ class pos_Receipts extends core_Master {
     /**
      * Изчислява всичко платено до момента
      * @param int $id - запис от модела
-     * @return double $payed;
+     * @return double $paid;
      */
     function countPaidAmount($id)
     {
@@ -280,4 +331,120 @@ class pos_Receipts extends core_Master {
 			$res = 'pos, ceo, admin';
 		}
 	}
+	
+	
+	/**
+   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
+   	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 */
+    public static function getTransaction($id)
+    {
+    	expect($rec = static::fetch($id));
+    	$products = static::fetchProducts($id);
+    	foreach ($products as $product) {
+    		$currencyCode = currency_Currencies::getCodeById($product->currencyId);
+    		$amount = currency_CurrencyRates::convertAmount($product->amount, $rec->date, $currencyCode);
+	    	
+    		$entries[] = array(
+	        'amount' => $amount, // Стойност на продукта за цялото количество, в основна валута
+	        
+	        'debit' => array(
+	            '411', // Сметка "411. Вземания от клиенти"
+	                array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
+	                //array('pos_Receipts', $id),              // Перо 2 - Документ-продажба
+	                array('currency_Currencies', $product->currencyId),     // Перо 3 - Валута
+	            
+	                'quantity' => $product->amount, // "брой пари" във валутата на продажбата
+	        ),
+	        
+	        'credit' => array(
+	            '702', // Сметка "702. Приходи от продажби на стоки"
+	                //array('cat_Products', $product->productId), // Перо 1 - Продукт
+	                array('pos_Receipts', $id),  // Перо 2 - Документ-продажба
+	            'quantity' => $product->quantity, // Количество продукт в основната му мярка
+	        ),
+	    );
+    	}
+    	
+    	$transaction = (object)array(
+                'reason'  => 'PoS Продажба #' . $rec->id,
+                'valior'  => $rec->date,
+                'entries' => $entries, 
+            );
+      
+      bp($transaction);
+      return $transaction;
+    	//@TODO
+    }
+    
+    
+	/**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::getTransaction
+     */
+    public static function finalizeTransaction($id)
+    {
+        $rec = (object)array(
+            'id' => $id,
+            'state' => 'active'
+        );
+        
+        return self::save($rec);
+    }
+    
+	
+    /**
+     * Предефиниране на наследения метод act_Single
+     */
+    function act_Single()
+    {      
+        $this->requireRightFor('single');
+    	$id = Request::get('id');
+        if(!$id) {
+        	$id = Request::get('receiptId');
+        }
+        $data = new stdClass();
+        expect($data->rec = $this->fetch($id));
+        $this->requireRightFor('single', $data->rec);
+        
+        $this->prepareSingle($data);
+        
+        if($dForm = $data->pos_ReceiptDetails->form) {
+            $rec = $dForm->input();
+            $Details = cls::get('pos_ReceiptDetails');
+			$Details->invoke('AfterInputEditForm', array($dForm));
+           
+        	// Ако формата е успешно изпратена - запис, лог, редирект
+            if ($dForm->isSubmitted() && Request::get('ean')) {
+            	 
+            	// Записваме данните
+            	$id = $Details->save($rec);
+                $Details->log('add', $id);
+                
+                return new Redirect(array($this, 'Single', $data->rec->id));
+            }
+        }
+       
+        $tpl = $this->renderSingle($data);
+        $tpl = $this->renderWrapping($tpl, $data);
+        $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::rejectTransaction
+     */
+    public static function rejectTransaction($id)
+    {
+        $rec = self::fetch($id, 'id,state,valior');
+        
+        if ($rec) {
+            static::reject($id);
+        }
+    }
 }

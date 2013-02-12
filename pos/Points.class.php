@@ -38,7 +38,7 @@ class pos_Points extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, title, cashier';
+    var $listFields = 'id, tools=Пулт, title, cashier, storeId';
     
     
     /**
@@ -70,7 +70,40 @@ class pos_Points extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
-        $this->FLD('cashier', 'user(roles=pos|admin)', 'caption=Касиер');
+    	$this->FLD('title', 'varchar(255)', 'caption=Наименование, mandatory');
+        $this->FLD('cashier', 'user(roles=pos|admin)', 'caption=Касиер, mandatory');
+    	$this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
+    }
+    
+	
+    /**
+     * Създава дефолт контрагент за обекта, ако той вече няма създаден
+     */
+    static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	if(!static::defaultContragent($id)) {
+	    	$defaultContragent = new stdClass();
+	    	$defaultContragent->name = "POS:" . $rec->id . "-Анонимен Клиент";
+	    	crm_Persons::save($defaultContragent);
+    	}
+    }
+    
+    
+    /**
+     * Намира кой е дефолт контрагента на Точката на продажба
+     * @param int $id - ид на точкта
+     * @return mixed $id/FALSE - ид на контрагента или FALSE ако няма
+     */
+    static function defaultContragent($id = NULL)
+    {
+    	($id) ? $pos = $id : $pos = pos_Points::getCurrent();
+    	$query = crm_Persons::getQuery();
+    	$query->where("#name LIKE '%POS:{$pos}%'");
+    	if($rec = $query->fetch()) {
+    		
+    		return $rec->id;
+    	}
+    	
+    	return FALSE;
     }
 }
