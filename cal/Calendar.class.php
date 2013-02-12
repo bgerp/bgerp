@@ -1215,12 +1215,15 @@ class cal_Calendar extends core_Master
         // Генерираме масив масива на месеца => номер на седмицата[ден от седмицата][ден]
         for($i = 1; $i <= $lastDay; $i++) {
             $t = mktime(0, 0, 0, $month, $i, $year);
-            $monthArr[date('W', $t)]["d".date('N', $t)] = $i;
+            $isToday = ($i == $dayC && $month == $monthC && $year == $yearC);
             
-           // Цветовете на деня според типа им
-        	$colorTitle[date('W', $t)]["m".date('N', $t)] = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $i, $year)));
-        }
+            $monthArr[date('W', $t)]["d".date('N', $t)] = $i;
+            $dateJs[date('W', $t)]["date".date('N', $t)."Js"] = date("d.m.Y", $t);
+            $tdCssClass[date('W', $t)]["now".date('N', $t)] = $isToday ? 'mc-today' : 'mc-day';
+            $tdCssClass[date('W', $t)]["now".date('N', $t)] .= ' ' . static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $i, $year)));
 
+        }
+        
         // Извличане на събитията за целия месец
         $state = new stdClass();
         $state->query = self::getQuery();
@@ -1338,6 +1341,7 @@ class cal_Calendar extends core_Master
         // Зареждаме шаблона
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutMonth.shtml'));
         
+        
         // Рендираме филтъра
         $Calendar = cls::get('cal_Calendar'); 
     	$Calendar->prepareListFilter($state);
@@ -1354,99 +1358,15 @@ class cal_Calendar extends core_Master
         // Дните от седмицата
         static $weekDays = array('Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота', 'Неделя');
         $tpl->placeArray($weekDays);
-     
     	
         foreach($monthArr as $weekNum => $weekArr) {
         	
         	$cTpl = $tpl->getBlock("COMMENT_LI");
         	
-        	foreach($colorTitle as $col => $c){
-        		if($col == $weekNum){
-        			$cTpl->placeArray($c);
-        		}
-        	}
-        		foreach($weekArr as $key=>$events){
-        			
-		        	if($currentWeek == $weekNum && $currentKey == $key){
-		       
-		        		switch ($key){
-		    				case "d1":
-		    					$cTpl->replace('mc-today', 'now1');
-		    					$cTpl->replace('mc-day', 'now2');
-		    					$cTpl->replace('mc-day', 'now3');
-		    					$cTpl->replace('mc-day', 'now4');
-		    					$cTpl->replace('mc-day', 'now5');
-		    					$cTpl->replace('mc-day', 'now6');
-		    					$cTpl->replace('mc-day', 'now7');
-		    					break;
-		    				case "d2":
-		    					$cTpl->replace('mc-today', 'now2');
-		    					$cTpl->replace('mc-day', 'now1');
-		    					$cTpl->replace('mc-day', 'now3');
-		    					$cTpl->replace('mc-day', 'now4');
-		    					$cTpl->replace('mc-day', 'now5');
-		    					$cTpl->replace('mc-day', 'now6');
-		    					$cTpl->replace('mc-day', 'now7');
-		    					break;
-		    				case "d3":
-		    					$cTpl->replace('mc-today', 'now3');
-		    					$cTpl->replace('mc-day', 'now1');
-		    					$cTpl->replace('mc-day', 'now2');
-		    					$cTpl->replace('mc-day', 'now4');
-		    					$cTpl->replace('mc-day', 'now5');
-		    					$cTpl->replace('mc-day', 'now6');
-		    					$cTpl->replace('mc-day', 'now7');
-		    					break;
-		    				case "d4":
-		    					$cTpl->replace('mc-today', 'now4');
-		    					$cTpl->replace('mc-day', 'now1');
-		    					$cTpl->replace('mc-day', 'now2');
-		    					$cTpl->replace('mc-day', 'now3');
-		    					$cTpl->replace('mc-day', 'now5');
-		    					$cTpl->replace('mc-day', 'now6');
-		    					$cTpl->replace('mc-day', 'now7');
-		    					break;
-		    				case "d5":
-		    					$cTpl->replace('mc-today', 'now5');
-		    					$cTpl->replace('mc-day', 'now1');
-		    					$cTpl->replace('mc-day', 'now2');
-		    					$cTpl->replace('mc-day', 'now3');
-		    					$cTpl->replace('mc-day', 'now4');
-		    					$cTpl->replace('mc-day', 'now6');
-		    					$cTpl->replace('mc-day', 'now7');
-		    					break;
-		    				case "d6":
-		    					$cTpl->replace('mc-today', 'now6');
-		    					$cTpl->replace('mc-day', 'now1');
-		    					$cTpl->replace('mc-day', 'now2');
-		    					$cTpl->replace('mc-day', 'now3');
-		    					$cTpl->replace('mc-day', 'now4');
-		    					$cTpl->replace('mc-day', 'now5');
-		    					$cTpl->replace('mc-day', 'now7');
-		    					break;
-		    				case "d7":
-		    					$cTpl->replace('mc-today', 'now7');
-		    					$cTpl->replace('mc-day', 'now1');
-		    					$cTpl->replace('mc-day', 'now2');
-		    					$cTpl->replace('mc-day', 'now3');
-		    					$cTpl->replace('mc-day', 'now4');
-		    					$cTpl->replace('mc-day', 'now5');
-		    					$cTpl->replace('mc-day', 'now6');
-		    					break;
-		    				
-		    			  	
-		    			}
-		        	} else {
-		        		    $cTpl->replace('mc-day', 'now1');
-	    					$cTpl->replace('mc-day', 'now2');
-	    					$cTpl->replace('mc-day', 'now3');
-	    					$cTpl->replace('mc-day', 'now4');
-	    					$cTpl->replace('mc-day', 'now5');
-	    					$cTpl->replace('mc-day', 'now6');
-	    					$cTpl->replace('mc-day', 'now7');
-		        	}
-        		}
-        	
+        	$cTpl->placeArray($colorTitle[$weekNum]);
+        	$cTpl->placeArray($tdCssClass[$weekNum]);
+        	$cTpl->placeArray($dateJs[$weekNum]);
+
         	$cTpl->replace($weekNum, 'weekNum');
         	$cTpl->placeArray($weekArr);
         	
@@ -1494,9 +1414,10 @@ class cal_Calendar extends core_Master
 	        	$color = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $m,  $i, $year)));
 	        	
 	            $yearArr["mon".$m][date('W', $t)]["d".date('N', $t)] = ht::createLink($i, '/cal_Calendar/week/?from='. $i. "." . $m. "." . $year, NULL, array('class'=>'mc-day', 'style' => 'color:'. $color));
-	            
+	             //$yearArr["mon".$m][date('W', $t)]["d".date('N', $t)] = $i;
+	            //$dateJs["mon".$m][date('W', $t)]["date".$i."Js"] = date("d.m.Y", $t);
 		        }
-	    	}
+	    	}//bp($dateJs);
 	    	
 		    	// Таймстамп на първия ден на месеца
 		        $lastDayTms = mktime(0, 0, 0, 12, 1, $year);
@@ -1551,6 +1472,36 @@ class cal_Calendar extends core_Master
 	    } 
 
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutYear.shtml'));
+        
+        $urlYear = toUrl(array('cal_Calendar', 'week'));
+    	
+    	$jsFnc = "
+    	function createLink(dt)
+    	{
+    		document.location = '{$urlYear}?from=' + dt;
+		}";
+    	
+    	$tpl->appendOnce($jsFnc, 'SCRIPTS');
+    	
+    	/*foreach($dateJs as $date => $dataArr) {
+    		
+    		foreach($dataArr as $dataNum => $data){
+//   / bp($date, $dataNum, $data);
+			    			switch ($date){
+			    				case "mon1":
+			    					
+						        	$lTpl = $tpl->getBlock("COMMENT_LI");
+						        	
+						        	$lTpl->placeArray($data);
+						        	
+						        	//bp($lTpl);
+						            $lTpl->append2master();
+						            break;
+			    			}
+    		}
+    	}*/
+    	//bp($dateJs, $yearArr);
+    	//$tpl->placeArray($dateJs);
 
     	foreach($yearArr as $monthNum => $monthArr) {
     		
@@ -1768,13 +1719,13 @@ class cal_Calendar extends core_Master
         $year = dt::mysql2Verbal($date, 'Y');
         
         // Взимаме кой ден от седмицата е 1=пон ... 7=нед
-        $weekName = date('N', mktime(0, 0, 0, $month, $day, $year));
+        $weekDayNo = date('N', mktime(0, 0, 0, $month, $day, $year));
     	
         // Ако е събота или неделя, пресвояваме цвят
-    	if($weekName == "6"){
-    		$color = '#006030';
-    	}elseif($weekName == "7"){
-    		$color = 'green';
+    	if($weekDayNo == "6"){
+    		$color = 'saturday'; // '#006030';
+    	}elseif($weekDayNo == "7"){
+    		$color = 'sunday'; // 'green';
     	}
     	
     	// проверяваме дали има записи за този ден
@@ -1785,25 +1736,24 @@ class cal_Calendar extends core_Master
     		
     		// Ако деня е празник, подаваме цвета и не ни трябват повече проверки
     		if($rec->type == 'holiday'){
-	        	$color = 'red';// bp($color);
+	        	$color = 'holiday';// 'red';// bp($color);
 	        	break;
 	        }
 	        // Ако деня е работе, подаваме цвета и не ни трябват повече проверки
 	        elseif($rec->type == 'workday'){
-	        	$color = 'black';
+	        	$color = 'workday'; // 'black';
 	        	break;
 	        }
 	        // Ако деня е събота или неработен ден по близко до събота
-	        elseif(($weekName == "6" || ($rec->type == 'non-working' && $weekName >= "4"))  && $rec->type !== 'workday'){
-	        	$color = '#006030';
+	        elseif(($rec->type == 'non-working' && $weekDayNo >= "4")  && $rec->type !== 'workday'){
+	        	$color = 'saturday non-working'; // '#006030';
+	        	break;
 	        	
 	        }
 	        // Ако деня е неделя или неработен ден по близко до неделя
-	        elseif(($weekName == "7" || ($rec->type == 'non-working' && $weekName < "4") ) && $rec->type !== 'workday'){
-	        	$color = 'green';
-	        	
-	        } else {
-	        	$color = 'black';
+	        elseif(($rec->type == 'non-working' && $weekDayNo < "4") && $rec->type !== 'workday'){
+	        	$color = 'sunday non-working'; //'green';
+	        	break;
 	        }
     	}
     	

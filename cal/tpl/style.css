@@ -125,7 +125,7 @@ table.mc_calendar td.calDay {
 	
 	color:black;
 	width:14em;
-	min-width:8em;
+	min-width:11em;
 	border-collapse: collapse;
 	colspan: 2;
 	height:2em;
@@ -141,7 +141,7 @@ table.mc_calendar td.calDay {
 table.mc_calendar td.calDayN {
 	color:black;
 	width:14em;
-	min-width:8em;
+	min-width:11em;
 	border: 2px solid #D1D7D1;
 	background-color: #D1D7D1;
 	height:2em;
@@ -156,6 +156,7 @@ a.calWeek{
 	white-space: nowrap;
 	colspan: 2;
 	position:absolute;
+	margin-left:15px;
 	
 }
                                
@@ -174,16 +175,15 @@ img.calWeekAdd{
 
 img.calImg{
 	float: left;
-	position: relative;
+	position: absolute;
 
 }
 
 img.starImg{
-	float: left;
-	position: relative;
+
 	width: 10px;
 	height: 10px;
-	margin-left: 10px;
+	margin-right: 5px;
 	
 
 }
@@ -222,6 +222,7 @@ p.calWeek{
 	white-space: nowrap;
 	max-width:10em;
 	overflow:hidden;
+
 	
 }
 
@@ -251,11 +252,13 @@ a.closedColor{
 	position:absolute;
 	background-color:#eee; 
 	text-decoration:line-through;
+	margin-left:15px;
 }
 
 a.draftColor{
 	position:absolute;
 	background-color:#88cc99;
+	margin-left:15px;
 }
 
 
@@ -328,7 +331,7 @@ a.mc-calendar-calWeek{
 a.mc-calendar-draftColor{
 	position:absolute;
 	background-color:#88cc99;
-	width:11em;
+	width:10em;
 	font: small Arial,sans-serif;
 	font-size: 0.8em;
 }
@@ -337,7 +340,7 @@ a.mc-calendar-closedColor{
 	position:absolute;
 	background-color:#eee; 
 	text-decoration:line-through;
-	width:11em;
+	width:10em;
 	font: small Arial,sans-serif;
 	font-size: 0.8em;
 }
@@ -533,4 +536,14 @@ table.mc-calendar-year td.mc-day:hover {
 
 table.mc-calendar-year td.mc-today {
 	border:solid 2px red;
+}
+
+table.mc-calendar td.holiday {
+	color: red;
+}
+table.mc-calendar td.saturday {
+	color: #006030;
+}
+table.mc-calendar td.sunday {
+	color: green;
 }
