@@ -374,7 +374,7 @@ class forum_Boards extends core_Master {
  		
         $data->searchForm->layout->replace(toUrl(array('forum_Postings', 'search')), 'ACTION');
 		
-        $data->searchForm->layout->replace(sbf('blogm/img/16/find.png', ''), 'FIND_IMG');
+        $data->searchForm->layout->replace(sbf('/img/16/find.png', ''), 'FIND_IMG');
 
 		return $data->searchForm->renderHtml();
 	}
