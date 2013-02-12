@@ -184,7 +184,8 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 .wide #subMenu a.selected, .wide #subMenu a.selected:visited, .wide #subMenu a.selected:link { 
 	border:solid 2px #048;
 	background-color:#ddd;
-	border-top:solid 2px transparent;
+	border-top:none;
+	padding-top:3px;
 	padding-left:5px;
 	padding-right:5px;
 	font-weight:bold;
@@ -198,7 +199,7 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
     border-top-right-radius:2px;
 }
 
-.narrow a.selected { /*diff*/
+.narrow a.selected { 
 	color:white !important; 
 	background-color:#048;
 	-moz-border-radius:2px; 
