@@ -326,6 +326,15 @@ class sales_SalesDetails extends core_Detail
                 
                 if (empty($rec->packPrice)) {
                     $rec->packPrice = $policyInfo->price;
+
+                    // Цената идва от ценоразписа в основна валута. Конвертираме я към валутата
+                    // на продажбата.
+                    $rec->packPrice = 
+                        currency_CurrencyRates::convertAmount(
+                            $rec->packPrice, 
+                            $masterRec->date, 
+                            $masterRec->currencyId
+                        );
                 }
                 if (empty($rec->discount)) {
                     $rec->discount = $policyInfo->discount;
