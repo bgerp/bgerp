@@ -478,14 +478,29 @@ dl dd {
 	border-top:none;
 }
 
-.formSection {
+.vertical .formSection {
 	border-left: solid 1px #bbb;
 	border-right: solid 1px #bbb;
 	background-image:url('../img/yellow.png'); 
 }
-
+ 
 .narrow .formSection{
 	background-image:none;
+}
+
+.wide .vertical .formTable {
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+	border-radius:5px;
+	-moz-box-shadow: 3px 3px 8px 3px #aaa;
+	-webkit-box-shadow: 3px 3px 8px 3px #aaa;
+    box-shadow: 2px 2px 8px 3px #aab;
+}
+
+.wide .listTopContainer .formTable { 
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
 }
 
 option.team {
