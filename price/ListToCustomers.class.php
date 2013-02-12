@@ -198,4 +198,20 @@ class price_ListToCustomers extends core_Detail
     {
          
     }
+    
+
+
+    /**
+     * Заглавие на ценоразписа за конкретен клиент
+     *
+     * @see price_PolicyIntf
+     * @param mixed $customerClass
+     * @param int $customerId
+     * @return string
+     */
+    public function getPolicyTitle($customerClass, $customerId)
+    {
+        /* @TODO: Реализация на метода */
+        return 'ListToCustomer';
+    }
 }
