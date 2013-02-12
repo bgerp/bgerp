@@ -7,11 +7,13 @@ $(document).ready(function () {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
 	});
 	
+	$('#subBtn').click(function() {
+		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
+	});
+	
 	$('.actionBtn').click(function() {
 		var value = $(this).attr("data-type");
 		$("select[name=action]").val(value);
-		$("select[name=action]").trigger('change');
-		$(this).addClass('selectedPayButton');
 		$(".actionBtn").not(this).removeClass('selectedPayButton');
 		if($("input[name=ean]").val() != '') {
 			$("#receipt-details-form form").submit();
@@ -24,19 +26,8 @@ $(document).ready(function () {
 	        }
 	});
 	
-	$("form input[type=button]").hover(function() {
-		$(this).animate({
-			backgroundColor: 'rgb(180, 180, 180)'
-			}, 50, function() {
-			});
-	});
-	
-	$("form input[type=button]").mouseleave(function() {
-		$(this).animate({
-			backgroundColor: 'rgb(153, 153, 153)'
-			}, 50, function() {
-			});
-	});
+	$("form input[type=button]").hover(function(){$(this).toggleClass('button_hover');});
+	$("form input[type=submit]").hover(function(){$(this).toggleClass('submit_hover');});
 	
 	$("input[name=ean]").keyup(function(){
         if($('select[name=param]').val() == 'payment') {

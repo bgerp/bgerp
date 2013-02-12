@@ -19,6 +19,9 @@
 	
 }
 
+#receipt-point {
+	font-style:italic;
+}
 #receipt-number {
 font-style:italic;	
 }
@@ -35,8 +38,6 @@ font-style:italic;
 }
 
 #receipt-details-th td {
-	padding-top:12px;
-	padding-bottom:12px;
 }
 
 .receipt-sale {
@@ -55,26 +56,30 @@ font-style:italic;
 }
 
 .buttonForm, .actionBtn, .clientBtn, .webscan{
-	height:30px !important;
+	height:35px !important;
 	margin-right:16px !important;
-	font-size:16px !important;
+	font-size:18px !important;
+	color:white !important;
+	background-color:#999999 !important;
 }
 
+.button_hover {
+	background-color:rgb(175, 175, 175) !important;
+}
+
+.submit_hover {
+	background-color:pink !important;
+}
+
+.subBtn {
+	
+}
 .buttons-row {
 	margin-top:15px;
 }
 
-.selectedPayButton {
-	background-color:darkred !important;
-}
-
 input.error {
    border:1px dotted red;
-}
-
-#error-place {
-	color:darkred;
-	font-style:italic;
 }
 
 .disabledSubmit {
@@ -90,11 +95,19 @@ input.error {
 }
 
 .receipt-amount {
-	text-align:right;
-	padding-right: 10px;
+	
 }
 
 #receipt-info{
-	padding:0px;
+	padding:10px;
 	vertical-align:top;
+}
+
+.receipt-discount-td {
+	font-style:italic;
+	color:darkgreen;
+}
+
+#money-info {
+	text-align:center;
 }

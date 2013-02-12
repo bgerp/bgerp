@@ -4,7 +4,11 @@
 </tr>
 <tr>
 	<td class='receipt-quantity'>[#quantity#] бр.</td>
-	<td class='receipt-price'>[#price#] лв.</td>
+	<td class='receipt-price'>[#price#] лв. 
+	<!--ET_BEGIN discountPercent-->
+	 (<span class='receipt-discount-td'>- [#discountPercent#]</span>)
+	<!--ET_END discountPercent-->
+	</td>
 	<td class='receipt-amount'>[#amount#] лв.</td>
 </tr>
 <!--ET_END sale-->

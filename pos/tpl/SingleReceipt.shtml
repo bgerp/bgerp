@@ -1,14 +1,16 @@
 <div id='single-receipt'>
 	[#SingleToolbar#]
 	<table border = '1' id = 'receipt-table' cellpadding='5px' cellspacing='0px'>
+		<thead class='fixed-table-header'>
 		<tr id='receipt-header'>
 			<td colspan='2'>
+				<div id='receipt-point'>Обект: &nbsp;&nbsp;[#pointId#]</div>
 				<div id='receipt-title'>Касова Бележка</div>
 				<div id='receipt-number'>Номер: &nbsp;&nbsp;<b>[#number#]</b>,  &nbsp;&nbsp;Дата: &nbsp;&nbsp;<b>[#date#]</b></div>
 				<div id='receipt-contragent'>Клиент: &nbsp;[#contragentName#]</div>
 			</td>
 			<td id='receipt-info'>
-				<table border='0' width='100%'>
+				<table border='0' width='100%' cellspacing='0' cellpadding='0' id='money-info'>
 				<tr>
 					<td>Общо</td>
 					<td>Платено</td>
@@ -17,7 +19,7 @@
 				<tr>
 					<td id='receipt-total'>[#total#]</td>
 					<td id='receipt-paid'>[#paid#]</td>
-					<td></td>
+					<td id='receipt-change'>[#change#]</td>
 				</tr>
 				</table>
 			</td>
@@ -27,7 +29,10 @@
 			<td>Цена</td>
 			<td>Стойност</td>
 		</tr>
+		</thead>
+		<tbody class='td-scrollable'>
 		[#DETAILS#]
+		</tbody>
 	</table>
 	[#ADD_FORM#]
 </div>
