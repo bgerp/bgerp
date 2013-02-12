@@ -828,8 +828,16 @@ class cal_Calendar extends core_Master
     	{
     		document.location = '{$url}?timeStart[d]=' + dt;
 		}";
+    	    	
+    	$jsDblFnc = "
+    	function createDblTask(dt)
+    	{
+    		document.location = '{$url}?timeStart[d]=' + dt;
+		}";
+    	
     	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
+    	$tpl->appendOnce($jsDblFnc, 'SCRIPTS');
     	$Calendar = cls::get('cal_Calendar');
     	//$Calendar->prepareListRecs($state);
     	$Calendar->prepareListFilter($state);
@@ -1076,6 +1084,23 @@ class cal_Calendar extends core_Master
           
     	// Рендиране на седмицата	
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutWeek.shtml'));
+        
+        $urlWeek = toUrl(array('cal_Tasks', 'add'));
+    	
+    	$jsFnc = "
+    	function createWeekTask(dt)
+    	{
+    		document.location = '{$urlWeek}?timeStart[d]=' + dt;
+		}";
+    	
+    	$jsDblFnc = "
+    	function createDblWeekTask(dt)
+    	{
+    		document.location = '{$urlWeek}?timeStart[d]=' + dt;
+		}";
+    	
+    	$tpl->appendOnce($jsFnc, 'SCRIPTS');
+    	$tpl->appendOnce($jsDblFnc, 'SCRIPTS');
     	
         // Рендираме филтъра за избор на дата
     	$Calendar = cls::get('cal_Calendar');
