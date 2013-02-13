@@ -29,15 +29,15 @@ class sales_TransactionSourceImpl
      *
      * 1. Задължаване на с/ката на клиента - безусловно, винаги
      *
-     *    Dt: 411 - Вземания от клиенти          (Клиент, Докум. за продажба, Валута)
-     *    Ct: 702 - Приходи от продажби на стоки (Стандартен продукт, Докум. за продажба)
+     *    Dt: 411  - Вземания от клиенти               (Клиент, Докум. за продажба, Валута)
+     *    Ct: 7011 - Приходи от продажби по Документи  (Докум. за продажба, Стоки и Продукти)
      * 
      * 2. Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 702 - Приходи от продажби на стоки (Стандартен продукт, Докум. за продажба)
-     *    Ct: 322 - Стандартни продукти          (Склад, Стандартен продукт)
+     *    Dt: 7011 - Приходи от продажби по Документи (Докум. за продажба, Стоки и Продукти)
+     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
      *
-     *    Цените, по които се изписват продуктите от с/ка 322 са според зададената стратегия 
+     *    Цените, по които се изписват продуктите от с/ка 321 са според зададената стратегия 
      *
      * 3. Получаване на плащане (в някой случаи)
      *
@@ -62,12 +62,12 @@ class sales_TransactionSourceImpl
         
         // Записите от тип 2 (експедиция, ако са изпълнени условията)
         if ($this->hasDeliveryPart($rec)) {
-            $entries += $this->getDeliveryPart($rec);
+            $entries = array_merge($entries, $this->getDeliveryPart($rec));
         }
         
         // Записите от тип 3 (получаване на плащане, ако са изпълнени условията)
         if ($this->hasPaymentPart($rec)) {
-            $entries += $this->getPaymentPart($rec);
+            $entries = array_merge($entries, $this->getPaymentPart($rec));
         }
         
         $transaction = NULL;
@@ -184,8 +184,8 @@ class sales_TransactionSourceImpl
     /**
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
-     *    Dt: 411 - Вземания от клиенти          (Клиент, Докум. за продажба, Валута)
-     *    Ct: 702 - Приходи от продажби на стоки (Стандартен продукт, Докум. за продажба)
+     *    Dt: 411  - Вземания от клиенти               (Клиент, Докум. за продажба, Валута)
+     *    Ct: 7011 - Приходи от продажби по Документи  (Докум. за продажба, Стоки и Продукти)
      *    
      * @param stdClass $rec
      * @return array
@@ -210,9 +210,9 @@ class sales_TransactionSourceImpl
                 ),
                 
                 'credit' => array(
-                    '702', // Сметка "702. Приходи от продажби на стоки"
-                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
-                        array('sales_Sales', $rec->id),               // Перо 2 - Документ-продажба
+                    '7011', // Сметка "7011. Приходи от продажби по Документи"
+                        array('sales_Sales', $rec->id),               // Перо 1 - Документ-продажба
+                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -248,7 +248,7 @@ class sales_TransactionSourceImpl
                 'debit' => array(
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $rec->caseId),              // Перо 1 - Каса
-                        array('currency_Currencies', $rec->currencyId), // Перо 3 - Валута
+                        array('currency_Currencies', $rec->currencyId), // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
@@ -271,8 +271,8 @@ class sales_TransactionSourceImpl
      * 
      * Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 702 - Приходи от продажби на стоки (Стандартен продукт, Докум. за продажба)
-     *    Ct: 322 - Стандартни продукти          (Склад, Стандартен продукт)
+     *    Dt: 7011 - Приходи от продажби по Документи (Докум. за продажба, Стоки и Продукти)
+     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
      *    
      * @param stdClass $rec
      * @return array
@@ -291,17 +291,17 @@ class sales_TransactionSourceImpl
                 'amount' => $detailRec->amount * $currencyRate, // В основна валута
                 
                 'debit' => array(
-                    '702', // Сметка "702. Приходи от продажби на стоки"
-                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
-                        array('sales_Sales', $rec->id),               // Перо 2 - Документ-продажба
-                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                    '7011', // Сметка "7011. Приходи от продажби по Документи"
+                        array('sales_Sales', $rec->id),               // Перо 1 - Документ-продажба
+                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
+                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                 ),
                 
                 'credit' => array(
-                    '322', // Сметка "322. Стандартни продукти"
-                        array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Клиент
-                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
-                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+                    '321', // Сметка "321. Стоки и Продукти"
+                        array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
+                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
+                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                 ),
             );
         }
