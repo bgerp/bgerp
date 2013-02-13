@@ -10,8 +10,8 @@
 106,Подотчетни лица,crm_PersonAccRegIntf,accountableInd
 107,"Дъщерни, асоциирани и смесени предприятия",crm_ContragentAccRegIntf,associates 
 109,"Разни: доверители, гаранции, застраховане, др.",crm_ContragentAccRegIntf,various
-110,Документ ПРОДАЖБА,,sales
-111,Документ ПОКУПКА,,purchase
+110,Документ "Продажба",,sales
+111,Документ "Покупка",,purchase
 120,Трудови договори,hr_ContractAccRegIntf,workContracts
 151,Договори за кредит,,loanAgreement
 152,Договори за лизинг,,leaseAgreement
