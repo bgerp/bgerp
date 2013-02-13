@@ -3,7 +3,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -36,7 +36,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month2#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month2#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -68,7 +68,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month3#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month3#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -103,7 +103,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month4#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month4#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -135,7 +135,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month5#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month5#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -167,7 +167,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month6#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month6#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -202,7 +202,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month7#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month7#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -234,7 +234,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month8#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month8#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -266,7 +266,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month9#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month9#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -301,7 +301,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month10#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month10#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -335,7 +335,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month11#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month11#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -367,7 +367,7 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;'>[#month12#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month12#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>

@@ -6,7 +6,7 @@ div.block_left{
 	clear: right;
     padding: 0 10px 10px 0;
     float: left;
-    margin: 0 50px 50px 0px;
+    margin: 0 50px 25px 0px;
     position: relative;
 }
 
@@ -36,7 +36,7 @@ table.calTable{
 
 
 table.mc-calendar {
-	width:80%;
+	width:100%;
 	font-size:0.8em;
 }
 
@@ -128,8 +128,7 @@ table.mc_calendar td.calDayH {
 table.mc_calendar td.calDay {
 	
 	color:black;
-	width:14em;
-	min-width:11em;
+	min-width:20em;
 	border-collapse: collapse;
 	colspan: 2;
 	height:2em;
