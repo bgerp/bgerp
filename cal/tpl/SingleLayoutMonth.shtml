@@ -35,13 +35,13 @@
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr> 
                      <td class='mc-week-nb'>[#weekNum#]</td>
-                     <td data-cal-date="[#date1Js#]" class="[#now1#]">[#c0#][#d1#]</td>
-                     <td data-cal-date="[#date2Js#]" class="[#now2#]">[#c1#][#d2#]</td>
-                     <td data-cal-date="[#date3Js#]" class="[#now3#]">[#c2#][#d3#]</td>
-                     <td data-cal-date="[#date4Js#]" class="[#now4#]">[#c3#][#d4#]</td>
-                     <td data-cal-date="[#date5Js#]" class="[#now5#]">[#c4#][#d5#]</td>
-                     <td data-cal-date="[#date6Js#]" class="[#now6#]">[#c5#][#d6#]</td>
-                     <td data-cal-date="[#date7Js#]" class="[#now7#]">[#c6#][#d7#]</td>
+                     <td onclick="createMonthLink('[#date1Js#]');" data-cal-date="[#date1Js#]" class="[#now1#]">[#d1#]</td>
+                     <td onclick="createMonthLink('[#date2Js#]');" data-cal-date="[#date2Js#]" class="[#now2#]">[#d2#]</td>
+                     <td onclick="createMonthLink('[#date3Js#]');" data-cal-date="[#date3Js#]" class="[#now3#]">[#d3#]</td>
+                     <td onclick="createMonthLink('[#date4Js#]');" data-cal-date="[#date4Js#]" class="[#now4#]">[#d4#]</td>
+					 <td onclick="createMonthLink('[#date5Js#]');" data-cal-date="[#date5Js#]" class="[#now5#]">[#d5#]</td>                     
+					 <td onclick="createMonthLink('[#date6Js#]');" data-cal-date="[#date6Js#]" class="[#now6#]">[#d6#]</td>
+                     <td onclick="createMonthLink('[#date7Js#]');" data-cal-date="[#date7Js#]" class="[#now7#]">[#d7#]</td>
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                

@@ -536,6 +536,12 @@ table.mc-calendar-year td.mc-day:hover {
 
 table.mc-calendar-year td.mc-today {
 	border:solid 2px red;
+	background-color: #e8efe8;
+	text-align:right;
+	padding:1px;
+	font-weight:bold;
+	width:2.8em;
+	cursor: pointer;
 }
 
 table.mc-calendar td.holiday {
@@ -545,5 +551,15 @@ table.mc-calendar td.saturday {
 	color: #006030;
 }
 table.mc-calendar td.sunday {
+	color: green;
+}
+
+table.mc-calendar-year td.holiday {
+	color: red;
+}
+table.mc-calendar-year td.saturday {
+	color: #006030;
+}
+table.mc-calendar-year td.sunday {
 	color: green;
 }
