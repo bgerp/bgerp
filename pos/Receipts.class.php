@@ -268,15 +268,26 @@ class pos_Receipts extends core_Master {
     	$action = explode("|", $detailRec->action);
     	switch($action[0]) {
     		case 'sale':
+    			
+    			// "Продажба" : преизчисляваме общата стойност на бележката
     			$rec->total = $this->countTotal($rec->id);
     			break;
     		case 'discount':
     			break;
     		case 'payment':
+    			
+    			// "Плащане" : преизчисляваме платеното до сега и рестото
     			$rec->paid = $this->countPaidAmount($rec->id);
     			$rec->change = $rec->paid - $rec->total;
     			break;
     		case 'client':
+    			
+    			// "Клиент" : записваме в бележката информацията за контрагента
+    			$contragentRec = explode("|", $detailRec->param);
+    			$rec->contragentId = $contragentRec[0];
+    			$class = $contragentRec[1];
+    			$rec->contragentClassId = $class::getClassId();
+    			$rec->contragentName =$class::fetchField($contragentRec[0],'name');
     			break;
     	}
     	
@@ -341,38 +352,50 @@ class pos_Receipts extends core_Master {
     {
     	expect($rec = static::fetch($id));
     	$products = static::fetchProducts($id);
+    	$posRec = pos_Points::fetch($rec->pointId);
     	foreach ($products as $product) {
     		$currencyCode = currency_Currencies::getCodeById($product->currencyId);
     		$amount = currency_CurrencyRates::convertAmount($product->amount, $rec->date, $currencyCode);
 	    	
+    		// Първо Отчитаме прихода от продажбата
     		$entries[] = array(
 	        'amount' => $amount, // Стойност на продукта за цялото количество, в основна валута
-	        
 	        'debit' => array(
-	            '411', // Сметка "411. Вземания от клиенти"
-	                array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
-	                //array('pos_Receipts', $id),              // Перо 2 - Документ-продажба
+	            '501',  // Сметка "501. Каси"
+	                array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
 	                array('currency_Currencies', $product->currencyId),     // Перо 3 - Валута
-	            
-	                'quantity' => $product->amount, // "брой пари" във валутата на продажбата
-	        ),
+	            'quantity' => $product->amount,), // "брой пари" във валутата на продажбата
 	        
 	        'credit' => array(
-	            '702', // Сметка "702. Приходи от продажби на стоки"
-	                //array('cat_Products', $product->productId), // Перо 1 - Продукт
-	                array('pos_Receipts', $id),  // Перо 2 - Документ-продажба
-	            'quantity' => $product->quantity, // Количество продукт в основната му мярка
-	        ),
-	    );
+	            '7012', // Сметка "7012. Приходи от POS продажби"
+	              	array('cat_Products', $product->productId), // Перо 1 - Продукт
+	            'quantity' => $product->quantity, ), // Количество продукт в основната му мярка
+	    	);
+	    	
+	    	// После Отчитаме експедиране от склада
+    		$entries[] = array(
+		        'amount' => $amount, // Стойност на продукта за цялото количество, в основна валута
+		        'debit' => array(
+		            '7012', // Сметка "7012. Приходи от POS продажби"
+		            	array('cat_Products', $product->productId), // Перо 1 - Продукт
+	            	'quantity' => $product->quantity, ), // Количество продукт в основната му мярка
+		        
+		        'credit' => array(
+		            '321', // Сметка "321. Стандартни продукти"
+		              	array('store_Stores', $posRec->storeId), // Перо 1 - Склад
+		              	array('cat_Products', $product->productId), // Перо 1 - Продукт
+	                'quantity' => $product->quantity, ), // Количество продукт в основната му мярка
+	    	);
     	}
-    	
+    	//bp($entries);
     	$transaction = (object)array(
                 'reason'  => 'PoS Продажба #' . $rec->id,
                 'valior'  => $rec->date,
                 'entries' => $entries, 
             );
+      $transaction = new acc_journal_Transaction($transaction);
+      bp($transaction->check());
       
-      bp($transaction);
       return $transaction;
     	//@TODO
     }
@@ -445,6 +468,22 @@ class pos_Receipts extends core_Master {
         
         if ($rec) {
             static::reject($id);
+        }
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод ( @see acc_TransactionSourceIntf )
+     */
+    static function on_AfterGetLink($mvc, &$res, $id)
+    {
+    	if(!$res) {
+            $title = sprintf('%s&nbsp;№%d',
+                empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle,
+                $id
+            );
+            
+            $res = ht::createLink($title, array($mvc, 'single', $id));
         }
     }
 }

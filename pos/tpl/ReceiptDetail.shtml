@@ -34,6 +34,6 @@
 
 <!--ET_BEGIN client-->
 <tr>
-	<td colspan='3' class='receipt-client'>Клиент: &nbsp;&nbsp;[#param#]</td>
+	<td colspan='3' class='receipt-client'>Клиент: &nbsp;&nbsp;[#clientName#]</td>
 </tr>
 <!--ET_END client-->

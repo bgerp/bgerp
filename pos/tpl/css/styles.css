@@ -40,11 +40,18 @@
 
 #receipt-details-form {
 	width: 35%;
-	margin-top: 20px;
+	margin-top: 2px;
 }
 
 #receipt-details-form-table {
 	
+}
+
+#single-receipt .formError{
+width:598px;
+ }
+.receipt-client {
+	background-color:aqua;
 }
 
 .buttonForm, .actionBtn, .clientBtn, .webscan{
