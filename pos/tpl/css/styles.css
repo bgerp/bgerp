@@ -1,6 +1,6 @@
 #receipt-table {
 	text-indent:8px;
-	width:45%;
+	width:620px;
 	border-collapse:collapse;
 	border:1px solid black;
 	margin-top:15px;
@@ -19,14 +19,9 @@
 	
 }
 
-#receipt-point {
-	font-style:italic;
-}
 #receipt-number {
-font-style:italic;	
+	font-style:italic;	
 }
-
-
 
 #receipt-total {
 	font-weight:bold;
@@ -38,6 +33,8 @@ font-style:italic;
 }
 
 #receipt-details-th td {
+	padding-top:12px;
+	padding-bottom:12px;
 }
 
 .receipt-sale {
@@ -72,7 +69,7 @@ font-style:italic;
 }
 
 .subBtn {
-	
+
 }
 .buttons-row {
 	margin-top:15px;
@@ -95,7 +92,7 @@ input.error {
 }
 
 .receipt-amount {
-	
+
 }
 
 #receipt-info{
@@ -111,3 +108,58 @@ input.error {
 #money-info {
 	text-align:center;
 }
+
+#error-place {
+	color:darkred;
+	font-style:italic;
+}
+
+#receipt-info{
+	padding:10px;
+	vertical-align:top;
+}
+
+/*скролиране на таблица*/
+table.scrollable{
+	width:100%;
+	border:none !important;
+	border-collapse:collapse;
+}
+
+table.scrollable td{
+	border:1px solid #000;
+	border-bottom:none;
+	border-right:none;
+	padding: 2px 15px 0;
+	vertical-align:middle;
+	height:28px;
+}
+	
+table.scrollable tr:first-child td{
+	border-top:none;
+}
+
+div.scrollWrapper{
+  float:left;
+  width:619px;
+  max-height:185px;
+  overflow-y:auto;
+  border-right:1px solid #000;
+  border-bottom:1px solid #000;
+  margin-bottom:20px;
+  
+}
+
+@media print{
+	div.scrollWrapper{
+		max-height:auto;
+		overflow:visible;
+		border:1px solid #000;
+		border-left:none;
+		width:620px;
+	}
+	table.scrollable td{
+		border:1px solid #000;
+	}
+}
+
