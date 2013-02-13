@@ -10,8 +10,8 @@
 106,Подотчетни лица,crm_PersonAccRegIntf,accountableInd
 107,"Дъщерни, асоциирани и смесени предприятия",crm_ContragentAccRegIntf,associates 
 109,"Разни: доверители, гаранции, застраховане, др.",crm_ContragentAccRegIntf,various
-110,вътр. Документ за ПРОДАЖБИ,,sales
-111,вътр. Документ за ПОКУПКИ,,purchase
+110,Документ "Продажба",,sales
+111,Документ "Покупка",,purchase
 120,Трудови договори,hr_ContractAccRegIntf,workContracts
 151,Договори за кредит,,loanAgreement
 152,Договори за лизинг,,leaseAgreement
@@ -32,8 +32,6 @@
 302,Суровини и материали,cat_ProductAccRegIntf,rawMaterials
 304,Отпадъци от опаковки,,packWaste
 309,"Амбалаж, инструменти и други суровини и материали",cat_ProductAccRegIntf,otherRawMaterials
-321,Стоки,cat_ProductAccRegIntf,goods
-322,Продукти (стандартни),cat_ProductAccRegIntf,standardProducts
-323,Продукти (по поръчка),cat_ProductAccRegIntf,customProducts
+321,Стоки и Продукти,cat_ProductAccRegIntf,goods&Products
 501,Каси,cash_CaseAccRegIntf,case
 503,Банкови сметки,bank_OwnAccRegIntf,bankAcc

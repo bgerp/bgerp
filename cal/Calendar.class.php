@@ -700,6 +700,8 @@ class cal_Calendar extends core_Master
     		// Проверка за конкретния запис
     	    self::requireRightFor('day', $rec);
     	    
+    	
+    	    
     	    // Деня, за който взимаме събитията
     		$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
      		
@@ -722,7 +724,15 @@ class cal_Calendar extends core_Master
     		$id = substr(strrchr($rec->url, "/"),1);
     		
     	    // Картинката за задачите
-    		$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+    		//$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+	    	if($rec->type == 'task'){ 
+		        $idTask = str_replace("TSK-", " ", $rec->key);
+		        $idTask = str_replace("-Start", " ", $idTask); 
+		        $idTask = str_replace("-End", " ", $idTask);     
+		    	$getTask = cls::get('cal_Tasks');
+		        $imgTask = $getTask->getIcon(trim($idTask));
+		        $img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
+	        }
     		
     		// Взимаме всеки път различен цвят за титлите на задачите
     		$color = array_pop(self::$colors);
@@ -730,44 +740,44 @@ class cal_Calendar extends core_Master
     		if(dt::mysql2verbal($rec->time, 'i') != "00"){
     			switch ($rec->state){
     				case "active":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title, $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'draftColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title, $url, NULL, array('class'=>'draftColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title, $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     			}
     		} elseif($hourKey != "allDay"){
     			switch ($rec->state){
     				case "active":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink($rec->title, $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink($rec->title, $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink($rec->title, $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     			}
     			
     		 } elseif($hourKey == "allDay" && $rec->type == "task"){
     			switch ($rec->state){
     				case "active":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink($rec->title, $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink($rec->title, $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$dayData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink($rec->title, $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				
     					
     			}
     		   } else {
-    				$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . str::limitLen($rec->title, 40) . "</p>", $url, NULL, array('title' => $rec->title));
+    				$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
      		     }
     		
     	}
@@ -817,6 +827,7 @@ class cal_Calendar extends core_Master
     		self::$tr = 8;
     		self::$tk = 18;
     	}
+    	
 
     	// Рендираме деня
     	$tpl = new ET(getFileContent('cal/tpl/SingleLayoutDays.shtml'));
@@ -1011,7 +1022,15 @@ class cal_Calendar extends core_Master
     		$id = substr(strrchr($rec->url, "/"),1);
     		
     		// Картинката която ще стои пред титлета на задачите
-    		$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+    		//$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+        	if($rec->type == 'task'){ 
+		        $idTask = str_replace("TSK-", " ", $rec->key);
+		        $idTask = str_replace("-Start", " ", $idTask); 
+		        $idTask = str_replace("-End", " ", $idTask);     
+		    	$getTask = cls::get('cal_Tasks');
+		        $imgTask = $getTask->getIcon(trim($idTask));
+		        $img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
+	        }
 
     		// Взимаме всеки път различен цвят за титлите на задачите
     		$color = array_pop(self::$colors);
@@ -1019,38 +1038,38 @@ class cal_Calendar extends core_Master
             if(dt::mysql2verbal($rec->time, 'i') != "00"){
     			switch ($rec->state){
     				case "active":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'draftColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'draftColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     			}
     		 } elseif($hourKey != "allDay"){
     			switch ($rec->state){
     				case "active":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 13), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 13), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     			}
     			
     		 } elseif($hourKey == "allDay" && $rec->type == "task"){
     			switch ($rec->state){
     				case "active":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$weekData[$hourKey][$dayKey] .= $img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</br>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
 
     			}
@@ -1274,6 +1293,14 @@ class cal_Calendar extends core_Master
             // Картинката която ще стои пред титлета на задачите
     		//sbf('img/16/task-normal.png')
     		//$img = "<img class='calImg' src=". sbf('img/16/task.png') .">&nbsp;";
+        	if($rec->type == 'task'){ 
+		        $idTask = str_replace("TSK-", " ", $rec->key);
+		        $idTask = str_replace("-Start", " ", $idTask); 
+		        $idTask = str_replace("-End", " ", $idTask);     
+		    	$getTask = cls::get('cal_Tasks');
+		        $imgTask = $getTask->getIcon(trim($idTask));
+		        $img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
+	        }
     	    		
     		// Взимаме всеки път различен цвят за титлите на задачите
     		$color = array_pop(self::$colors);
@@ -1281,25 +1308,25 @@ class cal_Calendar extends core_Master
             if($hourKey != "allDay"){
     			switch ($rec->state){
     				case "active":
-    					$monthArr[$weekKey][$dayKey] .= "<br>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'mc-calendar-calWeek', 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'mc-calendar-calWeek', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$monthArr[$weekKey][$dayKey] .= "<br>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'mc-calendar-draftColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'mc-calendar-draftColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$monthArr[$weekKey][$dayKey] .= "<br>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'mc-calendar-closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'mc-calendar-closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     			}
     		 } elseif($hourKey == "allDay" && $rec->type == "task"){
     			switch ($rec->state){
     				case "active":
-    					$monthArr[$weekKey][$dayKey] .= "<br>".$img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'mc-calendar-calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'mc-calendar-calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$monthArr[$weekKey][$dayKey] .= "<br>".$img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'mc-calendar-draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'mc-calendar-draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$monthArr[$weekKey][$dayKey] .= "<br>".$img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'mc-calendar-closedColor', 'style' => 'color:'. $color, 'title' => $rec->title));
+    					$monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 17), $url, NULL, array('class'=>'mc-calendar-closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
    
     			}
@@ -1340,6 +1367,16 @@ class cal_Calendar extends core_Master
         
         // Зареждаме шаблона
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutMonth.shtml'));
+        
+        $urlMonth = toUrl(array('cal_Calendar', 'week'));
+    	
+    	$jsFnc = "
+    	function createMonthLink(dt)
+    	{
+    		document.location = '{$urlMonth}?from=' + dt;
+		}";
+    	
+    	$tpl->appendOnce($jsFnc, 'SCRIPTS');
         
         
         // Рендираме филтъра
@@ -1392,6 +1429,11 @@ class cal_Calendar extends core_Master
     	
     	// Очакваме дата от филтъра
         $from = Request::get('from');
+        
+         // Избрана дата
+        $dayC = dt::mysql2Verbal(dt::now(), 'd');
+        $monthC = dt::mysql2Verbal(dt::now(), 'm');
+        $yearC = dt::mysql2Verbal(dt::now(), 'Y');
                
         // Разбиваме получената дата на ден, месец, година
         $year = dt::mysql2Verbal($from, 'Y');
@@ -1409,13 +1451,17 @@ class cal_Calendar extends core_Master
 	        // Генерираме масив масива на месеца => номер на седмицата[ден от седмицата][ден]
 	        for($i = 1; $i <= $lastDay; $i++) {
 	            $t = mktime(0, 0, 0, $m, $i, $year);
+	            $isToday = ($i == $dayC && $m == $monthC && $year == $yearC);
+	            
 	            
 	            // Цветовете на деня според типа им
-	        	$color = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $m,  $i, $year)));
+	        	//$color = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $m,  $i, $year)));
 	        	
-	            $yearArr["mon".$m][date('W', $t)]["d".date('N', $t)] = ht::createLink($i, '/cal_Calendar/week/?from='. $i. "." . $m. "." . $year, NULL, array('class'=>'mc-day', 'style' => 'color:'. $color));
-	             //$yearArr["mon".$m][date('W', $t)]["d".date('N', $t)] = $i;
-	            //$dateJs["mon".$m][date('W', $t)]["date".$i."Js"] = date("d.m.Y", $t);
+	            //$yearArr["mon".$m][date('W', $t)]["d".date('N', $t)] = ht::createLink($i, '/cal_Calendar/week/?from='. $i. "." . $m. "." . $year, NULL, array('class'=>'mc-day', 'style' => 'color:'. $color));
+	            $yearArr["mon".$m][date('W', $t)]["d".date('N', $t)] = $i;
+	            $dateJs["mon".$m][date('W', $t)]["date".date('N', $t)."Js"] = date("d.m.Y", $t);
+	            $tdCssClass["mon".$m][date('W', $t)]["now".date('N', $t)] = $isToday ? 'mc-today' : 'mc-day';
+                $tdCssClass["mon".$m][date('W', $t)]["now".date('N', $t)] .= ' ' . static::color(date("Y-m-d 00:00:00", $t));
 		        }
 	    	}//bp($dateJs);
 	    	
@@ -1462,13 +1508,9 @@ class cal_Calendar extends core_Master
 			        // Кой ден от седмицата е
 			        $dayKey = "d".date('N', $recT);
 
-			       // if($recMonth == $monthB && $dayKey == $dayKeyB){
-			        	$yearArr["mon".$recMonth][$weekKey][$dayKey] = "<img class='starImg'  src=". sbf('img/16/star_2.png') .">" . $recDay;
-			        //}
-			   
-			        
-			
-			     
+			        // Добавяме звезда там където имаме събитие
+			        $yearArr["mon".$recMonth][$weekKey][$dayKey] = "<img class='starImg'  src=". sbf('img/16/star_2.png') .">" . $recDay;
+			  			     
 	    } 
 
         $tpl = new ET(getFileContent('cal/tpl/SingleLayoutYear.shtml'));
@@ -1482,26 +1524,6 @@ class cal_Calendar extends core_Master
 		}";
     	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
-    	
-    	/*foreach($dateJs as $date => $dataArr) {
-    		
-    		foreach($dataArr as $dataNum => $data){
-//   / bp($date, $dataNum, $data);
-			    			switch ($date){
-			    				case "mon1":
-			    					
-						        	$lTpl = $tpl->getBlock("COMMENT_LI");
-						        	
-						        	$lTpl->placeArray($data);
-						        	
-						        	//bp($lTpl);
-						            $lTpl->append2master();
-						            break;
-			    			}
-    		}
-    	}*/
-    	//bp($dateJs, $yearArr);
-    	//$tpl->placeArray($dateJs);
 
     	foreach($yearArr as $monthNum => $monthArr) {
     		
@@ -1511,26 +1533,22 @@ class cal_Calendar extends core_Master
 			    				case "mon1":
 			    					$tpl->replace("Януари", 'month');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI");
-						        	
-						        							        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
+						      
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
-						        	
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						            $lTpl->append2master();
 						            break;
 						            
 						          case "mon2":
 			    					$tpl->replace('Февруари', 'month2');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI2");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
+						        							        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1539,10 +1557,10 @@ class cal_Calendar extends core_Master
 			    					$tpl->replace('Март', 'month3');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI3");
 						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1552,10 +1570,10 @@ class cal_Calendar extends core_Master
 						        	$lTpl = $tpl->getBlock("COMMENT_LI4");
 						        	
 						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1563,13 +1581,11 @@ class cal_Calendar extends core_Master
 						            case "mon5":
 			    					$tpl->replace('Май', 'month5');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI5");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
+						        							        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1577,13 +1593,11 @@ class cal_Calendar extends core_Master
 						            case "mon6":
 			    					$tpl->replace('Юни', 'month6');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI6");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
+						        							        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1591,13 +1605,11 @@ class cal_Calendar extends core_Master
 						            case "mon7":
 			    					$tpl->replace('Юли', 'month7');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI7");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
+						        							        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1605,13 +1617,11 @@ class cal_Calendar extends core_Master
 						            case "mon8":
 			    					$tpl->replace('Август', 'month8');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI8");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
+						        							        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1619,13 +1629,11 @@ class cal_Calendar extends core_Master
 						            case "mon9":
 			    					$tpl->replace('Септември', 'month9');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI9");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
 						        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1633,13 +1641,11 @@ class cal_Calendar extends core_Master
 						            case "mon10":
 			    					$tpl->replace('Октомври', 'month10');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI10");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
+						        							        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1647,13 +1653,11 @@ class cal_Calendar extends core_Master
 						            case "mon11":
 			    					$tpl->replace('Ноември', 'month11');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI11");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
 						        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;
@@ -1661,13 +1665,11 @@ class cal_Calendar extends core_Master
 						            case "mon12":
 			    					$tpl->replace('Декември', 'month12');
 						        	$lTpl = $tpl->getBlock("COMMENT_LI12");
-						        		        	
-						        	
-						        	
-						        	$lTpl->replace('mc-day', 'now');
-						        	
+						        							        	
 						        	$lTpl->replace($weekNum, 'weekNum');
 						        	$lTpl->placeArray($weekArr);
+						        	$lTpl->placeArray($dateJs[$monthNum][$weekNum]);
+						        	$lTpl->placeArray($tdCssClass[$monthNum][$weekNum]);
 						        	
 						            $lTpl->append2master();
 						            break;

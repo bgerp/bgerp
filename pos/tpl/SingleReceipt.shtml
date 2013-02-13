@@ -1,16 +1,14 @@
 <div id='single-receipt'>
 	[#SingleToolbar#]
 	<table border = '1' id = 'receipt-table' cellpadding='5px' cellspacing='0px'>
-		<thead class='fixed-table-header'>
 		<tr id='receipt-header'>
 			<td colspan='2'>
-				<div id='receipt-point'>Обект: &nbsp;&nbsp;[#pointId#]</div>
 				<div id='receipt-title'>Касова Бележка</div>
 				<div id='receipt-number'>Номер: &nbsp;&nbsp;<b>[#number#]</b>,  &nbsp;&nbsp;Дата: &nbsp;&nbsp;<b>[#date#]</b></div>
 				<div id='receipt-contragent'>Клиент: &nbsp;[#contragentName#]</div>
 			</td>
 			<td id='receipt-info'>
-				<table border='0' width='100%' cellspacing='0' cellpadding='0' id='money-info'>
+				<table border='0' width='100%'>
 				<tr>
 					<td>Общо</td>
 					<td>Платено</td>
@@ -19,20 +17,24 @@
 				<tr>
 					<td id='receipt-total'>[#total#]</td>
 					<td id='receipt-paid'>[#paid#]</td>
-					<td id='receipt-change'>[#change#]</td>
+					<td></td>
 				</tr>
 				</table>
 			</td>
 		</tr>
 		<tr id='receipt-details-th'>
-			<td>Количество</td>
-			<td>Цена</td>
+			<td width="200px">Количество</td>
+			<td width="150px">Цена</td>
 			<td>Стойност</td>
 		</tr>
-		</thead>
-		<tbody class='td-scrollable'>
-		[#DETAILS#]
-		</tbody>
 	</table>
+	<!--ET_BEGIN DETAILS-->
+	<div class="scrollWrapper">
+		<table class="scrollable" >
+			[#DETAILS#]
+		</table>
+	</div>
+	<!--ET_END DETAILS-->
+	<div class="clearfix21"></div>
 	[#ADD_FORM#]
 </div>

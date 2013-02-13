@@ -137,8 +137,8 @@ class pos_ReceiptDetails extends core_Detail {
     	$clientTpl = $blocksTpl->getBlock('client');
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
-	    		$action = explode('|', $data->recs[$row->id]->action);
-	    		$rowTpl = clone(${"{$action[0]}Tpl"});
+	    		$action = $this->getAction($data->recs[$row->id]->action);
+	    		$rowTpl = clone(${"{$action->type}Tpl"});
 	    		$rowTpl->placeObject($row);
 	    		$rowTpl->removeBlocks();
 	    		$tpl->append($rowTpl);
@@ -177,11 +177,15 @@ class pos_ReceiptDetails extends core_Detail {
     		$row->discountSum = $double->toVerbal($rec->discountSum);
     	}
     	
-    	$action = explode("|", $rec->action);
-    	$row->actionType = $action[0];
+    	$action = $mvc->getAction($rec->action);
+    	$row->actionType = $action->type;
     	if($row->actionType == 'payment') {
-    		$value = pos_Payments::fetchField($action[1], 'title');
+    		$value = pos_Payments::fetchField($action->value, 'title');
     		$row->actionValue = $varchar->toVerbal($value);
+    	} elseif($row->actionType == 'client') {
+    		$clientArr = explode("|", $rec->param);
+    		$clientName = $clientArr[1]::fetchField($clientArr[0], 'name');
+    		$row->clientName = $varchar->toVerbal($clientName);
     	}
     	
     	//@TODO
@@ -196,14 +200,27 @@ class pos_ReceiptDetails extends core_Detail {
     	if($form->isSubmitted()) {
     		$rec = &$form->rec;
     		$rec->ean = trim($rec->ean);
-    		$action = explode("|", $rec->action);
-	    	switch($action[0]) {
+    		$action = $mvc->getAction($rec->action);
+	    	switch($action->type) {
 	    		case 'sale':
 	    			
 	    			//Ако действието е "продажба"
 	    			$mvc->getProductInfo($rec);
 	    			if(!$rec->productId) {
 	    				$form->setError('ean', 'Няма такъв продукт в системата');
+	    				
+	    				return;
+	    			}
+	    			
+	    			// Намираме дали този проект го има въведен 
+	    			$sameProduct = $mvc->findProduct($rec->productId, $rec->receiptId);
+	    			if((string)$sameProduct->price == (string)$rec->price) {
+	    				
+	    				// Ако цената муе  същата като на текущия продукт,
+	    				// не добавяме нов запис а ъпдейтваме стария
+	    				$rec->quantity += $sameProduct->quantity;
+	    				$rec->amount += $sameProduct->amount;
+	    				$rec->id = $sameProduct->id;
 	    			}
 	    			break;
 	    		case 'payment':
@@ -220,13 +237,21 @@ class pos_ReceiptDetails extends core_Detail {
 	    			if(!is_numeric($rec->ean)) {
 	    				$form->setError('ean', 'Не сте въвели валидно число');
 	    			}
-	    			$param = ucfirst(strtolower($action[1]));
+	    			$param = ucfirst(strtolower($action->value));
 	    			$rec->{"discount{$param}"} = (double)$rec->ean;
 	    			break;
 	    		case 'client':
+	    			if(!is_numeric($rec->ean)) {
+	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    				return;
+	    			}
 	    			
 	    			// Ако действието е "клиент"
 	    			$mvc->getClientInfo($rec);
+	    			if(!$rec->param) {
+	    				$form->setError('ean', 'Няма такъв Клиент');
+	    			}
+	    			
 	    			break;
 	    	}
 	    }
@@ -234,13 +259,48 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Изчлича информацията за клиента
+     * Метод връщаш обект с информация за избраното действие
+     * и неговата стойност
+     * @param string $string - стринг където от вида "action|value"
+     * @return stdClass $action - обект съдържащ ид и стойноста извлечени
+     * от стринга
+     */
+    function getAction($string)
+    {
+    	$actionArr = explode("|", $string);
+    	$allowed = array('sale', 'discount', 'client', 'payment');
+    	expect(in_array($actionArr[0], $allowed), 'Не е позволена такава оепрация');
+    	expect(count($actionArr) == 2, 'Стринга не е в правилен формат');
+    	
+    	$action = new stdClass();
+    	$action->type = $actionArr[0];
+    	$action->value = $actionArr[1];
+    	
+    	return $action;
+    }
+    
+    
+    /**
+     * Изчлича информацията за клиента, по зададен параметър
+     * записва информацията за клиента във вида на стринг:
+     * ид на клиента и неговия клас разделени с "|"
      * @param stdClass $rec
      */
     function getClientInfo(&$rec)
     {
-    	//@TODO
-    	$rec->param = $rec->ean;	
+    	//@TODO Функцията е прототипна
+    	$action = static::getAction($rec->action);
+    	if($action->type == 'ccard') {
+    		try{
+    			// временно връща името на клиента, по подадено негово Id
+	    		$rec->param = crm_Persons::fetchField($rec->ean, 'id');
+	    	} catch(Exception $e) {
+	    		$rec->param = NULL;
+	    		
+	    		return;
+	    	} 
+	    	$rec->param .= "|crm_Persons";
+    	}	
     }
     
     
@@ -261,15 +321,10 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	$priceCls = cls::get('cat_PricePolicyMockup');
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
-    	if($receiptRec->contragentClass) {
     	$price = $priceCls->getPriceInfo($receiptRec->contragentClass,
     									 $receiptRec->contragentObjectId, 
     									 $rec->productId,
     									 NULL, $rec->quantity, $receiptRec->date);
-    	} else {
-    		$price = $priceCls->getPriceInfo(NULL, NULL, $rec->productId);
-    	}
-    				
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	
     	$rec->price = $price->price;
@@ -301,8 +356,8 @@ class pos_ReceiptDetails extends core_Detail {
     	$query->where("#action LIKE '%discount%'");
     	$query->orderBy("#id", "DESC");
     	if($dRec = $query->fetch()) {
-    		$action = explode("|", $dRec->action);
-    		if($action[1] == 'percent') {
+    		$action = $this->getAction($dRec->action);
+    		if($action->value == 'percent') {
     			
     			// Ако остъпката е в процент то изчисляваме каква част
     			// от цената е тя
@@ -330,6 +385,27 @@ class pos_ReceiptDetails extends core_Detail {
     	return $finalPrice;
     }
     
+    
+	/**
+     *  Намира последната продажба на даден продукт в текущата бележка
+     *  @param int $productId - ид на продукта
+     *  @param int $receiptId - ид на бележката
+     *  @return mixed $rec/FALSE - Последния запис или FALSE ако няма
+     */
+    function findProduct($productId, $receiptId)
+    {
+    	$query = $this->getQuery();
+    	$query->where(array("#productId = [#1#]", $productId));
+    	$query->where(array("#receiptId = [#1#]", $receiptId));
+    	$query->orderBy('id', 'DESC');
+    	$query->limit(1);
+    	if($rec = $query->fetch()){
+    		
+    		return $rec;
+    	} 
+    	
+    	return FALSE;
+    }
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -372,7 +448,7 @@ class pos_ReceiptDetails extends core_Detail {
 	/**
 	 * След като създадем елемент, ъпдейтваме Бележката
 	 */
-	static function on_AfterCreate($mvc, $rec)
+	static function on_AfterSave($mvc, &$id, $rec)
     {
      	$mvc->Master->updateReceipt($rec);
     }

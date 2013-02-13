@@ -3,10 +3,10 @@
 	<td colspan='3' class='receipt-sale'>Продажба: &nbsp;&nbsp;[#productId#]</td>
 </tr>
 <tr>
-	<td class='receipt-quantity'>[#quantity#] бр.</td>
-	<td class='receipt-price'>[#price#] лв. 
+	<td class='receipt-quantity' width="180px">[#quantity#] бр.</td>
+	<td class='receipt-price' width="130px">[#price#] лв. 
 	<!--ET_BEGIN discountPercent-->
-	 (<span class='receipt-discount-td'>[#discountPercent#] отс. </span>)
+	 (<span class='receipt-discount-td'>- [#discountPercent#]</span>)
 	<!--ET_END discountPercent-->
 	</td>
 	<td class='receipt-amount'>[#amount#] лв.</td>
@@ -34,6 +34,6 @@
 
 <!--ET_BEGIN client-->
 <tr>
-	<td colspan='3' class='receipt-client'>Клиент: &nbsp;&nbsp;[#param#]</td>
+	<td colspan='3' class='receipt-client'>Клиент: &nbsp;&nbsp;[#clientName#]</td>
 </tr>
 <!--ET_END client-->
