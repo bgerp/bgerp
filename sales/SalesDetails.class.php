@@ -326,6 +326,15 @@ class sales_SalesDetails extends core_Detail
                 
                 if (empty($rec->packPrice)) {
                     $rec->packPrice = $policyInfo->price;
+
+                    // Цената идва от ценоразписа в основна валута. Конвертираме я към валутата
+                    // на продажбата.
+                    $rec->packPrice = 
+                        currency_CurrencyRates::convertAmount(
+                            $rec->packPrice, 
+                            $masterRec->date, 
+                            $masterRec->currencyId
+                        );
                 }
                 if (empty($rec->discount)) {
                     $rec->discount = $policyInfo->discount;
@@ -352,13 +361,17 @@ class sales_SalesDetails extends core_Detail
     
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf', 'title');
-        
         if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
+            
+            $customerClass = $data->masterData->rec->contragentClassId;
+            $customerId    = $data->masterData->rec->contragentId;
+        
             $addUrl = $data->toolbar->buttons['btnAdd']->url;
             
-            foreach ($pricePolicies as $policyId=>$title) {
-                $data->toolbar->addBtn($title, $addUrl + array('policyId' => $policyId,),
+            foreach ($pricePolicies as $policyId=>$Policy) {
+                $Policy = cls::getInterface('price_PolicyIntf', $Policy);
+                $data->toolbar->addBtn($Policy->getPolicyTitle($customerClass, $customerId), $addUrl + array('policyId' => $policyId,),
                     "id=btnAdd-{$policyId},class=btn-add");
             }
             
