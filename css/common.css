@@ -447,7 +447,7 @@ div.hFormField {
 }
 
 .narrow form[method=post] input[type=submit]:first-child { 
-	background-color:#99f !important;
+	background-color:#99f;
 	color:white;
 }
 
