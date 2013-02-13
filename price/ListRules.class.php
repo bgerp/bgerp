@@ -84,8 +84,8 @@ class price_ListRules extends core_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'caption=Опаковка');
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory');
-        $this->FLD('price', 'double(decimals=2)', 'caption=Цена');
-        $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка');
+        $this->FLD('price', 'double(decimals=2)', 'caption=Цена,mandatory');
+        $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка,mandatory,placeholder=%');
         $this->FLD('validFrom', 'datetime', 'caption=В сила->От,mandatory');
         $this->FLD('validUntil', 'datetime', 'caption=В сила->До');
     }
@@ -130,7 +130,7 @@ class price_ListRules extends core_Detail
         }
         
         // Вземаме последното правило
-        $query->orderBy("#validFrom", "DESC");
+        $query->orderBy("#validFrom,#id", "DESC");
         $query->limit(1);
 
         $rec = $query->fetch();
@@ -166,28 +166,50 @@ class price_ListRules extends core_Detail
 
 
     /**
-     *
+     * Подготвя формата за въвеждане на правила
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-       
         $form = $data->form;
 
         $rec = $form->rec;
 
         $type = $rec->type;
 
+        $masterRec = price_Lists::fetch($rec->listId);
+
+        $masterTitle = price_Lists::getVerbal($masterRec, 'title');
+
         switch($type) {
             case 'groupDiscount' :
                 $form->setField('productId,packagingId,price', 'input=none');
+                $title = "Групова отстъпка в ценоразпис \"$masterTitle\"";
                 break;
             case 'discount' :
                 $form->setField('groupId,price', 'input=none');
+                $title = "Продуктова отстъпка в ценоразпис \"$masterTitle\"";
                 break;
             case 'value' :
                 $form->setField('groupId,discount', 'input=none');
+                $title = "Продуктова цена в ценоразпис \"$masterTitle\"";
                 break;
         }
+
+        $form->title = $title;
+
+        if(!$rec->validFrom) {
+            $rec->validFrom = Mode::get('PRICE_VALID_FROM');
+        }
+    }
+
+
+    /**
+     * След създаване на ново правило, записва за дефолт на следващите правила
+     * началото на валидността му
+     */
+    function on_AfterCreate($mvc, $rec)
+    {
+        Mode::setPermanent('PRICE_VALID_FROM', $rec->validFrom);
     }
 
 
@@ -212,6 +234,109 @@ class price_ListRules extends core_Detail
     function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
         price_History::removeTimeline();
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
+            if($rec->validFrom <= dt::verbal2mysql()) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {   
+        $now = dt::verbal2mysql();
+
+        if($rec->validFrom > $now) {
+            $state = 'draft';
+        } else {
+
+            $query = $mvc->getQuery();
+            $query->orderBy('#validFrom,#id', 'DESC');
+            $query->limit(1);
+            
+            $query->where("#validFrom <= '{$now}' AND (#validUntil IS NULL OR #validUntil > '{$now}')");
+
+            if($rec->groupId) {
+                $query->where("#groupId = $rec->groupId");
+            } else {
+                $productGroup = price_GroupOfProducts::getGroup($rec->productId, $now);
+                expect($rec->productId);
+                if($rec->productId && $rec->packagingId) {
+                    $query->where("#groupId = $productGroup OR (#productId = $rec->productId AND (#packagingId = $rec->packagingId OR #packagingId IS NULL))");
+                } else {
+                    $query->where("#groupId = $productGroup OR (#productId = $rec->productId AND #packagingId IS NULL)");
+                }
+            }
+
+            expect($actRec = $query->fetch());
+
+            if($actRec->id == $rec->id) {
+                $state = 'active';
+            } else {
+                $state = 'closed';
+            }
+        }
+
+        $row->ROW_ATTR['class'] .= " state-{$state}";
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()) {
+            
+            $rec = $form->rec;
+
+            $now = dt::verbal2mysql();
+
+            if($rec->validFrom <= $now) {
+                $form->setError('validFrom', 'Не могат да се задават правила за минал момент');
+            }
+
+             if($rec->validUntil && ($rec->validUntil <= $rec->validFrom)) {
+                $form->setError('validUntil', 'Правилото трябва да е в сила до по-късен момент от началото му');
+            }
+        }
+    }
+
+
+    /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#validFrom,#id', 'DESC');
     }
 
     
