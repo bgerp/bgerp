@@ -18,6 +18,10 @@ div.event{
 	padding-left: 13px;
 }
 
+div.task{
+	padding-top:0.5em;
+}
+
 table.calTable{
 	max-width:87em;
 	font: small Arial,sans-serif;
@@ -322,27 +326,30 @@ a.mc-calendar-calWeek{
 	border: 0px #999;
 	white-space: nowrap;
 	colspan: 2;
-	position:absolute;
+	position:relative;
 	width:11em;
 	font: small Arial,sans-serif;
 	font-size: 0.8em;
+	margin-left: 15px;
 }
 
 a.mc-calendar-draftColor{
-	position:absolute;
+	position:relative;
 	background-color:#88cc99;
 	width:10em;
 	font: small Arial,sans-serif;
 	font-size: 0.8em;
+	margin-left: 15px;
 }
 
 a.mc-calendar-closedColor{
-	position:absolute;
+	position:relative;
 	background-color:#eee; 
 	text-decoration:line-through;
 	width:10em;
 	font: small Arial,sans-serif;
 	font-size: 0.8em;
+	margin-left: 15px;
 }
 
 
