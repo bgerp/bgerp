@@ -305,7 +305,7 @@ class core_Packs extends core_Manager
         $row->name = new ET($row->name);
         $row->name->append(' ' . str_replace(',', '.', $rec->version));
         $row->name .= "<div><small>{$rec->info}</small></div>";
-        $row->imageUrl = sbf("img/100/system.png","");
+        $row->imageUrl = sbf("img/100/default.png","");
        
         $row->install = ht::createLink("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
         
