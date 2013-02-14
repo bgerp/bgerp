@@ -25,7 +25,7 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, survey_Wrapper, plg_Sorting';
+    var $loadList = 'plg_RowTools, pos_Wrapper, plg_Sorting';
     
   
     /**
@@ -64,7 +64,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
     	$this->FLD('price', 'float(minDecimals=2)', 'caption=Цена,input=none');
         $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=3em');
-    	$this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума, input=none,input=none');
+        $this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума, input=none,input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
     	$this->FLD('discountPercent', 'percent(Max=1)', 'caption=Отстъпка->Процент,input=none');
         $this->FLD('discountSum', 'float(minDecimals=2)', 'caption=Отстъпка->Сума,input=none');
@@ -171,6 +171,9 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	if($rec->discountPercent) {
     		$row->discountPercent = $double->toVerbal($rec->discountPercent) . " %";
+    		if($rec->discountPercent <= 0) {
+    			unset($row->discountPercent);
+    		}
     	}
     	
     	if($rec->discountSum) {
@@ -200,28 +203,31 @@ class pos_ReceiptDetails extends core_Detail {
     	if($form->isSubmitted()) {
     		$rec = &$form->rec;
     		$rec->ean = trim($rec->ean);
+    		if(!$rec->ean) {
+    			$form->setError('ean', 'Имате празно поле');
+    			return;
+    		}
     		$action = $mvc->getAction($rec->action);
 	    	switch($action->type) {
 	    		case 'sale':
-	    			
-	    			//Ако действието е "продажба"
 	    			$mvc->getProductInfo($rec);
 	    			if(!$rec->productId) {
 	    				$form->setError('ean', 'Няма такъв продукт в системата');
-	    				
 	    				return;
 	    			}
 	    			
-	    			// Намираме дали този проект го има въведен 
-	    			$sameProduct = $mvc->findProduct($rec->productId, $rec->receiptId);
-	    			if((string)$sameProduct->price == (string)$rec->price) {
-	    				
-	    				// Ако цената муе  същата като на текущия продукт,
-	    				// не добавяме нов запис а ъпдейтваме стария
-	    				$rec->quantity += $sameProduct->quantity;
-	    				$rec->amount += $sameProduct->amount;
-	    				$rec->id = $sameProduct->id;
-	    			}
+				    // Намираме дали този проект го има въведен 
+				    $sameProduct = $mvc->findProduct($rec->productId, $rec->receiptId);
+				    //bp($sameProduct, $rec);
+				    if((string)$sameProduct->price == (string)$rec->price
+				    	&& $sameProduct->param == $rec->param) {
+				    				
+				    		// Ако цената и опаковката му е същата като на текущия продукт,
+				    		// не добавяме нов запис а ъпдейтваме стария
+				    		$rec->quantity += $sameProduct->quantity;
+				    		$rec->amount += $sameProduct->amount;
+				    		$rec->id = $sameProduct->id;
+				    }
 	    			break;
 	    		case 'payment':
 	    			
@@ -251,7 +257,6 @@ class pos_ReceiptDetails extends core_Detail {
 	    			if(!$rec->param) {
 	    				$form->setError('ean', 'Няма такъв Клиент');
 	    			}
-	    			
 	    			break;
 	    	}
 	    }
@@ -290,17 +295,16 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	//@TODO Функцията е прототипна
     	$action = static::getAction($rec->action);
-    	if($action->type == 'ccard') {
+    	if($action->value == 'ccard') {
     		try{
     			// временно връща името на клиента, по подадено негово Id
 	    		$rec->param = crm_Persons::fetchField($rec->ean, 'id');
+	    		$rec->param .= "|crm_Persons";	
 	    	} catch(Exception $e) {
 	    		$rec->param = NULL;
-	    		
 	    		return;
 	    	} 
-	    	$rec->param .= "|crm_Persons";
-    	}	
+	    }	
     }
     
     
@@ -312,21 +316,19 @@ class pos_ReceiptDetails extends core_Detail {
     function getProductInfo(&$rec)
     {
     	try{
-    		$rec->productId = cat_Products::fetchField(array("#code='[#1#]'", $rec->ean), 'id');
+    		$product = cat_Products::fetch(array("#code = '[#1#]'", $rec->ean));
     	} catch(Exception $e) {
-    		$rec->productid = NULL;
-    		
-    		return;
+    		return $rec->productid = NULL;
     	}
     	
-    	$priceCls = cls::get('cat_PricePolicyMockup');
+    	$rec->productId = $product->id;
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
+        $priceCls = cls::get('cat_PricePolicyMockup');
     	$price = $priceCls->getPriceInfo($receiptRec->contragentClass,
     									 $receiptRec->contragentObjectId, 
-    									 $rec->productId,
+    									 $product->id,
     									 NULL, $rec->quantity, $receiptRec->date);
     	$price = $this->applyDiscount($price, $rec->receiptId);
-    	
     	$rec->price = $price->price;
     	if($price->discount != 0.00) {
     		$rec->discountPercent = $price->discount;

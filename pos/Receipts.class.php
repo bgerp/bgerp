@@ -44,7 +44,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, number, date, contragentName, total, createdOn, createdBy';
+    var $listFields = 'tools=Пулт, number, date, contragentName, total, createdOn, createdBy, tax, state';
     
     
     /**
@@ -95,6 +95,12 @@ class pos_Receipts extends core_Master {
     var $singleLayoutFile = 'pos/tpl/SingleReceipt.shtml';
     
     
+    /**
+	 * Полета които да са достъпни след изтриване на дъска
+	 */
+	var $fetchFieldsBeforeDelete = 'id';
+	
+	
     /**
      * Описание на модела
      */
@@ -374,7 +380,6 @@ class pos_Receipts extends core_Master {
 	    	
 	    	// После Отчитаме експедиране от склада
     		$entries[] = array(
-		        'amount' => $amount, // Стойност на продукта за цялото количество, в основна валута
 		        'debit' => array(
 		            '7012', // Сметка "7012. Приходи от POS продажби"
 		            	array('cat_Products', $product->productId), // Перо 1 - Продукт
@@ -387,17 +392,19 @@ class pos_Receipts extends core_Master {
 	                'quantity' => $product->quantity, ), // Количество продукт в основната му мярка
 	    	);
     	}
-    	//bp($entries);
+    	
     	$transaction = (object)array(
                 'reason'  => 'PoS Продажба #' . $rec->id,
                 'valior'  => $rec->date,
                 'entries' => $entries, 
             );
-      $transaction = new acc_journal_Transaction($transaction);
-      bp($transaction->check());
+            
+      //$transaction = new acc_journal_Transaction($transaction);
+      //if (!$transaction->check()) {
+                   // return FALSE;
+      //}
       
       return $transaction;
-    	//@TODO
     }
     
     
@@ -408,12 +415,13 @@ class pos_Receipts extends core_Master {
      */
     public static function finalizeTransaction($id)
     {
-        $rec = (object)array(
-            'id' => $id,
-            'state' => 'active'
-        );
+    	$rec = static::fetch($id);
         
-        return self::save($rec);
+        $rec->state = 'active';
+        
+        if (static::save($rec)) {
+            //$this->class->invoke('Activation', array($rec));
+        }
     }
     
 	
@@ -484,6 +492,17 @@ class pos_Receipts extends core_Master {
             );
             
             $res = ht::createLink($title, array($mvc, 'single', $id));
+        }
+    }
+    
+     
+     /**
+     * Изтриваме детайлите ако се изтрие мастъра
+     */
+    function on_AfterDelete($mvc, &$res, $query)
+    {
+        foreach($query->getDeletedRecs() as $rec) {
+        	$mvc->pos_ReceiptDetails->delete("#receiptId = {$rec->id}");
         }
     }
 }
