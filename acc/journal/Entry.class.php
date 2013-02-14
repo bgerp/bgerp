@@ -114,7 +114,7 @@ class acc_journal_Entry
         }
         
         // Количеството по кредита е задължително за сметки с размерна аналитичност
-        if ($this->debit->account->isDimensional()) {
+        if ($this->credit->account->isDimensional()) {
             expect(isset($this->debit->quantity), 'Липсва количество при кредитиране на сметка с размерна аналитичност');
         }
         
@@ -126,13 +126,6 @@ class acc_journal_Entry
         
         $this->checkAmounts();
         
-//         // Проверка дали сумата по дебита е същата като сумата по кредита
-//         expect(!isset($this->debit->amount) || 
-//                !isset($this->credit->amount) ||
-//                ($this->debit->amount == $this->credit->amount && 
-//                    $this->debit->amount == $this->amount()),
-//                    "Дебит-стойността на транзакцията не съвпада с кредит-стойността");
-       
         return TRUE;
     }
 
