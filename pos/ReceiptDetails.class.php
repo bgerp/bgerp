@@ -448,7 +448,7 @@ class pos_ReceiptDetails extends core_Detail {
 	/**
 	 * След като създадем елемент, ъпдейтваме Бележката
 	 */
-	static function on_AfterSave($mvc, &$id, $rec)
+	static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
     {
      	$mvc->Master->updateReceipt($rec);
     }

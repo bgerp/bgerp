@@ -1,4 +1,5 @@
 $(document).ready(function () {
+	$(".scrollWrapper").scrollTop($(".scrollWrapper")[0].scrollHeight);
 	$('#incBtn').click(function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
 	});
