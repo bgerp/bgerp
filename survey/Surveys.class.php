@@ -285,7 +285,7 @@ class survey_Surveys extends core_Master {
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = $rec->reason;
+        $row->title = $rec->title;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         
@@ -303,7 +303,6 @@ class survey_Surveys extends core_Master {
     	
     	return $self->abbr . $rec->id;
     }
-    
     
 	/**
      * Извиква се след подготовката на toolbar-а за табличния изглед
