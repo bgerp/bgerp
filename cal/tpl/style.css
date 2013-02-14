@@ -19,7 +19,8 @@ div.event{
 }
 
 div.task{
-	padding-top:0.5em;
+	padding:0.25em 0;
+	
 }
 
 table.calTable{
@@ -34,14 +35,12 @@ table.calTable{
 
 }
 
-
 table.mc-calendar {
 	width:100%;
 	font-size:0.8em;
 }
 
 table.mc_calendar td.calWeekN {
-	
 	color:black;
 	width:12em;
 	min-width:8em;
@@ -51,7 +50,6 @@ table.mc_calendar td.calWeekN {
     font: small Arial,sans-serif;
 	font-size: 0.7em;
 	padding:1px;
-	cursor: pointer;
   
 }
 
@@ -94,7 +92,6 @@ table.mc_calendar td.calDayTime {
 	height:2em;
 	font: small Arial,sans-serif;
 	font-size: 0.7em;
-	
 }
 
 table.mc_calendar td.calWeekH {
@@ -157,8 +154,7 @@ table.mc_calendar td.calDayN {
 a.calWeek{
 	border: 0px #999;
 	white-space: nowrap;
-	colspan: 2;
-	position:absolute;
+	line-height:150%;
 	margin-left:15px;
 	
 }
@@ -175,6 +171,16 @@ img.calWeekAdd{
 	display:none;
 
 }
+.add-task-btn{
+	display: block;
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	top: 50%;
+	margin-top: -8px;
+	right: 5px;
+	cursor:pointer !important;
+}
 
 img.calImg{
 	float: left;
@@ -183,12 +189,9 @@ img.calImg{
 }
 
 img.starImg{
-
 	width: 10px;
 	height: 10px;
 	margin-right: 5px;
-	
-
 }
 
 table.mc_calendar td.mc-todayD {
@@ -210,6 +213,10 @@ table.mc_calendar td.mc-todayN{
 	font-size: 0.7em;
 	colspan: 2;
 
+}
+
+table.mc_calendar td .relative-holder{
+	position:relative;
 }
 
 p.calWeek{
@@ -249,6 +256,7 @@ p.calTitle{
 	font-size: 1em;
 	text-align:left;
 	font-weight:bold;
+	line-height:150%;
 }
 
 a.closedColor{
@@ -256,12 +264,14 @@ a.closedColor{
 	background-color:#eee; 
 	text-decoration:line-through;
 	margin-left:15px;
+	line-height:150%;
 }
 
 a.draftColor{
 	position:absolute;
 	background-color:#88cc99;
 	margin-left:15px;
+	line-height:150%;
 }
 
 
