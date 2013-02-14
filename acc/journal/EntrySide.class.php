@@ -79,56 +79,6 @@ class acc_journal_EntrySide
      * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
      * @param array|stdClass $data
-     * @deprecated
-     */
-    public function xinitFromTransactionSource($data)
-    {
-        $data = (object)$data;
-        $type = strtolower($this->type);
-
-        expect ($type == self::DEBIT || $type == self::CREDIT);
-
-        $result = array(
-            'account'  => NULL,
-            'items'    => array(),
-            'amount'   => NULL,
-            'quantity' => NULL,
-            'price'    => NULL,
-        );
-
-        if (isset($data->{"{$type}Acc"})) {
-            $result['account'] = new acc_journal_Account($data->{"{$type}Acc"});
-        } elseif (isset($data->{"{$type}AccId"})) {
-            $result['account'] = acc_journal_Account::byId($data->{"{$type}AccId"});
-        }
-
-        if (isset($data->{"{$type}Quantity"})) {
-            $result['quantity'] = $data->{"{$type}Quantity"};
-        }
-        if (isset($data->{"{$type}Price"})) {
-            $result['price'] = $data->{"{$type}Price"};
-        }
-        if (isset($data->{"{$type}Amount"})) {
-            $result['amount'] = $data->{"{$type}Amount"};
-        }
-
-        foreach (range(1, 3) as $n) {
-            if (isset($data->{"{$type}Item{$n}"})) {
-                $itemData = (object)$data->{"{$type}Item{$n}"};
-                $result['items'][$n-1] = new acc_journal_Item($itemData->cls, $itemData->id);
-            } elseif (isset($data->{"{$type}Item{$n}Id"})) {
-                $result['items'][$n-1] = new acc_journal_Item($data->{"{$type}Item{$n}Id"});
-            }
-        }
-
-        return $this->init($result);
-    }
-
-
-    /**
-     * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
-     *
-     * @param array|stdClass $data
      */
     public function initFromTransactionSource($data)
     {
