@@ -177,20 +177,36 @@ class currency_CurrencyRates extends core_Detail
     
     
     /**
-     *  Функция обръщаща сума от една валута в друга към дадена дата
-     *  @param date $date - Дата, ако не е въведена взема текущата
-     *  @param string $from - Код на валутата от която ще обръщаме
-     *  @param string $to - Код на валутата към която ще обръщаме, ако
-     *  не е подадена, изпозлваме валутата която е основна за текущия
-     *  сч. период
-     *  @param double $amount - Сума която ще обърнем
-     *  @return double $amount - Конвертираната стойност на сумата
+     *  Обръща сума от една валута в друга към дадена дата
+     *  
+     *  @param double $amount Сума която ще обърнем
+     *  @param date $date NULL = текущата дата
+     *  @param string $from Код на валутата от която ще обръщаме
+     *                      NULL = базова валута към $date
+     *  @param string $to Код на валутата към която ще обръщаме
+     *                    NULL = базова валута към $date
+     *  @return double $amount Конвертираната стойност на сумата
      */
-    static function convertAmount($amount, $date, $from, $to = NULL)
+    public static function convertAmount($amount, $date, $from, $to = NULL)
     {
-    	// Проверяваме входните данни
-    	expect(currency_Currencies::getIdByCode($from), 'Няма валута с такъв код');
-    	expect(currency_Currencies::getIdByCode($to), 'Няма валута с такъв код');
+    	if ($from == $to) {
+    	    // Ако подадените валути са еднакви, то обменния им курс е 1
+    	    return $amount;
+    	}
+    	
+    	// Незададен (NULL) код на валута означава базова валута, зададен - обръщаме го към id
+    	$fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
+    	$toId   = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
+    	
+    	expect($fromId, "{$from}: Няма такава валута");
+    	expect($toId,   "{$to}: Няма такава валута");
+    	                            
+        if ($fromId == $toId) {
+    	    // Ако подадените валути са еднакви, то обменния им курс е 1
+            return 1;
+        }
+        
+        // Проверяваме входните данни
     	expect(is_numeric($amount), 'Не е подадена валидна сума');
     	
     	// Намираме Курса между двете валути към дадената дата
@@ -198,7 +214,7 @@ class currency_CurrencyRates extends core_Detail
     	
     	// Намираме курса на първата към основната валута в модела
     	// ако курса е 1 то валутата е основната в модела
-    	$fromRate = static::getBaseRate(currency_Currencies::getIdByCode($from), $date);
+    	$fromRate = static::getBaseRate($fromId, $date);
     	
     	// Ако валутата е основната в модела, обръщаме рейта
     	if($fromRate != 1) {
@@ -214,28 +230,34 @@ class currency_CurrencyRates extends core_Detail
     
     /**
      *  Изчислява обменния курс от една валута в друга, за дадена дата
-     *  @param date $date - датата към която ще изчисляваме курса, датата
-     *  трябва да е във валиден mysql-ски формат !!!
-     *  @param varchar(3) $from - Трибуквения код на валутата, която ще обменяме
-     *  @param varchar(3) $to - Трибуквения код на валутата, към която
-     *  ще изчисляваме, ако не е въведена използваме основната валута
-     *  за текущият счетоводен период
-     *  @return double - Курса по който се обменя едната валута към другата
+     *  
+     *  @param date $date датата към която ще изчисляваме курса, 
+     *                    трябва да е във валиден mysql-ски формат !!!
+     *  @param string $from Трибуквен код на валутата, която ще обменяме
+     *                      NULL = базова валута.
+     *  @param string $to Трибуквен код на валутата, към която ще обменяме
+     *                    NULL = базова валута.
+     *  @return double Курса по който се обменя едната валута към другата
      */
-    static function getRate($date, $from, $to = NULL)
+    public static function getRate($date, $from, $to = NULL)
     {
-    	// Ако подадените валути са еднакви, то обменния им курс е 1
-    	if($from == $to) return 1;
-    	
-    	if(!$to) {
-			expect($period = acc_Periods::fetchByDate($date), 'Няма активен счетоводен период за датата !!!');
-			$toId = $period->baseCurrencyId;
-    	} else {
-    		expect($toId = currency_Currencies::getIdByCode($to), 'Няма такава валута');
+    	if ($from == $to) {
+    	    // Ако подадените валути са еднакви, то обменния им курс е 1
+    	    return 1;
     	}
     	
-    	expect($fromId = currency_Currencies::getIdByCode($from), 'Няма такава валута');
+    	// Незададен (NULL) код на валута означава базова валута, зададен - обръщаме го към id
+    	$fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
+    	$toId   = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
     	
+    	expect($fromId, "{$from}: Няма такава валута");
+    	expect($toId,   "{$to}: Няма такава валута");
+    	    	                            
+        if ($fromId == $toId) {
+    	    // Ако подадените валути са еднакви, то обменния им курс е 1
+            return 1;
+        }
+
     	// Проверяваме дали има директен запис за обменния курс от едната
     	// валута към другата, ако има го връщаме
     	$checkQuery = static::getQuery();
