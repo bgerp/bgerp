@@ -1,8 +1,7 @@
 #receipt-table {
 	text-indent:8px;
-	width:620px;
+	width:470px;
 	border-collapse:collapse;
-	border:1px solid black;
 	margin-top:15px;
 }
 
@@ -16,16 +15,47 @@
 }
 
 #receipt-contragent {
-	
+	float:right;
+	margin-top: 10px;
+	margin-right:5px;
 }
 
-#receipt-number {"/home/ivelin/Desktop/15271_529982773681335_1686401470_n.jpg"
+#receipt-number {
 	font-style:italic;	
 }
 
+#receipt-payments {
+	width:320px;
+	float:right;
+	text-indent:10px;
+}
+
+#receipt-paid, #receipt-change{
+	float:right;
+	width:48%;
+	line-height:27px;
+}
+
 #receipt-total {
+	float:left;
+	width:50%;
+	height:100%;
+}
+
+#receipt-total-sum {
+	margin-top: 1px;
+	font-size: 26px;
 	font-weight:bold;
-	font-size: 20px;
+}
+
+.info-right {
+	float:right;
+	margin-right:5px;
+}
+
+#total-label {
+	margin-top:2px;
+	display:block;
 }
 
 #receipt-details-th {
@@ -37,16 +67,21 @@
 }
 
 #receipt-details-form {
-	width: 620px;
+	width: 470px;
 	margin-top:15px;
 }
+
 
 #receipt-details-form-table {
 	
 }
 
+#single-receipt {
+	width:470px;
+}
+
 #single-receipt .formError{
-	width:598px;
+	width:398px;
  }
  
 .receipt-client {
@@ -59,6 +94,14 @@
 	font-size:18px !important;
 	color:white !important;
 	background-color:#999999 !important;
+}
+
+input,select {
+	font-size:20px;
+}
+
+#incBtn, #decBtn {
+	width:40px ;
 }
 
 .button_hover {
@@ -89,7 +132,7 @@ input.error {
 }
 
 .receipt-payment {
-	background-color:#ffeaee;
+	background-color:#FFFFCC;
 }
 
 .receipt-amount {
@@ -97,8 +140,13 @@ input.error {
 }
 
 #receipt-info{
-	padding:10px;
-	vertical-align:top;
+	width:100%;
+	float:left;
+	background-color:rgb(221,221,221);
+	border-left:1px solid black;
+	border-right:1px solid black;
+	border-bottom:1px solid black;
+	border-collapse:collapse;
 }
 
 .receipt-discount-td {
@@ -115,10 +163,6 @@ input.error {
 	font-style:italic;
 }
 
-#receipt-info{
-	padding:10px;
-	vertical-align:top;
-}
 
 /*скролиране на таблица*/
 table.scrollable{
@@ -142,12 +186,12 @@ table.scrollable tr:first-child td{
 
 div.scrollWrapper{
   float:left;
-  width:619px;
+  width:469px;
   max-height:185px;
   overflow-y:auto;
   border-right:1px solid #000;
   border-bottom:1px solid #000;
-  margin-bottom:20px;
+  margin-bottom:0px;
   
 }
 
