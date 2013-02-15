@@ -32,7 +32,7 @@ class pos_Receipts extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Printing,
-    				 plg_State, pos_Wrapper, doc_SequencerPlg, bgerp_plg_Blank';
+    				 plg_State, pos_Wrapper, bgerp_plg_Blank';
 
     
     /**
@@ -44,13 +44,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, number, date, contragentName, total, createdOn, createdBy, tax, state';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsSingleField = 'number';
+    var $listFields = 'tools=Пулт, date, contragentName, total, createdOn, createdBy, tax, state';
     
     
     /**
@@ -108,14 +102,13 @@ class pos_Receipts extends core_Master {
     {
     	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка на Продажба');
     	$this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата, input=none');
-    	$this->FLD('number', 'int', 'caption=Номер, input=none');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
     	$this->FLD('contragentObjectId', 'int', 'input=none');
     	$this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
-    	$this->FLD('total', 'float', 'caption=Общо, input=none');
-    	$this->FLD('paid', 'float', 'caption=Платено, input=none');
-    	$this->FLD('change', 'float', 'caption=Ресто, input=none');
-    	$this->FLD('tax', 'float', 'caption=Такса, input=none');
+    	$this->FLD('total', 'float', 'caption=Общо, input=none, value=0');
+    	$this->FLD('paid', 'float', 'caption=Платено, input=none, value=0');
+    	$this->FLD('change', 'float', 'caption=Ресто, input=none, value=0');
+    	$this->FLD('tax', 'float', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 
             'caption=Статус, input=none'
@@ -163,16 +156,12 @@ class pos_Receipts extends core_Master {
     function act_New()
     {
     	$rec = new stdClass();
-    	$pos = pos_Points::getCurrent();
+    	$posId = pos_Points::getCurrent();
     	$rec->date = dt::now();
     	$rec->contragentName = tr('Анонимен Клиент');
     	$rec->contragentClass = core_Classes::getId('crm_Persons');
-    	$rec->contragentObjectId = pos_Points::defaultContragent($pos);
-    	$rec->total = 0;
-    	$rec->paid = 0;
-    	$rec->change = 0;
-    	$rec->pointId = $pos;
-    	
+    	$rec->contragentObjectId = pos_Points::defaultContragent($posId);
+    	$rec->pointId = $posId;
     	$this->requireRightFor('add', $rec);
     	$id = static::save($rec);
     	
@@ -185,12 +174,12 @@ class pos_Receipts extends core_Master {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->number = $mvc->abbr . $row->number;
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	$row->total = $double->toVerbal($rec->total);
     	$row->paid = $double->toVerbal($rec->paid);
     	$row->change = $double->toVerbal($rec->change);
+    	$row->number = "#{$rec->id}";
     }
 
     
@@ -212,13 +201,13 @@ class pos_Receipts extends core_Master {
     						    array($mvc, 'new'),'',
     						   'id=btnAdd,class=btn-add,order=20');
     	
-    	if(haveRole('pos,admin')) {
-	    $data->toolbar->addBtn('Приключи', array(
+    	if(haveRole('pos,admin') && $mvc->haveRightFor('conto', $data->rec)) {
+	    	$data->toolbar->addBtn('Приключи', array(
 	                			   'acc_Journal',
 	                               'conto',
 	                               'docId' => $data->rec->id,
 	                               'docType' => $mvc->className,
-	                               'ret_url' => TRUE), '', 'order=34');
+	                               'ret_url' => array($mvc, 'new')), '', 'order=34');
     	}
     }
     
@@ -252,7 +241,7 @@ class pos_Receipts extends core_Master {
     	$query->where("#action LIKE '%sale%'");
     	while($rec = $query->fetch()) {
     		$products[] = (object) array(
-    			'productId' =>$rec->productId,
+    			'productId' => $rec->productId,
 	    		'contragentClassId' => $rec->contragentClass,
 	    		'contragentId' => $rec->contragentObjectId,
     			'currencyId' => $currencyId,
@@ -277,6 +266,10 @@ class pos_Receipts extends core_Master {
     			
     			// "Продажба" : преизчисляваме общата стойност на бележката
     			$rec->total = $this->countTotal($rec->id);
+    			$rec->paid = $this->countPaidAmount($rec->id);
+    			if($rec->paid != 0) {
+    				$rec->change = $rec->paid - $rec->total;
+    			}
     			break;
     		case 'discount':
     			break;
@@ -293,7 +286,7 @@ class pos_Receipts extends core_Master {
     			$rec->contragentId = $contragentRec[0];
     			$class = $contragentRec[1];
     			$rec->contragentClassId = $class::getClassId();
-    			$rec->contragentName =$class::fetchField($contragentRec[0],'name');
+    			$rec->contragentName = $class::fetchField($contragentRec[0], 'name');
     			break;
     	}
     	
@@ -331,6 +324,8 @@ class pos_Receipts extends core_Master {
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
     	$query->where("#action LIKE '%sale%'");
+    	$query->where("#quantity > 0");
+    	$query->where("#amount > 0");
     	while($dRec = $query->fetch()) {
     		$total += $dRec->amount;
     	}
@@ -346,6 +341,24 @@ class pos_Receipts extends core_Master {
 	{ 
 		if($action == 'add' && isset($rec)) {
 			$res = 'pos, ceo, admin';
+		}
+		
+		// Никой неможе да редактира бележка
+		if($action == 'edit') {
+			$res = 'no_one';
+		}
+		
+		// Никой неможе да изтрива активирана бележка
+		if($action == 'delete' && $rec->state == 'active') {
+			$res = 'no_one';
+		}
+		
+		// Можем да контираме бележки само когато те са чернови и платената
+		// сума е по-голяма или равна на общата или общата сума е <= 0
+		if($action == 'conto' && isset($rec->id)) {
+			if($rec->state == 'active' || $rec->total <= 0 || $rec->paid < $rec->total) {
+				$res = 'no_one';
+			}
 		}
 	}
 	
@@ -370,12 +383,12 @@ class pos_Receipts extends core_Master {
 	            '501',  // Сметка "501. Каси"
 	                array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
 	                array('currency_Currencies', $product->currencyId),     // Перо 3 - Валута
-	            'quantity' => $product->amount,), // "брой пари" във валутата на продажбата
+	            'quantity' => $product->amount), // "брой пари" във валутата на продажбата
 	        
 	        'credit' => array(
 	            '7012', // Сметка "7012. Приходи от POS продажби"
 	              	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	            'quantity' => $product->quantity, ), // Количество продукт в основната му мярка
+	            'quantity' => $product->quantity), // Количество продукт в основната му мярка
 	    	);
 	    	
 	    	// После Отчитаме експедиране от склада
@@ -383,13 +396,13 @@ class pos_Receipts extends core_Master {
 		        'debit' => array(
 		            '7012', // Сметка "7012. Приходи от POS продажби"
 		            	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	            	'quantity' => $product->quantity, ), // Количество продукт в основната му мярка
+	            	'quantity' => $product->quantity), // Количество продукт в основната му мярка
 		        
 		        'credit' => array(
 		            '321', // Сметка "321. Стандартни продукти"
 		              	array('store_Stores', $posRec->storeId), // Перо 1 - Склад
 		              	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	                'quantity' => $product->quantity, ), // Количество продукт в основната му мярка
+	                'quantity' => $product->quantity), // Количество продукт в основната му мярка
 	    	);
     	}
     	
@@ -398,30 +411,18 @@ class pos_Receipts extends core_Master {
                 'valior'  => $rec->date,
                 'entries' => $entries, 
             );
-            
-      //$transaction = new acc_journal_Transaction($transaction);
-      //if (!$transaction->check()) {
-                   // return FALSE;
-      //}
       
       return $transaction;
     }
     
     
 	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
+     * Финализиране на транзакцията
      */
     public static function finalizeTransaction($id)
     {
     	$rec = static::fetch($id);
-        
         $rec->state = 'active';
-        
-        if (static::save($rec)) {
-            //$this->class->invoke('Activation', array($rec));
-        }
     }
     
 	
@@ -448,12 +449,14 @@ class pos_Receipts extends core_Master {
            
         	// Ако формата е успешно изпратена - запис, лог, редирект
             if ($dForm->isSubmitted() && Request::get('ean')) {
-            	 
-            	// Записваме данните
-            	$id = $Details->save($rec);
-                $Details->log('add', $id);
-                
-                return new Redirect(array($this, 'Single', $data->rec->id));
+            	if($Details->haveRightFor('add', (object) array('receiptId' => $data->rec->id))) {
+	            	
+            		// Записваме данните
+	            	$id = $Details->save($rec);
+	                $Details->log('add', $id);
+	                
+	                return new Redirect(array($this, 'Single', $data->rec->id));
+            	}
             }
         }
        
