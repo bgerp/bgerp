@@ -732,8 +732,12 @@ class cal_Calendar extends core_Master
 		    	$getTask = cls::get('cal_Tasks');
 		        $imgTask = $getTask->getIcon(trim($idTask));
 		        $img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
+		      
+	        }elseif($rec->type == 'end-date'){
+	        	$img = "<img class='calImg' src=". sbf('img/16/end-date.png') .">&nbsp;";
+	        	
 	        }
-    		
+	 
     		// Взимаме всеки път различен цвят за титлите на задачите
     		$color = array_pop(self::$colors);
     		
@@ -762,7 +766,7 @@ class cal_Calendar extends core_Master
     					break;
     			}
     			
-    		 } elseif($hourKey == "allDay" && $rec->type == "task"){
+    		 } elseif($hourKey == "allDay" && ($rec->type == "task" || $rec->type == "end-date")){
     			switch ($rec->state){
     				case "active":
     					$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink($rec->title, $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
@@ -1030,6 +1034,9 @@ class cal_Calendar extends core_Master
 		    	$getTask = cls::get('cal_Tasks');
 		        $imgTask = $getTask->getIcon(trim($idTask));
 		        $img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
+	        } elseif($rec->type == 'end-date'){
+	        	$img = "<img class='calImg' src=". sbf('img/16/end-date.png') .">&nbsp;";
+	        	
 	        }
 
     		// Взимаме всеки път различен цвят за титлите на задачите
@@ -1038,38 +1045,38 @@ class cal_Calendar extends core_Master
             if(dt::mysql2verbal($rec->time, 'i') != "00"){
     			switch ($rec->state){
     				case "active":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'draftColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 10), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 15), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     			}
     		 } elseif($hourKey != "allDay"){
     			switch ($rec->state){
     				case "active":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 20), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 20), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 13), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 20), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     			}
     			
     		 } elseif($hourKey == "allDay" && $rec->type == "task"){
     			switch ($rec->state){
     				case "active":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 20), $url, NULL, array('class'=>'calWeek' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "draft":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 20), $url, NULL, array('class'=>'draftColor' , 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
     				case "closed":
-    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 15), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
+    					$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink(str::limitLen($rec->title, 20), $url, NULL, array('class'=>'closedColor', 'style' => 'color:'. $color, 'title' => $rec->title))."</div>";
     					break;
 
     			}
@@ -1300,6 +1307,9 @@ class cal_Calendar extends core_Master
 		    	$getTask = cls::get('cal_Tasks');
 		        $imgTask = $getTask->getIcon(trim($idTask));
 		        $img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
+	        } elseif($rec->type == 'end-date'){
+	        	$img = "<img class='calImg' src=". sbf('img/16/end-date.png') .">&nbsp;";
+	        	
 	        }
     	    		
     		// Взимаме всеки път различен цвят за титлите на задачите
