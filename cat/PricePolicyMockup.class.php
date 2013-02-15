@@ -69,7 +69,7 @@ class cat_PricePolicyMockup extends core_Manager
      */
     function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {
-        expect($productId <= 4);
+        expect($productId <= 40);
         
         if (!is_null($customerClass)) {
             $customerClass = core_Classes::getId($customerClass);
@@ -77,7 +77,7 @@ class cat_PricePolicyMockup extends core_Manager
         } else {
             $customerId = 0;
         }
-        
+    
         $price = "{$productId}.{$customerId}";
         $discount = 0;
 
