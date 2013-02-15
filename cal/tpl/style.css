@@ -69,8 +69,7 @@ table.mc_calendar td.calWeek {
 }
 
 table.mc_calendar td.calWeekTime {
-	
-	color:black;
+
 	max-width:3em;
 	min-width:3em;
     border-collapse: collapse;
@@ -577,5 +576,15 @@ table.mc-calendar-year td.saturday {
 	color: #006030;
 }
 table.mc-calendar-year td.sunday {
+	color: green;
+}
+
+table.mc_calendar td.holiday{
+	color: red;
+}
+table.mc_calendar td.saturday{
+	color: #006030;
+}
+table.mc_calendar td.sunday{
 	color: green;
 }

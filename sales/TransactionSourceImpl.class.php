@@ -281,15 +281,10 @@ class sales_TransactionSourceImpl
     {
         $entries = array();
         
-        // Изчисляваме курса на валутата на продажбата към базовата валута
-        $currencyRate = $this->getCurrencyRate($rec);
-        
         expect($rec->shipmentStoreId);
             
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
-                'amount' => $detailRec->amount * $currencyRate, // В основна валута
-                
                 'debit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
                         array('sales_Sales', $rec->id),               // Перо 1 - Документ-продажба

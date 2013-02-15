@@ -1,4 +1,18 @@
 <?php
+/**
+ * Мокъп клас за данни от текущия период
+ * 
+ * @author developer
+ *
+ */
+class acc_Periods
+{
+    public static function getBaseCurrencyId($date)
+    {
+        return 1; // BGN (виж фикстурата по-долу)
+    }
+}
+
 class currencies_CurrencyRatesTest extends framework_TestCase
 {
     /**
@@ -142,6 +156,19 @@ class currencies_CurrencyRatesTest extends framework_TestCase
         $USD_EUR = 1.2102; // към 03.01.2013 (записано)
         $rate = $this->CurrencyRates->getRate('2013-01-23','EUR', 'USD');
         $this->assertEquals($USD_EUR, $rate);
+    }
+    
+
+    public function testEuroToBgnAndBack()
+    {
+        $BGN_EUR = 1.9558;
+        $EUR_BGN = round(1 / 1.9558, 4);
+        
+        $rate_BGN_EUR = $this->CurrencyRates->getRate('2013-01-23', 'EUR', 'BGN');
+        $rate_EUR_BGN = $this->CurrencyRates->getRate('2013-01-23', 'BGN', 'EUR');
+        
+        $this->assertEquals($BGN_EUR, $rate_BGN_EUR);
+        $this->assertEquals($EUR_BGN, $rate_EUR_BGN);
     }
     
     

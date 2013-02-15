@@ -162,7 +162,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Премахва кеша за интервалите от време
      */
-    function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    public static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
         price_History::removeTimeline();
     }

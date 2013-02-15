@@ -471,6 +471,9 @@ class cal_Tasks extends core_Master
             // В чии календари да влезе?
             $calRec->users = $rec->sharedUsers;
             
+            // Статус на задачата
+            $calRec->state = $rec->state;
+            
             // Какъв да е приоритета в числово изражение
             $calRec->priority = self::getNumbPriority($rec) - 1;
 

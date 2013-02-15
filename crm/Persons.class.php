@@ -884,16 +884,18 @@ class crm_Persons extends core_Master
      */
     static function prepareNamedays(&$data)
     {   
+    
     	$currentId = core_Users::getCurrent();
         $query = self::getQuery();
-        
+       
         foreach($data->namesArr as $name) { 
-            $query->orWhere(array("#searchKeywords LIKE ' [#1#] %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')"), $name);
+        	$query->orWhere(array("#searchKeywords LIKE ' [#1#] %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')", $name));
         }
         
         $self = cls::get('crm_Persons');
 
-        while($rec = $query->fetch()) { ;
+        while($rec = $query->fetch()) { 
+        	
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = self::recToVerbal($rec, 'name');
             $row->name = ht::createLink($row->name, array($self, 'Single', $rec->id), NULL, "ef_icon={$self->singleIcon}");

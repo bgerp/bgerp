@@ -93,37 +93,28 @@ class currency_Currencies extends core_Master {
 
 
     /**
-     * Връща id-то на валутата с посочения код
-     * Ако не е указан код - връща id-то на базовата валута
+     * Връща id-то на валутата с посочения трибуквен ISO код
+     * 
+     * @param string $code трибуквен ISO код
+     * @return int key(mvc=currency_Currencies)
      */
-    static function getIdByCode($code = NULL)
+    public static function getIdByCode($code)
     {
-        if(!$code) {
-            $conf = core_Packs::getConfig('currency');
-            $code = $conf->CURRENCY_BASE_CODE;
-        }
-
-        $id = self::fetchField(array("#code = '[#1#]'", $code), 'id');
+        expect($id = self::fetchField(array("#code = '[#1#]'", $code), 'id'));
 		
         return $id;
     }
     
     
     /**
-     * Връща кода на валутата по зададено ид, ако не е зададено 
-     * връща кода на основната валута
-     * @param int $id - ид на валутата
-     * @return varchar(3) $code - код на валутата
+     * Връща кода на валутата по зададено id
+     *  
+     * @param int $id key(mvc=currency_Currencies)
+     * @return string $code - трибуквен ISO код на валутата
      */
-    static function getCodeById($id = NULL)
+    public static function getCodeById($id)
     {
-    	if(!$id) {
-            $conf = core_Packs::getConfig('currency');
-            
-            return $conf->CURRENCY_BASE_CODE;
-        }
-
-        $code = self::fetchField($id, 'code');
+        expect($code = self::fetchField($id, 'code'));
 
         return $code;
     }

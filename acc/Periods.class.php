@@ -283,7 +283,7 @@ class acc_Periods extends core_Manager
         if($end == $firstRec->end) {
             if(!$firstRec->id) {
                 $firstRec->vatRate = $conf->ACC_DEFAULT_VAT_RATE;
-                $firstRec->baseCurrencyId =  currency_Currencies::getIdByCode();
+                $firstRec->baseCurrencyId = $conf->CURRENCY_BASE_CODE;
                 self::save($firstRec);
                 $firstRec = self::fetch($firstRec->id); // За титлата
                 $me->actLog .= "<li style='color:green;'>Създаден е начален период $firstRec->title</li>";
@@ -311,7 +311,7 @@ class acc_Periods extends core_Manager
         if($prevRec->baseCurrencyId) {
             $rec->baseCurrencyId = $prevRec->baseCurrencyId;
         } else {
-            $rec->baseCurrencyId =  currency_Currencies::getIdByCode();
+            $rec->baseCurrencyId = $conf->CURRENCY_BASE_CODE;
         }
 
         self::save($rec);
@@ -485,4 +485,28 @@ class acc_Periods extends core_Manager
     }
    
  
+    /**
+     * Връща първичния ключ (id) на базовата валута към определена дата
+     * 
+     * @param string $date Ако е NULL - текущата дата
+     * @return int key(mvc=currency_Currencies)
+     */
+    public static function getBaseCurrencyId($date = NULL)
+    {
+        $periodRec = static::fetchByDate($date);
+        
+        return $periodRec->baseCurrencyId;
+    }
+   
+ 
+    /**
+     * Връща кода на базовата валута към определена дата
+     * 
+     * @param string $date Ако е NULL - текущата дата
+     * @return string трибуквен ISO код на валута
+     */
+    public static function getBaseCurrencyCode($date = NULL)
+    {
+        return currency_Currencies::getCodeById(static::getBaseCurrencyId($date));
+    }
 }
