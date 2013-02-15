@@ -464,50 +464,48 @@ class email_Inboxes extends core_Master
     {
         $options = array();
 
-         // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
-         $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
-         if($rec && email_Accounts::canSendEmail($rec->accountId)) {
-             $options[$rec->id] = $rec->email;
-         }
+        // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
+        $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
+        if($rec && email_Accounts::canSendEmail($rec->accountId)) {
+            $options[$rec->id] = $rec->email;
+        }
 
+        // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
+        $corpAccRec = email_Accounts::getCorporateAcc();
          
-          
-         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
-         $corpAccRec = email_Accounts::getCorporateAcc();
-         
-         if($corpAccRec && email_Accounts::canSendEmail($corpAccRec->id)) {
+        if($corpAccRec && email_Accounts::canSendEmail($corpAccRec->id)) {
              
-             // 2. Корпоративния общ имейл, ако корпоративната сметка може да изпраща писма
-             $rec = self::fetch("#email = '{$corpAccRec->email}' && #state = 'active'");
+            // 2. Корпоративния общ имейл, ако корпоративната сметка може да изпраща писма
+            $rec = self::fetch("#email = '{$corpAccRec->email}' && #state = 'active'");
                             
-             if($rec) {
-                 $options[$rec->id] = $rec->email;
-             }
+            if($rec) {
+                $options[$rec->id] = $rec->email;
+            }
 
-             $userEmail = email_Inboxes::getUserEmail();
+            $userEmail = email_Inboxes::getUserEmail();
 
-             if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' && #state = 'active'"))) {
-                 $options[$rec->id] = $rec->email;
-             }
-         }
+            if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' && #state = 'active'"))) {
+                $options[$rec->id] = $rec->email;
+            }
+        }
 
-         // 4. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
-         $cu = core_Users::getCurrent();
-         $query = self::getQuery();
-         $query->where("#inCharge = {$cu} OR #shared LIKE '%|{$cu}|%'");
-         $query->where("#state = 'active'");
+        // 4. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
+        $cu = core_Users::getCurrent();
+        $query = self::getQuery();
+        $query->where("#inCharge = {$cu} OR #shared LIKE '%|{$cu}|%'");
+        $query->where("#state = 'active'");
  
-         while($rec = $query->fetch()) {
-             if(email_Accounts::canSendEmail($rec->accountId)) {
-                 if(!$options[$rec->id]) {
-                     $options[$rec->id] = $rec->email;
-                 }
-             }
-         }
+        while($rec = $query->fetch()) {
+            if(email_Accounts::canSendEmail($rec->accountId)) {
+                if(!$options[$rec->id]) {
+                    $options[$rec->id] = $rec->email;
+                }
+            }
+        }
  
-         // 5. TODO
+        // 5. TODO
 
-         if(!count($options)) {
+        if(!count($options)) {
              error('Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
          }
 
