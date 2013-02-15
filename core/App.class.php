@@ -467,15 +467,16 @@ class core_App
     /**
      * @todo Чака за документация...
      */
-    public static function followRetUrl()
+    public static function followRetUrl($retUrl = NULL)
     {
-        if (!$retUrl = static::getRetUrl()) {
-            $retUrl = array(
-                EF_DEFAULT_CTR_NAME,
-                EF_DEFAULT_ACT_NAME
-            );
+        if(!$retUrl) {
+	    	if (!$retUrl = static::getRetUrl()) {
+	            $retUrl = array(
+	                EF_DEFAULT_CTR_NAME,
+	                EF_DEFAULT_ACT_NAME
+	            );
+	        }
         }
-
         static::redirect($retUrl);
     }
 
