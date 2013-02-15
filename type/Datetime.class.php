@@ -83,7 +83,7 @@ class type_Datetime extends type_Date {
         
         $val1 = dt::verbal2mysql(trim(trim($value['d']) . ' ' . trim($value['t'])));
         
-        $val2 = dt::verbal2mysql(dt::mysql2verbal($val1));
+        $val2 = dt::verbal2mysql(dt::mysql2verbal($val1, 'd-m-y H:i:s'));
         
 
         if($val1 == $val2) {
