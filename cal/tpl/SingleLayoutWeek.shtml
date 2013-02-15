@@ -12,13 +12,13 @@
                 <table cellspacing='1' class='mc_calendar'>
 				<tr>
 					 <td class="calWeekTime"><b>Време</b></td>
-                     <td class="calWeekTime" style="color:[#c0#]"><b>[#0#]</b></td>
-                     <td class="calWeekTime" style="color:[#c1#]"><b>[#1#]</b></td>
-                     <td class="calWeekTime" style="color:[#c2#]"><b>[#2#]</b></td>
-                     <td class="calWeekTime" style="color:[#c3#]"><b>[#3#]</b></td>
-                     <td class="calWeekTime" style="color:[#c4#]"><b>[#4#]</b></td>
-                     <td class="calWeekTime" style="color:[#c5#]"><b>[#5#]</b></td>
-                     <td class="calWeekTime" style="color:[#c6#]"><b>[#6#]</b></td>
+                     <td class="[#c0#]"><b>[#0#]</b></td>
+                     <td class="[#c1#]"><b>[#1#]</b></td>
+                     <td class="[#c2#]"><b>[#2#]</b></td>
+                     <td class="[#c3#]"><b>[#3#]</b></td>
+                     <td class="[#c4#]"><b>[#4#]</b></td>
+                     <td class="[#c5#]"><b>[#5#]</b></td>
+                     <td class="[#c6#]"><b>[#6#]</b></td>
                    
                  </tr>
                 

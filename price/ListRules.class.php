@@ -168,7 +168,7 @@ class price_ListRules extends core_Detail
     /**
      * Подготвя формата за въвеждане на правила
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = $data->form;
 
@@ -231,7 +231,7 @@ class price_ListRules extends core_Detail
     /**
      * Премахва кеша за интервалите от време
      */
-    function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    public static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
         price_History::removeTimeline();
     }
