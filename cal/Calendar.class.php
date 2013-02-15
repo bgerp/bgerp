@@ -944,8 +944,13 @@ class cal_Calendar extends core_Master
         $month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
         
+         // Избрана дата
+        $dayC = dt::mysql2Verbal(dt::now(), 'd');
+        $monthC = dt::mysql2Verbal(dt::now(), 'm');
+        $yearC = dt::mysql2Verbal(dt::now(), 'Y');
+        
         // Текущото време на потребителя
-        $nowTime = strstr(dt::now(), " ");
+        $nowTime = strstr(strstr(dt::now(), " "), ":", TRUE);
         
         
         $hours = array( "allDay" => "Цял ден");
@@ -964,9 +969,11 @@ class cal_Calendar extends core_Master
         	// Помощен масив за javaScripta
         	$dateJs["date".$i."Js"] = date("d.m.Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
         	$dayWeek[$i] = date("N", mktime(0, 0, 0, $month, $day + $i - 3, $year));
+        	//bp($hours, $nowTime, dt::now(), $hours[$nowTime] == "13:00");
+        	$isToday = ($i == $dayC && $month == $monthC && $year == $yearC);
+        	$tdCssClass["c".$i] = $isToday ? 'mc-todayD' : 'calWeekTime';
+            $tdCssClass["c".$i] .= ' ' . static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $day + $i - 3, $year)));
         	
-        	// Цветовете на деня според типа им
-        	$colorTitle["c".$i] = static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month, $day + $i - 3, $year)));
          }
    
         // От коя до коя дата ще извличаме събитията 
@@ -1140,11 +1147,11 @@ class cal_Calendar extends core_Master
     	// Рендираме масивите с дните и javaScript масива
     	$tpl->placeArray($days);
     	$tpl->placeArray($dateJs);
-    	$tpl->placeArray($colorTitle);
+    	$tpl->placeArray($tdCssClass);
         
     	
    		foreach($hours as $h => $t){
-   			
+   		
    			// Ограничаваме часовета в таблицата до цел ден и най-малкия и най-големия час
    			if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
     		$hourArr = $weekData[$h];
@@ -1157,7 +1164,8 @@ class cal_Calendar extends core_Master
     		// Ако времето е равно на текущото време на потребителя
     		// Ограждаме кутийката
     		if($h == $nowTime && ($h % 2 == 0 && $h != 0)){
-    			$cTpl->replace('mc-todayN', 'now');
+    				//bp($h, $t);
+    			//$cTpl->replace('mc-todayN', 'now');
     			$cTpl->replace('calWeekN', 'col');
     			$cTpl->replace('#D1D7D1', 'colTr');
     			
@@ -1166,7 +1174,7 @@ class cal_Calendar extends core_Master
     			$cTpl->replace('calWeekN', 'col');
     			$cTpl->replace('#D1D7D1', 'colTr');
     		}elseif($h == $nowTime && ($h % 2 != 0 && $h != 0)){
-    			$cTpl->replace('mc-todayD', 'now');
+    			$cTpl->replace('calWeek', 'now');
     			$cTpl->replace('calWeek', 'col');
     		}else {
     			$cTpl->replace('calWeek', 'now');
@@ -1191,7 +1199,7 @@ class cal_Calendar extends core_Master
     		$cTpl->placeArray($overs);
     		$cTpl->placeArray($outs);
     		$cTpl->placeArray($hourArr);
-   			
+    		   			
             // Връщаме се към мастера
     		$cTpl->append2master();
    			}
