@@ -258,7 +258,7 @@ class acc_Journal extends core_Master
         // Нотифицира мениджъра на документа за успешно приключилата транзакция
         $docClass->finalizeTransaction($docId);
         
-        return new Redirect(array($mvc, 'single', $docId));
+        return followRetUrl(array($mvc, 'single', $docId));
     }
     
     
