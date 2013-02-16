@@ -857,8 +857,8 @@ class crm_Persons extends core_Master
                 $tpl->append("<div class='telephone'>{$row->buzTel}</div>", 'persons');
             }
 
-            if($row->email) {
-                $tpl->append("<div class='email'>{$row->email}</div>", 'persons');
+            if($row->buzEmail) {
+                $tpl->append("<div class='email'>{$row->buzEmail}</div>", 'persons');
             }
 
             $tpl->append("</div>", 'persons');
