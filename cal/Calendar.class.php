@@ -1186,8 +1186,11 @@ class cal_Calendar extends core_Master
     		}elseif($h == $nowTime && $isToday && $h % 2 == 0){
     			$cTpl->replace('mc-todayN', 'now');
     			$cTpl->replace('#D1D7D1', 'colTr');
+    			$cTpl->replace('calWeekN', 'col');
+    			
     		}elseif($h == $nowTime && $isToday && $h % 2 != 0 && $h != 0){
     			$cTpl->replace('mc-todayD', 'now');
+    			$cTpl->replace('calWeek', 'col');
     		}else {
     			$cTpl->replace('calWeek', 'now');
     			$cTpl->replace('calWeek', 'col');
