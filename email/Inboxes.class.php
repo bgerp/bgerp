@@ -73,10 +73,8 @@ class email_Inboxes extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces =
-    // Интерфейс за корица на папка
-    'doc_FolderIntf';
-    
+    var $interfaces = 'doc_FolderIntf'; // Интерфейс за корица на папка
+        
     
     /**
      * полета от БД по които ще се търси

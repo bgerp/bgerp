@@ -176,6 +176,21 @@ class email_Accounts extends core_Master
 
 
     /**
+     * Проверка за валидност на входните данни
+     */
+    function on_AfterInputEditForm($mvc, $form)
+    {
+        $rec = $form->rec;
+
+        if (email_Router::isPublicDomain(type_Email::domain($rec->email))) {
+            if($rec->type != 'single') {
+                $form->setError('type', "Сметка в публична имейл услуга може да бъде само Самостоятелна");
+            }
+        }
+    }
+
+
+    /**
      * Проверява дали домейна е общ
      */
     static function isGroupDomain($domain)
@@ -185,6 +200,26 @@ class email_Accounts extends core_Master
         return $rec;
     }
 
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($action == 'delete') {
+            if($rec->id) {
+                if(email_Inboxes::fetch("#accountId = {$rec->id}")) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
 
 
     /**
