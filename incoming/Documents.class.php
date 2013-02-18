@@ -134,6 +134,10 @@ class incoming_Documents extends core_Master
      */
     var $searchFields = 'title, fileHnd, date, total, keywords';
 
+    /**
+     * Групиране на документите
+     */ 
+    var $newBtnGroup = "1.4|Общи";
     
     /**
      * Описание на модела

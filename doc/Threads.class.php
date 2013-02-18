@@ -987,25 +987,36 @@ class doc_Threads extends core_Manager
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
         $tpl->append("\n<h3>" . tr('Добавяне на нов документ в папката') . ":</h3>");
-        $tpl->append("\n<table>");
-
+         
+        //TODO да се отдели във функция
         foreach($docArr as $id => $class) {
             
             $mvc = cls::get($class);
             
-
-            if($mvc->canAddToFolder($folderId, '') && $mvc->haveRightFor('add')) {
-                $tpl->append("\n<tr><td>");
-                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;"));
-                
-                $tpl->append("</td></tr>");
+            list($order, $group) = explode('|', $mvc->newBtnGroup);
+            
+            $order = (int) $order;
+            
+            if($mvc->haveRightFor('add')) {
+            	$btns[$order .'|'. $group][$mvc->singleTitle] = $class;
             }
-
             
 
         }
+        
+        ksort($btns);
+        
+        foreach($btns as $group => $bArr) {
+        	list($order, $group) = explode('|', $group);
+        	$tpl->append("<div class='btn-group'>{$group}</div>");
+        	foreach($bArr as $btn => $class) {
+        		$mvc = cls::get($class);
+        		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
+        	}
+        }
 
-        $tpl->append("\n</table>");
+        
+      
 
         return $this->renderWrapping($tpl);
     }

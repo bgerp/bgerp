@@ -102,6 +102,12 @@ class accda_Documents extends core_Manager
     var $searchFields = 'folderId, threadId, containerId';
     
     /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "6.3|Счетоводни";
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

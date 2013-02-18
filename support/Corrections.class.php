@@ -126,7 +126,7 @@ class support_Corrections extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "9.1|Поддръжка";
+    var $newBtnGroup = "9.2|Поддръжка";
     
     /**
      * Описание на модела
