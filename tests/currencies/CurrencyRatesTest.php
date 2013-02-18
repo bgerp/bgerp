@@ -103,7 +103,9 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
     public function testExisting()
     {
-        $RON_EUR = 4.4203; // към 03.01.2013 (записано)
+        $RON_EUR = round(1 / 4.4203, 4); // към 03.01.2013 (записано)
+        
+        // Колко евро е 1 румънска лея?
         $rate = $this->CurrencyRates->getRate('2013-01-03', 'RON', 'EUR');
         $this->assertEquals($RON_EUR, $rate);
     }
@@ -114,9 +116,11 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
     public function testExistingHistory()
     {
-        $USD_EUR = 1.3102; // към 02.01.2013 (наследено от 01.01.2013)
+        $USD_EUR = round(1 / 1.3102, 4); // към 02.01.2013 (наследено от 01.01.2013)
+        
+        // Колко евро е 1 долар?
         $rate = $this->CurrencyRates->getRate('2013-01-02', 'USD', 'EUR');
-        $this->assertEquals(1.3102, $rate);
+        $this->assertEquals($USD_EUR, $rate);
     }
     
     
@@ -125,9 +129,9 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
     public function testCrossRate()
     {
-        $BGN_EUR = 1.9558; // към 1.1.2013
-        $RON_EUR = 4.3;    // към 1.1.2013
-        $BGN_RON = round($RON_EUR / $BGN_EUR, 4);
+        $EUR_BGN = 1.9558; // към 1.1.2013
+        $EUR_RON = 4.3;    // към 1.1.2013
+        $BGN_RON = round($EUR_RON / $EUR_BGN, 4);
         
         $rate = $this->CurrencyRates->getRate('2013-01-01', 'BGN', 'RON');
         $this->assertEquals($BGN_RON, $rate);
@@ -139,9 +143,9 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
     public function testCrossRateHistory()
     {
-        $BGN_EUR = 1.9558; // към 3.1.2013 (наследено от 1.1.2013)
-        $RON_EUR = 4.4203; // към 3.1.2013 (записано)
-        $BGN_RON = round($RON_EUR / $BGN_EUR, 4);
+        $EUR_BGN = 1.9558; // към 3.1.2013 (наследено от 1.1.2013)
+        $EUR_RON = 4.4203; // към 3.1.2013 (записано)
+        $BGN_RON = round($EUR_RON / $EUR_BGN, 4);
                 
         $rate = $this->CurrencyRates->getRate('2013-01-03', 'BGN', 'RON');
         $this->assertEquals($BGN_RON, $rate);
@@ -211,9 +215,9 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
 	public function testConvertToEuroLastRecord()
     {
-    	$BGN_EUR = '1.9558';
-    	$expAmount = round(100 / $BGN_EUR, 2);
-    	$amount = $this->CurrencyRates->convertAmount('100', '2013-01-23', 'BGN', 'EUR');
+    	$EUR_BGN = 1.9558;
+    	$expAmount = round(100 / $EUR_BGN, 2);
+    	$amount = $this->CurrencyRates->convertAmount(100, '2013-01-23', 'BGN', 'EUR');
     	$this->assertEquals($expAmount, $amount);
     }
     
@@ -223,11 +227,11 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
 	public function testConvertBGNtoOtherLastRecord()
     {
-    	$BGN_EUR = 1.9558; // 01.01.2013
-        $RON_EUR = 4.4203; // 01.01.2013
-        $BGN_RON = round($BGN_EUR / $RON_EUR, 4);
+    	$EUR_BGN = 1.9558; // 01.01.2013
+        $EUR_RON = 4.4203; // 01.01.2013
+        $BGN_RON = round($EUR_RON / $EUR_BGN, 4);
         $expAmount = round(100 * $BGN_RON, 2);
-    	$amount = $this->CurrencyRates->convertAmount('100', '2013-01-23', 'BGN', 'RON');
+    	$amount = $this->CurrencyRates->convertAmount(100, '2013-01-23', 'BGN', 'RON');
     	$this->assertEquals($expAmount, $amount);
     }
    
@@ -237,11 +241,11 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
 	public function testConvertOtherToBGNLastRecord()
     {
-    	$BGN_EUR = 1.9558; // 03.01.2013
-        $RON_EUR = 4.4203; // 03.01.2013
-        $BGN_RON = round($BGN_EUR / $RON_EUR, 4);
+    	$EUR_BGN = 1.9558; // 03.01.2013
+        $EUR_RON = 4.4203; // 03.01.2013
+        $BGN_RON = round($EUR_RON / $EUR_BGN, 4);
         $expAmount = round(100 / $BGN_RON, 2);
-    	$amount = $this->CurrencyRates->convertAmount('100', '2013-01-23', 'RON', 'BGN');
+    	$amount = $this->CurrencyRates->convertAmount(100, '2013-01-23', 'RON', 'BGN');
     	$this->assertEquals($expAmount, $amount);
     }
     
@@ -251,11 +255,32 @@ class currencies_CurrencyRatesTest extends framework_TestCase
      */
 	public function testConvertOtherToOther()
     {
-    	$USD_EUR = 1.2102; // 03.01.2013
-        $RON_EUR = 4.4203; // 03.01.2013
-        $USD_RON = round($USD_EUR / $RON_EUR, 4);
+    	$EUR_USD = 1.2102; // 03.01.2013
+        $EUR_RON = 4.4203; // 03.01.2013
+        $USD_RON = round($EUR_RON / $EUR_USD, 4); // цената на 1 долар в RON
         $expAmount = round(100 * $USD_RON, 2);
-    	$amount = $this->CurrencyRates->convertAmount('100', '2013-01-23', 'USD', 'RON');
+        
+        // Цената на 100 USD в RON 
+    	$amount = $this->CurrencyRates->convertAmount(100, '2013-01-23', 'USD', 'RON');
+    	$this->assertEquals($expAmount, $amount);
+    }
+    
+    
+    /**
+     * Конвертира сума от една валута в друга, и двете валути не са ЕВРО
+     */
+	public function testConvertSpeed()
+    {
+    	$EUR_USD = 1.2102; // 03.01.2013
+        $EUR_RON = 4.4203; // 03.01.2013
+        $USD_RON = round($EUR_RON / $EUR_USD, 4); // цената на 1 долар в RON
+        $expAmount = round(100 * $USD_RON, 2);
+        
+        // Цената на 100 USD в RON
+        foreach (range(1, 1000) as $i) { 
+    	    $amount = $this->CurrencyRates->convertAmount(100, '2013-01-23', 'USD', 'RON');
+        }
+        
     	$this->assertEquals($expAmount, $amount);
     }
     

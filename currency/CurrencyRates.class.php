@@ -46,6 +46,28 @@ class currency_CurrencyRates extends core_Detail
     
     
     /**
+     * Работен кеш за вече изчислени валутни курсове
+     *  
+     * @var array
+     */
+    protected static $cache = array();
+    
+    
+    /**
+     * Код на междинна валута за косвено изчисляване изчисляване на курсове.
+     * 
+     * Когато курсът на една валута (X) към друга (Y) не е изрично записан в БД, той може да бъде 
+     * изчислен чрез преминаване през трета валута, при условие че в БД има записани курсовете
+     * както на X така и на Y към тази трета валута. В тази променлива е посочен кода на 
+     * междинната валута
+     * 
+     * @todo Дали не е добре това да премине в конфигурацията?
+     * @var string Трибуквен ISO код на валута
+     */
+    public static $crossCurrencyCode = 'EUR';
+        
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -177,7 +199,9 @@ class currency_CurrencyRates extends core_Detail
     
     
     /**
-     *  Обръща сума от една валута в друга към дадена дата
+     *  Обръща сума от една валута в друга към дата
+     *  
+     *  Закръгля резултата до 2-рата цифра след дес. точка
      *  
      *  @param double $amount Сума която ще обърнем
      *  @param date $date NULL = текущата дата
@@ -189,57 +213,24 @@ class currency_CurrencyRates extends core_Detail
      */
     public static function convertAmount($amount, $date, $from, $to = NULL)
     {
-    	if ($from == $to) {
-    	    // Ако подадените валути са еднакви, то обменния им курс е 1
-    	    return $amount;
-    	}
-    	
-    	// Незададен (NULL) код на валута означава базова валута, зададен - обръщаме го към id
-    	$fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
-    	$toId   = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
-    	
-    	expect($fromId, "{$from}: Няма такава валута");
-    	expect($toId,   "{$to}: Няма такава валута");
-    	                            
-        if ($fromId == $toId) {
-    	    // Ако подадените валути са еднакви, то обменния им курс е 1
-            return 1;
-        }
-        
-        // Проверяваме входните данни
-    	expect(is_numeric($amount), 'Не е подадена валидна сума');
-    	
-    	// Намираме Курса между двете валути към дадената дата
-    	expect($rate = static::getRate($date, $from, $to), 'Нямаме информация за курса между валутите');
-    	
-    	// Намираме курса на първата към основната валута в модела
-    	// ако курса е 1 то валутата е основната в модела
-    	$fromRate = static::getBaseRate($fromId, $date);
-    	
-    	// Ако валутата е основната в модела, обръщаме рейта
-    	if($fromRate != 1) {
-    		$rate = 1 / $rate;
-    	}
-    	
-    	// Изчислява стойноста на сумата в новата валута
-    	$amount = round($amount * $rate, 2);
-    	
-    	return $amount;
+        return round($amount * static::getRate($date, $from, $to), 2);
     }
-    
+
     
     /**
-     *  Изчислява обменния курс от една валута в друга, за дадена дата
+     *  Обменният курс на една валута спрямо друга към дата
      *  
-     *  @param date $date датата към която ще изчисляваме курса, 
-     *                    трябва да е във валиден mysql-ски формат !!!
-     *  @param string $from Трибуквен код на валутата, която ще обменяме
-     *                      NULL = базова валута.
-     *  @param string $to Трибуквен код на валутата, към която ще обменяме
-     *                    NULL = базова валута.
-     *  @return double Курса по който се обменя едната валута към другата
+     *  Закръгля резултата до 4-тата цифра след дес. точка
+     *
+     *  @param double $amount Сума която ще обърнем
+     *  @param date $date NULL = текущата дата
+     *  @param string $from Код на валутата от която ще обръщаме
+     *                      NULL = базова валута към $date
+     *  @param string $to Код на валутата към която ще обръщаме
+     *                    NULL = базова валута към $date
+     *  @return double $amount Конвертираната стойност на сумата
      */
-    public static function getRate($date, $from, $to = NULL)
+    public static function getRate($date, $from, $to)
     {
     	if ($from == $to) {
     	    // Ако подадените валути са еднакви, то обменния им курс е 1
@@ -257,59 +248,97 @@ class currency_CurrencyRates extends core_Detail
     	    // Ако подадените валути са еднакви, то обменния им курс е 1
             return 1;
         }
+        
+        if (!is_null($rate = static::getDirectRate($date, $fromId, $toId))) {
+            return round($rate, 4);
+        }
+        
+        $baseCurrencyId = currency_Currencies::getIdByCode(static::$crossCurrencyCode);
 
-    	// Проверяваме дали има директен запис за обменния курс от едната
-    	// валута към другата, ако има го връщаме
-    	$checkQuery = static::getQuery();
-    	$checkQuery->where("#currencyId = '{$fromId}'");
-    	$checkQuery->where("#baseCurrencyId = '{$toId}'");
-    	$checkQuery->where("#date <= '{$date}'");
-	    $checkQuery->orderBy("#date", "DESC");
-    	if($rate = $checkQuery->fetch()->rate) return $rate;
-	    
-    	// Изчислява курса на двете валути към основната валута
-    	$fromRate = static::getBaseRate($fromId, $date);
-    	$toRate = static::getBaseRate($toId, $date);
-    	$res = round($toRate / $fromRate, 4);
-    	
-    	// Връщаме обменния курс, като разделяме единия курс на другия
-    	return $res;
+        if (!is_null($rate = static::getCrossRate($date, $fromId, $toId, $baseCurrencyId))) {
+            return round($rate, 4);
+        }
+
+        expect(FALSE, "Не може да се определи валутен курс {$from}->{$to}");
+    }
+    
+
+    /**
+     * Връща директния курс на една валута към друга, без преизчисляване през трета валута
+     *
+     * @param string $date
+     * @param int $fromId
+     * @param int $toId
+     */
+    protected static function getDirectRate($date, $fromId, $toId)
+    {
+        $rate = static::getStoredRate($date, $fromId, $toId);
+    
+        if (is_null($rate)) {
+            if (!is_null($rate = static::getStoredRate($date, $toId, $fromId))) {
+                $rate = 1 / $rate;
+            }
+        }
+    
+        return $rate;
     }
     
     
     /**
-     * Функция която изчислява обменния курс на валута към основната валута
-     * за дадена дата, от  таблицата на модела 
-     * Ако няма запис за посочения период връща последния
-     * запис който е най-близо до подадената дата, ако не е подадена дата
-     * взима по подразбиране последната дата. последния запис най-близо до подадената дата
-     * @param int $currencyId - Ид на валутата която ще обръщаме
-     * @param date $date - Дата към която търсим обменния курс
-     * @return double $rate - Обменния курс към основната валута за периода
+     * Връща записан в БД обменен курс на една валута спрямо друга
+     * 
+     * getStoredRate(X, Y) = колко Y струва 1 X
+     * 
+     * @param string $date
+     * @param int $fromId key(mvc=currency_Currencies)
+     * @param int $toId key(mvc=currency_Currencies)
+     * @return float 
      */
-    private static function getBaseRate($currencyId, $date)
+    protected static function getStoredRate($date, $fromId, $toId)
     {
-    	// Провряваме дали някоя от валутите е основната валута за съответния
-    	// период ако е то нейния рейт е 1
-    	$checkQuery = static::getQuery();
-	    $checkQuery->where("#date <= '{$date}'");
-	    $checkQuery->orderBy("#date", "DESC");
-	    if($checkQuery->fetch()->baseCurrencyId == $currencyId) {
-	    	
-	    	return $rate = 1;
-	    }
-	    
-	    // Ако валутата не е основната за периода, извличаме нейния запис
-	    $query = static::getQuery();
-	    $query->where("#date <= '{$date}'");
-	    $query->orderBy("#date", "DESC");
-	    $query->where("#currencyId = '{$currencyId}'");
-	   
-	    // Очакваме да има запис на валутата( в случай че не е базовата валута)
-	    expect($rec = $query->fetch(), "Нямаме запис за тази валута");
-    	$rate = $rec->rate;
-	    	
-    	return $rate;
+        if (!isset(static::$cache[$date][$fromId][$toId])) {
+            /* @var $query core_Query */
+            $query = static::getQuery();
+            
+            $query->where("#date <= '{$date}'");
+            $query->where("#baseCurrencyId = {$fromId}");
+            $query->where("#currencyId = {$toId}");
+            $query->orderBy('date', 'DESC');
+            $query->limit(1);
+            
+            if ($rec = $query->fetch()) {
+                static::$cache[$date][$rec->baseCurrencyId][$rec->currencyId] = $rec->rate;
+            }
+        }
+    
+        if (isset(static::$cache[$date][$fromId][$toId])) {
+            return static::$cache[$date][$fromId][$toId];
+        }
+        
+        return NULL;
+    }
+    
+    
+    /**
+     * Изчисляване на курс чрез преминаване през междинна валута
+     * 
+     * @param string $date
+     * @param int $fromId
+     * @param int $toId
+     * @param int $baseCurrencyId
+     * @return float
+     */
+    protected static function getCrossRate($date, $fromId, $toId, $baseCurrencyId)
+    {
+        if (is_null($fromBaseRate = static::getDirectRate($date, $fromId, $baseCurrencyId))) {
+            return NULL;
+        }
+        
+        if (is_null($toBaseRate = static::getDirectRate($date, $toId, $baseCurrencyId))) {
+            return NULL;
+        }
+        
+        return static::$cache[$date][$fromId][$toId] = $fromBaseRate / $toBaseRate;
     }
     
     
