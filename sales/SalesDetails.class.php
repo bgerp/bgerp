@@ -334,7 +334,9 @@ class sales_SalesDetails extends core_Detail
                         currency_CurrencyRates::convertAmount(
                             $rec->packPrice, 
                             $masterRec->date, 
-                            $masterRec->currencyId
+                            NULL, // Основната валута към $masterRec->date
+                            $masterRec->currencyId,
+                            4
                         );
                 }
                 if (empty($rec->discount)) {

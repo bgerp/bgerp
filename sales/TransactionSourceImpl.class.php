@@ -313,6 +313,6 @@ class sales_TransactionSourceImpl
      */
     protected function getCurrencyRate($rec)
     {
-        return currency_CurrencyRates::convertAmount(1, $rec->date, $rec->currencyCode);
+        return currency_CurrencyRates::getRate($rec->date, $rec->currencyCode, NULL);
     }
 }

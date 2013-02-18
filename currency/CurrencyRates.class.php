@@ -211,9 +211,9 @@ class currency_CurrencyRates extends core_Detail
      *                    NULL = базова валута към $date
      *  @return double $amount Конвертираната стойност на сумата
      */
-    public static function convertAmount($amount, $date, $from, $to = NULL)
+    public static function convertAmount($amount, $date, $from, $to = NULL, $precision = 2)
     {
-        return round($amount * static::getRate($date, $from, $to), 2);
+        return round($amount * static::getRate($date, $from, $to), $precision);
     }
 
     
