@@ -204,14 +204,13 @@ class cash_Rko extends core_Master
     	$query->orderBy('createdOn', 'DESC');
     	$query->limit(1);
     	
+    	$today = dt::verbal2mysql();
     	if($lastRec = $query->fetch()) {
     		$form->setDefault('beneficiary', $lastRec->beneficiary);
     		$currencyId = $lastRec->currencyId;
     	} else {
-    		$currencyId = currency_Currencies::getIdByCode();
+    		$currencyId = acc_Periods::getBaseCurrencyId($today);
     	}
-    	
-    	$today = dt::verbal2mysql();
     	
     	// Поставяме стойности по подразбиране
     	$form->setDefault('valior', $today);

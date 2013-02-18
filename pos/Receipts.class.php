@@ -234,7 +234,7 @@ class pos_Receipts extends core_Master {
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
     	$products = array();
-    	$currencyId = currency_Currencies::getIdByCode();
+    	$currencyId = acc_Periods::getBaseCurrencyId($rec->date);
     	
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");

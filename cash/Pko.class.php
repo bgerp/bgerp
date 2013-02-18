@@ -199,14 +199,14 @@ class cash_Pko extends core_Master
     	$query->orderBy('createdOn', 'DESC');
     	$query->limit(1);
     	
+    	$today = dt::verbal2mysql();
+    	
     	if($lastRec = $query->fetch()) {
     		$form->setDefault('depositor', $lastRec->depositor);
     		$currencyId = $lastRec->currencyId;
     	} else {
-    		$currencyId = currency_Currencies::getIdByCode();
+    		$currencyId = acc_Periods::getBaseCurrencyId($today);
     	}
-    	
-    	$today = dt::verbal2mysql();
     	
     	// Поставяме стойности по подразбиране
     	$form->setDefault('valior', $today);
@@ -270,7 +270,6 @@ class cash_Pko extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->number = static::getHandle($rec->id);
-    	
     	if($fields['-single']){
     		
     		// Адреса на контрагента

@@ -172,12 +172,11 @@ class bank_CashWithdrawOrders extends core_Master
 				}
 			}
     	} else {
-    		
-    		$form->setDefault('currencyId', currency_Currencies::getIdByCode());
+    		$today = dt::verbal2mysql();
+    		$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     		$form->setDefault('ordererIban', bank_OwnAccounts::getCurrent());
     		$account = bank_OwnAccounts::getOwnAccountInfo();
     		$form->setDefault('execBank', $account->bank);
-    		$today = dt::verbal2mysql();
     		$form->setDefault('valior', $today);
     	}
     }

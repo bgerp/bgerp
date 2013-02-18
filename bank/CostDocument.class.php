@@ -158,7 +158,7 @@ class bank_CostDocument extends core_Master
     	
     	$today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
-        $form->setDefault('currencyId', currency_Currencies::getIdByCode());
+        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
     	$form->setReadOnly('ownAccount');
     	

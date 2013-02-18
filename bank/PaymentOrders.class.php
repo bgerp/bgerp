@@ -194,7 +194,7 @@ class bank_PaymentOrders extends core_Master
     		// Поставяме стойности по подразбиране
 	    	$today = dt::verbal2mysql();
 	    	$form->setDefault('valior', $today);
-	    	$form->setDefault('currencyId', currency_Currencies::getIdByCode());
+	    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     		static::getContragentInfo($data->form);
     	}
     }

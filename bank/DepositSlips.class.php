@@ -178,7 +178,7 @@ class bank_DepositSlips extends core_Master
     	
 	    	// Поставяме стойности по подразбиране
 	    	$today = dt::verbal2mysql();
-	    	$form->setDefault('currencyId', currency_Currencies::getIdByCode());
+	    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
 	    	$form->setDefault('valior', $today);
 	    	
 	    	static::getContragentInfo($form);

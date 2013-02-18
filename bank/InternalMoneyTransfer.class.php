@@ -274,7 +274,7 @@ class bank_InternalMoneyTransfer extends core_Master
 		
         // Перото на валутата по подразбиране
         $currencyClassId = currency_Currencies::getClassId();
-        $currencyId = currency_Currencies::getIdByCode();
+        $currencyId = acc_Periods::getBaseCurrencyId($today);
         $currencyItem = acc_Items::fetch("#objectId={$currencyId} AND #classId={$currencyClassId}");
        
         if($form->getField('currencyItem')->input != 'none') {

@@ -221,8 +221,9 @@ class bank_ExchangeDocument extends core_Master
         $creditAcc = $operation->creditAccount;
        
         // Перото на валутата по подразбиране
+        $today = dt::verbal2mysql();
         $currencyClassId = currency_Currencies::getClassId();
-        $currencyId = currency_Currencies::getIdByCode();
+        $currencyId = acc_Periods::getBaseCurrencyId($today);
         $currencyItem = acc_Items::fetch("#objectId={$currencyId} AND #classId={$currencyClassId}");
         
         foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
@@ -259,8 +260,7 @@ class bank_ExchangeDocument extends core_Master
 		    }
       	}
       	
-      	$today = dt::verbal2mysql();
-        $form->setDefault('valior', $today);
+      	$form->setDefault('valior', $today);
         $form->setReadOnly('operationId');
 	}
     
