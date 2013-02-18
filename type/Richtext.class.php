@@ -138,6 +138,10 @@ class type_Richtext extends type_Text
         if(!$html) return "";
         
         $textMode = Mode::get('text');
+
+        if(!$textMode) {
+            $textMode = 'html';
+        }
         
         $md5 = md5($html) . $textMode;
 
@@ -298,7 +302,11 @@ class type_Richtext extends type_Text
             $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $html);
         }
         
-        $html =  new ET("<div class=\"richtext\">{$html}</div>");
+        if(!Mode::is('text', 'plain')) {
+            $html =  new ET("<div class=\"richtext\">{$html}</div>");
+        } else {
+            $html =  new ET($html);
+        }
 
         // Подготовка и заместване на плейсхолдерите
         foreach($this->_htmlBoard as $place => $text) {
