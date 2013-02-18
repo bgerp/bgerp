@@ -660,6 +660,14 @@ class cal_Calendar extends core_Master
         $day = dt::mysql2Verbal($from, 'd');
         $month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
+        
+        // Днешната дата
+        $dayC = dt::mysql2Verbal(dt::now(), 'd');
+        $monthC = dt::mysql2Verbal(dt::now(), 'm');
+        $yearC = dt::mysql2Verbal(dt::now(), 'Y');
+        
+        $isToday = ($day == $dayC && $month == $monthC && $year == $yearC);
+        
       
         // Избрана дата
         $currentDate = dt::mysql2Verbal($from, 'd F Y, l');
@@ -878,23 +886,23 @@ class cal_Calendar extends core_Master
     		
     		// Ако времето е равно на текущото време на потребителя
     		// ограждаме визуално клетката
-    		if($h == $nowTime && ($h % 2 == 0 && $h != 0)){
+    		
+    		if($h % 2 == 0 && $h != 0 && $h != $nowTime){
+    			$cTpl->replace('#D1D7D1', 'colTr');
+    		    $cTpl->replace('calDayN', 'now');
+    		    
+    		}elseif($h % 2 == 0 && $h != 0 && $isToday == FALSE){
+    		
+    			$cTpl->replace('#D1D7D1', 'colTr');
+    		    $cTpl->replace('calDayN', 'now');
+    		}elseif($h == $nowTime && $isToday && $h % 2 == 0){
     			$cTpl->replace('mc-todayN', 'now');
-    			
     			$cTpl->replace('#D1D7D1', 'colTr');
-    			
-    		}elseif($h == $nowTime && ($h % 2 != 0 && $h != 0)){
+    		}elseif($h == $nowTime && $isToday && $h % 2 != 0 && $h != 0){
     			$cTpl->replace('mc-todayD', 'now');
-    		}elseif($h % 2 == 0 && $h != 0){
-    			$cTpl->replace('calDayN', 'now');
-    			
-    			$cTpl->replace('#D1D7D1', 'colTr');
     		}else {
-    			
     			$cTpl->replace('calDay', 'now');
-    			
     		}
- 
 
     		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
     	    // задаваме уникално ид
@@ -944,7 +952,7 @@ class cal_Calendar extends core_Master
         $month = dt::mysql2Verbal($from, 'm');
         $year = dt::mysql2Verbal($from, 'Y');
         
-         // Избрана дата
+         // Днешната дата
         $dayC = dt::mysql2Verbal(dt::now(), 'd');
         $monthC = dt::mysql2Verbal(dt::now(), 'm');
         $yearC = dt::mysql2Verbal(dt::now(), 'Y');
@@ -970,8 +978,9 @@ class cal_Calendar extends core_Master
         	$dateJs["date".$i."Js"] = date("d.m.Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
         	$dayWeek[$i] = date("N", mktime(0, 0, 0, $month, $day + $i - 3, $year));
         	//bp($hours, $nowTime, dt::now(), $hours[$nowTime] == "13:00");
-        	$isToday = ($i == $dayC && $month == $monthC && $year == $yearC);
-        	$tdCssClass["c".$i] = $isToday ? 'mc-todayD' : 'calWeekTime';
+        	$isToday = ($day == $dayC && $month == $monthC && $year == $yearC);
+//      
+        	$tdCssClass["c".$i] = 'calWeekTime';
             $tdCssClass["c".$i] .= ' ' . static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $day + $i - 3, $year)));
         	
          }
@@ -1163,19 +1172,22 @@ class cal_Calendar extends core_Master
    			
     		// Ако времето е равно на текущото време на потребителя
     		// Ограждаме кутийката
-    		if($h == $nowTime && ($h % 2 == 0 && $h != 0)){
-    				//bp($h, $t);
-    			//$cTpl->replace('mc-todayN', 'now');
-    			$cTpl->replace('calWeekN', 'col');
+   			if($h % 2 == 0 && $h != 0 && $h != $nowTime){
     			$cTpl->replace('#D1D7D1', 'colTr');
-    			
-    		}elseif($h % 2 == 0 && $h != 0){
-    			$cTpl->replace('calWeekN', 'now');
-    			$cTpl->replace('calWeekN', 'col');
+    		    $cTpl->replace('calWeekN', 'now');
+    		    $cTpl->replace('calWeekN', 'col');
+    		    
+    		}elseif($h % 2 == 0 && $h != 0 && $isToday == FALSE){
+    		
     			$cTpl->replace('#D1D7D1', 'colTr');
-    		}elseif($h == $nowTime && ($h % 2 != 0 && $h != 0)){
-    			$cTpl->replace('calWeek', 'now');
-    			$cTpl->replace('calWeek', 'col');
+    		    $cTpl->replace('calWeekN', 'now');
+    		    $cTpl->replace('calWeekN', 'col');
+    		
+    		}elseif($h == $nowTime && $isToday && $h % 2 == 0){
+    			$cTpl->replace('mc-todayN', 'now');
+    			$cTpl->replace('#D1D7D1', 'colTr');
+    		}elseif($h == $nowTime && $isToday && $h % 2 != 0 && $h != 0){
+    			$cTpl->replace('mc-todayD', 'now');
     		}else {
     			$cTpl->replace('calWeek', 'now');
     			$cTpl->replace('calWeek', 'col');
