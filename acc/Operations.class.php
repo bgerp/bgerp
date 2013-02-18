@@ -53,13 +53,7 @@ class acc_Operations extends core_Manager
      */
     var $singleTitle = 'Операция';
     
-    
-    /**
-     * Абревиатура
-     */
-    var $abbr = "So";
    
-    
     /**
      * Кой има право да чете?
      */
@@ -90,7 +84,7 @@ class acc_Operations extends core_Manager
     function description()
     {
     	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory');
-    	$this->FLD('document', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory');
+    	$this->FLD('documentName', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory');
     	$this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
@@ -221,17 +215,5 @@ class acc_Operations extends core_Manager
     	expect($sysId = static::fetchField($id, 'systemId'), 'Няма такава операция');
     	
     	return $sysId;
-    }
-    
-    
-    /**
-     * Записи за инициализиране на таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	//@TODO
     }
 }
