@@ -184,15 +184,21 @@ class core_Detail extends core_Manager
      */
     function prepareEditForm_($data)
     {
-        setIfNot($data->masterKey, $this->masterKey);
-        setIfNot($data->masterMvc, $this->Master);
         setIfNot($data->singleTitle, $this->singleTitle);
 
         parent::prepareEditForm_($data);
         
+        if(!$data->masterMvc) {
+            $data->masterMvc = $this->getMasterMvc($data->form->rec);  
+        }
+
+        if(!$data->masterKey) {
+            $data->masterKey = $this->getMasterKey($data->form->rec);
+        }
+
         // Очакваме да masterKey да е зададен
-        expect($data->masterKey);
-        expect($data->masterMvc instanceof core_Master);
+        expect($data->masterKey, $data); 
+        expect($data->masterMvc instanceof core_Master, $data);
         
         $masterKey = $data->masterKey;
         
@@ -206,11 +212,27 @@ class core_Detail extends core_Manager
         
         $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
         $data->form->title .= "|* \"" . str::limitLen($title, 32) . "\"";
-
+ 
         return $data;
     }
     
+
+    /**
+     * Дефолт функция за определяне мастера, спрямо дадения запис
+     */
+    function getMasterMvc_($rec)
+    {
+        return $this->Master;
+    }
     
+
+    /**
+     * Дефолт функция за определяне полето-ключ към мастера, спрямо дадения запис
+     */
+    function getMasterKey_($rec)
+    {
+        return $this->masterKey;
+    }
      
     
     /**
