@@ -143,10 +143,10 @@ class bank_Accounts extends core_Master {
         // извличаме от IBAN-a
     	if($form->isSubmitted()){
 	        if(!$form->rec->bank){
-		    		//$form->rec->bank = drdata_Banks::getBankName($form->rec->iban);
+		    		$form->rec->bank = drdata_Banks::getBankName($form->rec->iban);
 		    	}
 		    if(!$form->rec->bic) {
-		    		//$form->rec->bic = drdata_Banks::getBankBic($form->rec->iban);
+		    		$form->rec->bic = drdata_Banks::getBankBic($form->rec->iban);
 		    	}
 		}
     }
