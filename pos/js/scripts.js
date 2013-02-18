@@ -1,5 +1,17 @@
 $(document).ready(function () {
-	$(".scrollWrapper").scrollTop($(".scrollWrapper")[0].scrollHeight);
+	
+	if($('tr').hasClass('last-row')) {
+		var lastColor = $(".last-row").css("background-color");
+		$(".last-row").css("background-color", "#FFFF99");
+		setTimeout(function () {
+			$(".last-row").css("background-color", lastColor);
+			$(".scrollWrapper").scrollTop($(".scrollWrapper")[0].scrollHeight);
+			$(".last-row").removeClass('last-row');
+		}, 700);
+		$(".scrollWrapper").scrollTo('.last-row');
+	} else {
+		$(".scrollWrapper").scrollTop($(".scrollWrapper")[0].scrollHeight);
+	}
 	
 	$('#incBtn').click(function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
@@ -31,18 +43,4 @@ $(document).ready(function () {
 	$("form input[type=button]").hover(function(){$(this).toggleClass('button_hover');});
 	$("form input[type=submit]").hover(function(){$(this).toggleClass('submit_hover');});
 	
-	$("input[name=ean]").keyup(function(){
-        if($('select[name=param]').val() == 'payment') {
-        	var value = parseInt($("input[name=ean]").val(), 10);
-        	if(!value){
-        		$('#error-place').text('Въвели сте невалидна сума');
-        		$('input[type=submit]').attr('disabled', 'disabled');
-        	} else {
-        		$('#error-place').text('');
-        		if($('input[type=submit]').attr("disabled") == 'disabled') {
-        		   $('input[type=submit]').removeAttr('disabled');
-        		}
-        	}
-        }
-    });
 });

@@ -5,13 +5,12 @@
 			<td colspan='3'>
 				<div id=''><span id='receipt-title'>Касова Бележка</span></div> 
 				<div id='receipt-number'>Номер: &nbsp;&nbsp;<b>#[#id#]</b>,  &nbsp;&nbsp;Дата: &nbsp;&nbsp;<b>[#date#]</b></div>
-				
 			</td>
 		</tr>
 		<tr id='receipt-details-th'>
 			<td width="130px">Количество</td>
 			<td width="160px">Цена</td>
-			<td>Стойност</td>
+			<td style='text-align:right;padding-right:15px'>Стойност</td>
 		</tr>
 	</table>
 	<!--ET_BEGIN DETAILS-->

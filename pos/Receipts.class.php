@@ -105,10 +105,10 @@ class pos_Receipts extends core_Master {
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
     	$this->FLD('contragentObjectId', 'int', 'input=none');
     	$this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
-    	$this->FLD('total', 'float', 'caption=Общо, input=none, value=0');
-    	$this->FLD('paid', 'float', 'caption=Платено, input=none, value=0');
-    	$this->FLD('change', 'float', 'caption=Ресто, input=none, value=0');
-    	$this->FLD('tax', 'float', 'caption=Такса, input=none, value=0');
+    	$this->FLD('total', 'float(minDecimals=2)', 'caption=Общо, input=none, value=0');
+    	$this->FLD('paid', 'float(minDecimals=2)', 'caption=Платено, input=none, value=0');
+    	$this->FLD('change', 'float(minDecimals=2)', 'caption=Ресто, input=none, value=0');
+    	$this->FLD('tax', 'float(minDecimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 
             'caption=Статус, input=none'
@@ -188,7 +188,7 @@ class pos_Receipts extends core_Master {
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('list')) {
+        if($mvc->haveRightFor('list')) {
     		
     		// Добавяме бутон за достъп до 'List' изгледа
     		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
@@ -202,7 +202,7 @@ class pos_Receipts extends core_Master {
     						   'id=btnAdd,class=btn-add,order=20');
     	
     	if(haveRole('pos,admin') && $mvc->haveRightFor('conto', $data->rec)) {
-	    	$data->toolbar->addBtn('Приключи', array(
+	       $data->toolbar->addBtn('Приключи', array(
 	                			   'acc_Journal',
 	                               'conto',
 	                               'docId' => $data->rec->id,
@@ -266,9 +266,9 @@ class pos_Receipts extends core_Master {
     			
     			// "Продажба" : преизчисляваме общата стойност на бележката
     			$rec->total = $this->countTotal($rec->id);
-    			$rec->paid = $this->countPaidAmount($rec->id);
-    			if($rec->paid != 0) {
-    				$rec->change = $rec->paid - $rec->total;
+    			$change = $rec->paid - $rec->total;
+    			if($change > 0) {
+    				$rec->change = $change;
     			}
     			break;
     		case 'discount':
@@ -277,7 +277,10 @@ class pos_Receipts extends core_Master {
     			
     			// "Плащане" : преизчисляваме платеното до сега и рестото
     			$rec->paid = $this->countPaidAmount($rec->id);
-    			$rec->change = $rec->paid - $rec->total;
+    			$change = $rec->paid - $rec->total;
+    			if($change > 0) {
+    				$rec->change = $change;
+    			}
     			break;
     		case 'client':
     			
@@ -331,6 +334,15 @@ class pos_Receipts extends core_Master {
     	}
     	
     	return $total;
+    }
+    
+    
+    /**
+     *  Сортираме бележките по дата на създаване
+     */
+	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('#createdOn', 'DESC');
     }
     
     
@@ -391,7 +403,7 @@ class pos_Receipts extends core_Master {
 	            'quantity' => $product->quantity), // Количество продукт в основната му мярка
 	    	);
 	    	
-	    	// После Отчитаме експедиране от склада
+	    	// После отчитаме експедиране от склада
     		$entries[] = array(
 		        'debit' => array(
 		            '7012', // Сметка "7012. Приходи от POS продажби"
@@ -439,9 +451,7 @@ class pos_Receipts extends core_Master {
         $data = new stdClass();
         expect($data->rec = $this->fetch($id));
         $this->requireRightFor('single', $data->rec);
-        
         $this->prepareSingle($data);
-        
         if($dForm = $data->pos_ReceiptDetails->form) {
             $rec = $dForm->input();
             $Details = cls::get('pos_ReceiptDetails');

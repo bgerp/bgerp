@@ -2,8 +2,8 @@
 <tr>
 	<td colspan='4' class='receipt-sale'>[#productId#]</td>
 </tr>
-<tr>
-	<td class='receipt-quantity' width="110px">[#quantity#] </td>
+<tr [#lastRow#]>
+	<td class='receipt-quantity' width="110px">[#quantity#] бр.[#packagingId#]</td>
 	<td class='receipt-price' width="140px">[#price#] лв. 
 	<!--ET_BEGIN discountPercent-->
 	 (<span class='receipt-discount-td'>- [#discountPercent#]</span>)

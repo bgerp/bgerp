@@ -37,7 +37,7 @@ class pos_Payments extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, title, show';
+    var $listFields = 'id, tools=Пулт, title, show, change';
     
     
     /**
@@ -71,6 +71,7 @@ class pos_Payments extends core_Manager {
     {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
     	$this->FLD('show', 'enum(yes=Да,no=Не)', 'maxRadio=4,maxColumns=1,caption=Показване,value=yes');
+    	$this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Връща ресто?,value=no');
     }
     
     
@@ -87,6 +88,7 @@ class pos_Payments extends core_Manager {
                 $rec->id = $csvRow [0];
                 $rec->title = $csvRow [1];
                 $rec->show = $csvRow [2];
+                $rec->change = $csvRow [3];
                	if ($rec->id = static::fetchField(array("#title = '[#1#]'", $rec->title), 'id')) {
                     $updated++;
                 } else {
@@ -128,5 +130,19 @@ class pos_Payments extends core_Manager {
 	    }
 	    
     	return $payments;
+    }
+    
+    
+    /**
+     *  Метод отговарящ дали даден платежен връща ресто
+     *  @param int $id - ид на метода
+     *  @return boolean $res - дали връща или не връща ресто
+     */
+    static function returnsChange($id)
+    {
+    	expect($rec = static::fetch($id), 'Няма такъв платежен метод');
+    	($rec->change == 'yes') ? $res = TRUE : $res = FALSE;
+    	
+    	return $res;
     }
 }
