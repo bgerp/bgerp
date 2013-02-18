@@ -3,7 +3,7 @@
 	<div class="elem-holder">
 		<div class="">
 			<div class="elem-img">
-				<img src="[#imageUrl#]" alt="" />
+				[#img#]
 			</div>
 				[#name#]
 				[#open#] 

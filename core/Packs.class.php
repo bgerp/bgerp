@@ -295,18 +295,28 @@ class core_Packs extends core_Manager
         $row->id = $rowNum;
         
         $row->name = "<b>" . $mvc->getVerbal($rec, 'name') . "</b>";
-        
-        if($rec->startCtr) {
-            
-            $row->open = ht::createBtn("Отваряне", array($rec->startCtr, $rec->startAct),NULL, NULL, array('class' => 'btn-open'));
-        }
-       
-        
+         
         $row->name = new ET($row->name);
         $row->name->append(' ' . str_replace(',', '.', $rec->version));
+        if($rec->startCtr) {
+        	$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
+        }
         $row->name .= "<div><small>{$rec->info}</small></div>";
-        $row->imageUrl = sbf("img/100/default.png","");
-       
+        
+        $imageUrl = sbf("img/100/default.png","");
+        
+        $filename=getFullPath("{$rec->name}/icon.png");
+        
+       	if(file_exists($filename)){
+       		$imageUrl=sbf("{$rec->name}/icon.png","");
+       	}
+       	
+       	$row->img = ht::createElement("img", array('src' => $imageUrl));
+       	
+       	if($rec->startCtr) {
+       		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
+       	}
+       	
         $row->install = ht::createLink("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
         
         if($rec->deinstall == 'yes') {
