@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Ценоразписи
  */
-class price_Groups extends core_Manager
+class price_Groups extends core_Master
 {
     
     
@@ -65,7 +65,13 @@ class price_Groups extends core_Manager
      */
     var $canDelete = 'user';
     
+
+    /**
+     * Поле за връзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'title';
     
+
     /**
      * Описание на модела (таблицата)
      */
@@ -73,6 +79,27 @@ class price_Groups extends core_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Група');
         $this->FLD('description', 'text', 'caption=Описание');
+
+        $this->setDbUnique('title');
+    }
+    
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($action == 'delete') {
+            if($rec->id && price_GroupOfProducts::fetch("#groupId = {$rec->id}")) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
 }

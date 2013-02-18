@@ -117,17 +117,42 @@ class price_GroupOfProducts extends core_Detail
     public static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
-        $data->query->orderBy("validFrom", 'DESC');
+        $data->query->orderBy("validFrom,id", 'DESC');
     }
 
 
     public function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
     {
-        /**
-         * @TODO Кои от ценовите групи на продукт са редактируеми?
-         */
+        if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
+            if($rec->validFrom <= dt::verbal2mysql()) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()) {
+            
+            $rec = $form->rec;
+
+            $now = dt::verbal2mysql();
+
+            if($rec->validFrom <= $now) {
+                $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
+            }
+        }
+    }
+
+
     
     public static function on_AfterPrepareListRows(core_Detail $mvc, $data)
     {
@@ -152,18 +177,20 @@ class price_GroupOfProducts extends core_Detail
             $rec = $data->recs[$id];
             
             if ($rec->validFrom > $now) {
-                $row->ROW_ATTR['class'] = 'future';
+                $row->ROW_ATTR['class'] = 'state-draft';
             } else {
-                $row->ROW_ATTR['class'] = 'past';
+                $row->ROW_ATTR['class'] = 'state-closed';
 
                 if (!isset($currentGroupId) || $rec->validFrom > $data->recs[$currentGroupId]->validFrom) {
                     $currentGroupId = $id;
                 }
             }
+
+            $row->groupId = ht::createLink($row->groupId, array('price_Groups', 'single', $rec->groupId));
         }
         
         if (isset($currentGroupId)) {
-            $data->rows[$currentGroupId]->ROW_ATTR['class'] = 'active';
+            $data->rows[$currentGroupId]->ROW_ATTR['class'] = 'state-active';
         }
     }
 
@@ -171,7 +198,7 @@ class price_GroupOfProducts extends core_Detail
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         $wrapTpl = new ET(getFileContent('cat/tpl/ProductDetail.shtml'));
-        $wrapTpl->append($mvc->title, 'TITLE');
+        $wrapTpl->append($mvc->singleTitle, 'TITLE');
         $wrapTpl->append($tpl, 'CONTENT');
         $wrapTpl->replace(get_class($mvc), 'DetailName');
     

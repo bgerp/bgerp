@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Ценоразписи
  */
-class price_History extends core_Master
+class price_History extends core_Manager
 {
     
     

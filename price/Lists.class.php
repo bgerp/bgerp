@@ -21,7 +21,7 @@ class price_Lists extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Ценоразписи';
+    var $title = 'Правила за ценообразуване';
     
     
     /**
@@ -85,19 +85,84 @@ class price_Lists extends core_Master
     
     
     /**
+     * Поле за връзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'title';
+
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява');
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование');
+        $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'mandatory,caption=Валута');
         $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,caption=ДДС');
         $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
+        
+        $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
+        $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
+
+        $this->setDbUnique('title');
     }
 
 
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $rec = $form->rec;
+
+        if($rec->classId) {
+            $form->setField('public', 'input=none');
+        }
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if($rec->parent) {
+            $row->parent = ht::createLink($row->parent, array('price_Lists', 'Single', $rec->parent));
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($action == 'delete') {
+            if($rec->id && (self::fetch("#parent = {$rec->id}") || price_ListToCustomers::fetch("#listId = {$rec->id}")) ) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+    
+    /**
+     *
+     */
     function on_AfterSetupMVC($mvc, $res)
     {
         $conf = core_Packs::getConfig('price');
@@ -121,8 +186,6 @@ class price_Lists extends core_Master
             $rec->createdBy = -1;
             $mvc->save($rec, NULL, 'REPLACE');
         }
-
-
     }
     
 }

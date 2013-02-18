@@ -91,21 +91,52 @@ class price_ListToCustomers extends core_Detail
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила от');
+        $this->FLD('validFrom', 'datetime', 'caption=В сила от,mandatory');
     }
 
     
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()) {
+            
+            $rec = $form->rec;
+
+            $now = dt::verbal2mysql();
+
+            if($rec->validFrom <= $now) {
+                $form->setError('validFrom', 'Ценоразписа не може да се задава с минала дата');
+            }
+        }
+    }
+
+
     public static function on_AfterPrepareDetailQuery($mvc, $data)
     {
         $cClassId = core_Classes::getId($mvc->Master);
         
         $data->query->where("#cClass = {$cClassId}");
+
+        $data->query->orderBy("#validFrom,#id", "DESC");
     }
 
     
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    public function getMasterMvc_($rec)
+    {   
+        $masterMvc = cls::get($rec->cClass);
+ 
+        return $masterMvc;      
+    }
+    
+    
+    public function getMasterKey_($rec)
     {
-        $data->masterMvc = cls::get($data->form->rec->cClass);
+        return 'cId';      
     }
     
     
@@ -144,11 +175,55 @@ class price_ListToCustomers extends core_Detail
     
     
     public static function preparePricelists($data)
-    {
+    { 
         static::prepareDetail($data);
+
+        $now = dt::verbal2mysql();
+ 
+        $query = self::getQuery();
+        $cClassId = core_Classes::getId($data->masterMvc );
+        $query->where("#cClass = {$cClassId} AND #cId = {$data->masterId}");
+        $query->where("#validFrom <= '{$now}'");
+        $query->limit(1);
+        $query->orderBy("#validFrom,#id", 'DESC');
+        $aRec = $query->fetch();
+
+        foreach($data->rows as $id => &$row) {
+            $rec = $data->recs[$id];
+            if($rec->validFrom > $now) {
+                $state = 'draft';
+            } elseif($aRec->id == $rec->id) {
+                $state = 'active';
+            } else {
+                $state = 'closed';
+            }
+            $data->rows[$id]->ROW_ATTR['class'] = "state-{$state}";
+
+            if(price_Lists::haveRightFor('single', $rec)) {
+                $row->listId = ht::createLink($row->listId, array('price_Lists', 'single', $rec->id));
+            }
+        }
+
     }
+
+
+    /**
+     *
+     */
+    public function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    {
+        if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
+            if($rec->validFrom <= dt::verbal2mysql()) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
     
-    
+    /**
+     *
+     */
     public function renderPricelists($data)
     {
         // Премахваме контрагента - в случая той е фиксиран и вече е показан 

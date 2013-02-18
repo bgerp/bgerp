@@ -35,7 +35,7 @@ class price_ListRules extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, groupId, productId, packagingId, price, discount, validFrom, validUntil, createdOn, createdBy';
+    var $listFields = 'id, rule=Правило, validFrom, validUntil, createdOn, createdBy';
     
     
     /**
@@ -224,7 +224,6 @@ class price_ListRules extends core_Detail
             $data->toolbar->addBtn('Отстъпка', array($mvc, 'add', 'type' => 'discount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
             $data->toolbar->addBtn('Групова отстъпка', array($mvc, 'add', 'type' => 'groupDiscount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
         }
-
     }
 
 
@@ -281,11 +280,14 @@ class price_ListRules extends core_Detail
                 $query->where("#groupId = $rec->groupId");
             } else {
                 $productGroup = price_GroupOfProducts::getGroup($rec->productId, $now);
+                if($productGroup) {
+                    $pgCond = "#groupId = $productGroup OR ";
+                }
                 expect($rec->productId);
                 if($rec->productId && $rec->packagingId) {
-                    $query->where("#groupId = $productGroup OR (#productId = $rec->productId AND (#packagingId = $rec->packagingId OR #packagingId IS NULL))");
+                    $query->where("{$pgCond}(#productId = $rec->productId AND (#packagingId = $rec->packagingId OR #packagingId IS NULL))");
                 } else {
-                    $query->where("#groupId = $productGroup OR (#productId = $rec->productId AND #packagingId IS NULL)");
+                    $query->where("{$pgCond}(#productId = $rec->productId AND #packagingId IS NULL)");
                 }
             }
 
@@ -296,6 +298,55 @@ class price_ListRules extends core_Detail
             } else {
                 $state = 'closed';
             }
+        }
+
+
+        // Вербален изказ на правилото
+        $price = $mvc->getVerbal($rec, 'price');
+
+        
+        if($rec->discount < 0) {$discount = $mvc->getVerbal($rec, 'discount');
+            $discount = "<font color='red'>Марж {$discount}</font>";
+        } else {
+            $discount = "Отстъпка {$discount}";
+        }
+        
+        if($rec->productId) {
+            $product = $mvc->getVerbal($rec, 'productId');
+            $product = ht::createLink($product, array('cat_Products', 'single', $rec->productId));
+        }
+
+        if($rec->packagingId) {
+            $packaging = $mvc->getVerbal($rec, 'packagingId');
+            $product = "{$packaging} $product";
+        }
+        
+        if($rec->groupId) {
+            $group = 'група ' . $mvc->getVerbal($rec, 'groupId');
+            $group = ht::createLink($group, array('price_Groups', 'single', $rec->groupId));
+        }
+
+        $currency = price_Lists::fetchField($rec->listId, 'currency');
+
+        switch($rec->type) {
+            case 'groupDiscount' :
+                $row->rule = "{$discount} за {$group}";
+                break;
+            case 'discount' :
+                $row->rule = "{$discount} за {$product}";
+                break;
+            case 'value' :
+                $row->rule = "Цена {$price} {$currency} за {$product}";
+                break;
+        }        
+        
+        if($state == 'active') {
+            $row->rule = "<b>{$row->rule}</b>";
+        }
+
+        // Линк към продукта
+        if($rec->productId) {
+            $row->productId = ht::createLink($row->productId, array('cat_Products', 'Single', $rec->productId));
         }
 
         $row->ROW_ATTR['class'] .= " state-{$state}";

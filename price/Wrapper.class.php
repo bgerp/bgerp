@@ -24,9 +24,9 @@ class price_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('price_Lists', 'Ценоразписи', 'ceo,price');
-        $this->TAB('price_Groups', 'Ценови групи', 'ceo,price');
-        $this->TAB('price_History', 'История', 'ceo');
+        $this->TAB('price_Lists', 'Правила', 'ceo,price');
+        $this->TAB('price_Groups', 'Групи', 'ceo,price');
+        $this->TAB('price_History', 'Кеш', 'ceo');
 
     }
 }
