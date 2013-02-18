@@ -486,7 +486,7 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * документа. Реализация пона метода на модела
+     * Оттегляне на документа. Реализация дефоулт метода на модела
      */
     function on_AfterReject($mvc, &$res, $id, $mode = 'reject')
     {
