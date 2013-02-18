@@ -290,7 +290,7 @@ class bank_ExchangeDocument extends core_Master
 		    	// Изчисляваме курса на превалутирането спрямо входните данни
 		    	$cCode = currency_Currencies::getCodeById($creditCurrency);
 		    	$dCode = currency_Currencies::getCodeById($debitCurrency);
-		    	$cRate = currency_CurrencyRates::getRate($rec->valior, $cCode);
+		    	$cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
 		    	$rec->creditPrice = $cRate;
 		    	$rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    	$rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);

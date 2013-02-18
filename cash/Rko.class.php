@@ -255,7 +255,7 @@ class cash_Rko extends core_Master
 		    if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode);
+		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
 		    }
 		    
 		    if($rec->rate != 1) {

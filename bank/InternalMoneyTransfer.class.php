@@ -316,7 +316,8 @@ class bank_InternalMoneyTransfer extends core_Master
     		if(!$quantityOnly) {
     			$currencyId = static::getCurrency('debit', $rec);
 		    	$currencyCode = currency_Currencies::getCodeById($currencyId);
-    			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode);
+    			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, $baseCurrencyCode);
     		}
     	}
     }

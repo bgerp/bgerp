@@ -222,7 +222,7 @@ class bank_CostDocument extends core_Master
 	   	 	// Ако няма валутен курс, взимаме този от системата
     		if(!$rec->rate && !$form->gotErrors()) {
 	    		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-	    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode);
+	    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
 	    	}
     	}
     }
