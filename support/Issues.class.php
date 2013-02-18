@@ -414,7 +414,7 @@ class support_Issues extends core_Master
             $maintainers = support_Components::fetchField($nRec->componentId, 'maintainers');
             
             // Обядиняваме отговорниците и споделените потребители
-            $rec->sharedUsers = type_Keylist::merge($rec->sharedUsers, $maintainers);      
+            $rec->sharedUsers = type_Keylist::merge($nRec->sharedUsers, $maintainers);      
         }
     }
     
