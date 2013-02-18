@@ -107,6 +107,10 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     var $singleLayoutFile = 'bank/tpl/SingleInternalMoneyTransfer.shtml';
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "4.9|Финанси";
     
 	/**
      * Описание на модела

@@ -138,7 +138,11 @@ class sales_Sales extends core_Master
      * 
      */
    var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoiceSale.shtml';
-    
+   
+    /**
+     * Групиране на документите
+     */ 
+   var $newBtnGroup = "3.1|Търговия";
     
     /**
      * Описание на модела (таблицата)

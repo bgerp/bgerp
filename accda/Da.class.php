@@ -103,6 +103,11 @@ class accda_Da extends core_Master
     var $searchFields = 'num, serial, title';
     
     /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "6.2|Счетоводни";
+    
+    /**
      * Описание на модела
      */
     function description()

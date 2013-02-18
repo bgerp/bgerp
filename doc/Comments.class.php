@@ -123,6 +123,12 @@ class doc_Comments extends core_Master
      */
     var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
 
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "1.1|Общи"; 
+
+
     
     /**
      * Описание на модела

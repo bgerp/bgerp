@@ -90,6 +90,12 @@ class hr_EmployeeContracts extends core_Master
                          endOn, folderId, threadId, containerId';
     
     /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "5.1|Човешки ресурси";
+    
+    
+    /**
      * Описание на модела
      */
     function description()

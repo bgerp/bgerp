@@ -123,6 +123,10 @@ class support_Preventions extends core_Master
      */
     var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
 
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "9.3|Поддръжка";
     
     /**
      * Описание на модела

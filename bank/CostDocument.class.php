@@ -113,6 +113,10 @@ class bank_CostDocument extends core_Master
      */
     var $searchFields = 'valior, reason, contragentName';
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "4.5|Финанси";
 
     /**
      * Описание на модела

@@ -118,6 +118,10 @@ class cash_Pko extends core_Master
     var $printParams = array( array('Оригинал'),
     						  array('Копие'),); 
 
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "4.1|Финанси";
     
     /**
      * Описание на модела

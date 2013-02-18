@@ -123,6 +123,10 @@ class sales_Invoices extends core_Master
      */
     var $singleIcon = 'img/16/invoice.png';
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "3.3|Търговия";
     
     /**
      * SystemId на номенклатура "Клиенти"

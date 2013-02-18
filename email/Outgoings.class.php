@@ -143,6 +143,12 @@ class email_Outgoings extends core_Master
     var $searchFields = 'subject, recipient, attn, email, body, folderId, threadId, containerId';
     
     /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "1.2|Общи";
+
+
+    /**
      * Описание на модела
      */
     function description()

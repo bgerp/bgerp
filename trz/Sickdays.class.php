@@ -74,6 +74,11 @@ class trz_Sickdays extends core_Manager
     
     
     /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "5.2|Човешки ресурси";
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

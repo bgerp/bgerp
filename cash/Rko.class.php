@@ -123,6 +123,10 @@ class cash_Rko extends core_Master
     var $printParams = array( array('Оригинал'),
     						  array('Копие'),); 
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "4.2|Финанси";
     
     /**
      * Описание на модела

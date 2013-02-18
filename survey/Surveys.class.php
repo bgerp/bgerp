@@ -100,6 +100,12 @@ class survey_Surveys extends core_Master {
 	 */
 	var $singleLayoutFile = 'survey/tpl/SingleSurvey.shtml';
 	
+	
+	/**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "8.1|Анкети";
+    
     
     /**
      * Описание на модела (таблицата)

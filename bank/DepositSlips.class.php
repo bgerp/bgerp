@@ -101,6 +101,10 @@ class bank_DepositSlips extends core_Master
      */
     var $searchFields = 'valior, reason, beneficiaryName';
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "4.6|Финанси";
     
     /**
      * Описание на модела

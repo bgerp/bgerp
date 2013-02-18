@@ -103,6 +103,11 @@ class purchase_Offers extends core_Manager
     var $searchFields = 'folderId, threadId, containerId';
     
     /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "3.2|Търговия";
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

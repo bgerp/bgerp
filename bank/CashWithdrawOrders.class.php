@@ -100,6 +100,11 @@ class bank_CashWithdrawOrders extends core_Master
      */
     var $searchFields = 'valior, reason, proxyName';
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "4.4|Финанси";
+    
     
     /**
      * Описание на модела

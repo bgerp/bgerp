@@ -102,6 +102,11 @@ class bank_PaymentOrders extends core_Master
     
 
     /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "4.3|Финанси";
+    
+    /**
      * Описание на модела
      */
     function description()

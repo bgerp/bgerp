@@ -126,6 +126,10 @@ class acc_Articles extends core_Master
      */
     var $searchFields = 'reason, valior';
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "6.1|Счетоводни";
       
     
     /**

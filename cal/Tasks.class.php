@@ -130,8 +130,11 @@ class cal_Tasks extends core_Master
      * Абревиатура
      */
     var $abbr = "Tsk";
-
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "1.3|Общи"; 
     
     /**
      * Описание на модела (таблицата)

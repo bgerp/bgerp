@@ -106,6 +106,10 @@ class blast_Lists extends core_Master
      */
     var $searchFields = 'title, keyField, contactsCnt, folderId, threadId, containerId ';
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "2.1|Циркулярни";
     
     /**
      * Описание на модела (таблицата)

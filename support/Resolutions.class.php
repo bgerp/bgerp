@@ -123,6 +123,10 @@ class support_Resolutions extends core_Master
      */
     var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
 
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "9.5|Поддръжка";
     
     /**
      * Описание на модела

@@ -108,6 +108,11 @@ class bank_ExchangeDocument extends core_Master
     var $singleLayoutFile = 'bank/tpl/SingleExchangeDocument.shtml';
     
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "4.7|Финанси";
+    
 	/**
      * Описание на модела
      */

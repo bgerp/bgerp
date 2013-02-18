@@ -142,6 +142,11 @@ class support_Issues extends core_Master
      */
     var $cloneFields = 'componentId, typeId, title, description, priority';
 	
+    
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "9.2|Поддръжка";
 	
 	/**
      * Описание на модела (таблицата)

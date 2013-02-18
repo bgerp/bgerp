@@ -142,6 +142,11 @@ class blast_Letters extends core_Master
      */
     var $letterTemp = NULL;
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "2.3|Циркулярни";
+    
     
     /**
      * Описание на модела

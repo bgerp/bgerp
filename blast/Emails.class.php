@@ -148,6 +148,11 @@ class blast_Emails extends core_Master
      */
     var $prepared = array();
     
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "2.2|Циркулярни";
+    
     
     /**
      * Описание на модела
