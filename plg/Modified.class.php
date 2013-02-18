@@ -46,8 +46,14 @@ class plg_Modified extends core_Plugin
      * Добавя ново поле, което съдържа датата, в чист вид
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
-        $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');
+    {   
+        if($rec->createdBy == -1) {
+            $row->modifiedBy = '@sys';
+        } elseif($rec->createdBy == -1) {
+            $row->modifiedBy = '@anonym';
+        } else {
+            $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');
+        }
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
     }
 }

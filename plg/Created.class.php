@@ -87,6 +87,8 @@ class plg_Created extends core_Plugin
     {
         if($rec->createdBy == -1) {
             $row->createdBy = '@sys';
+        } elseif($rec->createdBy == 0) {
+            $row->createdBy = '@anonym';
         } else {
             $row->createdBy = core_Users::getVerbal($rec->createdBy, 'nick');
         }
