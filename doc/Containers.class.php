@@ -837,9 +837,6 @@ class doc_Containers extends core_Manager
     {
         $query = $this->getQuery();
         
-        $query->startFrom(90000);
-        $query->limit(10000);
-
         while($rec = $query->fetch()) {
             if(!$rec->threadId) {
                 $err[$rec->id] .= 'Missing threadId; ';
