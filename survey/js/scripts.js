@@ -20,7 +20,10 @@ $('ul.answers input[type=radio]').click(function vote() {
     	     success: function(result)
     	     { 
     	    	if(result.success == 'yes'){ 
-    	    		selected.parent('li').effect("highlight", {}, 3000);
+    	    		selected.parent('li').addClass("after-vote");
+    	    		setTimeout(function () {
+    	    			$(selected.parent('li')).removeClass('after-vote');
+    	    		}, 400);
     	    	}
     	     },
     	     error: function()
