@@ -118,36 +118,33 @@ class cat_Packagings extends core_Manager
     {
         $initData = array(
             array(
-                'name' => 'Пакет',
+                'name' => 'пакет',
             ),
             array(
-                'name' => 'Ролка',
+                'name' => 'ролка',
             ),
             array(
-                'name' => 'Кашон',
+                'name' => 'кашон',
             ),
             array(
-                'name' => 'Чувал',
+                'name' => 'чувал',
             ),
             array(
-                'name' => 'Варел',
+                'name' => 'варел',
             ),
             array(
-                'name' => 'Палет',
+                'name' => 'палет',
             ),
             array(
-                'name' => 'Клетка',
+                'name' => 'клетка',
             ),
             array(
-                'name' => 'Бройка',
+                'name' => 'бройка',
             ),
             array(
-                'name' => 'Бака',
+                'name' => 'бака',
             )
             ,
-            array(
-                'name' => 'Метро опаковка(МЕ)',
-            )
         );
         
         foreach ($initData as $rec) {

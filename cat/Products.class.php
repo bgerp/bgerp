@@ -139,11 +139,11 @@ class cat_Products extends core_Master {
      */
     function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,remember=info');
         $this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info');
-        $this->FLD('info', 'text', 'caption=Детайли');
+        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
+        $this->FLD('info', 'richtext', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
-        $this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
+        $this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория,placeholder=Категория,remember=info');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
         
         $this->setDbUnique('code');
@@ -277,7 +277,7 @@ class cat_Products extends core_Master {
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
             'caption=Подредба,input,silent,remember');
         $data->listFilter->setField('categoryId',
-            'placeholder=Всички категории,caption=Категория,input,silent,mandatory=,remember');
+            'placeholder=Всички категории,caption=Категория,input,silent,remember');
         $data->listFilter->getField('categoryId')->type->params['allowEmpty'] = TRUE;
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
