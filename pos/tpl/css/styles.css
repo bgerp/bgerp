@@ -5,6 +5,10 @@
 	margin-top:15px;
 }
 
+.narrow #single-receipt{
+	font-size:16px;
+}
+
 #receipt-header {
 	background-color: rgb(221, 221, 221);
 }
@@ -15,9 +19,8 @@
 }
 
 #receipt-contragent {
-	float:right;
-	margin-top: 10px;
-	margin-right:5px;
+	text-align:center;
+	line-height: 26px;
 }
 
 #receipt-number {
@@ -25,21 +28,18 @@
 }
 
 #receipt-payments {
-	width:320px;
-	float:right;
-	text-indent:10px;
+	margin:2px 0px 2px 13px;
+	width:140px;
 }
 
 #receipt-paid, #receipt-change{
-	float:right;
-	width:48%;
-	line-height:27px;
+	line-height:26px;
 }
 
 #receipt-total {
-	float:left;
-	width:50%;
+	text-align:right;
 	height:100%;
+	margin-right:15px;
 }
 
 #receipt-total-sum {
@@ -50,7 +50,7 @@
 
 .info-right {
 	float:right;
-	margin-right:5px;
+	font-style:italic;
 }
 
 #total-label {
@@ -60,6 +60,11 @@
 
 #receipt-details-th {
 	background-color: rgb(200, 200, 200);
+	border: 1px solid #000;
+}
+
+#receipt-details-th td{
+	text-align:center;
 }
 
 .receipt-sale {
@@ -71,29 +76,32 @@
 	margin-top:15px;
 }
 
-
-#receipt-details-form-table {
-	
-}
-
 #single-receipt {
 	width:470px;
 }
 
 #single-receipt .formError{
 	width:398px;
- }
+}
  
 .receipt-client {
-	background-color:#ddecfc;
+	background-color:#FFEEDD;
 }
-
+.receipt-quantity,.receipt-price, .receipt-amount{
+	text-align:right;
+}
 .buttonForm, .actionBtn, .clientBtn, .webscan{
 	height:35px !important;
 	margin-right:16px !important;
 	font-size:18px !important;
 	color:white !important;
 	background-color:#999999 !important;
+}
+
+.buttons-row input{
+	height:40px !important;
+	line-height:37px;
+	padding:0 5px;
 }
 
 input,select {
@@ -112,9 +120,6 @@ input,select {
 	background-color:pink !important;
 }
 
-.subBtn {
-
-}
 .buttons-row {
 	margin-top:15px;
 }
@@ -128,15 +133,11 @@ input.error {
 }
 
 .receipt-discount {
-	background-color:#e1f8e1;
+	background-color:#ffffe0;
 }
 
 .receipt-payment {
-	background-color:#FFFFCC;
-}
-
-.receipt-amount {
-
+	background-color:#d1ffda;
 }
 
 #receipt-info{
@@ -162,8 +163,30 @@ input.error {
 	color:darkred;
 	font-style:italic;
 }
+.buttons-row{
+	clear:both;
+	float:left;
+}
 
+#receipt-details-form .button{
+	width:106px;
+	float:left;
+	margin-left:15px !important;
+	margin-right:0 !important;
+}
 
+.buttons-row{
+	margin-left:-15px !important;
+}
+
+.ean-text{
+	width:12.1em;
+}
+
+.narrow .ean-text{
+	width:15.2em;
+}
+	
 /*скролиране на таблица*/
 table.scrollable{
 	width:100%;
@@ -177,7 +200,7 @@ table.scrollable td{
 	border-right:none;
 	padding: 2px 15px 0;
 	vertical-align:middle;
-	height:28px;
+	height:24px;
 }
 	
 table.scrollable tr:first-child td{
@@ -187,24 +210,32 @@ table.scrollable tr:first-child td{
 div.scrollWrapper{
   float:left;
   width:469px;
-  max-height:185px;
+  max-height:269px;
   overflow-y:auto;
   border-right:1px solid #000;
   border-bottom:1px solid #000;
   margin-bottom:0px;
   
 }
-
+.narrow div.scrollWrapper{
+	max-height:215px;
+}
 @media print{
 	div.scrollWrapper{
 		max-height:auto;
 		overflow:visible;
 		border:1px solid #000;
 		border-left:none;
-		width:620px;
+		border-right:none;
+		width:470px;
 	}
+	
 	table.scrollable td{
 		border:1px solid #000;
+	}
+	
+	#receipt-info{
+		margin-top:-1px;
 	}
 }
 

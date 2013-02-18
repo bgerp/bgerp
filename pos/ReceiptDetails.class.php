@@ -60,7 +60,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->FLD('receiptId', 'key(mvc=pos_Receipts)', 'caption=Бележка, input=hidden, silent');
     	$this->FLD('action', 'varchar(32)', 'caption=Действие,width=7em');
     	$this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em,input=none');
-    	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, width=12em');
+    	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input,class=ean-text');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
     	$this->FLD('price', 'float(minDecimals=2)', 'caption=Цена,input=none');
         $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=4em');
