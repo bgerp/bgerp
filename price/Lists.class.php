@@ -27,7 +27,7 @@ class price_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper, plg_NoChange';
                     
     
     /**
@@ -95,11 +95,11 @@ class price_Lists extends core_Master
      */
     function description()
     {
-        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява');
+        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
-        $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'mandatory,caption=Валута');
-        $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,caption=ДДС');
+        $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'mandatory,caption=Валута,noChange');
+        $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,caption=ДДС,noChange');
         $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
         
