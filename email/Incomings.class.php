@@ -471,8 +471,12 @@ class email_Incomings extends core_Master
             $query->show('maxUid');
             $maxRec = $query->fetch("#accountId = {$imapConn->accRec->id}");
         }
- 
-        if(!$maxRec->maxUid) {
+        
+        if($maxRec->maxUid) {
+            $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid);
+        }
+
+        if($maxReadMsgNo === 0) {
             // Горен указател
             $t = $maxMsgNo; 
             
@@ -526,8 +530,8 @@ class email_Incomings extends core_Master
 
         } else {
 
-            $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid);
-             
+           
+           
             if(($maxReadMsgNo === FALSE) || ($maxReadMsgNo >= $maxMsgNo)) {
                 $maxReadMsgNo = NULL;
             } else {
@@ -638,7 +642,7 @@ class email_Incomings extends core_Master
         }
     }
     
-    
+ 
     /**
      * Да сваля имейлите по - крон
      */
