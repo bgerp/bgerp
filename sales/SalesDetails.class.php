@@ -293,8 +293,8 @@ class sales_SalesDetails extends core_Detail
                 $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
                 
                 /* @var $productRef cat_ProductAccRegIntf */
-                $productRef  = new core_ObjectReference('cat_Products', $form->rec->productId);
-                $productInfo = $productRef->getProductInfo($contragent, $form->rec->date);
+                $productRef  = new core_ObjectReference('cat_Products', $rec->productId);
+                $productInfo = $productRef->getProductInfo();
                 
                 expect($productInfo);
                 
@@ -317,7 +317,7 @@ class sales_SalesDetails extends core_Detail
                     $productsPerPack = 1;
                 } else {
                     // Продажба на опаковки
-                    if (!$packInfo = $productInfo->packs[$rec->packagingId]) {
+                    if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
                         $form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
                         return;
                     }
