@@ -34,29 +34,21 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща запис, съдържащ ценова информация за продукта
+     * Връща запис, съдържащ информация за продукта
      *
      * @param int $productId id на записа на продукта
-     * @param key(mvc=acc_Items) id на перото на контрагента (NULL = неизвестен контрагент)
-     * @param date дата към която се изисква да е актуална информацията  (NULL = сега)
+     * @param int $packagingId за коя опаковка се иска инфо. NULL - всички възможни опаковки на
+     *                         продукта.
      *
-     * o int    id    ид на записа
-     * o string title име на продукта
-     * о int    code  код на продукта
-     * о int    uomId ключ към основната мярка на продукта в cat_UoM
-     * o float  price цена на дребно на продукта за основната мярка
-     * o float  cost  себестойност на продукта за основната мярка
-     * о
-     * о array  packs масив с key(mvc=cat_Packaging) => (stdClass) packInfo
-     * - string  packInfo->eanCode EAN код на продукта
-     * - string  packInfo->customerCode код на клиента
-     * - float   packInfo->quantity  количество от основната мярка
-     * - float   цена за тази разфасовка
-     * - float   отстъпка за тази разфасовка
+     * @return stdClass обект със следните полета:
+     * 
+     *   ->productRec   - запис на продукта в модела му
+     *   ->packagings   - масив от всички възможни опаковки на продукта (ако $packagingId == NULL)
+     *   ->packagingRec - запис на опаковка от модела й (ако $packagingId != NULL)
      */
-    function getProductInfo($productId, $contragentId = NULL, $date = NULL)
+    function getProductInfo($productId, $packagingId = NULL)
     {
-        return $this->class->getProductInfo($productId, $contragentId, $date);
+        return $this->class->getProductInfo($productId, $packagingId = NULL);
     }
     
     

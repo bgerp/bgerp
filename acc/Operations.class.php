@@ -39,7 +39,7 @@ class acc_Operations extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, name, document, debitAccount, creditAccount, systemId, createdOn, createdBy";
+    var $listFields = "tools=Пулт, name, documentSrc, debitAccount, creditAccount, systemId, createdOn, createdBy";
    
     
     /**
@@ -84,7 +84,7 @@ class acc_Operations extends core_Manager
     function description()
     {
     	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory');
-    	$this->FLD('documentName', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory');
+    	$this->FLD('documentSrc', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory');
     	$this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
@@ -121,7 +121,7 @@ class acc_Operations extends core_Manager
     	// Извличаме онея операции, които са за този документ
     	$options = array();
         $query = static::getQuery();
-        $query->where("#document = {$classId}");
+        $query->where("#documentSrc = {$classId}");
         while($rec = $query->fetch()) {
         	$options[$rec->id] = $rec->name;
         }

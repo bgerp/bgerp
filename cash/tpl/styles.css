@@ -102,3 +102,10 @@ th {
 .sign_names {
 	margin-left:15%;
 }
+
+.pko-notes{
+	border-top:none;
+}
+
+.pko-notes td{
+	border-top:none;

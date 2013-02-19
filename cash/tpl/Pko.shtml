@@ -44,12 +44,12 @@
 			</td>
 		</tr>
 	</table>
-	<table border='1px' cellpadding='0'>
+	<table border='1px ' cellpadding='0' class="pko-notes">
 		<tr>
 			<td colspan='2'>
 			<table border='0'>
 			<tr>
-				<td id='notes' >Бележки: &nbsp;&nbsp;[#notes#]</td>
+				<td colspan='2' id='notes' >Бележки: &nbsp;&nbsp;[#notes#]</td>
 				<td>
 				<!--ET_BEGIN equals-->
 					<div id ='misc'>

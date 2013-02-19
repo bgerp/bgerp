@@ -32,7 +32,7 @@ class acc_setup_Operations
                 $rec = new stdClass();
                 $rec->name = $csvRow [0];
                	$classId = core_Classes::fetchIdByName($csvRow [1]);
-               	$rec->document = $classId;
+               	$rec->documentSrc = $classId;
                 $rec->debitAccount = $csvRow [2];
                 $rec->creditAccount = $csvRow [3];
                 $rec->systemId = $csvRow [4];
@@ -43,7 +43,7 @@ class acc_setup_Operations
                     $created++;
                 }
                 
-                acc_Operations::save($rec, NULL, 'ignore');
+                acc_Operations::save($rec, NULL, 'replace');
             }
             
             fclose($handle);

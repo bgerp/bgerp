@@ -18,14 +18,51 @@ class cat_products_Detail extends core_Detail
         $tpl = $wrapTpl;
     }
     
+    
+    /**
+     * Намира всички опаковки на продукта
+     * @param int $masterId - id на продукт
+     * @return array $result -Всички опаковки на продукта
+     */
     public function fetchDetails($masterId)
     {
-        /* @var $query core_Query */ 
         $query = static::getQuery();
         $query->where("#{$this->masterKey} = '{$masterId}'");
-        
         $result = $query->fetchAll();
         
+        return $result;
+    }
+    
+    
+    /**
+     * Връща записа определен от даден продукт и опаковка
+     * @param int $masterId - id на продукта
+     * @param int $packagingId - id на опаковка
+     * @return stdClass $result - записа на продуктовата опаковка
+     */
+    public function fetchPackaging($masterId, $packagingId)
+    {
+    	 $query = static::getQuery();
+         $query->where("#{$this->masterKey} = '{$masterId}'");
+         $query->where("#packagingId = {$packagingId}");
+         $result = $query->fetch();
+         
+         return $result;
+    }
+    
+    
+    /**
+     * Намира продуктова опаковка по зададен Код/Баркод
+     * @param varchar $code - Код/Баркод на продукта
+     * @return stcClass $result - намерения запис
+     */
+    public function fetchByCode($code)
+    {
+    	$query = static::getQuery();
+    	$query->where(array("#eanCode = '[#1#]'", $code));
+    	$query->orWhere(array("#customCode = '[#1#]'", $code));
+    	$result = $query->fetch();
+         
         return $result;
     }
 }

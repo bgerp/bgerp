@@ -348,6 +348,24 @@ class acc_Periods extends core_Manager
 
         return $rec;
     }
+    
+    
+    /**
+     * Маркира периода, съответстващ на зададена дата, като променен.
+     * 
+     * Тази маркировка се използва при преизчисляването на баланса.
+     * 
+     * @param string $date дата, към която
+     * @return boolean
+     */
+    public static function touch($date)
+    {
+        expect($periodRec = static::fetchByDate($date));
+
+        $periodRec->lastEntry = dt::now(TRUE); // дата и час
+        
+        return static::save($periodRec);
+    }
 
     
     /**
@@ -487,6 +505,8 @@ class acc_Periods extends core_Manager
  
     /**
      * Връща първичния ключ (id) на базовата валута към определена дата
+     * Ако не е зададена валута за периода взимаме основната валута по
+     * подразбиране от пакета currency
      * 
      * @param string $date Ако е NULL - текущата дата
      * @return int key(mvc=currency_Currencies)
@@ -494,6 +514,10 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyId($date = NULL)
     {
         $periodRec = static::fetchByDate($date);
+        if(!$periodRec->baseCurrencyId) {
+        	$conf = core_Packs::getConfig('currency');
+        	$periodRec->baseCurrencyId = currency_Currencies::getIdByCode($conf->CURRENCY_BASE_CODE);
+        }
         
         return $periodRec->baseCurrencyId;
     }

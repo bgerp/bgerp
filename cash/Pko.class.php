@@ -181,14 +181,14 @@ class cash_Pko extends core_Master
     	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
     	
     	if($contragentData) {
-    		if($contragentData->company) {
-    			
-    			$form->setDefault('contragentName', $contragentData->company);
-    		} elseif ($contragentData->name) {
+    		if($contragentData->name) {
     			
     			// Ако папката е на лице, то вносителя по дефолт е лицето
     			$form->setDefault('contragentName', $contragentData->name);
     			$form->setDefault('depositor', $contragentData->name);
+    		} elseif ($contragentData->company) {
+    			
+    			$form->setDefault('contragentName', $contragentData->company);
     		}
     		$form->setReadOnly('contragentName');
     	} 
