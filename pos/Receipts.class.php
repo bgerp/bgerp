@@ -251,7 +251,13 @@ class pos_Receipts extends core_Master {
     	
     	return $products;
     }
-    
+    function act_Gabi()
+    {
+    	$code = '1234567890005';
+    	$l = cat_Products::getByCode($code);
+    	//$l = cat_Products::getProductInfo('1',4);
+    	bp($l);
+    }
     
     /**
      * Ъпдейтва бележката след като и се създаде нов детайл

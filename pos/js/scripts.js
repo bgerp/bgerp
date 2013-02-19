@@ -1,15 +1,15 @@
 $(document).ready(function () {
 	
-	if($('tr').hasClass('last-row')) {
-		var lastColor = $(".last-row").css("background-color");
-		$(".last-row").css("background-color", "#FFFF99");
+	if($('tr').is('#last-row')) {
+		var lastColor = $("#last-row").css("background-color");
+		$("#last-row").css("background-color", "#FFFF99");
+		
 		setTimeout(function () {
-			$(".last-row").css("background-color", lastColor);
-			$(".scrollWrapper").scrollTop($(".scrollWrapper")[0].scrollHeight);
-			$(".last-row").removeClass('last-row');
+			$("#last-row").css("background-color", lastColor);
 		}, 700);
-		$(".scrollWrapper").scrollTo('.last-row');
-	} else {
+		//$('.scrollWrapper').scrollTop($('#last-row').offset().top);
+	
+	} else { 
 		$(".scrollWrapper").scrollTop($(".scrollWrapper")[0].scrollHeight);
 	}
 	

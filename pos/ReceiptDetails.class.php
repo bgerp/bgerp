@@ -143,7 +143,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    		$rowTpl = clone(${"{$action->type}Tpl"});
 	    		$rowTpl->placeObject($row);
 	    		if($lastRow == $row->id) {
-	    			$rowTpl->replace("class='last-row'", 'lastRow');
+	    			$rowTpl->replace("id='last-row'", 'lastRow');
 	    			unset($lastRow);
 	    			Mode::setPermanent('lastAdded', NULL);
 	    		}
@@ -175,10 +175,17 @@ class pos_ReceiptDetails extends core_Detail {
     	$action = $mvc->getAction($rec->action);
     	switch($action->type) {
     		case "sale":
-    			$product = cat_Products::fetch($rec->productId);
-    			$row->productId = $product->code . " - " . $product->name;
+    			$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
+    			$row->productId = $productInfo->productRec->code . " - " . $productInfo->productRec->name;
     			$row->productId = $varchar->toVerbal($row->productId);
     			$row->price = $double->toVerbal($rec->price);
+    			$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
+    			if($productInfo->packagingRec) {
+    				$packName = cat_Packagings::fetchField($rec->value, 'name');
+    				$row->packagingId = $productInfo->packagingRec->quantity . " " . $uomId . " в " . $packName;
+    				$row->packagingId = $varchar->toVerbal($row->packagingId);
+    			}
+    			$row->uomId = $varchar->toVerbal($uomId);
     			$double->params['decimals'] = 0;
     			$row->quantity = $double->toVerbal($rec->quantity);
     			break;
@@ -229,8 +236,9 @@ class pos_ReceiptDetails extends core_Detail {
 	    			}
 	    			
 				    // Намираме дали този проект го има въведен 
-				    $sameProduct = $mvc->findSale($rec->productId, $rec->receiptId);
-				    if((string)$sameProduct->price == (string)$rec->price ) {
+				    $sameProduct = $mvc->findSale($rec->productId, $rec->receiptId, $rec->value);
+				   
+				    if((string)$sameProduct->price == (string)$rec->price) {
 				    				
 				    		// Ако цената и опаковката му е същата като на текущия продукт,
 				    		// не добавяме нов запис а ъпдейтваме стария
@@ -340,19 +348,24 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function getProductInfo(&$rec)
     {
-    	try{
-    		$product = cat_Products::fetch(array("#code = '[#1#]'", $rec->ean));
-    	} catch(Exception $e) {
+    	if(!$product = cat_Products::getByCode($rec->ean)) {
     		return $rec->productid = NULL;
     	}
     	
-    	$rec->productId = $product->id;
+    	$rec->productId = $product->productId;
+    	
+    	if($product->packagingId) {
+    		$rec->value = $product->packagingId;
+    	} 
+    	
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
         $priceCls = cls::get('cat_PricePolicyMockup');
     	$price = $priceCls->getPriceInfo($receiptRec->contragentClass,
     									 $receiptRec->contragentObjectId, 
-    									 $product->id,
-    									 NULL, $rec->quantity, $receiptRec->date);
+    									 $product->productId,
+    									 $product->packagingId, 
+    									 $rec->quantity, 
+    									 $receiptRec->date);
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	$rec->price = $price->price;
     	if($price->discount != 0.00) {
@@ -416,13 +429,17 @@ class pos_ReceiptDetails extends core_Detail {
      *  Намира последната продажба на даден продукт в текущата бележка
      *  @param int $productId - ид на продукта
      *  @param int $receiptId - ид на бележката
+     *  @param int $packId - ид на опаковката
      *  @return mixed $rec/FALSE - Последния запис или FALSE ако няма
      */
-    function findSale($productId, $receiptId)
+    function findSale($productId, $receiptId, $packId)
     {
     	$query = $this->getQuery();
     	$query->where(array("#productId = [#1#]", $productId));
     	$query->where(array("#receiptId = [#1#]", $receiptId));
+    	if($packId) {
+    		$query->where(array("#value = [#1#]", $packId));
+    	}
     	$query->orderBy('#id', 'DESC');
     	$query->limit(1);
     	if($rec = $query->fetch()){
@@ -454,7 +471,6 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	$params[] = (object)array('title' => tr('Продажба'), 'group' => TRUE);
     	$params['sale|code'] = tr('Продукт');
-    	$params['sale|barcod'] = tr('Баркод');
     	$params[] = (object)array('title' => tr('Отстъпка'), 'group' => TRUE);
     	$params['discount|percent'] = tr('Процент');
     	$params['discount|sum'] = tr('Сума');
