@@ -141,25 +141,25 @@ class html2text_Converter
         "/[\n\t]+/",                             // Newlines and tabs
         '/[ ]{2,}/',                             // Runs of spaces, pre-handling
         '/<base [^>]*href="([^"]+)"[^>]*>/ie',   // Base URL
-        '/<script[^>]*>.*?<\/script>/i',         // <script>s -- which strip_tags supposedly has problems with
-        '/<style[^>]*>.*?<\/style>/i',           // <style>s -- which strip_tags supposedly has problems with
+        '/<script[^>]*>.*?<\/script[^>]*>/i',         // <script>s -- which strip_tags supposedly has problems with
+        '/<style[^>]*>.*?<\/style[^>]*>/i',           // <style>s -- which strip_tags supposedly has problems with
         //'/<!-- .* -->/',                       // Comments -- which strip_tags might have problem a with
         '/<h([123456])[^>]*>(.*?)<\/h([123456])>/ie',      // H1 - H6
         '/<p[^>]*>/i',                           // <P>
         '/<div[^>]*>/i',                         // <div>
         '/<br[^>]*>/i',                          // <br>
-        '/<b[^>]*>(.*?)<\/b>/ie',                // <b>
-        '/<strong[^>]*>(.*?)<\/strong>/ie',      // <strong>
-        '/<i[^>]*>(.*?)<\/i>/i',                 // <i>
-        '/<em[^>]*>(.*?)<\/em>/i',               // <em>
-        '/(<ul[^>]*>|<\/ul>)/i',                 // <ul> and </ul>
-        '/(<ol[^>]*>|<\/ol>)/i',                 // <ol> and </ol>
-        '/<li[^>]*>(.*?)<\/li>/i',               // <li> and </li>
+        '/<b[^>]*>(.*?)<\/b[^>]*>/ie',                // <b>
+        '/<strong[^>]*>(.*?)<\/strong[^>]*>/ie',      // <strong>
+        '/<i[^>]*>(.*?)<\/i[^>]*>/i',                 // <i>
+        '/<em[^>]*>(.*?)<\/em[^>]*>/i',               // <em>
+        '/(<ul[^>]*>|<\/ul[^>]*>)/i',                 // <ul> and </ul>
+        '/(<ol[^>]*>|<\/ol[^>]*>)/i',                 // <ol> and </ol>
+        '/<li[^>]*>(.*?)<\/li[^>]*>/i',               // <li> and </li>
         '/<li[^>]*>/i',                          // <li>
         '/<a [^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/ie',
         // <a href="">
         '/<hr[^>]*>/i',                          // <hr>
-        '/(<table[^>]*>|<\/table>)/i',           // <table> and </table>
+        '/(<table[^>]*>|<\/table[^>]*>)/i',           // <table> and </table>
         '/(<tr[^>]*>|<\/tr>)/i',                 // <tr> and </tr>
         '/<td[^>]*>(.*?)<\/td>/i',               // <td> and </td>
         '/<th[^>]*>(.*?)<\/th>/ie',              // <th> and </th>

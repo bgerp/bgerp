@@ -111,6 +111,8 @@ class editwatch_Plugin extends core_Plugin {
             
             Mode::setPermanent($savedName, $statusHash);
             
+            $res = new stdClass();
+
             $res->content = $status;
             
             echo json_encode($res);
