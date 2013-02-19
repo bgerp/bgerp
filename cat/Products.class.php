@@ -534,49 +534,84 @@ class cat_Products extends core_Master {
         
         return $result;
     }
+
+    
+    /**
+     * Метод връщаш информация за продукта и неговите опаковки
+     * @param int $productId - Ид на продукта
+     * @param int $packagingId - Ид на опаковката, по дефолт NULL
+     * @return stdClass $res - Обект с информация за продукта
+     * и опаковките му ако $packagingId не е зададено, иначе връща
+     * информацията за подадената опаковка
+     */
+    public static function getProductInfo($productId, $packagingId = NULL)
+    {
+    	// Ако няма такъв продукт връщаме NULL
+    	if(!$productRec = static::fetch($productId)) {
+    		return NULL;
+    	}
+    	
+    	$res = new stdClass();
+    	$res->productRec = $productRec;
+    	$Packagings = cls::get('cat_products_Packagings');
+    	
+    	if(!$packagingId) {
+    		
+    		// Ако не е зададена опаковка намираме всички опаковки
+    		$res->packagings = $Packagings->fetchDetails($productId);
+    	} else {
+    		
+    		// Ако е зададена опаковка, извличаме само нейния запис
+    		$res->packagingRec = $Packagings->fetchPackaging($productId, $packagingId);
+    		
+    		if(!$res->packagingRec) {
+    			
+    			// Ако я няма зададената опаковка за този продукт
+    			return NULL;
+    		}
+    	}
+    	
+    	// Връщаме информацията за продукта
+    	return $res;
+    }
     
     
     /**
-     * Реализация на интерфейсен метод @see cat_ProductAccRegIntf::getProductInfo()
-     * 
-     * @param int $productId
-     * @param mixed $contragentObj
-     * @param string $date
+     * Връща ид на продукта и неговата опаковка по зададен Код/Баркод
+     * @param mixed $code - Код/Баркод на търсения продукт
+     * @return stdClass $res - Информация за намерения продукт
+     * и неговата опаковка
      */
-    public static function getProductInfo($productId, $contragentObj, $date)
+    public static function getByCode($code)
     {
-        expect($productRec = static::fetch($productId));
-        
-        $Packagings = cls::get('cat_products_Packagings');
-        
-        $productRec->packagings = $Packagings->fetchDetails($productId);
-
-        $price = rand(1, 100) / 50; // Mockup имплементация
-        $cost  = $price / 2; // Mockup имплементация
-        
-        $result = (object)array(
-            'id'    => $productRec->id,
-            'title' => $productRec->name,
-            'code'  => $productRec->code,
-            'uomId' => $productRec->measureId,
-            'price' => $price,
-            'cost'  => $cost,
-            'packs' => array(),
-        );
-        
-        foreach ($productRec->packagings as $pack) {
-            $price = 20 * rand(1, 100) / 50; // Mockup имплементация
-            $cost  = $price / 2; // Mockup имплементация
-        
-            $result->packs[$pack->packagingId] = (object)array(
-                'eanCode'      => $pack->eanCode,
-                'customerCode' => $pack->customCode,
-                'quantity'     => $pack->quantity,
-                'price'        => $price,
-                'discount'     => 0.1,
-            );
-        }
-        
-        return $result;
+    	$code = trim($code);
+    	expect($code, 'Не е зададен код');
+    	$res = new stdClass();
+    	
+    	// Проверяваме имали опаковка с този код: вътрешен или баркод
+    	$Packagings = cls::get('cat_products_Packagings');
+    	$catPack = $Packagings->fetchByCode($code);
+    	if($catPack) {
+    		
+    		// Ако има запис намираме ид-та на продукта и опаковката
+    		$res->productId = $catPack->productId;
+    		$res->packagingId = $catPack->packagingId;
+    	} else {
+    		
+    		// Проверяваме имали продукт с такъв код
+    		$query = static::getQuery();
+    		$query->where(array("#code = '[#1#]'", $code));
+    		if($rec = $query->fetch()) {
+    			
+    			$res->productId = $rec->id;
+    			$res->packagingId = NULL;
+    		} else {
+    			
+    			// Ако няма продукт
+    			return FALSE;
+    		}
+    	}
+    	
+    	return $res;
     }
 }
