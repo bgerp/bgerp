@@ -487,6 +487,8 @@ class acc_Periods extends core_Manager
  
     /**
      * Връща първичния ключ (id) на базовата валута към определена дата
+     * Ако не е зададена валута за периода взимаме основната валута по
+     * подразбиране от пакета currency
      * 
      * @param string $date Ако е NULL - текущата дата
      * @return int key(mvc=currency_Currencies)
@@ -494,6 +496,10 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyId($date = NULL)
     {
         $periodRec = static::fetchByDate($date);
+        if(!$periodRec->baseCurrencyId) {
+        	$conf = core_Packs::getConfig('currency');
+        	$periodRec->baseCurrencyId = currency_Currencies::getIdByCode($conf->CURRENCY_BASE_CODE);
+        }
         
         return $periodRec->baseCurrencyId;
     }
