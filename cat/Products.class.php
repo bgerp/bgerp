@@ -557,8 +557,15 @@ class cat_Products extends core_Master {
     	
     	if(!$packagingId) {
     		
-    		// Ако не е зададена опаковка намираме всички опаковки
-    		$res->packagings = $Packagings->fetchDetails($productId);
+    		$res->packagings = array();
+    		
+    	    // Ако не е зададена опаковка намираме всички опаковки
+    		$packagings = $Packagings->fetchDetails($productId);
+    		
+    		// Пре-индексираме масива с опаковки - ключ става id на опаковката 
+    		foreach ((array)$packagings as $pack) {
+    		    $res->packagings[$pack->packagingId] = $pack;
+    		}
     	} else {
     		
     		// Ако е зададена опаковка, извличаме само нейния запис
