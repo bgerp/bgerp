@@ -324,10 +324,6 @@ form {
     margin-bottom:10px;
 }
 
-.formFields select{
-	background:#fff ;
-}
-
 .narrow .formInfo, .narrow .formFields, .narrow .formWarning, .formError  {
     margin-bottom:3px;
 }
