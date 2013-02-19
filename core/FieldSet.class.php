@@ -157,10 +157,11 @@ class core_FieldSet extends core_BaseClass
             } elseif(!isset($this->fields[$name])) {
                 $this->fields[$name] = new stdClass();
             }
-            
+             
             foreach ($params as $member => $value) {
-                if($member)
-                $this->fields[$name]->{$member} = $value;
+                if($member) {
+                    $this->fields[$name]->{$member} = $value;
+                }
             }
             
             $this->fields[$name]->caption = $this->fields[$name]->caption ? $this->fields[$name]->caption : $name;
@@ -307,6 +308,8 @@ class core_FieldSet extends core_BaseClass
      */
     function selectFields($where = "", $fieldsArr = NULL)
     {
+        $res = array();
+
         if ($fieldsArr) {
             $fArr = arr::make($fieldsArr, TRUE);
         } else {
