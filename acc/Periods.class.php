@@ -348,6 +348,24 @@ class acc_Periods extends core_Manager
 
         return $rec;
     }
+    
+    
+    /**
+     * Маркира периода, съответстващ на зададена дата, като променен.
+     * 
+     * Тази маркировка се използва при преизчисляването на баланса.
+     * 
+     * @param string $date дата, към която
+     * @return boolean
+     */
+    public static function touch($date)
+    {
+        expect($periodRec = static::fetchByDate($date));
+
+        $periodRec->lastEntry = dt::now(TRUE); // дата и час
+        
+        return static::save($periodRec);
+    }
 
     
     /**

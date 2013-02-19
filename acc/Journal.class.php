@@ -110,6 +110,22 @@ class acc_Journal extends core_Master
     
     
     /**
+     * След всеки запис в журнала
+     * 
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if ($rec->state != 'draft') {
+            // Нотифицираме съотв. период че има нови транзакции
+            acc_Periods::touch($rec->valior);
+        }
+    }
+    
+    
+    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
