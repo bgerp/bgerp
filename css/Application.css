@@ -19,6 +19,18 @@ legend img {
 	vertical-align: middle;
 }
 
+.wide h2{
+	margin-top:0px;
+}
+
+select{
+	background: #fff;
+}
+
+.narrow select.tab-control{
+	background-color: rgb(221, 221, 221);
+}
+
 /* Общи стилове за елементите */
 a:hover {
 	color:#f90; 
@@ -62,7 +74,6 @@ a:link,a:visited {
 #framecontentTop {
 	width:100%;
 	padding: 0px;
-
 }
 
 #framecontentBottom {
@@ -215,10 +226,6 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 .wide table.top-table td{
 	border: none;
 	vertical-align: top;
-}
-
-table select{
-	background: #fff !important;
 }
 
 /* Стилове за елемента 'tab' */
@@ -945,6 +952,7 @@ table.mc-header a {
 /* ENDOF стилове за 'contacts/tpl/ViewSingleLayout' */
 .antetka {
 	margin-top: 10px;
+	margin-left:1px;
 	padding: 5px;
 	border: solid 1px #ddd;
 	background-color: #eee;
@@ -1095,11 +1103,15 @@ table.mc-header a {
 .narrow .state-revert{
 	background-color: #cc9933;
 }
+
 .wide .doc_Containers .toolbar {
-	margin-left: 2px;
 	margin-right:2px;
 	margin-top: 3px;
 	height:26px;
+}
+
+.listTable .toolbar {
+	margin-left:2px;
 }
 
 input.inplace {
@@ -1773,7 +1785,7 @@ fieldset.sharing-history i {
 }
 
 .sales-document .invTable{
-	border-top: 1px solid #000 !important;
+	border-top: none !important;
 }
 
 .sales-document .detail-info{
@@ -1784,18 +1796,23 @@ fieldset.sharing-history i {
 	width:100%;
 	border:none !important;
 }
+
 .sales_InvoiceDetails .listTable th, .sales_InvoiceDetails .listTable td{
 	border:1px solid #000 !important;
 	border-top:none !important;
 }
 
+.sales_SalesDetails .listToolbar{
+	padding-bottom:10px;
+	border-bottom:1px solid #000;
+}
   .smallData {padding:1px; font-size:1em; }
   .bigData {font-family:"Courier New"; font-size:1em; font-weight:bold;}
   .cell {border:1px solid #000;}
-  .topCell { border: 1px solid #000;} 
+  .topCell { border: 1px solid #000; border-top:none;} 
   .invTable { border-collapse:collapse;}
   .rowData {font-size:0.9em;}
-  .footer-notes{font-size:14px;}
+  .footer-notes{font-size:14px; border-top:none;}
   .topCell div {padding-bottom:2px;}
   
  @media print{
@@ -1889,3 +1906,8 @@ fieldset.sharing-history i {
 	.acc_JournalDetails .listTable th, .acc_JournalDetails .listTable td{
 		padding: 5px;
 	}
+
+/*bugFix - таблицата Опаковки да не излиза извън контейнера на продукти*/
+.folder-cover.product-holder{ 
+	max-width:none;
+}
