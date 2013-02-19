@@ -248,7 +248,7 @@ class email_Incomings extends core_Master
                 }
 
                 if(($i % 100) == 1 || ( ($i - $firstUnreadMsg) < 100)) {
-                    $logMsg = "Fetching message {$i} from {$accRec->server}: {$status}";
+                    $logMsg = "Fetching message {$i} from {$accRec->email}: {$status}";
                     $this->log($logMsg);
                 }
                 
