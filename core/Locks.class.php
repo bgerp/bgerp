@@ -104,7 +104,7 @@ class core_Locks extends core_Manager
         }
         
         // Извличаме записа съответстващ на заключването, от модела
-        $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId));
+        $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId), NULL, FALSE);
         
         // Създаваме празен запис, ако не съществува такъв за обекта
         if(!$rec) {
@@ -183,7 +183,7 @@ class core_Locks extends core_Manager
         $now = time();
         
         // Проверяваме дали обекта не е заключен
-        if (core_Locks::fetch("#objectId = '{$objectId}' AND #lockExpire >= '{$now}'")) {
+        if (core_Locks::fetch("#objectId = '{$objectId}' AND #lockExpire >= '{$now}'", NULL, FALSE)) {
             
             return TRUE;
         }
@@ -204,7 +204,7 @@ class core_Locks extends core_Manager
     static function waitForLock($objectId, $maxDuration = 10, $maxTrays = 5)
     {
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
-        while($maxTrays>0) {
+        while($maxTrays > 0) {
             
             sleep(1);
             

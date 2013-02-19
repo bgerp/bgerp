@@ -244,11 +244,14 @@ class core_Html
 
                 break;
             }
-
+            
+            if(empty($value)) {
+                $value = '&nbsp;';
+            }
             $input = ht::createElement('select', array(
                     'readonly' => 'readonly',
-                    'style' => 'background:#ddd;border:solid 1px #aaa;' .
-                    $attr['style']
+                    'class' => 'readonly ' .
+                    $attr['class']
                 ), "<option>$value</option>", TRUE);
 
             $input->append(ht::createElement('input', array(
