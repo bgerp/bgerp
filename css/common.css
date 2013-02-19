@@ -287,12 +287,6 @@ table.listTable>thead>tr>th {
 	width:100%;
 }
 
-.wide .toolbar{
-	display:block;
-	padding-top:2px !important;
- }
-
-
 /* Стилове за показване на формите */
 form {
     margin: 0px;
