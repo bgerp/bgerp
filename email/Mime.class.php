@@ -1043,4 +1043,39 @@ class email_Mime extends core_BaseClass
         
         return $this->justTextPart;
     }
+    
+    
+    /**
+     * Екстрактва имейлите и връща само имейл частта на масива
+     * 
+     * @param array $arr - Масив с имейли
+     * 
+     * @return string $res - Резултата
+     */
+    static function getAllEmailsFromArr($arr)
+    {
+        // Инстанция на класа
+        $toParser = new email_Rfc822Addr();
+        
+        // Масив в който ще парсираме
+        $parseToArr = array();
+        
+        // Парсираме
+        $toParser->ParseAddressList($arr, $parseToArr);
+        
+        // Обхождаме масива
+        foreach ((array)$parseToArr as $key => $dummy) {
+           
+            // Извличаме само имейлите
+            $EmlArr = type_Email::extractEmails($parseToArr[$key]['address']); 
+            
+            // Преобразуваме в стринг
+            $implode = implode(', ', $EmlArr);
+            
+            // Добавяме към полето
+            $res .= ($res) ? ', '. $implode : $implode;
+        }
+        
+        return $res;
+    }
 }

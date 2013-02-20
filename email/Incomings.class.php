@@ -162,10 +162,65 @@ class email_Incomings extends core_Master
         $this->FLD('boxIndex', 'int', 'caption=Индекс');
         $this->FLD('uid', 'int', 'caption=Imap UID');
 
+        $this->FNC('allTo', 'text', 'caption=Кр, input=none');
+        $this->FNC('allCc', 'text', 'caption=Кр, input=none');
+        
         $this->setDbUnique('hash');
     }
 
+    
+    /**
+     * 
+     */
+    function on_CalcAllCc($mvc, &$rec)
+    {
+        // Ако няма хедъри
+        if (!$rec->headers) return ;
 
+        // Инстанция на класа
+        $mime = cls::get('email_Mime');
+        
+        // Хедърите ги преобразуваме в масив
+        $headersArr = $mime->parseHeaders($rec->headers);
+        
+        // Добавяме хедърите в обект
+        $new = new stdClass();
+        $new->headersArr = $headersArr;
+        
+        // Вземамем всички cc имейли от хедърите
+        $allCc = $mime->getHeader('cc', $new, '*');
+        
+        // Добавяме всичко cc полета
+        $rec->allCc = email_Mime::getAllEmailsFromArr($allCc);
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_CalcAllTo($mvc, &$rec)
+    {
+        // Ако няма хедъри
+        if (!$rec->headers) return ;
+
+        // Инстанция на класа
+        $mime = cls::get('email_Mime');
+        
+        // Хедърите ги преобразуваме в масив
+        $headersArr = $mime->parseHeaders($rec->headers);
+        
+        // Добавяме хедърите в обект
+        $new = new stdClass();
+        $new->headersArr = $headersArr;
+        
+        // Вземаме всички to имейли от хедърите
+        $allTo = $mime->getHeader('to', $new, '*');
+        
+        // Добавяме всичко to полета
+        $rec->allTo = email_Mime::getAllEmailsFromArr($allTo);
+    }
+    
+    
     /**
      * Взема записите от пощенската кутия и ги вкарва в модела
      *
@@ -446,6 +501,9 @@ class email_Incomings extends core_Master
         // От коя сметка е получено писмото
         $rec->accId = $accId;
         $rec->uid   = $uid;
+        
+        // Добавяме хедърите
+        $rec->headers = $mime->getHeadersStr();
         
         // Записваме (и автоматично рутираме) писмото
         $saved = email_Incomings::save($rec);
