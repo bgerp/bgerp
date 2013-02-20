@@ -1,0 +1,9 @@
+.wide #subMenu a.selected, .wide #subMenu a.selected:visited, .wide #subMenu a.selected:link { 
+	border-top:none;
+	padding-top:3px;
+}
+
+.elem-holder{
+	border:1px solid #ddd;
+	box-shadow:1px 1px 6px rgba(0,0,0,0.2) !important;
+}

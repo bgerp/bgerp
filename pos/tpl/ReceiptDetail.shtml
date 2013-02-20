@@ -1,6 +1,6 @@
 <!--ET_BEGIN sale-->
 <tr>
-	<td colspan='4' class='receipt-sale'>[#productId#] <!--ET_BEGIN packagingId--> - &nbsp; [#packagingId#]<!--ET_END packagingId--></td>
+	<td colspan='4' class='receipt-sale'>[#productId#] &nbsp;<!--ET_BEGIN packagingId-->- &nbsp;[#packagingId#]<!--ET_END packagingId--></td>
 </tr>
 <tr [#lastRow#]>
 	<td class='receipt-quantity' width="110px">[#quantity#] [#uomId#].</td>

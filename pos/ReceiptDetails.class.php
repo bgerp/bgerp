@@ -49,7 +49,7 @@ class pos_ReceiptDetails extends core_Detail {
     /**
 	 *  Брой елементи на страница 
 	 */
-	var $listItemsPerPage = "20";
+	var $listItemsPerPage = '20';
 
     
   	/**
@@ -167,27 +167,11 @@ class pos_ReceiptDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$double = cls::get('type_Double');
     	$varchar = cls::get('type_Varchar');
-    	$double->params['decimals'] = 2;
-    	$row->amount = $double->toVerbal($rec->amount);
-    	
     	$action = $mvc->getAction($rec->action);
     	switch($action->type) {
     		case "sale":
-    			$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
-    			$row->productId = $productInfo->productRec->code . " - " . $productInfo->productRec->name;
-    			$row->productId = $varchar->toVerbal($row->productId);
-    			$row->price = $double->toVerbal($rec->price);
-    			$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
-    			if($productInfo->packagingRec) {
-    				$packName = cat_Packagings::fetchField($rec->value, 'name');
-    				$row->packagingId = $productInfo->packagingRec->quantity . " " . $uomId . " в " . $packName;
-    				$row->packagingId = $varchar->toVerbal($row->packagingId);
-    			}
-    			$row->uomId = $varchar->toVerbal($uomId);
-    			$double->params['decimals'] = 0;
-    			$row->quantity = $double->toVerbal($rec->quantity);
+    			$mvc->renderSale($rec, $row);
     			break;
     		case "payment":
     			$value = pos_Payments::fetchField($action->value, 'title');
@@ -200,9 +184,12 @@ class pos_ReceiptDetails extends core_Detail {
     			break;
     	}
     	
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	$row->amount = $double->toVerbal($rec->amount);
+     	$double->params['decimals'] = 0;
      	if($rec->discountPercent) {
-     		$double->params['decimals'] = 0;
-    		$row->discountPercent = $double->toVerbal($rec->discountPercent) . " %";
+     		$row->discountPercent = $double->toVerbal($rec->discountPercent) . " %";
     		if($rec->discountPercent <= 0) {
     			unset($row->discountPercent);
     		}
@@ -211,6 +198,32 @@ class pos_ReceiptDetails extends core_Detail {
     	if($rec->discountSum) {
     		$row->discountSum = $double->toVerbal($rec->discountSum);
     	}
+    }
+    
+    
+    /**
+     * Рендира информацията за направената продажба
+     */
+    function renderSale($rec, &$row)
+    {
+    	$varchar = cls::get('type_Varchar');
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	
+    	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
+    	$row->productId = $productInfo->productRec->code . " - " . $productInfo->productRec->name;
+    	$row->productId = $varchar->toVerbal($row->productId);
+    	$row->price = $double->toVerbal($rec->price);
+    	$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
+    	if($productInfo->packagingRec) {
+    		$packName = cat_Packagings::fetchField($rec->value, 'name');
+    		$row->packagingId = $productInfo->packagingRec->quantity . " " . $uomId . " в " . $packName;
+    		$row->packagingId = $varchar->toVerbal($row->packagingId);
+    	}
+    	
+    	$row->uomId = $varchar->toVerbal($uomId);
+    	$double->params['decimals'] = 0;
+    	$row->quantity = $double->toVerbal($rec->quantity);
     }
     
     
@@ -327,14 +340,14 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	//@TODO Функцията е прототипна
     	$action = static::getAction($rec->action);
+    	
     	if($action->value == 'ccard') {
-    		try{
+    		
     			// временно връща името на клиента, по подадено негово Id
-	    		$rec->param = crm_Persons::fetchField($rec->ean, 'id');
-	    		$rec->param .= "|crm_Persons";	
-	    	} catch(Exception $e) {
-	    		$rec->param = NULL;
-	    		return;
+	    		if($rec->param = crm_Persons::fetchField(array("#id = [#1#]", $rec->ean), 'id')){
+	    			$rec->param .= "|crm_Persons";
+	    		} else {
+	    			return NULL;
 	    	} 
 	    }	
     }

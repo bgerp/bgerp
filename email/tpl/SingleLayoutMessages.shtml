@@ -18,12 +18,18 @@
 			<div style='float:left;margin-right:10px;'>
 			<small>   
 			<table cellspacing='1' class='top-table' >
-			<!--ET_BEGIN toBox-->          
+			<!--ET_BEGIN allTo-->          
 				<tr>
 				    <td  align='right'>|До|*:</td>
-				    <td>[#toEml#]</td>
+				    <td>[#allTo#]</td>
 				</tr>
-			<!--ET_END toBox-->
+			<!--ET_END allTo-->
+			<!--ET_BEGIN allCc-->          
+				<tr>
+				    <td  align='right'>|Кп|*:</td>
+				    <td>[#allCc#]</td>
+				</tr>
+			<!--ET_END allCc-->
 			<!--ET_BEGIN from-->          
 				<tr>
 				    <td  align='right' style='vertical-align:top'>|От|*:</td>

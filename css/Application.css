@@ -441,12 +441,7 @@ dl dd {
 	border: solid 1px #88e;
 	border-bottom: none;
 	padding: 8px;
-	-moz-border-radius-topleft: 5px;
-	-moz-border-radius-topright: 5px;
-	-webkit-border-top-left-radius: 5px;
-	-webkit-border-top-right-radius: 5px;
-	border-top-left-radius: 5px;
-	border-top-right-radius: 5px;
+	border-radius: 5px 5px 0 0;
 }
 
 .narrow .vertical .formTitle {
@@ -1802,7 +1797,7 @@ fieldset.sharing-history i {
 	border-top:none !important;
 }
 
-.sales_SalesDetails .listToolbar{
+.sales_SalesDetails .listToolbar, .sales_InvoiceDetails .listToolbar{
 	padding-bottom:10px;
 	border-bottom:1px solid #000;
 }
@@ -1817,12 +1812,12 @@ fieldset.sharing-history i {
   
  @media print{
 	.sales-document .invTable{
-		border-top:none !important; 
+		
 	}
 	
 	.topCell{
 		vertival-align:top !important;
-		border-top:none !important; 
+		
 	}
 }
 
@@ -1910,4 +1905,14 @@ fieldset.sharing-history i {
 /*bugFix - таблицата Опаковки да не излиза извън контейнера на продукти*/
 .folder-cover.product-holder{ 
 	max-width:none;
+}
+
+/*bugFix - ширина при коментари на документ*/
+#doc_Comments-EditForm{
+	display:inline-block;
+}
+
+#doc_Comments-EditForm .formTitle{
+	border: none;
+	border-radius:5px 5px 0 0 !important;
 }

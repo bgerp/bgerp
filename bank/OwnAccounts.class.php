@@ -132,6 +132,9 @@ class bank_OwnAccounts extends core_Manager {
     		$options[$personRec->id] = $personRec->name;
     	}   	
     	
+    	if(count($options) == 0) {
+    		return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за титуляри на "нашите сметки". Моля добавете !');
+    	}
     	return $options;
     }
     

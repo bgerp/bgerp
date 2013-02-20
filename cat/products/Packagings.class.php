@@ -49,7 +49,7 @@ class cat_products_Packagings extends cat_products_Detail
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,silent,caption=Опаковка,mandatory');
-        $this->FLD('quantity', 'double', 'input,caption=Количество');
+        $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
         $this->FLD('netWeight', 'double', 'input,caption=Тегло->Нето');
         $this->FLD('tareWeight', 'double', 'input,caption=Тегло->Тара');
         $this->FLD('sizeWidth', 'double', 'input,caption=Габарит->Ширина');
@@ -80,8 +80,7 @@ class cat_products_Packagings extends cat_products_Detail
         $data->toolbar->removeBtn('*');
         
         if ($mvc->haveRightFor('add', (object)array('productId'=>$data->masterId)) && count($mvc::getPackagingOptions($data->masterId) > 0)) {
-        //    $data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId, 'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
-            $data->addUrl = array(
+        	$data->addUrl = array(
                 $mvc,
                 'add',
                 'productId'=>$data->masterId,
@@ -182,7 +181,18 @@ class cat_products_Packagings extends cat_products_Detail
         return $options;
     }
     
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$row->quantity = trim($rec->quantity);
+    	$varchar = cls::get("type_Varchar");
+    	$row->quantity = $varchar->toVerbal($rec->quantity);
+    }
 
+    
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         if ($data->addUrl) {

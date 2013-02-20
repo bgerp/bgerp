@@ -13,6 +13,18 @@ $(document).ready(function () {
 		$(".scrollWrapper").scrollTop($(".scrollWrapper")[0].scrollHeight);
 	}
 	
+	$(document).bind('keypress', function(e) {
+		if(e.keyCode==13){
+			//@TODO
+		}
+	});
+	
+	$('input[name=ean]').focus();
+	
+	$('input[name=quantity]').keyup(function() {
+			$('input[name=ean]').focus();
+		});
+	
 	$('#incBtn').click(function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
 	});

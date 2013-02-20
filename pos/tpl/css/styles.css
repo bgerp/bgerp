@@ -216,9 +216,15 @@ div.scrollWrapper{
 .narrow div.scrollWrapper{
 	max-height:215px;
 }
+
+.printing div.scrollWrapper{
+		max-height:none;
+		overflow:visible;
+}
+
 @media print{
 	div.scrollWrapper{
-		max-height:auto;
+		max-height:none;
 		overflow:visible;
 		border:1px solid #000;
 		border-left:none;
@@ -234,4 +240,3 @@ div.scrollWrapper{
 		margin-top:-1px;
 	}
 }
-

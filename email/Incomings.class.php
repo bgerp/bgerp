@@ -162,10 +162,59 @@ class email_Incomings extends core_Master
         $this->FLD('boxIndex', 'int', 'caption=Индекс');
         $this->FLD('uid', 'int', 'caption=Imap UID');
 
+        $this->FNC('allTo', 'text', 'caption=Кр, input=none');
+        $this->FNC('allCc', 'text', 'caption=Кр, input=none');
+        
         $this->setDbUnique('hash');
     }
 
+    
+    /**
+     * 
+     */
+    function on_CalcAllCc($mvc, &$rec)
+    {
+        // Ако няма хедъри
+        if (!$rec->headers) return ;
 
+        // Хедърите ги преобразуваме в масив
+        $headersArr = unserialize($rec->headers);
+        
+        // Вземамем всички cc имейли от хедърите
+        $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+
+        // Добавяме всичко в allCc полетo
+        $rec->allCc = email_Mime::getAllEmailsFromStr($allCc);
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_CalcAllTo($mvc, &$rec)
+    {
+        // Ако няма хедъри
+        // За съвместимост със стар код
+        if (!$rec->headers) {
+            
+            // Ако няма хедъри поне да покаже до кого е пратен имейла
+            $rec->allTo = $rec->toEml;
+            
+            return ;    
+        }
+        
+
+        // Хедърите ги преобразуваме в масив
+        $headersArr = unserialize($rec->headers);
+        
+        // Вземамем всички to имейли от хедърите
+        $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
+
+        // Добавяме всичко в allTo полетo
+        $rec->allTo = email_Mime::getAllEmailsFromStr($allTo);
+    }
+    
+    
     /**
      * Взема записите от пощенската кутия и ги вкарва в модела
      *
@@ -446,6 +495,12 @@ class email_Incomings extends core_Master
         // От коя сметка е получено писмото
         $rec->accId = $accId;
         $rec->uid   = $uid;
+        
+        // Добавяме хедърите
+        $headersStr = $mime->getHeadersStr();
+        
+        // Преобразуваме в масив с хедъри и сериализираме
+        $rec->headers = serialize($mime->parseHeaders($headersStr));
         
         // Записваме (и автоматично рутираме) писмото
         $saved = email_Incomings::save($rec);
@@ -1110,7 +1165,42 @@ class email_Incomings extends core_Master
             $contragentData->fax = arr::getMaxValueKey($ap['fax']);
         }
         
-        $contragentData->email = $msg->fromEml;
+        // Ако няма хедъри
+        // За съвместимост със стар код
+        if (!$msg->headers) {
+            
+            // Ако няма хедъри използваме fromEml
+            $contragentData->email = $msg->fromEml;
+        } else {
+            
+            // Хедърите ги преобразуваме в масив
+            $headersArr = unserialize($msg->headers);
+            
+            // Вземамем всички reply-to имейли от хедърите
+            $allReplyTo = email_Mime::getHeadersFromArr($headersArr, 'reply-to', '*');
+            
+            // Ако има reply-to
+            if ($allReplyTo) {
+                
+                // Вземаме имейлите от reply-to
+                $contragentData->email = email_Mime::getAllEmailsFromStr($allReplyTo);    
+            } else {
+                
+                // Вземамем всички cc имейли от хедърите
+                $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+                
+                // Вземамем всички tp имейли от хедърите
+                $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');   
+                
+                // Обединяваме ги
+                $cEmail = ($allCc) ? $allTo . ', ' . $allCc : $allTo;
+                
+                // Вземаме само имейлите
+                $contragentData->email = email_Mime::getAllEmailsFromStr($cEmail);
+            }
+        }
+        
+        
         $contragentData->countryId = $msg->country;
         
         return $contragentData;
