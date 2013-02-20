@@ -91,7 +91,7 @@ class price_ListToCustomers extends core_Detail
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила от,mandatory');
+        $this->FLD('validFrom', 'datetime', 'caption=В сила от');
     }
 
     
@@ -109,9 +109,28 @@ class price_ListToCustomers extends core_Detail
 
             $now = dt::verbal2mysql();
 
-            if($rec->validFrom <= $now) {
+            if(!$rec->validFrom) {
+                $rec->validFrom = $now;
+            }
+
+            if($rec->validFrom < $now) {
                 $form->setError('validFrom', 'Ценоразписа не може да се задава с минала дата');
             }
+
+            if($rec->validFrom && !$form->gotErrors() && $rec->validFrom > $now) {
+                Mode::setPermanent('PRICE_VALID_FROM', $rec->validFrom);
+            }
+        }
+    }
+
+
+    /**
+     * Подготвя формата за въвеждане на ценови правила за клиент
+     */
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+        if(!$rec->id) {
+            $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
     }
 
@@ -172,6 +191,28 @@ class price_ListToCustomers extends core_Detail
     
         $tpl = $wrapTpl;
     }
+
+
+    /**
+     * Връща актуалния към посочената дата набор от ценови правила за посочения клиент
+     */
+    static function getValidRec($customerClassId, $customerId, $datetime = NULL)
+    { 
+        $now = dt::verbal2mysql();
+
+        if(!$datetime) {
+            $datetime = $now;
+        }
+
+        $query = self::getQuery();
+        $query->where("#cClass = {$customerClassId} AND #cId = {$customerId}");
+        $query->where("#validFrom <= '{$datetime}'");
+        $query->limit(1);
+        $query->orderBy("#validFrom,#id", 'DESC');
+        $lRec = $query->fetch();
+ 
+        return $lRec;
+    }
     
     
     public static function preparePricelists($data)
@@ -179,28 +220,26 @@ class price_ListToCustomers extends core_Detail
         static::prepareDetail($data);
 
         $now = dt::verbal2mysql();
- 
-        $query = self::getQuery();
+
         $cClassId = core_Classes::getId($data->masterMvc );
-        $query->where("#cClass = {$cClassId} AND #cId = {$data->masterId}");
-        $query->where("#validFrom <= '{$now}'");
-        $query->limit(1);
-        $query->orderBy("#validFrom,#id", 'DESC');
-        $aRec = $query->fetch();
+        
+        $validRec = self::getValidRec($cClassId, $data->masterId, $now);
+       
+        if(count($data->rows)) {
+            foreach($data->rows as $id => &$row) {
+                $rec = $data->recs[$id];
+                if($rec->validFrom > $now) {
+                    $state = 'draft';
+                } elseif($validRec->id == $rec->id) {
+                    $state = 'active';
+                } else {
+                    $state = 'closed';
+                }
+                $data->rows[$id]->ROW_ATTR['class'] = "state-{$state}";
 
-        foreach($data->rows as $id => &$row) {
-            $rec = $data->recs[$id];
-            if($rec->validFrom > $now) {
-                $state = 'draft';
-            } elseif($aRec->id == $rec->id) {
-                $state = 'active';
-            } else {
-                $state = 'closed';
-            }
-            $data->rows[$id]->ROW_ATTR['class'] = "state-{$state}";
-
-            if(price_Lists::haveRightFor('single', $rec)) {
-                $row->listId = ht::createLink($row->listId, array('price_Lists', 'single', $rec->id));
+                if(price_Lists::haveRightFor('single', $rec)) {
+                    $row->listId = ht::createLink($row->listId, array('price_Lists', 'single', $rec->id));
+                }
             }
         }
 
@@ -269,9 +308,29 @@ class price_ListToCustomers extends core_Detail
      * $rec->price  - цена
      * $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
-         
+        if(!$datetime) {
+            $datetime = dt::verbal2mysql();
+        } else { 
+            if(strlen($datetime) == 10) {
+                list($d, $t) = explode(' ', dt::verbal2mysql());
+                if($datetime == $d) {
+                    $datetime = dt::verbal2mysql();
+                } else {
+                    $datetime .= ' 23:59:59';
+                }
+            }
+        }
+
+        $validRec = self::getValidRec($customerClass, $customerId, $datetime);
+        $listId   = $validRec->listId;
+
+        $rec = new stdClass();
+
+        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
+
+        return $rec;
     }
     
 
@@ -285,8 +344,14 @@ class price_ListToCustomers extends core_Detail
      * @return string
      */
     public function getPolicyTitle($customerClass, $customerId)
-    {
-        /* @TODO: Реализация на метода */
-        return 'ListToCustomer';
+    { 
+        $vRec = self::getValidRec($customerClass, $customerId);
+        
+        if($vRec) {
+            $lRec = price_Lists::fetch($vRec->listId); 
+            $title = price_Lists::getVerbal($lRec, 'title');
+
+            return $title;
+        }
     }
 }

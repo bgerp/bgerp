@@ -131,6 +131,16 @@ class price_GroupOfProducts extends core_Detail
     }
     
 
+    /**
+     * Подготвя формата за въвеждане на групи на продукти
+     */
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+        if(!$rec->id) {
+            $rec->validFrom = Mode::get('PRICE_VALID_FROM');
+        }
+    }
+
 
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -145,9 +155,17 @@ class price_GroupOfProducts extends core_Detail
             $rec = $form->rec;
 
             $now = dt::verbal2mysql();
+            
+            if(!$rec->validFrom) {
+                $rec->validFrom = $now;
+            }
 
-            if($rec->validFrom <= $now) {
+            if($rec->validFrom < $now) {
                 $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
+            }
+            
+            if($rec->validFrom && !$form->gotErrors() && $rec->validFrom > $now) {
+                Mode::setPermanent('PRICE_VALID_FROM', $rec->validFrom);
             }
         }
     }

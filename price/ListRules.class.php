@@ -86,7 +86,7 @@ class price_ListRules extends core_Detail
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,mandatory');
         $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка,mandatory,placeholder=%');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила->От,mandatory');
+        $this->FLD('validFrom', 'datetime', 'caption=В сила->От');
         $this->FLD('validUntil', 'datetime', 'caption=В сила->До');
     }
 
@@ -99,10 +99,8 @@ class price_ListRules extends core_Detail
         if(!$datetime) {
             $datetime = dt::verbal2mysql();
         }
- 
-        
 
-        $price = price_History::getPrice($listId, $datetime, $productId, $packagingId);
+       // $price = price_History::getPrice($listId, $datetime, $productId, $packagingId);
 
         if($price) {
             return $price;
@@ -134,7 +132,7 @@ class price_ListRules extends core_Detail
         $query->limit(1);
 
         $rec = $query->fetch();
-  
+ 
         if($rec) {
             if($rec->type == 'value') {
                 $price = $rec->price; // TODO конвертиране
@@ -146,8 +144,8 @@ class price_ListRules extends core_Detail
                 }
             } else {
                 $parent = price_Lists::fetchField($listId, 'parent');
-                $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
-                $price  = $value / (1 + $rec->discount);
+                $price  = self::getPrice($parent, $productId, $packagingId, $datetime); 
+                $price  = $price / (1 + $rec->discount); 
             }
         }
         
@@ -157,12 +155,7 @@ class price_ListRules extends core_Detail
         return $price;
     }
 
-
-    function act_Test()
-    {
-        bp(self::getPrice(2, 1, NULL, '2013-02-13 01:00:00'));
-    }
-
+ 
 
 
     /**
@@ -197,22 +190,51 @@ class price_ListRules extends core_Detail
 
         $form->title = $title;
 
-        if(!$rec->validFrom) {
+        if(!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
+            $rec->validUntil = Mode::get('PRICE_VALID_UNTIL');
         }
     }
 
 
     /**
-     * След създаване на ново правило, записва за дефолт на следващите правила
-     * началото на валидността му
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
-    function on_AfterCreate($mvc, $rec)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
-        Mode::setPermanent('PRICE_VALID_FROM', $rec->validFrom);
+        if($form->isSubmitted()) {
+            
+            $rec = $form->rec;
+
+            $now = dt::verbal2mysql();
+
+            if(!$rec->validFrom) {
+                $rec->validFrom = $now;
+            }
+
+            if($rec->validFrom < $now) {
+                $form->setError('validFrom', 'Не могат да се задават правила за минал момент');
+            }
+
+            if($rec->validUntil && ($rec->validUntil <= $rec->validFrom)) {
+                $form->setError('validUntil', 'Правилото трябва да е в сила до по-късен момент от началото му');
+            }
+            
+            if($rec->validFrom && !$form->gotErrors() && $rec->validFrom > $now) {
+                Mode::setPermanent('PRICE_VALID_FROM', $rec->validFrom);
+            }
+
+            if(!$form->gotErrors()) {
+                Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
+            }
+
+        }
     }
 
-
+  
     /**
      *
      */
@@ -302,7 +324,8 @@ class price_ListRules extends core_Detail
 
 
         // Вербален изказ на правилото
-        $price = $mvc->getVerbal($rec, 'price');
+        $price    = $mvc->getVerbal($rec, 'price');
+        $discount = $mvc->getVerbal($rec, 'discount');
 
         
         if($rec->discount < 0) {$discount = $mvc->getVerbal($rec, 'discount');
@@ -350,31 +373,6 @@ class price_ListRules extends core_Detail
         }
 
         $row->ROW_ATTR['class'] .= " state-{$state}";
-    }
-
-
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if($form->isSubmitted()) {
-            
-            $rec = $form->rec;
-
-            $now = dt::verbal2mysql();
-
-            if($rec->validFrom <= $now) {
-                $form->setError('validFrom', 'Не могат да се задават правила за минал момент');
-            }
-
-             if($rec->validUntil && ($rec->validUntil <= $rec->validFrom)) {
-                $form->setError('validUntil', 'Правилото трябва да е в сила до по-късен момент от началото му');
-            }
-        }
     }
 
 
