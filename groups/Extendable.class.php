@@ -58,7 +58,7 @@ class groups_Extendable extends core_Plugin
      */
     protected static function attachExtenders(core_Master $master, $rec)
     {
-        $extenders = static::getExtenders($master, $rec);
+        $extenders = $master::getExtenders($rec);
         
         //
         // Добавяме екстендерите като детайли на мастър класа
@@ -82,7 +82,7 @@ class groups_Extendable extends core_Plugin
      * @param core_Master $master
      * @param stdClass $rec
      */
-    protected static function getExtenders(core_Master $master, $rec)
+    public static function on_BeforeGetExtenders(core_Master $master, &$extenders, $rec)
     {
         $groupsFieldName = static::getGroupsFieldName($master);
         
@@ -91,7 +91,7 @@ class groups_Extendable extends core_Plugin
         
         expect($GroupsManager = static::getGroupsManager($master));
         
-        return $GroupsManager->getExtenders($groupIds);
+        $extenders = $GroupsManager->getExtenders($groupIds);
     }
     
     
@@ -120,7 +120,7 @@ class groups_Extendable extends core_Plugin
     
     public static function on_AfterSave(core_Master $master, &$id, $rec, $saveFields = NULL)
     {
-        $extenders = static::getExtenders($master, $rec);
+        $extenders = $master::getExtenders($rec);
         
         foreach ($extenders as $ext) {
             $extender = cls::get($ext['className']);
