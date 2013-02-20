@@ -135,7 +135,8 @@ class html2text_Converter
      * @access public
      * @see $replace
      */
-    var $search = array(
+    /*
+	var $search = array(
         //'/<pre[^>]*>(.*?)<\/pre>/sei',           // <pre>
         "/\r/",                                  // Non-legal carriage return
         "/[\n\t]+/",                             // Newlines and tabs
@@ -177,7 +178,8 @@ class html2text_Converter
         '/&(euro|#8364);/i',                     // Euro sign
         //'/&[^&;]+;/i',                           // Unknown/unhandled entities
         '/[ ]{2,}/'                              // Runs of spaces, post-handling
-    );
+    ); 
+	*/
     
     
     /**
@@ -187,6 +189,7 @@ class html2text_Converter
      * @access public
      * @see $search
      */
+    /*
     var $replace = array(
         // '$this->pre("\\1")',                     // <pre>
         '',                                     // Non-legal carriage return
@@ -229,6 +232,7 @@ class html2text_Converter
         // '',                                     // Unknown/unhandled entities
         ' '                                     // Runs of spaces, post-handling
     );
+    */
     
     
     /**
@@ -397,8 +401,9 @@ class html2text_Converter
      * @access public
      * @return void
      */
-    function _set_base_url($url = '')
+    function _set_base_url($matches)
     {
+        $url = $matches[1];
         if (empty($url)) {
             if (!empty($_SERVER['HTTP_HOST'])) {
                 $this->url = 'http://' . $_SERVER['HTTP_HOST'];
@@ -434,11 +439,125 @@ class html2text_Converter
         $this->_link_list = '';
         
         $text = trim(stripslashes($this->html));
-        
-        // Run our defined search-and-replace
-        $text = preg_replace_callback("/<pre[^>]*>(.*?)<\/pre>/si", array($this, 'pre'), $text);
 
-        $text = preg_replace($this->search, $this->replace, $text);
+        // Run our defined search-and-replace
+        
+        // <pre>
+        $text = preg_replace_callback("/<pre[^>]*>(.*?)<\/pre>/si", array($this, 'pre'), $text); 
+        
+        // Non-legal carriage return
+        $text = preg_replace("/\r/", '', $text); 
+        
+        // Newlines and tabs
+        $text = preg_replace("/[\n\t]+/", ' ', $text);
+        
+        // Runs of spaces, pre-handling
+        $text = preg_replace("/[ ]{2,}/", ' ', $text);
+        
+        // Base URL
+        $text = preg_replace_callback('/<base [^>]*href="([^"]+)"[^>]*>/i', array($this, '_set_base_url'), $text);
+        
+        // <script>s -- which strip_tags supposedly has problems with
+        $text = preg_replace("/<script[^>]*>.*?<\/script>/i", '', $text);
+        
+        // <style>s -- which strip_tags supposedly has problems with
+        $text = preg_replace("/<style[^>]*>.*?<\/style>/i", '', $text);
+        
+        // Comments -- which strip_tags might have problem a with
+//        $text = preg_replace('/<!-- .* -->/', '', $text);
+        
+        // H1 - H6
+        $text = preg_replace_callback('/<h([123456])[^>]*>(.*?)<\/h([123456])>/i', array($this, 'h'), $text);
+        
+        // <P>
+        $text = preg_replace("/<p[^>]*>/i", "\n\n", $text);
+        
+        // <div>
+        $text = preg_replace("/<div[^>]*>/i", "\n", $text);
+        
+        // <br>
+        $text = preg_replace("/<br[^>]*>/i", "\n", $text);
+        
+        // <b>
+        $text = preg_replace_callback('/<b[^>]*>(.*?)<\/b>/i', array($this, 'bold'), $text);
+        
+        // <strong>
+        $text = preg_replace_callback('/<strong[^>]*>(.*?)<\/strong>/i', array($this, 'bold'), $text);
+        
+        // <i>
+        $text = preg_replace("/<i[^>]*>(.*?)<\/i>/i", "[i]\\1[/i]", $text);
+        
+        // <em>
+        $text = preg_replace("/<em[^>]*>(.*?)<\/em>/i", "[b]\\1[/b]", $text);
+        
+        // <ul> and </ul>
+        $text = preg_replace("/(<ul[^>]*>|<\/ul>)/i", "\n\n", $text);
+        
+        // <ol> and </ol>
+        $text = preg_replace("/(<ol[^>]*>|<\/ol>)/i", "\n\n", $text);
+        
+        // <li> and </li>
+        $text = preg_replace("/<li[^>]*>(.*?)<\/li>/i", "\t* \\1\n", $text);
+        
+        // <li>
+        $text = preg_replace("/<li[^>]*>/i", "\n\t* ", $text);
+        
+        // <a href="">
+        $text = preg_replace_callback('/<a [^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/i', array($this, '_build_link_list'), $text);
+        
+        // <hr>
+        $text = preg_replace("/<hr[^>]*>/i", "\n-------------------------\n", $text);
+        
+        // <table> and </table>
+        $text = preg_replace("/(<table[^>]*>|<\/table>)/i", "\n\n", $text);
+        
+        // <tr> and </tr>
+        $text = preg_replace("/(<tr[^>]*>|<\/tr>)/i", "\n", $text);
+        
+        // <td> and </td>
+        $text = preg_replace("/<td[^>]*>(.*?)<\/td>/i", "\\1\t", $text);
+        
+        // <th> and </th>
+        $text = preg_replace_callback('/<th[^>]*>(.*?)<\/th>/i', array($this, 'boldt'), $text);
+        
+        // Non-breaking space
+        $text = preg_replace("/&(nbsp|#160);/i", " ", $text);
+        
+        // Double quotes
+        $text = preg_replace("/&(quot|rdquo|ldquo|#8220|#8221|#147|#148);/i", '"', $text);
+        
+        // Single quotes
+        $text = preg_replace("/&(apos|rsquo|lsquo|#8216|#8217);/i", "'", $text);
+        
+        // Copyright
+        $text = preg_replace("/&(copy|#169);/i", "(c)", $text);
+        
+        // Trademark
+        $text = preg_replace("/&(trade|#8482|#153);/i", "(tm)", $text);
+        
+        // Registered
+        $text = preg_replace("/&(reg|#174);/i", "(R)", $text);
+        
+        // mdash
+        $text = preg_replace("/&(mdash|#151|#8212);/i", "--", $text);
+        
+        // ndash
+        $text = preg_replace("/&(ndash|minus|#8211|#8722);/i", "-", $text);
+        
+        // Bullet
+        $text = preg_replace("/&(bull|#149|#8226);/i", "*", $text);
+        
+        // Pound sign
+        $text = preg_replace("/&(pound|#163);/i", "£", $text);
+        
+        // Euro sign
+        $text = preg_replace("/&(euro|#8364);/i", "€", $text);
+        
+        // Unknown/unhandled entities
+//        $text = preg_replace("'/&[^&;]+;/i'", "", $text);
+        
+        // Runs of spaces, post-handling
+        $text = preg_replace("/[ ]{2,}/", " ", $text);
         
         // Strip any other HTML tags
         $text = strip_tags($text, $this->allowed_tags);
@@ -515,8 +634,11 @@ class html2text_Converter
      * @access private
      * @return string
      */
-    function _build_link_list($link, $display)
+    function _build_link_list($matches)
     {
+        $link = $matches[1];
+        $display = $matches[2];
+
         $linkArr = explode(':', $link, 2);
         $schema  = strtolower(trim($linkArr[0]));
         $path    = strtolower(trim($linkArr[1], "\t\n\r/"));
@@ -554,12 +676,21 @@ class html2text_Converter
     /**
      * ���������� ��������� ������ ��� ������ �����
      */
-    function bold($text)
+    function bold($matches)
     {
-        
-        return "[b]{$text}[/b]";
+
+        return "[b]{$matches[1]}[/b]";
     }
     
+    
+    /**
+     * 
+     */
+    function boldt($matches)
+    {
+
+        return $this->bold($matches) . "\t";
+    }
     
     /**
      * ����� ������ �����, ����� ������� ����� �� ����
@@ -586,8 +717,8 @@ class html2text_Converter
     /**
      * �������� �������� <h*>
      */
-    function h($range, $text)
+    function h($matches)
     {
-        return "[h{$range}]{$text}[/h{$range}]";
+        return "[h{$matches[1]}]{$matches[2]}[/h{$matches[1]}]";
     }
 }
