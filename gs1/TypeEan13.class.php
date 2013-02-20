@@ -22,7 +22,7 @@ class gs1_TypeEan13 extends type_Varchar
     /**
      * Колко символа е дълго полето в базата
      */
-    var $dbFieldLen = 13;
+    var $dbFieldLen = 18;
     
     
     /**
@@ -30,40 +30,76 @@ class gs1_TypeEan13 extends type_Varchar
      */
     function init($params = array())
     {
-        
         parent::init($params);
-        $this->params['size'] = $this->params[0] = 13;
+        $this->params['size'] = $this->params[0] = 18;
     }
     
     
     /**
      * Към 12-цифрен номер, добавя 13-та цифра за да го направи EAN13 код
      */
-    function ean13CheckDigit($digits)
+    function ean13CheckDigit($digits, $n = 13)
     {
         $digits = (string)$digits;
-        $even_sum = $digits{1} + $digits{3} + $digits{5} + $digits{7} + $digits{9} + $digits{11};
-        $even_sum_three = $even_sum * 3;
-        $odd_sum = $digits{0} + $digits{2} + $digits{4} + $digits{6} + $digits{8} + $digits{10};
-        $total_sum = $even_sum_three + $odd_sum;
-        $next_ten = (ceil($total_sum / 10)) * 10;
-        $check_digit = $next_ten - $total_sum;
+        $oddSum = $evenSum = 0;
+        foreach(array('even'=>'1', 'odd'=>'0') as $k=>$v) {
+	        foreach (range($v, $n, 2) as ${"{$k}Num"}) {
+	        	${"{$k}Sum"} += $digits[${"{$k}Num"}];
+			}
+        }
+		
+        $evenSumThree = $evenSum * 3;
+		$totalSum = $evenSumThree + $oddSum;
+        $nextTen = (ceil($totalSum / 10)) * 10;
+        $checkDigit = $nextTen - $totalSum;
         
-        return $digits . $check_digit;
+        return $digits . $checkDigit;
     }
     
     
     /**
      * Проверка за валидност на EAN13 код
      */
-    function isValidEan13($value)
+    function isValidEan($value, $n = 13)
     {
-        $digits12 = substr($value, 0, 12);
+        $digits12 = substr($value, 0, $n-1);
         $digits13 = $this->ean13CheckDigit($digits12);
         
         $res = ($digits13 == $value);
         
         return $res;
+    }
+    
+    
+    /**
+     * Връща верен EAN 13 + 2/5, ако е подаден такъв
+     * @param string $value - 15 или 18 цифрен баркод
+     * @param int $n - колко цифри са допълнителните към EAN13
+     */
+    function ean13SCheckDigit($value, $n)
+    {
+    	$digits12 = substr($value, 0, 12);
+    	$supDigits = substr($value, 13, $n);
+    	$res = $this->ean13CheckDigit($digits12);
+    	$res .= $supDigits;
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Проверка за валидност на първите 13 цифри от 15 или 18 
+     * цифрен баркод код, дали са валиден EAN13 код
+     * @param string $value - EAN код с повече от 13 цифри
+     */
+    function isValidEanS($value)
+    {
+    	$digits13 = substr($value, 0, 13);
+    	if($this->isValidEan($digits13, 13)) {
+    		return TRUE;
+    	} else {
+    		return FALSE;
+    	}
     }
     
     
@@ -76,12 +112,28 @@ class gs1_TypeEan13 extends type_Varchar
         
         $res = new stdClass();
         
-        if(preg_match("/^[0-9]{13}$/", $value)){
-            if (!$this->isValidEan13($value)){
+        if(preg_match("/^[0-9]{7}$/", $value)) {
+        	$res->value = $this->ean13CheckDigit($value, 8);
+            $res->warning = "Въвели сте само 7 цифри. Пълният EAN8 код {$res->value} ли е?";
+        } elseif(preg_match("/^[0-9]{8}$/", $value)) {
+        	if (!$this->isValidEan($value, 8)){
+                $res->error = "Невалиден EAN8 номер.";
+            }
+        } else if(preg_match("/^[0-9]{13}$/", $value)){
+            if (!$this->isValidEan($value)){
                 $res->error = "Невалиден EAN13 номер.";
             }
-        }
-        elseif (preg_match("/^[0-9]{12}$/", $value)){
+        } elseif(preg_match("/^[0-9]{15}$/", $value)) {
+        	if (!$this->isValidEanS($value)){
+        		$res->value = $this->ean13SCheckDigit($value, 2);
+        		$res->error = "Невалиден EAN13+2 номер. Пълният EAN13+2 код {$res->value} ли е?";
+            } 
+        } elseif(preg_match("/^[0-9]{18}$/", $value)) {
+        	if (!$this->isValidEanS($value)){
+        		$res->value = $this->ean13SCheckDigit($value, 5);
+                $res->error = "Невалиден EAN13+5 номер. Пълният EAN13+5 код {$res->value} ли е?";
+            }
+        } elseif (preg_match("/^[0-9]{12}$/", $value)){
             $res->value = $this->ean13CheckDigit($value);
             $res->warning = "Въвели сте само 12 цифри. Пълният EAN13 код {$res->value} ли е?";
         } else {
