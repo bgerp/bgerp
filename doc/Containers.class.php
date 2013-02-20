@@ -624,7 +624,6 @@ class doc_Containers extends core_Manager
         
         $tpl = new ET();        
         $tpl->append("\n<h3>" . tr('Добавяне на нов документ в нишката') . ":</h3>");
-        $tpl->append("\n<table>");
         
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
@@ -632,29 +631,29 @@ class doc_Containers extends core_Manager
         //TODO да се отдели във функция
 	    foreach($docArr as $id => $class) {
 	            
-	            $mvc = cls::get($class);
-	            
-	            list($order, $group) = explode('|', $mvc->newBtnGroup);
-	            
-	            $order = (int) $order;
-	            
-	            if($mvc->haveRightFor('add')) {
-	            	$btns[$order .'|'. $group][$mvc->singleTitle] = $class;
-	            }
-	            
-	
-	        }
-	        
-	        ksort($btns);
-	        
-	        foreach($btns as $group => $bArr) {
-	        	list($order, $group) = explode('|', $group);
-	        	$tpl->append("<div class='btn-group'>{$group}</div>");
-	        	foreach($bArr as $btn => $class) {
-	        		$mvc = cls::get($class);
-	        		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
-	        	}
-	        }
+            $mvc = cls::get($class);
+            
+            list($order, $group) = explode('|', $mvc->newBtnGroup);
+            
+            $order = (int) $order;
+            
+            if($mvc->haveRightFor('add')) {
+            	$btns[$order .'|'. $group][$mvc->singleTitle] = $class;
+            }
+            
+
+        }
+        
+        ksort($btns);
+        
+        foreach($btns as $group => $bArr) {
+        	list($order, $group) = explode('|', $group);
+        	$tpl->append("<div class='btn-group-title'>{$group}</div>");
+        	foreach($bArr as $btn => $class) {
+        		$mvc = cls::get($class);
+        		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
+        	}
+        }
         return $this->renderWrapping($tpl);
     }
     

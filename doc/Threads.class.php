@@ -1008,7 +1008,7 @@ class doc_Threads extends core_Manager
         
         foreach($btns as $group => $bArr) {
         	list($order, $group) = explode('|', $group);
-        	$tpl->append("<div class='btn-group'>{$group}</div>");
+        	$tpl->append("<div class='btn-group-title'>{$group}</div>");
         	foreach($bArr as $btn => $class) {
         		$mvc = cls::get($class);
         		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));

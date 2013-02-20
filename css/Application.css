@@ -1916,3 +1916,15 @@ fieldset.sharing-history i {
 	border: none;
 	border-radius:5px 5px 0 0 !important;
 }
+
+.btn-group .button{
+	display:inline-block;
+	width:auto !important;
+	min-width:230px;
+}
+
+.btn-group-title{
+	margin-top:10px;
+	margin-bottom:2px;
+	margin-left:2px;
+}
