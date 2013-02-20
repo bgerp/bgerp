@@ -540,7 +540,7 @@ class email_Mime extends core_BaseClass
      * - ако $id == '*'конкатенация между всички записи за дадения хедър
      * разделени с интервал
      */
-    function getHeader($name, $part = 1, $headerIndex = 0)
+    function getHeader($name, $part = 1, $headerIndex = 0, $decode=TRUE)
     {
         if(is_object($part)) {
             $headersArr = $part->headersArr;
@@ -564,6 +564,22 @@ class email_Mime extends core_BaseClass
             }
         }
         
+        return static::getHeadersFromArr($headersArr, $name, $headerIndex);
+    }
+    
+    
+    /**
+     * Връща даден хедът от масив
+     * 
+     * @param array $headersArr - Масив с хедърите
+     * @param string $name - Името на хедъра
+     * @param mixed $headerIndex - Число или * - Указва, кои да се извлекат
+     * @param boolean $decode - Дали да се декодира хедъра
+     * 
+     * @retun string $res - Съдържанието на хедъра
+     */
+    static function getHeadersFromArr($headersArr, $name, $headerIndex=0, $decode=TRUE)
+    {
         $name = strtolower($name);
         
         if ($headerIndex == "*") {
@@ -581,7 +597,11 @@ class email_Mime extends core_BaseClass
             $res = $headersArr[$name][$headerIndex];
         }
 
-        return $this->decodeHeader($res);
+        if ($decode) {
+            $res = static::decodeHeader($res);
+        }
+        
+        return $res;
     }
     
     
@@ -618,7 +638,7 @@ class email_Mime extends core_BaseClass
     /**
      * Декодира хедърната част част
      */
-    function decodeHeader($val)
+    static function decodeHeader($val)
     {   
         // Ако стойността на хедъра е 7-битова, той може да е кодиран
         if(lang_Encoding::is7Bit($val)) {

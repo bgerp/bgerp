@@ -177,20 +177,13 @@ class email_Incomings extends core_Master
         // Ако няма хедъри
         if (!$rec->headers) return ;
 
-        // Инстанция на класа
-        $mime = cls::get('email_Mime');
-        
         // Хедърите ги преобразуваме в масив
-        $headersArr = $mime->parseHeaders($rec->headers);
-        
-        // Добавяме хедърите в обект
-        $new = new stdClass();
-        $new->headersArr = $headersArr;
+        $headersArr = unserialize($rec->headers);
         
         // Вземамем всички cc имейли от хедърите
-        $allCc = $mime->getHeader('cc', $new, '*');
-        
-        // Добавяме всичко cc полета
+        $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+
+        // Добавяме всичко в allCc полетo
         $rec->allCc = email_Mime::getAllEmailsFromArr($allCc);
     }
     
@@ -201,22 +194,23 @@ class email_Incomings extends core_Master
     function on_CalcAllTo($mvc, &$rec)
     {
         // Ако няма хедъри
-        if (!$rec->headers) return ;
+        // За съвместимост със стар код
+        if (!$rec->headers) {
+            
+            // Ако няма хедъри поне да покаже до кого е пратен имейла
+            $rec->allTo = $rec->toEml;
+            
+            return ;    
+        }
+        
 
-        // Инстанция на класа
-        $mime = cls::get('email_Mime');
-        
         // Хедърите ги преобразуваме в масив
-        $headersArr = $mime->parseHeaders($rec->headers);
+        $headersArr = unserialize($rec->headers);
         
-        // Добавяме хедърите в обект
-        $new = new stdClass();
-        $new->headersArr = $headersArr;
-        
-        // Вземаме всички to имейли от хедърите
-        $allTo = $mime->getHeader('to', $new, '*');
-        
-        // Добавяме всичко to полета
+        // Вземамем всички to имейли от хедърите
+        $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
+
+        // Добавяме всичко в allTo полетo
         $rec->allTo = email_Mime::getAllEmailsFromArr($allTo);
     }
     
@@ -503,7 +497,10 @@ class email_Incomings extends core_Master
         $rec->uid   = $uid;
         
         // Добавяме хедърите
-        $rec->headers = $mime->getHeadersStr();
+        $headersStr = $mime->getHeadersStr();
+        
+        // Преобразуваме в масив с хедъри и сериализираме
+        $rec->headers = serialize($mime->parseHeaders($headersStr));
         
         // Записваме (и автоматично рутираме) писмото
         $saved = email_Incomings::save($rec);
