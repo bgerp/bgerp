@@ -184,7 +184,7 @@ class email_Incomings extends core_Master
         $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
 
         // Добавяме всичко в allCc полетo
-        $rec->allCc = email_Mime::getAllEmailsFromArr($allCc);
+        $rec->allCc = email_Mime::getAllEmailsFromStr($allCc);
     }
     
     
@@ -211,7 +211,7 @@ class email_Incomings extends core_Master
         $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
 
         // Добавяме всичко в allTo полетo
-        $rec->allTo = email_Mime::getAllEmailsFromArr($allTo);
+        $rec->allTo = email_Mime::getAllEmailsFromStr($allTo);
     }
     
     
@@ -1165,7 +1165,42 @@ class email_Incomings extends core_Master
             $contragentData->fax = arr::getMaxValueKey($ap['fax']);
         }
         
-        $contragentData->email = $msg->fromEml;
+        // Ако няма хедъри
+        // За съвместимост със стар код
+        if (!$msg->headers) {
+            
+            // Ако няма хедъри използваме fromEml
+            $contragentData->email = $msg->fromEml;
+        } else {
+            
+            // Хедърите ги преобразуваме в масив
+            $headersArr = unserialize($msg->headers);
+            
+            // Вземамем всички reply-to имейли от хедърите
+            $allReplyTo = email_Mime::getHeadersFromArr($headersArr, 'reply-to', '*');
+            
+            // Ако има reply-to
+            if ($allReplyTo) {
+                
+                // Вземаме имейлите от reply-to
+                $contragentData->email = email_Mime::getAllEmailsFromStr($allReplyTo);    
+            } else {
+                
+                // Вземамем всички cc имейли от хедърите
+                $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+                
+                // Вземамем всички tp имейли от хедърите
+                $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');   
+                
+                // Обединяваме ги
+                $cEmail = ($allCc) ? $allTo . ', ' . $allCc : $allTo;
+                
+                // Вземаме само имейлите
+                $contragentData->email = email_Mime::getAllEmailsFromStr($cEmail);
+            }
+        }
+        
+        
         $contragentData->countryId = $msg->country;
         
         return $contragentData;

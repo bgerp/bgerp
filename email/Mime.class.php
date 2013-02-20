@@ -1068,11 +1068,11 @@ class email_Mime extends core_BaseClass
     /**
      * Екстрактва имейлите и връща само имейл частта на масива
      * 
-     * @param array $arr - Масив с имейли
+     * @param string $arr - Масив с имейли
      * 
      * @return string $res - Резултата
      */
-    static function getAllEmailsFromArr($arr)
+    static function getAllEmailsFromStr($str)
     {
         // Инстанция на класа
         $toParser = new email_Rfc822Addr();
@@ -1081,7 +1081,7 @@ class email_Mime extends core_BaseClass
         $parseToArr = array();
         
         // Парсираме
-        $toParser->ParseAddressList($arr, $parseToArr);
+        $toParser->ParseAddressList($str, $parseToArr);
         
         // Обхождаме масива
         foreach ((array)$parseToArr as $key => $dummy) {
