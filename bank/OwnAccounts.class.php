@@ -179,7 +179,11 @@ class bank_OwnAccounts extends core_Manager {
     			$suggestions[$rec->id] = $row->names;
     		}
     	}
-    
+    	
+    	if(count($suggestions) == 0) {
+    		return Redirect(array('core_Users', 'list'), NULL, 'Няма потребители с права "bank"');
+    	}
+    	
     	return $suggestions;
     }    
     
