@@ -124,10 +124,19 @@ class gs1_TypeEan extends type_Varchar
     	if (preg_match("/[^0-9]/", $value)) {
                 $res->error .= "Полето приема само цифри.";  
         } else {
-        	$len = strlen($value);
+        	$code = strlen($value);
+        	if($this->params['gln']) {
+        		$code = 13;
+        	}
         	
         	// Взависимост от дължината на стринга проверяваме кода
-        	switch($len) {
+        	switch($code) {
+        		case 13:
+		        	if (!$this->isValidEan($value)){
+		        		(!$this->params['gln']) ? $type = 'EAN13' : $type = 'GLN(13 цифри)';
+		                $res->error = "Невалиден {$type} номер.";
+		            }
+        			break;
         		case 7:
         			$res->value = $this->eanCheckDigit($value, 8);
             		$res->warning = "Въвели сте само 7 цифри. Пълният EAN8 код {$res->value} ли е?";
@@ -135,11 +144,6 @@ class gs1_TypeEan extends type_Varchar
         		case 8:
 		        	if (!$this->isValidEan($value, 8)){
 		                $res->error = "Невалиден EAN8 номер.";
-		            }
-        			break;
-        		case 13:
-		        	if (!$this->isValidEan($value)){
-		                $res->error = "Невалиден EAN13 номер.";
 		            }
         			break;
         		case 15:
@@ -160,7 +164,7 @@ class gs1_TypeEan extends type_Varchar
         			break;
         		default:
         			$res->error = "Невалиден EAN13 номер. ";
-                	$res->error .= "Въведения номер има |*{$len}| цифри.";  
+                	$res->error .= "Въведения номер има |*{$code}| цифри.";  
         			break;
         	}
         }
