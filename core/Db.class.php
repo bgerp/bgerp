@@ -643,56 +643,22 @@ class core_Db extends core_BaseClass
         
         if (!$silent && mysql_errno($this->link) > 0) {
             
-            if((!self::$noAutoSetup) &&
-                ($_GET['Ctr'] != 'core_Cron' || $_GET['Act'] != 'cron')) {
+            if (($_GET['Ctr'] != 'core_Cron' || $_GET['Act'] != 'cron')) {
                 
                 $errno = mysql_errno($this->link);
                 $error = mysql_error($this->link);
                 
-                if($errno == self::MYSQL_MISSING_TABLE) {
-                   $Packs = cls::get('core_Packs');
-                    self::$noAutoSetup = TRUE;
-                    $Packs->checkSetup();
-                } 
-                
-                if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) { 
-                    // strpos($error, "Unknown column '") !== FALSE || strpos($error, "doesn't exist") !== FALSE
-                    $Packs = cls::get('core_Packs');
-                    
-                    self::$noAutoSetup = TRUE;
-                    
-                    $res = '';
-                    
-                    if (preg_match_all('/\s+\'([a-z0-9]+)_[a-z]+/', $error, $matches)) {
-                    	foreach ($matches[1] as $pack) {
-                    	    $res .= $Packs->setupPack($pack);
-                    	}
-                        if(!haveRole('user')) {
-                            bp($res);
-                            die('error db');
-                        }
-                    } else {
-                    	bp($error);
-                    }
-                    
-                    expect(count($matches) > 0);
-                    
-                    if (count($matches[1] == 1)) {
-                    	$statusMsg = "Пакета {$matches[1][0]} беше обновен" . (isDebug() ? ": $error" : "");
-                    } else {
-                        $statusMsg = "Пакетите " . implode(', ', $matches[1]) . " бяха обновени" . (isDebug() ? ": $error" : "");
-                    }
-                    
-                    redirect(array('core_Packs'), FALSE, $statusMsg);
+                if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) {
+               		throw new core_exception_Expect ("Грешка в Базата данни! - процес на Сетъп");
                 }
             }
-            
+
             error("Грешка {$errno} в БД при " . $action, array(
                     "query" => $this->query,
                     "error" => $error
                 ), 'ГРЕШКА В БАЗАТА ДАННИ');
         }
-        
+
         return mysql_errno();
     }
     

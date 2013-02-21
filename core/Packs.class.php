@@ -559,17 +559,26 @@ class core_Packs extends core_Manager
        return $res;
     }
 
+
+	/**
+     * Стартира обновяване на системата през УРЛ
+     */
+    function act_systemUpdate()
+    {
+		requireRole('admin');
+		self::systemUpdate();
+    }
+
     
     /**
      * Стартира обновяване на системата
      */
-    function act_systemUpdate()
+    function systemUpdate()
 	{
-        requireRole('admin');
+		$SetupKey = setupKey();
+		//$SetupKey = md5(BGERP_SETUP_KEY . round(time()/10));
 		
-		$SetupKey = md5(BGERP_SETUP_KEY . round(time()/10));
-		
-		return new Redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
+		redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
 	}    
 
 

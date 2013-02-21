@@ -201,7 +201,9 @@ class core_Cls
         $Plugins = cls::get('core_Plugins');
         
         if (is_a($Plugins, 'core_Plugins')) {
-            $Plugins->attach($obj);
+            try {
+            	$Plugins->attach($obj);
+            } catch ( Exception $e) {}
         }
         
         // Ако има допълнителни параметри - използва ги за инициализиране

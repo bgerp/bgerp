@@ -271,9 +271,7 @@ ini_set('zlib.output_compression', 'Off');
 /**
  * Стартира Setup, ако се изисква
  */
-if (isset($_GET['SetupKey'])) {
-    require_once(EF_EF_PATH . "/core/Setup.inc.php");
-}
+require_once(EF_EF_PATH . "/core/Setup.inc.php");
 
 
 // Стартира записа в буфера, като по възможност компресира съдържанието
