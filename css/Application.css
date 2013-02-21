@@ -25,6 +25,7 @@ legend img {
 
 select{
 	background: #fff;
+	padding-left:0;
 }
 
 .narrow select.tab-control{
@@ -1901,7 +1902,6 @@ fieldset.sharing-history i {
 	.acc_JournalDetails .listTable th, .acc_JournalDetails .listTable td{
 		padding: 5px;
 	}
-
 
 /*bugFix - ширина при коментари на документ*/
 #doc_Comments-EditForm{
