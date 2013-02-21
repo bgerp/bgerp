@@ -629,6 +629,8 @@ class email_Incomings extends core_Master
                     $row->files = '';
                 }
             }
+            
+            static::calcAllToAndCc($rec, $row);
         }
         
         if(!$rec->toBox) {
@@ -645,10 +647,6 @@ class email_Incomings extends core_Master
                 
         if($fields['-list']) {
            // $row->textPart = mb_Substr($row->textPart, 0, 100);
-        }
-        
-        if($fields['-single']) {
-            static::calcAllToAndCc($rec, $row);
         }
     }
     
@@ -680,6 +678,7 @@ class email_Incomings extends core_Master
             // Вземаме хедърите
             $headersArr = $mime->parts[1]->headersArr;
             
+            // Ако няма хедъри, записваме ги
             $nRec = new stdClass();
             $nRec->id = $rec->id;
             $nRec->headers = $headersArr;
@@ -1186,6 +1185,13 @@ class email_Incomings extends core_Master
             
             // Вземаме хедърите
             $headersArr = $mime->parts[1]->headersArr;
+            
+            // Ако няма хедъри, записваме ги
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->headers = $headersArr;
+            
+            static::save($nRec, 'headers');
         } else {
             
             // Хедърите ги преобразуваме в масив
@@ -1207,9 +1213,12 @@ class email_Incomings extends core_Master
             
             // Вземамем всички tp имейли от хедърите
             $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');   
-            
+
             // Обединяваме ги
             $cEmail = ($allCc) ? $allTo . ', ' . $allCc : $allTo;
+            
+            // Добавяме имейла на изпращача
+            $cEmail = ($cEmail) ? $msg->fromEml . ', ' .$cEmail : $msg->fromEml;
             
             // Вземаме само имейлите
             $contragentData->email = email_Mime::getAllEmailsFromStr($cEmail);

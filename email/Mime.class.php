@@ -1068,7 +1068,7 @@ class email_Mime extends core_BaseClass
     /**
      * Екстрактва имейлите и връща само имейл частта на масива
      * 
-     * @param string $arr - Масив с имейли
+     * @param string $str - Стринг с имейлите
      * 
      * @return string $res - Резултата
      */
@@ -1087,10 +1087,10 @@ class email_Mime extends core_BaseClass
         foreach ((array)$parseToArr as $key => $dummy) {
            
             // Извличаме само имейлите
-            $EmlArr = type_Email::extractEmails($parseToArr[$key]['address']); 
+            $emlArr = type_Email::extractEmails($parseToArr[$key]['address']); 
             
             // Преобразуваме в стринг
-            $implode = implode(', ', $EmlArr);
+            $implode = implode(', ', $emlArr);
             
             // Добавяме към полето
             $res .= ($res) ? ', '. $implode : $implode;
