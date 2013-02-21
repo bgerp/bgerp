@@ -318,7 +318,7 @@ class core_Users extends core_Manager
                     $wrongLoginLog = 'wrong_nick';
                 }
 
-		if(!$userRec) {
+                if(!$userRec) {
                     $userRec = new stdClass();
                 }
 
@@ -647,9 +647,9 @@ class core_Users extends core_Manager
             
             $userRec->maxIdleTime = max($sessUserRec->maxIdleTime, time() - $sessUserRec->lastHitUT);
             if(!Request::get('ajax_mode')) {
-                $userRec->lastHitUT   = time();
+                $userRec->lastHitUT = time();
             } else {
-                $userRec->lastHitUT   = $sessUserRec->lastHitUT;
+                $userRec->lastHitUT = $sessUserRec->lastHitUT;
             }
         }
         
