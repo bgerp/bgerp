@@ -62,6 +62,23 @@ class cat_products_Packagings extends cat_products_Detail
     }
     
     
+    /**
+     * Изпълнява се след въвеждане на данните от Request
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {
+    	if ($form->isSubmitted()){
+	    	if($form->rec->eanCode && $mvc->Master->checkIfCodeExists($form->rec->eanCode)) {
+	            	$form->setError('eanCode', 'Има вече продукт с такъв код!');
+	        }
+	        
+    		if($form->rec->customCode && $mvc->Master->checkIfCodeExists($form->rec->customCode)) {
+	            	$form->setError('customCode', 'Има вече продукт с такъв код!');
+	        }
+    	}
+    }
+    
+    
     public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
         if ($action == 'add') {
