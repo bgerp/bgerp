@@ -141,7 +141,7 @@ class cat_Products extends core_Master {
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
 		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em');
-        $this->FLD('eanCode', 'gs1_TypeEan13', 'input,caption=EAN,width=15em');
+        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=EAN,width=15em');
 		$this->FLD('info', 'richtext', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
         $this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория,placeholder=Категория,remember=info');

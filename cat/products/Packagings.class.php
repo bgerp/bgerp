@@ -55,7 +55,7 @@ class cat_products_Packagings extends cat_products_Detail
         $this->FLD('sizeWidth', 'double(decimals=3)', 'input,caption=Габарит->Ширина');
         $this->FLD('sizeHeight', 'double(decimals=3)', 'input,caption=Габарит->Височина');
         $this->FLD('sizeDepth', 'double(decimals=3)', 'input,caption=Габарит->Дълбочина');
-        $this->FLD('eanCode', 'gs1_TypeEan13', 'input,caption=Код->EAN');
+        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Код->EAN');
         $this->FLD('customCode', 'varchar(64)', 'input,caption=Код->Вътрешен');
         
         $this->setDbUnique('productId,packagingId');

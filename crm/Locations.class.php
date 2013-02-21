@@ -91,7 +91,7 @@ class crm_Locations extends core_Master {
         $this->FLD('place', 'varchar(64)', 'caption=Град,mandatory,oldFieldName=city');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,mandatory');
-        $this->FLD('gln', 'gs1_TypeEan13', 'caption=GLN код');
+        $this->FLD('gln', 'gs1_TypeEan', 'caption=GLN код');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
         $this->FLD('comment', 'richtext', 'caption=@Информация');
     }
