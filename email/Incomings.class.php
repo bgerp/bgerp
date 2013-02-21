@@ -175,16 +175,24 @@ class email_Incomings extends core_Master
     function on_CalcAllCc($mvc, &$rec)
     {
         // Ако няма хедъри
-        if (!$rec->headers) return ;
-
-        // Хедърите ги преобразуваме в масив
-        $headersArr = unserialize($rec->headers);
+        if (!$rec->headers) {
+            $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
+            $rawEmail = fileman_Files::getContent($fh); 
+            $mime = cls::get('email_Mime');
+            $mime->parseAll($rawEmail);
+            $headersArr = $mime->parts[1]->headersArr;   
+        } else {
+            // Хедърите ги преобразуваме в масив
+            $headersArr = unserialize($rec->headers);
+        }
         
         // Вземамем всички cc имейли от хедърите
         $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
-
+        $allTo  = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
         // Добавяме всичко в allCc полетo
         $rec->allCc = email_Mime::getAllEmailsFromStr($allCc);
+        $rec->allTo = email_Mime::getAllEmailsFromStr($allTo);
+
     }
     
     
