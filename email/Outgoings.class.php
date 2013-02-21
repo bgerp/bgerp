@@ -721,14 +721,11 @@ class email_Outgoings extends core_Master
             // Проверяваме дали е валидем имейл адрес
             if (type_Email::isValidEmail($emailTo)) {
                                 
-                // Вземаме папката на имейла
-                $emailFolderId = email_Router::getEmailFolder($emailTo);
-                
-                // Проверяваме дали имаме права за папката
-                if (doc_Folders::haveRightFor('single', $emailFolderId)) {
+                // Опитваме се да вземаме папката
+                if (!$folderId = static::getAccessedEmailFolder($emailTo)) {
                     
-                    // Ако имаме права, задаваме папката да е тя
-                    $folderId = $emailFolderId;
+                    // Ако нищо не сработи вземаме папката на текущия потребител
+                    $folderId = crm_Persons::forceCoverAndFolder(crm_Profiles::getProfile()->id);
                 }
 
                 // Попълваме полето Адресант->Имейл със съответния имейл
@@ -1471,8 +1468,8 @@ class email_Outgoings extends core_Master
             // Ако сме въвели имейл
             if (isset($form->rec->userEmail)) {
                 
-                // Папката
-                $folderId = email_Router::getEmailFolder($form->rec->userEmail);
+                // Вземаме папката на имейла
+                $folderId = static::getAccessedEmailFolder($emailTo);
                 
             }
             
@@ -1561,5 +1558,86 @@ class email_Outgoings extends core_Master
     public static function on_Activation($mvc, &$rec)
     {
         $rec->__activation = TRUE;
+    }
+    
+    
+    /**
+     * Връща имейла, до който имаме достъп
+     * 
+     * @param email $email - Имейл
+     * 
+     * @return doc_Folders $folderId - id на папка
+     */
+    static function getAccessedEmailFolder($email) 
+    {
+        // Имейла в долния регистър
+        $email = mb_strtolower($email);
+        
+        // Вземаме предполагаемата папка
+        $folderId = email_Router::getEmailFolder($email);
+        
+        // Ако не може да се определи папка
+        if (!$folderId) return ;
+        
+        // Вземаем името на cover
+        $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+
+        // Ако cover е crm_Persons или нямам права за папката
+        if (($coverClassName == 'crm_persons') || (!doc_Folders::haveRightFor('single', $folderId))) {
+            
+            // Ако е crm_Person на текущия потребител
+            if ($coverClassName == 'crm_persons') {
+                
+                // Данните за текущия потребител
+                $currUserPerson = crm_Profiles::getProfile();
+                
+                // id на cover
+                $coverId = doc_Folders::fetchCoverId($folderId);   
+                
+                // Връщаме папката, ако имейла е от личната на текущия потребител
+                if ($currUserPerson->id == $coverId) return $folderId;
+            }
+            
+            // Вземаме компанията с този имейл
+            $companyId = crm_Companies::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
+            
+            // Ако имя така компания
+            if ($companyId) {
+                
+                // Вземаме папката на фирмата
+                $folderId = crm_Companies::forceCoverAndFolder($companyId);
+                  
+                // Проверяваме дали имаме права за папката
+                if (doc_Folders::haveRightFor('single', $folderId)) {
+                        
+                    return $folderId;
+                }  
+            }
+            
+            // Вземаме потребителя с такъв бизнес имейл
+            $personId = crm_Persons::fetchField(array("LOWER(#buzEmail) LIKE '%[#1#]%'", $email));
+            
+            // Ако има такъв потребител
+            if ($personId) {
+                
+                // Ако няма такъм профил
+                if (!crm_Profiles::fetchField("#personId = '{$personId}'")) {
+                    
+                    // Вземаме папката
+                    $folderId = crm_Persons::forceCoverAndFolder($personId);   
+                    
+                    // Ако имаме права за нея
+                    if (doc_Folders::haveRightFor('single', $folderId)) {
+
+                        return $folderId;
+                    }
+                }
+            }
+            
+            // Ако не може да се открие папка или нямаме права за нея
+            return FALSE;
+        }
+        
+        return $folderId;
     }
 }
