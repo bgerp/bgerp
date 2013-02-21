@@ -148,7 +148,7 @@ class email_Incomings extends core_Master
         // Това поле се взема предвид при рутиране и създаване на правила за рутиране.
         $this->FLD("toBox", "email(link=no)", 'caption=До->Кутия');
         
-        $this->FLD("headers", "text", 'caption=Хедъри');
+        $this->FLD("headers", "blob(serialize,compress)", 'caption=Хедъри');
         $this->FLD("textPart", "richtext", 'caption=Текстова част');
         $this->FLD("spam", "int", 'caption=Спам');
         $this->FLD("lg", "varchar", 'caption=Език');
@@ -176,23 +176,34 @@ class email_Incomings extends core_Master
     {
         // Ако няма хедъри
         if (!$rec->headers) {
+            
+            // Манипулатора на eml файла
             $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
+            
+            // Съдържаниетое
             $rawEmail = fileman_Files::getContent($fh); 
+            
+            // Инстанция на класа
             $mime = cls::get('email_Mime');
+            
+            // Парсираме имейла
             $mime->parseAll($rawEmail);
-            $headersArr = $mime->parts[1]->headersArr;   
+            
+            // Вземаме хедърите
+            $headersArr = $mime->parts[1]->headersArr;
         } else {
+            
             // Хедърите ги преобразуваме в масив
-            $headersArr = unserialize($rec->headers);
+            $headersArr = $rec->headers;
         }
-        
+
         // Вземамем всички cc имейли от хедърите
         $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
         $allTo  = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
+
         // Добавяме всичко в allCc полетo
         $rec->allCc = email_Mime::getAllEmailsFromStr($allCc);
         $rec->allTo = email_Mime::getAllEmailsFromStr($allTo);
-
     }
     
     
@@ -201,25 +212,7 @@ class email_Incomings extends core_Master
      */
     function on_CalcAllTo($mvc, &$rec)
     {
-        // Ако няма хедъри
-        // За съвместимост със стар код
-        if (!$rec->headers) {
-            
-            // Ако няма хедъри поне да покаже до кого е пратен имейла
-            $rec->allTo = $rec->toEml;
-            
-            return ;    
-        }
-        
-
-        // Хедърите ги преобразуваме в масив
-        $headersArr = unserialize($rec->headers);
-        
-        // Вземамем всички to имейли от хедърите
-        $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
-
-        // Добавяме всичко в allTo полетo
-        $rec->allTo = email_Mime::getAllEmailsFromStr($allTo);
+        // Пресмята се в on_CalcAllCc
     }
     
     
@@ -508,7 +501,7 @@ class email_Incomings extends core_Master
         $headersStr = $mime->getHeadersStr();
         
         // Преобразуваме в масив с хедъри и сериализираме
-        $rec->headers = serialize($mime->parseHeaders($headersStr));
+        $rec->headers = $mime->parseHeaders($headersStr);
         
         // Записваме (и автоматично рутираме) писмото
         $saved = email_Incomings::save($rec);
@@ -1181,11 +1174,8 @@ class email_Incomings extends core_Master
             $contragentData->email = $msg->fromEml;
         } else {
             
-            // Хедърите ги преобразуваме в масив
-            $headersArr = unserialize($msg->headers);
-            
             // Вземамем всички reply-to имейли от хедърите
-            $allReplyTo = email_Mime::getHeadersFromArr($headersArr, 'reply-to', '*');
+            $allReplyTo = email_Mime::getHeadersFromArr($msg->headers, 'reply-to', '*');
             
             // Ако има reply-to
             if ($allReplyTo) {
@@ -1195,10 +1185,10 @@ class email_Incomings extends core_Master
             } else {
                 
                 // Вземамем всички cc имейли от хедърите
-                $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+                $allCc = email_Mime::getHeadersFromArr($msg->headers, 'cc', '*');
                 
                 // Вземамем всички tp имейли от хедърите
-                $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');   
+                $allTo = email_Mime::getHeadersFromArr($msg->headers, 'to', '*');   
                 
                 // Обединяваме ги
                 $cEmail = ($allCc) ? $allTo . ', ' . $allCc : $allTo;
