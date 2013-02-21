@@ -395,7 +395,7 @@ class fileman_Files extends core_Master
         //expect($path = fileman_Download::getDownloadUrl($hnd));  
         expect($path = fileman_Files::fetchByFh($hnd, 'path'));
         
-        return file_get_contents($path);
+        return @file_get_contents($path);
     }
     
     
