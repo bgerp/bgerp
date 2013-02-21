@@ -125,7 +125,7 @@ class cat_Products extends core_Master {
     /**
      * Клас за елемента на обграждащия <div>
      */
-    var $cssClass = 'folder-cover product-holder';
+    var $cssClass = 'folder-cover';
     
     
     /**

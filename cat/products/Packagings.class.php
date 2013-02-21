@@ -25,9 +25,9 @@ class cat_products_Packagings extends cat_products_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, packagingId, quantity, netWeight, tareWeight, 
-        sizeWidth, sizeHeight, sizeDepth,
-        eanCode, customCode';
+   var $listFields = 'id, packagingId, quantity=К-во, netWeight=, tareWeight=, weight=Тегло, 
+        sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, 
+        eanCode=, customCode=,codecode=Код';
     
     
     /**
@@ -50,11 +50,11 @@ class cat_products_Packagings extends cat_products_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,silent,caption=Опаковка,mandatory');
         $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
-        $this->FLD('netWeight', 'double', 'input,caption=Тегло->Нето');
-        $this->FLD('tareWeight', 'double', 'input,caption=Тегло->Тара');
-        $this->FLD('sizeWidth', 'double', 'input,caption=Габарит->Ширина');
-        $this->FLD('sizeHeight', 'double', 'input,caption=Габарит->Височина');
-        $this->FLD('sizeDepth', 'double', 'input,caption=Габарит->Дълбочина');
+        $this->FLD('netWeight', 'double(decimals=3)', 'input,caption=Тегло->Нето');
+        $this->FLD('tareWeight', 'double(decimals=3)', 'input,caption=Тегло->Тара');
+        $this->FLD('sizeWidth', 'double(decimals=3)', 'input,caption=Габарит->Ширина');
+        $this->FLD('sizeHeight', 'double(decimals=3)', 'input,caption=Габарит->Височина');
+        $this->FLD('sizeDepth', 'double(decimals=3)', 'input,caption=Габарит->Дълбочина');
         $this->FLD('eanCode', 'gs1_TypeEan13', 'input,caption=Код->EAN');
         $this->FLD('customCode', 'varchar(64)', 'input,caption=Код->Вътрешен');
         
@@ -180,16 +180,40 @@ class cat_products_Packagings extends cat_products_Detail
         
         return $options;
     }
-    
+   
     
     /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->quantity = trim($rec->quantity);
     	$varchar = cls::get("type_Varchar");
+    	
+    	$row->quantity = trim($rec->quantity);
     	$row->quantity = $varchar->toVerbal($rec->quantity);
+    	if($rec->sizeWidth==0) {
+    		$row->sizeWidth = '-';
+    	}
+    	if($rec->sizeHeight==0) {
+    		$row->sizeHeight = '-';
+    	}
+    	if($rec->sizeDepth==0) {
+    		$row->sizeDepth = '-';
+    	}
+    	$row->dimention = "{$row->sizeWidth} x {$row->sizeHeight} x {$row->sizeDepth}";
+    	
+    	if($rec->eanCode){
+    		$row->codecode = "EAN: {$row->eanCode} <br />";
+    	}
+    	if($rec->customCode){
+    		$row->codecode .= "Вътрешен: {$row->customCode}";
+    	}
+    	if($rec->netWeight){
+    		$row->weight = "Нето: {$row->netWeight} <br />";
+    	}
+    	if($rec->tareWeight){
+    		$row->weight .= "Тара: {$row->tareWeight}";
+    	}
     }
 
     
@@ -206,7 +230,6 @@ class cat_products_Packagings extends cat_products_Detail
     {
         static::prepareDetail($data);
     }
-    
     
     
     public function renderPackagings($data)

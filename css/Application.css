@@ -1902,10 +1902,6 @@ fieldset.sharing-history i {
 		padding: 5px;
 	}
 
-/*bugFix - таблицата Опаковки да не излиза извън контейнера на продукти*/
-.folder-cover.product-holder{ 
-	max-width:none;
-}
 
 /*bugFix - ширина при коментари на документ*/
 #doc_Comments-EditForm{
