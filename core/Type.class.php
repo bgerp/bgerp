@@ -346,4 +346,59 @@ class core_Type extends core_BaseClass
                 ));
         }
     }
+    
+    
+    /**
+     * Преобразува различни променливи в стринг
+     * 
+     * @param mixed $o - Масив, обект, стринг, боолеан и др.
+     * 
+     * @return string $r - Параметъра преобразуван в стринг
+     */
+    static function mixedToString($o)
+    {
+        static $i = 0;
+
+        $i++;
+
+        if ($i > 4) {
+            $i--;
+
+            return "...";
+        }
+
+        $r = gettype($o);
+
+        if (is_object($o)) {
+            $r = get_class($o);
+            $o = get_object_vars($o);
+        }
+
+        if (is_array($o)) {
+            if ($r != 'array') {
+                $openBracket = '{';
+                $closeBracket = '}';
+            } else {
+                $openBracket = '[';
+                $closeBracket = ']';
+            }
+            $r = "($r) {$openBracket}";
+
+            if (count($o)) {
+                foreach ($o as $name => $value) {
+                    $r .= "$name : " . static::mixedToString($value);
+                }
+            }
+            $r .= "{$closeBracket}";
+        } elseif (is_string($o)) {
+            $r = "($r) " . $o;
+        } elseif (is_bool($o)) {
+            $r = "($r) " . ($o ? 'TRUE' : 'FALSE');
+        } else {
+            $r = "($r) " . $o;
+        }
+        $i--;
+
+        return $r;
+    }
 }

@@ -71,6 +71,8 @@ class type_Blob extends core_Type {
     {
         if(empty($value)) return NULL;
         
+        $value = static::mixedToString($value);
+        
         setIfNot($rowLen, $this->params['rowLen'], 16);
         setIfNot($maxRows, $this->patams['maxRows'], 100);
         $len = min(strlen($value), $rowLen * $maxRows);

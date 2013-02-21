@@ -14,6 +14,26 @@
  */
  
 
+/**********************************
+ * Първоначални проверки за достъп до Setup-а
+ **********************************/
+
+if (setupKeyValid() && !setupProcess()) {
+	// Опит за стартиране на сетъп
+	if (!setupLock()) {
+		halt("Грешка при стартиране на Setup.");
+	}
+} // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
+	elseif (!setupRights() && !setupProcess()) {
+
+		return;
+	}	// Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
+		elseif (!setupRights() && setupProcess()) {
+			halt("Процес на обновяване - опитайте по късно.</h2>");
+		}
+
+
+
 // 1. Проверка дали имаме config файл. 
 // 2. Проверка за връзка към MySQL
 // 3. Проверка дали може да се чете/записва в UPLOADS, TMP, SBF
@@ -232,39 +252,6 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 </div>
 </body>
 </html>";
-
-// Определяме масива с локалните IP-та
-$localIpArr = array('::1', '127.0.0.1');
-
-$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
-
-if (!defined('BGERP_SETUP_KEY')) {
-	halt('Not defined BGERP_SETUP_KEY!');
-}
-
-session_name('SID');
-session_start();
-
-if (($_GET['SetupKey'] == BGERP_SETUP_KEY && $isLocal ) ||
-	$_GET['SetupKey'] == md5(BGERP_SETUP_KEY . round(time()/10)) ||
-	$_GET['SetupKey'] == md5(BGERP_SETUP_KEY . round((time()-1)/10))) {
-
-	$_SESSION[EF_APP_NAME . 'admin_ip'] = $_SERVER['REMOTE_ADDR'];
-	
-}
-
-$authorizedIpArr = array();
-
-if(!empty($_SESSION[EF_APP_NAME . 'admin_ip'])) {
-    $authorizedIpArr += array($_SESSION[EF_APP_NAME . 'admin_ip']);
-}
-
-// Оторизация.
-$isAuthorized = in_array($_SERVER['REMOTE_ADDR'], $authorizedIpArr);
-
-if(!$isAuthorized) {
-    halt("Non-authorized IP for Setup (" . $_SERVER['REMOTE_ADDR'] . ")");
-}
 
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
@@ -547,13 +534,23 @@ if($step == 5) {
  **********************************/
 if ($step == 'setup') {
 	$calibrate = 1000;
-    $totalRecords = 137008;
-    $totalTables = 215;
+    $totalRecords = 137600;
+    $totalTables = 230;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
-
-    $res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . md5(BGERP_SETUP_KEY . round(time()/10)), FALSE, NULL, 0, 2);
+	
+	$opts = array(
+	  'http'=>array(
+	    'method'=>"GET",
+	    'header'=>"Accept-language: en\r\n" .
+	              "Cookie: setup=bar\r\n"
+	  )
+	);    
+	
+	$context = stream_context_create($opts);
+	
+	$res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . setupKey(), FALSE, $context, 0, 2);
 
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
@@ -632,6 +629,8 @@ if ($step == 'setup') {
 
     contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
     
+    setupUnlock();
+    
     $appUri = $selfUrl; 
     if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
     	$appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate'));
@@ -653,7 +652,7 @@ if ($step == 'setup') {
 	contentFlush("<script>
         				clearInterval(handle);
 				</script>");
-						 
+			 
     exit;
 }
 
@@ -691,10 +690,16 @@ if($step == start) {
 
     $Classes = cls::get('core_Classes');
 	$Classes->setupMVC();
+    
+	$Packs = cls::get('core_Lg');
+    $Packs->setupMVC();
 	
     $Packs = cls::get('core_Packs');
-    $Packs->setupPack('bgerp');
-
+    $Packs->setupMVC();
+    $Packs->checkSetup();
+    
+//    $Packs->setupPack('bgerp');
+	setupUnlock();
     exit;
 }
 
@@ -817,7 +822,8 @@ function gitHasChanges($repoPath, &$log)
 
 	exec($command, $arrRes, $returnVar);
 	
-	$states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
+	// $states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
+	$states = array("M" => "Модифициран", "A"=>"Добавен");
 	if (!empty($arrRes)) {
 	    foreach ($arrRes as $row) {
 	        $row = trim($row);
@@ -928,4 +934,91 @@ function contentFlush ($content)
     ob_end_flush();
     flush();
     
+}
+
+/**
+ * Начало на режим на Setup на bgERP
+ * Задава setup cookie за 10 мин.
+ * и сетва семафора
+ * 
+ * @return boolean
+ */
+function setupLock()
+{
+	setcookie("setup", setupKey() , time()+600);
+	return touch(EF_TEMP_PATH . "/setupLock.tmp");
+}
+
+/**
+ * Край на режим на Setup на bgERP
+ * 
+ *
+ */
+function setupUnlock()
+{
+	setcookie("setup", "", time()-3600);
+   	return @unlink(EF_TEMP_PATH . "/setupLock.tmp");
+}
+    
+/**
+ * Дали bgERP е в сетъп режим
+ * 
+ * @return boolean
+ */
+function setupProcess()
+{
+   	return @file_exists(EF_TEMP_PATH . "/setupLock.tmp");
+}
+    
+/**
+ * Връща валиден ключ за оторизация в Setup-а
+ * 
+ * @param boolean $absolute;
+ * @return string
+ */
+function setupKey()
+{
+   	return md5(BGERP_SETUP_KEY . round(time()/10));
+}
+
+/**
+ * Проверява валидност на сетъп ключ
+ * 
+ * @return boolean
+ */
+function setupKeyValid()
+{
+   	return $_GET['SetupKey'] == setupKey();
+}
+
+/**
+ * Връща дали имаме право за Setup
+ * 
+ * @return boolean
+ */
+function setupRights()
+{
+	if (!defined('BGERP_SETUP_KEY')) {
+		halt('Not defined BGERP_SETUP_KEY!');
+	}    	
+
+	// Определяме масива с локалните IP-та
+	$localIpArr = array('::1', '127.0.0.1');
+
+	$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
+	
+	$key = $_GET['SetupKey'];
+	
+	// Ако сетъп-а е стартиран от локален хост или инсталатор
+	if ($key == BGERP_SETUP_KEY && $isLocal ) {
+		
+		return TRUE;
+	}
+	// Ако сме в процес на инсталация
+//	if (setupKeyValid() && isset($_COOKIE['setup'])) {
+	if (isset($_COOKIE['setup'])) {		
+		return TRUE;
+	}
+	
+	return FALSE;
 }
