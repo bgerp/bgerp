@@ -1170,34 +1170,48 @@ class email_Incomings extends core_Master
         // За съвместимост със стар код
         if (!$msg->headers) {
             
-            // Ако няма хедъри използваме fromEml
-            $contragentData->email = $msg->fromEml;
+            // Манипулатора на eml файла
+            $fh =  fileman_Files::fetchField($msg->emlFile, 'fileHnd');
+            
+            // Съдържаниетое
+            $rawEmail = fileman_Files::getContent($fh); 
+            
+            // Инстанция на класа
+            $mime = cls::get('email_Mime');
+            
+            // Парсираме имейла
+            $mime->parseAll($rawEmail);
+            
+            // Вземаме хедърите
+            $headersArr = $mime->parts[1]->headersArr;
         } else {
             
-            // Вземамем всички reply-to имейли от хедърите
-            $allReplyTo = email_Mime::getHeadersFromArr($msg->headers, 'reply-to', '*');
-            
-            // Ако има reply-to
-            if ($allReplyTo) {
-                
-                // Вземаме имейлите от reply-to
-                $contragentData->email = email_Mime::getAllEmailsFromStr($allReplyTo);    
-            } else {
-                
-                // Вземамем всички cc имейли от хедърите
-                $allCc = email_Mime::getHeadersFromArr($msg->headers, 'cc', '*');
-                
-                // Вземамем всички tp имейли от хедърите
-                $allTo = email_Mime::getHeadersFromArr($msg->headers, 'to', '*');   
-                
-                // Обединяваме ги
-                $cEmail = ($allCc) ? $allTo . ', ' . $allCc : $allTo;
-                
-                // Вземаме само имейлите
-                $contragentData->email = email_Mime::getAllEmailsFromStr($cEmail);
-            }
+            // Хедърите ги преобразуваме в масив
+            $headersArr = $msg->headers;
         }
         
+        // Вземамем всички reply-to имейли от хедърите
+        $allReplyTo = email_Mime::getHeadersFromArr($headersArr, 'reply-to', '*');
+        
+        // Ако има reply-to
+        if ($allReplyTo) {
+            
+            // Вземаме имейлите от reply-to
+            $contragentData->email = email_Mime::getAllEmailsFromStr($allReplyTo);    
+        } else {
+            
+            // Вземамем всички cc имейли от хедърите
+            $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+            
+            // Вземамем всички tp имейли от хедърите
+            $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');   
+            
+            // Обединяваме ги
+            $cEmail = ($allCc) ? $allTo . ', ' . $allCc : $allTo;
+            
+            // Вземаме само имейлите
+            $contragentData->email = email_Mime::getAllEmailsFromStr($cEmail);
+        }
         
         $contragentData->countryId = $msg->country;
         
