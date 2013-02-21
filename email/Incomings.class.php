@@ -161,58 +161,8 @@ class email_Incomings extends core_Master
         $this->FLD('htmlFile', 'key(mvc=fileman_Files)', 'caption=html файл, input=none');
         $this->FLD('boxIndex', 'int', 'caption=Индекс');
         $this->FLD('uid', 'int', 'caption=Imap UID');
-
-        $this->FNC('allTo', 'text', 'caption=Кр, input=none');
-        $this->FNC('allCc', 'text', 'caption=Кр, input=none');
         
         $this->setDbUnique('hash');
-    }
-
-    
-    /**
-     * 
-     */
-    function on_CalcAllCc($mvc, &$rec)
-    {
-        // Ако няма хедъри
-        if (!$rec->headers) {
-            
-            // Манипулатора на eml файла
-            $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
-            
-            // Съдържаниетое
-            $rawEmail = fileman_Files::getContent($fh); 
-            
-            // Инстанция на класа
-            $mime = cls::get('email_Mime');
-            
-            // Парсираме имейла
-            $mime->parseAll($rawEmail);
-            
-            // Вземаме хедърите
-            $headersArr = $mime->parts[1]->headersArr;
-        } else {
-            
-            // Хедърите ги преобразуваме в масив
-            $headersArr = $rec->headers;
-        }
-
-        // Вземамем всички cc имейли от хедърите
-        $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
-        $allTo  = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
-
-        // Добавяме всичко в allCc полетo
-        $rec->allCc = email_Mime::getAllEmailsFromStr($allCc);
-        $rec->allTo = email_Mime::getAllEmailsFromStr($allTo);
-    }
-    
-    
-    /**
-     * 
-     */
-    function on_CalcAllTo($mvc, &$rec)
-    {
-        // Пресмята се в on_CalcAllCc
     }
     
     
@@ -696,6 +646,58 @@ class email_Incomings extends core_Master
         if($fields['-list']) {
            // $row->textPart = mb_Substr($row->textPart, 0, 100);
         }
+        
+        if($fields['-single']) {
+            static::calcAllToAndCc($rec, $row);
+        }
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $rec
+     */
+    protected static function calcAllToAndCc($rec, &$row)
+    {
+        // Ако няма хедъри
+        if (!$rec->headers) {
+            
+            expect($rec->emlFile);
+            
+            // Манипулатора на eml файла
+            $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
+            
+            // Съдържаниетое
+            $rawEmail = fileman_Files::getContent($fh); 
+            
+            // Инстанция на класа
+            $mime = cls::get('email_Mime');
+            
+            // Парсираме имейла
+            $mime->parseAll($rawEmail);
+            
+            // Вземаме хедърите
+            $headersArr = $mime->parts[1]->headersArr;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->headers = $headersArr;
+            
+            static::save($nRec, 'headers');
+        } else {
+            
+            // Хедърите ги преобразуваме в масив
+            $headersArr = $rec->headers;
+        }
+
+        // Вземамем всички cc имейли от хедърите
+        $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+        $allTo  = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
+
+        // Добавяме всичко в allCc полетo
+        $row->_allCc = email_Mime::getAllEmailsFromStr($allCc);
+        $row->_allTo = email_Mime::getAllEmailsFromStr($allTo);
     }
     
  
