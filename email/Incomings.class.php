@@ -695,8 +695,8 @@ class email_Incomings extends core_Master
         $allTo  = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
 
         // Добавяме всичко в allCc полетo
-        $row->_allCc = email_Mime::getAllEmailsFromStr($allCc);
-        $row->_allTo = email_Mime::getAllEmailsFromStr($allTo);
+        $row->allCc = email_Mime::getAllEmailsFromStr($allCc);
+        $row->allTo = email_Mime::getAllEmailsFromStr($allTo);
     }
     
  
