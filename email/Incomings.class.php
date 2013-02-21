@@ -122,7 +122,7 @@ class email_Incomings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,subject,createdOn=Дата,fromEml=От,toBox=До,accId,boxIndex,country';
+    var $listFields = 'id,subject,createdOn=Дата,fromEml=От,toBox=До,accId,boxIndex,uid,country';
     
     
     /**
@@ -248,7 +248,7 @@ class email_Incomings extends core_Master
                 }
 
                 if(($i % 100) == 1 || ( ($i - $firstUnreadMsg) < 100)) {
-                    $logMsg = "Fetching message {$i} from {$accRec->server}: {$status}";
+                    $logMsg = "Fetching message {$i} from {$accRec->email}: {$status}";
                     $this->log($logMsg);
                 }
                 

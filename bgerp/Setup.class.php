@@ -161,10 +161,10 @@ class bgerp_Setup {
         $html .= $Menu->repair();
         
         $Folders = cls::get('doc_Folders');
-        $html .= $Folders->repair();
+        // $html .= $Folders->repair();
         
         $Containers = cls::get('doc_Containers');
-        $html .= $Containers->repair();
+        // $html .= $Containers->repair();
 
         return $html;
     }
