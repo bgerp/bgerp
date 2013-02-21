@@ -948,10 +948,12 @@ class email_Incomings extends core_Master
     {
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         
-        if ($rec->state == 'rejected') {
-            $mvc->removeRouterRules($rec);
-        } elseif (empty($rec->_skipRouterRules)) {
-            $mvc->makeRouterRules($rec);
+        if($rec->containerId && $rec->folderId && $rec->fromEml && $rec->toBox) {
+            if ($rec->state == 'rejected') {
+                $mvc->removeRouterRules($rec);
+            } elseif (empty($rec->_skipRouterRules)) {
+                $mvc->makeRouterRules($rec);
+            }
         }
     }
     
