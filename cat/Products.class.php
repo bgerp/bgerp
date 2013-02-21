@@ -609,6 +609,7 @@ class cat_Products extends core_Master {
     		// Проверяваме имали продукт с такъв код
     		$query = static::getQuery();
     		$query->where(array("#code = '[#1#]'", $code));
+    		$query->orWhere(array("#eanCode = '[#1#]'", $code));
     		if($rec = $query->fetch()) {
     			
     			$res->productId = $rec->id;
