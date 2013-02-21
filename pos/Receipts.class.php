@@ -179,7 +179,7 @@ class pos_Receipts extends core_Master {
     	$row->total = $double->toVerbal($rec->total);
     	$row->paid = $double->toVerbal($rec->paid);
     	$row->change = $double->toVerbal($rec->change);
-    	$row->number = "#{$rec->id}";
+    	$row->number = "№{$rec->id}";
     }
 
     
