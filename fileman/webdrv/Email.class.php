@@ -165,7 +165,14 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     {
         // Текстовата част
 //        $textPart = $mime->getJustTextPart();
-         $textPart = $mime->textPart;       
+        $textPart = $mime->justTextPart;
+         
+        if(!$textPart && $mime->textPart) {
+            Mode::push('text', 'plain');
+            $rt = new type_Richtext();
+            $textPart = $rt->toHtml($mime->textPart);
+            Mode::pop('text');
+        }
         // Ако е зададено да се ескейпва
         if ($escape) {
             
