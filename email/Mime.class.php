@@ -564,7 +564,7 @@ class email_Mime extends core_BaseClass
             }
         }
         
-        return static::getHeadersFromArr($headersArr, $name, $headerIndex);
+        return static::getHeadersFromArr($headersArr, $name, $headerIndex, TRUE, $this->parts[1]->charset);
     }
     
     
@@ -578,7 +578,7 @@ class email_Mime extends core_BaseClass
      * 
      * @retun string $res - Съдържанието на хедъра
      */
-    static function getHeadersFromArr($headersArr, $name, $headerIndex=0, $decode=TRUE)
+    static function getHeadersFromArr($headersArr, $name, $headerIndex = 0, $decode = TRUE, $charset = NULL)
     {
         $name = strtolower($name);
         
@@ -598,7 +598,7 @@ class email_Mime extends core_BaseClass
         }
 
         if ($decode) {
-            $res = static::decodeHeader($res);
+            $res = static::decodeHeader($res, $charset);
         }
         
         return $res;
@@ -638,7 +638,7 @@ class email_Mime extends core_BaseClass
     /**
      * Декодира хедърната част част
      */
-    static function decodeHeader($val)
+    static function decodeHeader($val, $charset = NULL)
     {   
         // Ако стойността на хедъра е 7-битова, той може да е кодиран
         if(lang_Encoding::is7Bit($val)) {
@@ -656,7 +656,7 @@ class email_Mime extends core_BaseClass
             }
         } else {
 
-            $decoded = lang_Encoding::convertToUtf8($val, $this->parts[1]->charset);
+            $decoded = lang_Encoding::convertToUtf8($val, $charset);
         }
         
         return $decoded;

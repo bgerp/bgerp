@@ -1217,10 +1217,11 @@ class email_Incomings extends core_Master
             $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');   
 
             // Обединяваме ги
-            $cEmail = ($allCc) ? $allTo . ', ' . $allCc : $allTo;
+            $contragentData->toEmail = $allTo;
+            $contragentData->ccEmail = $allCc;
             
             // Добавяме имейла на изпращача
-            $cEmail = ($cEmail) ? $msg->fromEml . ', ' .$cEmail : $msg->fromEml;
+            $cEmail = $msg->fromEml;
             
             // Вземаме само имейлите
             $contragentData->email = email_Mime::getAllEmailsFromStr($cEmail);
