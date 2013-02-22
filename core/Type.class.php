@@ -305,6 +305,13 @@ class core_Type extends core_BaseClass
         $p = array();
         $typeName = trim($typeName);
         
+        // Ескейп на \( \) \, \" \=
+        $fromArr = array("\\\\", "\\(", "\\)", "\\,", '\\"', "\\=", "\\'");
+        $fromArr2 = array("\\", "(", ")", ",", '"', "=", "'");
+        $toArr   = array('&aaa;', '&bbb;', '&ccc;', '&ddd;', '&eee;', '&fff;', '&ggg;');
+        
+        $name = str_replace($fromArr, $toArr, $name);
+
         if ($leftBracketPos > 0) {
             $rightBracketPos = strrpos($name, ")");
             
@@ -314,16 +321,19 @@ class core_Type extends core_BaseClass
                 $params = explode(",", $params);
                 
                 foreach ($params as $index => $value) {
+                    
                     $value = trim($value);
                     
                     if (strpos($value, "=") > 0) {
                         list($key, $val) = explode("=", $value);
+                        $val = str_replace($toArr, $fromArr2, $val);
                         $p[trim($key)] = trim($val);
-                    } else {
+                    } else { 
+                        $value = str_replace($toArr, $fromArr2, $value);
                         if (count($p) == 0 && is_numeric($value) && ($typeName != 'type_Enum')) {
                             $p[] = $value;
                         } else {
-                            $p[trim($value)] = trim($value);
+                            $p[$value] = $value;
                         }
                     }
                 }
