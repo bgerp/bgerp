@@ -403,7 +403,7 @@ class html2text_Converter
      */
     function _set_base_url($matches)
     {
-        $url = $matches[1];
+        $url = $matches[2];
         if (empty($url)) {
             if (!empty($_SERVER['HTTP_HOST'])) {
                 $this->url = 'http://' . $_SERVER['HTTP_HOST'];
@@ -455,7 +455,7 @@ class html2text_Converter
         $text = preg_replace("/[ ]{2,}/", ' ', $text);
         
         // Base URL
-        $text = preg_replace_callback('/<base [^>]*href="([^"]+)"[^>]*>/i', array($this, '_set_base_url'), $text);
+        $text = preg_replace_callback('/<base [^>]*href=("|\')([^"|\']+)("|\')[^>]*>/i', array($this, '_set_base_url'), $text);
         
         // <script>s -- which strip_tags supposedly has problems with
         $text = preg_replace("/<script[^>]*>.*?<\/script>/i", '', $text);
@@ -503,7 +503,7 @@ class html2text_Converter
         $text = preg_replace("/<li[^>]*>/i", "\n\t* ", $text);
         
         // <a href="">
-        $text = preg_replace_callback('/<a [^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/i', array($this, '_build_link_list'), $text);
+        $text = preg_replace_callback('/<a [^>]*href=("|\')([^"|\']+)("|\')[^>]*>(.*?)<\/a>/i', array($this, '_build_link_list'), $text);
         
         // <hr>
         $text = preg_replace("/<hr[^>]*>/i", "\n-------------------------\n", $text);
@@ -636,8 +636,8 @@ class html2text_Converter
      */
     function _build_link_list($matches)
     {
-        $link = $matches[1];
-        $display = $matches[2];
+        $link = $matches[2];
+        $display = $matches[4];
 
         $linkArr = explode(':', $link, 2);
         $schema  = strtolower(trim($linkArr[0]));
