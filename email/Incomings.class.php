@@ -707,8 +707,6 @@ class email_Incomings extends core_Master
         $ccParser = new email_Rfc822Addr();
         $rec->allCc = array();
         $ccParser->ParseAddressList($allCc, $rec->allCc);
-        
-        // bp($rec->allTo, $rec->allCc);
      }
     
  

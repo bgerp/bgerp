@@ -666,7 +666,7 @@ class doc_Containers extends core_Manager
         	foreach($bArr as $btn => $class) {
         		$mvc = cls::get($class);
         		
-        		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
+        		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, array($class, 'add', 'threadId' => $threadId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
         		
         	}
         	
