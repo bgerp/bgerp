@@ -1651,6 +1651,22 @@ class email_Outgoings extends core_Master
                 }
             }    
             
+            // Вземаме потребителя с личен имейл
+            $personId = crm_Persons::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
+            
+            // Ако има такъв потребител
+            if ($personId) {
+                
+                // Вземаме папката
+                $folderId = crm_Persons::forceCoverAndFolder($personId);   
+                
+                // Ако имаме права за нея
+                if (doc_Folders::haveRightFor('single', $folderId)) {
+
+                    return $folderId;
+                }
+            }
+            
             // Ако не може да се открие папка или нямаме права за нея
             return FALSE;
         }
