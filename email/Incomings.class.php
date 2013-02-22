@@ -683,7 +683,9 @@ class email_Incomings extends core_Master
             $nRec->id = $rec->id;
             $nRec->headers = $headersArr;
             
-            static::save($nRec, 'headers');
+            $eInc = cls::get('email_Incomings');
+
+            $eInc->save_($nRec, 'headers');
         } else {
             
             // Хедърите ги преобразуваме в масив
