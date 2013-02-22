@@ -216,10 +216,11 @@ class bank_InternalMoneyTransfer extends core_Master
     	}
     	
     	$operation = acc_Operations::getOperationInfo($operationId);
-       
+      
     	// Трябва документа да поддържа тази операция
     	$classId = core_Classes::fetchIdByName(get_called_class());
-        expect($operation->document == $classId, 'Този документ не поддържа избраната операция');
+    	
+        expect($operation->documentSrc == $classId, 'Този документ не поддържа избраната операция');
         
         $debitAcc = $operation->debitAccount;
         $creditAcc = $operation->creditAccount;
