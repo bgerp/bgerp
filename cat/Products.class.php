@@ -183,17 +183,22 @@ class cat_Products extends core_Master {
     {
         //Проверяваме за недопустими символи
         if ($form->isSubmitted()){
-            if (preg_match('/[^0-9a-zа-я]/iu', $form->rec->code)) {
+        	$rec = &$form->rec;
+            if (preg_match('/[^0-9a-zа-я]/iu', $rec->code)) {
                 $form->setError('code', 'Полето може да съдържа само букви и цифри.');
             }
            
-        	if($mvc->checkIfCodeExists($form->rec->code)) {
-	            	$form->setError('code', 'Има вече продукт с такъв код!');
-	        }
-	        
-            if($form->rec->eanCode && $mvc->checkIfCodeExists($form->rec->eanCode)) {
-            	$form->setError('eanCode', 'Има вече продукт с такъв код!');
-            }
+        	foreach(array('eanCode', 'code') as $code) {
+    			if($rec->$code) {
+    				
+    				// Проверяваме дали има продукт с такъв код (като изключим текущия)
+	    			$check = $mvc->checkIfCodeExists($rec->$code);
+	    			if($check && ($check->productId != $rec->id)
+	    				|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
+	    				$form->setError($code, 'Има вече продукт с такъв код!');
+			        }
+    			}
+    		}
             
         }
                 
@@ -639,11 +644,12 @@ class cat_Products extends core_Master {
      *  Кода и ЕАН-то на продукта както и тези на опаковките им
      *  трябва да са уникални
      *  @param string $code - Код/Баркод на продукт
-     *  @return boolean TRUE/FALSE - имали продукт с такъв код или не
+     *  @return boolean int/FALSE - id на продукта с такъв код или
+     *  FALSE ако няма такъв продукт
      */
     function checkIfCodeExists($code){
-    	if(cat_Products::getByCode($code)) {
-    		return TRUE;
+    	if($info = cat_Products::getByCode($code)) {
+    		return $info;
     	} else {
     		return FALSE;
     	}
