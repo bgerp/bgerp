@@ -16,6 +16,7 @@
 .dimension .button{
 	margin-left:0;
 	min-width:250px;
+	margin-bottom: 0.3em;
 }
 .narrow .dimension .button{
 	font-size:14px;
@@ -27,5 +28,22 @@
     font-size:15px;
     line-height:29px;
     padding-top: 3px;
+
+    
+  
+}
+.btns-icon{
+  margin-right: 3px;
+   
 }
 
+.accordian li .minus {
+	display: none;
+} 
+
+.accordian li.active .plus {
+	display: none;
+} 
+.accordian li.active .minus {
+	display: inline;
+} 
