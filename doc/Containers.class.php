@@ -297,6 +297,17 @@ class doc_Containers extends core_Manager
     }
     
     
+	function on_AfterRenderWrapping($mvc, &$tpl)
+    {
+    	jquery_Jquery::enable($tpl);
+    	
+    	$tpl->push('doc/tpl/style.css', 'CSS');
+    	$tpl->push('doc/js/accordion.js', 'JS');
+    	
+    }
+    
+    
+    
     /**
      * Създава нов контейнер за документ от посочения клас
      * Връща $id на новосъздадения контейнер
@@ -645,15 +656,25 @@ class doc_Containers extends core_Manager
         }
         
         ksort($btns);
+        $tpl->append("<div class='accordian'><ul>");
         
         foreach($btns as $group => $bArr) {
         	list($order, $group) = explode('|', $group);
-        	$tpl->append("<div class='btn-group-title'>{$group}</div>");
+        	
+        	$tpl->append("<li>{$group}</li>");
+        	$tpl->append("<li>");
         	foreach($bArr as $btn => $class) {
         		$mvc = cls::get($class);
+        		
         		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
+        		
         	}
+        	
+        	$tpl->append("</li>"); 
         }
+
+       	$tpl->append("</ul></div>");
+       	
         return $this->renderWrapping($tpl);
     }
     

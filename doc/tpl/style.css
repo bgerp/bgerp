@@ -1,0 +1,32 @@
+
+.accordian {
+    margin-left: 0px;
+    width: 280px;
+}
+.accordian li {
+    list-style-type: none;
+    padding: 0 5px;
+    margin-left: 0px;
+}
+.dimension {
+    margin-bottom: 20px; 
+}
+.even, .odd {
+    font-weight: bold;
+    height: 27px;
+    padding-left: 10px;
+    padding-top: 3px;
+}
+.even {
+    background-color: #ECECEC;
+    border: 1px solid #D8D8D8;
+    display: block !important;
+    
+}
+.odd {
+    background: none repeat scroll 0 0 #999;
+    border: 1px solid #666;
+    color: white;
+    display: block !important;
+  
+}
