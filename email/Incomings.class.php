@@ -630,7 +630,11 @@ class email_Incomings extends core_Master
                 }
             }
             
-            static::calcAllToAndCc($rec, $row);
+            static::calcAllToAndCc($rec);
+
+            $row->allTo = email_Mime::emailListToVerbal($rec->allTo);
+            $row->allCc = email_Mime::emailListToVerbal($rec->allCc);
+
         }
         
         if(!$rec->toBox) {
@@ -656,7 +660,7 @@ class email_Incomings extends core_Master
      * Enter description here ...
      * @param unknown_type $rec
      */
-    protected static function calcAllToAndCc($rec, &$row)
+    protected static function calcAllToAndCc($rec)
     {
         // Ако няма хедъри
         if (!$rec->headers) {
@@ -692,14 +696,20 @@ class email_Incomings extends core_Master
             $headersArr = $rec->headers;
         }
 
-        // Вземамем всички cc имейли от хедърите
-        $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+        // Парсираме To хедъра
         $allTo  = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
-
-        // Добавяме всичко в allCc полетo
-        $row->allCc = email_Mime::getAllEmailsFromStr($allCc);
-        $row->allTo = email_Mime::getAllEmailsFromStr($allTo);
-    }
+        $toParser = new email_Rfc822Addr();
+        $rec->allTo = array();
+        $toParser->ParseAddressList($allTo, $rec->allTo);
+        
+        // Парсираме cc хедъра
+        $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+        $ccParser = new email_Rfc822Addr();
+        $rec->allCc = array();
+        $ccParser->ParseAddressList($allCc, $rec->allCc);
+        
+        // bp($rec->allTo, $rec->allCc);
+     }
     
  
     /**

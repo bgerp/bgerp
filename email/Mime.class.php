@@ -1098,4 +1098,25 @@ class email_Mime extends core_BaseClass
         
         return $res;
     }
+
+
+    /**
+     * Преобразува списък от имейли, както се срещат в хедърите, във врбална стойност
+     */
+    static function emailListToVerbal($list)
+    {
+        if(count($list)) {
+            foreach($list as $item) {
+                if($item['address']) {
+                    $res .= "\n" . $item['address'];
+                    if($item['name']) {
+                        $res .= ' (' . $item['name'] . ')';
+                    }
+                    $res .= '<br>';
+                }
+            }
+        }
+
+        return $res;
+    }
 }
