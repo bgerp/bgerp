@@ -133,7 +133,7 @@ class gs1_TypeEan extends type_Varchar
         	switch($code) {
         		case 13:
 		        	if (!$this->isValidEan($value)){
-		        		(!$this->params['gln']) ? $type = 'EAN13' : $type = 'GLN(13 цифри)';
+		        		(!$this->params['gln']) ? $type = 'EAN13' : $type = 'или непълен (13 цифрен) GLN';
 		                $res->error = "Невалиден {$type} номер.";
 		            }
         			break;
