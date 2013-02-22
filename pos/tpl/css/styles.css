@@ -1,6 +1,6 @@
 #receipt-table {
 	text-indent:8px;
-	width:470px;
+	width:522px;
 	border-collapse:collapse;
 	margin-top:15px;
 }
@@ -24,7 +24,11 @@
 }
 
 #receipt-number {
-	font-style:italic;	
+	font-style:italic;
+	float:right;
+	margin-right:10px;
+	display:inline-table;
+	margin-top:9px;
 }
 
 #receipt-payments {
@@ -68,12 +72,12 @@
 }
 
 #receipt-details-form {
-	width: 470px;
+	width: 522px;
 	margin-top:15px;
 }
 
 #single-receipt {
-	width:470px;
+	width:522px;
 }
 
 #single-receipt .formError{
@@ -176,7 +180,7 @@ input.error {
 }
 
 .ean-text{
-	width:12.1em;
+	width:14.7em;
 }
 
 .narrow .ean-text{
@@ -205,8 +209,8 @@ table.scrollable tr:first-child td{
 
 div.scrollWrapper{
   float:left;
-  width:469px;
-  max-height:269px;
+  width:521px;
+  1max-height:269px;
   overflow-y:auto;
   border-right:1px solid #000;
   border-bottom:1px solid #000;
@@ -229,7 +233,7 @@ div.scrollWrapper{
 		border:1px solid #000;
 		border-left:none;
 		border-right:none;
-		width:470px;
+		width:522px;
 	}
 	
 	table.scrollable td{
