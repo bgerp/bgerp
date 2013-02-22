@@ -124,11 +124,11 @@ class email_UserInboxPlg extends core_Plugin
                 //Вземаме броя на срещанията на всички типове роли
                 $rolesByTypeArr = core_Roles::getRolesTypeArr($form->rec->roles);
                 
-                if($rolesByTypeArr['rang'] != 1) {
+                if($rolesByTypeArr['rang'] != 1 && $form->rec->state == 'active') {
                     $form->setError('roles', "Потребителя трябва да има точно една роля за ранг! Избрани са <b>" . (int)$rolesByTypeArr['rang']. "</b>.");
                 }
                 
-                if($rolesByTypeArr['team'] < 1) {
+                if($rolesByTypeArr['team'] < 1 && $form->rec->state == 'active') {
                     $form->setError('roles1', "Потребителя трябва да има поне една роля за екип!");
                 }
             }
