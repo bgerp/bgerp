@@ -1202,10 +1202,12 @@ class email_Incomings extends core_Master
             
             // Ако няма хедъри, записваме ги
             $nRec = new stdClass();
-            $nRec->id = $rec->id;
+            $nRec->id = $msg->id;
             $nRec->headers = $headersArr;
             
-            static::save($nRec, 'headers');
+            $eInc = cls::get('email_Incomings');
+
+            $eInc->save_($nRec, 'headers');
         } else {
             
             // Хедърите ги преобразуваме в масив
