@@ -373,7 +373,7 @@ class sales_SalesDetails extends core_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $productsPerPack;
-            $rec->price    = $rec->packPrice / $productsPerPack;
+            $rec->price    = round($rec->packPrice / $productsPerPack, 2);
             
             // Записваме основната мярка на продукта
             $rec->uomId    = $productInfo->productRec->measureId;

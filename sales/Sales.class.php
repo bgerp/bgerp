@@ -423,6 +423,7 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $row->amountDeal = $row->currencyId . ' ' . sprintf('%0.2f', $rec->amountDeal);
     }
     
     
