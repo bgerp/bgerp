@@ -215,14 +215,17 @@ class pos_ReceiptDetails extends core_Detail {
     	$row->productId = $varchar->toVerbal($row->productId);
     	$row->price = $double->toVerbal($rec->price);
     	$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
-    	if($productInfo->packagingRec) {
-    		$packName = cat_Packagings::fetchField($rec->value, 'name');
-    		$row->packagingId = $productInfo->packagingRec->quantity . " " . $uomId . " в " . $packName;
-    		$row->packagingId = $varchar->toVerbal($row->packagingId);
-    	}
-    	
     	$row->uomId = $varchar->toVerbal($uomId);
     	$double->params['decimals'] = 0;
+    	$row->perPack = $double->toVerbal($productInfo->packagingRec->quantity);
+    	if($productInfo->packagingRec) {
+    		$packName = cat_Packagings::fetchField($rec->value, 'name');
+    		$row->packagingId = $varchar->toVerbal($packName);
+    	} else {
+    		$row->packagingId = $uomId;
+    		unset($row->uomId);
+    	}
+    	
     	$row->quantity = $double->toVerbal($rec->quantity);
     }
     

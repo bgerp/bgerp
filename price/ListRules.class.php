@@ -145,7 +145,7 @@ class price_ListRules extends core_Detail
             } else {
                 $parent = price_Lists::fetchField($listId, 'parent');
                 $price  = self::getPrice($parent, $productId, $packagingId, $datetime); 
-                $price  = $price / (1 + $rec->discount); 
+                $price  = $price * (1-$rec->discount); 
             }
         }
         

@@ -68,13 +68,18 @@ class cat_products_Packagings extends cat_products_Detail
     static function on_AfterInputEditForm($mvc, $form)
     {
     	if ($form->isSubmitted()){
-	    	if($form->rec->eanCode && $mvc->Master->checkIfCodeExists($form->rec->eanCode)) {
-	            	$form->setError('eanCode', 'Има вече продукт с такъв код!');
-	        }
-	        
-    		if($form->rec->customCode && $mvc->Master->checkIfCodeExists($form->rec->customCode)) {
-	            	$form->setError('customCode', 'Има вече продукт с такъв код!');
-	        }
+    		$rec = &$form->rec;
+    		foreach(array('eanCode', 'customCode') as $code) {
+    			if($rec->$code) {
+    				
+    				// Проверяваме дали има продукт с такъв код (като изключим текущия)
+	    			$check = $mvc->Master->checkIfCodeExists($rec->$code);
+	    			if($check && ($check->productId != $rec->productId)
+	    				 || ($check->productId == $rec->productId && $check->packagingId != $rec->packagingId)) {
+	    				$form->setError($code, 'Има вече продукт с такъв код!');
+			        }
+    			}
+    		}
     	}
     }
     
