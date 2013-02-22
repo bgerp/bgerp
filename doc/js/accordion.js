@@ -4,13 +4,10 @@
 $(function() {
 // Hide all the content except the first
 $('.accordian li:odd:gt(0)').hide();
-
 // Add the dimension class to all the content
 $('.accordian li:odd').addClass('dimension');
 // Set the even links with an 'even' class
-$('.accordian li:even:even').addClass('even');
-// Set the odd links with a 'odd' class
-$('.accordian li:even:odd').addClass('odd');
+$('.accordian li:even').addClass('btns-title');
 // Show the correct cursor for the links
 $('.accordian li:even').css('cursor', 'pointer');
 // Handle the click event
@@ -21,8 +18,9 @@ var cur = $(this).next();
 var old = $('.accordian li:odd:visible');
 // Make sure the content that needs to be shown
 // isn't already visible
-if ( cur.is(':visible') )
-return false;
+if ( cur.is(':visible') ){
+	return false;
+}
 // Hide the old content
 old.slideToggle(500);
 // Show the new content
