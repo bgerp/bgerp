@@ -131,7 +131,7 @@ h1 {
 	background-color: #119;
 	position:absolute;
 	left: 0px;
-	top: 95px;
+	top: 105px;
 }
 
 #progressTitle {
@@ -166,7 +166,7 @@ h1 {
 	position:absolute;
 	left: 0px;
 	top: 180px;
-	1border-top: #000 1px solid;
+	1border-top: red 5px solid;
 	width: 790;
 	height: 425;
 	overflow:auto;
@@ -538,7 +538,7 @@ if ($step == 'setup') {
     $totalTables = 230;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
-    echo ($texts['styles']);
+    contentFlush ($texts['styles']);
 	
 	$opts = array(
 	  'http'=>array(
@@ -586,21 +586,14 @@ if ($step == 'setup') {
         			</li>
         		");
     
-    mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
     
     static $cnt = 0;
     
     do {
-        $recordsRes = mysql_query("SELECT SUM(TABLE_ROWS) AS RECS
-                                    FROM INFORMATION_SCHEMA.TABLES 
-                                    WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
-        
-        $tablesRes = mysql_query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". EF_DB_NAME ."';");
-        $rows = mysql_fetch_object($recordsRes);
-        $tables = mysql_fetch_object($tablesRes);
-        $tables->TABLES; $rows->RECS;
-        
-        $percents = round(($rows->RECS+$calibrate*$tables->TABLES)/$total,2)*100;
+        //$tables->TABLES; $rows->RECS;
+        list($numRows, $numTables) = dataBaseStat(); 
+
+        $percents = round(($numRows+$calibrate*$numTables)/$total,2)*100;
         
         // Прогресбар
         if ($percents > 100) $percents = 100;
@@ -622,14 +615,13 @@ if ($step == 'setup') {
 				</script>");
                 
         sleep(2);
-    } while ($rows->RECS < $totalRecords && $tables->TABLES < $totalTables);
+    } while ($numRows < $totalRecords && $numTables < $totalTables);
     
     
     sleep(3);
 
     contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
     
-    setupUnlock();
     
     $appUri = $selfUrl; 
     if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
@@ -651,6 +643,7 @@ if ($step == 'setup') {
     sleep(1);
 	contentFlush("<script>
         				clearInterval(handle);
+        				document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 				</script>");
 			 
     exit;
@@ -918,6 +911,7 @@ function gitRevertRepo($repoPath, &$log)
 function contentFlush ($content)
 {
     static $started = 0;
+	
     
     ob_clean();
     ob_start();
@@ -927,9 +921,9 @@ function contentFlush ($content)
         echo ("<!DOCTYPE html>");
         $started++;
     }
-
-    echo($content);
     
+    echo($content);
+
     ob_flush();
     ob_end_flush();
     flush();
@@ -967,13 +961,23 @@ function setupUnlock()
  */
 function setupProcess()
 {
-   	return @file_exists(EF_TEMP_PATH . "/setupLock.tmp");
+	if (@file_exists(EF_TEMP_PATH . "/setupLock.tmp")) {
+		if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > 600) {
+			setupUnlock();
+			
+			return FALSE;
+		}
+	} else {
+		
+		return FALSE;	
+	}
+	
+   	return TRUE;
 }
     
 /**
  * Връща валиден ключ за оторизация в Setup-а
  * 
- * @param boolean $absolute;
  * @return string
  */
 function setupKey()
@@ -988,6 +992,16 @@ function setupKey()
  */
 function setupKeyValid()
 {
+	// При грешка с базата данни да връща валиден сетъп ключ
+
+	$res = dataBaseStat();
+	
+	if ($res === FALSE) {
+		return TRUE;
+	}
+	
+	list($numRows, $numTables) = $res; 
+
    	return $_GET['SetupKey'] == setupKey();
 }
 
@@ -1016,9 +1030,36 @@ function setupRights()
 	}
 	// Ако сме в процес на инсталация
 //	if (setupKeyValid() && isset($_COOKIE['setup'])) {
-	if (isset($_COOKIE['setup'])) {		
+	if (isset($_COOKIE['setup'])) {
+		
 		return TRUE;
 	}
 	
 	return FALSE;
+}
+
+/**
+ * Връща броя на таблиците и редовете в базата
+ * или false ако няма база
+ * 
+ * @return array
+ */
+function dataBaseStat()
+{
+    mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
+
+    $recordsRes = mysql_query("SELECT SUM(TABLE_ROWS) AS RECS
+                                    FROM INFORMATION_SCHEMA.TABLES 
+                                    WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
+    $rows = mysql_fetch_object($recordsRes);
+	// Ако няма база пускаме сетъп-а
+	if (empty($rows->RECS) && !is_numeric($rows->RECS)) {
+		return FALSE;
+	}
+	        
+    $tablesRes = mysql_query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". EF_DB_NAME ."';");
+    
+    $tables = mysql_fetch_object($tablesRes);
+    
+    return array($tables->TABLES, $rows->RECS);
 }
