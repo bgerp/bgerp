@@ -117,6 +117,11 @@ class type_Keylist extends core_Type {
                     cls::callFunctArr($onPrepareQuery, array($this, $query));
                 }
                 
+                // Ако имаме where клауза за сортиране
+                if($where = $this->params['where']) {
+                    $query->where($where);
+                }
+             
                 while($rec = $query->fetch()) {
                     
                     if($groupBy) {
@@ -156,7 +161,7 @@ class type_Keylist extends core_Type {
         
         if(count($this->suggestions)) {
             foreach($this->suggestions as $key => $v) {
-                
+                 
                 // Ако имаме група, правим ред и пишем името на групата
                 if(is_object($v) && $v->group) {
                     if($trOpen) {
@@ -198,7 +203,7 @@ class type_Keylist extends core_Type {
                     $i++;
                     $i = $i % $col;
                 }
-            }
+            }  
         } else {
             $html = '<tr><td></td></tr>';
         }
@@ -211,7 +216,7 @@ class type_Keylist extends core_Type {
     
     
     /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
+     * Конвертира стойността от вербална към (int)  
      */
     function fromVerbal_($value)
     {
