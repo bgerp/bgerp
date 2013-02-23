@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_InternalMoneyTransfer extends core_Master
+class cash_InternalMoneyTransfer extends core_Master
 {
     
     
@@ -31,7 +31,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing,
      	plg_Sorting,doc_DocumentPlg,Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
@@ -110,7 +110,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.9|Финанси";
+    var $newBtnGroup = "4.1|Финанси";
     
 	/**
      * Описание на модела
@@ -132,6 +132,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 3');
         $this->FLD('debitQuantity', 'float', 'width=6em,caption=Към->Сума');
+        $this->FLD('rate', 'float', 'caption=Валута->Курс,width=6em,input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -285,7 +286,7 @@ class bank_InternalMoneyTransfer extends core_Master
         	$form->setDefault('currencyItem', $currencyItem->id);
         }
         
-    	// Ако имаме втора аналитичност валута, слагаме и дефолт стойност
+        // Ако имаме втора аналитичност валута, слагаме и дефолт стойност
         if($form->getField('debitEnt2')->input != 'none') {
         	$form->setDefault('debitEnt2', $currencyItem->id);
         }
@@ -311,6 +312,7 @@ class bank_InternalMoneyTransfer extends core_Master
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
     		$mvc->validateForm($form);
+    		
     		$rec->debitQuantity = $rec->amount;
     		$rec->creditQuantity = $rec->amount;
     		
@@ -323,14 +325,13 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * При Банка -> Каса
-     *    Валутата на касата към която прехвърляме приема стойноста на
-     *    валутата на сметката от която местим
-     * При Банка -> Банка 
-     *    Проверява дали банковата сметка към която прехвърляме да е 
-     *    същата като тази на банката от която местим, ако не - сетва 
-     *    грешка
-     * 
+     * При Каса -> Каса
+     *    Валутата на касата към която местим става същата като тази на
+     *    касата от която местим
+     * При Каса -> Банка
+     * 	  Проверява дали валутата на касата отговаря на тази на избраната
+     * 	  банкова сметка, ако не - сетва грешка
+     *
      * @param core_Form $form 
      */
     function validateForm($form)
@@ -346,46 +347,40 @@ class bank_InternalMoneyTransfer extends core_Master
     		$operation = acc_Operations::fetch($rec->operationId);
     		$currencyItem = acc_Items::fetch($rec->currencyItem);
     		
-    		if($operation->systemId == 'bank2bank') {
-    			$bankPos = acc_Lists::getPosition($debitAcc, 'bank_OwnAccRegIntf');
-    		   
-    			// Двете банкови сметки трябва да са различни
-    			if($rec->{"debitEnt{$bankPos}"} == $rec->{"credtEnt{$bankPos}"}) {
-    				$form->setError("debitEnt{$bankPos}", 'Дестинацията е една и съща !!!');
+     		if($operation->systemId == 'case2case') { 
+    			
+    			// Ако няма банкови сметки и движението е Каса -> Каса
+    			$casePos = acc_Lists::getPosition($creditAcc, 'cash_CaseAccRegIntf');
+    			
+    			$creditCaseItem = acc_Items::fetchField($rec->{"creditEnt{$casePos}"},'objectId');
+    			$debitCaseItem = acc_Items::fetchField($rec->{"debitEnt{$casePos}"},'objectId');
+    			
+    			// Двете Каси трябва да са различни
+    			if($creditCaseItem == $debitCaseItem) {
+    				$form->setError("debitEnt{$casePos}", 'Дестинацията е една и съща !!!');
     			} else {
     				
-    				// Валутите на двете банкови сметки трябва да съвпадат
-    				$debitCurrency = static::getCurrency('debit', $rec);
-    				$creditCurrency = static::getCurrency('credit', $rec);
-    				if($debitCurrency != $creditCurrency) {
-    					$form->setError("debitEnt{$bankPos}, creditEnt{$bankPos}", 'Банковите сметки не са в една валута !!!');
-    					return;
-    				} 
-    				
-    				if($debitCurrency != $currencyItem->objectId) {
-    					$form->setError("debitEnt{$bankPos}, creditEnt{$bankPos}", 'Банковите сметки не са в посочената валута !!!');
-    					return;
-    				}
+    				// Приемаме че дебитната валута е същата като кредитната
     				$currencyPos = acc_Lists::getPosition($creditAcc, 'currency_CurrenciesAccRegIntf');
-    				$rec->{"creditEnt{$currencyPos}"} = $currencyItem->id;
-    				$rec->{"debitEnt{$currencyPos}"} = $currencyItem->id;
-    				
+    				$rec->{"debitEnt{$currencyPos}"} = $rec->currencyItem;
+    				$rec->{"creditEnt{$currencyPos}"} = $rec->currencyItem;
     			}
-    		} elseif($operation->systemId == 'bank2case') {
+    		} elseif($operation->systemId == 'case2bank') {
     			
-    		  $creditCurrencyPos = acc_Lists::getPosition($creditAcc, 'currency_CurrenciesAccRegIntf');
-    		  $debitCurrencyPos = acc_Lists::getPosition($debitAcc, 'currency_CurrenciesAccRegIntf');
-    		  $rec->{"creditEnt{$creditCurrencyPos}"} = $rec->currencyItem;
-    		  $rec->{"debitEnt{$creditCurrencyPos}"} = $rec->currencyItem;
+    			// Ако и Имаме Банкови сметки от двете страни
+    			$debitBankPos = acc_Lists::getPosition($debitAcc, 'bank_OwnAccRegIntf');
+    			$debitBankItem = acc_Items::fetchField($rec->{"debitEnt{$debitBankPos}"}, 'objectId');
     			
-    		  // Ако движението е Банка -> Каса
-    		  $creditCurrency = static::getCurrency('credit', $rec);
-    		   
-    		  if($creditCurrency != $currencyItem->objectId) {
-    		  	 $form->setError("debitEnt1,creditEnt1", 'Банковата сметки не са в посочената валута !!!');
-    		  	 return;
-    		  }
-    	} 
+    			// Валутите на двете банкови сметки трябва да съвпадат
+    			$debitCurrency = static::getCurrency('debit', $rec);
+    			if($debitCurrency != $currencyItem->objectId) {
+    				$form->setError("debitEnt{$debitBankPos}", 'Банковата сметка е в друга валута !!!');
+    			}
+    			$debitCurrencyPos = acc_Lists::getPosition($debitAcc, 'currency_CurrenciesAccRegIntf');
+    			$rec->{"debitEnt{$debitCurrencyPos}"} = $currencyItem->id;
+    			$creditCurrencyPos = acc_Lists::getPosition($creditAcc, 'currency_CurrenciesAccRegIntf');
+    			$rec->{"creditEnt{$creditCurrencyPos}"} = $currencyItem->id;
+    		} 
     }
     
     

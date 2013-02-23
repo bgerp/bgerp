@@ -658,10 +658,12 @@ class doc_Containers extends core_Manager
         ksort($btns);
         $tpl->append("<div class='accordian'><ul>");
         
+        $active = ' class="active"';
+        
         foreach($btns as $group => $bArr) {
         	list($order, $group) = explode('|', $group);
         	
-        	$tpl->append("<li>{$group}</li>");
+        	$tpl->append("<li{$active}><img class='btns-icon plus' src=". sbf('img/16/plus.png') ."><img class='btns-icon minus' src=". sbf('img/16/minus2.png') .">&nbsp;{$group}</li>");
         	$tpl->append("<li>");
         	foreach($bArr as $btn => $class) {
         		$mvc = cls::get($class);
@@ -671,6 +673,7 @@ class doc_Containers extends core_Manager
         	}
         	
         	$tpl->append("</li>"); 
+        	$active = '';
         }
 
        	$tpl->append("</ul></div>");

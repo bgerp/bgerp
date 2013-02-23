@@ -1116,7 +1116,10 @@ class email_Mime extends core_BaseClass
                 }
             }
         }
-
+        
+        // Да няма прекъсване след последния имейл
+        $res = rtrim($res, '<br>');
+        
         return $res;
     }
 }

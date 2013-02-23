@@ -1,6 +1,6 @@
-"Вътрешно касов трансфер","bank_InternalMoneyTransfer","501","501","case2case"
-"Захранване на банкова сметка","bank_InternalMoneyTransfer","503","501","bank2case"
-"Захранване на каса","bank_InternalMoneyTransfer","501","503","case2bank"
+"Вътрешно касов трансфер","cash_InternalMoneyTransfer","501","501","case2case"
+"Захранване на банкова сметка","cash_InternalMoneyTransfer","503","501","case2bank"
+"Захранване на каса","bank_InternalMoneyTransfer","501","503","bank2case"
 "Вътрешно банков трансфер","bank_InternalMoneyTransfer","503","503","bank2bank"
 "Плащане на контрагент","cash_Rko","401","501",NULL
 "Плащане на подочетни лица","cash_Rko","422","501",NULL

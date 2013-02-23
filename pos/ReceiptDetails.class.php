@@ -92,6 +92,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    	$form = static::getForm();
 	    	$form->method = 'POST';
 	    	$form->layout = new ET(getFileContent("pos/tpl/DetailsForm.shtml"));
+	    	$form->action = array($this->Master, 'single', $data->masterId, '#'=>'form');
 	    	$form->fieldsLayout = $this->createFormFieldsLayout();
 	    	$form->setField('id', 'input=none');
 	    	$form->setDefault('receiptId', $data->masterId);
