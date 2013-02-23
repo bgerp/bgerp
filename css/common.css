@@ -959,6 +959,10 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
     background-color: #ffaa00;
 }
 
+.state-blocked {
+    background-color: #ffaa00;
+}
+
 .state-rejected { 
     background-color: #cc6666;
 }
