@@ -548,8 +548,8 @@ input, select, textarea {
     padding:3px;
     font-size:0.9em;
     font-weight:bold;
-    background-color:#ffcc66;
-    color: #666;
+    background-color:#eeeeff;
+    color: #333;
 }
 
 .warningMsg {
