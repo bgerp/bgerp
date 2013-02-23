@@ -138,14 +138,8 @@ class core_Db extends core_BaseClass
             mysql_query('set collation_connection=' . $this->dbCollation, $link);
             mysql_query('set character_set_client=' . $this->dbCharsetClient, $link);
             
-            // Избираме указаната база от данни на сървъра ако я няма я създаваме
-            if (!mysql_select_db($this->dbName)) {
-				$this->query("CREATE DATABASE IF NOT EXISTS {$this->dbName}");
-				// Не се прави сетъп - трябва да става само от 1 място!
-				// $Packs = cls::get('core_Packs');
-				// self::$noAutoSetup = TRUE;
-				// $Packs->checkSetup();
-			}
+            // Избираме указаната база от данни на сървъра
+            mysql_select_db($this->dbName);
         }
         
         return $this->link;
@@ -649,7 +643,7 @@ class core_Db extends core_BaseClass
                 $error = mysql_error($this->link);
                 
                 if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) {
-               		throw new core_exception_Expect ("Грешка в Базата данни! - процес на Сетъп");
+               		throw new core_exception_Expect ("Грешка в Базата данни.");
                 }
             }
 
