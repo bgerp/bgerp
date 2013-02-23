@@ -107,7 +107,7 @@ class support_Components extends core_Detail
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory');
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory, width=100%');
         $this->FLD('description', 'richtext', "caption=Описание, width=100%");
-        $this->FLD('maintainers' , 'keylist(mvc=core_Users, select=nick)', 'caption=Отговорници');
+        $this->FLD('maintainers' , 'userList(support,admin,ceo)', 'caption=Отговорници');
 
         $this->setDbUnique('systemId, name');
     }

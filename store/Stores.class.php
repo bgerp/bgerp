@@ -101,7 +101,7 @@ class store_Stores extends core_Manager
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefId', 'key(mvc=core_Users, select=names)', 'caption=Отговорник,mandatory');
-        $this->FLD('workersIds', 'keylist(mvc=core_Users, select=names)', 'caption=Товарачи');
+        $this->FLD('workersIds', 'userList(store,storeWorker,ceo)', 'caption=Товарачи');
         $this->FLD('strategy', 'class(interface=store_ArrangeStrategyIntf)', 'caption=Стратегия');
     }
     

@@ -148,7 +148,9 @@ class cal_Tasks extends core_Master
                                     critical=критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
         $this->FLD('description',      'richtext', 'caption=Описание,mandatory');
-        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Отговорници,mandatory');
+
+        // Споделяне
+        $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory');
         
         // Начало на задачата
         $this->FLD('timeStart', 'datetime', 'caption=Времена->Начало, silent');

@@ -24,7 +24,7 @@ class doc_SharablePlg extends core_Plugin
         
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('sharedUsers', FALSE)) {
-            $mvc->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
+            $mvc->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
         }
         // Поле за първите виждания на документа от потребителите с които той е споделен
         if (!$mvc->getField('sharedViews', FALSE)) {
@@ -104,7 +104,7 @@ class doc_SharablePlg extends core_Plugin
             // Първо виждане на документа от страна на $userId
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
-            if ($mvc::save($rec)) {
+            if ($mvc::save_($rec)) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
             }
         }

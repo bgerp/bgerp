@@ -89,7 +89,7 @@ class forum_Boards extends core_Master {
 		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, width=100%');
 		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория, mandatory');
 		$this->FLD('boardType', 'enum(normal=Нормална,confidential=Конфиденциална)', 'caption=Достъп->Тип, notNull, value=normal');
-		$this->FLD('shared', 'keylist(mvc=core_Users,select=nick)', 'caption=Достъп->Споделяне');
+		$this->FLD('shared', 'userList', 'caption=Достъп->Споделяне');
 		$this->FLD('themesCnt', 'int', 'caption=Темите, input=none, value=0');
 		$this->FLD('commentsCnt', 'int', 'caption=Коментари, input=none, value=0');
 		$this->FLD('lastComment', 'datetime(format=smartTime)', 'caption=Последно->кога, input=none');

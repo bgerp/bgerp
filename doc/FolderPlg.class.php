@@ -40,7 +40,7 @@ class doc_FolderPlg extends core_Plugin
             // Достъп
             $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,notNull,value=' . $defaultAccess);
-            $mvc->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Права->Споделяне');
+            $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне');
         }
         
         // Добавя интерфейс за папки

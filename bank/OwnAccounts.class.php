@@ -90,7 +90,7 @@ class bank_OwnAccounts extends core_Manager {
         $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име,mandatory');
         $this->FLD('together', 'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
-        $this->FLD('operators', 'keylist(mvc=core_Users, select=names)', 'caption=Оператори,mandatory');
+        $this->FLD('operators', 'userList(bank,bankWorker)', 'caption=Оператори,mandatory');
     }
     
     
