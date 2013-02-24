@@ -323,7 +323,7 @@ class sales_Sales extends core_Master
         
         /* @var $form core_Form */
         $form = $data->form;
-        
+       
         $form->setDefault('date', dt::now());
         
         $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
@@ -340,14 +340,12 @@ class sales_Sales extends core_Master
         
         $form->setDefault('makeInvoice', 'yes');
         
-        if (empty($form->rec->id)) {
-            expect($folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
-        } else {
-            $folderId = $form->rec->folderId;
-        }
+        if (empty($form->rec->folderId)) {
+            expect($form->rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
+        } 
         
-        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($folderId));
-        $form->setDefault('contragentId', doc_Folders::fetchCoverId($folderId));
+        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
+        $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('deliveryLocationId')->type->options = 

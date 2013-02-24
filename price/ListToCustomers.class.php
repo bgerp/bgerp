@@ -130,7 +130,7 @@ class price_ListToCustomers extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         if(!$rec->id) {
-            $rec->validFrom = Mode::get('PRICE_VALID_FROM');
+            $data->form->rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
     }
 
@@ -295,10 +295,24 @@ class price_ListToCustomers extends core_Detail
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $date = NULL)
+    public function getProducts($customerClass, $customerId, $datetime = NULL)
     {
-         
+         $products = price_GroupOfProducts::getAllProducts($datetime);
+
+         if(count($products)) {
+             foreach($products as $productId => $groupId) {
+                 $price = self::getPriceInfo($customerClass, $customerId, $productId, NULL, NULL, $datetime);
+                 if(!$price) {
+                     unset($products[$productId]);
+                 }
+             }
+
+             return $products;
+         }
     }
+
+
+     
     
     
     /**

@@ -106,11 +106,11 @@ class price_History extends core_Manager
 
         // Ако времевата линия липсва, опитваме се да я извадим от кеша
         if(!count($timeline)) {
-           // self::$timeline = core_Cache::get('price_History', 'timeline');
+            self::$timeline = core_Cache::get('price_History', 'timeline');
         }
-
+ 
         // Ако времевата линия пак липсва, генерираме я и я записваме в кеша
-        if(!count($timeline)) {
+        if(!is_array($timeline) || !count($timeline)) {
             
             // Вземаме всички времена от правилата
             $query = price_ListRules::getQuery();
@@ -135,17 +135,18 @@ class price_History extends core_Manager
             while($rec = $query->fetch()) {
                 $timeline[$rec->validFrom] = TRUE;
             }
- 
+  
             // Сортираме обратно масива, защото очакваме да търсим предимно съвременни цени
             krsort($timeline);
             $timeline = array_keys($timeline);
             core_Cache::set('price_History', 'timeline', $timeline, 300000);
         }
-        
+       
         // Връщаме първото срещнато време, което е по-малко от аргумента
         foreach($timeline as $t) {
             if($datetime >= $t) {
                 self::$cache[$datetime] = $t;
+
                 return $t;
             }
         }

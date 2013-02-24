@@ -112,16 +112,53 @@ class price_GroupOfProducts extends core_Detail
             return $rec->groupId;
         }
     }
+
+
+    /**
+     * Връща масив групите на всички всички продукти към определената дата
+     * $productId => $groupId
+     */
+    static function getAllProducts($datetime = NULL)
+    {
+        if(!$datetime) {
+            $datetime = dt::verbal2mysql();
+        }
+
+        $datetime = price_History::canonizeTime($datetime);
+
+        $query = self::getQuery();
+
+        $query->where("#validFrom < '{$datetime}'");
+
+        $query->orderBy("#validFrom", "DESC");
+
+        while($rec = $query->fetch()) {
+            if(!$used[$rec->productId]) {
+                if($rec->groupId) {
+                    $res[$rec->productId] = cat_Products::getTitleById($rec->productId);
+                }
+                $used[$rec->productId] = TRUE;
+            }
+        }
+
+        return $res;
+    }
+
+
+    function act_Test()
+    {
+        bp($this->getAllProducts());
+    }
     
     
-    public static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
+    static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
         $data->query->orderBy("validFrom,id", 'DESC');
     }
 
 
-    public function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
     {
         if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
             if($rec->validFrom <= dt::verbal2mysql()) {
@@ -137,7 +174,7 @@ class price_GroupOfProducts extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         if(!$rec->id) {
-            $rec->validFrom = Mode::get('PRICE_VALID_FROM');
+            $data->form->rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
     }
 
