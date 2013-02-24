@@ -643,7 +643,7 @@ class core_Db extends core_BaseClass
                 $error = mysql_error($this->link);
                 
                 if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) {
-               		throw new core_exception_Expect ("Грешка в Базата данни.");
+               		// throw new core_exception_Expect ("Грешка в Базата данни.");
                 }
             }
 
