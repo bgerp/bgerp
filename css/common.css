@@ -157,7 +157,6 @@ pre.richtext {
 
 .richtext .oneLineCode {
 	font-family: Courier New,monospace;
-	white-space: nowrap;
 	background-color: #ffe;
 	border: 1px solid #ccc;
 	border-radius: 3px 3px 3px 3px;
