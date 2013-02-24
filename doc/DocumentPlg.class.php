@@ -777,14 +777,10 @@ class doc_DocumentPlg extends core_Plugin
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = mb_strtolower($mvc->singleTitle) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
+
+        $rec = $form->rec;
         
-        if($rec->threadId) {
-            $thRec = doc_Threads::fetch($form->rec->threadId);
-            
-            if($thRec->firstContainerId != $form->rec->containerId) {
-                $title = mb_strtolower($mvc->singleTitle) . ' |към|* ' . doc_Threads::recToVerbal($thRec)->title;
-            }
-        }
+        $in = ' |в|* ';
 
         if($form->rec->id) {
             $form->title = 'Редактиране на|* ';
@@ -792,7 +788,20 @@ class doc_DocumentPlg extends core_Plugin
             if(Request::get('Clone') && ($rec->originId)) {
                 $form->title = 'Копие на|* ';
             } else {
-                $form->title = 'Създаване на|* ';
+                if($rec->threadId) {
+                    $form->title = 'Добавяне на|* ';
+                    $in = ' |към|* ';
+                } else {
+                    $form->title = 'Създаване на|* ';
+                }
+            }
+        }
+        
+        if($rec->threadId) {
+            $thRec = doc_Threads::fetch($form->rec->threadId);
+            
+            if($thRec->firstContainerId != $form->rec->containerId) {
+                $title = mb_strtolower($mvc->singleTitle) . $in . doc_Threads::recToVerbal($thRec)->title;
             }
         }
         

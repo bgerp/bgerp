@@ -265,20 +265,22 @@ class sales_SalesDetails extends core_Detail
         // Скриваме полето "мярка" 
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
-        foreach ($data->rows as $i=>&$row) {
-            $rec = $data->recs[$i];
-            
-            if (empty($rec->packagingId)) {
-                $row->packagingId = cat_UoM::fetchField($rec->uomId, 'name');
-            } else {
-                $price = $row->price; // Единична цена
-                $row->price  = $row->packPrice;
-                $row->price .= 
-                    ' <small class="quiet" style="display: block;">' 
-                    . $row->quantity . ' x ' . $price . ' за ' . $row->uomId 
-                    . '</small>';
-                $row->packagingId .= ' ' . ($rec->quantity / $rec->packQuantity) . ' ' . $row->uomId;
-                $row->quantity = $row->packQuantity;
+        if(count($data->rows)) {
+            foreach ($data->rows as $i=>&$row) {
+                $rec = $data->recs[$i];
+                
+                if (empty($rec->packagingId)) {
+                    $row->packagingId = cat_UoM::fetchField($rec->uomId, 'name');
+                } else {
+                    $price = $row->price; // Единична цена
+                    $row->price  = $row->packPrice;
+                    $row->price .= 
+                        ' <small class="quiet" style="display: block;">' 
+                        . $row->quantity . ' x ' . $price . ' за ' . $row->uomId 
+                        . '</small>';
+                    $row->packagingId .= ' ' . ($rec->quantity / $rec->packQuantity) . ' ' . $row->uomId;
+                    $row->quantity = $row->packQuantity;
+                }
             }
         }
     }
