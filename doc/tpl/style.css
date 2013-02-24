@@ -1,12 +1,14 @@
 
 .accordian {
     margin-left: 0px;
-    width: 250px;
+    width: 320px;
   
 }
+
 .accordian ul{
 	padding-left:0;
 }
+
 .accordian li {
     list-style-type: none;
     padding: 0px;
@@ -15,12 +17,14 @@
 
 .dimension .button{
 	margin-left:0;
-	min-width:250px;
+	min-width:320px;
 	margin-bottom: 0.3em;
 }
+
 .narrow .dimension .button{
 	font-size:14px;
 }
+
 .btns-title {
 	margin:5px 0;
     font-weight: bold;
@@ -28,13 +32,12 @@
     font-size:15px;
     line-height:29px;
     padding-top: 3px;
-
-    
-  
+	background-color:#f8f8f8;
+	color:#333;
 }
+
 .btns-icon{
   margin-right: 3px;
-   
 }
 
 .accordian li .minus {
