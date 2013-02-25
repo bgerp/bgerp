@@ -196,7 +196,7 @@ class type_Richtext extends type_Text
         $html = preg_replace_callback("/\[hide(=([^\]]*)|)\](.*?)\[\/hide\]/is", array($this, '_catchHide'), $html);
         
         // Обработваме едноредовите кодове: стрингове
-        $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/s", array($this, '_catchOneLineCode'), $html);
+        $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/", array($this, '_catchOneLineCode'), $html);
         
         
         // Обработваме хипервръзките, зададени в явен вид
