@@ -36,7 +36,7 @@ class type_UserList extends type_Keylist
         
         setIfNot($this->params['roles'], 'executive,officer,manager,ceo');
         $this->params['roles'] = str_replace("|", ",", $this->params['roles']);
-                
+       
         setIfNot($this->params['rolesForAll'], 'user');
         $this->params['rolesForAll'] = str_replace("|", ",", $this->params['rolesForAll']);
     }
@@ -61,6 +61,9 @@ class type_UserList extends type_Keylist
         
         $teams = core_Roles::getRolesByType('team');
         $teams = self::toArray($teams);
+
+        $roles = core_Roles::keylistFromVerbal($this->params['roles']);
+
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;
             $group = new stdClass();
@@ -72,15 +75,30 @@ class type_UserList extends type_Keylist
             
             $uQuery = core_Users::getQuery();
             $uQuery->where("#state != 'rejected'");
-
+ 
             $uQuery->likeKeylist('roles', "|{$t}|");
             
-            $teamMembers = '';
+            $uQuery->likeKeylist('roles', $roles);
+
+            $teamMembers = 0;
             
             while($uRec = $uQuery->fetch()) {
                 $key = $uRec->id;
                 $this->suggestions[$key] = core_Users::getVerbal($uRec, 'nick');
+                $teamMembers++;
             }
+
+            if(!$teamMembers) {
+                unset($this->suggestions[$t . ' team']);
+            }
+        }
+
+        if(!$this->suggestions) {
+            $group = new stdClass();
+            $group->title = tr("Липсват потребители за избор");
+            $group->attr = array('class' => 'team');
+            $group->group = TRUE;
+            $this->suggestions[] = $group; 
         }
      }
     
