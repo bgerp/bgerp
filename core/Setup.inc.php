@@ -590,8 +590,8 @@ if ($step == 'setup') {
     static $cnt = 0;
     
     do {
-        //$tables->TABLES; $rows->RECS;
-        list($numRows, $numTables) = dataBaseStat(); 
+
+    	list($numTables, $numRows) = dataBaseStat(); 
 
         $percents = round(($numRows+$calibrate*$numTables)/$total,2)*100;
         
@@ -1000,7 +1000,7 @@ function setupKeyValid()
 		return TRUE;
 	}
 	
-	list($numRows, $numTables) = $res; 
+//	list($numRows, $numTables) = $res; 
 
    	return $_GET['SetupKey'] == setupKey();
 }
@@ -1052,8 +1052,8 @@ function dataBaseStat()
                                     FROM INFORMATION_SCHEMA.TABLES 
                                     WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
     $rows = mysql_fetch_object($recordsRes);
-	// Ако няма база пускаме сетъп-а
-	if (empty($rows->RECS) && !is_numeric($rows->RECS)) {
+	// Ако няма база или няма записи в нея пускаме Сетъп-а
+	if (!$rows->RECS) {
 		return FALSE;
 	}
 	        
