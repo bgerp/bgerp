@@ -91,7 +91,7 @@
 	text-align:right;
 }
 .buttonForm, .actionBtn, .clientBtn, .webscan{
-	height:35px !important;
+	height:40px !important;
 	margin-right:16px !important;
 	font-size:18px !important;
 	color:white !important;
@@ -169,7 +169,7 @@ input.error {
 }
 
 #receipt-details-form .button{
-	width:106px;
+	width:119px;
 	float:left;
 	margin-left:15px !important;
 	margin-right:0 !important;
@@ -226,6 +226,10 @@ div.scrollWrapper{
 		overflow:visible;
 }
 
+.btnNew, .btnEnd{
+		background-color:rgb(153, 153, 255) !important;
+}
+
 @media print{
 	div.scrollWrapper{
 		max-height:none;
@@ -243,4 +247,25 @@ div.scrollWrapper{
 	#receipt-info{
 		margin-top:-1px;
 	}
+}
+
+#pos-products {
+	position:absolute;
+	bottom:0px;
+	left:550px;
+	2margin-left:25px;
+	2margin-top:37px;
+	border:1px solid green;
+	width: 500px;
+	height:374px;
+	
+}
+
+.pos-product{
+	width:100px;
+	height:100px;
+}
+
+#single-receipt-holder {
+	position:relative;
 }

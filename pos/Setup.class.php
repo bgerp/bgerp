@@ -53,6 +53,7 @@ class pos_Setup
             'pos_Points',
         	'pos_Receipts',
             'pos_ReceiptDetails',
+        	'pos_Favourites',
         	'pos_Payments',
         );
         
@@ -67,8 +68,11 @@ class pos_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $Menu = cls::get('bgerp_Menu');
+        // Кофа за снимки
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
         
+        $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3.1, 'Търговия', 'Точки на продажба', 'pos_Points', 'default', "{$role}, admin");
         
         return $html;

@@ -195,20 +195,6 @@ class pos_Receipts extends core_Master {
     							   'ef_icon=img/16/application_view_list.png, order=18');    
     								 
     	}
-    	
-    	// Добавяне на бутон за създаване на нова дефолт Бележка
-    	$data->toolbar->addBtn('Нова Бележка', 
-    						    array($mvc, 'new'),'',
-    						   'id=btnAdd,class=btn-add,order=20');
-    	
-    	if(haveRole('pos,admin') && $mvc->haveRightFor('conto', $data->rec)) {
-	       $data->toolbar->addBtn('Приключи', array(
-	                			   'acc_Journal',
-	                               'conto',
-	                               'docId' => $data->rec->id,
-	                               'docType' => $mvc->className,
-	                               'ret_url' => array($mvc, 'new')), '', 'order=34');
-    	}
     }
     
     
@@ -221,6 +207,9 @@ class pos_Receipts extends core_Master {
     	jquery_Jquery::enableUI($tpl);
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     	$tpl->push('pos/js/scripts.js', 'JS');
+    	if($data->productRecs && count($data->productRecs) > 0) {
+    		$tpl->replace(pos_Favourites::renderPosProducts($data->productRecs), 'PRODUCTS');
+    	}
     }
     
     
@@ -517,5 +506,16 @@ class pos_Receipts extends core_Master {
         foreach($query->getDeletedRecs() as $rec) {
         	$mvc->pos_ReceiptDetails->delete("#receiptId = {$rec->id}");
         }
+    }
+    
+    
+    /**
+     * @TODO
+     */
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+    	if(!Mode::is('printing') && !Mode::is('screenMode', 'narrow')) {
+    		$data->productRecs = pos_Favourites::preparePosProducts();
+    	}
     }
 }

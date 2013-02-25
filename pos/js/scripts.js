@@ -46,7 +46,7 @@ $(document).ready(function () {
 		} 
 	});
 
-   $(function(){
+    $(function(){
 	        if (typeof(window.WebScan) == "undefined" ) {
 	            $('.webscan').hide();
 	        }
