@@ -226,15 +226,15 @@ class cal_Calendar extends core_Master
 	        if($from = $data->listFilter->rec->from) {
 	        	
 	            $data->query->where("#time >= date('$from')");
-	        
-	        }
+	          	        
+	       }
         }
         
         if($data->listFilter->rec->selectedUsers) {
-            if($data->listFilter->rec->selectedUsers != 'all_users') {
+           if($data->listFilter->rec->selectedUsers != 'all_users') {
                 $data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
-                $data->query->orWhere('#users IS NULL');
-            }
+                $data->query->orWhere('#users IS NULL OR #users = ""');
+           }
         } 
     }
     
@@ -252,7 +252,7 @@ class cal_Calendar extends core_Master
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px');
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setdefault('from', date('Y-m-d'));
-        
+       
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
@@ -655,6 +655,8 @@ class cal_Calendar extends core_Master
     	
     	// Очакваме дата от филтъра
     	$from = Request::get('from');
+    	$selectUser = Request::get('selectedUsers');
+    	$cu = trim(str_replace("_", " ", strstr($selectUser, "_")));
     	
     	// Разбиваме я на ден, месец и година
         $day = dt::mysql2Verbal($from, 'd');
@@ -698,18 +700,16 @@ class cal_Calendar extends core_Master
         
         // Кой е текущия потребите?
         // Показваме неговия календар
-        $cu = core_Users::getCurrent();
+        //$cu = core_Users::getCurrent();
         $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
-        //bp($cu);
+
         // Извличане на събитията за целия ден
     	while ($rec =  $state->query->fetch("#time >= '{$fromDate}' AND #time <= '{$toDate}'")){
 
     		// Проверка за конкретния запис
     	    self::requireRightFor('day', $rec);
-    	    
-    	
-    	    
+
     	    // Деня, за който взимаме събитията
     		$dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
      		
@@ -727,7 +727,7 @@ class cal_Calendar extends core_Master
     		
     		// Линк към събитието
     		$url = getRetUrl($rec->url);
-            //bp(cal_Tasks::taskUrl());    	
+               	
     		// Ид-то на събитието
     		$id = substr(strrchr($rec->url, "/"),1);
     		
@@ -861,10 +861,14 @@ class cal_Calendar extends core_Master
     	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
     	$tpl->appendOnce($jsDblFnc, 'SCRIPTS');
+    	
     	$Calendar = cls::get('cal_Calendar');
-    	//$Calendar->prepareListRecs($state);
-    	$Calendar->prepareListFilter($state);
-       	
+   
+    	$Calendar->prepareListFields($state);
+        $Calendar->prepareListFilter($state);
+        $Calendar->prepareListRecs($state); 
+        $Calendar->prepareListRows($state);
+
         // Рендираме филтара "календар"
         $tpl->replace($Calendar->renderListFilter($state), 'from');
     
@@ -946,6 +950,9 @@ class cal_Calendar extends core_Master
     	// Очакваме дата от филтъра
         $from = Request::get('from');
         $currentDate = dt::mysql2Verbal($from, 'l d.m.Y');
+        
+        $selectUser = Request::get('selectedUsers');
+    	$cu = trim(str_replace("_", " ", strstr($selectUser, "_")));
        
         // Разбиваме получената дата на ден, месец, година
         $day = dt::mysql2Verbal($from, 'd');
@@ -977,9 +984,9 @@ class cal_Calendar extends core_Master
         	// Помощен масив за javaScripta
         	$dateJs["date".$i."Js"] = date("d.m.Y", mktime(0, 0, 0, $month, $day + $i - 3, $year));
         	$dayWeek[$i] = date("N", mktime(0, 0, 0, $month, $day + $i - 3, $year));
-        	//bp($hours, $nowTime, dt::now(), $hours[$nowTime] == "13:00");
+   
         	$isToday = ($day == $dayC && $month == $monthC && $year == $yearC);
-//      
+ 
         	$tdCssClass["c".$i] = 'calWeekTime';
             $tdCssClass["c".$i] .= ' ' . static::color(date("Y-m-d 00:00:00", mktime(0, 0, 0, $month,  $day + $i - 3, $year)));
         	
@@ -1007,7 +1014,7 @@ class cal_Calendar extends core_Master
         
         // Кой ни е текущия потребител? 
         // Показване на календара и събитията според потребителя
-        $cu = core_Users::getCurrent();
+       
         $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
         
@@ -1146,7 +1153,12 @@ class cal_Calendar extends core_Master
     	
         // Рендираме филтъра за избор на дата
     	$Calendar = cls::get('cal_Calendar');
-    	$Calendar->prepareListFilter($state);
+   
+    	$Calendar->prepareListFields($state);
+        $Calendar->prepareListFilter($state);
+        $Calendar->prepareListRecs($state); 
+        $Calendar->prepareListRows($state);
+    
         
         $tpl->replace($Calendar->renderListFilter($state), 'from');
     	
@@ -1235,6 +1247,8 @@ class cal_Calendar extends core_Master
     	
     	// Очакваме дата от формата
     	$from = Request::get('from');
+    	$selectUser = Request::get('selectedUsers');
+    	$cu = trim(str_replace("_", " ", strstr($selectUser, "_")));
 
     	// Разбиваме я на ден, месец и година
         $day = dt::mysql2Verbal($from, 'd');
@@ -1279,7 +1293,7 @@ class cal_Calendar extends core_Master
          
         // Кой ни е текущия потребител? 
         // Показване на календара и събитията според потребителя
-        $cu = core_Users::getCurrent();
+       
         $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
         
@@ -1414,7 +1428,10 @@ class cal_Calendar extends core_Master
         
         // Рендираме филтъра
         $Calendar = cls::get('cal_Calendar'); 
-    	$Calendar->prepareListFilter($state);
+    	$Calendar->prepareListFields($state);
+        $Calendar->prepareListFilter($state);
+        $Calendar->prepareListRecs($state); 
+        $Calendar->prepareListRows($state);
         $tpl->replace($Calendar->renderListFilter($state), 'from');
         
         // Добавяне на първия хедър

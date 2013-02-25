@@ -362,10 +362,12 @@ class cal_Tasks extends core_Master
         
                 
         if($data->listFilter->rec->selectedUsers) {
-           
-            	$data->query->where("#createdBy = '{$userId}' || #sharedUsers = '{$data->listFilter->rec->selectedUsers}'");
-                
-           //bp($userId, $data->listFilter->rec->selectedUsers, $data->query->where("#createdBy = '{$data->listFilter->rec->selectedUsers}' || #shared_users LIKE '%|{$data->listFilter->rec->selectedUsers}|%'"));
+	           
+	         if($data->listFilter->rec->selectedUsers != 'all_users') {
+	                $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
+	               
+	           }
+            	
         } 
     }
     
