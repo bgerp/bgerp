@@ -71,47 +71,47 @@ class cal_Tasks extends core_Master
     /**
      * Кой може да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     /**
      * Кой може да отлага задачата?
      */    
-    var $canPostpone = 'user';
+    var $canPostpone = 'powerUser';
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'user';
+    var $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'user';
+    var $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'user';
+    var $canDelete = 'powerUser';
     
     
     /**
      * Кой има право да приключва?
      */
-    var $canChangeTaskState = 'user';
+    var $canChangeTaskState = 'powerUser';
     
     
     /**
      * Кой има право да затваря задачите?
      */
-    var $canClose = 'user';
+    var $canClose = 'powerUser';
     
     
     /**
