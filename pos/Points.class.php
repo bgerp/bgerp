@@ -38,7 +38,7 @@ class pos_Points extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, title, caseId, storeId';
+    var $listFields = 'id, tools=Пулт, title, caseId, storeId, listId';
     
     
     /**
@@ -73,6 +73,7 @@ class pos_Points extends core_Manager {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование, mandatory');
     	$this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
+        $this->FLD('listId', 'key(mvc=price_Lists, select=title)', 'caption=Ценообразуване, mandatory');
     }
     
 	
