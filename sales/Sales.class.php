@@ -299,6 +299,11 @@ class sales_Sales extends core_Master
       //bp($data);
     }
     
+    function on_afterRenderSingle($mvc, $tpl, $data)
+    {
+        $tpl->replace($data->row->state, 'stateText');
+    }
+    
     /**
      * Преди извличане на записите от БД
      *

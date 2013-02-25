@@ -26,8 +26,13 @@
                         	№ <span class="bigData">[#id#]</span> / 
                         	<span class="bigData">[#date#]</span>
                         </div>
+                        
+                        <!--ET_BEGIN stateText-->
+                        <br/>
+                        <div class="state">[#stateText#]</div>
+                        <!--ET_END stateText-->
                     </td>
-                    <td class="cell" width="35%" valign="top"><b>Доставчик</i></b>
+                    <td class="cell" width="35%" valign="top"><b>Доставчик</b></b>
                     <div>
                   			<b>Моята Фирма ООД</b><br />
 							<b>България</b><br />
