@@ -87,12 +87,22 @@ class bank_OwnAccounts extends core_Manager {
     function description()
     {
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
+        $this->FNC('currencyAccName', 'varchar(32)', 'input=none');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име,mandatory');
         $this->FLD('together', 'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
         $this->FLD('operators', 'userList(bank,bankWorker)', 'caption=Оператори,mandatory');
     }
     
+    
+    /**
+     * @TODO
+     */
+    function on_CalcCurrencyAccName($mvc, $rec) {
+    	$info = bank_Accounts::fetch($rec->bankAccountId);
+    	$cCode = currency_Currencies::getCodeById($info->currencyId);
+    	$rec->currencyAccName = $cCode . " - " .$info->iban;
+    }
     
     /**
      * Обработка по формата
@@ -288,5 +298,11 @@ class bank_OwnAccounts extends core_Manager {
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-
+	static function on_CalcNumTitleLink($mvc, $rec)
+    {bp($rec);
+        //if (!isset($rec->titleLink)) {
+            //$mvc->on_CalcTitleLink($mvc, $rec);
+       // }
+        //$rec->numTitleLink = $rec->num . '. ' . $rec->titleLink;
+    }
 }
