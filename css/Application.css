@@ -974,10 +974,6 @@ table.mc-header a {
 	background: rgba(200, 200, 200, 0.4);
 }
 
-.thread-opened .antetka {
-	background-color: #eeffee !important;
-}
-
 .threadSubTitle {
 	font-size: 0.75em;
 	padding: 2px;
