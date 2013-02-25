@@ -27,7 +27,7 @@ class acc_Operations extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, acc_WrapperSettings, plg_Search, plg_Created';
+    var $loadList = 'plg_RowTools, acc_WrapperSettings, plg_Search, plg_Created, plg_Sorting';
     
     
     /**
