@@ -31,7 +31,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, cash_Wrapper, cash_DocumentWrapper, plg_Printing,
      	plg_Sorting,doc_DocumentPlg,Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
@@ -372,7 +372,7 @@ class cash_InternalMoneyTransfer extends core_Master
     			$debitBankItem = acc_Items::fetchField($rec->{"debitEnt{$debitBankPos}"}, 'objectId');
     			
     			// Валутите на двете банкови сметки трябва да съвпадат
-    			$debitCurrency = static::getCurrency('debit', $rec);
+    			$debitCurrency = bank_InternalMoneyTransfer::getCurrency('debit', $rec);
     			if($debitCurrency != $currencyItem->objectId) {
     				$form->setError("debitEnt{$debitBankPos}", 'Банковата сметка е в друга валута !!!');
     			}
@@ -381,38 +381,6 @@ class cash_InternalMoneyTransfer extends core_Master
     			$creditCurrencyPos = acc_Lists::getPosition($creditAcc, 'currency_CurrenciesAccRegIntf');
     			$rec->{"creditEnt{$creditCurrencyPos}"} = $currencyItem->id;
     		} 
-    }
-    
-    
-    /**
-     * Проверява дебитните или кредитните пера и намира номера на валутата
-     * от дебита или кредита
-     * @param string $type - дебитно или кредитно перо обхождаме
-     * @param stdClass $rec - Запис от модела
-     * @return int $id - Id на валутата която е в сметката
-     */
-    static function getCurrency($type, $rec)
-    {
-    	expect($type == 'debit' || $type == 'credit');
-    	$accId = $rec->{"{$type}AccId"};
-    	
-    	$bankItemPos = acc_Lists::getPosition($accId, 'bank_OwnAccRegIntf');
-    	
-    	// Ако има Банкова номенклатура намираме валутата от банковата сметка
-    	if($bankItemPos) {
-    		${"{$type}BankItem"} = acc_Items::fetchField($rec->{"{$type}Ent{$bankItemPos}"},'objectId');
-    		${"{$type}Bank"} = bank_OwnAccounts::getOwnAccountInfo(${"{$type}BankItem"});
-    		
-    		return ${"{$type}Bank"}->currencyId;
-    	} else {
-    		
-    		// Ако няма номенклатура Банки, очакваме да има номенклатура 
-    		// Валути и намираме ид-то на валутата
-    		$currencyItemPos = acc_Lists::getPosition($accId, 'currency_CurrenciesAccRegIntf');
-    		${"{$type}currencyItem"} = acc_Items::fetchField($rec->{"{$type}Ent{$currencyItemPos}"},'objectId');
-    		
-    		return ${"{$type}currencyItem"};
-    	}
     }
     
     
@@ -432,7 +400,7 @@ class cash_InternalMoneyTransfer extends core_Master
 	    	$creditRec = acc_Accounts::getRecBySystemId($rec->creditAccId);
 	    	$row->creditAccId = acc_Accounts::getRecTitle($creditRec);
 	    	
-    		$currencyId = static::getCurrency('debit', $rec);
+    		$currencyId = bank_InternalMoneyTransfer::getCurrency('debit', $rec);
     		$row->currency = currency_Currencies::getCodeById($currencyId);
     		
     		// Изчисляваме равностойността на сумата в основната валута
@@ -440,9 +408,7 @@ class cash_InternalMoneyTransfer extends core_Master
 	    		$double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
 	    		$row->equals = $double->toVerbal($rec->amount * $rec->rate);
-    		
-	    		
-			    $period = acc_Periods::fetchByDate($rec->valior);
+    			$period = acc_Periods::fetchByDate($rec->valior);
 			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
     		}
     		
@@ -463,19 +429,7 @@ class cash_InternalMoneyTransfer extends core_Master
     	if($data->rec->state == 'draft') {
 	    	$rec = $data->rec;
 	    	$operationSysId = acc_Operations::fetchSysId($rec->operationId);
-	    	
-	    	// Взависимост от операцията определяме пораждащите документи
-	    	switch($operationSysId) {
-	    		case 'bank2bank':
-	    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-	    			break;
-	    		case 'bank2case':
-	    			$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-	    			break;
-	    		case 'case2bank':
-	    			$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
-	    			break;
-	    	}
+	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
     	}
     }
     

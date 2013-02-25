@@ -57,7 +57,8 @@ class cash_Setup
             'cash_Cases',
         	'cash_Pko',
         	'cash_Rko',
-        	'cash_InternalMoneyTransfer'
+        	'cash_InternalMoneyTransfer',
+        	'cash_ExchangeDocument',
         );
         
         // Роля за power-user на този модул
