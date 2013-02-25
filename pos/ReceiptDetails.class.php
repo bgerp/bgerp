@@ -122,7 +122,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    	$attr = array('class' => 'actionBtn', 'data-type' => "payment|" . $payment->id);
 	    	$tpl->append(ht::createFnBtn($payment->title, '', '', $attr), 'SECOND_ROW');
 	    }
-	    if(haveRole('pos,admin') && $mvc->haveRightFor('conto', $data->rec)) {
+	    if(haveRole('pos,admin') && $this->haveRightFor('conto', $data->rec)) {
 		    $contUrl = array('acc_Journal','conto','docId' => $data->rec->id, 'docType' => $mvc->className, 'ret_url' => array($this->Master, 'new'));
 		    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'SECOND_ROW');
 	    }
