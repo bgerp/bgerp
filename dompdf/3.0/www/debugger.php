@@ -70,7 +70,7 @@ $files = glob("test/*.{html,htm,php}", GLOB_BRACE);
         if (this.src == "about:blank") return;
         
         $.ajax({
-          url: "<?php echo DOMPDF_TEMP_DIR . '/log.html';?>",
+          url: "<?php echo DOMPDF_LOG_OUTPUT_FILE;?>",
           success: log,
           cache: false
         });

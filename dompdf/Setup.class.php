@@ -16,6 +16,13 @@ defIfNot('DOMPDF_VER', '3.0');
  */
 defIfNot('DOMPDF_TEMP_DIR', EF_TEMP_PATH . "/dompdf");
 
+
+/**
+ * Файла, където се записва лога
+ */
+defIfNot('DOMPDF_LOG_OUTPUT_FILE', DOMPDF_TEMP_DIR . "/log.htm");
+
+
 /**
  * Възможност да се използват ресурси от Интернет
  */
