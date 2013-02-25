@@ -298,11 +298,4 @@ class bank_OwnAccounts extends core_Manager {
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-	static function on_CalcNumTitleLink($mvc, $rec)
-    {bp($rec);
-        //if (!isset($rec->titleLink)) {
-            //$mvc->on_CalcTitleLink($mvc, $rec);
-       // }
-        //$rec->numTitleLink = $rec->num . '. ' . $rec->titleLink;
-    }
 }
