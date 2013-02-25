@@ -746,8 +746,8 @@ class core_Users extends core_Manager
         if (!$currentUserRec) return;
         
         $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
-        
-        if (abs(time() - $refreshTime) > EF_USER_REC_REFRESH_TIME) {
+
+        if (abs(time() - $refreshTime) > EF_USER_REC_REFRESH_TIME || (time() - $currentUserRec->lastHitUT > 3 * EF_USER_REC_REFRESH_TIME)) {
             Users::loginUser($currentUserRec->id);
         }
     }
