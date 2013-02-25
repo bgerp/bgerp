@@ -6,7 +6,7 @@ div.block_left{
 	clear: right;
     padding: 0 10px 10px 0;
     float: left;
-    margin: 0 50px 25px 0px;
+    margin: 0 3em 1em 0;
     position: relative;
 }
 
@@ -188,9 +188,9 @@ img.calImg{
 }
 
 img.starImg{
-	width: 10px;
-	height: 10px;
-	margin-right: 5px;
+	width: 9px;
+	height: 9px;
+	margin-right: 2px;
 }
 
 table.mc_calendar td.mc-todayD {
@@ -501,7 +501,7 @@ table.mc-header a {
 }
 
 table.mc-calendar-year {
-	width:25em;
+	width:21em;
 	font-size:0.8em;
 }
 
