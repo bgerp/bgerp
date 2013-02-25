@@ -162,6 +162,9 @@ class support_Issues extends core_Master
         // Възлагане на задача (за doc_AssignPlg)
         $this->FLD('assign', 'user(roles=powerUser)', 'caption=Възложен на,input=none');
         
+        // Споделени потребители
+        $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
+
         $this->FNC('systemIdShow', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory, input=none');
     }
     
@@ -300,16 +303,16 @@ class support_Issues extends core_Master
         
         // Масив с всички потребители, които имат достъп до папката
         $sharedUsersArr = doc_Folders::getSharedUsersArr($folderId, TRUE);
-        
+    
         // Ако няма нито един потребители
         if (!count($sharedUsersArr)) {
             
             // Не показваме полето
-            $data->form->setField('sharedUsers', 'input=none');
+          //  $data->form->setField('sharedUsers', 'input=none');
         } else {
-            
+           
             // Задаваме да се показват потребителите, които имат достъп
-            $data->form->setSuggestions('sharedUsers', $sharedUsersArr);    
+           // $data->form->setSuggestions('sharedUsers', $sharedUsersArr);    
         }
     }
     
