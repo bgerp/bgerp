@@ -112,17 +112,21 @@ class pos_ReceiptDetails extends core_Detail {
     	$tpl->append(ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' =>  'buttonForm')), 'FIRST_ROW');
     	$tpl->append(ht::createFnBtn('+1', '','', array('id'=>'incBtn','class'=>'buttonForm')), 'FIRST_ROW');
 	    $tpl->append(ht::createFnBtn('-1', '','', array('id'=>'decBtn','class'=>'buttonForm')), 'FIRST_ROW');
-	    $tpl->append(ht::createFnBtn('Баркод', "window.WebScan.scanThenLoadURL('[SCANVALUE]')", '', array('class'=>'webscan')), 'FIRST_ROW');
-	    $tpl->append(ht::createFnBtn('Маса', '','', array('class'=>'actionBtn', 'data-type'=>'client|table')), 'THIRD_ROW');
-	    $tpl->append(ht::createFnBtn('Стая', '','', array('class'=>'actionBtn', 'data-type'=>'client|room')), 'THIRD_ROW');
+	    $tpl->append(ht::createFnBtn('Баркод', "window.WebScan.scanThenLoadURL('[SCANVALUE]')", '', array('class'=>'webscan')), 'THIRD_ROW');
+	    //$tpl->append(ht::createFnBtn('Маса', '','', array('class'=>'actionBtn', 'data-type'=>'client|table')), 'THIRD_ROW');
+	    //$tpl->append(ht::createFnBtn('Стая', '','', array('class'=>'actionBtn', 'data-type'=>'client|room')), 'THIRD_ROW');
 	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class'=>'actionBtn', 'data-type' =>'client|ccard')), 'THIRD_ROW');
-    	$payments = pos_Payments::fetchSelected();
+	    $tpl->append(ht::createBtn('Нов', array($this->Master, 'new'), '', '', array('class'=>'actionBtn btnNew')), 'FIRST_ROW');
+	    $payments = pos_Payments::fetchSelected();
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => 'actionBtn', 'data-type' => "payment|" . $payment->id);
 	    	$tpl->append(ht::createFnBtn($payment->title, '', '', $attr), 'SECOND_ROW');
 	    }
-	    
-	    return $tpl;
+	    if(haveRole('pos,admin') && $mvc->haveRightFor('conto', $data->rec)) {
+		    $contUrl = array('acc_Journal','conto','docId' => $data->rec->id, 'docType' => $mvc->className, 'ret_url' => array($this->Master, 'new'));
+		    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'SECOND_ROW');
+	    }
+		return $tpl;
     }
     
     
