@@ -971,7 +971,7 @@ table.mc-header a {
 	margin-left:1px;
 	padding: 5px;
 	border: solid 1px #ddd;
-	background-color: #eee;
+	background: rgba(200, 200, 200, 0.4);
 }
 
 .thread-opened .antetka {
