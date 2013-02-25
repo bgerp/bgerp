@@ -87,10 +87,10 @@ class acc_Operations extends core_Manager
     	$this->FLD('documentSrc', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory');
-    	$this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
+    	$this->FLD('systemId', 'varchar(32)', 'caption=System ID, export, mandatory');
     	
     	// Поставяне на уникални индекси
-    	$this->setDbUnique('name');
+    	$this->setDbUnique('systemId');
     }
     
     
