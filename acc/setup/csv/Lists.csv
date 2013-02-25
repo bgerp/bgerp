@@ -7,7 +7,7 @@
 103,Клиенти,crm_ContragentAccRegIntf,clients
 104,Кредитори,crm_ContragentAccRegIntf,creditors
 105,Дебитори,crm_ContragentAccRegIntf,debtors
-106,Подотчетни лица,crm_PersonAccRegIntf,accountableInd
+106,Подотчетни лица,crm_PersonAccRegIntf,accountablePersons
 107,"Дъщерни, асоциирани и смесени предприятия",crm_ContragentAccRegIntf,associates 
 109,"Разни: доверители, гаранции, застраховане, др.",crm_ContragentAccRegIntf,various
 110,Документ "Продажба",,sales
