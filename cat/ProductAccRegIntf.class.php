@@ -53,19 +53,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Цена на продукт към дата в зависимост от пакет отстъпки.
-     *
-     * @param int $productId
-     * @param string $date Ако е NULL връща масив с историята на цените на продукта: [дата] => цена
-     * @param int $discountId key(mvc=catpr_Discounts) пакет отстъпки. Ако е NULL - цена без отстъпка.
-     */
-    function getProductPrice($productId, $date = NULL, $discountId = NULL)
-    {
-        return $this->class->getProductPrice($productId, $date, $discountId);
-    }
-    
-    
-    /**
      * @todo Чака за документация...
      */
     static function isDimensional()

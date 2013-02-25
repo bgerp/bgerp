@@ -297,18 +297,18 @@ class price_ListToCustomers extends core_Detail
      */
     public function getProducts($customerClass, $customerId, $datetime = NULL)
     {
-         $products = price_GroupOfProducts::getAllProducts($datetime);
+        $products = price_GroupOfProducts::getAllProducts($datetime);
 
-         if(count($products)) {
-             foreach($products as $productId => $groupId) {
+        if(count($products)) {
+            foreach($products as $productId => $groupId) {
                  $price = self::getPriceInfo($customerClass, $customerId, $productId, NULL, NULL, $datetime);
                  if(!$price) {
                      unset($products[$productId]);
                  }
-             }
-
-             return $products;
-         }
+            }
+            
+            return $products;
+        }
     }
 
 

@@ -141,6 +141,8 @@ class price_GroupOfProducts extends core_Detail
             }
         }
 
+        asort($res);
+
         return $res;
     }
 

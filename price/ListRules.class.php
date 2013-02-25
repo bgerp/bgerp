@@ -138,7 +138,11 @@ class price_ListRules extends core_Detail
                 $price = $rec->price; // TODO конвертиране
                 $listRec = price_Lists::fetch($listId);
                 list($date, $time) = explode(' ', $datetime);
-                $price = currency_CurrencyRates::convertAmount($price, $date, $listRec->currency);
+                $currency = $listRec->currency;
+                if(!$currency) {
+                    $currency = acc_Periods::getBaseCurrencyCode($listRec->createdOn);
+                }
+                $price = currency_CurrencyRates::convertAmount($price, $date, $currency);
                 if($listRec->vat == 'yes') {
 
                 }

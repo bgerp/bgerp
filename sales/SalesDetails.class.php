@@ -102,17 +102,15 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, productId, packagingId, uomId, quantity, price, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, quantity, price, discount, amount';
     
-    
+        
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     * 
-     * @var string
      */
-    public $rowToolsField;
-    
-    
+    var $rowToolsField = 'RowNumb';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -123,7 +121,7 @@ class sales_SalesDetails extends core_Detail
         
         $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         
         // Количество в брой опаковки
         $this->FLD('packQuantity', 'float', 'mandatory,caption=К-во');
@@ -132,10 +130,10 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('quantity', 'float', 'input=none,caption=К-во');
         
         // Цена за опаковка
-        $this->FLD('packPrice', 'float(minDecimals=2)', 'caption=Цена за опаковка');
+        $this->FLD('packPrice', 'float(minDecimals=2)', 'caption=Цена');
         
         // Цена за единица продукт в основна мярка
-        $this->FLD('price', 'float(minDecimals=2)', 'input=none,caption=Цена');
+        $this->FLD('price', 'float(minDecimals=2)', 'input=none,caption=Ед. Цена');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FNC('amount', 'float(minDecimals=2)', 'caption=Сума');
@@ -265,10 +263,15 @@ class sales_SalesDetails extends core_Detail
         // Скриваме полето "мярка" 
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
+        // Флаг дали има отстъпка
+        $haveDiscount = FALSE;
+
         if(count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
                 $rec = $data->recs[$i];
                 
+                $haveDiscount = $haveDiscount || ($rec->discount != 0);
+    
                 if (empty($rec->packagingId)) {
                     $row->packagingId = cat_UoM::fetchField($rec->uomId, 'name');
                 } else {
@@ -282,6 +285,10 @@ class sales_SalesDetails extends core_Detail
                     $row->quantity = $row->packQuantity;
                 }
             }
+        }
+
+        if(!$haveDiscount) {
+            unset($data->listFields['discount']);
         }
     }
     
@@ -311,7 +318,7 @@ class sales_SalesDetails extends core_Detail
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-    {
+    { 
         if ($form->isSubmitted() && !$form->gotErrors()) {
             
             // Извличане на информация за продукта - количество в опаковка, единична цена

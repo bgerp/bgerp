@@ -99,7 +99,7 @@ class price_Lists extends core_Master
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'mandatory,caption=Валута,noChange');
-        $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,caption=ДДС,noChange');
+        $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,notNull,caption=ДДС,noChange');
         $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
         
@@ -161,7 +161,9 @@ class price_Lists extends core_Master
 
     
     /**
-     *
+     * След инсталирането на модела, създава двете базови групи с правила за ценообразуване
+     * Себестойност - тук се задават цените на придобиване на стоките, продуктите и услугите
+     * Каталог - това са цените които се публикуват
      */
     function on_AfterSetupMVC($mvc, $res)
     {
@@ -172,6 +174,8 @@ class price_Lists extends core_Master
             $rec->id = $conf->PRICE_LIST_COST;
             $rec->parent = NULL;
             $rec->title  = 'Себестойност';
+            $rec->currency = acc_Periods::getBaseCurrencyCode();
+            $rec->vat      = 'no';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
             $mvc->save($rec, NULL, 'REPLACE');
@@ -182,6 +186,8 @@ class price_Lists extends core_Master
             $rec->id = $conf->PRICE_LIST_CATALOG;
             $rec->parent = $conf->PRICE_LIST_COST;
             $rec->title  = 'Каталог';
+            $rec->currency = acc_Periods::getBaseCurrencyCode();
+            $rec->vat      = 'yes';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
             $mvc->save($rec, NULL, 'REPLACE');
