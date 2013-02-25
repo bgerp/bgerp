@@ -87,6 +87,32 @@ class email_Salutations extends core_Manager
      */
     public static function get($folderId, $threadId = NULL, $userId = NULL)
     {
+        // Ако няма папка
+        if (!$folderId) return ;
+        
+        // Ако няма нишка
+        if (!$threadId) {
+            
+            // Вземаме корицата на папката
+            $coverClass = strtolower(doc_Folders::fetchCoverClassName($folderId));
+
+            // Ако корицата не е контрагент, връщаме
+            if (($coverClass != 'crm_persons') && ($coverClass != 'crm_companies')) {
+                
+                return ;
+            }
+            
+            // Ако е потребител
+            if ($coverClass == 'crm_persons') {
+                
+                // id' на корицата
+                $coverId = doc_Folders::fetchCoverId($folderId);  
+                
+                // Ако има потребителски профил, връщаме
+                if (crm_Profiles::getProfile($coverId)) return ;      
+            }
+        }
+        
         // Вземаме всички обръщения от папката
         $query = static::getQuery();
         $query->where(array("#folderId = '[#1#]'", $folderId));
