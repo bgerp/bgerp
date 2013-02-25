@@ -20,7 +20,7 @@
 //define("DEBUG_LAYOUT_INLINE", false);
 //define("DOMPDF_FONT_HEIGHT_RATIO", 1.0);
 //define("DEBUG_LAYOUT_PADDINGBOX", false);
-//define("DOMPDF_LOG_OUTPUT_FILE", DOMPDF_FONT_DIR."log.htm");
+define("DOMPDF_LOG_OUTPUT_FILE", DOMPDF_TEMP_DIR . "/log.htm");
 //define("DOMPDF_ENABLE_HTML5PARSER", true);
 //define("DOMPDF_ENABLE_FONTSUBSETTING", true);
 
