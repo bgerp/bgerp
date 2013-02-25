@@ -663,7 +663,7 @@ class doc_Containers extends core_Manager
         foreach($btns as $group => $bArr) {
         	list($order, $group) = explode('|', $group);
         	
-        	$tpl->append("<li{$active}><img class='btns-icon plus' src=". sbf('img/16/plus.png') ."><img class='btns-icon minus' src=". sbf('img/16/minus2.png') .">&nbsp;{$group}</li>");
+        	$tpl->append("<li{$active}><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
         	$tpl->append("<li>");
         	foreach($bArr as $btn => $class) {
         		$mvc = cls::get($class);

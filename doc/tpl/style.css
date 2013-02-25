@@ -37,7 +37,9 @@
 }
 
 .btns-icon{
-  margin-right: 3px;
+  margin: 2px 0px 0 5px;
+  position:relative;
+  top:3px;
 }
 
 .accordian li .minus {
@@ -49,4 +51,4 @@
 } 
 .accordian li.active .minus {
 	display: inline;
-} 
+	} 
