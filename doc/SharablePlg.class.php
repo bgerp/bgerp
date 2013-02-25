@@ -104,7 +104,7 @@ class doc_SharablePlg extends core_Plugin
             // Първо виждане на документа от страна на $userId
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
-            if ($mvc::save_($rec)) {
+            if ($mvc->save_($rec)) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
             }
         }
