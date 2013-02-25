@@ -297,16 +297,16 @@ class core_Form extends core_FieldSet
                     $this->formAttr['id'] .
                     "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 vertical' style='margin-top:5px;'>" .
-                    "<table cellspacing=0 cellpadding=0 class=\"formTable\">\n" .
-                    "<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
-                    "<tr><td class=\"formSection\">" .
-                    "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
-                    "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
-                    "<!--ET_BEGIN FORM_FIELDS--><div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
-                    "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
-                    "</td></tr><!--ET_BEGIN FORM_TOOLBAR--><tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
-                    "</div>" .
-                    "</form>\n");
+                    "\n<table cellspacing=0 cellpadding=0 class=\"formTable\">\n" .
+                    "\n<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
+                    "\n<tr><td class=\"formSection\">" .
+                    "<!--ET_BEGIN FORM_ERROR-->\n<div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
+                    "<!--ET_BEGIN FORM_INFO-->\n<div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
+                    "<!--ET_BEGIN FORM_FIELDS-->\n<div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
+                    "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
+                    "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
+                    "\n</div>" .
+                    "\n</form>\n");
             }
         }
         
@@ -685,24 +685,24 @@ class core_Form extends core_FieldSet
                 
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow > 0) {
-                        $tpl->append("<tr><td></td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr><td></td></tr>", 'FIELDS');
                     }
                     
                     if ($headerRow) {
-                        $tpl->append("<tr><td>$headerRow</td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr><td>$headerRow</td></tr>", 'FIELDS');
                     }
-                    $fld = new ET("<tr><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
                     $fld->replace($field->unit ? (', ' . $field->unit) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
                 } else {
                     if ($emptyRow > 0) {
-                        $tpl->append("<tr><td colspan=2></td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr><td colspan=2></td></tr>", 'FIELDS');
                     }
                     
                     if ($headerRow) {
-                        $tpl->append("<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
                     }
-                    $fld = new ET("<tr><td  align=right valign=top class='formFieldCaption'>[#CAPTION#]:</td><td>[#{$field->name}#][#UNIT#]</td></tr>");
+                    $fld = new ET("\n<tr><td  align=right valign=top class='formFieldCaption'>[#CAPTION#]:</td><td>[#{$field->name}#][#UNIT#]</td></tr>");
                     $fld->replace($field->unit ? ('&nbsp;' . $field->unit) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
                 }

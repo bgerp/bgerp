@@ -1080,7 +1080,6 @@ table input[type=submit].btn-filter{
 	}
 	
 	.elem-holder .btns a{
-		color:#999;
 		display:inline-block;
 		margin: 0 4px 0px 4px;
 	}
@@ -1089,7 +1088,7 @@ table input[type=submit].btn-filter{
 		text-decoration:underline;
 	}
 	
-	.narrow .elem-holder  a{
+	.narrow .elem-holder .btns  a{
 		font-size:13px;
 		display:inline-block;
 		padding:1px 3px 1px 3px;
