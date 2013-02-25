@@ -87,22 +87,12 @@ class bank_OwnAccounts extends core_Manager {
     function description()
     {
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
-        $this->FNC('currencyAccName', 'varchar(32)', 'input=none');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име,mandatory');
-        $this->FLD('together', 'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
+        $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
         $this->FLD('operators', 'userList(bank,bankWorker)', 'caption=Оператори,mandatory');
     }
     
-    
-    /**
-     * @TODO
-     */
-    function on_CalcCurrencyAccName($mvc, $rec) {
-    	$info = bank_Accounts::fetch($rec->bankAccountId);
-    	$cCode = currency_Currencies::getCodeById($info->currencyId);
-    	$rec->currencyAccName = $cCode . " - " .$info->iban;
-    }
     
     /**
      * Обработка по формата
@@ -298,4 +288,22 @@ class bank_OwnAccounts extends core_Manager {
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
+    
+    
+    /**
+     * Връща Валутата и iban-a на всивки наши сметки разделени с "-"
+     */
+    static function getOwnAccounts()
+    {
+    	$accounts = array();
+    	$query = static::getQuery();
+    	while($rec = $query->fetch()) {
+    		$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+    		$cCode = currency_Currencies::getCodeById($currencyId);
+    		$verbal = static::RecToVerbal($rec, 'bankAccountId');
+    		$accounts[$rec->id] = $cCode . " - " . $verbal->bankAccountId;
+    	}
+    	
+    	return $accounts;
+    }
 }
