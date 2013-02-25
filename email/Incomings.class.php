@@ -477,7 +477,9 @@ class email_Incomings extends core_Master
             $query->show('maxUid');
             $maxRec = $query->fetch("#accountId = {$imapConn->accRec->id}");
         }
-        
+
+        $maxReadMsgNo = 0;
+
         if($maxRec->maxUid) {
             $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid);
         }
@@ -535,8 +537,6 @@ class email_Incomings extends core_Master
             } while($change);
 
         } else {
-
-           
            
             if(($maxReadMsgNo === FALSE) || ($maxReadMsgNo >= $maxMsgNo)) {
                 $maxReadMsgNo = NULL;
