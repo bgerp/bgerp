@@ -14,8 +14,9 @@
 					<tr><td class=\"quiet\" align=\"right\">|Номер|*:</td><td>[#number#]</td></tr>
 					<!--ET_BEGIN createdBy--><tr><td class=\"quiet\" align=\"right\">|Създаден|*</td><td><span class=\"quiet\">|на|*</span> <b>[#createdDate#] </b><span class=\"quiet\">|от|*</span> <b>[#createdBy#]</b></td></tr><!--ET_END createdBy-->	
 					<tr><td class=\"quiet\" align=\"right\">|Вальор|*:</td><td><b>[#valior#]</b></td></tr>
-					<tr><td class=\"quiet\" align=\"right\">|Операция|*:</td><td><b>[#operationId#]</b></td></tr>
-					<tr><td class=\"quiet\" align=\"right\">|Основание|*:</td><td>[#reason#]</td></tr>
+					<tr><td class=\"quiet\" align=\"right\">|От|*:</td><td>[#peroFrom#]</td></tr>
+					<tr><td class=\"quiet\" align=\"right\">|Към|*:</td><td>[#peroTo#]</td></tr>
+					<tr><td class=\"quiet\" align=\"right\">|Основание|*:</td><td> &nbsp;[#reason#]</td></tr>
 				</table>
 			</td>
 			
@@ -43,31 +44,5 @@
 		</tr>
 	</table>
 	<br>
-	<table width='99%' border='1' cellpadding='5px' cellspacing='0' style='border-collapse:collapse;'>
-		<tr>
-			<th style='background-color:rgb(221,221,221);text-align:left' width='50%'>От</th>
-			<th style='background-color:rgb(221,221,221);text-align:left' width='50%'>Към</th>
-		</tr>
-		<tr>
-			<td>[#creditAccId#]</td>
-			<td>[#debitAccId#]</td>
-		</tr>
-		<tr>
-			<td>[#creditEnt1#]</td>
-			<td>[#debitEnt1#]</td>
-		</tr>
-		
-		<tr>
-		<td>
-		<!--ET_BEGIN creditEnt2-->
-			Валута: [#creditEnt2#]
-		<!--ET_END creditEnt2-->
-		</td>
-		<td>
-		<!--ET_BEGIN debitEnt2-->
-			Валута: [#debitEnt2#]
-		<!--ET_END debitEnt2-->
-		</td>
-		</tr>
 	</table>
 </div>

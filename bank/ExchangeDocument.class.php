@@ -118,22 +118,15 @@ class bank_ExchangeDocument extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=6em,mandatory,silent');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=20em,input,mandatory');
-    	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
-    	$this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 1');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 2');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 3');
-        $this->FLD('creditQuantity', 'float', 'width=6em,caption=От->Сума');
-        $this->FLD('creditPrice', 'float', 'input=none');
-        $this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 1');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 2');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 3');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=23em,input,mandatory');
+    	$this->FLD('peroFrom', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','input,caption=От->Б. сметка,width=20em');
+    	$this->FLD('creditPrice', 'float', 'input=none');
+    	$this->FLD('creditQuantity', 'float', 'width=6em,caption=От->Сума');
+        $this->FLD('peroTo', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=Към->Б. сметка,width=20em');
         $this->FLD('debitQuantity', 'float', 'width=6em,caption=Към->Сума');
-        $this->FLD('debitPrice', 'float', 'input=none');
-       	$this->FLD('rate', 'float', 'input=none');
+       	$this->FLD('debitPrice', 'float', 'input=none');
+        $this->FLD('rate', 'float', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -152,121 +145,19 @@ class bank_ExchangeDocument extends core_Master
     }
     
     
-	/**
-     *  Добавяме помощник за избиране на сч. операция
-     */
-    public static function on_BeforeAction($mvc, &$tpl, $action)
-    {
-    	if ($action != 'add') {
-            
-            return;
-        }
-        
-        if (!$mvc->haveRightFor($action)) {
-            
-            return;
-        }
-
-       // Има ли вече зададено основание? 
-       if (Request::get('operationId', 'int')) {
-            
-           // Има основание - не правим нищо
-           return;
-        }
-        
-        $form = static::prepareReasonForm();
-        $form->input();
-        $form = $form->renderHtml();
-        $tpl = $mvc->renderWrapping($form);
-        
-        return FALSE;
-    }
-    
-    
-    /**
-     * Подготвяме формата от която ще избираме посоката на движението
-     */
-    static function prepareReasonForm()
-    {
-    	$form = cls::get('core_Form');
-    	$form->method = 'GET';
-    	$form->FNC('operationId', 'key(mvc=acc_Operations, select=name)', 'input,caption=Операция');
-    	$form->title = 'Ново Превалутиране';
-        $form->toolbar->addSbBtn('Напред', '', array('class'=>'btn-next btn-move'));
-        $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')), array('class'=>'btn-cancel'));
-        
-        $options = acc_Operations::getPossibleOperations(get_called_class());
-        $form->setOptions('operationId', $options);
-        
-        return $form;
-    }
-    
-    
     /**
      * Подготовка на формата за добавяне
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
     	$form = &$data->form;
-    	
-    	// Очакваме и намираме коя е извършената операция
-    	if(!$form->rec->id) {
-    		expect($operationId = Request::get('operationId'));
-    	} else {
-    		$operationId = $form->rec->operationId;
-    	}
-    	
-    	$operation = acc_Operations::getOperationInfo($operationId);
-       
-    	// Трябва документа да поддържа тази операция
-    	$classId = core_Classes::fetchIdByName(get_called_class());
-        expect($operation->documentSrc == $classId, 'Този документ не поддържа избраната операция');
+    	$today = dt::verbal2mysql();
+        $form->setDefault('peroFrom', cash_Cases::getCurrent());
+        $form->setDefault('valior', $today);
         
-        $debitAcc = $operation->debitAccount;
-        $creditAcc = $operation->creditAccount;
-       
-        // Перото на валутата по подразбиране
-        $today = dt::verbal2mysql();
-        $currencyClassId = currency_Currencies::getClassId();
-        $currencyId = acc_Periods::getBaseCurrencyId($today);
-        $currencyItem = acc_Items::fetch("#objectId={$currencyId} AND #classId={$currencyClassId}");
-        
-        foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
-            
-            $acc = ${"{$type}Acc"};
-           
-            // Скриваме всички полета за пера, и после показваме само тези, за които съответната
-            // (дебит или кредит) сметка има аналитичност.
-            $form->setField("{$type}Ent1", 'input=none');
-            $form->setField("{$type}Ent2", 'input=none');
-            $form->setField("{$type}Ent3", 'input=none');
-    		
-            ($type == 'debit') ? $division = tr('Към') : $division = tr('От');
-            foreach ($acc->groups as $i => $list) {
-                if (!$list->rec->itemsCnt) {
-                    return Redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"{$list->rec->name}\""));
-                }
-               
-                if($list->rec->systemId == 'case') {
-                	$singleName = tr('Каса');
-                } elseif($list->rec->systemId == 'currency'){
-                	$singleName = tr('Валута');
-                } else {
-                	$singleName = tr('Банкова сметка');
-                }
-                $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-                $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$division}->" . $singleName);
-    		 
-            }
-		   
-		    // Ако поддържа номенклатура валута, слагаме и стойност по дефолт
-		    if($pos = acc_Lists::getPosition($acc->rec->systemId, 'currency_CurrenciesAccRegIntf')) {
-		    	$form->setField("{$type}Ent{$pos}", $currencyItem->id);
-		    }
-      	}
-      	
-      	$form->setDefault('valior', $today);
-        $form->setReadOnly('operationId');
+        $ownAccounts = bank_OwnAccounts::getOwnAccounts();
+        $form->setOptions('peroFrom', $ownAccounts);
+		$form->setOptions('peroTo', $ownAccounts);
 	}
     
     
@@ -279,37 +170,34 @@ class bank_ExchangeDocument extends core_Master
     		
     		$rec = &$form->rec;
     		
-		    $operation = acc_Operations::fetch($rec->operationId);
-    		$rec->debitAccId = $operation->debitAccount;
-    		$rec->creditAccId = $operation->creditAccount;
-    		
     		if(!$rec->creditQuantity || !$rec->debitQuantity) {
     			$form->setError("creditQuantity, debitQuantity", "Трябва да са въведени и двете суми !!!");
-    		} else {
-    			$creditCurrency = static::getCurrency('credit', $rec);
-		    	$debitCurrency = static::getCurrency('debit', $rec);
-    			if($creditCurrency == $debitCurrency) {
-		    		$form->setWarning('creditEnt1, debitEnt1', 'Валутите са едни и същи, няма смяна на валута !!!');
-		    	}
+    			return;
+    		} 
+    		
+    		$creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
+    		$debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
+    		if($creditAccInfo->currencyId == $debitAccInfo->currencyId) {
+		    	$form->setWarning('peroFrom, peroTo', 'Валутите са едни и същи, няма смяна на валута !!!');
+		    }
+		    
+    		// Изчисляваме курса на превалутирането спрямо входните данни
+		    $cCode = currency_Currencies::getCodeById($creditAccInfo->currencyId);
+		    $dCode = currency_Currencies::getCodeById($debitAccInfo->currencyId);
+		    $cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+		    $rec->creditPrice = $cRate;
+		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
+		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
 		    	
-		    	// Изчисляваме курса на превалутирането спрямо входните данни
-		    	$cCode = currency_Currencies::getCodeById($creditCurrency);
-		    	$dCode = currency_Currencies::getCodeById($debitCurrency);
-		    	$cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
-		    	$rec->creditPrice = $cRate;
-		    	$rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
-		    	$rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
+		    // Каква сума очакваме да е въведена
+		    $expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode, $dCode);
 		    	
-		    	// Каква сума очакваме да е въведена
-		    	$expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode, $dCode);
-		    	
-		    	// Проверяваме дали дебитната сума има голяма разлика
-		    	// спрямо очакваната, ако да сетваме предупреждение
-		    	if(!$mvc->compareAmounts($rec->debitQuantity, $expAmount)) {
-		    		$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
-		    						   Сигурни ли сте че искате да запишете документа');
-		    	}
-    		}
+		    // Проверяваме дали дебитната сума има голяма разлика
+		    // спрямо очакваната, ако да сетваме предупреждение
+		    if(!static::compareAmounts($rec->debitQuantity, $expAmount)) {
+		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    					   Сигурни ли сте че искате да запишете документа');
+		    }
     	}
     }
     
@@ -321,7 +209,7 @@ class bank_ExchangeDocument extends core_Master
      *  @param double $expAmount - Очакваната сума
      *  @return boolean TRUE/FALSE - Имали голямо отклонение
      */
-    function compareAmounts($givenAmount, $expAmount)
+    static function compareAmounts($givenAmount, $expAmount)
     {
     	$conf = core_Packs::getConfig('bank');
     	$percent = $conf->BANK_EXCHANGE_DIFFERENCE;
@@ -339,37 +227,6 @@ class bank_ExchangeDocument extends core_Master
     }
     
     
- 	/**
-     * Проверява дебитните или кредитните пера и намира номера на валутата
-     * от дебита или кредита
-     * @param string $type - дебитно или кредитно перо обхождаме
-     * @param stdClass $rec - Запис от модела
-     * @return int $id - Id на валутата която е в сметката
-     */
-    static function getCurrency($type, $rec)
-    {
-    	expect($type == 'debit' || $type == 'credit');
-    	$accId = $rec->{"{$type}AccId"};
-    	$bankItemPos = acc_Lists::getPosition($accId, 'bank_OwnAccRegIntf');
-    	
-    	// Ако има Банкова номенклатура намираме валутата от банковата сметка
-    	if($bankItemPos) {
-    		${"{$type}BankItem"} = acc_Items::fetchField($rec->{"{$type}Ent{$bankItemPos}"},'objectId');
-    		${"{$type}Bank"} = bank_OwnAccounts::getOwnAccountInfo(${"{$type}BankItem"});
-    		
-    		return ${"{$type}Bank"}->currencyId;
-    	} else {
-    		
-    		// Ако няма номенклатура Банки, очакваме да има номенклатура 
-    		// Валути и намираме ид-то на валутата
-    		$currencyItemPos = acc_Lists::getPosition($accId, 'currency_CurrenciesAccRegIntf');
-    		${"{$type}currencyItem"} = acc_Items::fetchField($rec->{"{$type}Ent{$currencyItemPos}"},'objectId');
-    		
-    		return ${"{$type}currencyItem"};
-    	}
-    }
-    
-    
     /**
      *  Обработки по вербалното представяне на данните
      */
@@ -378,48 +235,26 @@ class bank_ExchangeDocument extends core_Master
     	$row->number = static::getHandle($rec->id);
     	
     	if($fields['-single']) {
-    		
-    		// Пълни имена на дебитната и кредитната сметка
-    		$debitRec = acc_Accounts::getRecBySystemId($rec->debitAccId);
-	    	$row->debitAccId = acc_Accounts::getRecTitle($debitRec);
-	    	
-	    	$creditRec = acc_Accounts::getRecBySystemId($rec->creditAccId);
-	    	$row->creditAccId = acc_Accounts::getRecTitle($creditRec);
-	    	
-    		$currencyId = static::getCurrency('debit', $rec);
-    		$row->currency = currency_Currencies::getCodeById($currencyId);
-    		
     		$double = cls::get('type_Double');
 	    	$double->params['decimals'] = 2;
 	    	$row->creditQuantity = $double->toVerbal($rec->creditQuantity);
 	    	$row->debitQuantity = $double->toVerbal($rec->debitQuantity);
 	    	$row->rate = (float)$rec->rate;
 	    	
-	    	$row->equals = $double->toVerbal($rec->creditQuantity * $rec->creditPrice);
-    		$period = acc_Periods::fetchByDate($rec->valior);
-			$row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
+	    	$creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
+    		$debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
     		
-			$dCurrency = static::getCurrency('debit', $rec);
-    		$row->debitPrice = currency_Currencies::getCodeById($dCurrency);
-    			
-    		$cCurrency = static::getCurrency('credit', $rec);
-    		$row->creditPrice = currency_Currencies::getCodeById($cCurrency);
-    			
-			// Показваме заглавието само ако не сме в режим принтиране
+	    	$row->equals = $double->toVerbal($rec->creditQuantity * $rec->creditPrice);
+    		$row->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
+    		$row->debitPrice = currency_Currencies::getCodeById($debitAccInfo->currencyId);
+    		$row->creditPrice = currency_Currencies::getCodeById($creditAccInfo->currencyId);
+    		$row->currency = currency_Currencies::getCodeById($debitAccInfo->currencyId);
+			
+    		// Показваме заглавието само ако не сме в режим принтиране
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
     	}
-    }
-    
-    
-    /**
-     * Поставя бутони за генериране на други банкови документи възоснова
-     * на този.
-     */
-	static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	//@TODO
     }
     
     
