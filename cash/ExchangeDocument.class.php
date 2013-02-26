@@ -240,30 +240,21 @@ class cash_ExchangeDocument extends core_Master
     {
     	// Извличаме записа
         expect($rec = self::fetch($id));
-        
         $entry = array(
             'amount' => $rec->debitQuantity * $rec->debitPrice,
             'debit' => array(
-                $rec->debitAccId,
+                '501',
+        		array('cash_Cases', $rec->peroTo),
+        		array('currency_Currencies', $rec->debitCurrency),
                 'quantity' => $rec->debitQuantity
             ),
             'credit' => array(
-                $rec->creditAccId,
+                '501',
+            	array('cash_Cases', $rec->peroFrom),
+            	array('currency_Currencies', $rec->creditCurrency),
                 'quantity' => $rec->creditQuantity
             ),
         );
-        
-      	foreach(array('debit', 'credit') as $type) {
-      	    foreach (range(1, 3) as $n) {
-          	    if (!$rec->{"{$type}Ent{$n}"}) {
-    				// Ако не е зададено перо - пропускаме
-    				continue;
-    			}
-    			
-    			$entry[$type][] = new acc_journal_Item($rec->{"{$type}Ent{$n}"});
-      	    }
-      	}
-      	
       	
       	// Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
@@ -272,7 +263,6 @@ class cash_ExchangeDocument extends core_Master
             'entries' => array($entry)
         );
         
-       //bp($result);
         return $result;
     }
     
