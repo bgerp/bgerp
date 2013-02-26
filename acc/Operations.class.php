@@ -27,7 +27,7 @@ class acc_Operations extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, acc_WrapperSettings, plg_Search, plg_Created, plg_Sorting';
+    var $loadList = 'plg_RowTools, acc_WrapperSettings, plg_Search, plg_Created, plg_Sorting, plg_ExportCsv';
     
     
     /**
@@ -83,11 +83,11 @@ class acc_Operations extends core_Manager
      */
     function description()
     {
-    	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory');
-    	$this->FLD('documentSrc', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory');
-    	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory');
-    	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory');
-    	$this->FLD('systemId', 'varchar(32)', 'caption=System ID, export, mandatory');
+    	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory,export=Csv');
+    	$this->FLD('documentSrc', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory,export=Csv');
+    	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory,export=Csv');
+    	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory,export=Csv');
+    	$this->FLD('systemId', 'varchar(32)', 'caption=System ID, export, mandatory,export=Csv');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('systemId');
