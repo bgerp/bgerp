@@ -1,4 +1,4 @@
-<div style="display:inline-block" class="singleView">
+<div style="display:inline-block" class="singleView email-class">
 [#SingleToolbar#]
 	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Имейл акаунт <b style="color:green;">[#email#]</b></div></h2>
 	<table class="styled-table" width="100%">

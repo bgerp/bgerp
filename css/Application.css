@@ -1460,7 +1460,7 @@ fieldset.sharing-history i {
 }
 
 .narrow #cmsMenu { 
-      min-width:610px;
+     min-width:610px;
 }
 
 #cmsMenu a {
@@ -1939,4 +1939,9 @@ fieldset.sharing-history i {
 	margin-top:10px;
 	margin-bottom:2px;
 	margin-left:2px;
+}
+
+/*bugFix - заглавие при емейлите*/
+.email-class h2{
+	margin:10px 0 12px;
 }
