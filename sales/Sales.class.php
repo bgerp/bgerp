@@ -416,15 +416,74 @@ class sales_Sales extends core_Master
         
         if (empty($form->rec->folderId)) {
             expect($form->rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
-        } 
+        }
         
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
+        
+        /*
+        * Условия за доставка по подразбиране (трябва да е след определянето на клиента)
+        */
+        if (empty($form->rec->deliveryTermId)) {
+            $form->rec->deliveryTermId = $mvc::getDefaultDeliveryTermId($form->rec);
+        }
+        
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('deliveryLocationId')->type->options = 
             array(''=>'') +
             crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+    }
+    
+
+    /**
+     * Условия за доставка по подразбиране
+     * 
+     * @param stdClass $rec
+     * @return int key(mvc=trans_DeliveryTerms)
+     */
+    public static function getDefaultDeliveryTermId($rec)
+    {
+        // 1. Условията на последната продажба на същия клиент
+        $deliveryTermId = self::getRecentDeliveryTermId($rec);
+        
+        // 2. (@todo) Условията определени от локацията на клиента (държава, населено място)
+        //    @see trans_DeliveryTermsByPlace
+        if (false && empty($deliveryTermId)) {
+            $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+            $deliveryTermId = $contragent->getDeliveryTermId();
+        }
+        
+        return $deliveryTermId;
+    }
+    
+    
+    /**
+     * Последните условия на доставка, използвани при продажба на този клиент
+     * 
+     * @param stdClass $rec
+     * @return int key(mvc=trans_DeliveryTerms)
+     */
+    public static function getRecentDeliveryTermId($rec)
+    {
+        expect($rec->folderId);
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#folderId = {$rec->folderId}");
+        $query->where("#state <> 'rejected'");
+        $query->where("#contragentClassId = '{$rec->contragentClassId}'");
+        $query->where("#contragentId = '{$rec->contragentId}'");
+        $query->orderBy("#createdOn", 'DESC');
+        $query->limit(1);
+        
+        $deliveryTermId = NULL;
+        
+        if ($recentRec = $query->fetch()) {
+            $deliveryTermId = $recentRec->deliveryTermId;
+        }
+        
+        return $deliveryTermId;
     }
     
     
