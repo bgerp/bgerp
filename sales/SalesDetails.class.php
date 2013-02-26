@@ -273,7 +273,11 @@ class sales_SalesDetails extends core_Detail
                 $haveDiscount = $haveDiscount || ($rec->discount != 0);
     
                 if (empty($rec->packagingId)) {
-                    $row->packagingId = cat_UoM::fetchField($rec->uomId, 'name');
+                    if ($rec->uomId) {
+                        $row->packagingId = cat_UoM::fetchField($rec->uomId, 'name');
+                    } else {
+                        $row->packagingId = '???';
+                    }
                 } else {
                     $price = $row->price; // Единична цена
                     $row->price  = $row->packPrice;
