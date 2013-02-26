@@ -1443,10 +1443,6 @@ fieldset.sharing-history i {
 	border-top-right-radius: 10px;
 }
 
-.narrow #cmsTop{
-	min-width:610px;  
-}
-
 #cmsMenu {
 	padding-top: 10px;
 	padding-bottom: 10px;
@@ -1459,9 +1455,6 @@ fieldset.sharing-history i {
 	user-select: none;
 }
 
-.narrow #cmsMenu { 
-     min-width:610px;
-}
 
 #cmsMenu a {
 	font-size: 1.2em;
@@ -1481,11 +1474,9 @@ fieldset.sharing-history i {
 	padding: 0px;
 	padding-top: 7px;
 	display: block;
-	width: 1000px;
 }
-
-.narrow #cmsBottom {
-	min-width:610px;
+.wide #cmsBottom{
+	width: 1000px;
 }
 
 #all {
