@@ -25,7 +25,7 @@ class pos_Points extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_State,
+    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected,
                      pos_Wrapper, plg_Sorting, plg_Printing, plg_Current';
 
     
@@ -38,7 +38,7 @@ class pos_Points extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, title, caseId, storeId, listId';
+    var $listFields = 'id, tools=Пулт, title, caseId, storeId, policyId';
     
     
     /**
@@ -73,7 +73,7 @@ class pos_Points extends core_Manager {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование, mandatory');
     	$this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
-        $this->FLD('listId', 'key(mvc=price_Lists, select=title)', 'caption=Ценообразуване, mandatory');
+        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent, mandotory');
     }
     
 	

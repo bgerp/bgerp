@@ -219,8 +219,8 @@ class pos_Receipts extends core_Master {
     	jquery_Jquery::enableUI($tpl);
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     	$tpl->push('pos/js/scripts.js', 'JS');
-    	if($data->productRecs && count($data->productRecs) > 0) {
-    		$tpl->replace(pos_Favourites::renderPosProducts($data->productRecs), 'PRODUCTS');
+    	if($data->products && count($data->products->arr) > 0) {
+    		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
     	}
     }
     
@@ -518,12 +518,13 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * @TODO
+     * Подговяме бутоните с продуктите само ако не сме в широк режим
+     * и не принтираме
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
     	if(!Mode::is('printing') && !Mode::is('screenMode', 'narrow')) {
-    		$data->productRecs = pos_Favourites::preparePosProducts();
+    		$data->products = pos_Favourites::prepareProducts();
     	}
     }
 }

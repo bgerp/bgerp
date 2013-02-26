@@ -1,7 +1,14 @@
 <div id='pos-products'>
+[#FORM#]
 	<!--ET_BEGIN ITEM-->
-	<div class='pos-product'>
-	<img width='100px' height='100px' src='[#image#]' class='pos-fav-image' data-code='[#code#]'/>
-	</div>
+		<div class='pos-product' data-code='[#code#]'>
+			<!--ET_BEGIN image-->
+				[#image#]
+			<!--ET_END image-->
+			<span class='pos-product-title' title='натиснете за да добавите продукта'>[#name#]</span>
+			<span class='pos-product-price'>[#price#] 
+			<span class='pos-product-base-currency'>[#baseCurrency#]</span>
+			</span>
+		</div>
 	<!--ET_END ITEM-->
 </div>

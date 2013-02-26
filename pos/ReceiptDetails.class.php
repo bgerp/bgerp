@@ -381,13 +381,14 @@ class pos_ReceiptDetails extends core_Detail {
     	} 
     	
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
-        $priceCls = cls::get('cat_PricePolicyMockup');
-    	$price = $priceCls->getPriceInfo($receiptRec->contragentClass,
-    									 $receiptRec->contragentObjectId, 
-    									 $product->productId,
-    									 $product->packagingId, 
-    									 $rec->quantity, 
-    									 $receiptRec->date);
+    	$policyId = pos_Points::fetchField($receiptRec->pointId, 'policyId');
+    	$Policy = cls::get($policyId);
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass,
+    								   $receiptRec->contragentObjectId, 
+    								   $product->productId,
+    								   $product->packagingId, 
+    								   $rec->quantity, 
+    								   $receiptRec->date);
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	$rec->price = $price->price;
     	if($price->discount != 0.00) {

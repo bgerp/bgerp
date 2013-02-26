@@ -55,4 +55,16 @@ $(document).ready(function () {
 	$("form input[type=button]").hover(function(){$(this).toggleClass('button_hover');});
 	$("form input[type=submit]").hover(function(){$(this).toggleClass('submit_hover');});
 	
+	$("input[disabled=disabled]").addClass("disabledBtn");
+	$("input.disabledBtn").attr('title', 'Неможе да приключите бележката, докато не е платена');
+
+	$('.pos-product').click(function() {
+		var value = $(this).attr("data-code");
+		$("input[name=ean]").val(value);
+		$("#receipt-details-form form").submit();
+	});
+	
+	//$(".pos-product-title").hover(function(){
+		//$(this).toggleClass('product-title-');
+	//});
 });
