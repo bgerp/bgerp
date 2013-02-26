@@ -294,14 +294,83 @@ class sales_Sales extends core_Master
         return $transaction;
     }
     
-    function on_beforeRenderSingle($mvc, $res, $data)
+    function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-      //bp($data);
+        // Данните на "Моята фирма"
+        $ownCompanyData = crm_Companies::fetchOwnCompany();
+
+        $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
+        if ($address && !empty($ownCompanyData->address)) {
+            $address .= '<br/>' . $ownCompanyData->address;
+        }  
+        
+        $tpl->placeArray(
+            array(
+                'MyCompany'      => $ownCompanyData->company,
+                'MyCountry'      => $ownCompanyData->country,
+                'MyAddress'      => $address,
+                'MyCompanyVatNo' => $ownCompanyData->vatNo,
+            ), 'supplier'
+        );
+        
+        // Данните на клиента
+        $contragent = new core_ObjectReference($data->rec->contragentClassId, $data->rec->contragentId);
+        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        
+        $tpl->placeObject($cdata, 'contragent');
+        
+        // Описателното (вербалното) състояние на документа
+        $tpl->replace($data->row->state, 'stateText');
     }
     
-    function on_afterRenderSingle($mvc, $tpl, $data)
+    
+    public static function normalizeContragentData($contragentData)
     {
-        $tpl->replace($data->row->state, 'stateText');
+        /*
+        * Разглеждаме четири случая според данните в $contragentData
+        *
+        *  1. Има данни за фирма и данни за лице
+        *  2. Има само данни за фирма
+        *  3. Има само данни за лице
+        *  4. Нито едно от горните не е вярно
+        */
+        
+        if (empty($contragentData->company) && empty($contragentData->name)) {
+            // Случай 4: нито фирма, нито лице
+            // TODO доколко допустимо е да се стигне до тук?
+            return FALSE;
+        }
+        
+        // Тук ще попълним резултата
+        $rec = new stdClass();
+        
+        $rec->contragentCountryId = $contragentData->countryId;
+        $rec->contragentCountry   = $contragentData->country;
+        
+        if (!empty($contragentData->company)) {
+            // Случай 1 или 2: има данни за фирма
+            $rec->contragentName    = $contragentData->company;
+            $rec->contragentAddress = trim(
+                sprintf("%s %s\n%s",
+                    $contragentData->place,
+                    $contragentData->pCode,
+                    $contragentData->address
+                )
+            );
+            $rec->contragentVatNo = $contragentData->vatNo;
+        
+            if (!empty($contragentData->name)) {
+                // Случай 1: данни за фирма + данни за лице
+        
+                // TODO за сега не правим нищо допълнително
+            }
+        } elseif (!empty($contragentData->name)) {
+            // Случай 3: само данни за физическо лице
+            $rec->contragentName    = $contragentData->name;
+            $rec->contragentAddress = $contragentData->pAddress;
+        }
+
+        return $rec;
     }
     
     /**
