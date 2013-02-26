@@ -93,7 +93,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    	$form->method = 'POST';
 	    	$form->layout = new ET(getFileContent("pos/tpl/DetailsForm.shtml"));
 	    	$form->action = array($this->Master, 'single', $data->masterId, '#'=>'form');
-	    	$form->fieldsLayout = $this->createFormFieldsLayout();
+	    	$form->fieldsLayout = $this->createFormFieldsLayout($data);
 	    	$form->setField('id', 'input=none');
 	    	$form->setDefault('receiptId', $data->masterId);
 	    	$data->form = $form;
@@ -106,7 +106,7 @@ class pos_ReceiptDetails extends core_Detail {
      * Подготвя лейаута на полетата на формата и добавя допълнителни бутони
      * @return core_ET $tpl
      */
-    function createFormFieldsLayout()
+    function createFormFieldsLayout($data)
     {
     	$tpl = new ET(getFileContent("pos/tpl/DetailsFormFields.shtml"));
     	$tpl->append(ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' =>  'buttonForm')), 'FIRST_ROW');
@@ -116,16 +116,17 @@ class pos_ReceiptDetails extends core_Detail {
 	    //$tpl->append(ht::createFnBtn('Маса', '','', array('class'=>'actionBtn', 'data-type'=>'client|table')), 'THIRD_ROW');
 	    //$tpl->append(ht::createFnBtn('Стая', '','', array('class'=>'actionBtn', 'data-type'=>'client|room')), 'THIRD_ROW');
 	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class'=>'actionBtn', 'data-type' =>'client|ccard')), 'THIRD_ROW');
-	    $tpl->append(ht::createBtn('Нов', array($this->Master, 'new'), '', '', array('class'=>'actionBtn btnNew')), 'FIRST_ROW');
 	    $payments = pos_Payments::fetchSelected();
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => 'actionBtn', 'data-type' => "payment|" . $payment->id);
 	    	$tpl->append(ht::createFnBtn($payment->title, '', '', $attr), 'SECOND_ROW');
 	    }
-	    if(haveRole('pos,admin') && $this->haveRightFor('conto', $data->rec)) {
-		    $contUrl = array('acc_Journal','conto','docId' => $data->rec->id, 'docType' => $mvc->className, 'ret_url' => array($this->Master, 'new'));
-		    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'SECOND_ROW');
+	    
+	    if(haveRole('pos,admin') && $this->Master->haveRightFor('conto', $data->masterId)) {
+	    	$contUrl = array('acc_Journal','conto','docId' => $data->masterId, 'docType' => $this->Master->className, 'ret_url' => array($this->Master, 'new'));
 	    }
+	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'FIRST_ROW');
+	   
 		return $tpl;
     }
     
