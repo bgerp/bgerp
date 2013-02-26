@@ -467,11 +467,11 @@ class sales_Sales extends core_Master
             $deliveryTermId = $recentRec->deliveryTermId;
         }
         
-        // 2. (@todo) Условията определени от локацията на клиента (държава, населено място)
-        //    @see trans_DeliveryTermsByPlace
-        if (false && empty($deliveryTermId)) {
+        // 2. Условията определени от локацията на клиента (държава, населено място)
+        // @see trans_DeliveryTermsByPlace
+        if (empty($deliveryTermId)) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $deliveryTermId = trans_DeliveryTerms::getDefault($contragent->getContragentInfo());
+            $deliveryTermId = trans_DeliveryTerms::getDefault($contragent->getContragentData());
         }
         
         return $deliveryTermId;
@@ -504,10 +504,9 @@ class sales_Sales extends core_Master
         }
         
         // 4. Според данните на клиента
-        if (false && !$paymentMethodId) {
-            // @TODO
+        if (!$paymentMethodId) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $paymentMethodId = bank_PaymentMethods::getDefault($contragent->getContragentInfo()); 
+            $paymentMethodId = bank_PaymentMethods::getDefault($contragent->getContragentData()); 
         }
         
         return $paymentMethodId;
@@ -524,10 +523,9 @@ class sales_Sales extends core_Master
     {
         if ($recentRec = self::getRecentSale($rec)) {
             $currencyBaseCode = $recentRec->currencyId;
-        } elseif (false) {
-            // @TODO
+        } else {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $currencyBaseCode = currency_Currencies::getDefault($contragent->getContragentInfo()); 
+            $currencyBaseCode = currency_Currencies::getDefault($contragent->getContragentData()); 
         }
          
         return $currencyBaseCode;
@@ -561,10 +559,9 @@ class sales_Sales extends core_Master
             }
         }
         
-        if (false && !$bankAccountId) {
-            // @TODO
+        if (!$bankAccountId) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $bankAccountId = bank_OwnAccounts::getDefault($contragent->getContragentInfo()); 
+            $bankAccountId = bank_OwnAccounts::getDefault($contragent->getContragentData()); 
         }
          
         return $bankAccountId;

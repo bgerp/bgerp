@@ -72,6 +72,20 @@ class trans_DeliveryTerms extends core_Master
     
     
     /**
+     * Условия на доставка по подразбиране според клиента
+     * 
+     * @see doc_ContragentDataIntf
+     * @param stdClass $contragentInfo
+     * @return int key(mvc=trans_DeliveryTerms) 
+     */
+    public static function getDefault($contragentInfo)
+    {
+        // @TODO
+        return NULL;
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     static function on_AfterSetupMvc($mvc, &$res)

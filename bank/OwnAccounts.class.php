@@ -93,6 +93,20 @@ class bank_OwnAccounts extends core_Manager {
         $this->FLD('operators', 'userList(bank,bankWorker)', 'caption=Оператори,mandatory');
     }
     
+
+    /**
+     * Наша банкова сметка по подразбиране според клиента
+     *
+     * @see doc_ContragentDataIntf
+     * @param stdClass $contragentInfo
+     * @return int key(mvc=bank_OwnAccounts)
+     */
+    public static function getDefault($contragentInfo)
+    {
+        // @TODO
+        return NULL;
+    }
+    
     
     /**
      * Обработка по формата

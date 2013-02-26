@@ -91,6 +91,19 @@ class bank_PaymentMethods extends core_Master
     
     
     /**
+     * Начин на плащане по подразбиране според клиента
+     * 
+     * @see doc_ContragentDataIntf
+     * @param stdClass $contragentInfo
+     * @return int key(mvc=bank_PaymentMethods) 
+     */
+    public static function getDefault($contragentInfo)
+    {
+        // @TODO
+        return NULL;
+    }
+    
+    /**
      * Сортиране по name
      *
      * @param core_Mvc $mvc

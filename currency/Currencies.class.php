@@ -121,6 +121,20 @@ class currency_Currencies extends core_Master {
     
     
     /**
+     * Валута по подразбиране според клиента
+     * 
+     * @see doc_ContragentDataIntf
+     * @param stdClass $contragentInfo
+     * @return int key(mvc=currency_Currencies) 
+     */
+    public static function getDefault($contragentInfo)
+    {
+        // @TODO
+        return core_Packs::getConfig('currency')->CURRENCY_BASE_CODE;
+    }
+    
+    
+    /**
      * Приготвяне на данните, ако имаме groupId от $_GET
      * В този случай няма да листваме всички записи, а само тези, които
      * имат в полето 'groups' groupId-то от $_GET
