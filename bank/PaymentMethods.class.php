@@ -100,7 +100,7 @@ class bank_PaymentMethods extends core_Master
     public static function getDefault($contragentInfo)
     {
         // @TODO
-        return NULL;
+        return static::fetchField("#name = 'COD'", 'id'); // за тест
     }
     
     /**

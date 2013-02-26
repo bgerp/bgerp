@@ -104,7 +104,7 @@ class bank_OwnAccounts extends core_Manager {
     public static function getDefault($contragentInfo)
     {
         // @TODO
-        return NULL;
+        return static::fetchField(1, 'id'); // За тест
     }
     
     
