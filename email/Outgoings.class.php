@@ -1564,6 +1564,16 @@ class email_Outgoings extends core_Master
     /**
      * Връща имейла, до който имаме достъп
      * 
+     * Начин за определяна не папката:
+     * 1. Ако е на фирма
+     * 2. Ако е бизнес имейл на лице
+     * 3. Ако е на лице
+     * 4. Къде би се рутирал имейла (само папка на контрагент)
+     * 5. Ако има корпоративен акаунт:
+     * 5.1 Кутия на потребителя
+     * 5.2 Кутия на която е inCharge от съответния корпоративен акаунт
+     * 6. Последната кутия на която сме inCharge
+     * 
      * @param email $email - Имейл
      * 
      * @return doc_Folders $folderId - id на папка
@@ -1572,105 +1582,123 @@ class email_Outgoings extends core_Master
     {
         // Имейла в долния регистър
         $email = mb_strtolower($email);
+            
+        // Вземаме компанията с този имейл
+        $companyId = crm_Companies::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
+        
+        // Ако има такава компания
+        if ($companyId) {
+            
+            // Вземаме папката на фирмата
+            $folderId = crm_Companies::forceCoverAndFolder($companyId);
+            
+            // Проверяваме дали имаме права за папката
+            if (doc_Folders::haveRightFor('single', $folderId)) {
+                    
+                return $folderId;
+            }  
+        }
+        
+        // Вземаме потребителя с такъв бизнес имейл
+        $personRec = crm_Persons::fetch(array("LOWER(#buzEmail) LIKE '%[#1#]%'", $email));
+        
+        // Ако има бизнес имейл и асоциирана фирма с потребителя
+        if ($companyId = $personRec->buzCompanyId) {
+            
+            // Вземаме папката на фирмата
+            $folderId = crm_Companies::forceCoverAndFolder($companyId);
+              
+            // Проверяваме дали имаме права за папката
+            if (doc_Folders::haveRightFor('single', $folderId)) {
+                    
+                return $folderId;
+            }  
+        }
+        
+        // Вземаме потребителя с личен имейл
+        $personId = crm_Persons::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
+        
+        // Ако има такъв потребител
+        if ($personId) {
+            
+            // Вземаме папката
+            $folderId = crm_Persons::forceCoverAndFolder($personId);   
+            
+            // Ако имаме права за нея
+            if (doc_Folders::haveRightFor('single', $folderId)) {
+
+                return $folderId;
+            }
+        }
         
         // Вземаме предполагаемата папка
         $folderId = email_Router::getEmailFolder($email);
         
         // Ако може да се определи папка
-        if ($folderId) {
-            
+        if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
+
             // Вземаем името на cover
             $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));    
-        }
-
-        // Ако cover е crm_Persons или нямам права за папката
-        if (!$folderId || ($coverClassName == 'crm_persons') || (!doc_Folders::haveRightFor('single', $folderId))) {
             
-            // Ако е crm_Person на текущия потребител
-            if ($coverClassName == 'crm_persons') {
+            // Ако корицата е на контрагент
+            if (($coverClassName == 'crm_persons') || ($coverClassName == 'crm_companies')) {
                 
-                // Данните за текущия потребител
-                $currUserPerson = crm_Profiles::getProfile();
-                
-                // id на cover
-                $coverId = doc_Folders::fetchCoverId($folderId);   
-                
-                // Връщаме папката, ако имейла е от личната на текущия потребител
-                if ($currUserPerson->id == $coverId) return $folderId;
+                return $folderId;
             }
-            
-            // Вземаме компанията с този имейл
-            $companyId = crm_Companies::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
-            
-            // Ако имя така компания
-            if ($companyId) {
-                
-                // Вземаме папката на фирмата
-                $folderId = crm_Companies::forceCoverAndFolder($companyId);
-                  
-                // Проверяваме дали имаме права за папката
-                if (doc_Folders::haveRightFor('single', $folderId)) {
-                        
-                    return $folderId;
-                }  
-            }
-            
-            // Вземаме потребителя с такъв бизнес имейл
-            $personRec = crm_Persons::fetch(array("LOWER(#buzEmail) LIKE '%[#1#]%'", $email));
-            
-            // Ако има бизнес имейл и асоциирана фирма с потребителя
-            if ($companyId = $personRec->buzCompanyId) {
-                
-                // Вземаме папката на фирмата
-                $folderId = crm_Companies::forceCoverAndFolder($companyId);
-                  
-                // Проверяваме дали имаме права за папката
-                if (doc_Folders::haveRightFor('single', $folderId)) {
-                        
-                    return $folderId;
-                }  
-            }
-            
-            // id на потребителя
-            $personId = $personRec->id;
-            
-            // Ако има такъв потребител
-            if ($personId) {
-                
-                // Ако няма такъм профил
-                if (!crm_Profiles::fetchField("#personId = '{$personId}'")) {
-                    
-                    // Вземаме папката
-                    $folderId = crm_Persons::forceCoverAndFolder($personId);   
-                    
-                    // Ако имаме права за нея
-                    if (doc_Folders::haveRightFor('single', $folderId)) {
-
-                        return $folderId;
-                    }
-                }
-            }    
-            
-            // Вземаме потребителя с личен имейл
-            $personId = crm_Persons::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
-            
-            // Ако има такъв потребител
-            if ($personId) {
-                
-                // Вземаме папката
-                $folderId = crm_Persons::forceCoverAndFolder($personId);   
-                
-                // Ако имаме права за нея
-                if (doc_Folders::haveRightFor('single', $folderId)) {
-
-                    return $folderId;
-                }
-            }
-            
-            // Ако не може да се открие папка или нямаме права за нея
-            return FALSE;
         }
         
-        return $folderId;
+        // Вземаме корпоративната сметка
+        $corpAccRec = email_Accounts::getCorporateAcc();
+        
+        $currUserId = core_Users::getCurrent();
+        
+        // Ако имаме корпоративен акаунт
+        if ($corpAccId = $corpAccRec->id) {
+            
+            // Корпоративния имейла на потребиеля
+            $currUserCorpEmail = mb_strtolower(email_Inboxes::getUserEmail());
+            
+            // Вземаме папката
+            $folderId = email_Inboxes::fetchField(array("LOWER(#email) = '[#1#]' AND #state = 'active' AND #accountId = '{$corpAccId}'", $currUserCorpEmail), 'folderId');
+
+            // Ако има папка и имаме права в нея
+            if ($folderId && email_Inboxes::haveRightFor('single', $folderId)) {
+
+                return $folderId;
+            }
+            
+            // Ако нямаме корпоративен имейл
+            // Вземаме последния имейл на който сме inCharge
+            $queryCorp = email_Inboxes::getQuery();
+            $queryCorp->where("#inCharge = '{$currUserId}' AND #accountId = '{$corpAccId}' AND #state = 'active'");
+            $queryCorp->orderBy('createdOn', 'DESC');
+            $queryCorp->limit(1);
+            $emailCorpAcc = $queryCorp->fetch();
+            $folderId = $emailCorpAcc->folderId;
+            
+            // Ако има папка и имаме права
+            if ($folderId && email_Inboxes::haveRightFor('single', $folderId)) {
+
+                return $folderId;
+            }
+        }
+        
+        // Ако няма корпоративна сметка
+        // Вземаме последния имейл на който имаме права за inCharge
+        $queryEmail = email_Inboxes::getQuery();
+        $queryEmail->where("#inCharge = '{$currUserId}' AND #state = 'active'");
+        $queryEmail->orderBy('createdOn', 'DESC');
+        $queryEmail->limit(1);
+        $emailAcc = $queryEmail->fetch();
+        $folderId = $emailAcc->folderId;
+
+        // Ако има папка и имаме права
+        if ($folderId && email_Inboxes::haveRightFor('single', $folderId)) {
+
+            return $folderId;
+        }
+
+        // Ако не може да се определи по никакъв начин
+        return FALSE;
     }
 }
