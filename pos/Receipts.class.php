@@ -68,7 +68,7 @@ class pos_Receipts extends core_Master {
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'no_one';
+    var $canAdd = 'pos, admin';
     
     
     /**
@@ -194,6 +194,18 @@ class pos_Receipts extends core_Master {
     		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
     							   'ef_icon=img/16/application_view_list.png, order=18');    
     								 
+    	}
+    }
+    
+    
+    /**
+     * След подготовката на туулбара на списъчния изглед
+     */
+	static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if($mvc->haveRightFor('add')){
+    		$addUrl = array($mvc, 'new');
+    		$data->toolbar->buttons['btnAdd']->url = $addUrl;
     	}
     }
     
@@ -340,10 +352,6 @@ class pos_Receipts extends core_Master {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
-		if($action == 'add' && isset($rec)) {
-			$res = 'pos, ceo, admin';
-		}
-		
 		// Никой неможе да редактира бележка
 		if($action == 'edit') {
 			$res = 'no_one';
