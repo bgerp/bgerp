@@ -645,7 +645,9 @@ if ($step == 'setup') {
         				clearInterval(handle);
         				document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 				</script>");
-			 
+	
+	setupUnlock();
+	
     exit;
 }
 
@@ -687,6 +689,9 @@ if($step == start) {
 	$Packs = cls::get('core_Lg');
     $Packs->setupMVC();
 	
+    $Packs = cls::get('acc_Lists');
+    $Packs->setupMVC();
+    
     $Packs = cls::get('core_Packs');
     $Packs->setupMVC();
     $Packs->checkSetup();
