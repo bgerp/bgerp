@@ -443,7 +443,9 @@ class sales_Sales extends core_Master
             $form->setDefault('bankAccountId', $mvc::getDefaultBankAccountId($data->form->rec));
         }
         
-        $form->setDefault('makeInvoice', 'yes');
+        if (empty($data->form->rec->makeInvoice)) {
+            $form->setDefault('makeInvoice', $mvc::getDefaultMakeInvoice($data->form->rec));
+        }
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('deliveryLocationId')->type->options = 
@@ -565,6 +567,27 @@ class sales_Sales extends core_Master
         }
          
         return $bankAccountId;
+    }
+    
+    
+    /**
+     * Определяне ст-ст по подразбиране на полето makeInvoice
+     * 
+     * @param stdClass $rec
+     * @return string ('yes' | 'no' | 'monthend') 
+     *  
+     */
+    public static function getDefaultMakeInvoice($rec)
+    {
+        $makeInvoice = NULL;
+        
+        if ($recentRec = self::getRecentSale($rec)) {
+            $makeInvoice = $recentRec->makeInvoice;
+        } else {
+            $makeInvoice = 'yes';
+        }
+         
+        return $makeInvoice;
     }
     
     
