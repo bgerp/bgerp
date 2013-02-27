@@ -85,6 +85,42 @@ class doc_Search extends core_Manager
         !empty($filterRec->author) ||
         !empty($filterRec->toDate);
         
+        // Ако формата е субмитната
+        if($data->listFilter->isSubmitted()) {
+            
+            // Ако са попълнени полетата От и До
+            if ($filterRec->fromDate && $filterRec->toDate) {
+                
+                // Ако До е след От
+                if ($filterRec->toDate < $filterRec->fromDate) {
+                    
+                    // Имената на полетата
+                    $fromDateCaption = $data->listFilter->getField('fromDate')->caption;
+                    $toDateCaption = $data->listFilter->getField('toDate')->caption;
+                    
+                    // Сетваме грешката
+                    $data->listFilter->setError('toDate', "|Датата в полето|* '{$toDateCaption}' |не може да е преди|* '{$fromDateCaption}'");
+                }    
+            }
+            
+            // Днешната дата
+            $now = dt::now(FALSE);
+            
+            // Ако се търси в бъдеще
+            if ($filterRec->fromDate && $filterRec->fromDate > $now) {
+                
+                // Сетваме грешката
+                $data->listFilter->setError('fromDate', "Не може да се търси в бъдеще");    
+            }
+            
+            // Ако се търси в бъдеще
+            if ($filterRec->toDate && $filterRec->toDate > $now) {
+                
+                // Сетваме грешката
+                $data->listFilter->setError('toDate', "Не може да се търси в бъдеще");    
+            }
+        }
+        
         // Има зададен условия за търсене - генерираме SQL заявка.
         if($data->listFilter->isSubmitted()) {
             
@@ -168,7 +204,7 @@ class doc_Search extends core_Manager
         $data->listFilter->title = 'Tърсене на документи';
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
-        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=300px,caption=Обхват');
+        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         
         // Търсим дали има посочена или текуща
@@ -188,11 +224,14 @@ class doc_Search extends core_Manager
     	$data->listFilter->getField('search')->caption = 'Ключови думи';
         $data->listFilter->getField('search')->width = '100%';
         $data->listFilter->getField('docClass')->caption = 'Вид документ';
-        $data->listFilter->getField('docClass')->width = '300px';
+        $data->listFilter->getField('docClass')->width = '100%';
         $data->listFilter->getField('docClass')->placeholder = 'Всички';
         $data->listFilter->getField('author')->width = '100%';
         $data->listFilter->getField('state')->width = '100%';
+        $data->listFilter->getField('scopeFolderId')->width = '100%';
         
+        $data->listFilter->setDefault('author', 'all_users');
+
         $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
     }
