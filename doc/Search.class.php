@@ -291,7 +291,8 @@ class doc_Search extends core_Manager
             array('doc_Containers', 'list',
                 'threadId' => $rec->threadId,
                 'folderId' => $rec->folderId,
-                'docId'=>$handle, 
+                'docId'=>$handle,
+                'Q' => Request::get('search'),
                 '#'=>$handle,
             ),
             NULL, $attr);
