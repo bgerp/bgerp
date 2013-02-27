@@ -99,7 +99,7 @@ class doc_Search extends core_Manager
                     $toDateCaption = $data->listFilter->getField('toDate')->caption;
                     
                     // Сетваме грешката
-                    $data->listFilter->setError('toDate', "|Датата в полето|* '{$toDateCaption}' |не може да е преди|* '{$fromDateCaption}'");
+                    $data->listFilter->setError('toDate', "Края на периода за търсене не може да е преди началото му");
                 }    
             }
             
