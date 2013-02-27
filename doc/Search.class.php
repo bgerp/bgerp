@@ -81,6 +81,8 @@ class doc_Search extends core_Manager
         !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
         !empty($filterRec->fromDate) ||
+        !empty($filterRec->state) ||
+        !empty($filterRec->author) ||
         !empty($filterRec->toDate);
         
         // Има зададен условия за търсене - генерираме SQL заявка.
@@ -103,18 +105,50 @@ class doc_Search extends core_Manager
             // Ограничаване на търсенето до избрана папка
             if (!empty($filterRec->scopeFolderId)) {
                 $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
-            }            
+            }
+            
+            // Ако е избран автор или не са избрани всичките
+            if (!empty($filterRec->author) && $filterRec->author != 'all_users' && (strpos($maintainers, '|-1|') === FALSE)) {
+                
+                // Масив с всички избрани автори
+                $authorArr = type_Keylist::toArray($filterRec->author);
+                
+                $firstTime = TRUE;
+                // Обхождаме масива
+                foreach ($authorArr as $author) {
+                    
+                    if ($firstTime) {
+                        // Добавяме в запитването
+                        $data->query->where("#createdBy = '{$author}'");      
+                    } else {
+                        $data->query->orWhere("#createdBy = '{$author}'");      
+                    }
+                    
+                    $firstTime=FALSE;
+                }
+            }
+
+            // Ако не е избрано състояние или не са избрани всичките
+            if (!empty($filterRec->state) && $filterRec->state != 'all') {
+                
+                // Добавяме запитването
+                $data->query->where(array("#state = '[#1#]'", $filterRec->state));
+            } 
+            
+            // Ако не търсим оттеглените документи, тогава да не се показват
+            if ($filterRec->state != 'rejected') {
+                
+                // Избягваме търсенето в оттеглените документи
+                $data->query->where("#state != 'rejected'");    
+            }
             
             // Ограничаване на заявката само до достъпните нишки
             doc_Threads::restrictAccess($data->query);
             
-            // Избягваме търсенето в оттеглените документи
-            $data->query->where("#state != 'rejected'");
-
             // Експеримент за оптимизиране на бързодействието
             $data->query->setStraight();
             $data->query->orderBy('#createdOn=DESC');
-            
+
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
              */
@@ -135,6 +169,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=300px,caption=Обхват');
+        $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         
         // Търсим дали има посочена или текуща
         $lastfolderId = Request::get('scopeFolderId', 'int');
@@ -148,13 +183,17 @@ class doc_Search extends core_Manager
     		$field->type->options[$lastfolderId] = '|*' . $lastFolderTitle;
             $data->listFilter->setField('scopeFolderId', 'input');
     	}
+    	$data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
     	
-        $data->listFilter->getField('search')->caption = 'Ключови думи';
+    	$data->listFilter->getField('search')->caption = 'Ключови думи';
         $data->listFilter->getField('search')->width = '100%';
         $data->listFilter->getField('docClass')->caption = 'Вид документ';
         $data->listFilter->getField('docClass')->width = '300px';
         $data->listFilter->getField('docClass')->placeholder = 'Всички';
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass, fromDate, toDate';
+        $data->listFilter->getField('author')->width = '100%';
+        $data->listFilter->getField('state')->width = '100%';
+        
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
     }
 
