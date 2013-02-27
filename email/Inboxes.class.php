@@ -19,7 +19,7 @@ class email_Inboxes extends core_Master
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, doc_FolderPlg, plg_RowTools, plg_CryptStore';
+    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, doc_FolderPlg, plg_RowTools, plg_Rejected';
     
     
     /**
