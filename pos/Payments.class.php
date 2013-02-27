@@ -25,7 +25,7 @@ class pos_Payments extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_State, pos_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, plg_State2, pos_Wrapper';
 
     
     /**
@@ -37,7 +37,7 @@ class pos_Payments extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, title, show, change';
+    var $listFields = 'id, tools=Пулт, title, change, state';
     
     
     /**
@@ -70,8 +70,9 @@ class pos_Payments extends core_Manager {
     function description()
     {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
-    	$this->FLD('show', 'enum(yes=Да,no=Не)', 'maxRadio=4,maxColumns=1,caption=Показване,value=yes');
     	$this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Връща ресто?,value=no');
+    	
+    	$this->setDbUnique('title');
     }
     
     
@@ -87,7 +88,7 @@ class pos_Payments extends core_Manager {
                 $rec = new stdClass();
                 $rec->id = $csvRow [0];
                 $rec->title = $csvRow [1];
-                $rec->show = $csvRow [2];
+                $rec->state = $csvRow [2];
                 $rec->change = $csvRow [3];
                	if ($rec->id = static::fetchField(array("#title = '[#1#]'", $rec->title), 'id')) {
                     $updated++;
@@ -120,12 +121,11 @@ class pos_Payments extends core_Manager {
     {
     	$payments = array();
     	$query = static::getQuery();
-	    $query->where("#show = 'yes'");
+	    $query->where("#state = 'active'");
 	    while($rec = $query->fetch()) {
 	    	$payment = new stdClass();
 	    	$payment->id = $rec->id;
 	    	$payment->title = $rec->title;
-	    	
 	    	$payments[] = $payment;
 	    }
 	    

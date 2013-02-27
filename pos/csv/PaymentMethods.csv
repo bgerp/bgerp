@@ -1,6 +1,6 @@
-1,Кеш,yes,yes
-2,Borica,yes,no
-3,Transcard,yes,no
-4,vaucherCBA,no,no
-5,vaucherCheck,no,no
-6,Стая,no,no
+1,Кеш,active,yes
+2,Borica,active,no
+3,Transcard,active,no
+4,vaucherCBA,draft,no
+5,vaucherCheck,draft,no
+6,Стая,draft,no
