@@ -1002,7 +1002,8 @@ class email_Incomings extends core_Master
         if($rec->containerId && $rec->folderId && $rec->fromEml && $rec->toBox) {
             if ($rec->state == 'rejected') {
                 $mvc->removeRouterRules($rec);
-            } elseif (empty($rec->_skipRouterRules)) {
+            } elseif (($rec->routeBy != 'thread') && ($rec->routeBy != 'preroute')) {
+                // Ако рутираме по нишка или потребителски филтър да не се създават правила
                 $mvc->makeRouterRules($rec);
             }
         }
