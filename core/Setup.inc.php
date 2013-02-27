@@ -944,6 +944,9 @@ function contentFlush ($content)
 function setupLock()
 {
 	setcookie("setup", setupKey() , time()+600);
+	if (!is_dir(EF_TEMP_PATH)) {
+		mkdir(EF_TEMP_PATH, 0777, TRUE);
+	}
 	return touch(EF_TEMP_PATH . "/setupLock.tmp");
 }
 
