@@ -467,9 +467,9 @@ class core_App
     /**
      * @todo Чака за документация...
      */
-    public static function followRetUrl($retUrl = NULL)
+    public static function followRetUrl($retUrl = NULL, $msg = NULL, $type = 'info')
     {
-        if(!$retUrl) {
+        if (!$retUrl) {
 	    	if (!$retUrl = static::getRetUrl()) {
 	            $retUrl = array(
 	                EF_DEFAULT_CTR_NAME,
@@ -477,7 +477,8 @@ class core_App
 	            );
 	        }
         }
-        static::redirect($retUrl);
+        
+        static::redirect($retUrl, FALSE, $msg, $type);
     }
 
 
@@ -1049,9 +1050,9 @@ function getRetUrl($retUrl = NULL)
 /**
  * @todo Чака за документация...
  */
-function followRetUrl()
+function followRetUrl($url = NULL, $msg = NULL, $type = 'info')
 {
-    core_App::followRetUrl();
+    core_App::followRetUrl($url, $msg, $type);
 }
 
 
