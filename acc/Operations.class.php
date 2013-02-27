@@ -186,6 +186,19 @@ class acc_Operations extends core_Manager
     
     
     /**
+     * Връща операцията по дадено systemId
+     * @param string $sysId - системно ид на операцията
+     * @return stdClass $rec - запис на операцията
+     */
+    static function fetchBySysId($sysId)
+    {
+    	expect($rec = static::fetch(array("#systemId ='[#1#]'", $sysId)), 'Няма операция с това systemId');
+    	
+    	return $rec;
+    }
+    
+    
+    /**
      * Излича информацията за дебитната и кредитната сметка на операцията
      * @param int $id - ID на операцията
      * @return stdClass $rec 
