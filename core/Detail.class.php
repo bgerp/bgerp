@@ -267,7 +267,9 @@ class core_Detail extends core_Manager
      */
     function save_(&$rec, $fieldsList = NULL, $mode = NULL)
     {
-        parent::save_($rec, $fieldsList, $mode);
+        if (!$id = parent::save_($rec, $fieldsList, $mode)) {
+            return FALSE;
+        }
 
         $masterKey = $this->masterKey;
         
@@ -282,6 +284,8 @@ class core_Detail extends core_Manager
             
             $masterInstance->invoke('AfterUpdateDetail', array($masterId, $this));
         }
+        
+        return $id;
     }
     
     
