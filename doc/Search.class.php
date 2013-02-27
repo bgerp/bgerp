@@ -234,9 +234,13 @@ class doc_Search extends core_Manager
             //$row->threadHnd = $threadRow->hnd;
             //$row->threadId  = $threadRow->title;
             
-
-            $doc = doc_Containers::getDocument($rec->id);
-            $row->docLink = $doc->getLink(64, array('Q' => $data->listFilter->rec->search));
+            try {
+                $doc = doc_Containers::getDocument($rec->id);
+                $row->docLink = $doc->getLink(64, array('Q' => $data->listFilter->rec->search));
+                
+            } catch (core_exception_Expect $exp) {
+                $row->docLink = $row->title = "<b style='color:red;'>Грешка</b>";
+            }
         }
     }
     

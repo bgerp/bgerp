@@ -331,7 +331,8 @@ class cash_ExchangeDocument extends core_Master
         $row->title = $rec->reason;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
-        
+        $row->state = $rec->state;
+
         return $row;
     }
 }
