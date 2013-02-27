@@ -123,7 +123,7 @@ class acc_Operations extends core_Manager
         $query = static::getQuery();
         $query->where("#documentSrc = {$classId}");
         while($rec = $query->fetch()) {
-        	$options[$rec->id] = $rec->name;
+        	$options[$rec->systemId] = $rec->name;
         }
         
         if(count($options) == 0) {
@@ -155,7 +155,7 @@ class acc_Operations extends core_Manager
     	foreach($options as $key => $value) {
     		
     		// за всяка операция от масива намираме сметките с които работи
-    		expect($rec = static::fetch($key), 'Няма такава операция');
+    		expect($rec = static::fetchBySysId($key), 'Няма такава операция');
     		$dAcc = $rec->debitAccount;
     		$cAcc = $rec->creditAccount;
     		$occ = 0;
