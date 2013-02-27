@@ -122,7 +122,7 @@ class email_Incomings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,subject,createdOn=Дата,fromEml=От,toBox=До,accId,boxIndex,uid,country';
+    var $listFields = 'id,subject,createdOn=Дата,fromEml=От,toBox=До,accId,boxIndex,routeBy,uid,country';
     
     
     /**
@@ -161,6 +161,8 @@ class email_Incomings extends core_Master
         $this->FLD('htmlFile', 'key(mvc=fileman_Files)', 'caption=html файл, input=none');
         $this->FLD('boxIndex', 'int', 'caption=Индекс');
         $this->FLD('uid', 'int', 'caption=Imap UID');
+        
+        $this->FLD('routeBy', 'enum(thread, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
         
         $this->setDbUnique('hash');
     }
@@ -887,13 +889,25 @@ class email_Incomings extends core_Master
      *
      * @param stdClass $rec запис на модела email_Incomings
      */
-    public function route_($rec)
+    public function route_(&$rec)
     {
         // Винаги рутираме по номер на тред
-        if(email_Router::doRuleThread($rec)) return;
+        if(email_Router::doRuleThread($rec)) {
+            
+            // Добавяме начина на рутиране
+            $rec->routeBy = 'thread';
+            
+            return;
+        }
         
         // Първо рутираме по ръчно зададените правила
-        if(email_Filters::preroute($rec)) return;
+        if(email_Filters::preroute($rec)) {
+            
+            // Добавяме начина на рутиране
+            $rec->routeBy = 'preroute';
+            
+            return;
+        }
         
         // Извличаме записа на сметката, от която е изтеглено това писмо
         $accRec = email_Accounts::fetch($rec->accId);
@@ -905,23 +919,50 @@ class email_Incomings extends core_Master
             if($accRec->email == $rec->toBox && $accRec->type != 'single') {
                 
                 // Ако папката е с рутиране и boxTo е обща кутия, прилагаме `From`
-                if(email_Router::doRuleFrom($rec)) return;
+                if(email_Router::doRuleFrom($rec)) {
+                    
+                    // Добавяме начина на рутиране
+                    $rec->routeBy = 'from';
+                    
+                    return;
+                }
                 
                 // Рутиране по домейn
-                if(email_Router::doRuleDomain($rec)) return;
+                if(email_Router::doRuleDomain($rec)) {
+                    
+                    // Добавяме начина на рутиране
+                    $rec->routeBy = 'domain';
+                    
+                    return;
+                }
                 
                 // Рутиране по място (държава)
-                if(email_Router::doRuleCountry($rec)) return;
+                if(email_Router::doRuleCountry($rec)) {
+                    
+                    // Добавяме начина на рутиране
+                    $rec->routeBy = 'country';
+                    
+                    return;
+                }
                 
             } else {
                 
                 // Ако `boxTo` е частна кутия, то прилагаме `FromTo`
-                if(email_Router::doRuleFromTo($rec)) return;
+                if(email_Router::doRuleFromTo($rec)) {
+                    
+                    // Добавяме начина на рутиране
+                    $rec->routeBy = 'fromTo';
+                    
+                    return;
+                }
             }
         }
         
         // Накрая безусловно вкарваме в кутията на `toBox`
         email_Router::doRuleToBox($rec); 
+        
+        // Добавяме начина на рутиране
+        $rec->routeBy = 'toBox';
         
         expect($rec->folderId);
     }
