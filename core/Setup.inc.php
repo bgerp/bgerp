@@ -609,7 +609,7 @@ if ($step == 'setup') {
         
         // Лог
         // Изчитаме лог-а ако е отключен и го изтриваме 
-        $setupLog = file_get_contents(EF_TEMP_PATH . '/setupLog.html');
+        $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
 	    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
 	    
 	    $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
