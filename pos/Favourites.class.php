@@ -78,6 +78,7 @@ class pos_Favourites extends core_Manager {
     	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
     	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=title)', 'caption=Точки на Продажба, mandatory');
     	$this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
+    	$this->FLD('used', 'int', 'input=none, value=0');
     	
         $this->setDbUnique('productId, packagingId');
     }
@@ -114,33 +115,52 @@ class pos_Favourites extends core_Manager {
     
     /**
      * Метод подготвящ продуктите и формата за филтриране
+     * @return stdClass - обект съдържащ пос продуктите за текущата
+     * точка и формата за филтриране
      */
     static function prepareProducts(){
-    	$me = cls::get(get_called_class());
-    	$productsArr = $me->preparePosProducts();
-    	$filterForm = $me->prepareSearchForm();
+    	$self = cls::get(get_called_class());
+    	$productsArr = $self->preparePosProducts();
+    	$filterForm = $self->prepareCategories();
     	
-    	return (object)array('arr'=>$productsArr, 'filter'=> $filterForm);
+    	return (object)array('arr' => $productsArr, 'categories' => $filterForm);
     }
     
     
     /**
-     * метод подготвящ формата за филтриране на продуктите
+     * Метод подготвящ категориите на продуктите. 
+     * @return array $categories - масив от категориите, които има продукти
+     * в модела. 
      */
-    function prepareSearchForm() {
-    	$form = cls::get('core_Form');
-    	//@TODO
-    	return $form;
+    function prepareCategories() {
+    	$categories = array();
+    	$categories[0] = (object)array('id'=>'', 'name' => tr('Всички'));
+    	$query = $this->getQuery();
+    	while($rec = $query->fetch()) {
+    		$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
+    		
+    		// Ако има вече такава категория в масива с категории я пропускаме
+    		if(array_key_exists($info->productRec->categoryId, $categories)) {
+    			continue;
+    		}
+    		
+    		// Ако  категорията я няма в масива, ние я добавяме
+    		$productRow = cat_Products::recToVerbal($info->productRec, 'categoryId');
+    		$obj = (object)array('id'=>$info->productRec->categoryId, 'name'=>$productRow->categoryId);
+    		$categories[$info->productRec->categoryId] = $obj;
+    	}
+    	
+    	return $categories;
     }
     
     
     /**
      * Подготвя продуктите за показване в пос терминала
-     * @return array $arr - 
+     * @return array $arr - масив от всички позволени продукти
      */
     function preparePosProducts()
     {
-    	$arr = array();
+    	$array = array();
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
@@ -154,49 +174,99 @@ class pos_Favourites extends core_Manager {
     	$query = static::getQuery();
     	$query->where("#pointId LIKE '%{$posRec->id}%'");
     	$query->where("#state = 'active'");
-    	
+    	$query->orderBy("#used", "DESC");
     	while($rec = $query->fetch()){
-    		
-    		// Информацията за продукта с неговата опаковка
-    		$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
-    		$productRec = $info->productRec;
-    		$packRec = $info->packagingRec;
-    		$obj = new stdClass();
-    		$obj->name = $varchar->toVerbal($productRec->name);
-    		if($packRec) {
-    			$obj->quantity = $packRec->quantity;
-    			($packRec->customCode) ? $code = $packRec->customCode : $code = $packRec->eanCode;
-    		} else {
-    			$obj->quantity = 1;
-    			($productRec->code) ? $code = $productRec->code : $code = $productRec->eanCode;
-    		}
-    		$obj->code = $varchar->toVerbal($code);
+    		$obj = $this->prepareProductObject($rec);
+    		$obj->code = $varchar->toVerbal($obj->code);
+    		$obj->name = $varchar->toVerbal($obj->name);
     		
     		// Цена на продукта от ценовата политика
     		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $rec->productId, $rec->packagingId, $obj->quantity, dt::verbal2mysql());
     		$obj->price = $double->toVerbal($price->price);
-    		$obj->image  = $rec->image;
-    		$arr[$rec->id] = $obj;
+    		
+    		$array[$rec->id] = $obj;
     	}
     	
-    	return $arr;
+    	return $array;
+    }
+    
+    
+    /**
+     * 
+     * @param stdClass $rec - запис от модела
+     * @return stdClass $obj - обект с информацията за продукта
+     */
+    function prepareProductObject($rec)
+    {
+    	$obj = new stdClass();
+    	
+    	// Информацията за продукта с неговата опаковка
+    	$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
+    	$productRec = $info->productRec;
+    	$packRec = $info->packagingRec;
+    	$obj->name = $productRec->name;
+    	$obj->catId = $productRec->categoryId;
+    	if($packRec) {
+    		$obj->quantity = $packRec->quantity;
+    		($packRec->customCode) ? $code = $packRec->customCode : $code = $packRec->eanCode;
+    	} else {
+    		$obj->quantity = 1;
+    		($productRec->code) ? $code = $productRec->code : $code = $productRec->eanCode;
+    	}
+    	$obj->code = $code;
+    	$obj->image = $rec->image;
+    		
+    	return $obj;
+    }
+    
+    
+    /**
+     * Рендираме PoS продуктите и техните категории в подходящ вид
+     * @param stdClass $data - обект съдържащ масивите с продуктите
+     * и категориите
+     * @return core_ET $tpl - шаблона с продуктите
+     */
+    static function renderPosProducts($data)
+    {
+    	$tpl = new ET(getFileContent('pos/tpl/Favourites.shtml'));
+    	$self = cls::get(get_called_class());
+    	$self->renderProducts($data->arr, $tpl);
+    	$self->renderCategories($data->categories, $tpl);
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Рендира категориите на продуктите в удобен вид
+     * @param array $categories - Масив от продуктовите категории
+     * @param core_ET $tpl - шаблона в който ще поставяме категориите
+     */
+    function renderCategories($categories, &$tpl)
+    {
+    	$blockTpl = $tpl->getBlock('CAT');
+    	foreach($categories as $cat) {
+    		$rowTpl = clone($blockTpl);
+    		$rowTpl->placeObject($cat);
+    		$rowTpl->removeBlocks();
+    		$rowTpl->append2master();
+    	}
     }
     
     
     /**
      * Рендира продуктите във вид подходящ за пос терминала
-     * @param array $arr - масив от продукти с информацията за тях
+     * @param array $products - масив от продукти с информацията за тях
      * @return core_ET $tpl - шаблон с продуктите
      */
-	static function renderPosProducts($data)
+	function renderProducts($products, &$tpl)
 	{
-    	$tpl = new ET(getFileContent('pos/tpl/Favourites.shtml'));
-		$blockTpl = $tpl->getBlock('ITEM');
+    	$blockTpl = $tpl->getBlock('ITEM');
 		$baseCurrency = acc_Periods::getBaseCurrencyCode();
 		
 		$attr = array('isAbsolute' => FALSE, 'qt' => '');
         $size = array(80, 'max'=>TRUE);
-    	foreach($data->arr as $row) {
+    	foreach($products as $row) {
     		if($row->image) {
     			$imageUrl = thumbnail_Thumbnail::getLink($row->image, $size, $attr);
     			$row->image = ht::createElement('img', array('src' => $imageUrl, 'width'=>'90px', 'height'=>'90px'));
@@ -207,8 +277,6 @@ class pos_Favourites extends core_Manager {
     		$rowTpl->removeBlocks();
     		$rowTpl->append2master();
     	}
-    	
-    	return $tpl;
 	}
     
 	
@@ -223,15 +291,41 @@ class pos_Favourites extends core_Manager {
 			$row->image = $Fancybox->getImage($rec->image, array(30, 30), array(400, 400));
     	}
     	
-    	if($rec->packagingId) {
+    	// До името на продукта показваме неговата основна мярка и ако
+    	// има зададена опаковка - колко броя в опаковката има.
+    	$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
+    	$measureRow = cat_UoM::fetchField($info->productRec->measureId, 'shortName');
+    	$measureRow = $varchar->toVerbal($measureRow);
+    	if($info->packagingRec) {
     		$packName = cat_Packagings::fetchField($rec->packagingId, 'name');
-    		$pack = " , &nbsp;{$varchar->toVerbal($packName)}";
+    		$packName = $varchar->toVerbal($packName);
+    		$quantity = $info->packagingRec->quantity;
+    		$pack = " , {$quantity} {$measureRow} в {$packName}";
     	} else {
-    		$productRec = cat_Products::fetch($rec->productId);
-    		$productRow = cat_Products::recToVerbal($productRec, 'measureId');
-    		$pack = " , &nbsp;{$productRow->measureId}";
+    		$pack = " , 1 {$measureRow}";
     	}
     	
     	$row->productId .= $pack;
+    }
+    
+    
+    /**
+     * Ако добавения продукт е от любимите инкрементираме полето 'used'
+     * @param string $code - кода на добавения продукт
+     */
+    static function updateUsage($code){
+    	$productRec = cat_Products::getByCode($code);
+    	$pointId = pos_Points::getCurrent();
+    	$query = static::getQuery();
+    	$query->where("#productId = {$productRec->productId}");
+    	($productRec->packagingId) ? $string = "={$productRec->packagingId}" : $string = " IS NULL";
+    	$query->where("#pointId LIKE '%|{$pointId}|%'");
+    	$query->where("#packagingId {$string}");
+    	if(!$rec = $query->fetch()) {
+    		return;
+    	} 
+    	
+    	$rec->used = $rec->used + 1;
+    	static::save($rec);
     }
 }

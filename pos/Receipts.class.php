@@ -154,7 +154,7 @@ class pos_Receipts extends core_Master {
      *  Добавянето на нова бележка става само през този екшън 
      */
     function act_New()
-    {
+    {//bp('hg');
     	$rec = new stdClass();
     	$posId = pos_Points::getCurrent();
     	$rec->date = dt::now();
@@ -271,6 +271,7 @@ class pos_Receipts extends core_Master {
     			if($change > 0) {
     				$rec->change = $change;
     			}
+    			pos_Favourites::updateUsage($detailRec->ean);
     			break;
     		case 'discount':
     			break;
@@ -432,6 +433,8 @@ class pos_Receipts extends core_Master {
     {
     	$rec = static::fetch($id);
         $rec->state = 'active';
+
+        return self::save($rec);
     }
     
 	
@@ -451,6 +454,7 @@ class pos_Receipts extends core_Master {
         $this->prepareSingle($data);
         if($dForm = $data->pos_ReceiptDetails->form) {
             $rec = $dForm->input();
+        	
             $Details = cls::get('pos_ReceiptDetails');
 			$Details->invoke('AfterInputEditForm', array($dForm));
            

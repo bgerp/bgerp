@@ -125,6 +125,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    if(haveRole('pos,admin') && $this->Master->haveRightFor('conto', $data->masterId)) {
 	    	$contUrl = array('acc_Journal','conto','docId' => $data->masterId, 'docType' => $this->Master->className, 'ret_url' => array($this->Master, 'new'));
 	    }
+	    //bp($contUrl);
 	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'FIRST_ROW');
 	   
 		return $tpl;

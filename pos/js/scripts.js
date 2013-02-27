@@ -64,7 +64,24 @@ $(document).ready(function () {
 		$("#receipt-details-form form").submit();
 	});
 	
-	//$(".pos-product-title").hover(function(){
-		//$(this).toggleClass('product-title-');
-	//});
+	$(".pos-product-category[data-id='']").addClass('active');
+	$('.pos-product-category').click(function() {
+		var value = $(this).attr("data-id");
+		
+		$(this).addClass('active');
+		$(".active").not(this).removeClass('active');
+		
+		if(value) {
+			$("div.pos-product[data-cat != "+value+"]").each(function() {
+				$(this).hide();
+			});
+			$("div.pos-product[data-cat = "+value+"]").each(function() {
+				$(this).show();
+			});
+		} else {
+			$("div.pos-product").each(function() {
+				$(this).show();
+			});
+		}
+	});
 });
