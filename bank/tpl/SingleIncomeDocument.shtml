@@ -12,7 +12,7 @@
 			<td valign="top" style="padding-right: 5em;">
 				<table cellpadding='2px'>
 					<tr><td class=\"quiet\" align=\"right\">|Вальор|*: </td><td><b>[#valior#]</b></td></tr>
-					<tr><td class=\"quiet\" align=\"right\">|Операция|*: </td><td><b>[#operationId#]</b></td></tr>
+					<tr><td class=\"quiet\" align=\"right\">|Операция|*: </td><td><b>[#operationSysId#]</b></td></tr>
 					<tr><td class=\"quiet\" align=\"right\">|В sметка|*: </td><td><span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#accCurrency#]</span>
 					<span style='color:darkblue'><b>[#ownAccount#]</b></span></td></tr>
 					<tr><td class=\"quiet\" align=\"right\">|От|*: </td><td style='color:darkgreen'><b>[#contragentName#]</b></td></tr>

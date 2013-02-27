@@ -117,7 +117,7 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=6em,mandatory,silent');
+    	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory,silent');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,width=6em,mandatory');
     	$this->FLD('currencyItem', 'acc_type_Item(select=numTitleLink)', 'caption=Валута,input=none');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
@@ -167,7 +167,7 @@ class cash_InternalMoneyTransfer extends core_Master
         }
 
        // Има ли вече зададено основание? 
-       if (Request::get('operationId', 'int')) {
+       if (Request::get('operationSysId', 'varchar')) {
             
            // Има основание - не правим нищо
            return;
@@ -189,13 +189,13 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
-    	$form->FNC('operationId', 'key(mvc=acc_Operations, select=name)', 'input,caption=Операция');
+    	$form->FNC('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'input,caption=Операция');
     	$form->title = 'Нов Вътрешен Паричен Трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class'=>'btn-next btn-move'));
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')), array('class'=>'btn-cancel'));
         
         $options = acc_Operations::getPossibleOperations(get_called_class());
-        $form->setOptions('operationId', $options);
+        $form->setOptions('operationSysId', $options);
         
         return $form;
     }
@@ -210,13 +210,13 @@ class cash_InternalMoneyTransfer extends core_Master
     	
     	// Очакваме и намираме коя е извършената операция
     	if(!$form->rec->id) {
-    		expect($operationId = Request::get('operationId'));
+    		expect($operationSysId = Request::get('operationSysId'));
     	} else {
-    		$operationId = $form->rec->operationId;
+    		$operationSysId = $form->rec->operationSysId;
     	}
     	
-    	$operation = acc_Operations::getOperationInfo($operationId);
-      
+    	$operation = acc_Operations::getOperationInfo($operationSysId);
+     
     	// Трябва документа да поддържа тази операция
     	$classId = core_Classes::fetchIdByName(get_called_class());
     	
@@ -275,7 +275,7 @@ class cash_InternalMoneyTransfer extends core_Master
         
         $today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
-        $form->setReadOnly('operationId');
+        $form->setReadOnly('operationSysId');
 		
         // Перото на валутата по подразбиране
         $currencyClassId = currency_Currencies::getClassId();
@@ -305,7 +305,7 @@ class cash_InternalMoneyTransfer extends core_Master
     		
     		$rec = &$form->rec;
     		
-		    $operation = acc_Operations::fetch($rec->operationId);
+		    $operation = acc_Operations::fetchBySysId($rec->operationSysId);
     		$rec->debitAccId = $operation->debitAccount;
     		$rec->creditAccId = $operation->creditAccount;
     		
@@ -344,7 +344,7 @@ class cash_InternalMoneyTransfer extends core_Master
     		// няма номенклатура банкови сметки 
     		$debitAcc = $rec->debitAccId;
     		$creditAcc = $rec->creditAccId;
-    		$operation = acc_Operations::fetch($rec->operationId);
+    		$operation = acc_Operations::fetchBySysId($rec->operationSysId);
     		$currencyItem = acc_Items::fetch($rec->currencyItem);
     		
      		if($operation->systemId == 'case2case') { 
@@ -428,7 +428,6 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	if($data->rec->state == 'draft') {
 	    	$rec = $data->rec;
-	    	$operationSysId = acc_Operations::fetchSysId($rec->operationId);
 	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
     	}
     }

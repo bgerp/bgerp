@@ -110,7 +110,7 @@ class bank_PaymentMethods extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('#name');
     }

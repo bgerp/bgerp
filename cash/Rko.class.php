@@ -133,7 +133,7 @@ class cash_Rko extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=100%,mandatory,silent');
+    	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
@@ -225,7 +225,7 @@ class cash_Rko extends core_Master
     	$form->setDefault('contragentId', $contragentId);
         $form->setDefault('contragentClassId', $contragentClassId);
     	$options = acc_Operations::getPossibleOperations(get_called_class());
-        $form->setOptions('operationId', $options);
+        $form->setOptions('operationSysId', $options);
     }
     
     
@@ -239,7 +239,7 @@ class cash_Rko extends core_Master
         	$rec = &$form->rec;
         	
         	// Коя е дебитната и кредитната сметка
-	        $operation = acc_Operations::fetch($rec->operationId);
+	        $operation = acc_Operations::fetchBySysId($rec->operationSysId);
     		$rec->debitAccount = $operation->debitAccount;
     		$rec->creditAccount = $operation->creditAccount;
     		
@@ -344,7 +344,6 @@ class cash_Rko extends core_Master
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	//$operation = acc_Operations::fetch($data->rec->operationId);
     	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     }
     

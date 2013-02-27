@@ -128,7 +128,7 @@ class cash_Pko extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=100%,mandatory,silent');
+    	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
@@ -223,7 +223,8 @@ class cash_Pko extends core_Master
         
     	$options = acc_Operations::getPossibleOperations(get_called_class());
         $options = acc_Operations::filter($options, $contragentClassId);
-    	$form->setOptions('operationId', $options);
+    	
+        $form->setOptions('operationSysId', $options);
     }
 
     
@@ -237,8 +238,9 @@ class cash_Pko extends core_Master
     		$rec = &$form->rec;
 	    	
     		// Коя е дебитната и кредитната сметка
-	        $operation = acc_Operations::fetch($rec->operationId);
-    		$rec->debitAccount = $operation->debitAccount;
+	        $operation = acc_Operations::fetchBySysId($rec->operationSysId);
+    		
+	        $rec->debitAccount = $operation->debitAccount;
     		$rec->creditAccount = $operation->creditAccount;
     		
     		$contragentData = doc_Folders::getContragentData($rec->folderId);

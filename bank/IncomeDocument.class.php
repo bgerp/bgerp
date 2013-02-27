@@ -124,7 +124,7 @@ class bank_IncomeDocument extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationId', 'key(mvc=acc_Operations,select=name)', 'caption=Операция,width=100%,mandatory,silent');
+    	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Код,width=6em');
@@ -173,7 +173,7 @@ class bank_IncomeDocument extends core_Master
         
         $options = acc_Operations::getPossibleOperations(get_called_class());
         $options = acc_Operations::filter($options, $contragentClassId);
-        $form->setOptions('operationId', $options);
+        $form->setOptions('operationSysId', $options);
      
         static::getContragentInfo($form);
     }
@@ -213,7 +213,7 @@ class bank_IncomeDocument extends core_Master
     		$rec = &$form->rec;
     		
 	        // Коя е дебитната и кредитната сметка
-	        $operation = acc_Operations::fetch($rec->operationId);
+	        $operation = acc_Operations::fetchBySysId($rec->operationSysId);
     		$rec->debitAccId = $operation->debitAccount;
     		$rec->creditAccId = $operation->creditAccount;
     		
@@ -274,7 +274,7 @@ class bank_IncomeDocument extends core_Master
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft') {
-	    	$operation = acc_Operations::fetch($data->rec->operationId);
+	    	$operation = acc_Operations::fetchBySysId($data->rec->operationSysId);
 	    	if(acc_Lists::getPosition($operation->creditAccount, 'crm_ContragentAccRegIntf')) {
 	    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
 	    	}
