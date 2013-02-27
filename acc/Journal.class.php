@@ -266,15 +266,20 @@ class acc_Journal extends core_Master
         
         try {
             $transaction = new acc_journal_Transaction($transaction);
-            $transaction->save();
+            $success     = $transaction->save();
         } catch (core_exception_Expect $ex) {
             redirect(array('acc_Accounts'), FALSE, "Грешка при контиране: " . $ex->args(1));
         }
         
         // Нотифицира мениджъра на документа за успешно приключилата транзакция
-        $docClass->finalizeTransaction($docId);
+        if ($success) {
+            $docClass->finalizeTransaction($docId);
+            $message = 'Документът е контиран успешно';
+        } else {
+            $message = 'Грешка при контиране';
+        }
         
-        return followRetUrl(array($mvc, 'single', $docId));
+        return followRetUrl(array($mvc, 'single', $docId), $message /*, $success ? 'success' : 'error'*/);
     }
     
     
