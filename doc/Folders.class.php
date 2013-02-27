@@ -340,6 +340,8 @@ class doc_Folders extends core_Master
         }
         
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, FALSE);
+
+        $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         
         $fields = 'title,state,inCharge,access,shared';
         
@@ -351,12 +353,14 @@ class doc_Folders extends core_Master
         }
         
         if($mustSave) {
-            if($rec->state != 'rejected') {
+            if($isRevert) {
                 $rec->state = 'open';
             }
-            static::save($rec);
 
-            if($rec->state == 'open') {
+            static::save($rec);
+            
+            // Ако сега сме направили операцията възстановяване
+            if($isRevert) {
                 self::updateFolderByContent($rec->id);
             }
         }
