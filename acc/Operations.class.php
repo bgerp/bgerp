@@ -200,12 +200,12 @@ class acc_Operations extends core_Manager
     
     /**
      * Излича информацията за дебитната и кредитната сметка на операцията
-     * @param int $id - ID на операцията
+     * @param string $sysId - systemId на операцията
      * @return stdClass $rec 
      */
-    static function getOperationInfo($id)
+    static function getOperationInfo($sysId)
     {
-    	expect($rec = static::fetch($id), 'Няма такава операция !!!');
+    	expect($rec = static::fetchBySysId($sysId), 'Няма такава операция !!!');
     	
     	// Извличаме записите на сметките с подадените systemId-та
     	$debitRec = acc_Accounts::getRecBySystemId($rec->debitAccount);
@@ -217,16 +217,4 @@ class acc_Operations extends core_Manager
     	return $rec;
     }
     
-    
-    /**
-     * Връща операцията 
-     * @param int $id - ид-то на операцията
-     * @return varchar $sysId - систем ид-то на операцията
-     */
-    static function fetchSysId($id)
-    {
-    	expect($sysId = static::fetchField($id, 'systemId'), 'Няма такава операция');
-    	
-    	return $sysId;
-    }
 }
