@@ -537,8 +537,8 @@ if($step == 5) {
  **********************************/
 if ($step == 'setup') {
 	$calibrate = 1000;
-    $totalRecords = 137600;
-    $totalTables = 230;
+    $totalRecords = 137560;
+    $totalTables = 225;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
