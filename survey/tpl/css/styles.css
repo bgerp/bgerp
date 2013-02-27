@@ -2,7 +2,7 @@ div.document {
 	padding:0px;
 	box-shadow:none;
 	border:none;
-	min-width:700px;
+	min-width:700px !important;
 }
 
 div.document ul {
