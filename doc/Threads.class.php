@@ -283,7 +283,8 @@ class doc_Threads extends core_Manager
         $row->title = ht::createLink(str::limitLen($docRow->title, 70),
             array('doc_Containers', 'list',
                 'threadId' => $rec->id,
-                'folderId' => $rec->folderId),
+                'folderId' => $rec->folderId,
+                'Q' => Request::get('search')),
             NULL, $attr);
 
         if($docRow->subTitle) {
