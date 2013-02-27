@@ -37,13 +37,13 @@ class acc_setup_Operations
                 $rec->creditAccount = $csvRow [3];
                 $rec->systemId = $csvRow [4];
                 
-             	if ($rec->id = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
+             	if ($rec->id = acc_Operations::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
                     $updated++;
                 } else {
                     $created++;
                 }
                 
-                acc_Operations::save($rec, NULL, 'replace');
+                acc_Operations::save($rec);
             }
             
             fclose($handle);
