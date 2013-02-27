@@ -341,10 +341,6 @@ class doc_Folders extends core_Master
         
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, FALSE);
         
-        if($coverRec->state != 'rejected') {
-            $coverRec->state = $rec->state;
-        }
-        
         $fields = 'title,state,inCharge,access,shared';
         
         foreach(arr::make($fields) as $field) {
@@ -355,7 +351,14 @@ class doc_Folders extends core_Master
         }
         
         if($mustSave) {
+            if($rec->state != 'rejected') {
+                $rec->state = 'open';
+            }
             static::save($rec);
+
+            if($rec->state == 'open') {
+                self::updateFolderByContent($rec->id);
+            }
         }
     }
     
