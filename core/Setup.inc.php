@@ -999,9 +999,10 @@ function setupKeyValid()
 	// При грешка с базата данни връща валиден сетъп ключ
 	$res = dataBaseStat();
 	
-	if ($res === FALSE) {
+	if ($res === FALSE && !setupProcess()) {
 		return TRUE;
 	}
+	
 	// Ако има setup cookie и има пуснат сетъп процес връща валиден ключ
 	if (isset($_COOKIE['setup']) && setupProcess()) {
 		return TRUE;
