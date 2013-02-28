@@ -476,16 +476,15 @@ class core_App
     public static function followRetUrl($defaultUrl = NULL, $msg = NULL, $type = 'info')
     {
         if (!$retUrl = static::getRetUrl()) {
-            $retUrl = NULL;
+            $retUrl = $defaultUrl;
         }
         
-        static::setIfNot($retUrl,
-            $defaultUrl,
-            array(
+        if (!$retUrl) {
+            $retUrl = array(
                 EF_DEFAULT_CTR_NAME,
                 EF_DEFAULT_ACT_NAME
-            )
-        );
+            );
+        }
         
         static::redirect($retUrl, FALSE, $msg, $type);
     }
