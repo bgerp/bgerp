@@ -724,6 +724,14 @@ option.team {
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
 }
+
+.wide .btn-change {
+    background-image:url('../img/16/to_do_list.png');
+    padding-left:22px;  
+	background-repeat:no-repeat !important;
+	background-position: 3px center;
+}
+
 .narrow .btn-add{
 	margin-left:0;
 }
@@ -1368,10 +1376,37 @@ div.sharing-history {
 	padding-right: 120px;
 }
 
+div.change-log {
+	border: none;
+	border-top: 1px solid #ccc;
+	padding: 5px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 10px;
+	position: relative;
+	color: #555;
+	font-size: 0.9em;
+	clear: both;
+	padding-right: 120px;
+}
+
 span.sharing-history-title {
 	padding: 2px 5px;
 	padding-left: 23px;
 	background: #eee url(../img/share.png) no-repeat 3px center;
+	position: absolute;
+	display: block;
+	top: 0;
+	right: 0;
+	border: 1px solid #ccc;
+	border-top: none;
+	color: #777;
+}
+
+span.change-log-title {
+	padding: 2px 5px;
+	padding-left: 23px;
+	background: #eee url(../img/16/to_do_list.png) no-repeat 3px center;
 	position: absolute;
 	display: block;
 	top: 0;
