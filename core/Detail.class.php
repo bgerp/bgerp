@@ -211,7 +211,7 @@ class core_Detail extends core_Manager
         }
         
         $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-        $data->form->title .= "|* \"" . str::limitLen($title, 32) . "\"";
+        $data->form->title .= "|* <b style='color:#ffffcc;'>" . str::limitLen($title, 32) . "</b>";
  
         return $data;
     }
