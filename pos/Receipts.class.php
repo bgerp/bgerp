@@ -94,7 +94,7 @@ class pos_Receipts extends core_Master {
 	 */
 	var $fetchFieldsBeforeDelete = 'id';
 	
-	
+    
     /**
      * Описание на модела
      */
@@ -154,7 +154,7 @@ class pos_Receipts extends core_Master {
      *  Добавянето на нова бележка става само през този екшън 
      */
     function act_New()
-    {//bp('hg');
+    {
     	$rec = new stdClass();
     	$posId = pos_Points::getCurrent();
     	$rec->date = dt::now();
@@ -218,6 +218,7 @@ class pos_Receipts extends core_Master {
     	jquery_Jquery::enable($tpl);
     	jquery_Jquery::enableUI($tpl);
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+    	$tpl->push($data->theme . '/style.css', 'CSS');
     	$tpl->push('pos/js/scripts.js', 'JS');
     	if($data->products && count($data->products->arr) > 0) {
     		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
@@ -231,7 +232,7 @@ class pos_Receipts extends core_Master {
      * @param int id - ид на бележката
      * @return array $products - Масив от продукти
      */
-    static function fetchProducts($id)
+    public static function fetchProducts($id)
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
     	$products = array();
@@ -450,20 +451,29 @@ class pos_Receipts extends core_Master {
         }
         $data = new stdClass();
         expect($data->rec = $this->fetch($id));
+        
+        $conf = core_Packs::getConfig('pos');
+        $data->theme = $conf->POS_PRODUCTS_DEFAULT_THEME;
+        
         $this->requireRightFor('single', $data->rec);
         $this->prepareSingle($data);
         if($dForm = $data->pos_ReceiptDetails->form) {
             $rec = $dForm->input();
-        	
             $Details = cls::get('pos_ReceiptDetails');
 			$Details->invoke('AfterInputEditForm', array($dForm));
            
         	// Ако формата е успешно изпратена - запис, лог, редирект
             if ($dForm->isSubmitted() && Request::get('ean')) {
+            	
             	if($Details->haveRightFor('add', (object) array('receiptId' => $data->rec->id))) {
 	            	
             		// Записваме данните
 	            	$id = $Details->save($rec);
+	            	if(Request::get('ajax')){
+	            		$row = pos_ReceiptDetails::recToVerbal($rec);
+	            		echo json_encode($row);
+	            		shutdown();
+	            	}
 	                $Details->log('add', $id);
 	                
 	                return new Redirect(array($this, 'Single', $data->rec->id));
@@ -527,8 +537,9 @@ class pos_Receipts extends core_Master {
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
-    	if(!Mode::is('printing') && !Mode::is('screenMode', 'narrow')) {
+    	if(!Mode::is('printing') && !Mode::is('screenMode', 'narrow') && $data->rec->state == 'draft') {
     		$data->products = pos_Favourites::prepareProducts();
+    		$data->products->theme =  $data->theme;
     	}
     }
 }

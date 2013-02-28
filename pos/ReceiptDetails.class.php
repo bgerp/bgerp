@@ -113,19 +113,17 @@ class pos_ReceiptDetails extends core_Detail {
     	$tpl->append(ht::createFnBtn('+1', '','', array('id'=>'incBtn','class'=>'buttonForm')), 'FIRST_ROW');
 	    $tpl->append(ht::createFnBtn('-1', '','', array('id'=>'decBtn','class'=>'buttonForm')), 'FIRST_ROW');
 	    $tpl->append(ht::createFnBtn('Баркод', "window.WebScan.scanThenLoadURL('[SCANVALUE]')", '', array('class'=>'webscan')), 'THIRD_ROW');
-	    //$tpl->append(ht::createFnBtn('Маса', '','', array('class'=>'actionBtn', 'data-type'=>'client|table')), 'THIRD_ROW');
-	    //$tpl->append(ht::createFnBtn('Стая', '','', array('class'=>'actionBtn', 'data-type'=>'client|room')), 'THIRD_ROW');
 	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class'=>'actionBtn', 'data-type' =>'client|ccard')), 'THIRD_ROW');
 	    $payments = pos_Payments::fetchSelected();
+	    $cPayments = count($payments);
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => 'actionBtn', 'data-type' => "payment|" . $payment->id);
 	    	$tpl->append(ht::createFnBtn($payment->title, '', '', $attr), 'SECOND_ROW');
 	    }
 	    
 	    if(haveRole('pos,admin') && $this->Master->haveRightFor('conto', $data->masterId)) {
-	    	$contUrl = array('acc_Journal','conto','docId' => $data->masterId, 'docType' => $this->Master->className, 'ret_url' => array($this->Master, 'new'));
+	    	$contUrl = array('acc_Journal', 'conto', 'docId' => $data->masterId, 'docType' => $this->Master->className, 'ret_url' => array($this->Master, 'new'));
 	    }
-	    //bp($contUrl);
 	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'FIRST_ROW');
 	   
 		return $tpl;
@@ -218,8 +216,8 @@ class pos_ReceiptDetails extends core_Detail {
     	$double->params['decimals'] = 2;
     	
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
-    	$row->productId = $productInfo->productRec->code . " - " . $productInfo->productRec->name;
-    	$row->productId = $varchar->toVerbal($row->productId);
+    	$row->productId = $varchar->toVerbal($productInfo->productRec->name);
+    	$row->code = $varchar->toVerbal($productInfo->productRec->code);
     	$row->price = $double->toVerbal($rec->price);
     	$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
     	$row->uomId = $varchar->toVerbal($uomId);
@@ -253,6 +251,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    	switch($action->type) {
 	    		case 'sale':
 	    			$mvc->getProductInfo($rec);
+	    			
 	    			if(!$rec->productId) {
 	    				$form->setError('ean', 'Няма такъв продукт в системата');
 	    				return;
@@ -260,7 +259,6 @@ class pos_ReceiptDetails extends core_Detail {
 	    			
 				    // Намираме дали този проект го има въведен 
 				    $sameProduct = $mvc->findSale($rec->productId, $rec->receiptId, $rec->value);
-				   
 				    if((string)$sameProduct->price == (string)$rec->price) {
 				    				
 				    		// Ако цената и опаковката му е същата като на текущия продукт,
@@ -329,7 +327,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$actionArr = explode("|", $string);
     	$allowed = array('sale', 'discount', 'client', 'payment');
-    	expect(in_array($actionArr[0], $allowed), 'Не е позволена такава оепрация');
+    	expect(in_array($actionArr[0], $allowed), 'Не е позволена такава операция');
     	expect(count($actionArr) == 2, 'Стринга не е в правилен формат');
     	
     	$action = new stdClass();
@@ -366,7 +364,6 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * Намира продукта по подаден номер и изчислява неговата цена
      * и отстъпка спрямо клиента, и ценоразписа
-     * @TODO да се направи да извлича продукт по баркод и неговата опаковка
      * @param stdClass $rec
      */
     function getProductInfo(&$rec)

@@ -4,6 +4,11 @@
  */
 defIfNot('POS_WAT_PERCENT', '20');
 
+/**
+ *  Константа за тема по-подразбиране на блога
+ */
+defIfNot('POS_PRODUCTS_DEFAULT_THEME', 'pos/themes/default');
+
 
 /**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
@@ -54,6 +59,7 @@ class pos_Setup
         	'pos_Receipts',
             'pos_ReceiptDetails',
         	'pos_Favourites',
+        	'pos_FavouritesCategories',
         	'pos_Payments',
         );
         

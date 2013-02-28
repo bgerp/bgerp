@@ -70,7 +70,7 @@ class pos_Payments extends core_Manager {
     function description()
     {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
-    	$this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Връща ресто?,value=no');
+    	$this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Ресто?,value=no');
     	
     	$this->setDbUnique('title');
     }
@@ -117,7 +117,7 @@ class pos_Payments extends core_Manager {
      * Връща масив от обекти, които са ид-та и заглавията на методите
      * @return array $payments
      */
-    static function fetchSelected()
+    public static function fetchSelected()
     {
     	$payments = array();
     	$query = static::getQuery();
@@ -138,7 +138,7 @@ class pos_Payments extends core_Manager {
      *  @param int $id - ид на метода
      *  @return boolean $res - дали връща или не връща ресто
      */
-    static function returnsChange($id)
+    public static function returnsChange($id)
     {
     	expect($rec = static::fetch($id), 'Няма такъв платежен метод');
     	($rec->change == 'yes') ? $res = TRUE : $res = FALSE;

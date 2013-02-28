@@ -95,7 +95,7 @@ class pos_Points extends core_Manager {
      * @param int $id - ид на точкта
      * @return mixed $id/FALSE - ид на контрагента или FALSE ако няма
      */
-    static function defaultContragent($id = NULL)
+    public static function defaultContragent($id = NULL)
     {
     	($id) ? $pos = $id : $pos = pos_Points::getCurrent();
     	$query = crm_Persons::getQuery();

@@ -160,7 +160,7 @@ class support_Issues extends core_Master
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
         
         // Възлагане на задача (за doc_AssignPlg)
-        $this->FLD('assign', 'user(roles=powerUser)', 'caption=Възложен на,input=none');
+        $this->FLD('assign', 'user(roles=powerUser)', 'caption=Възложено на,input=none');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
@@ -469,7 +469,7 @@ class support_Issues extends core_Master
         $data->listFilter->getField('componentId')->type->params['allowEmpty'] = TRUE;
          
         // Добавяме функционално поле за отговорници
-        $data->listFilter->FNC('maintainers', 'users', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=user)', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Кои полета да се показват
         $data->listFilter->showFields = 'systemIdShow, componentId, maintainers';
@@ -551,7 +551,7 @@ class support_Issues extends core_Master
         if ($maintainers != 'all_users') {
             
             // Ако не са избрани всички потребители
-            if (stripos($maintainers, '|-1|') === FALSE) {
+            if (strpos($maintainers, '|-1|') === FALSE) {
         
                 // Добавяме външно поле за търсене
                 $data->query->EXT("componentMaintainers", 'support_Components', "externalName=maintainers");

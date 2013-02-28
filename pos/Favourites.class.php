@@ -24,19 +24,13 @@ class pos_Favourites extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Printing, pos_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, 
+    				 plg_Printing, pos_Wrapper, pos_FavouritesWrapper, plg_State2';
 
-    
-    /**
-     * Наименование на единичния обект
-     */
-    var $singleTitle = "PoS Продукт";
-    
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, productId, pointId, image, createdOn, createdBy, state';
+    var $listFields = 'tools=Пулт, productId, pointId, catId, image, createdOn, createdBy, state';
     
     
     /**
@@ -76,7 +70,8 @@ class pos_Favourites extends core_Manager {
     {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory');
     	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
-    	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=title)', 'caption=Точки на Продажба, mandatory');
+    	$this->FLD('catId', 'key(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
+    	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=title)', 'caption=Точка на Продажба');
     	$this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
     	$this->FLD('used', 'int', 'input=none, value=0');
     	
@@ -118,39 +113,12 @@ class pos_Favourites extends core_Manager {
      * @return stdClass - обект съдържащ пос продуктите за текущата
      * точка и формата за филтриране
      */
-    static function prepareProducts(){
+    public static function prepareProducts(){
     	$self = cls::get(get_called_class());
     	$productsArr = $self->preparePosProducts();
-    	$filterForm = $self->prepareCategories();
+    	$categoriesArr = pos_FavouritesCategories::prepareAll();
     	
-    	return (object)array('arr' => $productsArr, 'categories' => $filterForm);
-    }
-    
-    
-    /**
-     * Метод подготвящ категориите на продуктите. 
-     * @return array $categories - масив от категориите, които има продукти
-     * в модела. 
-     */
-    function prepareCategories() {
-    	$categories = array();
-    	$categories[0] = (object)array('id'=>'', 'name' => tr('Всички'));
-    	$query = $this->getQuery();
-    	while($rec = $query->fetch()) {
-    		$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
-    		
-    		// Ако има вече такава категория в масива с категории я пропускаме
-    		if(array_key_exists($info->productRec->categoryId, $categories)) {
-    			continue;
-    		}
-    		
-    		// Ако  категорията я няма в масива, ние я добавяме
-    		$productRow = cat_Products::recToVerbal($info->productRec, 'categoryId');
-    		$obj = (object)array('id'=>$info->productRec->categoryId, 'name'=>$productRow->categoryId);
-    		$categories[$info->productRec->categoryId] = $obj;
-    	}
-    	
-    	return $categories;
+    	return (object)array('arr' => $productsArr, 'categories' => $categoriesArr);
     }
     
     
@@ -160,10 +128,11 @@ class pos_Favourites extends core_Manager {
      */
     function preparePosProducts()
     {
-    	$array = array();
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
+    	$cache = core_Cache::get('pos_Favourites', 'products');
+    	$array = array();
     	
     	// Коя е текущата точка на продажба и нейния дефолт контрагент
     	$posRec = pos_Points::fetch(pos_Points::getCurrent());
@@ -172,40 +141,43 @@ class pos_Favourites extends core_Manager {
     	$Policy = cls::get($posRec->policyId);
     	
     	$query = static::getQuery();
-    	$query->where("#pointId LIKE '%{$posRec->id}%'");
+    	$query->where("#pointId IS NULL");
+    	$query->orWhere("#pointId LIKE '%{$posRec->id}%'");
     	$query->where("#state = 'active'");
     	$query->orderBy("#used", "DESC");
     	while($rec = $query->fetch()){
-    		$obj = $this->prepareProductObject($rec);
-    		$obj->code = $varchar->toVerbal($obj->code);
-    		$obj->name = $varchar->toVerbal($obj->name);
-    		
-    		// Цена на продукта от ценовата политика
-    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $rec->productId, $rec->packagingId, $obj->quantity, dt::verbal2mysql());
-    		$obj->price = $double->toVerbal($price->price);
-    		
-    		$array[$rec->id] = $obj;
+    		if(!$cache[$rec->id]) {
+    			$obj = $this->prepareProductObject($rec);
+	    		$obj->code = $varchar->toVerbal($obj->code);
+	    		$obj->name = $varchar->toVerbal($obj->name);
+	    		
+	    		// Цена на продукта от ценовата политика
+	    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $rec->productId, $rec->packagingId, $obj->quantity, dt::verbal2mysql());
+	    		$obj->price = $double->toVerbal($price->price);
+    			$cache[$rec->id] = $obj;
+    		}
+    		 
+    		$array[$rec->id] = $cache[$rec->id];
     	}
     	
+    	core_Cache::set('pos_Favourites', 'products', $array, 300);
     	return $array;
     }
     
     
     /**
-     * 
+     * Подготвяме единичен продукт от модела
      * @param stdClass $rec - запис от модела
      * @return stdClass $obj - обект с информацията за продукта
      */
     function prepareProductObject($rec)
     {
-    	$obj = new stdClass();
-    	
     	// Информацията за продукта с неговата опаковка
     	$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
     	$productRec = $info->productRec;
     	$packRec = $info->packagingRec;
-    	$obj->name = $productRec->name;
-    	$obj->catId = $productRec->categoryId;
+    	$arr['name'] = $productRec->name;
+    	$arr['catId'] = $rec->catId;
     	if($packRec) {
     		$obj->quantity = $packRec->quantity;
     		($packRec->customCode) ? $code = $packRec->customCode : $code = $packRec->eanCode;
@@ -213,22 +185,22 @@ class pos_Favourites extends core_Manager {
     		$obj->quantity = 1;
     		($productRec->code) ? $code = $productRec->code : $code = $productRec->eanCode;
     	}
-    	$obj->code = $code;
-    	$obj->image = $rec->image;
+    	$arr['code'] = $code;
+    	$arr['image'] = $rec->image;
     		
-    	return $obj;
+    	return (object)$arr;
     }
     
     
     /**
      * Рендираме PoS продуктите и техните категории в подходящ вид
-     * @param stdClass $data - обект съдържащ масивите с продуктите
-     * и категориите
+     * @param stdClass $data - обект съдържащ масивите с продуктите,
+     * категориите и темата по подразбиране
      * @return core_ET $tpl - шаблона с продуктите
      */
-    static function renderPosProducts($data)
+    public static function renderPosProducts($data)
     {
-    	$tpl = new ET(getFileContent('pos/tpl/Favourites.shtml'));
+    	$tpl = new ET(getFileContent($data->theme.'/Favourites.shtml'));
     	$self = cls::get(get_called_class());
     	$self->renderProducts($data->arr, $tpl);
     	$self->renderCategories($data->categories, $tpl);
@@ -265,7 +237,7 @@ class pos_Favourites extends core_Manager {
 		$baseCurrency = acc_Periods::getBaseCurrencyCode();
 		
 		$attr = array('isAbsolute' => FALSE, 'qt' => '');
-        $size = array(80, 'max'=>TRUE);
+        $size = array(80, 'max' => TRUE);
     	foreach($products as $row) {
     		if($row->image) {
     			$imageUrl = thumbnail_Thumbnail::getLink($row->image, $size, $attr);
@@ -305,6 +277,10 @@ class pos_Favourites extends core_Manager {
     		$pack = " , 1 {$measureRow}";
     	}
     	
+    	if(!$rec->pointId) {
+    		$row->pointId = tr('Всички');
+    	}
+    	
     	$row->productId .= $pack;
     }
     
@@ -313,7 +289,7 @@ class pos_Favourites extends core_Manager {
      * Ако добавения продукт е от любимите инкрементираме полето 'used'
      * @param string $code - кода на добавения продукт
      */
-    static function updateUsage($code){
+    public static function updateUsage($code){
     	$productRec = cat_Products::getByCode($code);
     	$pointId = pos_Points::getCurrent();
     	$query = static::getQuery();
