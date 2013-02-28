@@ -24,11 +24,14 @@ if (setupKeyValid() && !setupProcess()) {
 		halt("Грешка при стартиране на Setup.");
 	}
 } // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
-	elseif (!setupRights() && !setupProcess()) {
-
+	elseif (!setupKeyValid() && !setupProcess()) {
+			// Ако има останало cookie го чистим
+			if (isset($_COOKIE['setup'])) {
+				setcookie("setup", "", time()-3600);	
+			}		
 		return;
 	}	// Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
-		elseif (!setupRights() && setupProcess()) {
+		elseif (!setupKeyValid() && setupProcess()) {
 			halt("Процес на обновяване - опитайте по късно.</h2>");
 		}
 
@@ -534,11 +537,11 @@ if($step == 5) {
  **********************************/
 if ($step == 'setup') {
 	$calibrate = 1000;
-    $totalRecords = 137600;
-    $totalTables = 230;
+    $totalRecords = 137560;
+    $totalTables = 225;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
-    contentFlush ($texts['styles']);
+    echo ($texts['styles']);
 	
 	$opts = array(
 	  'http'=>array(
@@ -550,8 +553,9 @@ if ($step == 'setup') {
 	
 	$context = stream_context_create($opts);
 	
-	$res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . setupKey(), FALSE, $context, 0, 2);
-
+	//$res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . setupKey(), FALSE, $context, 0, 2);
+	$res = file_get_contents("{$selfUrl}&step=start", FALSE, $context, 0, 2);
+	
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
@@ -605,7 +609,7 @@ if ($step == 'setup') {
         
         // Лог
         // Изчитаме лог-а ако е отключен и го изтриваме 
-        $setupLog = file_get_contents(EF_TEMP_PATH . '/setupLog.html');
+        $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
 	    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
 	    
 	    $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
@@ -645,10 +649,9 @@ if ($step == 'setup') {
         				clearInterval(handle);
         				document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 				</script>");
-	
 	setupUnlock();
-	
-    exit;
+
+	exit;
 }
 
 /**********************************
@@ -689,14 +692,10 @@ if($step == start) {
 	$Packs = cls::get('core_Lg');
     $Packs->setupMVC();
 	
-    $Packs = cls::get('acc_Lists');
-    $Packs->setupMVC();
-    
     $Packs = cls::get('core_Packs');
     $Packs->setupMVC();
     $Packs->checkSetup();
     
-//    $Packs->setupPack('bgerp');
 	setupUnlock();
     exit;
 }
@@ -945,6 +944,9 @@ function contentFlush ($content)
 function setupLock()
 {
 	setcookie("setup", setupKey() , time()+600);
+	if (!is_dir(EF_TEMP_PATH)) {
+		mkdir(EF_TEMP_PATH, 0777, TRUE);
+	}
 	return touch(EF_TEMP_PATH . "/setupLock.tmp");
 }
 
@@ -955,7 +957,7 @@ function setupLock()
  */
 function setupUnlock()
 {
-	setcookie("setup", "", time()-3600);
+
    	return @unlink(EF_TEMP_PATH . "/setupLock.tmp");
 }
     
@@ -997,51 +999,30 @@ function setupKey()
  */
 function setupKeyValid()
 {
-	// При грешка с базата данни да връща валиден сетъп ключ
-
+	// При грешка с базата данни връща валиден сетъп ключ
 	$res = dataBaseStat();
 	
-	if ($res === FALSE) {
+	if ($res === FALSE && !setupProcess()) {
 		return TRUE;
 	}
 	
-//	list($numRows, $numTables) = $res; 
+	// Ако има setup cookie и има пуснат сетъп процес връща валиден ключ
+	if (isset($_COOKIE['setup']) && setupProcess()) {
+		return TRUE;
+	}
 
+	// Ако сетъп-а е стартиран от локален хост или инсталатор 
+	// Определяме масива с локалните IP-та
+	$localIpArr = array('::1', '127.0.0.1');
+	$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
+	$key = $_GET['SetupKey'];
+	if ($key == BGERP_SETUP_KEY && $isLocal ) {
+		return TRUE;
+	}
+	
    	return $_GET['SetupKey'] == setupKey();
 }
 
-/**
- * Връща дали имаме право за Setup
- * 
- * @return boolean
- */
-function setupRights()
-{
-	if (!defined('BGERP_SETUP_KEY')) {
-		halt('Not defined BGERP_SETUP_KEY!');
-	}    	
-
-	// Определяме масива с локалните IP-та
-	$localIpArr = array('::1', '127.0.0.1');
-
-	$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
-	
-	$key = $_GET['SetupKey'];
-	
-	// Ако сетъп-а е стартиран от локален хост или инсталатор
-	if ($key == BGERP_SETUP_KEY && $isLocal ) {
-		
-		return TRUE;
-	}
-	// Ако сме в процес на инсталация
-//	if (setupKeyValid() && isset($_COOKIE['setup'])) {
-	if (isset($_COOKIE['setup'])) {
-		
-		return TRUE;
-	}
-	
-	return FALSE;
-}
 
 /**
  * Връща броя на таблиците и редовете в базата

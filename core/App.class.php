@@ -465,19 +465,28 @@ class core_App
 
 
     /**
-     * @todo Чака за документация...
+     * Пренасочва към RetUrl
+     * 
+     * @see redirect()
+     * 
+     * @param mixed $defaultUrl използва този URL ако не може да установи RetUrl
+     * @param string $msg съобщение - нотификация
+     * @param string $type тип на нотификацията
      */
-    public static function followRetUrl($retUrl = NULL)
+    public static function followRetUrl($defaultUrl = NULL, $msg = NULL, $type = 'info')
     {
-        if(!$retUrl) {
-	    	if (!$retUrl = static::getRetUrl()) {
-	            $retUrl = array(
-	                EF_DEFAULT_CTR_NAME,
-	                EF_DEFAULT_ACT_NAME
-	            );
-	        }
+        if (!$retUrl = static::getRetUrl()) {
+            $retUrl = $defaultUrl;
         }
-        static::redirect($retUrl);
+        
+        if (!$retUrl) {
+            $retUrl = array(
+                EF_DEFAULT_CTR_NAME,
+                EF_DEFAULT_ACT_NAME
+            );
+        }
+        
+        static::redirect($retUrl, FALSE, $msg, $type);
     }
 
 
@@ -1049,9 +1058,9 @@ function getRetUrl($retUrl = NULL)
 /**
  * @todo Чака за документация...
  */
-function followRetUrl()
+function followRetUrl($url = NULL, $msg = NULL, $type = 'info')
 {
-    core_App::followRetUrl();
+    core_App::followRetUrl($url, $msg, $type);
 }
 
 
