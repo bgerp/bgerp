@@ -469,7 +469,7 @@ class support_Issues extends core_Master
         $data->listFilter->getField('componentId')->type->params['allowEmpty'] = TRUE;
          
         // Добавяме функционално поле за отговорници
-        $data->listFilter->FNC('maintainers', 'users', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=user)', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Кои полета да се показват
         $data->listFilter->showFields = 'systemIdShow, componentId, maintainers';
@@ -551,7 +551,7 @@ class support_Issues extends core_Master
         if ($maintainers != 'all_users') {
             
             // Ако не са избрани всички потребители
-            if (stripos($maintainers, '|-1|') === FALSE) {
+            if (strpos($maintainers, '|-1|') === FALSE) {
         
                 // Добавяме външно поле за търсене
                 $data->query->EXT("componentMaintainers", 'support_Components', "externalName=maintainers");
