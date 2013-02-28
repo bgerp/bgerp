@@ -160,7 +160,7 @@ class support_Issues extends core_Master
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
         
         // Възлагане на задача (за doc_AssignPlg)
-        $this->FLD('assign', 'user(roles=powerUser)', 'caption=Възложен на,input=none');
+        $this->FLD('assign', 'user(roles=powerUser)', 'caption=Възложено на,input=none');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
