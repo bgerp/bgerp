@@ -58,6 +58,9 @@ class doc_Threads extends core_Manager
     static $contragentData = NULL;
     
     
+    protected static $updating = array();
+    
+    
     /**
      * Описание на модела на нишките от контейнери за документи
      */
@@ -591,6 +594,10 @@ class doc_Threads extends core_Manager
      */
     function updateThread_($id)
     {
+        if (static::isUpdating($id)) {
+            return;
+        }
+        
         // Вземаме записа на треда
         $rec = doc_Threads::fetch($id, NULL, FALSE);
         
@@ -677,6 +684,8 @@ class doc_Threads extends core_Manager
             
             // Първия документ 
             if($firstDcRec->state == 'rejected' && $rec->state != 'rejected') {
+                $firstDoc = doc_Containers::getDocument($firstDcRec->id);
+                $firstDoc->reject('restore');
             }
 
         } else {
@@ -684,6 +693,31 @@ class doc_Threads extends core_Manager
         }
         
         doc_Folders::updateFolderByContent($rec->folderId);
+    }
+    
+    
+    public static function beginUpdate($id)
+    {
+        if (empty(static::$updating[$id])) {
+            static::$updating[$id] = 1;
+        } else {
+            static::$updating[$id]++;
+        }
+    }
+    
+    
+    public static function endUpdate($id)
+    {
+        expect(static::$updating[$id] > 0, static::$updating[$id]);
+        
+        static::$updating[$id]--;
+        static::updateThread_($id);
+    } 
+    
+    
+    public static function isUpdating($id)
+    {
+        return isset(static::$updating[$id]) ? static::$updating[$id] : 0; 
     }
     
     

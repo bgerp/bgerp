@@ -494,6 +494,8 @@ class doc_DocumentPlg extends core_Plugin
             
             $rec = $mvc->fetch($id);
             
+            doc_Threads::beginUpdate($rec->threadId);
+            
             // URL' то което ще се премахва или показва от нотификациите
             $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
             
@@ -573,13 +575,15 @@ class doc_DocumentPlg extends core_Plugin
                 bgerp_Recently::setHidden('document', $rec->containerId, 'no');
 
                 // Обновяваме съдържанието на папката
-                doc_Threads::updateThread($rec->threadId);
+//                 doc_Threads::updateThread($rec->threadId);
 
             }
             
             $mvc->save($rec, 'state,brState');
             
             $mvc->log($mode, $rec->id);
+            
+            doc_Threads::endUpdate($rec->threadId);
 
             if(!$res) {
                 $res = new Redirect(array($mvc, 'single', $rec->id));
