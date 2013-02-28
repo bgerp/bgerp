@@ -20,13 +20,13 @@ class price_ListToCustomers extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Ценоразписи';
+    var $title = 'Ценови правила';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Ценоразпис';
+    var $singleTitle = 'Ценови правила';
     
     
     /**
@@ -44,7 +44,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, listId, cClass, cId, validFrom';
+    var $listFields = 'id, listId, cClass, cId, validFrom, createdBy, createdOn';
     
     
     /**
@@ -129,8 +129,18 @@ class price_ListToCustomers extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
+        $rec = $data->form->rec;
+
         if(!$rec->id) {
-            $data->form->rec->validFrom = Mode::get('PRICE_VALID_FROM');
+            $rec->validFrom = Mode::get('PRICE_VALID_FROM');
+        }
+
+        $vRec = self::getValidRec($rec->cClass, $rec->cId);
+        if($vRec) {
+            $rec->listId = $vRec->listId;
+        } else {
+            $conf = core_Packs::getConfig('price');
+            $rec->listId = $conf->PRICE_LIST_CATALOG;
         }
     }
 
@@ -146,7 +156,7 @@ class price_ListToCustomers extends core_Detail
 
     
     public function getMasterMvc_($rec)
-    {   
+    {
         $masterMvc = cls::get($rec->cClass);
  
         return $masterMvc;      
@@ -176,8 +186,9 @@ class price_ListToCustomers extends core_Detail
     function on_AfterPrepareListToolbar($mvc, $data)
     {
         if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $data->toolbar->removeBtn('*');
             $masterClassId = core_Classes::getId($this->Master);
-            $data->toolbar->buttons['btnAdd']->url += array('cClass'=>$masterClassId);
+            $data->addUrl = array($mvc, 'add', 'cClass' => $masterClassId, 'cId' => $data->masterId, 'ret_url' => TRUE);
         }
     }
 
@@ -190,6 +201,11 @@ class price_ListToCustomers extends core_Detail
         $wrapTpl->replace(get_class($mvc), 'DetailName');
     
         $tpl = $wrapTpl;
+        
+        if ($data->addUrl) {
+            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+            $tpl->append($addBtn, 'title');
+        }
     }
 
 

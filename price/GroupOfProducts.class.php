@@ -40,7 +40,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, groupId, productId, validFrom';
+    var $listFields = 'id, groupId, productId, validFrom, createdBy, createdOn';
     
     
     /**
@@ -145,14 +145,11 @@ class price_GroupOfProducts extends core_Detail
 
         return $res;
     }
-
-
-    function act_Test()
-    {
-        bp($this->getAllProducts());
-    }
     
     
+    /**
+     *
+     */
     static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
@@ -175,8 +172,10 @@ class price_GroupOfProducts extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
+        $rec = $data->form->rec;
+
         if(!$rec->id) {
-            $data->form->rec->validFrom = Mode::get('PRICE_VALID_FROM');
+            $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
     }
 
@@ -260,12 +259,21 @@ class price_GroupOfProducts extends core_Detail
         $wrapTpl->replace(get_class($mvc), 'DetailName');
     
         $tpl = $wrapTpl;
+
+        if ($data->addUrl ||1) {
+            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+            $tpl->append($addBtn, 'TITLE');
+        }
     }
 
 
     public static function preparePriceGroup($data)
     {
         static::prepareDetail($data);
+
+        $data->toolbar->removeBtn('*');
+
+        $data->addUrl = array('price_GroupOfProducts', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
     }
     
     
