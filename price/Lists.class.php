@@ -21,7 +21,7 @@ class price_Lists extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Правила за ценообразуване';
+    var $title = 'Ценови политики';
     
     
     /**
@@ -95,16 +95,18 @@ class price_Lists extends core_Master
      */
     function description()
     {
-        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
-        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование');
+        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика,width=100%');
+        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,1noChange');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
-        $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'mandatory,caption=Валута,noChange');
-        $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,notNull,caption=ДДС,noChange');
+        $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута,noChange');
+        $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,notNull,caption=ДДС,noChange'); 
+        $this->FNC('customer', 'varchar', 'caption=Прикрепяне->Клиент,input=hidden');
+        $this->FNC('validFrom', 'datetime', 'caption=Прикрепяне->В сила от,input=hidden');
+        $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
+        $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
         
-        $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
 
         $this->setDbUnique('title');
     }
@@ -118,13 +120,44 @@ class price_Lists extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $form = $data->form;
         $rec = $form->rec;
 
-        if($rec->classId) {
+        if($rec->cId && $rec->cClass) {
+            $cMvc = cls::get($rec->cClass);
+            expect($cRec = $cMvc->fetch($rec->cId));
+            $cMvc->requireRightFor('single', $rec);
             $form->setField('public', 'input=none');
+            $form->setField('customer', 'input');
+            $form->setField('validFrom', 'input');
+            $title = $cMvc->gettitleById($rec->cId);
+            $rec->customer =  $title;
+            $form->setReadonly('customer');
+            $rec->parent =  price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId);
+            $parentOptions = self::makeArray4select('title', "#id = '{$rec->parent}' OR #public = 'yes' OR (#cId = '{$rec->cId}' AND #cClass = '{$rec->cClass}')");
+            $form->setOptions('parent', $options);
+        } else {
+            $conf = core_Packs::getConfig('price');
+            $rec->parent = $conf->PRICE_LIST_CATALOG;
+        }
+
+
+        if(!$rec->currency) {
+            $rec->currency = acc_Periods::getBaseCurrencyCode();
         }
     }
 
+
+    /**
+     * Изпълнява се след създаване на нов набор от ценови правила
+     */
+    function on_AfterCreate($mvc, $rec)
+    {
+
+    }
+
+
+ 
 
     /**
      * След преобразуване на записа в четим за хора вид.
