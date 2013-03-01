@@ -110,7 +110,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('change', 'float(minDecimals=2)', 'caption=Ресто, input=none, value=0');
     	$this->FLD('tax', 'float(minDecimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворена)', 
             'caption=Статус, input=none'
         );
     }

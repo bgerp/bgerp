@@ -30,7 +30,7 @@ class pos_Wrapper extends plg_ProtoWrapper
     	}
         $this->TAB('pos_Points', 'Точки на продажба', 'admin,pos');
         $this->TAB('pos_Receipts', 'Бележки за продажба', 'admin,pos');
-        $this->TAB('pos_Favourites', 'PoS продукти', 'admin,pos');
+        $this->TAB('pos_Favourites', 'Бързи бутони', 'admin,pos');
         $this->TAB('pos_Payments', 'Методи на плащане', 'admin,pos');
         
         $this->title = 'Точки на Продажба';

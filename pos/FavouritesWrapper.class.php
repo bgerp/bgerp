@@ -9,6 +9,6 @@ class pos_FavouritesWrapper extends pos_Wrapper
         $tabs->TAB('pos_FavouritesCategories', 'Категории');
         
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
-        $mvc->currentTab = 'PoS Продукти';
+        $mvc->currentTab = 'Бързи бутони';
     }
 }

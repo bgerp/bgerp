@@ -18,7 +18,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "PoS Продукти";
+    var $title = "Продукти";
     
     
     /**
