@@ -37,7 +37,7 @@
                         
                         <!--ET_BEGIN stateText-->
                         <br/>
-                        <div class="state">[#stateText#]</div>
+                        <div class="[#STATE_CLASS#]">[#stateText#]</div>
                         <!--ET_END stateText-->
                     </td>
                     <td class="cell" width="35%" valign="top"><b>Доставчик</b>
