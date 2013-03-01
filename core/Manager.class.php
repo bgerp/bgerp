@@ -934,4 +934,18 @@ class core_Manager extends core_Mvc
         
         return implode(' ', get_object_vars($rec));
     }
+    
+    
+    public function getHyperlink($id)
+    {
+        $title = $this->getTitleById($id);
+        
+        if ($this->haveRightFor('single', $id)) {
+            $title = ht::createLink($title,
+                array($this, 'single', $id)
+            );
+        }
+        
+        return $title;
+    }
 }
