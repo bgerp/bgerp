@@ -300,6 +300,8 @@ class price_ListRules extends core_Detail
             $query->orderBy('#validFrom,#id', 'DESC');
             $query->limit(1);
             
+            $query->where("#listId = {$rec->listId}");
+
             $query->where("#validFrom <= '{$now}' AND (#validUntil IS NULL OR #validUntil > '{$now}')");
 
             if($rec->groupId) {
@@ -318,7 +320,7 @@ class price_ListRules extends core_Detail
             }
 
             expect($actRec = $query->fetch());
-
+ 
             if($actRec->id == $rec->id) {
                 $state = 'active';
             } else {
@@ -333,9 +335,9 @@ class price_ListRules extends core_Detail
 
         
         if($rec->discount < 0) {$discount = $mvc->getVerbal($rec, 'discount');
-            $discount = "<font color='red'>Марж {$discount}</font>";
+            $discount = "Надценка <font color='#000066'>" . (-$discount) . " %</font>";
         } else {
-            $discount = "Отстъпка {$discount}";
+            $discount = "Отстъпка <font color='#660000'>{$discount}</font>";
         }
         
         if($rec->productId) {
@@ -344,7 +346,7 @@ class price_ListRules extends core_Detail
         }
 
         if($rec->packagingId) {
-            $packaging = $mvc->getVerbal($rec, 'packagingId');
+            $packaging = mb_strtolower($mvc->getVerbal($rec, 'packagingId'));
             $product = "{$packaging} $product";
         }
         

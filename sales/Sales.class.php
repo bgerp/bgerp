@@ -481,6 +481,18 @@ class sales_Sales extends core_Master
     
 
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $title = tr("Продажба| №" . $rec->id);
+        
+         
+        return $title;
+    }
+
+
+    /**
      * Условия за доставка по подразбиране
      * 
      * @param stdClass $rec

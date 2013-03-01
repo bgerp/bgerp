@@ -104,7 +104,7 @@ class doc_FolderPlg extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single')) {
+        if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc')) {
             
             $rec = $mvc->fetch($rec->id);
             
@@ -115,10 +115,14 @@ class doc_FolderPlg extends core_Plugin
                 // Използвана сметка - забранено изтриване
                 $requiredRoles = 'no_one';    
             }
+
+            if($rec->state == 'rejected' && $action != 'single') {
+                $requiredRoles = 'no_one';
+            }
             
             if($action == 'delete' && $rec->folderId) {
                 $requiredRoles = 'no_one';
-            }
+            } 
         }
     }
     

@@ -40,7 +40,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, groupId, productId, validFrom, createdBy, createdOn';
+    var $listFields = 'groupId, productId, validFrom, createdBy, createdOn';
     
     
     /**
@@ -211,7 +211,7 @@ class price_GroupOfProducts extends core_Detail
 
     
     public static function on_AfterPrepareListRows(core_Detail $mvc, $data)
-    {
+    {   
         if (!$data->rows) {
             return;
         }
@@ -229,7 +229,8 @@ class price_GroupOfProducts extends core_Detail
         //  * 'future' за бъдещите ценови групи (невлезли все още в сила)
         //  * 'active' за текущата ценова група
         //  * 'past' за предишните ценови групи (които вече не са в сила)
-        foreach ($data->rows as $id=>&$row) {
+        foreach ($data->rows as $id => &$row) {
+            
             $rec = $data->recs[$id];
             
             if ($rec->validFrom > $now) {
@@ -260,8 +261,8 @@ class price_GroupOfProducts extends core_Detail
     
         $tpl = $wrapTpl;
 
-        if ($data->addUrl ||1) {
-            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+        if ($data->addUrl) {
+            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, NULL, 'title=Задаване на ценова група');
             $tpl->append($addBtn, 'TITLE');
         }
     }

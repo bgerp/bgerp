@@ -178,6 +178,7 @@ class pos_Favourites extends core_Manager {
     	$packRec = $info->packagingRec;
     	$arr['name'] = $productRec->name;
     	$arr['catId'] = $rec->catId;
+        $obj = new stdClass();
     	if($packRec) {
     		$obj->quantity = $packRec->quantity;
     		($packRec->customCode) ? $code = $packRec->customCode : $code = $packRec->eanCode;

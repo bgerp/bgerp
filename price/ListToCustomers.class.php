@@ -20,13 +20,13 @@ class price_ListToCustomers extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Ценови правила';
+    var $title = 'Ценови политики';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Ценови правила';
+    var $singleTitle = 'Ценова политика';
     
     
     /**
@@ -44,7 +44,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, listId, cClass, cId, validFrom, createdBy, createdOn';
+    var $listFields = 'listId, cClass, cId, validFrom, createdBy, createdOn';
     
     
     /**
@@ -88,7 +88,7 @@ class price_ListToCustomers extends core_Detail
      */
     function description()
     {
-        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис');
+        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Политика');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
@@ -135,13 +135,10 @@ class price_ListToCustomers extends core_Detail
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
 
-        $vRec = self::getValidRec($rec->cClass, $rec->cId);
-        if($vRec) {
-            $rec->listId = $vRec->listId;
-        } else {
-            $conf = core_Packs::getConfig('price');
-            $rec->listId = $conf->PRICE_LIST_CATALOG;
-        }
+        $rec->listId = self::getListForCustomer($rec->cClass, $rec->cId);
+  
+        $data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId), 
+            NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
     }
 
 
@@ -229,6 +226,27 @@ class price_ListToCustomers extends core_Detail
  
         return $lRec;
     }
+
+
+    /**
+     * Задава ценова политика за определен клиент
+     */
+    static function setPolicyTocustomer($policyId, $cClass, $cId, $datetime = NULL)
+    {
+        if(!$datetime) {
+            $datetime = dt::verbal2mysql();
+        }
+
+        $rec = new stdClass();
+        $rec->cClass = $cClass;
+        $rec->cId   = $cId;
+        $rec->validFrom = $datetime;
+        $rec->listId = $policyId;
+ 
+        self::save($rec);
+    }
+
+
     
     
     public static function preparePricelists($data)
@@ -254,7 +272,7 @@ class price_ListToCustomers extends core_Detail
                 $data->rows[$id]->ROW_ATTR['class'] = "state-{$state}";
 
                 if(price_Lists::haveRightFor('single', $rec)) {
-                    $row->listId = ht::createLink($row->listId, array('price_Lists', 'single', $rec->id));
+                    $row->listId = ht::createLink($row->listId, array('price_Lists', 'single', $rec->listId));
                 }
             }
         }
@@ -328,7 +346,22 @@ class price_ListToCustomers extends core_Detail
     }
 
 
-     
+    /**
+     * Връща валидните ценови правила за посочения клиент
+     */
+    static function getListForCustomer($customerClass, $customerId, $datetime = NULL)
+    {
+        $validRec = self::getValidRec($customerClass, $customerId, $datetime);
+
+        if($validRec) {
+            $listId   = $validRec->listId;
+        } else {
+            $conf = core_Packs::getConfig('price');
+            $listId = $conf->PRICE_LIST_CATALOG;
+        }
+        
+        return $listId;
+    }
     
     
     /**
@@ -352,9 +385,8 @@ class price_ListToCustomers extends core_Detail
                 }
             }
         }
-
-        $validRec = self::getValidRec($customerClass, $customerId, $datetime);
-        $listId   = $validRec->listId;
+        
+        $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
 
         $rec = new stdClass();
 
@@ -375,10 +407,10 @@ class price_ListToCustomers extends core_Detail
      */
     public function getPolicyTitle($customerClass, $customerId)
     { 
-        $vRec = self::getValidRec($customerClass, $customerId);
-        
-        if($vRec) {
-            $lRec = price_Lists::fetch($vRec->listId); 
+        $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
+
+        if($listId) {
+            $lRec = price_Lists::fetch($listId); 
             $title = price_Lists::getVerbal($lRec, 'title');
 
             return $title;
