@@ -503,7 +503,7 @@ class html2text_Converter
         $text = preg_replace("/<li[^>]*>/i", "\n\t* ", $text);
         
         // <a href="">
-        $text = preg_replace_callback('/<a [^>]*href=("|\')([^"|\']+)("|\')[^>]*>(.*?)<\/a>/i', array($this, '_build_link_list'), $text);
+        $text = preg_replace_callback('/<a [^>]*href=("|\')([^"|\']+)("|\')[^>]*>(.*?)<\/a>/is', array($this, '_build_link_list'), $text);
         
         // <hr>
         $text = preg_replace("/<hr[^>]*>/i", "\n-------------------------\n", $text);
