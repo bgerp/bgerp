@@ -756,7 +756,7 @@ class sales_Sales extends core_Master
         expect($rec = $this->fetch($id));
         
         $row = (object)array(
-            'title'    => "Продажба №{$rec->id}",
+            'title'    => "Продажба №{$rec->id} / " . $this->getVerbal($rec, 'date'),
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
