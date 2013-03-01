@@ -99,7 +99,9 @@ class sales_Sales extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-     public $listFields;
+     public $listFields = 'id, date, contragentClassId, contragentId, currencyId, amountDeal, amountDelivered, amountPaid, 
+                             dealerId, initiatorId,
+                             createdOn, createdBy';
     
     
     /**
@@ -166,7 +168,7 @@ class sales_Sales extends core_Master
          * Контрагент
          */ 
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
-        $this->FLD('contragentId', 'int', 'input=hidden');
+        $this->FLD('contragentId', 'int', 'input=hidden,caption=Клиент');
         
         /*
          * Доставка
@@ -706,6 +708,43 @@ class sales_Sales extends core_Master
         $row->amountDeal = $row->currencyId . ' ' . sprintf('%0.2f', $rec->amountDeal);
     }
     
+    
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    {
+        // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
+        // тук в $rec/$row, а не за да ги показваме
+        $data->listFields = array_diff_key(
+            $data->listFields, 
+            arr::make('currencyId,initiatorId,contragentClassId', TRUE)
+        );
+        
+        $data->listFields['dealerId'] = 'Търговец';
+        
+        foreach ($data->rows as $i=>&$row) {
+            $rec = $data->recs[$i];
+            
+            // "Изчисляване" на името на клиента
+            if ($rec->contragentClassId && $rec->contragentId) {
+                $contragent = new core_ObjectReference(
+                    $rec->contragentClassId, 
+                    $rec->contragentId, 
+                    'doc_ContragentDataIntf'
+                );
+                $contragentData = $contragent->getContragentData();
+                
+                $row->contragentId = empty($contragentData->company) ? NULL : $contragentData->company;
+                setIfNot($row->contragentId, empty($contragentData->name) ? NULL : $contragentData->name);
+            }
+
+            setIfNot($row->contragentId, '<span class="quiet">неизвестен</span>');
+            
+            // Търговец чрез инициатор
+            if (!empty($rec->initiatorId)) {
+                $row->dealerId .= '<small style="display: block;"><span class="quiet">чрез</span> ' . $row->initiatorId;
+            }
+        }
+            
+    }
     
     /**
      * 
