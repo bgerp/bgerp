@@ -119,21 +119,15 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory,silent');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,width=6em,mandatory');
-    	$this->FLD('currencyItem', 'acc_type_Item(select=numTitleLink)', 'caption=Валута,input=none');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=20em,input,mandatory');
     	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
-    	$this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 1');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 2');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=От->перо 3');
-        $this->FLD('creditQuantity', 'float', 'width=6em,caption=От->Сума');
-        $this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 1');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 2');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Към->перо 3');
-        $this->FLD('debitQuantity', 'float', 'width=6em,caption=Към->Сума');
-        $this->FLD('rate', 'float', 'caption=Валута->Курс,width=6em,input=none');
-        $this->FLD('state', 
+    	$this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)','caption=От->Каса,width=300px');
+    	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
+        $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=300px,input=none');
+    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Б. Сметка,width=300px,input=none');
+    	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
@@ -219,80 +213,23 @@ class cash_InternalMoneyTransfer extends core_Master
      
     	// Трябва документа да поддържа тази операция
     	$classId = core_Classes::fetchIdByName(get_called_class());
-    	
-        expect($operation->documentSrc == $classId, 'Този документ не поддържа избраната операция');
+    	expect($operation->documentSrc == $classId, 'Този документ не поддържа избраната операция');
         
-        $debitAcc = $operation->debitAccount;
-        $creditAcc = $operation->creditAccount;
         
-      	foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
-            
-            $acc = ${"{$type}Acc"};
-            
-            // Скриваме всички полета за пера, и после показваме само тези, за които съответната
-            // (дебит или кредит) сметка има аналитичност.
-            $form->setField("{$type}Ent1", 'input=none');
-            $form->setField("{$type}Ent2", 'input=none');
-            $form->setField("{$type}Ent3", 'input=none');
-    		
-            ($type == 'debit') ? $division = tr('Към') : $division = tr('От');
-            
-    		// Намираме на коя позиция се намира номенклатурата Валути, ако я има
-    		$pos = acc_Lists::getPosition(${"{$type}Acc"}->rec->systemId, 'currency_CurrenciesAccRegIntf');
-    		
-    		
-    		foreach ($acc->groups as $i => $list) {
-                if (!$list->rec->itemsCnt) {
-                    return Redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"{$list->rec->name}\""));
-                }
-               
-                if($list->rec->systemId == 'case') {
-                	$singleName = tr('Каса');
-                } elseif($list->rec->systemId == 'currency'){
-                	$singleName = tr('Валута');
-                } else {
-                	$singleName = tr('Банкова сметка');
-                }
-                $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-                $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$division}->" . $singleName);
-    			
-                // Ако няма превалутираме и дебитната сметка има перо валута,
-				// ние правим това поле скрито, то ще се попълни със
-				// стойнста от кредитното поле
-				if($pos == $i) {
-					$form->setField("{$type}Ent{$i}", "input=hidden");
-				}
-			}
-      		
-			if($pos && $type == 'credit') {
-		        $form->getField("currencyItem")->type->params['lists'] = $list->rec->num;
-		        $form->setField("currencyItem", "input");
-        	}
-        		
-	    	// Ако не превалутираме нямаме нужда да показваме количествоо
-	        $form->setField("{$type}Quantity", 'input=hidden');
-	    }
-        
+    	switch($operationSysId) {
+        	case "case2case":
+        		$form->setField("debitCase", "input");
+        		break;
+        	case "case2bank":
+        		$form->setField("debitBank", "input");
+        		$form->setOptions("debitCase", bank_OwnAccounts::getOwnAccounts());
+        		break;
+        }
+        $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
-        $form->setReadOnly('operationSysId');
-		
-        // Перото на валутата по подразбиране
-        $currencyClassId = currency_Currencies::getClassId();
-        $currencyId = acc_Periods::getBaseCurrencyId($today);
-        $currencyItem = acc_Items::fetch("#objectId={$currencyId} AND #classId={$currencyClassId}");
-       
-        if($form->getField('currencyItem')->input != 'none') {
-        	$form->setDefault('currencyItem', $currencyItem->id);
-        }
-        
-        // Ако имаме втора аналитичност валута, слагаме и дефолт стойност
-        if($form->getField('debitEnt2')->input != 'none') {
-        	$form->setDefault('debitEnt2', $currencyItem->id);
-        }
-    	if($form->getField('creditEnt2')->input != 'none') {
-        	$form->setDefault('creditEnt2', $currencyItem->id);
-        }
+        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
+      	$form->setDefault('creditCase', cash_Cases::getCurrent());
      }
     
      
@@ -312,14 +249,6 @@ class cash_InternalMoneyTransfer extends core_Master
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
     		$mvc->validateForm($form);
-    		
-    		$rec->debitQuantity = $rec->amount;
-    		$rec->creditQuantity = $rec->amount;
-    		
-    		$currencyItem = acc_Items::fetch($rec->currencyItem);
-		    $currencyCode = currency_Currencies::getCodeById($currencyItem->objectId);
-    		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-		    $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
     	}
     }
     
@@ -336,51 +265,19 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     function validateForm($form)
     {
-    		$rec = &$form->rec;
-    		
-    		// Намираме дали перо от кредита и дебита и дали е банкова сметка
-    		// Ако е банкова сметка намераме на коя позиция е точно, ако няма
-    		// съответната променлива е NULL ако в дебитния или кредитния акаунт
-    		// няма номенклатура банкови сметки 
-    		$debitAcc = $rec->debitAccId;
-    		$creditAcc = $rec->creditAccId;
-    		$operation = acc_Operations::fetchBySysId($rec->operationSysId);
-    		$currencyItem = acc_Items::fetch($rec->currencyItem);
-    		
-     		if($operation->systemId == 'case2case') { 
+    	$rec = &$form->rec;
+    	if($rec->operationSysId == 'case2case') { 
     			
-    			// Ако няма банкови сметки и движението е Каса -> Каса
-    			$casePos = acc_Lists::getPosition($creditAcc, 'cash_CaseAccRegIntf');
-    			
-    			$creditCaseItem = acc_Items::fetchField($rec->{"creditEnt{$casePos}"},'objectId');
-    			$debitCaseItem = acc_Items::fetchField($rec->{"debitEnt{$casePos}"},'objectId');
-    			
-    			// Двете Каси трябва да са различни
-    			if($creditCaseItem == $debitCaseItem) {
-    				$form->setError("debitEnt{$casePos}", 'Дестинацията е една и съща !!!');
-    			} else {
-    				
-    				// Приемаме че дебитната валута е същата като кредитната
-    				$currencyPos = acc_Lists::getPosition($creditAcc, 'currency_CurrenciesAccRegIntf');
-    				$rec->{"debitEnt{$currencyPos}"} = $rec->currencyItem;
-    				$rec->{"creditEnt{$currencyPos}"} = $rec->currencyItem;
-    			}
-    		} elseif($operation->systemId == 'case2bank') {
-    			
-    			// Ако и Имаме Банкови сметки от двете страни
-    			$debitBankPos = acc_Lists::getPosition($debitAcc, 'bank_OwnAccRegIntf');
-    			$debitBankItem = acc_Items::fetchField($rec->{"debitEnt{$debitBankPos}"}, 'objectId');
-    			
-    			// Валутите на двете банкови сметки трябва да съвпадат
-    			$debitCurrency = bank_InternalMoneyTransfer::getCurrency('debit', $rec);
-    			if($debitCurrency != $currencyItem->objectId) {
-    				$form->setError("debitEnt{$debitBankPos}", 'Банковата сметка е в друга валута !!!');
-    			}
-    			$debitCurrencyPos = acc_Lists::getPosition($debitAcc, 'currency_CurrenciesAccRegIntf');
-    			$rec->{"debitEnt{$debitCurrencyPos}"} = $currencyItem->id;
-    			$creditCurrencyPos = acc_Lists::getPosition($creditAcc, 'currency_CurrenciesAccRegIntf');
-    			$rec->{"creditEnt{$creditCurrencyPos}"} = $currencyItem->id;
+    	// Двете Каси трябва да са различни
+    	if($rec->creditCase == $rec->debitCase) {
+    			$form->setError("debitCase", 'Дестинацията е една и съща !!!');
     		} 
+    	} elseif($rec->operationSysId == 'case2bank') {
+    		$debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
+    		if($debitInfo->currencyId != $rec->currencyId) {
+    			$form->setError("debitBank", 'Банковата сметка е в друга валута !!!');
+    		}
+    	} 
     }
     
     
@@ -392,24 +289,14 @@ class cash_InternalMoneyTransfer extends core_Master
     	$row->number = static::getHandle($rec->id);
     	
     	if($fields['-single']) {
-    		
-    		// Пълни имена на дебитната и кредитната сметка
-    		$debitRec = acc_Accounts::getRecBySystemId($rec->debitAccId);
-	    	$row->debitAccId = acc_Accounts::getRecTitle($debitRec);
-	    	
-	    	$creditRec = acc_Accounts::getRecBySystemId($rec->creditAccId);
-	    	$row->creditAccId = acc_Accounts::getRecTitle($creditRec);
-	    	
-    		$currencyId = bank_InternalMoneyTransfer::getCurrency('debit', $rec);
-    		$row->currency = currency_Currencies::getCodeById($currencyId);
+    		$row->currency = currency_Currencies::getCodeById($rec->currencyId);
     		
     		// Изчисляваме равностойността на сумата в основната валута
     		if($rec->rate != '1') {
 	    		$double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
-	    		$row->equals = $double->toVerbal($rec->amount * $rec->rate);
-    			$period = acc_Periods::fetchByDate($rec->valior);
-			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
+	    		$row->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
+    			$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
     		}
     		
     		// Показваме заглавието само ако не сме в режим принтиране
@@ -427,8 +314,7 @@ class cash_InternalMoneyTransfer extends core_Master
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft') {
-	    	$rec = $data->rec;
-	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
     	}
     }
     
@@ -441,33 +327,32 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	// Извличаме записа
         expect($rec = self::fetch($id));
+        ($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
+        $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+        $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
+        $entry = array(
+            'amount' => $amount,
+            'debit' => array(
+                $rec->creditAccId,
+        		array('cash_Cases', $rec->creditCase),
+        		array('currency_Currencies', $rec->currencyId),
+                'quantity' => $rec->amount
+            ),
+            'credit' => array(
+                $rec->debitAccId,
+            	$debitArr,
+            	array('currency_Currencies', $rec->currencyId),
+                'quantity' => $rec->amount
+            ),
+        );
+      	
+      	// Подготвяме информацията която ще записваме в Журнала
+        $result = (object)array(
+            'reason' => $rec->reason,   // основанието за ордера
+            'valior' => $rec->valior,   // датата на ордера
+            'entries' => array($entry)
+        );
         
-        foreach(range(1,2) as $n) {
-        	${"debitItem{$n}"} = acc_Items::fetch($rec->{"debitEnt{$n}"});
-        	${"creditItem{$n}"} = acc_Items::fetch($rec->{"creditEnt{$n}"});
-        }
-        
-    	$entries[] = array(
-	    'amount' => $rec->amount, 
-	    'debit' => array(
-	         $rec->debitAccId,  
-	             array($debitItem1->classId, $debitItem1->objectId), 
-	             array($debitItem2->classId, $debitItem2->objectId),     
-	         'quantity' => $rec->debitQuantity), 
-	        
-	    'credit' => array(
-	         $rec->creditAccId, 
-	             array($creditItem1->classId, $creditItem1->objectId), 
-	             array($creditItem2->classId, $creditItem2->objectId),
-	             'quantity' => $rec->creditQuantity), 
-	    	);
-	    
-    	$result = (object)array(
-                'reason'  => $rec->reason,
-                'valior'  => $rec->valior,
-                'entries' => $entries, 
-            );
-            
         return $result;
     }
     
