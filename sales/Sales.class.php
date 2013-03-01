@@ -167,8 +167,8 @@ class sales_Sales extends core_Master
         /*
          * Контрагент
          */ 
-        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
-        $this->FLD('contragentId', 'int', 'input=hidden,caption=Клиент');
+        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
+        $this->FLD('contragentId', 'int', 'input=hidden');
         
         /*
          * Доставка
@@ -715,7 +715,7 @@ class sales_Sales extends core_Master
         // тук в $rec/$row, а не за да ги показваме
         $data->listFields = array_diff_key(
             $data->listFields, 
-            arr::make('currencyId,initiatorId,contragentClassId', TRUE)
+            arr::make('currencyId,initiatorId,contragentId', TRUE)
         );
         
         $data->listFields['dealerId'] = 'Търговец';
@@ -724,26 +724,60 @@ class sales_Sales extends core_Master
             $rec = $data->recs[$i];
             
             // "Изчисляване" на името на клиента
+            $contragentData = NULL;
+            
             if ($rec->contragentClassId && $rec->contragentId) {
+
                 $contragent = new core_ObjectReference(
                     $rec->contragentClassId, 
-                    $rec->contragentId, 
-                    'doc_ContragentDataIntf'
+                    $rec->contragentId 
                 );
-                $contragentData = $contragent->getContragentData();
                 
-                $row->contragentId = empty($contragentData->company) ? NULL : $contragentData->company;
-                setIfNot($row->contragentId, empty($contragentData->name) ? NULL : $contragentData->name);
+                $row->contragentClassId = $contragent->getHyperlink();
             }
 
-            setIfNot($row->contragentId, '<span class="quiet">неизвестен</span>');
-            
-            // Търговец чрез инициатор
+            // Търговец (чрез инициатор)
             if (!empty($rec->initiatorId)) {
                 $row->dealerId .= '<small style="display: block;"><span class="quiet">чрез</span> ' . $row->initiatorId;
             }
         }
             
+    }
+
+    
+    /**
+     * Филтър на продажбите
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
+    {
+        $data->listFilter = cls::get('core_Form', array('method'=>'get'));
+        
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('filterDealerId', 'users', 'placeholder=Търговец', array('attr'=>array('onchange'=>'submit();')));
+        $data->listFilter->FNC('fromDate', 'date', 'placeholder=От,width=100px');
+        $data->listFilter->FNC('toDate', 'date', 'placeholder=До,width=100px');
+    
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
+    
+        // Показваме само това поле. Иначе и другите полета
+        // на модела ще се появят
+        $data->listFilter->showFields = 'filterDealerId, fromDate, toDate';
+    
+//         $data->listFilter->setDefault('listId', $listId = $mvc->getCurrentListId());
+    
+        $filter = $data->listFilter->input();
+        
+//         bp($filter);
+    
+//         $data->query->where("#lists LIKE '%|{$filter->listId}|%'");
+    
+//         if($filter->search) {
+//             $data->query->where(array("#title LIKE '[#1#]'", "%{$filter->search}%"));
+//         }
     }
     
     /**
