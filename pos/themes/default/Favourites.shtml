@@ -1,0 +1,22 @@
+<div id='pos-producy-categories'>
+	<!--ET_BEGIN CAT-->
+		<div class='pos-product-category' data-id='[#id#]' title='Изберете категория'>
+		 	<span class='pos-span-name'>
+				[#name#]
+			</span>
+		</div>
+	<!--ET_END CAT-->
+</div>
+<div id='pos-products'>
+	<!--ET_BEGIN ITEM-->
+		<div class='pos-product' data-code='[#code#]' data-cat='[#catId#]' title='натиснете за да добавите продукта'>
+			<!--ET_BEGIN image-->
+				[#image#]
+			<!--ET_END image-->
+			<span class='pos-product-title'>[#name#]</span>
+			<span class='pos-product-price'>[#price#] 
+			<span class='pos-product-base-currency'>[#baseCurrency#]</span>
+			</span>
+		</div>
+	<!--ET_END ITEM-->
+</div>
