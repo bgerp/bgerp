@@ -1,16 +1,16 @@
 [#SingleToolbar#]
-<div class='document sales-document'>
+<div class='document'>
  
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
 
-<table width=100%>
+<table width=100% cellpadding="0" cellspacing="0">
     <tbody>
     <tr>
-        <td style="padding-top: 10px;">
+        <td>
            
-            <table class="invTable"  cellpadding="5" cellspacing="0" width="100%">
+            <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
                     <td class="cell" valign="top" width="35%"><b>Получател</b>
@@ -53,10 +53,12 @@
                
                 </tbody>
             </table>
-			
-            		[#DETAILS#]
-           			
-            <table class="invTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
+			<div class="lines"></div>
+			<div class="details">
+            		[#sales_SalesDetails#]
+           	</div>
+           	<div class="lines"></div>		
+            <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="topCell first" valign="top" width="30%">
                         <!--ET_BEGIN deliveryTermId-->

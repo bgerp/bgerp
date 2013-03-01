@@ -63,8 +63,8 @@ class pos_FavouritesCategories extends core_Manager {
      */
     var $canReject = 'admin, pos';
     
-	
-	/**
+    
+    /**
      * Описание на модела
      */
     function description()

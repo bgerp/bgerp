@@ -1,3 +1,4 @@
+<div style="display:inline-block">
 [#SingleToolbar#]
                  
 	<div class='document'>
@@ -51,4 +52,5 @@
          <!-- END Блок ляво -->   
                      
          <div style='clear: both;'></div>
-    </div>         
+    </div>     
+</div>   
