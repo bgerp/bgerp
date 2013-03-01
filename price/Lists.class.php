@@ -106,7 +106,6 @@ class price_Lists extends core_Master
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
-        
 
         $this->setDbUnique('title');
     }
@@ -153,7 +152,9 @@ class price_Lists extends core_Master
      */
     function on_AfterCreate($mvc, $rec)
     {
-
+        if($rec->cId && $rec->cClass) {
+            price_ListToCustomers::setPolicyToCustomer($rec->id,  $rec->cClass, $rec->cId);
+        }
     }
 
 

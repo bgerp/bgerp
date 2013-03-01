@@ -335,9 +335,9 @@ class price_ListRules extends core_Detail
 
         
         if($rec->discount < 0) {$discount = $mvc->getVerbal($rec, 'discount');
-            $discount = "<font color='#000066'>Надценка " . (-$discount) . " %</font>";
+            $discount = "Надценка <font color='#000066'>" . (-$discount) . " %</font>";
         } else {
-            $discount = "<font color='#660000'>Отстъпка {$discount}</font>";
+            $discount = "Отстъпка <font color='#660000'>{$discount}</font>";
         }
         
         if($rec->productId) {
@@ -346,7 +346,7 @@ class price_ListRules extends core_Detail
         }
 
         if($rec->packagingId) {
-            $packaging = $mvc->getVerbal($rec, 'packagingId');
+            $packaging = mb_strtolower($mvc->getVerbal($rec, 'packagingId'));
             $product = "{$packaging} $product";
         }
         

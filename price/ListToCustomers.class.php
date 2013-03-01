@@ -20,13 +20,13 @@ class price_ListToCustomers extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Ценови правила';
+    var $title = 'Ценови политики';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Ценови правила';
+    var $singleTitle = 'Ценова политика';
     
     
     /**
@@ -88,7 +88,7 @@ class price_ListToCustomers extends core_Detail
      */
     function description()
     {
-        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Правила');
+        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Политика');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
@@ -135,7 +135,7 @@ class price_ListToCustomers extends core_Detail
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
 
-        $rec->listId = self::getValidRec($rec->cClass, $rec->cId);
+        $rec->listId = self::getListForCustomer($rec->cClass, $rec->cId);
   
         $data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId), 
             NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
@@ -226,6 +226,27 @@ class price_ListToCustomers extends core_Detail
  
         return $lRec;
     }
+
+
+    /**
+     * Задава ценова политика за определен клиент
+     */
+    static function setPolicyTocustomer($policyId, $cClass, $cId, $datetime = NULL)
+    {
+        if(!$datetime) {
+            $datetime = dt::verbal2mysql();
+        }
+
+        $rec = new stdClass();
+        $rec->cClass = $cClass;
+        $rec->cId   = $cId;
+        $rec->validFrom = $datetime;
+        $rec->listId = $policyId;
+ 
+        self::save($rec);
+    }
+
+
     
     
     public static function preparePricelists($data)
