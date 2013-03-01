@@ -138,11 +138,11 @@ class email_Setup
 
         // Роля ръководител на организация 
         // Достъпни са му всички папки и документите в тях
-        $role = 'email';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        $roleE = 'email';
+        $html .= core_Roles::addRole($roleE) ? "<li style='color:green'>Добавена е роля <b>$roleE</b></li>" : '';
         
-        $role = 'fax';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        $roleF = 'fax';
+        $html .= core_Roles::addRole($roleF) ? "<li style='color:green'>Добавена е роля <b>$roleF</b></li>" : '';
         
         $instances = array();
         
@@ -156,7 +156,7 @@ class email_Setup
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', "admin, {$role}");
+        $html .= $Menu->addItem(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', "admin, {$roleE}, {$roleF}");
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');

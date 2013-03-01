@@ -65,7 +65,7 @@ class incoming_Setup
         $html .= $Plugins->installPlugin('Създаване на входящ документ', 'incoming_CreateDocumentPlg', 'fileman_Files', 'private');  
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.24, 'Документи', 'Входящи', 'incoming_Documents', 'default', "user");
+        $html .= $Menu->addItem(1.24, 'Документи', 'Входящи', 'incoming_Documents', 'default', "ceo");
         
         return $html;
     }
