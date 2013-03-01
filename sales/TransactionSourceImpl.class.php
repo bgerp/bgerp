@@ -172,8 +172,8 @@ class sales_TransactionSourceImpl
         }
         
         // Плащане в текущата каса?
-        if ($rec->caseId != cash_Cases::getCurrent('id', FALSE)) {
-            // Избраната каса не е е текущата
+        if (empty($rec->caseId) || $rec->caseId != cash_Cases::getCurrent('id', FALSE)) {
+            // Не е избрана каса или избраната каса не е текущата
             return FALSE;
         }
         
@@ -239,7 +239,7 @@ class sales_TransactionSourceImpl
         // Изчисляваме курса на валутата на продажбата към базовата валута
         $currencyRate = $this->getCurrencyRate($rec);
         
-        expect($rec->caseId);
+        expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
             
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
@@ -281,7 +281,7 @@ class sales_TransactionSourceImpl
     {
         $entries = array();
         
-        expect($rec->shipmentStoreId);
+        expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
             
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
