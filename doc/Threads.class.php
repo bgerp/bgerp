@@ -711,7 +711,10 @@ class doc_Threads extends core_Manager
         expect(static::$updating[$id] > 0, static::$updating[$id]);
         
         static::$updating[$id]--;
-        static::updateThread_($id);
+
+        $docThreads = cls::get('doc_Threads');
+
+        $docThreads->updateThread_($id);
     } 
     
     
@@ -782,6 +785,14 @@ class doc_Threads extends core_Manager
                 $res = 'user';
             } elseif(type_Keylist::isIn($userId, $rec->shared)) {
                 $res = 'user';
+            } else {
+                $res = 'no_one';
+            }
+        }
+
+        if($action == 'newdoc') {
+            if($rec->state == 'opened' || $rec->state == 'closed') {
+                $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
                 $res = 'no_one';
             }
@@ -1025,7 +1036,7 @@ class doc_Threads extends core_Manager
     {
         expect($folderId = Request::get('folderId', 'int'));
         
-        doc_Folders::requireRightFor('single', $folderId);
+        doc_Folders::requireRightFor('newdoc', $folderId);
         
         $tpl = new ET();
         

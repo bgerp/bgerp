@@ -631,7 +631,7 @@ class doc_Containers extends core_Manager
     {
         expect($threadId = Request::get('threadId', 'int'));
         
-        doc_Threads::requireRightFor('single', $threadId);
+        doc_Threads::requireRightFor('newdoc', $threadId);
         
         $tpl = new ET();        
         $tpl->append("\n<h3>" . tr('Добавяне на нов документ в нишката') . ":</h3>");

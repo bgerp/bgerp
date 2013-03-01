@@ -167,7 +167,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
 
-        if($mvc->haveRightFor('list')) { 
+        if($mvc->haveRightFor('list') && $data->rec->state != 'rejected') { 
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn('Всички', array(
                     $mvc,
