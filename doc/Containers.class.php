@@ -633,42 +633,61 @@ class doc_Containers extends core_Manager
         
         doc_Threads::requireRightFor('newdoc', $threadId);
         
-        $tpl = new ET();        
-        $tpl->append("\n<h3>" . tr('Добавяне на нов документ в нишката') . ":</h3>");
+        $rec = (object) array('threadId' => $threadId);
         
+        $tpl = doc_Containers::getNewDocMenu($rec);
+       	
+        return $this->renderWrapping($tpl);
+    }
+
+
+
+    /**
+     * Връща акордеаон-меню за добавяне на нови документи
+     * Очаква или $rec->threadId или $rec->folderId
+     */
+    static function getNewDocMenu($rec)
+    {
+        // Извличане на потенциалните класове на нови документи
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
-        
-        //TODO да се отдели във функция
-	    foreach($docArr as $id => $class) {
+        foreach($docArr as $id => $class) {
 	            
             $mvc = cls::get($class);
             
             list($order, $group) = explode('|', $mvc->newBtnGroup);
-            
-            $order = (int) $order;
-            
-            if($mvc->haveRightFor('add')) {
-            	$btns[$order .'|'. $group][$mvc->singleTitle] = $class;
-            }
-            
 
+            if($mvc->haveRightFor('add', $rec)) {
+                $docArrSort[$order*1000] = array($group, $mvc->singleTitle, $class);
+            }
         }
         
-        ksort($btns);
+        // Сортиране
+        ksort($docArrSort);
+
+        // Групиране
+	    foreach($docArrSort as $id => $arr) {
+            $btns[$arr[0]][$arr[1]] = $arr[2];
+        }
+        
+        // Генериране на изгледа
+        $tpl = new ET();        
+        $tpl->append("\n<h3>" . tr('Добавяне на нов документ в нишката') . ":</h3>");
         $tpl->append("<div class='accordian'><ul>");
         
         $active = ' class="active"';
         
         foreach($btns as $group => $bArr) {
-        	list($order, $group) = explode('|', $group);
-        	
+       	
         	$tpl->append("<li{$active}><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
         	$tpl->append("<li>");
         	foreach($bArr as $btn => $class) {
         		$mvc = cls::get($class);
         		
-        		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, array($class, 'add', 'threadId' => $threadId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
+        		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, 
+                    array($class, 'add', 
+                        'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => TRUE), 
+                        NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
         		
         	}
         	
@@ -677,8 +696,8 @@ class doc_Containers extends core_Manager
         }
 
        	$tpl->append("</ul></div>");
-       	
-        return $this->renderWrapping($tpl);
+
+        return $tpl;
     }
     
     
