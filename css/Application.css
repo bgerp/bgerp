@@ -60,9 +60,7 @@ a.out:visited {
 	padding-bottom:5px;
 }
 
-.listToolbar {
-	margin-top: 15px;
-}
+
 
 .narrow .ListToolbar, .narrow .SingleToolbar { 
 	margin-top: 10px;
@@ -992,13 +990,10 @@ table.mc-header a {
 .document {
 	border: solid 1px #bbbbbb;
 	background: #ffffff;
-	-moz-box-shadow: 5px 5px 10px #999999;
-	-webkit-box-shadow: 5px 5px 10px #999999;
-	box-shadow: 5px 5px 10px #999999;
-	padding: 10px 25px 15px 25px;
+	border-radius:5px;
+	padding: 10px;
 	margin-bottom: 20px;
 	float: left;
-	margin-right: 10px;
 	margin-top: 10px;
 	
 }
@@ -1017,7 +1012,7 @@ table.mc-header a {
 	-moz-box-shadow: none;
 	-webkit-box-shadow: none;
 	box-shadow: none;
-	padding: 6px 7px 5px 7px;
+	padding: 2px 5px 5px 5px;
 	margin-bottom: 0px;
 	float: left;
 	margin-right: 0px;
@@ -1053,7 +1048,19 @@ table.mc-header a {
 }
 
 .listTable .toolbar {
-	padding: 3px;
+	padding: 4px 5px;
+}
+
+.listToolbar {
+	margin-top: 15px;
+}
+
+.listTable .toolbar .button{
+	margin:0px 5px 0px 0;
+}
+
+.toolbar #btnDelete{
+	margin-right:0;
 }
 
 .narrow .toolbar{
@@ -1065,6 +1072,12 @@ table.mc-header a {
 .narrow .listTable .toolbar {
 	margin: 0px 0px 2px 7px;
 }
+
+.wide .doc_Containers .toolbar {
+	margin-top: 3px;
+	height:26px;
+}
+
 .document .header {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
@@ -1122,16 +1135,6 @@ table.mc-header a {
 
 .narrow .state-revert{
 	background-color: #cc9933;
-}
-
-.wide .doc_Containers .toolbar {
-	margin-right:2px;
-	margin-top: 3px;
-	height:26px;
-}
-
-.listTable .toolbar {
-	margin-left:2px;
 }
 
 input.inplace {
@@ -1801,68 +1804,68 @@ fieldset.sharing-history i {
 .wide .document .listRows{
 	margin-left:0;
 }
-/*стилове за фактура и плащане*/
 
-.sales-document{
-	padding:5px 6px !important;
-	margin-top:-10px !important;
-}
+/*стилове за документи*/
 
-.sales-document table:first-child{
+
+.document .details .listTable {
 	width:100%;
 }
 
-.sales-document table th {
-	background-color:#ddd !important;
-	border:1px solid #000 !important;
-	border-top:none !important;
-}
-
-.sales-document .listTable > tbody > tr > td {
-	border:1px solid #000 !important;
-}
-
-.sales-document .invTable{
-	border-top: none !important;
-}
-
-.sales-document .detail-info{
-	display:none;
-}
-
-.sales_InvoiceDetails .listTable {
-	width:100%;
-	border:none !important;
-}
-
-.sales_InvoiceDetails .listTable th, .sales_InvoiceDetails .listTable td{
-	border:1px solid #000 !important;
-	border-top:none !important;
-}
-
-.sales_SalesDetails .listToolbar, .sales_InvoiceDetails .listToolbar{
+.document .details .listToolbar{
 	padding-bottom:10px;
 	border-bottom:1px solid #000;
 }
-  .smallData {padding:1px; font-size:1em; }
-  .bigData {font-family:"Courier New"; font-size:1em; font-weight:bold;}
-  .cell {border:1px solid #000;}
-  .topCell { border: 1px solid #000; border-top:none;} 
-  .invTable { border-collapse:collapse;}
-  .rowData {font-size:0.9em;}
-  .footer-notes{font-size:14px; border-top:none;}
-  .topCell div {padding-bottom:2px;}
-  
- @media print{
-	.sales-document .invTable{
-		
-	}
-	
-	.topCell{
-		vertival-align:top !important;
-		
-	}
+
+.document .listTable th, .document .listTable td{
+	border:1px solid #000 !important;
 }
+
+.smallData {
+	padding:1px; 
+	font-size:1em; 
+}
+
+.bigData {
+  font-family:"Courier New";
+  font-size:1em; 
+  font-weight:bold;
+}
+
+.cell {
+	border:1px solid #000;
+}
+
+.topCell {
+	border: 1px solid #000;
+}
+
+.topCell div {
+	padding-bottom:2px;
+}
+
+.innerTable {
+	border-collapse:collapse;
+}
+
+.rowData {
+	font-size:0.9em;
+}
+
+.footer-notes{
+	font-size:14px;
+}
+  
+.lines{
+	height:5px;
+	background:url('../img/thumb.png');  
+	background-repeat:repeat-x;
+	background-position:center;
+	border-left:1px solid #000;
+	border-right:1px solid #000;
+}
+
+
 
 /*стилове за емейл кутии*/
 
