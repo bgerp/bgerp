@@ -162,8 +162,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if($data->form) {
     		$tpl->append($data->form->renderHtml(), 'ADD_FORM');
     	}
-    	//echo json_encode($tpl->content);
-    	//shutdown();
+    	
     	return $tpl;
     }
     
@@ -546,5 +545,33 @@ class pos_ReceiptDetails extends core_Detail {
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * @TODO
+     */
+    static function fetchReportData($receiptId) {
+    	$saleResult = array();
+    	$paymentResult = array();
+    	$query = static::getQuery();
+    	$query->where("#receiptId = {$receiptId}");
+    	$query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
+    	while($rec = $query->fetch()) {
+    		$obj = new stdClass();
+    		if($rec->productId) {
+    			$obj->action = 'sale';
+    			$obj->value = $rec->productId;
+    			$obj->quantity = $rec->quantity;
+    		} else {
+    			$obj->action = 'payment';
+    			$type = explode('|', $rec->action);
+    			$obj->value = $type[1];
+    		}
+    		$obj->amount = $rec->amount;
+    		${"{$obj->action}Result"}[$rec->id] = $obj;
+    	}
+    	
+    	return (object)array('sale' => $saleResult, 'payment' => $paymentResult);
     }
 }

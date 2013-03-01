@@ -544,4 +544,52 @@ class pos_Receipts extends core_Master {
     		$data->products->theme =  $data->theme;
     	}
     }
+    
+    
+    /**
+     * Подготвя информацията за направените продажби и плащания
+     * от всички бележки за даден период от време на даден потребител
+     * на дадена точка (@see pos_Reports)
+     * @param int $pointId - Ид на точката на продажба
+     * @param int $userId - Ид на потребител в системата
+     * @param date $from - Начална дата на извлечението
+     * ако е NULL извлича от началото
+     * @param date $to - Крайна дата на периода, ако не е зададена
+     * е текущата дата
+     * @return array $result - масив с резултати
+     * 				 $result['sales'] - масив с всички направени продажби
+     * 				 $result['payments'] - масив с всички плащания
+     */
+    static function fetchReportData($pointId, $userId, $from = NULL, $to = NULL)
+    {
+    	expect(pos_Points::fetch($pointId));
+    	expect(core_Users::fetch($userId));
+    	$result = $payments = $sales = array();
+    	if(!$to) {
+    		$to = dt::verbal2mysql();
+    	}
+    	$query = static::getQuery();
+    	$query->where("#pointId = {$pointId}");
+    	$query->where("#createdBy = {$userId}");
+    	$query->where("#date <= '{$to}'");
+    	if($from) {
+    		$query->where("#date >= '{$from}'");
+    	}
+    	
+    	while($rec = $query->fetch()) {
+    		$data = pos_ReceiptDetails::fetchReportData($rec->id);
+    		if(count($data->sale)) {
+    			$sales[$rec->id] = $data->sale;
+    		}
+    		
+    		if(count($data->payment)) {
+    			$payments[$rec->id] = $data->payment;
+    		}
+    	}
+    	
+    	(count($sales)) ? $result['sales'] = $sales : $result['sales'] = FALSE;
+    	(count($payments)) ? $result['payments'] = $payments : $result['payments'] = FALSE;
+    	
+    	return $result;
+    }
 }
