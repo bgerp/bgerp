@@ -9,7 +9,7 @@
 	 (<span class='receipt-discount-td'>- [#discountPercent#]</span>)
 	<!--ET_END discountPercent-->
 	</td>
-	<td class='receipt-amount'>[#amount#] лв.</td>
+	<td class='receipt-amount'><span class='sale-amount'>[#amount#] </span></td>
 </tr>
 <!--ET_END sale-->
 

@@ -469,9 +469,11 @@ class pos_Receipts extends core_Master {
 	            	
             		// Записваме данните
 	            	$id = $Details->save($rec);
-	            	if(Request::get('ajax')){
+	            	if(Request::get('ajax_mode')){
 	            		$row = pos_ReceiptDetails::recToVerbal($rec);
-	            		echo json_encode($row);
+	            		$rec->code = $row->code;
+	            		$rowTpl = $Details->renderDetail((object)array('rows' => array($rec->id => $row)));
+	            		echo json_encode((object)array('html' => $rowTpl->content, 'rec' => $rec));
 	            		shutdown();
 	            	}
 	                $Details->log('add', $id);

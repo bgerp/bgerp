@@ -144,7 +144,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$clientTpl = $blocksTpl->getBlock('client');
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
-	    		$action = $this->getAction($data->recs[$row->id]->action);
+	    		$action = $this->getAction($data->rows[$row->id]->action);
 	    		$rowTpl = clone(${"{$action->type}Tpl"});
 	    		$rowTpl->placeObject($row);
 	    		if($lastRow == $row->id) {
@@ -162,7 +162,8 @@ class pos_ReceiptDetails extends core_Detail {
     	if($data->form) {
     		$tpl->append($data->form->renderHtml(), 'ADD_FORM');
     	}
-    	
+    	//echo json_encode($tpl->content);
+    	//shutdown();
     	return $tpl;
     }
     

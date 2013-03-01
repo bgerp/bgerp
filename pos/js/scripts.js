@@ -88,10 +88,10 @@ $(document).ready(function () {
 	$('.pos-product').click(function vote() {
 		var rId = $('input[name=receiptId]').val();
 		var action = "sale|code";
-		var quantity = '1';
+		var quantity = $('input[name=quantity]').val();
 		var ean = $(this).attr("data-code");
 		var cmd ={'default':1};
-		var data = {receiptId:rId, quantity:quantity, ean:ean, action:action, Cmd:cmd, ajax:true};
+		var data = {receiptId:rId, quantity:quantity, ean:ean, action:action, Cmd:cmd, ajax_mode:1};
 		
 		$.ajax({
    	     type: "POST",
@@ -99,41 +99,28 @@ $(document).ready(function () {
    	     dataType: 'json',
    	     success: function(result)
    	     { 
-   	    	if(result.ean){
-   	    		var trCode = $("tr td span.code:contains('"+result.code+"')");
-   	    		
-   	    		if(trCode.length == 1){
-   	    			qSpan = $("tr[data-code = "+result.code+"] td span.quantity");
-   	    			qSpan.text(parseInt(qSpan.text()) + 1);
-   	    			var lastColor = qSpan.parents('tr').css("background-color");
-   	    			qSpan.parents('tr').css("background-color", "#FFFF99");
-   	    			setTimeout(function () {
-   	    				qSpan.parents('tr').css("background-color", lastColor);
-   	    			}, 700);
-   	    		} else {
-   	    			last = $(".scrollable tbody");
-   	    			if($('.scrollable tbody tr').length == 1) {
-   	    				$('.scrollable tbody tr').remove();} 
-   	    			
-   	    			html =	"<tr><td colspan='4' class='receipt-sale'><span class='code'>"+result.code+"</span> - "+result.productId;
-   	    			if(result.perPack)
-   	    				html +"&nbsp;&nbsp;"+result.perPack+" "+result.uomId+"</td>";
-   	    			html +=	"</tr>";
-   	    			html +=	"<tr data-code="+result.code+">";
-   	    			html +=	"<td class='receipt-quantity' width='110px'><span class='quantity'>"+result.quantity+"</span>";
-   	    			if(result.packagingId)
-   	    				html +=	"&nbsp;"+result.packagingId+"</td>";
-   	    			html +=	"<td class='receipt-price' width='140px'>"+result.price+" лв. ";
-   	    			if(result.discountPercent)
-   	    				html +=	"(<span class='receipt-discount-td'>- "+result.discountPercent+"</span>)";
-   	    			html +=	"</td>";
-   	    			html +=	"<td class='receipt-amount'>"+result.amount+" лв.</td></tr>";
-   	    			last.append(html);
-   	    			var aTag = $("a[name='form']");
-   	    		    $('html, body').animate({scrollTop: aTag.offset().top}, 2000);
-   	    		}
+   	    	var html = result.html;
+   	    	var rec = result.rec;
+   	    	var trCode = $("tr td span.code:contains('"+rec.code+"')");
+   	    	if(trCode.length == 1){
+   	    		$("tr[data-code = "+rec.code+"] td span.quantity").text(rec.quantity);
+   	    		var vAmount = rec.amount.toFixed(2).replace(".",",");
+	    		$("tr[data-code = "+rec.code+"] td span.sale-amount").text(vAmount);
+   	    	} else {
+   	    		last = $(".scrollable tbody");
+	    		if($('.scrollable tbody tr').length == 1) {
+	    			$('.scrollable tbody tr').remove();
+	    		}
+	    		last.append(html);
    	    	}
-   	   	},
+   	    	
+   	    	total = $("#receipt-total-sum");
+   			var addAmount = quantity * rec.price;
+   			var oldTotal = parseFloat(total.text().replace(",","."));
+   			var newTotal = oldTotal + addAmount;
+   			var textT = newTotal.toFixed(2).replace(".",",");
+   			total.text(textT);
+   	    },
    	    error: function(result)
    	    {
    	       alert('проблем с записването');
