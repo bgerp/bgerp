@@ -71,7 +71,13 @@ class price_Groups extends core_Master
      */
     var $rowToolsSingleField = 'title';
     
+    
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'price/tpl/SingleLayoutGroups.shtml';
 
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -101,5 +107,5 @@ class price_Groups extends core_Master
             }
         }
     }
-    
+     
 }

@@ -91,6 +91,12 @@ class price_Lists extends core_Master
 
     
     /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'price/tpl/SingleLayoutLists.shtml';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
