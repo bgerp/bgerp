@@ -1,0 +1,8 @@
+<div style="display:inline-block" class="singleView">
+[#SingleToolbar#]
+	<h2>
+		<div style="padding:5px 2px;" class=" [#STATE_CLASS#]">Каса <b style="color:green;">[#name#]</b></div>
+	</h2>
+	<div style="margin-bottom:15px; padding:0 3px;"><span class="quiet">Касиер: </span>[#cashier#]</div>
+	[#DETAILS#]
+</div>

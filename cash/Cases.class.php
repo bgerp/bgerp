@@ -135,8 +135,4 @@ class cash_Cases extends core_Master {
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-    static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-    	//bp($data->rec, $data->singleFields, $data);
-    }
 }
