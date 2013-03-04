@@ -1007,4 +1007,36 @@ class crm_Companies extends core_Master
         // Премахваме от списъка екстендерите, които не могат да бъдат приложени към фирми
         $extenders = array_diff_key($extenders, arr::make('idCard, profile', TRUE));
     }
+    
+    
+    /**
+     * Връща папката на фирмата от имейла, ако имаме достъп до нея
+     * 
+     * @param email $email - Имейл, за който търсим
+     * 
+     * @return integet $fodlerId - id на папката
+     */
+    static function getFolderFromEmail($email)
+    {
+        // Имейла в долния регистър
+        $email = mb_strtolower($email);
+    
+        // Вземаме компанията с този имейл
+        $companyId = static::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
+        
+        // Ако има такава компания
+        if ($companyId) {
+            
+            // Вземаме папката на фирмата
+            $folderId = static::forceCoverAndFolder($companyId);
+            
+            // Проверяваме дали имаме права за папката
+            if (doc_Folders::haveRightFor('single', $folderId)) {
+
+                return $folderId;
+            }  
+        }
+        
+        return FALSE;
+    }
 }

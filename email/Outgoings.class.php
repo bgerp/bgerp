@@ -698,13 +698,16 @@ class email_Outgoings extends core_Master
         }
         
         // Ако не е задедено folderId в URL' то
-        if (!($folderId = Request::get('folderId', 'int'))) $folderId = $rec->folderId;
+        if (!($folderId = Request::get('folderId', 'int'))) {
+            $folderId = $rec->folderId;
+            $emptyReqFolder = TRUE;    
+        }
+        
         
         $emailTo = Request::get('emailto');
         
         $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
         $emailTo = str_replace('mailto:', '', $emailTo);
-
 
         // Определяме треда от originId, ако не се препраща
         if($originId && !$threadId && !$forward) {
@@ -715,9 +718,10 @@ class email_Outgoings extends core_Master
         if($threadId && !$folderId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
-        
+
         // Ако сме дошли на формата чрез натискане на имейл
-        if ($emailTo) {
+        if ($emailTo && !$forward) {
+            
             // Проверяваме дали е валидем имейл адрес
             if (type_Email::isValidEmail($emailTo)) {
                                 
@@ -736,7 +740,7 @@ class email_Outgoings extends core_Master
                 core_Statuses::add("Невалиден имейл: {$emailTo}", 'warning');   
             }
         }
-        
+
         // Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
         if ($originId) {
             //Добавяме в полето Относно отговор на съобщението
@@ -770,19 +774,25 @@ class email_Outgoings extends core_Master
         
         //Сетваме езика, който сме определили за превод на съобщението
         core_Lg::push($lg);
-        
+
         //Ако сме в треда, вземаме данните на получателя и не препращаме имейла
         if ($threadId && !$forward) {
             
             //Данните на получателя от треда
             $contragentData = doc_Threads::getContragentData($threadId);
         }
-        
+
         //Ако създаваме нов тред, определяме данните на контрагента от ковъра на папката
         if ((!$threadId || $forward) && $folderId) {
-            $contragentData = doc_Folders::getContragentData($folderId);
-        }
-        
+            
+            // Ако препращаме имейла, трябва да сме взели папката от URL' то
+            if (!($forward && $emptyReqFolder)) {
+                
+                // Вземаме данните на контрагента
+                $contragentData = doc_Folders::getContragentData($folderId);    
+            }
+        }    
+
         //Ако сме открили някакви данни за получателя
         if ($contragentData) {
             
@@ -846,9 +856,18 @@ class email_Outgoings extends core_Master
         if($threadId && !$forward) {
             $rec->threadId = $threadId;
         }
-
+        
+        // Записваме папката ако не препращаме имейла
         if($folderId && !$forward) {
             $rec->folderId = $folderId;
+        }
+        
+        // Ако препращаме имейла и папката не взета от URL' то
+        if ($forward && !$emptyReqFolder) {
+            
+            // Да се записва в папката от където препращаме
+            $rec->folderId = $folderId;
+            unset($rec->threadId);
         }
      }
     
@@ -1469,54 +1488,15 @@ class email_Outgoings extends core_Master
             if (isset($form->rec->userEmail)) {
                 
                 // Вземаме папката на имейла
-                $folderId = static::getAccessedEmailFolder($emailTo);
-                
+                $folderId = static::getForwardEmailFolder($form->rec->userEmail);
             }
-            
+
             // Ако не сме открили папка или нямаме права в нея
             if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) {
-                
+
                 // Изтриваме папката
                 unset($folderId);
-                
-                // Вземаме id' то на имейла на текущия потребител
-                $userInboxId = email_Inboxes::getUserInboxId();
-                
-                // Ако има имейл
-                if ($userInboxId) {
-                    
-                    // Инстанция на класа
-                    $Inboxes = cls::get('email_Inboxes');
-                    
-                    // Папката
-                    $folderId = $Inboxes->forceCoverAndFolder($userInboxId);
-                }
             }
-            
-            // Ако все още не е открита папка
-            if (!$folderId) {
-                
-                // Вземаме всички входящи кутии в системата
-                $allBoxesArr = email_Inboxes::getAllInboxes();
-                
-                foreach ($allBoxesArr as $email => $box) {
-                    
-                    // Ако няма кутия продължаваме
-                    if (!$box) continue;
-                    
-                    // Вземаме id' то на папката
-                    $cFolderId = email_Inboxes::forceFolder($email);
-                    
-                    // Ако нямаме права за нея продължаваме
-                    if (!doc_Folders::haveRightFor('single', $cFolderId)) continue;
-                    
-                    // Ако имаме права, задаваме тя да е папката, която ще използваме
-                    $folderId = $cFolderId;
-                }
-            }
-            
-            // Очакваме вече да сме определили папката
-            expect($folderId, 'Не може да се определи папката.');
             
             // Препращаме към формата за създаване на имейл
             redirect(toUrl(array(
@@ -1566,7 +1546,7 @@ class email_Outgoings extends core_Master
      * 
      * Начин за определяна не папката:
      * 1. Ако е на фирма
-     * 2. Ако е бизнес имейл на лице
+     * 2. Ако е бизнес имейл на лице свързано с фирма
      * 3. Ако е на лице
      * 4. Къде би се рутирал имейла (само папка на контрагент)
      * 5. Ако има корпоративен акаунт:
@@ -1582,54 +1562,24 @@ class email_Outgoings extends core_Master
     {
         // Имейла в долния регистър
         $email = mb_strtolower($email);
-            
-        // Вземаме компанията с този имейл
-        $companyId = crm_Companies::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
         
-        // Ако има такава компания
-        if ($companyId) {
-            
-            // Вземаме папката на фирмата
-            $folderId = crm_Companies::forceCoverAndFolder($companyId);
-            
-            // Проверяваме дали имаме права за папката
-            if (doc_Folders::haveRightFor('single', $folderId)) {
-                    
-                return $folderId;
-            }  
-        }
+        // Папката на фирмата
+        $folderId = crm_Companies::getFolderFromEmail($email);
         
-        // Вземаме потребителя с такъв бизнес имейл
-        $personRec = crm_Persons::fetch(array("LOWER(#buzEmail) LIKE '%[#1#]%'", $email));
+        // Ако има папка връщаме
+        if ($folderId) return $folderId;
         
-        // Ако има бизнес имейл и асоциирана фирма с потребителя
-        if ($companyId = $personRec->buzCompanyId) {
-            
-            // Вземаме папката на фирмата
-            $folderId = crm_Companies::forceCoverAndFolder($companyId);
-              
-            // Проверяваме дали имаме права за папката
-            if (doc_Folders::haveRightFor('single', $folderId)) {
-                    
-                return $folderId;
-            }  
-        }
+        // Папката от бизнес имейла на фирмата
+        $folderId = crm_Persons::getFolderFromBuzEmail($email);
         
-        // Вземаме потребителя с личен имейл
-        $personId = crm_Persons::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
+        // Ако има папка връщаме
+        if ($folderId) return $folderId;
         
-        // Ако има такъв потребител
-        if ($personId) {
-            
-            // Вземаме папката
-            $folderId = crm_Persons::forceCoverAndFolder($personId);   
-            
-            // Ако имаме права за нея
-            if (doc_Folders::haveRightFor('single', $folderId)) {
+        // Личната папка
+        $folderId = crm_Persons::getFolderFromEmail($email);
 
-                return $folderId;
-            }
-        }
+        // Ако има папка връщаме
+        if ($folderId) return $folderId;
         
         // Вземаме предполагаемата папка
         $folderId = email_Router::getEmailFolder($email);
@@ -1698,6 +1648,46 @@ class email_Outgoings extends core_Master
             return $folderId;
         }
 
+        // Ако не може да се определи по никакъв начин
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща папката от имейла при препращане
+     * 
+     * @param email $email - Имейла, към който ще препращаме
+     * 
+     * Начин за определяна не папката:
+     * 1. Ако е на фирма
+     * 2. Ако е бизнес имейл на лице свързано с фирма
+     * 3. Ако е на лице
+     * 
+     * @return doc_Folders $folderId - id на папка
+     */
+    static function getForwardEmailFolder($email)
+    {
+        // Имейла в долния регистър
+        $email = mb_strtolower($email);
+
+        // Папката на фирмата
+        $folderId = crm_Companies::getFolderFromEmail($email);
+        
+        // Ако има папка връщаме
+        if ($folderId) return $folderId;
+        
+        // Папката от бизнес имейла на фирмата
+        $folderId = crm_Persons::getFolderFromBuzEmail($email);
+        
+        // Ако има папка връщаме
+        if ($folderId) return $folderId;
+        
+        // Личната папка
+        $folderId = crm_Persons::getFolderFromEmail($email);
+
+        // Ако има папка връщаме
+        if ($folderId) return $folderId;
+        
         // Ако не може да се определи по никакъв начин
         return FALSE;
     }

@@ -1810,4 +1810,65 @@ class crm_Persons extends core_Master
             }
         }
     }
+    
+    
+	/**
+     * Връща папката на фирмата от бизнес имейла, ако имаме достъп до нея
+     * 
+     * @param email $email - Имейл, за който търсим
+     * 
+     * @return integet $fodlerId - id на папката
+     */
+    static function getFolderFromBuzEmail($email)
+    {
+        // Имейла в долния регистър
+        $email = mb_strtolower($email);
+    
+        // Вземаме потребителя с такъв бизнес имейл
+        $personRec = static::fetch(array("LOWER(#buzEmail) LIKE '%[#1#]%'", $email));
+        
+        // Ако има бизнес имейл и асоциирана фирма с потребителя
+        if ($companyId = $personRec->buzCompanyId) {
+            
+            // Вземаме папката на фирмата
+            $folderId = crm_Companies::forceCoverAndFolder($companyId);
+              
+            // Проверяваме дали имаме права за папката
+            if (doc_Folders::haveRightFor('single', $folderId)) {
+
+                return $folderId;
+            }  
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща папката на лицето от имейла, ако имаме достъп до нея
+     * 
+     * @param email $email - Имейл, за който търсим
+     * 
+     * @return integet $fodlerId - id на папката
+     */
+    static function getFolderFromEmail($email)
+    {
+        // Вземаме потребителя с личен имейл
+        $personId = static::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
+        
+        // Ако има такъв потребител
+        if ($personId) {
+            
+            // Вземаме папката
+            $folderId = static::forceCoverAndFolder($personId);   
+            
+            // Ако имаме права за нея
+            if (doc_Folders::haveRightFor('single', $folderId)) {
+
+                return $folderId;
+            }
+        }
+        
+        return FALSE;
+    }
 }
