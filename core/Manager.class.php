@@ -936,14 +936,28 @@ class core_Manager extends core_Mvc
     }
     
     
-    public function getHyperlink($id)
-    {
-        $title = $this->getTitleById($id);
+    public static function getHyperlink($id, $icon = FALSE)
+    {   
+        $me = cls::get(get_called_class());
+
+        $title = $me->getTitleById($id);
         
-        if ($this->haveRightFor('single', $id)) {
+        if($icon === TRUE) {
+            $icon = 'ef_icon=' . $me->singleIcon;
+        } elseif($icon) {
+            $icon = 'ef_icon=' . $icon;
+        }
+
+        if(!$id) {
+            return "<span style='color:red;'>&nbsp;- - -</span>";
+        }
+
+        if ($me->haveRightFor('single', $id)) {
             $title = ht::createLink($title,
-                array($this, 'single', $id)
-            );
+                array($me, 'single', $id),
+                NULL,
+                $icon
+             );
         }
         
         return $title;
