@@ -1,10 +1,10 @@
 <div style="display:inline-block" class="singleView">
 [#SingleToolbar#]
 
-	<h2> <b style="color:green;">[#title#]</b></h2>
+	<h2> <b style="color:green;">[#SingleTitle#]</b></h2>
 	<table class="styled-table" style='min-width:300px'>
 		<tr>
-			<td class="title-style"> №</td>
+			<td class="title-style">№</td>
 			<td>[#id#]</td>
 		</tr>
 		<tr>
@@ -58,28 +58,6 @@
 			<!--ET_END employersCnt-->
 		</table>
 	<!--ET_END clientInfo-->
-	
-	<!--ET_BEGIN clientInfoTable-->
-		[#clientInfoTable#]
-		<table class="styled-table" style='min-width:300px'>
-			<tr>
-				<th colspan="2">Клиент</th>
-			</tr>
-			<!--ET_BEGIN cClass-->
-			<tr>
-				<td class="title-style">Клас</td>
-				<td>[#cClass#]</td>
-			</tr>
-			<!--ET_END cClass-->
-			
-			<!--ET_BEGIN cId-->
-			<tr>
-				<td class="title-style">Обект</td>
-				<td>[#cId#]</td>
-			</tr>
-			<!--ET_END cId-->
-		</table>
-	<!--ET_END clientInfoTable-->
 	
 	<!--ET_BEGIN roundingPrecisionTable-->
 		[#roundingPrecisionTable#]

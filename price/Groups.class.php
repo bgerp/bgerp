@@ -107,5 +107,14 @@ class price_Groups extends core_Master
             }
         }
     }
-     
+    
+    /**
+     * Изпълнява се след подготовката на титлата в единичния изглед
+     */
+    static function on_AfterPrepareSingleTitle($mvc, &$data)
+    { 
+    	$title = $mvc->getVerbal($data->rec, 'title');
+    	$data->title = $title;
+    	
+    }
 }
