@@ -212,47 +212,48 @@ class currency_Currencies extends core_Master {
      */
     function loadSetupData()
     {
-        $currDefs = array("БЪЛГАРСКИ ЛЕВ|BGN",
-        	"АВСТРАЛИЙСКИ ДОЛАР|AUD",
-            "БРАЗИЛСКИ РЕАЛ|BRL",
-            "КАНАДСКИ ДОЛАР|CAD",
-            "ШВЕЙЦАРСКИ ФРАНК|CHF",
-            "КИТАЙСКИ РЕНМИНБИ ЮАН|CNY",
-            "ЧЕШКА КРОНА|CZK",
-            "ДАТСКА КРОНА|DKK",
-            "БРИТАНСКА ЛИРА|GBP",
-            "ХОНГКОНГСКИ ДОЛАР|HKD",
-            "ХЪРВАТСКА КУНА|HRK",
-            "УНГАРСКИ ФОРИНТ|HUF",
-            "ИНДОНЕЗИЙСКА РУПИЯ|IDR",
-            "ИЗРАЕЛСКИ ШЕКЕЛ|ILS",
-            "ИНДИЙСКА РУПИЯ|INR",
-            "ЯПОНСКА ЙЕНА|JPY",
-            "ЮЖНОКОРЕЙСКИ ВОН|KRW",
-            "ЛИТОВСКИ ЛИТАС|LTL",
-            "ЛАТВИЙСКИ ЛАТ|LVL",
-            "МЕКСИКАНСКО ПЕСО|MXN",
-            "МАЛАЙЗИЙСКИ РИНГИТ|MYR",
-            "НОРВЕЖКА КРОНА|NOK",
-            "НОВОЗЕЛАНДСКИ ДОЛАР|NZD",
-            "ФИЛИПИНСКО ПЕСО|PHP",
-            "ПОЛСКА ЗЛОТА|PLN",
-            "НОВА РУМЪНСКА ЛЕЯ|RON",
-            "РУСКА РУБЛА|RUB",
-            "ШВЕДСКА КРОНА|SEK",
-            "СИНГАПУРСКИ ДОЛАР|SGD",
-            "ТАЙЛАНДСКИ БАТ|THB",
-            "ТУРСКА ЛИРА|TRY",
-            "ЩАТСКИ ДОЛАР|USD",
-            "ЮЖНОАФРИКАНСКИ РАНД|ZAR",
-            "ЕВРО|EUR");
+        $currDefs = array("БЪЛГАРСКИ ЛЕВ|BGN|active",
+            "ЕВРО|EUR|active",
+            "ЩАТСКИ ДОЛАР|USD|active",
+       	    "АВСТРАЛИЙСКИ ДОЛАР|AUD|closed",
+            "БРАЗИЛСКИ РЕАЛ|BRL|closed",
+            "КАНАДСКИ ДОЛАР|CAD|closed",
+            "ШВЕЙЦАРСКИ ФРАНК|CHF|closed",
+            "КИТАЙСКИ РЕНМИНБИ ЮАН|CNY|closed",
+            "ЧЕШКА КРОНА|CZK|closed",
+            "ДАТСКА КРОНА|DKK|closed",
+            "БРИТАНСКА ЛИРА|GBP|closed",
+            "ХОНГКОНГСКИ ДОЛАР|HKD|closed",
+            "ХЪРВАТСКА КУНА|HRK|closed",
+            "УНГАРСКИ ФОРИНТ|HUF|closed",
+            "ИНДОНЕЗИЙСКА РУПИЯ|IDR|closed",
+            "ИЗРАЕЛСКИ ШЕКЕЛ|ILS|closed",
+            "ИНДИЙСКА РУПИЯ|INR|closed",
+            "ЯПОНСКА ЙЕНА|JPY|closed",
+            "ЮЖНОКОРЕЙСКИ ВОН|KRW|closed",
+            "ЛИТОВСКИ ЛИТАС|LTL|closed",
+            "ЛАТВИЙСКИ ЛАТ|LVL|closed",
+            "МЕКСИКАНСКО ПЕСО|MXN|closed",
+            "МАЛАЙЗИЙСКИ РИНГИТ|MYR|closed",
+            "НОРВЕЖКА КРОНА|NOK|closed",
+            "НОВОЗЕЛАНДСКИ ДОЛАР|NZD|closed",
+            "ФИЛИПИНСКО ПЕСО|PHP|closed",
+            "ПОЛСКА ЗЛОТА|PLN|closed",
+            "НОВА РУМЪНСКА ЛЕЯ|RON|closed",
+            "РУСКА РУБЛА|RUB|closed",
+            "ШВЕДСКА КРОНА|SEK|closed",
+            "СИНГАПУРСКИ ДОЛАР|SGD|closed",
+            "ТАЙЛАНДСКИ БАТ|THB|closed",
+            "ТУРСКА ЛИРА|TRY|closed",
+            "ЮЖНОАФРИКАНСКИ РАНД|ZAR|closed");
+            
         $insertCnt = 0;
         
         foreach($currDefs as $c) {
             
             $rec = new stdClass();
             
-            list($rec->name, $rec->code) = explode('|', $c);
+            list($rec->name, $rec->code, $rec->state) = explode('|', $c);
             
             if (!$this->fetch("#code = '{$rec->code}'")){
                 $rec->lastUpdate = dt::verbal2mysql();
@@ -260,7 +261,6 @@ class currency_Currencies extends core_Master {
                 if($rec->code == 'EUR') {
                     $rec->lastRate = 1;
                 }
-                $rec->state = "active";
                 
                 $this->save($rec);
                 
