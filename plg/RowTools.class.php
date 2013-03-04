@@ -59,7 +59,7 @@ class plg_RowTools extends core_Plugin
         
         // URL за връщане след редакция/изтриване
         if(method_exists($mvc, 'getSingleUrl')) {
-            $retUrl = $mvc->getSingleUrl($rec->id);
+            $retUrl = $mvc->getSingleUrl($rec);
         } else {
             $retUrl = TRUE;
         }
