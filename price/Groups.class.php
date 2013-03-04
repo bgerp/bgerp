@@ -76,7 +76,8 @@ class price_Groups extends core_Master
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'price/tpl/SingleLayoutGroups.shtml';
-
+    
+    var $details = 'ProductInGroup=price_GroupOfProducts';
     
     /**
      * Описание на модела (таблицата)

@@ -27,7 +27,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Заглавие
      */
-    var $singleTitle = 'Ценова група';
+    var $singleTitle = 'Продукт';
     
     
     /**
@@ -46,7 +46,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    var $rowToolsField = 'validFrom';
     
     
     /**
@@ -90,8 +90,8 @@ class price_GroupOfProducts extends core_Detail
      */
     function description()
     {
-        $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт');
+        $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,silent');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,silent,mandatory');
         $this->FLD('validFrom', 'datetime', 'caption=В сила oт');
     }
 
@@ -177,6 +177,16 @@ class price_GroupOfProducts extends core_Detail
         if(!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
+
+        if($data->masterMvc instanceof cat_Products) {
+            $data->form->title = "Добавяне в ценова група";
+            $data->form->setField('productId', 'input');
+            $data->form->setReadOnly('productId');
+
+            if(!$rec->groupId) {
+                $rec->groupId = self::getGroup($rec->productId, dt::verbal2mysql());
+            }
+        }
     }
 
 
@@ -202,21 +212,67 @@ class price_GroupOfProducts extends core_Detail
                 $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
             }
             
-            if($rec->validFrom && !$form->gotErrors() && $rec->validFrom > $now) {
-                Mode::setPermanent('PRICE_VALID_FROM', $rec->validFrom);
+            if(!$form->gotErrors() ) {
+                Mode::setPermanent('PRICE_VALID_FROM', ($rec->validFrom > $now) ? $rec->validFrom : '');
             }
         }
     }
-
-
     
+
+    /**
+     * Връща съответния мастер
+     */
+    function getMasterMvc_($rec)
+    {
+        if($rec->_masterMvc) {
+            return $rec->_masterMvc;
+        }
+
+        if($rec->groupId && !$rec->productId) {
+            return cls::get('price_Groups');
+        }
+
+        if($rec->productId) {
+            return cls::get('cat_Products');
+        }
+
+        return parent::getMasterMvc_($rec);
+    }
+    
+
+    /**
+     *
+     */
+    function getMasterKey($rec)
+    {
+        if($rec->_masterKey) { 
+            return $rec->_masterKey;
+        }
+
+        if($rec->groupId && !$rec->productId) {
+            return 'groupId';
+        }
+
+        if($rec->productId) {
+            return 'productId';
+        }
+        
+        return parent::getMasterKey_($rec);
+    }
+
+
+
+
+    /**
+     *
+     */
     public static function on_AfterPrepareListRows(core_Detail $mvc, $data)
     {   
         if (!$data->rows) {
             return;
         }
         
-        $now  = dt::now(true); // Текущото време (MySQL формат) с точност до секунда
+        $now  = dt::now(TRUE); // Текущото време (MySQL формат) с точност до секунда
         $currentGroupId = NULL;// ID на настоящата ценова група на продукта
         
         /**
@@ -242,8 +298,8 @@ class price_GroupOfProducts extends core_Detail
                     $currentGroupId = $id;
                 }
             }
-
-            $row->groupId = ht::createLink($row->groupId, array('price_Groups', 'single', $rec->groupId));
+            
+            $row->groupId = price_Groups::getHyperLink($rec->groupId, TRUE);
         }
         
         if (isset($currentGroupId)) {
@@ -252,6 +308,9 @@ class price_GroupOfProducts extends core_Detail
     }
 
 
+    /**
+     *
+     */
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         $wrapTpl = new ET(getFileContent('cat/tpl/ProductDetail.shtml'));
@@ -268,8 +327,11 @@ class price_GroupOfProducts extends core_Detail
     }
 
 
+    /**
+     *
+     */
     public static function preparePriceGroup($data)
-    {
+    { 
         static::prepareDetail($data);
 
         $data->toolbar->removeBtn('*');
@@ -294,5 +356,79 @@ class price_GroupOfProducts extends core_Detail
     {
         price_History::removeTimeline();
     }
+
+
+    /**
+     *
+     */
+    function prepareProductInGroup($data)
+    {   
+        $data->masterKey = 'groupId';
+         
+        // Очакваме да masterKey да е зададен
+        expect($data->masterKey);
+        expect($data->masterMvc instanceof core_Master);
+        
+         
+        // Подготвяме полетата за показване
+        $data->listFields = arr::make('productId=Продукт,validFrom=В сила от,createdBy=Създадено->От,createdOn=Създадено->На');
+        
+        // Подготвяме навигацията по страници
+        $this->prepareListPager($data);
+        
+        // Подготвяме лентата с инструменти
+        $this->prepareListToolbar($data);
+
+        $query = self::getQuery();
+         
+        $query->orderBy('#validFrom', 'DESC');
+        
+        $data->recs = array();
+        
+        $now = dt::verbal2mysql();
+
+        $used = $futureUsed = array();
+
+        while($rec = $query->fetch()) {
+             
+            if($rec->validFrom > $now) {
+                $var = 'futureUsed';
+            } else {
+                $var = 'used';
+            }
+
+
+            if(${$var}[$rec->productId]) continue;
+            if($data->masterId == $rec->groupId) {
+                $rec->_masterMvc = cls::get('price_Groups');
+                $rec->_masterKey = 'groupId';
+                $data->recs[$rec->id] = $rec;
+            }
+            ${$var}[$rec->productId] = TRUE;
+        }
+ 
+        if(count($data->recs)) {
+            foreach($data->recs as $rec) {
+                $data->rows[$rec->id] = self::recToVerbal($rec);  
+                $data->rows[$rec->id]->productId = cat_Products::getHyperLink($rec->productId, TRUE);
+                if($rec->validFrom > $now) {
+                    $data->rows[$rec->id]->ROW_ATTR['class'] = 'state-draft';
+                }
+            }
+        }
+
+ 
+    }
+
+
+    /**
+     *
+     */
+    function renderProductInGroup($data)
+    {
+        return self::renderDetail_($data);
+    }
+
+
 
 }

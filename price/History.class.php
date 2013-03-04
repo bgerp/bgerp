@@ -87,7 +87,7 @@ class price_History extends core_Manager
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'caption=Опаковка');
-        $this->FLD('price', 'double(decimals=2)', 'caption=Цена');
+        $this->FLD('price', 'double(decimals=5)', 'caption=Цена');
     }
 
 
