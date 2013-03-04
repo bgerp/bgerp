@@ -38,12 +38,8 @@ class core_Detail extends core_Manager
     {
         expect($mvc->masterKey);
         
-        $mvc->fields[$mvc->masterKey]->silent = silent;
-        
-        if(!isset($mvc->fields[$mvc->masterKey]->input)) {
-            $mvc->fields[$mvc->masterKey]->input = hidden;
-        }
-        
+        $mvc->fields[$mvc->masterKey]->silent = 'silent';
+                
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
         
         if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
@@ -75,13 +71,13 @@ class core_Detail extends core_Manager
         
         // Подготвяме лентата с инструменти
         $this->prepareListToolbar($data);
-        
+     
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
         // Подготвяме вербалните стойности за редовете
         $this->prepareListRows($data);
-        
+     
         return $data;
     }
     
@@ -159,7 +155,7 @@ class core_Detail extends core_Manager
         $data->toolbar = cls::get('core_Toolbar');
  
         $masterKey = $data->masterKey;
-        
+
         if($data->masterId) {
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
@@ -169,7 +165,7 @@ class core_Detail extends core_Manager
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
                     'add',
-                    $this->masterKey => $data->masterId,
+                    $masterKey => $data->masterId,
                     'ret_url' => array($data->masterMvc, 'single', $rec->{$masterKey})
                 ),
                 'id=btnAdd,class=btn-add');
@@ -188,6 +184,8 @@ class core_Detail extends core_Manager
 
         parent::prepareEditForm_($data);
         
+        $form = $data->form;
+
         if(!$data->masterMvc) {
             $data->masterMvc = $this->getMasterMvc($data->form->rec);  
         }
@@ -201,7 +199,11 @@ class core_Detail extends core_Manager
         expect($data->masterMvc instanceof core_Master, $data);
         
         $masterKey = $data->masterKey;
-        
+
+        if(!isset($form->fields[$masterKey]->input)) {
+            $form->fields[$masterKey]->input = 'hidden';
+        }
+
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId));
         $title = $data->masterMvc->getTitleById($data->masterId);
@@ -209,7 +211,7 @@ class core_Detail extends core_Manager
             $single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
        
         }
-        
+ 
         $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
         $data->form->title .= "|* <b style='color:#ffffcc;'>" . str::limitLen($title, 32) . "</b>";
  
@@ -326,11 +328,12 @@ class core_Detail extends core_Manager
     /**
      * Връща URL към единичния изглед на мастера
      */
-    function getSingleUrl($id)
+    function getSingleUrl($rec)
     {
-        $mRec = self::fetch($id);
-        $masterField = $this->masterKey;
-        $url = array($this->Master, 'single', $mRec->{$masterField});
+        $master = $this->getMasterMvc($rec);
+        $masterKey = $this->getMasterKey($rec);
+
+        $url = array($master, 'single', $rec->{$masterKey});
 
         return $url;
     }
