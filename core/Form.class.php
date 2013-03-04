@@ -1015,6 +1015,8 @@ class core_Form extends core_FieldSet
             $value = empty($this->rec->{$name}) ? '' : $this->rec->{$name};
         }
         
+        unset($field->type->params['allowEmpty']);
+
         $verbal = $field->type->toVerbal($value);
         
         $this->setOptions($name, array(
