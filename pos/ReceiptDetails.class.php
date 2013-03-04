@@ -247,11 +247,14 @@ class pos_ReceiptDetails extends core_Detail {
     			$form->setError('ean', 'Имате празно поле');
     			return;
     		}
+    		if($rec->quantity == 0) {
+	    		$form->setError('quantity', 'Неможе да въведете нулево количество');
+	    		return;
+	    	}
     		$action = $mvc->getAction($rec->action);
 	    	switch($action->type) {
 	    		case 'sale':
 	    			$mvc->getProductInfo($rec);
-	    			
 	    			if(!$rec->productId) {
 	    				$form->setError('ean', 'Няма такъв продукт в системата');
 	    				return;
@@ -273,7 +276,6 @@ class pos_ReceiptDetails extends core_Detail {
 				    		}
 				    		
 				    		$rec->id = $sameProduct->id;
-				    		Mode::setPermanent('lastAdded', $sameProduct->id);
 				    }
 	    			break;
 	    		case 'payment':
@@ -281,8 +283,13 @@ class pos_ReceiptDetails extends core_Detail {
 	    			// Ако действието е "плащане"
 	    			if(!is_numeric($rec->ean)) {
 	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    				return;
 	    			}
 	    			
+	    			if($rec->ean <= 0) {
+	    				$form->setError('ean', 'Не може да се плати с неположителна стойност');
+	    				return;
+	    			}
 	    			$recRec = $mvc->Master->fetch($rec->receiptId);
 	    			if(!pos_Payments::returnsChange($action->value)
 	    			 && (string)$rec->ean > (string)abs($recRec->paid - $recRec->total)) {
@@ -514,7 +521,8 @@ class pos_ReceiptDetails extends core_Detail {
 	 */
 	static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
     {
-     	$mvc->Master->updateReceipt($rec);
+     	Mode::setPermanent('lastAdded', $id);
+    	$mvc->Master->updateReceipt($rec);
     }
     
     
@@ -552,8 +560,7 @@ class pos_ReceiptDetails extends core_Detail {
      * @TODO
      */
     static function fetchReportData($receiptId) {
-    	$saleResult = array();
-    	$paymentResult = array();
+    	$result = array();
     	$query = static::getQuery();
     	$query->where("#receiptId = {$receiptId}");
     	$query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
@@ -569,9 +576,9 @@ class pos_ReceiptDetails extends core_Detail {
     			$obj->value = $type[1];
     		}
     		$obj->amount = $rec->amount;
-    		${"{$obj->action}Result"}[$rec->id] = $obj;
+    		$result[$rec->id] = $obj;
     	}
     	
-    	return (object)array('sale' => $saleResult, 'payment' => $paymentResult);
+    	return $result;
     }
 }

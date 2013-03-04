@@ -1,0 +1,30 @@
+<!--ET_BEGIN payment-->
+<table border = '1' class='report-table payment'>
+	<tr>
+		<th>Плащане</th>
+		<th>Сума</th>
+	</tr>
+	<!--ET_BEGIN paymentROW-->
+	<tr>
+		<td>[#value#]</td>
+		<td>[#amount#]</td>
+	</tr>
+	<!--ET_END paymentROW-->
+</table>
+<!--ET_END payment-->
+<!--ET_BEGIN sale-->
+<table border = '1' class='report-table sale'>
+	<tr>
+		<th>Продукт</th>
+		<th>К-во</th>
+		<th>Сума</th>
+	</tr>
+	<!--ET_BEGIN saleROW-->
+	<tr>
+		<td>[#value#]</td>
+		<td>[#quantity#]</td>
+		<td>[#amount#]</td>
+	</tr>
+	<!--ET_END saleROW-->
+</table>
+<!--ET_END sale-->

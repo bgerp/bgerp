@@ -3,7 +3,7 @@
 
 
 /**
- * Модел Репорти
+ * Модел Отчети
  *
  *
  * @category  bgerp
@@ -44,7 +44,7 @@ class pos_Reports extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "PoS Репорт";
+    var $singleTitle = "Отчет";
     
     
     /**
@@ -104,6 +104,7 @@ class pos_Reports extends core_Master {
     	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка, width=9em, mandatory');
     	$this->FLD('beginDate', 'date(format=d.m.Y)', 'caption=Период->От,width=6em');
     	$this->FLD('endDate', 'date(format=d.m.Y)', 'caption=Период->До,width=6em');
+    	$this->FLD('paid', 'float(minDecimals=2)', 'caption=Общо, input=none, value=0');
     	$this->FLD('total', 'float(minDecimals=2)', 'caption=Общо, input=none, value=0');
     	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
     }
@@ -158,9 +159,17 @@ class pos_Reports extends core_Master {
     	if($rec->state == 'draft') {
     		pos_ReportDetails::delete("#reportId = {$rec->id}");
     		$reportData = pos_Receipts::fetchReportData($rec->pointId, $rec->cashier, $rec->beginDate, $rec->endDate);
+    		foreach($reportData as $detail){
+    			$detail->reportId = $id;
+    			$mvc->pos_ReportDetails->save($detail);
+    		}
+    		
+    		$saleAmount = $paymentAmount = 0;
+    		foreach($reportData as $detail) {
+    			${"{$detail->action}Amount"} += $detail->amount;	
+    		}
     	}
      }
-    
     
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
@@ -187,12 +196,5 @@ class pos_Reports extends core_Master {
     	$self = cls::get(get_called_class());
     	
     	return $self->abbr . $rec->id;
-    }
-    
-    
-    function act_Test()
-    {
-    	$from = '2013-02-28';
-    	$l = pos_Receipts::fetchReportData(1, 1, $from);
     }
 }

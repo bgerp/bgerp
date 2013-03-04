@@ -81,4 +81,35 @@ class pos_ReportDetails extends core_Detail {
         $this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума');
         $this->FLD('value', 'varchar(32)', 'caption=Какво');
     }
+    
+    
+    /**
+     * Рендиране на Детайлите
+     */
+    function renderDetail_($data)
+    {
+    	$tpl = new ET(getFileContent('pos/tpl/ReportDetails.shtml'));
+    	$paymentTpl = $tpl->getBlock("payment");
+    	$saleTpl = $tpl->getBlock("sale");
+    	foreach($data->rows as $k => $row) {
+    		$action = $data->recs[$k]->action;
+    		$typeTpl = ${"{$action}Tpl"}->getBlock("{$action}ROW");
+    		$typeTpl->placeObject($row);
+    		$typeTpl->removeBlocks();
+    		$typeTpl->append2master();
+    	}
+    	
+    	$tpl->append($paymentTpl);
+    	$tpl->append($saleTpl);
+    	return $tpl;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	//@TODO
+    }
 }

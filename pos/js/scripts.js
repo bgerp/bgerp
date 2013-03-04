@@ -1,12 +1,11 @@
 $(document).ready(function () {
 	
 	if($('tr').is('#last-row')) {
-		var lastColor = $("#last-row").css("background-color");
 		$("#last-row").css("background-color", "#FFFF99");
 		
-		setTimeout(function () {
-			$("#last-row").css("background-color", lastColor);
-		}, 700);
+		//setTimeout(function () {
+			//$("#last-row").css("background-color", lastColor);
+		//}, 700);
 		//$('.scrollWrapper').scrollTop($('#last-row').offset().top);
 	
 	} else { 
@@ -58,12 +57,6 @@ $(document).ready(function () {
 	$("input[disabled=disabled]").addClass("disabledBtn");
 	$("input.disabledBtn").attr('title', 'Неможе да приключите бележката, докато не е платена');
 
-	$('.4pos-product').click(function() {
-		var value = $(this).attr("data-code");
-		$("input[name=ean]").val(value);
-		$("#receipt-details-form form").submit();
-	});
-	
 	$(".pos-product-category[data-id='']").addClass('active');
 	$('.pos-product-category').click(function() {
 		var value = $(this).attr("data-id");
@@ -99,32 +92,13 @@ $(document).ready(function () {
    	     dataType: 'json',
    	     success: function(result)
    	     { 
-   	    	var html = result.html;
-   	    	var rec = result.rec;
-   	    	var trCode = $("tr td span.code:contains('"+rec.code+"')");
-   	    	if(trCode.length == 1){
-   	    		$("tr[data-code = "+rec.code+"] td span.quantity").text(rec.quantity);
-   	    		var vAmount = rec.amount.toFixed(2).replace(".",",");
-	    		$("tr[data-code = "+rec.code+"] td span.sale-amount").text(vAmount);
-   	    	} else {
-   	    		last = $(".scrollable tbody");
-	    		if($('.scrollable tbody tr').length == 1) {
-	    			$('.scrollable tbody tr').remove();
-	    		}
-	    		last.append(html);
-   	    	}
-   	    	
-   	    	total = $("#receipt-total-sum");
-   			var addAmount = quantity * rec.price;
-   			var oldTotal = parseFloat(total.text().replace(",","."));
-   			var newTotal = oldTotal + addAmount;
-   			var textT = newTotal.toFixed(2).replace(".",",");
-   			total.text(textT);
-   	    },
-   	    error: function(result)
-   	    {
-   	       alert('проблем с записването');
-   	    }
-   	   });
+   	    	$("#single-receipt-holder").replaceWith(result);
+   	    	$("#last-row").css("background-color", "#FFFF99");
+   	     },
+   	     error: function(result)
+   	     {
+   	       alert('проблем със записването');
+   	     }
+   	     });
 	});
 });

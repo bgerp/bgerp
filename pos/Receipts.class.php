@@ -32,7 +32,7 @@ class pos_Receipts extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Printing,
-    				 plg_State, pos_Wrapper, bgerp_plg_Blank';
+    				 plg_State, bgerp_plg_Blank';
 
     
     /**
@@ -215,13 +215,14 @@ class pos_Receipts extends core_Master {
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
-    	jquery_Jquery::enable($tpl);
-    	jquery_Jquery::enableUI($tpl);
-    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
-    	$tpl->push($data->theme . '/style.css', 'CSS');
-    	$tpl->push('pos/js/scripts.js', 'JS');
-    	if($data->products && count($data->products->arr) > 0) {
-    		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
+    	if(!Request::get('ajax_mode')) {
+	    	jquery_Jquery::enable($tpl);
+	    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+	    	$tpl->push($data->theme . '/style.css', 'CSS');
+	    	$tpl->push('pos/js/scripts.js', 'JS');
+	    	if($data->products && count($data->products->arr) > 0) {
+	    		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
+	    	}
     	}
     }
     
@@ -416,7 +417,7 @@ class pos_Receipts extends core_Master {
 	                'quantity' => $product->quantity), // Количество продукт в основната му мярка
 	    	);
     	}
-    	
+    	bp($entries);
     	$transaction = (object)array(
                 'reason'  => 'PoS Продажба #' . $rec->id,
                 'valior'  => $rec->date,
@@ -457,11 +458,15 @@ class pos_Receipts extends core_Master {
         
         $this->requireRightFor('single', $data->rec);
         $this->prepareSingle($data);
+    	if(!Mode::is('printing') && !Mode::is('screenMode', 'narrow') && $data->rec->state == 'draft') {
+    		$data->products = pos_Favourites::prepareProducts();
+    		$data->products->theme =  $data->theme;
+    	}
         if($dForm = $data->pos_ReceiptDetails->form) {
             $rec = $dForm->input();
             $Details = cls::get('pos_ReceiptDetails');
 			$Details->invoke('AfterInputEditForm', array($dForm));
-           
+			
         	// Ако формата е успешно изпратена - запис, лог, редирект
             if ($dForm->isSubmitted() && Request::get('ean')) {
             	
@@ -469,21 +474,21 @@ class pos_Receipts extends core_Master {
 	            	
             		// Записваме данните
 	            	$id = $Details->save($rec);
-	            	if(Request::get('ajax_mode')){
-	            		$row = pos_ReceiptDetails::recToVerbal($rec);
-	            		$rec->code = $row->code;
-	            		$rowTpl = $Details->renderDetail((object)array('rows' => array($rec->id => $row)));
-	            		echo json_encode((object)array('html' => $rowTpl->content, 'rec' => $rec));
-	            		shutdown();
-	            	}
 	                $Details->log('add', $id);
 	                
-	                return new Redirect(array($this, 'Single', $data->rec->id));
+	                return new Redirect(array($this, 'Single', $data->rec->id, "ajax_mode" => Request::get("ajax_mode")));
             	}
             }
         }
-       
+        
+        Mode::set('wrapper', 'page_Empty');
+        
         $tpl = $this->renderSingle($data);
+        
+        if(Request::get('ajax_mode')){
+        	echo json_encode($tpl->getContent());
+        	shutdown();
+        }
         $tpl = $this->renderWrapping($tpl, $data);
         $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
         
@@ -534,19 +539,6 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * Подговяме бутоните с продуктите само ако не сме в широк режим
-     * и не принтираме
-     */
-    public static function on_AfterPrepareSingle($mvc, $data)
-    {
-    	if(!Mode::is('printing') && !Mode::is('screenMode', 'narrow') && $data->rec->state == 'draft') {
-    		$data->products = pos_Favourites::prepareProducts();
-    		$data->products->theme =  $data->theme;
-    	}
-    }
-    
-    
-    /**
      * Подготвя информацията за направените продажби и плащания
      * от всички бележки за даден период от време на даден потребител
      * на дадена точка (@see pos_Reports)
@@ -557,14 +549,12 @@ class pos_Receipts extends core_Master {
      * @param date $to - Крайна дата на периода, ако не е зададена
      * е текущата дата
      * @return array $result - масив с резултати
-     * 				 $result['sales'] - масив с всички направени продажби
-     * 				 $result['payments'] - масив с всички плащания
-     */
+     * */
     static function fetchReportData($pointId, $userId, $from = NULL, $to = NULL)
     {
     	expect(pos_Points::fetch($pointId));
     	expect(core_Users::fetch($userId));
-    	$result = $payments = $sales = array();
+    	$results = array();
     	if(!$to) {
     		$to = dt::verbal2mysql();
     	}
@@ -578,18 +568,21 @@ class pos_Receipts extends core_Master {
     	
     	while($rec = $query->fetch()) {
     		$data = pos_ReceiptDetails::fetchReportData($rec->id);
-    		if(count($data->sale)) {
-    			$sales[$rec->id] = $data->sale;
-    		}
-    		
-    		if(count($data->payment)) {
-    			$payments[$rec->id] = $data->payment;
-    		}
+    		$results += $data;
     	}
     	
-    	(count($sales)) ? $result['sales'] = $sales : $result['sales'] = FALSE;
-    	(count($payments)) ? $result['payments'] = $payments : $result['payments'] = FALSE;
+    	$new = array();
+	    foreach($results as $obj) {
+	    	$i = $obj->value;
+	    	if(!array_key_exists($i, $new)) {
+	    		$new[$i] = $obj;
+	    	} else {
+	    		$new[$i]->quantity += $obj->quantity;
+	    		$new[$i]->amount = (float)(string)$new[$i]->amount + (string)$obj->amount;
+	    	}
+	    }
+	    $results = $new;
     	
-    	return $result;
+    	return $results;
     }
 }

@@ -1,5 +1,6 @@
 <div id='single-receipt-holder'>
 <div id='single-receipt'>
+<br>
 	[#SingleToolbar#]
 	<table border = '1' id = 'receipt-table' cellpadding='5px' cellspacing='0px'>
 		<tr id='receipt-header'>
@@ -46,6 +47,7 @@
 	[#ADD_FORM#]
 	<a name = 'form'></a>
 </div>
+
+</div>
 [#PRODUCTS#]
 <div class="clearfix21"></div>
-</div>
