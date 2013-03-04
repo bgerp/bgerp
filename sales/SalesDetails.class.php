@@ -1,8 +1,8 @@
 <?php
 /**
- * Клас 'sales_SalesSales'
+ * Клас 'sales_SalesDetails'
  *
- * Детайли на мениджър на документи за продажба на продукти от каталога (@see sales_Sales)
+ * Детайли на мениджър на документи за продажба на продукти (@see sales_Sales)
  *
  * @category  bgerp
  * @package   sales
@@ -18,7 +18,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string
      */
-    public $title = 'Детайли на Продажби';
+    public $title = 'Детайли на продажби';
 
 
     /**
@@ -133,10 +133,10 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('packPrice', 'float(minDecimals=2)', 'caption=Цена');
         
         // Цена за единица продукт в основна мярка
-        $this->FLD('price', 'float(minDecimals=2)', 'input=none,caption=Ед. Цена');
+        $this->FLD('price', 'float(minDecimals=4)', 'input=none,caption=Ед. Цена');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
-        $this->FNC('amount', 'float(minDecimals=2)', 'caption=Сума');
+        $this->FNC('amount', 'float(decimals=2)', 'caption=Сума');
     }
     
     
@@ -350,7 +350,7 @@ class sales_SalesDetails extends core_Detail
                 $rec->packagingId,
                 $rec->quantity,
                 $masterRec->date
-            );
+            );  
             
             if (empty($rec->packagingId)) {
                 // В продажба в основна мярка
@@ -386,7 +386,7 @@ class sales_SalesDetails extends core_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $productsPerPack;
-            $rec->price    = round($rec->packPrice / $productsPerPack, 2);
+            $rec->price    = round($rec->packPrice / $productsPerPack, 5);
             
             // Записваме основната мярка на продукта
             $rec->uomId    = $productInfo->productRec->measureId;

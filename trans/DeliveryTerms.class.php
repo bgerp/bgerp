@@ -28,8 +28,10 @@ class trans_DeliveryTerms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, term, codeName';
+    var $listFields = 'id, codeName, term';
     
+    var $rowToolsSingleField = 'codeName';
+
     /**
      * Полетата, които ще се показват в единичния изглед
      */
@@ -61,8 +63,8 @@ class trans_DeliveryTerms extends core_Master
      */
     function description()
     {
-        $this->FLD('term', 'text', 'caption=Термин');
-        $this->FLD('codeName', 'varchar', 'caption=Кодово название');
+        $this->FLD('codeName', 'varchar', 'caption=Код');
+        $this->FLD('term', 'text', 'caption=Обяснение');
         $this->FLD('forSeller', 'text', 'caption=За продавача');
         $this->FLD('forBuyer', 'text', 'caption=За купувача');
         $this->FLD('transport', 'text', 'caption=Транспорт');
