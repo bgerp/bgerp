@@ -1,5 +1,5 @@
 <div class="singleView" style="display:inline-block">
-	[#SingleToolbar#]<br>
+	[#SingleToolbar#]
 	<h2>[#SingleTitle#]</h2>
 	<table border='0' style='' cellpadding='1px'>
 		<tr>

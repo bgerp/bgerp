@@ -1,6 +1,5 @@
 <div class="singleView" style="display:inline-block">
        		[#SingleToolbar#] 
-       		<br />
             <h2>[#SingleTitle#]</h2>
             <table width="100%" cellpadding="2px">
 	            <tr>

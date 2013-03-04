@@ -62,6 +62,11 @@ class cash_Cases extends core_Master {
      */
     var $autoList = 'case';
  
+    /**
+     * Файл с шаблон за единичен изглед
+     */
+    var $singleLayoutFile = 'cash/tpl/SingleLayoutCases.shtml';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -130,5 +135,8 @@ class cash_Cases extends core_Master {
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-
+    static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	//bp($data->rec, $data->singleFields, $data);
+    }
 }

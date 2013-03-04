@@ -1997,3 +1997,11 @@ fieldset.sharing-history i {
 .trans_DeliveryTerms{
 	max-width: 800px;
 }
+
+.singleView h2{
+	margin:10px 0;
+}
+
+.folder-cover h2{
+	margin:0 0 20px 0;
+}
