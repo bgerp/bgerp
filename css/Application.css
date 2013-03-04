@@ -1974,3 +1974,10 @@ fieldset.sharing-history i {
 .email-class h2{
 	margin:10px 0 12px;
 }
+
+.free-text{
+	max-width:600px;
+	text-align:justify;
+	line-height:130%;
+	margin-bottom:20px;
+}
