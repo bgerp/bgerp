@@ -419,7 +419,7 @@ class sales_SalesDetails extends core_Detail
             foreach ($pricePolicies as $policyId=>$Policy) {
                 $Policy = cls::getInterface('price_PolicyIntf', $Policy);
                 $data->toolbar->addBtn($Policy->getPolicyTitle($customerClass, $customerId), $addUrl + array('policyId' => $policyId,),
-                    "id=btnAdd-{$policyId},class=btn-add");
+                    "id=btnAdd-{$policyId},class=btn-shop");
             }
             
             unset($data->toolbar->buttons['btnAdd']);

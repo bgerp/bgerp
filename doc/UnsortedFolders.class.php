@@ -24,6 +24,12 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    var $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Заглавие
      */
     var $title = "Проекти";

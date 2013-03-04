@@ -730,6 +730,13 @@ option.team {
 	background-position: 3px center;
 }
 
+.wide .btn-shop{
+	background-image:url('../img/16/shopping.png');
+    padding-left:22px;  
+	background-repeat:no-repeat !important;
+	background-position: 3px center;
+}
+
 .narrow .btn-add{
 	margin-left:0;
 }
@@ -1813,8 +1820,13 @@ fieldset.sharing-history i {
 }
 
 .document .details .listToolbar{
-	padding-bottom:10px;
+	padding:5px 0px;
+	margin: 0;
 	border-bottom:1px solid #000;
+}
+
+.document .details .listToolbar .toolbar{
+	padding-left:0;
 }
 
 .document .listTable th, .document .listTable td{
@@ -1973,4 +1985,11 @@ fieldset.sharing-history i {
 /*bugFix - заглавие при емейлите*/
 .email-class h2{
 	margin:10px 0 12px;
+}
+
+.free-text{
+	max-width:600px;
+	text-align:justify;
+	line-height:130%;
+	margin-bottom:20px;
 }

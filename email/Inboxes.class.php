@@ -23,6 +23,12 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    var $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Заглавие на таблицата
      */
     var $title = "Имейл кутии";

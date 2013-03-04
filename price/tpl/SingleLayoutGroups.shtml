@@ -1,22 +1,9 @@
 <div style="display:inline-block" class="singleView">
 [#SingleToolbar#]
-	<h2 style="margin-top:10px"> <b style="color:green;">[#title#]</b></h2>
-	<table class="styled-table" style="min-width:300px">
-		<tr>
-			<td class="title-style"> №</td>
-			<td>[#id#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">Наименование</td>
-			<td>[#title#]</td>
-		</tr>
-		<!--ET_BEGIN description-->
-		<tr>
-			<td class="title-style">Описание</td>
-			<td>[#description#]</td>
-		</tr>
-		<!--ET_END description-->
-	</table>
+	<h2 style="margin-top:10px">Ценова група <b style="color:green">"[#SingleTitle#]"</b></h2>
+	
+	<div class='free-text'>[#description#]</div>
+	
 	<div><span class="title-style">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
 	<br/>
 	[#DETAILS#]
