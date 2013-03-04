@@ -342,7 +342,7 @@ class type_Keylist extends core_Type {
         if (isset($klist[$key])) {
             unset($klist[$key]);
         }
-        $klist = self::fromVerbal($klist);
+        $klist = self::fromArray($klist);
         
         return $klist;
     }
