@@ -148,15 +148,16 @@ class support_Issues extends core_Master
      */
     var $newBtnGroup = "9.1|Поддръжка";
 	
+    
 	/**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('componentId', "key(mvc=support_Components,select=name)", 'caption=Компонент, mandatory');
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%, mandatory");
+        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент');
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
         
         // Възлагане на задача (за doc_AssignPlg)
@@ -174,10 +175,14 @@ class support_Issues extends core_Master
      */
     function on_CalcSystemIdShow($mvc, $rec)
     {
-        // systemId на съответния компонент
-        $systemId = support_Components::fetchField($rec->componentId, 'systemId');
-        
-        $rec->systemIdShow = $systemId;
+        // Ако има компонент
+        if ($rec->componentId) {
+            
+            // systemId на съответния компонент
+            $systemId = support_Components::fetchField($rec->componentId, 'systemId');    
+            
+            $rec->systemIdShow = $systemId;
+        }
     }
 
     
@@ -250,17 +255,31 @@ class support_Issues extends core_Master
             $systemId = $coverClassRec->coverId;
         }
         
-        // Извличаме всички компоненти, със съответното systemId
+        // Всички системи, които наследяваме
+        $allSystemsArr = support_Systems::getSystems($systemId);
+
+        // Премахваме текущатата
+        unset($allSystemsArr[$systemId]);
+        
+        // Извличаме всички компоненти, със съответното systemId или прототип
         $query = support_Components::getQuery();
+        
         $query->where("#systemId = '{$systemId}'");
         
+        // Обхождаме всики наследени системи
+        foreach ($allSystemsArr as $allSystemId) {
+            
+            // Добавяме OR
+            $query->orWhere("#systemId = '{$allSystemId}'");
+        }
+
         // Обхождаме всички открити резултати
         while ($rec = $query->fetch()) {
             
             // Създаваме масив с компонентите
-            $components[$rec->id] = support_Systems::getVerbal($rec, 'name');
+            $components[$rec->id] = support_Components::getVerbal($rec, 'name');
         }
-        
+
         // Ако няма въведен компонент
         if (!$components) {
             
@@ -281,15 +300,31 @@ class support_Issues extends core_Master
             // Препащаме
             return redirect($redirectArr);
         }
-        
+
         // Променяме съдържанието на полето компоненти с определения от нас масив
         $data->form->setOptions('componentId', $components);
         
-        // Вземаме записа за съответната система
-        $sRec = support_Systems::fetch($systemId);
+        // Запитване за извличане на системите
+        $sQuery = support_Systems::getQuery();
         
+        $sQuery->where($systemId);
+        
+        // Обхождаме всики наследени системи
+        foreach ($allSystemsArr as $allSystemId) {
+            
+            // Добавяме OR
+            $sQuery->orWhere($allSystemId);
+        }
+        
+        // Обхождаме всички открити записи
+        while ($sRec = $sQuery->fetch()) {
+            
+            // Обединяваме всички позволени типове
+            $allowedTypes = type_Keylist::merge($sRec->allowedTypes, $allowedTypes);
+        }
+
         // Разрешените типове за съответната система
-        $allowedTypesArr = type_Keylist::toArray($sRec->allowedTypes);
+        $allowedTypesArr = type_Keylist::toArray($allowedTypes);
 
         // Обхождаме масива с всички разрешени типове
         foreach ($allowedTypesArr as $allowedType) {
@@ -300,20 +335,6 @@ class support_Issues extends core_Master
         
         // Променяме съдържанието на полето тип с определения от нас масив, за да се показват само избраните
         $data->form->setOptions('typeId', $types);
-        
-        // Масив с всички потребители, които имат достъп до папката
-        $sharedUsersArr = doc_Folders::getSharedUsersArr($folderId, TRUE);
-    
-        // Ако няма нито един потребители
-        if (!count($sharedUsersArr)) {
-            
-            // Не показваме полето
-          //  $data->form->setField('sharedUsers', 'input=none');
-        } else {
-           
-            // Задаваме да се показват потребителите, които имат достъп
-           // $data->form->setSuggestions('sharedUsers', $sharedUsersArr);    
-        }
     }
     
     
@@ -411,16 +432,18 @@ class support_Issues extends core_Master
             $nRec = $mvc->fetch($rec->id);   
         } elseif ($rec->componentId) {
             
-            // Клонираме
-            $nRec = clone($rec);
+            $nRec = $rec;
         }
         
-        // Ако има компоненти
+        // Ако има компонент
         if ($nRec->componentId) {
             
             // Отговорниците на компонента
             $maintainers = support_Components::fetchField($nRec->componentId, 'maintainers');
-            
+
+            // Към отговорниците да не се показва текущия потребител, защото той е inCharge
+            $maintainers = type_Keylist::removeKey($maintainers, core_Users::getCurrent());
+
             // Обядиняваме отговорниците и споделените потребители
             $rec->sharedUsers = type_Keylist::merge($nRec->sharedUsers, $maintainers);      
         }

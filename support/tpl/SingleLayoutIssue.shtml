@@ -13,7 +13,9 @@
 	<div  class='clearfix21 antetka'>
 		<div class='clearfix21'>  <small>
 		<div><b>[#title#]</b></div>
-		<div>|Компонент|*: [#componentId#]</div>
+		<!--ET_BEGIN componentId-->
+			<div>|Компонент|*: [#componentId#]</div>
+		<!--ET_END componentId-->
 		<div>|Тип|*: [#typeId#]</div>
 		<div>|Приоритет|*: [#priority#]</div>
 		<!--ET_BEGIN assign-->

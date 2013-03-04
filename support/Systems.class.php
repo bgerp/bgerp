@@ -110,7 +110,7 @@ class support_Systems extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name=Система, folderId, description';
+    var $listFields = 'id, name=Система, prototype, folderId, description';
     
     
     /**
@@ -143,7 +143,8 @@ class support_Systems extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', "caption=Наименование,mandatory, width=100%");
-        $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Позволени типове, mandatory, width=100%');
+        $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Позволени типове, width=100%');
+        $this->FLD('prototype', 'key(mvc=support_Systems, select=name, allowEmpty)', "caption=Прототип, width=100%");
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%");
         
         $this->setDbUnique('name');
@@ -246,5 +247,98 @@ class support_Systems extends core_Master
         }
 
         return $accessedArr;
+    }
+    
+    
+	/**
+     *
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {
+        // Ако формата е изпратена успешно
+        if ($form->isSubmitted()) {
+            
+            // Ако е въведен прототип
+            if ($form->rec->id) {
+                
+                // Ако сме избрали протип на същата система
+                if ($form->rec->prototype == $form->rec->id) {
+                    
+                    // Сетваме грешката
+                    $form->setError('prototype', 'Не може да се използва същата система.');
+                }  
+            }
+            
+            // Ако сме избрали прототип
+            if (!$form->rec->prototype) {
+                
+                // Ако не сме избрали тип
+                if (!$form->rec->allowedTypes) {
+                    
+                    // Сетваме грешка, ако няма родител и няма позволен тип
+                    $form->setError('allowedTypes', "Ако не сте избрали '{$form->fields['prototype']->caption}', трябва да изберете тип.");
+                }
+            } else {
+                
+                // Вземаме всички прототипи
+                $prototypesArr = static::getSystems($form->rec->prototype);
+                
+                // Запитване
+                $query = static::getQuery();
+                
+                // Обхождаме масива с прототипите
+                foreach ($prototypesArr as $prototype) {
+                    
+                    // Добавяме OR условие
+                    $query->orWhere($prototype);  
+                }
+                
+                // Обхождаме резултататите
+                while ($rec = $query->fetch()) {
+                    
+                    // Към споделените добавяме и inCharge
+                    $shared = type_Keylist::addKey($rec->shared, $rec->inCharge);
+                    
+                    // Споделените от родителите ги добавяме към текущия
+                    $form->rec->shared = type_Keylist::merge($shared, $form->rec->shared);
+                }
+                
+                // Ако сме избрали за прототип някой от наследниците
+                if ($prototypesArr[$form->rec->id]) {
+                    
+                    // Сетваме грешка
+                    $form->setError('prototype', 'Не може да се използва наследника като родител.');
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща всички системи и компоненти, които се използват
+     * 
+     * @param integer $systemId - id на система
+     * 
+     * @return array $arr - Масив с всички системи
+     */
+    static function getSystems($systemId)
+    {
+        // Ако не е зададена система връщаме
+        if (!$systemId) array();
+        
+        // Добавяме в масива
+        $arr[$systemId] = $systemId;
+        
+        // Вземаме записа
+        $sRec = static::fetch($systemId);
+        
+        // Ако има прототип
+        if ($sRec->prototype) {
+            
+            // Вземаме системата
+            $arr += static::getSystems($sRec->prototype);
+        }
+        
+        return $arr;
     }
 }

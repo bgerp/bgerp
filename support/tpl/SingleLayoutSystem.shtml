@@ -14,6 +14,13 @@
 				</tr>
 			<!--ET_END folderId-->
 			
+			<!--ET_BEGIN prototype-->     
+				<tr>
+				    <td align="left" width='auto'>|Прототип|*:</td>
+				    <td>[#prototype#]</td>
+				</tr>
+			<!--ET_END prototype-->
+			
 			<tr>
 				<td align="left" width='auto'>|Отговорник|*:</td>
 				<td>[#inCharge#]</td>
@@ -45,10 +52,12 @@
 		        <td>[#createdBy#] |на|* [#createdOn#]</td>
 		    </tr>
 		    
+		    <!--ET_BEGIN allowedTypes-->   
 	    	<tr>
 			    <td align="left" width='auto'>|Позволени типове|*:</td>
 			    <td>[#allowedTypes#]</td>
 			</tr>
+			<!--ET_END allowedTypes-->
 		</table>
 		
 		<div>
