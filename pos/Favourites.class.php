@@ -73,9 +73,8 @@ class pos_Favourites extends core_Manager {
     	$this->FLD('catId', 'key(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
     	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=title)', 'caption=Точка на Продажба');
     	$this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
-    	$this->FLD('used', 'int', 'input=none, value=0');
     	
-        $this->setDbUnique('productId, packagingId');
+    	$this->setDbUnique('productId, packagingId');
     }
     
     
@@ -144,7 +143,6 @@ class pos_Favourites extends core_Manager {
     	$query->where("#pointId IS NULL");
     	$query->orWhere("#pointId LIKE '%{$posRec->id}%'");
     	$query->where("#state = 'active'");
-    	$query->orderBy("#used", "DESC");
     	while($rec = $query->fetch()){
     		if(!$cache[$rec->id]) {
     			$obj = $this->prepareProductObject($rec);
@@ -283,26 +281,5 @@ class pos_Favourites extends core_Manager {
     	}
     	
     	$row->productId .= $pack;
-    }
-    
-    
-    /**
-     * Ако добавения продукт е от любимите инкрементираме полето 'used'
-     * @param string $code - кода на добавения продукт
-     */
-    public static function updateUsage($code){
-    	$productRec = cat_Products::getByCode($code);
-    	$pointId = pos_Points::getCurrent();
-    	$query = static::getQuery();
-    	$query->where("#productId = {$productRec->productId}");
-    	($productRec->packagingId) ? $string = "={$productRec->packagingId}" : $string = " IS NULL";
-    	$query->where("#pointId LIKE '%|{$pointId}|%'");
-    	$query->where("#packagingId {$string}");
-    	if(!$rec = $query->fetch()) {
-    		return;
-    	} 
-    	
-    	$rec->used = $rec->used + 1;
-    	static::save($rec);
     }
 }

@@ -6,7 +6,7 @@
 	<td class='receipt-quantity' width="110px"><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#packagingId#]<!--ET_END packagingId--></td>
 	<td class='receipt-price' width="140px">[#price#] лв. 
 	<!--ET_BEGIN discountPercent-->
-	 (<span class='receipt-discount-td'>- [#discountPercent#]</span>)
+	 (<span class='receipt-discount-td'> [#discountPercent#] %</span>)
 	<!--ET_END discountPercent-->
 	</td>
 	<td class='receipt-amount'><span class='sale-amount'>[#amount#] </span></td>
@@ -15,9 +15,9 @@
 
 <!--ET_BEGIN discount-->
 <tr>
-	<td colspan='4' class='receipt-discount'>Отстъпка: &nbsp;&nbsp;
+	<td colspan='4' class='receipt-discount'>[#discountType#]: &nbsp;&nbsp;
 	<!--ET_BEGIN discountPercent-->
-		[#discountPercent#] 
+		[#discountPercent#] %
 	<!--ET_END discountPercent-->
 	<!--ET_BEGIN discountSum-->
 		[#discountSum#] лв

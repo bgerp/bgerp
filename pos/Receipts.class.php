@@ -32,7 +32,7 @@ class pos_Receipts extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Printing,
-    				 plg_State, bgerp_plg_Blank';
+    				 plg_State, bgerp_plg_Blank, pos_Wrapper';
 
     
     /**
@@ -273,7 +273,6 @@ class pos_Receipts extends core_Master {
     			if($change > 0) {
     				$rec->change = $change;
     			}
-    			pos_Favourites::updateUsage($detailRec->ean);
     			break;
     		case 'discount':
     			break;
@@ -417,7 +416,7 @@ class pos_Receipts extends core_Master {
 	                'quantity' => $product->quantity), // Количество продукт в основната му мярка
 	    	);
     	}
-    	bp($entries);
+    	
     	$transaction = (object)array(
                 'reason'  => 'PoS Продажба #' . $rec->id,
                 'valior'  => $rec->date,
@@ -460,7 +459,7 @@ class pos_Receipts extends core_Master {
         $this->prepareSingle($data);
     	if(!Mode::is('printing') && !Mode::is('screenMode', 'narrow') && $data->rec->state == 'draft') {
     		$data->products = pos_Favourites::prepareProducts();
-    		$data->products->theme =  $data->theme;
+    		$data->products->theme = $data->theme;
     	}
         if($dForm = $data->pos_ReceiptDetails->form) {
             $rec = $dForm->input();
@@ -489,7 +488,6 @@ class pos_Receipts extends core_Master {
         	echo json_encode($tpl->getContent());
         	shutdown();
         }
-        $tpl = $this->renderWrapping($tpl, $data);
         $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
         
         return $tpl;
@@ -535,54 +533,5 @@ class pos_Receipts extends core_Master {
         foreach($query->getDeletedRecs() as $rec) {
         	$mvc->pos_ReceiptDetails->delete("#receiptId = {$rec->id}");
         }
-    }
-    
-    
-    /**
-     * Подготвя информацията за направените продажби и плащания
-     * от всички бележки за даден период от време на даден потребител
-     * на дадена точка (@see pos_Reports)
-     * @param int $pointId - Ид на точката на продажба
-     * @param int $userId - Ид на потребител в системата
-     * @param date $from - Начална дата на извлечението
-     * ако е NULL извлича от началото
-     * @param date $to - Крайна дата на периода, ако не е зададена
-     * е текущата дата
-     * @return array $result - масив с резултати
-     * */
-    static function fetchReportData($pointId, $userId, $from = NULL, $to = NULL)
-    {
-    	expect(pos_Points::fetch($pointId));
-    	expect(core_Users::fetch($userId));
-    	$results = array();
-    	if(!$to) {
-    		$to = dt::verbal2mysql();
-    	}
-    	$query = static::getQuery();
-    	$query->where("#pointId = {$pointId}");
-    	$query->where("#createdBy = {$userId}");
-    	$query->where("#date <= '{$to}'");
-    	if($from) {
-    		$query->where("#date >= '{$from}'");
-    	}
-    	
-    	while($rec = $query->fetch()) {
-    		$data = pos_ReceiptDetails::fetchReportData($rec->id);
-    		$results += $data;
-    	}
-    	
-    	$new = array();
-	    foreach($results as $obj) {
-	    	$i = $obj->value;
-	    	if(!array_key_exists($i, $new)) {
-	    		$new[$i] = $obj;
-	    	} else {
-	    		$new[$i]->quantity += $obj->quantity;
-	    		$new[$i]->amount = (float)(string)$new[$i]->amount + (string)$obj->amount;
-	    	}
-	    }
-	    $results = $new;
-    	
-    	return $results;
     }
 }

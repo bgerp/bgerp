@@ -28,7 +28,7 @@
 				<td>
 					<div id='receipt-payments'>
 						
-							<div id='receipt-paid'>Платено:<span class='info-right'><b>[#paid#]</b></span></div>
+							<div id='receipt-paid'>Платено:<span class='info-right'><b>[#paid#]</b></span> </div>
 							<div id='receipt-change'>Ресто:<span class='info-right'>[#change#]</span></div>
 						
 				</td>

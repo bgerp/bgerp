@@ -271,3 +271,16 @@ div.scrollWrapper{
 	border:1px solid #C9C7C7 !important;
 	cursor: pointer;
 }
+
+.cCode {
+	border:solid 1px #ccc;
+	background-color:#eee;
+	padding:2px;
+    font-size:12px;
+    vertical-align:middle;
+}
+
+.listRows table {
+	width:480px;
+	margin-bottom:20px;
+}

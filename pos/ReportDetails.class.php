@@ -80,6 +80,7 @@ class pos_ReportDetails extends core_Detail {
     	$this->FLD('quantity', 'int', 'caption=К-во,');
         $this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума');
         $this->FLD('value', 'varchar(32)', 'caption=Какво');
+        $this->FLD('pack', 'varchar(32)', 'caption=Какво');
     }
     
     
@@ -88,19 +89,20 @@ class pos_ReportDetails extends core_Detail {
      */
     function renderDetail_($data)
     {
-    	$tpl = new ET(getFileContent('pos/tpl/ReportDetails.shtml'));
-    	$paymentTpl = $tpl->getBlock("payment");
-    	$saleTpl = $tpl->getBlock("sale");
-    	foreach($data->rows as $k => $row) {
-    		$action = $data->recs[$k]->action;
-    		$typeTpl = ${"{$action}Tpl"}->getBlock("{$action}ROW");
-    		$typeTpl->placeObject($row);
-    		$typeTpl->removeBlocks();
-    		$typeTpl->append2master();
+    	$tpl = new ET("");
+    	$sales = new stdClass();
+    	$payments = new stdClass();
+    	$payments->listFields = "value=Плащане, amount=Сума";
+    	$sales->listFields = "value=Продукт, quantity=Количество, amount=Сума";
+    	if($data->rows){
+	    	foreach($data->rows as $row) {
+	    		($row->action == 'payment') ? $payments->rows[] = $row : $sales->rows[] = $row;
+	    	}
     	}
     	
-    	$tpl->append($paymentTpl);
-    	$tpl->append($saleTpl);
+    	$tpl->append($this->renderListTable($payments));
+    	$tpl->append($this->renderListTable($sales));
+    	
     	return $tpl;
     }
     
@@ -110,6 +112,26 @@ class pos_ReportDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	//@TODO
+    	$varchar = cls::get("type_Varchar");
+    	$double = cls::get("type_Double");
+    	$double->params['decimals'] = 2;
+    	$row->amount = $double->toVerbal($rec->amount); 
+    	if($rec->action == 'sale') {
+    		$info = cat_Products::getProductInfo($rec->value, $rec->pack);
+    		$product = $info->productRec;	
+    		if($rec->pack){
+    			$pack = cat_Packagings::fetchField($rec->pack, 'name');
+    		} else {
+    			$pack = cat_UoM::fetchField($product->measureId, 'shortName');
+    		}
+    		$row->value = $product->code . " - " . $product->name;
+    		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $rec->value));
+    		$row->quantity = $pack . " - " .$row->quantity;
+    	} else {
+    		$value = pos_Payments::fetchField($rec->value, 'title');
+    		$row->value = $varchar->toVerbal($value);
+    	}
+    	$currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+    	$row->amount .= " <span class='cCode'>{$currencyCode}</span>";
     }
 }

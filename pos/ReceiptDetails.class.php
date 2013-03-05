@@ -47,6 +47,12 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
+     * Кой може да променя?
+     */
+    var $canList = 'no_one';
+    
+    
+    /**
 	 *  Брой елементи на страница 
 	 */
 	var $listItemsPerPage = '20';
@@ -173,6 +179,8 @@ class pos_ReceiptDetails extends core_Detail {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$varchar = cls::get('type_Varchar');
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 0;
     	$action = $mvc->getAction($rec->action);
     	switch($action->type) {
     		case "sale":
@@ -187,22 +195,23 @@ class pos_ReceiptDetails extends core_Detail {
     			$clientName = $clientArr[1]::fetchField($clientArr[0], 'name');
     			$row->clientName = $varchar->toVerbal($clientName);
     			break;
+    		case 'discount':
+    			$double->params['decimals'] = 0;
+    			if($rec->discountPercent){
+    				$discRec = &$rec->discountPercent;
+    				$discRow = &$row->discountPercent;
+    			}else {
+    				$discRec = &$rec->discountSum;
+    				$discRow = &$row->discountSum;
+    			}
+    			
+    			$discRow = abs($discRec);
+    			($discRec < 0) ? $row->discountType = tr("Надценка") : $row->discountType = tr("Отстъпка");
+    			break;
     	}
     	
-    	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	$row->amount = $double->toVerbal($rec->amount);
-     	$double->params['decimals'] = 0;
-     	if($rec->discountPercent) {
-     		$row->discountPercent = $double->toVerbal($rec->discountPercent) . " %";
-    		if($rec->discountPercent <= 0) {
-    			unset($row->discountPercent);
-    		}
-    	}
-    	
-    	if($rec->discountSum) {
-    		$row->discountSum = $double->toVerbal($rec->discountSum);
-    	}
     }
     
     
@@ -223,7 +232,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$row->uomId = $varchar->toVerbal($uomId);
     	$double->params['decimals'] = 0;
     	$row->perPack = $double->toVerbal($productInfo->packagingRec->quantity);
-    	if($productInfo->packagingRec) {
+    	if($rec->value) {
     		$packName = cat_Packagings::fetchField($rec->value, 'name');
     		$row->packagingId = $varchar->toVerbal($packName);
     	} else {
@@ -232,6 +241,19 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	$row->quantity = $double->toVerbal($rec->quantity);
+    	if($rec->discountPercent){
+    		$double->params['decimals'] = 0;
+    		if(round($rec->discountPercent) == 0) {
+    			unset($row->discountPercent);
+    		} else {
+    			$rec->discountPercent = $rec->discountPercent * -1;
+    			$row->discountPercent = $double->toVerbal($rec->discountPercent);
+    			if($rec->discountPercent >0) {
+    				$row->discountPercent = "+" .$row->discountPercent;
+    			}	
+    		}
+    		
+    	}
     }
     
     
@@ -394,6 +416,7 @@ class pos_ReceiptDetails extends core_Detail {
     								   $product->packagingId, 
     								   $rec->quantity, 
     								   $receiptRec->date);
+    	
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	$rec->price = $price->price;
     	if($price->discount != 0.00) {
@@ -436,13 +459,20 @@ class pos_ReceiptDetails extends core_Detail {
     			$lastDisc = $dRec->discountSum;
     			$procent = round(($lastDisc * 100 / $price->price), 2);
     		}
-    			// Връщаме цената с приложената по-голяма отстъпка
+    		
+    		if($lastDisc > 0){
     			$finalDiscount = max($clientDiscount, $lastDisc);
-    			$finalPrice->price = $price->price - $finalDiscount;
     			$finalPrice->discount = max($procent, $pDiscount);
-    			
-    			return $finalPrice;
+    		} else {
+    			$finalDiscount =  $lastDisc;
+    			$finalPrice->discount = $procent;
     		}
+    			
+    		// Връщаме цената с приложената по-голяма отстъпка
+    		$finalPrice->price = $price->price - $finalDiscount;
+    			
+    		return $finalPrice;
+    	}
     	 
     	// Ако няма ръчно зададена остъпка използваме тази която е
     	// зададена в ценоразписа
@@ -568,6 +598,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$obj = new stdClass();
     		if($rec->productId) {
     			$obj->action = 'sale';
+    			$obj->pack = $rec->value;
     			$obj->value = $rec->productId;
     			$obj->quantity = $rec->quantity;
     		} else {
