@@ -25,7 +25,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Приходни Банкови Документи";
+    var $title = "Приходни банкови документи";
     
     
     /**
@@ -57,7 +57,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Приходен Банков Документ';
+    var $singleTitle = 'Приходен банков документ';
     
     
     /**

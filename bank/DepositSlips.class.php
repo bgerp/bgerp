@@ -25,7 +25,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Вносни Бележки";
+    var $title = "Вносни бележки";
     
     
     /**
@@ -57,7 +57,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Вносна Бележка';
+    var $singleTitle = 'Вносна бележка';
     
     
     /**

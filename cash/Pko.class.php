@@ -26,7 +26,7 @@ class cash_Pko extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Приходни Kасови Oрдери";
+    var $title = "Приходни касови ордери";
     
     
     /**
@@ -58,7 +58,7 @@ class cash_Pko extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Приходен Касов Ордер';
+    var $singleTitle = 'Приходен касов ордер';
     
     
     /**

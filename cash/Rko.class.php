@@ -26,7 +26,7 @@ class cash_Rko extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Разходни Касови Ордери";
+    var $title = "Разходни касови ордери";
     
     
     /**

@@ -34,12 +34,6 @@ class survey_Surveys extends core_Master {
     var $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,
      	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg';
     
-  
-    /**
-     * Кои полета да се показват в листовия изглед
-     */
-    //var $listFields = 'id, iban, contragent=Контрагент, currencyId, type';
-    
     
     /**
      * Наименование на единичния обект

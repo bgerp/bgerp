@@ -25,7 +25,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Вътрешно Парични Трансфери";
+    var $title = "Вътрешно парични трансфери";
     
     
     /**
@@ -56,7 +56,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Вътрешно Паричен Трансфер';
+    var $singleTitle = 'Вътрешно паричен трансфер';
     
     
     /**

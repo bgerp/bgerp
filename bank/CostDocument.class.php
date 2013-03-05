@@ -25,7 +25,7 @@ class bank_CostDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Разходни Банкови Документи";
+    var $title = "Разходни банкови документи";
     
     
     /**

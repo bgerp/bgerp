@@ -25,7 +25,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Нареждане Разписка";
+    var $title = "Нареждане разписка";
     
     
     /**
