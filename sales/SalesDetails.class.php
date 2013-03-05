@@ -102,7 +102,7 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, quantity, price, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, xQuantity, xPrice, discount, amount';
     
         
     /**
@@ -130,13 +130,16 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('quantity', 'float', 'input=none,caption=К-во');
         
         // Цена за опаковка
-        $this->FLD('packPrice', 'float(minDecimals=2)', 'caption=Цена');
+        $this->FLD('packPrice', 'float', 'caption=Цена');
         
         // Цена за единица продукт в основна мярка
-        $this->FLD('price', 'float(minDecimals=4)', 'input=none,caption=Ед. Цена');
+        $this->FLD('price', 'float', 'input=none,caption=Ед. Цена');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FNC('amount', 'float(decimals=2)', 'caption=Сума');
+        
+        $this->FNC('xPrice', 'double(maxDecimals=4)', 'caption=Цена');
+        $this->FNC('xQuantity', 'double(maxDecimals=4)', 'caption=К-во');
     }
     
     
@@ -157,6 +160,8 @@ class sales_SalesDetails extends core_Detail
         if (!empty($rec->discount)) {
             $rec->amount *= (1-$rec->discount);
         }
+        
+        $rec->amount = round($rec->amount, 2);
     }
     
     
@@ -256,6 +261,22 @@ class sales_SalesDetails extends core_Detail
     }
     
     
+    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+        if (count($data->recs)) {
+            foreach ($data->recs as &$rec) {
+                if (empty($rec->packagingId)) {
+                    $rec->xPrice    = $rec->price;    // Единична цена
+                    $rec->xQuantity = $rec->quantity; // Количество в осн. мярка
+                } else {
+                    $rec->xPrice    = $rec->packPrice;
+                    $rec->xQuantity = $rec->packQuantity;
+                }
+            }
+        }
+    }
+    
+    
     public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
@@ -265,7 +286,7 @@ class sales_SalesDetails extends core_Detail
         
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
-
+        
         if(count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
                 $rec = $data->recs[$i];
@@ -279,14 +300,11 @@ class sales_SalesDetails extends core_Detail
                         $row->packagingId = '???';
                     }
                 } else {
-                    $price = $row->price; // Единична цена
-                    $row->price  = $row->packPrice;
-                    $row->price .= 
+                    $row->xPrice .= 
                         ' <small class="quiet" style="display: block;">' 
-                        . $row->quantity . ' x ' . $price . ' за ' . $row->uomId 
+                        . $row->quantity . ' x ' . $row->price . ' за ' . $row->uomId 
                         . '</small>';
                     $row->packagingId .= ' ' . ($rec->quantity / $rec->packQuantity) . ' ' . $row->uomId;
-                    $row->quantity = $row->packQuantity;
                 }
             }
         }
@@ -350,7 +368,7 @@ class sales_SalesDetails extends core_Detail
                 $rec->packagingId,
                 $rec->quantity,
                 $masterRec->date
-            );  
+            );
             
             if (empty($rec->packagingId)) {
                 // В продажба в основна мярка
@@ -377,8 +395,7 @@ class sales_SalesDetails extends core_Detail
                         $rec->packPrice, 
                         $masterRec->date, 
                         NULL, // Основната валута към $masterRec->date
-                        $masterRec->currencyId,
-                        4
+                        $masterRec->currencyId
                     );
             }
             if (empty($rec->discount)) {
@@ -386,7 +403,10 @@ class sales_SalesDetails extends core_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $productsPerPack;
-            $rec->price    = round($rec->packPrice / $productsPerPack, 5);
+            $rec->price    = $rec->packPrice / $productsPerPack;
+            
+            $rec->price = sales_Sales::roundPrice($rec->price);
+            $rec->packPrice = sales_Sales::roundPrice($rec->packPrice);
             
             // Записваме основната мярка на продукта
             $rec->uomId    = $productInfo->productRec->measureId;

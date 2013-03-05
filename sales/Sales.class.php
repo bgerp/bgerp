@@ -160,9 +160,9 @@ class sales_Sales extends core_Master
         /*
          * Стойности
          */
-        $this->FLD('amountDeal', 'float', 'caption=Стойности->Продажба,input=none'); // Сумата на договорената стока
-        $this->FLD('amountDelivered', 'float', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
-        $this->FLD('amountPaid', 'float', 'caption=Стойности->Платено,input=none'); // Сумата която е платена
+        $this->FLD('amountDeal', 'float(decimals=2)', 'caption=Стойности->Продажба,input=none'); // Сумата на договорената стока
+        $this->FLD('amountDelivered', 'float(decimals=2)', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
+        $this->FLD('amountPaid', 'float(decimals=2)', 'caption=Стойности->Платено,input=none'); // Сумата която е платена
         
         /*
          * Контрагент
@@ -705,7 +705,10 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->amountDeal = $row->currencyId . ' ' . sprintf('%0.2f', $rec->amountDeal);
+        if (empty($row->amountDeal)) {
+            $row->amountDeal = '0.00';
+        }
+        $row->amountDeal = $row->currencyId . ' ' . $row->amountDeal;
     }
     
     
