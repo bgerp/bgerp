@@ -712,6 +712,28 @@ class sales_Sales extends core_Master
     }
     
     
+    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+        if (!count($data->recs)) {
+            return;
+        }
+        
+        // Основната валута към момента
+        $now            = dt::now();
+        $baseCurrencyId = acc_Periods::getBaseCurrencyCode($now);
+        
+        // Всички общи суми на продажба - в базова валута към съотв. дата
+        foreach ($data->recs as &$rec) {
+            $rate = currency_CurrencyRates::getRate($now, $rec->currencyId, $baseCurrencyId);
+            
+            $rec->amountDeal *= $rate; 
+            $rec->amountDelivered *= $rate; 
+            $rec->amountPaid *= $rate; 
+            $rec->currencyId = NULL; // За да не се показва валутата като префикс в списъка
+        }
+    }
+    
+    
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
