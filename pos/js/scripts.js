@@ -2,41 +2,30 @@ $(document).ready(function () {
 	
 	if($('tr').is('#last-row')) {
 		$("#last-row").css("background-color", "#FFFF99");
-		
-		//setTimeout(function () {
-			//$("#last-row").css("background-color", lastColor);
-		//}, 700);
-		//$('.scrollWrapper').scrollTop($('#last-row').offset().top);
 	
 	} else { 
 		$(".scrollWrapper").scrollTop($(".scrollWrapper")[0].scrollHeight);
 	}
 	
-	$(document).bind('keypress', function(e) {
-		if(e.keyCode==13){
-			//@TODO
-		}
-	});
-	
 	$('input[name=ean]').focus();
 	
-	$('input[name=quantity]').keyup(function() {
+	$('input[name=quantity]').live("keyup",function() {
 			$('input[name=ean]').focus();
 		});
 	
-	$('#incBtn').click(function() {
+	$('#incBtn').live("click", function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
 	});
 	
-	$('#decBtn').click(function() {
+	$('#decBtn').live("click", function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
 	});
 	
-	$('#subBtn').click(function() {
+	$('#subBtn').live("click", function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
 	});
 	
-	$('.actionBtn').click(function() {
+	$('.actionBtn').live("click", function() {
 		var value = $(this).attr("data-type");
 		$("select[name=action]").val(value);
 		$(".actionBtn").not(this).removeClass('selectedPayButton');
@@ -51,8 +40,8 @@ $(document).ready(function () {
 	        }
 	});
 	
-	$("form input[type=button]").hover(function(){$(this).toggleClass('button_hover');});
-	$("form input[type=submit]").hover(function(){$(this).toggleClass('submit_hover');});
+	$("form input[type=button]").live("hover", function(){$(this).toggleClass('button_hover');});
+	$("form input[type=submit]").live("hover", function(){$(this).toggleClass('submit_hover');});
 	
 	$("input[disabled=disabled]").addClass("disabledBtn");
 	$("input.disabledBtn").attr('title', 'Неможе да приключите бележката, докато не е платена');
@@ -94,6 +83,8 @@ $(document).ready(function () {
    	     { 
    	    	$(".single-receipt-wrapper").replaceWith(result);
    	    	$("#last-row").css("background-color", "#FFFF99");
+   	    	$("input[disabled=disabled]").addClass("disabledBtn");
+   	    	$("input.disabledBtn").attr('title', 'Неможе да приключите бележката, докато не е платена');
    	     },
    	     error: function(result)
    	     {
