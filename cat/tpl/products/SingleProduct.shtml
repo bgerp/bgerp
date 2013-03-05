@@ -1,0 +1,51 @@
+<div style="display:inline-block" class="singleView">
+[#SingleToolbar#]
+	<div class="folder-cover">
+	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Продукт <b style="color:green;">[#name#]</b></div></h2>
+	<table class="styled-table">
+		<tr>
+			<td class="title-style" width="100px">Код</td>
+			<td> [#code#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Мярка</td>
+			<td>[#measureId#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Категория</td>
+			<td>[#categoryId#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Групи</td>
+			<td>[#groups#]</td>
+		</tr>
+	</table>
+	
+	<table class="styled-table" >
+		<tr>
+			<th>Права</th>
+		</tr>
+		<tr>
+			<td class="title-style" width="100px">Отговорник</td>
+			<td>[#inCharge#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Достъп</td>
+			<td>[#access#]</td>
+		</tr>
+		<!--ET_BEGIN shared-->
+		<tr>
+			<td class="title-style">Споделяне</td>
+			<td>[#shared#]</td>
+		</tr>
+		<!--ET_END shared-->
+	</table>
+		<!--ET_BEGIN modify-->
+		[#modify#]
+		<div><span class="quiet">Модифициране: </span>от [#modifiedBy#] на [#modifiedOn#] </div>
+		<!--ET_END modify-->
+		<div><span class="quiet">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
+	
+	[#DETAILS#]
+	</div>
+</div>

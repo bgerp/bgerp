@@ -129,6 +129,12 @@ class cat_Products extends core_Master {
     
     
     /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'cat/tpl/products/SingleProduct.shtml';
+    
+    
+    /**
      * 
      */
     var $canSingle = 'admin, cat';
