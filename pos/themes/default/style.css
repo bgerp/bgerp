@@ -1,10 +1,18 @@
+body{
+	/position:relative;
+}
+.pos-bar-holder{
+	position:fixed;
+	bottom:27%;
+	left:600px;
+}
+
 #pos-products {
-	position:absolute;
-	bottom:0px;
-	left:550px;
-	padding:7px;
-	width: 500px;
-	height:368px;
+	margin-top:15px;
+	padding:0 7px;
+	width: 615px;
+	height:303px;
+	
 	overflow-y:auto;
 }
 
@@ -17,7 +25,8 @@
 	display:inline-block;
 	float:left;
 	margin-right:10px;
-	margin-top:10px;
+	margin-top:5px;
+	margin-bottom:5px;
 	box-shadow:0px 1px 3px rgba(0,0,0,0.8);
 }
 
@@ -77,6 +86,7 @@
 .pos-product-category {
 	line-height: 30px;
 	margin-right:8px;
+	margin-top:8px;
 	padding:5px 15px;
 	max-width:90px;
 	color:black;
@@ -84,7 +94,6 @@
 	font-size:12px;
 	text-align:center;
 	height:30px;
-	bottom:0px;
 	display:inline-block;
 	vertical-align:middle;
 	border: 1px solid rgba(0,0,0,0.2);
@@ -104,10 +113,6 @@
 }
 
 #pos-producy-categories {
-	position:absolute;
-	bottom:385px;
-	left:550px;
-	padding:5px;
-	width: 500px;
-	height:30px;
+	padding:0 5px;
+	width: 615px;
 }

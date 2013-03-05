@@ -1,6 +1,17 @@
+.single-receipt-wrapper{
+	border: 1px solid #bbb;
+	background: #ffffff;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	margin:10px;
+	padding:15px;
+	position:relative;
+	min-height:700px;;
+}
 #receipt-table {
 	text-indent:8px;
-	width:522px;
+	width:551px;
 	border-collapse:collapse;
 	margin-top:15px;
 }
@@ -72,16 +83,16 @@
 }
 
 #receipt-details-form {
-	width: 522px;
+	width: 550px;
 	margin-top:15px;
 }
 
 #single-receipt {
-	width:522px;
+	width:551px;
 }
 
 #single-receipt .formError{
-	width:398px;
+	width:551px;
 }
  
 .receipt-client {
@@ -169,7 +180,7 @@ input.error {
 }
 
 #receipt-details-form .button{
-	width:119px;
+	width:126px;
 	float:left;
 	margin-left:15px !important;
 	margin-right:0 !important;
@@ -209,7 +220,7 @@ table.scrollable tr:first-child td{
 
 div.scrollWrapper{
   float:left;
-  width:521px;
+  width:550px;
   1max-height:269px;
   overflow-y:auto;
   border-right:1px solid #000;

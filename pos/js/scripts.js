@@ -92,7 +92,7 @@ $(document).ready(function () {
    	     dataType: 'json',
    	     success: function(result)
    	     { 
-   	    	$("#single-receipt-holder").replaceWith(result);
+   	    	$(".single-receipt-wrapper").replaceWith(result);
    	    	$("#last-row").css("background-color", "#FFFF99");
    	     },
    	     error: function(result)
