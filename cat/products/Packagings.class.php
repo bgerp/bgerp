@@ -69,6 +69,11 @@ class cat_products_Packagings extends cat_products_Detail
     {
     	if ($form->isSubmitted()){
     		$rec = &$form->rec;
+    		
+    		if(empty($rec->eanCode) && empty($rec->customCode)){
+    			$form->setError('eanCode, customCode', 'Трябва да е зададен поне един уникален код');
+    		}
+    		
     		foreach(array('eanCode', 'customCode') as $code) {
     			if($rec->$code) {
     				
