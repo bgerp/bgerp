@@ -799,4 +799,17 @@ class sales_Sales extends core_Master
         
         return $row;
     }
+    
+    
+    public static function roundPrice($price)
+    {
+        $precision = 2 + 
+            ($price <= 10) +
+            ($price <= 1) +
+            ($price <= 0.1);
+        
+        $price = round($price, $precision);
+        
+        return $price;
+    }
 }
