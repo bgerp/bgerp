@@ -25,12 +25,8 @@ class currency_Currencies extends core_Master {
     /**
      * Плъгини за зареждане
      */
-//    var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
-//                     CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
-    
-    var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper,
+    var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
                      CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
-    
     
     /**
      * Шаблон за единичния изглед
@@ -68,16 +64,6 @@ class currency_Currencies extends core_Master {
      * Детайли на модела
      */
     var $details = "currency_CurrencyRates";
-    
-    
-    /**
-     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
-     * $autoList.
-     * 
-     * @see acc_plg_Registry
-     * @var string
-     */
-    var $autoList = 'currencies';
     
     
     /**
