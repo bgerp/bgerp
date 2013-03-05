@@ -201,8 +201,6 @@ class currency_CurrencyRates extends core_Detail
     /**
      *  Обръща сума от една валута в друга към дата
      *  
-     *  Закръгля резултата до 2-рата цифра след дес. точка
-     *  
      *  @param double $amount Сума която ще обърнем
      *  @param date $date NULL = текущата дата
      *  @param string $from Код на валутата от която ще обръщаме
@@ -211,9 +209,9 @@ class currency_CurrencyRates extends core_Detail
      *                    NULL = базова валута към $date
      *  @return double $amount Конвертираната стойност на сумата
      */
-    public static function convertAmount($amount, $date, $from, $to = NULL, $precision = 2)
+    public static function convertAmount($amount, $date, $from, $to = NULL)
     {
-        return round($amount * static::getRate($date, $from, $to), $precision);
+        return $amount * static::getRate($date, $from, $to);
     }
 
     
