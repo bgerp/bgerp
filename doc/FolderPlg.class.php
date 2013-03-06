@@ -176,6 +176,8 @@ class doc_FolderPlg extends core_Plugin
                 
                 if($exRec) {
                     $rec = $exRec;
+                } elseif(!$rec) {
+                    $rec = new stdClass();
                 }
             }
             
