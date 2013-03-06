@@ -745,25 +745,27 @@ class sales_Sales extends core_Master
         
         $data->listFields['dealerId'] = 'Търговец';
         
-        foreach ($data->rows as $i=>&$row) {
-            $rec = $data->recs[$i];
-            
-            // "Изчисляване" на името на клиента
-            $contragentData = NULL;
-            
-            if ($rec->contragentClassId && $rec->contragentId) {
-
-                $contragent = new core_ObjectReference(
-                    $rec->contragentClassId, 
-                    $rec->contragentId 
-                );
+        if (count($data->rows)) {
+            foreach ($data->rows as $i=>&$row) {
+                $rec = $data->recs[$i];
                 
-                $row->contragentClassId = $contragent->getHyperlink();
-            }
-
-            // Търговец (чрез инициатор)
-            if (!empty($rec->initiatorId)) {
-                $row->dealerId .= '<small style="display: block;"><span class="quiet">чрез</span> ' . $row->initiatorId;
+                // "Изчисляване" на името на клиента
+                $contragentData = NULL;
+                
+                if ($rec->contragentClassId && $rec->contragentId) {
+    
+                    $contragent = new core_ObjectReference(
+                        $rec->contragentClassId, 
+                        $rec->contragentId 
+                    );
+                    
+                    $row->contragentClassId = $contragent->getHyperlink();
+                }
+    
+                // Търговец (чрез инициатор)
+                if (!empty($rec->initiatorId)) {
+                    $row->dealerId .= '<small style="display: block;"><span class="quiet">чрез</span> ' . $row->initiatorId;
+                }
             }
         }
             
@@ -788,21 +790,24 @@ class sales_Sales extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
     
-        // Показваме само това поле. Иначе и другите полета
-        // на модела ще се появят
+        // Показваме тези полета. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'filterDealerId, fromDate, toDate';
-    
-//         $data->listFilter->setDefault('listId', $listId = $mvc->getCurrentListId());
+        
+        $data->listFilter->setDefault('filterDealerId', type_Keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE)));
     
         $filter = $data->listFilter->input();
         
-//         bp($filter);
-    
-//         $data->query->where("#lists LIKE '%|{$filter->listId}|%'");
-    
-//         if($filter->search) {
-//             $data->query->where(array("#title LIKE '[#1#]'", "%{$filter->search}%"));
-//         }
+        /* @var $query core_Query */
+        $query = $data->query;
+        
+        if ($filter->filterDealerId) {
+            $query->where(
+                sprintf(
+                    '#dealerId IN (%s)', 
+                    implode(',', type_Keylist::toArray($filter->filterDealerId))
+                )
+            );
+        }
     }
     
     /**
