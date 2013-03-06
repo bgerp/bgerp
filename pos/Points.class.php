@@ -107,4 +107,16 @@ class pos_Points extends core_Manager {
     	
     	return FALSE;
     }
+    
+    
+    /**
+     * Обработка по вербалното представяне на данните
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
+    		$urlArr = toUrl(array('pos_Receipts', 'single'));
+    		$row->currentPlg->append(ht::createFnBtn("Отвори", "window.open('{$urlArr}')", NULL, array('style' => 'margin-left:40px;margin-right:3px;display:inline')));
+    	}
+    }
 }
