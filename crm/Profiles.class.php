@@ -15,7 +15,7 @@ class crm_Profiles extends core_Master
      * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = array();
-
+	
 
     /**
      * Заглавие на мениджъра
@@ -58,7 +58,13 @@ class crm_Profiles extends core_Master
      */
     var $canList = 'admin';
 
-
+    
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'crm/tpl/SingleUserLayout.shtml';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -88,6 +94,9 @@ class crm_Profiles extends core_Master
             }
             $data->rec->Person->rec = crm_Persons::fetch($data->rec->personId);
             crm_Persons::prepareSingle($data->rec->Person);
+            $data->masterId = $data->rec->personId;
+            $mvc->prepareProfile($data);
+            //bp($data);
         }
     }
     
@@ -109,7 +118,9 @@ class crm_Profiles extends core_Master
     public static function on_AfterRenderSingle(crm_Profiles $mvc, &$tpl, $data)
     {
         if ($data->rec->Person) {
-            $tpl = crm_Persons::renderSingle($data->rec->Person);
+            $tpl = self::renderSingle($data->rec->Person);
+            $profileTpl = self::renderProfile($data);
+            $tpl->append($profileTpl, 'PROFILE');
         }
     }
     
@@ -301,7 +312,7 @@ class crm_Profiles extends core_Master
     /**
      * Рендира потребителски профил
      */
-    function renderProfile($data)
+    static function renderProfile($data)
     {
         $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
         
