@@ -744,8 +744,15 @@ class email_Outgoings extends core_Master
                     // Опитваме се да вземаме папката
                     if (!$folderId = static::getAccessedEmailFolder($emailTo)) {
                         
-                        // Ако нищо не сработи вземаме папката на текущия потребител
-                        $folderId = crm_Persons::forceCoverAndFolder(crm_Profiles::getProfile()->id);
+                        if ($profileId = crm_Profiles::getProfile()->id) {
+                            
+                            // Ако нищо не сработи вземаме папката на текущия потребител
+                            $folderId = crm_Persons::forceCoverAndFolder($profileId);    
+                        } else {
+                            
+                            // Трябва да има потребителски профил
+                            expect(FALSE, 'Няма потребителски профил');
+                        }
                     }
     
                     // Попълваме полето Адресант->Имейл със съответния имейл
