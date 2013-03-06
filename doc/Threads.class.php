@@ -351,6 +351,7 @@ class doc_Threads extends core_Manager
         
         $exp->functions['doc_threads_fetchfield'] = 'doc_Threads::fetchField';
         $exp->functions['getcompanyfolder'] = 'crm_Companies::getCompanyFolder';
+        $exp->functions['getpersonfolder'] = 'crm_Persons::getPersonFolder';
         $exp->functions['getcontragentdata'] = 'doc_Threads::getContragentData';
         $exp->functions['getquestionformoverest'] = 'doc_Threads::getQuestionForMoveRest';
         
@@ -374,7 +375,8 @@ class doc_Threads extends core_Manager
         
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
-        $exp->DEF('#names', 'varchar', 'caption=Лице,width=100%,mandatory,remember=info');
+        $exp->DEF('#salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение');
+        $exp->DEF('#name', 'varchar', 'caption=Имена,width=100%,mandatory,remember=info');
         
         // Адресни данни
         $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,notNull');
@@ -407,8 +409,12 @@ class doc_Threads extends core_Manager
         // Допълнителна информация
         $exp->DEF('#info', 'richtext', 'caption=Бележки,height=150px');
         
-        $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Преместване на нишка с документи');
+        $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Преместване в папка на нова фирма');
         
+        $exp->question("#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website", "Моля, въведете контактните данни на лицето:", "#dest == 'newPerson'", 'title=Преместване в папка на нова фирма');
+
+        $exp->rule('#folderId', "getPersonFolder(#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website)", TRUE);
+
         $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId)", TRUE);
         
         $exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
