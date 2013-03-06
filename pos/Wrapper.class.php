@@ -22,13 +22,7 @@ class pos_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-    	$rId = Request::get('id', 'int');
-    	if($rId) {
-    		$receiptUrl= array('pos_Receipts', 'single',$rId);
-    	} else {
-    		$receiptUrl= array('pos_Receipts', 'new');
-    	}
-        $this->TAB('pos_Points', 'Точки на продажба', 'admin,pos');
+    	$this->TAB('pos_Points', 'Точки на продажба', 'admin,pos');
         $this->TAB('pos_Receipts', 'Бележки за продажба', 'admin,pos');
         $this->TAB('pos_Favourites', 'Бързи бутони', 'admin,pos');
         $this->TAB('pos_Reports', 'Отчети', 'admin,pos');

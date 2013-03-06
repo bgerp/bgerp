@@ -117,15 +117,6 @@ class pos_Receipts extends core_Master {
     
     
 	/**
-     * Екшъна по подразбиране, Дефолт Екшъна е "Single"
-     */
-    function act_Default()
-    {
-        return Redirect(array($this, 'single'));
-    }
-    
-    
-	/**
      * Извиква се преди изпълняването на екшън
      */
     public static function on_BeforeAction($mvc, &$res, $action)
@@ -137,6 +128,7 @@ class pos_Receipts extends core_Master {
 	    		$cu = core_Users::getCurrent();
     			$query = static::getQuery();
 	    		$query->where("#createdBy = {$cu}");
+	    		$query->where("#state = 'draft'");
 	    		$query->orderBy("#createdOn", "DESC");
 	    		if($rec = $query->fetch()) {
 	    			
@@ -330,8 +322,6 @@ class pos_Receipts extends core_Master {
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
     	$query->where("#action LIKE '%sale%'");
-    	$query->where("#quantity > 0");
-    	$query->where("#amount > 0");
     	while($dRec = $query->fetch()) {
     		$total += $dRec->amount;
     	}
@@ -443,7 +433,7 @@ class pos_Receipts extends core_Master {
      * Предефиниране на наследения метод act_Single
      */
     function act_Single()
-    {      
+    {   
         $this->requireRightFor('single');
     	$id = Request::get('id');
         if(!$id) {
