@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за "Методи на Плащане" 
+ * Мениджър за "Средства за плащане" 
  *
  *
  * @category  bgerp
@@ -19,7 +19,7 @@ class pos_Payments extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Методи на Плащане";
+    var $title = "Средства за плащане";
     
     
     /**
@@ -27,12 +27,6 @@ class pos_Payments extends core_Manager {
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_State2, pos_Wrapper';
 
-    
-    /**
-     * Наименование на единичния обект
-     */
-    var $singleTitle = "Метод на плащане";
-    
     
     /**
      * Полета, които ще се показват в листов изглед
