@@ -800,6 +800,9 @@ class sales_Sales extends core_Master
         /* @var $query core_Query */
         $query = $data->query;
         
+        /*
+         * Филтър по дилър / тийм
+         */
         if ($filter->filterDealerId) {
             $query->where(
                 sprintf(
@@ -807,6 +810,30 @@ class sales_Sales extends core_Master
                     implode(',', type_Keylist::toArray($filter->filterDealerId))
                 )
             );
+        }
+        
+        
+        /*
+         * Филтър по дати
+         */
+        $dateRange = array();
+        
+        if (!empty($filter->fromDate)) {
+            $dateRange[0] = $filter->fromDate; 
+        }
+        if (!empty($filter->toDate)) {
+            $dateRange[1] = $filter->toDate; 
+        }
+        
+        if (count($dateRange) == 2) {
+            sort($dateRange);
+        }
+        
+        if (!empty($dateRange[0])) {
+            $query->where(array("#date >= '[#1#]'", $dateRange[0]));
+        }
+        if (!empty($dateRange[1])) {
+            $query->where(array("#date <= '[#1#]'", $dateRange[1]));
         }
     }
     
