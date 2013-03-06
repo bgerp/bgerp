@@ -904,8 +904,11 @@ class crm_Companies extends core_Master
             $contrData->place = $company->place;
             $contrData->address = $company->address;
             $contrData->email = $company->email;
+            
+            // Вземаме груповите имейли
+            $contrData->groupEmails = crm_Persons::getGroupEmails($company->id);    
         }
-        
+
         return $contrData;
     }
     

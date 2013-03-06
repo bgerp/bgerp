@@ -1047,12 +1047,63 @@ class crm_Persons extends core_Master
             $contrData->pEmail = $person->email;
 
             $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
+            
+            // Ако е свързан с фирма
+            if ($person->buzCompanyId) {
+                
+                // Вземаме всички имейли
+                $contrData->groupEmails = static::getGroupEmails($person->buzCompanyId);    
+            }
+            
+            // Ако има личен имейл
+            if ($person->email) {
+                
+                // Добавяме и него към групата
+                $contrData->groupEmails .= ($contrData->groupEmails) ? ', ' . $person->email : $person->email;
+            }
         }
 
         return $contrData;
     }
+    
+    
+    /**
+     * Връща всички имейли свързани с компанията:
+     * Имейла на фирмата и бизнес имейлите на потребителите, свързани с фирмата
+     * 
+     * @param integer $companyId - id на фирмата
+     * 
+     * @return string $res - Стринг с имейли
+     */
+    static function getGroupEmails($companyId)
+    {
+        // Имейла на фирмата
+        $companyEmail = crm_Companies::fetchField($companyId, 'email');
+        
+        // Ако има имейл
+        if ($companyEmail) {
+            
+            // Добавяме към резултата
+            $res = $companyEmail;
+        }
+        
+        $query = static::getQuery();
+        $query->where("#buzCompanyId = '{$companyId}'");
+        
+        // Извличаме всички потребители, които са свързани с фирмата
+        while($rec = $query->fetch()) {
+            
+            // Ако няма имейл, прескачаме
+            if (!trim($rec->buzEmail)) continue;
+            
+            // Добавяме към резултата
+            $res .= ($res) ? ', ' . $rec->buzEmail : $rec->buzEmail;
+        }
+        
+        return $res;
+    }
 
-
+    
     /**
      * Реализира обработката на данните, изпратени чрез импорт форма
      *

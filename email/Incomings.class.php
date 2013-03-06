@@ -1255,33 +1255,59 @@ class email_Incomings extends core_Master
         }
         
         // Вземамем всички reply-to имейли от хедърите
-        $allReplyTo = email_Mime::getHeadersFromArr($headersArr, 'reply-to', '*');
+        $contragentData->replyToEmail = email_Mime::getHeadersFromArr($headersArr, 'reply-to', '*');
         
-        // Ако има reply-to
-        if ($allReplyTo) {
-            
-            // Вземаме имейлите от reply-to
-            $contragentData->email = email_Mime::getAllEmailsFromStr($allReplyTo);    
-        } else {
-            
-            // Вземамем всички cc имейли от хедърите
-            $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
-            
-            // Вземамем всички tp имейли от хедърите
-            $allTo = email_Mime::getHeadersFromArr($headersArr, 'to', '*');   
+        // Вземамем всички cc имейли от хедърите
+        $contragentData->ccEmail = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+        
+        // Вземамем всички tp имейли от хедърите
+        $contragentData->toEmail = email_Mime::getHeadersFromArr($headersArr, 'to', '*');   
 
-            // Обединяваме ги
-            $contragentData->toEmail = $allTo;
-            $contragentData->ccEmail = $allCc;
+        // Вземаме само имейла на изпращача
+        $contragentData->email = email_Mime::getAllEmailsFromStr($msg->fromEml);
+        
+        // Държавата
+        $contragentData->countryId = $msg->country;
+        
+        // Името на класа
+        $coverClass = strtolower(doc_Folders::fetchCoverClassName($msg->folderId));
+        
+        // Ако е корицата е контрагент
+        if ($coverClass == 'crm_companies' || $coverClass == 'crm_persons') {
             
-            // Добавяме имейла на изпращача
-            $cEmail = $msg->fromEml;
+            // Вземаме id на ковъра
+            $coverId = doc_Folders::fetchCoverId($msg->folderId);   
+
+            // Вземаме контрагент данните на ковъра
+            $coverContragent = $coverClass::getContragentData($coverId);
             
-            // Вземаме само имейлите
-            $contragentData->email = email_Mime::getAllEmailsFromStr($cEmail);
+            // Груповите имейли
+            $contragentData->groupEmails = $coverContragent->groupEmails;
+        }
+
+        // Добавяме всички имейли в масив
+        $allEmailsArr['email'] = $contragentData->email;
+        $allEmailsArr['replyToEmail'] = $contragentData->replyToEmail;
+        $allEmailsArr['toEmail'] = $contragentData->toEmail;
+        $allEmailsArr['ccEmail'] = $contragentData->ccEmail;
+        $allEmailsArr['buzEmail'] = $contragentData->coverGroupEmails;
+        
+        // Обхождаме масива
+        foreach ($allEmailsArr as $email) {
+            
+            // Ако няма запис прескачаме
+            if (!trim($email)) continue;
+            
+            // Ако има запис, добавяме към стринга
+            $allEmails .= ($allEmails) ? ', ' . $email : $email;
         }
         
-        $contragentData->countryId = $msg->country;
+        // Вземаме груповите имейли
+        $contragentData->groupEmails = email_Mime::getAllEmailsFromStr($allEmails, TRUE);
+
+        // Добавяме toEml и toBox
+        $contragentData->toEml = $msg->toEml;
+        $contragentData->toBox = $msg->toBox;
         
         return $contragentData;
     }

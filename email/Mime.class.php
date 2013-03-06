@@ -1069,10 +1069,11 @@ class email_Mime extends core_BaseClass
      * Екстрактва имейлите и връща само имейл частта на масива
      * 
      * @param string $str - Стринг с имейлите
+     * @param boolean $uniq - Дали да е уникален имейла
      * 
      * @return string $res - Резултата
      */
-    static function getAllEmailsFromStr($str)
+    static function getAllEmailsFromStr($str, $uniq = FALSE)
     {
         // Инстанция на класа
         $toParser = new email_Rfc822Addr();
@@ -1094,6 +1095,19 @@ class email_Mime extends core_BaseClass
             
             // Добавяме към полето
             $res .= ($res) ? ', '. $implode : $implode;
+        }
+
+        // Ако имейла трябва да е уникален
+        if ($uniq) {
+            
+            // Разделяме стринга в масив
+            $resExplode = explode(', ', $res);
+            
+            // Махаме повтарящите се записи
+            $uniqArr = array_unique($resExplode);
+            
+            // Обръщаме в стринг
+            $res = implode(', ', $uniqArr);    
         }
         
         return $res;

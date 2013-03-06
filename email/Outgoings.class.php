@@ -750,6 +750,8 @@ class email_Outgoings extends core_Master
             // Заглавието на темата
             $title = html_entity_decode($oRow->title);
             
+            $oContragentData = $oDoc->getContragentData();    
+            
             // Ако се препраща
             if ($forward) {
                 
@@ -758,7 +760,6 @@ class email_Outgoings extends core_Master
             } else {
                 
                 $rec->subject = 'RE: ' . $title;
-                $oContragentData = $oDoc->getContragentData();    
             }
         }
         
@@ -869,7 +870,34 @@ class email_Outgoings extends core_Master
             $rec->folderId = $folderId;
             unset($rec->threadId);
         }
-     }
+        
+        // Ако има originId
+        if ($originId) {
+            
+            // Използваме контрагент данните от origin' а
+            $contrData = $oContragentData;
+        } else {
+            
+            // Използваме контрагент данните от ковъра
+            $contrData = $contragentData;
+        }
+        
+        // Разделяме стринга в масив
+        $allEmailsArr = explode(', ', $contrData->groupEmails);
+        
+        // Премахваме имейлите, които не ни трябват
+        $allEmailsArr = array_diff($allEmailsArr, array($rec->email, $contrData->toEml, $contrData->toBox));
+        
+        // Ако има групови имейли
+        if (count($allEmailsArr)) {
+            
+            // Създаваме функционално поле
+            $data->form->FNC('groups', 'type_Set', 'caption=Групи->Имейли,input, maxColumns=1');
+            
+            // Добавяме имейлите
+            $data->form->setSuggestions('groups', $allEmailsArr);    
+        }
+    }
     
     
     /**
