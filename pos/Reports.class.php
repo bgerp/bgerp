@@ -215,12 +215,12 @@ class pos_Reports extends core_Master {
     	if(!$onlyReceipts){
     		
     		// извличаме нужната информация за продажбите и плащанията
-    		$this->fetchReceiptData($query, &$results);
+    		$this->fetchReceiptData($query, $results);
     	} else {
     		
     		// Ако искаме само беелжките, намираме ид-та на тези отговарящи на условието
 	    	while($rec = $query->fetch()) {
-	    		$results[] = $rec->id;
+	    	    $results[] = $rec->id;
 	    	}
     	}
     	
