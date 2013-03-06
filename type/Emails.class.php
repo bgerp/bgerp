@@ -153,6 +153,20 @@ class type_Emails extends type_Varchar {
     
     
     /**
+     * Превръща масива с имейли в стринг
+     * 
+     * @param array $arr - Масив с имейли
+     * 
+     * @return string - Стринг с имейли
+     */
+    static function fromArray($arr)
+    {
+        
+        return implode(', ', $arr);
+    }
+    
+    
+    /**
      * Връща всички невалидни имейли в стринга
      */
     static function getInvalidEmails($str)
