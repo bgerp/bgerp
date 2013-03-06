@@ -911,7 +911,7 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Създава папка на фирма по указаните
+     * Създава папка на фирма по указаните данни
      */
     static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
     {
@@ -931,7 +931,7 @@ class crm_Companies extends core_Master
         $rec->website = $website;
         
         // Данъчен номер на фирмата
-        $rec->vatId = $rec->vatId;
+        $rec->vatId = $vatId;
         
         $Companies = cls::get('crm_Companies');
         
