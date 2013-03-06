@@ -276,11 +276,12 @@ div.scrollWrapper{
 	border:solid 1px #ccc;
 	background-color:#eee;
 	padding:2px;
+	margin-left:5px;
     font-size:12px;
     vertical-align:middle;
 }
 
 .listRows table {
-	width:480px;
+	width:580px;
 	margin-bottom:20px;
 }

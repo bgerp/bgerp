@@ -249,7 +249,7 @@ class pos_ReceiptDetails extends core_Detail {
     			$rec->discountPercent = $rec->discountPercent * -1;
     			$row->discountPercent = $double->toVerbal($rec->discountPercent);
     			if($rec->discountPercent >0) {
-    				$row->discountPercent = "+" .$row->discountPercent;
+    				$row->discountPercent = "+" . $row->discountPercent;
     			}	
     		}
     		

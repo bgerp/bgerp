@@ -336,7 +336,7 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     *  Сортираме бележките по дата на създаване
+     *  Филтрираме бележката
      */
 	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
@@ -386,8 +386,8 @@ class pos_Receipts extends core_Master {
 	}
 	
 	
-/**
-	 *  Филтриране на статиите по ключови думи и категория
+	/**
+	 *  Подготовка на филтър формата
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	
@@ -399,16 +399,12 @@ class pos_Receipts extends core_Master {
         $data->listFilter->FNC('from', 'date', 'width=6em,placeholder=От,silent');
 		$data->listFilter->FNC('to', 'date', 'width=6em,silent');
 		$data->listFilter->setDefault('to', dt::now());
-		$data->listFilter->setField('search','placeholder=Клиент,width=14em');
+		$data->listFilter->setField('search', 'placeholder=Клиент,width=14em');
         $data->listFilter->showFields = 'search,totalSum,paidSum,from,to';
         
         // Активиране на филтъра
         $data->listFilter->input('search, totalSum, paidSum, from, to', 'silent');
-
-        if(($cat = $recFilter->category) > 0) {
-           //$data->query->where("#categories LIKE '%|{$cat}|%'");
-        }
-     }
+	 }
 	
 	
 	/**

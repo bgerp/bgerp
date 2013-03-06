@@ -61,7 +61,6 @@ class pos_Setup
         	'pos_Favourites',
         	'pos_FavouritesCategories',
         	'pos_Reports',
-        	'pos_ReportDetails',
         	'pos_Payments',
         );
         

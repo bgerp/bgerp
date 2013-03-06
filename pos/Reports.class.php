@@ -54,16 +54,16 @@ class pos_Reports extends core_Master {
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsField = 'tools';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'pos, ceo, admin';
     
-    
-    /**
-	 * Детайли на репорта
-	 */
-	var $details = 'pos_ReportDetails';
-	
 	
 	/**
      * Абревиатура
@@ -84,6 +84,12 @@ class pos_Reports extends core_Master {
 	
 	
 	/**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'tools=Пулт, title=Заглавие, pointId, cashier, paid, total, state, createdOn, createdBy';
+    
+    
+	/**
      * Групиране на документите
      */
     var $newBtnGroup = "3.4|Търговия";
@@ -99,6 +105,7 @@ class pos_Reports extends core_Master {
     	$this->FLD('paid', 'float(minDecimals=2)', 'caption=Сума->Платено, input=none, value=0');
     	$this->FLD('total', 'float(minDecimals=2)', 'caption=Сума->Продадено, input=none, value=0');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
+    	$this->FLD('details', "blob(serialize,compress)", 'caption=Данни,input=none');
     }
     
     
@@ -114,9 +121,65 @@ class pos_Reports extends core_Master {
     
     
 	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{	
+        $data->listFilter->title = 'Търсене';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('user', 'user(roles=pos|admin, allowEmpty)', 'width=12em,silent');
+		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=title, allowEmpty)', 'width=12em,silent');
+        $data->listFilter->FNC('totalSum', 'float', 'width=6em,placeholder=Сума,silent');
+		$data->listFilter->FNC('paidSum', 'float', 'width=6em,placeholder=Платено,silent');
+		$data->listFilter->FNC('from', 'date', 'width=6em,placeholder=От,silent');
+		$data->listFilter->FNC('to', 'date', 'width=6em,silent');
+		$data->listFilter->setDefault('to', dt::now());
+		$data->listFilter->showFields = 'user,point,totalSum,paidSum,from,to';
+        
+        // Активиране на филтъра
+        $data->listFilter->input('user,point,totalSum,paidSum,from,to', 'silent');
+	 }
+	 
+	 
+	/**
+     *  Филтрираме репорта
+     */
+	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('#createdOn', 'DESC');
+    	if($filter = $data->listFilter->rec) {
+    		if($filter->to) {
+    			$data->query->where("#createdOn <= '{$filter->to} 23:59:59'");
+    		}
+    		
+    		if($filter->from) {
+    			$data->query->where("#createdOn >= '{$filter->from}'");
+    		}
+    		
+    		if($filter->paidSum) {
+    			$data->query->where("#paid <= {$filter->paidSum}");
+    		}
+    		
+    		if($filter->totalSum) {
+    			$data->query->where("#total <= {$filter->totalSum}");
+    		}
+    		
+    		if($filter->user) {
+    			$data->query->where("#createdBy = {$filter->user}");
+    		}
+    		
+    		if($filter->point) {
+    			$data->query->where("#pointId = {$filter->point}");
+    		}
+    	}
+    }
+    
+    
+	/**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$double = cls::get("type_Double");
     	$double->params['decimals'] = 2;
@@ -125,29 +188,39 @@ class pos_Reports extends core_Master {
     	if(!Mode::is('printing')){
     		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	}
+    	$storeRec = pos_Points::fetchField($rec->pointId, 'storeId');
+    	$storeRow = pos_Points::recToVerbal($storeRec, 'storeId');
     	
+    	$row->storeId = $storeRow->storeId;
     	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	$row->total = $double->toVerbal($row->total);
     	$row->paid = $double->toVerbal($row->paid);
+    	$row->title = "POS Отчет №{$rec->id}";
+    	if($fields['-list']){
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id));
+    	}
     }
     
     
-    static function on_AfterCreate($mvc, $rec)
+    /**
+     * Извиква се след въвеждането на данните
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$reportData = $mvc->fetchData($rec->pointId, $rec->cashier);
-    	foreach($reportData as $detail){
-    		$detail->reportId = $rec->id;
-    		$mvc->pos_ReportDetails->save($detail);
-    	}
+    	if($form->isSubmitted()) {
+    		$rec = &$form->rec;
+    		$reportData = $mvc->fetchData($rec->pointId, $rec->cashier);
+    		$rec->details = $reportData;
+    		$rec->total = $rec->paid = 0;
     		
-    	$saleAmount = $paymentAmount = 0;
-    	foreach($reportData as $detail) {
-    		($detail->action == 'sale') ? $saleAmount += $detail->amount : $paymentAmount += $detail->amount;	
+    		if(count($reportData->receiptDetails)){
+		    	foreach($reportData->receiptDetails as $detail) {
+		    		($detail->action == 'sale') ? $rec->total += $detail->amount : $rec->paid += $detail->amount;	
+		    	}
+    		} else {
+    			$form->setError('cashier, pointId', 'Няма активни бележки');
+    		}
     	}
-    		
-    	$rec->total = $saleAmount;
-    	$rec->paid = $paymentAmount;
-    	static::save($rec);
     }
     
     
@@ -157,6 +230,113 @@ class pos_Reports extends core_Master {
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+    	
+    	// Рендираме плащанията
+    	$tpl->append($mvc->renderListTable($data->rec->details->paymentsRow), "PAYMENTS");
+    	$tpl->append($data->rec->details->paymentsRow->pager->getHtml(), "PAY_PAGINATOR");
+    	
+    	// Рендираме продажбите
+    	$tpl->append($mvc->renderListTable($data->rec->details->salesRow), "SALES");
+    	$tpl->append($data->rec->details->salesRow->pager->getHtml(), "SALE_PAGINATOR");
+    }
+    
+    
+    /**
+     * @TODO
+     */
+    static function on_AfterPrepareSingle($mvc, &$data)
+    {
+    	$detail = &$data->rec->details;
+    	$salesRow = array();
+    	$paymentsRow = array();
+    	foreach($detail->receiptDetails as $rec) {
+	    		
+	    		// Обработваме вербалното представяне на детайла
+	    		$row = $mvc->getVerbalDetails($rec);
+	    		($rec->action == 'payment') ? $paymentsRow[] = $row : $salesRow[] = $row;
+	    	}
+	    	
+	    	// Подготвяме табличната информация и пейджъра на плащанията
+	    	$detail->paymentsRow->listFields = "value=Плащане, amount=Сума";
+    		$detail->paymentsRow->rows = $paymentsRow;
+    		$mvc->prepareDetail($detail->paymentsRow);
+    		
+    		// Подготвяме табличната информация и пейджъра на продажбите
+    		$detail->salesRow->listFields = "value=Продукт, quantity=Количество, amount=Сума";
+	    	$detail->salesRow->rows = $salesRow;
+	    	$mvc->prepareDetail($detail->salesRow);
+	}
+    
+    
+	/**
+	 * @TODO 
+	 */
+    function prepareDetail(&$rows)
+    {
+    	$newRows = array();
+    	
+    	// Инстанцираме пейджър-а
+    	$Pager = cls::get('core_Pager', array('itemsPerPage' => '7'));
+    	$Pager->itemsCount = count($rows->rows);
+    	$Pager->calc();
+    	if($rows->rows){
+    		 $start = $Pager->rangeStart;
+    		 $end = $Pager->rangeEnd - 1;
+    		 for($i=0;$i<count($rows->rows);$i++){
+    		 	if($i >= $start && $i <= $end){
+    		 		
+    		 		// Добавяме всеки елемент отговарящ на условието на
+    		 		// пейджъра в нов масив
+    		 		$newRows[] = $rows->rows[$i];
+    		 	}
+    		 }
+    		 
+    		 // Заместваме стария масив с новия филтриран
+    		 $rows->rows = $newRows;
+    		 
+    		 // Добавяме пейджъра
+    		 $rows->pager = $Pager;
+    	}
+    }
+    
+    
+    /**
+     * Функция обработваща детайл на репорта във вербален вид
+     * @param stdClass $rec-> запис на продажба или плащане
+     * @return stdClass $row-> вербалния вид на записа
+     */
+    private function getVerbalDetails($rec)
+    {
+    	$row = new stdClass();
+    	$varchar = cls::get("type_Varchar");
+    	$double = cls::get("type_Double");
+    	$double->params['decimals'] = 2;
+    	$row->amount = $double->toVerbal($rec->amount); 
+    	
+    	if($rec->action == 'sale') {
+    		
+    		// Ако детайла е продажба
+    		$info = cat_Products::getProductInfo($rec->value, $rec->pack);
+    		$product = $info->productRec;	
+    		if($rec->pack){
+    			$pack = cat_Packagings::fetchField($rec->pack, 'name');
+    		} else {
+    			$pack = cat_UoM::fetchField($product->measureId, 'shortName');
+    		}
+    		$row->value = $product->code . " - " . $product->name;
+    		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $rec->value));
+    		$double->params['decimals'] = 0;
+    		$row->quantity = $pack . " - " . $double->toVerbal($rec->quantity);
+    	} else {
+    		
+    		// Ако детайла е плащане
+    		$value = pos_Payments::fetchField($rec->value, 'title');
+    		$row->value = $varchar->toVerbal($value);
+    	}
+    	$currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+    	$row->amount .= " <span class='cCode'>{$currencyCode}</span>";
+		
+    	return $row;
     }
     
     
@@ -188,43 +368,28 @@ class pos_Reports extends core_Master {
     }
     
     
-
-    
     /**
      * Подготвя информацията за направените продажби и плащания
      * от всички бележки за даден период от време на даден потребител
      * на дадена точка (@see pos_Reports)
      * @param int $pointId - Ид на точката на продажба
      * @param int $userId - Ид на потребител в системата
-     * @param boolean $onlyReceipts 
-     * 					           FALSE - дали да извлече обобщението
-     * 							   на детайлите на бележките 
-     * 							   TRUE - извлича списък от ид-та на бележките
-     * 							   отговарящи на условието
      * @return array $result - масив с резултати
      * */
-    private function fetchData($pointId, $userId, $onlyReceipts = FALSE)
+    private function fetchData($pointId, $userId)
     {
     	expect(pos_Points::fetch($pointId));
     	expect(core_Users::fetch($userId));
-    	$results = array();
+    	$details = $receipts = array();
     	$query = pos_Receipts::getQuery();
     	$query->where("#pointId = {$pointId}");
     	$query->where("#createdBy = {$userId}");
     	$query->where("#state = 'active'");
-    	if(!$onlyReceipts){
-    		
-    		// извличаме нужната информация за продажбите и плащанията
-    		$this->fetchReceiptData($query, $results);
-    	} else {
-    		
-    		// Ако искаме само беелжките, намираме ид-та на тези отговарящи на условието
-	    	while($rec = $query->fetch()) {
-	    		$results[] = $rec->id;
-	    	}
-    	}
     	
-    	return $results;
+    	// извличаме нужната информация за продажбите и плащанията
+    	$this->fetchReceiptData($query, $details, $receipts);
+    	
+    	return (object)array('receipts' => $receipts, 'receiptDetails' =>$details);
     }
     
     
@@ -232,11 +397,15 @@ class pos_Reports extends core_Master {
      * Връща продажбите и плащанията направени в търсените бележки групирани
      * @param core_Query $query - Заявка към модела
      * @param array $results - Масив в който ще връщаме резултатите
+     * @param array $receipts - Масив от бележките които сме обходили
      */
-    private function fetchReceiptData($query, &$results)
+    private function fetchReceiptData($query, &$results, &$receipts)
     {
     	while($rec = $query->fetch()) {
 	    	
+    		// запомняме кои бележки сме обиколили
+    		$receipts[] = $rec->id;
+    		
     		// Добавяме детайлите на бележката запазвайки уникалните им ид-та 
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
 	    	foreach($data as $obj) {
@@ -288,8 +457,7 @@ class pos_Reports extends core_Master {
 	public static function on_Activation($mvc, &$rec)
     {
     	$rRec = $mvc->fetch($rec->id);
-    	$receipts = $mvc->fetchData($rRec->pointId, $rRec->cashier, TRUE);
-    	foreach($receipts as $receiptId){
+    	foreach($rRec->details->receipts as $receiptId){
     		$receiptRec = pos_Receipts::fetch($receiptId);
     		$receiptRec->state = 'closed';
     		pos_Receipts::save($receiptRec);
@@ -302,6 +470,7 @@ class pos_Reports extends core_Master {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
-		
+		if($action == 'activate'){
+		}
 	}
 }
