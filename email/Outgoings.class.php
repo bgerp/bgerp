@@ -744,10 +744,10 @@ class email_Outgoings extends core_Master
                     // Опитваме се да вземаме папката
                     if (!$folderId = static::getAccessedEmailFolder($emailTo)) {
                         
-                        if ($profileId = crm_Profiles::getProfile()->id) {
+                        if ($personId = crm_Profiles::getProfile()->id) {
                             
                             // Ако нищо не сработи вземаме папката на текущия потребител
-                            $folderId = crm_Persons::forceCoverAndFolder($profileId);    
+                            $folderId = crm_Persons::forceCoverAndFolder($personId);    
                         } else {
                             
                             // Трябва да има потребителски профил
