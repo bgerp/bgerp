@@ -7,18 +7,34 @@
 			<td class="title-style" width="100px">Код</td>
 			<td> [#code#]</td>
 		</tr>
+		<!--ET_BEGIN eanCode-->
+		<tr>
+			<td class="title-style" width="100px">EAN</td>
+			<td> [#eanCode#]</td>
+		</tr>
+		<!--ET_END eanCode-->
 		<tr>
 			<td class="title-style">Мярка</td>
 			<td>[#measureId#]</td>
 		</tr>
+		<!--ET_BEGIN info-->
+		<tr>
+			<td class="title-style">Детайли</td>
+			<td>[#info#]</td>
+		</tr>
+		<!--ET_END info-->
+		<!--ET_BEGIN categoryId-->
 		<tr>
 			<td class="title-style">Категория</td>
 			<td>[#categoryId#]</td>
 		</tr>
+		<!--ET_END categoryId-->
+		<!--ET_BEGIN groups-->
 		<tr>
 			<td class="title-style">Групи</td>
 			<td>[#groups#]</td>
 		</tr>
+		<!--ET_END groups-->
 	</table>
 	
 	<table class="styled-table" >

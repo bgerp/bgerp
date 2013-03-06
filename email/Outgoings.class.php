@@ -744,8 +744,15 @@ class email_Outgoings extends core_Master
                     // Опитваме се да вземаме папката
                     if (!$folderId = static::getAccessedEmailFolder($emailTo)) {
                         
-                        // Ако нищо не сработи вземаме папката на текущия потребител
-                        $folderId = crm_Persons::forceCoverAndFolder(crm_Profiles::getProfile()->id);
+                        if ($personId = crm_Profiles::getProfile()->id) {
+                            
+                            // Ако нищо не сработи вземаме папката на текущия потребител
+                            $folderId = crm_Persons::forceCoverAndFolder($personId);    
+                        } else {
+                            
+                            // Трябва да има потребителски профил
+                            expect(FALSE, 'Няма потребителски профил');
+                        }
                     }
     
                     // Попълваме полето Адресант->Имейл със съответния имейл
@@ -913,8 +920,11 @@ class email_Outgoings extends core_Master
         // Всички имейли от река
         $recEmails = type_Emails::toArray($rec->email);
         
+        // Само един имейл в полето имейли
+        $rec->email = $recEmails[0];
+
         // Премахваме имейлите, които не ни трябват
-        $allEmailsArr = array_diff($allEmailsArr, $recEmails + array($contrData->toEml, $contrData->toBox));
+        $allEmailsArr = array_diff($allEmailsArr, array($rec->email, $contrData->toEml, $contrData->toBox));
         
         // Ако има групови имейли
         if (count($allEmailsArr)) {
