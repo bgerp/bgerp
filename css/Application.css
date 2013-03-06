@@ -430,7 +430,7 @@ dl {
 dl dt {
 	display: block;
 	float: left;
-	width: 20%;
+	width: 21.5%;
 	clear: both;
 	text-align: right;
 	color: #888;
@@ -444,7 +444,7 @@ dl dd {
 	margin-right: 0;
 	float:left;
 	line-height: 1.5em;
-	max-width:77.5%;
+	max-width:76%;
 }
 
 .vertical .formTitle {
