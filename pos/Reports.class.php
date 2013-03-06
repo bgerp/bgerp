@@ -220,7 +220,7 @@ class pos_Reports extends core_Master {
     		
     		// Ако искаме само беелжките, намираме ид-та на тези отговарящи на условието
 	    	while($rec = $query->fetch()) {
-	    	    $results[] = $rec->id;
+	    		$results[] = $rec->id;
 	    	}
     	}
     	
