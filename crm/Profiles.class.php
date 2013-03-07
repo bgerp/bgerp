@@ -351,7 +351,7 @@ class crm_Profiles extends core_Master
                 $tpl->append('<p>' . tr("Няма профил") . '</p>', 'content');
             }
             if(!$data->profile) {
-                $url = array($this, 'edit', 'personId' => $data->masterId, 'ret_url' => TRUE);
+                $url = array('crm_Profiles', 'edit', 'personId' => $data->masterId, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/user_add.png') . " width='16' height='16'>";
                 $tpl->append(
                     ht::createLink(
