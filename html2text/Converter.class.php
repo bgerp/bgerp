@@ -564,7 +564,7 @@ class html2text_Converter
         
         // ������������ ���������� � ����������� HTML �����
         // $text = preg_replace(array('/&gt;/i', '/&lt;/i', '/&(amp|#38);/i'), array('>', '<', '&'), $text);
-        $text = html_entity_decode($text, ENT_COMPAT, 'UTF-8');
+        $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
         
         // Bring down number of empty lines to 2 max
         $text = preg_replace("/\n\s+\n/", "\n\n", $text);
