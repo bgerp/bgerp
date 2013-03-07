@@ -587,9 +587,13 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * @TODO
+     * @param int $receiptId - ид на бележка
+     * @return array $result - масив от всички
+     * плащания и продажби на бележката;
      */
     static function fetchReportData($receiptId) {
+    	
+    	expect(pos_Receipts::fetch($receiptId));
     	$result = array();
     	$query = static::getQuery();
     	$query->where("#receiptId = {$receiptId}");

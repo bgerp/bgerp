@@ -44,7 +44,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title=Заглавие,contragentName, total, paid, change, state , createdOn, createdBy';
+    var $listFields = 'tools=Пулт, title=Заглавие,contragentName, total, paid, change, productCount, state , createdOn, createdBy';
     
     
     /**
@@ -113,6 +113,10 @@ class pos_Receipts extends core_Master {
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворена)', 
             'caption=Статус, input=none'
         );
+        $this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0');
+        
+        // Поле в което се записва в кой репорт участва бележката
+        $this->FLD('lastUsedBy', 'key(mvc=pos_Reports)', 'input=none');
     }
     
     
@@ -228,9 +232,11 @@ class pos_Receipts extends core_Master {
      * Извлича информацията за всички продукти които са продадени чрез
      * тази бележки, във вид подходящ за контирането
      * @param int id - ид на бележката
+     * @param boolean $count - FALSE  връща масив от продуктите
+     * 						   TRUE връща само броя на продуктите
      * @return array $products - Масив от продукти
      */
-    public static function fetchProducts($id)
+    public static function fetchProducts($id, $count = FALSE)
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
     	$products = array();
@@ -239,15 +245,19 @@ class pos_Receipts extends core_Master {
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
     	$query->where("#action LIKE '%sale%'");
-    	while($rec = $query->fetch()) {
-    		$products[] = (object) array(
-    			'productId' => $rec->productId,
-	    		'contragentClassId' => $rec->contragentClass,
-	    		'contragentId' => $rec->contragentObjectId,
-    			'currencyId' => $currencyId,
-	    		'amount' => $rec->amount,
-	    		'quantity' => $rec->quantity);
+    	if($count){
+    		return $query->count();
     	}
+    	
+	    while($rec = $query->fetch()) {
+	    	$products[] = (object) array(
+	    		'productId' => $rec->productId,
+		    	'contragentClassId' => $rec->contragentClass,
+		    	'contragentId' => $rec->contragentObjectId,
+	    		'currencyId' => $currencyId,
+		    	'amount' => $rec->amount,
+		    	'quantity' => $rec->quantity);
+	    }
     	
     	return $products;
     }
@@ -266,6 +276,7 @@ class pos_Receipts extends core_Master {
     			
     			// "Продажба" : преизчисляваме общата стойност на бележката
     			$rec->total = $this->countTotal($rec->id);
+    			$rec->productCount = pos_Receipts::fetchProducts($rec->id, TRUE);
     			$change = $rec->paid - $rec->total;
     			if($change > 0) {
     				$rec->change = $change;

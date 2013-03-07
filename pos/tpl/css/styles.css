@@ -281,7 +281,20 @@ div.scrollWrapper{
     vertical-align:middle;
 }
 
-.listRows table {
+.document .listRows table {
 	width:580px;
 	margin-bottom:20px;
+	margin-top:20px;
+}
+
+.document .listTable tr td:last-child{
+	text-align:right;
+}
+
+#filter{
+	margin-left:78px;
+}
+
+.narrow  #filter{
+	margin-left:4px !important;
 }
