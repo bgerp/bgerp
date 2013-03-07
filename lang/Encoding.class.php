@@ -18,37 +18,108 @@
 class lang_Encoding {
     
     static $lgAnalyzer;
-    
+
     static $commonCharsets = array(
-        'CP1251',
-        'UTF-8',
-        'ISO-8859-1',
-        'US-ASCII',
-        'EUC-CN',
-        'CP1252',
-        'ISO-8859-2',
-        'KOI8-R',
-        'ISO-8859-15',
-        'BIG5',
-        'CP1250',
-        'ISO-8859-5',
-        'ISO-8859-7',
-        'ISO-8859-9',
-        'GBK => 5',
-        'EUC-KR',
-        'CP1257',
-        'ISO-2022-JP',
-        'ISO-8859-3',
-        'ISO-2022-KR',
-        'CP874',
-        'CP1253',
-        'ISO-8859-13',
-        'CP1256',
-        'CP1254',
-        'UTF-7',
-        'CP1258',
-        'JIS_C6220-1969-RO',
-        'MACROMAN',
+
+        'CP1251'        =>  array('bg' => 20, 'ru' => 5, 'mk' => 10, 'sr' => 5),
+                                  
+        'UTF-8'         =>  array(),
+
+        'ISO-8859-1'    =>  array('en' => 5, 'de' => 5, 'sv' => 5, 'da' => 1, 'et' => 5, 'es' => 5, 'it' => 5,
+                                  'lv' => 5, 'lt' => 5, 'mt' => 5, 'nl' => 5, 'pl' => 5, 'pt' => 5, 'ro' => 5, 'sk' => 5, 'sl' => 5, 'hu' => 5,
+                                  'fi' => 5, 'fr' => 5, 'sr' => 3, 'sq' => 5, 'hr' => 5, 'cs' => 5),
+
+        'EUC-CN'        =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'CP1252'        =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-8859-2'    =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'KOI8-R'        =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-8859-15'   =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'BIG5'          =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'CP1250'        =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-8859-5'    =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-8859-7'    =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-8859-9'    =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'GBK'           =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'EUC-KR'        =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'CP1257'        =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-2022-JP'   =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-8859-3'    =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-2022-KR'   =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'CP874'         =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'CP1253'        =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'ISO-8859-13'   =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'CP1256'        =>  array('bg' => 0, 'en' => 0, 'de' => 0, 'ru' => 0, 'el' => 0, 'sv' => 0, 'da' => 0, 'et' => 0, 'es' => 0, 'it' => 0,
+                                  'lv' => 0, 'lt' => 0, 'mt' => 0, 'nl' => 0, 'pl' => 0, 'pt' => 0, 'ro' => 0, 'sk' => 0, 'sl' => 0, 'hu' => 0,
+                                  'fi' => 0, 'fr' => 0, 'mk' => 0, 'sr' => 0, 'tr' => 0, 'sq' => 0, 'hr' => 0, 'zh' => 0, 'ja' => 0, 'cs' => 0),
+
+        'CP1254'        =>  array('tr' => 20),
+
+        'UTF-7'         =>  array(),
+
+        'CP1258'        =>  array('vi' => 20),
+
+        'JIS_C6220-1969-RO' =>  array('ja' => 20),
+
+        'MACROMAN'      =>  array('en' => 5, 'de' => 5, 'sv' => 5, 'da' => 1, 'et' => 5, 'es' => 5, 'it' => 5,
+                                  'lv' => 5, 'lt' => 5, 'mt' => 5, 'nl' => 5, 'pl' => 5, 'pt' => 5, 'ro' => 5, 'sk' => 5, 'sl' => 5, 'hu' => 5,
+                                  'fi' => 5, 'fr' => 5, 'sr' => 3, 'sq' => 5, 'hr' => 5, 'cs' => 5),
     );
     
     /**
@@ -68,14 +139,23 @@ class lang_Encoding {
      */
     static function analyzeCharsets($text)
     {
-        foreach(self::$commonCharsets as $charset) {
-            $convText = iconv($charset, 'UTF-8//IGNORE', $text);
+        foreach(self::$commonCharsets as $charset => $lgArr) {
+            
+            $convText = iconv($charset, 'UTF-8', $text);
+            
+            if($text != iconv('UTF-8', $charset, $convText)  ) continue;
+
             $lgRates = self::getLgRates($convText);
             
             if(count($lgRates)) {
-                $res->rates[$charset] = array_sum($lgRates);
+                foreach($lgArr as $lg => $weight) {
+                    if(!$weight) continue;
+                    $lgRates[$lg] *= (1+$weight/100);
+                }
+                $res->rates[$charset] = max($lgRates);
+                $res->lang[$charset] = array_keys($lgRates, max($lgRates));
             }
-            $downCharsetCnt--;
+
         }
         
         return $res;
@@ -334,7 +414,7 @@ class lang_Encoding {
         if(mb_detect_encoding($text, "UTF-8", TRUE) == "UTF-8") {
             if(empty($fromCharset) || $fromCharset == 'UTF-8') {
                 $fromCharset = 'UTF-8';
-            } else {
+            } else { 
                 $possibleUtf8 = TRUE;
                 unset($fromCharset);
             }
@@ -342,9 +422,11 @@ class lang_Encoding {
 
         // Ако нямаме зададена кодировка на текста, опитваме се да я познаем
         if(!$fromCharset) {
+
+            $textTmp = preg_replace('/\n/', ' ', $text);
+
             // Махаме от текста всякакви HTML елементи
             if($type == 'HTML') {
-                $textTmp = preg_replace('/\n/', ' ', $text);
                 $textTmp = preg_replace('/<script.*<\/script>/U', ' ', $textTmp);
                 $textTmp = preg_replace('/<style.*<\/style>/U', ' ', $textTmp);
                 $textTmp = strip_tags($textTmp);
@@ -356,16 +438,18 @@ class lang_Encoding {
             if($textTmp) {
                 $res = lang_Encoding::analyzeCharsets($textTmp);
             }
-            if(is_array($res)) {
+
+            if(is_array($res->rates)) { 
                 if(!$possibleUtf8) {
                     unset($res->rates['UTF-8']);
                 } else {
                     $res->rates['UTF-8'] *= 1.5;
                 }
             }
+
             $fromCharset = arr::getMaxValueKey($res->rates);
         }
-        
+       
         // Ако чарсета не е установен или той е 'UTF-8' връщаме текста без промяна
         if(empty($fromCharset) || $fromCharset == 'UTF-8') {
 
@@ -374,7 +458,7 @@ class lang_Encoding {
         
         // Конвертираме текста в "UTF-8"
         $d = iconv($fromCharset, "UTF-8//IGNORE", $text);
-       
+      
         // Правим проверка само на първите 1000 символа
         $len = min(mb_strlen($d), 1000);
         
