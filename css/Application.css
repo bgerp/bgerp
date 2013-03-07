@@ -1473,10 +1473,20 @@ fieldset.sharing-history i {
 }
 
 .wide select {
-    max-width:500px;
+    /*max-width:500px; махнато заради селекта при изпращане на емейли */
 }
 
+input.combo{
+	margin-left:2px !important;
+}
 
+.hasDatepick{
+	margin-left:2px;
+}
+
+input.combo.pCode{
+	margin-left:0 !important;
+}
 /* CMS */
 #cmsTop {
 	background-repeat: no-repeat;
