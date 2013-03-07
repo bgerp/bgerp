@@ -232,7 +232,9 @@ function comboSelectOnChange(id, value, suffix)
 	var exVal = inp.value;
 
 	if(exVal != '' && inp.getAttribute('data-role') == 'list') {
-		get$(id).value += ', ' +  value; 
+		if (value) {
+			get$(id).value += ', ' +  value; 
+		}
 	} else {
 		get$(id).value = value.replace(/&lt;/g, '<'); 
 	}
