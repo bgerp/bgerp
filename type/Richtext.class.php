@@ -50,7 +50,7 @@ class type_Richtext extends type_Text
     /**
      * Шаблон за намиране на линкове в текст
      */
-    static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
+    // static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
 
     
     /**
@@ -198,9 +198,15 @@ class type_Richtext extends type_Text
         // Обработваме едноредовите кодове: стрингове
         $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/u", array($this, '_catchOneLineCode'), $html);
         
-        
         // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback(static::$urlPattern, array($this, '_catchUrls'), $html);
+        $rexProtocol = '(https?://)?';
+        $rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
+        $rexPort     = '(:[0-9]{1,5})?';
+        $rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
+        $rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+        $rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+        $urlPattern = "&\\b({$rexProtocol}{$rexDomain}{$rexPort}{$rexPath}{$rexQuery}{$rexFragment}(?=[?.!,;:\"]?(\s|$)))&";
+        $html = preg_replace_callback($urlPattern, array($this, '_catchUrls'), $html);
         
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/(\S+@\S+\.\S+)/i", array($this, '_catchEmails'), $html);
@@ -530,25 +536,14 @@ class type_Richtext extends type_Text
             return $text;
         }
         
-        // Ако URL' то не е валидно
-        if (!URL::isValidUrl($url)) {
-            
-            // Проверяваме дали имаме URL част, която да не е http://
-            if (trim($url) && (trim($url) != 'http://')) {
-                
-                // Ако имаме $url част добавяме към нея
-                $url = "http://{$url}";
-            } elseif(trim($title)) {
-                
-                // Ако има заглавие и другите условия не отговарят, тогава използваме заглавието
-                $url = $title;    
-                
-                // Ако все още не е валидно URL, добавяме в титлата http
-                if (!URL::isValidUrl($url)) {
-                    $url = "http://{$url}";
-                }   
-            }
+        if(trim($url) == 'http://') {
+            $url = '';
         }
+
+        if(!strpos($url, '://')) {
+            $url = "http://{$url}";
+        }
+
         
         $url = core_Url::escape($url);
 
@@ -719,15 +714,16 @@ class type_Richtext extends type_Text
         if(!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
             $url = 'http://' . $url;
         }
+        
+        if(!stripos($url, '://')) return $url;
 
         $result = core_Url::escape($url);
-        
+         
         if( core_Url::isLocal($url, $rest) ) {
             $result = $this->internalUrl($url, str::limitLen($url,120), $rest);
         } else {
             $result = $this->externalUrl($url, str::limitLen($url,120));
         }
-        
         return $result;
     }
     
