@@ -138,8 +138,8 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FNC('amount', 'float(decimals=2)', 'caption=Сума');
         
-        $this->FNC('xPrice', 'double(maxDecimals=4)', 'caption=Цена');
-        $this->FNC('xQuantity', 'double(maxDecimals=4)', 'caption=К-во');
+        $this->FNC('xPrice', 'double(minDecimals=2,maxDecimals=5)', 'caption=Цена');
+        $this->FNC('xQuantity', 'double(minDecimals=2,maxDecimals=5)', 'caption=К-во');
     }
     
     

@@ -89,14 +89,6 @@ class sales_Sales extends core_Master
     
     
     /**
-     * Брой записи на страница
-     * 
-     * @var integer
-     */
-     public $listItemsPerPage;
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
      public $listFields = 'id, date, contragentClassId, contragentId, currencyId, amountDeal, amountDelivered, amountPaid, 
@@ -160,7 +152,7 @@ class sales_Sales extends core_Master
         /*
          * Стойности
          */
-        $this->FLD('amountDeal', 'float(decimals=2)', 'caption=Стойности->Продажба,input=none'); // Сумата на договорената стока
+        $this->FLD('amountDeal', 'float(decimals=2)', 'caption=Стойности->Поръчано,input=none'); // Сумата на договорената стока
         $this->FLD('amountDelivered', 'float(decimals=2)', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
         $this->FLD('amountPaid', 'float(decimals=2)', 'caption=Стойности->Платено,input=none'); // Сумата която е платена
         
@@ -812,7 +804,6 @@ class sales_Sales extends core_Master
             );
         }
         
-        
         /*
          * Филтър по дати
          */
@@ -835,6 +826,83 @@ class sales_Sales extends core_Master
         if (!empty($dateRange[1])) {
             $query->where(array("#date <= '[#1#]'", $dateRange[1]));
         }
+    }
+    
+    
+    public static function on_AfterRenderListSummary($mvc, $tpl, $data)
+    {
+        /*
+         * Подготвяне на тоталите - използваме същата заявка, с която сме извлекли списъка.
+         */
+        
+        /* @var $query core_Query */
+        $query = clone $data->query;
+        
+        $query->limit = null;
+        $query->orderBy = array();
+        $query->executed = FALSE;
+        $query->show = arr::make('amountDeal,amountDelivered,amountPaid,currencyId,date', TRUE);
+        
+        $now = dt::now();
+        $total = (object)array(
+            'currencyId' => acc_Periods::getBaseCurrencyCode($now),
+            'countDeal' => 0,
+            'amountDeal' => 0.0,
+            'amountDelivered' => 0.0,
+            'amountPaid' => 0.0,
+        );
+        
+        // Кеш за вече извличаните валутни курсове
+        // ключ - код на валута; стойност - курс на тази валута към основната за днес
+        $ratesCache = array();
+        
+        while ($rec = $query->fetch()) {
+            $total->countDeal       += 1;
+            if (!isset($ratesCache[$rec->currencyId])) {
+                $ratesCache[$rec->currencyId] = 
+                    currency_CurrencyRates::getRate($now, $rec->currencyId, $total->currencyId);
+                expect($ratesCache[$rec->currencyId], 
+                    sprintf('Липсва курс на %s към %s за %s', $rec->currencyId, $total->currencyId, $now)
+                );
+            }
+            $total->amountDeal      += (float)$rec->amountDeal * $ratesCache[$rec->currencyId];
+            $total->amountDelivered += (float)$rec->amountDelivered * $ratesCache[$rec->currencyId];
+            $total->amountPaid      += (float)$rec->amountPaid * $ratesCache[$rec->currencyId];
+        }
+        
+        /*
+         * Рендиране на съмърито 
+         */
+        
+        // Форматиране на сумите
+        foreach (array('amountDeal', 'amountDelivered', 'amountPaid') as $amountField) {
+            $total->{$amountField} = sprintf("%0.02f", round($total->{$amountField}, 2));
+        }
+        
+        $tpl = new core_ET('
+            <div style="float: right; background: #eee; padding: 10px;">
+                <table>
+                    <tr>
+                        <td class="quiet">Продажби</td>
+                        <td align="right">[#countDeal#]</td>
+                    </tr>
+                    <tr>
+                        <td class="quiet">Поръчано</td>
+                        <td align="right">[#amountDeal#] [#currencyId#]</td>
+                    </tr>
+                    <tr>
+                        <td class="quiet">Доставено</td>
+                        <td align="right">[#amountDelivered#] [#currencyId#]</td>
+                    </tr>
+                    <tr>
+                        <td class="quiet">Платено</td>
+                        <td align="right">[#amountPaid#] [#currencyId#]</td>
+                    </tr>
+                </table>
+            </div>
+        ');
+        
+        $tpl->placeObject($total);
     }
     
     /**
