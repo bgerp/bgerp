@@ -132,16 +132,14 @@ class pos_Reports extends core_Master {
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->FNC('user', 'user(roles=pos|admin, allowEmpty)', 'caption=Касиер,width=12em,silent');
 		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=title, allowEmpty)', 'caption=Точка,width=12em,silent');
-        $data->listFilter->FNC('totalSum', 'float', 'width=6em,caption=Сума,silent');
-		$data->listFilter->FNC('paidSum', 'float', 'width=6em,caption=Платено,silent');
-		$data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
+        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
 		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
 		$data->listFilter->setDefault('from', date('Y-m-01'));
 		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
-		$data->listFilter->showFields = 'user,point,totalSum,paidSum,from,to';
+		$data->listFilter->showFields = 'user,point,from,to';
         
         // Активиране на филтъра
-        $data->listFilter->input('user,point,totalSum,paidSum,from,to', 'silent');
+        $data->listFilter->input('user,point,from,to', 'silent');
 		
 		if($filter = $data->listFilter->rec) {
     		if($filter->to) {
@@ -150,14 +148,6 @@ class pos_Reports extends core_Master {
     		
     		if($filter->from) {
     			$data->query->where("#createdOn >= '{$filter->from}'");
-    		}
-    		
-    		if($filter->paidSum) {
-    			$data->query->where("#paid <= {$filter->paidSum}");
-    		}
-    		
-    		if($filter->totalSum) {
-    			$data->query->where("#total <= {$filter->totalSum}");
     		}
     		
     		if($filter->user) {
