@@ -775,11 +775,14 @@ class sales_Sales extends core_Master
         $data->listFilter = cls::get('core_Form', array('method'=>'get'));
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('filterDealerId', 'users', 'placeholder=Търговец', array('attr'=>array('onchange'=>'submit();')));
-        $data->listFilter->FNC('fromDate', 'date', 'placeholder=От,width=100px');
-        $data->listFilter->FNC('toDate', 'date', 'placeholder=До,width=100px');
+        $data->listFilter->FNC('filterDealerId', 'users', 'placeholder=Търговец, caption=Търговец', array('attr'=>array('onchange'=>'submit();')));
+        $data->listFilter->FNC('fromDate', 'date', 'placeholder=От,caption=От,width=100px');
+        $data->listFilter->FNC('toDate', 'date', 'placeholder=До,caption=До,width=100px');
     
-        $data->listFilter->view = 'horizontal';
+        // Използваме заглавието на списъка за заглавие на филтър-формата
+        $data->listFilter->title = $data->title;
+        $data->title = '';
+        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
     
         // Показваме тези полета. Иначе и другите полета на модела ще се появят
