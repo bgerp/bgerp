@@ -84,7 +84,7 @@ class type_Emails extends type_Varchar {
 
         //
         if (count($invalidEmails = self::getInvalidEmails($value))) {
-            $res['error'] = parent::escape("Стойността не е валиден имейл: " . implode(', ', $invalidEmails));
+            $res['error'] = parent::escape("Стойността не е валиден имейл|*: " . implode(', ', $invalidEmails));
         }
         
         return $res;
@@ -149,6 +149,20 @@ class type_Emails extends type_Varchar {
         }
                 
         return $emailsArr;
+    }
+    
+    
+    /**
+     * Превръща масива с имейли в стринг
+     * 
+     * @param array $arr - Масив с имейли
+     * 
+     * @return string - Стринг с имейли
+     */
+    static function fromArray($arr)
+    {
+        
+        return implode(', ', $arr);
     }
     
     
