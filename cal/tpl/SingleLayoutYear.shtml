@@ -1,9 +1,16 @@
+        <div class='header'>
+			<p class="calTitle" style='color:[#colTitle#]'>[#title#]</p>
+			<span>[#ListFilter#]</span>
+	    </div>
+
 <table cellspacing='5'>
+		
+
 	<tr>
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month#]</div>
+				<div style='width:150px;text-align:center;font-weight:bold;'>[#month1#]</div>
 				 <tr>
 				 	<td class='mc-wd-name'>Сд</td>
 				 	<td class='mc-wd-name'>[#0#]</td>
@@ -15,7 +22,7 @@
 				 	<td class='mc-wd-name'>[#6#]</td>
 				 </tr>  
 			          
-                 <!--ET_BEGIN COMMENT_LI-->
+                 <!--ET_BEGIN COMMENT_LI1-->
                  <tr> 
                      <td class='mc-week-nb'>[#weekNum#]</td>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
@@ -27,7 +34,7 @@
                      <td onclick="createLink('[#date7Js#]');" class="[#now7#]" data-cal-date="[#date7Js#]"><div class='event'>[#c7#]</div>[#d7#]</td>
                  </tr>
                  
-                 <!--ET_END COMMENT_LI-->
+                 <!--ET_END COMMENT_LI1-->
                          
                  </table>
              

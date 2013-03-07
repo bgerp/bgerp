@@ -3,7 +3,7 @@
 
 		<div class='header'>
 			<p class="calTitle">[#title#]</p>
-			<span style='width:150px;'>[#from#]</span>
+			<span style='width:150px;'>[#ListFilter#]</span>
 			
 		</div>
 

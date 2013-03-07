@@ -2,7 +2,7 @@
 
 		<div class='header'>
 			<p class="calTitle" >[#title#]</p>
-			<span style='width:15%;'>[#from#]</span>
+			<span style='width:15%;'>[#ListFilter#]</span>
 		</div>
 
 		<div class="clearfix" style="min-height:30px;"></div>
@@ -24,7 +24,7 @@
                 
                  
                  <!--ET_BEGIN COMMENT_LI-->
-                 <tr style="background-color:[#colTr#]" data-cal-time="[#timeJs#]">
+                 <tr class="[#colTr#]" data-cal-time="[#timeJs#]">
                  
                      <td class="calWeekH">[#time#]</td>
                      <td ondblclick="createDblWeekTask('[#date0Js#]+[#timeJs#]:00');" [#over0#][#out0#] class="[#col#]" data-cal-date="[#date0Js#]"><div class="relative-holder">[#d0#]<a class="add-task-btn" onclick="createWeekTask('[#date0Js#]+[#timeJs#]:00');">[#href0#]</a></div></td>

@@ -1,9 +1,9 @@
 [#SingleToolbar#]
 
 		<div class='header'>
-			<p class="calTitle" style='color:[#colTitle#]'>[#title#]</p>
-			<span>[#from#]</span>
-	</div>
+			<p class="calTitle [#colTitle#]">[#title#]</p>
+			<span>[#ListFilter#]</span>
+	    </div>
 
         <div class="clearfix" style="min-height:55px;"></div>
 					
@@ -19,7 +19,7 @@
                 
                  
                  <!--ET_BEGIN COMMENT_LI-->
-                 <tr style="background-color:[#colTr#]" data-cal-time="[#timeJs#]"> 
+                 <tr class="[#colTr#]" data-cal-time="[#timeJs#]"> 
                      <td class="calDayH">[#time#]</td>
                      <td ondblclick="createDblTask('[#dateJs#]+[#timeJs#]:00');" [#over0#] [#out0#] class="[#now#]" data-cal-date="[#dateJs#]"><div class="relative-holder">[#tasktitle#]<a class="add-task-btn" onclick="createTask('[#dateJs#]+[#timeJs#]:00');">[#href0#]</a></div></td>
                      
