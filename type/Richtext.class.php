@@ -199,14 +199,7 @@ class type_Richtext extends type_Text
         $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/u", array($this, '_catchOneLineCode'), $html);
         
         // Обработваме хипервръзките, зададени в явен вид
-        $rexProtocol = '(https?://)?';
-        $rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
-        $rexPort     = '(:[0-9]{1,5})?';
-        $rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
-        $rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
-        $rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
-        $urlPattern = "&\\b({$rexProtocol}{$rexDomain}{$rexPort}{$rexPath}{$rexQuery}{$rexFragment}(?=[?.!,;:\"]?(\s|$)))&";
-        $html = preg_replace_callback($urlPattern, array($this, '_catchUrls'), $html);
+        $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
         
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/(\S+@\S+\.\S+)/i", array($this, '_catchEmails'), $html);
@@ -329,6 +322,25 @@ class type_Richtext extends type_Text
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
+    }
+    
+    
+    /**
+     * Връща шаблона за намиране на URL
+     * 
+     * @return pattern $urlPattern;
+     */
+    static function getUrlPattern()
+    {
+        $rexProtocol = '(https?://)?';
+        $rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
+        $rexPort     = '(:[0-9]{1,5})?';
+        $rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
+        $rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+        $rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+        $urlPattern = "&\\b({$rexProtocol}{$rexDomain}{$rexPort}{$rexPath}{$rexQuery}{$rexFragment}(?=[?.!,;:\"]?(\s|$)))&";
+        
+        return $urlPattern;
     }
     
     
