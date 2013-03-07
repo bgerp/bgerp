@@ -906,26 +906,50 @@ class email_Outgoings extends core_Master
             }
         } else {
             
+            // Флаг
+            $editing = TRUE;
+            
             // Ако клонираме или редактираме, вземаме контрагент данните от нишката
             if ($rec->threadId) {
                 
                 // Използваме контрагент данните от ковъра
                 $contrData = doc_Threads::getContragentData($rec->threadId);    
+            } elseif ($rec->folderId) {
+                
+                // Ако няма нишка вземам контрагент данните на папката
+                $contrData = doc_Folders::getContragentData($rec->folderId);    
             }
         }
-
-        // Разделяме стринга в масив
-        $allEmailsArr = explode(', ', $contrData->groupEmails);
         
+        // Създаваме масива
+        $allEmailsArr = array();
+        
+        if ($contrData->groupEmails) {
+            
+            // Разделяме стринга в масив
+            $allEmailsArr = explode(', ', $contrData->groupEmails);    
+        }
+
         // Всички имейли от река
         $recEmails = type_Emails::toArray($rec->email);
         
-        // Само един имейл в полето имейли
-        $rec->email = $recEmails[0];
+        // Ако се редактира или клонира
+        if ($editing) {
+            
+            // Добавяме имейлите
+            $emailForRemove = $recEmails + array($contrData->toEml, $contrData->toBox);
+        } else {
+            
+            // Само един имейл в полето имейли
+            $rec->email = $recEmails[0];    
+            
+            // Добавяме в масива, който ще премахваме
+            $emailForRemove = array($rec->email, $contrData->toEml, $contrData->toBox);
+        }
 
         // Премахваме имейлите, които не ни трябват
-        $allEmailsArr = array_diff($allEmailsArr, array($rec->email, $contrData->toEml, $contrData->toBox));
-        
+        $allEmailsArr = array_diff($allEmailsArr, $emailForRemove);
+
         // Ако има групови имейли
         if (count($allEmailsArr)) {
             
