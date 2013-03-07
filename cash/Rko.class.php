@@ -58,7 +58,7 @@ class cash_Rko extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Разходен Касов Ордер';
+    var $singleTitle = 'Разходен касов ордер';
     
     
     /**

@@ -56,13 +56,13 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Вътрешно паричен трансфер';
+    var $singleTitle = 'Вътрешно паричен трансфер (банки)';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_add.png';
+    var $singleIcon = 'img/16/money.png';
     
     
     /**
@@ -109,7 +109,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.9|Финанси";
+    var $newBtnGroup = "4.5|Финанси";
     
 	/**
      * Описание на модела

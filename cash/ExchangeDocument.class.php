@@ -57,13 +57,13 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Смяна на валута';
+    var $singleTitle = 'Смяна на валута (каси)';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_add.png';
+    var $singleIcon = 'img/16/money_exchange.png';
     
     
     /**
@@ -111,7 +111,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.1|Финанси";
+    var $newBtnGroup = "4.8|Финанси";
     
 	/**
      * Описание на модела

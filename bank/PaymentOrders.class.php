@@ -56,13 +56,13 @@ class bank_PaymentOrders extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Платежно Нареждане';
+    var $singleTitle = 'Платежно нареждане';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_add.png';
+    //var $singleIcon = 'img/16/money_add.png';
     
     
     /**
@@ -104,7 +104,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.3|Финанси";
+    var $newBtnGroup = "4.9|Финанси";
     
     /**
      * Описание на модела

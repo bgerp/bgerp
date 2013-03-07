@@ -63,7 +63,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_add.png';
+    var $singleIcon = 'img/16/bank_add.png';
     
     
     /**
@@ -117,7 +117,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.8|Финанси";
+    var $newBtnGroup = "4.3|Финанси";
 
     /**
      * Описание на модела

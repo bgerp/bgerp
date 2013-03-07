@@ -63,7 +63,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_add.png';
+    //var $singleIcon = 'img/16/money_add.png';
     
     
     /**
@@ -104,7 +104,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.6|Финанси";
+    var $newBtnGroup = "4.91|Финанси";
     
     /**
      * Описание на модела

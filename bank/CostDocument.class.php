@@ -57,13 +57,13 @@ class bank_CostDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Разходен Банков Документ';
+    var $singleTitle = 'Разходен банков документ';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_add.png';
+    var $singleIcon = 'img/16/bank_rem.png';
     
     
     /**
@@ -116,7 +116,7 @@ class bank_CostDocument extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.5|Финанси";
+    var $newBtnGroup = "4.4|Финанси";
 
     /**
      * Описание на модела

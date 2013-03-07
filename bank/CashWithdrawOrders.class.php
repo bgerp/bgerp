@@ -56,13 +56,13 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Нареждане Разписка';
+    var $singleTitle = 'Нареждане разписка';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_add.png';
+    //var $singleIcon = 'img/16/money_add.png';
     
     
     /**
@@ -103,7 +103,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.4|Финанси";
+    var $newBtnGroup = "4.92|Финанси";
     
     
     /**
