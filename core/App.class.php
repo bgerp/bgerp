@@ -739,29 +739,121 @@ class core_App
      */
     public static function sbf($rPath, $qt = '"', $absolute = FALSE)
     {
+        // Взема пътя до файла
         $f = static::getFullPath($rPath);
-
-        if($f && !is_dir($f)) {
+        
+        // Ако няма файл или не е директория
+        if (!$f || !is_dir($f)) {
+            
+            // Ако има разширение файла
             if (($dotPos = strrpos($rPath, '.')) !== FALSE) {
+                
+                // Разширението на файла
                 $ext = mb_substr($rPath, $dotPos);
-                $time = filemtime($f);
-                $newFile = mb_substr($rPath, 0, $dotPos) . "_" . date("mdHis", $time) . $ext;
-                $newPath = EF_SBF_PATH . "/" . $newFile;
-
-                if(!file_exists($newPath)) {
-                    if(!is_dir($dir = dirname($newPath))) {
-                        if(!mkdir($dir, 0777, TRUE)) {
-                            core_Debug::log("Не може да се създаде: {$dir}");
+                
+                // Пътя до файла, без разширенито
+                $filePath = mb_substr($rPath, 0, $dotPos);
+                
+                // Ако няма файл
+                if (!$f) {
+                    
+                    // Ако разшиернието е .csss
+                    if (strtolower($ext) == '.css') {
+                        
+                        // Новото разширение
+                        $nExt = '.scss';
+                        
+                        // Новия файл
+                        $nPath = $filePath . $nExt;
+                        
+                        // Пътя до файла
+                        $f = static::getFullPath($nPath);
+                        
+                        // Ако файла съществува
+                        if ($f) {
+                            
+                            // Сетваме флаговете
+                            $fileExist =  TRUE;
+                            $convertCss = TRUE;
                         }
                     }
-                    
-                    // @todo: Да се минимализират .js и .css
-                    if(@copy($f, $newPath)) {
-                        $rPath = $newFile;
-                    }
                 } else {
-                    $rPath = $newFile;
+                    
+                    // Ако съществува
+                    $fileExist = TRUE;
                 }
+            }
+        }
+        
+        // Ако файла съществува
+        if ($fileExist) {
+            
+            // Датата на последна модификация
+            $time = filemtime($f);
+            
+            // Новия файл
+            $newFile = $filePath . "_" . date("mdHis", $time) . $ext;
+            
+            // Новия път до SBF на файла
+            $newPath = EF_SBF_PATH . "/" . $newFile;
+
+            // Ако файла не съществува в SBF
+            if(!file_exists($newPath)) {
+                
+                // Ако директорията не съществува
+                if(!is_dir($dir = dirname($newPath))) {
+                    
+                    // Създаваме директория
+                    if(!@mkdir($dir, 0777, TRUE)) {
+                        
+                        // Ако възникне грешка при създаването, записваме в лога
+                        core_Debug::log("Не може да се създаде: {$dir}");
+                    }
+                }
+                
+                // Ако трябва да се конвертира css файла
+                if ($convertCss) {
+                    
+                    // TODO това е във vendors
+                    // TODO след промяна на import' натите файлове, без оригиналния, все още ще работи със стария код
+                    
+                    if (is_callable(array('sass_Converter', 'convert'))) {
+                        
+                        // Конвертираме файла и вземаме CSS' а
+                        $css = sass_Converter::convert($f, 'scss');  
+                        
+                        // Ако няма резултат записваме в лога
+                        if (!trim($css)) {
+                            
+                            // Записваме в лога
+                            core_Logs::log("Генерирания CSS от '{$nPath}' е празен стринг.");
+                        } 
+
+                        // Записваме файла
+                        if (@file_put_contents($newPath, $css)) {
+                            
+                            // Задаваме пътя
+                            $rPath = $newFile;
+                        }
+                    } else {
+                        
+                        // Записваме в лога
+                        core_Logs::log("Няма функция за конвертране на 'scss'.");
+                    }
+
+                } else {
+                    
+                    // Ако не трябва да се конвертира, записваме новия файл
+                    if(@copy($f, $newPath)) {
+                        
+                        // Пътя до новия файл
+                        $rPath = $newFile;
+                    }    
+                }
+            } else {
+                
+                // Пътя до файла
+                $rPath = $newFile;
             }
         }
 
