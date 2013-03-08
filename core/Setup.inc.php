@@ -18,6 +18,9 @@
  * Първоначални проверки за достъп до Setup-а
  **********************************/
 
+// Колко време е валидно заключването - в секунди
+define ('SETUP_LOCK_PERIOD', 180);
+
 if (setupKeyValid() && !setupProcess()) {
 	// Опит за стартиране на сетъп
 	if (!setupLock()) {
@@ -34,7 +37,6 @@ if (setupKeyValid() && !setupProcess()) {
 		elseif (!setupKeyValid() && setupProcess()) {
 			halt("Процес на обновяване - опитайте по късно.</h2>");
 		}
-
 
 
 // 1. Проверка дали имаме config файл. 
@@ -943,7 +945,7 @@ function contentFlush ($content)
  */
 function setupLock()
 {
-	setcookie("setup", setupKey() , time()+600);
+	setcookie("setup", setupKey() , time()+SETUP_LOCK_PERIOD);
 	if (!is_dir(EF_TEMP_PATH)) {
 		mkdir(EF_TEMP_PATH, 0777, TRUE);
 	}
@@ -969,7 +971,7 @@ function setupUnlock()
 function setupProcess()
 {
 	if (@file_exists(EF_TEMP_PATH . "/setupLock.tmp")) {
-		if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > 600) {
+		if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > SETUP_LOCK_PERIOD) {
 			setupUnlock();
 			
 			return FALSE;
