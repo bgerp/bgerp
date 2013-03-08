@@ -124,9 +124,10 @@ class oembed_Plugin extends core_Plugin
      * @return string|boolean HTML или FALSE при неуспех
      */
     public static function getEmbedHtml($url)
-    {
-        if (Mode::is('text', 'xhtml')) {
-            // В режим X-HTML ресурсите зад линковете никога не се вграждат!
+    {   
+        // В режим X-HTML и PLAIN ресурсите зад линковете никога не се вграждат!
+        if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) {
+            
             return FALSE;
         }
         
