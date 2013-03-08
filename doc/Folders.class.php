@@ -58,6 +58,7 @@ class doc_Folders extends core_Master
      */
     var $canReject = 'user';
     
+    var $canNewdoc = 'user';
     
     /**
      * полета от БД по които ще се търси
