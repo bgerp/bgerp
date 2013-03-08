@@ -70,7 +70,13 @@ class doc_Folders extends core_Master
      */
     var $singleTitle = 'Папка';
     
-    
+
+    /**
+     * Масив в id-та на папки, които трябва да се обновят на Shutdown
+     */
+    static $updateByContentOnShutdown = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -257,65 +263,75 @@ class doc_Folders extends core_Master
     }
     
     
+    static function updateFolderByContent($id)
+    {
+        self::$updateByContentOnShutdown[$id] = $id;
+    }
+
+    
     /**
      * Обновява информацията за съдържанието на дадена папка
      */
-    static function updateFolderByContent($id)
+    static function on_Shutdown($mvc)
     {
-        // Извличаме записа на папката
-        $rec = doc_Folders::fetch($id);
+        if(count(self::$updateByContentOnShutdown)) {
+            foreach(self::$updateByContentOnShutdown as $id) {
+                // Извличаме записа на папката
+                $rec = doc_Folders::fetch($id);
 
-        if(!$rec) {
-            return;
-        }
-        
-        // Запомняме броя на отворените теми до сега
-        $exOpenThreadsCnt = $rec->openThreadsCnt;
-        
-        $thQuery = doc_Threads::getQuery();
-        $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
-        
-        if($rec->openThreadsCnt) {
-            $rec->state = 'opened';
-        } else {
-            $rec->state = 'active';
-        }
-        
-        $thQuery = doc_Threads::getQuery();
-        $rec->allThreadsCnt = $thQuery->count("#folderId = {$id} AND #state != 'rejected'");
-        
-        $thQuery = doc_Threads::getQuery();
-        $thQuery->orderBy("#last", 'DESC');
-        $thQuery->limit(1);
-        $lastThRec = $thQuery->fetch("#folderId = {$id} AND #state != 'rejected'");
-        
-        $rec->last = $lastThRec->last;
-        
-        doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt,state');
-        
-        // Генерираме нотификация за потребителите, споделили папката
-        // ако имаме повече отворени теми от преди
-        if($exOpenThreadsCnt < $rec->openThreadsCnt) {
-            
-            $msg = tr('Отворени теми в') . " \"$rec->title\"";
-            
-            $url = array('doc_Threads', 'list', 'folderId' => $id);
-            
-            $userId = $rec->inCharge;
-            
-            $priority = 'normal';
-            
-            bgerp_Notifications::add($msg, $url, $userId, $priority);
-            
-            if($rec->shared) {
-                foreach(type_Keylist::toArray($rec->shared) as $userId) {
+                if(!$rec) {
+                    return;
+                }
+                
+                // Запомняме броя на отворените теми до сега
+                $exOpenThreadsCnt = $rec->openThreadsCnt;
+                
+                $thQuery = doc_Threads::getQuery();
+                $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
+                
+                if($rec->openThreadsCnt) {
+                    $rec->state = 'opened';
+                } else {
+                    $rec->state = 'active';
+                }
+                
+                $thQuery = doc_Threads::getQuery();
+                $rec->allThreadsCnt = $thQuery->count("#folderId = {$id} AND #state != 'rejected'");
+                
+                $thQuery = doc_Threads::getQuery();
+                $thQuery->orderBy("#last", 'DESC');
+                $thQuery->limit(1);
+                $lastThRec = $thQuery->fetch("#folderId = {$id} AND #state != 'rejected'");
+                
+                $rec->last = $lastThRec->last;
+                
+                doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt,state');
+                
+                // Генерираме нотификация за потребителите, споделили папката
+                // ако имаме повече отворени теми от преди
+                if($exOpenThreadsCnt < $rec->openThreadsCnt) {
+                    
+                    $msg = tr('Отворени теми в') . " \"$rec->title\"";
+                    
+                    $url = array('doc_Threads', 'list', 'folderId' => $id);
+                    
+                    $userId = $rec->inCharge;
+                    
+                    $priority = 'normal';
+                    
                     bgerp_Notifications::add($msg, $url, $userId, $priority);
+                    
+                    if($rec->shared) {
+                        foreach(type_Keylist::toArray($rec->shared) as $userId) {
+                            bgerp_Notifications::add($msg, $url, $userId, $priority);
+                        }
+                    }
+                } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
+                    // Изчистване на нотификации за отворени теми в тази папка
+                    $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
+                    bgerp_Notifications::clear($url, '*');
                 }
             }
-        } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
-            // Изчистване на нотификации за отворени теми в тази папка
-            $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
-            bgerp_Notifications::clear($url, '*');
         }
     }
     
