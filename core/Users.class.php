@@ -278,7 +278,7 @@ class core_Users extends core_Manager
         $form->setHidden('hash', '');
         $form->setHidden('loadTime', '');
         
-        $form->addAttr('nick,pass,email', array('style' => 'width:240px' ));
+        $form->addAttr('nick,pass,email', array('style' => 'width:240px;' ));
         $form->toolbar->addSbBtn('Вход', 'default', NULL,  array('class' => 'noicon'));
         
         $this->invoke('PrepareLoginForm', array(&$form));
