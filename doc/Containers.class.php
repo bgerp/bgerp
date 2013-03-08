@@ -340,11 +340,17 @@ class doc_Containers extends core_Manager
         
         $docMvc = cls::get($rec->docClass);
         
-        
+        // В записа на контейнера попълваме ключа към документа
         if(!$rec->docId) {
             expect($rec->docId = $docMvc->fetchField("#containerId = {$id}", 'id'));
             $mustSave = TRUE;
         }
+
+
+        // Обновяването е възможно при следните случаи
+        // 1. Създаване на документа, след запис на документа
+        // 2. Промяна на състоянието на документа (активиране, оттегляне, възстановяване)
+        // 3. Промяна на папката на документа
         
         $fields = 'state,folderId,threadId,containerId';
         
