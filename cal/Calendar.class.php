@@ -1159,36 +1159,38 @@ class cal_Calendar extends core_Master
         
         $stateDay = self::prepareState($fromDate, $toDate, $selectedUsers);
         
-        foreach($stateDay as $rec){
-		    // Деня, за който взимаме събитията
-		    $dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
-		     
-		    // Начален час на събитието
-		    $hourKey = dt::mysql2verbal($rec->time, 'G');
-		
-		    // Ако събитието е отбелязано да е активно през целия ден
-		    if($rec->allDay == "yes")  $hourKey = "allDay";
-		    
-		    if($hourKey <= self::$tr && $hourKey != "allDay") self::$tr = $hourKey;
-		    
-		    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
-		    
-		    // Линк към събитието
-     		$url = getRetUrl($rec->url);
-               
-     		// Ид-то на събитието
-    		$id = substr(strrchr($rec->url, "/"),1);
-    		
-     	    // Картинката за задачите
-     		$img = self::getIconByType($rec->type, $rec->key);
-
-    		if($hourKey == "allDay") $dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
-    		
-    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00")$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-    		
-    		if(dt::mysql2verbal($rec->time, 'i') != "00") $dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-
-     	}
+        if(is_array($stateDay)){
+	        foreach($stateDay as $rec){
+			    // Деня, за който взимаме събитията
+			    $dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
+			     
+			    // Начален час на събитието
+			    $hourKey = dt::mysql2verbal($rec->time, 'G');
+			
+			    // Ако събитието е отбелязано да е активно през целия ден
+			    if($rec->allDay == "yes")  $hourKey = "allDay";
+			    
+			    if($hourKey <= self::$tr && $hourKey != "allDay") self::$tr = $hourKey;
+			    
+			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
+			    
+			    // Линк към събитието
+	     		$url = getRetUrl($rec->url);
+	               
+	     		// Ид-то на събитието
+	    		$id = substr(strrchr($rec->url, "/"),1);
+	    		
+	     	    // Картинката за задачите
+	     		$img = self::getIconByType($rec->type, $rec->key);
+	
+	    		if($hourKey == "allDay") $dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	    		
+	    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00")$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 35) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	    		
+	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 35) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	
+	     	}
+        }
      	
      	return $dayData;
     }
@@ -1210,36 +1212,38 @@ class cal_Calendar extends core_Master
         $toDate = $from['toDate'];
         
         $stateWeek = self::prepareState($fromDate, $toDate, $selectedUsers);
-       
-        foreach($stateWeek as $rec){
-        	
-        	// Деня, за който взимаме събитията
-		    $dayKey = $weekArr->dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
-		     
-		    // Начален час на събитието
-		    $hourKey = dt::mysql2verbal($rec->time, 'G');
-		
-		    // Ако събитието е отбелязано да е активно през целия ден
-		    if($rec->allDay == "yes")  $hourKey = "allDay";
-		    
-		    if($hourKey <= self::$tr && $hourKey != "allDay") self::$tr = $hourKey;
-		    
-		    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
-		    
-		    // Линк към събитието
-     		$url = getRetUrl($rec->url);
-               
-     		// Ид-то на събитието
-    		$id = substr(strrchr($rec->url, "/"),1);
-    		
-     	    // Картинката за задачите
-            $img = self::getIconByType($rec->type, $rec->key);
-           
-    		if($hourKey == "allDay") $weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
-    		
-    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)) .'</div>';
-    		
-    		if(dt::mysql2verbal($rec->time, 'i') != "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
+        
+        if(is_array($stateWeek)){
+	        foreach($stateWeek as $rec){
+	        	
+	        	// Деня, за който взимаме събитията
+			    $dayKey = $weekArr->dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
+			     
+			    // Начален час на събитието
+			    $hourKey = dt::mysql2verbal($rec->time, 'G');
+			
+			    // Ако събитието е отбелязано да е активно през целия ден
+			    if($rec->allDay == "yes")  $hourKey = "allDay";
+			    
+			    if($hourKey <= self::$tr && $hourKey != "allDay") self::$tr = $hourKey;
+			    
+			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
+			    
+			    // Линк към събитието
+	     		$url = getRetUrl($rec->url);
+	               
+	     		// Ид-то на събитието
+	    		$id = substr(strrchr($rec->url, "/"),1);
+	    		
+	     	    // Картинката за задачите
+	            $img = self::getIconByType($rec->type, $rec->key);
+	           
+	    		if($hourKey == "allDay") $weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	    		
+	    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 20) . "</p>", $url, NULL, array('title' => $rec->title)) .'</div>';
+	    		
+	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 14) . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
+	        }
         }
         
         return $weekData;
@@ -1264,47 +1268,49 @@ class cal_Calendar extends core_Master
         
         $stateMonth = self::prepareState($fromDate, $toDate, $selectedUsers);
       
-        foreach($stateMonth as $rec){
-       
-		     
-		    // Начален час на събитието
-		    $hourKey = dt::mysql2verbal($rec->time, 'G');
-		    
-		    // Разбиваме това време на: ден, месец и година
-            $recDay = dt::mysql2Verbal($rec->time, 'j');
-			$recMonth = dt::mysql2Verbal($rec->time, 'm');
-			$recYear = dt::mysql2Verbal($rec->time, 'Y');
-			
-			// Таймстамп на всеки запис
-			$recT = mktime(0, 0, 0, $recMonth, $recDay, $recYear);
-			
-			// В коя седмица е този ден
-			$weekKey = date('W', $recT);
-			
-		 	// Деня, за който взимаме събитията
-		    $dayKey = "d".date('N', $recT);
-		    
-		    // Ако събитието е отбелязано да е активно през целия ден
-		    if($rec->allDay == "yes")  $hourKey = "allDay";
-		    
-		    if($hourKey <= self::$tr && $hourKey != "allDay") self::$tr = $hourKey;
-		    
-		    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
-		    
-		    // Линк към събитието
-     		$url = getRetUrl($rec->url);
-               
-     		// Ид-то на събитието
-    		$id = substr(strrchr($rec->url, "/"),1);
-    		
-     	    // Картинката за задачите
-            $img = self::getIconByType($rec->type, $rec->key);
-           
-    		if($hourKey == "allDay") $monthDate->monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
-    		
-    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" .$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
-    		
-    		if(dt::mysql2verbal($rec->time, 'i') != "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)).'</div>';
+        if(is_array($stateMonth)){
+	        foreach($stateMonth as $rec){
+	       
+			     
+			    // Начален час на събитието
+			    $hourKey = dt::mysql2verbal($rec->time, 'G');
+			    
+			    // Разбиваме това време на: ден, месец и година
+	            $recDay = dt::mysql2Verbal($rec->time, 'j');
+				$recMonth = dt::mysql2Verbal($rec->time, 'm');
+				$recYear = dt::mysql2Verbal($rec->time, 'Y');
+				
+				// Таймстамп на всеки запис
+				$recT = mktime(0, 0, 0, $recMonth, $recDay, $recYear);
+				
+				// В коя седмица е този ден
+				$weekKey = date('W', $recT);
+				
+			 	// Деня, за който взимаме събитията
+			    $dayKey = "d".date('N', $recT);
+			    
+			    // Ако събитието е отбелязано да е активно през целия ден
+			    if($rec->allDay == "yes")  $hourKey = "allDay";
+			    
+			    if($hourKey <= self::$tr && $hourKey != "allDay") self::$tr = $hourKey;
+			    
+			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
+			    
+			    // Линк към събитието
+	     		$url = getRetUrl($rec->url);
+	               
+	     		// Ид-то на събитието
+	    		$id = substr(strrchr($rec->url, "/"),1);
+	    		
+	     	    // Картинката за задачите
+	            $img = self::getIconByType($rec->type, $rec->key);
+	           
+	    		if($hourKey == "allDay") $monthDate->monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	    		
+	    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" .$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 20) . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
+	    		
+	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 11) . "</p>", $url, NULL, array('title' => $rec->title)).'</div>';
+	        }
         }
        
         return $monthDate;
@@ -1328,24 +1334,26 @@ class cal_Calendar extends core_Master
         
         $stateYear = self::prepareStateYear($fromDate, $toDate, $selectedUsers, $type = 'task');
     
-        foreach($stateYear as $rec){
-        	
-			// Разбиваме това време на: ден, месец и година
-			$recDay = dt::mysql2Verbal($rec->time, 'j');
-			$recMonth = dt::mysql2Verbal($rec->time, 'n');
-			$recYear = dt::mysql2Verbal($rec->time, 'Y');
-			
-			// Таймстамп на всеки запис
-			$recT = mktime(0, 0, 0, $recMonth, $recDay, $recYear);
-					
-			// В коя седмица е този ден
-			$weekKey = date('W', $recT);
-			
-			// Кой ден от седмицата е
-			$dayKey = "d".date('N', $recT);
-			
-			// Добавяме звезда там където имаме събитие
-			$yearDate->yearArr[$recMonth][$weekKey][$dayKey] = "<img class='starImg' src=". sbf('img/16/star_2.png') .">" . $recDay;
+        if(is_array($stateYear)){
+	        foreach($stateYear as $rec){
+	        	
+				// Разбиваме това време на: ден, месец и година
+				$recDay = dt::mysql2Verbal($rec->time, 'j');
+				$recMonth = dt::mysql2Verbal($rec->time, 'n');
+				$recYear = dt::mysql2Verbal($rec->time, 'Y');
+				
+				// Таймстамп на всеки запис
+				$recT = mktime(0, 0, 0, $recMonth, $recDay, $recYear);
+						
+				// В коя седмица е този ден
+				$weekKey = date('W', $recT);
+				
+				// Кой ден от седмицата е
+				$dayKey = "d".date('N', $recT);
+				
+				// Добавяме звезда там където имаме събитие
+				$yearDate->yearArr[$recMonth][$weekKey][$dayKey] = "<img class='starImg' src=". sbf('img/16/star_2.png') .">" . $recDay;
+	        }
         }	
        
         return $yearDate;
