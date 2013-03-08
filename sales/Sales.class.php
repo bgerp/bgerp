@@ -779,10 +779,6 @@ class sales_Sales extends core_Master
         $data->listFilter->FNC('fromDate', 'date', 'placeholder=От,caption=От,width=100px');
         $data->listFilter->FNC('toDate', 'date', 'placeholder=До,caption=До,width=100px');
     
-        // Използваме заглавието на списъка за заглавие на филтър-формата
-        $data->listFilter->title = $data->title;
-        $data->title = '';
-        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
     
         // Показваме тези полета. Иначе и другите полета на модела ще се появят
@@ -829,6 +825,14 @@ class sales_Sales extends core_Master
         if (!empty($dateRange[1])) {
             $query->where(array("#date <= '[#1#]'", $dateRange[1]));
         }
+    }
+    
+    
+    public static function on_AfterPrepareListTitle($mvc, $data)
+    {
+        // Използваме заглавието на списъка за заглавие на филтър-формата
+        $data->listFilter->title = $data->title;
+        $data->title = NULL;
     }
     
     
