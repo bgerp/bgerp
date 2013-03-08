@@ -82,6 +82,18 @@ class email_Filters extends core_Manager
     }
     
     
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+ 		// Изтриваме съдържанието й
+		$mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
+		
+    	$res .= static::loadData();
+      
+    }
+    
     /**
      * Проверява дали входящото писмо се прихваща от един от записаните в този модел филтри.
      * 
@@ -240,4 +252,43 @@ class email_Filters extends core_Manager
     {
         return FALSE; // @TODO
     }
+    
+    /**
+     * Зареждане на потребителски правила за
+     * рутиране на имейли според събджект или тяло
+     */
+    static public function loadData()
+    {
+       $csvFile = __DIR__ . "/data/Filters.csv";
+ 
+        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
+         
+            while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
+               
+                $rec = new stdClass();
+              
+                $rec->email = $csvRow[0]; 
+                $rec->subject = $csvRow[1];
+                $rec->body = $csvRow[2];
+                $rec->action = $csvRow[3];
+             	$rec->folderId = $csvRow[4]; 
+                $rec->note = $csvRow[5];
+                $rec->state = $csvRow[6];
+                        
+                
+                static::save($rec);
+
+                $ins++;
+            }
+            
+            fclose($handle);
+            
+            $res .= "<li style='color:green;'>Създадени са записи за {$ins} потребителски правила за рутиране</li>";
+        } else {
+            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+        }
+        
+        return $res;
+    }
+
 }
