@@ -127,8 +127,10 @@ class pos_Reports extends core_Master {
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	
-        $data->query->orderBy('#createdOn', 'DESC');
-		$data->listFilter->layout = new ET("<form>[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>");
+        $filterTpl = new ET(getFileContent('pos/tpl/FilterForm.shtml'));
+		$data->query->orderBy('#createdOn', 'DESC');
+		$data->listFilter->layout = $filterTpl->getBlock('FORM');
+		$data->listFilter->fieldsLayout = $filterTpl->getBlock('FIELDS');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->FNC('user', 'user(roles=pos|admin, allowEmpty)', 'caption=Касиер,width=12em,silent');
 		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=title, allowEmpty)', 'caption=Точка,width=12em,silent');
@@ -166,7 +168,14 @@ class pos_Reports extends core_Master {
 	 */
 	static function on_AfterRenderListSummary($mvc, $tpl, $data)
     {
-    	$queryCopy = clone $data->query;
+    	$tpl = static::renderSummaryData($data->query);
+    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+	}
+    
+	
+	static function renderSummaryData($query)
+	{
+		$queryCopy = clone $query;
     	$queryCopy->show = array();
     	$queryCopy->groupBy = array();
     	$queryCopy->executed = FALSE;
@@ -188,9 +197,9 @@ class pos_Reports extends core_Master {
     	$tpl = new ET(getFileContent("pos/tpl/Summary.shtml"));
     	$tpl->placeObject($rec);
     	
-    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+    	return $tpl;
 	}
-    
+	
 	
     /**
      * След преобразуване на записа в четим за хора вид.

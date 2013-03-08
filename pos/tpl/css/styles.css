@@ -292,9 +292,45 @@ div.scrollWrapper{
 }
 
 #filter{
-	margin-left:78px;
+	margin-left:65px;
+}
+
+form #from {
+	margin-left:36px;
+}
+
+.narrow form #from {
+	margin-left:41px !important;
+}
+
+form #point {
+	margin-left:15px;
+}
+
+.narrow form #point {
+	margin-left:17px !important;
 }
 
 .narrow  #filter{
 	margin-left:4px !important;
+}
+
+.summary-right{
+	float:right;
+	margin-right:18px;
+}
+
+#summary {
+	float:right;
+	padding:7px;
+	background:#eee;
+	border:1px solid rgba(0,0,0,0.3);
+}
+
+#summary b {
+	color:rgb(0, 68, 136);
+}
+
+#summary table{
+	width:400px;
 }

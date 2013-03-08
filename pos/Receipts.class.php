@@ -360,14 +360,6 @@ class pos_Receipts extends core_Master {
     		if($filter->from) {
     			$data->query->where("#date >= '{$filter->from}'");
     		}
-    		
-    		if($filter->paidSum) {
-    			$data->query->where("#paid <= {$filter->paidSum}");
-    		}
-    		
-    		if($filter->totalSum) {
-    			$data->query->where("#total <= {$filter->totalSum}");
-    		}
     	}
     }
     
@@ -402,19 +394,19 @@ class pos_Receipts extends core_Master {
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	
-        $data->listFilter->title = 'Търсене';
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->FNC('totalSum', 'int', 'placeholder=Сума,width=6em,silent');
-		$data->listFilter->FNC('paidSum', 'int', 'placeholder=Платено,width=6em,silent');
-        $data->listFilter->FNC('from', 'date', 'width=6em,placeholder=От,silent');
-		$data->listFilter->FNC('to', 'date', 'width=6em,silent');
-		$data->listFilter->setDefault('to', dt::now());
-		$data->listFilter->setField('search', 'placeholder=Клиент,width=14em');
-        $data->listFilter->showFields = 'search,totalSum,paidSum,from,to';
+        $filterTpl = new ET(getFileContent('pos/tpl/FilterForm.shtml'));
+		$data->listFilter->layout = $filterTpl->getBlock('FORM');
+		$data->listFilter->fieldsLayout = $filterTpl->getBlock('FIELDS');
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
+		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
+		$data->listFilter->setDefault('from', date('Y-m-01'));
+		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
+		$data->listFilter->setField('search', 'placeholder=Клиент,width=18em');
+        $data->listFilter->showFields = 'search,from,to';
         
         // Активиране на филтъра
-        $data->listFilter->input('search, totalSum, paidSum, from, to', 'silent');
+        $data->listFilter->input('search, from, to', 'silent');
 	 }
 	
 	
@@ -578,4 +570,15 @@ class pos_Receipts extends core_Master {
         	$mvc->pos_ReceiptDetails->delete("#receiptId = {$rec->id}");
         }
     }
+    
+    
+	/**
+	 * Рендираме обобщаващата информация на бележките
+	 */
+	static function on_AfterRenderListSummary($mvc, $tpl, $data)
+    {
+    	// Използваме рендирането на обобщението от репортите
+    	$tpl = pos_Reports::renderSummaryData($data->query);
+    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+	}
 }

@@ -1,24 +1,15 @@
-<div style='float:right;padding:10px; background:#eee'>
-<table width='220px'>
+<div id='summary'>
+<table>
 	<tr>
-		<td width='50%'>Резултати:</td>
-		<td> &nbsp;<b>[#count#]</b></td>
+		<td colspan='2'>Резултати: &nbsp;&nbsp;&nbsp;<b>[#count#]</b></td>
 	</tr>
 	<tr>
-		<td>Платено:</td>
-		<td> <span class='cCode'>[#currency#]</span> <b>[#sumPaid#]</b></td>
+		<td>Продадено: <span class='summary-right'><span class='cCode'>[#currency#]</span> <b>[#sumTotal#]</b></span></td>
+		<td>Продукти: <span class='summary-right'><b>[#products#]</b></span></td>
 	</tr>
 	<tr>
-		<td>Продадено: </td>
-		<td> <span class='cCode'>[#currency#]</span> <b>[#sumTotal#]</b></td>
+		<td>Платено: <span class='summary-right'><span class='cCode'>[#currency#]</span> <b>[#sumPaid#]</b></span></td>
+		<td>Ресто:  <span class='summary-right'><span class='cCode'>[#currency#]</span> <b>[#sumChange#]</b></span></td>
 	</tr>
-	<tr>
-		<td>Ресто: </td>
-		<td> <span class='cCode'>[#currency#]</span> <b>[#sumChange#]</b></td>
-	</tr>
-	<tr>
-		<td>Продукти: </td>
-		<td> &nbsp;<b>[#products#]</b></td>
-	</tr> 
 </table>
 </div>
