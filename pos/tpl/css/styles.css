@@ -7,8 +7,13 @@
 	margin:10px;
 	padding:15px;
 	position:relative;
-	min-height:700px;;
+	min-height:700px;
 }
+
+.narrow .single-receipt-wrapper{
+	min-width: 550px;
+}
+
 #receipt-table {
 	text-indent:8px;
 	width:551px;
@@ -227,9 +232,6 @@ div.scrollWrapper{
   border-bottom:1px solid #000;
   margin-bottom:0px;
   
-}
-.narrow div.scrollWrapper{
-	max-height:215px;
 }
 
 .printing div.scrollWrapper{
