@@ -332,13 +332,15 @@ class type_Richtext extends type_Text
      */
     static function getUrlPattern()
     {
-        $rexProtocol = '(https?://)?';
-        $rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
-        $rexPort     = '(:[0-9]{1,5})?';
-        $rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
-        $rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
-        $rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
-        $urlPattern = "&\\b({$rexProtocol}{$rexDomain}{$rexPort}{$rexPath}{$rexQuery}{$rexFragment}(?=[?.!,;:\"]?(\s|$)))&";
+//        $rexProtocol = '(https?://)?';
+//        $rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
+//        $rexPort     = '(:[0-9]{1,5})?';
+//        $rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
+//        $rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+//        $rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+//        $urlPattern = "&\\b({$rexProtocol}{$rexDomain}{$rexPort}{$rexPath}{$rexQuery}{$rexFragment}(?=[?.!,;:\"]?(\s|$)))&";
+        
+        $urlPattern = "/(((http(s?)|ftp(s?)):\/\/)|(www\.))([^\s<>]+)/";
         
         return $urlPattern;
     }
@@ -729,8 +731,6 @@ class type_Richtext extends type_Text
         
         if(!stripos($url, '://')) return $url;
 
-        $result = core_Url::escape($url);
-         
         if( core_Url::isLocal($url, $rest) ) {
             $result = $this->internalUrl($url, str::limitLen($url,120), $rest);
         } else {
