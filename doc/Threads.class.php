@@ -536,7 +536,8 @@ class doc_Threads extends core_Manager
                 (object)array(
                     'id' => $rec->docId,
                     'folderId' => $destFolderId,
-                )
+                ),
+                'id,folderId'
             );
         }
         
@@ -560,7 +561,7 @@ class doc_Threads extends core_Manager
             // Добавяме нови правила за рутиране на базата на току-що направеното преместване.
             //
             // expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
-            //email_Router::updateRoutingRules($firstContainerId, $destFolderId);
+            // email_Router::updateRoutingRules($firstContainerId, $destFolderId);
         }
     }
     
