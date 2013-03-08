@@ -1090,7 +1090,7 @@ class doc_DocumentPlg extends core_Plugin
      * Метод по подразбиране за връщане на възможните файлове за прикачване.
      * По подразбиране всики имат възможност за прикачане на pdf.
      */
-    function on_AfterGetTypeConvertingsByClass($mvc, $res, $id)
+    function on_AfterGetTypeConvertingsByClass($mvc, &$res, $id)
     {
         //Превръщаме $res в масив
         $res = (array)$res;

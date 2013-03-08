@@ -1469,7 +1469,7 @@ class email_Incomings extends core_Master
     /**
      * Връща EML файл при генериране на възможности разширения за прикачване
      */
-    function on_BeforeGetTypeConvertingsByClass($mvc, $res, $id)
+    function on_BeforeGetTypeConvertingsByClass($mvc, &$res, $id)
     {
         //Превръщаме $res в масив
         $res = (array)$res;
