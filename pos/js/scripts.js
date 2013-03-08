@@ -9,8 +9,10 @@ $(document).ready(function () {
 	
 	$('input[name=ean]').focus();
 	
-	$('input[name=quantity]').live("keyup",function() {
-			$('input[name=ean]').focus();
+	$('input[name=quantity]').live("keyup",function(e) {
+			if(e.keyCode != 173){
+				$('input[name=ean]').focus();
+			}
 		});
 	
 	$('#incBtn').live("click", function() {

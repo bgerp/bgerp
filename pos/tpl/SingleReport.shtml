@@ -8,37 +8,40 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
-	<table cellpadding='2px'>
+	<table cellpadding='2px' width='420px'>
 		<tr>
-			<td>[#title#] </td><td>създаден на <b>[#createdDate#]</b> от &nbsp;<b>[#createdBy#]</b></td>
+			<td>Касиер: </td>
+			<td><b>[#cashier#]</b></td>
 		</tr>
 		<tr>
-			<td>Касиер: </td><td><b>[#cashier#]</b></td>
+			<td>Точка на продажба:</td>
+			<td><b>[#pointId#]</b></td>
 		</tr>
 		<tr>
-			<td>Точка на продажба: </td><td><b>[#pointId#]</b></td>
+			<td>Склад:</td>
+			<td><b>[#storeId#]</b></td>
 		</tr>
 		<tr>
-			<td>Склад: </td><td><b>[#storeId#]</b></td>
+			<td>Продукти: <span class='summary-right'><b>[#productCount#]</b></span></td>
+			<td>Продадено: <span class='summary-right'><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#total#]</b></span></td>
 		</tr>
 		<tr>
-			<td>Платено:</td><td><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#paid#]</b></td>
+			<td>Платено: <span class='summary-right'><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#paid#]</b></span></td>
+			<td>Ресто: <span class='summary-right'><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#change#]</b></span></td>
 		</tr>
 		<tr>
-			<td>Продадено:</td><td><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#total#]</b></td>
+			<td colspan='2'></td>
 		</tr>
 		<tr>
-			<td>Ресто:</td><td><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#change#]</b></td>
+			<td colspan='2'>създаден на &nbsp;&nbsp;<b>[#createdDate#]</b>&nbsp;&nbsp; от &nbsp;&nbsp;<b>[#createdBy#]</b></td>
 		</tr>
 	</table>
-	
-[#PAYMENTS#]
-<!--ET_BEGIN PAY_PAGINATOR-->
-[#PAY_PAGINATOR#]
-<!--ET_END PAY_PAGINATOR-->
-
-[#SALES#]
-<!--ET_BEGIN SALE_PAGINATOR-->
-[#SALE_PAGINATOR#]
-<!--ET_END SALE_PAGINATOR-->
+		[#PAYMENTS#]
+	<!--ET_BEGIN PAY_PAGINATOR-->
+		[#PAY_PAGINATOR#]
+	<!--ET_END PAY_PAGINATOR-->
+		[#SALES#]
+	<!--ET_BEGIN SALE_PAGINATOR-->
+		[#SALE_PAGINATOR#]
+	<!--ET_END SALE_PAGINATOR-->
 </div>

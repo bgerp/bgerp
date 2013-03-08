@@ -32,7 +32,7 @@ class pos_Reports extends core_Master {
      * Плъгини за зареждане
      */
    var $loadList = 'pos_Wrapper, plg_Printing,
-     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg';
+     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, plg_Sorting';
    
     
     /**
@@ -86,7 +86,7 @@ class pos_Reports extends core_Master {
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title=Заглавие, pointId, cashier, paid, total, change, productCount, state, createdOn, createdBy';
+    var $listFields = 'id, title=Заглавие, pointId, cashier, total, paid, change, productCount, state, createdOn, createdBy';
     
     
 	/**
@@ -106,7 +106,7 @@ class pos_Reports extends core_Master {
     	$this->FLD('change', 'float(minDecimals=2)', 'caption=Сума->Ресто, input=none, value=0');
     	$this->FLD('total', 'float(minDecimals=2)', 'caption=Сума->Продадено, input=none, value=0');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
-    	$this->FLD('details', "blob(serialize,compress)", 'caption=Данни,input=none');
+    	$this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
     	$this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0');
     }
     
@@ -144,12 +144,13 @@ class pos_Reports extends core_Master {
         $data->listFilter->input('user,point,from,to', 'silent');
 		
 		if($filter = $data->listFilter->rec) {
-    		if($filter->to) {
-    			$data->query->where("#createdOn <= '{$filter->to} 23:59:59'");
+			
+			if($filter->from) {
+    			$data->query->where("#createdOn >= '{$filter->from}'");
     		}
     		
-    		if($filter->from) {
-    			$data->query->where("#createdOn >= '{$filter->from}'");
+			if($filter->to) {
+    			$data->query->where("#createdOn <= '{$filter->to} 23:59:59'");
     		}
     		
     		if($filter->user) {
@@ -173,7 +174,12 @@ class pos_Reports extends core_Master {
 	}
     
 	
-	static function renderSummaryData($query)
+	/**
+	 * Рендира съмаризираната информация на списъчния изглед
+	 * @param core_Query $query - заявка към модел
+	 * @return core_ET $tpl - шаблон с съмаризираната информация
+	 */
+	static function renderSummaryData(core_Query $query)
 	{
 		$queryCopy = clone $query;
     	$queryCopy->show = array();
@@ -185,8 +191,17 @@ class pos_Reports extends core_Master {
     	$queryCopy->XPR('count', 'int', 'count(#id)');
     	$queryCopy->XPR('products', 'int', 'SUM(#productCount)');
     	$queryCopy->show('sumTotal,sumPaid,count,sumChange,products');
+    	$queryCopy->where("#state = 'active'");
     	$rec = $queryCopy->fetch();
+    	if(!$rec) {
+    		
+    		// Ако няма резултати, всичките стават 0
+    		foreach($queryCopy->show as $el) {
+    			$rec->$el = 0;
+    		}
+    	}
     	
+    	// Вербална обработка на извлечените суми
     	$double = cls::get("type_Double");
     	$double->params['decimals'] = 2;
     	$rec->sumTotal = $double->toVerbal($rec->sumTotal);
@@ -194,6 +209,7 @@ class pos_Reports extends core_Master {
     	$rec->sumChange = $double->toVerbal($rec->sumChange);
     	$rec->currency = acc_Periods::getBaseCurrencyCode();
     	
+    	// Зареждаме и подготвяме шаблона
     	$tpl = new ET(getFileContent("pos/tpl/Summary.shtml"));
     	$tpl->placeObject($rec);
     	
@@ -213,15 +229,16 @@ class pos_Reports extends core_Master {
     	if(!Mode::is('printing')){
     		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	}
+    	
     	$storeRec = pos_Points::fetchField($rec->pointId, 'storeId');
     	$storeRow = pos_Points::recToVerbal($storeRec, 'storeId');
-    	
     	$row->storeId = $storeRow->storeId;
     	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	$row->total = $double->toVerbal($row->total);
     	$row->paid = $double->toVerbal($row->paid);
     	$row->change = $double->toVerbal($row->change);
     	$row->title = "Отчет за бърза продажба №{$rec->id}";
+    	
     	if($fields['-list']){
     		$icon = sbf($mvc->singleIcon);
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, array('style'=>"background-image:url({$icon})", 'class' => 'linkWithIcon'));
@@ -235,32 +252,13 @@ class pos_Reports extends core_Master {
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()) {
-    		$mvc->extractData($form->rec);
+    		$reportData = $mvc->fetchData($form->rec->pointId, $form->rec->cashier);
     		
-    		if(!count($form->rec->details->receiptDetails)){
+    		// Проверяваме все пак дали има данни за репорта
+    		if(!count($reportData->receiptDetails)){
     			$form->setError('cashier, pointId', 'Няма активни бележки');
     			return;
     		}
-    	}
-    }
-    
-    
-    /**
-     * Записваме във всички бележки от репорта, 
-     * датата на записване и ид-то на репорта. Така
-     * Няма да позволим бележката да участва  в друг
-     * репорт, докато този е чернова
-     */
-	public static function on_AfterSave($mvc, $id, $rec)
-    {
-    	$now = dt::now();
-    	$rRec = $mvc->fetch($id);
-    	if($rRec->state != 'active') {
-	    	foreach($rRec->details->receipts as $receiptRec){
-	    		$receiptRec->lastUsedBy = $id;
-	    		$receiptRec->lastUsedOn = $now;
-	    		pos_Receipts::save($receiptRec);
-	    	}
     	}
     }
     
@@ -273,16 +271,22 @@ class pos_Reports extends core_Master {
      */
     private function extractData(&$rec)
     {
-    	$reportData = $this->fetchData($rec->pointId, $rec->cashier, $rec->id);
+    	// Извличаме информацията от бележките
+    	$reportData = $this->fetchData($rec->pointId, $rec->cashier);
+    	
     	$rec->details = $reportData;
     	$rec->productCount = $rec->change = $rec->total = $rec->paid = 0;
     	if(count($reportData->receiptDetails)){
 		    foreach($reportData->receiptDetails as $detail) {
+		    	
+		    	// Изчисляваме общата и платената сума на всички 
 		    	($detail->action == 'sale') ? $rec->total += $detail->amount : $rec->paid += $detail->amount;	
 			}
    	 	}
    	 	
    	 	foreach($reportData->receipts as $receipt){
+   	 		
+   	 		// Изчисляваме рестото и броя на продуктите от бележките
    	 	 	$rec->change += $receipt->change;
    	 	 	$rec->productCount += $receipt->productCount;
    	 	}
@@ -294,8 +298,6 @@ class pos_Reports extends core_Master {
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
-    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
-    	
     	// Рендираме плащанията
     	$tpl->append($mvc->renderListTable($data->rec->details->payments), "PAYMENTS");
     	if($data->rec->details->payments->pager){
@@ -307,6 +309,8 @@ class pos_Reports extends core_Master {
     	if($data->rec->details->sales->pager){
     		$tpl->append($data->rec->details->sales->pager->getHtml(), "SALE_PAGINATOR");
     	}
+    	
+    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     }
     
     
@@ -315,6 +319,15 @@ class pos_Reports extends core_Master {
      */
     static function on_AfterPrepareSingle($mvc, &$data)
     {
+    	if(!$data->rec->details){
+    		
+    		// Ако няма записани детайли извличаме актуалните
+    		$mvc->extractData($data->rec);
+    		$iconStyle = $data->row->iconStyle;
+    		$data->row = static::recToVerbal($data->rec);
+    		$data->row->iconStyle = $iconStyle;
+    	}
+    	
     	$detail = &$data->rec->details;
     	$payments = $sales = array();
     	
@@ -379,6 +392,7 @@ class pos_Reports extends core_Master {
     	$double = cls::get("type_Double");
     	$double->params['decimals'] = 2;
     	$row->amount = $double->toVerbal($rec->amount); 
+    	$currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	
     	if($rec->action == 'sale') {
     		
@@ -390,8 +404,9 @@ class pos_Reports extends core_Master {
     		} else {
     			$pack = cat_UoM::fetchField($product->measureId, 'shortName');
     		}
+    		$icon = sbf("img/16/package-icon.png");
     		$row->value = $product->code . " - " . $product->name;
-    		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $rec->value));
+    		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $rec->value), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
     		$double->params['decimals'] = 0;
     		$row->quantity = $pack . " - " . $double->toVerbal($rec->quantity);
     	} else {
@@ -400,9 +415,7 @@ class pos_Reports extends core_Master {
     		$value = pos_Payments::fetchField($rec->value, 'title');
     		$row->value = $varchar->toVerbal($value);
     	}
-    	$currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-    	$row->amount = " <span class='cCode'>{$currencyCode}</span> {$row->amount}";
-		
+    	
     	return $row;
     }
     
@@ -443,7 +456,7 @@ class pos_Reports extends core_Master {
      * @param int $userId - Ид на потребител в системата
      * @return array $result - масив с резултати
      * */
-    private function fetchData($pointId, $userId, $id)
+    private function fetchData($pointId, $userId)
     {
     	$details = $receipts = array();
     	$query = pos_Receipts::getQuery();
@@ -451,20 +464,10 @@ class pos_Reports extends core_Master {
     	$query->where("#createdBy = {$userId}");
     	$query->where("#state = 'active'");
     	
-    	// Само тези бележки, които вече не
-    	// са включени в репорт
-    	$query->where("#lastUsedOn IS NULL");
-    	if($id){
-    		
-    		// Ако репорта има ид, то добавяме и
-    		// бележките които са запазени за него
-    		$query->orWhere("#lastUsedBy = {$id}");
-    	}
-    	
     	// извличаме нужната информация за продажбите и плащанията
     	$this->fetchReceiptData($query, $details, $receipts);
     	
-    	return (object)array('receipts' => $receipts, 'receiptDetails' =>$details);
+    	return (object)array('receipts' => $receipts, 'receiptDetails' => $details);
     }
     
     
@@ -546,6 +549,9 @@ class pos_Reports extends core_Master {
     }
     
     
+    /**
+     * След обработка на ролите
+     */
 	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		// Никой неможе да редактира бележка

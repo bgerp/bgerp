@@ -130,6 +130,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    if(haveRole('pos,admin') && $this->Master->haveRightFor('conto', $data->masterId)) {
 	    	$contUrl = array('acc_Journal', 'conto', 'docId' => $data->masterId, 'docType' => $this->Master->className, 'ret_url' => array($this->Master, 'new'));
 	    }
+	    
 	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'FIRST_ROW');
 	   
 		return $tpl;
@@ -265,14 +266,17 @@ class pos_ReceiptDetails extends core_Detail {
     	if($form->isSubmitted()) {
     		$rec = &$form->rec;
     		$rec->ean = trim($rec->ean);
+    		
     		if(!$rec->ean) {
     			$form->setError('ean', 'Имате празно поле');
     			return;
     		}
+    		
     		if($rec->quantity == 0) {
 	    		$form->setError('quantity', 'Неможе да въведете нулево количество');
 	    		return;
 	    	}
+	    	
     		$action = $mvc->getAction($rec->action);
 	    	switch($action->type) {
 	    		case 'sale':
@@ -284,18 +288,13 @@ class pos_ReceiptDetails extends core_Detail {
 	    			
 				    // Намираме дали този проект го има въведен 
 				    $sameProduct = $mvc->findSale($rec->productId, $rec->receiptId, $rec->value);
-				    if((string)$sameProduct->price == (string)$rec->price) {
+					if((string)$sameProduct->price == (string)$rec->price) {
 				    				
 				    		// Ако цената и опаковката му е същата като на текущия продукт,
 				    		// не добавяме нов запис а ъпдейтваме стария
 				    		$newQuantity = $rec->quantity + $sameProduct->quantity;
-				    		if($newQuantity > 0) {
-				    			$rec->quantity = $newQuantity;
-				    			$rec->amount += $sameProduct->amount;
-				    		} else {
-				    			$rec->quantity = 0;
-				    			$rec->amount = 0;
-				    		}
+				    		$rec->quantity = $newQuantity;
+				    		$rec->amount += $sameProduct->amount;
 				    		
 				    		$rec->id = $sameProduct->id;
 				    }
@@ -526,7 +525,6 @@ class pos_ReceiptDetails extends core_Detail {
     function getActionOptions()
     {
     	$params = array();
-    	
     	$params[] = (object)array('title' => tr('Продажба'), 'group' => TRUE);
     	$params['sale|code'] = tr('Продукт');
     	$params[] = (object)array('title' => tr('Отстъпка'), 'group' => TRUE);

@@ -11,7 +11,7 @@
 }
 
 .narrow .single-receipt-wrapper{
-	min-width: 550px;
+	 min-width: 550px;
 }
 
 #receipt-table {
@@ -231,7 +231,6 @@ div.scrollWrapper{
   border-right:1px solid #000;
   border-bottom:1px solid #000;
   margin-bottom:0px;
-  
 }
 
 .printing div.scrollWrapper{
@@ -276,17 +275,17 @@ div.scrollWrapper{
 
 .cCode {
 	border:solid 1px #ccc;
+	color:black !important;
 	background-color:#eee;
 	padding:2px;
-	margin-left:5px;
     font-size:12px;
     vertical-align:middle;
 }
 
 .document .listRows table {
 	width:580px;
-	margin-bottom:20px;
-	margin-top:20px;
+	margin-bottom:15px;
+	margin-top:15px;
 }
 
 .document .listTable tr td:last-child{
@@ -319,7 +318,7 @@ form #point {
 
 .summary-right{
 	float:right;
-	margin-right:18px;
+	margin-right:11px;
 }
 
 #summary {
@@ -327,12 +326,26 @@ form #point {
 	padding:7px;
 	background:#eee;
 	border:1px solid rgba(0,0,0,0.3);
+	margin-bottom:3px;
 }
 
 #summary b {
 	color:rgb(0, 68, 136);
 }
 
+#summary b#count {
+	margin-left:5px;
+}
+
+.narrow #summary b#count {
+	margin-left:3px;
+}
+
 #summary table{
-	width:400px;
+	width:260px;
+	margin-bottom:10px;
+}
+
+#summary .money-info{
+	margin-left:3px;
 }

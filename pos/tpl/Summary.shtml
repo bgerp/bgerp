@@ -1,15 +1,24 @@
 <div id='summary'>
 <table>
 	<tr>
-		<td colspan='2'>Резултати: &nbsp;&nbsp;&nbsp;<b>[#count#]</b></td>
+		<td class='quiet'>Резултати:</td>
+		<td><b id='count'>[#count#]</b></td>
 	</tr>
 	<tr>
-		<td>Продадено: <span class='summary-right'><span class='cCode'>[#currency#]</span> <b>[#sumTotal#]</b></span></td>
-		<td>Продукти: <span class='summary-right'><b>[#products#]</b></span></td>
+		<td class='quiet'>Продукти</td>
+		<td><b id='count'>[#products#]</b></td>
 	</tr>
 	<tr>
-		<td>Платено: <span class='summary-right'><span class='cCode'>[#currency#]</span> <b>[#sumPaid#]</b></span></td>
-		<td>Ресто:  <span class='summary-right'><span class='cCode'>[#currency#]</span> <b>[#sumChange#]</b></span></td>
+		<td class='quiet'>Продадено</td>
+		<td><span class='cCode'>[#currency#]</span> &nbsp;<b>[#sumTotal#]</b></td>
+	</tr>
+	<tr>
+		<td class='quiet'>Платено</td>
+		<td><span class='cCode'>[#currency#]</span> &nbsp;<b>[#sumPaid#]</b></td>
+	</tr>
+	<tr>
+		<td class='quiet'>Ресто</td>
+		<td><span class='cCode'>[#currency#]</span> &nbsp;<b>[#sumChange#]</b></td>
 	</tr>
 </table>
 </div>

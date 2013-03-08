@@ -6,7 +6,7 @@
 </form>
 <!--ET_END FORM-->
 <!--ET_BEGIN FIELDS-->
-	<table border='0' width='480px'>
+	<table border='0' width='440px'>
 		<!--ET_BEGIN point-->
 			<tr><td>Toчка <span id='point'>[#point#]</span></td></tr>
 		<!--ET_END point-->
@@ -14,7 +14,7 @@
 			<tr><td>Касиер &nbsp;[#user#]</td></tr>
 		<!--ET_END user-->
 		<!--ET_BEGIN search-->
-			<tr><td>[#search#]</td></tr>
+			<tr><td>Клиент [#search#]</td></tr>
 		<!--ET_END search-->
 			<tr><td>От <span id='from'>[#from#]</span><span style='margin-left:15px'>До [#to#]</span></td></tr>
 	</table>

@@ -32,7 +32,7 @@ class pos_Receipts extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Printing,
-    				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search';
+    				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting';
 
     
     /**
@@ -114,9 +114,6 @@ class pos_Receipts extends core_Master {
             'caption=Статус, input=none'
         );
         $this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0');
-        
-        // Поле в което се записва в кой репорт участва бележката
-        $this->FLD('lastUsedBy', 'key(mvc=pos_Reports)', 'input=none');
     }
     
     
@@ -178,7 +175,7 @@ class pos_Receipts extends core_Master {
     	$row->number = "№{$rec->id}";
     	
     	if($fields['-list']){
-    		$row->title = "PoS Продажба {$row->number}";
+    		$row->title = "Бърза продажба {$row->number}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id));
     	}
     }
@@ -194,7 +191,6 @@ class pos_Receipts extends core_Master {
     		// Добавяме бутон за достъп до 'List' изгледа
     		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
     							   'ef_icon=img/16/application_view_list.png, order=18');    
-    								 
     	}
     }
     
@@ -219,8 +215,8 @@ class pos_Receipts extends core_Master {
     	if(!Request::get('ajax_mode')) {
 	    	jquery_Jquery::enable($tpl);
 	    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
-	    	$tpl->push($data->theme . '/style.css', 'CSS');
 	    	$tpl->push('pos/js/scripts.js', 'JS');
+	    	$tpl->push($data->theme . '/style.css', 'CSS');
 	    	if($data->products && count($data->products->arr) > 0) {
 	    		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
 	    	}
@@ -244,9 +240,13 @@ class pos_Receipts extends core_Master {
     	
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
+    	$query->where("#quantity != 0");
     	$query->where("#action LIKE '%sale%'");
     	if($count){
-    		return $query->count();
+    		
+    		// Преброяваме всичкото количество
+    		$query->XPR('total', 'int', 'SUM(#quantity)');
+    		return $query->fetch()->total;
     	}
     	
 	    while($rec = $query->fetch()) {
@@ -282,8 +282,6 @@ class pos_Receipts extends core_Master {
     				$rec->change = $change;
     			}
     			break;
-    		case 'discount':
-    			break;
     		case 'payment':
     			
     			// "Плащане" : преизчисляваме платеното до сега и рестото
@@ -311,7 +309,7 @@ class pos_Receipts extends core_Master {
     /**
      * Изчислява всичко платено до момента
      * @param int $id - запис от модела
-     * @return double $paid;
+     * @return double $paid - платената сума до момента
      */
     function countPaidAmount($id)
     {
@@ -353,12 +351,13 @@ class pos_Receipts extends core_Master {
     {
     	$data->query->orderBy('#createdOn', 'DESC');
     	if($filter = $data->listFilter->rec) {
-    		if($filter->to) {
-    			$data->query->where("#date <= '{$filter->to}'");
-    		}
-    		
+    	
     		if($filter->from) {
     			$data->query->where("#date >= '{$filter->from}'");
+    		}
+    		
+    		if($filter->to) {
+    			$data->query->where("#date <= '{$filter->to}'");
     		}
     	}
     }
@@ -375,7 +374,7 @@ class pos_Receipts extends core_Master {
 		}
 		
 		// Никой неможе да изтрива активирана бележка
-		if($action == 'delete' && $rec->state == 'active') {
+		if($action == 'delete' && $rec->state != 'draft') {
 			$res = 'no_one';
 		}
 		
@@ -402,7 +401,7 @@ class pos_Receipts extends core_Master {
 		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
 		$data->listFilter->setDefault('from', date('Y-m-01'));
 		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
-		$data->listFilter->setField('search', 'placeholder=Клиент,width=18em');
+		$data->listFilter->setField('search', 'placeholder=Клиент,width=15em');
         $data->listFilter->showFields = 'search,from,to';
         
         // Активиране на филтъра
@@ -497,6 +496,7 @@ class pos_Receipts extends core_Master {
     		$data->products = pos_Favourites::prepareProducts();
     		$data->products->theme = $data->theme;
     	}
+    	
         if($dForm = $data->pos_ReceiptDetails->form) {
             $rec = $dForm->input();
             $Details = cls::get('pos_ReceiptDetails');
