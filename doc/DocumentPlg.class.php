@@ -524,12 +524,18 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $tRec->state = 'rejected';
                     
-                    doc_Threads::save($tRec);
+                    doc_Threads::save($tRec, 'state');
                     
                     // Обновяваме съдържанието на папката
                     doc_Folders::updateFolderByContent($tRec->folderId);
                     
-                    $res = new Redirect(array('doc_Threads', 'folderId' => $tRec->folderId));
+                    $res = getRetUrl();
+
+                    if(!$res) {
+                        $res = array('doc_Threads', 'folderId' => $tRec->folderId);
+                    }
+
+                    $res = new Redirect($res); //'OK';
 
                     // Премахваме този документ от нотификациите
                     bgerp_Notifications::setHidden($keyUrl, 'yes');
@@ -564,7 +570,7 @@ class doc_DocumentPlg extends core_Plugin
                     }
                     
                     $tRec->state = 'closed';
-                    doc_Threads::save($tRec);
+                    doc_Threads::save($tRec, 'state');
 
                     // Показваме този документ в нотификациите
                     bgerp_Notifications::setHidden($keyUrl, 'no');
