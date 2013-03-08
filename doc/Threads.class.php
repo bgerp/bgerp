@@ -47,6 +47,8 @@ class doc_Threads extends core_Manager
     var $listFields = 'hnd=Номер,title=Заглавие,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване,modifiedOn=Модифициране';
     
     
+    var $canNewdoc = 'user';
+    
     /**
      * Какви действия са допустими с избраните редове?
      */
