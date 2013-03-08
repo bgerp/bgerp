@@ -37,7 +37,7 @@ class plg_Search extends core_Plugin
      * Извиква се преди запис в MVC класа. Генерира ключовите
      * думи за записа, които се допълват в полето searchKeywords
      */
-    function on_BeforeSave($mvc, $id, $rec, $fields)
+    function on_BeforeSave($mvc, $id, $rec, $fields=NULL)
     {
         if(!$fields || arr::haveSection($fields, $mvc->searchFields)) {
 
