@@ -75,7 +75,7 @@ class doc_Folders extends core_Master
     /**
      * Масив в id-та на папки, които трябва да се обновят на Shutdown
      */
-    static $updateByContentOnShutdown = array();
+    var $updateByContentOnShutdown = array();
 
 
     /**
@@ -266,7 +266,8 @@ class doc_Folders extends core_Master
     
     static function updateFolderByContent($id)
     {
-        self::$updateByContentOnShutdown[$id] = $id;
+        $mvc = cls::get('doc_Folders');
+        $mvc->updateByContentOnShutdown[$id] = $id;
     }
 
     
@@ -275,8 +276,8 @@ class doc_Folders extends core_Master
      */
     static function on_Shutdown($mvc)
     {
-        if(count(self::$updateByContentOnShutdown)) {
-            foreach(self::$updateByContentOnShutdown as $id) {
+        if(count($mvc->updateByContentOnShutdown)) {
+            foreach($mvc->updateByContentOnShutdown as $id) {
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
 
