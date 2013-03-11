@@ -368,4 +368,44 @@ class core_Os
 		
 	    return @rmdir($dir);
     }
+    
+    
+    /**
+     * Връща времето на последната промяна на файл в директорията
+     * 
+     * @param string $dir - Директорията
+     * 
+     * @return integer - Времето на последната промяна
+     */
+    static function getLastModified($dir)
+    {
+        // Всички файлове
+        $files = scandir($dir);
+        
+        // Запазваме в променлива, за да не вземаме 2 пъти за една и съща директория
+        static $lastModificationDir = array();
+        
+        // Ако вече сме гледали в директория
+        if (!$lastModificationDir[$dir]) {
+            
+            // Обхождаме файловете
+            foreach ($files as $file) {
+                
+                // Прескачаме ги
+                if ($file == '.' || $file == '..') continue;
+                
+                // Вземаме времето на промяна на последния файл
+                $time = filemtime($dir . DIRECTORY_SEPARATOR . $file);
+                
+                // Ако времето е по - голямо от записаното в директорията
+                if ($time > $lastModificationDir[$dir]) {
+                    
+                    // Записваме времето на последната промяна
+                    $lastModificationDir[$dir] = $time;
+                }
+            }
+        }
+        
+        return $lastModificationDir[$dir];
+    }
 }

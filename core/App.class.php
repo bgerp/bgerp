@@ -775,6 +775,7 @@ class core_App
                             // Сетваме флаговете
                             $fileExist =  TRUE;
                             $convertCss = TRUE;
+                            $checkDir = TRUE;
                         }
                     }
                 } else {
@@ -788,8 +789,16 @@ class core_App
         // Ако файла съществува
         if ($fileExist) {
             
-            // Датата на последна модификация
-            $time = filemtime($f);
+            // Ако е зададено да се провери директорията за промени и да се вземе времето на последната промяна фа файла
+            if ($checkDir) {
+                
+                // Времето на последната промяна в директорията
+                $time = core_Os::getLastModified(dirname($f));    
+            } else {
+                
+                // Датата на последна модификация
+                $time = filemtime($f);
+            }
             
             // Новия файл
             $newFile = $filePath . "_" . date("mdHis", $time) . $ext;
