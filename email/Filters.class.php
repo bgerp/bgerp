@@ -73,14 +73,15 @@ class email_Filters extends core_Manager
      */
     function description()
     {
+    	//$this->FLD('systemId' ,  'varchar(32)', 'caption=Ключ');
         $this->FLD('email' , 'varchar', 'caption=Условие->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('subject' , 'varchar', 'caption=Условие->Относно', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('body' , 'varchar', 'caption=Условие->Текст', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('action' , 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка,spam=Маркиране като спам)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull');
         $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Действие->Папка');
         $this->FLD('note' , 'text', 'caption=@Забележка', array('attr'=>array('style'=>'width: 100%;', 'rows'=>4)));
-    
-    	$this->setDbUnique('email');
+
+       // $this->setDbUnique('systemId');
     }
     
     
@@ -89,9 +90,8 @@ class email_Filters extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
- 				
-    	$res .= static::loadData();
-    
+ 		
+		$res .= self::loadData();    
     }
     
     /**
@@ -260,13 +260,13 @@ class email_Filters extends core_Manager
     static public function loadData()
     {
        $csvFile = __DIR__ . "/data/Filters.csv";
- 
+ 	   $ins = 0;
+ 	   
         if (($handle = @fopen($csvFile, "r")) !== FALSE) {
          
             while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
                
                 $rec = new stdClass();
-              
                 $rec->email = $csvRow[0]; 
                 $rec->subject = $csvRow[1];
                 $rec->body = $csvRow[2];
@@ -274,15 +274,15 @@ class email_Filters extends core_Manager
              	$rec->folderId = $csvRow[4]; 
                 $rec->note = $csvRow[5];
                 $rec->state = $csvRow[6];
-                        
-                
+                $rec->createdBy = '@system';
+              
                 self::save($rec, NULL, "IGNORE");
 
                 $ins++;
             }
             
             fclose($handle);
-            
+
             $res .= "<li style='color:green;'>Създадени са записи за {$ins} потребителски правила за рутиране</li>";
         } else {
             $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
