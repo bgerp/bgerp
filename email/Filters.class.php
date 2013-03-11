@@ -274,7 +274,9 @@ class email_Filters extends core_Manager
              	$rec->folderId = $csvRow[4]; 
                 $rec->note = $csvRow[5];
                 $rec->state = $csvRow[6];
-                $rec->createdBy = '@system';
+                $rec->createdBy = -1;
+                
+                $rec->id = self::fetchField("#email = '{$rec->email}' AND #createdBy = '{$rec->createdBy}'");
               
                 self::save($rec, NULL, "IGNORE");
 
