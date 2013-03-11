@@ -814,33 +814,24 @@ class core_App
                 // Ако трябва да се конвертира css файла
                 if ($convertCss) {
                     
-                    // TODO това е във vendors
                     // TODO след промяна на import' натите файлове, без оригиналния, все още ще работи със стария код
                     
-                    if (is_callable(array('sass_Converter', 'convert'))) {
-                        
-                        // Конвертираме файла и вземаме CSS' а
-                        $css = core_Converter::convertSass($f, 'scss');  
-                        
-                        // Ако няма резултат записваме в лога
-                        if (!trim($css)) {
-                            
-                            // Записваме в лога
-                            core_Logs::log("Генерирания CSS от '{$nPath}' е празен стринг.");
-                        } 
-
-                        // Записваме файла
-                        if (@file_put_contents($newPath, $css)) {
-                            
-                            // Задаваме пътя
-                            $rPath = $newFile;
-                        }
-                    } else {
+                    // Конвертираме файла и вземаме CSS' а
+                    $css = core_Converter::convertSass($f, 'scss');  
+                    
+                    // Ако няма резултат записваме в лога
+                    if (!trim($css)) {
                         
                         // Записваме в лога
-                        core_Logs::log("Няма функция за конвертране на 'scss'.");
-                    }
+                        core_Logs::log("Генерирания CSS от '{$nPath}' е празен стринг.");
+                    } 
 
+                    // Записваме файла
+                    if (@file_put_contents($newPath, $css)) {
+                        
+                        // Задаваме пътя
+                        $rPath = $newFile;
+                    }
                 } else {
                     
                     // Ако не трябва да се конвертира, записваме новия файл
