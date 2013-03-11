@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за "PoS Продукти" 
+ * Мениджър за "Бързи бутони" 
  *
  *
  * @category  bgerp
@@ -18,7 +18,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Продукти";
+    var $title = "Продукти за бързи бутони";
     
     
     /**
@@ -112,7 +112,8 @@ class pos_Favourites extends core_Manager {
      * @return stdClass - обект съдържащ пос продуктите за текущата
      * точка и формата за филтриране
      */
-    public static function prepareProducts(){
+    public static function prepareProducts()
+    {
     	$self = cls::get(get_called_class());
     	$productsArr = $self->preparePosProducts();
     	$categoriesArr = pos_FavouritesCategories::prepareAll();
@@ -144,22 +145,31 @@ class pos_Favourites extends core_Manager {
     	$query->orWhere("#pointId LIKE '%{$posRec->id}%'");
     	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
-    		if(!$cache[$rec->id]) {
-    			$obj = $this->prepareProductObject($rec);
-	    		$obj->code = $varchar->toVerbal($obj->code);
-	    		$obj->name = $varchar->toVerbal($obj->name);
-	    		
-	    		// Цена на продукта от ценовата политика
-	    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $rec->productId, $rec->packagingId, $obj->quantity, dt::verbal2mysql());
-	    		$obj->price = $double->toVerbal($price->price);
-    			$cache[$rec->id] = $obj;
+    		if(!$cache[$rec->id]){
+	    		$obj = $this->prepareProductObject($rec);
+		    	$obj->code = $varchar->toVerbal($obj->code);
+		    	$obj->name = $varchar->toVerbal($obj->name);
+		    	$obj->price = $double->toVerbal($price->price);
+	    		$cache[$rec->id] = $obj;
     		}
-    		 
+    		
+    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $rec->productId, $rec->packagingId, $obj->quantity, dt::verbal2mysql());
+    		$cache[$rec->id]->price = $double->toVerbal($price->price);
     		$array[$rec->id] = $cache[$rec->id];
     	}
     	
-    	core_Cache::set('pos_Favourites', 'products', $array, 300);
+    	core_Cache::set('pos_Favourites', 'products', $array, 1440, array('cat_Products'));
     	return $array;
+    }
+    
+    
+    /**
+     * След запис в модела
+     */
+	public static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	// Инвалидираме кеша
+    	core_Cache::remove('pos_Favourites', 'products');
     }
     
     

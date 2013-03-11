@@ -87,6 +87,9 @@ $(document).ready(function () {
    	    	$("#last-row").css("background-color", "#FFFF99");
    	    	$("input[disabled=disabled]").addClass("disabledBtn");
    	    	$("input.disabledBtn").attr('title', 'Неможе да приключите бележката, докато не е платена');
+   	    	if (typeof(window.WebScan) == "undefined" ) {
+	            $('.webscan').hide();
+	        }
    	     },
    	     error: function(result)
    	     {

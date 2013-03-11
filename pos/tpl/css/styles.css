@@ -283,7 +283,7 @@ div.scrollWrapper{
 }
 
 .document .listRows table {
-	width:580px;
+	width:700px;
 	margin-bottom:15px;
 	margin-top:15px;
 }
@@ -317,8 +317,6 @@ form #point {
 }
 
 .summary-right{
-	float:right;
-	margin-right:11px;
 }
 
 #summary {
@@ -342,10 +340,25 @@ form #point {
 }
 
 #summary table{
-	width:260px;
 	margin-bottom:10px;
 }
 
 #summary .money-info{
 	margin-left:3px;
+}
+
+.doc_Containers table.listTable.listTable > tbody > tr > td:first-child  {
+	width:65%;
+}
+
+.doc_Containers table.listTable.listTable > tbody > tr.report-payment > td:first-child {
+	text-indent: 5px;
+}
+
+.doc_Containers table.listTable.listTable > tbody > tr.report-payment{
+	background-color:rgb(209, 255, 218) !important;
+}
+
+.doc_Containers table.listTable.listTable > tbody > tr.report-sale{
+	background-color:rgba(246, 237, 167, 0.5) !important;
 }

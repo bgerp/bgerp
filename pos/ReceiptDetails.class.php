@@ -253,7 +253,6 @@ class pos_ReceiptDetails extends core_Detail {
     				$row->discountPercent = "+" . $row->discountPercent;
     			}	
     		}
-    		
     	}
     }
     
@@ -295,8 +294,13 @@ class pos_ReceiptDetails extends core_Detail {
 				    		$newQuantity = $rec->quantity + $sameProduct->quantity;
 				    		$rec->quantity = $newQuantity;
 				    		$rec->amount += $sameProduct->amount;
-				    		
 				    		$rec->id = $sameProduct->id;
+				    }
+				    
+				    if($rec->quantity < 0) {
+				    	
+				    	// Количеството на оставащия продукт не бива да е под 0
+				    	$form->setError('quantity', 'Въвели сте неправилно количество');
 				    }
 	    			break;
 	    		case 'payment':
@@ -356,7 +360,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$actionArr = explode("|", $string);
     	$allowed = array('sale', 'discount', 'client', 'payment');
     	expect(in_array($actionArr[0], $allowed), 'Не е позволена такава операция');
-    	expect(count($actionArr) == 2, 'Стринга не е в правилен формат');
+    	expect(count($actionArr) == 2, 'Стрингът не е в правилен формат');
     	
     	$action = new stdClass();
     	$action->type = $actionArr[0];
@@ -414,7 +418,7 @@ class pos_ReceiptDetails extends core_Detail {
     								   $product->productId,
     								   $product->packagingId, 
     								   $rec->quantity, 
-    								   $receiptRec->date);
+    								   $receiptRec->createdOn);
     	
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	$rec->price = $price->price;
@@ -570,7 +574,7 @@ class pos_ReceiptDetails extends core_Detail {
 
 	
 	/**
-     * Премахва продажбите с количество "0"
+     * Не показваме продажбите с количество "0"
      */
     static function on_AfterPrepareListRecs($mvc, &$res, $data)
     {
@@ -591,7 +595,7 @@ class pos_ReceiptDetails extends core_Detail {
      */
     static function fetchReportData($receiptId) {
     	
-    	expect(pos_Receipts::fetch($receiptId));
+    	expect($masterRec = pos_Receipts::fetch($receiptId));
     	$result = array();
     	$query = static::getQuery();
     	$query->where("#receiptId = {$receiptId}");
@@ -602,12 +606,14 @@ class pos_ReceiptDetails extends core_Detail {
     			$obj->action = 'sale';
     			$obj->pack = $rec->value;
     			$obj->value = $rec->productId;
-    			$obj->quantity = $rec->quantity;
     		} else {
     			$obj->action = 'payment';
     			$type = explode('|', $rec->action);
     			$obj->value = $type[1];
+    			$obj->date = $masterRec->createdOn;
     		}
+    		
+    		$obj->quantity = $rec->quantity;
     		$obj->amount = $rec->amount;
     		$result[$rec->id] = $obj;
     	}

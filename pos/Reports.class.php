@@ -31,8 +31,8 @@ class pos_Reports extends core_Master {
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'pos_Wrapper, plg_Printing,
-     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, plg_Sorting';
+   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, 
+   					bgerp_plg_Blank, doc_ActivatePlg, plg_Sorting';
    
     
     /**
@@ -56,7 +56,7 @@ class pos_Reports extends core_Master {
     /**
      * Брой продажби на страница
      */
-    var $listSalesPerPage = '7';
+    var $listDetailsPerPage = '15';
     
     
     /**
@@ -294,20 +294,14 @@ class pos_Reports extends core_Master {
     
     
     /**
-     * Пушваме css 
+     * Пушваме css и рендираме "детайлите"
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
-    	// Рендираме плащанията
-    	$tpl->append($mvc->renderListTable($data->rec->details->payments), "PAYMENTS");
-    	if($data->rec->details->payments->pager){
-    		$tpl->append($data->rec->details->payments->pager->getHtml(), "PAY_PAGINATOR");
-    	}
-    	
     	// Рендираме продажбите
-    	$tpl->append($mvc->renderListTable($data->rec->details->sales), "SALES");
-    	if($data->rec->details->sales->pager){
-    		$tpl->append($data->rec->details->sales->pager->getHtml(), "SALE_PAGINATOR");
+    	$tpl->append($mvc->renderListTable($data->rec->details), "SALES");
+    	if($data->rec->details->pager){
+    		$tpl->append($data->rec->details->pager->getHtml(), "SALE_PAGINATOR");
     	}
     	
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
@@ -329,22 +323,12 @@ class pos_Reports extends core_Master {
     	}
     	
     	$detail = &$data->rec->details;
-    	$payments = $sales = array();
-    	
-    	// Разделяме детайлите на два масива: продажби и плащания
-    	foreach($detail->receiptDetails as $rec) {
-	    		($rec->action == 'payment') ? $payments[] = $rec : $sales[] = $rec;
-	    }
-	    	
+    	arr::order($detail->receiptDetails, 'action');
+	   
 	    // Табличната информация и пейджъра на плащанията
-	    $detail->payments->listFields = "value=Плащане, amount=Сума";
-    	$detail->payments->rows = $payments;
-    	$mvc->prepareDetail($detail->payments);
-    		
-    	// Табличната информация и пейджъра на продажбите
-    	$detail->sales->listFields = "value=Продукт, quantity=Количество, amount=Сума";
-	    $detail->sales->rows = $sales;
-	    $mvc->prepareDetail($detail->sales);
+	    $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
+    	$detail->rows = $detail->receiptDetails;
+    	$mvc->prepareDetail($detail);
 	}
     
     
@@ -357,7 +341,7 @@ class pos_Reports extends core_Master {
     	$newRows = array();
     	
     	// Инстанцираме пейджър-а
-    	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listSalesPerPage));
+    	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
     	$Pager->itemsCount = count($detail->rows);
     	$Pager->calc();
     	
@@ -393,27 +377,30 @@ class pos_Reports extends core_Master {
     	$double->params['decimals'] = 2;
     	$row->amount = $double->toVerbal($rec->amount); 
     	$currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-    	
+    	$double->params['decimals'] = 0;
     	if($rec->action == 'sale') {
     		
     		// Ако детайла е продажба
+    		$row->ROW_ATTR['class'] = 'report-sale';
     		$info = cat_Products::getProductInfo($rec->value, $rec->pack);
     		$product = $info->productRec;	
     		if($rec->pack){
-    			$pack = cat_Packagings::fetchField($rec->pack, 'name');
+    			$row->pack = cat_Packagings::fetchField($rec->pack, 'name');
     		} else {
-    			$pack = cat_UoM::fetchField($product->measureId, 'shortName');
+    			$row->pack = cat_UoM::fetchField($product->measureId, 'name');
     		}
     		$icon = sbf("img/16/package-icon.png");
     		$row->value = $product->code . " - " . $product->name;
     		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $rec->value), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
-    		$double->params['decimals'] = 0;
-    		$row->quantity = $pack . " - " . $double->toVerbal($rec->quantity);
+    		$row->quantity = $double->toVerbal($rec->quantity);
     	} else {
     		
     		// Ако детайла е плащане
+    		$row->pack = "<span class='cCode'>" . acc_Periods::getBaseCurrencyCode($rec->date) . "</span>";
     		$value = pos_Payments::fetchField($rec->value, 'title');
-    		$row->value = $varchar->toVerbal($value);
+    		$row->value = tr("Плащания") . ": &nbsp;<i>" . $varchar->toVerbal($value) . "</i>";
+    		$row->quantity = $double->toVerbal($rec->quantity);
+    		$row->ROW_ATTR['class'] = 'report-payment';
     	}
     	
     	return $row;
@@ -451,7 +438,7 @@ class pos_Reports extends core_Master {
     /**
      * Подготвя информацията за направените продажби и плащания
      * от всички бележки за даден период от време на даден потребител
-     * на дадена точка (@see pos_Reports)
+     * на дадена точка
      * @param int $pointId - Ид на точката на продажба
      * @param int $userId - Ид на потребител в системата
      * @return array $result - масив с резултати
@@ -484,24 +471,23 @@ class pos_Reports extends core_Master {
     		// запомняме кои бележки сме обиколили
     		$receipts[] = $rec;
     		
-    		// Добавяме детайлите на бележката запазвайки уникалните им ид-та 
+    		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
 	    	foreach($data as $obj) {
-		    		
-	    	// проверяваме дали в новия масив има обект с value и pack
-			// равни на текущия обект
-			$object = $this->findDetail($results, array('value' => $obj->value, 'pack' => $obj->pack), $obj->action);
-			if(!$object) {
-			    		
-			    // Ако няма такъв обект то добавяме първия уникален детайл
-			    $results[] = $obj;
-			} else {
-			    		
+		    
+		    	// проверяваме дали в новия масив има обект с value и pack равни на текущия обект
+				$object = $this->findDetail($results, array('value' => $obj->value, 'pack' => $obj->pack), $obj->action);
+		    	if(!$object) {
+				    		
+				    // Ако няма такъв обект то добавяме първия уникален детайл
+				    $results[] = $obj;
+				} else {
+					
 				    // Ако вече има обект с това value и pack (Ако детайла е продажба)
-				    // ние сумираме неговите количество и сума към вече добавения елемент
-				    $object->quantity += $obj->quantity;
-				    $object->amount = (float)(string)$object->amount + (string)$obj->amount;
-			    }
+					// ние сумираме неговите количество и сума към вече добавения елемент
+					$object->quantity += $obj->quantity;
+					$object->amount = (float)(string)$object->amount + (string)$obj->amount;
+				}
 	    	}
     	}
     }
