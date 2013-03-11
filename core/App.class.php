@@ -820,7 +820,7 @@ class core_App
                     if (is_callable(array('sass_Converter', 'convert'))) {
                         
                         // Конвертираме файла и вземаме CSS' а
-                        $css = sass_Converter::convert($f, 'scss');  
+                        $css = core_Converter::convertSass($f, 'scss');  
                         
                         // Ако няма резултат записваме в лога
                         if (!trim($css)) {
