@@ -39,9 +39,67 @@ class fileman_webdrv_Svg extends fileman_webdrv_Image
      */
     static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
     {
-        parent::convertToJpg($fRec, 'fileman_webdrv_Svg::afterConvertToJpg');
+        // Параметри необходими за конвертирането
+        $params = array(
+            'callBack' => 'fileman_webdrv_Svg::afterConvertToPng',
+            'dataId' => $fRec->dataId,
+        	'asynch' => TRUE,
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'png',
+        );
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (fileman_Indexes::isProcessStarted($params)) return ;
+        
+        // Заключваме процеса за определено време
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+            
+            // Стартираме конвертирането към JPG
+            static::startConvertingToPng($fRec, $params);    
+        }
     }
     
+    
+    /**
+     * Стартира конвертиране към PNG формат
+     * 
+     * @param object $fRec - Записите за файла
+     * @param array $params - Допълнителни параметри
+     */
+    static function startConvertingToPng($fRec, $params)
+    {
+        // Инстанция на класа
+        $Script = cls::get(fconv_Script);
+        
+        // Вземаме името на файла без разширението
+        $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
+
+        // Задаваме пътя до изходния файла
+        $outFilePath = $Script->tempDir . $name . '.png';
+        
+        // Задаваме placeHolder' ите за входния и изходния файл
+        $Script->setFile('INPUTF', $fRec->fileHnd);
+        $Script->setFile('OUTPUTF', $outFilePath);
+        
+        // Скрипта, който ще конвертира файла в JPG формат
+        $Script->lineExec('rsvg-convert [#INPUTF#] -o [#OUTPUTF#]');
+        
+        // Функцията, която ще се извика след приключване на обработката на файла
+        $Script->callBack($params['callBack']);
+        
+        // Други необходими променливи
+        $Script->params = serialize($params);
+        $Script->fName = $name;
+        $Script->outFilePath = $outFilePath;
+        $Script->fh = $fRec->fileHnd;
+
+        // Стартираме скрипта Aсинхронно
+        $Script->run();
+    }
+	
     
 	/**
      * Функция, която получава управлението след конвертирането на файл в JPG формат
@@ -53,10 +111,10 @@ class fileman_webdrv_Svg extends fileman_webdrv_Image
      * 
      * @access protected
      */
-    static function afterConvertToJpg($script, &$fileHndArr = array())
+    static function afterConvertToPng($script, &$fileHndArr = array())
     {
         // Извикваме родутелския метод
-        if (parent::afterConvertToJpg($script, $fileHndArr)) {
+        if (static::afterConvertToJpg($script, $fileHndArr)) {
 
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
@@ -78,7 +136,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Image
     static function getThumbPrev($fRec) 
     {
         // Вземаме масива с изображенията
-        $jpgArr = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'jpg');
+        $jpgArr = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'png');
 
         // Ако няма такъв запис
         if ($jpgArr === FALSE) {
