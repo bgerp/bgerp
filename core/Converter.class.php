@@ -33,7 +33,7 @@ class core_Converter extends core_BaseClass
         $converted = $me->invoke('AfterConvertSass', array(&$res, $file, $type));
         
         // Ако няма такава функция
-        if ($converted == -1) {
+        if ($converted === -1) {
             
             // Записваме в лога
             core_Logs::log('Няма функция за конвертиране на SCSS файлове');
