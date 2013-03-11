@@ -79,6 +79,8 @@ class email_Filters extends core_Manager
         $this->FLD('action' , 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка,spam=Маркиране като спам)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull');
         $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Действие->Папка');
         $this->FLD('note' , 'text', 'caption=@Забележка', array('attr'=>array('style'=>'width: 100%;', 'rows'=>4)));
+    
+    	$this->setDbUnique('email');
     }
     
     
@@ -87,11 +89,9 @@ class email_Filters extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
- 		// Изтриваме съдържанието й
-		$mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
-		
+ 				
     	$res .= static::loadData();
-      
+    
     }
     
     /**
@@ -276,7 +276,7 @@ class email_Filters extends core_Manager
                 $rec->state = $csvRow[6];
                         
                 
-                static::save($rec);
+                self::save($rec, NULL, "IGNORE");
 
                 $ins++;
             }
