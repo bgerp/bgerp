@@ -12,10 +12,5 @@
 				[#body#]
 			</td>
 		</tr>
-		<tr>
-			<td class='tools-box'>
-				[#topLink#]
-			</td>
-		</tr>
 	</table>
 </li>

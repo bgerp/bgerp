@@ -4,7 +4,12 @@
 </div>
 <div id='forum-board'>[#GREETING#]</div>
 [#SEARCH_FORM#]
-[#CATEGORIES#]
+<!--ET_BEGIN category-->
+<ul class='category-ul'  width='100%'>
+		<li class='board-header'>[#cat#]</li>
+		[#BOARDS#]
+</ul>
+<!--ET_END category-->
 <div id='forum-toolbar'>
 [#TOOLBAR#]
 </div>

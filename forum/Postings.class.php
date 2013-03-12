@@ -23,7 +23,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting, plg_Search';
+	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
 	
 	
 	/** 
@@ -331,7 +331,7 @@ class forum_Postings extends core_Detail {
 		}
 		
 		// Подготвяме навигацията
-		$this->Master->prepareNavigation($data);
+		$data->navigation = $this->Master->prepareNavigation($data->board->category, $data->rec->boardId, $data->rec->id, $data->display);
 	}
 	
 	
@@ -360,9 +360,9 @@ class forum_Postings extends core_Detail {
 		
 		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
-			
-            $data->postForm->layout = new ET(getFileContent($data->forumTheme . '/PostForm.shtml'));
-            $data->postForm->fieldsLayout = new ET(getFileContent($data->forumTheme . '/PostFormFields.shtml'));
+			$formTpl = new ET(getFileContent($data->forumTheme . '/PostForm.shtml'));
+            $data->postForm->layout = $formTpl->getBlock('FORM');
+            $data->postForm->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         } else {
         	(core_Users::getCurrent()) ? $msg = 'темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';
@@ -398,10 +398,6 @@ class forum_Postings extends core_Detail {
 		$data->rec = $rec;
 		$conf = core_Packs::getConfig('forum');
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
-        
-        // Попълваме вербалната и невербалната информация за дъската, където ще добавяме тема
-        $fields = $this->Master->selectFields('');
-        $data->row = $this->Master->recToVerbal($data->rec, $fields);
         $data->action = 'new';
         $data->display = 'public';
         
@@ -428,7 +424,6 @@ class forum_Postings extends core_Detail {
         
         // Рендираме Формата
 		$layout = $this->renderNew($data);
-		
 		$layout->push($data->forumTheme . '/styles.css', 'CSS');
 		$layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		
@@ -443,7 +438,7 @@ class forum_Postings extends core_Detail {
 	{
 		// Подготвяме форма за започване на нова тема
 		$form = $this->getForm();
-		$form->setHidden('boardId', $data->row->id);
+		$form->setHidden('boardId', $data->rec->id);
 		
 		// Ако потребителя няма права да заключва/отключва тема, ние скриваме полето от формата
 		if(!$this->haveRightFor('write', $data->rec)) {
@@ -456,10 +451,10 @@ class forum_Postings extends core_Detail {
 		$data->form = $form;
 		
 		// Заглавие на формата
-		$data->header = tr("Започване на нова тема в:") . "&nbsp;&nbsp;&nbsp;" . $data->row->title;
+		$data->header = tr("Започване на нова тема в") . ":&nbsp;&nbsp;&nbsp;" . $data->row->title;
 		
 		// Подготвяме навигацията
-		$this->Master->prepareNavigation($data);
+		$data->navigation = $this->Master->prepareNavigation($data->rec->category, $data->rec->id, NULL, $data->display);
 	}
 	
 	
@@ -468,8 +463,9 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderNew($data)
 	{
-		$data->form->layout = new ET(getFileContent($data->forumTheme . '/AddForm.shtml'));
-        $data->form->fieldsLayout = new ET(getFileContent($data->forumTheme . '/AddFormFields.shtml'));
+		$formTpl = new ET(getFileContent($data->forumTheme . '/AddForm.shtml'));
+		$data->form->layout = $formTpl->getBlock("FORM");
+        $data->form->fieldsLayout = $formTpl->getBlock("FORM_FIELDS");
 		
         $tpl = new ET(getFileContent($data->forumTheme . '/New.shtml'));
 		$tpl->replace($data->header, 'header');
@@ -537,7 +533,7 @@ class forum_Postings extends core_Detail {
 		}
         
 		$this->prepareTopicToolbar($data);
-        $this->Master->prepareInnerNavigation($data);
+		$data->navigation = $this->Master->prepareNavigation($data->board->category, $data->rec->boardId, $data->rec->id);
 	}
 	
 	
@@ -549,13 +545,13 @@ class forum_Postings extends core_Detail {
 		if($this->haveRightFor('write', $data->rec)) {
 			
 			// Местене на тема
-        	$data->moveUrl = array($this, 'Move', 'themeId' => $data->rec->id);
+        	$data->moveUrl = array($this, 'move', 'themeId' => $data->rec->id);
 			
 			// Адрес за заключване/отключване на тема
-			$data->lockUrl = array($this, 'Lock', $data->rec->id);
+			$data->lockUrl = array($this, 'lock', $data->rec->id);
 			
 			// Редактиране на темата
-			$data->editUrl = array($this, 'Edit', $data->rec->id, 'ret_url' => TRUE );
+			$data->editUrl = array($this, 'edit', $data->rec->id, 'ret_url' => TRUE );
 		} 
 	}
 	
@@ -699,7 +695,7 @@ class forum_Postings extends core_Detail {
 		$data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), array('class' => 'btn-move'));
 		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), array('class' => 'btn-cancel'));
 		
-		$this->Master->prepareInnerNavigation($data);
+		$data->navigation = $this->Master->prepareNavigation($data->board->categoryId, $data->rec->boardId, $data->rec->id);
 	}
 	
 	
@@ -711,13 +707,10 @@ class forum_Postings extends core_Detail {
 	{
 		$layout = new ET("");
 		$layout->append($this->Master->renderNavigation($data));
-		
 		if($data->form) {
 			$layout->append($data->form->renderHtml());
 		}
-		
 		$layout = $this->renderWrapping($layout);
-		
 		$layout->push('forum/tpl/styles.css', 'CSS');
 		
 		return $layout;
@@ -971,7 +964,7 @@ class forum_Postings extends core_Detail {
    	 				$row->status = '';
    	 			  }
    	 			
-   	 			$row->title =$row->status. ht::createLink($row->title, array($mvc, 'Topic', $rec->id));
+   	 			$row->title = $row->status. ht::createLink($row->title, array($mvc, 'Topic', $rec->id));
    	 			
    	 			if(!$row->last) {
    	 		 		$row->last = tr('няма');
@@ -1024,16 +1017,6 @@ class forum_Postings extends core_Detail {
    	 		$row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
    	 		$row->topLink = ht::createLink(tr('начало'), getCurrentUrl(), NULL, array('class' => 'button'));
    	 	}
-   	 	
-   	 	// Линк към преглед на темата във външния изглед
-   	 	if($fields['-public']) {
-   	 		$row->title = ht::createLink($row->title, array($mvc, 'Theme', $row->id));
-   	 	}
-   	 	
-   	 	// Линк към преглед на темата във вътрешния изглед
-   		if($fields['-private']) {
-   	 		$row->title = ht::createLink($row->title, array($mvc, 'Topic', $row->id));
-   	 	}
     }
    
     
@@ -1043,7 +1026,7 @@ class forum_Postings extends core_Detail {
     function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
 		$data->query->where("#themeId IS  NULL");
-		$data->title = 'Показване на всички теми';
+		$data->title = tr('Показване на всички теми');
 		
         if($filter = $data->listFilter->rec) {
 	    	if($filter->board > 0) {
