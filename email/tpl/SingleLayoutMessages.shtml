@@ -15,47 +15,48 @@
 				     Относно: <b>[#subject#]</b>
 				</div>
 			<!--ET_END subject-->
-			<div style='float:left;margin-right:10px;'>
-			<small>   
-			<table cellspacing='1' class='top-table' >
-			<!--ET_BEGIN allTo-->          
-				<tr>
-				    <td  align='right'>|До|*:</td>
-				    <td>[#allTo#]</td>
-				</tr>
-			<!--ET_END allTo-->
-			<!--ET_BEGIN allCc-->          
-				<tr>
-				    <td  align='right'>|Кп|*:</td>
-				    <td>[#allCc#]</td>
-				</tr>
-			<!--ET_END allCc-->
-			<!--ET_BEGIN from-->          
-				<tr>
-				    <td  align='right' style='vertical-align:top'>|От|*:</td>
-				    <td>[#fromEml#]</td>
-				</tr>
-			<!--ET_END to-->
-			<!--ET_BEGIN date-->          
-				<tr>
-				    <td align='right'>|На|*:</td>
-				    <td>[#date#]</td>
-				</tr>
-			<!--ET_END date-->
-	
-			<!--ET_BEGIN fromIp-->          
-				<tr>
-				    <td  align='right'>IP:</td>
-				    <td>[#fromIp#]</td>
-				</tr>
-			<!--ET_END fromIp-->
-						
-			</table>   </small>  
+			<div class="em-holder" style='float:left;margin-right:10px;'>
+			  <small>   
+				<table cellspacing='1' class='top-table'>
+				<!--ET_BEGIN allTo-->          
+					<tr>
+					    <td  align='right'>|До|*:</td>
+					    <td>[#allTo#]</td>
+					</tr>
+				<!--ET_END allTo-->
+				<!--ET_BEGIN allCc-->          
+					<tr>
+					    <td  align='right'>|Кп|*:</td>
+					    <td>[#allCc#]</td>
+					</tr>
+				<!--ET_END allCc-->
+				<!--ET_BEGIN from-->          
+					<tr>
+					    <td  align='right' style='vertical-align:top'>|От|*:</td>
+					    <td>[#fromEml#]</td>
+					</tr>
+				<!--ET_END to-->
+				<!--ET_BEGIN date-->          
+					<tr>
+					    <td align='right'>|На|*:</td>
+					    <td>[#date#]</td>
+					</tr>
+				<!--ET_END date-->
+		
+				<!--ET_BEGIN fromIp-->          
+					<tr>
+					    <td  align='right'>IP:</td>
+					    <td>[#fromIp#]</td>
+					</tr>
+				<!--ET_END fromIp-->
+							
+				</table>   
+			</small>  
 		</div>    
 		
 		
 		<!--ET_BEGIN files-->
-		<small>
+		<small class="sm-att" >
 			<div class='attachments'>   
 				<div class="aHeader">|Прикачени файлове|*:</div>
 				<div style='display:inline-block; margin:5px'>[#files#]</div>
@@ -63,7 +64,7 @@
 		</small>
 		<!--ET_END files--> 
 	
-	
+		<div class="clearfix21"></div>
 	</div>
 	
 	<div style='clear: both;'></div>  
