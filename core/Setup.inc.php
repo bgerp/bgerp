@@ -273,6 +273,16 @@ list($selfUrl,) = explode('&', $selfUrl);
 $nextUrl = $selfUrl . '&amp;step=' . ($step+1);
 $selfUrl .= '&amp;step=' . $step;
 
+// Определяме линка към приложението
+$appUri = $selfUrl; 
+if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
+	$appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate'));
+}
+if (strpos($appUri,'/?') !== FALSE) {
+  	$appUri = substr($appUri, 0, strpos($appUri,'/?'));
+} 
+
+
 for($i = 1; $i <= 4; $i++) {
     $nextUrl = str_replace('&step=' . $i, '', $nextUrl);
 }
@@ -542,6 +552,7 @@ if ($step == 'setup') {
 	$calibrate = 1000;
     $totalRecords = 137560;
     $totalTables = 225;
+    $percents = 0;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
@@ -553,10 +564,12 @@ if ($step == 'setup') {
 	              "Cookie: setup=bar\r\n"
 	  )
 	);    
+    
+	// Първоначално изтриване на Log-a
+    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
 	
 	$context = stream_context_create($opts);
 	
-	//$res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . setupKey(), FALSE, $context, 0, 2);
 	$res = file_get_contents("{$selfUrl}&step=start", FALSE, $context, 0, 2);
 	
     if ($res == 'OK') {
@@ -592,28 +605,36 @@ if ($step == 'setup') {
         			<span id=\"progressPercents\">0 %</span>
         			</li>
         		");
-    
-    
-    static $cnt = 0;
-    
-    do {
 
+    do {
+		clearstatcache();
+    	$fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
+		clearstatcache();
     	list($numTables, $numRows) = dataBaseStat(); 
 
-        $percents = round(($numRows+$calibrate*$numTables)/$total,2)*100;
+        if ($percents < 80) {
+    		$percents = round(($numRows+$calibrate*$numTables)/$total,2)*100 - 20;
+        }
+        
+        // Изчитаме лог-а
+        $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
+
+        if (!empty($setupLog) && $percents < 100) {
+        	$percents+=2;
+        }
+        
+        $width = 4.5*$percents;
         
         // Прогресбар
-        if ($percents > 100) $percents = 100;
-        $width = 4.5*$percents;
         contentFlush("<script>
 						document.getElementById(\"progressIndicator\").style.paddingLeft=\"" . $width ."px\";
 						document.getElementById(\"progressPercents\").innerHTML = '" . $percents . " %';
 					</script>");
         
-        // Лог
-        // Изчитаме лог-а ако е отключен и го изтриваме 
-        $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
-	    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+        // Изтриваме Log-a - ако има нещо в него
+        if (!empty($setupLog)) {
+	    	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+        }
 	    
 	    $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
         
@@ -622,23 +643,18 @@ if ($step == 'setup') {
 				</script>");
                 
         sleep(2);
-    } while ($numRows < $totalRecords && $numTables < $totalTables);
+        $fTime2 = filemtime(EF_TEMP_PATH . '/setupLog.html');
+        if (($fTime2 - $fTime) > 0) {
+        	$logModified = TRUE;
+        } else {
+        	$logModified = FALSE;
+        }
+    } while ($numRows < $totalRecords && $numTables < $totalTables || !empty($setupLog) || $logModified);
     
     
-    sleep(3);
+    sleep(1);
 
-    contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
-    
-    
-    $appUri = $selfUrl; 
-    if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
-    	$appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate'));
-    }
-
-    if (strpos($appUri,'/?') !== FALSE) {
-    	$appUri = substr($appUri, 0, strpos($appUri,'/?'));
-    } 
-    
+    contentFlush("<h3 id='success'>Инициализирането завърши успешно!</h3>");
     
     $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent"); 
     $l = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($l));
@@ -699,7 +715,10 @@ if($step == start) {
     $Packs->setupMVC();
     $Packs->checkSetup();
     
-	setupUnlock();
+    // за сега стартираме пакета bgERP за пълно обновяване
+    $Packs->setupPack("bgerp");
+
+    setupUnlock();
     exit;
 }
 
