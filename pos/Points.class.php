@@ -32,7 +32,7 @@ class pos_Points extends core_Manager {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Точка на Продажба";
+    var $singleTitle = "Точка на продажба";
     
     
     /**
@@ -116,7 +116,7 @@ class pos_Points extends core_Manager {
     {
     	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
     		$urlArr = toUrl(array('pos_Receipts', 'single'));
-    		$row->currentPlg->append(ht::createFnBtn("Отвори", "window.open('{$urlArr}')", NULL, array('style' => 'margin-left:40px;margin-right:3px;display:inline')));
+    		$row->currentPlg->append(ht::createFnBtn(tr("Отвори"), "window.open('{$urlArr}')", NULL, array('style' => 'margin-left:40px;margin-right:3px;display:inline')));
     	}
     }
 }

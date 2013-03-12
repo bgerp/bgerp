@@ -16,6 +16,6 @@
 		<!--ET_BEGIN search-->
 			<tr><td>|Клиент|* [#search#]</td></tr>
 		<!--ET_END search-->
-			<tr><td>|От|* <span id='from'>[#from#]</span><span style='margin-left:15px'>|До|* [#to#]</span></td></tr>
+			<tr><td>|От|* <span id='from'>[#from#]</span><span style='margin-left:15px'>|До|* &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[#to#]</span></td></tr>
 	</table>
 <!--ET_END FIELDS-->

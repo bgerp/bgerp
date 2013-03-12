@@ -56,7 +56,7 @@ class pos_Reports extends core_Master {
     /**
      * Брой продажби на страница
      */
-    var $listDetailsPerPage = '15';
+    var $listDetailsPerPage = '40';
     
     
     /**
@@ -127,7 +127,7 @@ class pos_Reports extends core_Master {
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	
-        $filterTpl = new ET(tr('|*' .getFileContent('pos/tpl/FilterForm.shtml')));
+        $filterTpl = new ET(tr('|*' . getFileContent('pos/tpl/FilterForm.shtml')));
 		$data->query->orderBy('#createdOn', 'DESC');
 		$data->listFilter->layout = $filterTpl->getBlock('FORM');
 		$data->listFilter->fieldsLayout = $filterTpl->getBlock('FIELDS');
@@ -192,8 +192,7 @@ class pos_Reports extends core_Master {
     	$queryCopy->XPR('products', 'int', 'SUM(#productCount)');
     	$queryCopy->show('sumTotal,sumPaid,count,sumChange,products');
     	$queryCopy->where("#state = 'active'");
-    	$rec = $queryCopy->fetch();
-    	if(!$rec) {
+    	if(!$rec = $queryCopy->fetch()) {
     		
     		// Ако няма резултати, всичките стават 0
     		foreach($queryCopy->show as $el) {
@@ -210,7 +209,7 @@ class pos_Reports extends core_Master {
     	$rec->currency = acc_Periods::getBaseCurrencyCode();
     	
     	// Зареждаме и подготвяме шаблона
-    	$tpl = new ET(tr('|*' .getFileContent("pos/tpl/Summary.shtml")));
+    	$tpl = new ET(tr('|*' . getFileContent("pos/tpl/Summary.shtml")));
     	$tpl->placeObject($rec);
     	
     	return $tpl;
@@ -224,11 +223,7 @@ class pos_Reports extends core_Master {
     {
     	$double = cls::get("type_Double");
     	$double->params['decimals'] = 2;
-    	
-    	// Показваме заглавието само ако не сме в режим принтиране
-    	if(!Mode::is('printing')){
-    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-    	}
+    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	
     	$storeRec = pos_Points::fetchField($rec->pointId, 'storeId');
     	$storeRow = pos_Points::recToVerbal($storeRec, 'storeId');
@@ -318,8 +313,10 @@ class pos_Reports extends core_Master {
     		// Ако няма записани детайли извличаме актуалните
     		$mvc->extractData($data->rec);
     		$iconStyle = $data->row->iconStyle;
+    		$header = $data->row->header;
     		$data->row = static::recToVerbal($data->rec);
     		$data->row->iconStyle = $iconStyle;
+    		$data->row->header = $header;
     	}
     	
     	$detail = &$data->rec->details;
@@ -396,7 +393,7 @@ class pos_Reports extends core_Master {
     	} else {
     		
     		// Ако детайла е плащане
-    		$row->pack = "<span class='cCode'>" . acc_Periods::getBaseCurrencyCode($rec->date) . "</span>";
+    		$row->pack = $currencyCode;
     		$value = pos_Payments::fetchField($rec->value, 'title');
     		$row->value = tr("Плащания") . ": &nbsp;<i>" . $varchar->toVerbal($value) . "</i>";
     		$row->quantity = $double->toVerbal($rec->quantity);
@@ -486,7 +483,7 @@ class pos_Reports extends core_Master {
 				    // Ако вече има обект с това value и pack (Ако детайла е продажба)
 					// ние сумираме неговите количество и сума към вече добавения елемент
 					$object->quantity += $obj->quantity;
-					$object->amount = (float)(string)$object->amount + (string)$obj->amount;
+					$object->amount = $object->amount + $obj->amount;
 				}
 	    	}
     	}

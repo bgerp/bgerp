@@ -44,7 +44,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title=Заглавие,contragentName, total, paid, change, productCount, state , createdOn, createdBy';
+    var $listFields = 'id, title=Заглавие, contragentName, total, paid, change, productCount, state , createdOn, createdBy';
     
     
     /**
@@ -396,7 +396,7 @@ class pos_Receipts extends core_Master {
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	
-        $filterTpl = new ET(tr('|*' .getFileContent('pos/tpl/FilterForm.shtml')));
+        $filterTpl = new ET(tr('|*' . getFileContent('pos/tpl/FilterForm.shtml')));
 		$data->listFilter->layout = $filterTpl->getBlock('FORM');
 		$data->listFilter->fieldsLayout = $filterTpl->getBlock('FIELDS');
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');

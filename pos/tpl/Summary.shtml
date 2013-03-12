@@ -2,12 +2,12 @@
 	<table>
 		<tr>
 			<td class='quiet'>|Резултати|*:</td>
-			<td>бр</td>
+			<td class='quiet'>бр</td>
 			<td><b id='count'>[#count#]</b></td>
 		</tr>
 		<tr>
 			<td class='quiet'>|Продукти|*:</td>
-			<td>бр</td>
+			<td class='quiet'>бр</td>
 			<td><b id='count'>[#products#]</b></td>
 		</tr>
 		<tr>

@@ -131,35 +131,38 @@ class pos_Favourites extends core_Manager {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	$cache = core_Cache::get('pos_Favourites', 'products');
-    	$array = array();
-    	
     	// Коя е текущата точка на продажба и нейния дефолт контрагент
     	$posRec = pos_Points::fetch(pos_Points::getCurrent());
     	$defaultPosContragentId = pos_Points::defaultContragent($posRec->id);
     	$crmPersonsClassId = crm_Persons::getClassId();
     	$Policy = cls::get($posRec->policyId);
     	
-    	$query = static::getQuery();
-    	$query->where("#pointId IS NULL");
-    	$query->orWhere("#pointId LIKE '%{$posRec->id}%'");
-    	$query->where("#state = 'active'");
-    	while($rec = $query->fetch()){
-    		if(!$cache[$rec->id]){
+    	// Изчличаме кеша, ако го няма го създаваме
+    	$cache = core_Cache::get('pos_Favourites', 'products');
+    	if(!$cache){
+    		$query = static::getQuery();
+	    	$query->where("#pointId IS NULL");
+	    	$query->orWhere("#pointId LIKE '%{$posRec->id}%'");
+	    	$query->where("#state = 'active'");
+	    	while($rec = $query->fetch()){
 	    		$obj = $this->prepareProductObject($rec);
 		    	$obj->code = $varchar->toVerbal($obj->code);
 		    	$obj->name = $varchar->toVerbal($obj->name);
-		    	$obj->price = $double->toVerbal($price->price);
-	    		$cache[$rec->id] = $obj;
-    		}
+		    	$obj->productId = $rec->productId;
+		    	$obj->packagingId = $rec->packagingId;
+		    	$cache[$rec->id] = $obj;
+	    	}
+	    	core_Cache::set('pos_Favourites', 'products', $cache, 1440, array('cat_Products'));
+	    }
+    	
+    	foreach($cache as $obj){
     		
-    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $rec->productId, $rec->packagingId, $obj->quantity, dt::verbal2mysql());
+    		// За всеки обект от кеша, изчисляваме актуалната му цена
+    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $obj->productId, $obj->packagingId, $obj->quantity, dt::verbal2mysql());
     		$cache[$rec->id]->price = $double->toVerbal($price->price);
-    		$array[$rec->id] = $cache[$rec->id];
     	}
     	
-    	core_Cache::set('pos_Favourites', 'products', $array, 1440, array('cat_Products'));
-    	return $array;
+    	return $cache;
     }
     
     
@@ -202,7 +205,7 @@ class pos_Favourites extends core_Manager {
     
     
     /**
-     * Рендираме PoS продуктите и техните категории в подходящ вид
+     * Рендираме Продуктите и техните категории в подходящ вид
      * @param stdClass $data - обект съдържащ масивите с продуктите,
      * категориите и темата по подразбиране
      * @return core_ET $tpl - шаблона с продуктите
@@ -291,5 +294,7 @@ class pos_Favourites extends core_Manager {
     	}
     	
     	$row->productId .= $pack;
+    	$icon = sbf("img/16/package-icon.png");
+    	$row->productId = ht::createLink($row->productId, array("cat_Products", 'single', $rec->productId), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
     }
 }
