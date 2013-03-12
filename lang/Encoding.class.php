@@ -150,6 +150,7 @@ class lang_Encoding {
             if(count($lgRates)) {
                 foreach($lgArr as $lg => $weight) {
                     if(!$weight) continue;
+                    if (!$lgRates[$lg]) continue;
                     $lgRates[$lg] *= (1+$weight/100);
                 }
                 $res->rates[$charset] = max($lgRates);
