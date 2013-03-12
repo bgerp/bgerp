@@ -840,6 +840,10 @@ class core_App
                         
                         // Задаваме пътя
                         $rPath = $newFile;
+                    } else {
+                        
+                         // Записваме в лога
+                        core_Logs::log("Генерирания CSS не може да се запише в '$newPath'.");
                     }
                 } else {
                     
@@ -848,7 +852,11 @@ class core_App
                         
                         // Пътя до новия файл
                         $rPath = $newFile;
-                    }    
+                    } else {
+                        
+                         // Записваме в лога
+                        core_Logs::log("Файла не може да се запише в '$newPath'.");
+                    }   
                 }
             } else {
                 
