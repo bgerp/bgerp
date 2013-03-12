@@ -1123,20 +1123,24 @@ class doc_Threads extends core_Manager
         
         //id' то на контейнера на първия документ в треда
         $firstContId = $threadRec->firstContainerId;
-
+        
+        // Ако няма id на първия документ
         if (!$firstContId) return ;
         
-        //Документа
-        $oDoc = doc_Containers::getDocument($firstContId);
+        // Връщаме езика на контейнера
+        return doc_Containers::getLanguage($firstContId);
         
-        //Името на класа
-        $className = $oDoc->className;
-        
-        //Вземаме записите на класа
-        $classRec = $className::fetch($oDoc->that);
-        
-        //Връщаме езика
-        return $classRec->lg;
+//        //Документа
+//        $oDoc = doc_Containers::getDocument($firstContId);
+//        
+//        //Името на класа
+//        $className = $oDoc->className;
+//        
+//        //Вземаме записите на класа
+//        $classRec = $className::fetch($oDoc->that);
+//
+//        //Връщаме езика
+//        return $classRec->lg;
     }
 
     
