@@ -5,7 +5,54 @@
  *                                                              *
  ****************************************************************/
  
- 
+ /*общи функции и параметри*/
+$blue:#048;
+$dark-blue:#036;
+$red:#c00;
+$quiet-gray:#888;
+
+@mixin border-radius($radius) {
+    -moz-border-radius: $radius;
+    -webkit-border-radius: $radius;
+  	-ms-border-radius: $radius;
+    border-radius: $radius;
+}
+
+@mixin border-radius4($tl,  $tr, $br,  $bl) {
+    -moz-border-radius: $tl $tr  $br $bl;
+    -webkit-border-radius: $tl  $tr  $br $bl;
+    border-radius: $tl $tr  $br $bl;
+}
+
+@mixin rounded($vert, $horz, $rad) {
+  border-#{$vert}-#{$horz}-radius: $rad;
+  -moz-border-radius-#{$vert}#{$horz}: $rad;
+  -webkit-border-#{$vert}-#{$horz}: $rad;
+}
+
+@mixin btn-style() {
+	padding-left:22px !important;  
+	background-repeat:no-repeat !important;
+	background-position: 3px center;
+}
+
+@mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
+	-moz-box-shadow:$sh-top $sh-left $sh-dist $sh-col;
+	-webkit-box-shadow: $sh-top $sh-left $sh-dist $sh-col;
+	box-shadow:$sh-top $sh-left $sh-dist $sh-col;
+}
+
+@mixin shadow4($sh-top, $sh-left, $sh-dist, $sh-blur, $sh-col){
+	-moz-box-shadow:$sh-top $sh-left $sh-dist $sh-blur $sh-col;
+	-webkit-box-shadow: $sh-top $sh-left $sh-dist $sh-blur $sh-col;
+	box-shadow:$sh-top $sh-left $sh-dist $sh-blur $sh-col;
+}
+
+@mixin no-shadow(){
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
+}
  
 select.combo {  
 	position: absolute; 
@@ -34,24 +81,19 @@ div.tab-control div.tab-row .tab {
     z-index:        1;
     white-space:    nowrap;
     position:       relative;
-    -moz-border-radius-topleft: 5px;
-    -moz-border-radius-topright: 5px;
-    -webkit-border-top-left-radius: 5px;
-    -webkit-border-top-right-radius: 5px;
-    border-top-left-radius:5px;
-    border-top-right-radius:5px;
-}
-
-div.tab-control div.tab-row .tab.selected {
-    background:     #ffffff;
-    border:         1px solid #bbb;
-    border-top:     3px solid #036;
-    border-bottom:  none;
-    z-index:        3;
-    padding:        5px 5px 5px 5px; 
-    margin:         1px -14px -3px 18px;
-    top:            -3px;
-    font-weight:    bold;
+    @include rounded(top, left, 5px);
+    @include rounded(top, right, 5px);
+	&.selected {
+	    background:     #ffffff;
+	    border:         1px solid #bbb;
+	    border-top:     3px solid $dark-blue;
+	    border-bottom:  none;
+	    z-index:        3;
+	    padding:        5px 5px 5px 5px; 
+	    margin:         1px -14px -3px 18px;
+	    top:            -3px;
+	    font-weight:    bold;
+	}
 }
 
 div.tab-control div.tab-page {
@@ -61,9 +103,7 @@ div.tab-control div.tab-page {
     position:       relative;
     top:            -2px;
     padding:        1em;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
+	@include border-radius(5px);
 }
 
 div.tab-control .tab-title {
@@ -296,15 +336,11 @@ form {
     background-color:#ff6;
     font-size:0.9em;
     padding:10px; 
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px; 
-    border-radius: 5px; 
+  	@include border-radius(5px);
  }
  
  .wide .formError{
- 	-moz-border-radius: 5px; 
-    -webkit-border-radius: 5px; 
-    border-radius: 5px; 
+ 	@include border-radius(5px); 
     text-align:left;
     min-width:300px;
  }
@@ -424,13 +460,13 @@ div.hFormField {
 }
 
 .wide form[method="post"] input[type="submit"] {
-	border: solid 1px #888 !important;
+	border: solid 1px $quiet-gray !important;
 	background-color: #99f !important;
 	color: white;
 }
 
 .wide form[method=post]  input[type=button], .wide form[method=post]  a.button { 
-	border:solid 1px #888;
+	border:solid 1px $quiet-gray;
 	background-color:#999;
 	color:white;
 }
@@ -444,7 +480,7 @@ input[type="text"]{
 	padding:0 5px !inportant;
 }
 
-.wide .checkbox, .wide .radiobutton { 
+.wide .checkbox, .wide .radiobutton, .wide input[type=checkbox], .wide input[type=radio] { 
 	border: none !important;
 }
 
@@ -474,33 +510,26 @@ a.pager {
     padding: 3px; 
     cursor:pointer;
     color:#444444; 
+    &:hover {
+	    border:solid  1px #aaaaaa; 
+		@include border-radius(4px);
+	    padding:2px;   
+	    background-color:#eee;    
+	    text-decoration: none;
+	}
+	&.pagerSelected { 
+	    border:solid 1px #aaaaaa;
+	    @include border-radius(4px);
+	    padding:2px;
+	    background-color:#ffffee;
+	    font-weight:bold;
+	}
 }
 
 .narrow a.pager { 
 	font-size: 0.9em;
 	margin:5px;
 	margin-left:0px;
-}
-
-a.pager:hover {
-    border:solid  1px #aaaaaa; 
-    -moz-border-radius:4px; 
-    -webkit-border-radius: 4px;
-    border-radius: 4px;
-    padding:2px;   
-    background-color:#eee;    
-    text-decoration: none;
-}
-
-a.pagerSelected { 
-    border:solid 1px #aaaaaa;
-    -moz-border-radius:4px;
-    -webkit-border-radius: 4px;
-    border-radius: 4px;
-    padding:2px;
-    background-color:#ffffee;
-    color:#994444;
-    font-weight:bold;
 }
 
 input, select, textarea {
@@ -534,7 +563,6 @@ input, select, textarea {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
 }
 
-
 .inputError {
     border:solid 1px red;
 }
@@ -566,15 +594,13 @@ input, select, textarea {
 }
 
 .linkWithIcon, .docBgIcon {
-    padding-left:22px !important;;  
-    background-repeat:no-repeat;
-    background-position: 3px center;
+	@include btn-style();
 }
 
 /* BUTTONS */
 a.button, input[type=button], input[type=submit] {
     margin-right:3px;
-    color:#036;
+    color:$dark-blue;
     font-weight:bold;
     text-decoration:none;
     cursor:pointer;
@@ -584,9 +610,7 @@ a.button, input[type=button], input[type=submit] {
 	-webkit-appearance: input;
     background-color:#ddd; 
     border:1px solid #bbb; 
-    -moz-border-radius:3px;
-    -webkit-border-radius: 3px; 
-    border-radius: 3px;
+    @include border-radius(3px);
     font-family: Arial, sans-serif; 
     font-size:13px;
     padding:2px 3px 3px 3px; /* IE6 */ 
@@ -595,9 +619,7 @@ a.button, input[type=button], input[type=submit] {
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
 	background-color:#eee; 
 	border:1px solid #999; 
-	-moz-border-radius:5px; 
-	-webkit-border-radius: 5px; 
-    border-radius: 5px;
+	@include border-radius(5px);
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
     font-size:100%;
     line-height:130%; 
@@ -605,25 +627,20 @@ a.button, input[type=button], input[type=submit] {
 }
 
 .narrow .btn-left { 
-	-moz-border-radius-topright:0px !important; 
-	-moz-border-radius-bottomright:0px !important; 
-	border-bottom-right-radius: 0px !important; 
-	border-top-right-radius: 0px !important;
+    @include rounded(top, right, 0px !important);
+    @include rounded(bottom, right, 0px !important);
 	border-right: none !important;
 	margin:0px !important;
 }
 
 .narrow .btn-right {
-	-moz-border-radius-bottomleft:0px !important;
-	-moz-border-radius-topleft:0px !important; 
-	border-bottom-left-radius: 0px !important;
-	border-top-left-radius: 0px !important;
+	@include rounded(top, left, 0px !important) ;
+    @include rounded(bottom, left, 0px !important);
 	margin:0px !important;
 }
 
 .narrow .btn-middle { 
-	-moz-border-radius:0px !important;
-	border-radius: 0px !important;
+	@include border-radius(0px !important);
 	border-right: none !important;
 	margin:0px !important;
 }
@@ -668,72 +685,52 @@ input[type=radio]:checked + label {
 
 .wide .btn-print { 
     background-image:url('../img/16/printer.png');
-    background-position:3px center;
-    background-repeat:no-repeat;
-    padding-left:22px !important;
+    @include btn-style();
 }
 
 .wide .btn-csvExport { 
     background-image:url('../img/16/file_extension_xls.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-new-folder { 
     background-image:url('../img/16/folder_new.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-folder { 
     background-image:url('../img/16/folder.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-folder-y {
     background-image:url('../img/16/folder-y.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-save {
     background-image:url('../img/16/disk.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-download { 
     background-image:url('../img/16/down16.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-send { 
     background-image:url('../img/16/arrow_right.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-save-n-new { 
     background-image:url('../img/16/save_and_new.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-logs { 
 	background-image:url('../img/16/action_log.png');
-	padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+	@include btn-style();
 }
 
 .wide .btn-next,  .wide input.btn-prev {
@@ -742,16 +739,12 @@ input[type=radio]:checked + label {
 
 .wide .btn-import {
     background-image:url('../img/16/table-import-icon.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
-    padding-left:22px;
+    @include btn-style();
 }
 
 .wide .btn-with-selected {
     background-image:url('../img/16/checked.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .btn-with-selected-disabled:hover {
@@ -773,82 +766,59 @@ input[type=radio]:checked + label {
 
 .wide .btn-install {
     background-image:url('../img/16/install.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
-    padding-left:22px;
+    @include btn-style();
 }
-
 
 .wide .btn-filter { 
     background-image:url('../img/16/funnel.png');
-    background-position: 3px center;
-    padding-left:22px;
-    background-repeat:no-repeat;
+    @include btn-style();
 }
 
 .wide .btn-bin {
     float:right;
     background-image:url('../img/16/bin_closed.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-list { 
     background-image:url('../img/16/application_view_list.png');
-    padding-left:22px;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
+    @include btn-style();
 }
 
 .wide .btn-software-update {
     background-image:url('../img/16/software-update.png');
-    background-position: 3px center;
-    padding-left:22px !important;
-    background-repeat:no-repeat;
+    @include btn-style();
 }
 
 .wide .btn-reject { 
     background-image:url('../img/16/delete.png');
-    background-position: 3px center;
-    padding-left:22px !important;
-    background-repeat:no-repeat;
+    @include btn-style();
 	float: right;
 }
 
 .wide .btn-restore {
     background-image:url('../img/16/restore.png');
-    background-position: 3px center;
-    padding-left:22px !important;
-    background-repeat:no-repeat;
+    @include btn-style();
 }
 
 .wide .btn-delete { 
     background-image:url('../img/16/delete-icon.png');
-    background-position: 3px center;
-    padding-left:22px !important;
-    background-repeat:no-repeat;
+    @include btn-style();
 }
 
 .wide .btn-cancel {
     background-image:url('../img/16/close16.png');
-    background-position: 3px center;
-    padding-left:22px !important;
-    background-repeat:no-repeat;
+    @include btn-style();
 }
 
 .wide .btn-edit {
     background-image:url('../img/16/edit-icon.png');
-    background-position: 3px center;
-    padding-left:22px !important;
-    background-repeat:no-repeat;
+    @include btn-style();
 }
 
 .wide .btn-add { 
     background-image:url('../img/16/star_2.png');
-    background-position: 3px center;
-    padding-left:22px !important;
-    background-repeat:no-repeat;
+    @include btn-style();
 }
 
 div.rowtools { 
@@ -866,16 +836,15 @@ div.rowtools {
 	vertical-align:middle;
 	display:table-cell;
 	text-align:left;
+	img {
+		vertical-align:middle;
+		margin-right:5px;
+		border:none;
+	}
 }
 
 .rowtools .nw {
 	white-space:nowrap;
-}
-
-.rowtools .l img {
-	vertical-align:middle;
-	margin-right:5px;
-	border:none;
 }
 
 div.notification-info {
@@ -888,9 +857,7 @@ div.notification-info {
 	margin-top:0px; 
     padding:10px;
     font-size: 1.3em; 
-    -moz-border-radius: 15px; 
-    -webkit-border-radius: 15px; 
-    border-radius:15px;
+    @include border-radius(15px);
 }
 
 .narrow div.notification-info {
@@ -900,9 +867,7 @@ div.notification-info {
 	background-color:#ffffcc;
 	padding:5px;
 	font-size: 1.5em; 
-	-moz-border-radius: 0px;
-    -webkit-border-radius: 0px;
-    border-radius:0px;
+	@include border-radius(0px);
 }
 div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-error {
     display: table;
@@ -913,9 +878,7 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
     margin:10px auto 0; 
     padding:10px; 
     font-size: 1.3em; 
-    -moz-border-radius: 15px; 
-    -webkit-border-radius: 15px;
-    border-radius:15px;
+    @include border-radius(15px);
 }
 
 .narrow div.statuses-notice, .narrow div.statuses-success, 
@@ -923,9 +886,7 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
 	margin:5px 0;
 	padding:5px;
 	font-size: 1.5em; 
-	-moz-border-radius: 0px;
-    -webkit-border-radius: 0px;
-    border-radius:0px;
+	@include border-radius(0px);
 }
 
 div.statuses-success , div.statuses-error, div.statuses-warning{
@@ -1014,83 +975,75 @@ table input[type=submit].btn-filter{
 }
 /*стилове за пакети*/
 .elem-holder{
-		position:relative;
-		display:block;
-		width:385px;
-		padding:9px;
-		margin-right:20px;
-		margin-bottom:20px;
-		float:left;
-		height:85px;
-		background:#fcfae8;
-		box-shadow:1px 1px 6px rgba(0,0,0,0.4);
-	}
-	
-	.narrow .elem-holder{
-		width:365px;
-	}
-	
-	.elem-img{
-		width:84px;
-		height:85px;
-		float:left;
-		margin-right:7px;
-	}
-	.elem-holder .pack-title{
+	position:relative;
+	display:block;
+	width:385px;
+	padding:9px;
+	margin-right:20px;
+	margin-bottom:20px;
+	float:left;
+	height:85px;
+	background:#fcfae8;
+	box-shadow:1px 1px 6px rgba(0,0,0,0.4);
+	.pack-title{
 		margin-top: 3px;
 		display: inline-block;
 	}
-	
-	.elem-img img{
-		width:84px;
-		height:85px;
-	}
-	
-	.elem-holder small{
+	small{
 		line-height:16px;
 		display:block;
 		margin: 8px 0 7px 0;
 		height:32px
 	}
-	
-	.narrow .elem-holder small{
-		font-size:13px;
-		line-height:17px;
-		margin:4px 0 8px 0;
-	}
-	
-	.wide .elem-holder b{
+	b{
 		font-size:1.2em;
 	}
-	
-	.narrow .elem-holder b{
-		font-size:1.1em;
-	}
-	
-	.elem-holder .btns{
+	.btns{
 		display:block;
 		float:right;
 		color:#999;
 		font-size:0.8em;
 		margin-right:-1px;
+		a{
+			display:inline-block;
+			margin: 0 4px 0px 4px;
+			&:hover{
+				text-decoration:underline;
+			}
+		}
 	}
-	
-	.narrow .elem-holder .btns{
-		margin-right:-2px;
-	}
-	
-	.elem-holder .btns a{
-		display:inline-block;
-		margin: 0 4px 0px 4px;
-	}
-	
-	.elem-holder .btns a:hover{
-		text-decoration:underline;
-	}
-	
-	.narrow .elem-holder .btns  a{
+}
+
+.narrow .elem-holder{
+	width:365px;
+	small{
 		font-size:13px;
-		display:inline-block;
-		padding:1px 3px 1px 3px;
+		line-height:17px;
+		margin:4px 0 8px 0;
 	}
+	b{
+		font-size:1.1em;
+	}
+	.btns{
+		margin-right:-2px;
+		a{
+			font-size:13px;
+			display:inline-block;
+			padding:1px 3px 1px 3px;
+		}
+	}
+}	
+.elem-img{
+	width:84px;
+	height:85px;
+	float:left;
+	margin-right:7px;
+	img{
+		width:84px;
+		height:85px;
+	}
+}
+	
+
+
 	
