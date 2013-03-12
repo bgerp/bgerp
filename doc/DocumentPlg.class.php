@@ -1300,8 +1300,10 @@ class doc_DocumentPlg extends core_Plugin
         
         // Намираме прикачените документи
         $attachedDocs = doc_RichTextPlg::getAttachedDocs($data->rec->body);
-        $attachedDocs = array_keys($attachedDocs);
-        $attachedDocs = array_combine($attachedDocs, $attachedDocs);
+        if (count($attachedDocs)) {
+            $attachedDocs = array_keys($attachedDocs);
+            $attachedDocs = array_combine($attachedDocs, $attachedDocs);    
+        }
         
         $res = array_merge($attachedDocs, (array)$res);
         

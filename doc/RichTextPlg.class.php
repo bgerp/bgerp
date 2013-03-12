@@ -134,6 +134,8 @@ class doc_RichTextPlg extends core_Plugin
      */
     static function getAttachedDocs($rt)
     {
+        $docs = array();
+        
         //Ако сме открили нещо
         if (preg_match_all(self::$pattern, $rt, $matches, PREG_SET_ORDER)) {
             
