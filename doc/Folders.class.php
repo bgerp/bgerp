@@ -276,6 +276,11 @@ class doc_Folders extends core_Master
      */
     static function on_Shutdown($mvc)
     {
+        // Първо изпълняваме shutdown процедурата на doc_Threads, тъй-като кода по-долу зависи
+        // от нейното действие, а не е гарантирано, че doc_Threads::on_Shutdown() е вече
+        // изпълнен.
+        doc_Threads::doUpdateThread();
+        
         if(count($mvc->updateByContentOnShutdown)) {
             foreach($mvc->updateByContentOnShutdown as $id) {
                 // Извличаме записа на папката

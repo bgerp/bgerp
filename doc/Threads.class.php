@@ -58,8 +58,13 @@ class doc_Threads extends core_Manager
     static $contragentData = NULL;
     
     
-    protected static $updating = array();
-    
+    /**
+     * Опашка от id на нишки, които трябва да обновят статистиките си
+     *  
+     * @var array
+     * @see doc_Threads::updateThread()
+     */
+    protected static $updateQueue = array();
     
     /**
      * Описание на модела на нишките от контейнери за документи
@@ -596,17 +601,48 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Обновява информацията за дадена тема.
-     * Обикновено се извиква след промяна на doc_Containers
+     * Добавя нишка в опашката за опресняване на стат. информация.
+     * 
+     * Същинското опресняване ще случи при shutdown на текущото изпълнение, при това еднократно
+     * за всяка нишка, независимо колко пъти е заявена за опресняване тя.
+     *  
+     * @param int $id key(mvc=doc_Threads)
      */
-    function updateThread_($id)
+    public static function updateThread($id)
     {
-        if (static::isUpdating($id)) {
+        // Изкуствено създаваме инстанция на doc_Folders. Това гарантира, че ще бъде извикан
+        // doc_Folders::on_Shutdown()
+        cls::get('doc_Folders');
+        
+        self::$updateQueue[$id] = TRUE;
+    }
+    
+    
+    /**
+     * Обновява информацията за дадена тема. Обикновено се извиква след промяна на doc_Containers
+     * 
+     * @param array|int $ids масив с ключ id на нишка или 
+     */
+    public static function doUpdateThread($ids = NULL)
+    {
+        if (!isset($ids)) {
+            $ids = self::$updateQueue;
+        }
+        
+        if (is_array($ids)) {
+            foreach (array_keys($ids) as $id) {
+                if (!isset($id)) { continue; }
+                self::doUpdateThread($id);
+            }
+            return;
+        }
+        
+        if (!$id = $ids) {
             return;
         }
         
         // Вземаме записа на треда
-        $rec = doc_Threads::fetch($id, NULL, FALSE);
+        $rec = self::fetch($id, NULL, FALSE);
         
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
@@ -617,6 +653,7 @@ class doc_Threads extends core_Manager
         // Публични документи в треда
         $rec->pubDocCnt = $rec->allDocCnt = 0;
 
+        $firstDcRec = NULL;
         
         while($dcRec = $dcQuery->fetch("#threadId = {$id}")) {
             
@@ -689,12 +726,6 @@ class doc_Threads extends core_Manager
             
             doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor');
             
-            // Първия документ 
-            if($firstDcRec->state == 'rejected' && $rec->state != 'rejected') {
-                $firstDoc = doc_Containers::getDocument($firstDcRec->id);
-                $firstDoc->reject('restore');
-            }
-
         } else {
             $this->delete($id);
         }
@@ -703,31 +734,49 @@ class doc_Threads extends core_Manager
     }
     
     
-    public static function beginUpdate($id)
+    /**
+     * Оттегля цяла нишка, заедно с всички документи в нея
+     * 
+     * @param int $id
+     */
+    public static function rejectThread($id)
     {
-        if (empty(static::$updating[$id])) {
-            static::$updating[$id] = 1;
-        } else {
-            static::$updating[$id]++;
+        // Оттегляме записа в doc_Threads
+        expect($rec = static::fetch($id));
+            
+        if ($rec->state == 'rejected') {
+            
+            return;
         }
+        
+        $rec->state = 'rejected';
+        static::save($rec);
+
+        // Оттегляме всички контейнери в нишката
+        doc_Containers::rejectByThread($rec->id);
     }
     
     
-    public static function endUpdate($id)
+    /**
+     * Възстановява цяла нишка, заедно с всички документи в нея 
+     * 
+     * @param int $id
+     */
+    public static function restoreThread($id)
     {
-        expect(static::$updating[$id] > 0, static::$updating[$id]);
+        // Възстановяваме записа в doc_Threads
+        expect($rec = static::fetch($id));
         
-        static::$updating[$id]--;
+        if ($rec->state != 'rejected') {
+            
+            return;
+        }
+        
+        $rec->state = 'closed';
+        static::save($rec);
 
-        $docThreads = cls::get('doc_Threads');
-
-        $docThreads->updateThread_($id);
-    } 
-    
-    
-    public static function isUpdating($id)
-    {
-        return isset(static::$updating[$id]) ? static::$updating[$id] : 0; 
+        // Възстановяваме всички контейнери в нишката
+        doc_Containers::restoreByThread($rec->id);
     }
     
     

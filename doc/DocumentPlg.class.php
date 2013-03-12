@@ -320,6 +320,10 @@ class doc_DocumentPlg extends core_Plugin
         if($containerId) {
             doc_Containers::update($containerId);
         }
+            
+        if ($rec->threadId && $rec->state != 'rejected') {
+            doc_Threads::restoreThread($rec->threadId);
+        }
     }
     
     
@@ -418,14 +422,13 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
-        if($action == 'single' && !(Request::get('Printing'))) {
+        if ($action == 'single' && !(Request::get('Printing'))) {
             
             expect($id = Request::get('id', 'int'));
             
             //$mvc->requireRightFor('single');
             
-            // Логваме, че този потребител е отворил този документ
-            $rec = $mvc->fetch($id);
+            expect($rec = $mvc->fetch($id));
             
             // Изтриваме нотификацията, ако има такава, свързани с този документ
             $url = array($mvc, 'single', 'id' => $id);
@@ -447,36 +450,55 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if($action == 'reject') {
+        if ($action == 'reject') {
             
-            $id = Request::get('id', 'int');
-            
-            $mvc->requireRightFor('reject', $id);
-            
+            $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             
-            $mvc->requireRightFor('reject', $rec);
-            
-            $res = new Redirect(array($mvc, 'single', $id));
-            
-            if($rec->state != 'rejected') {
+            if (isset($rec->id) && $rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec)) {
+                // Оттегляме документа + нишката, ако се налага
+                if ($mvc->reject($rec)) {
+                    $tRec = doc_Threads::fetch($rec->threadId);
+                    
+                    // Ако оттегляме първия документ в нишка, то оттегляме цялата нишка
+                    if ($tRec->firstContainerId == $rec->containerId) {
+                        $bSuccess = doc_Threads::rejectThread($rec->threadId);
+                    }
+                }
+            }
                 
-                $res = $mvc->reject($rec->id);
-                
+            // Пренасочваме контрола
+            if (!$res = getRetUrl()) {
+                $res = array($mvc, 'single', $id);
             }
             
+            $res = new Redirect($res); //'OK';
+                
             return FALSE;
         }
         
-        if($action == 'restore') {
+        if ($action == 'restore') {
             
-            $id = Request::get('id', 'int');
-            
+            $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             
-            if (isset($rec->id) && $mvc->haveRightFor('reject', $rec) && ($rec->state == 'rejected')) {
+            if ($rec->state == 'rejected' && $mvc->haveRightFor('reject', $rec)) {
+                // Възстановяваме документа + нишката, ако се налага
+                if ($mvc->restore($rec)) {
+                    $tRec = doc_Threads::fetch($rec->threadId);
+                    
+                    // Ако възстановяваме първия документ в нишка, то възстановяваме цялата нишка
+                    if ($tRec->firstContainerId == $rec->containerId) {
+                        doc_Threads::restoreThread($rec->threadId);
+                    }
+                }
+                    
+                // Пренасочваме контрола
+                if (!$res = getRetUrl()) {
+                    $res = array($mvc, 'single', $id);
+                }
                 
-                $res = $mvc->reject($rec->id, 'restore');
+                $res = new Redirect($res); //'OK';
                 
             }             
             
@@ -486,117 +508,80 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Оттегляне на документа. Реализация дефоулт метода на модела
+     * Оттегляне на документ
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
      */
-    function on_AfterReject($mvc, &$res, $id, $mode = 'reject')
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        if(!$res) {
-            
+        $rec = $id;
+        if (!is_object($rec)) {
             $rec = $mvc->fetch($id);
-            
-            doc_Threads::beginUpdate($rec->threadId);
-            
-            // URL' то което ще се премахва или показва от нотификациите
-            $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-            
-            if($mode == 'reject') {
-                if($rec->state != 'rejected') {
-                    $rec->brState = $rec->state;
-                    $rec->state = 'rejected';
-                }
-
-                // Ако оттегляме първия постинг на нишката, то цялата ниша се оттегля
-                $tRec = doc_Threads::fetch($rec->threadId);
-                
-                if($tRec->firstContainerId == $rec->containerId) {
-                    
-                    $cQuery = doc_Containers::getQuery();
-                    
-                    while($cRec = $cQuery->fetch("#threadId = {$rec->threadId}")) {
-                        
-                        if($rec->containerId == $cRec->id) continue;
-                        
-                        if($cRec->state != 'rejected') {
-                            $document = doc_Containers::getDocument($cRec->id);
-                            $document->reject();
-                        }
-                    }
-                    
-                    $tRec->state = 'rejected';
-                    
-                    doc_Threads::save($tRec, 'state');
-                    
-                    // Обновяваме съдържанието на папката
-                    doc_Folders::updateFolderByContent($tRec->folderId);
-                    
-                    $res = getRetUrl();
-
-                    if(!$res) {
-                        $res = array('doc_Threads', 'folderId' => $tRec->folderId);
-                    }
-
-                    $res = new Redirect($res); //'OK';
-
-                    // Премахваме този документ от нотификациите
-                    bgerp_Notifications::setHidden($keyUrl, 'yes');
-    
-                }
-                
-                // Премахваме документа от "Последно"
-                bgerp_Recently::setHidden('document', $rec->containerId, 'yes');
-
-            } else {
-                expect($mode == 'restore');
-                
-                if($rec->state == 'rejected') {
-                    $rec->state = ($rec->brState == 'rejected') ? 'closed' : $rec->brState;
-                }
-
-                // Ако възстановяваме първия постинг на нишката, то цялата ниша се възстановява
-                $tRec = doc_Threads::fetch($rec->threadId);
-                
-                if($tRec->firstContainerId == $rec->containerId) {
-                    
-                    $cQuery = doc_Containers::getQuery();
-                    
-                    while($cRec = $cQuery->fetch("#threadId = {$rec->threadId}")) {
-                        
-                        if($rec->containerId == $cRec->id) continue;
-                        
-                        if($cRec->state == 'rejected') {
-                            $document = doc_Containers::getDocument($cRec->id);
-                            $document->reject('restore');
-                        }
-                    }
-                    
-                    $tRec->state = 'closed';
-                    doc_Threads::save($tRec, 'state');
-
-                    // Показваме този документ в нотификациите
-                    bgerp_Notifications::setHidden($keyUrl, 'no');
-
-                }
-                
-                // Ако документа е скрит в 'posledno' -> показваме го
-                bgerp_Recently::setHidden('document', $rec->containerId, 'no');
-
-                // Обновяваме съдържанието на папката
-//                 doc_Threads::updateThread($rec->threadId);
-
-            }
-            
-            $mvc->save($rec, 'state,brState');
-            
-            $mvc->log($mode, $rec->id);
-            
-            doc_Threads::endUpdate($rec->threadId);
-
-            if(!$res) {
-                $res = new Redirect(array($mvc, 'single', $rec->id));
-            }
-            
-            return TRUE;
         }
+        
+        if ($rec->state == 'rejected') {
+            return;
+        }
+        
+        $rec->brState = $rec->state;
+        $rec->state = 'rejected';
+        
+        $res = static::updateDocumentState($mvc, $rec);
+    }
+    
+    
+    /**
+     * Възстановяване на оттеглен документ
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int $id
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $id;
+        if (!is_object($rec)) {
+            $rec = $mvc->fetch($id);
+        }
+        
+        if ($rec->state != 'rejected') {
+            return FALSE;
+        }
+        
+        $rec->state = $rec->brState;
+        
+        $res = static::updateDocumentState($mvc, $rec);
+    }
+
+
+    /**
+     * Запис на състоянието на документ в БД
+     *
+     * Използва се от @link doc_DocumentPlg::on_AfterReject() и
+     * @link doc_DocumentPlg::on_AfterRestore()
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return boolean
+     */
+    protected static function updateDocumentState($mvc, $rec)
+    {
+        if (!$mvc->save($rec, 'state, brState, containerId')) {
+            return FALSE;
+        }
+    
+        // Премахваме този документ от нотификациите
+        $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        bgerp_Notifications::setHidden($keyUrl, $rec->state == 'rejected' ? 'yes':'no');
+    
+        // Премахваме документа от "Последно"
+        bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
+    
+        $mvc->log($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
+        
+        return TRUE;
     }
     
     

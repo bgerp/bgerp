@@ -971,4 +971,46 @@ class doc_Containers extends core_Manager
         // Обновяваме записите за обръщенията
         email_Salutations::updateRec($rec);
     }
+    
+    
+    /**
+     * Оттегля всички контейнери в зададена нишка. Това включва оттеглянето и на реалните документи,
+     * съдържащи се в контейнерите.
+     * 
+     * @param int $threadId
+     */
+    public static function rejectByThread($threadId)
+    {
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        
+        $query->where("#threadId = {$threadId}");
+        $query->where("#state <> 'rejected'");
+        
+        while ($rec = $query->fetch()) {
+            $doc = static::getDocument($rec);
+            $doc->reject();
+        }
+    }
+    
+    
+    /**
+     * Възстановява всички контейнери в зададена нишка. Това включва възстановяването и на 
+     * реалните документи, съдържащи се в контейнерите.
+     * 
+     * @param int $threadId
+     */
+    public static function restoreByThread($threadId)
+    {
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        
+        $query->where("#threadId = {$threadId}");
+        $query->where("#state = 'rejected'");
+        
+        while ($rec = $query->fetch()) {
+            $doc = static::getDocument($rec);
+            $doc->restore();
+        }
+    }
 }
