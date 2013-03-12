@@ -127,7 +127,7 @@ class pos_Reports extends core_Master {
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	
-        $filterTpl = new ET(getFileContent('pos/tpl/FilterForm.shtml'));
+        $filterTpl = new ET(tr('|*' .getFileContent('pos/tpl/FilterForm.shtml')));
 		$data->query->orderBy('#createdOn', 'DESC');
 		$data->listFilter->layout = $filterTpl->getBlock('FORM');
 		$data->listFilter->fieldsLayout = $filterTpl->getBlock('FIELDS');
@@ -210,7 +210,7 @@ class pos_Reports extends core_Master {
     	$rec->currency = acc_Periods::getBaseCurrencyCode();
     	
     	// Зареждаме и подготвяме шаблона
-    	$tpl = new ET(getFileContent("pos/tpl/Summary.shtml"));
+    	$tpl = new ET(tr('|*' .getFileContent("pos/tpl/Summary.shtml")));
     	$tpl->placeObject($rec);
     	
     	return $tpl;

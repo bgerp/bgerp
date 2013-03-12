@@ -38,8 +38,8 @@
 			<td class = 'summary-right'><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#change#]</b></td>
 		</tr>
 		<tr>
-			<td>Създаден на &nbsp;&nbsp;<b>[#createdDate#]</b></td>
-			<td>от &nbsp;&nbsp;<b>[#createdBy#]</b></td>
+			<td>|Създаден на|* &nbsp;&nbsp;<b>[#createdDate#]</b></td>
+			<td>|от|* &nbsp;&nbsp;<b>[#createdBy#]</b></td>
 		</tr>
 	</table>
 		[#SALES#]

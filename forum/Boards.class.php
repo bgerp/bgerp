@@ -75,12 +75,6 @@ class forum_Boards extends core_Master {
 	
 	
 	/**
-	 * Полета които да са достъпни след изтриване на дъска
-	 */
-	var $fetchFieldsBeforeDelete = 'id,title';
-	
-	
-	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -249,7 +243,7 @@ class forum_Boards extends core_Master {
 	 * @param int $categoryId - ид на категорията
 	 * @param int $boardId - ид на дъската
 	 * @param int $themeId - ид на темата
-	 * @param int $display - дали е за външен изглед 
+	 * @param string $display - дали е за външен изглед 
 	 * @return array $arr - масив с линковете
 	 */
 	function prepareNavigation($categoryId, $boardId = NULL, $themeId = NULL, $display = NULL)
@@ -420,7 +414,10 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
-		$tpl->append(ht::createBtn('Търсене', $data->searchUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
+		if($data->searchUrl){
+			$tpl->append(ht::createBtn('Търсене', $data->searchUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
+		}
+		
 		$tpl->push($data->forumTheme . '/styles.css', 'CSS');
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
@@ -497,9 +494,7 @@ class forum_Boards extends core_Master {
 		}
 		
 		$tpl->push($data->forumTheme . '/styles.css', 'CSS');
-        
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
-        
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
          
 		return $tpl;
@@ -548,7 +543,7 @@ class forum_Boards extends core_Master {
 	 * Функция проверяваща дали потребителя има достъп до дъската
 	 * @param stdClass $rec
 	 * @param int $userId 
-	 * @return boolean
+	 * @return boolean TRUE/FALSE
 	 */
 	static function haveRightToObject($rec, $userId = NULL)
     {
@@ -581,9 +576,9 @@ class forum_Boards extends core_Master {
    			$row->title = ht::createLink($row->title, array($mvc, 'Single', $rec->id));
    			
    			if(!$rec->lastCommentBy) {
-   				$row->lastCommentedTheme = 'няма';
-   				$row->lastComment = 'няма';
-   				$row->lastCommentBy = 'няма';
+   				$row->lastCommentedTheme = tr('няма');
+   				$row->lastComment = tr('няма');
+   				$row->lastCommentBy = tr('няма');
    			} else {
    				$row->lastCommentBy = crm_Profiles::createLink($rec->lastCommentBy);
    			}
@@ -593,7 +588,7 @@ class forum_Boards extends core_Master {
    				if(strlen($themeRec->title) >= 10) {
    					
    					// Ако заглавието и е много дълго го съкръщаваме
-   					$themeRec->title = mb_substr($themeRec->title,0 , 10);
+   					$themeRec->title = mb_substr($themeRec->title, 0 , 10);
    					$themeRec->title .= "..."; 
    				}
    				
@@ -649,7 +644,6 @@ class forum_Boards extends core_Master {
      */
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$data->action = 'single';
     	$data->navigation = $mvc->prepareNavigation($data->rec->category, $data->rec->id);
     }
     
@@ -659,7 +653,6 @@ class forum_Boards extends core_Master {
      */
     static function on_BeforePrepareListTitle($mvc, &$res, $data)
     {
-    	$data->action = 'list';
     	$data->navigation = $mvc->prepareNavigation(Request::get('cat'));
     }
     
