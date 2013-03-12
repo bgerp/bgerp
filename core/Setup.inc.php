@@ -26,6 +26,7 @@ if (setupKeyValid() && !setupProcess()) {
 	if (!setupLock()) {
 		halt("Грешка при стартиране на Setup.");
 	}
+	setcookie("setup", setupKey() , time()+SETUP_LOCK_PERIOD);
 } // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
 	elseif (!setupKeyValid() && !setupProcess()) {
 			// Ако има останало cookie го чистим
@@ -33,8 +34,8 @@ if (setupKeyValid() && !setupProcess()) {
 				setcookie("setup", "", time()-3600);	
 			}		
 		return;
-	}	// Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
-		elseif (!setupKeyValid() && setupProcess()) {
+	} // Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
+		elseif (!setupKeyValid() && setupProcess() && !isset($_COOKIE['setup'])) {
 			halt("Процес на обновяване - опитайте по късно.</h2>");
 		}
 
@@ -938,14 +939,12 @@ function contentFlush ($content)
 
 /**
  * Начало на режим на Setup на bgERP
- * Задава setup cookie за 10 мин.
- * и сетва семафора
+ * - сетва семафора
  * 
  * @return boolean
  */
 function setupLock()
 {
-	setcookie("setup", setupKey() , time()+SETUP_LOCK_PERIOD);
 	if (!is_dir(EF_TEMP_PATH)) {
 		mkdir(EF_TEMP_PATH, 0777, TRUE);
 	}
