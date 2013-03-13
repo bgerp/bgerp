@@ -19,7 +19,9 @@
  **********************************/
 
 // Колко време е валидно заключването - в секунди
-define ('SETUP_LOCK_PERIOD', 180);
+DEFINE ('SETUP_LOCK_PERIOD', 180);
+
+defIfNot('BGERP_GIT_BRANCH', 'dev');
 
 if (setupKeyValid() && !setupProcess()) {
 	// Опит за стартиране на сетъп
@@ -207,7 +209,7 @@ $layout =
 "<html>
 <head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-<title>bgERP - настройване на системата (стъпка [#currentStep#])</title>
+<title>bgERP - настройване на системата (стъпка [#currentStep#] ". BGERP_GIT_BRANCH .")</title>
 [#styles#]
 
 
@@ -856,7 +858,7 @@ function gitHasChanges($repoPath, &$log)
 
 
 /**
- * Синхронизира с последната версия на мастер-бранча
+ * Синхронизира с последната версия на зададения бранч
  */
 function gitPullRepo($repoPath, &$log)
 {
@@ -870,7 +872,7 @@ function gitPullRepo($repoPath, &$log)
 	
     $commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch 2>&1";
 
-    $commandMerge = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/master 2>&1";
+    $commandMerge = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/" . BGERP_GIT_BRANCH ." 2>&1";
 
     exec($commandFetch, $arrResFetch, $returnVar);
     
@@ -914,7 +916,7 @@ function gitRevertRepo($repoPath, &$log)
 	
 	$repoName = basename($repoPath);
     
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/master 2>&1";
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/" . BGERP_GIT_BRANCH ."2>&1";
     
     exec($command, $arrRes, $returnVar);
 
