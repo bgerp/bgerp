@@ -554,7 +554,7 @@ if ($step == 'setup') {
 	$calibrate = 1000;
     $totalRecords = 137560;
     $totalTables = 225;
-    $percents = 0;
+    $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
@@ -609,22 +609,25 @@ if ($step == 'setup') {
         		");
 
     do {
-		clearstatcache();
+		clearstatcache(EF_TEMP_PATH . '/setupLog.html');
     	$fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
-		clearstatcache();
+		clearstatcache(EF_TEMP_PATH . '/setupLog.html');
     	list($numTables, $numRows) = dataBaseStat(); 
 
-        if ($percents < 80) {
-    		$percents = round(($numRows+$calibrate*$numTables)/$total,2)*100 - 20;
-        }
+    	// От базата идват 80% от прогрес бара
+//        if ($percentsBase < 80) {
+    		$percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+  //      }
         
         // Изчитаме лог-а
         $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
 
-        if (!empty($setupLog) && $percents < 100) {
-        	$percents+=2;
+        if (!empty($setupLog) && $percentsLog < 20) {
+        	$percentsLog+=2;
         }
         
+        $percents = $percentsBase + $percentsLog;
+        if ($percents > 100) $percents = 100;
         $width = 4.5*$percents;
         
         // Прогресбар
@@ -653,6 +656,17 @@ if ($step == 'setup') {
         }
     } while ($numRows < $totalRecords && $numTables < $totalTables || !empty($setupLog) || $logModified);
     
+    if ($percents < 100) {
+    	$percents = 100;
+    	$width = 4.5*$percents;
+	    // Прогресбар
+	    contentFlush("<script>
+						document.getElementById(\"progressIndicator\").style.paddingLeft=\"" . $width ."px\";
+						document.getElementById(\"progressPercents\").innerHTML = '" . $percents . " %';
+					</script>");
+    } 
+     
+        
     
     sleep(1);
 
