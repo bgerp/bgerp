@@ -991,6 +991,7 @@ function setupUnlock()
 function setupProcess()
 {
 	if (@file_exists(EF_TEMP_PATH . "/setupLock.tmp")) {
+		clearstatcache(EF_TEMP_PATH . "/setupLock.tmp");
 		if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > SETUP_LOCK_PERIOD) {
 			setupUnlock();
 			
