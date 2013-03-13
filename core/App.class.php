@@ -828,22 +828,26 @@ class core_App
                     // Конвертираме файла и вземаме CSS' а
                     $css = core_Converter::convertSass($f, 'scss');  
                     
-                    // Ако няма резултат записваме в лога
-                    if (!trim($css)) {
+                    // Ако няма програма за конвертиране
+                    if ($css !== FALSE) {
                         
-                        // Записваме в лога
-                        core_Logs::log("Генерирания CSS от '{$nPath}' е празен стринг.");
-                    } 
-
-                    // Записваме файла
-                    if (@file_put_contents($newPath, $css)) {
-                        
-                        // Задаваме пътя
-                        $rPath = $newFile;
-                    } else {
-                        
-                         // Записваме в лога
-                        core_Logs::log("Генерирания CSS не може да се запише в '$newPath'.");
+                        // Ако няма резултат записваме в лога
+                        if (!trim($css)) {
+                            
+                            // Записваме в лога
+                            core_Logs::log("Генерирания CSS от '{$nPath}' е празен стринг.");
+                        } 
+    
+                        // Записваме файла
+                        if (@file_put_contents($newPath, $css)) {
+                            
+                            // Задаваме пътя
+                            $rPath = $newFile;
+                        } else {
+                            
+                             // Записваме в лога
+                            core_Logs::log("Генерирания CSS не може да се запише в '$newPath'.");
+                        }    
                     }
                 } else {
                     

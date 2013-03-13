@@ -37,6 +37,8 @@ class core_Converter extends core_BaseClass
             
             // Записваме в лога
             core_Logs::log('Няма функция за конвертиране на SCSS файлове');
+            
+            return FALSE;
         }
         
         // Връщаме конвертирания CSS
