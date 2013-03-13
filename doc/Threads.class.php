@@ -1202,8 +1202,17 @@ class doc_Threads extends core_Manager
     static function getThreadTitle($id, $verbal=TRUE)
     {
         $rec = self::fetch($id);
-        $document = doc_Containers::getDocument($rec->firstContainerId);
-        $docRow = $document->getDocumentRow();
+        
+        // Ако няма първи контейнер
+        // При директно активиране на първия документ
+        if (!($cid = $rec->firstContainerId)) {
+            
+            // Вземаме id' то на записа
+            $cid = doc_Containers::fetchField("#threadId = '{$rec->id}'");
+        }
+        
+        $document = doc_Containers::getDocument($cid);
+        $docRow = $document->getDocumentRow();  
         
         if ($verbal) {
             $title = $docRow->title;
