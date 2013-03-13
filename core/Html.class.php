@@ -99,6 +99,7 @@ class core_Html
         $tpl->appendOnce("comboBoxInit('{$attr['id']}', '{$suffix}'); ", "ON_LOAD");
 
         $attr['id'] = $attr['id'] . $suffix;
+        $name = $attr['name'] = $attr['name'] . $suffix;
 
         // Долното кара да не работи селекта в firefox-mobile
         //$attr['tabindex'] = "-1";
