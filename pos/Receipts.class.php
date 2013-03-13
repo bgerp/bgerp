@@ -148,7 +148,7 @@ class pos_Receipts extends core_Master {
     	$rec->contragentObjectId = pos_Points::defaultContragent($posId);
     	$rec->pointId = $posId;
     	$this->requireRightFor('add', $rec);
-    	$id = static::save($rec);
+    	$id = $this->save($rec);
     	
     	return Redirect(array($this, 'single', $id));
     }
@@ -164,12 +164,12 @@ class pos_Receipts extends core_Master {
     	$row->total = $double->toVerbal($rec->total);
     	$row->paid = $double->toVerbal($rec->paid);
     	$row->change = $double->toVerbal($rec->change);
-    	$row->number = "№{$rec->id}";
+    	$row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	
     	if($fields['-list']){
-    		$row->title = "Бърза продажба {$row->number}";
+    		$row->title = "Бърза продажба №{$row->id}";
     		$icon = sbf($mvc->singleIcon);
-    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, array('style'=>"background-image:url({$icon})", 'class' => 'linkWithIcon'));
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
     	}
     }
 
@@ -239,23 +239,19 @@ class pos_Receipts extends core_Master {
     	
 	    while($rec = $query->fetch()) {
 	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
-	    	if($info->packagingRec){
-	    		
-	    		// Ако продукта има опаковка изчисляваме количеството му
-	    		$quantity = $info->packagingRec->quantity * $rec->quantity;
-	    	} else {
-	    		
-	    		// Ако няма опаковка
-	    		$quantity = $rec->quantity;
-	    	}
-	    	$totalQuantity += $quantity;
+	    	
+	    	// Ако продукта няма опаковка к-то му е 1
+	    	($info->packagingRec) ? $quantity = $info->packagingRec->quantity : $quantity = 1;
+	    	$rec->quantity = $quantity * $rec->quantity;
+	    	
+	    	$totalQuantity += $rec->quantity;
 	    	$products[] = (object) array(
 	    		'productId' => $rec->productId,
 		    	'contragentClassId' => $rec->contragentClass,
 		    	'contragentId' => $rec->contragentObjectId,
 	    		'currencyId' => $currencyId,
 		    	'amount' => $rec->amount,
-		    	'quantity' => $quantity);
+		    	'quantity' => $rec->quantity);
 	    }
 	    
     	if($count){
@@ -456,7 +452,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$transaction = (object)array(
-                'reason'  => 'PoS Продажба #' . $rec->id,
+                'reason'  => 'Касова бележка #' . $rec->id,
                 'valior'  => $rec->createdOn,
                 'entries' => $entries, 
             );

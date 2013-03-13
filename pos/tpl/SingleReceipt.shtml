@@ -12,8 +12,8 @@
 				</tr>
 				<tr id='receipt-details-th'>
 					<td width="130px">|Количество|*</td>
-					<td width="160px">|Цена|*</td>
-					<td style='text-align:right;padding-right:15px'>|Стойност|*</td>
+					<td width="200px">|Цена|*</td>
+					<td>|Стойност|*</td>
 				</tr>
 			</table>
 			<!--ET_BEGIN DETAILS-->
@@ -27,8 +27,8 @@
 				<tr>
 					<td>
 						<div id='receipt-payments'>
-							<div id='receipt-paid'>|Платено|*:<span class='info-right'><b>[#paid#]</b></span> </div>
-							<div id='receipt-change'>|Ресто|*:<span class='info-right'>[#change#]</span></div>
+							<div id='receipt-paid'>|Платено|*: &nbsp;<b>[#paid#]</b> <small>[#currency#]</small></div>
+							<div id='receipt-change'>|Ресто|*: &nbsp;[#change#] <small>[#currency#]</small></div>
 						</div>
 					</td>
 					<td>
@@ -37,7 +37,7 @@
 					<td>
 						<div id='receipt-total'>
 							<span id='total-label'>|Общо|*:</span>
-							<div id='receipt-total-sum'>[#total#]</div>
+							<div id='receipt-total-sum'>[#total#] <small style='font-weight:normal'>[#currency#]</small></div>
 						</div>
 					</td>
 				</tr>

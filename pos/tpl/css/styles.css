@@ -47,12 +47,13 @@
 	margin-top:9px;
 }
 
-#receipt-payments {
-	margin:2px 0px 2px 13px;
-	width:140px;
+.single-receipt-wrapper small {
+	color:rgba(65, 65, 65, 1);
 }
 
-#receipt-paid, #receipt-change{
+#receipt-payments {
+	margin:5px 0px 2px 13px;
+	width:200px;
 	line-height:26px;
 }
 

@@ -23,21 +23,9 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'plg_RowTools, pos_Wrapper, plg_Sorting';
-    
-  
-    /**
 	 * Мастър ключ към дъските
 	 */
 	var $masterKey = 'receiptId';
-    
-    
-	/**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
     
     
     /**
@@ -51,13 +39,7 @@ class pos_ReceiptDetails extends core_Detail {
      */
     var $canList = 'no_one';
     
-    
-    /**
-	 *  Брой елементи на страница 
-	 */
-	var $listItemsPerPage = '20';
 
-    
   	/**
      * Описание на модела (таблицата)
      */
@@ -72,7 +54,7 @@ class pos_ReceiptDetails extends core_Detail {
         $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=4em');
         $this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума, input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
-    	$this->FLD('discountPercent', 'percent(Max=1)', 'caption=Отстъпка->Процент,input=none');
+    	$this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка->Процент,input=none');
         $this->FLD('discountSum', 'float(minDecimals=2)', 'caption=Отстъпка->Сума,input=none');
         $this->FLD('fixbon', 'enum(yes=Да,no=Не)', 'caption=Фискален Бон,input=none,value=yes');
     }
@@ -115,11 +97,11 @@ class pos_ReceiptDetails extends core_Detail {
     function createFormFieldsLayout($data)
     {
     	$tpl = new ET(getFileContent("pos/tpl/DetailsFormFields.shtml"));
-    	$tpl->append(ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' =>  'buttonForm')), 'FIRST_ROW');
-    	$tpl->append(ht::createFnBtn('+1', '','', array('id'=>'incBtn','class'=>'buttonForm')), 'FIRST_ROW');
-	    $tpl->append(ht::createFnBtn('-1', '','', array('id'=>'decBtn','class'=>'buttonForm')), 'FIRST_ROW');
-	    $tpl->append(ht::createFnBtn('Баркод', "window.WebScan.scanThenLoadURL('[SCANVALUE]')", '', array('class'=>'webscan')), 'THIRD_ROW');
-	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class'=>'actionBtn', 'data-type' =>'client|ccard')), 'THIRD_ROW');
+    	$tpl->append(ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' => 'buttonForm')), 'FIRST_ROW');
+    	$tpl->append(ht::createFnBtn('+1', '','', array('id' => 'incBtn','class' => 'buttonForm')), 'FIRST_ROW');
+	    $tpl->append(ht::createFnBtn('-1', '','', array('id' => 'decBtn','class' => 'buttonForm')), 'FIRST_ROW');
+	    $tpl->append(ht::createFnBtn('Баркод', "window.WebScan.scanThenLoadURL('[SCANVALUE]')", '', array('class' => 'webscan')), 'THIRD_ROW');
+	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class' => 'actionBtn', 'data-type' => 'client|ccard')), 'THIRD_ROW');
 	    $payments = pos_Payments::fetchSelected();
 	    $cPayments = count($payments);
 	    foreach($payments as $payment) {
@@ -131,7 +113,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    	$contUrl = array('acc_Journal', 'conto', 'docId' => $data->masterId, 'docType' => $this->Master->className, 'ret_url' => array($this->Master, 'new'));
 	    }
 	    
-	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'FIRST_ROW');
+	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class' => 'actionBtn btnEnd')), 'FIRST_ROW');
 	   
 		return $tpl;
     }
@@ -182,6 +164,8 @@ class pos_ReceiptDetails extends core_Detail {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 0;
+    	$receiptDate = $mvc->Master->fetchField($rec->receiptId, 'createdOn');
+    	$row->currency = acc_Periods::getBaseCurrencyCode($receiptDate);
     	$action = $mvc->getAction($rec->action);
     	switch($action->type) {
     		case "sale":
@@ -201,6 +185,7 @@ class pos_ReceiptDetails extends core_Detail {
     			if($rec->discountPercent){
     				$discRec = &$rec->discountPercent;
     				$discRow = &$row->discountPercent;
+    				unset($row->currency);
     			}else {
     				$discRec = &$rec->discountSum;
     				$discRow = &$row->discountSum;
@@ -249,7 +234,7 @@ class pos_ReceiptDetails extends core_Detail {
     		} else {
     			$rec->discountPercent = $rec->discountPercent * -1;
     			$row->discountPercent = $double->toVerbal($rec->discountPercent);
-    			if($rec->discountPercent >0) {
+    			if($rec->discountPercent > 0) {
     				$row->discountPercent = "+" . $row->discountPercent;
     			}	
     		}
@@ -266,7 +251,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$rec = &$form->rec;
     		$rec->ean = trim($rec->ean);
     		
-    		if(!$rec->ean) {
+    		if(strlen($rec->ean) == 0) {
     			$form->setError('ean', 'Имате празно поле');
     			return;
     		}
@@ -302,12 +287,18 @@ class pos_ReceiptDetails extends core_Detail {
 				    	// Количеството на оставащия продукт не бива да е под 0
 				    	$form->setError('quantity', 'Въвели сте неправилно количество');
 				    }
+				    
+	    			if($rec->price < 0) {
+				    	
+				    	// Небива да се записвая продукт с отрицателна цена (след приложена отстъпка)
+				    	$form->setError('ean', 'Не може продукта да е с отрицателна цена !');
+				    }
 	    			break;
 	    		case 'payment':
 	    			
 	    			// Ако действието е "плащане"
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    				$form->setError('ean', 'Полето приема само цифри');
 	    				return;
 	    			}
 	    			
@@ -326,14 +317,15 @@ class pos_ReceiptDetails extends core_Detail {
 	    			
 	    			// Ако действието е "отстъпка"
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    				$form->setError('ean', 'Полето приема само цифри');
 	    			}
 	    			$param = ucfirst(strtolower($action->value));
 	    			$rec->{"discount{$param}"} = (double)$rec->ean;
+	    			
 	    			break;
 	    		case 'client':
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    				$form->setError('ean', 'Полето приема само цифри');
 	    				return;
 	    			}
 	    			
@@ -419,7 +411,7 @@ class pos_ReceiptDetails extends core_Detail {
     								   $product->packagingId, 
     								   $rec->quantity, 
     								   $receiptRec->createdOn);
-    	
+    								   
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	$rec->price = $price->price;
     	if($price->discount != 0.00) {
@@ -467,13 +459,13 @@ class pos_ReceiptDetails extends core_Detail {
     			$finalDiscount = max($clientDiscount, $lastDisc);
     			$finalPrice->discount = max($procent, $pDiscount);
     		} else {
-    			$finalDiscount =  $lastDisc;
+    			$finalDiscount = $lastDisc;
     			$finalPrice->discount = $procent;
     		}
     			
     		// Връщаме цената с приложената по-голяма отстъпка
     		$finalPrice->price = $price->price - $finalDiscount;
-    			
+    		
     		return $finalPrice;
     	}
     	 
@@ -593,8 +585,8 @@ class pos_ReceiptDetails extends core_Detail {
      * @return array $result - масив от всички
      * плащания и продажби на бележката;
      */
-    static function fetchReportData($receiptId) {
-    	
+    static function fetchReportData($receiptId)
+    {
     	expect($masterRec = pos_Receipts::fetch($receiptId));
     	$result = array();
     	$query = static::getQuery();

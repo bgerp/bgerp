@@ -236,7 +236,7 @@ class pos_Reports extends core_Master {
     	
     	if($fields['-list']){
     		$icon = sbf($mvc->singleIcon);
-    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, array('style'=>"background-image:url({$icon})", 'class' => 'linkWithIcon'));
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
     	}
     }
     

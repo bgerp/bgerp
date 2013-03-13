@@ -19,7 +19,7 @@ class pos_Points extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Точки на Продажба";
+    var $title = "Точки на продажба";
     
     
     /**
@@ -38,7 +38,7 @@ class pos_Points extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, title, caseId, storeId, policyId';
+    var $listFields = 'tools=Пулт, title, caseId, storeId, policyId';
     
     
     /**
