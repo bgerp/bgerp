@@ -152,20 +152,9 @@ class cash_Pko extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-    	$this->FNC('isContable', 'int', 'column=none');
     	 
         // Поставяне на уникален индекс
     	$this->setDbUnique('number');
-    }
-    
-    
-	/**
-     * @todo Чака за документация...
-     */
-    static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     

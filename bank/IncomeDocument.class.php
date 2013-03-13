@@ -140,17 +140,6 @@ class bank_IncomeDocument extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
-        $this->FNC('isContable', 'int', 'column=none');
-    }
-    
-    
-	/**
-     * @TODO
-     */
-	static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     
@@ -175,14 +164,14 @@ class bank_IncomeDocument extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
         $form->setOptions('operationSysId', $options);
      
-        static::getContragentInfo($form);
+        static::getContragentInfo($form, 'contragentName');
     }
     
      
      /**
       * @TODO
       */
-     static function getContragentInfo(core_Form $form)
+     public static function getContragentInfo(core_Form $form, $field)
      {
      	$folderId = $form->rec->folderId;
     	
@@ -192,13 +181,13 @@ class bank_IncomeDocument extends core_Master
     	if($contragentData) {
     		if($contragentData->company) {
     			
-    			$form->setDefault('contragentName', $contragentData->company);
+    			$form->setDefault($field, $contragentData->company);
     		} elseif ($contragentData->name) {
     			
     			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('contragentName', $contragentData->name);
+    			$form->setDefault($field, $contragentData->name);
     		}
-    		$form->setReadOnly('contragentName');
+    		$form->setReadOnly($field);
     	}
     }
      

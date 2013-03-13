@@ -32,7 +32,7 @@ class bank_InternalMoneyTransfer extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Sorting, doc_DocumentPlg, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
     /**
@@ -130,17 +130,6 @@ class bank_InternalMoneyTransfer extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
-        $this->FNC('isContable', 'int', 'column=none');
-    }
-    
-    
-    /**
-     * @TODO
-     */
-	static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     

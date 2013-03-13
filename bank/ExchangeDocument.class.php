@@ -131,17 +131,6 @@ class bank_ExchangeDocument extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
-        $this->FNC('isContable', 'int', 'column=none');
-    }
-    
-    
-	/**
-     * @TODO
-     */
-	static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     
@@ -152,7 +141,7 @@ class bank_ExchangeDocument extends core_Master
     { 
     	$form = &$data->form;
     	$today = dt::verbal2mysql();
-        $form->setDefault('peroFrom', cash_Cases::getCurrent());
+        $form->setDefault('peroFrom', cash_Cases::getCurrent('id', FALSE));
         $form->setDefault('valior', $today);
         
         $ownAccounts = bank_OwnAccounts::getOwnAccounts();

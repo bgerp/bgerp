@@ -200,7 +200,7 @@ class bank_PaymentOrders extends core_Master
 	    	$today = dt::verbal2mysql();
 	    	$form->setDefault('valior', $today);
 	    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-    		static::getContragentInfo($data->form);
+    		bank_IncomeDocument::getContragentInfo($data->form, 'beneficiaryName');
     	}
     }
     
@@ -218,32 +218,6 @@ class bank_PaymentOrders extends core_Master
 		    if(!$form->rec->execBankBic){
 		    	$form->rec->execBankBic = drdata_Banks::getBankBic($form->rec->ordererIban);
 		    }
-    	}
-    }
-    
-    
-    /**
-     *  Попълва формата с
-     *  Информацията за контрагента извлечена от папката
-     */
-    static function getContragentInfo(core_Form $form)
-    {
-    	$folderId = $form->rec->folderId;
-    	$contragentId = doc_Folders::fetchCoverId($folderId);
-    	$contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
-    	
-   		// Информацията за контрагента на папката
-    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
-    	
-    	if($contragentData) {
-    		if($contragentData->company) {
-    			
-    			$form->setDefault('beneficiaryName', $contragentData->company);
-    		} elseif ($contragentData->name) {
-    			
-    			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('beneficiaryName', $contragentData->name);
-    		}
     	}
     }
     

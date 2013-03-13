@@ -157,20 +157,9 @@ class cash_Rko extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-    	$this->FNC('isContable', 'int', 'column=none');
     	 
         // Поставяне на уникален индекс
     	$this->setDbUnique('number');
-    }
-    
-    
-	/**
-     * @todo Чака за документация...
-     */
-    static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     
@@ -344,7 +333,9 @@ class cash_Rko extends core_Master
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	if($data->rec->state == 'draft'){
+    		$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	}
     }
     
     

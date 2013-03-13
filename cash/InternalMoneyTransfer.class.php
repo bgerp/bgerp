@@ -130,17 +130,6 @@ class cash_InternalMoneyTransfer extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
-        $this->FNC('isContable', 'int', 'column=none');
-    }
-    
-    
-    /**
-     * @TODO
-     */
-	static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     

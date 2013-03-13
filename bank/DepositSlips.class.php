@@ -122,7 +122,6 @@ class bank_DepositSlips extends core_Master
     	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
     	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка,width=16em');
     	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
-    	//$this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
     }
     
     
@@ -265,23 +264,7 @@ class bank_DepositSlips extends core_Master
 				 $form->rec->beneficiaryBank = drdata_Banks::getBankName($form->rec->beneficiaryIban);
 			}
 		}
-	 }
-    
-	 /*
-	 function renderSingleLayout_($data)
-	 {
-	 	$tpl =  new ET(getFileContent($this->singleLayoutFile));
-	 	if(Mode::is('printing')){
-	 		
-		 	if($data->row->originClassId == 'bank_IncomeDocument') {
-		 		
-		 		// скриваме логото на моята фирма
-		 		$tpl->replace('','blank');
-		 	}
-	 	}
-	 	
-	 	return $tpl;
-	 }*/
+	}
 
 	 
 	/**
