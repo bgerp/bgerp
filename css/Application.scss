@@ -1261,6 +1261,9 @@ ul.history {
 	.detailed b {
 		background-color: #ccc;
 	}
+	a{
+		white-space:nowrap;
+	}
 }
 
 .narrow ul.history{
@@ -1441,6 +1444,7 @@ input.combo.pCode{
 	margin: 10px auto;
 	text-align: left;
 	@include rounded(top, left, 10px);
+	@include rounded(top, right, 10px);
 }
 
 #cmsNavigation div.nav_item {
