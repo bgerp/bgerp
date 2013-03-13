@@ -427,12 +427,11 @@ h2{
 }
 
 .header-table td{
-	text-align:center;
 	line-height:30px;
 	color:#000;
 	font-weight:bold;
 	font-size:14px;
-	text-indent:-2px;
+	text-indent:22px;
 }
 .narrow .forum-row{
 	width:65%;	

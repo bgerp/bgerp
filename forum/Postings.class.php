@@ -360,12 +360,12 @@ class forum_Postings extends core_Detail {
 		
 		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
-			$formTpl = new ET(tr('|*').getFileContent($data->forumTheme . '/PostForm.shtml'));
+			$formTpl = new ET(tr('|*'.getFileContent($data->forumTheme . '/PostForm.shtml')));
             $data->postForm->layout = $formTpl->getBlock('FORM');
             $data->postForm->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         } else {
-        	(core_Users::getCurrent()) ? $msg = 'темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';
+        	(core_Users::getCurrent()) ? $msg = 'Темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';
         	$tpl->replace("<b>" . tr($msg) . "</b>", 'COMMENT_FORM');
           }
 		
@@ -467,7 +467,7 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderNew($data)
 	{
-		$formTpl = new ET(getFileContent($data->forumTheme . '/AddForm.shtml'));
+		$formTpl = new ET(tr('|*' . getFileContent($data->forumTheme . '/AddForm.shtml')));
 		$data->form->layout = $formTpl->getBlock("FORM");
         $data->form->fieldsLayout = $formTpl->getBlock("FORM_FIELDS");
 		
