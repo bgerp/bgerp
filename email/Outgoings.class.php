@@ -265,91 +265,155 @@ class email_Outgoings extends core_Master
         
         // Генерираме списък с документи, избрани за прикачане
         $docsArr = static::getAttachedDocuments($options);
-        
-        //
-        // Изпращане на писма до всеки от изброените получатели
-        //
-        $allEmailsArr = $emailsTo = type_Emails::toArray($options->emailsTo);
-        $emailCss = getFileContent('css/email.css');
-        $success  = $failure = array(); // списъци с изпратени и проблеми получатели
 
-        $emailTo = $emailsTo[0];
-        unset($emailsTo[0]);
-        $emailCc = type_Emails::fromArray($emailsTo);
+        // Имейлите от адресант
+        $rEmails = $rec->email;
         
-        $action = array(
-                'containerId' => $rec->containerId,
-                'action'      => log_Documents::ACTION_SEND,
-                'data'        => (object)array(
-                    'from' => $options->boxFrom,
-                    'to'   => $emailTo,
-                )
-            );
-        if ($emailCc) {
-            $action['data']->cc = $emailCc;
-        }
-
-        log_Documents::pushAction($action);
-    
-        // Подготовка на текста на писмото (HTML & plain text)
-        $rec->__mid = NULL;
-        $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
-        $rec->text = static::getEmailText($rec, $lg);
-    
-        // Генериране на прикачените документи
-        $rec->documentsFh = array();
-        foreach ($docsArr as $attachDoc) {
-            // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-            // файл със съдържанието на документа в желания формат
-            $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+        // Имейлите от получател
+        $oEmails = $options->emailsTo;
         
-            $rec->documentsFh += $fhArr;
-        }
-
-        // .. ако имаме прикачени документи ...
-        if (count($rec->documentsFh)) {
+        // Ако не сме променили имейлите
+        if (trim($rEmails) == trim($oEmails)) {
             
-            //Вземаме id'тата на файловете вместо манипулаторите
-            $documents = fileman_Files::getIdFromFh($rec->documentsFh);
-        
-            //Записваме прикачените файлове
-            $rec->documents = type_KeyList::fromArray($documents);
-        }
-
-        // ... и накрая - изпращане.
-        $status = email_Sent::sendOne(
-            $options->boxFrom,
-            $emailTo,
-            $rec->subject,
-            $rec,
-            array(
-               'encoding' => $options->encoding
-            ),
-            $emailCc
-        );
-        
-        if ($status) {
-            // Правим запис в лога
-            static::log('Send to ' . $options->emailsTo, $rec->id);
-            $success = $allEmailsArr;
+            // Всики имейли са в една група
+            $groupEmailsArr[] = type_Emails::toArray($oEmails);
         } else {
-            static::log('Unable to send to ' . $options->emailsTo, $rec->id);
-            $failure = $allEmailsArr;
+            
+            // Масив с имейлите от адресанта
+            $rEmailsArr = type_Emails::toArray($rEmails);
+            
+            // Масив с имейлите от получателя
+            $oEmailsArr = type_Emails::toArray($oEmails);
+            
+            // Събираме в група всички имейли, които се ги има и в двата масива
+            $groupEmailsArr[] = array_intersect($oEmailsArr, $rEmailsArr);
+            
+            // Вземаме имейлите, които ги няма в адресанта, но ги има в получатели
+            $diffArr = array_diff($oEmailsArr, $rEmailsArr);
+            
+            // Обхождаме масива с различните имейли
+            foreach ($diffArr as $diff) {
+                
+                // Добавяме ги в отделна група
+                $groupEmailsArr[] = array(0 => $diff);
+            }
+            
         }
         
-        log_Documents::popAction();
+        // CSS' а за имейли
+        $emailCss = getFileContent('css/email.css');
         
-        // Създаваме съобщение, в зависимост от състоянието на изпращане
-        if (empty($failure)) {
+        // списъци с изпратени и проблеми получатели
+        $success  = $failure = array();
+        
+        // Обхождаме масива с всички групи имейли
+        foreach ($groupEmailsArr as $emailsTo) {
+            
+            // Всички имейли в стринг
+            $allEmailsToStr = implode(', ', $emailsTo);
+            
+            // Вземаме първия имейл
+            $emailTo = $emailsTo[0];
+            
+            // Премахваме го от масива
+            unset($emailsTo[0]);
+            
+            // Останалите имейли добавяме в CC полето
+            $emailCc = type_Emails::fromArray($emailsTo);
+            
+            // Данни за съответния екшън
+            $action = array(
+                    'containerId' => $rec->containerId,
+                    'action'      => log_Documents::ACTION_SEND,
+                    'data'        => (object)array(
+                        'from' => $options->boxFrom,
+                        'to'   => $emailTo,
+                    )
+                );
+                
+            // Ако има CC
+            if ($emailCc) {
+                
+                // Добавяме към екшъна
+                $action['data']->cc = $emailCc;
+            }
+            
+            // Пушваме екшъна
+            log_Documents::pushAction($action);
+        
+            // Подготовка на текста на писмото (HTML & plain text)
+            $rec->__mid = NULL;
+            $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
+            $rec->text = static::getEmailText($rec, $lg);
+        
+            // Генериране на прикачените документи
+            $rec->documentsFh = array();
+            foreach ($docsArr as $attachDoc) {
+                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                // файл със съдържанието на документа в желания формат
+                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+            
+                $rec->documentsFh += $fhArr;
+            }
+    
+            // .. ако имаме прикачени документи ...
+            if (count($rec->documentsFh)) {
+                
+                //Вземаме id'тата на файловете вместо манипулаторите
+                $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+            
+                //Записваме прикачените файлове
+                $rec->documents = type_KeyList::fromArray($documents);
+            }
+    
+            // ... и накрая - изпращане.
+            $status = email_Sent::sendOne(
+                $options->boxFrom,
+                $emailTo,
+                $rec->subject,
+                $rec,
+                array(
+                   'encoding' => $options->encoding
+                ),
+                $emailCc
+            );
+            
+            // Ако е изпратен успешно
+            if ($status) {
+                
+                // Правим запис в лога
+                static::log('Send to ' . $allEmailsToStr, $rec->id);
+                
+                // Добавяме в масива
+                $success[] = $allEmailsToStr;
+            } else {
+                
+                // Правим запис в лога за неуспех
+                static::log('Unable to send to ' . $allEmailsToStr, $rec->id);
+                $failure[] = $allEmailsToStr;
+            }
+        }
+        
+        // Попваме всички екшъни
+        log_Documents::popAction();
+            
+        // Ако има успешно изпращане
+        if ($success) {
             $msg = 'Успешно изпратено до: ' . implode(', ', $success);
             $statusType = 'notice';
-        } else {
-            $msg = 'Грешка при изпращане до: ' . implode(', ', $failure);
-            $statusType = 'warning';
-        }
+            
+            // Добавяме статус
+            core_Statuses::add($msg, $statusType);
+        } 
         
-        // Добавяме статус
-        core_Statuses::add($msg, $statusType);
+        // Ако има провалено изпращане
+        if ($failure) {
+            $msg = 'Грешка при изпращане до: ' . implode(', ', $failure);
+            $statusType = 'warning';   
+            
+            // Добавяме статус
+            core_Statuses::add($msg, $statusType);
+        }
     }
     
     
