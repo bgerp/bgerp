@@ -64,6 +64,9 @@
 
 // Път до Git
    defIfNot('BGERP_GIT_PATH', '[#BGERP_GIT_PATH#]');
+
+// Git бранч
+   defIfNot('BGERP_GIT_BRANCH', '[#BGERP_GIT_BRANCH#]');
    
    // Имейла по подразбиране
 // defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
