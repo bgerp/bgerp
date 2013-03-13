@@ -8,15 +8,24 @@
 <ul id='thread-list'>
 	<li>
 		[#SEARCH_FORM#]
-		<br>
 	</li>
 	<li class='toolbar'>
 		[#ANSWER#]
 	</li>
 	<li class='thread-header'>
+	<table border='0' width='100%' cellpadding="0" cellspacing="0" class="header-table">
+			<tr>
+				<td width='15%'>
+					|Автор|*
+				</td>
+				<td>
+					|Съобщение|*
+				</td>
+			</tr>
+	</table>
 	</li>
 	<li class='post-body'>
-		<table border='0' width='100%'>
+		<table border='0' width='100%' cellpadding="0" cellspacing="0">
 			<tr>
 				<td width='15%' class='user-info' rowspan='2'>
 					<div >
@@ -34,10 +43,11 @@
 <!--ET_BEGIN COMMENTS-->
 [#COMMENTS#]
 <!--ET_END COMMENTS-->
-<li>[#topLink#]</li>
+
 <li style='height:20px'>
 <div id='bottom-pager'>[#PAGER#]</div>
 </li>
+<li>[#topLink#]</li>
 <li id='comment-form'>
 [#COMMENT_FORM#]
 </li>

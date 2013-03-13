@@ -340,7 +340,7 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderTheme_($data)
 	{
-		$tpl = new ET(getFileContent($data->forumTheme . '/SingleTheme.shtml'));
+		$tpl = new ET(tr('|*' .getFileContent($data->forumTheme . '/SingleTheme.shtml')));
 		$commentTpl = new ET(getFileContent($data->forumTheme . '/Comments.shtml'));
 		$tpl->replace($data->title, 'THREAD_HEADER');
 		$tpl->placeObject($data->row);
@@ -360,7 +360,7 @@ class forum_Postings extends core_Detail {
 		
 		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
-			$formTpl = new ET(getFileContent($data->forumTheme . '/PostForm.shtml'));
+			$formTpl = new ET(tr('|*').getFileContent($data->forumTheme . '/PostForm.shtml'));
             $data->postForm->layout = $formTpl->getBlock('FORM');
             $data->postForm->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
@@ -381,6 +381,10 @@ class forum_Postings extends core_Detail {
 		$tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		$tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
 		 
+		$icon = sbf($data->forumTheme . "/img/32/top.png");
+		$topLink = ht::createLink(' ', getCurrentUrl(), NULL, array('style'=>"background-image:url({$icon})", 'class' => 'goTopBtn'));
+		
+		$tpl->replace($topLink, 'topLink');
         return $tpl;
 	}
 	
@@ -1018,7 +1022,7 @@ class forum_Postings extends core_Detail {
    	 	
    	 	if($fields['-theme'] || $fields['-topic']) {
    	 		$row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
-   	 		$row->topLink = ht::createLink(tr('начало'), getCurrentUrl(), NULL, array('class' => 'button'));
+   	 		//$row->topLink = ht::createLink(tr('начало'), getCurrentUrl(), NULL, array('class' => 'button'));
    	 	}
     }
    

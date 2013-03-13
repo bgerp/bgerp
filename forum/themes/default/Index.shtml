@@ -6,7 +6,15 @@
 [#SEARCH_FORM#]
 <!--ET_BEGIN category-->
 <ul class='category-ul'  width='100%'>
-		<li class='board-header'>[#cat#]</li>
+<li class='thread-header'>
+	<table border='0' width='100%' cellpadding="0" cellspacing="0" class="header-table">
+			<tr>
+				<td>
+					[#cat#]
+				</td>
+			</tr>
+	</table>
+
 		[#BOARDS#]
 </ul>
 <!--ET_END category-->
@@ -14,4 +22,3 @@
 [#TOOLBAR#]
 </div>
 </div>
-

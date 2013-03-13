@@ -2,7 +2,6 @@
 <div id='navigation'>
 [#NAVIGATION#]
 </div>
-<br>
 [#SEARCH_FORM#]
 <br>
 [#TOOLBAR#]

@@ -384,7 +384,7 @@ class forum_Boards extends core_Master {
         	
         	// Зареждаме шаблоните веднъж в паметта и после само ги клонирваме
         	$categoryTpl = $tpl->getBlock("category");
-            $icon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/forum.png", "")));
+            $icon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/Card-file-icon.png", "")));
         	
             foreach($data->categories as $category) {
                 
