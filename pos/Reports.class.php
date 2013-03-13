@@ -102,9 +102,9 @@ class pos_Reports extends core_Master {
     {
     	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка, width=9em, mandatory');
     	$this->FLD('cashier', 'user(roles=pos|admin)', 'caption=Касиер, width=9em');
-    	$this->FLD('paid', 'float(minDecimals=2)', 'caption=Сума->Платено, input=none, value=0');
-    	$this->FLD('change', 'float(minDecimals=2)', 'caption=Сума->Ресто, input=none, value=0');
-    	$this->FLD('total', 'float(minDecimals=2)', 'caption=Сума->Продадено, input=none, value=0');
+    	$this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0');
+    	$this->FLD('change', 'double(decimals=2)', 'caption=Сума->Ресто, input=none, value=0');
+    	$this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
     	$this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
     	$this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0');
@@ -221,22 +221,15 @@ class pos_Reports extends core_Master {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$double = cls::get("type_Double");
-    	$double->params['decimals'] = 2;
     	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	
-    	$storeRec = pos_Points::fetchField($rec->pointId, 'storeId');
-    	$storeRow = pos_Points::recToVerbal($storeRec, 'storeId');
-    	$row->storeId = $storeRow->storeId;
+    	$storeId = pos_Points::fetchField($rec->pointId, 'storeId');
+    	$row->storeId = store_Stores::getTitleById($storeId);
     	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-    	$row->total = $double->toVerbal($row->total);
-    	$row->paid = $double->toVerbal($row->paid);
-    	$row->change = $double->toVerbal($row->change);
     	$row->title = "Отчет за бърза продажба №{$rec->id}";
     	
-    	if($fields['-list']){
-    		$icon = sbf($mvc->singleIcon);
-    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
+    	if($fields['-list']) {
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, 'ef_icon='.$mvc->singleIcon);
     	}
     }
     
@@ -506,7 +499,7 @@ class pos_Reports extends core_Master {
 		     	return $element;
 		     }
 	    }
-	
+	    
 	    return FALSE;
 	}
 	

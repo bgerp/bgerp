@@ -600,8 +600,7 @@ class pos_ReceiptDetails extends core_Detail {
     			$obj->value = $rec->productId;
     		} else {
     			$obj->action = 'payment';
-    			$type = explode('|', $rec->action);
-    			$obj->value = $type[1];
+    			list(, $obj->value) = explode('|', $rec->action);
     			$obj->date = $masterRec->createdOn;
     		}
     		
