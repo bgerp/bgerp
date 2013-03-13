@@ -170,22 +170,9 @@ class cash_Rko extends core_Master
     {
     	$folderId = $data->form->rec->folderId;
     	$form = &$data->form;
-     
-    	// Информацията за контрагента на папката
-    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
     	
-    	if($contragentData) {
-    		if($contragentData->name) {
-    			
-    			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('contragentName', $contragentData->name);
-    			$form->setDefault('beneficiary', $contragentData->name);
-    		} elseif ($contragentData->company) {
-    			
-    			$form->setDefault('contragentName', $contragentData->company);
-    		}
-    		$form->setReadOnly('contragentName');
-    	}
+    	// Използваме помощната функция за намиране името на контрагента
+        bank_IncomeDocument::getContragentInfo($form, 'contragentName');
 
     	if($originId = $form->rec->originId) {
     		 $doc = doc_Containers::getDocument($originId);
@@ -242,20 +229,17 @@ class cash_Rko extends core_Master
 	    	$rec->peroCase = cash_Cases::getCurrent();
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
-	    	// Взема периода за който се отнася документа, според датата му
-	    	$period = acc_Periods::fetchByDate($rec->valior);
-		    
 		    if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
 		    }
 		    
 		    if($rec->rate != 1) {
 		   		$rec->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
 		    } 
 		    
-		    $rec->baseCurrency = $period->baseCurrencyId;
+		    $rec->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
     	}
     	
     	acc_Periods::checkDocumentDate($form);

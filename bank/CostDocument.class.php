@@ -164,6 +164,7 @@ class bank_CostDocument extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
         $form->setOptions('operationSysId', $options);
     
+        // Използваме помощната функция за намиране името на контрагента
         bank_IncomeDocument::getContragentInfo($form, 'contragentName');
     }
      

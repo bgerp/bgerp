@@ -200,7 +200,9 @@ class bank_PaymentOrders extends core_Master
 	    	$today = dt::verbal2mysql();
 	    	$form->setDefault('valior', $today);
 	    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-    		bank_IncomeDocument::getContragentInfo($data->form, 'beneficiaryName');
+    		
+	    	// Използваме помощната функция за намиране името на контрагента
+	    	bank_IncomeDocument::getContragentInfo($data->form, 'beneficiaryName');
     	}
     }
     

@@ -40,7 +40,7 @@ class cash_Pko extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, number, reason, valior, amount, currencyId, rate, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number, reason, valior, amount, currencyId, rate, state, createdOn, createdBy";
     
     
     /**
@@ -166,21 +166,8 @@ class cash_Pko extends core_Master
     	$folderId = $data->form->rec->folderId;
     	$form = &$data->form;
     	
-    	// Информацията за контрагента на папката
-    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
-    	
-    	if($contragentData) {
-    		if($contragentData->name) {
-    			
-    			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('contragentName', $contragentData->name);
-    			$form->setDefault('depositor', $contragentData->name);
-    		} elseif ($contragentData->company) {
-    			
-    			$form->setDefault('contragentName', $contragentData->company);
-    		}
-    		$form->setReadOnly('contragentName');
-    	} 
+    	// Използваме помощната функция за намиране името на контрагента
+    	bank_IncomeDocument::getContragentInfo($form, 'contragentName');
 
     	if($originId = $form->rec->originId) {
     		 $doc = doc_Containers::getDocument($originId);
@@ -205,8 +192,8 @@ class cash_Pko extends core_Master
     	$form->setDefault('valior', $today);
         $form->setDefault('currencyId', $currencyId);
     	
-        $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
+        $contragentId = doc_Folders::fetchCoverId($folderId);
+        $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
     	$form->setDefault('contragentId', $contragentId);
         $form->setDefault('contragentClassId', $contragentClassId);
         
@@ -239,20 +226,17 @@ class cash_Pko extends core_Master
 	    	$rec->contragentAdress = $contragentData->adress;
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
-	    	// Взема периода за който се отнася документа, според датата му
-	    	$period = acc_Periods::fetchByDate($rec->valior);
-		    
 		    if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
 		    }
 		    
 		    if($rec->rate != 1) {
 		   		$rec->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
 		    } 
 		    
-	    	$rec->baseCurrency = $period->baseCurrencyId;
+	    	$rec->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
 	    }
     	
 	    acc_Periods::checkDocumentDate($form);
@@ -331,11 +315,7 @@ class cash_Pko extends core_Master
     {
        	// Извличаме записа
         expect($rec = self::fetch($id));
-        
-        // Намираме класа на контрагента
-        $contragentId = doc_Folders::fetchCoverId($rec->folderId);
-        $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
-        
+       
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason, // основанието за ордера
@@ -353,7 +333,7 @@ class cash_Pko extends core_Master
                     
                     'credit' => array(
                         $rec->creditAccount, // кредитна сметка
-                            array($contragentClass, $contragentId), // Перо контрагент
+                            array($rec->contragentClassId, $rec->contragentId), // Перо контрагент
                             array('currency_Currencies', $rec->currencyId),
                         'quantity' => $rec->amount,
                     ),
