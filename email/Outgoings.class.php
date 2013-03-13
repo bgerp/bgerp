@@ -269,69 +269,75 @@ class email_Outgoings extends core_Master
         //
         // Изпращане на писма до всеки от изброените получатели
         //
-        $emailsTo = type_Emails::toArray($options->emailsTo);
+        $allEmailsArr = $emailsTo = type_Emails::toArray($options->emailsTo);
         $emailCss = getFileContent('css/email.css');
         $success  = $failure = array(); // списъци с изпратени и проблеми получатели
+
+        $emailTo = $emailsTo[0];
+        unset($emailsTo[0]);
+        $emailCc = type_Emails::fromArray($emailsTo);
         
-        foreach ($emailsTo as $emailTo) {
-            log_Documents::pushAction(
-                array(
-                    'containerId' => $rec->containerId,
-                    'action'      => log_Documents::ACTION_SEND,
-                    'data'        => (object)array(
-                        'from' => $options->boxFrom,
-                        'to'   => $emailTo,
-                    )
+        $action = array(
+                'containerId' => $rec->containerId,
+                'action'      => log_Documents::ACTION_SEND,
+                'data'        => (object)array(
+                    'from' => $options->boxFrom,
+                    'to'   => $emailTo,
                 )
             );
-        
-            // Подготовка на текста на писмото (HTML & plain text)
-            $rec->__mid = NULL;
-            $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
-            $rec->text = static::getEmailText($rec, $lg);
-        
-            // Генериране на прикачените документи
-            $rec->documentsFh = array();
-            foreach ($docsArr as $attachDoc) {
-                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                // файл със съдържанието на документа в желания формат
-                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-            
-                $rec->documentsFh += $fhArr;
-            }
-
-            // .. ако имаме прикачени документи ...
-            if (count($rec->documentsFh)) {
-                
-                //Вземаме id'тата на файловете вместо манипулаторите
-                $documents = fileman_Files::getIdFromFh($rec->documentsFh);
-            
-                //Записваме прикачените файлове
-                $rec->documents = type_KeyList::fromArray($documents);
-            }
-
-            // ... и накрая - изпращане.
-            $status = email_Sent::sendOne(
-                $options->boxFrom,
-                $emailTo,
-                $rec->subject,
-                $rec,
-                array(
-                   'encoding' => $options->encoding
-                )
-            );
-            
-            if ($status) {
-                // Правим запис в лога
-                static::log('Send to ' . $emailTo, $rec->id);
-                $success[] = $emailTo;
-            } else {
-                static::log('Unable to send to ' . $emailTo, $rec->id);
-                $failure[] = $emailTo;
-            }
-            
-            log_Documents::popAction();
+        if ($emailCc) {
+            $action['data']->cc = $emailCc;
         }
+
+        log_Documents::pushAction($action);
+    
+        // Подготовка на текста на писмото (HTML & plain text)
+        $rec->__mid = NULL;
+        $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
+        $rec->text = static::getEmailText($rec, $lg);
+    
+        // Генериране на прикачените документи
+        $rec->documentsFh = array();
+        foreach ($docsArr as $attachDoc) {
+            // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+            // файл със съдържанието на документа в желания формат
+            $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+        
+            $rec->documentsFh += $fhArr;
+        }
+
+        // .. ако имаме прикачени документи ...
+        if (count($rec->documentsFh)) {
+            
+            //Вземаме id'тата на файловете вместо манипулаторите
+            $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+        
+            //Записваме прикачените файлове
+            $rec->documents = type_KeyList::fromArray($documents);
+        }
+
+        // ... и накрая - изпращане.
+        $status = email_Sent::sendOne(
+            $options->boxFrom,
+            $emailTo,
+            $rec->subject,
+            $rec,
+            array(
+               'encoding' => $options->encoding
+            ),
+            $emailCc
+        );
+        
+        if ($status) {
+            // Правим запис в лога
+            static::log('Send to ' . $options->emailsTo, $rec->id);
+            $success = $allEmailsArr;
+        } else {
+            static::log('Unable to send to ' . $options->emailsTo, $rec->id);
+            $failure = $allEmailsArr;
+        }
+        
+        log_Documents::popAction();
         
         // Създаваме съобщение, в зависимост от състоянието на изпращане
         if (empty($failure)) {
