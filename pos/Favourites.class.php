@@ -159,7 +159,7 @@ class pos_Favourites extends core_Manager {
     		
     		// За всеки обект от кеша, изчисляваме актуалната му цена
     		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $obj->productId, $obj->packagingId, $obj->quantity, dt::verbal2mysql());
-    		$cache[$rec->id]->price = $double->toVerbal($price->price);
+    		$obj->price = $double->toVerbal($price->price);
     	}
     	
     	return $cache;
