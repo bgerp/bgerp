@@ -34,6 +34,7 @@ $quiet-gray:#888;
 	padding-left:22px !important;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
+	box-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -594,7 +595,9 @@ input, select, textarea {
 }
 
 .linkWithIcon, .docBgIcon {
-	@include btn-style();
+	padding-left:22px !important;  
+	background-repeat:no-repeat !important;
+	background-position: 3px center;
 }
 
 /* BUTTONS */
@@ -614,6 +617,9 @@ a.button, input[type=button], input[type=submit] {
     font-family: Arial, sans-serif; 
     font-size:13px;
     padding:2px 3px 3px 3px; /* IE6 */ 
+}
+a.button, input.button{
+	box-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
 
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
