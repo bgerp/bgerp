@@ -281,8 +281,7 @@ class pos_Favourites extends core_Manager {
     	$measureRow = cat_UoM::fetchField($info->productRec->measureId, 'shortName');
     	$measureRow = $varchar->toVerbal($measureRow);
     	if($info->packagingRec) {
-    		$packName = cat_Packagings::fetchField($rec->packagingId, 'name');
-    		$packName = $varchar->toVerbal($packName);
+    		$packName = cat_Packagings::getTitleById($rec->packagingId);
     		$quantity = $info->packagingRec->quantity;
     		$pack = " , {$quantity} {$measureRow} в {$packName}";
     	} else {

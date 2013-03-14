@@ -98,10 +98,10 @@ class pos_Receipts extends core_Master {
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
     	$this->FLD('contragentObjectId', 'int', 'input=none');
     	$this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
-    	$this->FLD('total', 'float(minDecimals=2)', 'caption=Общо, input=none, value=0');
-    	$this->FLD('paid', 'float(minDecimals=2)', 'caption=Платено, input=none, value=0');
-    	$this->FLD('change', 'float(minDecimals=2)', 'caption=Ресто, input=none, value=0');
-    	$this->FLD('tax', 'float(minDecimals=2)', 'caption=Такса, input=none, value=0');
+    	$this->FLD('total', 'double(decimals=2)', 'caption=Общо, input=none, value=0');
+    	$this->FLD('paid', 'double(decimals=2)', 'caption=Платено, input=none, value=0');
+    	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0');
+    	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 
             'caption=Статус, input=none'
@@ -159,17 +159,11 @@ class pos_Receipts extends core_Master {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
-    	$row->total = $double->toVerbal($rec->total);
-    	$row->paid = $double->toVerbal($rec->paid);
-    	$row->change = $double->toVerbal($rec->change);
     	$row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	
     	if($fields['-list']){
     		$row->title = "Бърза продажба №{$row->id}";
-    		$icon = sbf($mvc->singleIcon);
-    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	}
     }
 
@@ -297,7 +291,14 @@ class pos_Receipts extends core_Master {
     			$rec->contragentId = $contragentRec[0];
     			$class = $contragentRec[1];
     			$rec->contragentClassId = $class::getClassId();
-    			$rec->contragentName = $class::fetchField($contragentRec[0], 'name');
+    			$rec->contragentName = $class::getTitleById($contragentRec[0]);
+    			break;
+    		case 'discount':
+    			if($action[1] == 'sum'){
+    				
+    				// Ако отстъпката е сума намаляваме общата сума с отстъпката
+    				$rec->total -= $detailRec->ean;
+    			}
     			break;
     	}
     	
@@ -401,7 +402,7 @@ class pos_Receipts extends core_Master {
 		$data->listFilter->setDefault('from', date('Y-m-01'));
 		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
 		$data->listFilter->setField('search', 'width=15em');
-        $data->listFilter->showFields = 'search,from,to';
+        $data->listFilter->showFields = 'search, from, to';
         
         // Активиране на филтъра
         $data->listFilter->input('search, from, to', 'silent');

@@ -11,34 +11,42 @@
 	<table cellpadding='2px' width='430px' border='0'>
 		<tr>
 			<td>|Касиер|*: </td>
+			<td></td>
 			<td><b>[#cashier#]</b></td>
 		</tr>
 		<tr>
 			<td>|Точка на продажба|*:</td>
+			<td></td>
 			<td><b>[#pointId#]</b></td>
 		</tr>
 		<tr>
 			<td>|Склад|*:</td>
+			<td></td>
 			<td><b>[#storeId#]</b></td>
 		</tr>
 		<tr>
 			<td>|Продукти|*:</td>
+			<td></td>
 			<td class = 'summary-right'><b>[#productCount#]</b></td>
 		</tr>
 		<tr>
 			<td>|Продадено|*:</td>
-			<td class = 'summary-right'><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#total#]</b></td>
+			<td><span class='cCode'>[#baseCurrency#]</span></td>
+			<td class = 'summary-right'><b>[#total#]</b></td>
 		</tr>
 		<tr>
 			<td>|Платено|*:</td>
-			<td class = 'summary-right'><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#paid#]</b></td>
+			<td><span class='cCode'>[#baseCurrency#]</span></td>
+			<td class = 'summary-right'><b>[#paid#]</b></td>
 		</tr>
 		<tr>
 			<td>|Ресто|*:</td>
-			<td class = 'summary-right'><span class='cCode'>[#baseCurrency#]</span> &nbsp;<b>[#change#]</b></td>
+			<td><span class='cCode'>[#baseCurrency#]</span></td>
+			<td class = 'summary-right'><b>[#change#]</b></td>
 		</tr>
 		<tr>
 			<td>|Създаден на|* &nbsp;&nbsp;<b>[#createdDate#]</b></td>
+			<td></td>
 			<td>|от|* &nbsp;&nbsp;<b>[#createdBy#]</b></td>
 		</tr>
 	</table>

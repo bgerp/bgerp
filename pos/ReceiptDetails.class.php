@@ -50,12 +50,12 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em,input=none');
     	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, class=ean-text');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
-    	$this->FLD('price', 'float(minDecimals=2)', 'caption=Цена,input=none');
+    	$this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=4em');
-        $this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума, input=none');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
     	$this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка->Процент,input=none');
-        $this->FLD('discountSum', 'float(minDecimals=2)', 'caption=Отстъпка->Сума,input=none');
+        $this->FLD('discountSum', 'double(decimals=2)', 'caption=Отстъпка->Сума,input=none');
         $this->FLD('fixbon', 'enum(yes=Да,no=Не)', 'caption=Фискален Бон,input=none,value=yes');
     }
     
@@ -77,7 +77,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$rRec = (object) array('receiptId' => $data->masterId); 
     	if($this->haveRightFor('add', $rRec)) {
-	    	$form = static::getForm();
+	    	$form = $this->getForm();
 	    	$form->method = 'POST';
 	    	$form->layout = new ET(getFileContent("pos/tpl/DetailsForm.shtml"));
 	    	$form->action = array($this->Master, 'single', $data->masterId, '#'=>'form');
@@ -162,8 +162,6 @@ class pos_ReceiptDetails extends core_Detail {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$varchar = cls::get('type_Varchar');
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 0;
     	$receiptDate = $mvc->Master->fetchField($rec->receiptId, 'createdOn');
     	$row->currency = acc_Periods::getBaseCurrencyCode($receiptDate);
     	$action = $mvc->getAction($rec->action);
@@ -172,16 +170,13 @@ class pos_ReceiptDetails extends core_Detail {
     			$mvc->renderSale($rec, $row);
     			break;
     		case "payment":
-    			$value = pos_Payments::fetchField($action->value, 'title');
-    			$row->actionValue = $varchar->toVerbal($value);
+    			$row->actionValue = pos_Payments::getTitleById($action->value);
     			break;
     		case "client":
     			$clientArr = explode("|", $rec->param);
-    			$clientName = $clientArr[1]::fetchField($clientArr[0], 'name');
-    			$row->clientName = $varchar->toVerbal($clientName);
+    			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
     			break;
     		case 'discount':
-    			$double->params['decimals'] = 0;
     			if($rec->discountPercent){
     				$discRec = &$rec->discountPercent;
     				$discRow = &$row->discountPercent;
@@ -195,9 +190,6 @@ class pos_ReceiptDetails extends core_Detail {
     			($discRec < 0) ? $row->discountType = tr("Надценка") : $row->discountType = tr("Отстъпка");
     			break;
     	}
-    	
-    	$double->params['decimals'] = 2;
-    	$row->amount = $double->toVerbal($rec->amount);
     }
     
     
@@ -213,30 +205,23 @@ class pos_ReceiptDetails extends core_Detail {
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
     	$row->productId = $varchar->toVerbal($productInfo->productRec->name);
     	$row->code = $varchar->toVerbal($productInfo->productRec->code);
-    	$row->price = $double->toVerbal($rec->price);
+    	
     	$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
     	$row->uomId = $varchar->toVerbal($uomId);
-    	$double->params['decimals'] = 0;
+    	
     	$row->perPack = $double->toVerbal($productInfo->packagingRec->quantity);
     	if($rec->value) {
-    		$packName = cat_Packagings::fetchField($rec->value, 'name');
-    		$row->packagingId = $varchar->toVerbal($packName);
+    		$row->packagingId = cat_Packagings::getTitleById($rec->value);
     	} else {
     		$row->packagingId = $uomId;
     		unset($row->uomId);
     	}
     	
-    	$row->quantity = $double->toVerbal($rec->quantity);
     	if($rec->discountPercent){
-    		$double->params['decimals'] = 0;
-    		if(round($rec->discountPercent) == 0) {
-    			unset($row->discountPercent);
-    		} else {
-    			$rec->discountPercent = $rec->discountPercent * -1;
-    			$row->discountPercent = $double->toVerbal($rec->discountPercent);
-    			if($rec->discountPercent > 0) {
-    				$row->discountPercent = "+" . $row->discountPercent;
-    			}	
+    		$rec->discountPercent = $rec->discountPercent * -1;
+    		$row->discountPercent = $double->toVerbal($rec->discountPercent);
+    		if($rec->discountPercent > 0) {
+    			$row->discountPercent = "+" . $row->discountPercent;
     		}
     	}
     }
@@ -321,6 +306,12 @@ class pos_ReceiptDetails extends core_Detail {
 	    			}
 	    			$param = ucfirst(strtolower($action->value));
 	    			$rec->{"discount{$param}"} = (double)$rec->ean;
+	    			if($param == 'Sum'){
+	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
+	    				if($total < $rec->ean){
+	    					$form->setError('ean', 'Отстъпката е по-голяма от крайната сума !');
+	    				}
+	    			}
 	    			
 	    			break;
 	    		case 'client':
@@ -439,21 +430,12 @@ class pos_ReceiptDetails extends core_Detail {
     	// Проверяваме дали има последно зададена отстъпка от касиера
     	$query = $this->getQuery();
     	$query->where("#receiptId = {$receiptId}");
-    	$query->where("#action LIKE '%discount%'");
+    	$query->where("#action LIKE '%discount|percent%'");
     	$query->orderBy("#id", "DESC");
     	if($dRec = $query->fetch()) {
-    		$action = $this->getAction($dRec->action);
-    		if($action->value == 'percent') {
-    			
-    			// Ако остъпката е в процент, изчисляваме каква част от цената е тя
-    			$lastDisc = round(($price->price * $dRec->discountPercent / 100), 2);
-    			$procent = $dRec->discountPercent;
-    		} else {
-    			
-    			// Ако отстъпката е сума, изчисляваме на колко процента е равна
-    			$lastDisc = $dRec->discountSum;
-    			$procent = round(($lastDisc * 100 / $price->price), 2);
-    		}
+    		
+    		$lastDisc = round(($price->price * $dRec->discountPercent / 100), 2);
+    		$procent = $dRec->discountPercent;
     		
     		if($lastDisc > 0){
     			$finalDiscount = max($clientDiscount, $lastDisc);
@@ -593,20 +575,23 @@ class pos_ReceiptDetails extends core_Detail {
     	$query->where("#receiptId = {$receiptId}");
     	$query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
     	while($rec = $query->fetch()) {
-    		$obj = new stdClass();
+    		$arr = array();
     		if($rec->productId) {
-    			$obj->action = 'sale';
-    			$obj->pack = $rec->value;
-    			$obj->value = $rec->productId;
+    			$arr['action'] = 'sale';
+    			$arr['value'] = $rec->productId;
+    			($rec->value) ? $arr['pack'] = $rec->value : $arr['pack'] = 0;
     		} else {
-    			$obj->action = 'payment';
-    			list(, $obj->value) = explode('|', $rec->action);
-    			$obj->date = $masterRec->createdOn;
+    			$arr['action'] = 'payment';
+    			list(, $arr['value']) = explode('|', $rec->action);
+    			$arr['pack'] = 0;
     		}
-    		
+    		$index = implode('|', $arr);
+    		$obj = new stdClass();
+    		$obj->action = $arr['action'];
     		$obj->quantity = $rec->quantity;
     		$obj->amount = $rec->amount;
-    		$result[$rec->id] = $obj;
+    		$obj->date = $masterRec->createdOn;
+    		$result[$index] = $obj;
     	}
     	
     	return $result;

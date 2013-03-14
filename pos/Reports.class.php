@@ -216,6 +216,18 @@ class pos_Reports extends core_Master {
 	}
 	
 	
+	/**
+	 * Изпълнява се преди вербалното представяне
+	 */
+	static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
+    {
+    	// Ако няма записани детайли извличаме актуалните
+    	if(!$rec->details){
+    		$mvc->extractData($rec);
+    	}
+    }
+	
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -229,7 +241,7 @@ class pos_Reports extends core_Master {
     	$row->title = "Отчет за бърза продажба №{$rec->id}";
     	
     	if($fields['-list']) {
-    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, 'ef_icon='.$mvc->singleIcon);
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	}
     }
     
@@ -265,19 +277,19 @@ class pos_Reports extends core_Master {
     	$rec->details = $reportData;
     	$rec->productCount = $rec->change = $rec->total = $rec->paid = 0;
     	if(count($reportData->receiptDetails)){
-		    foreach($reportData->receiptDetails as $detail) {
+		    foreach($reportData->receiptDetails as $index => $detail) {
+		    	list($action) = explode('|', $index);
 		    	
 		    	// Изчисляваме общата и платената сума на всички 
-		    	($detail->action == 'sale') ? $rec->total += $detail->amount : $rec->paid += $detail->amount;	
-			}
+		    	($action == 'sale') ? $rec->total += $detail->amount : $rec->paid += $detail->amount;
+		    }
    	 	}
    	 	
-   	 	foreach($reportData->receipts as $receipt){
-   	 		
-   	 		// Изчисляваме рестото и броя на продуктите от бележките
-   	 	 	$rec->change += $receipt->change;
-   	 	 	$rec->productCount += $receipt->productCount;
+   	 	foreach($reportData->receipts as $receipt) {
+   	 		$rec->productCount += $receipt->products;
    	 	}
+   	 	
+   	 	$rec->change = $rec->paid - $rec->total;
     }
     
     
@@ -301,21 +313,10 @@ class pos_Reports extends core_Master {
      */
     static function on_AfterPrepareSingle($mvc, &$data)
     {
-    	if(!$data->rec->details){
-    		
-    		// Ако няма записани детайли извличаме актуалните
-    		$mvc->extractData($data->rec);
-    		$iconStyle = $data->row->iconStyle;
-    		$header = $data->row->header;
-    		$data->row = static::recToVerbal($data->rec);
-    		$data->row->iconStyle = $iconStyle;
-    		$data->row->header = $header;
-    	}
-    	
     	$detail = &$data->rec->details;
-    	arr::order($detail->receiptDetails, 'action');
-	   
-	    // Табличната информация и пейджъра на плащанията
+    	arr::orderA($detail->receiptDetails, 'action');
+	    
+    	// Табличната информация и пейджъра на плащанията
 	    $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
     	$detail->rows = $detail->receiptDetails;
     	$mvc->prepareDetail($detail);
@@ -341,7 +342,8 @@ class pos_Reports extends core_Master {
     		 $end = $Pager->rangeEnd - 1;
     		 for($i = 0; $i < count($detail->rows); $i++){
     		 	if($i >= $start && $i <= $end){
-    		 		$newRows[] = $this->getVerbalDetail($detail->rows[$i]);
+    		 		$keys = array_keys($detail->rows);
+    		 		$newRows[] = $this->getVerbalDetail($keys[$i], $detail->rows[$keys[$i]]);
     		 	}
     		 }
     		 
@@ -359,39 +361,42 @@ class pos_Reports extends core_Master {
      * @param stdClass $rec-> запис на продажба или плащане
      * @return stdClass $row-> вербалния вид на записа
      */
-    private function getVerbalDetail($rec)
+    private function getVerbalDetail($index, $obj)
     {
     	$row = new stdClass();
+    	list($row->action, $row->value, $row->pack) = explode('|', $index);
+    	list(, $row->quantity, $row->amount,$row->createdOn) = array_values((array)$obj);
+    	
     	$varchar = cls::get("type_Varchar");
     	$double = cls::get("type_Double");
     	$double->params['decimals'] = 2;
-    	$row->amount = $double->toVerbal($rec->amount); 
-    	$currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+    	$row->amount = $double->toVerbal($row->amount); 
+    	$currencyCode = acc_Periods::getBaseCurrencyCode($row->createdOn);
     	$double->params['decimals'] = 0;
-    	if($rec->action == 'sale') {
+    	if($row->action == 'sale') {
     		
     		// Ако детайла е продажба
     		$row->ROW_ATTR['class'] = 'report-sale';
-    		$info = cat_Products::getProductInfo($rec->value, $rec->pack);
+    		$info = cat_Products::getProductInfo($row->value, $row->pack);
     		$product = $info->productRec;	
-    		if($rec->pack){
-    			$row->pack = cat_Packagings::fetchField($rec->pack, 'name');
+    		if($row->pack){
+    			$row->pack = cat_Packagings::getTitleById($row->pack);
     		} else {
-    			$row->pack = cat_UoM::fetchField($product->measureId, 'name');
+    			$row->pack = cat_UoM::getTitleById($product->measureId);
     		}
     		$icon = sbf("img/16/package-icon.png");
     		$row->value = $product->code . " - " . $product->name;
-    		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $rec->value), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
-    		$row->quantity = $double->toVerbal($rec->quantity);
+    		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $row->value), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
     	} else {
     		
     		// Ако детайла е плащане
     		$row->pack = $currencyCode;
-    		$value = pos_Payments::fetchField($rec->value, 'title');
-    		$row->value = tr("Плащания") . ": &nbsp;<i>" . $varchar->toVerbal($value) . "</i>";
-    		$row->quantity = $double->toVerbal($rec->quantity);
+    		$value = pos_Payments::getTitleById($row->value);
+    		$row->value = tr("Плащания") . ": &nbsp;<i>{$value}</i>";
     		$row->ROW_ATTR['class'] = 'report-payment';
     	}
+    	
+    	$row->quantity = $double->toVerbal($row->quantity);
     	
     	return $row;
     }
@@ -459,49 +464,20 @@ class pos_Reports extends core_Master {
     	while($rec = $query->fetch()) {
 	    	
     		// запомняме кои бележки сме обиколили
-    		$receipts[] = $rec;
+    		$receipts[] = (object)array('id' => $rec->id, 'products' => $rec->productCount);
     		
     		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
-	    	foreach($data as $obj) {
-		    
-		    	// проверяваме дали в новия масив има обект с value и pack равни на текущия обект
-				$object = $this->findDetail($results, array('value' => $obj->value, 'pack' => $obj->pack), $obj->action);
-		    	if(!$object) {
-				    		
-				    // Ако няма такъв обект то добавяме първия уникален детайл
-				    $results[] = $obj;
-				} else {
-					
-				    // Ако вече има обект с това value и pack (Ако детайла е продажба)
-					// ние сумираме неговите количество и сума към вече добавения елемент
-					$object->quantity += $obj->quantity;
-					$object->amount = $object->amount + $obj->amount;
-				}
+	    	foreach($data as $index => $obj){
+	    		if (!array_key_exists($index, $results)) {
+	    			$results[$index] = $obj;
+	    		} else {
+	    			$results[$index]->quantity += $obj->quantity; 
+	    			$results[$index]->amount += $obj->amount; 
+	    		}
 	    	}
     	}
     }
-    
-    
-    /**
-     * Помощна функция проверяваща дали в масив от детайли има обект с
-     * value и pack (ако детайла е продажба) и връщащ негова референция
-     * @param array $array - Масив в който ще проверяваме обектите
-     * @param aray $value - Масив от стойности, които ще проверяваме
-     */
-    private function findDetail($array, $value, $action){
-    	$id = $value['value'];
-    	$pId = $value['pack'];
-	    foreach ($array as $element) {
-		     if ($id == $element->value && $pId == $element->pack && $element->action == $action) {
-		           
-		     	// Ако в масива има търсения обект ние го връщаме
-		     	return $element;
-		     }
-	    }
-	    
-	    return FALSE;
-	}
 	
 	
 	/**
