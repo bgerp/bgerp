@@ -914,12 +914,18 @@ class email_Outgoings extends core_Master
             
             // Ако отговаряме на конкретен е-имейл, винаги имейл адреса го вземаме от него
             if($oContragentData->email && !$forward) {
-                $rec->email = $oContragentData->email;
-            }
-            
-            //Ако сме натиснали конкретен имейл, винаги вземаме имейл адреса от Request
-            if ($emailTo) {
-                $rec->email = $emailTo;
+                
+                // Ако има replyTo използваме него
+                if ($oContragentData->replyToEmail) {
+                    
+                    // Имейлите да се вземат от replyTo
+                    $rec->email = $oContragentData->replyToEmail;
+                    $replyTo = TRUE;    
+                } else {
+                    
+                    // Ако няма, имейлите да се вземат от контрагента
+                    $rec->email = $oContragentData->email;    
+                }
             }
             
             //Данни необходими за създаване на хедър-а на съобщението
@@ -1006,17 +1012,28 @@ class email_Outgoings extends core_Master
         // Ако се редактира или клонира
         if ($editing) {
             
-            // Добавяме имейлите
-            $emailForRemove = $recEmails + array($contrData->toEml, $contrData->toBox);
+            // Имейлите от река за премахване
+            $recEmailForRemove = $recEmails;
         } else {
             
-            // Само един имейл в полето имейли
-            $rec->email = $recEmails[0];    
-            
-            // Добавяме в масива, който ще премахваме
-            $emailForRemove = array($rec->email, $contrData->toEml, $contrData->toBox);
+            // Ако няма replyTo
+            if (!$replyTo) {
+                
+                // Само един имейл в полето имейли
+                $rec->email = $recEmails[0];   
+                
+                // Имейлите за премахване
+                $recEmailForRemove = array($recEmails[0]);
+            } else {
+                 
+                // replyTo в имейлите за премахване
+                $recEmailForRemove = $recEmails;
+            }
         }
 
+        // Всички имейли за премахване
+        $emailForRemove = array_merge((array)$recEmailForRemove, array($contrData->toEml, $contrData->toBox));
+        
         // Премахваме имейлите, които не ни трябват
         $allEmailsArr = array_diff($allEmailsArr, $emailForRemove);
 
