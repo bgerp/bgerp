@@ -32,7 +32,7 @@ class bank_CostDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg,
+     	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
@@ -168,7 +168,17 @@ class bank_CostDocument extends core_Master
         bank_IncomeDocument::getContragentInfo($form, 'contragentName');
     }
      
-     
+    
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{	
+        // Използваме филтър формата на Банковия приходен документ
+		//bank_IncomeDocument::prepareBankFilter($data);
+	}
+	
+	
     /**
      * Проверка след изпращането на формата
      */

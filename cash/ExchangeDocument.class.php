@@ -32,7 +32,7 @@ class cash_ExchangeDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, cash_DocumentWrapper, plg_Printing,
-     	plg_Sorting,doc_DocumentPlg,Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items,
+     	plg_Sorting,doc_DocumentPlg, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     

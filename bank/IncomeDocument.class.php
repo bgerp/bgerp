@@ -32,7 +32,7 @@ class bank_IncomeDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_plg_BusinessDoc, doc_DocumentPlg,
+     	plg_Sorting, doc_plg_BusinessDoc, doc_DocumentPlg, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
@@ -111,7 +111,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, contragentName';
+    var $searchFields = 'reason, contragentName, amount';
     
     
     /**
@@ -141,8 +141,8 @@ class bank_IncomeDocument extends core_Master
             'caption=Статус, input=none'
         );
     }
-    
-    
+	
+	
     /**
      * Подготовка на формата за добавяне
      */

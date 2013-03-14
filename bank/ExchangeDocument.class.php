@@ -31,9 +31,8 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting,doc_DocumentPlg,Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing, acc_plg_DocumentSummary,
+     	plg_Sorting, doc_DocumentPlg, Items=acc_Items, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
     /**
@@ -113,6 +112,13 @@ class bank_ExchangeDocument extends core_Master
      */
     var $newBtnGroup = "4.7|Финанси";
     
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'valior, reason, creditQuantity, debitQuantity';
+    
+    
 	/**
      * Описание на модела
      */
@@ -121,19 +127,19 @@ class bank_ExchangeDocument extends core_Master
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=23em,input,mandatory');
     	$this->FLD('peroFrom', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','input,caption=От->Б. сметка,width=20em');
-    	$this->FLD('creditPrice', 'float', 'input=none');
-    	$this->FLD('creditQuantity', 'float', 'width=6em,caption=От->Сума');
+    	$this->FLD('creditPrice', 'double(decimals=2)', 'input=none');
+    	$this->FLD('creditQuantity', 'double(decimals=2)', 'width=6em,caption=От->Сума');
         $this->FLD('peroTo', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=Към->Б. сметка,width=20em');
-        $this->FLD('debitQuantity', 'float', 'width=6em,caption=Към->Сума');
-       	$this->FLD('debitPrice', 'float', 'input=none');
-        $this->FLD('rate', 'float', 'input=none');
+        $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума');
+       	$this->FLD('debitPrice', 'double(decimals=2)', 'input=none');
+        $this->FLD('rate', 'double(decimals=2)', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
     }
-    
-    
+	
+	
     /**
      * Подготовка на формата за добавяне
      */
@@ -226,9 +232,6 @@ class bank_ExchangeDocument extends core_Master
     	if($fields['-single']) {
     		$double = cls::get('type_Double');
 	    	$double->params['decimals'] = 2;
-	    	$row->creditQuantity = $double->toVerbal($rec->creditQuantity);
-	    	$row->debitQuantity = $double->toVerbal($rec->debitQuantity);
-	    	$row->rate = (float)$rec->rate;
 	    	
 	    	$creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
     		$debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);

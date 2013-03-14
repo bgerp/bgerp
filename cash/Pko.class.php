@@ -33,7 +33,7 @@ class cash_Pko extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
-                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg,
+                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
@@ -109,7 +109,7 @@ class cash_Pko extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number, valior, contragentName';
+    var $searchFields = 'number, valior, contragentName, reason';
     
     
     /**
@@ -156,8 +156,8 @@ class cash_Pko extends core_Master
         // Поставяне на уникален индекс
     	$this->setDbUnique('number');
     }
-    
-    
+	
+	
     /**
      *  Обработка на формата за редакция и добавяне
      */

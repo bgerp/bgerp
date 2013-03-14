@@ -32,7 +32,7 @@ class bank_InternalMoneyTransfer extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Sorting, doc_DocumentPlg, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
@@ -111,6 +111,13 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     var $newBtnGroup = "4.5|Финанси";
     
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'valior, reason, creditBank, debitBank';
+    
+    
 	/**
      * Описание на модела
      */
@@ -131,8 +138,8 @@ class bank_InternalMoneyTransfer extends core_Master
             'caption=Статус, input=none'
         );
     }
-    
-    
+	
+	
     /**
      *  Добавяме помощник за избиране на сч. операция
      */

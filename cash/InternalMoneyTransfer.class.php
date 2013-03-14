@@ -31,7 +31,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, cash_DocumentWrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, cash_Wrapper, cash_DocumentWrapper, plg_Printing,acc_plg_Contable, acc_plg_DocumentSummary,
      	plg_Sorting,doc_DocumentPlg, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
