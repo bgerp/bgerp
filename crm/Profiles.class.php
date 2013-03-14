@@ -682,7 +682,7 @@ class crm_Profiles extends core_Master
                 $rec = &$recs[$i];
         
                 if ($url = $mvc::getUrl($rec->userId)) {
-                    $row->personId = ht::createLink($row->personId, $url);
+                    $row->personId = ht::createLink($row->personId, array('crm_Persons', 'single', $rec->personId));
                     $row->userId   = static::createLink($rec->userId);
                 }
             }
