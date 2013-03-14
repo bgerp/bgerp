@@ -837,6 +837,8 @@ function gitHasNewVersion($repoPath, &$log)
         
         return TRUE;
     }
+    
+    return FALSE;
 }
 
 
@@ -868,6 +870,8 @@ function gitHasChanges($repoPath, &$log)
 	    
     	return TRUE;
 	}
+	
+	return FALSE;
 }
 
 
@@ -913,7 +917,9 @@ function gitPullRepo($repoPath, &$log)
     		return FALSE;
     	}
     }
+	$log[] = "wrn: Неопределено състояние";
 	
+	return FALSE;
 }
 
 
@@ -944,6 +950,8 @@ function gitRevertRepo($repoPath, &$log)
     }
 
     $log[] = "msg:Репозиторито <b>[{$repoName}]</b> е възстановено";
+    
+    return TRUE;
 }
 
 
