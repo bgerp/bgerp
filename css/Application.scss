@@ -27,6 +27,7 @@ $quiet-gray:#888;
 	padding-left:22px;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
+	box-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -364,8 +365,14 @@ div.alphabet div.tab-page {
 }
 
 div.crmImage {
-	padding:18px 0px 8px 8px;
+	padding:10px 0px 8px 8px;
 	float:right;
+}
+
+div.crmImage img{
+	padding: 3px;
+	background: #fff;
+	box-shadow: 0 0 6px rgba(0,0,0,0.4);
 }
 
 .narrow div.crmImage {
@@ -936,7 +943,7 @@ table.mc-header a {
 	width:850px !important;
 }
 
-.doc_Containers table.listTable td {
+.doc_Containers table.listTable td,.doc_Containers table.listTable th {
 	vertical-align: top !important;
 }
 
@@ -954,6 +961,15 @@ table.mc-header a {
 
 .doc_Containers .thread-opened table.listTable>tbody>tr {
 	background-color: #f4fff4 !important;
+}
+
+.single-thread.thread-opened > .listRows > table.listTable th{
+	border-left:none !important;
+	border-right:none !important;
+}
+.single-thread > .listRows > table.listTable >tbody > tr > td,.single-thread > .listRows > table.listTable > thead> tr > th{
+	border-left:none ;
+	border-right:none ;
 }
 
 .listTable{
@@ -1151,10 +1167,6 @@ div.attachments {
 	background-color: #e0f0e0;
 }
 
-.thread-opened>div>table.listTable>tbody>tr>td {
-	border: solid 1px green !important;
-}
-
 .thread-opened th {
 	border: solid 1px green !important;
 	background-color: #aea !important;
@@ -1211,9 +1223,8 @@ ul.history {
 	margin: 0;
 	list-style: none;
 	&.summary {
-		width: 85%;
-		margin: 0 auto;
 		font-size: 0.75em;
+		margin-right:7px;
 		li span {
 			color: #333;
 		}
@@ -1539,6 +1550,14 @@ input.combo.pCode{
 .cms-row .eightcol {
 	width: 65.3%;
 }
+.cms-row .eightcol {
+	width:71%;
+	margin-right:0;
+}
+
+.narrow .cms-row .eightcol {
+	width:70%;
+}
 
 .cms-row .ninecol {
 	width: 74.05%;
@@ -1713,6 +1732,14 @@ input.combo.pCode{
 	margin-left:0;
 }
 
+.gravatar-box{
+	margin:10px 7px 10px 10px !important;
+}
+.gravatar-box img{
+	padding: 3px;
+	background: #fff;
+	box-shadow: 0 0 6px rgba(0,0,0,0.4);
+}
 /*стилове за документи*/
 
 

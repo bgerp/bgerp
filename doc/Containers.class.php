@@ -165,7 +165,7 @@ class doc_Containers extends core_Manager
     static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $state = $data->threadRec->state;
-        $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
+        $tpl = new ET("<div class='thread-{$state} single-thread'>[#1#]</div>", $tpl);
         
         // Изчистване на нотификации за отворени теми в тази папка
         $url = array('doc_Containers', 'list', 'threadId' => $data->threadRec->id);
@@ -249,9 +249,9 @@ class doc_Containers extends core_Manager
                 
             // визуализиране на обобщена информация от лога
         } else {
-            $row->created = new ET("<div style='text-align:center;'><div style='text-align:left;display:inline-block;'><div style='font-size:0.8em;margin-top:5px;margin-left:10px;'>[#3#]</div>
-                                                <div style='font-size:0.8em;margin:5px;margin-bottom:10px;margin-left:10px;'>[#1#]</div>
-                                                <div style='margin:10px;'>[#2#]</div>[#HISTORY#]</div></div>",
+            $row->created = new ET("<div style='text-align:center;'><div style='text-align:right;display:inline-block;'><div style='font-size:0.8em;margin-top:5px;margin-right:7px;'>[#3#]</div>
+                                                <div style='font-size:0.8em;margin-right:7px;margin-bottom:10px;margin-top:5px;'>[#1#]</div>
+                                                <div class='gravatar-box' style='margin:10px;'>[#2#]</div>[#HISTORY#]</div></div>",
                 $mvc->getVerbal($rec, 'createdOn'),
                 $avatar,
                 $row->created);
