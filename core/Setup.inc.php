@@ -917,7 +917,6 @@ function gitPullRepo($repoPath, &$log)
     		return FALSE;
     	}
     }
-	$log[] = "wrn: Неопределено състояние";
 	
 	return FALSE;
 }
