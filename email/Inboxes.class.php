@@ -537,4 +537,44 @@ class email_Inboxes extends core_Master
 
         return $powerUsers;
     }
+    
+    
+    /**
+     * Премахва всички наши имейли от подададения масив с имейли
+     * 
+     * @param array $emailsArr - Масив с имейли
+     * 
+     * @return array $allEmailsArr - Масив с изчистените имейли
+     */
+    static function removeOurEmails($emailsArr)
+    {
+        //Масив с имейли за премахване
+        $emailForRemove = array();
+        
+        // Данни за кеширане
+        $cacheType = 'ourEmails';
+        $cacheHandle = 'allEmails';
+        $keepMinutes = 1000;
+        $depends = array('email_Inboxes', 'email_Accounts');
+        
+        // Ако няма в кеша или е променен
+        if (!$emailForRemove = core_Cache::get($cacheType, $cacheHandle, $keepMinutes, $depends)) {
+            
+            // Извличаме всички имейли
+            $query = static::getQuery();
+            while ($rec = $query->fetch()) {
+                
+                // Записваме имейлите в масив
+                $emailForRemove[] = $rec->email;
+            }
+            
+            // Записваме в кеша
+            core_Cache::set($cacheType, $cacheHandle, $emailForRemove, $keepMinutes, $depends);
+        }
+
+        // Премахваме нашите имейли
+        $allEmailsArr = array_diff($emailsArr, $emailForRemove);
+
+        return $allEmailsArr;
+    }
 }

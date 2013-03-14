@@ -1282,7 +1282,7 @@ class email_Incomings extends core_Master
             $coverContragent = $coverClass::getContragentData($coverId);
             
             // Груповите имейли
-            $contragentData->groupEmails = $coverContragent->groupEmails;
+            $contragentData->coverGroupEmails = $coverContragent->groupEmails;
         }
 
         // Добавяме всички имейли в масив

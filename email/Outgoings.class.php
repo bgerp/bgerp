@@ -559,13 +559,37 @@ class email_Outgoings extends core_Master
         
         $data->form->setDefault('emailsTo', $data->rec->email);
         
-        // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
-        $toSuggestions = doc_Threads::getExternalEmails($data->rec->threadId);
-        unset($toSuggestions[$data->rec->email]);
-        if (count($toSuggestions)) {
-            $data->form->setSuggestions('emailsTo', array('' => '') + $toSuggestions);
+        // Ако има originId
+        if ($data->rec->originId) {
+            
+            // Контрагент данните от контейнера
+            $contrData = doc_Containers::getContragentData($data->rec->originId);
+        } else {
+            
+            // Контрагент данните от нишката
+            $contrData = doc_Threads::getContragentData($data->rec->threadId);    
         }
         
+        // Масив с всички имейли в До
+        $emailsToArr = type_Emails::toArray($data->rec->email);
+        
+        // Всички групови имейли
+        $groupEmailsArr = type_Emails::toArray($contrData->groupEmails);
+        
+        // Премахваме нашите имейли
+        $groupEmailsArr = email_Inboxes::removeOurEmails($groupEmailsArr);
+        
+        // Премахваме имейлите, които не ни трябват
+        $allEmailsArr = array_diff($groupEmailsArr, $emailsToArr);
+        
+        // Ключовете да са равни на стойностите
+        $allEmailsArr = array_combine($allEmailsArr, $allEmailsArr);
+        
+        // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
+        
+        if (count($allEmailsArr)) {
+            $data->form->setSuggestions('emailsTo', array('' => '') + $allEmailsArr);
+        }
     }
     
     
@@ -1013,7 +1037,7 @@ class email_Outgoings extends core_Master
         if ($editing) {
             
             // Имейлите от река за премахване
-            $recEmailForRemove = $recEmails;
+            $emailForRemove = $recEmails;
         } else {
             
             // Ако няма replyTo
@@ -1023,20 +1047,20 @@ class email_Outgoings extends core_Master
                 $rec->email = $recEmails[0];   
                 
                 // Имейлите за премахване
-                $recEmailForRemove = array($recEmails[0]);
+                $emailForRemove = array($recEmails[0]);
             } else {
                  
                 // replyTo в имейлите за премахване
-                $recEmailForRemove = $recEmails;
+                $emailForRemove = $recEmails;
             }
         }
 
-        // Всички имейли за премахване
-        $emailForRemove = array_merge((array)$recEmailForRemove, array($contrData->toEml, $contrData->toBox));
-        
         // Премахваме имейлите, които не ни трябват
         $allEmailsArr = array_diff($allEmailsArr, $emailForRemove);
 
+        // Премахваме нашите имейл акаити
+        $allEmailsArr = email_Inboxes::removeOurEmails($allEmailsArr);
+        
         // Ако има групови имейли
         if (count($allEmailsArr)) {
             

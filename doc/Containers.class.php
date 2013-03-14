@@ -1013,4 +1013,22 @@ class doc_Containers extends core_Manager
             $doc->restore();
         }
     }
+    
+    
+    /**
+     * 
+     */
+    static function getContragentData($id)
+    {
+        // Записа
+        $rec = static::fetch($id);
+        
+        // Класа
+        $class = cls::get($rec->docClass);
+        
+        // Контрагент данните
+        $contragentData = $class::getContragentData($rec->docId);
+
+        return $contragentData;
+    }
 }
