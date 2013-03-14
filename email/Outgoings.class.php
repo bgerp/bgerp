@@ -582,9 +582,13 @@ class email_Outgoings extends core_Master
         // Премахваме имейлите, които не ни трябват
         $allEmailsArr = array_diff($groupEmailsArr, $emailsToArr);
         
-        // Ключовете да са равни на стойностите
-        $allEmailsArr = array_combine($allEmailsArr, $allEmailsArr);
-        
+        // Ако има имейл
+        if (count($allEmailsArr)) {
+            
+            // Ключовете да са равни на стойностите
+            $allEmailsArr = array_combine($allEmailsArr, $allEmailsArr);    
+        }
+
         // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
         
         if (count($allEmailsArr)) {
