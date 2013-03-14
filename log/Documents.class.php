@@ -140,7 +140,7 @@ class log_Documents extends core_Manager
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
         $this->FLD("dataBlob", "blob", 'caption=Обстоятелства,column=none');
         
-        $this->FNC('data', 'text', 'input=none');
+        $this->FNC('data', 'text', 'input=none,column=none');
         $this->FNC('seenOnTime', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('seenFrom', 'key(mvc=core_Users)', 'input=none');
         $this->FNC('receivedOn', 'datetime(format=smartTime)', 'input=none');
@@ -317,7 +317,7 @@ class log_Documents extends core_Manager
     }
 
 
-    public static function received($mid, $date = NULL)
+    public static function received($mid, $date = NULL, $IP = NULL)
     {
         if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
             // Няма изпращане с такъв MID
@@ -336,6 +336,7 @@ class log_Documents extends core_Manager
         expect(is_object($sendRec->data), $sendRec);
         
         $sendRec->data->receivedOn = $date;
+        $sendRec->data->seenFromIp = $IP;
     
         static::save($sendRec);
     
@@ -873,7 +874,9 @@ class log_Documents extends core_Manager
                 expect(FALSE);
         }
 
-        $data->listFields = arr::make($mvc->listFieldsSet[$subset], TRUE);
+        if (!empty($mvc->listFieldsSet[$subset])) {
+            $data->listFields = arr::make($mvc->listFieldsSet[$subset], TRUE);
+        }
         
         if (Request::get('containerId', 'int') && isset($data->listFields['containerId'])) {
             unset($data->listFields['containerId']);
@@ -902,11 +905,11 @@ class log_Documents extends core_Manager
             $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
             $row->returnedOn = static::getVerbal($rec, 'returnedOn');
             
-            $stateClass = 'state-closed';
+            $stateClass = 'state-active';
             
             switch (true) {
                 case !empty($row->receivedOn):
-                    $stateClass = 'state-active';
+                    $stateClass = 'state-closed';
                     break;
                 case !empty($row->returnedOn):
                     $stateClass = 'state-rejected';
