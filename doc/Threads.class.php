@@ -635,9 +635,9 @@ class doc_Threads extends core_Manager
                 
                 $rec->allDocCnt++;
             }
-            
         }
-
+        
+        // Попълваме полето за споделените потребители
         $rec->shared = type_Keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
 
         if($firstDcRec) {
@@ -696,7 +696,8 @@ class doc_Threads extends core_Manager
             }
 
         } else {
-            $this->delete($id);
+            // Ако липсват каквито и да е документи в нишката - изтриваме я
+            self::delete($id);
         }
         
         doc_Folders::updateFolderByContent($rec->folderId);
