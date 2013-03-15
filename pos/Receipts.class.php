@@ -31,7 +31,7 @@ class pos_Receipts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_Printing,
+    var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary,
     				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting';
 
     
@@ -89,24 +89,30 @@ class pos_Receipts extends core_Master {
 	var $searchFields = 'contragentName';
 	
 	
+	/**
+     * 
+     */
+    var $filterDateField = 'createdOn';
+    
+    
     /**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка на Продажба');
+    	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка на продажба');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
     	$this->FLD('contragentObjectId', 'int', 'input=none');
     	$this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
-    	$this->FLD('total', 'double(decimals=2)', 'caption=Общо, input=none, value=0');
-    	$this->FLD('paid', 'double(decimals=2)', 'caption=Платено, input=none, value=0');
-    	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0');
+    	$this->FLD('total', 'double(decimals=2)', 'caption=Общо, input=none, value=0, summary=amount');
+    	$this->FLD('paid', 'double(decimals=2)', 'caption=Платено, input=none, value=0, summary=amount');
+    	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
     	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 
             'caption=Статус, input=none'
         );
-        $this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0');
+        $this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0,summary=quantity');
     }
     
     
@@ -350,16 +356,6 @@ class pos_Receipts extends core_Master {
 	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	$data->query->orderBy('#createdOn', 'DESC');
-    	if($filter = $data->listFilter->rec) {
-    	
-    		if($filter->from) {
-    			$data->query->where("#createdOn >= '{$filter->from}'");
-    		}
-    		
-    		if($filter->to) {
-    			$data->query->where("#createdOn <= '{$filter->to} 23:59:59'");
-    		}
-    	}
     }
     
     
@@ -386,27 +382,6 @@ class pos_Receipts extends core_Master {
 			}
 		}
 	}
-	
-	
-	/**
-	 *  Подготовка на филтър формата
-	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
-	{	
-        $filterTpl = new ET(tr('|*' . getFileContent('pos/tpl/FilterForm.shtml')));
-		$data->listFilter->layout = $filterTpl->getBlock('FORM');
-		$data->listFilter->fieldsLayout = $filterTpl->getBlock('FIELDS');
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
-		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
-		$data->listFilter->setDefault('from', date('Y-m-01'));
-		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
-		$data->listFilter->setField('search', 'width=15em');
-        $data->listFilter->showFields = 'search, from, to';
-        
-        // Активиране на филтъра
-        $data->listFilter->input('search, from, to', 'silent');
-	 }
 	
 	
 	/**
@@ -567,15 +542,4 @@ class pos_Receipts extends core_Master {
         	$mvc->pos_ReceiptDetails->delete("#receiptId = {$rec->id}");
         }
     }
-    
-    
-	/**
-	 * Рендираме обобщаващата информация на бележките
-	 */
-	static function on_AfterRenderListSummary($mvc, $tpl, $data)
-    {
-    	// Използваме рендирането на обобщението от репортите
-    	$tpl = pos_Reports::renderSummaryData($data->query);
-    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
-	}
 }

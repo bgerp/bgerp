@@ -1,21 +1,7 @@
-<!--ET_BEGIN FORM-->
-<form>
-[#FORM_FIELDS#]
-[#FORM_TOOLBAR#]
-[#FORM_HIDDEN#]
-</form>
-<!--ET_END FORM-->
-<!--ET_BEGIN FIELDS-->
-	<table border='0' width='440px'>
-		<!--ET_BEGIN point-->
-			<tr><td >|Toчка|* <span id='point'>[#point#]</span></td></tr>
-		<!--ET_END point-->
-		<!--ET_BEGIN user-->
-			<tr><td>|Касиер|* &nbsp;[#user#]</td></tr>
-		<!--ET_END user-->
-		<!--ET_BEGIN search-->
-			<tr><td>|Клиент|* [#search#]</td></tr>
-		<!--ET_END search-->
-			<tr><td>|От|* <span id='from'>[#from#]</span><span style='margin-left:15px'>|До|* &nbsp;&nbsp;[#to#]</span></td></tr>
-	</table>
-<!--ET_END FIELDS-->
+<table border='0' width='440px'>
+	<!--ET_BEGIN point-->
+		<tr>
+			<td>[]</td>
+		</tr>
+	<!--ET_END point-->
+</table>

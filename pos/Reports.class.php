@@ -31,7 +31,7 @@ class pos_Reports extends core_Master {
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, 
+   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, acc_plg_DocumentSummary, plg_Search, 
    					bgerp_plg_Blank, doc_ActivatePlg, plg_Sorting';
    
     
@@ -69,7 +69,7 @@ class pos_Reports extends core_Master {
      * Абревиатура
      */
     var $abbr = "Otch";
-    
+ 
     
     /**
      * Кой може да пише?
@@ -96,18 +96,24 @@ class pos_Reports extends core_Master {
     
     
     /**
+     * 
+     */
+    var $filterDateField = 'createdOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
     {
     	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка, width=9em, mandatory');
     	$this->FLD('cashier', 'user(roles=pos|admin)', 'caption=Касиер, width=9em');
-    	$this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0');
-    	$this->FLD('change', 'double(decimals=2)', 'caption=Сума->Ресто, input=none, value=0');
-    	$this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0');
+    	$this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0, summary=amount');
+    	$this->FLD('change', 'double(decimals=2)', 'caption=Сума->Ресто, input=none, value=0, summary=amount');
+    	$this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0, summary=amount');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
     	$this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
-    	$this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0');
+    	$this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0, summary=quantity');
     }
     
     
@@ -127,92 +133,24 @@ class pos_Reports extends core_Master {
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	
-        $filterTpl = new ET(tr('|*' . getFileContent('pos/tpl/FilterForm.shtml')));
-		$data->query->orderBy('#createdOn', 'DESC');
-		$data->listFilter->layout = $filterTpl->getBlock('FORM');
-		$data->listFilter->fieldsLayout = $filterTpl->getBlock('FIELDS');
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->FNC('user', 'user(roles=pos|admin, allowEmpty)', 'caption=Касиер,width=12em,silent');
+        $data->query->orderBy('#createdOn', 'DESC');
+		$data->listFilter->FNC('user', 'user(roles=pos|admin, allowEmpty)', 'caption=Касиер,width=12em,silent');
 		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=title, allowEmpty)', 'caption=Точка,width=12em,silent');
-        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
-		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
-		$data->listFilter->setDefault('from', date('Y-m-01'));
-		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
-		$data->listFilter->showFields = 'user,point,from,to';
+        $data->listFilter->showFields .= ',user,point';
         
         // Активиране на филтъра
-        $data->listFilter->input('user,point,from,to', 'silent');
+        $data->listFilter->input(NULL, 'silent');
 		
 		if($filter = $data->listFilter->rec) {
-			
-			if($filter->from) {
-    			$data->query->where("#createdOn >= '{$filter->from}'");
-    		}
-    		
-			if($filter->to) {
-    			$data->query->where("#createdOn <= '{$filter->to} 23:59:59'");
-    		}
-    		
-    		if($filter->user) {
-    			$data->query->where("#createdBy = {$filter->user}");
-    		}
-    		
-    		if($filter->point) {
-    			$data->query->where("#pointId = {$filter->point}");
-    		}
-    	}
-	}
-
-	
-	/**
-	 * Рендираме обобщаващата информация на отчетите
-	 */
-	static function on_AfterRenderListSummary($mvc, $tpl, $data)
-    {
-    	$tpl = static::renderSummaryData($data->query);
-    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
-	}
-    
-	
-	/**
-	 * Рендира съмаризираната информация на списъчния изглед
-	 * @param core_Query $query - заявка към модел
-	 * @return core_ET $tpl - шаблон с съмаризираната информация
-	 */
-	static function renderSummaryData(core_Query $query)
-	{
-		$queryCopy = clone $query;
-    	$queryCopy->show = array();
-    	$queryCopy->groupBy = array();
-    	$queryCopy->executed = FALSE;
-    	$queryCopy->XPR('sumTotal', 'double', 'SUM(#total)');
-    	$queryCopy->XPR('sumPaid', 'double', 'SUM(#paid)');
-    	$queryCopy->XPR('sumChange', 'double', 'SUM(#change)');
-    	$queryCopy->XPR('count', 'int', 'count(#id)');
-    	$queryCopy->XPR('products', 'int', 'SUM(#productCount)');
-    	$queryCopy->show('sumTotal,sumPaid,count,sumChange,products');
-    	$queryCopy->where("#state = 'active'");
-    	if(!$rec = $queryCopy->fetch()) {
-    		
-    		// Ако няма резултати, всичките стават 0
-    		foreach($queryCopy->show as $el) {
-    			$rec->$el = 0;
-    		}
-    	}
-    	
-    	// Вербална обработка на извлечените суми
-    	$double = cls::get("type_Double");
-    	$double->params['decimals'] = 2;
-    	$rec->sumTotal = $double->toVerbal($rec->sumTotal);
-    	$rec->sumPaid = $double->toVerbal($rec->sumPaid);
-    	$rec->sumChange = $double->toVerbal($rec->sumChange);
-    	$rec->currency = acc_Periods::getBaseCurrencyCode();
-    	
-    	// Зареждаме и подготвяме шаблона
-    	$tpl = new ET(tr('|*' . getFileContent("pos/tpl/Summary.shtml")));
-    	$tpl->placeObject($rec);
-    	
-    	return $tpl;
+				
+				if($filter->user) {
+	    			$data->query->where("#cashier = {$filter->user}");
+	    		}
+	    		
+	    		if($filter->point) {
+	    			$data->query->where("#pointId = {$filter->point}");
+	    		}
+	    }
 	}
 	
 	

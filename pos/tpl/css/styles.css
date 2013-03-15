@@ -274,15 +274,6 @@ div.scrollWrapper{
 	cursor: pointer;
 }
 
-.cCode {
-	border:solid 1px #ccc;
-	color:black !important;
-	background-color:#eee;
-	padding:2px;
-    font-size:12px;
-    vertical-align:middle;
-}
-
 .document .listRows table {
 	width:700px;
 	margin-bottom:15px;
@@ -315,37 +306,6 @@ form #point {
 
 .narrow  #filter{
 	margin-left:4px !important;
-}
-
-.summary-right{
-}
-
-#summary {
-	float:right;
-	padding:7px;
-	background:#eee;
-	border:1px solid rgba(0,0,0,0.3);
-	margin-bottom:3px;
-}
-
-#summary b {
-	color:rgb(0, 68, 136);
-}
-
-#summary b#count {
-	margin-left:5px;
-}
-
-.narrow #summary b#count {
-	margin-left:3px;
-}
-
-#summary table{
-	margin-bottom:10px;
-}
-
-#summary .money-info{
-	margin-left:3px;
 }
 
 .doc_Containers table.listTable.listTable > tbody > tr > td:first-child  {
