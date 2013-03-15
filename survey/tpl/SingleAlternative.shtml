@@ -12,8 +12,9 @@
 <ul class='answers' style='padding-top:7px'>
 [#answers#]
 </ul>
+<!--ET_BEGIN image--><div class="image" align='right' style='padding:20px 20px 15px 20px'>[#image#]</div><!--ET_END image-->
+<div class="clearfix21"></div>
 </td>
-<td width='30%' align='right' style='padding:20px 20px 15px 20px'>[#image#]</td>
 </tr>
 </table>
 <!--ET_END ROW-->
