@@ -104,6 +104,7 @@ class cams_Records extends core_Master
     {
         $baseName = dt::mysql2verbal($startTime, "d-m-y_H-i") . '-' . $cameraId;
         
+        $fp = new stdClass();
         // Видео MP4 файл - суров запис от камерата с добро качество
         $fp->videoFile = CAMS_VIDEOS_PATH . "/{$baseName}.mp4";
         
@@ -576,6 +577,7 @@ class cams_Records extends core_Master
         
         $query->orderBy('#startTime', 'DESC');
         
+        $pageOpts = $pageState = array();
         while($rec = $query->fetch()) {
             $page = $this->getPageByTime($rec->startTime);
             $pageOpts[$page] = $page;
@@ -590,9 +592,11 @@ class cams_Records extends core_Master
         
         arsort($pageOpts);
         
+        $pageOptsVerbal = array();
         foreach($pageOpts as $page) {
             $pageVerbal = dt::mysql2verbal($page);
             
+            $pageOptsVerbal[$page] = new stdClass();
             //            $pageOptsVerbal[$pageVerbal]->title = $pageVerbal;
             $pageOptsVerbal[$page]->title = $pageVerbal;
             
