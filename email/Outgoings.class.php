@@ -265,41 +265,13 @@ class email_Outgoings extends core_Master
         
         // Генерираме списък с документи, избрани за прикачане
         $docsArr = static::getAttachedDocuments($options);
+        
+        // Добавяме масива с To имейлите
+        $groupEmailsArr['to'] = type_Emails::toArray($options->emailsTo);
+        
+        // Добавяме CC имейлите заедно
+        $groupEmailsArr['cc'][0] = $options->emailsCc;
 
-        // Имейлите от адресант
-        $rEmails = $rec->email;
-        
-        // Имейлите от получател
-        $oEmails = $options->emailsTo;
-        
-        // Ако не сме променили имейлите
-        if (trim($rEmails) == trim($oEmails)) {
-            
-            // Всики имейли са в една група
-            $groupEmailsArr[] = type_Emails::toArray($oEmails);
-        } else {
-            
-            // Масив с имейлите от адресанта
-            $rEmailsArr = type_Emails::toArray($rEmails);
-            
-            // Масив с имейлите от получателя
-            $oEmailsArr = type_Emails::toArray($oEmails);
-            
-            // Събираме в група всички имейли, които се ги има и в двата масива
-            $groupEmailsArr[] = array_intersect($oEmailsArr, $rEmailsArr);
-            
-            // Вземаме имейлите, които ги няма в адресанта, но ги има в получатели
-            $diffArr = array_diff($oEmailsArr, $rEmailsArr);
-            
-            // Обхождаме масива с различните имейли
-            foreach ($diffArr as $diff) {
-                
-                // Добавяме ги в отделна група
-                $groupEmailsArr[] = array(0 => $diff);
-            }
-            
-        }
-        
         // CSS' а за имейли
         $emailCss = getFileContent('css/email.css');
         
@@ -307,19 +279,10 @@ class email_Outgoings extends core_Master
         $success  = $failure = array();
         
         // Обхождаме масива с всички групи имейли
-        foreach ($groupEmailsArr as $emailsTo) {
+        foreach ($groupEmailsArr['to'] as $key => $emailTo) {
             
-            // Всички имейли в стринг
-            $allEmailsToStr = implode(', ', $emailsTo);
-            
-            // Вземаме първия имейл
-            $emailTo = $emailsTo[0];
-            
-            // Премахваме го от масива
-            unset($emailsTo[0]);
-            
-            // Останалите имейли добавяме в CC полето
-            $emailCc = type_Emails::fromArray($emailsTo);
+            // Вземаме имейлите от cc
+            $emailsCc = $groupEmailsArr['cc'][$key];
             
             // Данни за съответния екшън
             $action = array(
@@ -332,10 +295,10 @@ class email_Outgoings extends core_Master
                 );
                 
             // Ако има CC
-            if ($emailCc) {
+            if ($emailsCc) {
                 
                 // Добавяме към екшъна
-                $action['data']->cc = $emailCc;
+                $action['data']->cc = $emailsCc;
             }
             
             // Пушваме екшъна
@@ -375,8 +338,11 @@ class email_Outgoings extends core_Master
                 array(
                    'encoding' => $options->encoding
                 ),
-                $emailCc
+                $emailsCc
             );
+            
+            // Стринга с имейлите, до които е изпратено
+            $allEmailsToStr = ($emailsCc) ? "{$emailTo}, $emailsCc": $emailTo;
             
             // Ако е изпратен успешно
             if ($status) {
@@ -459,7 +425,18 @@ class email_Outgoings extends core_Master
         $data->form->FNC(
             'emailsTo',
             'emails',
-            'input,caption=До,mandatory,width=750px,formOrder=1',
+            'input,caption=До,mandatory,width=750px,formOrder=2',
+            array(
+                'attr' => array(
+                    'data-role' => 'list'
+                ),
+            )
+        );
+        
+        $data->form->FNC(
+            'emailsCc',
+            'emails',
+            'input,caption=Кп,width=750px,formOrder=3',
             array(
                 'attr' => array(
                     'data-role' => 'list'
@@ -557,8 +534,6 @@ class email_Outgoings extends core_Master
             $data->form->setSuggestions('attachmentsSet', $filesArr);   
         }
         
-        $data->form->setDefault('emailsTo', $data->rec->email);
-        
         // Ако има originId
         if ($data->rec->originId) {
             
@@ -590,9 +565,21 @@ class email_Outgoings extends core_Master
         }
 
         // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
-        
         if (count($allEmailsArr)) {
             $data->form->setSuggestions('emailsTo', array('' => '') + $allEmailsArr);
+            $data->form->setSuggestions('emailsCc', array('' => '') + $allEmailsArr);
+        }
+        
+        // По подразбиране кои да са избрани
+        if (count($emailsToArr)) {
+            
+            // Първия имейл в групата е в До полето
+            $data->form->setDefault('emailsTo', $emailsToArr[0]);
+            $ccEmailsArr = $emailsToArr;
+            unset($ccEmailsArr[0]);
+            
+            // Останалите имейли от адресанта са в Кп полето
+            $data->form->setDefault('emailsCc', type_Emails::fromArray($ccEmailsArr));
         }
     }
     
@@ -1446,6 +1433,20 @@ class email_Outgoings extends core_Master
         $contrData->place = $posting->place;
         $contrData->address = $posting->address;
         $contrData->email = $posting->email;
+        
+        // Ако има originId
+        if ($posting->originId) {
+            
+            // Вземаме контрагент данните на оригиналния документ (когато клонираме изходящ имейл)
+            $originContr = doc_Containers::getContragentData($posting->originId);
+            
+            // Ако има групови имейли
+            if ($originContr->groupEmails) {
+                
+                // Добавяме ги
+                $contrData->groupEmails .= ($contrData->groupEmails) ? "$contrData->groupEmails, $originContr->groupEmails" : $originContr->groupEmails;
+            }
+        }
         
         return $contrData;
     }
