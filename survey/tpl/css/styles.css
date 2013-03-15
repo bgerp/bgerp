@@ -70,6 +70,7 @@ div.document ul {
 }
 
 .summary-answers {
+	padding-left:20px;
 	margin-top:5px !important;
 	margin-bottom:5px !important;
 }
@@ -83,7 +84,7 @@ div.document ul {
 }
 
 .summary-percent {
-	margin-left:15px;
+	margin-left:3px;
 	font-weight:bold;
 }
 
@@ -119,14 +120,13 @@ div.document ul {
 	margin-top:15px;
 	margin-bottom:15px;
 	font-size: 20px;
-	margin-left:20px !important;
 	font-weight:bold;
 }
 
 .summary-question {
 	font-weight:bold;
-	color:darkgreen;
-	margin-left:18px !important;
+	font-size:1.1em;
+	margin-top:10px;
 }
 
 .question-image {
@@ -197,3 +197,9 @@ div.richtext li {
 }
 .blogm-browse .blogm-article-title a:hover{
 	text-decoration:underline;
+}
+
+#summary{
+	list-style-type:none !important;
+
+}
