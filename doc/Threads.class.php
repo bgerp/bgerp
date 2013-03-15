@@ -610,7 +610,7 @@ class doc_Threads extends core_Manager
     {
         /* @var $query core_Query */
         $query = doc_Containers::getQuery();
-        $query->where("#threadId = {$rec->id}");
+        $query->where("#threadId = {$id}");
         $query->orderBy('createdBy', 'ASC');
         $query->limit(1);
         $query->show('id');
