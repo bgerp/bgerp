@@ -571,9 +571,29 @@ class email_Inboxes extends core_Master
             // Записваме в кеша
             core_Cache::set($cacheType, $cacheHandle, $emailForRemove, $keepMinutes, $depends);
         }
-
+        
+        // Масив с всички общи и корпоративни домейни
+        $domainsArr = email_Accounts::getCommonAndCorporateDomain();
+        
         // Премахваме нашите имейли
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);
+
+        // Обхождаме масива с останалите имейли
+        foreach ($allEmailsArr as $key => $email) {
+            
+            // Вземаме домейна на имейла
+            list($user, $domain) = explode('@', $email);
+            
+            // Домейна в долен регистър
+            $domain = mb_strtolower($domain);
+            
+            // Ако домейна съществува в нашите домейни
+            if ($domainsArr[$domain]) {
+                
+                // Премахваме от масива
+                unset($allEmailsArr[$key]);
+            }
+        }
 
         return $allEmailsArr;
     }
