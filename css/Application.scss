@@ -27,7 +27,6 @@ $quiet-gray:#888;
 	padding-left:22px;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
-	box-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -369,11 +368,6 @@ div.crmImage {
 	float:right;
 }
 
-div.crmImage img{
-	padding: 3px;
-	background: #fff;
-	box-shadow: 0 0 6px rgba(0,0,0,0.4);
-}
 
 .narrow div.crmImage {
 	padding:18px  8px  8px 0px;
@@ -958,26 +952,30 @@ table.mc-header a {
 .doc_Containers .thread-opened table.listTable>tbody>tr:hover {
 	background-color: #f4fff4 !important;
 }
-
+.thread-opened > div > table.listTable > tbody > tr > td {
+border: solid 1px green !important;
+}
 .doc_Containers .thread-opened table.listTable>tbody>tr {
 	background-color: #f4fff4 !important;
 }
 
-.single-thread.thread-opened > .listRows > table.listTable th{
-	border-left:none !important;
-	border-right:none !important;
-}
-.single-thread > .listRows > table.listTable >tbody > tr > td,.single-thread > .listRows > table.listTable > thead> tr > th{
-	border-left:none ;
-	border-right:none ;
-}
+
+.wide .single-thread > .listRows > table.listTable >tbody > tr > td:first-child,
+.wide .single-thread > .listRows > table.listTable >thead > tr > th:first-child{
+		border-right:none !important;
+		}	
+.wide .single-thread > .listRows > table.listTable >thead > tr > th:last-child,
+.wide .single-thread > .listRows > table.listTable >tbody > tr > td:last-child{
+		border-left:none !important;
+		}	
+
 
 .listTable{
   	.document h2 {
 		margin-top: 3px;
      }
 	 .toolbar {
-		padding: 4px 5px;
+		padding: 4px 5px 5px;
 	 }
 }
 
@@ -1000,7 +998,7 @@ table.mc-header a {
 }
 
 .narrow .listTable .toolbar {
-	margin: 0px 0px 2px 7px;
+	margin: 0px 0px 5px 7px;
 }
 
 .wide .doc_Containers .toolbar {
@@ -1055,14 +1053,6 @@ table.mc-header a {
 
 .wide .level-3 td, .wide .level-4 td, .wide .level-5 td { 
 	background-color: #fff;
-}
-	
-.state-revert {
- 	background-color: #cc9933;
-}
-
-.narrow .state-revert{
-	background-color: #cc9933;
 }
 
 input.inplace {
@@ -1230,13 +1220,13 @@ ul.history {
 		}
 	}
 	li {
-		margin: 3px 0;
+		margin: 5px 0;
 		padding: 2px 0;
 		line-height: 1.2;
 	}
 	b {
 		color: white;
-		padding: 1px 5px;
+		padding: 1px 3px;
 		@include border-radius(3px);
 		display: inline;
 		font-size: 1.2em;
@@ -1285,26 +1275,28 @@ ul.history {
 		display: inline-block;
 		margin-left: 10px;
 	}
+	b{
+		padding-top:3px
+	}
 }
 
 .narrow ul.history.summary li span { 
 	display:block; 
-	padding-top:8px;
+	padding-top:4px;
 	font-size:0.8em; 
 }
 
 div.sharing-history {
 	border: none;
 	border-top: 1px solid #ccc;
-	padding: 5px;
+	padding: 3px;
 	margin-left: 0px;
 	margin-right: 0px;
-	margin-top: 10px;
+	padding-left:110px;
 	position: relative;
 	color: #555;
 	font-size: 0.9em;
 	clear: both;
-	padding-right: 120px;
 }
 
 div.change-log {
@@ -1324,16 +1316,18 @@ div.change-log {
 span.sharing-history-title {
 	padding: 2px 5px;
 	padding-left: 23px;
-	background: #eee url(../img/share.png) no-repeat 3px center;
+	background: #eee url(../img/share2.png) no-repeat 3px center;
 	position: absolute;
 	display: block;
 	top: 0;
-	right: 0;
+	left : 0;
 	border: 1px solid #ccc;
 	border-top: none;
 	color: #777;
 }
-
+.narrow span.sharing-history-title{
+	font-size:14px;
+}
 span.change-log-title {
 	padding: 2px 5px;
 	padding-left: 23px;
@@ -1550,12 +1544,12 @@ input.combo.pCode{
 .cms-row .eightcol {
 	width: 65.3%;
 }
-.cms-row .eightcol {
+.cms-row .eightcol-new {
 	width:71%;
 	margin-right:0;
 }
 
-.narrow .cms-row .eightcol {
+.narrow .cms-row .eightcol-new {
 	width:70%;
 }
 
@@ -1735,14 +1729,8 @@ input.combo.pCode{
 .gravatar-box{
 	margin:10px 7px 10px 10px !important;
 }
-.gravatar-box img{
-	padding: 3px;
-	background: #fff;
-	box-shadow: 0 0 6px rgba(0,0,0,0.4);
-}
+
 /*стилове за документи*/
-
-
 .document .details .listTable {
 	width:100%;
 }

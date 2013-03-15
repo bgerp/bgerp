@@ -754,16 +754,28 @@ class log_Documents extends core_Manager
             if (isset($wordings[$action])) {
                 $actionVerbal = $wordings[$action][intval($count > 1)];
             }
-            
-            $link = ht::createLink(
-                "<b>{$count}</b> <span>{$actionVerbal}</span>", 
-                array(
-                    get_called_class(), 
-                    'list', 
-                    'containerId'=>$data->containerId, 
-                    'action' => $actionToTab[$action]
-                )
-            );
+            if(Mode::is('screenMode', 'narrow')) {
+            	$link = ht::createLink(
+            			"<b>{$count}</b><span>{$actionVerbal}</span>",
+            			array(
+            					get_called_class(),
+            					'list',
+            					'containerId'=>$data->containerId,
+            					'action' => $actionToTab[$action]
+            			)
+            	);
+            }
+            else{
+	            $link = ht::createLink(
+	                "<span>{$actionVerbal}</span> <b>{$count}</b>", 
+	                array(
+	                    get_called_class(), 
+	                    'list', 
+	                    'containerId'=>$data->containerId, 
+	                    'action' => $actionToTab[$action]
+	                )
+	            );
+            }
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
         

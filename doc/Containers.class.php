@@ -242,14 +242,14 @@ class doc_Containers extends core_Manager
         }
 
         if(Mode::is('screenMode', 'narrow')) {
-            $row->created = new ET("<table style='margin-left:5px;margin-top:5px;margin-bottom:0px;' ><tr><td rowspan='2' valign='top' style='white-space:nowrap;'>[#2#]</td><td nowrap style='padding-top:2px;'>[#3#]</td><td rowspan='2' style='width:50%'>[#HISTORY#]</td></tr><tr><td nowrap>[#1#]</td></tr></table>",
+            $row->created = new ET("<table style='margin-left:5px;margin-top:5px;margin-bottom:0px;' ><tr><td rowspan='2' valign='top' style='white-space:nowrap; padding-right:5px'>[#2#]</td><td nowrap style='padding-top:2px;'>[#3#]</td><td rowspan='2' style='width:50%'>[#HISTORY#]</td></tr><tr><td nowrap>[#1#]</td></tr></table>",
                 $mvc->getVerbal($rec, 'createdOn'),
                 $avatar,
                 $row->created);
                 
             // визуализиране на обобщена информация от лога
         } else {
-            $row->created = new ET("<div style='text-align:center;'><div style='text-align:right;display:inline-block;'><div style='font-size:0.8em;margin-top:5px;margin-right:7px;'>[#3#]</div>
+            $row->created = new ET("<div style='text-align:center;'><div style='text-align:right;display:inline-block;'><div style='font-size:0.8em;margin-top:7px;margin-right:7px;'>[#3#]</div>
                                                 <div style='font-size:0.8em;margin-right:7px;margin-bottom:10px;margin-top:5px;'>[#1#]</div>
                                                 <div class='gravatar-box' style='margin:10px;'>[#2#]</div>[#HISTORY#]</div></div>",
                 $mvc->getVerbal($rec, 'createdOn'),
