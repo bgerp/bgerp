@@ -1024,6 +1024,9 @@ class email_Outgoings extends core_Master
         // Всички имейли от река
         $recEmails = type_Emails::toArray($rec->email);
         
+        // От река премахваме нашите имейли
+        $recEmails = email_Inboxes::removeOurEmails($recEmails);
+        
         // Ако се редактира или клонира
         if ($editing) {
             
