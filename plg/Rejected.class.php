@@ -90,6 +90,65 @@ class plg_Rejected extends core_Plugin
             $data->title->append("&nbsp;<font class='state-rejected stateIndicator'>&nbsp;" . tr('оттеглени') . "&nbsp;</font>");
         } 
     }
+    
+    
+    /**
+     * Оттегляне на обект
+     * 
+     * Реализация по подразбиране на метода $mvc->reject($id)
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $id;
+        if (!is_object($rec)) {
+            $rec = $mvc->fetch($id);
+        }
+        
+        $res = FALSE;
+        
+        if (!isset($rec->id) || $rec->state == 'rejected') {
+            return;
+        }
+        
+        $rec->exState = $rec->state;
+        $rec->state = 'rejected';
+        $res = $mvc->save($rec);
+
+        $mvc->log('reject', $rec->id);
+    }
+    
+    
+    /**
+     * Възстановяване на оттеглен обект
+     * 
+     * Реализация по подразбиране на метода $mvc->restore($id)
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $id;
+        if (!is_object($rec)) {
+            $rec = $mvc->fetch($id);
+        }
+        
+        $res = FALSE;
+                
+        if (!isset($rec->id) || $rec->state != 'rejected') {
+            return;
+        }
+        
+        $rec->state = $rec->exState;
+        $res = $mvc->save($rec);
+
+        $mvc->log('restore', $rec->id);
+    }
 
 
 	/**
@@ -97,50 +156,24 @@ class plg_Rejected extends core_Plugin
      *
      * @return core_Redirect
      */
-    function on_BeforeAction($mvc, &$res, $action)
+    function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
-        if($action == 'reject') {
-            
+        if ($action == 'reject') {
             $id = Request::get('id', 'int');
-            
-            $mvc->requireRightFor('reject');
-            
             $rec = $mvc->fetch($id);
-            
             $mvc->requireRightFor('reject', $rec);
-            
-            if($rec->state != 'rejected') {
-
-                $rec->exState = $rec->state;
-                
-                $rec->state = 'rejected';
-                
-                $mvc->save($rec);
-                
-                $mvc->log('reject', $rec->id);
-            }
-            
-            $res = new Redirect(array($mvc, 'single', $id));
-            
+            $mvc->reject($rec);
+            $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
+                        
             return FALSE;
         }
         
-        if($action == 'restore') {
-            
+        if ($action == 'restore') {
             $id = Request::get('id', 'int');
-            
             $rec = $mvc->fetch($id);
-            
-            if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected')) {
-                
-                $rec->state = $rec->exState;
-                
-                $mvc->save($rec);
-                
-                $mvc->log('reject', $rec->id);
-            }
-            
-            $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $rec->id));
+            $mvc->requireRightFor('restore', $rec);
+            $mvc->restore($rec);
+            $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
             
             return FALSE;
         }
