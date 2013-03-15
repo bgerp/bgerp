@@ -601,6 +601,7 @@ class cams_Records extends core_Master
             $pageOptsVerbal[$page]->title = $pageVerbal;
             
             if(!$pageState[$page]) {
+            	$pageOptsVerbal[$pageVerbal] = new stdClass();
                 $pageOptsVerbal[$pageVerbal]->attr = array('style' => 'color:#666');
             } else {
                 if(!$firstPage) {
