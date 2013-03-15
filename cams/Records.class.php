@@ -197,6 +197,7 @@ class cams_Records extends core_Master
         // Подготвяме пътищата до различните медийни файлове
         $fp = $this->getFilePaths($rec->startTime, $rec->cameraId);
         
+        $data = new stdClass();
         // Настройваме параметрите на плеъра
         $data->url = $fp->flvUrl;
         $data->image = toUrl(array($this, 'StartJpg', $id));
