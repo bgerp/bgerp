@@ -436,7 +436,7 @@ class email_Outgoings extends core_Master
         $data->form->FNC(
             'emailsCc',
             'emails',
-            'input,caption=Кп,width=750px,formOrder=3',
+            'input,caption=Копие,width=750px,formOrder=3',
             array(
                 'attr' => array(
                     'data-role' => 'list'
