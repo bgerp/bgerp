@@ -54,7 +54,8 @@ class csstoinline_Emogrifier extends core_Manager
         //$Emogrifier->preserveEncoding = TRUE;
         
         // Задаваме кодировката на такста
-        $Emogrifier->encoding = lang_Encoding::detectCharset($html);
+//        $Emogrifier->encoding = lang_Encoding::detectCharset($html);
+        $Emogrifier->encoding = 'UTF-8';
 
         //Вкарва CSS във html, като inline
         $processedHTML = @$Emogrifier->emogrify();
