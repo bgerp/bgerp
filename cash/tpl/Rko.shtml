@@ -34,12 +34,12 @@
 				<b>|Основание|*:</b>&nbsp;&nbsp;&nbsp;[#reason#]
 			</td>
 			<td style='padding-left:10px;'>
-				<span style='font-size:20px'>|Сума|*:</span><span id='amount'><span id='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
+				<span style='font-size:20px'>|Сума|*:</span><span id='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
 			</td>
 		</tr>
 		<tr>
 			<td id='with-words' colspan='2'>
-				<b>|словом|*:</b>&nbsp;&nbsp;<span id='cCode'>[#currencyId#]</span>
+				<b>|словом|*:</b>&nbsp;&nbsp;<span class='cCode'>[#currencyId#]</span>
 				&nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;<br>
 			</td>
 		</tr>
@@ -56,7 +56,7 @@
 					<span class='labels'>|Курс|*:</span> &nbsp;&nbsp;<b>[#rate#]</b><br>
 					<div style='margin-top:7px;'>
 					<span class='labels'>|Равностойност|*:</span>
-					<span id='cCode'>[#baseCurrency#]</span>&nbsp;&nbsp;<b>[#equals#]</b></div>
+					<span class='cCode'>[#baseCurrency#]</span>&nbsp;&nbsp;<b>[#equals#]</b></div>
 					</div>
 				<!--ET_END equals-->
 				</td>

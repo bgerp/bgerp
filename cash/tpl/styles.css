@@ -71,14 +71,6 @@ th {
 	padding-bottom:3px;
 }
 
-#cCode {
-	border:solid 1px #ccc;
-	background-color:#eee;
-	padding:2px;
-    font-size:12px;
-    vertical-align:middle;
-}
-
 #notes {
 	width:67%;
 	height:53px;
