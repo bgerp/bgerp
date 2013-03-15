@@ -601,6 +601,26 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Извлича първичния ключ на първия контейнер в нишка
+     * 
+     * @param int $id key(mvc=doc_Threads)
+     * @return int key(mvc=doc_Containers)
+     */
+    public static function getFirstContainerId($id)
+    {
+        /* @var $query core_Query */
+        $query = doc_Containers::getQuery();
+        $query->where("#threadId = {$rec->id}");
+        $query->orderBy('createdBy', 'ASC');
+        $query->limit(1);
+        $query->show('id');
+        $r = $query->fetch();
+        
+        return $r->id;
+    }
+    
+    
+    /**
      * Добавя нишка в опашката за опресняване на стат. информация.
      * 
      * Същинското опресняване ще случи при shutdown на текущото изпълнение, при това еднократно
@@ -897,7 +917,10 @@ class doc_Threads extends core_Manager
         expect($rec);
         
         if (!$rec->handle) {
-            expect($rec->firstContainerId);
+            if (!$rec->firstContainerId) {
+                // Ако първия контейнер в нишката все още не е кеширан, намираме го на място.
+                $rec->firstContainerId = self::getFirstContainerId($rec->id);
+            }
             
             $rec->handle = doc_Containers::getHandle($rec->firstContainerId);
             
