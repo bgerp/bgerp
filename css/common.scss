@@ -34,7 +34,6 @@ $quiet-gray:#888;
 	padding-left:22px !important;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
-	box-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -618,9 +617,6 @@ a.button, input[type=button], input[type=submit] {
     font-size:13px;
     padding:2px 3px 3px 3px; /* IE6 */ 
 }
-a.button, input.button{
-	box-shadow: 0 1px 1px rgba(0,0,0,0.2);
-}
 
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
 	background-color:#eee; 
@@ -628,6 +624,7 @@ a.button, input.button{
 	@include border-radius(5px);
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
     font-size:100%;
+	font-size: 0.9em;
     line-height:130%; 
     padding:1px 4px 1px 4px; /* IE6 */
 }
@@ -642,7 +639,8 @@ a.button, input.button{
 .narrow .btn-right {
 	@include rounded(top, left, 0px !important) ;
     @include rounded(bottom, left, 0px !important);
-	margin:0px !important;
+	margin:0px 12px 0 0 !important;
+	
 }
 
 .narrow .btn-middle { 
@@ -898,9 +896,8 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
 div.statuses-success , div.statuses-error, div.statuses-warning{
 	background-color:#ffffcc;	
 }
-
 .state-draft {
-    background-color: #88cc99;
+    background-color: #bef7fd;
 }
 
 .state-active {
@@ -914,7 +911,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-pending, .state-waiting{
-    background-color: #cceeff;
+    background-color: #fbabfb;
 }
 
 .state-closed {
@@ -922,7 +919,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-stopped {
-    background-color: #ffaa00;
+    background-color: #feadad;
 }
 
 .state-blocked {
@@ -938,11 +935,15 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-free { 
-    background-color: #33cccc;
+    background-color:#33CCF5;
 }
 
 .state-hidden {
     background-color: #ffee77;
+}
+
+.state-revert {
+ 	background-color: #cc9933;
 }
 
 tr.zebra0 { 
