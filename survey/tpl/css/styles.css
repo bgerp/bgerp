@@ -72,7 +72,7 @@ div.document ul {
 .summary-answers {
 	padding-left:20px;
 	margin-top:5px !important;
-	margin-bottom:5px !important;
+	margin-bottom:20px !important;
 }
 
 .summary-answers li {
@@ -118,7 +118,6 @@ div.document ul {
 
 #summary-title {
 	margin-top:15px;
-	margin-bottom:15px;
 	font-size: 20px;
 	font-weight:bold;
 }
@@ -126,7 +125,6 @@ div.document ul {
 .summary-question {
 	font-weight:bold;
 	font-size:1.1em;
-	margin-top:10px;
 }
 
 .question-image {
