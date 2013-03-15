@@ -86,7 +86,7 @@ class email_Sent extends core_Manager
                                     cp1251=Windows Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
-                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=3');
+                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=4');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
         $this->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
