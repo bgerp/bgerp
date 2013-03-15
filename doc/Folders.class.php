@@ -296,6 +296,9 @@ class doc_Folders extends core_Master
                 $thQuery = doc_Threads::getQuery();
                 $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
                 
+                // Възстановяване на корицата, ако е оттеглена.
+                self::getCover($rec)->restore();
+                
                 if($rec->openThreadsCnt) {
                     $rec->state = 'opened';
                 } else {
@@ -685,6 +688,24 @@ class doc_Folders extends core_Master
     public static function fetchCoverId($id)
     {
         return static::fetchField($id, 'coverId');
+    }
+    
+    
+    /**
+     * Инстанция на корицата.
+     * 
+     * Резултата има всички методи, налични в мениджъра на корицата
+     * 
+     * @param int|stdClass $id идентификатор или запис на папка
+     * @return core_ObjectReference
+     */
+    public static function getCover($id)
+    {
+        expect($rec = static::fetchRec($id));
+
+        $cover = new core_ObjectReference($rec->coverClass, $rec->coverId);
+        
+        return $cover;
     }
     
 
