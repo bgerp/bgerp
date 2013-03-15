@@ -103,12 +103,8 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        $rec = $id;
-        if (!is_object($rec)) {
-            $rec = $mvc->fetch($id);
-        }
-        
         $res = FALSE;
+        $rec = $mvc->fetchRec($id);
         
         if (!isset($rec->id) || $rec->state == 'rejected') {
             return;
@@ -133,13 +129,9 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        $rec = $id;
-        if (!is_object($rec)) {
-            $rec = $mvc->fetch($id);
-        }
-        
         $res = FALSE;
-                
+        $rec = $mvc->fetchRec($id);
+                        
         if (!isset($rec->id) || $rec->state != 'rejected') {
             return;
         }
