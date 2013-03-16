@@ -17,12 +17,15 @@
  */
 class swf_Object extends core_BaseClass {
     
+    public $vars = array();
     
     /**
      * @todo Чака за документация...
      */
     function init($params = array())
     {
+    	$this->vars = (object) $this->vars;
+    	
         $this->vars->minFlashVersion = '9.0.0';
         
         // Задава променливи към флаш плеъра във формат променлива => стойност

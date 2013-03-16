@@ -26,7 +26,7 @@ class flvplayer_Embedder
     /**
      * @todo Чака за документация...
      */
-    function render($flvFile, $width, $height, $startImage, $params = array())
+    public static function render($flvFile, $width, $height, $startImage, $params = array())
     {
         $swfObj = cls::get('swf_Object');
         
