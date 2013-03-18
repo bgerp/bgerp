@@ -1047,4 +1047,22 @@ class crm_Companies extends core_Master
         
         return FALSE;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Никой да не може да изтрива
+        if ($action == 'delete') {
+            $requiredRoles = 'no_one';
+        }
+    }
 }
