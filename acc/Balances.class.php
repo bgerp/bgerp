@@ -188,10 +188,7 @@ class acc_Balances extends core_Master
         
         return $balanceId;
     }
-    static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-    	//bp($data->rec, $data->singleFields, $data);
-    }
+  
 
     /**
      * Презичислява балансите за периодите, в които има промяна ежеминутно
