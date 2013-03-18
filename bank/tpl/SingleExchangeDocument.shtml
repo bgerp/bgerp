@@ -25,8 +25,8 @@
 				|Обърнати |*:
 				<div style='margin-top:8px'>
 					<!--ET_BEGIN creditQuantity-->
-					<span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#creditPrice#]</span> &nbsp;
-					<b><span style='color:darkgreen'>[#creditQuantity#]</span></b>&nbsp; в &nbsp;<span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#debitPrice#]</span> &nbsp;
+					<span class='cCode'>[#creditCurrency#]</span> &nbsp;
+					<b><span style='color:darkgreen'>[#creditQuantity#]</span></b>&nbsp; в &nbsp;<span class='cCode'>[#debitCurrency#]</span> &nbsp;
 					<b><span style='color:darkgreen'>[#debitQuantity#]</span></b><br>
 					<!--ET_END creditQuantity-->
 				</div>

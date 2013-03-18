@@ -32,13 +32,13 @@ class bank_ExchangeDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, Items=acc_Items, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, creditQuantity=Обменено->Сума, creditCurrency=Обменено->Валута, state, createdOn, createdBy";
     
     
     /**
@@ -130,7 +130,7 @@ class bank_ExchangeDocument extends core_Master
     	$this->FLD('creditPrice', 'double(decimals=2)', 'input=none');
     	$this->FLD('creditQuantity', 'double(decimals=2)', 'width=6em,caption=От->Сума');
         $this->FLD('peroTo', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=Към->Б. сметка,width=20em');
-        $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума');
+        $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума,summary=amount');
        	$this->FLD('debitPrice', 'double(decimals=2)', 'input=none');
         $this->FLD('rate', 'double(decimals=2)', 'input=none');
         $this->FLD('state', 
@@ -229,20 +229,19 @@ class bank_ExchangeDocument extends core_Master
     {
     	$row->number = static::getHandle($rec->id);
     	
-    	if($fields['-single']) {
-    		$double = cls::get('type_Double');
-	    	$double->params['decimals'] = 2;
+    	$double = cls::get('type_Double');
+	    $double->params['decimals'] = 2;
 	    	
-	    	$creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
-    		$debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
+	    $creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
+    	$debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
+	    $row->creditCurrency = currency_Currencies::getCodeById($creditAccInfo->currencyId);
+	    $row->debitCurrency = currency_Currencies::getCodeById($debitAccInfo->currencyId);
     		
+	    if($fields['-single']) {
 	    	$row->equals = $double->toVerbal($rec->creditQuantity * $rec->creditPrice);
-    		$row->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
-    		$row->debitPrice = currency_Currencies::getCodeById($debitAccInfo->currencyId);
-    		$row->creditPrice = currency_Currencies::getCodeById($creditAccInfo->currencyId);
-    		$row->currency = currency_Currencies::getCodeById($debitAccInfo->currencyId);
-			
-    		// Показваме заглавието само ако не сме в режим принтиране
+	    	$row->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
+    		
+			// Показваме заглавието само ако не сме в режим принтиране
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}

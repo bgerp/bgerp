@@ -39,7 +39,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, creditQuantity=Обменено->Сума, creditCurrency=Обменено->Валута, state, createdOn, createdBy";
     
     
     /**
@@ -109,6 +109,12 @@ class cash_ExchangeDocument extends core_Master
     
     
     /**
+     * Кое поле съдържа валутата за обобщение
+     */
+    var $filterCurrencyField = 'debitCurrency';
+    
+    
+    /**
      * Групиране на документите
      */
     var $newBtnGroup = "4.8|Финанси";
@@ -122,13 +128,13 @@ class cash_ExchangeDocument extends core_Master
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=23em,input,mandatory');
     	$this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)','caption=От->Каса,width=12em');
     	$this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)','caption=От->Валута,width=6em');
-    	$this->FLD('creditPrice', 'float', 'input=none');
-    	$this->FLD('creditQuantity', 'float', 'width=6em,caption=От->Сума');
+    	$this->FLD('creditPrice', 'double(decimals=2)', 'input=none');
+    	$this->FLD('creditQuantity', 'double(decimals=2)', 'width=6em,caption=От->Сума');
         $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=12em');
         $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)','caption=Към->Валута,width=6em');
-        $this->FLD('debitQuantity', 'float', 'width=6em,caption=Към->Сума');
-       	$this->FLD('debitPrice', 'float', 'input=none');
-        $this->FLD('rate', 'float', 'input=none');
+        $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума,summary=amount');
+       	$this->FLD('debitPrice', 'double(decimals=2)', 'input=none');
+        $this->FLD('rate', 'double(decimals=2)', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -200,23 +206,16 @@ class cash_ExchangeDocument extends core_Master
     	$row->number = static::getHandle($rec->id);
     	
     	if($fields['-single']) {
-    		$row->currency = currency_Currencies::getCodeById($rec->debitCurrency);
-    		
-    		$double = cls::get('type_Double');
+	    	$double = cls::get('type_Double');
+	    	$row->currency = currency_Currencies::getCodeById($rec->debitCurrency);
 	    	$double->params['decimals'] = 2;
-	    	$row->creditQuantity = $double->toVerbal($rec->creditQuantity);
-	    	$row->debitQuantity = $double->toVerbal($rec->debitQuantity);
-	    	$row->rate = (float)$rec->rate;
-	    	
 	    	$row->equals = $double->toVerbal($rec->creditQuantity * $rec->creditPrice);
-    		$row->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
-    		$row->debitPrice = currency_Currencies::getCodeById($rec->debitCurrency);
-    		$row->creditPrice = currency_Currencies::getCodeById($rec->creditCurrency);
-    			
-			// Показваме заглавието само ако не сме в режим принтиране
-	    	if(!Mode::is('printing')){
-	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	}
+		    $row->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
+	    	
+	    	// Показваме заглавието само ако не сме в режим принтиране
+		    if(!Mode::is('printing')){
+		    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+		    }
     	}
     }
     
