@@ -104,6 +104,16 @@ class doc_FolderPlg extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+        // Ако оттегляме документа
+        if ($action == 'reject' && $rec->folderId) {
+            
+            // Ако има запис, който не е оттеглен
+            if (doc_Threads::fetch("#folderId = '{$rec->folderId}' && #state != 'rejected'")) {
+                
+                // Никой да не може да оттегля папката
+                $requiredRoles = 'no_one';    
+            }
+        }
         if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc')) {
             
             $rec = $mvc->fetch($rec->id);

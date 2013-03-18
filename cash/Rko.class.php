@@ -33,8 +33,8 @@ class cash_Rko extends core_Master
      * Неща, подлежащи на начално зареждане
      */
      var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
-                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg,
-                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_Contable, acc_plg_DocumentSummary,
+                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
     
     
     /**
@@ -134,7 +134,7 @@ class cash_Rko extends core_Master
     function description()
     {
     	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory');
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%,summary=amount');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
     	$this->FLD('number', 'int', 'caption=Номер,width=50%,width=30%');
@@ -157,20 +157,9 @@ class cash_Rko extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-    	$this->FNC('isContable', 'int', 'column=none');
     	 
         // Поставяне на уникален индекс
     	$this->setDbUnique('number');
-    }
-    
-    
-	/**
-     * @todo Чака за документация...
-     */
-    static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     
@@ -181,22 +170,9 @@ class cash_Rko extends core_Master
     {
     	$folderId = $data->form->rec->folderId;
     	$form = &$data->form;
-     
-    	// Информацията за контрагента на папката
-    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
     	
-    	if($contragentData) {
-    		if($contragentData->name) {
-    			
-    			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('contragentName', $contragentData->name);
-    			$form->setDefault('beneficiary', $contragentData->name);
-    		} elseif ($contragentData->company) {
-    			
-    			$form->setDefault('contragentName', $contragentData->company);
-    		}
-    		$form->setReadOnly('contragentName');
-    	}
+    	// Използваме помощната функция за намиране името на контрагента
+        bank_IncomeDocument::getContragentInfo($form, 'contragentName');
 
     	if($originId = $form->rec->originId) {
     		 $doc = doc_Containers::getDocument($originId);
@@ -253,20 +229,17 @@ class cash_Rko extends core_Master
 	    	$rec->peroCase = cash_Cases::getCurrent();
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
-	    	// Взема периода за който се отнася документа, според датата му
-	    	$period = acc_Periods::fetchByDate($rec->valior);
-		    
 		    if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
 		    }
 		    
 		    if($rec->rate != 1) {
 		   		$rec->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
 		    } 
 		    
-		    $rec->baseCurrency = $period->baseCurrencyId;
+		    $rec->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
     	}
     	
     	acc_Periods::checkDocumentDate($form);
@@ -344,7 +317,9 @@ class cash_Rko extends core_Master
      */
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	if($data->rec->state == 'draft'){
+    		$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+    	}
     }
     
     

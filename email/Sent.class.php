@@ -86,7 +86,7 @@ class email_Sent extends core_Manager
                                     cp1251=Windows Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
-                                    ascii=Латиница|* (ASCII))', 'caption=Знаци');
+                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=4');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
         $this->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
@@ -182,7 +182,7 @@ class email_Sent extends core_Manager
     
     
     
-    static function sendOne($boxFrom, $emailTo, $subject, $body, $options)
+    static function sendOne($boxFrom, $emailTo, $subject, $body, $options, $emailsCc=NULL)
     {
         if ($options['encoding'] == 'ascii') {
             $body->html = str::utf2ascii($body->html);
@@ -223,7 +223,7 @@ class email_Sent extends core_Manager
      
         static::prepareMessage($message, $sentRec, $options['is_fax']);
     
-        return static::doSend($message, $emailTo);
+        return static::doSend($message, $emailTo, $emailsCc);
     }
     
     /**
@@ -287,7 +287,7 @@ class email_Sent extends core_Manager
      * @param string $emailTo
      * @return bool
      */
-    protected static function doSend($message, $emailTo)
+    protected static function doSend($message, $emailTo, $emailsCc = NULL)
     {
         expect($emailTo);
         expect($message->emailFrom);
@@ -298,6 +298,12 @@ class email_Sent extends core_Manager
         $PML = email_Accounts::getPML($message->emailFrom);
         
         $PML->AddAddress($emailTo);
+        if ($emailsCc) {
+            $ccArr = type_Emails::toArray($emailsCc);
+            foreach ($ccArr as $cc) {
+                $PML->AddCC($cc);        
+            }
+        }
         $PML->SetFrom($message->emailFrom);
         $PML->Subject   = $message->subject;
         $PML->CharSet   = $message->charset;

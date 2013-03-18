@@ -4,12 +4,12 @@
 </tr>
 <tr [#lastRow#] data-code=[#code#]>
 	<td class='receipt-quantity' width="110px"><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#packagingId#]<!--ET_END packagingId--></td>
-	<td class='receipt-price' width="140px">[#price#] лв. 
+	<td class='receipt-price' width="200px">[#price#] <small>[#currency#]</small> 
 	<!--ET_BEGIN discountPercent-->
 	 (<span class='receipt-discount-td'> [#discountPercent#] %</span>)
 	<!--ET_END discountPercent-->
 	</td>
-	<td class='receipt-amount'><span class='sale-amount'>[#amount#] </span></td>
+	<td class='receipt-amount'><span class='sale-amount'>[#amount#] <small>[#currency#]</small></span></td>
 </tr>
 <!--ET_END sale-->
 
@@ -17,10 +17,10 @@
 <tr>
 	<td colspan='4' class='receipt-discount'>[#discountType#]: &nbsp;&nbsp;
 	<!--ET_BEGIN discountPercent-->
-		[#discountPercent#] %
+		[#discountPercent#]%
 	<!--ET_END discountPercent-->
 	<!--ET_BEGIN discountSum-->
-		[#discountSum#] лв
+		[#discountSum#] <small>[#currency#]</small>
 	<!--ET_END discountSum-->
 	</td>
 </tr>
@@ -28,7 +28,7 @@
 
 <!--ET_BEGIN payment-->
 <tr>
-	<td colspan='4' class='receipt-payment'>Плащане [#actionValue#]: &nbsp;&nbsp;[#amount#] лв</td>
+	<td colspan='4' class='receipt-payment'>Плащане [#actionValue#]: &nbsp;&nbsp;[#amount#] <small>[#currency#]</small></td>
 </tr>
 <!--ET_END payment-->
 

@@ -1122,17 +1122,15 @@ class email_Mime extends core_BaseClass
         if(count($list)) {
             foreach($list as $item) {
                 if($item['address']) {
-                    $res .= "\n" . $item['address'];
+                    $res .= "<span>" . $item['address'];
                     if($item['name']) {
                         $res .= ' (' . $item['name'] . ')';
                     }
-                    $res .= '<br>';
+                    $res .= '</span>, ';
                 }
             }
+            $res = rtrim($res, ', ');
         }
-        
-        // Да няма прекъсване след последния имейл
-        $res = rtrim($res, '<br>');
         
         return $res;
     }

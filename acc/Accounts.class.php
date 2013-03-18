@@ -96,7 +96,7 @@ class acc_Accounts extends core_Manager
      */
     function description()
     {
-        $this->FLD('num', 'varchar(5, size=5)', "caption=Номер,mandatory,remember=info, export");
+        $this->FLD('num', 'int(5)', "caption=Номер,mandatory,remember=info, export");
         $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD('type', 'enum(,dynamic=Смесена,active=Активна,passive=Пасивна,transit=Корекционна)',
             'caption=Тип,remember,mandatory, export');
@@ -109,11 +109,12 @@ class acc_Accounts extends core_Manager
         $this->FLD('groupId3', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
             'caption=Разбивка по номенклатури->Ном. 3,remember, export');
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=hidden');
-        $this->FLD('systemId', 'varchar(5)', 'caption=System ID, export');
+        $this->FLD('systemId', 'identifier(16)', 'caption=System ID, export, mandatory');
         
         $this->XPR('isSynthetic', 'int', 'CHAR_LENGTH(#num) < 3', 'column=none');
         
         $this->setDbUnique('num');
+        $this->setDbUnique('systemId');
     }
     
     

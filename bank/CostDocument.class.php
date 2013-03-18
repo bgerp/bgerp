@@ -2,7 +2,7 @@
 
 
 /**
- * Разходен Банков Документ
+ * Разходен банков документ
  *
  *
  * @category  bgerp
@@ -32,7 +32,7 @@ class bank_CostDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg,
+     	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
@@ -125,7 +125,7 @@ class bank_CostDocument extends core_Master
     {
     	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Код,width=6em');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
@@ -139,17 +139,6 @@ class bank_CostDocument extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
-        $this->FNC('isContable', 'int', 'column=none');
-    }
-    
-    
-    /**
-     * @TODO
-     */
-	static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     
@@ -175,34 +164,21 @@ class bank_CostDocument extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
         $form->setOptions('operationSysId', $options);
     
-        static::getContragentInfo($form);
-    }
-    
-    
-	 /**
-      * @TODO
-      */
-     static function getContragentInfo(core_Form $form)
-     {
-     	$folderId = $form->rec->folderId;
-    	
-    	// Информацията за контрагента на папката
-    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
-    	
-    	if($contragentData) {
-    		if($contragentData->company) {
-    			
-    			$form->setDefault('contragentName', $contragentData->company);
-    		} elseif ($contragentData->name) {
-    			
-    			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('contragentName', $contragentData->name);
-    		}
-    		$form->setReadOnly('contragentName');
-    	}
+        // Използваме помощната функция за намиране името на контрагента
+        bank_IncomeDocument::getContragentInfo($form, 'contragentName');
     }
      
-     
+    
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{	
+        // Използваме филтър формата на Банковия приходен документ
+		//bank_IncomeDocument::prepareBankFilter($data);
+	}
+	
+	
     /**
      * Проверка след изпращането на формата
      */

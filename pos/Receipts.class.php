@@ -31,8 +31,8 @@ class pos_Receipts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Printing,
-    				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search';
+    var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary,
+    				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting';
 
     
     /**
@@ -44,13 +44,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title=Заглавие,contragentName, total, paid, change, productCount, state , createdOn, createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'id, title=Заглавие, contragentName, total, paid, change, productCount, state , createdOn, createdBy';
     
     
     /**
@@ -95,28 +89,30 @@ class pos_Receipts extends core_Master {
 	var $searchFields = 'contragentName';
 	
 	
+	/**
+     * 
+     */
+    var $filterDateField = 'createdOn';
+    
+    
     /**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка на Продажба');
-    	$this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата, input=none');
+    	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка на продажба');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
     	$this->FLD('contragentObjectId', 'int', 'input=none');
     	$this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
-    	$this->FLD('total', 'float(minDecimals=2)', 'caption=Общо, input=none, value=0');
-    	$this->FLD('paid', 'float(minDecimals=2)', 'caption=Платено, input=none, value=0');
-    	$this->FLD('change', 'float(minDecimals=2)', 'caption=Ресто, input=none, value=0');
-    	$this->FLD('tax', 'float(minDecimals=2)', 'caption=Такса, input=none, value=0');
+    	$this->FLD('total', 'double(decimals=2)', 'caption=Общо, input=none, value=0, summary=amount');
+    	$this->FLD('paid', 'double(decimals=2)', 'caption=Платено, input=none, value=0, summary=amount');
+    	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
+    	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворена)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 
             'caption=Статус, input=none'
         );
-        $this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0');
-        
-        // Поле в което се записва в кой репорт участва бележката
-        $this->FLD('lastUsedBy', 'key(mvc=pos_Reports)', 'input=none');
+        $this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0,summary=quantity');
     }
     
     
@@ -153,13 +149,12 @@ class pos_Receipts extends core_Master {
     {
     	$rec = new stdClass();
     	$posId = pos_Points::getCurrent();
-    	$rec->date = dt::now();
     	$rec->contragentName = tr('Анонимен Клиент');
     	$rec->contragentClass = core_Classes::getId('crm_Persons');
     	$rec->contragentObjectId = pos_Points::defaultContragent($posId);
     	$rec->pointId = $posId;
     	$this->requireRightFor('add', $rec);
-    	$id = static::save($rec);
+    	$id = $this->save($rec);
     	
     	return Redirect(array($this, 'single', $id));
     }
@@ -170,16 +165,11 @@ class pos_Receipts extends core_Master {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
-    	$row->total = $double->toVerbal($rec->total);
-    	$row->paid = $double->toVerbal($rec->paid);
-    	$row->change = $double->toVerbal($rec->change);
-    	$row->number = "№{$rec->id}";
+    	$row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	
     	if($fields['-list']){
-    		$row->title = "PoS Продажба {$row->number}";
-    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id));
+    		$row->title = "Бърза продажба №{$row->id}";
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	}
     }
 
@@ -194,7 +184,6 @@ class pos_Receipts extends core_Master {
     		// Добавяме бутон за достъп до 'List' изгледа
     		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
     							   'ef_icon=img/16/application_view_list.png, order=18');    
-    								 
     	}
     }
     
@@ -219,8 +208,8 @@ class pos_Receipts extends core_Master {
     	if(!Request::get('ajax_mode')) {
 	    	jquery_Jquery::enable($tpl);
 	    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
-	    	$tpl->push($data->theme . '/style.css', 'CSS');
 	    	$tpl->push('pos/js/scripts.js', 'JS');
+	    	$tpl->push($data->theme . '/style.css', 'CSS');
 	    	if($data->products && count($data->products->arr) > 0) {
 	    		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
 	    	}
@@ -240,16 +229,22 @@ class pos_Receipts extends core_Master {
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
     	$products = array();
-    	$currencyId = acc_Periods::getBaseCurrencyId($rec->date);
+    	$totalQuantity = 0;
+    	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
     	
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
+    	$query->where("#quantity != 0");
     	$query->where("#action LIKE '%sale%'");
-    	if($count){
-    		return $query->count();
-    	}
     	
 	    while($rec = $query->fetch()) {
+	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
+	    	
+	    	// Ако продукта няма опаковка к-то му е 1
+	    	($info->packagingRec) ? $quantity = $info->packagingRec->quantity : $quantity = 1;
+	    	$rec->quantity = $quantity * $rec->quantity;
+	    	
+	    	$totalQuantity += $rec->quantity;
 	    	$products[] = (object) array(
 	    		'productId' => $rec->productId,
 		    	'contragentClassId' => $rec->contragentClass,
@@ -258,7 +253,11 @@ class pos_Receipts extends core_Master {
 		    	'amount' => $rec->amount,
 		    	'quantity' => $rec->quantity);
 	    }
-    	
+	    
+    	if($count){
+    		return $totalQuantity;
+    	}
+	    
     	return $products;
     }
     
@@ -282,8 +281,6 @@ class pos_Receipts extends core_Master {
     				$rec->change = $change;
     			}
     			break;
-    		case 'discount':
-    			break;
     		case 'payment':
     			
     			// "Плащане" : преизчисляваме платеното до сега и рестото
@@ -300,7 +297,14 @@ class pos_Receipts extends core_Master {
     			$rec->contragentId = $contragentRec[0];
     			$class = $contragentRec[1];
     			$rec->contragentClassId = $class::getClassId();
-    			$rec->contragentName = $class::fetchField($contragentRec[0], 'name');
+    			$rec->contragentName = $class::getTitleById($contragentRec[0]);
+    			break;
+    		case 'discount':
+    			if($action[1] == 'sum'){
+    				
+    				// Ако отстъпката е сума намаляваме общата сума с отстъпката
+    				$rec->total -= $detailRec->ean;
+    			}
     			break;
     	}
     	
@@ -311,7 +315,7 @@ class pos_Receipts extends core_Master {
     /**
      * Изчислява всичко платено до момента
      * @param int $id - запис от модела
-     * @return double $paid;
+     * @return double $paid - платената сума до момента
      */
     function countPaidAmount($id)
     {
@@ -352,23 +356,6 @@ class pos_Receipts extends core_Master {
 	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	$data->query->orderBy('#createdOn', 'DESC');
-    	if($filter = $data->listFilter->rec) {
-    		if($filter->to) {
-    			$data->query->where("#date <= '{$filter->to}'");
-    		}
-    		
-    		if($filter->from) {
-    			$data->query->where("#date >= '{$filter->from}'");
-    		}
-    		
-    		if($filter->paidSum) {
-    			$data->query->where("#paid <= {$filter->paidSum}");
-    		}
-    		
-    		if($filter->totalSum) {
-    			$data->query->where("#total <= {$filter->totalSum}");
-    		}
-    	}
     }
     
     
@@ -383,7 +370,7 @@ class pos_Receipts extends core_Master {
 		}
 		
 		// Никой неможе да изтрива активирана бележка
-		if($action == 'delete' && $rec->state == 'active') {
+		if($action == 'delete' && $rec->state != 'draft') {
 			$res = 'no_one';
 		}
 		
@@ -398,27 +385,6 @@ class pos_Receipts extends core_Master {
 	
 	
 	/**
-	 *  Подготовка на филтър формата
-	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
-	{	
-        $data->listFilter->title = 'Търсене';
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->FNC('totalSum', 'int', 'placeholder=Сума,width=6em,silent');
-		$data->listFilter->FNC('paidSum', 'int', 'placeholder=Платено,width=6em,silent');
-        $data->listFilter->FNC('from', 'date', 'width=6em,placeholder=От,silent');
-		$data->listFilter->FNC('to', 'date', 'width=6em,silent');
-		$data->listFilter->setDefault('to', dt::now());
-		$data->listFilter->setField('search', 'placeholder=Клиент,width=14em');
-        $data->listFilter->showFields = 'search,totalSum,paidSum,from,to';
-        
-        // Активиране на филтъра
-        $data->listFilter->input('search, totalSum, paidSum, from, to', 'silent');
-	 }
-	
-	
-	/**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
    	 */
@@ -429,7 +395,7 @@ class pos_Receipts extends core_Master {
     	$posRec = pos_Points::fetch($rec->pointId);
     	foreach ($products as $product) {
     		$currencyCode = currency_Currencies::getCodeById($product->currencyId);
-    		$amount = currency_CurrencyRates::convertAmount($product->amount, $rec->date, $currencyCode);
+    		$amount = currency_CurrencyRates::convertAmount($product->amount, $rec->createdOn, $currencyCode);
 	    	
     		// Първо Отчитаме прихода от продажбата
     		$entries[] = array(
@@ -462,8 +428,8 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$transaction = (object)array(
-                'reason'  => 'PoS Продажба #' . $rec->id,
-                'valior'  => $rec->date,
+                'reason'  => 'Касова бележка #' . $rec->id,
+                'valior'  => $rec->createdOn,
                 'entries' => $entries, 
             );
       
@@ -505,6 +471,7 @@ class pos_Receipts extends core_Master {
     		$data->products = pos_Favourites::prepareProducts();
     		$data->products->theme = $data->theme;
     	}
+    	
         if($dForm = $data->pos_ReceiptDetails->form) {
             $rec = $dForm->input();
             $Details = cls::get('pos_ReceiptDetails');
@@ -560,10 +527,7 @@ class pos_Receipts extends core_Master {
     {
     	if(!$res) {
             $title = sprintf('%s&nbsp;№%d',
-                empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle,
-                $id
-            );
-            
+                empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle, $id);
             $res = ht::createLink($title, array($mvc, 'single', $id));
         }
     }

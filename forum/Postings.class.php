@@ -23,7 +23,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting, plg_Search';
+	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
 	
 	
 	/** 
@@ -178,7 +178,7 @@ class forum_Postings extends core_Detail {
 	 */
     function renderBoardThemes_($data, $layout)
 	{
-		$tpl = new ET(getFileContent($data->forumTheme . '/Themes.shtml'));
+		$tpl = new ET(tr('|*' . getFileContent($data->forumTheme . '/Themes.shtml')));
 		
 		// Иконките на отключените и заключените теми взети от текущата тема
 		$openIcon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/unlocked.png", ""), 'width' => '32px'));
@@ -331,7 +331,7 @@ class forum_Postings extends core_Detail {
 		}
 		
 		// Подготвяме навигацията
-		$this->Master->prepareNavigation($data);
+		$data->navigation = $this->Master->prepareNavigation($data->board->category, $data->rec->boardId, $data->rec->id, $data->display);
 	}
 	
 	
@@ -340,7 +340,7 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderTheme_($data)
 	{
-		$tpl = new ET(getFileContent($data->forumTheme . '/SingleTheme.shtml'));
+		$tpl = new ET(tr('|*' .getFileContent($data->forumTheme . '/SingleTheme.shtml')));
 		$commentTpl = new ET(getFileContent($data->forumTheme . '/Comments.shtml'));
 		$tpl->replace($data->title, 'THREAD_HEADER');
 		$tpl->placeObject($data->row);
@@ -360,12 +360,12 @@ class forum_Postings extends core_Detail {
 		
 		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
-			
-            $data->postForm->layout = new ET(getFileContent($data->forumTheme . '/PostForm.shtml'));
-            $data->postForm->fieldsLayout = new ET(getFileContent($data->forumTheme . '/PostFormFields.shtml'));
+			$formTpl = new ET(tr('|*'.getFileContent($data->forumTheme . '/PostForm.shtml')));
+            $data->postForm->layout = $formTpl->getBlock('FORM');
+            $data->postForm->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         } else {
-        	(core_Users::getCurrent()) ? $msg = 'темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';
+        	(core_Users::getCurrent()) ? $msg = 'Темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';
         	$tpl->replace("<b>" . tr($msg) . "</b>", 'COMMENT_FORM');
           }
 		
@@ -381,6 +381,10 @@ class forum_Postings extends core_Detail {
 		$tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		$tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
 		 
+		$icon = sbf($data->forumTheme . "/img/32/top.png");
+		$topLink = ht::createLink(' ', getCurrentUrl(), NULL, array('style'=>"background-image:url({$icon})", 'class' => 'goTopBtn'));
+		
+		$tpl->replace($topLink, 'topLink');
         return $tpl;
 	}
 	
@@ -398,10 +402,6 @@ class forum_Postings extends core_Detail {
 		$data->rec = $rec;
 		$conf = core_Packs::getConfig('forum');
         $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
-        
-        // Попълваме вербалната и невербалната информация за дъската, където ще добавяме тема
-        $fields = $this->Master->selectFields('');
-        $data->row = $this->Master->recToVerbal($data->rec, $fields);
         $data->action = 'new';
         $data->display = 'public';
         
@@ -428,7 +428,6 @@ class forum_Postings extends core_Detail {
         
         // Рендираме Формата
 		$layout = $this->renderNew($data);
-		
 		$layout->push($data->forumTheme . '/styles.css', 'CSS');
 		$layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		
@@ -443,7 +442,7 @@ class forum_Postings extends core_Detail {
 	{
 		// Подготвяме форма за започване на нова тема
 		$form = $this->getForm();
-		$form->setHidden('boardId', $data->row->id);
+		$form->setHidden('boardId', $data->rec->id);
 		
 		// Ако потребителя няма права да заключва/отключва тема, ние скриваме полето от формата
 		if(!$this->haveRightFor('write', $data->rec)) {
@@ -456,10 +455,10 @@ class forum_Postings extends core_Detail {
 		$data->form = $form;
 		
 		// Заглавие на формата
-		$data->header = tr("Започване на нова тема в:") . "&nbsp;&nbsp;&nbsp;" . $data->row->title;
+		$data->header = tr("Започване на нова тема в") . ":&nbsp;&nbsp;&nbsp;" . $data->row->title;
 		
 		// Подготвяме навигацията
-		$this->Master->prepareNavigation($data);
+		$data->navigation = $this->Master->prepareNavigation($data->rec->category, $data->rec->id, NULL, $data->display);
 	}
 	
 	
@@ -468,8 +467,9 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderNew($data)
 	{
-		$data->form->layout = new ET(getFileContent($data->forumTheme . '/AddForm.shtml'));
-        $data->form->fieldsLayout = new ET(getFileContent($data->forumTheme . '/AddFormFields.shtml'));
+		$formTpl = new ET(tr('|*' . getFileContent($data->forumTheme . '/AddForm.shtml')));
+		$data->form->layout = $formTpl->getBlock("FORM");
+        $data->form->fieldsLayout = $formTpl->getBlock("FORM_FIELDS");
 		
         $tpl = new ET(getFileContent($data->forumTheme . '/New.shtml'));
 		$tpl->replace($data->header, 'header');
@@ -537,7 +537,7 @@ class forum_Postings extends core_Detail {
 		}
         
 		$this->prepareTopicToolbar($data);
-        $this->Master->prepareInnerNavigation($data);
+		$data->navigation = $this->Master->prepareNavigation($data->board->category, $data->rec->boardId, $data->rec->id);
 	}
 	
 	
@@ -549,13 +549,13 @@ class forum_Postings extends core_Detail {
 		if($this->haveRightFor('write', $data->rec)) {
 			
 			// Местене на тема
-        	$data->moveUrl = array($this, 'Move', 'themeId' => $data->rec->id);
+        	$data->moveUrl = array($this, 'move', 'themeId' => $data->rec->id);
 			
 			// Адрес за заключване/отключване на тема
-			$data->lockUrl = array($this, 'Lock', $data->rec->id);
+			$data->lockUrl = array($this, 'lock', $data->rec->id);
 			
 			// Редактиране на темата
-			$data->editUrl = array($this, 'Edit', $data->rec->id, 'ret_url' => TRUE );
+			$data->editUrl = array($this, 'edit', $data->rec->id, 'ret_url' => TRUE );
 		} 
 	}
 	
@@ -565,7 +565,7 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderTopic($data)
 	{
-		$tpl = new ET(getFileContent('forum/tpl/SingleTopic.shtml'));
+		$tpl = new ET(tr('|*' . getFileContent('forum/tpl/SingleTopic.shtml')));
 		$detailsTpl = new ET(getFileContent('forum/tpl/Comments.shtml'));
 		$tpl->placeObject($data->row);
 		
@@ -699,7 +699,7 @@ class forum_Postings extends core_Detail {
 		$data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), array('class' => 'btn-move'));
 		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), array('class' => 'btn-cancel'));
 		
-		$this->Master->prepareInnerNavigation($data);
+		$data->navigation = $this->Master->prepareNavigation($data->board->categoryId, $data->rec->boardId, $data->rec->id);
 	}
 	
 	
@@ -711,13 +711,10 @@ class forum_Postings extends core_Detail {
 	{
 		$layout = new ET("");
 		$layout->append($this->Master->renderNavigation($data));
-		
 		if($data->form) {
 			$layout->append($data->form->renderHtml());
 		}
-		
 		$layout = $this->renderWrapping($layout);
-		
 		$layout->push('forum/tpl/styles.css', 'CSS');
 		
 		return $layout;
@@ -790,7 +787,7 @@ class forum_Postings extends core_Detail {
         if($data->q) {
          	plg_Search::applySearch($data->q, $data->query);
         }
-        
+      
         $conf = core_Packs::getConfig('forum');
 		$data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
         $data->pager->setLimit($data->query);
@@ -828,8 +825,9 @@ class forum_Postings extends core_Detail {
 	        	$data->rows[$rec->id]->board = ht::createLink($data->rows[$rec->id]->board, $boardUrl);
 			}
 		} 
-       
-        $this->Master->prepareNavigation($data);
+		
+        $this->Master->prepareSearchForm($data);
+		$data->navigation =  $this->Master->prepareNavigation(NULL, NULL, NULL, $data->display);
     }
 	
     
@@ -838,14 +836,14 @@ class forum_Postings extends core_Detail {
      */
     function renderSearch($data)
     {
-    	$tpl = new ET(getFileContent($data->forumTheme . '/Results.shtml'));
-    	$tableTpl = new ET(getFileContent($data->forumTheme . '/ResultsTable.shtml'));
+    	$tpl = new ET(tr('|*' . getFileContent($data->forumTheme . '/Results.shtml')));
+    	$tableTpl = $tpl->getBlock('ROW');
     	$openIcon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/unlocked.png", ""), 'width' => '32px'));
 		$lockedIcon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/locked.png", ""), 'width' => '32px'));
 		
 		if(count($data->rows)) {
 	      foreach($data->rows as $row) {
-	      		$themeTpl = $tableTpl->getBlock('ROW');
+	      		$themeTpl = clone $tableTpl;
 	      		$themeTpl->placeObject($row);
 	      		($row->locked == "заключена") ? $icon = $lockedIcon : $icon = $openIcon;
 	         	$themeTpl->replace($icon, 'ICON');
@@ -857,7 +855,6 @@ class forum_Postings extends core_Detail {
 		}
 		
 		$tableTpl->replace($data->pager->getHtml(), 'PAGER');
-		$tpl->append($tableTpl, 'RESULTS');
 		
     	return $tpl;
     }
@@ -938,6 +935,9 @@ class forum_Postings extends core_Detail {
    
     /**
      * Обновяваме статистическата информация на темата
+     * @param int $themeId - ид на темата
+     * @param datetime $createdOn - дата на публикуване
+     * @param int createdBy - автор
      */
     function updateStatistics($themeId, $createdOn, $createdBy)
     {
@@ -971,7 +971,7 @@ class forum_Postings extends core_Detail {
    	 				$row->status = '';
    	 			  }
    	 			
-   	 			$row->title =$row->status. ht::createLink($row->title, array($mvc, 'Topic', $rec->id));
+   	 			$row->title = $row->status. ht::createLink($row->title, array($mvc, 'Topic', $rec->id));
    	 			
    	 			if(!$row->last) {
    	 		 		$row->last = tr('няма');
@@ -1022,17 +1022,7 @@ class forum_Postings extends core_Detail {
    	 	
    	 	if($fields['-theme'] || $fields['-topic']) {
    	 		$row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
-   	 		$row->topLink = ht::createLink(tr('начало'), getCurrentUrl(), NULL, array('class' => 'button'));
-   	 	}
-   	 	
-   	 	// Линк към преглед на темата във външния изглед
-   	 	if($fields['-public']) {
-   	 		$row->title = ht::createLink($row->title, array($mvc, 'Theme', $row->id));
-   	 	}
-   	 	
-   	 	// Линк към преглед на темата във вътрешния изглед
-   		if($fields['-private']) {
-   	 		$row->title = ht::createLink($row->title, array($mvc, 'Topic', $row->id));
+   	 		//$row->topLink = ht::createLink(tr('начало'), getCurrentUrl(), NULL, array('class' => 'button'));
    	 	}
     }
    
@@ -1043,7 +1033,7 @@ class forum_Postings extends core_Detail {
     function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
 		$data->query->where("#themeId IS  NULL");
-		$data->title = 'Показване на всички теми';
+		$data->title = tr('Показване на всички теми');
 		
         if($filter = $data->listFilter->rec) {
 	    	if($filter->board > 0) {
@@ -1056,13 +1046,13 @@ class forum_Postings extends core_Detail {
 				
 				// Ако търсим по всички постинги добавяме и коментарите
 				$data->query->orWhere("#themeId IS NOT NULL");
-				$data->title = 'Показване на всички постинги';
+				$data->title = tr('Показване на всички постинги');
 			} elseif($filter->posting == 'comments') {
 				
 				// Ако търсим само в коментари
 				unset($data->query->where);
 				$data->query->where("#themeId IS NOT NULL");
-				$data->title = 'Показване на всички коментари';
+				$data->title = tr('Показване на всички коментари');
 			}
 		}
         
@@ -1121,7 +1111,7 @@ class forum_Postings extends core_Detail {
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->title = 'Търсене';
+    	$data->listFilter->title = tr('Търсене');
     	$data->listFilter->FNC('posting', 'enum(themes=Теми,all=Всички,comments=Коментари)', 'placeholder=Тип,input,value=themes,silent');
     	$data->listFilter->FNC('board', 'key(mvc=forum_Boards,select=title,allowEmpty)', 'placeholder=Дъска,input,silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');

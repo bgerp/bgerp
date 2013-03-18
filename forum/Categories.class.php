@@ -115,11 +115,7 @@ class forum_Categories extends core_Manager {
 	function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
 	{
 		if($fields['-list']) {
-			$row->title = ht::createLink($row->title, array('forum_Boards', 'list', 'category' => $rec->id));
-		}
-		
-		if($fields['-public']) {
-			$row->title = ht::createLink($row->title, array('forum_Boards', 'forum', 'cat' => $rec->id));
+			$row->title = ht::createLink($row->title, array('forum_Boards', 'list', 'cat' => $rec->id));
 		}
 	}
 	

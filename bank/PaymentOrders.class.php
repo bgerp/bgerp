@@ -31,7 +31,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing, acc_plg_DocumentSummary, plg_Search,
      	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg,doc_plg_MultiPrint, bgerp_plg_Blank';
     
     
@@ -111,7 +111,7 @@ class bank_PaymentOrders extends core_Master
      */
     function description()
     {
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
@@ -200,7 +200,9 @@ class bank_PaymentOrders extends core_Master
 	    	$today = dt::verbal2mysql();
 	    	$form->setDefault('valior', $today);
 	    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-    		static::getContragentInfo($data->form);
+    		
+	    	// Използваме помощната функция за намиране името на контрагента
+	    	bank_IncomeDocument::getContragentInfo($data->form, 'beneficiaryName');
     	}
     }
     
@@ -218,32 +220,6 @@ class bank_PaymentOrders extends core_Master
 		    if(!$form->rec->execBankBic){
 		    	$form->rec->execBankBic = drdata_Banks::getBankBic($form->rec->ordererIban);
 		    }
-    	}
-    }
-    
-    
-    /**
-     *  Попълва формата с
-     *  Информацията за контрагента извлечена от папката
-     */
-    static function getContragentInfo(core_Form $form)
-    {
-    	$folderId = $form->rec->folderId;
-    	$contragentId = doc_Folders::fetchCoverId($folderId);
-    	$contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
-    	
-   		// Информацията за контрагента на папката
-    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
-    	
-    	if($contragentData) {
-    		if($contragentData->company) {
-    			
-    			$form->setDefault('beneficiaryName', $contragentData->company);
-    		} elseif ($contragentData->name) {
-    			
-    			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('beneficiaryName', $contragentData->name);
-    		}
     	}
     }
     

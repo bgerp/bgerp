@@ -78,7 +78,7 @@ class acc_Lists extends core_Manager {
         $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none');
         
         // System ID
-        $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
+        $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export, mandatory');
         
         // Заглавие 
         $this->FNC('caption', 'html', 'column=none');
@@ -92,6 +92,7 @@ class acc_Lists extends core_Manager {
         // Уникални индекси
         $this->setDbUnique('num');
         $this->setDbUnique('name');
+        $this->setDbUnique('systemId');
     }
     
     

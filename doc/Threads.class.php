@@ -58,8 +58,13 @@ class doc_Threads extends core_Manager
     static $contragentData = NULL;
     
     
-    protected static $updating = array();
-    
+    /**
+     * Опашка от id на нишки, които трябва да обновят статистиките си
+     *  
+     * @var array
+     * @see doc_Threads::updateThread()
+     */
+    protected static $updateQueue = array();
     
     /**
      * Описание на модела на нишките от контейнери за документи
@@ -596,17 +601,68 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Обновява информацията за дадена тема.
-     * Обикновено се извиква след промяна на doc_Containers
+     * Извлича първичния ключ на първия контейнер в нишка
+     * 
+     * @param int $id key(mvc=doc_Threads)
+     * @return int key(mvc=doc_Containers)
      */
-    function updateThread_($id)
+    public static function getFirstContainerId($id)
     {
-        if (static::isUpdating($id)) {
+        /* @var $query core_Query */
+        $query = doc_Containers::getQuery();
+        $query->where("#threadId = {$id}");
+        $query->orderBy('createdBy', 'ASC');
+        $query->limit(1);
+        $query->show('id');
+        $r = $query->fetch();
+        
+        return $r->id;
+    }
+    
+    
+    /**
+     * Добавя нишка в опашката за опресняване на стат. информация.
+     * 
+     * Същинското опресняване ще случи при shutdown на текущото изпълнение, при това еднократно
+     * за всяка нишка, независимо колко пъти е заявена за опресняване тя.
+     *  
+     * @param int $id key(mvc=doc_Threads)
+     */
+    public static function updateThread($id)
+    {
+        // Изкуствено създаваме инстанция на doc_Folders. Това гарантира, че ще бъде извикан
+        // doc_Folders::on_Shutdown()
+        cls::get('doc_Folders');
+        
+        self::$updateQueue[$id] = TRUE;
+    }
+    
+    
+    /**
+     * Обновява информацията за дадена тема. Обикновено се извиква след промяна на doc_Containers
+     * 
+     * @param array|int $ids масив с ключ id на нишка или 
+     */
+    public static function doUpdateThread($ids = NULL)
+    {
+        if (!isset($ids)) {
+            $ids = self::$updateQueue;
+        }
+        
+        if (is_array($ids)) {
+            foreach (array_keys($ids) as $id) {
+                if (!isset($id)) { continue; }
+                self::doUpdateThread($id);
+            }
+            return;
+        }
+        
+        if (!$id = $ids) {
             return;
         }
         
         // Вземаме записа на треда
-        $rec = doc_Threads::fetch($id, NULL, FALSE);
+        $rec = self::fetch($id, NULL, FALSE);
         
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
@@ -617,6 +673,7 @@ class doc_Threads extends core_Manager
         // Публични документи в треда
         $rec->pubDocCnt = $rec->allDocCnt = 0;
 
+        $firstDcRec = NULL;
         
         while($dcRec = $dcQuery->fetch("#threadId = {$id}")) {
             
@@ -689,12 +746,6 @@ class doc_Threads extends core_Manager
             
             doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor');
             
-            // Първия документ 
-            if($firstDcRec->state == 'rejected' && $rec->state != 'rejected') {
-                $firstDoc = doc_Containers::getDocument($firstDcRec->id);
-                $firstDoc->reject('restore');
-            }
-
         } else {
             // Ако липсват каквито и да е документи в нишката - изтриваме я
             self::delete($id);
@@ -704,31 +755,49 @@ class doc_Threads extends core_Manager
     }
     
     
-    public static function beginUpdate($id)
+    /**
+     * Оттегля цяла нишка, заедно с всички документи в нея
+     * 
+     * @param int $id
+     */
+    public static function rejectThread($id)
     {
-        if (empty(static::$updating[$id])) {
-            static::$updating[$id] = 1;
-        } else {
-            static::$updating[$id]++;
+        // Оттегляме записа в doc_Threads
+        expect($rec = static::fetch($id));
+            
+        if ($rec->state == 'rejected') {
+            
+            return;
         }
+        
+        $rec->state = 'rejected';
+        static::save($rec);
+
+        // Оттегляме всички контейнери в нишката
+        doc_Containers::rejectByThread($rec->id);
     }
     
     
-    public static function endUpdate($id)
+    /**
+     * Възстановява цяла нишка, заедно с всички документи в нея 
+     * 
+     * @param int $id
+     */
+    public static function restoreThread($id)
     {
-        expect(static::$updating[$id] > 0, static::$updating[$id]);
+        // Възстановяваме записа в doc_Threads
+        expect($rec = static::fetch($id));
         
-        static::$updating[$id]--;
+        if ($rec->state != 'rejected') {
+            
+            return;
+        }
+        
+        $rec->state = 'closed';
+        static::save($rec);
 
-        $docThreads = cls::get('doc_Threads');
-
-        $docThreads->updateThread_($id);
-    } 
-    
-    
-    public static function isUpdating($id)
-    {
-        return isset(static::$updating[$id]) ? static::$updating[$id] : 0; 
+        // Възстановяваме всички контейнери в нишката
+        doc_Containers::restoreByThread($rec->id);
     }
     
     
@@ -849,7 +918,10 @@ class doc_Threads extends core_Manager
         expect($rec);
         
         if (!$rec->handle) {
-            expect($rec->firstContainerId);
+            if (!$rec->firstContainerId) {
+                // Ако първия контейнер в нишката все още не е кеширан, намираме го на място.
+                $rec->firstContainerId = self::getFirstContainerId($rec->id);
+            }
             
             $rec->handle = doc_Containers::getHandle($rec->firstContainerId);
             
@@ -1124,20 +1196,24 @@ class doc_Threads extends core_Manager
         
         //id' то на контейнера на първия документ в треда
         $firstContId = $threadRec->firstContainerId;
-
+        
+        // Ако няма id на първия документ
         if (!$firstContId) return ;
         
-        //Документа
-        $oDoc = doc_Containers::getDocument($firstContId);
+        // Връщаме езика на контейнера
+        return doc_Containers::getLanguage($firstContId);
         
-        //Името на класа
-        $className = $oDoc->className;
-        
-        //Вземаме записите на класа
-        $classRec = $className::fetch($oDoc->that);
-        
-        //Връщаме езика
-        return $classRec->lg;
+//        //Документа
+//        $oDoc = doc_Containers::getDocument($firstContId);
+//        
+//        //Името на класа
+//        $className = $oDoc->className;
+//        
+//        //Вземаме записите на класа
+//        $classRec = $className::fetch($oDoc->that);
+//
+//        //Връщаме езика
+//        return $classRec->lg;
     }
 
     
@@ -1150,8 +1226,17 @@ class doc_Threads extends core_Manager
     static function getThreadTitle($id, $verbal=TRUE)
     {
         $rec = self::fetch($id);
-        $document = doc_Containers::getDocument($rec->firstContainerId);
-        $docRow = $document->getDocumentRow();
+        
+        // Ако няма първи контейнер
+        // При директно активиране на първия документ
+        if (!($cid = $rec->firstContainerId)) {
+            
+            // Вземаме id' то на записа
+            $cid = doc_Containers::fetchField("#threadId = '{$rec->id}'");
+        }
+        
+        $document = doc_Containers::getDocument($cid);
+        $docRow = $document->getDocumentRow();  
         
         if ($verbal) {
             $title = $docRow->title;

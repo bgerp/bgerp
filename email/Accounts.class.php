@@ -135,6 +135,37 @@ class email_Accounts extends core_Master
 
     
     /**
+     * Връща всички активни корпоративни и общи домейни
+     */
+    static function getCommonAndCorporateDomain()
+    {
+        // Масива, който ще връщаме
+        $arr = array();
+        
+        // Запитване за извличане на активните корпоративни и общи домейни
+        $query = static::getQuery();
+        $query->where("#type = 'corporate'");
+        $query->orWhere("#type = 'common'");
+        $query->where("#state = 'active'");
+        
+        // Обхождаме записа
+        while ($rec = $query->fetch()) {
+            
+            // Вземаме домейна
+            list($user, $domain) = explode('@', $rec->email);
+            
+            // Домейна в долен регистър
+            $domain = mb_strtolower($domain);
+            
+            // Добавяме в масива
+            $arr[$domain] = $domain;
+        }
+        
+        return $arr;
+    }
+    
+    
+    /**
      * Дали чрез дадената сметка може да изпращат писма
      */
     static function canSendEmail($id)

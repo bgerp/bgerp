@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за "PoS Продукти" 
+ * Мениджър за "Бързи бутони" 
  *
  *
  * @category  bgerp
@@ -18,7 +18,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Продукти";
+    var $title = "Продукти за бързи бутони";
     
     
     /**
@@ -112,7 +112,8 @@ class pos_Favourites extends core_Manager {
      * @return stdClass - обект съдържащ пос продуктите за текущата
      * точка и формата за филтриране
      */
-    public static function prepareProducts(){
+    public static function prepareProducts()
+    {
     	$self = cls::get(get_called_class());
     	$productsArr = $self->preparePosProducts();
     	$categoriesArr = pos_FavouritesCategories::prepareAll();
@@ -130,36 +131,48 @@ class pos_Favourites extends core_Manager {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	$cache = core_Cache::get('pos_Favourites', 'products');
-    	$array = array();
-    	
     	// Коя е текущата точка на продажба и нейния дефолт контрагент
     	$posRec = pos_Points::fetch(pos_Points::getCurrent());
     	$defaultPosContragentId = pos_Points::defaultContragent($posRec->id);
     	$crmPersonsClassId = crm_Persons::getClassId();
     	$Policy = cls::get($posRec->policyId);
     	
-    	$query = static::getQuery();
-    	$query->where("#pointId IS NULL");
-    	$query->orWhere("#pointId LIKE '%{$posRec->id}%'");
-    	$query->where("#state = 'active'");
-    	while($rec = $query->fetch()){
-    		if(!$cache[$rec->id]) {
-    			$obj = $this->prepareProductObject($rec);
-	    		$obj->code = $varchar->toVerbal($obj->code);
-	    		$obj->name = $varchar->toVerbal($obj->name);
-	    		
-	    		// Цена на продукта от ценовата политика
-	    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $rec->productId, $rec->packagingId, $obj->quantity, dt::verbal2mysql());
-	    		$obj->price = $double->toVerbal($price->price);
-    			$cache[$rec->id] = $obj;
-    		}
-    		 
-    		$array[$rec->id] = $cache[$rec->id];
+    	// Изчличаме кеша, ако го няма го създаваме
+    	$cache = core_Cache::get('pos_Favourites', 'products');
+    	if(!$cache){
+    		$query = static::getQuery();
+	    	$query->where("#pointId IS NULL");
+	    	$query->orWhere("#pointId LIKE '%{$posRec->id}%'");
+	    	$query->where("#state = 'active'");
+	    	while($rec = $query->fetch()){
+	    		$obj = $this->prepareProductObject($rec);
+		    	$obj->code = $varchar->toVerbal($obj->code);
+		    	$obj->name = $varchar->toVerbal($obj->name);
+		    	$obj->productId = $rec->productId;
+		    	$obj->packagingId = $rec->packagingId;
+		    	$cache[$rec->id] = $obj;
+	    	}
+	    	core_Cache::set('pos_Favourites', 'products', $cache, 1440, array('cat_Products'));
+	    }
+    	
+    	foreach($cache as $obj){
+    		
+    		// За всеки обект от кеша, изчисляваме актуалната му цена
+    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $obj->productId, $obj->packagingId, $obj->quantity, dt::verbal2mysql());
+    		$obj->price = $double->toVerbal($price->price);
     	}
     	
-    	core_Cache::set('pos_Favourites', 'products', $array, 300);
-    	return $array;
+    	return $cache;
+    }
+    
+    
+    /**
+     * След запис в модела
+     */
+	public static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	// Инвалидираме кеша
+    	core_Cache::remove('pos_Favourites', 'products');
     }
     
     
@@ -192,7 +205,7 @@ class pos_Favourites extends core_Manager {
     
     
     /**
-     * Рендираме PoS продуктите и техните категории в подходящ вид
+     * Рендираме Продуктите и техните категории в подходящ вид
      * @param stdClass $data - обект съдържащ масивите с продуктите,
      * категориите и темата по подразбиране
      * @return core_ET $tpl - шаблона с продуктите
@@ -268,8 +281,7 @@ class pos_Favourites extends core_Manager {
     	$measureRow = cat_UoM::fetchField($info->productRec->measureId, 'shortName');
     	$measureRow = $varchar->toVerbal($measureRow);
     	if($info->packagingRec) {
-    		$packName = cat_Packagings::fetchField($rec->packagingId, 'name');
-    		$packName = $varchar->toVerbal($packName);
+    		$packName = cat_Packagings::getTitleById($rec->packagingId);
     		$quantity = $info->packagingRec->quantity;
     		$pack = " , {$quantity} {$measureRow} в {$packName}";
     	} else {
@@ -281,5 +293,7 @@ class pos_Favourites extends core_Manager {
     	}
     	
     	$row->productId .= $pack;
+    	$icon = sbf("img/16/package-icon.png");
+    	$row->productId = ht::createLink($row->productId, array("cat_Products", 'single', $rec->productId), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
     }
 }

@@ -23,21 +23,9 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'plg_RowTools, pos_Wrapper, plg_Sorting';
-    
-  
-    /**
 	 * Мастър ключ към дъските
 	 */
 	var $masterKey = 'receiptId';
-    
-    
-	/**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
     
     
     /**
@@ -51,13 +39,7 @@ class pos_ReceiptDetails extends core_Detail {
      */
     var $canList = 'no_one';
     
-    
-    /**
-	 *  Брой елементи на страница 
-	 */
-	var $listItemsPerPage = '20';
 
-    
   	/**
      * Описание на модела (таблицата)
      */
@@ -68,12 +50,12 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em,input=none');
     	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, class=ean-text');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
-    	$this->FLD('price', 'float(minDecimals=2)', 'caption=Цена,input=none');
+    	$this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=4em');
-        $this->FLD('amount', 'float(minDecimals=2)', 'caption=Сума, input=none');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
-    	$this->FLD('discountPercent', 'percent(Max=1)', 'caption=Отстъпка->Процент,input=none');
-        $this->FLD('discountSum', 'float(minDecimals=2)', 'caption=Отстъпка->Сума,input=none');
+    	$this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка->Процент,input=none');
+        $this->FLD('discountSum', 'double(decimals=2)', 'caption=Отстъпка->Сума,input=none');
         $this->FLD('fixbon', 'enum(yes=Да,no=Не)', 'caption=Фискален Бон,input=none,value=yes');
     }
     
@@ -95,7 +77,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$rRec = (object) array('receiptId' => $data->masterId); 
     	if($this->haveRightFor('add', $rRec)) {
-	    	$form = static::getForm();
+	    	$form = $this->getForm();
 	    	$form->method = 'POST';
 	    	$form->layout = new ET(getFileContent("pos/tpl/DetailsForm.shtml"));
 	    	$form->action = array($this->Master, 'single', $data->masterId, '#'=>'form');
@@ -115,11 +97,11 @@ class pos_ReceiptDetails extends core_Detail {
     function createFormFieldsLayout($data)
     {
     	$tpl = new ET(getFileContent("pos/tpl/DetailsFormFields.shtml"));
-    	$tpl->append(ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' =>  'buttonForm')), 'FIRST_ROW');
-    	$tpl->append(ht::createFnBtn('+1', '','', array('id'=>'incBtn','class'=>'buttonForm')), 'FIRST_ROW');
-	    $tpl->append(ht::createFnBtn('-1', '','', array('id'=>'decBtn','class'=>'buttonForm')), 'FIRST_ROW');
-	    $tpl->append(ht::createFnBtn('Баркод', "window.WebScan.scanThenLoadURL('[SCANVALUE]')", '', array('class'=>'webscan')), 'THIRD_ROW');
-	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class'=>'actionBtn', 'data-type' =>'client|ccard')), 'THIRD_ROW');
+    	$tpl->append(ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' => 'buttonForm')), 'FIRST_ROW');
+    	$tpl->append(ht::createFnBtn('+1', '','', array('id' => 'incBtn','class' => 'buttonForm')), 'FIRST_ROW');
+	    $tpl->append(ht::createFnBtn('-1', '','', array('id' => 'decBtn','class' => 'buttonForm')), 'FIRST_ROW');
+	    $tpl->append(ht::createFnBtn('Баркод', "window.WebScan.scanThenLoadURL('[SCANVALUE]')", '', array('class' => 'webscan')), 'THIRD_ROW');
+	    $tpl->append(ht::createFnBtn('Кл. Карта', '','', array('class' => 'actionBtn', 'data-type' => 'client|ccard')), 'THIRD_ROW');
 	    $payments = pos_Payments::fetchSelected();
 	    $cPayments = count($payments);
 	    foreach($payments as $payment) {
@@ -130,7 +112,8 @@ class pos_ReceiptDetails extends core_Detail {
 	    if(haveRole('pos,admin') && $this->Master->haveRightFor('conto', $data->masterId)) {
 	    	$contUrl = array('acc_Journal', 'conto', 'docId' => $data->masterId, 'docType' => $this->Master->className, 'ret_url' => array($this->Master, 'new'));
 	    }
-	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class'=>'actionBtn btnEnd')), 'FIRST_ROW');
+	    
+	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class' => 'actionBtn btnEnd')), 'FIRST_ROW');
 	   
 		return $tpl;
     }
@@ -179,27 +162,25 @@ class pos_ReceiptDetails extends core_Detail {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$varchar = cls::get('type_Varchar');
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 0;
+    	$receiptDate = $mvc->Master->fetchField($rec->receiptId, 'createdOn');
+    	$row->currency = acc_Periods::getBaseCurrencyCode($receiptDate);
     	$action = $mvc->getAction($rec->action);
     	switch($action->type) {
     		case "sale":
     			$mvc->renderSale($rec, $row);
     			break;
     		case "payment":
-    			$value = pos_Payments::fetchField($action->value, 'title');
-    			$row->actionValue = $varchar->toVerbal($value);
+    			$row->actionValue = pos_Payments::getTitleById($action->value);
     			break;
     		case "client":
     			$clientArr = explode("|", $rec->param);
-    			$clientName = $clientArr[1]::fetchField($clientArr[0], 'name');
-    			$row->clientName = $varchar->toVerbal($clientName);
+    			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
     			break;
     		case 'discount':
-    			$double->params['decimals'] = 0;
     			if($rec->discountPercent){
     				$discRec = &$rec->discountPercent;
     				$discRow = &$row->discountPercent;
+    				unset($row->currency);
     			}else {
     				$discRec = &$rec->discountSum;
     				$discRow = &$row->discountSum;
@@ -209,9 +190,6 @@ class pos_ReceiptDetails extends core_Detail {
     			($discRec < 0) ? $row->discountType = tr("Надценка") : $row->discountType = tr("Отстъпка");
     			break;
     	}
-    	
-    	$double->params['decimals'] = 2;
-    	$row->amount = $double->toVerbal($rec->amount);
     }
     
     
@@ -227,32 +205,24 @@ class pos_ReceiptDetails extends core_Detail {
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
     	$row->productId = $varchar->toVerbal($productInfo->productRec->name);
     	$row->code = $varchar->toVerbal($productInfo->productRec->code);
-    	$row->price = $double->toVerbal($rec->price);
+    	
     	$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
     	$row->uomId = $varchar->toVerbal($uomId);
-    	$double->params['decimals'] = 0;
+    	
     	$row->perPack = $double->toVerbal($productInfo->packagingRec->quantity);
     	if($rec->value) {
-    		$packName = cat_Packagings::fetchField($rec->value, 'name');
-    		$row->packagingId = $varchar->toVerbal($packName);
+    		$row->packagingId = cat_Packagings::getTitleById($rec->value);
     	} else {
     		$row->packagingId = $uomId;
     		unset($row->uomId);
     	}
     	
-    	$row->quantity = $double->toVerbal($rec->quantity);
     	if($rec->discountPercent){
-    		$double->params['decimals'] = 0;
-    		if(round($rec->discountPercent) == 0) {
-    			unset($row->discountPercent);
-    		} else {
-    			$rec->discountPercent = $rec->discountPercent * -1;
-    			$row->discountPercent = $double->toVerbal($rec->discountPercent);
-    			if($rec->discountPercent >0) {
-    				$row->discountPercent = "+" . $row->discountPercent;
-    			}	
+    		$rec->discountPercent = $rec->discountPercent * -1;
+    		$row->discountPercent = $double->toVerbal($rec->discountPercent);
+    		if($rec->discountPercent > 0) {
+    			$row->discountPercent = "+" . $row->discountPercent;
     		}
-    		
     	}
     }
     
@@ -265,14 +235,17 @@ class pos_ReceiptDetails extends core_Detail {
     	if($form->isSubmitted()) {
     		$rec = &$form->rec;
     		$rec->ean = trim($rec->ean);
-    		if(!$rec->ean) {
+    		
+    		if(strlen($rec->ean) == 0) {
     			$form->setError('ean', 'Имате празно поле');
     			return;
     		}
+    		
     		if($rec->quantity == 0) {
 	    		$form->setError('quantity', 'Неможе да въведете нулево количество');
 	    		return;
 	    	}
+	    	
     		$action = $mvc->getAction($rec->action);
 	    	switch($action->type) {
 	    		case 'sale':
@@ -284,27 +257,33 @@ class pos_ReceiptDetails extends core_Detail {
 	    			
 				    // Намираме дали този проект го има въведен 
 				    $sameProduct = $mvc->findSale($rec->productId, $rec->receiptId, $rec->value);
-				    if((string)$sameProduct->price == (string)$rec->price) {
+					if((string)$sameProduct->price == (string)$rec->price) {
 				    				
 				    		// Ако цената и опаковката му е същата като на текущия продукт,
 				    		// не добавяме нов запис а ъпдейтваме стария
 				    		$newQuantity = $rec->quantity + $sameProduct->quantity;
-				    		if($newQuantity > 0) {
-				    			$rec->quantity = $newQuantity;
-				    			$rec->amount += $sameProduct->amount;
-				    		} else {
-				    			$rec->quantity = 0;
-				    			$rec->amount = 0;
-				    		}
-				    		
+				    		$rec->quantity = $newQuantity;
+				    		$rec->amount += $sameProduct->amount;
 				    		$rec->id = $sameProduct->id;
+				    }
+				    
+				    if($rec->quantity < 0) {
+				    	
+				    	// Количеството на оставащия продукт не бива да е под 0
+				    	$form->setError('quantity', 'Въвели сте неправилно количество');
+				    }
+				    
+	    			if($rec->price < 0) {
+				    	
+				    	// Небива да се записвая продукт с отрицателна цена (след приложена отстъпка)
+				    	$form->setError('ean', 'Не може продукта да е с отрицателна цена !');
 				    }
 	    			break;
 	    		case 'payment':
 	    			
 	    			// Ако действието е "плащане"
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    				$form->setError('ean', 'Полето приема само цифри');
 	    				return;
 	    			}
 	    			
@@ -323,14 +302,21 @@ class pos_ReceiptDetails extends core_Detail {
 	    			
 	    			// Ако действието е "отстъпка"
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    				$form->setError('ean', 'Полето приема само цифри');
 	    			}
 	    			$param = ucfirst(strtolower($action->value));
 	    			$rec->{"discount{$param}"} = (double)$rec->ean;
+	    			if($param == 'Sum'){
+	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
+	    				if($total < $rec->ean){
+	    					$form->setError('ean', 'Отстъпката е по-голяма от крайната сума !');
+	    				}
+	    			}
+	    			
 	    			break;
 	    		case 'client':
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Не сте въвели валидно число');
+	    				$form->setError('ean', 'Полето приема само цифри');
 	    				return;
 	    			}
 	    			
@@ -357,7 +343,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$actionArr = explode("|", $string);
     	$allowed = array('sale', 'discount', 'client', 'payment');
     	expect(in_array($actionArr[0], $allowed), 'Не е позволена такава операция');
-    	expect(count($actionArr) == 2, 'Стринга не е в правилен формат');
+    	expect(count($actionArr) == 2, 'Стрингът не е в правилен формат');
     	
     	$action = new stdClass();
     	$action->type = $actionArr[0];
@@ -415,8 +401,8 @@ class pos_ReceiptDetails extends core_Detail {
     								   $product->productId,
     								   $product->packagingId, 
     								   $rec->quantity, 
-    								   $receiptRec->date);
-    	
+    								   $receiptRec->createdOn);
+    								   
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	$rec->price = $price->price;
     	if($price->discount != 0.00) {
@@ -444,33 +430,24 @@ class pos_ReceiptDetails extends core_Detail {
     	// Проверяваме дали има последно зададена отстъпка от касиера
     	$query = $this->getQuery();
     	$query->where("#receiptId = {$receiptId}");
-    	$query->where("#action LIKE '%discount%'");
+    	$query->where("#action LIKE '%discount|percent%'");
     	$query->orderBy("#id", "DESC");
     	if($dRec = $query->fetch()) {
-    		$action = $this->getAction($dRec->action);
-    		if($action->value == 'percent') {
-    			
-    			// Ако остъпката е в процент, изчисляваме каква част от цената е тя
-    			$lastDisc = round(($price->price * $dRec->discountPercent / 100), 2);
-    			$procent = $dRec->discountPercent;
-    		} else {
-    			
-    			// Ако отстъпката е сума, изчисляваме на колко процента е равна
-    			$lastDisc = $dRec->discountSum;
-    			$procent = round(($lastDisc * 100 / $price->price), 2);
-    		}
+    		
+    		$lastDisc = round(($price->price * $dRec->discountPercent / 100), 2);
+    		$procent = $dRec->discountPercent;
     		
     		if($lastDisc > 0){
     			$finalDiscount = max($clientDiscount, $lastDisc);
     			$finalPrice->discount = max($procent, $pDiscount);
     		} else {
-    			$finalDiscount =  $lastDisc;
+    			$finalDiscount = $lastDisc;
     			$finalPrice->discount = $procent;
     		}
     			
     		// Връщаме цената с приложената по-голяма отстъпка
     		$finalPrice->price = $price->price - $finalDiscount;
-    			
+    		
     		return $finalPrice;
     	}
     	 
@@ -526,7 +503,6 @@ class pos_ReceiptDetails extends core_Detail {
     function getActionOptions()
     {
     	$params = array();
-    	
     	$params[] = (object)array('title' => tr('Продажба'), 'group' => TRUE);
     	$params['sale|code'] = tr('Продукт');
     	$params[] = (object)array('title' => tr('Отстъпка'), 'group' => TRUE);
@@ -572,7 +548,7 @@ class pos_ReceiptDetails extends core_Detail {
 
 	
 	/**
-     * Премахва продажбите с количество "0"
+     * Не показваме продажбите с количество "0"
      */
     static function on_AfterPrepareListRecs($mvc, &$res, $data)
     {
@@ -591,27 +567,31 @@ class pos_ReceiptDetails extends core_Detail {
      * @return array $result - масив от всички
      * плащания и продажби на бележката;
      */
-    static function fetchReportData($receiptId) {
-    	
-    	expect(pos_Receipts::fetch($receiptId));
+    static function fetchReportData($receiptId)
+    {
+    	expect($masterRec = pos_Receipts::fetch($receiptId));
     	$result = array();
     	$query = static::getQuery();
     	$query->where("#receiptId = {$receiptId}");
     	$query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
     	while($rec = $query->fetch()) {
-    		$obj = new stdClass();
+    		$arr = array();
     		if($rec->productId) {
-    			$obj->action = 'sale';
-    			$obj->pack = $rec->value;
-    			$obj->value = $rec->productId;
-    			$obj->quantity = $rec->quantity;
+    			$arr['action'] = 'sale';
+    			$arr['value'] = $rec->productId;
+    			($rec->value) ? $arr['pack'] = $rec->value : $arr['pack'] = 0;
     		} else {
-    			$obj->action = 'payment';
-    			$type = explode('|', $rec->action);
-    			$obj->value = $type[1];
+    			$arr['action'] = 'payment';
+    			list(, $arr['value']) = explode('|', $rec->action);
+    			$arr['pack'] = 0;
     		}
+    		$index = implode('|', $arr);
+    		$obj = new stdClass();
+    		$obj->action = $arr['action'];
+    		$obj->quantity = $rec->quantity;
     		$obj->amount = $rec->amount;
-    		$result[$rec->id] = $obj;
+    		$obj->date = $masterRec->createdOn;
+    		$result[$index] = $obj;
     	}
     	
     	return $result;

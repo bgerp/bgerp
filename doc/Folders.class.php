@@ -58,6 +58,7 @@ class doc_Folders extends core_Master
      */
     var $canReject = 'user';
     
+    var $canNewdoc = 'user';
     
     /**
      * полета от БД по които ще се търси
@@ -74,7 +75,7 @@ class doc_Folders extends core_Master
     /**
      * Масив в id-та на папки, които трябва да се обновят на Shutdown
      */
-    static $updateByContentOnShutdown = array();
+    var $updateByContentOnShutdown = array();
 
 
     /**
@@ -265,7 +266,8 @@ class doc_Folders extends core_Master
     
     static function updateFolderByContent($id)
     {
-        self::$updateByContentOnShutdown[$id] = $id;
+        $mvc = cls::get('doc_Folders');
+        $mvc->updateByContentOnShutdown[$id] = $id;
     }
 
     
@@ -274,8 +276,13 @@ class doc_Folders extends core_Master
      */
     static function on_Shutdown($mvc)
     {
-        if(count(self::$updateByContentOnShutdown)) {
-            foreach(self::$updateByContentOnShutdown as $id) {
+        // Първо изпълняваме shutdown процедурата на doc_Threads, тъй-като кода по-долу зависи
+        // от нейното действие, а не е гарантирано, че doc_Threads::on_Shutdown() е вече
+        // изпълнен.
+        doc_Threads::doUpdateThread();
+        
+        if(count($mvc->updateByContentOnShutdown)) {
+            foreach($mvc->updateByContentOnShutdown as $id) {
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
 
@@ -288,6 +295,9 @@ class doc_Folders extends core_Master
                 
                 $thQuery = doc_Threads::getQuery();
                 $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
+                
+                // Възстановяване на корицата, ако е оттеглена.
+                self::getCover($rec)->restore();
                 
                 if($rec->openThreadsCnt) {
                     $rec->state = 'opened';
@@ -678,6 +688,24 @@ class doc_Folders extends core_Master
     public static function fetchCoverId($id)
     {
         return static::fetchField($id, 'coverId');
+    }
+    
+    
+    /**
+     * Инстанция на корицата.
+     * 
+     * Резултата има всички методи, налични в мениджъра на корицата
+     * 
+     * @param int|stdClass $id идентификатор или запис на папка
+     * @return core_ObjectReference
+     */
+    public static function getCover($id)
+    {
+        expect($rec = static::fetchRec($id));
+
+        $cover = new core_ObjectReference($rec->coverClass, $rec->coverId);
+        
+        return $cover;
     }
     
 

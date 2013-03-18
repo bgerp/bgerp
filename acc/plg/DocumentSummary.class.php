@@ -1,0 +1,233 @@
+<?php
+
+
+
+/**
+ * Плъгин за Филтриране на документи с вальор по ключови думи и дата,
+ * показва и Обобщение на резултатите от списъчния изглед
+ * 
+ * За Обобщението: Показва в малка таблица над списъчния изглед обобщена
+ * информация за намерените резултати като брой и други.
+ * За да се посочи в модела че на дадено поле трябва да се извади
+ * обобщаваща информация е нужно да се дефинира параметър "summary="
+ * 
+ * 
+ * Възможни стойности на 'summary': 
+ * summary = amount - Служи за обобщение на числово поле което представлява
+ * парична сума. Обощения резултат се показва в неговата равностойност
+ * в основната валута за периода. По дефолт се приема че полето в което
+ * е описано в коя валута е сумата е 'currencyId'. Ако полето се казва
+ * другояче се дефинира константата 'filterCurrencyField' със стойност
+ * името на полето съдържащо валутата.
+ * summary = quantity - изчислява сумарната стойност на поле което съдържа
+ * някаква бройка (като брой продукти и други)  
+ * 
+ * 
+ * За Филтър формата:
+ * Създава филтър форма която филтрира документите по зададен времеви период
+ * и пълнотекстото поле (@see plg_Search). По дефолт приема че полето
+ * по която дата ще се търси е "valior". За документи където полето
+ * се казва по друг начин се дефинира константата 'filterDateField' която
+ * показва по кое поле ще се филтрира
+ * 
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class acc_plg_DocumentSummary extends core_Plugin
+{
+    
+    
+    /**
+     * Извиква се след описанието на модела
+     * 
+     * @param core_Mvc $mvc
+     */
+    function on_AfterDescription(core_Mvc $mvc)
+    {
+    	// Проверка за приложимост на плъгина към зададения $mvc
+        static::checkApplicability($mvc);
+        $plugins = arr::make($mvc->loadList);
+        if(!isset($plugins['plg_Search'])){
+        	$plugins[] = 'plg_Search';
+        	$mvc->loadList = implode(',', $plugins);
+        }
+        
+        setIfNot($mvc->filterDateField, 'valior');
+        setIfNot($mvc->filterCurrencyField, 'currencyId');
+    }
+    
+    
+    /**
+     * Проверява дали този плъгин е приложим към зададен мениджър
+     * 
+     * @param core_Mvc $mvc
+     * @return boolean
+     */
+    protected static function checkApplicability($mvc)
+    {
+    	// Прикачане е допустимо само към наследник на core_Manager ...
+        if (!$mvc instanceof core_Manager) {
+            return FALSE;
+        }
+      
+        if(!$mvc->getInterface('acc_TransactionSourceIntf')) {
+        	return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
+    
+    /**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		$data->listFilter->layout = new ET("<form action='[#FORM_ACTION#]'>[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>");
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
+		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
+		if(!isset($data->listFilter->fields['search'])) {
+			$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+		}
+		$data->listFilter->setDefault('from', date('Y-m-01'));
+		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
+		$data->listFilter->showFields = 'search,from,to';
+		
+        // Активиране на филтъра
+        $data->listFilter->input(NULL, 'silent');
+    }
+	
+	
+	/**
+	 * Филтрираме резултатите
+	 */
+	function on_BeforePrepareListRecs($mvc, $res, $data)
+	{
+		if($filter = $data->listFilter->rec) {
+			
+			if($filter->search){
+				plg_Search::applySearch($filter->search, $data->query);
+			}
+    		
+			/*
+	         * Филтър по дати
+	         */
+	        $dateRange = array();
+	        
+	        if ($filter->from) {
+	            $dateRange[0] = $filter->from; 
+	        }
+	        if ($filter->to) {
+	            $dateRange[1] = $filter->to; 
+	        }
+	        
+	        if (count($dateRange) == 2) {
+	            sort($dateRange);
+	        }
+	       
+			if($dateRange[0]) {
+    			$data->query->where(array("#{$mvc->filterDateField} >= '[#1#]]'", $dateRange[0]));
+    		}
+    		
+			if($dateRange[1]) {
+    			$data->query->where(array("#{$mvc->filterDateField} <= '[#1#]] 23:59:59'", $dateRange[1]));
+    		}
+		}
+	}
+	
+	
+	/**
+	 * Рендираме обобщаващата информация на отчетите
+	 */
+	static function on_AfterRenderListSummary($mvc, $tpl, $data)
+    {
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 0;
+    	$queryCopy = clone $data->query;
+    	$queryCopy->show = array();
+    	$queryCopy->groupBy = array();
+    	$queryCopy->executed = FALSE;
+    	
+    	$fieldsArr = $mvc->selectFields("#summary");
+    	$res = array();
+    	$baseCurrency = acc_Periods::getBaseCurrencyCode();
+    	while($rec = $queryCopy->fetch()){
+    		static::prepareSummary($mvc, $fieldsArr, $rec, $res, $baseCurrency);
+    	}
+    	
+    	$res['count'] = (object)array('caption' => tr('Резултати'), 'measure' => tr('бр'), 'number' => $double->toVerbal($queryCopy->count()));
+    	$tpl = static::renderSummary($res);
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Подготвя обощаващата информация
+     * @param core_Mvc $mvc - Класа към който е прикачен плъгина
+     * @param array $fld - Поле от модела имащо атрибут "summary"
+     * @param stdClass $rec - Запис от модела
+     * @param array $res - Масив в който ще върнем резултатите
+     * @param string $currencyCode - основната валута за периода
+     */
+    private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
+    {
+    	if(count($fieldsArr) == 0) return;
+    	foreach($fieldsArr as $fld){
+    		if(!array_key_exists($fld->name, $res)) {
+	    		$res[$fld->name] = (object)array('caption' => $fld->caption, 'measure' => '', 'number' => 0);
+	    	}
+	    			
+	    	switch($fld->summary) {
+	    		case "amount":
+	    			if($currencyId = $rec->{$mvc->filterCurrencyField}){
+	    				(is_numeric($currencyId)) ? $code = currency_Currencies::getCodeById($currencyId) : $code = $currencyId;
+	    			} else {
+		    			$code = $currencyCode;
+		    		}
+		    		$baseAmount = currency_CurrencyRates::convertAmount($rec->{$fld->name}, dt::now(), $code, NULL);
+		    		$res[$fld->name]->number += $baseAmount;
+		    		$res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
+	    			break;
+	    		case "quantity":
+	    			$res[$fld->name]->number += $rec->{$fld->name};
+	    			$res[$fld->name]->measure = tr('бр');
+	    			break;
+	    	}
+    	}
+    }
+    
+    
+   /**
+    * Рендира обобщението
+    * @param array $res - Масив от записи за показване
+    * @return core_ET $tpl - Шаблон на обобщението
+    */
+    private static function renderSummary($res)
+    {
+    	// Зареждаме и подготвяме шаблона
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	$tpl = new ET(tr('|*' . getFileContent("acc/plg/tpl/Summary.shtml")));
+    	$rowTpl = $tpl->getBlock("ROW");
+    	if(count($res)) {
+	    	foreach($res as $row) {
+	    		$row->number = $double->toVerbal($row->number);
+	    		$strArr = explode('->', $row->caption);
+	    		($strArr[1]) ? $row->caption = $strArr[1] : $row->caption = $strArr[0];
+	    		$rowTpl->placeObject($row);
+	    		$rowTpl->removeBlocks();
+	    		$rowTpl->append2master();
+	    	}
+    	}
+    	$tpl->push('acc/plg/tpl/summary.css', 'CSS');
+    	
+    	return $tpl;
+    }
+ }

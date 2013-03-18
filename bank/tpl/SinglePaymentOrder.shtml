@@ -11,13 +11,13 @@
 	<!--ET_END blank-->
 		<div class='belejka_header'>
 	            <div class='container'>
-	                <div class='label_left'>До</div>
+	                <div class='label_left'>|До|*</div>
 	                <div class='right_block'>
 	                    <div class='text border_b'>
 	                        [#execBank#]
 	                    </div>
 	                    <div class='label_mid'>
-	                        банка
+	                        |банка|*
 	                    </div>                
 	                </div>
 	            </div>
@@ -29,13 +29,13 @@
 	                        &nbsp;
 	                    </div>
 	                    <div class='label_mid'>
-	                        уникален регистрационен номер
+	                        |уникален регистрационен номер|*
 	                    </div>                
 	                </div>
 	            </div>        
 	            
 	            <div class='container'>
-	                <div class='label_left'>Клон</div>
+	                <div class='label_left'>|Клон|*</div>
 	                <div class='right_block'>
 	                    <div class='text border_b'>
 	                        [#execBranch#] 
@@ -50,13 +50,13 @@
 	                        [#valior#]
 	                    </div>
 	                    <div class='label_mid'>
-	                        дата на представяне
+	                        |дата на представяне|*
 	                    </div>                
 	                </div>
 	            </div>
 	            
 	            <div class='container'>
-	                <div class='label_left'>Адрес</div>
+	                <div class='label_left'>|Адрес|*</div>
 	                <div class='right_block'>
 	                    <div class='text border_b'>
 	                        [#execBranchAddress#]
@@ -74,7 +74,7 @@
 	                        &nbsp;
 	                    </div>
 	                    <div class='label_mid'>
-	                        подпис на наредителя
+	                        |подпис на наредителя|*
 	                    </div>                
 	                </div>
 	            </div> 
@@ -85,14 +85,14 @@
 	        <div class='belejka'>
 	            <div class='bg_white line'>
 	                   <div class='text pos_rel'>
-	                   	  <span class='pos_abs small_text_top_left'>Платете на - име на получателя</span><br>
+	                   	  <span class='pos_abs small_text_top_left'>|Платете на - име на получателя|*</span><br>
 	                      [#beneficiaryName#]
 	                   </div>                                        
 	            </div>
 	               
 	            <div class='bg_blue line'>
 	                <div class='text border_r' style='width: 450px;'>
-	                   <span class='pos_abs small_text_top_left'>IBAN на получателя</span><br>
+	                   <span class='pos_abs small_text_top_left'>|IBAN на получателя|*</span><br>
 	                   [#beneficiaryIban#]
 	                   
 	                </div>                                       
@@ -100,7 +100,7 @@
 	                    &nbsp;
 	                </div>
 	                <div class='text' style='width: 170px;'>
-	                   <span class='pos_abs small_text_top_left'>BIC на банката на получателя</span><br>
+	                   <span class='pos_abs small_text_top_left'>|BIC на банката на получателя|*</span><br>
 	                   [#contragentBankBic#]
 	                   
 	                </div>                                        
@@ -108,44 +108,44 @@
 	            
 	            <div class='bg_white line'>
 	                <div class='text'>
-	                   <span class='pos_abs small_text_top_left'>При банка - име на банката на получателя</span><br>
+	                   <span class='pos_abs small_text_top_left'>|При банка - име на банката на получателя|*</span><br>
 	                   [#contragentBank#] &nbsp;
 	                </div>                                       
 	            </div>                              
 	        
 	            <div class='bg_blue line'>
 	                <div class='bg_white text a_center border_r' style='width: 574px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
-	                   <span class='b'>ПЛАТЕЖНО НАРЕЖДАНЕ</span>
+	                   <span class='b'>|ПЛАТЕЖНО НАРЕЖДАНЕ|*</span>
 	                   <br/>
-	                   <span style='text-transform: none;'>за кредитен превод</span>
+	                   <span style='text-transform: none;'>|за кредитен превод|*</span>
 	                </div>
 	                <div class='text bg_blue border_r'  style='width:9%'>
-	                   <span class='pos_abs small_text_top_left'>Вид валута</span><br>
+	                   <span class='pos_abs small_text_top_left'>|Вид валута|*</span><br>
 	                   [#currencyId#]
 	                </div>
 	                <div class='text bg_blue a_right' style='width: 148px;'>
-	                    <span class='pos_abs small_text_top_left'>Сума</span><br>
+	                    <span class='pos_abs small_text_top_left'>|Сума|*</span><br>
 	                   [#amount#]
 	                </div>                                        
 	            </div>
 	            
 	            <div class='bg_white line'>
 	                <div class='text'>
-	                   <span class='pos_abs small_text_top_left'>Основание за превод - информация за получателя</span><br>
+	                   <span class='pos_abs small_text_top_left'>|Основание за превод - информация за получателя|*</span><br>
 	                   [#reason#]
 	                </div>                                       
 	            </div>                
 	            
 	            <div class='bg_white line'>
 	                <div class='text'>
-	                   <span class='pos_abs small_text_top_left'>Още пояснения</span><br>
+	                   <span class='pos_abs small_text_top_left'>|Още пояснения|*</span><br>
 	                   [#moreReason#]&nbsp;
 	                </div>                                       
 	            </div>                
 	            
 	            <div class='bg_white line'>
 	                <div class='text'>
-	                <span class='pos_abs small_text_top_left'>Наредител - име</span><br>
+	                <span class='pos_abs small_text_top_left'>|Наредител - име|*</span><br>
 	                   [#orderer#]
 	                   
 	                </div>                                       
@@ -153,7 +153,7 @@
 	            
 	            <div class='bg_blue line'>
 	                <div class='text border_r' style='width: 450px;'>
-	                 <span class='pos_abs small_text_top_left'>IBAN на наредителя</span><br>
+	                 <span class='pos_abs small_text_top_left'>|IBAN на наредителя|*</span><br>
 	                   [#ordererIban#]
 	                  
 	                </div>                                       
@@ -161,7 +161,7 @@
 	                    &nbsp;
 	                </div>
 	                <div class='text' style='width: 170px;'>
-	                <span class='pos_abs small_text_top_left'>BIC на банката на наредителя</span><br>
+	                <span class='pos_abs small_text_top_left'>|BIC на банката на наредителя|*</span><br>
 	                   [#execBankBic#]
 	                   
 	                </div>                                        
@@ -169,12 +169,12 @@
 	            
 	            <div class='bg_white line'>
 	                <div class='text border_r' style='width: 250px;'>
-	                <span class='pos_abs small_text_top_left'>Платежна система</span><br>
+	                <span class='pos_abs small_text_top_left'>|Платежна система|*</span><br>
 	                   [#paymentSystem#]
 	                   
 	                </div>                                       
 	                <div class='text a_right border_r' style='width: 100px;'>
-	                   <span class='pos_abs small_text_top_left'>Такси</span><br>
+	                   <span class='pos_abs small_text_top_left'>|Такси|*</span><br>
 	                   &nbsp;
 	                   
 	                </div>
@@ -182,7 +182,7 @@
 	                   &nbsp;
 	                </div>
 	                <div class='text a_right' style='width: 60px;'>
-	                   <span class='pos_abs small_text_top_left'>Дата на изпълнение</span><br>
+	                   <span class='pos_abs small_text_top_left'>|Дата на изпълнение|*</span><br>
 	                   &nbsp;
 	                </div>                                                                                
 	            </div>

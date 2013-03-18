@@ -319,7 +319,7 @@ class survey_Alternatives extends core_Detail {
      */
 	function renderSummariseDetails($data)
     {
-    	$tpl = new ET(getFileContent('survey/tpl/Summarise.shtml'));
+    	$tpl = new ET(tr("|*" .getFileContent('survey/tpl/Summarise.shtml')));
     	$blockTpl = $tpl->getBlock('ROW');
     	$varcharType = cls::get('type_Varchar');
     	$tpl->replace($varcharType->toVerbal($data->rec->title), 'TOPIC');

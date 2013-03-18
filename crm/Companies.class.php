@@ -743,6 +743,11 @@ class crm_Companies extends core_Master
             $rec->id = $conf->BGERP_OWN_COMPANY_ID;
             $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
             
+            //$rec->groupList = '|7|';
+            $groupList = cls::get('crm_Groups');
+            $group = 'Свързани лица';
+            $rec->groupList = "|". $groupList->fetchField("#name = '{$group}'", 'id') . "|";
+            
             // Страната не е стринг, а id
             $Countries = cls::get('drdata_Countries');
             $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');

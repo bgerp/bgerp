@@ -1,0 +1,36 @@
+<div id='summary'>
+	<table>
+	<!--ET_BEGIN ROW-->
+		<tr>
+			<td class='quiet'>|[#caption#]|*</td>
+			<td class='quiet'>[#measure#]</td>
+			<td><b>[#number#]</b></td>
+		</tr>
+	<!--ET_END ROW-->
+		<!--  <tr>
+			<td class='quiet'>|Резултати|*:</td>
+			<td class='quiet'>бр</td>
+			<td><b id='count'>[#count#]</b></td>
+		</tr>
+		<tr>
+			<td class='quiet'>|Продукти|*:</td>
+			<td class='quiet'>бр</td>
+			<td><b id='count'>[#products#]</b></td>
+		</tr>
+		<tr>
+			<td class='quiet'>|Продадено|*:</td>
+			<td><span class='cCode'>[#currency#]</span> </td>
+			<td><b>[#sumTotal#]</b></td>
+		</tr>
+		<tr>
+			<td class='quiet'>|Платено|*:</td>
+			<td><span class='cCode'>[#currency#]</span> </td>
+			<td><b>[#sumPaid#]</b></td>
+		</tr>
+		<tr>
+			<td class='quiet'>|Ресто|*:</td>
+			<td><span class='cCode'>[#currency#]</span> </td>
+			<td><b>[#sumChange#]</b></td>
+		</tr>-->
+	</table>
+</div>

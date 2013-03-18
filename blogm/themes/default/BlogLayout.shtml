@@ -5,7 +5,7 @@
 	</div>
 	<!--ET_END NAVIGATION-->
 						
-	<div class='eightcol'  style='padding-top:20px;'>
+	<div class='eightcol eightcol-new'  style='padding-top:20px;'>
 		[#PAGE_CONTENT#] 
 	</div>
 </div>

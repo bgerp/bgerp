@@ -72,7 +72,7 @@ class log_Documents extends core_Manager
     var $listFields = 'createdOn, createdBy, action=Какво, containerId=Кое, dataBlob';
     
     var $listFieldsSet = array(
-        self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, receivedOn=Получено, returnedOn=Върнато',
+        self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, cc=Кп, receivedOn=Получено, returnedOn=Върнато',
         self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOnTime=Видяно',
         self::ACTION_OPEN => 'seenOnTime=Дата, seenFromIp=IP, reason=Основание',
         self::ACTION_DOWNLOAD => 'fileHnd=Файл, seenOnTime=Свалено->На, seenFromIp=Свалено->От',
@@ -140,7 +140,7 @@ class log_Documents extends core_Manager
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
         $this->FLD("dataBlob", "blob", 'caption=Обстоятелства,column=none');
         
-        $this->FNC('data', 'text', 'input=none');
+        $this->FNC('data', 'text', 'input=none,column=none');
         $this->FNC('seenOnTime', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('seenFrom', 'key(mvc=core_Users)', 'input=none');
         $this->FNC('receivedOn', 'datetime(format=smartTime)', 'input=none');
@@ -317,7 +317,7 @@ class log_Documents extends core_Manager
     }
 
 
-    public static function received($mid, $date = NULL)
+    public static function received($mid, $date = NULL, $IP = NULL)
     {
         if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
             // Няма изпращане с такъв MID
@@ -336,6 +336,7 @@ class log_Documents extends core_Manager
         expect(is_object($sendRec->data), $sendRec);
         
         $sendRec->data->receivedOn = $date;
+        $sendRec->data->seenFromIp = $IP;
     
         static::save($sendRec);
     
@@ -753,16 +754,28 @@ class log_Documents extends core_Manager
             if (isset($wordings[$action])) {
                 $actionVerbal = $wordings[$action][intval($count > 1)];
             }
-            
-            $link = ht::createLink(
-                "<b>{$count}</b> <span>{$actionVerbal}</span>", 
-                array(
-                    get_called_class(), 
-                    'list', 
-                    'containerId'=>$data->containerId, 
-                    'action' => $actionToTab[$action]
-                )
-            );
+            if(Mode::is('screenMode', 'narrow')) {
+            	$link = ht::createLink(
+            			"<b>{$count}</b><span>{$actionVerbal}</span>",
+            			array(
+            					get_called_class(),
+            					'list',
+            					'containerId'=>$data->containerId,
+            					'action' => $actionToTab[$action]
+            			)
+            	);
+            }
+            else{
+	            $link = ht::createLink(
+	                "<span>{$actionVerbal}</span> <b>{$count}</b>", 
+	                array(
+	                    get_called_class(), 
+	                    'list', 
+	                    'containerId'=>$data->containerId, 
+	                    'action' => $actionToTab[$action]
+	                )
+	            );
+            }
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
         
@@ -873,7 +886,9 @@ class log_Documents extends core_Manager
                 expect(FALSE);
         }
 
-        $data->listFields = arr::make($mvc->listFieldsSet[$subset], TRUE);
+        if (!empty($mvc->listFieldsSet[$subset])) {
+            $data->listFields = arr::make($mvc->listFieldsSet[$subset], TRUE);
+        }
         
         if (Request::get('containerId', 'int') && isset($data->listFields['containerId'])) {
             unset($data->listFields['containerId']);
@@ -898,14 +913,15 @@ class log_Documents extends core_Manager
             }
             
             $row->toEmail    = $rec->data->to;
+            $row->cc    = $rec->data->cc;
             $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
             $row->returnedOn = static::getVerbal($rec, 'returnedOn');
             
-            $stateClass = 'state-closed';
+            $stateClass = 'state-active';
             
             switch (true) {
                 case !empty($row->receivedOn):
-                    $stateClass = 'state-active';
+                    $stateClass = 'state-closed';
                     break;
                 case !empty($row->returnedOn):
                     $stateClass = 'state-rejected';

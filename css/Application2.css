@@ -1202,9 +1202,33 @@ tr.noHover td:hover {
 	background: white;
 }
 
-div.attachments {
+.wide .em-holder{
+	width:70%;
+}
+
+.narrow .em-holder{
+	width:100%;
+}
+
+.wide .sm-att{
+	width:27%;
+	overflow:hidden; 
+	float:right;
+}
+
+.narrow .sm-att{
+	margin-top:10px;
+	width:100%;
+	float:left;
+}
+
+.narrow .sm-att .attachments{
+	float:left;
+}
+
+.wide div.attachments {
+	float:right;
 	display: inline-block;
-	float: right;
 	margin: 2px;
 }
 
