@@ -70,6 +70,16 @@ class doc_Wrapper extends plg_ProtoWrapper
         if($folderId && (doc_Folders::haveRightFor('single', $folderId))) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
             
+            // Записите за папката
+            $folderRec = doc_Folders::fetch($folderId);
+            
+            // Ако състоянито е отхвърлено
+            if ($folderRec->state == 'rejected') {
+                
+                // Линка да сочи в коша
+                $threadsUrl['Rejected'] = 1;
+            }
+            
             // Ако има достъпни файлове в папката, тогава да е линк
             if (doc_Files::getCountInFolder()) {
                 $filesUrl = array('doc_Files', 'list', 'folderId' => $folderId);    

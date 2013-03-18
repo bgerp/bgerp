@@ -693,6 +693,23 @@ class email_Outgoings extends core_Master
             $options['encoding'] = 'utf-8';
             $options['emailsTo'] = $rec->email;
             
+            // Масив с всичк имейли
+            $emailsArr = type_Emails::toArray($rec->email);
+            
+            // Ако имаме повече от един имейл
+            if (count($emailsArr) > 1) {
+                
+                // Първия имейл в 'to'
+                $options['emailsTo'] = $emailsArr[0];
+                
+                // Премахваме първия имейл от масива
+                unset($emailsArr[0]);
+                
+                // Останалите в 'cc'
+                $options['emailsCc'] = type_Emails::fromArray($emailsArr);
+                
+            }
+
             static::_send($rec, (object)$options, $lg);
         }
         
@@ -1023,6 +1040,9 @@ class email_Outgoings extends core_Master
 
         // Всички имейли от река
         $recEmails = type_Emails::toArray($rec->email);
+        
+        // От река премахваме нашите имейли
+        $recEmails = email_Inboxes::removeOurEmails($recEmails);
         
         // Ако се редактира или клонира
         if ($editing) {

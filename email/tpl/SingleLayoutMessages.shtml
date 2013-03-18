@@ -59,7 +59,7 @@
 		<small class="sm-att" >
 			<div class='attachments'>   
 				<div class="aHeader">|Прикачени файлове|*:</div>
-				<div style='display:inline-block; margin:5px'>[#files#]</div>
+				<div style='display:block; margin:5px 0'>[#files#]</div>
 			</div>
 		</small>
 		<!--ET_END files--> 

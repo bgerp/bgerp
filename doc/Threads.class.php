@@ -610,7 +610,7 @@ class doc_Threads extends core_Manager
     {
         /* @var $query core_Query */
         $query = doc_Containers::getQuery();
-        $query->where("#threadId = {$rec->id}");
+        $query->where("#threadId = {$id}");
         $query->orderBy('createdBy', 'ASC');
         $query->limit(1);
         $query->show('id');
@@ -692,9 +692,9 @@ class doc_Threads extends core_Manager
                 
                 $rec->allDocCnt++;
             }
-            
         }
-
+        
+        // Попълваме полето за споделените потребители
         $rec->shared = type_Keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
 
         if($firstDcRec) {
@@ -747,7 +747,8 @@ class doc_Threads extends core_Manager
             doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor');
             
         } else {
-            $this->delete($id);
+            // Ако липсват каквито и да е документи в нишката - изтриваме я
+            self::delete($id);
         }
         
         doc_Folders::updateFolderByContent($rec->folderId);

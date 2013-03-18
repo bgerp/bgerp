@@ -1135,7 +1135,8 @@ tr.noHover td:hover {
 	margin: 2px;
 }
 div.attachments {
-	display: inline-block;
+	display: block;
+	width:100%;
 	float: right;
 	margin: 2px;
 	.aHeader {
@@ -1148,6 +1149,8 @@ div.attachments {
 		border-bottom: solid 1px #e0e0e0;
 	}
 	.file {
+		max-height:30px;
+		overflow:hidden;
 		display: block;
 		margin-bottom: 2px;
 	}
