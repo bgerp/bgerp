@@ -1331,7 +1331,7 @@ class email_Incomings extends core_Master
             $handle = $incomingInst->getHandle($id);
             
             // Текстова част
-            $text = "Моля запознайте се с препратения имейл #{$handle}.";    
+            $text = tr("Моля запознайте се с препратения имейл|* #{$handle}.");    
         } else {
             
             //Вербализираме датата
