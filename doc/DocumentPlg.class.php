@@ -315,14 +315,17 @@ class doc_DocumentPlg extends core_Plugin
         
         // Намира контейнера на документа
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
+            
+        // Възстановяваме (ако е необходимо) нишката ПРЕДИ да създадем/обновим контейнера
+        // Това гарантира, че абонатите на оттеглени нишки все пак ще получат нотификация за
+        // новопристигналия документ
+        if ($rec->threadId && $rec->state != 'rejected') {
+            doc_Threads::restoreThread($rec->threadId);
+        }
         
         // Ако е намерен контейнера - обновява го
         if($containerId) {
             doc_Containers::update($containerId);
-        }
-            
-        if ($rec->threadId && $rec->state != 'rejected') {
-            doc_Threads::restoreThread($rec->threadId);
         }
     }
     
