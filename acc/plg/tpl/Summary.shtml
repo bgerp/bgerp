@@ -4,7 +4,14 @@
 		<tr>
 			<td class='quiet'>|[#caption#]|*</td>
 			<td class='quiet'>[#measure#]</td>
-			<td><b>[#number#]</b></td>
+			<td>
+				<!--ET_BEGIN amount-->
+				<b>[#amount#]</b>
+				<!--ET_END amount-->
+				<!--ET_BEGIN quantity-->
+				<b>[#quantity#]</b>
+				<!--ET_END quantity-->
+			</td>
 		</tr>
 	<!--ET_END ROW-->
 	</table>
