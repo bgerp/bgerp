@@ -238,7 +238,15 @@ class doc_Folders extends core_Master
         
         if($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
-            $row->title = ht::createLink($row->title, array('doc_Threads', 'list', 'folderId' => $rec->id), NULL, $attr);
+            $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+            
+            // Ако е оттеглен
+            if ($rec->state == 'rejected') {
+                
+                // Да сочи към коша
+                $link['Rejected'] = 1;
+            }
+            $row->title = ht::createLink($row->title, $link, NULL, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
             $row->title = ht::createElement('span', $attr, $row->title);
