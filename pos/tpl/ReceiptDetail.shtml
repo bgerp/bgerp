@@ -28,12 +28,12 @@
 
 <!--ET_BEGIN payment-->
 <tr>
-	<td colspan='4' class='receipt-payment'>Плащане [#actionValue#]: &nbsp;&nbsp;[#amount#] <small>[#currency#]</small></td>
+	<td colspan='4' class='receipt-payment'>|Плащане|* [#actionValue#]: &nbsp;&nbsp;[#amount#] <small>[#currency#]</small></td>
 </tr>
 <!--ET_END payment-->
 
 <!--ET_BEGIN client-->
 <tr>
-	<td colspan='4' class='receipt-client'>Клиент: &nbsp;&nbsp;[#clientName#]</td>
+	<td colspan='4' class='receipt-client'>|Клиент|*: &nbsp;&nbsp;[#clientName#]</td>
 </tr>
 <!--ET_END client-->
