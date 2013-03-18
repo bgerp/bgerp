@@ -924,7 +924,7 @@ class email_Outgoings extends core_Master
                 
                 //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
                 $rec->recipient = $contragentData->company;
-                $rec->attn      = $contragentData->name;
+                $rec->attn      = $contragentData->person;
                 $rec->country   = $contragentData->country;
                 $rec->pcode     = $contragentData->pCode;
                 $rec->place     = $contragentData->place;
@@ -961,7 +961,7 @@ class email_Outgoings extends core_Master
             }
             
             //Данни необходими за създаване на хедър-а на съобщението
-            $contragentDataHeader['name'] = $contragentData->name;
+            $contragentDataHeader['name'] = $contragentData->person;
             if($s = $contragentDataHeader['salutation'] = $contragentData->salutation) {
                 if($s != 'Г-н') {
                     $hello = "Уважаема";
@@ -970,7 +970,7 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            if($contragentData->name) {
+            if($contragentData->person) {
                 setIfNot($hello, 'Здравейте');
             } else {
                 setIfNot($hello, 'Уважаеми колеги');

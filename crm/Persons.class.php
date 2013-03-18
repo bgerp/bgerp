@@ -1030,7 +1030,7 @@ class crm_Persons extends core_Master
             $contrData = new stdClass();
             $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
             $contrData->companyId = $person->buzCompanyId;
-            $contrData->name = $person->name;
+            $contrData->person = $person->name;
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
