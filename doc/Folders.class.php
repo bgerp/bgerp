@@ -229,8 +229,14 @@ class doc_Folders extends core_Master
         // Иконката на папката според достъпа и
         $img = static::getIconImg($rec, $haveRight);
         
-        if($haveRight) {
+        // Ако състоянието е оттеглено
+        if ($rec->state == 'rejected') {
             
+            // Добавяме към класа да е оттеглено
+            $attr['class'] .= ' state-rejected';
+        }
+        
+        if($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
             $row->title = ht::createLink($row->title, array('doc_Threads', 'list', 'folderId' => $rec->id), NULL, $attr);
         } else {
@@ -241,7 +247,7 @@ class doc_Folders extends core_Master
         $typeMvc = cls::get($rec->coverClass);
         
         $attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
-        
+
         if($typeMvc->haveRightFor('single', $rec->coverId)) {
             $row->type = ht::createLink(tr($typeMvc->singleTitle), array($typeMvc, 'single', $rec->coverId), NULL, $attr);
         } else {
