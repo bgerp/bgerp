@@ -59,6 +59,12 @@ class trans_DeliveryTerms extends core_Master
     
     
     /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'trans/tpl/SingleDeliveryTerms.shtml';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
