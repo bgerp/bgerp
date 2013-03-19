@@ -137,6 +137,16 @@ class cash_ExchangeDocument extends core_Master
     }
     
     
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		// Добавяме към формата за търсене търсене по Каса
+		cash_Cases::prepareCaseFilter($data, array('peroFrom', 'peroTo'));
+	}
+	
+    
     /**
      * Подготовка на формата за добавяне
      */
