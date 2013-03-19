@@ -144,7 +144,7 @@ class cash_Pko extends core_Master
     	$this->FLD('creditAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('equals', 'int', 'caption=Валута->Равностойност,input=none');
+    	$this->FLD('equals', 'double(decimals=2)', 'caption=Валута->Равностойност,input=none');
     	$this->FLD('baseCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Основна,input=hidden');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(rows=6)', 'caption=Допълнително->Бележки');
