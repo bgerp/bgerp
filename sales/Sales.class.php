@@ -91,7 +91,7 @@ class sales_Sales extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-     public $listFields = 'id, date, contragentClassId, contragentId, currencyId, amountDeal, amountDelivered, amountPaid, 
+     public $listFields = 'id, valior, contragentClassId, contragentId, currencyId, amountDeal, amountDelivered, amountPaid, 
                              dealerId, initiatorId,
                              createdOn, createdBy';
     
@@ -145,7 +145,7 @@ class sales_Sales extends core_Master
     public function description()
     {
         
-        $this->FLD('date', 'date', 'caption=Дата, mandatory');
+        $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 
             'caption=Фактуриране,maxRadio=3,columns=3');
         
@@ -392,7 +392,7 @@ class sales_Sales extends core_Master
         /* @var $form core_Form */
         $form = $data->form;
        
-        $form->setDefault('date', dt::now());
+        $form->setDefault('valior', dt::now());
         
         $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
         $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
@@ -820,10 +820,10 @@ class sales_Sales extends core_Master
         }
         
         if (!empty($dateRange[0])) {
-            $query->where(array("#date >= '[#1#]'", $dateRange[0]));
+            $query->where(array("#valior >= '[#1#]'", $dateRange[0]));
         }
         if (!empty($dateRange[1])) {
-            $query->where(array("#date <= '[#1#]'", $dateRange[1]));
+            $query->where(array("#valior <= '[#1#]'", $dateRange[1]));
         }
     }
     
@@ -848,7 +848,7 @@ class sales_Sales extends core_Master
         $query->limit = null;
         $query->orderBy = array();
         $query->executed = FALSE;
-        $query->show = arr::make('amountDeal,amountDelivered,amountPaid,currencyId,date', TRUE);
+        $query->show = arr::make('amountDeal,amountDelivered,amountPaid,currencyId,valior', TRUE);
         
         $now = dt::now();
         $total = (object)array(
@@ -922,7 +922,7 @@ class sales_Sales extends core_Master
         expect($rec = $this->fetch($id));
         
         $row = (object)array(
-            'title'    => "Продажба №{$rec->id} / " . $this->getVerbal($rec, 'date'),
+            'title'    => "Продажба №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
