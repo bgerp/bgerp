@@ -904,6 +904,9 @@ class email_Outgoings extends core_Master
             //Ако сме открили някакви данни за получателя
             if ($contragentData) {
                 
+                // Премахваме данните за нашата фирма
+                crm_Companies::removeOwnCompanyData($contragentData);
+                
                 //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
                 $rec->recipient = $contragentData->company;
                 $rec->attn      = $contragentData->person;
