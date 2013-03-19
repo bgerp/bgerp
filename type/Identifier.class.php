@@ -25,9 +25,15 @@ class type_Identifier extends type_Varchar {
         $value = parent::fromVerbal(trim($value));
         
         if($value === '') return NULL;
+
+        // Проверяваме дали е валиден
+        $res = self::isValid($value);
         
-        if (!self::isValid($value)) {
-            $this->error = 'Допустими са само букви (на латиница) и цифри.';
+        // Ако има грешка, показваме нея
+        if ($res['error']) {
+            
+            // Сетваме грешката
+            $this->error = $res['error'];
             
             return FALSE;
         }
@@ -41,14 +47,19 @@ class type_Identifier extends type_Varchar {
      */
     function isValid($value)
     {
-        $len = $this->params[0] ? '0,' . ($this->params[0]-1) : '0,63';
-        $pattern = "/^[a-zA-Z_]{1}[a-zA-Z0-9_]{" . $len . "}$/i";
+        //Проверяваме за грешки
+        $res = parent::isValid($value);
+        
+        //Ако има грешки връщаме резултатa
+        if ($res['error']) return $res;
+        
+        $pattern = "/^[a-zA-Z_]{1}[a-zA-Z0-9_]*$/i";
         
         if(!preg_match($pattern, $value)) {
             
-            return FALSE;
+            $res['error'] = 'Некоректен идентификатор|* ' . parent::escape($value);
         }
         
-        return TRUE;
+        return $res;
     }
 }
