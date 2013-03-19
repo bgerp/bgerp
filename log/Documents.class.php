@@ -72,7 +72,7 @@ class log_Documents extends core_Manager
     var $listFields = 'createdOn, createdBy, action=Какво, containerId=Кое, dataBlob';
     
     var $listFieldsSet = array(
-        self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, cc=Кп, receivedOn=Получено, returnedOn=Върнато',
+        self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, cc=Копие, receivedOn=Получено, returnedOn=Върнато',
         self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOnTime=Видяно',
         self::ACTION_OPEN => 'seenOnTime=Дата, seenFromIp=IP, reason=Основание',
         self::ACTION_DOWNLOAD => 'fileHnd=Файл, seenOnTime=Свалено->На, seenFromIp=Свалено->От',
