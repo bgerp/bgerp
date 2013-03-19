@@ -815,9 +815,17 @@ function linksToHtml($links, $target='_self')
 }
 
 
+/**
+ * Връща текущият бранч на репозиторито
+ */
+function gitCurrentBranch($repoPath, &$log)
+{
+	return BGERP_GIT_BRANCH;
+}
+
 
 /**
- * Дали има по-нова версия на това репозитори?
+ * Дали има по-нова версия на това репозитори в зададения бранч?
  */
 function gitHasNewVersion($repoPath, &$log)
 {
@@ -835,8 +843,7 @@ function gitHasNewVersion($repoPath, &$log)
 	
 	// В последния ред на резултата се намира индикацията на промени
 	$lastKey = key(array_slice( $arrRes, -1, 1, TRUE));
-	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");
-	
+	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");	
 	if($hasNewVersion !== FALSE) {
         $log[] = "new:[<b>$repoName</b>] Има нова версия.";
         
@@ -928,7 +935,7 @@ function gitPullRepo($repoPath, &$log)
 
 
 /**
- * Унищожава локалните промени, на фаловете, включени в репозиторито
+ * Унищожава локалните промени, на файловете, включени в репозиторито
  */
 function gitRevertRepo($repoPath, &$log)
 {
