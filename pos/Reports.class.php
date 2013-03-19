@@ -190,6 +190,13 @@ class pos_Reports extends core_Master {
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()) {
+    		$draftRec = static::fetch("#state='draft' AND #pointId={$form->rec->pointId} AND #cashier={$form->rec->cashier}");
+    		if($draftRec) {
+    			
+    			// Ако има вече чернова с тези параметри директно я отваряме
+    			Redirect(array($mvc, 'single', $draftRec->id), FALSE, 'Има вече създадена чернова за посочените касиер и каса');
+    		}
+    		
     		$reportData = $mvc->fetchData($form->rec->pointId, $form->rec->cashier);
     		
     		// Проверяваме все пак дали има данни за репорта
