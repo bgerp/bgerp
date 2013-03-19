@@ -330,7 +330,7 @@ class sales_Sales extends core_Master
         *  4. Нито едно от горните не е вярно
         */
         
-        if (empty($contragentData->company) && empty($contragentData->name)) {
+        if (empty($contragentData->company) && empty($contragentData->person)) {
             // Случай 4: нито фирма, нито лице
             return FALSE;
         }
@@ -353,14 +353,14 @@ class sales_Sales extends core_Master
             );
             $rec->contragentVatNo = $contragentData->vatNo;
         
-            if (!empty($contragentData->name)) {
+            if (!empty($contragentData->person)) {
                 // Случай 1: данни за фирма + данни за лице
         
                 // TODO за сега не правим нищо допълнително
             }
-        } elseif (!empty($contragentData->name)) {
+        } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
-            $rec->contragentName    = $contragentData->name;
+            $rec->contragentName    = $contragentData->person;
             $rec->contragentAddress = $contragentData->pAddress;
         }
 
