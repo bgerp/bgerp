@@ -199,8 +199,11 @@ class bgerp_L extends core_Manager
         $cid = Request::get('id', 'int');
         $mid = Request::get('m');
         
+        // Вземаме IP' то
+        $ip = core_Users::getRealIpAddr();
+
         // При отваряне на имейла от получателя, отбелязваме като видян.
-        if ($mid) log_Documents::received($mid);
+        if ($mid) log_Documents::received($mid, NULL, $ip);
 
         $docUrl = static::getDocLink($cid, $mid);
 
