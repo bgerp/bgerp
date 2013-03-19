@@ -96,7 +96,7 @@ class acc_Accounts extends core_Manager
      */
     function description()
     {
-        $this->FLD('num', 'int(5)', "caption=Номер,mandatory,remember=info, export");
+        $this->FLD('num', 'varchar(5)', "caption=Номер,mandatory,remember=info, export");
         $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD('type', 'enum(,dynamic=Смесена,active=Активна,passive=Пасивна,transit=Корекционна)',
             'caption=Тип,remember,mandatory, export');
@@ -213,6 +213,16 @@ class acc_Accounts extends core_Manager
     {
         if (empty($form->rec->num)) {
             return;
+        }
+        
+        if ($form->isSubmitted()) {
+            
+            // Ако не е цяло число
+            if (!is_int($form->rec->num)) {
+                
+                // Сетваме грешката
+                $form->setError('num', 'Недопустими символи в число/израз');
+            }
         }
         
         // Изчисление на FNC поле "isSynthetic"
