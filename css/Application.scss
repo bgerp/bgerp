@@ -3,6 +3,7 @@ $blue:#048;
 $dark-blue:#036;
 $red:#c00;
 $quiet-gray:#888;
+$open-thread:#e0ffe0;
 
 @mixin border-radius($radius) {
     -moz-border-radius: $radius;
@@ -489,8 +490,12 @@ dl {
 	border-top: none;
 	background-image:url('../img/formToolbarBg.jpg');
 }
-
-
+.narrow .vertical .formToolbar {
+	background-image: none;
+	padding: 8px;
+	border: solid 1px #bbb;
+	border-top: none;
+}
 .vertical .formSection {
 	border-left: solid 1px #bbb;
 	border-right: solid 1px #bbb;
@@ -950,11 +955,11 @@ table.mc-header a {
 }
 
 .doc_Containers .thread-opened table.listTable>tbody>tr{
-	background-color: #e0ffe0 !important;
+	background-color: $open-thread !important;
 }
 
 .doc_Containers .thread-opened table.listTable>tbody>tr:hover{
-	background-color: #e0ffe0 !important;
+	background-color: $open-thread !important;
 }
 
 .thread-opened > div > table.listTable > tbody > tr > td {
