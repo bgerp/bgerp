@@ -381,7 +381,7 @@ class pos_Receipts extends core_Master {
 		// Немогат да се оттеглявт бележки в затворен сч. период
 		if($action == 'reject'){
 			$period = acc_Periods::fetchByDate($rec->valior);
-			if($rec->period == 'closed') {
+			if($period->state == 'closed') {
 				$res = 'no_one';
 			}
 		}
