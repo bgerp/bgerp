@@ -182,10 +182,10 @@ class bank_IncomeDocument extends core_Master
     		if($contragentData->company) {
     			
     			$form->setDefault($field, $contragentData->company);
-    		} elseif ($contragentData->name) {
+    		} elseif ($contragentData->person) {
     			
     			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault($field, $contragentData->name);
+    			$form->setDefault($field, $contragentData->person);
     		}
     		$form->setReadOnly($field);
     	}
