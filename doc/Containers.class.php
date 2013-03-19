@@ -249,8 +249,8 @@ class doc_Containers extends core_Manager
                 
             // визуализиране на обобщена информация от лога
         } else {
-            $row->created = new ET("<div style='text-align:center;'><div style='text-align:right;display:inline-block;'><div style='font-size:0.8em;margin-top:7px;margin-right:7px;'>[#3#]</div>
-                                                <div style='font-size:0.8em;margin-right:7px;margin-bottom:10px;margin-top:5px;'>[#1#]</div>
+            $row->created = new ET("<div style='text-align:center;'><div style='text-align:left;display:inline-block;'><div style='font-size:0.8em;margin-top:7px;margin-left:3px;'>[#3#]</div>
+                                                <div style='font-size:0.8em;margin-left:5px;margin-bottom:10px;margin-top:5px;'>[#1#]</div>
                                                 <div class='gravatar-box' style='margin:10px;'>[#2#]</div>[#HISTORY#]</div></div>",
                 $mvc->getVerbal($rec, 'createdOn'),
                 $avatar,

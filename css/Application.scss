@@ -490,9 +490,6 @@ dl {
 	background-image:url('../img/formToolbarBg.jpg');
 }
 
-.narrow .vertical .formToolbar {
-	background-image:none;
-}
 
 .vertical .formSection {
 	border-left: solid 1px #bbb;
@@ -893,7 +890,10 @@ table.mc-header a {
 	margin-left:1px;
 	padding: 5px;
 	border: solid 1px #ddd;
-	background: rgba(200, 200, 200, 0.4);
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
+    zoom: 1;
+	background: rgba(200, 200, 200, 0.3);
 }
 
 .threadSubTitle {
@@ -949,26 +949,17 @@ table.mc-header a {
 	background-color: transparent !important;
 }
 
-.doc_Containers .thread-opened table.listTable>tbody>tr:hover {
-	background-color: #f4fff4 !important;
+.doc_Containers .thread-opened table.listTable>tbody>tr{
+	background-color: #e0ffe0 !important;
 }
+
+.doc_Containers .thread-opened table.listTable>tbody>tr:hover{
+	background-color: #e0ffe0 !important;
+}
+
 .thread-opened > div > table.listTable > tbody > tr > td {
-border: solid 1px green !important;
+	border: solid 1px green !important;
 }
-.doc_Containers .thread-opened table.listTable>tbody>tr {
-	background-color: #f4fff4 !important;
-}
-
-
-.wide .single-thread > .listRows > table.listTable >tbody > tr > td:first-child,
-.wide .single-thread > .listRows > table.listTable >thead > tr > th:first-child{
-		border-right:none !important;
-		}	
-.wide .single-thread > .listRows > table.listTable >thead > tr > th:last-child,
-.wide .single-thread > .listRows > table.listTable >tbody > tr > td:last-child{
-		border-left:none !important;
-		}	
-
 
 .listTable{
   	.document h2 {
@@ -1217,7 +1208,7 @@ ul.history {
 	list-style: none;
 	&.summary {
 		font-size: 0.75em;
-		margin-right:7px;
+		margin-left:5px;
 		li span {
 			color: #333;
 		}
@@ -1234,6 +1225,7 @@ ul.history {
 		display: inline;
 		font-size: 1.2em;
 		font-weight: bold;
+		margin-right:3px;
 	}
 	.action{
 		&.send b {
@@ -1730,7 +1722,7 @@ input.combo.pCode{
 }
 
 .gravatar-box{
-	margin:10px 7px 10px 10px !important;
+	margin:6px !important;
 }
 
 /*стилове за документи*/
