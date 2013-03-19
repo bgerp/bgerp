@@ -216,9 +216,9 @@ class acc_Accounts extends core_Manager
         }
         
         if ($form->isSubmitted()) {
-            
+
             // Ако не е цяло число
-            if (!is_int($form->rec->num)) {
+            if (!ctype_digit($form->rec->num)) {
                 
                 // Сетваме грешката
                 $form->setError('num', 'Недопустими символи в число/израз');
