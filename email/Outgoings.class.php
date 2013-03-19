@@ -624,25 +624,6 @@ class email_Outgoings extends core_Master
                     $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресант->Имейл|*</b>.");    
                 }
             }
-            
-            // Масив с избраните групови имейли
-            $groupsArr = type_Set::toArray($form->rec->groups);
-            
-            // Масив с написаниете имейли
-            $emailsArr = type_Emails::toArray($form->rec->email);
-
-            // Ако има имейли
-            if (count($emailsArr)) {
-                
-                // Ключовете на масива да са равни на стойностите
-                $emailsArr = array_combine($emailsArr, $emailsArr);    
-            }
-            
-            // Събираме двата масива
-            $allEmails = $emailsArr + $groupsArr;
-            
-            // Превръщаме в стринг
-            $form->rec->email = type_Emails::fromArray($allEmails);
         }
     }
     
@@ -1079,11 +1060,11 @@ class email_Outgoings extends core_Master
             // Ключовете да са равни на стойностите
             $allEmailsArr = array_combine($allEmailsArr, $allEmailsArr);
             
-            // Създаваме функционално поле
-            $data->form->FNC('groups', 'type_Set', 'caption=Групи->Имейли, input, maxColumns=1');
+            // Имейлите по подразбиране
+            $data->form->setSuggestions('email', array('' => '') + $allEmailsArr);
             
-            // Добавяме имейлите
-            $data->form->setSuggestions('groups', $allEmailsArr);    
+            // Добавяме атрибута
+            $data->form->addAttr('email', array('data-role' => 'list'));
         }
     }
     
