@@ -1452,6 +1452,10 @@ class email_Incomings extends core_Master
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
                     ),
                 'class=btn-eml, order=21');    
+            }
+            
+            // Ако е оттеглен, да не се препраща
+            if ($data->rec->state != 'rejected') {
                 
                 // Добавяме бутон за препращане на имейла
                 $data->toolbar->addBtn('Препращане', array(
