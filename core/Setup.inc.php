@@ -841,14 +841,23 @@ function gitHasNewVersion($repoPath, &$log)
 
 	exec($command, $arrRes, $returnVar);
 	
-	// В последния ред на резултата се намира индикацията на промени
-	$lastKey = key(array_slice( $arrRes, -1, 1, TRUE));
-	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");	
+	// Търсим реда в който има състоянието на зададеният бранч
+	foreach ($arrRes as $row) {
+		$hasNewVersion = strpos($row, BGERP_GIT_BRANCH . " (local out of date)");
+		$hasUpdated	= strpos($row, BGERP_GIT_BRANCH . " (up to date)");
+	}
+	
 	if($hasNewVersion !== FALSE) {
         $log[] = "new:[<b>$repoName</b>] Има нова версия.";
         
         return TRUE;
     }
+    
+	if($hasUpdated !== FALSE) {
+        
+        return FALSE;
+    }
+    $log[] = "err:[<b>$repoName</b>] Не е открит зададеният бранч.";
     
     return FALSE;
 }
