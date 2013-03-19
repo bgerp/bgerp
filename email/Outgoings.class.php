@@ -838,24 +838,25 @@ class email_Outgoings extends core_Master
             }
     
             // Ако сме дошли на формата чрез натискане на имейл
-            if ($emailTo && !$forward) {
+            if ($emailTo) {
                 
                 // Проверяваме дали е валидем имейл адрес
                 if (type_Email::isValidEmail($emailTo)) {
-                                    
-                    // Опитваме се да вземаме папката
-                    if (!$folderId = static::getAccessedEmailFolder($emailTo)) {
-                        
-                        if ($personId = crm_Profiles::getProfile()->id) {
+                    if (!$forward) {
+                        // Опитваме се да вземаме папката
+                        if (!$folderId = static::getAccessedEmailFolder($emailTo)) {
                             
-                            // Ако нищо не сработи вземаме папката на текущия потребител
-                            $folderId = crm_Persons::forceCoverAndFolder($personId);    
-                        } else {
-                            
-                            // Трябва да има потребителски профил
-                            expect(FALSE, 'Няма потребителски профил');
-                        }
-                    }
+                            if ($personId = crm_Profiles::getProfile()->id) {
+                                
+                                // Ако нищо не сработи вземаме папката на текущия потребител
+                                $folderId = crm_Persons::forceCoverAndFolder($personId);    
+                            } else {
+                                
+                                // Трябва да има потребителски профил
+                                expect(FALSE, 'Няма потребителски профил');
+                            }
+                        }    
+                    }       
     
                     // Попълваме полето Адресант->Имейл със съответния имейл
                     $rec->email = $emailTo;       
