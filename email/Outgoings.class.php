@@ -1638,6 +1638,9 @@ class email_Outgoings extends core_Master
         // Вземаме записа
         $rec = email_Incomings::fetch($id);
         
+        // Оттеглените имейли, да не може да се препращат
+        expect($rec->state != 'rejected', 'Не може да се препраща оттеглен имейл.');
+        
         // Проверяваме за права
         email_Incomings::requireRightFor('single', $rec);
         
