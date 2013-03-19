@@ -1,0 +1,39 @@
+[#SingleToolbar#]
+                 
+	<div class='document'>
+		<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#]'>Напомняне <b>[#ident#]</b> ([#state#])</div>
+		</div>
+
+		<div class='antetka' style='line-height:150%;'>
+			<b>[#title#]</b><br>
+			<small>
+			<div>
+				Приоритет: [#priority#]
+			</div>
+			<div>
+				Споделяне: [#shareLog#]
+			</div>
+			
+			<!--ET_BEGIN action-->
+	        Действие: [#action#]</br>                   
+			<!--ET_END action-->
+			
+			<!--ET_BEGIN time-->
+            Начало: [#timeStart#]</br>
+            Предварително: [#timePreviously#]</br>
+            <!--ET_END time-->
+
+			<!--ET_BEGIN repetition-->
+			Повторение на: [#repetitionEach#] [#repetitionМeasure#]</br> Съблюдаване на: [#repetitionАbidance#]
+		    <!--ET_END repetition-->
+            
+			
+		 
+
+			</small>
+		</div>
+ 	    <div style='padding-top:10px;'>[#description#]</div>
+
+        <div style='clear: both;'></div>
+    </div>         

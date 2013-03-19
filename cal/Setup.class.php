@@ -57,6 +57,7 @@ class cal_Setup
             'cal_Tasks',
             'cal_TaskProgresses',
             'cal_Holidays',
+        	'cal_Reminders'
         );
         
         // Роля за power-user на този модул
