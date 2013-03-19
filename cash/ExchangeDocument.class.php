@@ -39,7 +39,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, creditQuantity=Обменено->Сума, creditCurrency=Обменено->Валута, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, creditQuantity=Обменено->Сума, creditCurrency=Обменено->Валута, debitQuantity=Получено->Сума, debitCurrency=Получено->Валута, state, createdOn, createdBy";
     
     
     /**
@@ -109,12 +109,6 @@ class cash_ExchangeDocument extends core_Master
     
     
     /**
-     * Кое поле съдържа валутата за обобщение
-     */
-    var $filterCurrencyField = 'debitCurrency';
-    
-    
-    /**
      * Групиране на документите
      */
     var $newBtnGroup = "4.8|Финанси";
@@ -132,9 +126,10 @@ class cash_ExchangeDocument extends core_Master
     	$this->FLD('creditQuantity', 'double(decimals=2)', 'width=6em,caption=От->Сума');
         $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=12em');
         $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)','caption=Към->Валута,width=6em');
-        $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума,summary=amount');
+        $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума');
        	$this->FLD('debitPrice', 'double(decimals=2)', 'input=none');
-        $this->FLD('rate', 'double(decimals=2)', 'input=none');
+        $this->FLD('equals', 'double(decimals=2)', 'input=none,caption=Общо,summary=amount');
+       	$this->FLD('rate', 'double(decimals=2)', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -187,6 +182,13 @@ class cash_ExchangeDocument extends core_Master
 		    	
 		    // Каква сума очакваме да е въведена
 		    $expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode, $dCode);
+    		
+		    // Каква е равностойноста на обменената сума в основната валута за периода
+		    if($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)){
+		    	$rec->equals = $rec->creditQuantity * $rec->rate;
+		    } else {
+		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
+		    }
 		    	
 		    // Проверяваме дали дебитната сума има голяма разлика
 		    // спрямо очакваната, ако да сетваме предупреждение
@@ -206,11 +208,6 @@ class cash_ExchangeDocument extends core_Master
     	$row->number = static::getHandle($rec->id);
     	
     	if($fields['-single']) {
-	    	$double = cls::get('type_Double');
-	    	$row->currency = currency_Currencies::getCodeById($rec->debitCurrency);
-	    	$double->params['decimals'] = 2;
-	    	$row->equals = $double->toVerbal($rec->creditQuantity * $rec->creditPrice);
-		    $row->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
 	    	
 	    	// Показваме заглавието само ако не сме в режим принтиране
 		    if(!Mode::is('printing')){

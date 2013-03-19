@@ -54,7 +54,6 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
-        setIfNot($mvc->currencyRateField, 'rate');
     }
     
     
@@ -186,9 +185,14 @@ class acc_plg_DocumentSummary extends core_Plugin
 	    		case "amount":
 	    			if($currencyId = $rec->{$mvc->filterCurrencyField}){
 	    				(is_numeric($currencyId)) ? $code = currency_Currencies::getCodeById($currencyId) : $code = $currencyId;
+	    				$baseAmount = currency_CurrencyRates::convertAmount($rec->{$fld->name}, dt::now(), $code, NULL);
+	    			} else {
+	    				
+	    				// Ако няма стойнсот за валутата по обобщение приемаме
+	    				// че сумата е в основната валута за периода
+	    				$baseAmount = $rec->{$fld->name};
 	    			}
-	    			
-		    		$baseAmount = currency_CurrencyRates::convertAmount($rec->{$fld->name}, dt::now(), $code, NULL);
+		    		
 		    		$res[$fld->name]->amount += $baseAmount;
 		    		$res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
 	    			break;
