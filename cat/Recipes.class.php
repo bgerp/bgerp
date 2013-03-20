@@ -37,13 +37,7 @@ class cat_Recipes extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, productId, uom, state, createdOn, createdBy, modifiedOn, modifiedBy';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'productId';
+    var $listFields = 'tools=Пулт, productId, uom, groups, state, createdOn, createdBy, modifiedOn, modifiedBy';
     
     
     /**
@@ -110,8 +104,10 @@ class cat_Recipes extends core_Master {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
     	$this->FLD('uom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,notSorting,width=18em');
     	$this->FLD('info', 'text(rows=4)', 'caption=Информация,width=18em');
-    	$this->FLD('groups', 'keylist(mvc=cat_RecipeGroups, select=title)', 'caption=Групи');
+    	$this->FLD('groups', 'keylist(mvc=cat_RecipeGroups, select=title)', 'caption=Групи, mandatory');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+    
+    	$this->setDbUnique('productId,uom');
     }
     
     
@@ -138,7 +134,7 @@ class cat_Recipes extends core_Master {
    	 */
    	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn('Изчисти', array($mvc, 'clean'));
+    	$data->toolbar->addBtn('Изчисли', array($mvc, 'calcPrice', $data->rec->id));
     }
    
     
@@ -147,21 +143,22 @@ class cat_Recipes extends core_Master {
      * @TODO
      * @param int $productId - ид на продукт
      * @param int $quantity - количество от продукта
-     * @param datetime $datetime - дата
      * @return array $results - масив с обекти на съставящите го
      * продукти
      */
-    public static function getIngredients($productId, $quantity = 1, $datetime = NULL)
+    public static function getIngredients($productId, $quantity = 1)
     {
     	$results = array();
     	expect($productRec = cat_Products::fetch($productId));
+    	$rec = static::fetchByProduct($productId, NULL);
+    	
     	$query = cat_RecipeDetails::getQuery();
-    	$query->where("#dProductId = {$productId}");
-    	while($rec = $query->fetch()){
+    	$query->where("#recipeId = {$rec->id}");
+    	while($detail = $query->fetch()){
     		$obj = new stdClass();
-    		$obj->productId = $rec->productId;
-    		$obj->quantity = $rec->quantity;
-    		$results[$rec->id] = $obj;
+    		$obj->productId = $detail->dProductId;
+    		$obj->quantity = $detail->quantity;
+    		$results[$detail->id] = $obj;
     	}
     	
     	return $results;
@@ -174,6 +171,106 @@ class cat_Recipes extends core_Master {
    	static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	$data->toolbar->addBtn('Калкулиране на себестойности', array($mvc, 'calcAll'));
+    }
+    
+    
+	/**
+	 * @TODO
+	 */
+    public function getAllowedProducts()
+    {
+    	$notAllowed = array();
+    	$catQuery = cat_Products::getQuery();
+    	$products = $catQuery->fetchAll();
+    	$recipeQuery = $this->getQuery();
+    	while($rec = $recipeQuery->fetch()){
+    		$this->filterProducts($rec->productId, $rec->uom,  $notAllowed);
+    	}
+    	bp($notAllowed);
+    }
+    
+    
+    /**
+	 * @TODO
+	 */
+    function filterProducts($productId, $uom, &$notAllowed)
+    {
+    	if(in_array($productId, $notAllowed)) return;
+    	$notAllowed[] = $productId;
+    	
+    	$rec = $this->fetchByProduct($productId, $uom);
+    	if(!$rec) return;
+    	
+    	$detailQuery = cat_RecipeDetails::getQuery();
+    	$detailQuery->where("#recipeId = {$rec->id}");
+    	while($detail = $detailQuery->fetch()){
+    		$this->filterProducts($detail->dProductId, $detail->dUom, $notAllowed);
+    	}
+    }
+    
+    
+    
+    public static function fetchByProduct($productId)
+    {
+    	$query = static::getQuery();
+    	$query->where("#productId = {$productId}");
+    	return $query->fetch();
+    }
+    
+    
+    function act_Test(){
+    	$cost = static::calcCost(7);
+    	bp($cost);
+    }
+    
+    
+    /** 
+     * @TODO;
+     * Enter description here ...
+     * @param unknown_type $productId
+     * @param unknown_type $quantity
+     * @param unknown_type $datetime
+     */
+    public static function calcCost($productId, $quantity = 1, $datetime = NULL)
+    {
+    	$price = 0;
+    	$conf = core_Packs::getConfig('price');
+    	
+    	$ingredients = static::getIngredients($productId, $quantity);
+    	
+    	if(!$ingredients) {
+    		$ruleRec = price_ListRules::fetch("#productId = {$productId} && #listId = {$conf->PRICE_LIST_COST}");
+    		if(!$ruleRec->price){
+    			$ruleRec->price = 0;
+    		}
+    		
+    		return $ruleRec->price;
+    	} else {
+    		foreach($ingredients as $ing){
+    			$recipeRec = static::fetchByProduct($ing->productId);
+    			
+	    		if($recipeRec){
+	    			$pPrice = static::calcCost($recipeRec->productId, $recipeRec->quantity, $datetime);
+	    			$price += $pPrice;
+	    			
+	    		} else {
+	    			$ruleRec = price_ListRules::fetch("#productId = {$productId} && #listId = {$conf->PRICE_LIST_COST}");
+	    			$price += $ruleRec->price;
+	    		}
+    		}
+    	}
+    	
+    	return $price;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нова рецепта
+     */
+    function on_AfterCreate($mvc, $id)
+    {
+    	// Обновяване на броя рецепти във всяка група
+    	cat_RecipeGroups::updateCount();
     }
     
     
@@ -190,9 +287,40 @@ class cat_Recipes extends core_Master {
     /**
      * 
      */
-    function act_Clean()
+    function act_calcPrice()
     {
-    	//@TODO
+    	$this->requireRightFor('read');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$data = new stdClass();
+    	$data->rec = $rec;
+    	$data->row = $this->recToverbal($rec);
+    	$this->prepareCalcPrice($data);
+    	if($data->form) {
+        	$rec = $data->form->input();
+            $this->requireRightFor('add', $data->rec);
+            if ($data->form->isSubmitted()){
+            	
+            	Redirect(array($this, 'single', $data->rec->id), FALSE, 'TEST');
+            }
+    	}
+    	
+    	$tpl = $this->renderWrapping($data->form->renderHtml());
+    	return $tpl;
+    }
+    
+    
+    /**
+     * 
+     */
+    private function prepareCalcPrice(&$data)
+    {
+    	$form = cls::get("core_Form");
+    	$form->FNC('uom', 'key(mvc=cat_UoM, select=name)', 'input,caption=Мярка,width=11em');
+    	$form->FNC('quantity', 'int', 'input,caption=Количество,width=11em');
+    	$form->toolbar->addSbBtn("Изчисли");
+    	$form->title = tr("Изчисляване на себестойност на продукт: {$data->row->productId}");
+    	$data->form = $form;
     }
     
     

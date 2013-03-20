@@ -28,6 +28,12 @@ class cat_RecipeDetails extends core_Detail {
 	var $masterKey = 'recipeId';
     
     
+	/**
+	 * Полета за изглед
+	 */
+	var $listFields = 'id, dProductId, dUom, quantity';
+	
+	
     /**
      * Кой може да променя?
      */
@@ -47,18 +53,28 @@ class cat_RecipeDetails extends core_Detail {
     {
     	$this->FLD('recipeId', 'key(mvc=cat_Recipes)', 'caption=Рецепта, input=hidden, silent');
     	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
-    	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,notSorting,width=18em');
-    	$this->FLD('quantity', 'int', 'caption=Количество,mandatory');
+    	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,notSorting,width=10em');
+    	$this->FLD('quantity', 'int', 'caption=Количество,mandatory,width=10em');
     }
     
     
-    /**
-     * Обработка след изпращане на формата
+     /**
+     * Преди показване на форма за добавяне/промяна.
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	if($form->isSubmitted()) {
-    		//@TODO
+    	//$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts());
+    }
+    
+    
+	/**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(!$rec->dUom){
+    		$product = cat_Products::fetch($rec->dProductId);
+    		$row->dUom = cat_UoM::getTitleById($product->measureId);
     	}
     }
     

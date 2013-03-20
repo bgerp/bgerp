@@ -66,4 +66,19 @@ class cat_RecipeGroups extends core_Manager {
     	
     	$this->setDbUnique('title');
     }
+    
+    
+    /**
+     * Обновяване на броя рецепти във всяка група
+     */
+    public static function updateCount()
+    {
+    	$query = static::getQuery();
+    	while($rec = $query->fetch()){
+    		$recipeQuery = cat_Recipes::getQuery();
+    		$recipeQuery->where("#groups LIKE '%|{$rec->id}|%'");
+    		$rec->receipsCount = $recipeQuery->count();
+    		static::save($rec);
+    	}
+    }
 }
