@@ -142,6 +142,16 @@ class bank_IncomeDocument extends core_Master
         );
     }
 	
+    
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		// Добавяме към формата за търсене търсене по Каса
+		bank_OwnAccounts::prepareBankFilter($data, array('ownAccount'));
+	}
+	
 	
     /**
      * Подготовка на формата за добавяне

@@ -38,7 +38,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, proxyName=Лице, state, createdOn, createdBy";
     
     
     /**
@@ -57,12 +57,6 @@ class bank_CashWithdrawOrders extends core_Master
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Нареждане разписка';
-    
-    
-    /**
-     * Икона на единичния изглед
-     */
-    //var $singleIcon = 'img/16/money_add.png';
     
     
     /**
@@ -98,7 +92,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, proxyName';
+    var $searchFields = 'valior, reason, proxyName, proxyEgn, proxyIdCard';
     
     /**
      * Групиране на документите
@@ -121,10 +115,20 @@ class bank_CashWithdrawOrders extends core_Master
         $this->FLD('execBankAdress', 'varchar(255)', 'caption=От->Адрес,width=16em');
     	$this->FLD('proxyName', 'varchar(255)', 'caption=Упълномощено лице->Име,mandatory');
     	$this->FLD('proxyEgn', 'drdata_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory');
-    	$this->FLD('proxyIdcard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory');
+    	$this->FLD('proxyIdCard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory');
     }
     
     
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		// Добавяме към формата за търсене търсене по Каса
+		bank_OwnAccounts::prepareBankFilter($data, array('ordererIban'));
+	}
+	
+	
     /**
      *  Обработка на формата за редакция и добавяне
      */
@@ -144,7 +148,7 @@ class bank_CashWithdrawOrders extends core_Master
     		$form->setDefault('execBankBranch', $lastRec->execBankBranch);
     		$form->setDefault('execBankAdress', $lastRec->execBankAdress);
     		$form->setDefault('proxyEgn', $lastRec->proxyEgn);
-    		$form->setDefault('proxyIdcard', $lastRec->proxyIdcard);
+    		$form->setDefault('proxyIdCard', $lastRec->proxyIdCard);
     	} 
     	
     	if($originId) {
@@ -173,7 +177,7 @@ class bank_CashWithdrawOrders extends core_Master
     			
 				// Номер на Л. картата на лицето ако е записана в системата
 				if($idCard = crm_ext_IdCards::fetch("#personId = {$rec->contragentId}")) {
-					$form->setDefault('proxyIdcard', $idCard);
+					$form->setDefault('proxyIdCard', $idCard);
 				}
 			}
     	} else {

@@ -142,6 +142,16 @@ class bank_CostDocument extends core_Master
     }
     
     
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		// Добавяме към формата за търсене търсене по Каса
+		bank_OwnAccounts::prepareBankFilter($data, array('ownAccount'));
+	}
+	
+    
     /**
      * Подготовка на формата за добавяне
      */
@@ -167,16 +177,6 @@ class bank_CostDocument extends core_Master
         // Използваме помощната функция за намиране името на контрагента
         bank_IncomeDocument::getContragentInfo($form, 'contragentName');
     }
-     
-    
-	/**
-	 *  Подготовка на филтър формата
-	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
-	{	
-        // Използваме филтър формата на Банковия приходен документ
-		//bank_IncomeDocument::prepareBankFilter($data);
-	}
 	
 	
     /**
