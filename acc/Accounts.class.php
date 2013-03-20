@@ -109,7 +109,7 @@ class acc_Accounts extends core_Manager
         $this->FLD('groupId3', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
             'caption=Разбивка по номенклатури->Ном. 3,remember, export');
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=hidden');
-        $this->FLD('systemId', 'identifier(16)', 'caption=System ID, export, mandatory');
+        $this->FLD('systemId', 'int(5)', 'caption=System ID, export, mandatory');
         
         $this->XPR('isSynthetic', 'int', 'CHAR_LENGTH(#num) < 3', 'column=none');
         
