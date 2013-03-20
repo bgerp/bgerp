@@ -666,11 +666,14 @@ function SetWithCheckedButton()
 	 }
 }
 
-function flashHashDoc()
+function flashHashDoc(flasher)
 {
 	var h = window.location.hash.substr(1); 
 	if(h) {
-		flashDoc(h);
+		if (!flasher) {
+			flasher = flashDoc;
+		}
+		flasher(h);
 	}
 }
 
@@ -699,6 +702,20 @@ function flashDoc(docId, i)
 	}
 }
 
+function flashDocCss3(docId)
+{
+	var tr = get$(docId),
+		oldClassName = tr.className;
+	
+	tr.className = (tr.className || '') + ' flash';
+	
+	setTimeout(function () {
+		tr.className += ' transition';
+		setTimeout(function () {
+			tr.className = oldClassName + ' transition';
+		}, 1);
+	}, 1);
+}
 
 /**
  * Задава максиналната височина на опаковката и основното съдържание
