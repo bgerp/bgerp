@@ -326,7 +326,10 @@ if($step == 2) {
 		    if (!getGitCmd($gitCmd)) {
 		        $links[] = "wrn|{$nextUrl}|Не може да бъде открит Git. Продължете без обновяване »";
 		    } else {
-			    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения 
+			    // Ако Git установи различие в бранчовете на локалното копие и зададената константа
+			    //  - превключва репозиторито в бранча зададен в константата
+		    	
+			    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения
 			    // 1. В системата има локално променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
 			    // 2. Продължете, без да възстановявате променените файлове (отива на следваща стъпка)
 			
@@ -358,6 +361,9 @@ if($step == 2) {
 			    foreach($repos as $repoPath) {
 			        
 			        $repoName = basename($repoPath);
+			        
+			        // Превключваме репозиторито в зададения в конфигурацията бранч
+			        gitSetBranch($repoPath, $log);
 			        
 			        // Ако имаме команда за revert на репозиторито - изпълняваме я
 			        if($revert == $repoName) {
@@ -820,7 +826,64 @@ function linksToHtml($links, $target='_self')
  */
 function gitCurrentBranch($repoPath, &$log)
 {
-	return BGERP_GIT_BRANCH;
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+	
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" branch";
+
+	exec($command, $arrRes, $returnVar);
+	// Търсим реда с текущият бранч
+	foreach ($arrRes as $row) {
+		if (strpos($row, "*") !== FALSE) {
+			return trim(substr($row, strpos($row, "*")+1, strlen($row)));
+		}
+	}
+    $log[] = "err:Няма текущ бранч!";
+    
+	return FALSE;
+}
+
+
+/**
+ * Сетва репозиторито в зададен бранч. Ако не е зададен го взима от конфигурацията
+ */
+function gitSetBranch($repoPath, &$log, $branch=NULL)
+{
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+    $currentBranch = gitCurrentBranch($repoPath, $log);
+    if (isset($branch)) {
+		if ($currentBranch == $branch) return TRUE;
+		$requiredBranch = $branch;
+    } elseif ($currentBranch == BGERP_GIT_BRANCH) {
+    	return TRUE;
+    } else {
+    	$requiredBranch = BGERP_GIT_BRANCH;
+    }
+    
+	$commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch origin +{$requiredBranch}:{$requiredBranch} 2>&1";
+	
+	$commandCheckOut = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$requiredBranch} 2>&1";
+		
+	exec($commandFetch, $arrRes, $returnVar);
+	exec($commandCheckOut , $arrRes, $returnVar);
+	// Проверяваме резултата
+	foreach ($arrRes as $row) {
+		if (strpos($row, "Switched to branch '{$requiredBranch}'") !== FALSE) {
+			$log[] = "info: Превключен {$requiredBranch} бранч.";
+			
+			return TRUE;
+		}
+	}
+    $log[] = "err: Грешка при превключване в бранч {$requiredBranch} на репозитори - $repoPath";
+    
+	return FALSE;
 }
 
 
