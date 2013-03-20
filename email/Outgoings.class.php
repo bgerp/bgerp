@@ -157,7 +157,7 @@ class email_Outgoings extends core_Master
         $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
         
         //Данни за адресанта
-        $this->FLD('email', 'emails', 'caption=Адресант->Имейл,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Адресант->Имейл,class=contactData, width=100%');
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf,class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone,class=contactData');
