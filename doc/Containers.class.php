@@ -121,6 +121,8 @@ class doc_Containers extends core_Manager
         
         doc_Threads::requireRightFor('single', $data->threadRec);
         
+        expect($data->threadRec->firstContainerId, 'Проблемен запис на нишка', $data->threadRec);
+        
         bgerp_Recently::add('document', $data->threadRec->firstContainerId);
         
         $data->query->orderBy('#createdOn');
@@ -171,7 +173,7 @@ class doc_Containers extends core_Manager
         $url = array('doc_Containers', 'list', 'threadId' => $data->threadRec->id);
         bgerp_Notifications::clear($url);
         
-        $tpl->appendOnce("flashHashDoc();", 'ON_LOAD');
+        $tpl->appendOnce("flashHashDoc(flashDocCss3);", 'ON_LOAD');
     }
     
     

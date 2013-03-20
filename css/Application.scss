@@ -952,6 +952,10 @@ table.mc-header a {
 
 .doc_Containers table.listTable.listTable>tbody>tr {
 	background-color: transparent !important;
+	
+	&.flash {
+	   background-color: #ff8 !important;
+	}
 }
 
 .doc_Containers .thread-opened table.listTable>tbody>tr{
