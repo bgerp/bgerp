@@ -841,7 +841,8 @@ function gitCurrentBranch($repoPath, &$log)
 			return trim(substr($row, strpos($row, "*")+1, strlen($row)));
 		}
 	}
-    $log[] = "err:Няма текущ бранч!";
+	$repoName = basename($repoPath);
+    $log[] = "err: {$repoName} няма текущ бранч!";
     
 	return FALSE;
 }
@@ -857,6 +858,7 @@ function gitSetBranch($repoPath, &$log, $branch=NULL)
     	
     	return FALSE;
     }
+    $repoName = basename($repoPath);
     $currentBranch = gitCurrentBranch($repoPath, $log);
     if (isset($branch)) {
 		if ($currentBranch == $branch) return TRUE;
@@ -876,12 +878,12 @@ function gitSetBranch($repoPath, &$log, $branch=NULL)
 	// Проверяваме резултата
 	foreach ($arrRes as $row) {
 		if (strpos($row, "Switched to branch '{$requiredBranch}'") !== FALSE) {
-			$log[] = "info: Превключен {$requiredBranch} бранч.";
+			$log[] = "info: $repoName превключен {$requiredBranch} бранч.";
 			
 			return TRUE;
 		}
 	}
-    $log[] = "err: Грешка при превключване в бранч {$requiredBranch} на репозитори - $repoPath";
+    $log[] = "err: Грешка при превключване в бранч {$requiredBranch} на репозитори - $repoName";
     
 	return FALSE;
 }
