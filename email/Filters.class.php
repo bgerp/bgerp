@@ -214,7 +214,7 @@ class email_Filters extends core_Manager
         $subjectData = array();
         
         foreach ($fieldsMap as $emailField => $filterField) {
-            $subjectData[$filterField] = mb_strtolower($emailRec->{$emailField});
+            $subjectData[$filterField] = $emailRec->{$emailField};
         } 
         
         foreach ($allFilters as $filterRec) {
@@ -241,7 +241,7 @@ class email_Filters extends core_Manager
             if (empty($filterRec->{$filterField})) {
                 continue;
             }
-            if (mb_strpos($haystack, $filterRec->{$filterField}) !== FALSE) {
+            if (mb_stripos($haystack, $filterRec->{$filterField}) !== FALSE) {
                 return TRUE;
             }
         }
