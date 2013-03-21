@@ -184,38 +184,66 @@ class email_Filters extends core_Manager
     /**
      * Определя дали писмото отговаря на някой от зададените шаблони
      * 
-     * @param stdClass $rec запис от модела email_Incomings
+     * @param stdClass $emailRec запис от модела email_Incomings
      * @return stdClass запис от модела email_Filters или FALSE ако не е разпозната услуга
      */
-    protected static function detect($rec)
+    protected static function detect($emailRec)
     {
-        $fieldsMap = array(
-            'fromEml'  => 'email',
-            'subject'  => 'subject', 
-            'textPart' => 'body', 
-        ); 
+        static $allFilters = NULL;
         
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        
-        // Търсим само активни филтри
-        $query->where("#state = 'active'");
-        
-        foreach ($fieldsMap as $emailField => $patternField) {
-            $query->where(
-                array(
-                    "#{$patternField} IS NULL OR #{$patternField} = ''" .
-                    " OR LOWER('[#1#]') LIKE CONCAT('%', LOWER(#{$patternField}), '%')",
-                    (string)($rec->{$emailField})
-                )
-            );
+        if (!isset($allFilters)) {
+            /* @var $query core_Query */
+            $query = static::getQuery();
+            
+            // Зареждаме всички активни филтри
+            $allFilters = $query->fetchAll("#state = 'active'");
         }
         
-        $query->limit(1);
+        if (!$allFilters) {
+            // Няма активни филтри
+            return FALSE;
+        }
         
-        $serviceRec = $query->fetch();
+        $fieldsMap = array(
+            'fromEml'  => 'email',
+            'subject'  => 'subject',
+            'textPart' => 'body',
+        );
         
-        return $serviceRec ? $serviceRec : FALSE;
+        // Данните, които ще сравняваме с всяко от правилата 
+        $subjectData = array();
+        
+        foreach ($fieldsMap as $emailField => $filterField) {
+            $subjectData[$filterField] = mb_strtolower($emailRec->{$emailField});
+        } 
+        
+        foreach ($allFilters as $filterRec) {
+            if (self::match($subjectData, $filterRec)) {
+                return $filterRec;
+            }
+        }
+
+        // Не е открито съвпадение с никое правило
+        return FALSE;
+    }
+    
+    
+    /**
+     * Провека дали филтриращо правило покрива данните в $subjectData
+     * 
+     * @param array $subjectData
+     * @param stdClass $filterRec запис на модела email_Filters
+     * @return boolean
+     */
+    protected static function match($subjectData, $filterRec)
+    {
+        foreach ($subjectData as $filterField=>$haystack) {
+            if (mb_strpos($haystack, $filterRec->{$filterField}) !== FALSE) {
+                return TRUE;
+            }
+        }
+        
+        return FALSE;
     }
     
     
