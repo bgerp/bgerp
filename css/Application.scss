@@ -947,23 +947,23 @@ table.mc-header a {
 }
 
 .doc_Containers table.listTable.listTable>tbody>tr:hover {
-	background-color: transparent !important;
+	background-color: transparent;
 }
 
 .doc_Containers table.listTable.listTable>tbody>tr {
-	background-color: transparent !important;
+	background-color: transparent;
 	
 	&.flash {
-	   background-color: #ff8 !important;
+	   background-color: #ff8 ;
 	}
 }
 
 .doc_Containers .thread-opened table.listTable>tbody>tr{
-	background-color: $open-thread !important;
+	background-color: $open-thread ;
 }
 
 .doc_Containers .thread-opened table.listTable>tbody>tr:hover{
-	background-color: $open-thread !important;
+	background-color: $open-thread ;
 }
 
 .thread-opened > div > table.listTable > tbody > tr > td {
