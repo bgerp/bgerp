@@ -458,10 +458,10 @@ class html2text_Converter
         $text = preg_replace_callback('/<base [^>]*href=("|\')([^"|\']+)("|\')[^>]*>/i', array($this, '_set_base_url'), $text);
         
         // <script>s -- which strip_tags supposedly has problems with
-        $text = preg_replace("/<script[^>]*>.*?<\/script>/i", '', $text);
+        $text = preg_replace("/<script[^>]*>.*?<\/script[^>]*>/i", '', $text);
         
         // <style>s -- which strip_tags supposedly has problems with
-        $text = preg_replace("/<style[^>]*>.*?<\/style>/i", '', $text);
+        $text = preg_replace("/<style[^>]*>.*?<\/style[^>]*>/i", '', $text);
         
         // Comments -- which strip_tags might have problem a with
 //        $text = preg_replace('/<!-- .* -->/', '', $text);
@@ -479,25 +479,25 @@ class html2text_Converter
         $text = preg_replace("/<br[^>]*>/i", "\n", $text);
         
         // <b>
-        $text = preg_replace_callback('/<b[^>]*>(.*?)<\/b>/i', array($this, 'bold'), $text);
+        $text = preg_replace_callback('/<b[^>]*>(.*?)<\/b[^>]*>/i', array($this, 'bold'), $text);
         
         // <strong>
-        $text = preg_replace_callback('/<strong[^>]*>(.*?)<\/strong>/i', array($this, 'bold'), $text);
+        $text = preg_replace_callback('/<strong[^>]*>(.*?)<\/strong[^>]*>/i', array($this, 'bold'), $text);
         
         // <i>
-        $text = preg_replace("/<i[^>]*>(.*?)<\/i>/i", "[i]\\1[/i]", $text);
+        $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", "[i]\\1[/i]", $text);
         
         // <em>
-        $text = preg_replace("/<em[^>]*>(.*?)<\/em>/i", "[b]\\1[/b]", $text);
+        $text = preg_replace("/<em[^>]*>(.*?)<\/em[^>]*>/i", "[b]\\1[/b]", $text);
         
         // <ul> and </ul>
-        $text = preg_replace("/(<ul[^>]*>|<\/ul>)/i", "\n\n", $text);
+        $text = preg_replace("/(<ul[^>]*>|<\/ul[^>]*>)/i", "\n\n", $text);
         
         // <ol> and </ol>
-        $text = preg_replace("/(<ol[^>]*>|<\/ol>)/i", "\n\n", $text);
+        $text = preg_replace("/(<ol[^>]*>|<\/ol[^>]*>)/i", "\n\n", $text);
         
         // <li> and </li>
-        $text = preg_replace("/<li[^>]*>(.*?)<\/li>/i", "\t* \\1\n", $text);
+        $text = preg_replace("/<li[^>]*>(.*?)<\/li[^>]*>/i", "\t* \\1\n", $text);
         
         // <li>
         $text = preg_replace("/<li[^>]*>/i", "\n\t* ", $text);
@@ -509,7 +509,7 @@ class html2text_Converter
         $text = preg_replace("/<hr[^>]*>/i", "\n-------------------------\n", $text);
         
         // <table> and </table>
-        $text = preg_replace("/(<table[^>]*>|<\/table>)/i", "\n\n", $text);
+        $text = preg_replace("/(<table[^>]*>|<\/table[^>]*>)/i", "\n\n", $text);
         
         // <tr> and </tr>
         $text = preg_replace("/(<tr[^>]*>|<\/tr>)/i", "\n", $text);
