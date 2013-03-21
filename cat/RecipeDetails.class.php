@@ -29,9 +29,22 @@ class cat_RecipeDetails extends core_Detail {
     
     
 	/**
+     * Плъгини за зареждане
+     */
+    var $loadList = 'plg_RowTools';
+    
+    
+     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
+     * таблицата.
+     */
+    var $rowToolsField = 'tools';
+    
+    
+	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'id, dProductId, dUom, quantity';
+	var $listFields = 'tools=Пулт, dProductId, dUom, quantity';
 	
 	
     /**
@@ -55,6 +68,8 @@ class cat_RecipeDetails extends core_Detail {
     	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
     	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,notSorting,width=10em');
     	$this->FLD('quantity', 'int', 'caption=Количество,mandatory,width=10em');
+    
+    	$this->setDbUnique('dProductId,dUom');
     }
     
     
@@ -63,7 +78,7 @@ class cat_RecipeDetails extends core_Detail {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	//$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts());
+    	//$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->recipeId));
     }
     
     
@@ -75,6 +90,14 @@ class cat_RecipeDetails extends core_Detail {
     	if(!$rec->dUom){
     		$product = cat_Products::fetch($rec->dProductId);
     		$row->dUom = cat_UoM::getTitleById($product->measureId);
+    	}
+    	
+    	if($recipeRec = cat_Recipes::fetchByProduct($rec->dProductId)){
+    		$icon = sbf("img/16/legend.png");
+    		$row->dProductId = ht::createLink($row->dProductId, array('cat_Recipes', 'single', $recipeRec->id), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+    	} else {
+    		$icon = sbf("img/16/package-icon.png");
+			$row->dProductId = ht::createLink($row->dProductId, array('cat_Products', 'single', $rec->dProductId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
     	}
     }
     

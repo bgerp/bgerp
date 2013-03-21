@@ -56,7 +56,7 @@ class cat_Recipes extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, cat_Wrapper, cat_RecipeWrapper, doc_DocumentPlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg';
     
     
     /**
@@ -83,7 +83,13 @@ class cat_Recipes extends core_Master {
      */
     var $canWrite = 'cat, admin';
     
- 
+    
+	/**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'productId';
+    
+    
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -134,7 +140,7 @@ class cat_Recipes extends core_Master {
    	 */
    	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn('Изчисли', array($mvc, 'calcPrice', $data->rec->id));
+    	$data->toolbar->addBtn('Изчисли', array($mvc, 'calcPrice', $data->rec->id), NULL, 'ef_icon=img/16/calculator.png');
     }
    
     
@@ -170,46 +176,57 @@ class cat_Recipes extends core_Master {
    	 */
    	static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn('Калкулиране на себестойности', array($mvc, 'calcAll'));
+    	// Да предавам филтър формата на екшъна !!!
+    	$data->toolbar->addBtn('Калкулиране на себестойности', array($mvc, 'calcAll'), NULL, 'ef_icon=img/16/calculator.png,warning=Наистинали искате да изчислите себестойностите на показваните продукти?');
+    }
+    
+    function act_test(){
+    	$l = "";
+    	$rec = $this->fetch('2');
+    	$productId = '12';
+    	$res = $this->searchProduct($recipe, $productId);
+    	bp($res);
     }
     
     
-	/**
-	 * @TODO
-	 */
-    public function getAllowedProducts()
+    function searchProduct($rec, $productId)
     {
-    	$notAllowed = array();
-    	$catQuery = cat_Products::getQuery();
-    	$products = $catQuery->fetchAll();
-    	$recipeQuery = $this->getQuery();
-    	while($rec = $recipeQuery->fetch()){
-    		$this->filterProducts($rec->productId, $rec->uom,  $notAllowed);
+    	$ingredients = cat_Recipes::getIngredients($rec->productId);
+    	if(!$ingredients) {
+    		if($rec->productId == $productId) {bp('TRUE1');
+    			return TRUE;
+    		} else {
+    			return FALSE;
+    		}
     	}
-    	bp($notAllowed);
+    	
+    	foreach($ingredients as $ing){
+    		$recipe = cat_Recipes::fetchByProduct($ing->productId);
+    		
+    		if($recipe){
+    			if($recipe->productId == $productId) {bp('TRUE2');
+    				return TRUE;
+    			}
+    			
+    			$res = $this->searchProduct($recipe, $productId);
+    			//bp($res);
+    			return $res;
+    		} else {
+    			if($ing->productId == $productId){bp('TRUE3');
+    				return TRUE;
+    			} else {
+    				return FALSE;
+    			}
+    		}
+    	}
     }
     
     
     /**
-	 * @TODO
-	 */
-    function filterProducts($productId, $uom, &$notAllowed)
-    {
-    	if(in_array($productId, $notAllowed)) return;
-    	$notAllowed[] = $productId;
-    	
-    	$rec = $this->fetchByProduct($productId, $uom);
-    	if(!$rec) return;
-    	
-    	$detailQuery = cat_RecipeDetails::getQuery();
-    	$detailQuery->where("#recipeId = {$rec->id}");
-    	while($detail = $detailQuery->fetch()){
-    		$this->filterProducts($detail->dProductId, $detail->dUom, $notAllowed);
-    	}
-    }
-    
-    
-    
+     * 
+     * Enter description here ...
+     * @param unknown_type $productId
+     */
     public static function fetchByProduct($productId)
     {
     	$query = static::getQuery();
@@ -218,18 +235,13 @@ class cat_Recipes extends core_Master {
     }
     
     
-    function act_Test(){
-    	$cost = static::calcCost(7);
-    	bp($cost);
-    }
-    
-    
     /** 
-     * @TODO;
-     * Enter description here ...
-     * @param unknown_type $productId
-     * @param unknown_type $quantity
-     * @param unknown_type $datetime
+     * Изчислява себестойноста на продукта
+     * @TODO да вземам предвид мярката на продукта
+     * @param int $productId
+     * @param int $quantity
+     * @param datetime $datetime
+     * @return double - цената на продукта
      */
     public static function calcCost($productId, $quantity = 1, $datetime = NULL)
     {
@@ -237,30 +249,27 @@ class cat_Recipes extends core_Master {
     	$conf = core_Packs::getConfig('price');
     	
     	$ingredients = static::getIngredients($productId, $quantity);
-    	
+    
     	if(!$ingredients) {
-    		$ruleRec = price_ListRules::fetch("#productId = {$productId} && #listId = {$conf->PRICE_LIST_COST}");
-    		if(!$ruleRec->price){
-    			$ruleRec->price = 0;
-    		}
+    		$price = price_ListRules::getPrice($conf->PRICE_LIST_COST, $productId, NULL, $datetime);
+    		expect($price, "Проблем при изчислението на себестойноста на продукт: {$productId}");
     		
-    		return $ruleRec->price;
-    	} else {
-    		foreach($ingredients as $ing){
-    			$recipeRec = static::fetchByProduct($ing->productId);
-    			
-	    		if($recipeRec){
-	    			$pPrice = static::calcCost($recipeRec->productId, $recipeRec->quantity, $datetime);
-	    			$price += $pPrice;
-	    			
-	    		} else {
-	    			$ruleRec = price_ListRules::fetch("#productId = {$productId} && #listId = {$conf->PRICE_LIST_COST}");
-	    			$price += $ruleRec->price;
-	    		}
-    		}
+    		return $quantity * $price;
     	}
     	
-    	return $price;
+    	foreach($ingredients as $ing){
+    		$recipeRec = static::fetchByProduct($ing->productId);
+    		if($recipeRec){
+	    			$pPrice = static::calcCost($ing->productId, $ing->quantity, $datetime);
+	    			$price += $pPrice;
+	    		} else {
+	    			$priceRule = price_ListRules::getPrice($conf->PRICE_LIST_COST, $ing->productId, NULL, $datetime);
+	    			expect($priceRule, "Проблем при изчислението на себестойноста на продукт: {$ing->productId}");
+	    			$price += $ing->quantity * $priceRule;
+	    		}
+    	}
+    	
+    	return $quantity * $price;
     }
     
     
@@ -280,7 +289,23 @@ class cat_Recipes extends core_Master {
      */
     function act_calcAll()
     {
-    	//@TODO
+    	$count = 0;
+    	$conf = core_Packs::getConfig('price');
+    	$query = $this->getQuery();
+    	while($rec = $query->fetch()) {
+    		$listRec = new stdClass();
+    		$listRec->listId = $conf->PRICE_LIST_COST;
+    		$listRec->productId = $rec->productId;
+    		$listRec->price = cat_Recipes::calcCost($rec->productId);
+    		$listRec->type = 'value';
+    		$listRec->validFrom = dt::now();
+    		if($listRec->price){
+    			$count++;
+    			price_ListRules::save($listRec);
+    		}
+    	}
+    	
+    	return Redirect(array($this, 'list'), FALSE, "Изчислени са себестойностите на {$count} продукта");
     }
     
     
@@ -298,10 +323,14 @@ class cat_Recipes extends core_Master {
     	$this->prepareCalcPrice($data);
     	if($data->form) {
         	$rec = $data->form->input();
+        	if($rec->quantity <= 0){
+        		$data->form->setError('quantity', 'Неправилно количество');
+        	}
             $this->requireRightFor('add', $data->rec);
             if ($data->form->isSubmitted()){
+            	$price = cat_Recipes::calcCost($data->rec->productId, $rec->quantity);
             	
-            	Redirect(array($this, 'single', $data->rec->id), FALSE, 'TEST');
+            	return Redirect(array($this, 'single', $data->rec->id), FALSE, "Себестойноста  на {$rec->quantity}  {$data->row->productId} е {$price}");
             }
     	}
     	
@@ -311,15 +340,28 @@ class cat_Recipes extends core_Master {
     
     
     /**
-     * 
+     * @TODO
      */
     private function prepareCalcPrice(&$data)
     {
     	$form = cls::get("core_Form");
     	$form->FNC('uom', 'key(mvc=cat_UoM, select=name)', 'input,caption=Мярка,width=11em');
     	$form->FNC('quantity', 'int', 'input,caption=Количество,width=11em');
+    	/*
+    	 * @TODO
+    	if(!$data->rec->uom){
+    		$data->rec->uom = cat_Products::fetchField($data->rec->productId, 'measureId');
+    	}
+    	$uomRec = cat_UoM::fetch($data->rec->uom);
+    	$uomQuery = cat_UoM::getQuery();
+    	$uomQuery->where("#baseUnitId = {$uomRec->id}");
+    	$uomQuery->orWhere("#baseUnitId = {$uomRec->baseUnitId}");
+    	
+    	bp($uomQuery::fetchAll());*/
+    	$form->setDefault('quantity', '1');
+    	$form->setDefault('uom', $data->rec->uom);
     	$form->toolbar->addSbBtn("Изчисли");
-    	$form->title = tr("Изчисляване на себестойност на продукт: {$data->row->productId}");
+    	$form->title = tr("Изчисляване на себестойност на продукт") . ":{$data->row->productId}";
     	$data->form = $form;
     }
     
@@ -330,7 +372,15 @@ class cat_Recipes extends core_Master {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-		//@TODO
+		if(!$rec->uom){
+			$catRec = cat_Products::fetch($rec->productId);
+			$row->uom = cat_UoM::getTitleById($catRec->measureId);
+		}
+		
+		if($fields['-single']){
+			$icon = sbf("img/16/package-icon.png");
+			$row->productId = ht::createLink($row->productId, array('cat_Products', 'single', $rec->productId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+		}
     }
     
     
@@ -360,4 +410,22 @@ class cat_Recipes extends core_Master {
     	
     	return $self->abbr . $rec->id;
     }
+    
+    
+	/**
+     * След обработка на ролите
+     */
+	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'activate') {
+			$query = $mvc->cat_RecipeDetails->getQuery();
+			$query->where("#recipeId = {$rec->id}");
+			if(!$rec || $query->count() == 0){
+				
+				// Ако несме създали още рецептата или няма съставки
+				// никой неможе да активира
+				$res = 'no_one';
+			}
+		}
+	}
 }
