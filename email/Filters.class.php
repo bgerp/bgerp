@@ -238,6 +238,9 @@ class email_Filters extends core_Manager
     protected static function match($subjectData, $filterRec)
     {
         foreach ($subjectData as $filterField=>$haystack) {
+            if (empty($filterRec->{$filterField})) {
+                continue;
+            }
             if (mb_strpos($haystack, $filterRec->{$filterField}) !== FALSE) {
                 return TRUE;
             }
