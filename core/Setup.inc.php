@@ -915,18 +915,18 @@ function gitHasNewVersion($repoPath, &$log)
 	foreach ($arrRes as $row) {
 		$hasNewVersion = strpos($row, BGERP_GIT_BRANCH . " (local out of date)");
 		$hasUpdated	= strpos($row, BGERP_GIT_BRANCH . " (up to date)");
-	}
 	
-	if($hasNewVersion !== FALSE) {
-        $log[] = "new:[<b>$repoName</b>] Има нова версия.";
-        
-        return TRUE;
-    }
-    
-	if($hasUpdated !== FALSE) {
-        
-        return FALSE;
-    }
+		if($hasNewVersion !== FALSE) {
+	        $log[] = "new:[<b>$repoName</b>] Има нова версия.";
+	        
+	        return TRUE;
+	    }
+	    
+		if($hasUpdated !== FALSE) {
+	        
+	        return FALSE;
+	    }
+	}
     $log[] = "err:[<b>$repoName</b>] Не е открит зададеният бранч.";
     
     return FALSE;
