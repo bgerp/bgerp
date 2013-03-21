@@ -364,6 +364,11 @@ if($step == 2) {
 			        
 			        // Превключваме репозиторито в зададения в конфигурацията бранч
 			        gitSetBranch($repoPath, $log);
+		        	// Следващият ред връща Setup.inc.php в dev бранча
+		        	if ($repoName == 'ef') {
+		        		$commandCheckOut = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout dev Setup.inc.php 2>&1";
+		        		exec($commandCheckOut);
+		        	}
 			        
 			        // Ако имаме команда за revert на репозиторито - изпълняваме я
 			        if($revert == $repoName) {
