@@ -1142,6 +1142,15 @@ class email_Outgoings extends core_Master
      */
     function getFooter()
     {
+        // Вземаме подписа от потребителя
+        $signature = crm_Profiles::getSignature();
+
+        // Ако има подпис, превеждаме го и го връщаме
+        if ($signature) {
+            
+            return tr($signature);
+        }
+        
         // Вземаме езика
         $lg = core_Lg::getCurrent();
         

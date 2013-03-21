@@ -54,6 +54,12 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'user';
+    
+    
+    /**
      * Кой има право да листва всички профили?
      */
     var $canList = 'admin';
@@ -73,8 +79,65 @@ class crm_Profiles extends core_Master
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
         
+        $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого');
+        $this->FLD('logoEn', 'fileman_FileType(bucket=pictures)', 'caption=ЛогоЕН');
+        $this->FLD('signature', 'text', 'caption=Подпис');
+
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
+    }
+    
+    
+    /**
+     * Връща логото на профила
+     * 
+     * @param integer $userId - id' то на съответния потребител
+     * @param boolean $en - Дали логото да е на английски
+     */
+    static function getLogo($userId = FALSE, $en = FALSE)
+    {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            
+            // Използваме текущия
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Вземаме записа
+        $rec = static::fetch("#userId = '{$userId}'");
+        
+        // Ако е зададен дасе връща логото на английски
+        if ($en) {
+            
+            // Връщаме него
+            return $rec->logoEn;    
+        }
+        
+        // Връщаме логото на потребителя
+        return $rec->logo;
+        
+    }
+    
+    
+    /**
+     * Връща подписа на съответния потребител
+     * 
+     * @param integer $userId - id' то на съответния потребител
+     */
+    static function getSignature($userId = NULL)
+    {
+        /// Ако не е подаден потребител 
+        if (!$userId) {
+            
+            // Използваме текущия
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Вземаме записа
+        $rec = static::fetch("#userId = '{$userId}'");
+        
+        // Връщаме подписа на потребителя
+        return $rec->signature;
     }
     
     
@@ -295,8 +358,16 @@ class crm_Profiles extends core_Master
             if ($data->profile) {
                 $data->profile->userRec = core_Users::fetch($data->profile->userId);
                 if(core_Users::getCurrent() == $data->profile->userId) {
-                    $data->profile->userRec->lastLoginTime = core_Users::getCurrent('lastLoginTime');
-                    $data->profile->userRec->lastLoginIp = core_Users::getCurrent('lastLoginIp');
+                    
+                    // Ако потребителя е влизал само един път, няма да има lastLoginTime
+                    if ($lastLoginTime = core_Users::getCurrent('lastLoginTime')) {
+                        $data->profile->userRec->lastLoginTime = $lastLoginTime;    
+                    }
+                    
+                    // Ако потребителя е влизал само един път, няма да има lastLoginIp
+                    if ($lastLoginIp = core_Users::getCurrent('lastLoginIp')) {
+                        $data->profile->userRec->lastLoginIp = $lastLoginIp;   
+                    }
                 }
             }
         
@@ -314,12 +385,12 @@ class crm_Profiles extends core_Master
      */
     static function renderProfile($data)
     {
-        $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        $tpl = new ET(tr('|*' . getFileContent('crm/tpl/ContragentDetail.shtml')));
         
         $tpl->append(tr('Потребителски профил'), 'title');
         
         if ($data->profile->userId) {
-            $profileTpl = new ET(getFileContent('crm/tpl/Profile.shtml'));
+            $profileTpl = new ET(tr('|*' . getFileContent('crm/tpl/Profile.shtml')));
             $userRow = core_Users::recToVerbal($data->profile->userRec);
             
             $profileTpl->append(str_repeat('*', 7), 'password');
@@ -341,15 +412,36 @@ class crm_Profiles extends core_Master
             }
 
             $profileTpl->placeObject($userRow);
+            
+            $profileRow = crm_Profiles::recToVerbal($data->profile);
+
+            $profileTpl->append($profileRow->logo, 'logo');
+            $profileTpl->append($profileRow->logoEn, 'logoEn');
+            $profileTpl->append($profileRow->signature, 'signature');
+            
             $profileTpl->removeBlocks();
 
             $tpl->append($profileTpl, 'content');
         } 
  
+        if(!$data->profile->userId) {
+            $tpl->append('<p>' . tr("Няма профил") . '</p>', 'content');
+        }
+        
+        if ($data->profile->id && crm_Profiles::haveRightFor('edit', $data->profile->id) && !Mode::is('printing')) {
+            $url = array('crm_Profiles', 'edit', $data->profile->id, 'ret_url' => TRUE);
+            $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' height='16'>";
+            $tpl->append(
+                ht::createLink(
+                    $img, $url, NULL, 
+                    'title=' . tr('Редактиране на потребителски профил')
+                ), 
+                'title'
+            );    
+        }
+        
         if($data->canChange && !Mode::is('printing')) {
-            if(!$data->profile->userId) {
-                $tpl->append('<p>' . tr("Няма профил") . '</p>', 'content');
-            }
+            
             if(!$data->profile) {
                 $url = array('crm_Profiles', 'edit', 'personId' => $data->masterId, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/user_add.png') . " width='16' height='16'>";
@@ -361,6 +453,7 @@ class crm_Profiles extends core_Master
                     'title'
                 );
             } else {
+                
                 $url = array('core_Users', 'edit', $data->profile->userId, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
                 $tpl->append(
@@ -380,14 +473,35 @@ class crm_Profiles extends core_Master
                     ), 
                     'title'
                 );
-
-
             }
         }
         
         return $tpl;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако едитваме
+        if ($action == 'edit' && $rec) {
 
+            // Текущия потребител
+            $currUserId = core_Users::getCurrent();
+            
+            // Само админ може да променя записите на другите
+            if ($rec->userId != $currUserId) $requiredRoles = 'admin';
+        }
+    }
+    
     
     /**
      * След инсталиране на пакета CRM:
