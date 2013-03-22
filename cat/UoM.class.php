@@ -102,4 +102,31 @@ class cat_UoM extends core_Manager
     {
         $res .= cat_setup_UoM::setup();
     }
+    
+    
+    /**
+     * Функция връщащи масив от всички мерки които са сродни
+     * на посочената мярка (примерно за грам това са : килограм, тон и др)
+     * @param int $measureId - id на мярка
+     * @return array $options - всички мярки от същата категория
+     * като подадената
+     */
+    static function getSameTypeMeasures($measureId)
+    {
+    	expect($rec = static::fetch($measureId), "Няма такава мярка");	
+    	$query = static::getQuery();
+    	if($rec->baseUnitId){
+    		$query->where("#baseUnitId = {$rec->baseUnitId}");
+    	} else {
+    		$query->where("#baseUnitId = {$rec->id}");
+    	}
+    	$query->orWhere("#id = {$rec->id}");
+    	
+    	$options = array();
+    	while($op = $query->fetch()){
+    		$options[$op->id] = $op->name;	
+    	}
+    	
+    	return $options;
+    }
 }
