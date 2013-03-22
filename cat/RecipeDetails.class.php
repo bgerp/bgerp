@@ -68,8 +68,6 @@ class cat_RecipeDetails extends core_Detail {
     	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
     	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,notSorting,width=10em');
     	$this->FLD('quantity', 'int', 'caption=Количество,mandatory,width=10em');
-    
-    	$this->setDbUnique('dProductId,dUom');
     }
     
     
@@ -82,16 +80,32 @@ class cat_RecipeDetails extends core_Detail {
     }
     
     
+ 	/**
+     * Обработка след изпращане на формата
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()) {
+    		$productUom = cat_Products::fetchField($form->rec->dProductId, 'measureId');
+    		if($form->rec->dUom) {
+    			$productUomRec = cat_UoM::fetch($productUom);
+    			$uomRec = cat_UoM::fetch($form->rec->dUom);
+    			($productUomRec->baseUnitId) ? $baseUnit = $productUomRec->baseUnitId : $baseUnit = $productUom;
+    			if($uomRec->baseUnitId != $baseUnit && $uomRec->id != $baseUnit) {
+    				$form->setError('dUom', 'Избраната мярка не е от същата група като основната мярка на продукта');
+    			}
+    		} else {
+    			$form->rec->dUom = $productUom;
+    		}
+    	}
+    }
+    
+    
 	/**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(!$rec->dUom){
-    		$product = cat_Products::fetch($rec->dProductId);
-    		$row->dUom = cat_UoM::getTitleById($product->measureId);
-    	}
-    	
     	if($recipeRec = cat_Recipes::fetchByProduct($rec->dProductId)){
     		$icon = sbf("img/16/legend.png");
     		$row->dProductId = ht::createLink($row->dProductId, array('cat_Recipes', 'single', $recipeRec->id), NULL, "style=background-image:url({$icon}),class=linkWithIcon");

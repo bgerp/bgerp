@@ -81,4 +81,13 @@ class cat_RecipeGroups extends core_Manager {
     		static::save($rec);
     	}
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	$row->title = ht::createLink($row->title, array('cat_Recipes', 'list', 'gr' => $rec->id));
+    }
 }
