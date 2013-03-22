@@ -49,7 +49,7 @@ class cal_Reminders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, description, timeStart, timePreviously, repetitionEach, repetitionМeasure, repetitionАbidance, action, sharedUsers';
+    var $listFields = 'id, title, description, timeStart, timePreviously, repetitionEach, repetitionMeasure, repetitionAbidance, action, sharedUsers';
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
@@ -144,7 +144,7 @@ class cal_Reminders extends core_Master
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,mandatory');
         
-         // Какво ще е действието на известието?
+        // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
         						   notify=Нотификация,
         						   notifyNoAns=Нотификация-ако няма отговор,
@@ -157,26 +157,29 @@ class cal_Reminders extends core_Master
         // Предварително напомняне
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително');
         
-        // Повторение по 
+        // Колко пъти ще се повтаря напомнянето?
         $this->FLD('repetitionEach', 'int',     'caption=Повторение->Всеки');
         
-        // Повторение по 
-        $this->FLD('repetitionМeasure', 'enum(0=,
+        // По какво ще се повтаря напомненето - дни, седмици, месеци, години
+        $this->FLD('repetitionMeasure', 'enum(0=,
         									  days=дена,
 			                                  weeks=седмици,
 			                                  months=месецa,
 			                                  years=години)',  
            'caption=Повторение->Мярка');
         
-        // Повторение по 
-        $this->FLD('repetitionАbidance', 'enum(0=,
+        // По какво ще се повтаря напомненето - ден от нач. наседмицата, от нач, намесеца и т.н
+        $this->FLD('repetitionAbidance', 'enum(0=,
         									   weekDay=Ден от началото на седмицата,
         									   monthDay=Ден от началото на месеца,
         									   monthDayEnd=Ден от края на месеца)',  
            'caption=Повторение->Съблюдаване');
         
-         // Изпратена ли е нотификация?
+        // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
+        
+        // Кога е следващото стартирване на напомнянето?
+        $this->FLD('nextStartTime', 'datetime', 'caption=Следващо напомняне,input=none');
         
        
 
@@ -391,34 +394,196 @@ class cal_Reminders extends core_Master
      */
     function cron_SendNotifications()
     {
-        $query = $this->getQuery();
+    	
         $now = dt::verbal2mysql();
-        $query->where("#state = 'active'  AND #notifySent = 'no' AND #timeStart <= '{$now}'");
-        
-        while($rec = $query->fetch()) {
-            list($date, $time) = explode(' ', $rec->timeStart);  
-            if($time != '00:00:00') {
-                $subscribedArr = type_Keylist::toArray($rec->sharedUsers); 
-                if(count($subscribedArr)) { 
-                    $message = "Стартирана е задачата \"" . $this->getVerbal($rec, 'title') . "\"";
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    $customUrl = array('cal_Tasks', 'single',  $rec->id);
-                    $priority = 'normal';
-                    foreach($subscribedArr as $userId) {  
-                        if($userId > 0  &&  
-                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
-                        }
-                    }
-                }
-            }
+       
+        $recs = self::prepareState();
+        foreach($recs as $rec){
+        	list($date, $time) = explode(' ', $rec->timeStart);
+        	if($rec->repetitionEach !== NULL ) {
+        		switch($rec->repetitionMeasure){
+        			case 'days':
+		        		if(((date('j', strtotime($rec->timeStart)) + $rec->repetitionEach) ==  date('j', strtotime($now))) &&
+			           		 date('H:i', strtotime($time)) == date('H:i', strtotime($now))){
+			                $subscribedArr = type_Keylist::toArray($rec->sharedUsers); 
+			                if(count($subscribedArr)) { 
+				                foreach($subscribedArr as $userId) {  
+				                        if($userId > 0  &&  
+				                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+				                            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+				                            
+				                        }
+				         	 	}
+			         	 	}
+			         	}
+			         break;
+        		}
+        		
+        	 } 
+        	
+       // $rec->notifySent = 'yes';
 
-            $rec->notifySent = 'yes';
-
-            $this->save($rec, 'notifySent');
+        //self::save($rec, 'notifySent');
         }
+        
+
+           
+    
     }
 
+    static public function prepareState()
+    {
+    	 $mess = array();
+    	 $query = self::getQuery();
+    	 $query->where("#state = 'active' AND #action = 'notify' AND #timeStart <= '{now}' AND #notifySent = 'no'");
+    	 while($rec = $query->fetch()){
+    	 	 $remRec = new stdClass();
+    	 	 $remRec->id = $rec->id;
+    	 	 $remRec->title = $rec->title;
+    	 	 $remRec->description = $rec->description;	
+    	 	 $remRec->action = $rec->action;
+    	 	 $remRec->notifySent = $rec->notifySent ;
+    	 	 $remRec->folderId = $rec->folderId;
+    	 	 $remRec->threadId = $rec->threadId;
+    	 	 $remRec->containerId = $rec->containerId;
+    	 	  	//origin_id 	state 	br_state 	last_used_on 	created_on 	created_by 	modified_on 	modified_by
+    	 	 $remRec->timeStart = $rec->timeStart;
+    	  	 $remRec->sharedUsers = $rec->sharedUsers;
+    	  	 $remRec->repetitionEach = $rec->repetitionEach; 
+    	  	 $remRec->timePreviously = $rec->timePreviously;
+    	  	 $remRec->repetitionMeasure = $rec->repetitionMeasure;
+    	  	 $remRec->repetitionAbidance = $rec->repetitionAbidance;
+    	 	 $remRec->message  = "Стартирано е напомняне \"" . self::getVerbal($rec, 'title') . "\"";
+    	 	 $remRec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+    	 	 $remRec->customUrl = array('cal_Reminders', 'single',  $rec->id);
+    	 	 $remRec->priority = 'normal';
+    	 	 
+    	 	 $mess[] = $remRec;
+    	 }
+    	 
+    	 return $mess;
+    }
+    
+    
+    /**
+     * За тестове
+     */
+    static public function act_Test()
+    {
+    	$rec = new stdClass();
+    	$rec->timeStart = '2013-03-31 18:00';
+    	$rec->repetitionEach = 6;
+    	$rec->repetitionType = 'months';
+    	$rec->repetitionAbidance = 'monthDay';
+    	
+    	bp(self::calcNextStartTime($rec));
+    	
+    }
+    
+    
+    /**
+     *  Изчислява времето за следващото стартиране на напомнянето.
+     */
+    static public function calcNextStartTime($rec)
+    {
+    	$now = dt::verbal2mysql();
+    	// Секундите на днешната дата
+    	$nowTs = dt::mysql2timestamp($now);
+    	
+    	// Секундите на началната дата
+        $startTs = dt::mysql2timestamp($rec->timeStart);
+        
+        // Типа на повторението е ден или седмица
+        if($rec->repetitionType == 'days' || $rec->repetitionType == 'weeks'){
+        	
+        	// Намираме интервала в секинди
+	    	$intervalTs = self::getSecOfInterval($rec->repetitionEach, $rec->repetitionType);
+	  
+	    	// Изчисляваме следващата дата в секунди
+	    	$nextStartTimeTs = (floor(($nowTs-$startTs)/$intervalTs) + 1)*$intervalTs;
+	    	
+	    	// Правим mySQL формат на новата дата
+	    	$nextStartTime = date("Y-m-d H:i:s", $startTs + $nextStartTimeTs);
+	    	
+	    	return $nextStartTime;
+
+	    	// Типа на повторението е месец
+        } elseif($rec->repetitionType == 'months'){
+        	
+        	// Масив с час, сек, мин, ден, месец, год ... на Началната дата
+        	$data = getdate($startTs);
+        	
+        	for ($i = 1; $i <= 10000; $i++){
+        		// Новия месец който търсим е стария месец + ($i * повторението ни)
+        		$newMonth = $data[mon] + ($i * $rec->repetitionEach);
+        		
+        		// Секундите на новия месец
+        		$newMonthTs = mktime(0, 0, 0, $newMonth, 1, $data[year]);
+        		
+        		// Търсим съответствие по ден от месеца:
+	        	if($rec->repetitionAbidance == 'monthDay'){
+	        		
+	        		// НАчалния ни ден
+	        		$day = $data[mday];
+	        		
+	        		// Новия ни ден
+	        		$newDay = 1 + ($day - 1);
+	        		
+	        		// Правим mySQL формат на датата от началните час, мин, сек и новия месец, новия ден и началната година
+	        		$nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $newMonth, $newDay, $data[year]));
+	        		
+	        		// Проверяваме броя на дните в новия месец
+	        		$numbMonthDay = date('t', $newMonthTs);
+	        		
+	        		// Ако новия ден не присъства в новия месец, то взимаме последния ден от новия месец
+	        		if($newDay >= $numbMonthDay) $nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $newMonth, $numbMonthDay, $data[year]));
+
+	        		return $nextStartTime;
+	        	}
+        	}
+
+        }
+    	
+    	
+    }
+    
+    
+    /**
+     * По зададен брой пъти и тип (ден или сецмица) изчислява интервала в секунди
+     * @param int $each
+     * @param string $type = days/weeks
+     */
+    static public function getSecOfInterval($each, $type)
+    {
+    	if ($type !== 'days' || $type !== 'weeks') $intervalTs;
+    	if ($type == 'days') $intervalTs = $each * 24 * 60 *60;
+    	else $intervalTs = $each * 7 * 24 * 60 *60;
+    	
+    	return $intervalTs;
+    }
+    
+    
+    /**
+     * Намира следващата дата със съответствие по ден от месеца
+     * @param std Class $rec
+     * @param int $each
+     * @param string $type = months/years
+     */
+    static public function getNextDate($rec, $each, $type)
+    {
+    	$startTs = dt::mysql2timestamp($rec->timeStart);
+    	$data = getdate($startTs);
+    	
+    	if ($type !== 'months' || $type !== 'years') $nextStartTime;
+    	
+    	if ($type == 'months') $nextStartTime = date("Y-m-d H:i:s",
+    												  mktime($data[hours], $data[minutes], $data[seconds], $data[mon] + $each, $data[mday], $data[year]));
+    												  
+        else  $nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $data[mon] + ($each * 12), $data[mday], $data[year]));
+    	
+        return $nextStartTime;
+    }
+    
 
     /**
      * Изпълнява се след начално установяване

@@ -25,7 +25,7 @@
             <!--ET_END time-->
 
 			<!--ET_BEGIN repetition-->
-			Повторение на: [#repetitionEach#] [#repetitionМeasure#]</br> Съблюдаване на: [#repetitionАbidance#]
+			Повторение на: [#repetitionEach#] [#repetitionMeasure#]</br> Съблюдаване на: [#repetitionAbidance#]
 		    <!--ET_END repetition-->
             
 			
