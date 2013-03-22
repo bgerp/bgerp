@@ -18,20 +18,33 @@
  * Първоначални проверки за достъп до Setup-а
  **********************************/
 
+// Ако извикването идва от крон-а го игнорираме
+if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
+	return;
+}
+
+// Колко време е валидно заключването - в секунди
+DEFINE ('SETUP_LOCK_PERIOD', 180);
+
+defIfNot('BGERP_GIT_BRANCH', 'dev');
+
 if (setupKeyValid() && !setupProcess()) {
 	// Опит за стартиране на сетъп
 	if (!setupLock()) {
 		halt("Грешка при стартиране на Setup.");
 	}
+	setcookie("setup", setupKey() , time()+SETUP_LOCK_PERIOD);
 } // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
-	elseif (!setupRights() && !setupProcess()) {
-
+	elseif (!setupKeyValid() && !setupProcess()) {
+			// Ако има останало cookie го чистим
+			if (isset($_COOKIE['setup'])) {
+				setcookie("setup", "", time()-3600);	
+			}		
 		return;
-	}	// Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
-		elseif (!setupRights() && setupProcess()) {
+	} // Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
+		elseif (!setupKeyValid() && setupProcess() && !isset($_COOKIE['setup'])) {
 			halt("Процес на обновяване - опитайте по късно.</h2>");
 		}
-
 
 
 // 1. Проверка дали имаме config файл. 
@@ -201,7 +214,7 @@ $layout =
 "<html>
 <head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-<title>bgERP - настройване на системата (стъпка [#currentStep#])</title>
+<title>bgERP - настройване на системата (стъпка [#currentStep#] ". BGERP_GIT_BRANCH .")</title>
 [#styles#]
 
 
@@ -267,6 +280,16 @@ list($selfUrl,) = explode('&', $selfUrl);
 $nextUrl = $selfUrl . '&amp;step=' . ($step+1);
 $selfUrl .= '&amp;step=' . $step;
 
+// Определяме линка към приложението
+$appUri = $selfUrl; 
+if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
+	$appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate'));
+}
+if (strpos($appUri,'/?') !== FALSE) {
+  	$appUri = substr($appUri, 0, strpos($appUri,'/?'));
+} 
+
+
 for($i = 1; $i <= 4; $i++) {
     $nextUrl = str_replace('&step=' . $i, '', $nextUrl);
 }
@@ -303,7 +326,10 @@ if($step == 2) {
 		    if (!getGitCmd($gitCmd)) {
 		        $links[] = "wrn|{$nextUrl}|Не може да бъде открит Git. Продължете без обновяване »";
 		    } else {
-			    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения 
+			    // Ако Git установи различие в бранчовете на локалното копие и зададената константа
+			    //  - превключва репозиторито в бранча зададен в константата
+		    	
+			    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения
 			    // 1. В системата има локално променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
 			    // 2. Продължете, без да възстановявате променените файлове (отива на следваща стъпка)
 			
@@ -335,6 +361,9 @@ if($step == 2) {
 			    foreach($repos as $repoPath) {
 			        
 			        $repoName = basename($repoPath);
+			        
+			        // Превключваме репозиторито в зададения в конфигурацията бранч
+			        gitSetBranch($repoPath, $log);
 			        
 			        // Ако имаме команда за revert на репозиторито - изпълняваме я
 			        if($revert == $repoName) {
@@ -534,11 +563,12 @@ if($step == 5) {
  **********************************/
 if ($step == 'setup') {
 	$calibrate = 1000;
-    $totalRecords = 137600;
-    $totalTables = 230;
+    $totalRecords = 137560;
+    $totalTables = 225;
+    $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
-    contentFlush ($texts['styles']);
+    echo ($texts['styles']);
 	
 	$opts = array(
 	  'http'=>array(
@@ -547,11 +577,14 @@ if ($step == 'setup') {
 	              "Cookie: setup=bar\r\n"
 	  )
 	);    
+    
+	// Първоначално изтриване на Log-a
+    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
 	
 	$context = stream_context_create($opts);
 	
-	$res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . setupKey(), FALSE, $context, 0, 2);
-
+	$res = file_get_contents("{$selfUrl}&step=start", FALSE, $context, 0, 2);
+	
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
@@ -585,28 +618,39 @@ if ($step == 'setup') {
         			<span id=\"progressPercents\">0 %</span>
         			</li>
         		");
-    
-    
-    static $cnt = 0;
-    
-    do {
-        //$tables->TABLES; $rows->RECS;
-        list($numRows, $numTables) = dataBaseStat(); 
 
-        $percents = round(($numRows+$calibrate*$numTables)/$total,2)*100;
+    do {
+		clearstatcache(EF_TEMP_PATH . '/setupLog.html');
+    	$fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
+		clearstatcache(EF_TEMP_PATH . '/setupLog.html');
+    	list($numTables, $numRows) = dataBaseStat(); 
+
+    	// От базата идват 80% от прогрес бара
+//        if ($percentsBase < 80) {
+    		$percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+  //      }
         
-        // Прогресбар
+        // Изчитаме лог-а
+        $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
+
+        if (!empty($setupLog) && $percentsLog < 20) {
+        	$percentsLog+=2;
+        }
+        
+        $percents = $percentsBase + $percentsLog;
         if ($percents > 100) $percents = 100;
         $width = 4.5*$percents;
+        
+        // Прогресбар
         contentFlush("<script>
 						document.getElementById(\"progressIndicator\").style.paddingLeft=\"" . $width ."px\";
 						document.getElementById(\"progressPercents\").innerHTML = '" . $percents . " %';
 					</script>");
         
-        // Лог
-        // Изчитаме лог-а ако е отключен и го изтриваме 
-        $setupLog = file_get_contents(EF_TEMP_PATH . '/setupLog.html');
-	    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+        // Изтриваме Log-a - ако има нещо в него
+        if (!empty($setupLog)) {
+	    	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+        }
 	    
 	    $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
         
@@ -615,23 +659,29 @@ if ($step == 'setup') {
 				</script>");
                 
         sleep(2);
-    } while ($numRows < $totalRecords && $numTables < $totalTables);
+        $fTime2 = filemtime(EF_TEMP_PATH . '/setupLog.html');
+        if (($fTime2 - $fTime) > 0) {
+        	$logModified = TRUE;
+        } else {
+        	$logModified = FALSE;
+        }
+    } while ($numRows < $totalRecords && $numTables < $totalTables || !empty($setupLog) || $logModified);
     
-    
-    sleep(3);
-
-    contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
-    
-    
-    $appUri = $selfUrl; 
-    if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
-    	$appUri = substr($selfUrl, 0, strpos($selfUrl,'core_Packs/systemUpdate'));
-    }
-
-    if (strpos($appUri,'/?') !== FALSE) {
-    	$appUri = substr($appUri, 0, strpos($appUri,'/?'));
+    if ($percents < 100) {
+    	$percents = 100;
+    	$width = 4.5*$percents;
+	    // Прогресбар
+	    contentFlush("<script>
+						document.getElementById(\"progressIndicator\").style.paddingLeft=\"" . $width ."px\";
+						document.getElementById(\"progressPercents\").innerHTML = '" . $percents . " %';
+					</script>");
     } 
+     
+        
     
+    sleep(1);
+
+    contentFlush("<h3 id='success'>Инициализирането завърши успешно!</h3>");
     
     $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »"), "_parent"); 
     $l = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($l));
@@ -645,8 +695,9 @@ if ($step == 'setup') {
         				clearInterval(handle);
         				document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 				</script>");
-			 
-    exit;
+	setupUnlock();
+
+	exit;
 }
 
 /**********************************
@@ -691,8 +742,10 @@ if($step == start) {
     $Packs->setupMVC();
     $Packs->checkSetup();
     
-//    $Packs->setupPack('bgerp');
-	setupUnlock();
+    // за сега стартираме пакета bgERP за пълно обновяване
+    $Packs->setupPack("bgerp");
+
+    setupUnlock();
     exit;
 }
 
@@ -768,9 +821,76 @@ function linksToHtml($links, $target='_self')
 }
 
 
+/**
+ * Връща текущият бранч на репозиторито
+ */
+function gitCurrentBranch($repoPath, &$log)
+{
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+	
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" branch";
+
+	exec($command, $arrRes, $returnVar);
+	// Търсим реда с текущият бранч
+	foreach ($arrRes as $row) {
+		if (strpos($row, "*") !== FALSE) {
+			return trim(substr($row, strpos($row, "*")+1, strlen($row)));
+		}
+	}
+	$repoName = basename($repoPath);
+    $log[] = "err: {$repoName} няма текущ бранч!";
+    
+	return FALSE;
+}
+
 
 /**
- * Дали има по-нова версия на това репозитори?
+ * Сетва репозиторито в зададен бранч. Ако не е зададен го взима от конфигурацията
+ */
+function gitSetBranch($repoPath, &$log, $branch=NULL)
+{
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+    $repoName = basename($repoPath);
+    $currentBranch = gitCurrentBranch($repoPath, $log);
+    if (isset($branch)) {
+		if ($currentBranch == $branch) return TRUE;
+		$requiredBranch = $branch;
+    } elseif ($currentBranch == BGERP_GIT_BRANCH) {
+    	return TRUE;
+    } else {
+    	$requiredBranch = BGERP_GIT_BRANCH;
+    }
+    
+	$commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch origin +{$requiredBranch}:{$requiredBranch} 2>&1";
+	
+	$commandCheckOut = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$requiredBranch} 2>&1";
+		
+	exec($commandFetch, $arrRes, $returnVar);
+	exec($commandCheckOut , $arrRes, $returnVar);
+	// Проверяваме резултата
+	foreach ($arrRes as $row) {
+		if (strpos($row, "Switched to branch '{$requiredBranch}'") !== FALSE) {
+			$log[] = "info: $repoName превключен {$requiredBranch} бранч.";
+			
+			return TRUE;
+		}
+	}
+    $log[] = "err: Грешка при превключване в бранч {$requiredBranch} на репозитори - $repoName";
+    
+	return FALSE;
+}
+
+
+/**
+ * Дали има по-нова версия на това репозитори в зададения бранч?
  */
 function gitHasNewVersion($repoPath, &$log)
 {
@@ -786,15 +906,25 @@ function gitHasNewVersion($repoPath, &$log)
 
 	exec($command, $arrRes, $returnVar);
 	
-	// В последния ред на резултата се намира индикацията на промени
-	$lastKey = key(array_slice( $arrRes, -1, 1, TRUE));
-	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");
+	// Търсим реда в който има състоянието на зададеният бранч
+	foreach ($arrRes as $row) {
+		$hasNewVersion = strpos($row, BGERP_GIT_BRANCH . " (local out of date)");
+		$hasUpdated	= strpos($row, BGERP_GIT_BRANCH . " (up to date)");
 	
-	if($hasNewVersion !== FALSE) {
-        $log[] = "new:[<b>$repoName</b>] Има нова версия.";
-        
-        return TRUE;
-    }
+		if($hasNewVersion !== FALSE) {
+	        $log[] = "new:[<b>$repoName</b>] Има нова версия.";
+	        
+	        return TRUE;
+	    }
+	    
+		if($hasUpdated !== FALSE) {
+	        
+	        return FALSE;
+	    }
+	}
+    $log[] = "err:[<b>$repoName</b>] Не е открит зададеният бранч.";
+    
+    return FALSE;
 }
 
 
@@ -826,11 +956,13 @@ function gitHasChanges($repoPath, &$log)
 	    
     	return TRUE;
 	}
+	
+	return FALSE;
 }
 
 
 /**
- * Синхронизира с последната версия на мастер-бранча
+ * Синхронизира с последната версия на зададения бранч
  */
 function gitPullRepo($repoPath, &$log)
 {
@@ -844,7 +976,7 @@ function gitPullRepo($repoPath, &$log)
 	
     $commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch 2>&1";
 
-    $commandMerge = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/master 2>&1";
+    $commandMerge = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/" . BGERP_GIT_BRANCH ." 2>&1";
 
     exec($commandFetch, $arrResFetch, $returnVar);
     
@@ -872,11 +1004,12 @@ function gitPullRepo($repoPath, &$log)
     	}
     }
 	
+	return FALSE;
 }
 
 
 /**
- * Унищожава локалните промени, на фаловете, включени в репозиторито
+ * Унищожава локалните промени, на файловете, включени в репозиторито
  */
 function gitRevertRepo($repoPath, &$log)
 {
@@ -888,7 +1021,7 @@ function gitRevertRepo($repoPath, &$log)
 	
 	$repoName = basename($repoPath);
     
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/master 2>&1";
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/" . BGERP_GIT_BRANCH ."2>&1";
     
     exec($command, $arrRes, $returnVar);
 
@@ -902,6 +1035,8 @@ function gitRevertRepo($repoPath, &$log)
     }
 
     $log[] = "msg:Репозиторито <b>[{$repoName}]</b> е възстановено";
+    
+    return TRUE;
 }
 
 
@@ -932,14 +1067,15 @@ function contentFlush ($content)
 
 /**
  * Начало на режим на Setup на bgERP
- * Задава setup cookie за 10 мин.
- * и сетва семафора
+ * - сетва семафора
  * 
  * @return boolean
  */
 function setupLock()
 {
-	setcookie("setup", setupKey() , time()+600);
+	if (!is_dir(EF_TEMP_PATH)) {
+		mkdir(EF_TEMP_PATH, 0777, TRUE);
+	}
 	return touch(EF_TEMP_PATH . "/setupLock.tmp");
 }
 
@@ -950,7 +1086,7 @@ function setupLock()
  */
 function setupUnlock()
 {
-	setcookie("setup", "", time()-3600);
+
    	return @unlink(EF_TEMP_PATH . "/setupLock.tmp");
 }
     
@@ -962,7 +1098,8 @@ function setupUnlock()
 function setupProcess()
 {
 	if (@file_exists(EF_TEMP_PATH . "/setupLock.tmp")) {
-		if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > 600) {
+		clearstatcache(EF_TEMP_PATH . "/setupLock.tmp");
+		if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > SETUP_LOCK_PERIOD) {
 			setupUnlock();
 			
 			return FALSE;
@@ -992,51 +1129,30 @@ function setupKey()
  */
 function setupKeyValid()
 {
-	// При грешка с базата данни да връща валиден сетъп ключ
-
+	// При грешка с базата данни връща валиден сетъп ключ
 	$res = dataBaseStat();
 	
-	if ($res === FALSE) {
+	if ($res === FALSE && !setupProcess()) {
 		return TRUE;
 	}
 	
-	list($numRows, $numTables) = $res; 
+	// Ако има setup cookie и има пуснат сетъп процес връща валиден ключ
+	if (isset($_COOKIE['setup']) && setupProcess()) {
+		return TRUE;
+	}
 
+	// Ако сетъп-а е стартиран от локален хост или инсталатор 
+	// Определяме масива с локалните IP-та
+	$localIpArr = array('::1', '127.0.0.1');
+	$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
+	$key = $_GET['SetupKey'];
+	if ($key == BGERP_SETUP_KEY && $isLocal ) {
+		return TRUE;
+	}
+	
    	return $_GET['SetupKey'] == setupKey();
 }
 
-/**
- * Връща дали имаме право за Setup
- * 
- * @return boolean
- */
-function setupRights()
-{
-	if (!defined('BGERP_SETUP_KEY')) {
-		halt('Not defined BGERP_SETUP_KEY!');
-	}    	
-
-	// Определяме масива с локалните IP-та
-	$localIpArr = array('::1', '127.0.0.1');
-
-	$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
-	
-	$key = $_GET['SetupKey'];
-	
-	// Ако сетъп-а е стартиран от локален хост или инсталатор
-	if ($key == BGERP_SETUP_KEY && $isLocal ) {
-		
-		return TRUE;
-	}
-	// Ако сме в процес на инсталация
-//	if (setupKeyValid() && isset($_COOKIE['setup'])) {
-	if (isset($_COOKIE['setup'])) {
-		
-		return TRUE;
-	}
-	
-	return FALSE;
-}
 
 /**
  * Връща броя на таблиците и редовете в базата
@@ -1052,8 +1168,8 @@ function dataBaseStat()
                                     FROM INFORMATION_SCHEMA.TABLES 
                                     WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
     $rows = mysql_fetch_object($recordsRes);
-	// Ако няма база пускаме сетъп-а
-	if (empty($rows->RECS) && !is_numeric($rows->RECS)) {
+	// Ако няма база или няма записи в нея пускаме Сетъп-а
+	if (!$rows->RECS) {
 		return FALSE;
 	}
 	        
