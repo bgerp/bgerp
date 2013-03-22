@@ -1561,6 +1561,13 @@ class email_Outgoings extends core_Master
     
     /**
      * Намира предполагаемия езика на който трябва да отговорим
+     * 
+     * 1. В email_Salutations
+     * 2. Ако е отговор, гледаме езика на origin'а
+     * 3. В нишката
+     * 4. В папката
+     * 5. Текущия език
+     * 6. Ако не е bg, следователно е английски
      *
      * @param int $originId - id' то на контейнера
      * @param int $threadId - id' то на нишката
@@ -1570,28 +1577,35 @@ class email_Outgoings extends core_Master
      */
     static function getLanguage($originId, $threadId, $folderId)
     {
-        //Търсим езика в контейнера
-        $lg = doc_Containers::getLanguage($originId);
-
-        //Ако не сме открили езика
+        // Търсим езика в поздравите
+        $lg = email_Salutations::getLg($folderId, $threadId);
+        
+        // Ако не сме открили езика
         if (!$lg) {
-            //Търсим езика в нишката
+            
+            // Търсим езика в контейнера
+            $lg = doc_Containers::getLanguage($originId);
+        }
+        
+        // Ако не сме открили езика
+        if (!$lg) {
+            // Търсим езика в нишката
             $lg = doc_Threads::getLanguage($threadId);
         }
         
-        //Ако не сме открили езика
+        // Ако не сме открили езика
         if (!$lg) {
-            //Търсим езика в папката
+            // Търсим езика в папката
             $lg = doc_Folders::getLanguage($folderId);
         }
 
-        //Ако не сме открили езика
+        // Ако не сме открили езика
         if (!$lg) {
-            //Вземаме езика на текущия интерфейс
+            // Вземаме езика на текущия интерфейс
             $lg = core_Lg::getCurrent();
         }
 
-        //Ако езика не е bg, използваме en
+        // Ако езика не е bg, използваме en
         if ($lg != 'bg') {
             $lg = 'en';
         }
