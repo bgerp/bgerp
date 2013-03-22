@@ -241,12 +241,12 @@ class email_Filters extends core_Manager
             if (empty($filterRec->{$filterField})) {
                 continue;
             }
-            if (mb_stripos($haystack, $filterRec->{$filterField}) !== FALSE) {
-                return TRUE;
+            if (mb_stripos($haystack, $filterRec->{$filterField}) === FALSE) {
+                return FALSE;
             }
         }
         
-        return FALSE;
+        return TRUE;
     }
     
     
