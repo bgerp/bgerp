@@ -14,26 +14,6 @@
  */
  
 
-/**********************************
- * Първоначални проверки за достъп до Setup-а
- **********************************/
-
-if (setupKeyValid() && !setupProcess()) {
-	// Опит за стартиране на сетъп
-	if (!setupLock()) {
-		halt("Грешка при стартиране на Setup.");
-	}
-} // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
-	elseif (!setupRights() && !setupProcess()) {
-
-		return;
-	}	// Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
-		elseif (!setupRights() && setupProcess()) {
-			halt("Процес на обновяване - опитайте по късно.</h2>");
-		}
-
-
-
 // 1. Проверка дали имаме config файл. 
 // 2. Проверка за връзка към MySQL
 // 3. Проверка дали може да се чете/записва в UPLOADS, TMP, SBF
@@ -131,7 +111,7 @@ h1 {
 	background-color: #119;
 	position:absolute;
 	left: 0px;
-	top: 105px;
+	top: 95px;
 }
 
 #progressTitle {
@@ -166,7 +146,7 @@ h1 {
 	position:absolute;
 	left: 0px;
 	top: 180px;
-	1border-top: red 5px solid;
+	1border-top: #000 1px solid;
 	width: 790;
 	height: 425;
 	overflow:auto;
@@ -252,6 +232,39 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 </div>
 </body>
 </html>";
+
+// Определяме масива с локалните IP-та
+$localIpArr = array('::1', '127.0.0.1');
+
+$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
+
+if (!defined('BGERP_SETUP_KEY')) {
+	halt('Not defined BGERP_SETUP_KEY!');
+}
+
+session_name('SID');
+session_start();
+
+if (($_GET['SetupKey'] == BGERP_SETUP_KEY && $isLocal ) ||
+	$_GET['SetupKey'] == md5(BGERP_SETUP_KEY . round(time()/10)) ||
+	$_GET['SetupKey'] == md5(BGERP_SETUP_KEY . round((time()-1)/10))) {
+
+	$_SESSION[EF_APP_NAME . 'admin_ip'] = $_SERVER['REMOTE_ADDR'];
+	
+}
+
+$authorizedIpArr = array();
+
+if(!empty($_SESSION[EF_APP_NAME . 'admin_ip'])) {
+    $authorizedIpArr += array($_SESSION[EF_APP_NAME . 'admin_ip']);
+}
+
+// Оторизация.
+$isAuthorized = in_array($_SERVER['REMOTE_ADDR'], $authorizedIpArr);
+
+if(!$isAuthorized) {
+    halt("Non-authorized IP for Setup (" . $_SERVER['REMOTE_ADDR'] . ")");
+}
 
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
@@ -534,23 +547,13 @@ if($step == 5) {
  **********************************/
 if ($step == 'setup') {
 	$calibrate = 1000;
-    $totalRecords = 137600;
-    $totalTables = 230;
+    $totalRecords = 137008;
+    $totalTables = 215;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
-    contentFlush ($texts['styles']);
-	
-	$opts = array(
-	  'http'=>array(
-	    'method'=>"GET",
-	    'header'=>"Accept-language: en\r\n" .
-	              "Cookie: setup=bar\r\n"
-	  )
-	);    
-	
-	$context = stream_context_create($opts);
-	
-	$res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . setupKey(), FALSE, $context, 0, 2);
+    echo ($texts['styles']);
+
+    $res = file_get_contents("{$selfUrl}&step=start&SetupKey=" . md5(BGERP_SETUP_KEY . round(time()/10)), FALSE, NULL, 0, 2);
 
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
@@ -586,14 +589,21 @@ if ($step == 'setup') {
         			</li>
         		");
     
+    mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
     
     static $cnt = 0;
     
     do {
-        //$tables->TABLES; $rows->RECS;
-        list($numRows, $numTables) = dataBaseStat(); 
-
-        $percents = round(($numRows+$calibrate*$numTables)/$total,2)*100;
+        $recordsRes = mysql_query("SELECT SUM(TABLE_ROWS) AS RECS
+                                    FROM INFORMATION_SCHEMA.TABLES 
+                                    WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
+        
+        $tablesRes = mysql_query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". EF_DB_NAME ."';");
+        $rows = mysql_fetch_object($recordsRes);
+        $tables = mysql_fetch_object($tablesRes);
+        $tables->TABLES; $rows->RECS;
+        
+        $percents = round(($rows->RECS+$calibrate*$tables->TABLES)/$total,2)*100;
         
         // Прогресбар
         if ($percents > 100) $percents = 100;
@@ -615,13 +625,12 @@ if ($step == 'setup') {
 				</script>");
                 
         sleep(2);
-    } while ($numRows < $totalRecords && $numTables < $totalTables);
+    } while ($rows->RECS < $totalRecords && $tables->TABLES < $totalTables);
     
     
     sleep(3);
 
     contentFlush("<h3 id='success' >Инициализирането завърши успешно!</h3>");
-    
     
     $appUri = $selfUrl; 
     if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
@@ -643,9 +652,8 @@ if ($step == 'setup') {
     sleep(1);
 	contentFlush("<script>
         				clearInterval(handle);
-        				document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 				</script>");
-			 
+						 
     exit;
 }
 
@@ -683,16 +691,10 @@ if($step == start) {
 
     $Classes = cls::get('core_Classes');
 	$Classes->setupMVC();
-    
-	$Packs = cls::get('core_Lg');
-    $Packs->setupMVC();
 	
     $Packs = cls::get('core_Packs');
-    $Packs->setupMVC();
-    $Packs->checkSetup();
-    
-//    $Packs->setupPack('bgerp');
-	setupUnlock();
+    $Packs->setupPack('bgerp');
+
     exit;
 }
 
@@ -815,8 +817,7 @@ function gitHasChanges($repoPath, &$log)
 
 	exec($command, $arrRes, $returnVar);
 	
-	// $states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
-	$states = array("M" => "Модифициран", "A"=>"Добавен");
+	$states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
 	if (!empty($arrRes)) {
 	    foreach ($arrRes as $row) {
 	        $row = trim($row);
@@ -911,7 +912,6 @@ function gitRevertRepo($repoPath, &$log)
 function contentFlush ($content)
 {
     static $started = 0;
-	
     
     ob_clean();
     ob_start();
@@ -921,145 +921,11 @@ function contentFlush ($content)
         echo ("<!DOCTYPE html>");
         $started++;
     }
-    
-    echo($content);
 
+    echo($content);
+    
     ob_flush();
     ob_end_flush();
     flush();
     
-}
-
-/**
- * Начало на режим на Setup на bgERP
- * Задава setup cookie за 10 мин.
- * и сетва семафора
- * 
- * @return boolean
- */
-function setupLock()
-{
-	setcookie("setup", setupKey() , time()+600);
-	return touch(EF_TEMP_PATH . "/setupLock.tmp");
-}
-
-/**
- * Край на режим на Setup на bgERP
- * 
- *
- */
-function setupUnlock()
-{
-	setcookie("setup", "", time()-3600);
-   	return @unlink(EF_TEMP_PATH . "/setupLock.tmp");
-}
-    
-/**
- * Дали bgERP е в сетъп режим
- * 
- * @return boolean
- */
-function setupProcess()
-{
-	if (@file_exists(EF_TEMP_PATH . "/setupLock.tmp")) {
-		if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > 600) {
-			setupUnlock();
-			
-			return FALSE;
-		}
-	} else {
-		
-		return FALSE;	
-	}
-	
-   	return TRUE;
-}
-    
-/**
- * Връща валиден ключ за оторизация в Setup-а
- * 
- * @return string
- */
-function setupKey()
-{
-   	return md5(BGERP_SETUP_KEY . round(time()/10));
-}
-
-/**
- * Проверява валидност на сетъп ключ
- * 
- * @return boolean
- */
-function setupKeyValid()
-{
-	// При грешка с базата данни да връща валиден сетъп ключ
-
-	$res = dataBaseStat();
-	
-	if ($res === FALSE) {
-		return TRUE;
-	}
-	
-	list($numRows, $numTables) = $res; 
-
-   	return $_GET['SetupKey'] == setupKey();
-}
-
-/**
- * Връща дали имаме право за Setup
- * 
- * @return boolean
- */
-function setupRights()
-{
-	if (!defined('BGERP_SETUP_KEY')) {
-		halt('Not defined BGERP_SETUP_KEY!');
-	}    	
-
-	// Определяме масива с локалните IP-та
-	$localIpArr = array('::1', '127.0.0.1');
-
-	$isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
-	
-	$key = $_GET['SetupKey'];
-	
-	// Ако сетъп-а е стартиран от локален хост или инсталатор
-	if ($key == BGERP_SETUP_KEY && $isLocal ) {
-		
-		return TRUE;
-	}
-	// Ако сме в процес на инсталация
-//	if (setupKeyValid() && isset($_COOKIE['setup'])) {
-	if (isset($_COOKIE['setup'])) {
-		
-		return TRUE;
-	}
-	
-	return FALSE;
-}
-
-/**
- * Връща броя на таблиците и редовете в базата
- * или false ако няма база
- * 
- * @return array
- */
-function dataBaseStat()
-{
-    mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
-
-    $recordsRes = mysql_query("SELECT SUM(TABLE_ROWS) AS RECS
-                                    FROM INFORMATION_SCHEMA.TABLES 
-                                    WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
-    $rows = mysql_fetch_object($recordsRes);
-	// Ако няма база пускаме сетъп-а
-	if (empty($rows->RECS) && !is_numeric($rows->RECS)) {
-		return FALSE;
-	}
-	        
-    $tablesRes = mysql_query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". EF_DB_NAME ."';");
-    
-    $tables = mysql_fetch_object($tablesRes);
-    
-    return array($tables->TABLES, $rows->RECS);
 }
