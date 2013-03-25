@@ -1463,7 +1463,7 @@ class email_Incomings extends core_Master
                         'forward',
                         $data->rec->id,
                         'ret_url' => TRUE,
-                    ), 'class=btn-forward, order=20'
+                    ), 'class=btn-forward, order=20, row=2'
                 );
             }
         }

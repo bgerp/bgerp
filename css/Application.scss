@@ -531,6 +531,25 @@ option.team {
 .wide .btn-posting  { 
 	background-image:url('../img/16/comment_add.png');
 	@include btn-style();
+	
+}
+.more-btn{
+	padding: 2px 3px 3px 3px !important;
+	background-position:center center;
+	background-image:url(../img/16/toggle-expand.png) !important;
+	background-repeat:no-repeat !important;
+	width: 24px !important;
+}
+
+.more-btn.show-btn{
+	background-image:url(../img/16/toggle2.png) !important;
+}
+
+.narrow .more-btn{
+	position:relative;
+	top:1px;
+	width:24px!important;
+	height:24px !important;
 }
 
 .wide .btn-export  { 
@@ -681,7 +700,9 @@ option.team {
 .narrow .btn-add{
 	margin-left:0;
 }
-
+.toolbarHide{
+	margin-top:5px !important;
+}
 /*Стилове за acc*/
 div.acc-detail {
 	font-size: 0.8em;
@@ -998,12 +1019,13 @@ table.mc-header a {
 }
 
 .narrow .listTable .toolbar {
-	margin: 0px 0px 5px 7px;
+	margin: 0px 5px 5px 5px;
 }
 
 .wide .doc_Containers .toolbar {
 	margin-top: 3px;
-	height:26px;
+	margin-bottom:3px;
+	1height:26px;
 }
 
 .document .header {

@@ -162,7 +162,7 @@ class doc_DocumentPlg extends core_Plugin
                             'Clone' => 'clone',
                             'ret_url'=>$retUrl
                         ),
-                        'class=btn-clone, order=14');    
+                        'class=btn-clone, order=14, row=2');    
                 }
             }
         }
@@ -174,7 +174,7 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                'ef_icon=img/16/application_view_list.png, order=18, title=' . tr('Всички ' . mb_strtolower($mvc->title)));    
+                'ef_icon=img/16/application_view_list.png, order=18, row=2, title=' . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
     }
