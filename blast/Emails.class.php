@@ -863,7 +863,8 @@ class blast_Emails extends core_Master
                     $body->subject,
                     $body,
                     array(
-                       'encoding' => $nRec->encoding
+                       'encoding' => $nRec->encoding,
+                       'no_thread_hnd' => TRUE
                     )
                 );
                 
