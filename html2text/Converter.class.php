@@ -490,6 +490,12 @@ class html2text_Converter
         // <em>
         $text = preg_replace("/<em[^>]*>(.*?)<\/em[^>]*>/i", "[b]\\1[/b]", $text);
         
+
+       // $text = preg_replace("/<table[^>]*>(.*?)<\/table[^>]*>/i", "[table]\\1[/table]", $text);
+       // $text = preg_replace("/<tr[^>]*>(.*?)<\/tr[^>]*>/i", "[tr]\\1[/tr]", $text);
+       // $text = preg_replace("/<td[^>]*>(.*?)<\/td[^>]*>/i", "[td]\\1[/td]", $text);
+       // $text = preg_replace("/<th[^>]*>(.*?)<\/th[^>]*>/i", "[th]\\1[/th]", $text);
+
         // <ul> and </ul>
         $text = preg_replace("/(<ul[^>]*>|<\/ul[^>]*>)/i", "\n\n", $text);
         
@@ -559,6 +565,8 @@ class html2text_Converter
         // Runs of spaces, post-handling
         $text = preg_replace("/[ ]{2,}/", " ", $text);
         
+        $text = preg_replace_callback("/<[0-9]+/i", array($this, '_allowTags'), $text);
+
         // Strip any other HTML tags
         $text = strip_tags($text, $this->allowed_tags);
         
@@ -587,40 +595,18 @@ class html2text_Converter
         $this->_converted = true;
     }
     
-    
+
     /**
-     * ����� UTF8 �������, ������������ �� ��������, �������� � $m[1]
-     * ���������� ������ ��������� <, >, � & �� ����� �� ����� ������ ������
+     * Позволява определни тагове да се показват
      */
-    static function entityToUtf8($m)
+    function _allowTags($matches)
     {
-        $char = mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
-        
-        if(!in_array($char, array('<', '>', '&'))) {
-            
-            return $char;
-        } else {
-            
-            return $m[1];
-        }
+        $res =  '&lt;' . substr($matches[0], 1);
+
+        return $res;
     }
     
-    
-    /**
-     * �������� HTML ������ � �����, �� ������� ���������� �� <, >, � &
-     */
-    static function decodeEntityToUtf8($text)
-    {
-        // ���������� ���������� �������� � ��������� �����
-        $text = preg_replace_callback("/(&#[0-9]+;)/", array('email_Mime', 'entityToUtf8'), $text);
-        
-        // ���������� ���������� �������� ��� ���������������� �����
-        $text = preg_replace_callback("/(&#x[a-f0-9]+;)/",  array('email_Mime', 'entityToUtf8'), $text);
-        
-        return $text;
-    }
-    
-    
+   
     /**
      * Helper function called by preg_replace() on link replacement.
      *
@@ -710,7 +696,7 @@ class html2text_Converter
         $text = str_replace(array("\r\n", "\n\r", "\n", "\r"  ), 
                 array("<br>", "<br>\n", "<br>\n", "<br>\n" ), $matches[1]);
          
-        return '[code]' . $text . '[/code]';
+        return '[code=text]' . $text . '[/code]';
     }
     
     
