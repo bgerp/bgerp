@@ -507,7 +507,7 @@ if($step == 3) {
     
     // Име на приложението
     if(!defined('BGERP_APP_TITLE')) {
-   		$consts['BGERP_APP_TITLE'] = "бгЕРП";
+   		$consts['BGERP_APP_TITLE'] = "bgERP";
     }
     
     // "Подправка" за кодиране на паролите
@@ -536,7 +536,7 @@ if($step == 3) {
         
     if(file_exists($paths['config'])) {
     	$src = file_get_contents($paths['config']);
-        // Ако сме в конфигурационния файл задаваме незададените константи
+        // В конфигурационния файл задаваме незададените константи
         if (!empty($consts)) {
         	foreach ($consts as $name => $value) {
            		$src .= "\n";
