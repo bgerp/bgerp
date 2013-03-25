@@ -544,6 +544,9 @@ if($step == 3) {
            		$src .= "DEFINE('" . $name . "', '{$value}');\n";
            		$log[] = "inf: Записана константа <b>{$name}</b>";
         	}
+        	if (FALSE === file_put_contents($paths['config'], $src)) {
+        		$log[] = "err: Недостатъчни права за добавяне в <b>`" . $paths['config'] . "`</b>";
+        	}
        	}
     }
     $log[] = 'h:Изчисляване на контролни суми (MD5):';
