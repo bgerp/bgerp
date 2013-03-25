@@ -504,11 +504,17 @@ if($step == 3) {
 
     // Ако не са дефинирани някой от константите EF_USERS_PASS_SALT, EF_SALT, EF_USERS_HASH_FACTOR ги дефинираме в bgerp.conf.php 
 	$consts = array();
+    
+    // Име на приложението
+    if(!defined('BGERP_APP_NAME')) {
+   		$consts['BGERP_APP_NAME'] = "бгЕРП";
+    }
+    
     // "Подправка" за кодиране на паролите
     if(!defined('EF_USERS_PASS_SALT')) {
    		$consts['EF_USERS_PASS_SALT'] = getRandomString();
     }
-
+    
     // Обща сол
     if(!defined('EF_SALT')) {
     	$consts['EF_SALT'] = getRandomString();
@@ -519,7 +525,7 @@ if($step == 3) {
     	$consts['EF_USERS_HASH_FACTOR'] = 200;
     }   
        
-    $log[] = 'h:Изчисляване на контролни суми (MD5):';
+    $log[] = 'h:Задаваме константи :';
 
     $paths = array(
         'index-tpl' => EF_EF_PATH . '/_docs/webroot/index.php',
@@ -527,21 +533,27 @@ if($step == 3) {
         'index-cfg' => EF_INDEX_PATH . '/index.cfg.php',
         'config' => EF_ROOT_PATH . '/conf/' . EF_APP_NAME . '.cfg.php',
         );
+        
+    if(file_exists($paths['config'])) {
+    	$src = file_get_contents($path);
+        // Ако сме в конфигурационния файл задаваме незададените константи
+        if (!empty($consts)) {
+        	foreach ($consts as $name => $value) {
+           		$src .= "\n";
+           		$src .= "// Добавено от setup.inc.php \n";
+           		$src .= "DEFINE('" . $name . "', '{$value}');\n";
+           	}
+           	if (FALSE === file_put_contents($path, $src)) {
+           		$log[] = "err: Незаписана константа <b>`" . $name. "`</b>";
+           		$log[] = "err: Недостатъчни права за запис на  <b>`" . $path. "`</b>";
+           	}
+       	}
+    }
+    $log[] = 'h:Изчисляване на контролни суми (MD5):';
+            
     foreach($paths as $key => $path) {
         if(file_exists($path)) {
             $src = file_get_contents($path);
-            // Ако сме в конфигурационния файл задаваме незададените константи
-            if ($key == 'config' && !empty($consts)) {
-            	foreach ($consts as $name => $value) {
-            		$src .= "\n";
-            		$src .= "// Добавено от setup.inc.php \n";
-            		$src .= "DEFINE('" . $name . "', '{$value}');\n";
-            	}
-            	if (FALSE === file_put_contents($path, $src)) {
-            		$log[] = "err: Незаписана константа <b>`" . $name. "`</b>";
-            		$log[] = "err: Недостатъчни права за запис на  <b>`" . $path. "`</b>";
-            	}
-            }
             $hashs[$key] =  md5($src);
             $log[] = "inf:{$path} => <small>`" . $hashs[$key] . "`</small>";
         } else {
