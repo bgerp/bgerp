@@ -104,6 +104,7 @@ class type_Richtext extends type_Text
             $res = $this->toHtml($value);
         }
         
+
         return $res;
     }
     
@@ -158,7 +159,6 @@ class type_Richtext extends type_Text
         // Задаваме достатъчно голям буфер за обработка на регулярните изрази
         ini_set('pcre.backtrack_limit', '2M');
         
-        
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
         $html = preg_replace_callback("/\[html](.*?)\[\/html\]([\r\n]{0,2})/is", array($this, '_catchHtml'), $html);
         
@@ -176,13 +176,13 @@ class type_Richtext extends type_Text
 			// Възстановяваме началното състояние
 			$html = str_replace($replaceFrom, $replaceTo, $html);
 		}
-        
+
         // Даваме възможност други да правят обработки на текста
         $this->invoke('BeforeCatchRichElements', array(&$html));
 
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]([\r\n]{0,2})/is", array($this, '_catchCode'), $html);
-        
+              
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
         
@@ -223,14 +223,19 @@ class type_Richtext extends type_Text
         }
             
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
-        if($textMode != 'plain') {
-            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]');
-            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>');
+        if($textMode != 'plain') { 
+            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]',); 
+               // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
+            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>',);
+               // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } else {
-            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]');
-            $to   = array("\n",   "\n",   "\n",  "    ", '',         '',      '*',   '*',    '',    '',     '',    '',     str_repeat('_', 84), '', '', '', '');
+            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]',);
+               // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
+            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '',);
+               // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
-        
+   
+
         $html = str_replace($from, $to, $html);
         
         // Обработваме елементите [color=????]  
@@ -316,9 +321,7 @@ class type_Richtext extends type_Text
            $html->placeArray($this->_htmlBoard);
            $html->placeArray($this->_htmlBoard);
         }
-        
-        
-         
+
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
@@ -488,6 +491,16 @@ class type_Richtext extends type_Text
         
         if(!trim($code)) return "";
         $lg = $match[2];
+
+        if($lg == 'text') {
+            $code = trim($code, "\n\r");
+            $lenBefore = strlen($code);
+            $code = ltrim($code, ' ');
+            $lenAfter = strlen($code);
+            $code = str_repeat('&nbsp;', $lenBefore - $lenAfter) . $code;
+            return  "<div style=\"background-color:rgba(255,255,128,0.3); padding:5px; border:solid 1px #ccc;font-family:Courier New,mono\">" .  $code  . "</div>";
+        }
+
         if($lg) {
             // $Geshi = cls::get('geshi_Import');
             // $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
