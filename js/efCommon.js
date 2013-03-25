@@ -542,7 +542,8 @@ function toggleDisplay(id)
 { 
 	if (typeof jQuery != 'undefined') {
  	
-	    $("#" + id).toggle("slow");
+	    $("#" + id).fadeToggle("slow");
+	    $('.more-btn').toggleClass('show-btn');
  
 	} else {
 	

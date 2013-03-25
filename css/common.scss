@@ -632,22 +632,30 @@ a.button, input[type=button], input[type=submit] {
     line-height:130%; 
     padding:1px 4px 1px 4px; /* IE6 */
 }
-
-.narrow .btn-left { 
+.narrow .single-thread .toolbar .button{
+	border-right:1px solid #999;
+	border-left:none;
+	margin-right:0 !important;
+	@include border-radius(0px !important);
+}
+.narrow .single-thread .toolbar div .button:first-child{
+	border-left:1px solid #999;
+}
+.narrow .listToolbar .btn-left { 
     @include rounded(top, right, 0px !important);
     @include rounded(bottom, right, 0px !important);
 	border-right: none !important;
 	margin:0px !important;
 }
 
-.narrow .btn-right {
+.narrow .listToolbar .btn-right {
 	@include rounded(top, left, 0px !important) ;
-    @include rounded(bottom, left, 0px !important);
-	margin:0px 12px 0 0 !important;
+	@include rounded(bottom, left, 0px !important);
+	margin:0px 0px 0 0 !important;
 	
 }
 
-.narrow .btn-middle { 
+.narrow .listToolbar .btn-middle { 
 	@include border-radius(0px !important);
 	border-right: none !important;
 	margin:0px !important;
