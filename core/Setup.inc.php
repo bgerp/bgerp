@@ -506,8 +506,8 @@ if($step == 3) {
 	$consts = array();
     
     // Име на приложението
-    if(!defined('BGERP_APP_NAME')) {
-   		$consts['BGERP_APP_NAME'] = "бгЕРП";
+    if(!defined('BGERP_APP_TITLE')) {
+   		$consts['BGERP_APP_TITLE'] = "бгЕРП";
     }
     
     // "Подправка" за кодиране на паролите
@@ -535,7 +535,7 @@ if($step == 3) {
         );
         
     if(file_exists($paths['config'])) {
-    	$src = file_get_contents($path);
+    	$src = file_get_contents($paths['config']);
         // Ако сме в конфигурационния файл задаваме незададените константи
         if (!empty($consts)) {
         	foreach ($consts as $name => $value) {
@@ -545,7 +545,7 @@ if($step == 3) {
            	}
            	if (FALSE === file_put_contents($path, $src)) {
            		$log[] = "err: Незаписана константа <b>`" . $name. "`</b>";
-           		$log[] = "err: Недостатъчни права за запис на  <b>`" . $path. "`</b>";
+           		$log[] = "err: Недостатъчни права за запис на  <b>`" . $paths['config']. "`</b>";
            	}
        	}
     }
