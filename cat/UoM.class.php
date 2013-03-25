@@ -114,13 +114,11 @@ class cat_UoM extends core_Manager
     static function getSameTypeMeasures($measureId)
     {
     	expect($rec = static::fetch($measureId), "Няма такава мярка");	
+    	
     	$query = static::getQuery();
-    	if($rec->baseUnitId){
-    		$query->where("#baseUnitId = {$rec->baseUnitId}");
-    	} else {
-    		$query->where("#baseUnitId = {$rec->id}");
-    	}
-    	$query->orWhere("#id = {$rec->id}");
+    	($rec->baseUnitId) ? $baseId = $rec->baseUnitId : $baseId = $rec->id;
+    	$query->where("#baseUnitId = {$baseId}");
+    	$query->orWhere("#id = {$baseId}");
     	
     	$options = array();
     	while($op = $query->fetch()){
