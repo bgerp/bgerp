@@ -36,7 +36,7 @@ class sales_RegisterImpl
         
         return (object)array(
             'num' => $rec->id,
-            'title' => "Продажба №{$rec->id} / " . $this->class->getVerbal($rec, 'date'),
+            'title' => "Продажба №{$rec->id} / " . $this->class->getVerbal($rec, 'valior'),
             'uomId' => NULL,
             'features' => NULL,
         );
