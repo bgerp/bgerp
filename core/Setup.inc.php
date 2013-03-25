@@ -506,8 +506,8 @@ if($step == 3) {
 	$consts = array();
     
     // Име на приложението
-    if(!defined('BGERP_APP_TITLE')) {
-   		$consts['BGERP_APP_TITLE'] = "bgERP";
+    if(!defined('EF_APP_TITLE')) {
+   		$consts['EF_APP_TITLE'] = "bgERP";
     }
     
     // "Подправка" за кодиране на паролите
