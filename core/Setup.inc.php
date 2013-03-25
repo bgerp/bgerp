@@ -542,11 +542,8 @@ if($step == 3) {
            		$src .= "\n";
            		$src .= "// Добавено от setup.inc.php \n";
            		$src .= "DEFINE('" . $name . "', '{$value}');\n";
-           	}
-           	if (FALSE === file_put_contents($paths['config'], $src)) {
-           		$log[] = "err: Незаписана константа <b>`" . $name. "`</b>";
-           		$log[] = "err: Недостатъчни права за запис на  <b>`" . $paths['config']. "`</b>";
-           	}
+           		$log[] = "inf: Записана константа <b>{$name}</b>";
+        	}
        	}
     }
     $log[] = 'h:Изчисляване на контролни суми (MD5):';
