@@ -541,6 +541,8 @@ class doc_Folders extends core_Master
     
     /**
      * Връща езика на папката от държавата на визитката
+     * 
+     * Първо проверява в обръщенията, после в папката
      *
      * @param int $id - id' то на папката
      *
@@ -550,6 +552,12 @@ class doc_Folders extends core_Master
     {
         //Ако няма стойност, връщаме
         if (!$id) return ;
+        
+        // Търсим езика в поздравите
+        $lg = email_Salutations::getLg($id, NULL);
+
+        // Ако сме открили езика в обръщенията
+        if ($lg) return $lg;
         
         //id' то на класа, който е корица
         $coverClassId = doc_Folders::fetchField($id, 'coverClass');

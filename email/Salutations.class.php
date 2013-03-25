@@ -106,7 +106,7 @@ class email_Salutations extends core_Manager
      * 
      * @param string $lg - Двубуквения код на езика
      */
-    public static function getLg($folderId, $threadId = NULL, $userId = NULL)
+    public static function getLg($folderId = NULL, $threadId = NULL, $userId = NULL)
     {
         // Ако не трябва да извлечем запис
         if (!static::isGoodRec($folderId, $threadId)) return ;
@@ -123,9 +123,19 @@ class email_Salutations extends core_Manager
      * 
      * @return boolean - Дали можем да извлечем запис
      */
-    static function isGoodRec($folderId, $threadId = NULL) 
+    static function isGoodRec($folderId = NULL, $threadId = NULL) 
     {
-        // Ако няма папка
+        // Ако няма папка и нишка
+        if (!$folderId && !$threadId) return FALSE;
+        
+        // Опитваме се да вземема папката от нишката
+        if (!$folderId) {
+            
+            // Папката
+            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        }
+
+        // Ако не може да се наемери папката
         if (!$folderId) return FALSE;
         
         // Ако няма нишка
@@ -165,11 +175,15 @@ class email_Salutations extends core_Manager
      * 
      * @param string $fieldRec - Резултата
      */
-    protected static function getRecForField($field, $folderId, $threadId = NULL, $userId = NULL)
+    protected static function getRecForField($field, $folderId=NULL, $threadId = NULL, $userId = NULL)
     {
         // Вземаме всички обръщения от папката
         $query = static::getQuery();
-        $query->where(array("#folderId = '[#1#]'", $folderId));
+        
+        // Ако е зададена папката
+        if ($folderId) {
+            $query->where(array("#folderId = '[#1#]'", $folderId));    
+        }
         
         // Ако е зададено да се взема от нишката
         if ($threadId) {

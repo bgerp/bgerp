@@ -1181,6 +1181,8 @@ class doc_Threads extends core_Manager
     
     /**
      * Връща езика на нишката
+     * 
+     * Първо проверява в обръщенията, после в контейнера
      *
      * @param int $id - id' то на нишката
      *
@@ -1190,6 +1192,12 @@ class doc_Threads extends core_Manager
     {
         //Ако няма стойност, връщаме
         if (!$id) return ;
+        
+        // Търсим езика в поздравите
+        $lg = email_Salutations::getLg(NULL, $id);
+        
+        // Ако сме открили езика в обръщенията
+        if ($lg) return $lg;
         
         //Записа на нишката
         $threadRec = doc_Threads::fetch($id);
@@ -1202,18 +1210,6 @@ class doc_Threads extends core_Manager
         
         // Връщаме езика на контейнера
         return doc_Containers::getLanguage($firstContId);
-        
-//        //Документа
-//        $oDoc = doc_Containers::getDocument($firstContId);
-//        
-//        //Името на класа
-//        $className = $oDoc->className;
-//        
-//        //Вземаме записите на класа
-//        $classRec = $className::fetch($oDoc->that);
-//
-//        //Връщаме езика
-//        return $classRec->lg;
     }
 
     
