@@ -59,7 +59,9 @@ select.combo {
     visibility:hidden;
     overflow:hidden;
 }
-
+.wide select {
+	margin-top:0;
+}
  /* Стилове за елемента 'tab' */
  .noSelect, div.richedit-toolbar, #mainMenu, #subMenu, div.tab-row {
 	-webkit-user-select: none;
@@ -501,8 +503,10 @@ input[type="text"]{
 }
 
 .chzn-container{
-	margin-top:2px;
+	top:0px;
+	height:25px;
 }
+
 
 /* Стилове за страньора 'hlp_Pager' */
 a.pager {

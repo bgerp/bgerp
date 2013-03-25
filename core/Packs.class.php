@@ -680,6 +680,14 @@ class core_Packs extends core_Manager
         }
         
         $form->toolbar->addSbBtn('Запис', 'default', 'class=btn-save');
+
+        // Добавяне на допълнителни системни действия
+        if(count($setup->systemActions)) {
+            foreach($setup->systemActions as $name => $url) {
+                $form->toolbar->addBtn($name, $url);
+            }
+        }
+
         $form->toolbar->addBtn('Отказ', array($this), 'class=btn-cancel');
 
         return $this->renderWrapping($form->renderHtml());

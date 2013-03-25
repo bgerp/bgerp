@@ -124,8 +124,8 @@ class core_Debug
             "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul>";
             
             foreach (self::$debugTime as $rec) {
-                $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start - $last), 5) . ": " . htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
-                $last = $rec->start;
+                $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start ), 5) . ": " . htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
+                
             }
             
             $html .= "\n</ul></div>";
