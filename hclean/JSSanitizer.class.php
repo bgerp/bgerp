@@ -57,7 +57,7 @@ class hclean_JSSanitizer extends core_Manager
         // Вземаме съдържанието на линка
         $content = static::getHtmlFromLink($htmlLink);
         
-
+ 
         // Конфигурационни константи
         $conf = core_Packs::getConfig('hclean');        
         
@@ -68,8 +68,10 @@ class hclean_JSSanitizer extends core_Manager
         }
         
 
-        $content = lang_Encoding::convertToUtf8($content, $charset, 'HTML');
-        
+        $content = i18n_Charset::convertToUtf8($content, '', TRUE);
+     
+        $content = preg_replace("/(<![\[\-][^>]*>)/i", "", $content);
+
         // Преобразуваме HTML' а в текст, който може да се използва в променливи на JS
         $jsHtml = static::htmlToJsText($content);
         
