@@ -44,14 +44,17 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Вземаме съдържанието на eml файла
         $source = static::getSource($fRec);
         
-        // Подгорвяме сорса за показване
-        $sourceShow = static::prepareSource($source);
         
 //        // Очакваме да няма проблем при парсирането
 //        expect($emlRec = $mime->getEmail($source));
 
         $mime->parseAll($source);
+   
         $mime->saveFiles();
+     
+        // Подгорвяме сорса за показване
+        $sourceShow = static::prepareSource($source);
+
 //        bp($mime);
         // Променяме Id' то на EML и HTML файла
 //        static::changeEmlAndHtmlFileId($emlRec);
@@ -81,13 +84,13 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Подготвяме табовете
         
         // Ако има HTML част
-//        if ($htmlPartCheck) {
-//            bp($htmlPartUrl);
+//      if ($htmlPartCheck) {
+//      bp($htmlPartUrl);
             // Вземаме съдържанието на таба за HTML
-            $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
+        $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
             
-            // Таб за HTML част
-            $tabsArr['html'] = (object) 
+        // Таб за HTML част
+        $tabsArr['html'] = (object) 
     			array(
     				'title' => 'HTML',
     				'html'  => $htmlPart,
@@ -192,7 +195,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * return string - HTML частта на файла
      */
     static function getHtmlPart($mime)
-    {
+    { 
         $htmlFile = $mime->getHtmlFile();
         
         // Ако липсва HTML част
@@ -399,15 +402,14 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      */
     static function prepareSource($source)
     {
+       // $source = i18n_Charset::convertToUtf8($source);
+
         // Добавяме сорса в code елемент
-        $source = "[code=eml]{$source}[/code]";
-        
-        // Инстанция на richtext
-        $richtextInst = cls::get('type_Richtext');
+        $source = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $source);
         
         // Преобразуваме към вербална стойност
-        $source = $richtextInst->toVerbal($source);
-
+        $source = "<pre class='richText'>{$source}</pre>";
+ 
         return $source;
     }
 
