@@ -543,7 +543,7 @@ if($step == 3) {
            		$src .= "// Добавено от setup.inc.php \n";
            		$src .= "DEFINE('" . $name . "', '{$value}');\n";
            	}
-           	if (FALSE === file_put_contents($path, $src)) {
+           	if (FALSE === file_put_contents($paths['config'], $src)) {
            		$log[] = "err: Незаписана константа <b>`" . $name. "`</b>";
            		$log[] = "err: Недостатъчни права за запис на  <b>`" . $paths['config']. "`</b>";
            	}
