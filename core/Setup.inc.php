@@ -326,7 +326,10 @@ if($step == 2) {
 		    if (!getGitCmd($gitCmd)) {
 		        $links[] = "wrn|{$nextUrl}|Не може да бъде открит Git. Продължете без обновяване »";
 		    } else {
-			    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения 
+			    // Ако Git установи различие в бранчовете на локалното копие и зададената константа
+			    //  - превключва репозиторито в бранча зададен в константата
+		    	
+			    // Ако GIT - а открие локално променени файлове, трябва да се изведат следните съобщения
 			    // 1. В системата има локално променени файлове. Възстановете ги. (прави Revert на променените файлове и остава на тази стъпка)
 			    // 2. Продължете, без да възстановявате променените файлове (отива на следваща стъпка)
 			
@@ -358,6 +361,9 @@ if($step == 2) {
 			    foreach($repos as $repoPath) {
 			        
 			        $repoName = basename($repoPath);
+			        
+			        // Превключваме репозиторито в зададения в конфигурацията бранч
+			        gitSetBranch($repoPath, $log);
 			        
 			        // Ако имаме команда за revert на репозиторито - изпълняваме я
 			        if($revert == $repoName) {
@@ -815,9 +821,76 @@ function linksToHtml($links, $target='_self')
 }
 
 
+/**
+ * Връща текущият бранч на репозиторито
+ */
+function gitCurrentBranch($repoPath, &$log)
+{
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+	
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" branch";
+
+	exec($command, $arrRes, $returnVar);
+	// Търсим реда с текущият бранч
+	foreach ($arrRes as $row) {
+		if (strpos($row, "*") !== FALSE) {
+			return trim(substr($row, strpos($row, "*")+1, strlen($row)));
+		}
+	}
+	$repoName = basename($repoPath);
+    $log[] = "err: {$repoName} няма текущ бранч!";
+    
+	return FALSE;
+}
+
 
 /**
- * Дали има по-нова версия на това репозитори?
+ * Сетва репозиторито в зададен бранч. Ако не е зададен го взима от конфигурацията
+ */
+function gitSetBranch($repoPath, &$log, $branch=NULL)
+{
+	if (!getGitCmd($gitCmd)) {
+    	$log[] = "err:Не е открит Git!";
+    	
+    	return FALSE;
+    }
+    $repoName = basename($repoPath);
+    $currentBranch = gitCurrentBranch($repoPath, $log);
+    if (isset($branch)) {
+		if ($currentBranch == $branch) return TRUE;
+		$requiredBranch = $branch;
+    } elseif ($currentBranch == BGERP_GIT_BRANCH) {
+    	return TRUE;
+    } else {
+    	$requiredBranch = BGERP_GIT_BRANCH;
+    }
+    
+	$commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch origin +{$requiredBranch}:{$requiredBranch} 2>&1";
+	
+	$commandCheckOut = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$requiredBranch} 2>&1";
+		
+	exec($commandFetch, $arrRes, $returnVar);
+	exec($commandCheckOut , $arrRes, $returnVar);
+	// Проверяваме резултата
+	foreach ($arrRes as $row) {
+		if (strpos($row, "Switched to branch '{$requiredBranch}'") !== FALSE) {
+			$log[] = "info: $repoName превключен {$requiredBranch} бранч.";
+			
+			return TRUE;
+		}
+	}
+    $log[] = "err: Грешка при превключване в бранч {$requiredBranch} на репозитори - $repoName";
+    
+	return FALSE;
+}
+
+
+/**
+ * Дали има по-нова версия на това репозитори в зададения бранч?
  */
 function gitHasNewVersion($repoPath, &$log)
 {
@@ -833,15 +906,23 @@ function gitHasNewVersion($repoPath, &$log)
 
 	exec($command, $arrRes, $returnVar);
 	
-	// В последния ред на резултата се намира индикацията на промени
-	$lastKey = key(array_slice( $arrRes, -1, 1, TRUE));
-	$hasNewVersion = strpos($arrRes[$lastKey], "local out of date");
+	// Търсим реда в който има състоянието на зададеният бранч
+	foreach ($arrRes as $row) {
+		$hasNewVersion = strpos($row, BGERP_GIT_BRANCH . " (local out of date)");
+		$hasUpdated	= strpos($row, BGERP_GIT_BRANCH . " (up to date)");
 	
-	if($hasNewVersion !== FALSE) {
-        $log[] = "new:[<b>$repoName</b>] Има нова версия.";
-        
-        return TRUE;
-    }
+		if($hasNewVersion !== FALSE) {
+	        $log[] = "new:[<b>$repoName</b>] Има нова версия.";
+	        
+	        return TRUE;
+	    }
+	    
+		if($hasUpdated !== FALSE) {
+	        
+	        return FALSE;
+	    }
+	}
+    $log[] = "err:[<b>$repoName</b>] Не е открит зададеният бранч.";
     
     return FALSE;
 }
@@ -928,7 +1009,7 @@ function gitPullRepo($repoPath, &$log)
 
 
 /**
- * Унищожава локалните промени, на фаловете, включени в репозиторито
+ * Унищожава локалните промени, на файловете, включени в репозиторито
  */
 function gitRevertRepo($repoPath, &$log)
 {

@@ -160,6 +160,9 @@ class core_Lg extends core_Manager
             $key = $kstring;
         }
         
+        // Заместваме празните редове, за да може да превеждаме и multiline текстове
+        $key = str_ireplace(array("\n\r", "\r\n", "\n", "\r"), '<br />', $key);
+        
         $key = str::convertToFixedKey($key, 32, 4);
         
         // Ако не е зададен език, превеждаме на текущия
