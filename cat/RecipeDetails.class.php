@@ -50,7 +50,7 @@ class cat_RecipeDetails extends core_Detail {
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'cat, admin';
+    var $canAdd = 'no_one';
     
     
     /**
@@ -76,7 +76,9 @@ class cat_RecipeDetails extends core_Detail {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	//$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->recipeId));
+    	// Филтрираме продуктите така че да немогат да се добавят
+    	// продукти които използват вече текущия продукт
+    	$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->recipeId));
     }
     
     
@@ -86,16 +88,27 @@ class cat_RecipeDetails extends core_Detail {
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()) {
-    		$productUom = cat_Products::fetchField($form->rec->dProductId, 'measureId');
-    		if($form->rec->dUom) {
-    			$productUomRec = cat_UoM::fetch($productUom);
-    			$uomRec = cat_UoM::fetch($form->rec->dUom);
-    			($productUomRec->baseUnitId) ? $baseUnit = $productUomRec->baseUnitId : $baseUnit = $productUom;
-    			if($uomRec->baseUnitId != $baseUnit && $uomRec->id != $baseUnit) {
+    		$rec = &$form->rec;
+    		$productUom = cat_Products::fetchField($rec->dProductId, 'measureId');
+    		if($rec->dUom) {
+    			
+    			// Проверяваме дали мярката е от позволените за продукта
+    			$similarMeasures = cat_UoM::getSameTypeMeasures($productUom);
+    			if(!array_key_exists($rec->dUom, $similarMeasures)){
     				$form->setError('dUom', 'Избраната мярка не е от същата група като основната мярка на продукта');
     			}
     		} else {
-    			$form->rec->dUom = $productUom;
+    			
+    			// Ако няма мярка приемаме че е основната на продукта
+    			$rec->dUom = $productUom;
+    		}
+    		
+    		// Проверяваме имали вече запис със същата съставка,
+    		// ако да я обновяваме
+    		//@TODO да го махна и да филтрирам опциите
+    		if($detail = static::fetch("#recipeId={$rec->recipeId} AND #dProductId={$rec->dProductId} AND #dUom={$rec->dUom}")){
+    			$detail->quantity += $rec->quantity;
+    			$rec = $detail;
     		}
     	}
     }
@@ -122,7 +135,10 @@ class cat_RecipeDetails extends core_Detail {
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		if($action == 'add' && isset($rec->recipeId)){
-			$res = 'cat, admin';
+			$masterRec = $mvc->Master->fetch($rec->recipeId);
+			if($masterRec->state == 'draft'){
+				$res = 'cat, admin';
+			}
 		}
 	}
 }

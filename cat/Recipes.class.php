@@ -103,6 +103,12 @@ class cat_Recipes extends core_Master {
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'productId, info';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -124,11 +130,10 @@ class cat_Recipes extends core_Master {
     {
     	if($form->isSubmitted()) {
     		$productUom = cat_Products::fetchField($form->rec->productId, 'measureId');
+    		
     		if($form->rec->uom) {
-    			$productUomRec = cat_UoM::fetch($productUom);
-    			$uomRec = cat_UoM::fetch($form->rec->uom);
-    			($productUomRec->baseUnitId) ? $baseUnit = $productUomRec->baseUnitId : $baseUnit = $productUom;
-    			if($uomRec->baseUnitId != $baseUnit && $uomRec->id != $baseUnit) {
+    			$similarMeasures = cat_UoM::getSameTypeMeasures($productUom);
+    			if(!array_key_exists($form->rec->uom, $similarMeasures)) {
     				$form->setError('uom', 'Избраната мярка не е от същата група като основната мярка на продукта');
     			}
     		} else {
@@ -149,17 +154,17 @@ class cat_Recipes extends core_Master {
     
     /**
      * Извлича продуктите които съставят даден продукт
-     * @TODO
      * @param int $productId - ид на продукт
      * @param int $quantity - количество от продукта
-     * @return array $results - масив с обекти на съставящите го
-     * продукти
+     * @return array $results - масив с обекти на съставящите
+     * го продукти
      */
     public static function getIngredients($productId, $quantity = 1)
     {
     	$results = array();
     	expect($productRec = cat_Products::fetch($productId));
-    	expect($rec = static::fetchByProduct($productId, NULL));
+    	$rec = static::fetchByProduct($productId);
+    	if(!$rec) return FALSE;
     	
     	$query = cat_RecipeDetails::getQuery();
     	$query->where("#recipeId = {$rec->id}");
@@ -167,7 +172,7 @@ class cat_Recipes extends core_Master {
     		$obj = new stdClass();
     		$obj->productId = $detail->dProductId;
     		$obj->uom = $detail->dUom;
-    		$obj->quantity = $detail->quantity;
+    		$obj->quantity = $quantity * $detail->quantity;
     		$results[$detail->id] = $obj;
     	}
     	
@@ -181,70 +186,84 @@ class cat_Recipes extends core_Master {
    	static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	// Да предавам филтър формата на екшъна !!!
-    	$data->toolbar->addBtn('Калкулиране на себестойности', array($mvc, 'calcAll'), NULL, 'ef_icon=img/16/calculator.png,warning=Наистинали искате да изчислите себестойностите на показваните продукти?');
+    	($data->recs) ? $url = array($mvc, 'calcAll') : $url = NULL;
+    	$data->toolbar->addBtn('Калкулиране на себестойности', $url, NULL, 'ef_icon=img/16/calculator.png,warning=Наистинали искате да изчислите себестойностите на показваните продукти?');
     }
     
 	
     /**
-     * 
-     * @param unknown_type $id
+     * Филтриране на всички възможни продукти които могат
+     * да се добавят към дадена рецепта. Премахват се всички
+     * онези продукти, които имат за съставка въпросната рецепта
+     * @param int $id - id на продукт
+     * @return array - масив с позволените продукти
      */
     function getAllowedProducts($id)
     {
-    	$productId = $this->fetchField($id,'productId');
-    	
-    	$test = '';
+    	// Кой продукт ще търсим във всички рецепти
+    	$needle = $this->fetchField($id, 'productId');
     	$notAllowed = array();
-    	$qq = static::getQuery();
+    	$productsArr = array();
     	
-    	while($rec = $qq->fetch()){
-    		$this->searchProduct($rec, $productId, $notAllowed, $test);
-    	}
-    	bp($test,$notAllowed);
-    }
-    
-    
-	function act_test(){
-    	$productId = '7';
-    	$test = '';
-    	$notAllowed = array();
+    	// За всяка рецепта проверяваме дали съдържа въпросния
+    	// продукт, ако да добавяме нейния продукт в списък
+    	// на неразрешените продукти
     	$query = $this->getQuery();
-    	
     	while($rec = $query->fetch()){
-    		$this->searchProduct($rec, $productId, $notAllowed, $test);
+    		$this->searchProduct($rec->productId, $notAllowed, $needle);
     	}
-    	bp($test,$notAllowed);
-    }
-    
-    
-    function searchProduct($rec, $productId, &$notAllowed, &$test, $path = NULL)
-    {
-    	/*
-    	 * Да го рефакторна
-    	$ingredients = cat_Recipes::getIngredients($rec->productId);
-    	$test .= "РЕЦЕПТА Nomer: {$rec->id} с продукт {$rec->productId}\n|";
-    	if(!$ingredients){
-    		$test .= " Няма продукти\n|";
-    		return;
+    	
+    	// Намираме всички продукти от каталога
+    	$catQuery = cat_Products::getQuery();
+    	while($catRec = $catQuery->fetch()){
+    		$productsArr[$catRec->id] = $catRec->name;
     	}
-    	$test .= " Има продукти\n|";
-    	foreach($ingredients as $ing){
-    		$test .= " Съставка: {$ing->productId}\n|";
-    		$recipeRec = static::fetchByProduct($ing->productId);
-    		if($recipeRec){
-    			$path[$recipeRec->id] = $rec->productId;
-    			$test .= "  ->рецепта Nomer: {$recipeRec->id} за продукт: {$ing->productId}\n|";
-    			$this->searchProduct($recipeRec, $productId, $notAllowed, $test, $path);
-    		} else {
-    			$test .= "  ->продукта е листо: {$ing->productId}\n|";
-    		}
-    	}*/
+    	
+    	// Връщаме тези продукти, които не част от $notAllowed
+    	return array_diff_key($productsArr,$notAllowed);
     }
     
     
     /**
-     * 
-     * Enter description here ...
+     * Рекурсивно обхождаме дървото на рецепта и търсим дали
+     * тя съдържа някъде определен продукт, ако да то добавяме
+     * всички продукти които са част от дървото към масив.
+     * @param int $productId - текущия продукт
+     * @param array $notAllowed - Масив където се добавят
+     * забранените продукти
+     * @param int $needle - продукт, който търсим
+     * @param array $path - пътя до продукта в дървото
+     */
+    function searchProduct($productId, &$notAllowed, &$needle, $path = array())
+    {
+    	$path[] = $productId;
+    	
+    	// Ако текущия продукт е търсения продукт
+    	if($needle == $productId){
+    		foreach($path as $p){
+    			
+    			/* За всеки продукт в пътя до намерения ние го
+    			   добавяме в масива notAllowed, ако той, вече
+    			   не е там */
+    			if(!array_key_exists($p, $notAllowed)){
+    				$notAllowed[$p] = $p;
+    			}
+    		}
+    		return;
+    	}
+    	$ingredients = static::getIngredients($productId);
+    	if($ingredients){
+    		foreach($ingredients as $ing){
+    			
+    			// Обхождаме всяка съставка на рецептата
+	    		$res = $this->searchProduct($ing->productId, $notAllowed, $needle, $path);
+	    	}
+    	}
+    }
+    
+    
+    /**
+     * Извлича рецепта по продукт
      * @param unknown_type $productId
      */
     public static function fetchByProduct($productId)
@@ -258,39 +277,37 @@ class cat_Recipes extends core_Master {
     /** 
      * Изчислява себестойноста на продукта
      * @TODO да вземам предвид мярката на продукта
-     * @param int $productId
-     * @param int $quantity
-     * @param datetime $datetime
+     * @param int $productId - id на продукта
+     * @param int $quantity - к-во на подукта
+     * @param datetime $datetime - дата
      * @param int $uom - мярка на продукта
      * @return double - цената на продукта
      */
     public static function calcCost($productId, $quantity = 1, $datetime = NULL, $uom = NULL)
     {
     	$price = 0;
-    	$conf = core_Packs::getConfig('price');
-    	$uomRate = cat_UoM::fetchField($uom, 'baseUnitRatio');
+    	
+    	// Преизчисляваме коефицента на избраната валута към 
+    	// основната за продукта
+    	//@TODO Да го изнеса кат unitTest
+    	$uom = cat_UoM::fetch($uom);
+    	$productUomId = cat_Products::fetchField($productId, 'measureId');
+    	$productUom = cat_UoM::fetch($productUomId);
+    	$uomRate = $uom->baseUnitRatio / $productUom->baseUnitRatio;
+    	$uomRate = number_format($uomRate, 2, '.', '');
     	
     	$ingredients = static::getIngredients($productId, $quantity);
-    
-    	if(!$ingredients) {
+   		if($ingredients) {
+	   		foreach($ingredients as $ing){
+			    	$pPrice = static::calcCost($ing->productId, $ing->quantity, $datetime, $ing->uom);
+				    $price += $pPrice;
+			}
+   		} else {
+	    	$conf = core_Packs::getConfig('price');
     		$price = price_ListRules::getPrice($conf->PRICE_LIST_COST, $productId, NULL, $datetime);
     		expect($price, "Проблем при изчислението на себестойноста на продукт: {$productId}");
-    		return $quantity * $price * $uomRate;
     	}
-    	
-    	foreach($ingredients as $ing){
-    		$recipeRec = static::fetchByProduct($ing->productId);
-    		if($recipeRec){
-	    			$pPrice = static::calcCost($ing->productId, $ing->quantity, $datetime, $ing->uom);
-	    			$price += $pPrice;
-	    		} else {
-	    			$priceRule = price_ListRules::getPrice($conf->PRICE_LIST_COST, $ing->productId, NULL, $datetime);
-	    			expect($priceRule, "Проблем при изчислението на себестойноста на продукт: {$ing->productId}");
-	    			$rate = cat_UoM::fetchField($ing->uom, 'baseUnitRatio');
-	    			$price += $rate * $ing->quantity * $priceRule;
-	    		}
-    	}
-    	
+		
     	return $uomRate * $quantity * $price;
     }
     
@@ -311,6 +328,7 @@ class cat_Recipes extends core_Master {
      */
     function act_calcAll()
     {
+    	$this->requireRightFor('write');
     	$count = 0;
     	$conf = core_Packs::getConfig('price');
     	$query = $this->getQuery();
@@ -362,7 +380,7 @@ class cat_Recipes extends core_Master {
     
     
     /**
-     * @TODO
+     * Подготовка на формата за изчисление на цената
      */
     private function prepareCalcPrice(&$data)
     {
@@ -433,13 +451,17 @@ class cat_Recipes extends core_Master {
 		$data->listFilter->FNC('gr', 'key(mvc=cat_RecipeGroups, select=title, allowEmpty)', 'width=9em,silent');
 		$data->listFilter->FNC('measure', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'width=9em,caption=Мярка,silent');
 		$data->listFilter->setDefault('date', date('Y-m-01'));
-		$data->listFilter->showFields = 'gr,measure';
+		$data->listFilter->showFields = 'search,gr,measure';
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
 			if($group = Request::get('gr', 'int')){
 				$data->query->where("#groups LIKE '%|{$group}|%'");
-			} elseif($group = $filter->group){
-				$data->query->where("#groups LIKE '%|{$filter->group}|%'");
+			}
+			if($filter->search){
+				plg_Search::applySearch($filter->search, $data->query);
+			}
+			if($filter->measure){
+				$data->query->where("#uom = {$filter->measure}");
 			}
 		}
 	}
@@ -455,8 +477,11 @@ class cat_Recipes extends core_Master {
 			$query->where("#recipeId = {$rec->id}");
 			if(!$rec || $query->count() == 0){
 				
-				// Ако несме създали още рецептата или няма съставки
-				// никой неможе да активира
+				//@TODO Да проверявам при активация за валудност
+				
+				
+				// Ако несме създали още рецептата или няма
+				// съставки никой неможе да активира
 				$res = 'no_one';
 			}
 		}
