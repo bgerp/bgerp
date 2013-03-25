@@ -270,7 +270,7 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $bgerp = $_GET['bgerp'] ? TRUE : FALSE;
 $texts['currentStep'] = $step;
-// file_put_contents("log.txt", "step = {$step}, IP: {$_SESSION[EF_APP_NAME . 'admin_ip']} \n");
+
 // Собственото URL
 $selfUrl = "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
 
@@ -502,7 +502,30 @@ if($step == 3) {
         $log[] = "err:Не е дефинирана константата <b>`EF_DB_NAME`</b>";
     }
 
-    $log[] = 'h:Изчисляване на контролни суми (MD5):';
+    // Ако не са дефинирани някой от константите EF_USERS_PASS_SALT, EF_SALT, EF_USERS_HASH_FACTOR ги дефинираме в bgerp.conf.php 
+	$consts = array();
+    
+    // Име на приложението
+    if(!defined('EF_APP_TITLE')) {
+   		$consts['EF_APP_TITLE'] = "bgERP";
+    }
+    
+    // "Подправка" за кодиране на паролите
+    if(!defined('EF_USERS_PASS_SALT')) {
+   		$consts['EF_USERS_PASS_SALT'] = getRandomString();
+    }
+    
+    // Обща сол
+    if(!defined('EF_SALT')) {
+    	$consts['EF_SALT'] = getRandomString();
+    }
+	
+	// Препоръчителна стойност между 200 и 500
+    if(!defined('EF_USERS_HASH_FACTOR')) {
+    	$consts['EF_USERS_HASH_FACTOR'] = 200;
+    }   
+       
+    $log[] = 'h:Задаваме константи :';
 
     $paths = array(
         'index-tpl' => EF_EF_PATH . '/_docs/webroot/index.php',
@@ -510,6 +533,24 @@ if($step == 3) {
         'index-cfg' => EF_INDEX_PATH . '/index.cfg.php',
         'config' => EF_ROOT_PATH . '/conf/' . EF_APP_NAME . '.cfg.php',
         );
+        
+    if(file_exists($paths['config'])) {
+    	$src = file_get_contents($paths['config']);
+        // В конфигурационния файл задаваме незададените константи
+        if (!empty($consts)) {
+        	foreach ($consts as $name => $value) {
+           		$src .= "\n";
+           		$src .= "// Добавено от setup.inc.php \n";
+           		$src .= "DEFINE('" . $name . "', '{$value}');\n";
+           		$log[] = "inf: Записана константа <b>{$name}</b>";
+        	}
+        	if (FALSE === file_put_contents($paths['config'], $src)) {
+        		$log[] = "err: Недостатъчни права за добавяне в <b>`" . $paths['config'] . "`</b>";
+        	}
+       	}
+    }
+    $log[] = 'h:Изчисляване на контролни суми (MD5):';
+            
     foreach($paths as $key => $path) {
         if(file_exists($path)) {
             $src = file_get_contents($path);
@@ -1178,4 +1219,8 @@ function dataBaseStat()
     $tables = mysql_fetch_object($tablesRes);
     
     return array($tables->TABLES, $rows->RECS);
+}
+
+function getRandomString($length = 15) {
+    return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, $length);
 }
