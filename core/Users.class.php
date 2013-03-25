@@ -795,6 +795,11 @@ class core_Users extends core_Manager
         $uRec = core_Users::fetch($userId, 'roles');
         $rolesArr = type_Keylist::toArray($uRec->roles);
         $rolesArr[$roleId] = $roleId;
+        
+        // Добавяме наследените роли
+        $inheritRolesArr = type_Keylist::toArray(core_Roles::getInheritRoles($roleId));
+        $rolesArr += $inheritRolesArr;
+
         $uRec->roles = type_Keylist::fromArray($rolesArr);
         
         core_Users::save($uRec, 'roles');
