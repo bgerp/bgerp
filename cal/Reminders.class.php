@@ -431,7 +431,7 @@ class cal_Reminders extends core_Master
     
     }
 
-    static public function prepareState()
+    static public function prepareActiveRecs()
     {
     	 $mess = array();
     	 $query = self::getQuery();
@@ -471,10 +471,10 @@ class cal_Reminders extends core_Master
     static public function act_Test()
     {
     	$rec = new stdClass();
-    	$rec->timeStart = '2013-03-31 18:00';
-    	$rec->repetitionEach = 6;
+    	$rec->timeStart = '2013-03-30 18:10';
+    	$rec->repetitionEach = 1;
     	$rec->repetitionType = 'months';
-    	$rec->repetitionAbidance = 'monthDay';
+    	$rec->repetitionAbidance = 'weekDay';
     	
     	bp(self::calcNextStartTime($rec));
     	
@@ -482,7 +482,7 @@ class cal_Reminders extends core_Master
     
     
     /**
-     *  Изчислява времето за следващото стартиране на напомнянето.
+     *  Изчислява времето за следващото стартиране на напомнянето. Винаги е дата > от текущата
      */
     static public function calcNextStartTime($rec)
     {
@@ -492,7 +492,7 @@ class cal_Reminders extends core_Master
     	
     	// Секундите на началната дата
         $startTs = dt::mysql2timestamp($rec->timeStart);
-        
+       
         // Типа на повторението е ден или седмица
         if($rec->repetitionType == 'days' || $rec->repetitionType == 'weeks'){
         	
@@ -509,38 +509,66 @@ class cal_Reminders extends core_Master
 
 	    	// Типа на повторението е месец
         } elseif($rec->repetitionType == 'months'){
-        	
-        	// Масив с час, сек, мин, ден, месец, год ... на Началната дата
-        	$data = getdate($startTs);
-        	
-        	for ($i = 1; $i <= 10000; $i++){
-        		// Новия месец който търсим е стария месец + ($i * повторението ни)
-        		$newMonth = $data[mon] + ($i * $rec->repetitionEach);
-        		
-        		// Секундите на новия месец
-        		$newMonthTs = mktime(0, 0, 0, $newMonth, 1, $data[year]);
-        		
-        		// Търсим съответствие по ден от месеца:
-	        	if($rec->repetitionAbidance == 'monthDay'){
+        	if($nowTs > $startTs) $startTs = $nowTs;
+	        	// Масив с час, сек, мин, ден, месец, год ... на Началната дата
+	        	$data = getdate($startTs);
+	        	
+	        	for ($i = 1; $i <= 10000; $i++){
+	        		// Новия месец който търсим е стария месец + ($i * повторението ни)
+	        		$newMonth = $data[mon] + ($i * $rec->repetitionEach);
 	        		
-	        		// НАчалния ни ден
-	        		$day = $data[mday];
+	        		// Секундите на новия месец
+	        		$newMonthTs = mktime(0, 0, 0, $newMonth, 1, $data[year]);
 	        		
-	        		// Новия ни ден
-	        		$newDay = 1 + ($day - 1);
-	        		
-	        		// Правим mySQL формат на датата от началните час, мин, сек и новия месец, новия ден и началната година
-	        		$nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $newMonth, $newDay, $data[year]));
-	        		
-	        		// Проверяваме броя на дните в новия месец
-	        		$numbMonthDay = date('t', $newMonthTs);
-	        		
-	        		// Ако новия ден не присъства в новия месец, то взимаме последния ден от новия месец
-	        		if($newDay >= $numbMonthDay) $nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $newMonth, $numbMonthDay, $data[year]));
-
-	        		return $nextStartTime;
+	        		// Търсим съответствие по ден от месеца:
+		        	if($rec->repetitionAbidance == 'monthDay'){
+		        		
+		        		// НАчалния ни ден
+		        		$day = $data[mday];
+		        		
+		        		// Новия ни ден
+		        		$newDay = 1 + ($day - 1);
+		        		
+		        		// Правим mySQL формат на датата от началните час, мин, сек и новия месец, новия ден и началната година
+		        		$nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $newMonth, $newDay, $data[year]));
+		        		
+		        		// Проверяваме броя на дните в новия месец
+		        		$numbMonthDay = date('t', $newMonthTs);
+		        		
+		        		// Ако новия ден не присъства в новия месец, то взимаме последния ден от новия месец
+		        		if($newDay >= $numbMonthDay) $nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $newMonth, $numbMonthDay, $data[year]));
+	
+		        		return $nextStartTime;
+		        		
+		        	} elseif($rec->repetitionAbidance == 'weekDay'){
+		        		$weekDayNames = array(
+				            1 => 'monday',
+				            2 => 'tuesday',
+				            3 => 'wednesday',
+				            4 => 'thursday',
+				            5 => 'friday',
+				            6 => 'saturday',
+				            0 => 'sunday');
+		        			
+		        	    $numbMonthDay = date('t', $startTs);
+		        		if ($data[mday] - 7 >= -6 && $data[mday] - 7 <= 0) $monthsWeek = 'first';
+		        		elseif($data[mday] - 14 >= -6 && $data[mday] - 14 <= 0) $monthsWeek = 'second'; 
+		        		elseif($data[mday] - 21 >= -6 && $data[mday] - 21 <= 0) $monthsWeek = 'third'; 
+		        		if($data[mday] + 14 > $numbMonthDay && $monthsWeek = 'third') $monthsWeek = 'penultimate'; 
+		        		if($data[mday] + 7 > $numbMonthDay && $monthsWeek == 'penultimate') $monthsWeek = 'last'; 
+		        	
+		        		
+		        		$nextStartTimeName = $monthsWeek."-".$weekDayNames[$data[wday]];
+		        		$nextStartTimeMonth = $newMonth;
+		        		
+		        		$nextStartTime = date("Y-m-d {$data[hours]}:{$data[minutes]}:{$data[seconds]}", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+		        		
+		        		return $nextStartTime;
+		        		
+		        	}
+		        	
+		        	
 	        	}
-        	}
 
         }
     	
