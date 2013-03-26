@@ -328,35 +328,52 @@ class blast_Emails extends core_Master
 	*/
     function on_AfterInputEditForm($mvc, &$form)
     {
-        //Ако сме субмитнали формата
+        // Ако сме субмитнали формата
         if ($form->isSubmitted()) {
             
-            //Масив с всички записи
-            $rec = (array)$form->rec;
+            // Масив с всички записи
+            $recArr = (array)$form->rec;
             
-            //id' то на листа, от който се вземат данните на потребителя
+            // id' то на листа, от който се вземат данните на потребителя
             $listId = $form->rec->listId;
             
-            foreach ($rec as $field) {
+            // Копие на масива
+            $nRecArr = $recArr;
+
+            // Вземаме Относно и Съобщение
+            $bodyAndSubject = $nRecArr['body'] . ' ' . $nRecArr['subject'];
+            
+            // Премахваме ги от масива
+            unset($nRecArr['body']);
+            unset($nRecArr['subject']);
+            
+            // Обикаляме всички останали стойности в масива
+            foreach ($nRecArr as $field) {
                 
-                //Всички данни ги записваме в една променлива
+                // Всички данни ги записваме в една променлива
                 $allRecsWithPlaceHolders .= ' ' . $field;    
             }
-            
-            //Създаваме шаблон
+
+            // Създаваме шаблон
             $tpl = new ET($allRecsWithPlaceHolders);
             
-            //Вземаме всички шаблони, които се използват
+            // Вземаме всички шаблони, които се използват
             $allPlaceHolder = $tpl->getPlaceHolders();
             
-            //Вземаме всички полета, които ще се заместват
+            // Шаблон на Относно и Съобщение
+            $bodyAndSubTpl = new ET($bodyAndSubject);
+            
+            // Вземаме всички шаблони, които се използват
+            $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
+            
+            // Вземаме всички полета, които ще се заместват
             $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');
             
             $allFieldsArr = array();
             
             //Вземаме всички имена на полетата на данните, които ще се заместват
             preg_match_all('/(\s|^)([^=]+)/', $listsRecAllFields, $allFieldsArr);
-            
+
             //Добавяме полетата, които се добавят от системата
             $allFieldsArr[2][] = 'unsubscribe';
             $allFieldsArr[2][] = 'mid';
@@ -375,13 +392,56 @@ class blast_Emails extends core_Master
                 
                 // Ако плейсхолдера го няма във листа
                 if (!$fieldsArr[$placeHolder]) {
-                    $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
+                    
+                    // Добавяме към съобщението за предупреждение
+                    $warning .= ($warning) ? ", {$placeHolder}" : $placeHolder;
+                    
+                    // Стринг на плейсхолдера
+                    $placeHolderStr = "[#" . $placeHolder . "#]";
+                    
+                    // Добавяме го в масива
+                    $warningPlaceHolderArr[$placeHolderStr] = $placeHolderStr;
                 }
             }
             
-            //Показваме грешка, ако има шаблони, които сме въвели в повече
+            // Премахваме дублиращите се плейсхолдери
+            $bodyAndSubPlaceHolder = array_unique($bodyAndSubPlaceHolder);
+            
+            //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
+            foreach ($bodyAndSubPlaceHolder as $placeHolder) {
+                
+                // Ако плейсхолдера го няма във листа
+                if (!$fieldsArr[$placeHolder]) {
+                    
+                    // Добавяме към съобщението за грешка
+                    $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
+                }
+            }
+
+            // Показваме грешка, ако има шаблони, които сме въвели в повече в Относно и Съощение
             if ($error) {
                 $form->setError('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$error}");    
+            }
+            
+            // Показваме предупреждение за останалите шаблони
+            if ($warning) {
+                
+                // Сетваме грешката
+                $form->setWarning('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$warning}"); 
+                
+                // При игнориране на грешката
+                if (!$form->gotErrors()) {
+                    
+                    // Обхождаме масива с стойност
+                    foreach ($nRecArr as $field => $val) {
+                        
+                        // Премахваме всички плейсхолдери, които не се използват
+                        $val = str_ireplace((array)$warningPlaceHolderArr, '', $val);    
+                        
+                        // Добавяме към записа
+                        $form->rec->{$field} = $val;
+                    }
+                }
             }
         }
     }
