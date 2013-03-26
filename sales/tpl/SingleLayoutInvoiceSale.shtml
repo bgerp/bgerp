@@ -32,7 +32,7 @@
                         
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
-                        	<span class="bigData">[#date#]</span>
+                        	<span class="bigData">[#valior#]</span>
                         </div>
                         
                         <!--ET_BEGIN stateText-->
