@@ -76,8 +76,14 @@ class cat_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
+        // Кофа за снимки
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
+        
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1.42, 'Продукти', 'Каталог', 'cat_Products', 'default', "{$role}, admin");
+        
+        $html .= $this->loadSetupData();
         
         return $html;
     }
@@ -92,5 +98,23 @@ class cat_Setup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+	/**
+     * Инициализране на началните данни
+     */
+    function loadSetupData()
+    {
+    	// Зареждане на Мерни еденици от csv файл
+    	$html .= cat_setup_UoM::setup();
+    	
+        // Зареждане на Категории от csv файл
+        $html .= cat_setup_Categories::setup();
+
+        // Зареждане на продукти от csv файл
+        $html .= cat_setup_Products::setup();
+        
+        return $html;
     }
 }

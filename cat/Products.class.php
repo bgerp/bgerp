@@ -217,20 +217,6 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Създаваме кофа
-     *
-     * @param core_MVC $mvc
-     * @param stdClass $res
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
-    }
-    
-    
-    /**
      * Добавяне в таблицата на линк към детайли на продукта. Обр. на данните
      *
      * @param core_Mvc $mvc

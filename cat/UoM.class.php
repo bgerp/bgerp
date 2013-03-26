@@ -93,18 +93,6 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * Инициализиране на таблицата при инсталиране с един запис
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        $res .= cat_setup_UoM::setup();
-    }
-    
-    
-    /**
      * Функция връщащи масив от всички мерки които са сродни
      * на посочената мярка (примерно за грам това са : килограм, тон и др)
      * @param int $measureId - id на мярка
