@@ -245,23 +245,21 @@ class sales_Sales extends core_Master
                 if (empty($rec->id) || $rec->state != 'draft') {
                     // Незаписаните продажби не могат нито да се контират, нито да се активират
                     $requiredRoles = 'no_one';
-                } else {
-                    $transaction  = $mvc->getValidatedTransaction($rec);
-                    
-                    if ($transaction === FALSE) {
-                        // Възникнала е грешка при генериране на транзакция
-                        if ($action == 'activate') {
-                            $requiredRoles = 'no_one';
-                        }
-                    } else {
-                        // Активиране е позволено само за продажби, които не генерират транзакции
-                        // Контиране е позволено само за продажби, които генерират транзакции
-                        $deniedAction = ($transaction->isEmpty() ? 'conto' : 'activate');
-                        
-                        if ($action == $deniedAction) {
-                            $requiredRoles = 'no_one';
-                        }
-                    }
+                    break;
+                } 
+                
+                if (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE) {
+                    // Невъзможно е да се генерира транзакция
+                    $requiredRoles = 'no_one';
+                    break;
+                }
+                
+                // Активиране е позволено само за продажби, които не генерират транзакции
+                // Контиране е позволено само за продажби, които генерират транзакции
+                $deniedAction = ($transaction->isEmpty() ? 'conto' : 'activate');
+                
+                if ($action == $deniedAction) {
+                    $requiredRoles = 'no_one';
                 }
                 break;
         }
