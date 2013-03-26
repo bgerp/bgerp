@@ -636,10 +636,14 @@ a.button, input[type=button], input[type=submit] {
 	border-right:1px solid #999;
 	border-left:none;
 	margin-right:0 !important;
-	@include border-radius(0px !important);
+	@include border-radius(0 !important);
 }
 .narrow .single-thread .toolbar div .button:first-child{
 	border-left:1px solid #999;
+	@include border-radius4(5px,0,0,5px !important);
+}
+.narrow .single-thread .toolbar div .button:last-child{
+	@include border-radius4(0,5px,5px,0 !important);
 }
 .narrow .listToolbar .btn-left { 
     @include rounded(top, right, 0px !important);
