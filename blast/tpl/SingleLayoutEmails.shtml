@@ -11,7 +11,6 @@
 	<div class='antetka'>
 		<small>
 		<table class='top-table' width='100%' cellspacing='5'>
-		<tr><td colspan='2'><b><!--ET_BEGIN listLink-->Лист: [#listLink#]<!--ET_END listLink--></b></td></tr>
 		<tr><td colspan='2'><b><!--ET_BEGIN subject-->[#subject#]<!--ET_END subject--></b></td></tr>
 		<tr>
 				<td valign='top'>
@@ -96,8 +95,9 @@
 		    
 		</div>
     <!-- END footer -->
-    
-    <!-- ET_BEGIN FilesAndDocuments -->  
+    <div class="addintional-info">
+    <div><b style="margin-bottom:10px; display:block"><!--ET_BEGIN listLink-->Лист: [#listLink#]<!--ET_END listLink--></b></div>
+    <!--ET_BEGIN FilesAndDocuments-->  
     	[#FilesAndDocuments#]
     	<div style='padding-bottom: 5px;'>
 			Прикачи: 
@@ -105,13 +105,13 @@
 			  
 			<!-- ET_BEGIN Documents --><div style='margin-left:10px; display:block;'>[#Documents#]</div><!-- ET_END Documents -->   
 		</div>
-    <!-- ET_END FilesAndDocuments -->
+    <!--ET_END FilesAndDocuments-->
 
-	<!-- ET_BEGIN encoding -->  
+	<!--ET_BEGIN encoding-->  
     	<div>
 			Знаци: [#encoding#]    
 		</div>
-    <!-- ET_END encoding -->
+    <!--ET_END encoding-->
 
     <div style='clear: both;'></div> 
 
@@ -119,15 +119,15 @@
 
 <div style='display:inline-block;margin-top:10px;'>
 
-	<div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999;
-			border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Изпращания|*:
+	<div style='background-color:#ddd;border-top:solid 1px #000; border-left:solid 1px #000;
+			border-right:solid 1px #000; padding:5px; font-size:1.2em;'>|Изпращания|*:
 	</div>
 	
 	<div>[#DETAILS#]</div>
 </div>
 
 <!-- END Блок долу -->
-
+</div>
 <div style='clear: both;'></div>
 
 </div>

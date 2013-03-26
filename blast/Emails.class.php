@@ -127,7 +127,7 @@ class blast_Emails extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, subject, listId, from, sendPerMinute, startOn, recipient, attn, email, tel, fax, country, pcode, place, address';
+    var $listFields = 'id, subject, listId, from, sendPerMinute, startOn';
     
     
     /**
@@ -196,7 +196,7 @@ class blast_Emails extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         //Добавя филтър за търсене по "Тема" и "Време на започване"
-        $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%, 
+        $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%;margin-left:2px, 
                 hint=Търсене по "Тема" и "Време на започване"');
         
         $data->listFilter->showFields = 'filter';
