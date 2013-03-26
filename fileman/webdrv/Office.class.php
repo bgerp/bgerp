@@ -173,7 +173,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $text = file_get_contents($script->outFilePath);
         
         // Поправяме текста, ако има нужда
-        $text = lang_Encoding::repairText($text);
+        $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
         
         // Текстовата част
         $params['content'] = $text;
@@ -502,7 +502,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $html = str::cut($html, '<body>', '</body>');
 
         // Поправяме текста, ако има нужда
-        $html = lang_Encoding::repairText($html);
+        $html = i18n_Charset::convertToUtf8($html, 'UTF-8', TRUE);
         
         // Текстовата част
         $params['content'] = $html;

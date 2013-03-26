@@ -50,11 +50,6 @@ class hclean_Purifier
      */
     static function clean($html, $charset = NULL, $css = NULL, $force = NULL)
     {
-        //Ако няма charset тогава го определяме
-        if(!$charset) {
-            $charset = lang_Encoding::detectCharset($html);
-        }
-        
         //Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
         $html = csstoinline_ToInline::inlineCssFromHtml($html);
         
@@ -71,7 +66,8 @@ class hclean_Purifier
         //Настройваме purifier' а
         $config = HTMLPurifier_Config::createDefault();
         $config->set('Cache.SerializerPath', PURIFIER_TEMP_PATH);
-        $config->set('Core.Encoding', $charset);
+        // Винаги работик с конвертирани до UTF-8 текстове
+        $config->set('Core.Encoding', 'UTF-8');
         
         $purifier = new HTMLPurifier($config);
         

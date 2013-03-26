@@ -132,14 +132,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         // Вземаме съдържанието на файла
         $text = fileman_Files::getContent($params['fileHnd']);
         
-        // Проверяваме енкодинга
-        $res = lang_Encoding::analyzeCharsets($text);
-        $charset = arr::getMaxValueKey($res->rates);
-            
-        // Декодираме стринга към UTF-8, ако той не е в тази кодировка
-        if($charset && ($charset != 'UTF-8')) {
-            $text = iconv($charset, 'UTF-8//IGNORE', $text);
-        }
+        $text = i18n_Charset::convertToUtf8($text);
         
         // Текстовата част
         $params['content'] = $text;

@@ -134,7 +134,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['source'] = (object) 
 			array(
 				'title'   => 'Сорс',
-				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Сорса на имейла</legend>{$sourceShow}</fieldset></div>",
+				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Изходен код на имейла</legend>{$sourceShow}</fieldset></div>",
 				'order' => 9,
 			);
 			
@@ -408,7 +408,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $source = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $source);
         
         // Преобразуваме към вербална стойност
-        $source = "<pre class='richText'>{$source}</pre>";
+        $source = "<div style='max-width:800px;white-space:pre-wrap'>{$source}</div>";
  
         return $source;
     }
