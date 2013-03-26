@@ -184,7 +184,7 @@ class type_Richtext extends type_Text
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]([\r\n]{0,2})/is", array($this, '_catchCode'), $html);
               
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
-        $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
+        $html = preg_replace_callback("/\[img(=([^#][^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
         
         // Обработваме [gread=http://????] ... [/gread] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[gread(=([^\]]*)|)\](.*?)\[\/gread\]/is", array($this, '_catchGread'), $html);
