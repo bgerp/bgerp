@@ -101,6 +101,7 @@ class acc_Journal extends core_Master
         //        $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
         $this->FLD('docId', 'int', 'input=none,column=none');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
+        $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
         
         //       $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
