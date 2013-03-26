@@ -91,7 +91,8 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Подготвя лейаута на полетата на формата и добавя допълнителни бутони
+     * Подготвя лейаута на полетата на форма
+     * та и добавя допълнителни бутони
      * @return core_ET $tpl
      */
     function createFormFieldsLayout($data)
@@ -126,7 +127,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$tpl = new ET("");
     	$lastRow = Mode::get('lastAdded');
-    	$blocksTpl = new ET(getFileContent('pos/tpl/ReceiptDetail.shtml'));
+    	$blocksTpl = new ET(tr('|*' . getFileContent('pos/tpl/ReceiptDetail.shtml')));
     	$saleTpl = $blocksTpl->getBlock('sale');
     	$discountTpl = $blocksTpl->getBlock('discount');
     	$paymentTpl = $blocksTpl->getBlock('payment');
@@ -303,13 +304,18 @@ class pos_ReceiptDetails extends core_Detail {
 	    			// Ако действието е "отстъпка"
 	    			if(!is_numeric($rec->ean)) {
 	    				$form->setError('ean', 'Полето приема само цифри');
+	    				return;
 	    			}
 	    			$param = ucfirst(strtolower($action->value));
-	    			$rec->{"discount{$param}"} = (double)$rec->ean;
+	    			$rec->{"discount{$param}"} = $rec->ean;
 	    			if($param == 'Sum'){
 	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
-	    				if($total < $rec->ean){
-	    					$form->setError('ean', 'Отстъпката е по-голяма от крайната сума !');
+	    				if($total < abs($rec->ean)){
+	    					$form->setError('ean', 'Въведената сума е по-голяма от крайната !');
+	    				}
+	    			} else {
+	    				if($rec->ean > 100) {
+	    					$form->setError('ean', 'Отстъпката неможе да е по-голяма от 100% !');
 	    				}
 	    			}
 	    			
@@ -323,7 +329,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    			// Ако действието е "клиент"
 	    			$mvc->getClientInfo($rec);
 	    			if(!$rec->param) {
-	    				$form->setError('ean', 'Няма такъв Клиент');
+	    				$form->setError('ean', 'Няма такъв клиент');
 	    			}
 	    			break;
 	    	}

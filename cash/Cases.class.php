@@ -77,6 +77,30 @@ class cash_Cases extends core_Master {
         $this->FLD('cashier', 'user(roles=cash|admin)', 'caption=Касиер');
     }
     
+    
+    /**
+     * Подготвя и осъществява търсене по каса, изпозлва се
+     * в касовите документи
+     * @param stdClass $data 
+     * @param array $fields - масив от полета в полета в които ще се
+     * търси по caseId
+     */
+    public static function prepareCaseFilter(&$data, $fields = array())
+    {
+    	$data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,width=10em,silent');
+		$data->listFilter->showFields .= ',case';
+		$data->listFilter->setDefault('case', static::getCurrent('id', FALSE));
+		$data->listFilter->input();
+		if($filter = $data->listFilter->rec) {
+			if($filter->case) {
+				foreach($fields as $fld){
+					$data->query->orWhere("#{$fld} = {$filter->case}");
+				}
+			}
+		}
+    }
+    
+    
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf

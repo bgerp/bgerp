@@ -22,9 +22,13 @@ class cat_setup_UoM extends core_Mvc
      */
     static function setup()
     {
+        $csvFile = __DIR__ . "/csv/UoM.csv";
+    	
         $Units = cls::get('cat_UoM');
         
-        if (($handle = fopen(__DIR__ . "/csv/UoM.csv", "r")) !== FALSE) {
+        $created = $updated = 0;
+        
+        if (($handle = fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 2000, ",")) !== FALSE) {
                 $rec = new stdClass();
                 $rec->name = $csvRow[0];
@@ -34,11 +38,23 @@ class cat_setup_UoM extends core_Mvc
                 $rec->state = $csvRow[4];
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 // Ако има запис с този 'name'
-                $rec->id = $Units->fetchField(array("#name = '[#1#]'", $rec->name), 'id');     /* escape data! */
+                if($rec->id = $Units->fetchField(array("#name = '[#1#]'", $csvRow[0]), 'id')){
+                 	$updated++;
+                } else {
+                    $created++;
+                }
+
                 $Units->save($rec, NULL, 'IGNORE');
             }
             
             fclose($handle);
+            
+            $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
+            $res .= "Създадени {$created} нови мерни еденици, обновени {$updated} съществуващи мерни еденици.</li>";
+        } else {
+        	$res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }
+        
+        return $res;
     }
 }

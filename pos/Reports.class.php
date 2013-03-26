@@ -31,7 +31,7 @@ class pos_Reports extends core_Master {
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, acc_plg_DocumentSummary, plg_Search, 
+   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, 
    					bgerp_plg_Blank, doc_ActivatePlg, plg_Sorting';
    
     
@@ -50,13 +50,13 @@ class pos_Reports extends core_Master {
     /**
 	 *  Брой елементи на страница 
 	 */
-    var $listItemsPerPage = "20";
+    var $listItemsPerPage = "40";
     
     
     /**
      * Брой продажби на страница
      */
-    var $listDetailsPerPage = '40';
+    var $listDetailsPerPage = '50';
     
     
     /**
@@ -190,6 +190,13 @@ class pos_Reports extends core_Master {
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()) {
+    		$draftRec = static::fetch("#state='draft' AND #pointId={$form->rec->pointId} AND #cashier={$form->rec->cashier}");
+    		if($draftRec) {
+    			
+    			// Ако има вече чернова с тези параметри директно я отваряме
+    			Redirect(array($mvc, 'single', $draftRec->id), FALSE, 'Има вече създадена чернова за посочените касиер и каса');
+    		}
+    		
     		$reportData = $mvc->fetchData($form->rec->pointId, $form->rec->cashier);
     		
     		// Проверяваме все пак дали има данни за репорта
@@ -443,7 +450,7 @@ class pos_Reports extends core_Master {
      * След обработка на ролите
      */
 	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{ 
+	{// bp();
 		// Никой неможе да редактира бележка
 		if($action == 'activate' && !$rec) {
 			$res = 'no_one';

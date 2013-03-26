@@ -275,7 +275,7 @@ div.scrollWrapper{
 }
 
 .document .listRows table {
-	width:700px;
+	width:730px;
 	margin-bottom:15px;
 	margin-top:15px;
 }
@@ -309,7 +309,7 @@ form #point {
 }
 
 .doc_Containers table.listTable.listTable > tbody > tr > td:first-child  {
-	width:65%;
+	width:62%;
 }
 
 .doc_Containers table.listTable.listTable > tbody > tr.report-payment > td:first-child {

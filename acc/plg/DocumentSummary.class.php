@@ -3,7 +3,7 @@
 
 
 /**
- * Плъгин за Филтриране на документи с вальор по ключови думи и дата,
+ * Плъгин за филтриране на документи с вальор по ключови думи и дата,
  * показва и Обобщение на резултатите от списъчния изглед
  * 
  * За Обобщението: Показва в малка таблица над списъчния изглед обобщена
@@ -51,11 +51,6 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
     	// Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
-        $plugins = arr::make($mvc->loadList);
-        if(!isset($plugins['plg_Search'])){
-        	$plugins[] = 'plg_Search';
-        	$mvc->loadList = implode(',', $plugins);
-        }
         
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
@@ -88,16 +83,18 @@ class acc_plg_DocumentSummary extends core_Plugin
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
-		$data->listFilter->layout = new ET("<form action='[#FORM_ACTION#]'>[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>");
+		$data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
 		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
-		if(!isset($data->listFilter->fields['search'])) {
-			$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
-		}
 		$data->listFilter->setDefault('from', date('Y-m-01'));
 		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
-		$data->listFilter->showFields = 'search,from,to';
+		
+		$fields = $data->listFilter->selectFields();
+		if(isset($fields['search'])){
+			$data->listFilter->showFields .= 'search,';
+		}
+		$data->listFilter->showFields .= 'from, to';
 		
         // Активиране на филтъра
         $data->listFilter->input(NULL, 'silent');
@@ -115,14 +112,12 @@ class acc_plg_DocumentSummary extends core_Plugin
 				plg_Search::applySearch($filter->search, $data->query);
 			}
     		
-			/*
-	         * Филтър по дати
-	         */
 	        $dateRange = array();
 	        
 	        if ($filter->from) {
 	            $dateRange[0] = $filter->from; 
 	        }
+	        
 	        if ($filter->to) {
 	            $dateRange[1] = $filter->to; 
 	        }
@@ -132,11 +127,11 @@ class acc_plg_DocumentSummary extends core_Plugin
 	        }
 	       
 			if($dateRange[0]) {
-    			$data->query->where(array("#{$mvc->filterDateField} >= '[#1#]]'", $dateRange[0]));
+    			$data->query->where(array("#{$mvc->filterDateField} >= '[#1#]'", $dateRange[0]));
     		}
     		
 			if($dateRange[1]) {
-    			$data->query->where(array("#{$mvc->filterDateField} <= '[#1#]] 23:59:59'", $dateRange[1]));
+    			$data->query->where(array("#{$mvc->filterDateField} <= '[#1#] 23:59:59'", $dateRange[1]));
     		}
 		}
 	}
@@ -147,21 +142,22 @@ class acc_plg_DocumentSummary extends core_Plugin
 	 */
 	static function on_AfterRenderListSummary($mvc, $tpl, $data)
     {
+    	$res = array();
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 0;
     	$queryCopy = clone $data->query;
+    	$queryCopy->where("#state != 'draft'"); 
     	$queryCopy->show = array();
     	$queryCopy->groupBy = array();
     	$queryCopy->executed = FALSE;
     	
     	$fieldsArr = $mvc->selectFields("#summary");
-    	$res = array();
     	$baseCurrency = acc_Periods::getBaseCurrencyCode();
     	while($rec = $queryCopy->fetch()){
     		static::prepareSummary($mvc, $fieldsArr, $rec, $res, $baseCurrency);
     	}
     	
-    	$res['count'] = (object)array('caption' => tr('Резултати'), 'measure' => tr('бр'), 'number' => $double->toVerbal($queryCopy->count()));
+    	$res['count'] = (object)array('caption' => tr('Документи'), 'measure' => tr('бр'), 'quantity' => $queryCopy->count());
     	$tpl = static::renderSummary($res);
     	
     	return FALSE;
@@ -179,6 +175,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
     {
     	if(count($fieldsArr) == 0) return;
+    	
     	foreach($fieldsArr as $fld){
     		if(!array_key_exists($fld->name, $res)) {
 	    		$res[$fld->name] = (object)array('caption' => $fld->caption, 'measure' => '', 'number' => 0);
@@ -188,15 +185,19 @@ class acc_plg_DocumentSummary extends core_Plugin
 	    		case "amount":
 	    			if($currencyId = $rec->{$mvc->filterCurrencyField}){
 	    				(is_numeric($currencyId)) ? $code = currency_Currencies::getCodeById($currencyId) : $code = $currencyId;
+	    				$baseAmount = currency_CurrencyRates::convertAmount($rec->{$fld->name}, dt::now(), $code, NULL);
 	    			} else {
-		    			$code = $currencyCode;
-		    		}
-		    		$baseAmount = currency_CurrencyRates::convertAmount($rec->{$fld->name}, dt::now(), $code, NULL);
-		    		$res[$fld->name]->number += $baseAmount;
+	    				
+	    				// Ако няма стойнсот за валутата по обобщение приемаме
+	    				// че сумата е в основната валута за периода
+	    				$baseAmount = $rec->{$fld->name};
+	    			}
+		    		
+		    		$res[$fld->name]->amount += $baseAmount;
 		    		$res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
 	    			break;
 	    		case "quantity":
-	    			$res[$fld->name]->number += $rec->{$fld->name};
+	    			$res[$fld->name]->quantity += $rec->{$fld->name};
 	    			$res[$fld->name]->measure = tr('бр');
 	    			break;
 	    	}
@@ -213,14 +214,19 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
     	// Зареждаме и подготвяме шаблона
     	$double = cls::get('type_Double');
+    	$int = cls::get('type_Int');
     	$double->params['decimals'] = 2;
     	$tpl = new ET(tr('|*' . getFileContent("acc/plg/tpl/Summary.shtml")));
     	$rowTpl = $tpl->getBlock("ROW");
     	if(count($res)) {
 	    	foreach($res as $row) {
-	    		$row->number = $double->toVerbal($row->number);
-	    		$strArr = explode('->', $row->caption);
-	    		($strArr[1]) ? $row->caption = $strArr[1] : $row->caption = $strArr[0];
+	    		if($row->amount) {
+	    			$row->amount = $double->toVerbal($row->amount);
+	    		} elseif($row->quantity) {
+	    			$row->quantity = $int->toVerbal($row->quantity);
+	    		}
+	    		
+	    		$row->caption = str_replace("->", ": ", $row->caption);
 	    		$rowTpl->placeObject($row);
 	    		$rowTpl->removeBlocks();
 	    		$rowTpl->append2master();

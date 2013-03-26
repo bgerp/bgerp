@@ -1,19 +1,34 @@
 <dl>
-    <dt>Ник</dt>
+    <dt>|Ник|*</dt>
     <dd>[#nick#]</dd>
 
-    <dt>Роли</dt>
+    <dt>|Роли|*</dt>
     <dd>[#roles#]</dd>
 
-    <dt>Създаден на</dt>
+    <dt>|Създаден на|*</dt>
     <dd>[#createdOn#]</dd>
 
-    <dt>Парола</dt>
+    <dt>|Парола|*</dt>
     <dd>[#password#]</dd>
 
     <!--ET_BEGIN lastLoginInfo-->
-	<dt>Последно </dt>
+	<dt>|Последно|*</dt>
     <dd>[#lastLoginInfo#]</dd>
     <!--ET_END lastLoginInfo-->
+    
+    <!--ET_BEGIN logo-->
+	<dt>|Лого|*</dt>
+    <dd>[#logo#]</dd>
+    <!--ET_END logo-->
+    
+    <!--ET_BEGIN logoEn-->
+	<dt>|Лого EN|*</dt>
+    <dd>[#logoEn#]</dd>
+    <!--ET_END logoEn-->
+    
+    <!--ET_BEGIN signature-->
+	<dt>|Подпис|*</dt>
+    <dd>[#signature#]</dd>
+    <!--ET_END signature-->
 
 </dl>

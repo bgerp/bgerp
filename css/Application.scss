@@ -3,6 +3,7 @@ $blue:#048;
 $dark-blue:#036;
 $red:#c00;
 $quiet-gray:#888;
+$open-thread:#e0ffe0;
 
 @mixin border-radius($radius) {
     -moz-border-radius: $radius;
@@ -489,11 +490,12 @@ dl {
 	border-top: none;
 	background-image:url('../img/formToolbarBg.jpg');
 }
-
 .narrow .vertical .formToolbar {
-	background-image:none;
+	background-image: none;
+	padding: 8px;
+	border: solid 1px #bbb;
+	border-top: none;
 }
-
 .vertical .formSection {
 	border-left: solid 1px #bbb;
 	border-right: solid 1px #bbb;
@@ -529,6 +531,25 @@ option.team {
 .wide .btn-posting  { 
 	background-image:url('../img/16/comment_add.png');
 	@include btn-style();
+	
+}
+.more-btn{
+	padding: 2px 3px 3px 3px !important;
+	background-position:center center;
+	background-image:url(../img/16/toggle-expand.png) !important;
+	background-repeat:no-repeat !important;
+	width: 24px !important;
+}
+
+.more-btn.show-btn{
+	background-image:url(../img/16/toggle2.png) !important;
+}
+
+.narrow .more-btn{
+	position:relative;
+	top:1px;
+	width:24px!important;
+	height:24px !important;
 }
 
 .wide .btn-export  { 
@@ -679,7 +700,9 @@ option.team {
 .narrow .btn-add{
 	margin-left:0;
 }
-
+.toolbarHide{
+	margin-top:5px !important;
+}
 /*Стилове за acc*/
 div.acc-detail {
 	font-size: 0.8em;
@@ -893,7 +916,10 @@ table.mc-header a {
 	margin-left:1px;
 	padding: 5px;
 	border: solid 1px #ddd;
-	background: rgba(200, 200, 200, 0.4);
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
+    zoom: 1;
+	background: rgba(200, 200, 200, 0.3);
 }
 
 .threadSubTitle {
@@ -942,33 +968,28 @@ table.mc-header a {
 }
 
 .doc_Containers table.listTable.listTable>tbody>tr:hover {
-	background-color: transparent !important;
+	background-color: transparent;
 }
 
 .doc_Containers table.listTable.listTable>tbody>tr {
-	background-color: transparent !important;
+	background-color: transparent;
+	
+	&.flash {
+	   background-color: #ff8 ;
+	}
 }
 
-.doc_Containers .thread-opened table.listTable>tbody>tr:hover {
-	background-color: #f4fff4 !important;
+.doc_Containers .thread-opened table.listTable>tbody>tr{
+	background-color: $open-thread ;
 }
+
+.doc_Containers .thread-opened table.listTable>tbody>tr:hover{
+	background-color: $open-thread ;
+}
+
 .thread-opened > div > table.listTable > tbody > tr > td {
-border: solid 1px green !important;
+	border: solid 1px green !important;
 }
-.doc_Containers .thread-opened table.listTable>tbody>tr {
-	background-color: #f4fff4 !important;
-}
-
-
-.wide .single-thread > .listRows > table.listTable >tbody > tr > td:first-child,
-.wide .single-thread > .listRows > table.listTable >thead > tr > th:first-child{
-		border-right:none !important;
-		}	
-.wide .single-thread > .listRows > table.listTable >thead > tr > th:last-child,
-.wide .single-thread > .listRows > table.listTable >tbody > tr > td:last-child{
-		border-left:none !important;
-		}	
-
 
 .listTable{
   	.document h2 {
@@ -998,12 +1019,13 @@ border: solid 1px green !important;
 }
 
 .narrow .listTable .toolbar {
-	margin: 0px 0px 5px 7px;
+	margin: 0px 9px 5px 5px;
+	padding-top:0px;
 }
 
 .wide .doc_Containers .toolbar {
 	margin-top: 3px;
-	height:26px;
+	margin-bottom:3px;
 }
 
 .document .header {
@@ -1217,7 +1239,7 @@ ul.history {
 	list-style: none;
 	&.summary {
 		font-size: 0.75em;
-		margin-right:7px;
+		margin-left:5px;
 		li span {
 			color: #333;
 		}
@@ -1234,6 +1256,7 @@ ul.history {
 		display: inline;
 		font-size: 1.2em;
 		font-weight: bold;
+		margin-right:3px;
 	}
 	.action{
 		&.send b {
@@ -1730,7 +1753,7 @@ input.combo.pCode{
 }
 
 .gravatar-box{
-	margin:10px 7px 10px 10px !important;
+	margin:6px !important;
 }
 
 /*стилове за документи*/

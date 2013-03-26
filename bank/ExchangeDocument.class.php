@@ -32,13 +32,13 @@ class bank_ExchangeDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, Items=acc_Items, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, creditQuantity=Обменено->Сума, creditCurrency=Обменено->Валута, debitQuantity=Получено->Сума, debitCurrency=Получено->Валута, state, createdOn, createdBy";
     
     
     /**
@@ -132,12 +132,23 @@ class bank_ExchangeDocument extends core_Master
         $this->FLD('peroTo', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=Към->Б. сметка,width=20em');
         $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума');
        	$this->FLD('debitPrice', 'double(decimals=2)', 'input=none');
+       	$this->FLD('equals', 'double(decimals=2)', 'input=none,caption=Общо,summary=amount');
         $this->FLD('rate', 'double(decimals=2)', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
     }
+	
+    
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		// Добавяме към формата за търсене търсене по Каса
+		bank_OwnAccounts::prepareBankFilter($data, array('peroFrom', 'peroTo'));
+	}
 	
 	
     /**
@@ -186,14 +197,23 @@ class bank_ExchangeDocument extends core_Master
 		    	
 		    // Каква сума очакваме да е въведена
 		    $expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode, $dCode);
-		    	
+		    
+		    // Каква е равностойноста на обменената сума в основната валута за периода
+		    if($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)){
+		    	$rec->equals = $rec->creditQuantity * $rec->rate;
+		    } else {
+		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
+		    }
+		    
+		    
+		    
 		    // Проверяваме дали дебитната сума има голяма разлика
 		    // спрямо очакваната, ако да сетваме предупреждение
 		    if(!static::compareAmounts($rec->debitQuantity, $expAmount)) {
 		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
 		    					   Сигурни ли сте че искате да запишете документа');
 		    }
-    	}
+		}
     }
     
     
@@ -228,20 +248,14 @@ class bank_ExchangeDocument extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->number = static::getHandle($rec->id);
-    	
-    	if($fields['-single']) {
-    		$double = cls::get('type_Double');
-	    	$double->params['decimals'] = 2;
 	    	
-	    	$creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
-    		$debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
+	    $creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
+    	$debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
+	    $row->creditCurrency = currency_Currencies::getCodeById($creditAccInfo->currencyId);
+	    $row->debitCurrency = currency_Currencies::getCodeById($debitAccInfo->currencyId);
     		
-	    	$row->equals = $double->toVerbal($rec->creditQuantity * $rec->creditPrice);
-    		$row->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
-    		$row->debitPrice = currency_Currencies::getCodeById($debitAccInfo->currencyId);
-    		$row->creditPrice = currency_Currencies::getCodeById($creditAccInfo->currencyId);
-    		$row->currency = currency_Currencies::getCodeById($debitAccInfo->currencyId);
-			
+	    if($fields['-single']) {
+	    	
     		// Показваме заглавието само ако не сме в режим принтиране
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;

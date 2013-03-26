@@ -176,7 +176,9 @@ class price_ListRules extends core_Detail
         $masterRec = price_Lists::fetch($rec->listId);
 
         $masterTitle = price_Lists::getVerbal($masterRec, 'title');
-
+		
+        $form->setOptions('productId', $mvc->getAvailableProducts());
+        
         switch($type) {
             case 'groupDiscount' :
                 $form->setField('productId,packagingId,price', 'input=none');
@@ -200,7 +202,27 @@ class price_ListRules extends core_Detail
         }
     }
 
+    
+    /**
+     * Връща всички продукти които са добавени поне в една ценова група
+     * Така продукт без група няма да може да бъде добавен в "себестойности"
+     * @return array $options - списък с разрешените продукти
+     */
+    private function getAvailableProducts()
+    {
+    	$now = dt::now();
+    	$options = array();
+    	$catQuery = cat_Products::getQuery();
+    	while($productRec = $catQuery->fetch()){
+    		if($productGroup = price_GroupOfProducts::getGroup($productRec->id, $now)) {
+    			$options[$productRec->id] = $productRec->name;
+    		}
+    	}
+    	
+    	return $options;
+    }
 
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 

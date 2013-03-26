@@ -93,13 +93,52 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * Инициализиране на таблицата при инсталиране с един запис
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
+     * Функция връщащи масив от всички мерки които са сродни
+     * на посочената мярка (примерно за грам това са : килограм, тон и др)
+     * @param int $measureId - id на мярка
+     * @return array $options - всички мярки от същата категория
+     * като подадената
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    static function getSameTypeMeasures($measureId)
     {
-        $res .= cat_setup_UoM::setup();
+    	expect($rec = static::fetch($measureId), "Няма такава мярка");	
+    	
+    	$query = static::getQuery();
+    	($rec->baseUnitId) ? $baseId = $rec->baseUnitId : $baseId = $rec->id;
+    	$query->where("#baseUnitId = {$baseId}");
+    	$query->orWhere("#id = {$baseId}");
+    	
+    	$options = array();
+    	while($op = $query->fetch()){
+    		$options[$op->id] = $op->name;	
+    	}
+    	
+    	return $options;
+    }
+    
+    
+    /**
+     * Функция която конвертира стойност от една мярка в друга
+     * сродна мярка
+     * @param double $value - Стойноста за конвертиране
+     * @param int $from - Id на мярката от която ще обръщаме
+     * @param int $to - Id на мярката към която конвертираме
+     * @return double - Конвертираната стойност
+     */
+    public static function convertValue($value, $from, $to){
+    	expect($fromRec = static::fetch($from), 'Проблем при изчислението на първата валута');
+    	expect($toRec = static::fetch($to), 'Проблем при изчислението на втората валута');
+    	
+    	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
+    	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
+    	
+    	// Очакваме двете мерки да имат една обща основна мярка
+    	expect($baseFromId == $baseToId, "Неможе да се конвертира от едната мярка в другата");
+    	$rate = $fromRec->baseUnitRatio / $toRec->baseUnitRatio;
+    	
+    	// Форматираме резултата да се показва правилно числото
+    	$rate = number_format($rate, 9, '.', '');
+    	
+    	return $value * $rate;
     }
 }

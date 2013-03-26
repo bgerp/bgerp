@@ -96,7 +96,7 @@ class acc_Accounts extends core_Manager
      */
     function description()
     {
-        $this->FLD('num', 'int(5)', "caption=Номер,mandatory,remember=info, export");
+        $this->FLD('num', 'varchar(5)', "caption=Номер,mandatory,remember=info, export");
         $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD('type', 'enum(,dynamic=Смесена,active=Активна,passive=Пасивна,transit=Корекционна)',
             'caption=Тип,remember,mandatory, export');
@@ -109,7 +109,7 @@ class acc_Accounts extends core_Manager
         $this->FLD('groupId3', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
             'caption=Разбивка по номенклатури->Ном. 3,remember, export');
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=hidden');
-        $this->FLD('systemId', 'identifier(16)', 'caption=System ID, export, mandatory');
+        $this->FLD('systemId', 'varchar(5)', 'caption=System ID, export, mandatory');
         
         $this->XPR('isSynthetic', 'int', 'CHAR_LENGTH(#num) < 3', 'column=none');
         
@@ -213,6 +213,23 @@ class acc_Accounts extends core_Manager
     {
         if (empty($form->rec->num)) {
             return;
+        }
+        
+        if ($form->isSubmitted()) {
+
+            // Ако не е цяло число
+            if (!ctype_digit($form->rec->num)) {
+                
+                // Сетваме грешката
+                $form->setError('num', 'Недопустими символи в число/израз');
+            }
+            
+            // Ако не е цяло число
+            if (!ctype_digit($form->rec->systemId)) {
+                
+                // Сетваме грешката
+                $form->setError('systemId', 'Недопустими символи в число/израз');
+            }
         }
         
         // Изчисление на FNC поле "isSynthetic"

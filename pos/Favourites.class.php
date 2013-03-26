@@ -24,7 +24,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, 
+    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Sorting,
     				 plg_Printing, pos_Wrapper, pos_FavouritesWrapper, plg_State2';
 
     /**

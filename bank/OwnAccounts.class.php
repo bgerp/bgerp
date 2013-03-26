@@ -320,4 +320,27 @@ class bank_OwnAccounts extends core_Manager {
     	
     	return $accounts;
     }
+    
+    
+	/**
+     * Подготвя и осъществява търсене по банка, изпозлва се
+     * в банковите документи
+     * @param stdClass $data 
+     * @param array $fields - масив от полета в полета в които ще се
+     * търси по bankId
+     */
+    public static function prepareBankFilter(&$data, $fields = array())
+    {
+    	$data->listFilter->FNC('own', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Сметка,width=16em,silent');
+		$data->listFilter->showFields .= ',own';
+		$data->listFilter->setDefault('own', static::getCurrent('id', FALSE));
+		$data->listFilter->input();
+		if($filter = $data->listFilter->rec) {
+			if($filter->own) {
+				foreach($fields as $fld){
+					$data->query->orWhere("#{$fld} = {$filter->own}");
+				}
+			}
+		}
+    }
 }

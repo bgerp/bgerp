@@ -75,7 +75,7 @@ class sales_TransactionSourceImpl
         if (!empty($entries)) {
             $transaction = (object)array(
                 'reason'  => 'Продажба #' . $rec->id,
-                'valior'  => $rec->date,
+                'valior'  => $rec->valior,
                 'entries' => $entries, 
             );
         }
@@ -313,6 +313,6 @@ class sales_TransactionSourceImpl
      */
     protected function getCurrencyRate($rec)
     {
-        return currency_CurrencyRates::getRate($rec->date, $rec->currencyCode, NULL);
+        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyCode, NULL);
     }
 }

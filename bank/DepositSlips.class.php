@@ -39,7 +39,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, beneficiaryName, beneficiaryIban, state, createdOn, createdBy";
     
     
     /**
@@ -93,7 +93,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, beneficiaryName';
+    var $searchFields = 'valior, reason, beneficiaryName, beneficiaryIban, execBank';
     
     /**
      * Групиране на документите
@@ -199,10 +199,10 @@ class bank_DepositSlips extends core_Master
     		if($contragentData->company) {
     			
     			$form->setDefault('beneficiaryName', $contragentData->company);
-    		} elseif ($contragentData->name) {
+    		} elseif ($contragentData->person) {
     			
     			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('beneficiaryName', $contragentData->name);
+    			$form->setDefault('beneficiaryName', $contragentData->person);
     		}
     		$form->setReadOnly('beneficiaryName');
     	}

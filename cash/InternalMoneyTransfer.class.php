@@ -133,6 +133,16 @@ class cash_InternalMoneyTransfer extends core_Master
     }
     
     
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		// Добавяме към формата за търсене търсене по Каса
+		cash_Cases::prepareCaseFilter($data, array('creditCase', 'debitCase'));
+	}
+    
+	
     /**
      *  Добавяме помощник за избиране на сч. операция
      */

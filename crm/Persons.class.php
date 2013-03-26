@@ -1030,7 +1030,7 @@ class crm_Persons extends core_Master
             $contrData = new stdClass();
             $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
             $contrData->companyId = $person->buzCompanyId;
-            $contrData->name = $person->name;
+            $contrData->person = $person->name;
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
@@ -1951,5 +1951,22 @@ class crm_Persons extends core_Master
         
         return $folderId;
     }
-
+    
+	
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Никой да не може да изтрива
+        if ($action == 'delete') {
+            $requiredRoles = 'no_one';
+        }
+    }
 }

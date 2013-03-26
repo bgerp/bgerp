@@ -38,7 +38,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, beneficiaryName, beneficiaryIban, createdOn, createdBy";
     
     
     /**
@@ -57,12 +57,6 @@ class bank_PaymentOrders extends core_Master
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Платежно нареждане';
-    
-    
-    /**
-     * Икона на единичния изглед
-     */
-    //var $singleIcon = 'img/16/money_add.png';
     
     
     /**
@@ -98,7 +92,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, beneficiaryName';
+    var $searchFields = 'valior, reason, beneficiaryName, ordererIban, beneficiaryIban';
     
 
     /**

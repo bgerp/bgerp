@@ -76,6 +76,12 @@ class acc_Balances extends core_Master
      */
     var $Accounts;
     
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'acc/tpl/SingleLayoutBalance.shtml';
+     
     
     /**
      * Описание на модела (таблицата)
@@ -182,7 +188,7 @@ class acc_Balances extends core_Master
         
         return $balanceId;
     }
-    
+  
 
     /**
      * Презичислява балансите за периодите, в които има промяна ежеминутно

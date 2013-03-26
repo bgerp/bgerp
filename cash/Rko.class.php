@@ -149,10 +149,11 @@ class cash_Rko extends core_Master
     	$this->FLD('creditAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('equals', 'int', 'caption=Валута->Равностойност,input=none');
+    	$this->FLD('equals', 'double(decimals=2)', 'caption=Валута->Равностойност,input=none');
     	$this->FLD('baseCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Основна,input=hidden');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(rows=6)', 'caption=Допълнително->Бележки');
+    	$this->FLD('peroCase', 'key(mvc=cash_Cases, select=name)','input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
@@ -163,6 +164,16 @@ class cash_Rko extends core_Master
     }
     
     
+    /**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		// Добавяме към формата за търсене търсене по Каса
+		cash_Cases::prepareCaseFilter($data, array('peroCase'));
+	}
+	
+	
     /**
      *  Обработка на формата за редакция и добавяне
      */
@@ -349,7 +360,7 @@ class cash_Rko extends core_Master
                     
                     'credit' => array(
                         $rec->creditAccount, // кредитна сметка
-                            array('cash_Cases', cash_Cases::getCurrent()), // перо каса
+                            array('cash_Cases', $rec->peroCase), // перо каса
                             array('currency_Currencies', $rec->currencyId), // перо валута
                         'quantity' => $rec->amount,
                     ),

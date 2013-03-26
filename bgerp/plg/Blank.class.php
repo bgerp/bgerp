@@ -65,44 +65,62 @@ class bgerp_plg_Blank extends core_Plugin
      */
     static function getCompanyLogoUrl()
     {
-        //Вземема конфигурационните константи
-        $conf = core_Packs::getConfig('bgerp');
+        // Езика на писмото
+        $lg = core_Lg::getCurrent();
         
-        //Ако езика е на български
-        if (core_Lg::getCurrent() == 'bg') {
+        // Ако езика не е английски
+        if ($lg != 'en') {
             
-            //Ако не е дефинирана константата за българско лого
-            if (!$conf->BGERP_COMPANY_LOGO) {
-                //Логото на компанията по поразбиране (BG)
-                $companyLogo = 'bgerp/img/companyLogo.png';
-            }
+            // Вземаме логото на потребителя
+            $companyLogoFh = crm_Profiles::getLogo();    
         } else {
             
-            //Ако не е дефинирана константата за английско лого
-            if (!$conf->BGERP_COMPANY_LOGO_EN) {
+            // Вземамем логото на потребителя на ЕН
+            $companyLogoFh = crm_Profiles::getLogo(FALSE, TRUE);
+        }
+        
+        // Ако няма лого на потребителя
+        if (!$companyLogoFh) {
+            
+            // Вземема конфигурационните константи
+            $conf = core_Packs::getConfig('bgerp');   
+
+            // Ако езика не е английски
+            if ($lg != 'en') {
                 
-                //Логото на компанията по поразбиране (EN)
-                $companyLogo = 'bgerp/img/companyLogoEn.png';
+                // Ако не е дефинирана константата за българско лого
+                if (!$companyLogoFh = $conf->BGERP_COMPANY_LOGO) {
+                    
+                    // Логото на компанията по поразбиране (BG)
+                    $companyLogo = 'bgerp/img/companyLogo.png';
+                }    
+            } else {
+                // Ако не е дефинирана константата за английско лого
+                if (!$companyLogoFh = $conf->BGERP_COMPANY_LOGO_EN) {
+                    
+                    // Логото на компанията по поразбиране (EN)
+                    $companyLogo = 'bgerp/img/companyLogoEn.png';
+                }
             }
         }
         
-        //Ако е дефинирана логото на компанията
-        if ($companyLogo) {
+        // Ако има открито лог на потребителя
+        if ($companyLogoFh) {
             
-            //Намираме абсолютния файл до файла
-            $companyLogoPath = sbf($companyLogo, '"', TRUE);
-        } else {
-            
-            //Ако сме дефинирали логото на компанията с fileHandler
-            //Масив със стойности, необходими за създаване на thumbnail
+            // Ако сме дефинирали логото на компанията с fileHandler
+            // Масив със стойности, необходими за създаване на thumbnail
             $attr = array('baseName' => 'companyLogo', 'isAbsolute' => TRUE, 'qt' => '"');
             
-            //Размера на thumbnail изображението
+            // Размера на thumbnail изображението
             $size = array('750', '100');
             
-            //Създаваме тумбнаил с параметрите
-            $companyLogoPath = thumbnail_Thumbnail::getLink($conf->BGERP_COMPANY_LOGO, $size, $attr);
-        }
+            // Създаваме тумбнаил с параметрите
+            $companyLogoPath = thumbnail_Thumbnail::getLink($companyLogoFh, $size, $attr);
+        } elseif ($companyLogo) {
+            
+            // Намираме абсолютния път до файла
+            $companyLogoPath = sbf($companyLogo, '"', TRUE);
+        } 
         
         return $companyLogoPath;
     }

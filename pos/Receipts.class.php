@@ -88,18 +88,13 @@ class pos_Receipts extends core_Master {
 	 */
 	var $searchFields = 'contragentName';
 	
-	
-	/**
-     * 
-     */
-    var $filterDateField = 'createdOn';
-    
     
     /**
      * Описание на модела
      */
     function description()
     {
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,input=none');
     	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка на продажба');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
     	$this->FLD('contragentObjectId', 'int', 'input=none');
@@ -109,7 +104,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
     	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Затворен)', 
             'caption=Статус, input=none'
         );
         $this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0,summary=quantity');
@@ -153,6 +148,7 @@ class pos_Receipts extends core_Master {
     	$rec->contragentClass = core_Classes::getId('crm_Persons');
     	$rec->contragentObjectId = pos_Points::defaultContragent($posId);
     	$rec->pointId = $posId;
+    	$rec->valior = dt::now();
     	$this->requireRightFor('add', $rec);
     	$id = $this->save($rec);
     	
@@ -377,7 +373,15 @@ class pos_Receipts extends core_Master {
 		// Можем да контираме бележки само когато те са чернови и платената
 		// сума е по-голяма или равна на общата или общата сума е <= 0
 		if($action == 'conto' && isset($rec->id)) {
-			if($rec->state == 'active' || $rec->total <= 0 || $rec->paid < $rec->total) {
+			if($rec->state == 'active' || $rec->paid < $rec->total) {
+				$res = 'no_one';
+			}
+		}
+		
+		// Немогат да се оттеглявт бележки в затворен сч. период
+		if($action == 'reject'){
+			$period = acc_Periods::fetchByDate($rec->valior);
+			if($period->state == 'closed') {
 				$res = 'no_one';
 			}
 		}
@@ -513,7 +517,7 @@ class pos_Receipts extends core_Master {
     public static function rejectTransaction($id)
     {
         $rec = self::fetch($id, 'id,state,valior');
-        
+       
         if ($rec) {
             static::reject($id);
         }

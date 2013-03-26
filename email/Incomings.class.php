@@ -1331,7 +1331,7 @@ class email_Incomings extends core_Master
             $handle = $incomingInst->getHandle($id);
             
             // Текстова част
-            $text = "Моля запознайте се с препратения имейл #{$handle}.";    
+            $text = tr("Моля запознайте се с препратения имейл|* #{$handle}.");    
         } else {
             
             //Вербализираме датата
@@ -1452,6 +1452,10 @@ class email_Incomings extends core_Master
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
                     ),
                 'class=btn-eml, order=21');    
+            }
+            
+            // Ако е оттеглен, да не се препраща
+            if ($data->rec->state != 'rejected') {
                 
                 // Добавяме бутон за препращане на имейла
                 $data->toolbar->addBtn('Препращане', array(
@@ -1459,7 +1463,7 @@ class email_Incomings extends core_Master
                         'forward',
                         $data->rec->id,
                         'ret_url' => TRUE,
-                    ), 'class=btn-forward, order=20'
+                    ), 'class=btn-forward, order=20, row=2'
                 );
             }
         }

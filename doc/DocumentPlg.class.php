@@ -162,7 +162,7 @@ class doc_DocumentPlg extends core_Plugin
                             'Clone' => 'clone',
                             'ret_url'=>$retUrl
                         ),
-                        'class=btn-clone, order=14');    
+                        'class=btn-clone, order=14, row=2');    
                 }
             }
         }
@@ -174,7 +174,7 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                'ef_icon=img/16/application_view_list.png, order=18, title=' . tr('Всички ' . mb_strtolower($mvc->title)));    
+                'ef_icon=img/16/application_view_list.png, order=18, row=2, title=' . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
     }
@@ -315,14 +315,17 @@ class doc_DocumentPlg extends core_Plugin
         
         // Намира контейнера на документа
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
+            
+        // Възстановяваме (ако е необходимо) нишката ПРЕДИ да създадем/обновим контейнера
+        // Това гарантира, че абонатите на оттеглени нишки все пак ще получат нотификация за
+        // новопристигналия документ
+        if ($rec->threadId && $rec->state != 'rejected') {
+            doc_Threads::restoreThread($rec->threadId);
+        }
         
         // Ако е намерен контейнера - обновява го
         if($containerId) {
             doc_Containers::update($containerId);
-        }
-            
-        if ($rec->threadId && $rec->state != 'rejected') {
-            doc_Threads::restoreThread($rec->threadId);
         }
     }
     
@@ -903,13 +906,13 @@ class doc_DocumentPlg extends core_Plugin
             expect($data->rec = $mvc->fetch($id));
         }
         
-        $data->cacheKey = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
-        $data->threadCachedView = core_Cache::get($mvc->className, $data->cacheKey);
+//        $data->cacheKey = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
+//        $data->threadCachedView = core_Cache::get($mvc->className, $data->cacheKey);
         
-        if($data->threadCachedView === FALSE) {
+//        if($data->threadCachedView === FALSE) {
             // Подготвяме данните за единичния изглед
             $mvc->prepareSingle($data);
-        }
+//        }
         
         // MID се генерира само ако :
         //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
@@ -942,17 +945,17 @@ class doc_DocumentPlg extends core_Plugin
     {
         if($tpl) return;
         
-        if($data->threadCachedView === FALSE) {
+//        if($data->threadCachedView === FALSE) {
             $tpl = $mvc->renderSingle($data);
             $tpl->removeBlocks();
             $tpl->removePlaces();
             
-            if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
-                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  0.1 : 5);
-            }
-        } else {
-            $tpl = $data->threadCachedView;
-        }
+//            if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
+//                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  0.1 : 5);
+//            }
+//        } else {
+//            $tpl = $data->threadCachedView;
+//        }
         
         // Заместване на MID. Това няма да се изпълни ако сме в Print Preview. Не може да се
         // премести и в on_AfterRenderSingle, защото тогава ще се кешира стойността на MID,

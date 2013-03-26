@@ -45,9 +45,10 @@
 			<td class = 'summary-right'><b>[#change#]</b></td>
 		</tr>
 		<tr>
-			<td>|Създаден на|* &nbsp;&nbsp;<b>[#createdDate#]</b></td>
+			<td>|Създаден на|* &nbsp;&nbsp;<b>[#createdDate#]</b> 
+			 &nbsp;|от|* &nbsp;&nbsp;<b>[#createdBy#]</b></td>
 			<td></td>
-			<td>|от|* &nbsp;&nbsp;<b>[#createdBy#]</b></td>
+			<td></td>
 		</tr>
 	</table>
 		[#SALES#]

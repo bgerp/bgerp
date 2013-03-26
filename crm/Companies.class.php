@@ -1047,4 +1047,203 @@ class crm_Companies extends core_Master
         
         return FALSE;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Никой да не може да изтрива
+        if ($action == 'delete') {
+            $requiredRoles = 'no_one';
+        }
+    }
+    
+    
+    /**
+     * Премахва данните за нашата фирма - id на компанията, име на компанията, адрес, телефон, факс и имейли
+     * 
+     * @param std_Object &$contrData - Обект от който ще се премахва
+     */
+    static function removeOwnCompanyData(&$contrData)
+    {
+        // Записи за нашата компания
+        $ownCompany = static::fetchOwnCompany();
+        
+        // Ако id' то е в данните на контрагента
+        if ($ownCompany->companyId == $contrData->companyId) {
+            
+            // Премахваме id' тото 
+            $contrData->companyId = NULL;
+            
+            // Премахваме името на компанията
+            $contrData->company = NULL;
+        }
+        
+        // Ако името на компанията съвпада
+        if (mb_strtolower($ownCompany->company) == mb_strtolower($contrData->company)) {
+            
+            // Премахваме от списъка
+            $contrData->company = NULL;
+        }
+        
+        // Ако има открити телефони
+        if ($ownCompany->tel && $contrData->tel) {
+            
+            // Масив с телефони на нашата компания
+            $oTelArr = drdata_PhoneType::toArray($ownCompany->tel);
+            
+            // Масив с телефони на контрагента
+            $cTelArr = drdata_PhoneType::toArray($contrData->tel);
+            
+            // Обхождаме масива с телефони на нашата фирма
+            foreach ($oTelArr as $oTel) {
+                
+                // Обхождаме масива с телефони на контрагента
+                foreach ($cTelArr as $key => $cTel) {
+                    
+                    // Ако телефона е същия
+                    if (($cTel->countryCode == $oTel->countryCode) && ($cTel->areaCode == $oTel->areaCode)
+                        && ($cTel->number == $oTel->number)) {
+                            
+                        // Премахваме от масива на контрагента
+                        unset($cTelArr[$key]);
+                    }
+                }
+            }
+
+            // Обхождаме останалия масив
+            foreach ($cTelArr as $cTel) {
+                
+                // Добавяме в стринга телефона
+                $newCTel .= ($newCTel) ? ', ' . $cTel->original : $cTel->original;
+            }
+            
+            // Заместваме новия стринг с данните на котрагента
+            $contrData->tel = $newCTel;
+        }
+        
+        // Ако има открити факсове
+        if ($ownCompany->fax && $contrData->fax) {
+            
+            // Масив с факсове на нашата компания
+            $oFaxArr = drdata_PhoneType::toArray($ownCompany->fax);
+            
+            // Масив с факсове на контрагента
+            $cFaxArr = drdata_PhoneType::toArray($contrData->fax);
+
+            // Обхождаме масива с факсове на нашата фирма
+            foreach ($oFaxArr as $oFax) {
+                
+                // Обхождаме масива с факсове на контрагента
+                foreach ($cFaxArr as $key => $cFax) {
+                    
+                    // Ако факса е същия
+                    if (($cFax->countryCode == $oFax->countryCode) && ($cFax->areaCode == $oFax->areaCode)
+                        && ($cTel->number == $oFax->number)) {
+                            
+                        // Премахваме от масива на контрагента
+                        unset($cFaxArr[$key]);
+                    }
+                }
+            }
+            
+            // Обхождаме останалия масив
+            foreach ($cFaxArr as $cFax) {
+                
+                // Добавяме в стринга факса
+                $newCFax .= ($newCFax) ? ', ' . $cFax->original : $cFax->original;
+            }
+            
+            // Заместваме новия стринг с данните на котрагента
+            $contrData->fax = $newCFax;
+        }
+
+        // Ако адреса е същия
+        if (mb_strtolower($ownCompany->address) == mb_strtolower($contrData->address)) {
+            
+            // Премахваме от данните
+            $contrData->address = NULL;
+        }
+        
+        // Ако има имейли
+        if ($ownCompany->email && $contrData->email) {
+            
+            // Масив с имейлите на нашата компания
+            $oEmailArr = type_Emails::toArray($ownCompany->email);
+            
+            // Масив с имейлите на контрагента
+            $cEmailArr = type_Emails::toArray($contrData->email);
+            
+            // Ако има имейли
+            if (count($oEmailArr) && count($cEmailArr)) {
+                
+                // Ключа на масивите е същата със стойността
+                $oEmailArr = array_combine($oEmailArr, $oEmailArr);
+                $cEmailArr = array_combine($cEmailArr, $cEmailArr);
+                
+                // Обхождаме масива с имейли на нашата фирма
+                foreach ($oEmailArr as $oEmail) {
+                    
+                    // Ако стойността я има в масива на контрагента, премахваме го
+                    if ($cEmailArr[$oEmail]) unset($cEmailArr[$oEmail]);
+                }
+                
+                // Останалите имейли ги записваме в имейли, като стринг
+                $contrData->email = type_Emails::fromArray($cEmailArr);
+            }
+        }
+        
+        // Ако има групови имейли
+        if ($ownCompany->email && $contrData->groupEmails) {
+            
+            // Ако не сме намерили масива преди
+            if (!$oEmailArr) {
+                
+                // Всички имейли в масив
+                $oEmailArr = type_Emails::toArray($ownCompany->email);
+                
+                // Ако има стойнност
+                if (count($oEmailArr)) {
+                    
+                    // Ключовете да са равни със стойностите
+                    $oEmailArr = array_combine($oEmailArr, $oEmailArr);    
+                }
+            }
+            
+            // Масив с груповите имейли
+            $cGroupEmailArr = type_Emails::toArray($contrData->groupEmails);
+
+            // Ако има стойности в масива
+            if (count($cGroupEmailArr)) {
+                
+                // Ключовете да са равни със стойностите
+                $cGroupEmailArr = array_combine($cGroupEmailArr, $cGroupEmailArr);
+                
+                // Обхождаме масива с имейлите на нашата фирма
+                foreach ($oEmailArr as $oEmail) {
+                    
+                    // Ако имейла е в масива премахваме го от груповите
+                    if ($cGroupEmailArr[$oEmail]) unset($cGroupEmailArr[$oEmail]);
+                }
+            }
+            
+            // Останалите имейли ги записва в груповите
+            $contrData->groupEmails = type_Emails::fromArray($cGroupEmailArr);
+        }
+
+        // Ако сме премахнали имейлите и има имейли в групите
+        if (!$contrData->email && count($cGroupEmailArr)) {
+            
+            // Добавяме първия в имейлите
+            $contrData->email = key($cGroupEmailArr);
+        }
+    }
 }
