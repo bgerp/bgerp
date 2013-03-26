@@ -771,14 +771,8 @@ class doc_Containers extends core_Manager
         
         if($docRec->textPart) {
 
-            $lgRates = lang_Encoding::getLgRates($docRec->textPart);
+            $lg = i18n_Language::detect($docRec->textPart);
           
-            $lg = 'bg';
-            
-            $lgRates[$lg] = $lgRates[$lg] * 4;
-
-            $lg = arr::getMaxValueKey($lgRates);
-
         } else {
             $lg = $docRec->lg;
         }

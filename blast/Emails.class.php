@@ -1192,10 +1192,7 @@ class blast_Emails extends core_Master
     function getLanguage($body)
     {
         //Масив с всички предполагаеми езици
-        $lgRates = lang_Encoding::getLgRates($body);
-        
-        //Вземаме езика с най - много точки
-        $lg = arr::getMaxValueKey($lgRates);
+        $lg = i18n_Language::detect($body);
         
         //Ако езика не е bg, връщаме en
         if ($lg != 'bg') {

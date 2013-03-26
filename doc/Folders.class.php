@@ -710,7 +710,7 @@ class doc_Folders extends core_Master
     
 
     /**
-     *
+     * Поправка на структурата на папките
      */
     function repair()
     {
@@ -775,7 +775,32 @@ class doc_Folders extends core_Master
         return $res;
     }
     
+
+    /**
+     * Екшън за поправка на структурите в документната система
+     */
+    function act_Repair()
+    {
+        requireRole('admin');
+
+        core_Debug::$isLogging = FALSE;
+
+        $Folders = cls::get('doc_Folders');
+        set_time_limit($Folders->count());
+        $html .= $Folders->repair();
+        
+        $Containers = cls::get('doc_Containers');
+        set_time_limit($Containers->count());
+        $html .= $Containers->repair();
+
+        $Router = cls::get('email_Router');
+        set_time_limit($Router->count());
+        $html .= $Router->repair();
+
+        return new Redirect(array('core_Packs'), $html);
+    }
     
+
     /**
      * Връща иконата на папката според достъпа
      * 
