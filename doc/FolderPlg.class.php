@@ -192,7 +192,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
-            if(!$rec->folderId) {
+            if(!$rec->folderId || !doc_Folders::fetch($rec->folderId)) {
                 $rec->folderId = doc_Folders::createNew($mvc);
                 $mvc->save($rec);
             }
@@ -239,7 +239,7 @@ class doc_FolderPlg extends core_Plugin
         // Този синтаксис заобикаля предупрежденията на PHP5.4 за Deprecated: Call-time pass-by-reference
         // но е доста грозен
         // call_user_func_array(array($mvc, 'forceCoverAndFolder'), array(&$rec));
-        
+    
         $rec->folderId = $mvc->forceCoverAndFolder($rec);
  
         $res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId));
