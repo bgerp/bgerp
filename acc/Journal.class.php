@@ -296,7 +296,7 @@ class acc_Journal extends core_Master
     protected static function createReverseArticle($rec)
     {
         $articleRec = (object)array(
-            'reason' => tr('Сторниране на ') . $transaction->reason . ' / ' . $transaction->valior,
+            'reason' => tr('Сторниране на ') . $rec->reason . ' / ' . $rec->valior,
             'valior' => dt::now(),
             'totalAmount' => $rec->totalAmount,
             'state' => 'draft',
