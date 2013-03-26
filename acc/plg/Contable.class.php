@@ -54,14 +54,14 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->className,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторниране', $rejectUrl, 'id=revert,class=btn-revert,warning=Наистина ли желаете документа да бъде сторниран?');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,class=btn-revert,warning=Наистина ли желаете документа да бъде сторниран?');
         }
         
-    		if($data->rec->state == 'closed' && acc_Journal::haveRightFor('read')) {
-        		$journalRec = acc_Journal::fetch("#docId={$data->rec->id} && #docType='{$mvc::getClassId()}'");
-        		$journalUrl = array('acc_Journal', 'single', $journalRec->id);
-        		$data->toolbar->addBtn('Журнал', $journalUrl, '');
-        	}
+		if($data->rec->state == 'closed' && acc_Journal::haveRightFor('read')) {
+    		$journalRec = acc_Journal::fetch("#docId={$data->rec->id} && #docType='{$mvc::getClassId()}'");
+    		$journalUrl = array('acc_Journal', 'single', $journalRec->id);
+    		$data->toolbar->addBtn('Журнал', $journalUrl, '');
+    	}
     }
     
     
@@ -111,5 +111,56 @@ class acc_plg_Contable extends core_Plugin
                 }
             }
         }
+    }
+
+    
+    /**
+     * Контиране на счетоводен документ
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    {
+        if (is_object($id)) {
+            $id = $id->id;
+        }
+        
+        $res = acc_Journal::saveTransaction($mvc->getClassId(), $id);        
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        if (is_object($id)) {
+            $id = $id->id;
+        }
+        
+        $res = acc_Journal::rejectTransaction($mvc->getClassId(), $id);
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+        if (is_object($id)) {
+            $id = $id->id;
+        }
+        
+        $res = acc_Journal::saveTransaction($mvc->getClassId(), $id);
     }
 }

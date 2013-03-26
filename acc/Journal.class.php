@@ -153,85 +153,6 @@ class acc_Journal extends core_Master
     
     
     /**
-     * @todo Чака за документация...
-     * @todo Имплементация
-     */
-    private static function revertTransaction($docClassId, $docId)
-    {
-        if (!($rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId} AND #state = 'active'"))) {
-            //return FALSE;
-        }
-        
-        if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {
-            return FALSE;
-        }
-        $result = TRUE;
-        
-        if ($periodRec->state == 'closed') {
-            //
-            // Приключен период - записваме в журнала обратна транзакция.
-            //
-            
-            // 1. Създаваме "обратен" мастер в журнала с вальор - днешна дата:
-            $reverseRec = (object)array(
-                'valior' => dt::today(),
-                'totalAmount' => -$rec->totalAmount,
-                'state' => 'draft',
-                'docType' => $docClassId,
-                'docId' => $docId
-            );
-            
-            if ($result = self::save($reverseRec)) {
-                // 2. Създаваме "обратни" детайли в журнала
-                $query = acc_JournalDetails::getQuery();
-                $query->where("#journalId = {$rec->id}");
-                
-                while ($result && ($ent = $query->fetch())) {
-                    $reverseEnt = (object) array(
-                        'journalId' => $reverseRec->id,
-                        'amount' => -$ent->amount,
-                        'debitAccId' => $ent->debitAccId,
-                        'debitEnt1' => $ent->debitEnt1,
-                        'debitEnt2' => $ent->debitEnt2,
-                        'debitEnt3' => $ent->debitEnt3,
-                        'debitQuantity' => -$ent->debitQuantity,
-                        'debitPrice' => -$ent->debitPrice,
-                        'creditAccId' => $ent->creditAccId,
-                        'creditEnt1' => $ent->creditEnt1,
-                        'creditEnt2' => $ent->creditEnt2,
-                        'creditEnt3' => $ent->creditEnt3,
-                        'creditQuantity' => -$ent->creditQuantity,
-                        'creditPrice' => -$ent->creditPrice,
-                    );
-                    
-                    $result = acc_JournalDetails::save($ent);
-                }
-                
-                if (!$result) {
-                    // Rollback!!! Изтриваме всичко, направено до момента
-                    self::rollbackTransaction($reverseRec->id);
-                }
-            }
-        }
-        
-        if ($result) {
-            //
-            // маркираме оригиналната транзакция като reject-ната
-            //
-            $rec->rejected = TRUE;
-            $rec->state = 'revert';
-            
-            $result = self::save($rec);
-            
-            $reverseRec->state = 'active';
-            self::save($reverseRec, 'state');
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
      * Контиране на счетоводен документ.
      *
      * Документа се задава чрез двойката параметри в URL `docId` и `docType`. Класът, зададен
@@ -250,33 +171,10 @@ class acc_Journal extends core_Master
         
         $mvc->requireRightFor('conto', $docId);
         
-        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
-        
-        if (!($transaction = $docClass->getTransaction($docId))) {
-            core_Message::redirect(
-                "Невъзможно контиране",
-                'page_Error',
-                NULL,
-                array($mvc, 'single', $rec->id)
-            );
-        }
-        
-        $transaction->docType = $docClassId;
-        $transaction->docId = $docId;
-        
         try {
-            $transaction = new acc_journal_Transaction($transaction);
-            $success     = $transaction->save();
+            $message = $mvc->conto($docId);
         } catch (core_exception_Expect $ex) {
             redirect(array('acc_Accounts'), FALSE, "Грешка при контиране: " . $ex->args(1));
-        }
-        
-        // Нотифицира мениджъра на документа за успешно приключилата транзакция
-        if ($success) {
-            $docClass->finalizeTransaction($docId);
-            $message = 'Документът е контиран успешно';
-        } else {
-            $message = 'Грешка при контиране';
         }
         
         return followRetUrl(array($mvc, 'single', $docId), $message /*, $success ? 'success' : 'error'*/);
@@ -302,7 +200,7 @@ class acc_Journal extends core_Master
         
         $mvc->requireRightFor('revert', $docId);
         
-        if (!self::revertTransaction($docClassId, $docId)) {
+        if (!$result = self::rejectTransaction($docClassId, $docId)) {
             core_Message::redirect(
                 "Невъзможно сторниране",
                 'page_Error',
@@ -311,9 +209,41 @@ class acc_Journal extends core_Master
             );
         }
         
-        $mvc->reject($docId);
+        list($docClassId, $docId) = $result;
         
-        return new Redirect(array($mvc, 'single', $docId));
+        return new Redirect(array($docClassId, 'single', $docId));
+    }
+    
+    
+    /**
+     * Записва счетоводната транзакция, породена от документ
+     * 
+     * Документът ($docClassId, $docId) ТРЯБВА да поддържа интерфейс acc_TransactionSourceIntf
+     * 
+     * @param int $docClassId
+     * @param int $docId
+     */
+    public static function saveTransaction($docClassId, $docId)
+    {
+        $mvc      = cls::get($docClassId);
+        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        
+        expect($transaction = $docClass->getTransaction($docId));
+        
+        $transaction->docType = $mvc->getClassId();
+        $transaction->docId   = $docId;
+        
+        $transaction = new acc_journal_Transaction($transaction);
+        
+        if ($success = $transaction->save()) {
+            // Нотифицира мениджъра на документа за успешно приключилата транзакция
+            $docClass->finalizeTransaction($docId);
+            $success = 'Документът е контиран успешно';
+        } else {
+            $success = 'Документът НЕ Е контиран';
+        }
+
+        return $success;
     }
     
     
@@ -328,5 +258,122 @@ class acc_Journal extends core_Master
         $transaction = new acc_journal_Transaction($transaction);
         
         return $transaction->check();
+    }
+
+
+    /**
+     * @todo Чака за документация...
+     * @todo Имплементация
+     */
+    public static function rejectTransaction($docClassId, $docId)
+    {
+        if (!($rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId}"))) {
+            return FALSE;
+        }
+    
+        if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {
+            return FALSE;
+        }
+    
+        if ($periodRec->state == 'closed') {
+            return static::createReverseArticle($rec);
+        } else {
+            return static::deleteTransaction($rec);
+        }
+    }
+    
+    
+    /**
+     * Създава нов МЕМОРИАЛЕН ОРДЕР-чернова, обратен на зададения документ.
+     * 
+     * Контирането на този МО би неутрализирало счетоводния ефект, породен от контирането на 
+     * оригиналния документ, зададен с <$docClass, $docId>
+     * 
+     * @param int $docClassId
+     * @param int $docId
+     */
+    protected static function createReverseArticle($rec)
+    {
+        $articleRec = (object)array(
+            'reason' => tr('Сторниране на ') . $transaction->reason . ' / ' . $transaction->valior,
+            'valior' => dt::now(),
+            'totalAmount' => $rec->totalAmount,
+            'state' => 'draft',
+        );
+        
+        /* @var $journalDetailsQuery core_Query */
+        $journalDetailsQuery = acc_JournalDetails::getQuery();
+        $entries = $journalDetailsQuery->fetchAll("#journalId = {$rec->id}");
+        
+        /* @var $mvc core_Manager */
+        $mvc = cls::get($rec->docType);
+        
+        if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
+            $mvcRec = $mvc->fetch($rec->docId);
+            
+            $articleRec->folderId = $mvcRec->folderId;
+            $articleRec->threadId = $mvcRec->threadId;
+            $articleRec->originId = $mvcRec->containerId;
+        } else {
+            $articleRec->folderId = doc_UnsortedFolders::forceCoverAndFolder('Сторно');
+        }
+        
+        if (!$articleId = acc_Articles::save($articleRec)) {
+            return FALSE;
+        }
+        
+        foreach ($entries as $entry) {
+            $articleDetailRec = array(
+                'articleId'      => $articleId,
+                'debitAccId'     => $entry->debitAccId,
+                'debitEnt1'      => $entry->debitItem1,
+                'debitEnt2'      => $entry->debitItem2,
+                'debitEnt3'      => $entry->debitItem3,
+                'debitQuantity'  => -$entry->debitQuantity,
+                'debitPrice'     => $entry->debitPrice,
+                'creditAccId'    => $entry->creditAccId,
+                'creditEnt1'     => $entry->creditItem1,
+                'creditEnt2'     => $entry->creditItem2,
+                'creditEnt3'     => $entry->creditItem3,
+                'creditQuantity' => -$entry->creditQuantity,
+                'creditPrice'    => $entry->creditPrice,
+                'amount'         => -$entry->amount,
+            );
+            
+            if (!$bSuccess = acc_ArticleDetails::save((object)$articleDetailRec)) {
+                break;
+            }
+        }
+        
+        if (!$bSuccess) {
+            // Възникнала е грешка - изтриваме всичко!
+            acc_Articles::delete($articleId);
+            acc_ArticleDetails::delete("#articleId = {$articleId}");
+            
+            return FALSE;
+        }
+        
+        return array('acc_Articles', $articleId);
+    }
+    
+    
+    public static function deleteTransaction($docClassId, $docId = NULL)
+    {
+        if (is_object($docClassId)) {
+            $rec = $docClassId;
+            $docId = $rec->docId;
+        } else {
+            $rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
+        }
+        
+        if (!$rec) {
+            return FALSE;
+        }
+
+        acc_JournalDetails::delete("#journalId = $rec->id");
+        
+        static::delete($rec->id);
+        
+        return array($docClassId, $docId);
     }
 }
