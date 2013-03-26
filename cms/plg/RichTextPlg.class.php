@@ -16,16 +16,16 @@
 class cms_plg_RichTextPlg extends core_Plugin
 {
     /**
-     * Обработваме елементите линковете, които сочат към докъментната система
+     * Обработваме елементите линковете, които сочат към докоментната система
      */
-    function on_BeforeCatchRichElements($mvc, &$html)
+    function on_AfterCatchRichElements($mvc, &$html)
     {
        
         $this->mvc = $mvc;
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         // Обработваме елементите [images=????]  
-        $html = preg_replace_callback("/\[img(=\#([^\]]*)|)\]\s*/si", array($this, 'catchImages'), $html);
+        $html = preg_replace_callback("/\[img=\#(([^\]]*)|)\]\s*/si", array($this, 'catchImages'), $html);
         $html = preg_replace_callback("/\[gallery(=\#([^\]]*)|)\]\s*/si", array($this, 'catchGallery'), $html);
     }
 
