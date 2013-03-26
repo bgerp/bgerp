@@ -138,9 +138,8 @@ class cat_UoM extends core_Manager
      * @return double - Конвертираната стойност
      */
     public static function convertValue($value, $from, $to){
-    	$fromRec = static::fetch($from);
-    	$toRec = static::fetch($to);
-    	expect($fromRec && $toRec, "Проблем при извличането на една от мерките");
+    	expect($fromRec = static::fetch($from), 'Проблем при изчислението на първата валута');
+    	expect($toRec = static::fetch($to), 'Проблем при изчислението на втората валута');
     	
     	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
@@ -150,7 +149,7 @@ class cat_UoM extends core_Manager
     	$rate = $fromRec->baseUnitRatio / $toRec->baseUnitRatio;
     	
     	// Форматираме резултата да се показва правилно числото
-    	$rate = number_format($rate, 4, '.', '');
+    	$rate = number_format($rate, 9, '.', '');
     	
     	return $value * $rate;
     }
