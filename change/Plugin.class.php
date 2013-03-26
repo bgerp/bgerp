@@ -84,6 +84,9 @@ class change_Plugin extends core_Plugin
         
         // Очакваме потребителя да има права за съответния запис
         $mvc->requireRightFor('single', $rec);
+
+        // Генерираме събитие в $this, след въвеждането на формата
+        $mvc->invoke('AfterInputEditForm', array($form));
         
         // URL' то където ще се редиректва
         $retUrl = getRetUrl();
@@ -107,14 +110,18 @@ class change_Plugin extends core_Plugin
             return redirect($retUrl);
         }
         
-        // Обхождаме стария запис
-        foreach ((array)$rec as $key => $value) {
+        // Ако няма грешки
+        if (!$form->gotErrors()) {
             
-            // Ако е в полетата, които ще се променята
-            if (!$allowedFieldsArr[$key]) continue;
-            
-            // Добавяме старта стойност
-            $form->rec->{$key} = $value;
+            // Обхождаме стария запис
+            foreach ((array)$rec as $key => $value) {
+                
+                // Ако е в полетата, които ще се променята
+                if (!$allowedFieldsArr[$key]) continue;
+                
+                // Добавяме старта стойност
+                $form->rec->{$key} = $value;
+            }    
         }
 
         // Задаваме да се показват само полетата, които ни интересуват
