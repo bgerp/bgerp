@@ -77,7 +77,8 @@ class cat_RecipeDetails extends core_Detail {
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	// Филтрираме продуктите така че да немогат да се добавят
-    	// продукти които използват вече текущия продукт
+    	// продукти които използват вече текущия продукт, както
+    	// и продукти които са вече част от рецептата
     	$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->recipeId));
     }
     
@@ -102,14 +103,26 @@ class cat_RecipeDetails extends core_Detail {
     			// Ако няма мярка приемаме че е основната на продукта
     			$rec->dUom = $productUom;
     		}
-    		
-    		// Проверяваме имали вече запис със същата съставка,
-    		// ако да я обновяваме
-    		//@TODO да го махна и да филтрирам опциите
-    		if($detail = static::fetch("#recipeId={$rec->recipeId} AND #dProductId={$rec->dProductId} AND #dUom={$rec->dUom}")){
-    			$detail->quantity += $rec->quantity;
-    			$rec = $detail;
-    		}
+    	}
+    }
+
+    
+    /**
+     * Помощна функция която записва в един масив всички
+     * продукти които са част от дървото на рецептата
+     * @param int $productId - Id на продукта
+     * @param array $children - Масив събиращ децата
+     * @param boolean $root - Дали poductId е корена на дървото
+     */
+   public function getChildren($productId, &$children, $root = FALSE){
+    	if(!array_key_exists($productId, $children) && !$root){
+    		$children[$productId] = $productId;
+    	}
+    	$ingredients = cat_Recipes::getIngredients($productId);
+    	if($ingredients){
+    		foreach($ingredients as $ing){
+    			$res = $this->getChildren($ing->productId, $children);
+	    	}
     	}
     }
     
