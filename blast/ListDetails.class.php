@@ -566,13 +566,7 @@ class blast_ListDetails extends core_Detail
     static function getFileContent($fh)
     {
         $csv = fileman_Files::getContent($fh);
-        
-        $res = lang_Encoding::analyzeCharsets($csv);
-        $charset = arr::getMaxValueKey($res->rates);
-        
-        if($charset && ($charset != 'UTF-8')) {
-            $csv = iconv($charset, 'UTF-8//IGNORE', $csv);
-        }
+        $csv = i18n_Charset::convertToUtf8($csv);
         
         return $csv;
     }

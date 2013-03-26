@@ -209,8 +209,7 @@ class email_Mime extends core_BaseClass
     function getLg()
     {
         if(!isset($this->lg)) {
-            $lgRates = lang_Encoding::getLgRates($this->textPart);
-            $this->lg = arr::getMaxValueKey($lgRates);
+            $this->lg = i18n_Language::detect($this->textPart);
         }
 
         return $this->lg;
@@ -375,6 +374,21 @@ class email_Mime extends core_BaseClass
     {
         return $this->htmlFile;
     }
+    
+
+    /**
+     * Връща съдържанието на HTML часта, ако такава има
+     */
+    function getHtml()
+    {
+        if($this->firstHtmlIndex) {
+            $p = $this->parts[$this->firstHtmlIndex];
+
+            $html = i18n_Charset::convertToUtf8($p->data, $p->charset, TRUE);
+        }
+
+        return $html;
+    }
 
 
     /**
@@ -382,7 +396,7 @@ class email_Mime extends core_BaseClass
      */
     function saveFiles()
     {
-        foreach($this->files as $id => &$fRec) {
+        foreach($this->files as $id => &$fRec) { 
             if(!$fRec->fmId) {
                 $fRec->fmId = $this->addFileToFileman($fRec->data, $fRec->name);
             }
@@ -639,26 +653,31 @@ class email_Mime extends core_BaseClass
      * Декодира хедърната част част
      */
     static function decodeHeader($val, $charset = NULL)
-    {   
+    {
         // Ако стойността на хедъра е 7-битова, той може да е кодиран
-        if(lang_Encoding::is7Bit($val)) {
+        if(i18n_Charset::is7Bit($val) || strpos($val, '=?')) {
             
             $imapDecodeArr = @imap_mime_header_decode($val);
             
             $decoded = '';
-            
+
             if (count($imapDecodeArr) > 0) {
-                foreach ($imapDecodeArr as $value) {
-                    $decoded .= lang_Encoding::convertToUtf8($value->text, $value->charset);
+                foreach ($imapDecodeArr as $id => $value) {
+                    if($imapDecodeArr[$id+1]->charset &&  $imapDecodeArr[$id+1]->charset == $value->charset) {
+                        $acumText .= $value->text;
+                    } else {
+                        $decoded .= i18n_Charset::convertToUtf8($acumText . $value->text, $value->charset);
+                        $acumText = '';
+                    }
                 }
             } else {
                 $decoded = $val;
             }
         } else {
 
-            $decoded = lang_Encoding::convertToUtf8($val, $charset);
+            $decoded = i18n_Charset::convertToUtf8($val, $charset);
         }
-        
+
         return $decoded;
     }
 
@@ -724,7 +743,11 @@ class email_Mime extends core_BaseClass
         
         // Ако по никакъв начин не сме успели да определим типа, приемаме че е 'TEXT'
         if(empty($p->type)) {
-            $p->type = 'TEXT';
+            if(!$p->name) {
+                $p->type = 'TEXT';
+            } else {
+                $p->type = 'X-UNKNOWN';
+            }
         }
         
         $knownSubTypes = array('PLAIN', 'HTML');
@@ -742,13 +765,13 @@ class email_Mime extends core_BaseClass
             }
         }
         
-        $p->charset = lang_Encoding::canonizeCharset($p->charset);
+        $p->charset = i18n_Charset::getCanonical($p->charset);
         
         // Парсираме хедър-а 'Content-Transfer-Encoding'
         $cte = $this->extractHeader($p, 'Content-Transfer-Encoding');
         
         if($cte[0]) {
-            $p->encoding = lang_Encoding::canonizeEncoding($cte[0]);
+            $p->encoding = i18n_Encoding::getCanonical($cte[0]);
         }
         
         // Парсираме хедър-а 'Content-Disposition'
@@ -823,7 +846,7 @@ class email_Mime extends core_BaseClass
             // Конвертиране към UTF-8
             if($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') && ($p->attachment != 'attachment')) {
                 
-                $text = lang_Encoding::convertToUtf8($data[1], $p->charset, $p->subType);
+                $text = i18n_Charset::convertToUtf8($data[1], $p->charset, $p->subType == 'HTML');
                 
                 // Текстовата част, без да се гледа HTML частта
                 if ($p->subType == 'PLAIN') $this->justTextPart = $text;
@@ -836,10 +859,10 @@ class email_Mime extends core_BaseClass
                 
                 // Отдаваме предпочитания на плейн-частта, ако идва от bgERP
                 if($p->subType == 'PLAIN') {
-                    $textRate = $textRate * 1.5;
+                    $textRate = $textRate * 0.8;
                     
                     if($this->getHeader('X-Bgerp-Thread')) {
-                        $textRate = $textRate * 1.5;
+                        $textRate = $textRate * 1.8;
                     }
 
                     // Ако обаче, текст часта съдържа значително количество HTML елементи,
@@ -866,8 +889,10 @@ class email_Mime extends core_BaseClass
                         $this->bestTextIndex = $index;
                     }
                     $this->bestTextRate = $textRate;
+                    $this->charset = i18n_Charset::getCanonical($p->charset);
+                    $this->detectedCharset = i18n_Charset::detect($data[1], $p->charset, $p->subType == 'HTML');
                 }
-                
+               
                 if($p->subType == 'HTML' && (!$this->firstHtmlIndex) && ($textRate > 1 || (stripos($data[1], '<img ') === FALSE))) {
                     
                     $this->firstHtmlIndex = $index;
@@ -880,6 +905,8 @@ class email_Mime extends core_BaseClass
                 $p->filemanId = $this->addFile($data[1], $fileName, 'inline', $cid);
             }
         }
+
+        
     }
     
     
@@ -887,19 +914,19 @@ class email_Mime extends core_BaseClass
      * Връща рейтинга на текст
      * Колкото е по-голям рейтинга, толкова текста е по-съдържателен
      */
-    private function getTextRate($text)
+    static function getTextRate($text)
     {
         $textRate = 0;
         $text = str_replace('&nbsp;', ' ', $text);
         $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
         
         if(trim($text, " \n\r\t" . chr(194) . chr(160))) {
-            $textRate += 1;
-            $words = preg_replace('/[^\pL\p{Zs}\d]+/u', ' ', $text);
-            
+            $textRate += 1; 
+            $words = preg_replace('/[^\d\pL\p{Zs}]+/u', ' ', $text);
+            $words = str_replace(' ', '', $words);
             $textRate += mb_strlen($words);
         }
-        
+
         return $textRate;
     }
 

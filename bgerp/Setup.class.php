@@ -66,6 +66,16 @@ class bgerp_Setup {
     
     
     /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+           
+       'Поправка' => array ('doc_folders', 'repair'),
+    
+    );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install($Plugins = NULL)
@@ -160,11 +170,6 @@ class bgerp_Setup {
         
         $html .= $Menu->repair();
         
-        $Folders = cls::get('doc_Folders');
-        // $html .= $Folders->repair();
-        
-        $Containers = cls::get('doc_Containers');
-        // $html .= $Containers->repair();
 
         return $html;
     }

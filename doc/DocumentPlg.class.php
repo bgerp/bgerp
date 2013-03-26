@@ -906,13 +906,13 @@ class doc_DocumentPlg extends core_Plugin
             expect($data->rec = $mvc->fetch($id));
         }
         
-        $data->cacheKey = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
-        $data->threadCachedView = core_Cache::get($mvc->className, $data->cacheKey);
+//        $data->cacheKey = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
+//        $data->threadCachedView = core_Cache::get($mvc->className, $data->cacheKey);
         
-        if($data->threadCachedView === FALSE) {
+//        if($data->threadCachedView === FALSE) {
             // Подготвяме данните за единичния изглед
             $mvc->prepareSingle($data);
-        }
+//        }
         
         // MID се генерира само ако :
         //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
@@ -945,17 +945,17 @@ class doc_DocumentPlg extends core_Plugin
     {
         if($tpl) return;
         
-        if($data->threadCachedView === FALSE) {
+//        if($data->threadCachedView === FALSE) {
             $tpl = $mvc->renderSingle($data);
             $tpl->removeBlocks();
             $tpl->removePlaces();
             
-            if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
-                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  0.1 : 5);
-            }
-        } else {
-            $tpl = $data->threadCachedView;
-        }
+//            if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
+//                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  0.1 : 5);
+//            }
+//        } else {
+//            $tpl = $data->threadCachedView;
+//        }
         
         // Заместване на MID. Това няма да се изпълни ако сме в Print Preview. Не може да се
         // премести и в on_AfterRenderSingle, защото тогава ще се кешира стойността на MID,

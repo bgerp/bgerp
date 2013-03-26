@@ -127,7 +127,16 @@
 </div>
 
 <!-- END Блок долу -->
+
+<!--ET_BEGIN changeLog-->
+    <div class='change-log clearfix21'>
+        <span class='change-log-title'>|Лог|*</span>
+        [#changeLog#]
+    </div>
+<!--ET_END changeLog-->
+
 </div>
+
 <div style='clear: both;'></div>
 
 </div>

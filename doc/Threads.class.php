@@ -416,7 +416,7 @@ class doc_Threads extends core_Manager
         
         $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Преместване в папка на нова фирма');
         
-        $exp->question("#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website", "Моля, въведете контактните данни на лицето:", "#dest == 'newPerson'", 'title=Преместване в папка на нова фирма');
+        $exp->question("#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website", "Моля, въведете контактните данни на лицето:", "#dest == 'newPerson'", 'title=Преместване в папка на ново лице');
 
         $exp->rule('#folderId', "getPersonFolder(#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website)", TRUE);
 

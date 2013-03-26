@@ -3,17 +3,17 @@
 
 
 /**
- * Клас 'cat_setup_UoM'
+ * Клас 'cat_setup_Categories'
  *
  *
  * @category  bgerp
  * @package   cat
- * @author    Milen Georgiev <milen@download.bg>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_setup_UoM extends core_Mvc
+class cat_setup_Categories extends core_Mvc
 {
     
     
@@ -22,9 +22,9 @@ class cat_setup_UoM extends core_Mvc
      */
     static function setup()
     {
-        $csvFile = __DIR__ . "/csv/UoM.csv";
+        $csvFile = __DIR__ . "/csv/Categories.csv";
     	
-        $Units = cls::get('cat_UoM');
+        $Products = cls::get('cat_Categories');
         
         $created = $updated = 0;
         
@@ -32,25 +32,23 @@ class cat_setup_UoM extends core_Mvc
             while (($csvRow = fgetcsv($handle, 2000, ",")) !== FALSE) {
                 $rec = new stdClass();
                 $rec->name = $csvRow[0];
-                $rec->shortName = $csvRow[1];
-                $rec->baseUnitId = $Units->fetchField(array("#name = '[#1#]'", $csvRow[2]), 'id');     /* escape data! */
-                $rec->baseUnitRatio = $csvRow[3];
-                $rec->state = $csvRow[4];
+                $rec->info = $csvRow[1];
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
+                
                 // Ако има запис с този 'name'
-                if($rec->id = $Units->fetchField(array("#name = '[#1#]'", $csvRow[0]), 'id')){
+                if($rec->id = $Products->fetchField(array("#name = '[#1#]'", $rec->name), 'id')){
                  	$updated++;
                 } else {
                     $created++;
                 }
-
-                $Units->save($rec, NULL, 'IGNORE');
+               
+                $Products->save($rec, NULL, 'IGNORE');
             }
             
             fclose($handle);
             
             $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
-            $res .= "Създадени {$created} нови мерни еденици, обновени {$updated} съществуващи мерни еденици.</li>";
+            $res .= "Създадени {$created} нови категории, обновени {$updated} съществуващи категории.</li>";
         } else {
         	$res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }

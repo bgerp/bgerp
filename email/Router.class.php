@@ -569,4 +569,45 @@ class email_Router extends core_Manager
         
         return ob_get_clean();
     }
+
+
+    /**
+     * Поправя загубените връзки на данните от този модел
+     */
+    function repair()
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch()) {
+            if($rec->objectType == 'company') {
+                if(!crm_Companies::fetch($rec->objectId)) {
+                    self::delete($rec->id);
+                    $missedCompanies .= ', ' . $rec->objectId;
+                }
+            } elseif($rec->objectType == 'person') {
+                if(!crm_Persons::fetch($rec->objectId)) {
+                    self::delete($rec->id);
+                    $missedPersons .= ', ' . $rec->objectId;
+                }
+            } elseif($rec->objectType == 'document') {
+                if(!doc_Containers::fetch($rec->objectId)) {
+                    self::delete($rec->id);
+                    $missedDocuments .= ', ' . $rec->objectId;
+                }
+            }
+        }
+        
+        if($missedCompanies) {
+            $html .= "<li> Липсващи фирми: {$missedCompanies} </li>";
+        }
+        
+        if($missedPersons) {
+            $html .= "<li> Липсващи лица: {$missedPersons} </li>";
+        }
+
+        if($missedDocuments) {
+            $html .= "<li> Липсващи документи: {$missedDocuments} </li>";
+        }
+
+        return $html;
+    }
 }
