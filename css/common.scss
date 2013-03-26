@@ -442,7 +442,9 @@ div.hFormField {
     background-color:#ccc; 
     border:solid 1px #aaa;
 }
-
+.vertical input{
+	margin-left:2px;
+}
 .narrow .vertical .formToolbar { 
     padding:0 11px 5px 11px !important;
     background-color:#ffe;
@@ -490,10 +492,6 @@ input[type="text"]{
     display:table;
 }
 
-.hasDatepick{
-	margin-left:0px;
-}
-
 .hFormField .hasDatepick{
 	margin-left:1px;
 }
@@ -504,6 +502,7 @@ input[type="text"]{
 
 .chzn-container{
 	top:0px;
+	margin-left:2px;
 	height:25px;
 }
 
