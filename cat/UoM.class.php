@@ -127,4 +127,31 @@ class cat_UoM extends core_Manager
     	
     	return $options;
     }
+    
+    
+    /**
+     * Функция която конвертира стойност от една мярка в друга
+     * сродна мярка
+     * @param double $value - Стойноста за конвертиране
+     * @param int $from - Id на мярката от която ще обръщаме
+     * @param int $to - Id на мярката към която конвертираме
+     * @return double - Конвертираната стойност
+     */
+    public static function convertValue($value, $from, $to){
+    	$fromRec = static::fetch($from);
+    	$toRec = static::fetch($to);
+    	expect($fromRec && $toRec, "Проблем при извличането на една от мерките");
+    	
+    	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
+    	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
+    	
+    	// Очакваме двете мерки да имат една обща основна мярка
+    	expect($baseFromId == $baseToId, "Неможе да се конвертира от едната мярка в другата");
+    	$rate = $fromRec->baseUnitRatio / $toRec->baseUnitRatio;
+    	
+    	// Форматираме резултата да се показва правилно числото
+    	$rate = number_format($rate, 4, '.', '');
+    	
+    	return $value * $rate;
+    }
 }
