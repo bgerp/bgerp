@@ -101,7 +101,7 @@ class fileman_Download extends core_Manager {
                 $dRec->expireOn = $time;
             }
             
-            $link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
+            $link = static::getSbfDownloadUrl($dRec, TRUE);
             
             static::save($dRec);
             
@@ -144,7 +144,7 @@ class fileman_Download extends core_Manager {
         static::save($rec);
         
         // Връщаме линка за сваляне
-        return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
+        return static::getSbfDownloadUrl($rec, TRUE);
     }
     
     
@@ -513,11 +513,8 @@ class fileman_Download extends core_Manager {
      */
     static function getSbfDownloadUrl($rec, $absolute=FALSE)
     {
-         // Името на файла
-        $fileName = fileman_Download::getVerbal($rec, 'fileName');
-        
         // Линка на файла
-        $link = sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $fileName, '', $absolute);
+        $link = sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', $absolute);
         
         return $link;
     }
