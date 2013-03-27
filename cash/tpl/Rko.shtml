@@ -50,7 +50,7 @@
 			<table border='0'>
 			<tr>
 				<td id='notes' >|Бележки|*: &nbsp;&nbsp;[#notes#]</td>
-				<td>
+				<td style='vertical-align:middle !important'>
 				<!--ET_BEGIN equals-->
 					<div id ='misc'>
 					<span class='labels'>|Курс|*:</span> &nbsp;&nbsp;<b>[#rate#]</b><br>
