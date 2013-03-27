@@ -147,7 +147,7 @@ class cal_Tasks extends core_Master
                                     high=висок,
                                     critical=критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
-        $this->FLD('description',      'richtext', 'caption=Описание,mandatory');
+        $this->FLD('description',     'richtext(bucket=crmFiles)', 'caption=Описание,mandatory');
 
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory');
