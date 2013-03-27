@@ -89,8 +89,8 @@ class price_ListRules extends core_Detail
         $this->FLD('validFrom', 'datetime', 'caption=В сила->От');
         $this->FLD('validUntil', 'datetime', 'caption=В сила->До');
     }
-
-
+    
+	
     /**
      * Връща цената за посочения продукт
      */
@@ -403,7 +403,7 @@ class price_ListRules extends core_Detail
         $row->ROW_ATTR['class'] .= " state-{$state}";
     }
 
-
+	
     /**
      * Преди извличане на записите от БД
      *
@@ -414,6 +414,10 @@ class price_ListRules extends core_Detail
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#validFrom,#id', 'DESC');
+        
+    	if($productId = Request::get('product')){
+			$data->query->where("#productId = {$productId}");
+		}
     }
 
     
