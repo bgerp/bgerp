@@ -24,7 +24,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 }
 
 // Колко време е валидно заключването - в секунди
-DEFINE ('SETUP_LOCK_PERIOD', 180);
+DEFINE ('SETUP_LOCK_PERIOD', 1);
 
 defIfNot('BGERP_GIT_BRANCH', 'dev');
 
