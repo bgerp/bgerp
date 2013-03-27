@@ -954,7 +954,7 @@ table.mc-header a {
 	border: none;
 	background: transparent;
 	@include no-shadow();
-	padding: 2px 5px 5px 5px;
+	padding: 2px 4px 5px 4px;
 	margin-bottom: 0px;
 	float: left;
 	margin-right: 0px;
@@ -1241,7 +1241,8 @@ ul.history {
 	list-style: none;
 	&.summary {
 		font-size: 0.75em;
-		margin-left:5px;
+		width: 100px;
+		margin: 0 auto;
 		li span {
 			color: #333;
 		}
@@ -1317,14 +1318,15 @@ ul.history {
 div.sharing-history {
 	border: none;
 	border-top: 1px solid #ccc;
-	padding: 3px;
+	padding: 5px;
 	margin-left: 0px;
 	margin-right: 0px;
-	padding-left:110px;
+	margin-top: 10px;
 	position: relative;
 	color: #555;
 	font-size: 0.9em;
 	clear: both;
+	padding-right: 120px;
 }
 
 div.change-log {
@@ -1338,17 +1340,16 @@ div.change-log {
 	color: #555;
 	font-size: 0.9em;
 	clear: both;
-	padding-right: 120px;
 }
 
 span.sharing-history-title {
 	padding: 2px 5px;
 	padding-left: 23px;
-	background: #eee url(../img/share2.png) no-repeat 3px center;
+	background: #eee url(../img/share.png) no-repeat 3px center;
 	position: absolute;
 	display: block;
 	top: 0;
-	left : 0;
+	right : 0;
 	border: 1px solid #ccc;
 	border-top: none;
 	color: #777;
@@ -1756,6 +1757,7 @@ input.combo.pCode{
 
 .gravatar-box{
 	margin:6px !important;
+	text-align:center;
 }
 
 /*стилове за документи*/
@@ -1983,8 +1985,9 @@ table.styled-table tr:hover td {
 }
 
 .addintional-info{
-	padding:15px;
-	border:1px solid #ffffcc;
-	background-color:#ffffe1;
-
+	border-top:1px solid #ccc;
+	padding:10px;
+	background-color: rgba(240,240,255,0.5);
+	border: solid 1px #ddddff;
+	
 }
