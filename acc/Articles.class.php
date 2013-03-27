@@ -254,58 +254,6 @@ class acc_Articles extends core_Master
         return $result;
     }
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function conto_($recId)
-    {
-        $rec = $this->fetch($recId);
-        
-        $this->updateAmount($rec->id);
-        
-        $query = acc_ArticleDetails::getQuery();
-        $query->where("#articleId = {$rec->id}");
-        
-        $entries = array();
-        
-        while ($entry = $query->fetch()) {
-            $entries[] = (object)array(
-                'amount' => $entry->amount,
-                'debitAccId' => $entry->debitAccId,
-                'debitEnt1' => $entry->debitEnt1,
-                'debitEnt2' => $entry->debitEnt2,
-                'debitEnt3' => $entry->debitEnt3,
-                'debitQuantity' => $entry->debitQuantity,
-                'debitPrice' => $entry->debitPrice,
-                'creditAccId' => $entry->creditAccId,
-                'creditEnt1' => $entry->creditEnt1,
-                'creditEnt2' => $entry->creditEnt2,
-                'creditEnt3' => $entry->creditEnt3,
-                'creditQuantity' => $entry->creditQuantity,
-                'creditPrice' => $entry->creditPrice,
-            );
-        }
-        
-        $res = acc_Journal::recordTransaction(
-            $this,
-            (object)array(
-                'reason' => $rec->reason,
-                'valior' => $rec->valior,
-                'docId' => $rec->id,
-                'totalAmount' => $rec->totalAmount,
-            ),
-            $entries
-        );
-        
-        if ($res !== false) {
-            $rec->state = 'active';
-            $this->save($rec);
-        }
-        
-        return $res;
-    }
-    
     /*******************************************************************************************
      * 
      *     Имплементация на интерфейса `acc_TransactionSourceIntf`
@@ -339,20 +287,24 @@ class acc_Articles extends core_Master
         $query = acc_ArticleDetails::getQuery();
         
         while ($entry = $query->fetch("#articleId = {$id}")) {
-            $result->entries[] = (object)array(
+            $result->entries[] = array(
                 'amount' => $entry->amount,
-                'debitAccId' => $entry->debitAccId,
-                'debitEnt1' => $entry->debitEnt1,
-                'debitEnt2' => $entry->debitEnt2,
-                'debitEnt3' => $entry->debitEnt3,
-                'debitQuantity' => $entry->debitQuantity,
-                'debitPrice' => $entry->debitPrice,
-                'creditAccId' => $entry->creditAccId,
-                'creditEnt1' => $entry->creditEnt1,
-                'creditEnt2' => $entry->creditEnt2,
-                'creditEnt3' => $entry->creditEnt3,
-                'creditQuantity' => $entry->creditQuantity,
-                'creditPrice' => $entry->creditPrice,
+            
+                'debit' => array(
+                    acc_journal_Account::byId($entry->debitAccId),
+                    $entry->debitEnt1, // Перо 1
+                    $entry->debitEnt2, // Перо 2
+                    $entry->debitEnt3, // Перо 3
+                    'quantity' => $entry->debitQuantity,
+                ),
+            
+                'credit' => array(
+                    acc_journal_Account::byId($entry->creditAccId),
+                    $entry->creditEnt1, // Перо 1
+                    $entry->creditEnt2, // Перо 2
+                    $entry->creditEnt3, // Перо 3
+                    'quantity' => $entry->creditQuantity,
+                ),
             );
         }
         
@@ -372,7 +324,7 @@ class acc_Articles extends core_Master
             'state' => 'active'
         );
         
-        return self::save($rec);
+        return self::save($rec, 'state');
     }
     
     
