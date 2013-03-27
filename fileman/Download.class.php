@@ -143,8 +143,6 @@ class fileman_Download extends core_Manager {
         // премахнем линка за сваляне
         static::save($rec);
         
-        static::createHtaccess($fRec->name, $rec->prefix);
-        
         // Връщаме линка за сваляне
         return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
     }
@@ -425,80 +423,6 @@ class fileman_Download extends core_Manager {
     }
 
 
-    /**
-     * Проверява mime типа на файла. Ако е text/html добавя htaccess файл, който посочва charset'а с който да се отвори.
-     * Ако не може да се извлече charset, тогава се указва на сървъра да не изпраща default charset' а си.
-     * Ако е text/'различно от html' тогава добавя htaccess файл, който форсира свалянето на файла при отварянето му.
-     */
-    static function createHtaccess($fileName, $prefix)
-    {
-        $folderPath = EF_DOWNLOAD_DIR . '/' . $prefix;
-
-        $filePath = $folderPath . '/' . $fileName;
-        
-        $ext = fileman_Files::getExt($fileName);
-        
-        if (strlen($ext)) {
-            
-            $mime = fileman_Mimes::getMimeByExt($ext);
-            
-            $mimeExplode = explode('/', $mime);
-            
-            if ($mimeExplode[0] == 'text') {
-                if ($mimeExplode[1] == 'html') {
-                    
-                    $charset = static::findCharset($filePath);
-                    
-                    if ($charset) {
-                        $str = "AddDefaultCharset {$charset}";
-                    } else {
-                        $str = "AddDefaultCharset Off";
-                    }
-                } else {
-                    $str = "AddType application/octet-stream .{$ext}";
-                }
-                static::addHtaccessFile($folderPath, $str);
-            }
-        }
-    }
-    
-    
-    /**
-     * Намира charset'а на файла
-     */
-    static function findCharset($file)
-    {
-        $content = file_get_contents($file);
-        
-        $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
-        
-        preg_match($pattern, $content, $match);
-        
-        if ($match[1]) {
-            $charset = strtoupper($match[1]);
-        } else {
-            //Ако във файла няма мета таг оказващ енкодинга, тогава го определяме
-            $res = lang_Encoding::analyzeCharsets(strip_tags($content));
-            $charset = arr::getMaxValueKey($res->rates);
-        }
-        
-        return $charset;
-    }
-    
-    
-    /**
-     * Създава .htaccess файл в директорията
-     */
-    static function addHtaccessFile($path, $str)
-    {
-        $file = $path . '/' . '.htaccess';
-        
-        $fh = @fopen($file, 'w');
-        fwrite($fh, $str);
-        fclose($fh);
-    }
-    
-    
     /**
      * Екшън за генериране на линк за сваляне на файла
      */
