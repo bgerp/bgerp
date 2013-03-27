@@ -139,7 +139,7 @@ class cal_Reminders extends core_Master
                                      alarm=аларма)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
         
-        $this->FLD('description', 'richtext', 'caption=Описание');
+        $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание');
 
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,mandatory');
@@ -434,6 +434,8 @@ class cal_Reminders extends core_Master
 						break;
 						
 						case 'threadOpen':
+							doc_Threads::save((object)array('id'=>$rec->threadId, 'state'=>'opened'), 'state');
+							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
 						break;
 						
 						case 'notifyNoAns':
