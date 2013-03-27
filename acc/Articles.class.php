@@ -203,6 +203,18 @@ class acc_Articles extends core_Master
     }
     
     
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        $row = $data->row;
+        $rec = $data->rec;
+        
+        if ($rec->originId) {
+            $doc = doc_Containers::getDocument($rec->originId);
+            $row->reason = $doc->getLink();
+        }
+    }
+    
+    
     /**
      * Извиква се при промяна на някой от записите в детайл-модел
      *

@@ -295,8 +295,11 @@ class acc_Journal extends core_Master
      */
     protected static function createReverseArticle($rec)
     {
+        /* @var $mvc core_Manager */
+        $mvc = cls::get($rec->docType);
+        
         $articleRec = (object)array(
-            'reason' => tr('Сторниране на ') . $rec->reason . ' / ' . $rec->valior,
+            'reason' => tr('Сторниране на ') . $rec->reason . ' / ' . $mvc->getVerbal($rec, 'valior'),
             'valior' => dt::now(),
             'totalAmount' => $rec->totalAmount,
             'state' => 'draft',
@@ -305,9 +308,6 @@ class acc_Journal extends core_Master
         /* @var $journalDetailsQuery core_Query */
         $journalDetailsQuery = acc_JournalDetails::getQuery();
         $entries = $journalDetailsQuery->fetchAll("#journalId = {$rec->id}");
-        
-        /* @var $mvc core_Manager */
-        $mvc = cls::get($rec->docType);
         
         if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
             $mvcRec = $mvc->fetch($rec->docId);
