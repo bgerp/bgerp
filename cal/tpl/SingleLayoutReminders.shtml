@@ -21,12 +21,18 @@
 			
 			<!--ET_BEGIN time-->
             Начало: [#timeStart#]</br>
-            Предварително: [#timePreviously#]</br>
+            Следващо напомняне: [#nextStartTime#]</br>
             <!--ET_END time-->
+            
+            <!--ET_BEGIN timePreviously-->
+            Предварително: [#timePreviously#]</br>
+            <!--ET_END timePreviously-->
+            
 
-			<!--ET_BEGIN repetition-->
-			Повторение на: [#repetitionEach#] [#repetitionMeasure#]</br> Съблюдаване на: [#repetitionAbidance#]
-		    <!--ET_END repetition-->
+			
+			<!--ET_BEGIN repetitionEach-->Повторение на: [#repetitionEach#]<!--ET_END repetitionEach-->   <!--ET_BEGIN repetitionEach-->[#repetitionType#]<!--ET_END repetitionEach--></br>
+		    <!--ET_BEGIN repetitionAbidance-->Съблюдаване на: [#repetitionAbidance#]<!--ET_END repetitionAbidance-->
+		    
             
 			
 		 
