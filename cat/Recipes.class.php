@@ -114,7 +114,7 @@ class cat_Recipes extends core_Master {
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
-    	$this->FLD('uom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,notSorting,width=18em');
+    	$this->FLD('uom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=18em');
     	$this->FLD('info', 'text(rows=4)', 'caption=Информация,width=18em');
     	$this->FLD('groups', 'keylist(mvc=cat_RecipeGroups, select=title)', 'caption=Групи, mandatory');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
@@ -155,6 +155,11 @@ class cat_Recipes extends core_Master {
     		// Неможе да се изчислява цената на продукт, ако няма съставки
     		$data->toolbar->addBtn('Изчисли', array($mvc, 'calcPrice', $data->rec->id), NULL, 'ef_icon=img/16/calculator.png');
     	}
+    	
+    	if($data->rec->state == 'active' && price_Lists::haveRightFor('single')){
+	    	$conf = core_Packs::getConfig('price');
+	    	$data->toolbar->addBtn('Ценова история', array('price_Lists', 'single', $conf->PRICE_LIST_COST, 'product' => $data->rec->productId), NULL, 'ef_icon=img/16/money_dollar.png');
+    	}
     }
    
     
@@ -163,32 +168,38 @@ class cat_Recipes extends core_Master {
      */
 	public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	// Намираме всички продукти от каталога
+    	$children = $productsArr = array();
+	    $catQuery = cat_Products::getQuery();
+	    while($catRec = $catQuery->fetch()){
+	    	$productsArr[$catRec->id] = $catRec->name;
+	    }
+	    
     	if($data->form->rec->id){
     		
     		// При редакция се подсигуряваме че неможе продукт
-    		// който е съставка на рецептата да се добави като
-    		// нейн начален
-	    	$productsArr = $children = array();
+    		// който е съставка на рецептата да се добави като нейн начален
 	    	$mvc->getChildren($data->form->rec->productId, $children, TRUE);
+	    } else {
 	    	
-	    	// Намираме всички продукти от каталога
-	    	$catQuery = cat_Products::getQuery();
-	    	while($catRec = $catQuery->fetch()){
-	    		$productsArr[$catRec->id] = $catRec->name;
-	    	}
-	    	
-	    	$options = array_diff_key($productsArr,$children);
-	    	$data->form->setOptions('productId', $options);
+	    	// При нова рецепта, изключваме продуктите, имащи вече рецепта
+    		$query = $mvc->getQuery();
+    		while($rec = $query->fetch()){
+    			$children[$rec->productId] = $rec->productId;
+    		}
     	}
+    	
+    	$options = array_diff_key($productsArr, $children);
+	    $data->form->setOptions('productId', $options);
     }
     
     
     /**
      * Помощна функция която записва в един масив всички
-     * пеосукти които са част от дървото на рецептата
-     * @param int $productId - Id на продукта
-     * @param array $children - Масив събиращ децата
-     * @param boolean $root - Дали poductId е корена на дървото
+     * продукти които са част от дървото на рецептата
+     * @param int $productId - id на продукта
+     * @param array $children - масив събиращ децата
+     * @param boolean $root - дали poductId е корена на дървото
      */
     private function getChildren($productId, &$children, $root = FALSE){
     	if(!array_key_exists($productId, $children) && !$root){
@@ -241,12 +252,8 @@ class cat_Recipes extends core_Master {
 	    	($data->recs) ? $url = array($mvc, "calcAll") : $url = NULL;
 	    	if($data->listFilter && $url){
 	    		
-	    		// Ако е задействан филтъра, добавяме
-	    		// параметрите му към екшъна
-	    		$recArr = (array)$data->listFilter->rec;
-	    		foreach($recArr as $i => $v){
-	    			$url[$i] = $v;
-	    		}
+	    		// Ако е задействан филтъра, добавяме параметрите му към екшъна
+	    		$url = array_merge($url, (array)$data->listFilter->rec);
 	    	}
 	    	
 	    	$data->toolbar->addBtn('Калкулиране на себестойности', $url, NULL, 'ef_icon=img/16/calculator.png,warning=Наистинали искате да изчислите себестойностите на показваните продукти?');
@@ -264,14 +271,14 @@ class cat_Recipes extends core_Master {
      * да се добавят към дадена рецепта. Премахват се всички
      * онези продукти, които имат за съставка въпросната рецепта
      * @param int $id - id на рецепта
+     * @param int $detailId - id на детайл
      * @return array - масив с позволените продукти
      */
-    function getAllowedProducts($id)
+    public function getAllowedProducts($id, $detailId)
     {
     	// Кой продукт ще търсим във всички рецепти
     	$needle = $this->fetchField($id, 'productId');
-    	$notAllowed = array();
-    	$productsArr = array();
+    	$productsArr = $notAllowed = array();
     	
     	// За всяка рецепта проверяваме дали съдържа въпросния
     	// продукт, ако да добавяме нейния продукт в списък
@@ -284,6 +291,9 @@ class cat_Recipes extends core_Master {
     	// Изключваме и продуктите, които вече са част от рецептата
     	$dQuery = cat_RecipeDetails::getQuery();
     	$dQuery->where("#recipeId = {$id}");
+    	if($detailId){
+    		$dQuery->where("#id != {$detailId}");
+    	}
     	while($detail = $dQuery->fetch()){
     		if(!array_key_exists($detail->dProductId, $notAllowed)){
     			$notAllowed[$detail->dProductId] = $detail->dProductId;
@@ -306,12 +316,12 @@ class cat_Recipes extends core_Master {
      * тя съдържа някъде определен продукт, ако да то добавяме
      * всички продукти които са част от дървото към масив.
      * @param int $productId - текущия продукт
-     * @param array $notAllowed - Масив където се добавят
+     * @param array $notAllowed - масив където се добавят
      * забранените продукти
      * @param int $needle - продукт, който търсим
      * @param array $path - пътя до продукта в дървото
      */
-    function searchProduct($productId, &$notAllowed, &$needle, $path = array())
+    private function searchProduct($productId, &$notAllowed, &$needle, $path = array())
     {
     	$path[] = $productId;
     	
@@ -341,7 +351,8 @@ class cat_Recipes extends core_Master {
     
     /**
      * Извлича рецепта по продукт
-     * @param int $productId - Id на продукт
+     * @param int $productId - id на продукт
+     * @return stdClass - запис на рецепта
      */
     public static function fetchByProduct($productId)
     {
@@ -364,11 +375,11 @@ class cat_Recipes extends core_Master {
     	$price = 0;
     	$productUomId = cat_Products::fetchField($productId, 'measureId');
     	
-    	$ingredients = static::getIngredients($productId, $quantity);
+    	$ingredients = static::getIngredients($productId);
    		if($ingredients) {
 	   		foreach($ingredients as $ing){
-			    	$pPrice = static::calcCost($ing->productId, $ing->quantity, $datetime, $ing->uom);
-				    $price += $pPrice;
+			    $pPrice = static::calcCost($ing->productId, $ing->quantity, $datetime, $ing->uom);
+				$price += $pPrice;
 			}
    		} else {
 	    	$conf = core_Packs::getConfig('price');
@@ -414,6 +425,10 @@ class cat_Recipes extends core_Master {
     		plg_Search::applySearch($search, $query);
     	}
     	
+    	if($id = Request::get('recipeId')){
+    		$query->where("#id = {$id}");
+    	}
+    	
     	while($rec = $query->fetch()) {
     		$listRec = new stdClass();
     		$listRec->listId = $conf->PRICE_LIST_COST;
@@ -427,7 +442,7 @@ class cat_Recipes extends core_Master {
     		}
     	}
     	
-    	return Redirect(array($this, 'list'), FALSE, "Изчислени са себестойностите на {$count} продукта");
+    	return followRetUrl(array($this, 'list'), "Изчислени са себестойностите на {$count} продукта");
     }
     
     
@@ -451,8 +466,8 @@ class cat_Recipes extends core_Master {
             $this->requireRightFor('add', $data->rec);
             if ($data->form->isSubmitted()){
             	$price = cat_Recipes::calcCost($data->rec->productId, $rec->quantity, NULL, $rec->uom);
-            	
-            	return Redirect(array($this, 'single', $data->rec->id), FALSE, "Себестойноста  на {$rec->quantity}  {$data->row->productId} е {$price}");
+            	$currency = acc_Periods::getBaseCurrencyCode();
+            	return Redirect(array($this, 'single', $data->rec->id), FALSE, "Себестойноста  на {$rec->quantity}  {$data->row->productId} е {$price} <span class='cCode'>{$currency}</span>");
             }
     	}
     	
@@ -491,6 +506,10 @@ class cat_Recipes extends core_Master {
 		if($fields['-single']){
 			$icon = sbf("img/16/package-icon.png");
 			$row->productId = ht::createLink($row->productId, array('cat_Products', 'single', $rec->productId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+		
+			$dQuery = $mvc->cat_RecipeDetails->getQuery();
+			$dQuery->where("#recipeId = {$rec->id}");
+			$row->ingCount = $dQuery->count();
 		}
     }
     
@@ -502,7 +521,7 @@ class cat_Recipes extends core_Master {
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = "Отчет за бърза продажба №{$rec->id}";
+        $row->title = $this->singleTitle ." №{$rec->id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -564,4 +583,18 @@ class cat_Recipes extends core_Master {
 			}
 		}
 	}
+	
+	
+	/**
+	 * След запис на документа
+	 */
+	public static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	if($rec->state == 'active'){
+    		
+    		// След като документа се активира, изчисляваме и
+    		// записваме неговата себестойност
+    		Redirect(array($mvc, 'calcAll', 'recipeId' => $rec->id, 'ret_url' => array($mvc, 'single', $id)));
+    	}
+   	}
 }

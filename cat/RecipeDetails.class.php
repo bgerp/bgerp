@@ -31,10 +31,10 @@ class cat_RecipeDetails extends core_Detail {
 	/**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools';
+    var $loadList = 'plg_RowTools, plg_Sorting';
     
     
-     /**
+    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
      * таблицата.
      */
@@ -58,7 +58,13 @@ class cat_RecipeDetails extends core_Detail {
      */
     var $canList = 'no_one';
     
-
+	
+    /**
+	 * Брой рецепти на страница
+	 */
+	var $listItemsPerPage = '25';
+	
+	
   	/**
      * Описание на модела (таблицата)
      */
@@ -66,12 +72,12 @@ class cat_RecipeDetails extends core_Detail {
     {
     	$this->FLD('recipeId', 'key(mvc=cat_Recipes)', 'caption=Рецепта, input=hidden, silent');
     	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
-    	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,notSorting,width=10em');
+    	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=10em');
     	$this->FLD('quantity', 'int', 'caption=Количество,mandatory,width=10em');
     }
     
     
-     /**
+    /**
      * Преди показване на форма за добавяне/промяна.
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
@@ -79,7 +85,10 @@ class cat_RecipeDetails extends core_Detail {
     	// Филтрираме продуктите така че да немогат да се добавят
     	// продукти които използват вече текущия продукт, както
     	// и продукти които са вече част от рецептата
-    	$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->recipeId));
+    	$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->recipeId, $data->form->rec->id));
+    	$productName = cat_Products::getTitleById($data->masterRec->productId);
+    	($data->form->rec->id) ? $title = "Редактиране на съставка в рецепта" : $title = "Добавяне на съставка в рецепта";
+    	$data->form->title = tr($title) . " |*\"{$productName}\"";
     }
     
     
@@ -107,13 +116,13 @@ class cat_RecipeDetails extends core_Detail {
     }
 
     
-    /**
-     * Помощна функция която записва в един масив всички
-     * продукти които са част от дървото на рецептата
-     * @param int $productId - Id на продукта
-     * @param array $children - Масив събиращ децата
-     * @param boolean $root - Дали poductId е корена на дървото
-     */
+   /**
+    * Помощна функция която записва в един масив всички
+    * продукти които са част от дървото на рецептата
+    * @param int $productId - id на продукта
+    * @param array $children - масив събиращ децата
+    * @param boolean $root - дали poductId е корена на дървото
+    */
    public function getChildren($productId, &$children, $root = FALSE){
     	if(!array_key_exists($productId, $children) && !$root){
     		$children[$productId] = $productId;
