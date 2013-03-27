@@ -48,12 +48,9 @@ class acc_journal_Item
             $this->id = $classId;
 
             if ($this->id) {
-                if (!$this->itemRec = acc_Items::fetch($this->id)) {
-                    bp(func_get_args(), $classId, $objectId);
-                }
                 expect($this->itemRec = acc_Items::fetch($this->id), func_get_args(), $classId, $objectId);
-                $this->classId  = $itemRec->classId;
-                $this->objectId = $itemRec->objectId;
+                $this->classId  = $this->itemRec->classId;
+                $this->objectId = $this->itemRec->objectId;
             }
         } else {
             expect(is_numeric($objectId));
