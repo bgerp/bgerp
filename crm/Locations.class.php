@@ -59,7 +59,12 @@ class crm_Locations extends core_Master {
      */
     var $singleIcon = 'img/16/location_pin.png';
     
-    
+    /**
+	 * Коментари на статията
+	 */
+	var $details = 'routes=sales_Routes';
+	
+	
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -133,7 +138,7 @@ class crm_Locations extends core_Master {
         $cRec = $cMvc->fetch($rec->contragentId);
         $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
         $row->contragent = $cRow->{$field};
-     }
+    }
     
     
     /**

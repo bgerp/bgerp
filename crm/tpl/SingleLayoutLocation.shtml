@@ -4,53 +4,56 @@
 	<div class="info-table">
 	
 		<div class="folder-cover">
-			<h2>Локация <b style="color:green;">[#title#]</b></h2>
+			<h2>|Локация|* <b style="color:green;">[#title#]</b></h2>
 			
 			<fieldset class="detail-info">
-	         <legend class="groupTitle">Собственик</legend>
+	         <legend class="groupTitle">|Собственик|*</legend>
 	         <div class="groupList">
 		         <ul>  
 			        <li class="info">
-						<span class="part"><span class="gray-title">id:</span> [#contragentId#] </span>
-						<span class="part"><span class="gray-title">Клас:</span> [#contragentCls#]</span>
+			        	<span class="part">[#contragent#] </span>
 					</li>
 		         </ul>  
 	         </div>
 	      </fieldset>
 	      
 	      <fieldset class="detail-info">
-	        <legend class="groupTitle">Наименование</legend>
+	        <legend class="groupTitle">|Наименование|*</legend>
 	         <div class="groupList">
 				[#title#]
 			</div>
 		  </fieldset>
 		  
 		  <fieldset class="detail-info">
-	        <legend class="groupTitle">Тип</legend>
+	        <legend class="groupTitle">|Тип|*</legend>
 	         <div class="groupList">
 				[#type#]
 			</div>
 		  </fieldset>
 		  
 		  <fieldset class="detail-info">
-	        <legend class="groupTitle">Адрес</legend>
+	        <legend class="groupTitle">|Адрес|*</legend>
 	         <div class="groupList">
-				<div><span class="gray-title">Страна:</span> [#countryId#]</div>
-				<div><span class="gray-title">Населено място:</span> [#place#]</div>
-				<div><span class="gray-title">Пощенски код:</span> [#pCode#]</div>
-				<div><span class="gray-title">Адрес:</span> [#address#]</div>
+				<div><span class="gray-title">|Страна|*:</span> [#countryId#]</div>
+				<div><span class="gray-title">|Населено място|*:</span> [#place#]</div>
+				<div><span class="gray-title">|Пощенски код|*:</span> [#pCode#]</div>
+				<div><span class="gray-title">|Адрес|*:</span> [#address#]</div>
 			</div>
 		  </fieldset>
 		  
-		  <fieldset class="detail-info">
-	        <legend class="groupTitle">Създаден</legend>
-	         <div class="groupList">
-	         	 <ul>  
-			        <li class="info">
-						<span class="part"><span class="gray-title">от:</span> [#createdBy#] </span>
-						<span class="part"><span class="gray-title">на:</span> [#createdOn#]</span>
-					</li>
-		         </ul>  
+		 <!--ET_BEGIN ROUTES-->
+		  [#routes#]
+		 <!--ET_END ROUTES-->
+		  
+		<fieldset class="detail-info">
+	      <legend class="groupTitle">|Създаден|*</legend>
+	        <div class="groupList">
+	         	<ul>  
+			       <li class="info">
+						<span class="part"><span class="gray-title">|от|*:</span> [#createdBy#] </span>
+						<span class="part"><span class="gray-title">|на|*:</span> [#createdOn#]</span>
+				   </li>
+		        </ul>  
 			</div>
 		</fieldset>
 		
