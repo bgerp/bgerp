@@ -478,6 +478,10 @@ class html2text_Converter
         // <br>
         $text = preg_replace("/<br[^>]*>/i", "\n", $text);
         
+        // blockquote 
+        $text = preg_replace("/<blockquote[^>]*>/i", "[bQuote]", $text);
+        $text = preg_replace("/<\/blockquote[^>]*>/i", "[/bQuote]", $text);
+
         // <b>
         $text = preg_replace_callback('/<b[^>]*>(.*?)<\/b[^>]*>/i', array($this, 'bold'), $text);
         
