@@ -93,32 +93,8 @@ class mejs_Adapter
         // Обхождаме всички линкове
         foreach ($source as $src) {
             
-            // В зависимост от типа на файла
-            switch ($fileType) {
-                
-                // Ако е манипулатор
-                case 'handler':
-                    
-                    // Вземаме линк за сваляне
-                    $src = fileman_Download::getDownloadUrl($src);
-                break;
-                
-                // Ако е URL
-                case 'url':
-                    
-                    // Използваме го директно
-                break;
-                
-                // Ако е път до файл
-                case 'path':
-                    
-                    expect(FALSE, 'TODO'); // TODO не е реализирано
-                break;
-                
-                default:
-                    expect(FALSE);
-                break;
-            }
+            // Вземаме URL' то за сваляне
+            $src = fileman_Download::getDownloadUrl($src, 1, $fileType);
 
             // Създваме шаблон за плейване на видеото
             $tpl = "<source src='{$src}'> \n";

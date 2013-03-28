@@ -63,7 +63,7 @@ class fileman_Download extends core_Manager {
         
         // Име на файла
         $this->FLD("fileId",
-            "key(mvc=fileman_Files)",
+            "varchar(32)",
             array('notNull' => TRUE, 'caption' => 'Файл'));
         
         // Крайно време за сваляне
@@ -81,49 +81,106 @@ class fileman_Download extends core_Manager {
     
     /**
      * Връща URL за сваляне на файла с валидност publicTime часа
+     * 
+     * @param string $src - Манипулатор на файл, път до файл или URL
+     * @param integer $lifeTime - Колко време да се пази линка (в часове)
+     * @param string $type -  - Типа на сорса - handler, url, path
+     * 
+     * @return URL - Линк към файла
      */
-    static function getDownloadUrl($fh, $lifeTime = 1)
+    static function getDownloadUrl($src, $lifeTime = 1, $type = 'handler')
     {
-        // Намираме записа на файла
-        $fRec = fileman_Files::fetchByFh($fh);
+        // Очакваме типа да е един от дадените
+        expect(in_array($type, array('url', 'path', 'handler')));
         
-        if(!$fRec) return FALSE;
+        // Ако е подаден празен стринг
+        if (!trim($src)) return FALSE;
+
+        // Ако типа е URL
+        if ($type == 'url') {
+            
+            // Връщаме сорса
+            return $src;
+        } elseif ($type == 'handler') {
+            // Ако е манипулато на файл
+            
+            // Намираме записа на файла
+            $fRec = fileman_Files::fetchByFh($src);
+            
+            // Ако няма запис връщаме
+            if(!$fRec) return FALSE;
+            
+            // Името на файла
+            $name = $fRec->name;
+            
+            // id' то на файла
+            $fileId = $fRec->id;
+            
+            // Пътя до файла
+            $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
+        } else {
+            // Ако е път до файл
+            
+            // Пътя до файла
+            $originalPath = getFullPath($src);
+            
+            // Ако не е файл
+            if (!is_file($originalPath)) return FALSE;
+            
+            // Времето на последна модификация на файла
+            $fileTime = filemtime($originalPath);
+            
+            // id' то на файла - md5 на пътя и времето
+            $fileId = md5($originalPath . $fileTime);
+            
+            // Името на файла
+            $name = basename($originalPath);
+        }
         
+        // Генерираме времето на изтриване
         $time = dt::timestamp2Mysql(time() + $lifeTime * 3600);
         
-        //Ако имаме линк към файла, тогава използваме същия линк
-        $dRec = static::fetch("#fileId = '{$fRec->id}'");
+        // Записите за файла
+        $dRec = static::fetch("#fileId = '{$fileId}'");
 
+        // Ако имаме линк към файла, тогава използваме същия линк
         if ($dRec) {
             
             // Ако времето, за което е активен линка е по малко от времето, което искаме да зададем
             if ($dRec->expireOn < $time) {
+                
+                // Променяме времето
                 $dRec->expireOn = $time;
             }
             
+            // Вземаме URL
             $link = static::getSbfDownloadUrl($dRec, TRUE);
             
+            // Записваме
             static::save($dRec);
             
+            // Връщаме URL' то
             return $link;
         }
         
+        // Обект
         $rec = new stdClass();
         
         // Генерираме името на директорията - префикс
+        // Докато не се генерира уникално име в модела
         do {
             $rec->prefix = str::getRand(EF_DOWNLOAD_PREFIX_PTR);
         } while (static::fetch("#prefix = '{$rec->prefix}'"));
         
         // Задаваме името на файла за сваляне - същото, каквото файла има в момента
-        $rec->fileName = $fRec->name;
+        $rec->fileName = $name;
         
+        // Ако няма директория
         if(!is_dir(EF_DOWNLOAD_DIR . '/' . $rec->prefix)) {
+            
+            // Създаваме я
             mkdir(EF_DOWNLOAD_DIR . '/' . $rec->prefix, 0777, TRUE);
         }
-        
-        // Вземаме пътя до данните на файла
-        $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
         
         // Генерираме пътя до файла (hard link) който ще се сваля
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
@@ -134,7 +191,7 @@ class fileman_Download extends core_Manager {
         }
         
         // Задаваме id-то на файла
-        $rec->fileId = $fRec->id;
+        $rec->fileId = $fileId;
         
         // Задаваме времето, в което изтича възможността за сваляне
         $rec->expireOn = $time;
