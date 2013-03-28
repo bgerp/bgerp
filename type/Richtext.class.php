@@ -26,7 +26,7 @@ defIfNot('RICHTEXT_BOLD_TEXT', 'За,Отн,Относно,回复,转发,SV,VS,V
  * @since     v 0.1
  * @link
  */
-class type_Richtext extends type_Text 
+class type_Richtext extends type_Blob 
 {
     
     static $emoticons = array(
@@ -52,6 +52,26 @@ class type_Richtext extends type_Text
      */
     // static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
 
+	
+	/**
+     * Инициализиране на типа
+     * Задава, че да се компресира
+     */
+    function init($params = array())
+    {
+        // По подразбиране да се компресира
+        setIfNot($params['params']['compress'], 'compress');
+
+        // Ако е зададено да не се компресира
+        if ($params['params']['compress'] == 'no') {
+            
+            // Премахваме от масива
+            unset($params['params']['compress']);
+        }
+        
+        parent::init($params);
+    }
+    
     
     /**
      * Рендира HTML инпут поле
@@ -144,7 +164,7 @@ class type_Richtext extends type_Text
             $textMode = 'html';
         }
         
-        $md5 = md5($html) . $textMode;
+//        $md5 = md5($html) . $textMode;
 
         // if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
         //     return $ret;
@@ -224,14 +244,14 @@ class type_Richtext extends type_Text
             
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') { 
-            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]',); 
+            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]'); 
                // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>',);
+            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>');
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } else {
-            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]',);
+            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]');
                // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '',);
+            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n");
                // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
    
@@ -492,15 +512,7 @@ class type_Richtext extends type_Text
         if(!trim($code)) return "";
         $lg = $match[2];
 
-        if($lg == 'text') {
-            $code = trim($code, "\n\r");
-            $lenBefore = strlen($code);
-            $code = ltrim($code, ' ');
-            $lenAfter = strlen($code);
-            $code = str_repeat('&nbsp;', $lenBefore - $lenAfter) . $code;
-            return  "<div style=\"background-color:rgba(255,255,128,0.3); padding:5px; border:solid 1px #ccc;font-family:Courier New,mono\">" .  $code  . "</div>";
-        }
-
+        
         if($lg) {
             // $Geshi = cls::get('geshi_Import');
             // $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;

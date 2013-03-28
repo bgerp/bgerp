@@ -156,7 +156,7 @@ class core_DateTime
     {
         list($base, $dayName) = explode('-', $wDay);
         
-        expect(in_array($base, array('first', 'last')));
+        expect(in_array($base, array('first', 'second', 'third', 'penultimate', 'last')));
         
         $weekDayNames = array(
             'monday'    => 1,
@@ -172,12 +172,18 @@ class core_DateTime
         for($i = 1; $i <= 7; $i++) {
             if($base == 'first') {
                 $curDay = mktime(0, 0, 0, $month, $i, $year);
+            } elseif($base == 'second'){
+            	$curDay = mktime(0, 0, 0, $month, $i + 7, $year);
+            } elseif($base == 'third'){
+            	$curDay = mktime(0, 0, 0, $month, $i + 14, $year);
+            } elseif($base == 'penultimate'){
+            	$curDay = mktime(12, 59, 59, $month + 1, 1 - $i -7, $year);
             } else {
                 $curDay = mktime(12, 59, 59, $month + 1, 1 - $i, $year);
             }
-
-            $curWeekDay = date("w", $curDay);
-
+            
+            $curWeekDay = date("N", $curDay);
+           
             if($curWeekDay == $dayNumb) {
                 $res =$curDay;
                 break;
