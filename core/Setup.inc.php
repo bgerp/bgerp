@@ -48,7 +48,7 @@ if (setupKeyValid() && !setupProcess()) {
 
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
-//$texts['currentStep'] = $step;
+$texts['currentStep'] = $step;
 
 // Собственото URL
 $selfUri = "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
@@ -324,12 +324,12 @@ if($step == 1) {
 if($step == 2) {
     
     $log = array();
-    $checkUpdate = isset($_REQUEST['checkUpdate']);
+    $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
     switch ($checkUpdate) {
         // Не се изисква сетъп
         case FALSE :
             // Показваме бутони за ъпдейтване 
-            $links[] = "inf|{$selfUrl}&amp;checkUpdate|Проверка за по-нова версия »";
+            $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »";
             $links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
             break;
         case TRUE :
