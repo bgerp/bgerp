@@ -168,7 +168,14 @@ class type_Blob extends core_Type {
     {   
         // Ако е указано - декомпресираме
         if($value !== NULL && $this->params['compress']) {
-            $value = @gzuncompress($value);
+            $valueUnCompr = @gzuncompress($value);
+        }
+        
+        // Ако компресирането е било успешно
+        if($valueUnCompr) {
+            
+            // Използваме го
+            $value = $valueUnCompr;
         }
         
         // Ако е указано - десериализираме

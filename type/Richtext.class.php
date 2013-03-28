@@ -26,7 +26,7 @@ defIfNot('RICHTEXT_BOLD_TEXT', 'За,Отн,Относно,回复,转发,SV,VS,V
  * @since     v 0.1
  * @link
  */
-class type_Richtext extends type_Text 
+class type_Richtext extends type_Blob 
 {
     
     static $emoticons = array(
@@ -52,6 +52,26 @@ class type_Richtext extends type_Text
      */
     // static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
 
+	
+	/**
+     * Инициализиране на типа
+     * Задава, че да се компресира
+     */
+    function init($params = array())
+    {
+        // По подразбиране да се компресира
+        setIfNot($params['params']['compress'], 'compress');
+
+        // Ако е зададено да не се компресира
+        if ($params['params']['compress'] == 'no') {
+            
+            // Премахваме от масива
+            unset($params['params']['compress']);
+        }
+        
+        parent::init($params);
+    }
+    
     
     /**
      * Рендира HTML инпут поле
@@ -144,7 +164,7 @@ class type_Richtext extends type_Text
             $textMode = 'html';
         }
         
-        $md5 = md5($html) . $textMode;
+//        $md5 = md5($html) . $textMode;
 
         // if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
         //     return $ret;
