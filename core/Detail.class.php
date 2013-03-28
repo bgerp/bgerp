@@ -66,6 +66,9 @@ class core_Detail extends core_Manager
         // Подготвяме полетата за показване
         $this->prepareListFields($data);
         
+        // Подготвяме филтъра
+        $this->prepareListFilter($data);
+        
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
@@ -93,6 +96,9 @@ class core_Detail extends core_Manager
         // Шаблон за листовия изглед
         $listLayout = new ET("
             <div class='clearfix21 {$className}'>
+            	<div class='listTopContainer clearfix21'>
+                    [#ListFilter#]
+                </div>
                 [#ListPagerTop#]
                 [#ListTable#]
                 [#ListSummary#]
@@ -115,6 +121,9 @@ class core_Detail extends core_Manager
         
         // Рендираме общия лейаут
         $tpl = $this->renderDetailLayout($data);
+        
+        // Попълваме формата-филтър
+        $tpl->append($this->renderListFilter($data), 'ListFilter');
         
         // Попълваме обобщената информация
         $tpl->append($this->renderListSummary($data), 'ListSummary');
