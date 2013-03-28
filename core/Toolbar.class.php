@@ -180,8 +180,8 @@ class core_Toolbar extends core_BaseClass
             ht::setUniqId($attr);
 
             $rowId = $attr['id'];
-            if(count($this->buttons) > 9 && !Mode::is('screenMode', 'narrow') ||
-            	count($this->buttons) > 4 && Mode::is('screenMode', 'narrow')){
+            if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
+            	count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')){
 	            $toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW0#][#ROW1#]</div>" . 
 	                "<!--ET_BEGIN ROW2--><div style='margin-top:10px;display:none' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
         	}
