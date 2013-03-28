@@ -24,7 +24,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 }
 
 // Колко време е валидно заключването - в секунди
-DEFINE ('SETUP_LOCK_PERIOD', 1);
+DEFINE ('SETUP_LOCK_PERIOD', 180);
 
 defIfNot('BGERP_GIT_BRANCH', 'dev');
 
@@ -329,7 +329,7 @@ if($step == 2) {
         // Не се изисква сетъп
         case FALSE :
             // Показваме бутони за ъпдейтване 
-            $links[] = "inf|{$selfUrl}?checkUpdate|Проверка за по-нова версия »";
+            $links[] = "inf|{$selfUrl}&amp;checkUpdate|Проверка за по-нова версия »";
             $links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
             break;
         case TRUE :
