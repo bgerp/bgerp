@@ -120,9 +120,17 @@ class fileman_Download extends core_Manager {
             $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
         } else {
             // Ако е път до файл
-            
-            // Пътя до файла
-            $originalPath = getFullPath($src);
+
+            // Ако не е подаден целия път до файла
+            if (!is_file($src)) {
+                
+                // Пътя до файла
+                $originalPath = getFullPath($src);
+            } else {
+                
+                // Целия път до файла
+                $originalPath = $src;
+            }
             
             // Ако не е файл
             if (!is_file($originalPath)) return FALSE;
