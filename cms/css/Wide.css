@@ -95,3 +95,7 @@ img, object, embed {
 img {
 	height: auto;
 }
+
+.richtext h2 { 
+	background-color: #ddf;
+}

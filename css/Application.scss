@@ -1241,7 +1241,6 @@ ul.history {
 	list-style: none;
 	&.summary {
 		font-size: 0.75em;
-		width: 100px;
 		margin: 0 auto;
 		li span {
 			color: #333;
@@ -1295,7 +1294,9 @@ ul.history {
 		white-space:nowrap;
 	}
 }
-
+.wide ul.history.summary{
+	width: 100px;
+}
 .narrow ul.history{
 	white-space: nowrap;
 	display: inline-block;
@@ -1307,6 +1308,7 @@ ul.history {
 	b{
 		padding-top:3px
 	}
+	&.summary
 }
 
 .narrow ul.history.summary li span { 
