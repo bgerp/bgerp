@@ -28,7 +28,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search';
                     
  
      
@@ -75,6 +75,12 @@ class price_ListRules extends core_Detail
 
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'productId, price';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -90,6 +96,19 @@ class price_ListRules extends core_Detail
         $this->FLD('validUntil', 'datetime', 'caption=В сила->До');
     }
     
+    
+     /**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('from', 'date', 'input,caption=В сила,width=6em,silent');
+		$data->listFilter->showFields = 'search, from';
+		$data->listFilter->input();
+	}
+	
 	
     /**
      * Връща цената за посочения продукт
@@ -406,17 +425,21 @@ class price_ListRules extends core_Detail
 	
     /**
      * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#validFrom,#id', 'DESC');
         
-    	if($productId = Request::get('product')){
-			$data->query->where("#productId = {$productId}");
+    	if($productId = Request::get('product', 'int')){
+			$data->query->where(array("#productId = [#1#]", $productId));
+		}
+		
+    	if($from = $data->listFilter->rec->from){bp($date);
+			$data->query->where(array("#validFrom >= '[#1#]'", $from));
+		}
+		
+    	if($search = $data->listFilter->rec->search){
+			plg_Search::applySearch($search, $data->query);
 		}
     }
 
