@@ -323,19 +323,4 @@ class core_Detail extends core_Manager
     {
         return isset($this->Master) ? array($this->masterKey => $this->Master) : array();
     }
-
-
-    /**
-     * Връща URL към единичния изглед на мастера
-     */
-    function getSingleUrl($rec)
-    {
-        $master = $this->getMasterMvc($rec);
-        $masterKey = $this->getMasterKey($rec);
-
-        $url = array($master, 'single', $rec->{$masterKey});
-
-        return $url;
-    }
-
 }
