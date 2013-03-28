@@ -53,7 +53,18 @@ $quiet-gray:#888;
 	-webkit-box-shadow: none;
     box-shadow: none;
 }
- 
+
+@mixin richtext-message(){
+	font-family:Courier New,mono;
+	border: 1px dotted;
+    margin: 0px 30px;
+    padding:7px 10px 5px 55px;
+    min-height:37px;
+    background-repeat: no-repeat;
+    background-position: 9px 7px;
+    @include border-radius(5px);
+    position:relative;
+}
 select.combo {  
 	position: absolute; 
     visibility:hidden;
@@ -178,13 +189,67 @@ p.richtext {
 	margin-left:0px;
 	margin-bottom:5px;
 	padding:5px;
-	background-color: #ddf;
 }
 
 .richtext h3 {
     margin:5px;
     line-height:2em;
     margin-left:0px;
+}
+.richtext-text{
+	background-color:rgba(255,255,128,0.3); 
+	padding:10px;
+	margin: 10px 0px; 
+	border:solid 1px #ccc;
+	font-family:Courier New,mono;
+}
+
+.richtext-info{
+	@include richtext-message();
+    color: #00529B;
+    border-color:lighten(#00529B, 30%);
+    background-color: #BDE5F8;
+    background-image: url('../img/info_blue.png');
+}
+.richtext div span{
+	display:table-cell;
+	height:auto;
+	vertical-align:middle;
+}
+.richtext-tip{
+	@include richtext-message();
+	color:#c9841a;
+	border-color:lighten(#c9841a, 30%);
+    background-color:#FEFED8;
+    background-image: url('../img/App-tip-icon2.png');
+}
+.richtext-warning{
+	@include richtext-message();
+    color: #9F6000;
+    border-color:lighten(#9F6000, 30%);
+    background-color: #ffdc7a;
+    background-image: url('../img/dialog_warning.png');
+}
+.richtext-success{
+	@include richtext-message();
+    color: #4F8A10;
+    border-color:lighten(#4F8A10, 30%);
+    background-color: #DFF2BF;
+    background-image:url('../img/ok.png');
+}
+.richtext-error{
+	@include richtext-message();
+    color: #D8000C;
+    border-color:lighten(#D8000C, 30%);
+    background-color: #FFBABA;
+    background-image: url('../img/dialog_error.png');
+}
+.richtext-question{
+	@include richtext-message();
+    color: #132c5c;
+    border-color:lighten(#132c5c, 30%);
+    background-color: #92aee6;
+    background-image: url('../img/Help-icon.png');
 }
 
 pre.richtext {
@@ -208,7 +273,7 @@ pre.richtext {
 
 .wide pre.richtext{
 	overflow: auto; 
-	max-width:800px;
+	max-width:810px;
 }
 
 .narrow  pre.richtext {
@@ -218,8 +283,12 @@ pre.richtext {
 
 .richtext .code {
 	white-space:pre;
-}
+	margin: 10px 0px;
 
+}
+pre.code{
+	background: rgba(255,255,230,0.5);
+}
 div.richtext li {
     margin:0px;
     padding:0px;
