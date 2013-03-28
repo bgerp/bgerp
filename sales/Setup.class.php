@@ -52,6 +52,7 @@ class sales_Setup
             'sales_InvoiceDetails',
             'sales_Sales',
             'sales_SalesDetails',
+        	'sales_Routes',
         );
         
         // Роля за power-user на този модул
