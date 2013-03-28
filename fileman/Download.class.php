@@ -63,7 +63,7 @@ class fileman_Download extends core_Manager {
         
         // Име на файла
         $this->FLD("fileId",
-            "key(mvc=fileman_Files)",
+            "varchar(32)",
             array('notNull' => TRUE, 'caption' => 'Файл'));
         
         // Крайно време за сваляне
@@ -81,49 +81,114 @@ class fileman_Download extends core_Manager {
     
     /**
      * Връща URL за сваляне на файла с валидност publicTime часа
+     * 
+     * @param string $src - Манипулатор на файл, път до файл или URL
+     * @param integer $lifeTime - Колко време да се пази линка (в часове)
+     * @param string $type -  - Типа на сорса - handler, url, path
+     * 
+     * @return URL - Линк към файла
      */
-    static function getDownloadUrl($fh, $lifeTime = 1)
+    static function getDownloadUrl($src, $lifeTime = 1, $type = 'handler')
     {
-        // Намираме записа на файла
-        $fRec = fileman_Files::fetchByFh($fh);
+        // Очакваме типа да е един от дадените
+        expect(in_array($type, array('url', 'path', 'handler')));
         
-        if(!$fRec) return FALSE;
+        // Ако е подаден празен стринг
+        if (!trim($src)) return FALSE;
+
+        // Ако типа е URL
+        if ($type == 'url') {
+            
+            // Връщаме сорса
+            return $src;
+        } elseif ($type == 'handler') {
+            // Ако е манипулато на файл
+            
+            // Намираме записа на файла
+            $fRec = fileman_Files::fetchByFh($src);
+            
+            // Ако няма запис връщаме
+            if(!$fRec) return FALSE;
+            
+            // Името на файла
+            $name = $fRec->name;
+            
+            // id' то на файла
+            $fileId = $fRec->id;
+            
+            // Пътя до файла
+            $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
+        } else {
+            // Ако е път до файл
+
+            // Ако не е подаден целия път до файла
+            if (!is_file($src)) {
+                
+                // Пътя до файла
+                $originalPath = getFullPath($src);
+            } else {
+                
+                // Целия път до файла
+                $originalPath = $src;
+            }
+            
+            // Ако не е файл
+            if (!is_file($originalPath)) return FALSE;
+            
+            // Времето на последна модификация на файла
+            $fileTime = filemtime($originalPath);
+            
+            // id' то на файла - md5 на пътя и времето
+            $fileId = md5($originalPath . $fileTime);
+            
+            // Името на файла
+            $name = basename($originalPath);
+        }
         
+        // Генерираме времето на изтриване
         $time = dt::timestamp2Mysql(time() + $lifeTime * 3600);
         
-        //Ако имаме линк към файла, тогава използваме същия линк
-        $dRec = static::fetch("#fileId = '{$fRec->id}'");
+        // Записите за файла
+        $dRec = static::fetch("#fileId = '{$fileId}'");
 
+        // Ако имаме линк към файла, тогава използваме същия линк
         if ($dRec) {
             
             // Ако времето, за което е активен линка е по малко от времето, което искаме да зададем
             if ($dRec->expireOn < $time) {
+                
+                // Променяме времето
                 $dRec->expireOn = $time;
             }
             
-            $link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
+            // Вземаме URL
+            $link = static::getSbfDownloadUrl($dRec, TRUE);
             
+            // Записваме
             static::save($dRec);
             
+            // Връщаме URL' то
             return $link;
         }
         
+        // Обект
         $rec = new stdClass();
         
         // Генерираме името на директорията - префикс
+        // Докато не се генерира уникално име в модела
         do {
             $rec->prefix = str::getRand(EF_DOWNLOAD_PREFIX_PTR);
         } while (static::fetch("#prefix = '{$rec->prefix}'"));
         
         // Задаваме името на файла за сваляне - същото, каквото файла има в момента
-        $rec->fileName = $fRec->name;
+        $rec->fileName = $name;
         
+        // Ако няма директория
         if(!is_dir(EF_DOWNLOAD_DIR . '/' . $rec->prefix)) {
+            
+            // Създаваме я
             mkdir(EF_DOWNLOAD_DIR . '/' . $rec->prefix, 0777, TRUE);
         }
-        
-        // Вземаме пътя до данните на файла
-        $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
         
         // Генерираме пътя до файла (hard link) който ще се сваля
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
@@ -134,7 +199,7 @@ class fileman_Download extends core_Manager {
         }
         
         // Задаваме id-то на файла
-        $rec->fileId = $fRec->id;
+        $rec->fileId = $fileId;
         
         // Задаваме времето, в което изтича възможността за сваляне
         $rec->expireOn = $time;
@@ -143,10 +208,8 @@ class fileman_Download extends core_Manager {
         // премахнем линка за сваляне
         static::save($rec);
         
-        static::createHtaccess($fRec->name, $rec->prefix);
-        
         // Връщаме линка за сваляне
-        return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
+        return static::getSbfDownloadUrl($rec, TRUE);
     }
     
     
@@ -426,80 +489,6 @@ class fileman_Download extends core_Manager {
 
 
     /**
-     * Проверява mime типа на файла. Ако е text/html добавя htaccess файл, който посочва charset'а с който да се отвори.
-     * Ако не може да се извлече charset, тогава се указва на сървъра да не изпраща default charset' а си.
-     * Ако е text/'различно от html' тогава добавя htaccess файл, който форсира свалянето на файла при отварянето му.
-     */
-    static function createHtaccess($fileName, $prefix)
-    {
-        $folderPath = EF_DOWNLOAD_DIR . '/' . $prefix;
-
-        $filePath = $folderPath . '/' . $fileName;
-        
-        $ext = fileman_Files::getExt($fileName);
-        
-        if (strlen($ext)) {
-            
-            $mime = fileman_Mimes::getMimeByExt($ext);
-            
-            $mimeExplode = explode('/', $mime);
-            
-            if ($mimeExplode[0] == 'text') {
-                if ($mimeExplode[1] == 'html') {
-                    
-                    $charset = static::findCharset($filePath);
-                    
-                    if ($charset) {
-                        $str = "AddDefaultCharset {$charset}";
-                    } else {
-                        $str = "AddDefaultCharset Off";
-                    }
-                } else {
-                    $str = "AddType application/octet-stream .{$ext}";
-                }
-                static::addHtaccessFile($folderPath, $str);
-            }
-        }
-    }
-    
-    
-    /**
-     * Намира charset'а на файла
-     */
-    static function findCharset($file)
-    {
-        $content = file_get_contents($file);
-        
-        $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
-        
-        preg_match($pattern, $content, $match);
-        
-        if ($match[1]) {
-            $charset = strtoupper($match[1]);
-        } else {
-            //Ако във файла няма мета таг оказващ енкодинга, тогава го определяме
-            $res = lang_Encoding::analyzeCharsets(strip_tags($content));
-            $charset = arr::getMaxValueKey($res->rates);
-        }
-        
-        return $charset;
-    }
-    
-    
-    /**
-     * Създава .htaccess файл в директорията
-     */
-    static function addHtaccessFile($path, $str)
-    {
-        $file = $path . '/' . '.htaccess';
-        
-        $fh = @fopen($file, 'w');
-        fwrite($fh, $str);
-        fclose($fh);
-    }
-    
-    
-    /**
      * Екшън за генериране на линк за сваляне на файла
      */
     function act_GenerateLink()
@@ -589,11 +578,8 @@ class fileman_Download extends core_Manager {
      */
     static function getSbfDownloadUrl($rec, $absolute=FALSE)
     {
-         // Името на файла
-        $fileName = fileman_Download::getVerbal($rec, 'fileName');
-        
         // Линка на файла
-        $link = sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $fileName, '', $absolute);
+        $link = sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', $absolute);
         
         return $link;
     }
