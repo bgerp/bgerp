@@ -112,6 +112,8 @@ class price_History extends core_Manager
         // Ако времевата линия пак липсва, генерираме я и я записваме в кеша
         if(!is_array($timeline) || !count($timeline)) {
             
+            $timeline = array();
+            
             // Вземаме всички времена от правилата
             $query = price_ListRules::getQuery();
             $query->show('validFrom,validUntil');

@@ -131,7 +131,9 @@ class price_GroupOfProducts extends core_Detail
         $query->where("#validFrom < '{$datetime}'");
 
         $query->orderBy("#validFrom", "DESC");
-
+        
+        $res = array();
+        
         while($rec = $query->fetch()) {
             if(!$used[$rec->productId]) {
                 if($rec->groupId) {
