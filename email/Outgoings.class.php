@@ -25,7 +25,7 @@ class email_Outgoings extends core_Master
     /**
      * Полета, които ще се клонират
      */
-    var $cloneFields = 'subject, body, recipient, attn, email, tel, fax, country, pcode, place, address';
+    var $cloneFields = 'subject, body, recipient, attn, email, emailCc, tel, fax, country, pcode, place, address';
     
     
     /**
@@ -158,6 +158,7 @@ class email_Outgoings extends core_Master
         
         //Данни за адресанта
         $this->FLD('email', 'emails', 'caption=Адресант->Имейл,class=contactData, width=100%');
+        $this->FLD('emailCc', 'emails', 'caption=Адресант->Копие,class=contactData, width=100%');
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf,class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone,class=contactData');
@@ -266,11 +267,44 @@ class email_Outgoings extends core_Master
         // Генерираме списък с документи, избрани за прикачане
         $docsArr = static::getAttachedDocuments($options);
         
-        // Добавяме масива с To имейлите
-        $groupEmailsArr['to'] = type_Emails::toArray($options->emailsTo);
+        // Имейлите от адресант
+        $rEmails = $rec->email;
         
-        // Добавяме CC имейлите заедно
+        // Имейлите от получател
+        $oEmails = $options->emailsTo;
+        
         $groupEmailsArr['cc'][0] = $options->emailsCc;
+        
+        // Ако не сме променили имейлите
+        if (trim($rEmails) == trim($oEmails)) {
+            
+            // Всики имейли са в една група
+            $groupEmailsArr['to'][0] = $oEmails;
+        } else {
+            
+            // Масив с имейлите от адресанта
+            $rEmailsArr = type_Emails::toArray($rEmails);
+            
+            // Масив с имейлите от получателя
+            $oEmailsArr = type_Emails::toArray($oEmails);
+            
+            // Събираме в група всички имейли, които се ги има и в двата масива
+            $intersectArr = array_intersect($oEmailsArr, $rEmailsArr);
+            
+            // Вземаме имейлите, които ги няма в адресанта, но ги има в получатели
+            $diffArr = array_diff($oEmailsArr, $rEmailsArr);
+
+            // Добавяме имейлите, които са в адресант и в получател
+            // Те ще се изпращат заедно с CC
+            $groupEmailsArr['to'][0] = type_Emails::fromArray($intersectArr);
+            
+            // Обхождаме всички имейли, които ги няма в адресант, но ги има в получател
+            foreach ($diffArr as $diff) {
+                
+                // Добавяме ги в масива, те ще се изпращат самостоятелно
+                $groupEmailsArr['to'][] = $diff;
+            }
+        }
 
         // CSS' а за имейли
         $emailCss = getFileContent('css/email.css');
@@ -548,39 +582,37 @@ class email_Outgoings extends core_Master
         // Масив с всички имейли в До
         $emailsToArr = type_Emails::toArray($data->rec->email);
         
+        // Масив с всички имейли в Cc
+        $emailsCcArr = type_Emails::toArray($data->rec->emailCc);
+        
         // Всички групови имейли
         $groupEmailsArr = type_Emails::toArray($contrData->groupEmails);
         
         // Премахваме нашите имейли
         $groupEmailsArr = email_Inboxes::removeOurEmails($groupEmailsArr);
+
+        // Премахваме имейлите, които ги има записани в полето Имейл
+        $groupEmailsArr = array_diff((array)$groupEmailsArr, (array)$emailsToArr);
         
-        // Премахваме имейлите, които не ни трябват
-        $allEmailsArr = array_diff($groupEmailsArr, $emailsToArr);
+        // Премахваме имейлите, които ги има записани в полето Копие
+        $groupEmailsArr = array_diff((array)$groupEmailsArr, (array)$emailsCcArr);
         
         // Ако има имейл
-        if (count($allEmailsArr)) {
+        if (count($groupEmailsArr)) {
             
             // Ключовете да са равни на стойностите
-            $allEmailsArr = array_combine($allEmailsArr, $allEmailsArr);    
-        }
-
-        // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
-        if (count($allEmailsArr)) {
-            $data->form->setSuggestions('emailsTo', array('' => '') + $allEmailsArr);
-            $data->form->setSuggestions('emailsCc', array('' => '') + $allEmailsArr);
+            $groupEmailsArr = array_combine($groupEmailsArr, $groupEmailsArr);    
         }
         
-        // По подразбиране кои да са избрани
-        if (count($emailsToArr)) {
-            
-            // Първия имейл в групата е в До полето
-            $data->form->setDefault('emailsTo', $emailsToArr[0]);
-            $ccEmailsArr = $emailsToArr;
-            unset($ccEmailsArr[0]);
-            
-            // Останалите имейли от адресанта са в Кп полето
-            $data->form->setDefault('emailsCc', type_Emails::fromArray($ccEmailsArr));
+        // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
+        if (count($groupEmailsArr)) {
+            $data->form->setSuggestions('emailsTo', array('' => '') + $groupEmailsArr);
+            $data->form->setSuggestions('emailsCc', array('' => '') + $groupEmailsArr);
         }
+
+        // По подразбиране кои да са избрани
+        $data->form->setDefault('emailsTo', $data->rec->email);
+        $data->form->setDefault('emailsCc', $data->rec->emailCc);
     }
     
     
@@ -673,23 +705,7 @@ class email_Outgoings extends core_Master
             $options['boxFrom'] = $boxFromId;
             $options['encoding'] = 'utf-8';
             $options['emailsTo'] = $rec->email;
-            
-            // Масив с всичк имейли
-            $emailsArr = type_Emails::toArray($rec->email);
-            
-            // Ако имаме повече от един имейл
-            if (count($emailsArr) > 1) {
-                
-                // Първия имейл в 'to'
-                $options['emailsTo'] = $emailsArr[0];
-                
-                // Премахваме първия имейл от масива
-                unset($emailsArr[0]);
-                
-                // Останалите в 'cc'
-                $options['emailsCc'] = type_Emails::fromArray($emailsArr);
-                
-            }
+            $options['emailsCc'] = $rec->emailCc;
 
             static::_send($rec, (object)$options, $lg);
         }
