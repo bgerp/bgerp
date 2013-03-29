@@ -251,7 +251,10 @@ p.richtext {
     background-color: #92aee6;
     background-image: url('../img/Help-icon.png');
 }
-
+.richtext-quote{
+	padding: 2px 0 0 15px;
+	border-left: 5px solid #e0e0e0;
+}
 pre.richtext {
     font-family: Courier New,monospace;
     padding:10px;

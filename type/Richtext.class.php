@@ -244,14 +244,14 @@ class type_Richtext extends type_Blob
             
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') { 
-            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]'); 
+            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[bquote]', '[/bquote]', '[bquote]', '[/bquote]'); 
                // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>');
+            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>','<div class="richtext-quote">', '</div>');
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } else {
-            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]');
+            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[bquote]', '[/bquote]');
                // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n");
+            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n", "\n", "\n");
                // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
    
