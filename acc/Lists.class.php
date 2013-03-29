@@ -312,6 +312,47 @@ class acc_Lists extends core_Manager {
         return self::updateItem($class, $objectId, $lists);
     }
     
+    /**
+     * Конвертира списък от номенклатури към масив.
+     * 
+     * Списъкът може да бъде зададен по различни начини:
+     * 
+     *  o като масив:          array(l1, l2, ...)
+     *  o като keylist стринг: |l1|l2|...|
+     *  o като стринг-масив:   l1, l2, ...
+     *  
+     * Всеки елемент на списъка може да бъде стринг или цяло число. Те се интерпретират:
+     * 
+     *  o стринг     - systemId на номенклатура
+     *  o цяло число - първичен ключ на номенклатура 
+     * 
+     * @param array|string $lists списък от номенклатури
+     * @return array масив от първични ключове на номенклатури (и по ключове, и по стойности)
+     * 
+     */
+    protected static function listsToArray($lists)
+    {
+        expect (is_null($lists) || is_array($lists) || is_string($lists));
+        
+        if (is_string($lists) && substr($lists, 0, 1) == '|' && substr($lists, -1, 1) == '|') {
+            // Ако списъка е подаден като keylist, конвертираме го в масив
+            $lists = type_Keylist::toArray($lists);
+        }
+        
+        $lists = arr::make($lists); // NULL, стринг-масив или масив -> масив
+        
+        // Преобразуваме стринговите елементи към първични ключове (id-та)
+        foreach ($lists as &$list) {
+            if(!is_numeric($list)) {
+                $list = static::fetchBySystemId($list)->id . "|";
+            }
+        }
+        
+        $lists = array_combine($lists, $lists);
+        
+        return $lists;
+    }
+    
     
     /**
      * Обновява информацията за перо или създава ново перо.
@@ -320,101 +361,79 @@ class acc_Lists extends core_Manager {
      *
      * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
      * @param int $objectId
-     * @param int $listId ид на номенклатура, към която да се добави перото.
+     * @param array|string|keylist $lists списък от номенклатури, към които да се добави перото 
      * @param boolean $forced дали да обновяваме списъка към които е перото
-     * Ако перото липсва - създава се
+     *                        Ако перото липсва - създава се
      * @return int ид на обновеното перо или null, ако няма такова перо
      */
     static function updateItem($class, $objectId, $lists = NULL, $forced = TRUE)
     {
-		$result = NULL;
-       
-		if($lists !== NULL) {
-			
-			// Проверяваме дали списъка на номенклатурите е подаден като Кейлист
-	 		if (strstr($lists, '|') === FALSE) { 
-	      		$lists = arr::make($lists);
-	        	$str = "|";
-	        	foreach($lists as $list){
-	        		
-	        		// Ако елементите на масива са стрингове намираме на кои записи
-	        		// отговарят те
-	        		if(!is_numeric($list)) {
-	        			$str .= static::fetchBySystemId($list)->id . "|";
-	        		} else {
-	        			$str .= $list ."|";
-	        		}
-	        	}
-	        	
-	        	// Заместваме подадения стрингов списък с списък от ключове
-	        	$lists = $str;
-	        }
-		}
+		// Нормализираме подадения списък от номенклатури
+		$lists = self::listsToArray($lists);
 		
-        $lists = type_Keylist::toArray($lists);
-        
-        
         // Извличаме запис за перо (ако има)
         $itemRec = self::fetchItem($class, $objectId);
+
+        if (!$itemRec && !$lists) {
+            // Не може да се създава перо, което не е в нито една номенклатура
+            return NULL;
+        }
         
-        // Намираме номенклатурите, от които перото ще бъде изключено. Целта да е да ги 
-        // нотифицираме за да си обновят кешовете (@see acc_Lists::updateSummary). 
-        // Номенклатурите, в които перото ще бъде включено сега също ще бъдат нотифицирани:
-        // @see acc_Items::onAfterSave()
         $oldLists = array();
         
         if ($itemRec) {
-            $oldLists = type_Keylist::toArray($itemRec->lists);
-        }
-        
-        // Ако поелто $forced е FALSE, към списъка със старите номенклатури добавяме новата
-        // ( ако тя вече не е в него). Ако е TRUE, заместваме старите номенклатури с новите 
-        if($forced !== TRUE) {
-        	if(count($oldLists) > 0) {
-        		foreach($lists as $list) {
-	      			if(!in_array($list, $oldLists)){
-	      				$oldLists[$list] = $list;     			
-	      			}
-	      		}
-	      		
-	      		// Добавяме новата номенклатура към старите
-	      		$lists = $oldLists;
-	      	}
-	      	
-	      	$removedFromLists = array();
-	    } else {
-	    	$removedFromLists = array_diff($oldLists, $lists);
-	    }
-	   
-       if ($itemRec || $lists) {
-            if (!$itemRec) {
-                $itemRec = new stdClass();
-                $itemRec->classId = core_Classes::getId($class);
-                $itemRec->objectId = $objectId;
+            $oldLists = type_Keylist::toArray(trim($itemRec->lists, '|'));
+            
+            // Ако $forced не е FALSE, сместваме досегашните номенклатури с новите
+            if ($forced !== TRUE) {
+                // Обединяваме текущия списък от номенклатури със зададения.
+                $lists = array_merge($oldLists, $lists);
             }
-            
-            self::setItemLists($itemRec, type_Keylist::fromArray($lists));
-            
-            // Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
-            $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
-            
-            acc_Items::syncItemRec($itemRec, $AccRegister, $objectId);
+        } else {
+            $itemRec = new stdClass();
+            $itemRec->classId = core_Classes::getId($class);
+            $itemRec->objectId = $objectId;
         }
         
-        if ($itemRec) {
-            $itemRec->state = empty($lists) ? 'closed' : 'active';
-           
-            if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
-                $AccRegister->itemInUse($objectId, true);
-                
-                // Нотифициране на номенклатурите, от които перото е било премахнато
-                foreach ($removedFromLists as $lid) {
-                    self::updateSummary($lid);
-                }
+        // Номенклатурите, в които перото не е било, но сега ще бъде включено. Ще попитаме всяка
+        // от тях дали ще приеме нашето перо.
+        $addedToLists = array_diff($lists, $oldLists);
+
+        if (!empty($addedToLists)) {
+            // Перото трябва да поддържа интерфейса на всяка номенклатура, в която иска да бъде
+            // добавено.
+            $itemInterfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId);
+            
+            foreach ($addedToLists as $listId) {
+                $listIfaceId = static::fetchField($listId, 'regInterfaceId');
+                expect(
+                    empty($listIfaceId) || !empty($itemInterfaceIds[$listIfaceId]), 
+                    "Класът не поддържа нужния интерфейс"
+                );
             }
         }
         
-        return $result;
+        $itemRec->lists = type_Keylist::fromArray($lists);
+        
+        // Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
+        $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
+        
+        acc_Items::syncItemRec($itemRec, $AccRegister, $objectId);
+        
+        $itemRec->state = empty($lists) ? 'closed' : 'active';
+       
+        if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
+            $AccRegister->itemInUse($objectId, true);
+        
+            // Нотифициране на номенклатурите, от които перото е било премахнато
+            $removedFromLists = array_diff($oldLists, $lists);
+            
+            foreach ($removedFromLists as $lid) {
+                self::updateSummary($lid);
+            }
+        }
+        
+        return empty($result) ? NULL : $result;
     }
     
     
@@ -458,30 +477,6 @@ class acc_Lists extends core_Manager {
         $itemRec = acc_Items::fetch("#classId = {$classId} AND #objectId = {$objectId}");
         
         return $itemRec;
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    private static function setItemLists($itemRec, $lists)
-    {
-        $lists = type_Keylist::toArray($lists);
-        
-        /*
-         * Класът на перото трябва да поддържа интерфейса, зададен в номенклатурата. В противен
-         * случай добавянето не е позволено!
-         */
-        $classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId);     // Интерфейсите на класа
-        foreach ($lists as $listId) {
-            $listIfaceId = static::fetchField($listId, 'regInterfaceId');     // Интерф. на номенклатурата
-            expect(empty($listIfaceId) || in_array($listIfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
-        }
-        
-        /*
-         * Всичко е наред - перото може да се добави в тези номенклатури
-         */
-        $itemRec->lists = type_Keylist::fromArray($lists);
     }
     
     
