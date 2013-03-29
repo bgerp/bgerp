@@ -191,7 +191,7 @@ class sales_Sales extends core_Master
          */
         $this->FLD('initiatorId', 'user(roles=user,allowEmpty)',
             'caption=Наш персонал->Инициатор');
-        $this->FLD('dealerId', 'user(roles=sales,allowEmpty)',
+        $this->FLD('dealerId', 'user(allowEmpty)',
             'caption=Наш персонал->Търговец');
 
         /*
@@ -204,6 +204,8 @@ class sales_Sales extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
+    	
+    	$this->fields['dealerId']->type->params['roles'] = $this->getRequiredRoles('add');
     }
     
     public static function on_AfterSave($mvc)
@@ -598,11 +600,12 @@ class sales_Sales extends core_Master
     /**
      * Помощен метод за определяне на търговец по подразбиране.
      * 
-     * Правило за определяне:
+     * Правило за определяне: първия, който има права за създаване на продажби от списъка:
      * 
-     *  1/ Отговорника на папката на контрагента, ако той има роля sales;
-     *  2/ Текущият потребител, ако той има роля sales
-     *  3/ иначе е празен (NULL)
+     *  1/ Отговорника на папката на контрагента
+     *  2/ Текущият потребител
+     *  
+     *  Ако никой от тях няма права за създаване - резултатът е NULL
      *
      * @param stdClass $rec запис на модела sales_Sales
      * @return int|NULL user(roles=sales)
@@ -610,17 +613,18 @@ class sales_Sales extends core_Master
     public static function getDefaultDealer($rec)
     {
         expect($rec->folderId);
-        
-        $requiredRole   = 'sales';
 
+        // Отговорника на папката на контрагента ...
         $inChargeUserId = doc_Folders::fetchField($rec->folderId, 'inCharge');
-        if (core_Users::haveRole($requiredRole, $inChargeUserId)) {
-            // Отговорника на папката има роля 'sales'
+        if (self::haveRightFor('add', NULL, $inChargeUserId)) {
+            // ... има право да създава продажби - той става дилър по подразбиране.
             return $inChargeUserId;
         }
         
+        // Текущия потребител ...
         $currentUserId = core_Users::getCurrent('id');
-        if (core_Users::haveRole($requiredRole, $currentUserId)) {
+        if (self::haveRightFor('add', NULL, $currentUserId)) {
+            // ... има право да създава продажби
             return $currentUserId;
         }
         
