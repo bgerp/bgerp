@@ -408,7 +408,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $source = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $source);
         
         // Преобразуваме към вербална стойност
-        $source = "<div style='max-width:800px;white-space:pre-wrap'>{$source}</div>";
+        $source = "<div class='email-source'>{$source}</div>";
  
         return $source;
     }
