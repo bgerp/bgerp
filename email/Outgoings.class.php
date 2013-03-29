@@ -1083,6 +1083,7 @@ class email_Outgoings extends core_Master
             
             // Имейлите по подразбиране
             $data->form->setSuggestions('email', array('' => '') + $allEmailsArr);
+            $data->form->setSuggestions('emailCc', array('' => '') + $allEmailsArr);
             
             // Добавяме атрибута
             $data->form->addAttr('email', array('data-role' => 'list'));
