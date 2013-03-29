@@ -172,7 +172,7 @@ class type_Blob extends core_Type {
         }
         
         // Ако компресирането е било успешно
-        if($valueUnCompr) {
+        if($valueUnCompr !== FALSE) {
             
             // Използваме го
             $value = $valueUnCompr;
