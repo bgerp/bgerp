@@ -5,7 +5,7 @@
 /**
  * @todo Чака за документация...
  */
-defIfNot('EF_MAX_EXPORT_CNT', 1000);
+defIfNot('EF_MAX_EXPORT_CNT', 100000);
 
 
 /**

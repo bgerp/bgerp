@@ -4,6 +4,9 @@
 </IfModule>
 
 AddType text/plain .php
+AddType video/ogg .ogv
+AddType video/mp4 .mp4
+AddType video/webm .webm
 
 php_flag engine off
 

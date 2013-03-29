@@ -59,7 +59,7 @@ class plg_Printing extends core_Plugin
                 $data->rec->id,
                 'Printing' => 'yes',
             ),
-            'id=btnPrint,target=_blank,class=btn-print');
+            'id=btnPrint,target=_blank,class=btn-print,row=2');
     }
     
     

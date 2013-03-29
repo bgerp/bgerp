@@ -26,7 +26,7 @@ defIfNot('RICHTEXT_BOLD_TEXT', 'За,Отн,Относно,回复,转发,SV,VS,V
  * @since     v 0.1
  * @link
  */
-class type_Richtext extends type_Text 
+class type_Richtext extends type_Blob 
 {
     
     static $emoticons = array(
@@ -52,6 +52,26 @@ class type_Richtext extends type_Text
      */
     // static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
 
+	
+	/**
+     * Инициализиране на типа
+     * Задава, че да се компресира
+     */
+    function init($params = array())
+    {
+        // По подразбиране да се компресира
+        setIfNot($params['params']['compress'], 'compress');
+
+        // Ако е зададено да не се компресира
+        if ($params['params']['compress'] == 'no') {
+            
+            // Премахваме от масива
+            unset($params['params']['compress']);
+        }
+        
+        parent::init($params);
+    }
+    
     
     /**
      * Рендира HTML инпут поле
@@ -104,6 +124,7 @@ class type_Richtext extends type_Text
             $res = $this->toHtml($value);
         }
         
+
         return $res;
     }
     
@@ -143,7 +164,7 @@ class type_Richtext extends type_Text
             $textMode = 'html';
         }
         
-        $md5 = md5($html) . $textMode;
+//        $md5 = md5($html) . $textMode;
 
         // if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
         //     return $ret;
@@ -157,7 +178,6 @@ class type_Richtext extends type_Text
         
         // Задаваме достатъчно голям буфер за обработка на регулярните изрази
         ini_set('pcre.backtrack_limit', '2M');
-        
         
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
         $html = preg_replace_callback("/\[html](.*?)\[\/html\]([\r\n]{0,2})/is", array($this, '_catchHtml'), $html);
@@ -176,15 +196,15 @@ class type_Richtext extends type_Text
 			// Възстановяваме началното състояние
 			$html = str_replace($replaceFrom, $replaceTo, $html);
 		}
-        
+
         // Даваме възможност други да правят обработки на текста
         $this->invoke('BeforeCatchRichElements', array(&$html));
 
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]([\r\n]{0,2})/is", array($this, '_catchCode'), $html);
-        
+              
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
-        $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
+        $html = preg_replace_callback("/\[img(=([^#][^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
         
         // Обработваме [gread=http://????] ... [/gread] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[gread(=([^\]]*)|)\](.*?)\[\/gread\]/is", array($this, '_catchGread'), $html);
@@ -223,14 +243,19 @@ class type_Richtext extends type_Text
         }
             
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
-        if($textMode != 'plain') {
-            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]');
-            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>');
+        if($textMode != 'plain') { 
+            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[bquote]', '[/bquote]', '[bquote]', '[/bquote]'); 
+               // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
+            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>','<div class="richtext-quote">', '</div>');
+               // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } else {
-            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]');
-            $to   = array("\n",   "\n",   "\n",  "    ", '',         '',      '*',   '*',    '',    '',     '',    '',     str_repeat('_', 84), '', '', '', '');
+            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[bquote]', '[/bquote]');
+               // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
+            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n", "\n", "\n");
+               // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
-        
+   
+
         $html = str_replace($from, $to, $html);
         
         // Обработваме елементите [color=????]  
@@ -316,9 +341,7 @@ class type_Richtext extends type_Text
            $html->placeArray($this->_htmlBoard);
            $html->placeArray($this->_htmlBoard);
         }
-        
-        
-         
+
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
@@ -488,6 +511,8 @@ class type_Richtext extends type_Text
         
         if(!trim($code)) return "";
         $lg = $match[2];
+
+        
         if($lg) {
             // $Geshi = cls::get('geshi_Import');
             // $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;

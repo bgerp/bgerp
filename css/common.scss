@@ -53,13 +53,26 @@ $quiet-gray:#888;
 	-webkit-box-shadow: none;
     box-shadow: none;
 }
- 
+
+@mixin richtext-message(){
+	font-family:Courier New,mono;
+	border: 1px dotted;
+    margin: 0px 30px;
+    padding:7px 10px 5px 55px;
+    min-height:37px;
+    background-repeat: no-repeat;
+    background-position: 9px 7px;
+    @include border-radius(5px);
+    position:relative;
+}
 select.combo {  
 	position: absolute; 
     visibility:hidden;
     overflow:hidden;
 }
-
+.wide select {
+	margin-top:0;
+}
  /* Стилове за елемента 'tab' */
  .noSelect, div.richedit-toolbar, #mainMenu, #subMenu, div.tab-row {
 	-webkit-user-select: none;
@@ -176,7 +189,6 @@ p.richtext {
 	margin-left:0px;
 	margin-bottom:5px;
 	padding:5px;
-	background-color: #ddf;
 }
 
 .richtext h3 {
@@ -184,7 +196,91 @@ p.richtext {
     line-height:2em;
     margin-left:0px;
 }
+.richtext-text{
+	background-color:rgba(255,255,128,0.3); 
+	padding:10px;
+	margin: 10px 0px; 
+	border:solid 1px #ccc;
+	font-family:Courier New,mono;
+}
 
+.richtext-info{
+	@include richtext-message();
+    color: #00529B;
+    border-color:lighten(#00529B, 30%);
+    background-color: #BDE5F8;
+    background-image: url('../img/info_blue.png');
+}
+.richtext div span{
+	display:table-cell;
+	height:auto;
+	vertical-align:middle;
+}
+.richtext-tip{
+	@include richtext-message();
+	color:#c9841a;
+	border-color:lighten(#c9841a, 30%);
+    background-color:#FEFED8;
+    background-image: url('../img/App-tip-icon2.png');
+}
+.richtext-warning{
+	@include richtext-message();
+    color: #9F6000;
+    border-color:lighten(#9F6000, 30%);
+    background-color: #ffdc7a;
+    background-image: url('../img/dialog_warning.png');
+}
+.richtext-success{
+	@include richtext-message();
+    color: #4F8A10;
+    border-color:lighten(#4F8A10, 30%);
+    background-color: #DFF2BF;
+    background-image:url('../img/ok.png');
+}
+.richtext-error{
+	@include richtext-message();
+    color: #D8000C;
+    border-color:lighten(#D8000C, 30%);
+    background-color: #FFBABA;
+    background-image: url('../img/dialog_error.png');
+}
+.richtext-question{
+	@include richtext-message();
+    color: #132c5c;
+    border-color:lighten(#132c5c, 30%);
+    background-color: #92aee6;
+    background-image: url('../img/Help-icon.png');
+}
+@media print{
+	.richtext-question{
+    	padding-left:10px;
+    	color: darken(#132c5c,10%);
+	}
+	.richtext-error{
+ 		padding-left:10px;
+ 		color: darken(#D8000C,10%);
+	}
+	.richtext-tip{
+    	padding-left:10px;
+    	color:darken(#c9841a,10%);
+	}
+	.richtext-success{
+ 		padding-left:10px;
+ 		color: darken(#4F8A10,10%);
+	}
+	.richtext-warning{
+    	padding-left:10px;
+    	color: darken(#9F6000,10%);
+	}
+	.richtext-info{
+		padding-left:10px;
+    	color: darken(#00529B,10%);
+	}
+}
+.richtext-quote{
+	padding: 2px 0 0 15px;
+	border-left: 5px solid #e0e0e0;
+}
 pre.richtext {
     font-family: Courier New,monospace;
     padding:10px;
@@ -206,7 +302,7 @@ pre.richtext {
 
 .wide pre.richtext{
 	overflow: auto; 
-	max-width:800px;
+	max-width:810px;
 }
 
 .narrow  pre.richtext {
@@ -216,8 +312,12 @@ pre.richtext {
 
 .richtext .code {
 	white-space:pre;
-}
+	margin: 10px 0px;
 
+}
+pre.code{
+	background: rgba(255,255,230,0.5);
+}
 div.richtext li {
     margin:0px;
     padding:0px;
@@ -277,7 +377,7 @@ table.listTable {
 }
 
 table.listTable>tbody>tr:hover  {
-    background-color:#ffc !important;
+    background-color:#ffc;
 }
 
 table.listTable>tbody>tr>td {
@@ -440,7 +540,9 @@ div.hFormField {
     background-color:#ccc; 
     border:solid 1px #aaa;
 }
-
+.vertical input{
+	margin-left:2px;
+}
 .narrow .vertical .formToolbar { 
     padding:0 11px 5px 11px !important;
     background-color:#ffe;
@@ -488,10 +590,6 @@ input[type="text"]{
     display:table;
 }
 
-.hasDatepick{
-	margin-left:0px;
-}
-
 .hFormField .hasDatepick{
 	margin-left:1px;
 }
@@ -501,8 +599,11 @@ input[type="text"]{
 }
 
 .chzn-container{
-	margin-top:2px;
+	top:0px;
+	margin-left:2px;
+	height:25px;
 }
+
 
 /* Стилове за страньора 'hlp_Pager' */
 a.pager {
@@ -550,7 +651,6 @@ input, select, textarea {
 
 .narrow input, .narrow select , .narrow textarea{
 	font-size:1.1em; 
-	padding-left:0;
 }
 
 .formFields input:focus, textarea:focus, select:focus { 
@@ -559,6 +659,7 @@ input, select, textarea {
 }
 
 .formFields input, textarea, select { 
+	margin-top:0px;
     -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
 }
@@ -628,22 +729,34 @@ a.button, input[type=button], input[type=submit] {
     line-height:130%; 
     padding:1px 4px 1px 4px; /* IE6 */
 }
-
-.narrow .btn-left { 
+.narrow .single-thread .toolbar .button{
+	border-right:1px solid #999;
+	border-left:none;
+	margin-right:0 !important;
+	@include border-radius(0 !important);
+}
+.narrow .single-thread .toolbar div .button:first-child{
+	border-left:1px solid #999;
+	@include border-radius4(5px,0,0,5px !important);
+}
+.narrow .single-thread .toolbar div .button:last-child{
+	@include border-radius4(0,5px,5px,0 !important);
+}
+.narrow .listToolbar .btn-left { 
     @include rounded(top, right, 0px !important);
     @include rounded(bottom, right, 0px !important);
 	border-right: none !important;
 	margin:0px !important;
 }
 
-.narrow .btn-right {
+.narrow .listToolbar .btn-right {
 	@include rounded(top, left, 0px !important) ;
-    @include rounded(bottom, left, 0px !important);
-	margin:0px 12px 0 0 !important;
+	@include rounded(bottom, left, 0px !important);
+	margin:0px 0px 0 0 !important;
 	
 }
 
-.narrow .btn-middle { 
+.narrow .listToolbar .btn-middle { 
 	@include border-radius(0px !important);
 	border-right: none !important;
 	margin:0px !important;
@@ -1052,5 +1165,9 @@ table input[type=submit].btn-filter{
 }
 	
 
-
-	
+.transition {
+  -webkit-transition: all 3s ease-out;  /* Chrome 1-25, Safari 3.2+ */
+     -moz-transition: all 3s ease-out;  /* Firefox 4-15 */
+       -o-transition: all 3s ease-out;  /* Opera 10.50–12.00 */
+          transition: all 3s ease-out;  /* Chrome 26, Firefox 16+, IE 10+, Opera 12.50+ */
+}

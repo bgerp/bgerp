@@ -160,7 +160,7 @@ class core_Toolbar extends core_BaseClass
         if (Mode::is('printing')) return $toolbar;
         
         // Какъв ще бъде изгледа на лентата с инструменти?
-        if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
+      //  if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
             // Показваме бутони 
             $btnCnt = 0;
             
@@ -180,12 +180,16 @@ class core_Toolbar extends core_BaseClass
             ht::setUniqId($attr);
 
             $rowId = $attr['id'];
-
-            $toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW1#]</div>" . 
-                "<!--ET_BEGIN ROW2--><div style='margin-top:10px;' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
- 
+            if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
+            	count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')){
+	            $toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW0#][#ROW1#]</div>" . 
+	                "<!--ET_BEGIN ROW2--><div style='margin-top:10px;display:none' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
+        	}
+        	else{
+        		$toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW1#][#ROW2#]</div></div>");
+        		$flag1row = TRUE;
+        	}
             foreach ($this->buttons as $id => $btn) {
-                
                 $attr = $btn->attr;
                 
                 if(Mode::is('screenMode', 'narrow') && count($this->buttons) > 1) {
@@ -198,8 +202,10 @@ class core_Toolbar extends core_BaseClass
                     }
                 }
                 
-                $place = ($btn->order < 100) ? 'ROW1' : 'ROW2';
-
+                $place = ($btn->attr['row'] == 2 && !$flag1row) ? 'ROW2' : 'ROW1' ;
+				if($place == 'ROW2'){
+					$flagRow2 = TRUE;
+				}
                 if ($btn->type == 'submit') {
                     $toolbar->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr), $place);
                 } elseif ($btn->type == 'function') {
@@ -211,14 +217,14 @@ class core_Toolbar extends core_BaseClass
                 $btnCnt++;
             }
             
-            if($place == 'ROW2') {
-                // $toolbar->append("<a href=\"javascript:toggleDisplay('Row2_{$rowId}')\" style=\"font-weight:bold; background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\"linkWithIcon\">Още...</a>", "ROW1");
-
-                $toolbar->append(ht::createFnBtn('Още...', "toggleDisplay('Row2_{$rowId}');", NULL, 'ef_icon=img/16/toggle-expand.png'), "ROW1");
+            if($flagRow2) {
+                // $toolbar->append("<a href=\"javascript:toggleDisplay('Row2_{$rowId}')\" style=\"font-weight:bold;\" class=\"linkWithIcon\"><img src=" . sbf('img/16/plus.png') . " /> </a>", "ROW0");
+				
+                $toolbar->prepend(ht::createFnBtn('', "toggleDisplay('Row2_{$rowId}');", NULL, 'ef_icon=img/16/toggle-expand.png, class=more-btn'), "ROW0");
             }
 
             
-        } else {
+    /*    } else {
             // Показваме селект меню
             $options['default'] = tr('Действие') . ' »';
             
@@ -271,7 +277,7 @@ class core_Toolbar extends core_BaseClass
                     se.value = '';
                 }
             ", "SCRIPTS");
-        }
+        }*/
         
         $toolbar->prepend(ht::createHidden($this->hidden));
         
