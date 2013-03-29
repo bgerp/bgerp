@@ -843,7 +843,7 @@ class sales_Sales extends core_Master
         /* @var $query core_Query */
         $query = clone $data->query;
         
-        $query->limit = null;
+        $query->limit = $query->start = NULL;
         $query->orderBy = array();
         $query->executed = FALSE;
         $query->show = arr::make('amountDeal,amountDelivered,amountPaid,currencyId,valior', TRUE);
