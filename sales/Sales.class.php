@@ -168,7 +168,7 @@ class sales_Sales extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=trans_DeliveryTerms,select=codeName)', 
             'caption=Доставка->Условие');
         $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 
-            'caption=Доставка->Обект до'); // обект, където да бъде доставено (allowEmpty)
+            'caption=Доставка->Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
         $this->FLD('deliveryTime', 'datetime', 
             'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
         $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 
