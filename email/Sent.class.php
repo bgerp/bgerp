@@ -287,17 +287,23 @@ class email_Sent extends core_Manager
      * @param string $emailTo
      * @return bool
      */
-    protected static function doSend($message, $emailTo, $emailsCc = NULL)
+    protected static function doSend($message, $emailsTo, $emailsCc = NULL)
     {
-        expect($emailTo);
+        expect($emailsTo);
         expect($message->emailFrom);
         expect($message->subject);
         expect($message->html || $message->text);
         
         /** @var $PML PHPMailer */
         $PML = email_Accounts::getPML($message->emailFrom);
+
+        if ($emailsTo) {
+            $toArr = type_Emails::toArray($emailsTo);
+            foreach ($toArr as $to) {
+                $PML->AddAddress($to);        
+            }
+        }
         
-        $PML->AddAddress($emailTo);
         if ($emailsCc) {
             $ccArr = type_Emails::toArray($emailsCc);
             foreach ($ccArr as $cc) {
