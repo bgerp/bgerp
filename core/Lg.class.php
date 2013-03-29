@@ -279,15 +279,7 @@ class core_Lg extends core_Manager
                     ));
             }
         }
-        
-        $data->listFilter->layout = new ET(
-            "\n<form style='margin:0px;'  method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\"" .
-            "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>" .
-            "\n<table cellspacing=0 >" .
-            "\n<tr>[#FORM_FIELDS#]<td>[#FORM_TOOLBAR#]</td></tr>" .
-            "\n</table></form>\n");
-        
-        $data->listFilter->fieldsLayout = "<td>[#filter#]</td><td>[#lg#]</td>";
+        $data->listFilter->view = 'horizontal';
     }
     
     
