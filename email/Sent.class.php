@@ -182,7 +182,7 @@ class email_Sent extends core_Manager
     
     
     
-    static function sendOne($boxFrom, $emailTo, $subject, $body, $options, $emailsCc=NULL)
+    static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc=NULL)
     {
         if ($options['encoding'] == 'ascii') {
             $body->html = str::utf2ascii($body->html);
@@ -223,7 +223,7 @@ class email_Sent extends core_Manager
      
         static::prepareMessage($message, $sentRec, $options['is_fax']);
     
-        return static::doSend($message, $emailTo, $emailsCc);
+        return static::doSend($message, $emailsTo, $emailsCc);
     }
     
     /**

@@ -296,7 +296,9 @@ class email_Outgoings extends core_Master
 
             // Добавяме имейлите, които са в адресант и в получател
             // Те ще се изпращат заедно с CC
-            $groupEmailsArr['to'][0] = type_Emails::fromArray($intersectArr);
+            if ($intersectArr) {
+                $groupEmailsArr['to'][0] = type_Emails::fromArray($intersectArr);    
+            }
             
             // Обхождаме всички имейли, които ги няма в адресант, но ги има в получател
             foreach ($diffArr as $diff) {
