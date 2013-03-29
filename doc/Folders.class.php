@@ -382,6 +382,7 @@ class doc_Folders extends core_Master
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, FALSE);
 
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
+        $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');
         
         $fields = 'title,state,inCharge,access,shared';
         
@@ -402,6 +403,26 @@ class doc_Folders extends core_Master
             // Ако сега сме направили операцията възстановяване
             if($isRevert) {
                 self::updateFolderByContent($rec->id);
+            }
+            
+            // URL за нотификациите
+            $keyUrl = array('doc_Threads', 'list', 'folderId' => $id);
+            
+            // Ако оттегляме
+            if ($isReject) {
+                
+                // Скриваме нотификациите
+                bgerp_Notifications::setHidden($keyUrl, 'yes');
+                
+                // Скриваме последно
+                bgerp_Recently::setHidden('folder', $id, 'yes');
+            } elseif ($isRevert) {
+                
+                // Скриваме нотификациите
+                bgerp_Notifications::setHidden($keyUrl, 'no');
+                
+                // Скриваме последно
+                bgerp_Recently::setHidden('folder', $id, 'no');
             }
         }
     }
