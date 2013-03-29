@@ -42,6 +42,12 @@
 						    <td><b>[#emailLeft#]</b></td>
 						</tr>
 					<!--ET_END emailLeft-->
+					<!--ET_BEGIN emailCcLeft-->          
+						<tr>
+						    <td align='right'>|Копие|*:</td>
+						    <td>[#emailCcLeft#]</td>
+						</tr>
+					<!--ET_END emailCcLeft-->
 					</table>
 				</td>
 	
@@ -53,6 +59,12 @@
 						    <td><b>[#email#]</b></td>
 						</tr>
 					<!--ET_END email-->
+					<!--ET_BEGIN emailCc-->          
+						<tr>
+						    <td  align='right'>|Копие|*:</td>
+						    <td><b>[#emailCc#]</b></td>
+						</tr>
+					<!--ET_END emailCc-->
 					<!--ET_BEGIN tel-->          
 						<tr>
 						    <td  align='right'>|Тел.|*:</td>

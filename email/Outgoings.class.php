@@ -1292,7 +1292,9 @@ class email_Outgoings extends core_Master
         //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
         if (!$attn) {
             $data->row->recipientEmail = $data->row->email;
+            $data->row->emailCcLeft = $data->row->emailCc;
             unset($data->row->email);
+            unset($data->row->emailCc);
         }
         
         //Полета Град и Адрес
@@ -1318,7 +1320,9 @@ class email_Outgoings extends core_Master
             //Имейла е само в дясната част, преместваме в ляво
             if (!$telFax) {
                 $data->row->emailLeft = $data->row->email;
+                setIfNot($data->row->emailCcLeft, $data->row->emailCc);
                 unset($data->row->email);
+                unset($data->row->emailCc);
             }
         }        
         
