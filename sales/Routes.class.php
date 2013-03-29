@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, locationId, salesmanId, date1, repeatWeeks1, date2, repeatWeeks2, date3, repeatWeeks3, date4, repeatWeeks4, state, openSale=Продажба, createdOn, createdBy';
+    var $listFields = 'tools=Пулт, locationId, salesmanId, date1, repeatWeeks1, date2, repeatWeeks2, date3, repeatWeeks3, date4, repeatWeeks4, state, createdOn, createdBy';
     
 	
 	/**
@@ -91,9 +91,12 @@ class sales_Routes extends core_Manager {
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-		$data->listFilter->FNC('user', 'user(role=salesman)', 'input,caption=Търговец,width=15em,silent');
+		$data->listFilter->FNC('user', 'user(role=salesman,allowEmpty)', 'input,caption=Търговец,width=15em,silent');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,width=6em,silent');
-		$data->listFilter->showFields = 'user, date';
+		if($mvc->haveRightFor('write')){
+			$data->listFilter->setDefault('user', core_Users::getCurrent());
+		}
+        $data->listFilter->showFields = 'user, date';
 		$data->listFilter->input();
 	}
 	
@@ -103,9 +106,6 @@ class sales_Routes extends core_Manager {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
-    	//@TODO да заменя NULL с валиден УРЛ
-    	$row->openSale = ht::createBtn('Продажба', NULL);
-    	
     	$locIcon = sbf("img/16/location_pin.png");
     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->id, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
     }
@@ -116,96 +116,89 @@ class sales_Routes extends core_Manager {
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	if($salesmanId = $data->listFilter->rec->user){
-    		$data->query->where(array("#salesmanId = [#1#]", $salesmanId));
-    	}
-    }
-    
-    
-    /**
-     *  Извиква се след подготовка на резултатите
-     */
-    static function on_AfterPrepareListRecs($mvc, &$res, $data)
-    {
-    	// Ако филтрираме по дата
     	if($date = $data->listFilter->rec->date){
-    		if($data->recs){
-	    		foreach($data->recs as $rec) {
-					$check = 0;
-					foreach(range(1, 4) as $i){
-						$dateFld = $rec->{"date{$i}"};
-						$weekFld = $rec->{"repeatWeeks{$i}"};
-						
-						// За всяка от датите в записа изчисляваме отговаряли на търсената
-						$res = $mvc->calcDaysDiff($date, $dateFld, $weekFld);
-						
-						// Ако поне една от датите отговаря инкрементираме $check
-						if($res) $check++;
-					}
-
-					// Ако никоя от датите не отговаря на условието ънсетваме записа
-					if($check == 0){
-						unset($data->recs[$rec->id]);
-					}
-				}
+    		
+    		// За всяка една от четирите дати проверяваме отговаряли на
+    		// посочената дата, ако поне една отговаря то и записа отговаря
+    		foreach(range(1,4) as $i){
+    			
+    			// Изчисляваме дните между датата от модела и търсената
+    			$data->query->XPR("dif{$i}", 'int', "DATEDIFF (#date{$i} , '{$date}')");
+    			
+    			// Записа отговаря ако разликата е 0 и повторението е 0
+    			$data->query->orWhere("#dif{$i} = 0 && #repeatWeeks{$i} = 0");
+    			
+    			// Ако ралзиката се дели без остатък на 7 * броя повторения
+    			$data->query->orWhere("MOD(#dif{$i}, (7 * #repeatWeeks{$i})) = 0");
+    		}
+    		
+    		if($salesmanId = $data->listFilter->rec->user){
+    			
+    			// Филтриране по продавач
+    			$data->query->where(array("#salesmanId = [#1#]", $salesmanId));
     		}
     	}
     }
     
     
     /**
-     * Функция проверяваща дали дата от модела отговаря на търсенето по дата.
-     * @param date $date - търсената дата
-     * @param date $dateRec - датата от модела
-     * @param int $repeat - брой повторения на седмици
-     * @return boolean TRUE/FALSE - дали датата отговаря или не
+     * Подготовка на маршрутите, показвани в Single-a на локациите
      */
-    private function calcDaysDiff($date, $dateRec, $repeat)
+    function prepareRoutes($data)
     {
-    	// Намираме дните между двете дати
-    	$daysBetween = dt::daysBetween($date, $dateRec);
-     	if($repeat == 0 && $daysBetween == 0) return TRUE;
-    	$weeks = 7 * $repeat;
+    	// Подготвяме маршрутите ако има налични за тази локация
+    	$query = $this->getQuery();
+    	$query->where(array("#locationId = [#1#]", $data->masterData->rec->id));
     	
-    	// Ако дните са кратни на броя на седмиците значи датата отговаря
-     	if($daysBetween % $weeks == 0) return TRUE;
-	    
-     	// Ако ние от горните не е изпълнено значи датата не отговаря
-	    return FALSE;
-    }
-    
-    
-    /**
-     * Връща всички маршрути за дадена локация, FALSE ако няма записи
-     * @param int $locationId - id на локация
-     * @return mixed array/FALSE - резултата от заявката
-     */
-    public static function fetchByLocation($locationId)
-    {
-    	expect(crm_Locations::fetch($locationId), "Няма такава локация");
+    		$results = array();
+    		while ($rec = $query->fetch()){
+    			$row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
+    			$routeArr['tools'] = $row->tools;
+    			$routeArr['salesmanId'] = $row->salesmanId;
+    			$routeArr['nextVisit'] = $this->calcNextVisit($rec);
+    			$results[] = (object)$routeArr;
+    		}
+    		
+    		$data->masterData->row->routes = $results;
     	
-    	$query = static::getQuery();
-    	$query->where(array("#locationId = [#1#]", $locationId));
-    	if($query->count() == 0) return FALSE;
-    	
-    	$results = array();
-    	while($rec = $query->fetch()){
-    		$results[$rec->id] = static::recToVerbal($rec);
-    	}
-    	
-    	return $results;
     }
     
     
     /**
      * 
+     * Изчислява кога е следващото посещение на обекта
+     * @param stdClass $rec - запис от модела
+     * @return string $date - вербално име на следващата дата
      */
-    function prepareRoutes($data)
+    public function calcNextVisit($rec)
     {
-    	// Подготвяме маршрутите ако има налични за тази локация
-    	if($routes = sales_Routes::fetchByLocation($data->masterData->rec->id)){
-    		$data->masterData->row->routes = $routes;
+    	$nowTs = dt::mysql2timestamp(dt::now());
+    	$interval = 24 * 60 * 60 * 7;
+    	foreach (range(1, 4) as $i){
+    		if(!$rec->{"date{$i}"}) break;
+    		$startTs = dt::mysql2timestamp($rec->{"date{$i}"});
+    		$diff = $nowTs - $startTs;
+    		if($diff < 0){
+    			$nextStartTimeTs = $startTs;
+    		} else {
+    			$interval = $interval * $rec->{"repeatWeeks{$i}"};
+    			$nextStartTimeTs = (floor(($diff)/$interval) + 1) * $interval;
+    			$nextStartTimeTs = $startTs + $nextStartTimeTs;
+    		}
+    		
+    		if($i == 1) {
+    			$nextVisit = $nextStartTimeTs;
+    		} else {
+    			if($nextStartTimeTs <= $nextVisit){
+    				$nextVisit = $nextStartTimeTs;
+    			}
+    		}
     	}
+    	
+    	$date = dt::timestamp2mysql($nextVisit);
+    	$date = dt::mysql2verbal($date, "m.Y D");
+    	
+    	return  $date;
     }
     
     
@@ -214,23 +207,23 @@ class sales_Routes extends core_Manager {
      */
 	function renderRoutes($data)
     {
-    	if($data->masterData->row->routes){
+    	
     		$tpl = new ET(tr("|*" . getFileContent("sales/tpl/Routes.shtml")));
     		
     		// Рендираме информацията за маршрутите
     		$img = sbf('img/16/add.png');
-    		$addUrl = array('sales_Routes', 'add', 'locationId' => $data->rec->id, 'ret_url' => TRUE);
+    		$addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
     		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
     		
     		$tpl->replace($addBtn, 'BTN');
+    		if($data->masterData->row->routes){
     		foreach($data->masterData->row->routes as $route){
     			$cl = $tpl->getBlock("ROW");
     			$cl->placeObject($route);
     			$cl->removeBlocks();
     			$cl->append2master();
     		}
-    		
-    		return $tpl;
-    	}
+    		}
+    	return $tpl;
     }
 }

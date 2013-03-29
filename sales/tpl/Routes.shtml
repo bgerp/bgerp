@@ -1,31 +1,25 @@
 <fieldset class="detail-info">
-		      <legend class="groupTitle">|Търговски маршрути|* &nbsp;[#BTN#]</legend>
-		        <table border = '1' cellspacing = '0' cellpadding='0' style='border-collapse:collapse'>
-		        	<tr>
-		        		<th>Продавач</th>
-		        		<th>Дата 1</th>
-		        		<th>Пов. 1</th>
-		        		<th>Дата 2</th>
-		        		<th>Пов. 2</th>
-		        		<th>Дата 3</th>
-		        		<th>Пов. 3</th>
-		        		<th>Дата 4</th>
-		        		<th>Пов. 4</th>
-		        		<th>Пулт</th>
-		        	</tr>
-		        	<!--ET_BEGIN ROW-->
-		        	<tr>
-		        		<td>[#salesmanId#]</td>
-		        		<td>[#date1#]</td>
-		        		<td style='text-align:center'>[#repeatWeeks1#]</td>
-		        		<td>[#date2#]</td>
-		        		<td style='text-align:center'>[#repeatWeeks2#]</td>
-		        		<td>[#date3#]</td>
-		        		<td style='text-align:center'>[#repeatWeeks3#]</td>
-		        		<td>[#date4#]</td>
-		        		<td style='text-align:center'>[#repeatWeeks4#]</td>
-		        		<td>[#tools#]</td>
-		        	</tr>
-		        	<!--ET_END ROW-->
-				</table>
+<legend class="groupTitle">|Търговски маршрути|* &nbsp;[#BTN#]</legend>
+	<div class="groupList">
+	<div>
+		<ul>
+		
+			<li>
+				<ul>
+					<li style="width:44%;display:inline-block"><span class="gray-title">|Търговец|*:</span></li>
+					<li style='width:44%;display:inline-block'><span class="gray-title">|Следващо посещение|*:</span></li>
+					<li style='width:10%;display:inline-block'></li>
+				</ul>
+			</li>
+		<!--ET_BEGIN ROW-->
+			<li>
+				<ul>
+					<li style="width:44%;display:inline-block"> [#salesmanId#]</li>
+					<li style='width:44%;display:inline-block'>[#nextVisit#]</li>
+					<li style='width:10%;display:inline-block'><span>[#tools#]</span></li>
+				</ul>
+			</li>
+		<!--ET_END ROW-->
+		</ul>
+	</div>
 </fieldset>
