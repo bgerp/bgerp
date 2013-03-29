@@ -531,6 +531,10 @@ option.team {
 	@include btn-style();
 	
 }
+.wide .btn-zoho{
+	@include btn-style();
+}
+
 .more-btn{
 	padding: 2px 3px 3px 3px !important;
 	background-position:center center;
@@ -1698,11 +1702,13 @@ input.combo.pCode{
 	max-width: 900px;
 	min-width: 800px;
 	min-height: 600px;
+	top:10px;
+	position:relative;
 }
 
 .narrow .webdrvTabBody {
 	max-width: 600px;
-	min-width: 400px;
+	min-width: 100px;
 	min-height: 300px;
 }
 
@@ -1718,9 +1724,15 @@ input.combo.pCode{
 
 .wide .webdrvFieldset{
 	min-height:620px;
+	border:1px solid #ccc;
+	@include border-radius(5px);
+	box-shadow:0 0 5px rgba(0,0,0,0.2) inset;
 	>div{
 		max-width:868px;
 		overflow:auto;
+	}
+	legend{
+		background-color:#fff;
 	}
 	pre.richtext{
 		max-width: 845px;
@@ -1729,9 +1741,22 @@ input.combo.pCode{
 		margin-bottom:0;
 		margin-top:0;
 	}
+	.email-source{
+		max-width:850px;
+		white-space:pre-wrap;
+		font-family:monospace "courier new";
+	}
 }
+.narrow .email-source{
+	white-space:pre-wrap;
+	font-family:monospace "courier new";
+}
+
 .narrow .webdrvFieldset {
 	min-height: 300px;
+	border:1px solid #ccc;
+	@include border-radius(5px);
+	box-shadow:0 0 5px rgba(0,0,0,0.2) inset;
 }
 
 #blog-article-details .listTable th{
