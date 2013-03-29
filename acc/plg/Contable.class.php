@@ -43,7 +43,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->className,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Контиране', $contoUrl, 'id=conto,class=btn-conto,warning=Наистина ли желаете документа да бъде контиран?');
+            $data->toolbar->addBtn('Контиране', $contoUrl, 'id=btnConto,class=btn-conto,warning=Наистина ли желаете документа да бъде контиран?');
         }
         
         if ($mvc->haveRightFor('revert', $data->rec)) {

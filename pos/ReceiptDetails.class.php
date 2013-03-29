@@ -110,11 +110,16 @@ class pos_ReceiptDetails extends core_Detail {
 	    	$tpl->append(ht::createFnBtn($payment->title, '', '', $attr), 'SECOND_ROW');
 	    }
 	    
-	    if(haveRole('pos,admin') && $this->Master->haveRightFor('conto', $data->masterId)) {
-	    	$contUrl = array('acc_Journal', 'conto', 'docId' => $data->masterId, 'docType' => $this->Master->className, 'ret_url' => array($this->Master, 'new'));
+        // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
+	    if (!empty($data->masterData->toolbar->buttons['btnConto'])) {
+	        $contoUrl = $data->masterData->toolbar->buttons['btnConto']->url;
+	        $contoUrl = array('ret_url' => array($this->Master, 'new')) + $contoUrl;
+	        
+	        // Скриваме бутона "Контиране"
+	        unset($data->masterData->toolbar->buttons['btnConto']);
 	    }
 	    
-	    $tpl->append(ht::createBtn('Приключи', $contUrl, '', '', array('class' => 'actionBtn btnEnd')), 'FIRST_ROW');
+	    $tpl->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => 'actionBtn btnEnd')), 'FIRST_ROW');
 	   
 		return $tpl;
     }

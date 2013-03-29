@@ -32,7 +32,8 @@ class pos_Receipts extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary,
-    				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting';
+    				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
+                     acc_plg_Contable';
 
     
     /**
@@ -373,7 +374,7 @@ class pos_Receipts extends core_Master {
 		// Можем да контираме бележки само когато те са чернови и платената
 		// сума е по-голяма или равна на общата или общата сума е <= 0
 		if($action == 'conto' && isset($rec->id)) {
-			if($rec->state == 'active' || $rec->paid < $rec->total) {
+			if($rec->total == 0 || $rec->paid < $rec->total) {
 				$res = 'no_one';
 			}
 		}
