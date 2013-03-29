@@ -690,6 +690,10 @@ class cal_Tasks extends core_Master
         $Cron->addOnce($rec);
         
         $res .= "<li>Известяване за стартирани задачи по крон</li>";
+        
+        //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('calTasks', 'Прикачени файлове в задачи', NULL, '104857600', 'user', 'user');
     }
 
        
