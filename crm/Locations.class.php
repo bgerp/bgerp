@@ -175,7 +175,8 @@ class crm_Locations extends core_Master {
     		$contragentCls = cls::get($data->rec->contragentCls);
     		$cRec = $contragentCls->fetch($data->rec->contragentId);
     		$url = array('sales_Sales', 'add','folderId' => $cRec->folderId, 'deliveryLocationId' => $data->rec->id);
-    		$data->toolbar->addBtn('Започни продажба', $url,  NULL, 'ef_icon=img/16/view.png');
+    		$Sales = cls::get('sales_Sales');
+    		$data->toolbar->addBtn($Sales->singleTitle, $url,  NULL, 'ef_icon=img/16/view.png');
     	}
     }
     
