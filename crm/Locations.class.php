@@ -167,6 +167,20 @@ class crm_Locations extends core_Master {
     
     
     /**
+   	 * Обработка на ListToolbar-a
+   	 */
+   	static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if(sales_Sales::haveRightFor('write')){
+    		$contragentCls = cls::get($data->rec->contragentCls);
+    		$cRec = $contragentCls->fetch($data->rec->contragentId);
+    		$url = array('sales_Sales', 'add','folderId' => $cRec->folderId, 'deliveryLocationId' => $data->rec->id);
+    		$data->toolbar->addBtn('Започни продажба', $url,  NULL, 'ef_icon=img/16/view.png');
+    	}
+    }
+    
+    
+    /**
      * Рендира данните
      */
     function renderContragentLocations($data)
