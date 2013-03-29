@@ -166,6 +166,9 @@ class type_Blob extends core_Type {
      */
     public function fromMysql($value)
     {   
+        // Стойност по подразбиране
+        $valueUnCompr = FALSE;
+        
         // Ако е указано - декомпресираме
         if($value !== NULL && $this->params['compress']) {
             $valueUnCompr = @gzuncompress($value);
