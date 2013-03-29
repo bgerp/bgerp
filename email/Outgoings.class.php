@@ -856,9 +856,6 @@ class email_Outgoings extends core_Master
                             }
                         }    
                     }       
-    
-                    // Попълваме полето Адресант->Имейл със съответния имейл
-                    $rec->email = $emailTo;       
                 } else {
                     
                     //Ако не е валидемимейал, добавяме статус съобщения, че не е валиден имейл
@@ -1040,7 +1037,14 @@ class email_Outgoings extends core_Master
             // Разделяме стринга в масив
             $allEmailsArr = explode(', ', $contrData->groupEmails);    
         }
-
+        
+        // Ако отговаряме на конкретен имейл
+        if ($emailTo) {
+            
+            // Попълваме полето Адресант->Имейл със съответния имейл
+            $rec->email = $emailTo;     
+        }
+        
         // Всички имейли от река
         $recEmails = type_Emails::toArray($rec->email);
         
