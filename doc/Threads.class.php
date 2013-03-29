@@ -381,12 +381,12 @@ class doc_Threads extends core_Manager
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
         $exp->DEF('#salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение');
-        $exp->DEF('#name', 'varchar(255)', 'caption=Имена,width=100%,mandatory,remember=info');
+        $exp->DEF('#name', 'varchar', 'caption=Имена,width=100%,mandatory,remember=info');
         
         // Адресни данни
         $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,notNull');
-        $exp->DEF('#pCode', 'varchar(16)', 'caption=П. код,recently');
-        $exp->DEF('#place', 'varchar(64)', 'caption=Град,width=100%');
+        $exp->DEF('#pCode', 'varchar(255)', 'caption=П. код,recently');
+        $exp->DEF('#place', 'varchar(255)', 'caption=Град,width=100%');
         $exp->DEF('#address', 'varchar(255)', 'caption=Адрес,width=100%');
         
         // Комуникации
