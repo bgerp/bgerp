@@ -348,7 +348,9 @@ class acc_Lists extends core_Manager {
             }
         }
         
-        $lists = array_combine($lists, $lists);
+        if (count($lists)) {
+            $lists = array_combine($lists, $lists);    
+        }
         
         return $lists;
     }
