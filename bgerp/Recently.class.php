@@ -21,7 +21,7 @@ class bgerp_Recently extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'bgerp_Wrapper, plg_RowTools, bgerp_plg_GroupByDate';
+    var $loadList = 'bgerp_Wrapper, plg_RowTools, bgerp_plg_GroupByDate, plg_Search';
 
 
     /**
@@ -155,8 +155,45 @@ class bgerp_Recently extends core_Manager
             $row->title = new ET("<div class='state-{$state}'>[#1#]</div>", $row->title);
         }
      }
+	
+     
+     /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+    	$objectTitle = $mvc->getObjectTitle($rec);
+    	
+    	$res = plg_Search::normalizeText($objectTitle);
+    	$res = " " . $res;
+     }
 
-
+     
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $rec
+     */
+    function getObjectTitle($rec)
+    {
+    	try{
+	    	if($rec->type == 'folder') {
+	    		$folderRec = doc_Folders::fetch($rec->objectId);
+	    		$objectTitle = $folderRec->title;
+	    	} else {
+	    		$docProxy = doc_Containers::getDocument($rec->objectId);
+	            $docRow = $docProxy->getDocumentRow();
+	            $objectTitle = $docRow->title;
+	    	}
+    	} catch (core_exception_Expect $ex) {
+    		$objectTitle = '';
+    	}
+    	
+    	return $objectTitle;
+    }
+    
+    
     /**
      * @todo Чака за документация...
      */
@@ -177,11 +214,11 @@ class bgerp_Recently extends core_Manager
         // Подготвяме полетата за показване
         $data->listFields = 'last,title';
         
-        // Подготвяме формата за филтриране
-        // $this->prepareListFilter($data);
-        
         $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
         $data->query->orderBy("last=DESC");
+        
+        // Подготвяме филтрирането
+        $Recently->prepareListFilter($data);
         
         // Подготвяме навигацията по страници
         $Recently->prepareListPager($data);
@@ -215,7 +252,11 @@ class bgerp_Recently extends core_Manager
         $tpl = new ET("
             <div class='clearfix21 portal' style='background-color:#f8f8ff'>
             <div style='background-color:#eef' class='legend'>[#PortalTitle#]</div>
-            [#PortalPagerTop#]
+            <div>
+            <div style='float:right'>[#ListFilter#]</div>
+            <div style='float:left'>[#PortalPagerTop#]</div>
+            <div class='clearfix21'></div>
+            </div>
             [#PortalTable#]
             [#PortalPagerBottom#]
             </div>
@@ -227,6 +268,10 @@ class bgerp_Recently extends core_Manager
         // Попълваме горния страньор
         $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
         
+        if($data->listFilter && $data->pager->pagesCount > 1){
+        	$tpl->append($data->listFilter->renderHtml(), 'ListFilter');
+        }
+       
         // Попълваме долния страньор
         $tpl->append($Recently->renderListPager($data), 'PortalPagerBottom');
         
@@ -246,17 +291,29 @@ class bgerp_Recently extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->orderBy("last=DESC");
-    }
+        $data->listFilter->view = 'horizontal';
+        $img = ht::createElement('img', array('src' => 'img/16/find.png'));
+        $data->listFilter->formAttr['id'] = 'portal-filter';
+        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png');
+        $data->listFilter->showFields = 'search';
+	}
     
     
     /**
      * Какво правим след сетъпа на модела?
      */
-    static function on_AfterSetupMVC()
+    static function on_AfterSetupMVC($mvc, &$res)
     {
-    
+    	$count = 0;
+    	$query = static::getQuery();
+    	$query->orderBy("#id", "DESC");
+    	while($rec = $query->fetch()){
+    		if($rec->searchKeywords) continue;
+    		$rec->searchKeywords = $mvc->getObjectTitle($rec);
+    		$count++;
+    		$mvc->save_($rec);
+    	}
+    	
+    	$res .= "Обновени ключови думи на  {$count} записа в bgerp_Recently";
     }
-
-
 }

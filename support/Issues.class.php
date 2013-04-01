@@ -300,7 +300,10 @@ class support_Issues extends core_Master
             // Препащаме
             return redirect($redirectArr);
         }
-
+        
+        // Премахваме повтарящите се
+        $components = array_unique($components);
+        
         // Променяме съдържанието на полето компоненти с определения от нас масив
         $data->form->setOptions('componentId', $components);
         
@@ -542,12 +545,20 @@ class support_Issues extends core_Master
             // Да се показват само сигнали от избраната система
             $data->query->where("#systemId = '{$systemId}'");
             $data->query->where("#componentId = `support_components`.`id`");
-            
-            // Вземаме всички компоненти от избраната система
-            $componentsArr = support_Components::getSystemsArr($systemId);
+        }
+        
+        // Вземаме всички компоненти от избраната система
+        $componentsArr = support_Components::getSystemsArr($systemId);
+        
+        // Ако има компоненти
+        if (count($componentsArr)) {
             
             // Задаваме ги да се показват те
-            $data->listFilter->setOptions('componentId', $componentsArr);
+            $data->listFilter->setOptions('componentId', $componentsArr);    
+        } else {
+            
+            // Добавяме празен стринг, за да не се покажат всичките записи 
+            $data->listFilter->setOptions('componentId', array('' => ''));
         }
         
         // id' то на компонента
@@ -556,11 +567,21 @@ class support_Issues extends core_Master
         // Ако е избран компонент
         if ($componentId) {
             
-            // Ако няма система или избрания компонент е в системата
-            if (!$systemId || $componentsArr[$componentId]) {
+            // Масив с id' тата на еднаквите компоненти по име
+            $sameComponentsArr = support_Components::getSame($componentId);
+            
+            // Обхождаме масива
+            foreach ($sameComponentsArr as $sameVal) {
                 
-                // Задаваме да се показват само те
-                $data->query->where("#componentId = '{$componentId}'");    
+                // Ако го има в избраните
+                if (isset($componentsArr[$sameVal])) {
+
+                    // Добавяме във where
+                    $data->query->orWhereArr('componentId', $sameComponentsArr);  
+                    
+                    // Прекъсваме по нататъшното изпълнение
+                    break;
+                }
             }
         }
         

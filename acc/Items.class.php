@@ -74,6 +74,15 @@ class acc_Items extends core_Manager
     
     
     /**
+     * Опашка от записи за записване в on_Shutdown
+     * 
+     * @var array Масив от записи на acc_Items (с ключове - ид-та на записи)
+     * @see acc_Items::touch()
+     */
+    protected $touched = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -542,16 +551,7 @@ class acc_Items extends core_Manager
         $classId  = $master::getClassId();
         
         if ($itemRec = static::fetchItem($classId, $objectId)) {
-            $register = core_Cls::getInterface('acc_RegisterIntf', $master);
-            
-            static::syncItemRec($itemRec, $register, $itemRec->objectId);
-            
-            if (!empty($master->autoList)) {
-                // Автоматично добавяне към номенклатурата $autoList
-                expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $master->autoList), 'id'));
-                $itemRec->lists = type_Keylist::addKey($itemRec->lists, $autoListId);
-            }
-            
+            static::syncItemRec($itemRec, $master, $itemRec->objectId);
             static::save($itemRec);
         }
     }
@@ -566,13 +566,106 @@ class acc_Items extends core_Manager
      */
     public static function syncItemRec(&$itemRec, $register, $objectId)
     {
-        $regRec = $register->getItemRec($objectId);
+        if (is_scalar($register)) {
+            $register = cls::get($register);
+        }
+
+        if (!$regRec = $register->getItemRec($objectId)) {
+            return FALSE;
+        }
         
         if ($regRec) {
             $itemRec->num      = $regRec->num; 
             $itemRec->title    = $regRec->title;
             $itemRec->uomId    = $regRec->uomId;
             $itemRec->features = $regRec->features;
+                    
+            if (!empty($register->autoList)) {
+                // Автоматично добавяне към номенклатурата $autoList
+                expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $register->autoList), 'id'));
+                $itemRec->lists = type_Keylist::addKey($itemRec->lists, $autoListId);
+            }
+        }
+            
+        return TRUE;
+    }
+    
+    
+    /**
+     * Създава (ако липсва) перо, добавя го в номенклатира (ако не е) и го маркира като използвано
+     * 
+     * @param int $classId
+     * @param int $objectId
+     * @param int $listId
+     * @return int ИД на перото
+     */
+    public static function force($classId, $objectId, $listId)
+    {
+        $rec = self::fetchItem($classId, $objectId);
+        
+        if (empty($rec)) {
+            // Няма такова перо - създаваме ново и го добавяме в номенклатурата $listId
+            $rec = new stdClass();
+            expect($register = core_Cls::getInterface('acc_RegisterIntf', $classId));
+            self::syncItemRec($rec, $register, $objectId);
+        }
+        
+        $rec->classId  = $classId;
+        $rec->objectId = $objectId;
+        
+        if (!empty($rec->id) && type_Keylist::isIn($listId, $rec->lists)) {
+            // Идеята е да се буферира многократното обновяване на едно и също перо само за
+            // да му се смени състоянието и датата на последно използване
+            self::touch($rec);
+        } else {
+            
+            // Ако перото не е в номенкл. $listId (независимо дали се създава за пръв път или
+            // вече го има), добавяме го и записваме на момента.
+            $rec->lists = type_Keylist::addKey($itemRec->lists, $listId);
+            $rec->state      = 'active';
+            $rec->lastUseOn = dt::now();
+        
+            self::save($rec);
+        }
+        
+        return $rec->id;
+    }
+    
+    
+    /**
+     * Запомня запис на перо за по късно обновление.
+     * 
+     * @param stdClass $rec
+     */
+    public static function touch($rec)
+    {
+        /*
+         * Вземаме инстация на acc_Items за да подсигурим извикването на acc_Items::on_Shutdown()
+         * 
+         * @var $Items acc_Items
+         */
+        $Items = cls::get(__CLASS__);
+        
+        $rec->state      = 'active';
+        $rec->lastUseOn = dt::now();
+        
+        expect($rec->id);
+        
+        // Тук само запомняме какво е "пипнато" (използвано). Същинското обновяване се прави
+        // в on_Shutdown()
+        $Items->touched[$rec->id] = $rec;
+    }
+
+    
+    /**
+     * Изчиства записите, заопашени за запис 
+     * 
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        foreach ($mvc->touched as $rec) {
+            $mvc->save($rec);
         }
     }
 }

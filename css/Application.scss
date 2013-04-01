@@ -29,6 +29,7 @@ $open-thread:#e0ffe0;
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
 	height:24px;
+	font-size: 13px;
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -537,12 +538,13 @@ option.team {
 }
 
 .more-btn{
-	padding: 2px 3px 3px 3px !important;
+	padding:3px 3px 3px 3px !important;
 	background-position:center center;
 	background-image:url(../img/16/toggle-expand.png) !important;
 	background-repeat:no-repeat !important;
 	width: 24px !important;
 	height:24px;
+	top:7px \0/;
 	position: relative;
 }
 
@@ -552,11 +554,19 @@ option.team {
 
 .narrow .more-btn{
 	position:relative;
-	top:1px;
-	width:24px!important;
+	top:2px;
+	width:24px !important;
 	height:24px !important;
 }
-
+@-moz-document url-prefix() {
+   .more-btn{
+		position:relative;
+   		top:1px;
+	}
+	.narrow .more-btn{
+	height:25px !important;
+	}
+}
 .wide .btn-export  { 
 	background-image:url('../img/16/table_export.png');
 	@include btn-style();
@@ -848,6 +858,9 @@ div.folder-cover{
 	}
 	h2{
 		margin:0 0 20px 0;
+	}
+	.alphabet{
+		line-height:0.9em;
 	}
 }
 
@@ -2016,4 +2029,43 @@ table.styled-table tr:hover td {
 	background-color: rgba(240,240,255,0.5);
 	border: solid 1px #ddddff;
 	
+}
+
+#portal-filter {
+	width: 9em;
+	border: solid 1px #ccc;
+	float: right;
+	display: block;
+	position: relative;
+	height: 1.2em; 	
+	margin: 7px 0 5px 2px; 	
+	background: rgba(255, 255, 255, 0.7);
+	@include border-radius(3px);
+}
+
+#portal-filter .formFields input.combo {
+	height: 1.2em;
+    width: 9em;
+	border: none !important;
+	background:none;
+    width: 8.3em !important;
+}
+
+#portal-filter select{
+	height: 1.2em;
+    width: 8.3em;
+	visibility:hidden !important;
+}
+
+#portal-filter .button {
+	width: 16px;
+	height:20px;
+	margin-right:0;
+	right: -3px;
+    top: 0em;
+	position: absolute;
+	border: none;
+	background-color: transparent;
+	cursor: pointer;
+	display: inline-block 
 }

@@ -43,7 +43,7 @@
         <!--ET_BEGIN regDecision-->
         [#regDecision#]
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Решение по регистрцията|*</legend>
+            <legend class="groupTitle">|Решение по регистрацията|*</legend>
             <div class="groupList">
                 <!--ET_BEGIN regDecisionNumber--><span>№: <b>[#regDecisionNumber#]</b></span><!--ET_END regDecisionNumber-->
                 <!--ET_BEGIN regDecisionDate--><span>&nbsp;&nbsp;|Дата|*: <b>[#regDecisionDate#]</b></span><!--ET_END regDecisionDate-->
