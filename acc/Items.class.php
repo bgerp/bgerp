@@ -606,8 +606,12 @@ class acc_Items extends core_Manager
         if (empty($rec)) {
             // Няма такова перо - създаваме ново и го добавяме в номенклатурата $listId
             $rec = new stdClass();
-            self::syncItemRec($rec, $classId, $objectId);
+            expect($register = core_Cls::getInterface('acc_RegisterIntf', $classId));
+            self::syncItemRec($rec, $register, $objectId);
         }
+        
+        $rec->classId  = $classId;
+        $rec->objectId = $objectId;
         
         if (!empty($rec->id) && type_Keylist::isIn($listId, $rec->lists)) {
             // Идеята е да се буферира многократното обновяване на едно и също перо само за
