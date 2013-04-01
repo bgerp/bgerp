@@ -85,7 +85,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Image
         $Script->setFile('OUTPUTF', $outFilePath);
         
         // Скрипта, който ще конвертира файла в JPG формат
-        $Script->lineExec('rsvg-convert [#INPUTF#] -o [#OUTPUTF#]');
+        $Script->lineExec('rsvg-convert --background-color=#ffffff [#INPUTF#] -o [#OUTPUTF#]');
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
