@@ -3,15 +3,17 @@
 	<div class="groupList">
 	<div>
 		<ul>
-		
+		<!--ET_BEGIN HEADER-->
 			<li>
 				<ul>
 					<li style="width:44%;display:inline-block"><span class="gray-title">|Търговец|*:</span></li>
 					<li style='width:44%;display:inline-block'><span class="gray-title">|Следващо посещение|*:</span></li>
-					<li style='width:10%;display:inline-block'></li>
+					<li style='width:10%;display:inline-block'>[#HEADER#]</li>
 				</ul>
 			</li>
+		<!--ET_END HEADER-->
 		<!--ET_BEGIN ROW-->
+		[#ROW#]
 			<li>
 				<ul>
 					<li style="width:44%;display:inline-block"> [#salesmanId#]</li>

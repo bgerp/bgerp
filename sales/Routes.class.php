@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, locationId, salesmanId, date1, repeatWeeks1, date2, repeatWeeks2, date3, repeatWeeks3, date4, repeatWeeks4, state, createdOn, createdBy';
+    var $listFields = 'tools=Пулт, locationId, salesmanId, dateFld, repeatWeeks, state, createdOn, createdBy';
     
 	
 	/**
@@ -43,7 +43,7 @@ class sales_Routes extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, sales_Wrapper,plg_Created, plg_State2,
+    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Created, plg_State2,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting';
     
     
@@ -57,13 +57,19 @@ class sales_Routes extends core_Manager {
     /**
      * Кой може да чете
      */
-    var $canRead = 'sales, admin';
+    var $canRead = 'sales,admin';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'sales, admin';
+    var $canWrite = 'sales';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canAdd = 'sales';
     
     
     /**
@@ -71,16 +77,112 @@ class sales_Routes extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,width=15em,mandatory,silent');
-    	$this->FLD('salesmanId', 'user(role=salesman)', 'caption=Търговец,width=15em,mandatory');
-    	$this->FLD('date1', 'date', 'caption=Посещение 1->Дата,hint=Кога е първото посещение,width=6em,mandatory');
-    	$this->FLD('repeatWeeks1', 'int', 'caption=Посещение 1->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em,mandatory');
-    	$this->FLD('date2', 'date', 'caption=Посещение 2->Дата,hint=Кога е второто посещение,width=6em');
-    	$this->FLD('repeatWeeks2', 'int', 'caption=Посещение 2->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em');
-    	$this->FLD('date3', 'date', 'caption=Посещение 3->Дата,hint=Кога е третото посещение,width=6em');
-    	$this->FLD('repeatWeeks3', 'int', 'caption=Посещение 3->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em');
-    	$this->FLD('date4', 'date', 'caption=Посещение 4->Дата,hint=Кога е четвъртото посещение,width=6em');
-    	$this->FLD('repeatWeeks4', 'int', 'caption=Посещение 4->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em');
+    	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,width=20em,mandatory,silent');
+    	$this->FLD('salesmanId', 'user(role=sales)', 'caption=Търговец,width=15em,mandatory');
+    	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,width=6em,mandatory');
+    	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em');
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     */
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        $form = &$data->form;
+        
+        $form->setOptions('locationId', $mvc->getLocationOptions($form->rec));
+        $form->setDefault('salesmanId', $mvc->getDefaultSalesman($form->rec));
+    }
+    
+    
+    /**
+     * Всяка локация я представяме като "<локация> « <име на контрагент>"
+     * @param stdClass $rec - запис от модела
+     * @return array $options - Масив с локациите и новото
+     * им представяне
+     */
+    private function getLocationOptions($rec)
+    {
+    	$options = array();
+    	$varchar = cls::get("type_Varchar");
+    	$locQuery = crm_Locations::getQuery();
+    	if($locId = Request::get('locationId')){
+    		$locQuery->where("#id = {$locId}");
+    	}	
+    	
+    	while($locRec = $locQuery->fetch()){
+        	$locRec = crm_Locations::fetch($locRec->id);
+        	$contragentCls = cls::get($locRec->contragentCls);
+        	$contagentName =  $contragentCls->fetchField($locRec->contragentId, 'name');
+        	$lockName = $varchar->toVerbal($locRec->title) . " « " . $varchar->toVerbal($contagentName);
+        	$options[$locRec->id] = $lockName;
+        }
+        
+        return $options;	
+    }
+    
+    
+    /**
+     * Намираме кой е търговеца по подразбиране, връщаме ид-то на
+     * потребителя в следния ред:
+     * 1. Търговеца от последния маршрут за тази локация (ако има права)
+     * 2. Отговорника на папката на контрагента на локацията (ако има права)
+     * 3. Търговеца от последния маршрут създаден от текущия потребителя
+     * 4. Текущия потребител ако има права 'sales'
+     * 5. NULL - ако никое от горните не е изпълнено
+     * @param stdClass $rec - запис от модела
+     * @return int - Ид на търговеца, или NULL ако няма
+     */
+    private function getDefaultSalesman($rec)
+    {
+    	
+    	// Ако имаме локация
+    	if($rec->locationId){
+    		$query = $this->getQuery();
+    		$query->orderBy('#id', 'DESC');
+    		$query->where("#locationId = {$rec->locationId}");
+    		$lastRec = $query->fetch();
+    		if($lastRec){
+    			
+    			// Ако има последен запис за тази локация
+	    		if(self::haveRightFor('add', NULL, $lastRec->salesmanId)) {
+		            // ... има право да създава продажби
+		            return $lastRec->salesmanId;
+        		}
+    		}
+    		
+    		// Ако отговорника на папката има права 'sales'
+    		$locRec = crm_Locations::fetch($rec->locationId);
+    		$contragentCls = cls::get($locRec->contragentCls);
+    		$folderId = $contragentCls->fetchField($locRec->contragentId, 'folderId');
+    		$inChargeUserId = doc_Folders::fetchField($folderId, 'inCharge');
+        	
+    	 	if (self::haveRightFor('add', NULL, $inChargeUserId)) {
+	            // ... има право да създава продажби - той става дилър по подразбиране.
+	            return $inChargeUserId;
+        	}
+    	}
+    	
+    	$currentUserId = core_Users::getCurrent('id');
+    	
+    	// Ако има последен запис от този потребител
+    	$query = $this->getQuery();
+    	$query->orderBy('#id', 'DESC');
+    	$query->where("#createdBy = {$currentUserId}");
+    	$lastRoute = $query->fetch();
+    	if($lastRoute){
+    		return $lastRoute->salesmanId;
+    	}
+    	
+    	// Текущия потребител ако има права
+    	if(self::haveRightFor('add', NULL, $currentUserId)) {
+            // ... има право да създава продажби
+            return $currentUserId;
+        }
+        
+        // NULL ако никое от горните не е изпълнено
+        return NULL;
     }
     
     
@@ -91,7 +193,7 @@ class sales_Routes extends core_Manager {
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-		$data->listFilter->FNC('user', 'user(role=salesman,allowEmpty)', 'input,caption=Търговец,width=15em,silent');
+		$data->listFilter->FNC('user', 'user(role=salesman,allowEmpty)', 'input,caption=Търговец,width=15em,placeholder=Потребител,silent');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,width=6em,silent');
 		if($mvc->haveRightFor('write')){
 			$data->listFilter->setDefault('user', core_Users::getCurrent());
@@ -117,26 +219,21 @@ class sales_Routes extends core_Manager {
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	if($date = $data->listFilter->rec->date){
-    		
-    		// За всяка една от четирите дати проверяваме отговаряли на
-    		// посочената дата, ако поне една отговаря то и записа отговаря
-    		foreach(range(1,4) as $i){
     			
-    			// Изчисляваме дните между датата от модела и търсената
-    			$data->query->XPR("dif{$i}", 'int', "DATEDIFF (#date{$i} , '{$date}')");
+    		// Изчисляваме дните между датата от модела и търсената
+    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$date}')");
     			
-    			// Записа отговаря ако разликата е 0 и повторението е 0
-    			$data->query->orWhere("#dif{$i} = 0 && #repeatWeeks{$i} = 0");
+    		// Записа отговаря ако разликата е 0 и повторението е 0
+    		$data->query->orWhere("#dif = 0 && #repeatWeeks = 0");
     			
-    			// Ако ралзиката се дели без остатък на 7 * броя повторения
-    			$data->query->orWhere("MOD(#dif{$i}, (7 * #repeatWeeks{$i})) = 0");
-    		}
-    		
-    		if($salesmanId = $data->listFilter->rec->user){
+    		// Ако разликата се дели без остатък на 7 * броя повторения
+    		$data->query->orWhere("MOD(#dif, (7 * #repeatWeeks)) = 0");
+    	}
+    	
+    	if($salesmanId = $data->listFilter->rec->user){
     			
-    			// Филтриране по продавач
-    			$data->query->where(array("#salesmanId = [#1#]", $salesmanId));
-    		}
+    		// Филтриране по продавач
+    		$data->query->where(array("#salesmanId = [#1#]", $salesmanId));
     	}
     }
     
@@ -150,17 +247,16 @@ class sales_Routes extends core_Manager {
     	$query = $this->getQuery();
     	$query->where(array("#locationId = [#1#]", $data->masterData->rec->id));
     	
-    		$results = array();
-    		while ($rec = $query->fetch()){
-    			$row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
-    			$routeArr['tools'] = $row->tools;
-    			$routeArr['salesmanId'] = $row->salesmanId;
-    			$routeArr['nextVisit'] = $this->calcNextVisit($rec);
-    			$results[] = (object)$routeArr;
-    		}
+    	$results = array();
+    	while ($rec = $query->fetch()){
+    		$row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
+    		$routeArr['tools'] = $row->tools;
+    		$routeArr['salesmanId'] = $row->salesmanId;
+    		$routeArr['nextVisit'] = $this->calcNextVisit($rec);
+    		$results[] = (object)$routeArr;
+    	}
     		
-    		$data->masterData->row->routes = $results;
-    	
+    	$data->masterData->row->routes = $results;
     }
     
     
@@ -174,29 +270,23 @@ class sales_Routes extends core_Manager {
     {
     	$nowTs = dt::mysql2timestamp(dt::now());
     	$interval = 24 * 60 * 60 * 7;
-    	foreach (range(1, 4) as $i){
-    		if(!$rec->{"date{$i}"}) break;
-    		$startTs = dt::mysql2timestamp($rec->{"date{$i}"});
-    		$diff = $nowTs - $startTs;
-    		if($diff < 0){
-    			$nextStartTimeTs = $startTs;
-    		} else {
-    			$interval = $interval * $rec->{"repeatWeeks{$i}"};
-    			$nextStartTimeTs = (floor(($diff)/$interval) + 1) * $interval;
-    			$nextStartTimeTs = $startTs + $nextStartTimeTs;
+    	
+    	if(!$rec->dateFld) break;
+    	$startTs = dt::mysql2timestamp($rec->dateFld);
+    	$diff = $nowTs - $startTs;
+    	if($diff < 0){
+    		$nextStartTimeTs = $startTs;
+    	} else {
+    		if(!$rec->repeatWeeks){
+    			$rec->repeatWeeks = 1;
     		}
-    		
-    		if($i == 1) {
-    			$nextVisit = $nextStartTimeTs;
-    		} else {
-    			if($nextStartTimeTs <= $nextVisit){
-    				$nextVisit = $nextStartTimeTs;
-    			}
-    		}
+    		$interval = $interval * $rec->repeatWeeks;
+    		$nextStartTimeTs = (floor(($diff)/$interval) + 1) * $interval;
+    		$nextStartTimeTs = $startTs + $nextStartTimeTs;
     	}
     	
-    	$date = dt::timestamp2mysql($nextVisit);
-    	$date = dt::mysql2verbal($date, "m.Y D");
+    	$date = dt::timestamp2mysql($nextStartTimeTs);
+    	$date = dt::mysql2verbal($date, "d.m.Y D");
     	
     	return  $date;
     }
@@ -207,23 +297,25 @@ class sales_Routes extends core_Manager {
      */
 	function renderRoutes($data)
     {
-    	
-    		$tpl = new ET(tr("|*" . getFileContent("sales/tpl/Routes.shtml")));
+    	$tpl = new ET(tr("|*" . getFileContent("sales/tpl/Routes.shtml")));
     		
-    		// Рендираме информацията за маршрутите
-    		$img = sbf('img/16/add.png');
-    		$addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
-    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
+    	// Рендираме информацията за маршрутите
+    	$img = sbf('img/16/add.png');
+    	$addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
+    	$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
+    	$tpl->replace($addBtn, 'BTN');
+    	if($data->masterData->row->routes){
+    		$tpl->replace(' ', 'HEADER');
+	    	foreach($data->masterData->row->routes as $route){
+	    		$cl = $tpl->getBlock("ROW");
+	    		$cl->placeObject($route);
+	    		$cl->removeBlocks();
+	    		$cl->append2master();
+	    	}
+    	} else {
+    		$tpl->append("<li>" . tr('Не е включена в маршрут') . "</li>", 'ROW');
+    	}
     		
-    		$tpl->replace($addBtn, 'BTN');
-    		if($data->masterData->row->routes){
-    		foreach($data->masterData->row->routes as $route){
-    			$cl = $tpl->getBlock("ROW");
-    			$cl->placeObject($route);
-    			$cl->removeBlocks();
-    			$cl->append2master();
-    		}
-    		}
     	return $tpl;
     }
 }
