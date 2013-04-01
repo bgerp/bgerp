@@ -180,6 +180,10 @@ class thumbnail_Thumbnail extends core_Manager {
         
         $thumb = imagecreatetruecolor($tWidth, $tHeight);
         
+        // Фона на прозрачните изображения да е бял
+        $white = imagecolorallocate($thumb, 255, 255, 255);
+        imagefill($thumb, 0, 0, $white);
+        
         // Copy resampled makes a smooth thumbnail
         thumbnail_Thumbnail::fastimagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $tWidth, $tHeight, $width, $height);
         imagedestroy($sourceImage);
