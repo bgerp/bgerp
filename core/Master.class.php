@@ -96,6 +96,10 @@ class core_Master extends core_Manager
         
         // Подготвяме детайлите
         if(count($this->details)) {
+
+            // Добавяме текущ таб, ако го има в заявката
+            $data->Tab = Request::get('Tab');
+
             foreach($this->details as $var => $class) {
                 $this->loadSingle($var, $class);
                 
@@ -219,18 +223,71 @@ class core_Master extends core_Manager
         // Поставяме детайлите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
+                $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed));
                 
-                if($var == $class) {
+                // Стойност -1 в подредбата има смисъл на отказ, детайла да се покаже в този матер
+                if($order === -1) continue;
+
+                if($data->{$var}->TabCaption) {
+                    $detailTabbed[$var] = $order;
+                } else {
+                    $detailInline[$var] = $order;
+                }
+            }
+            
+            
+            if(count($detailInline)) {
+
+                asort($detailInline);
+
+                foreach($detailInline as $var => $order) {
+                    
+                    $class = $this->details[$var];
+
+                    if($var == $class) {
+                        $method = 'renderDetail';
+                    } else {
+                        $method = 'render' . $var;
+                    }
+                    
+                    if($tpl->isPlaceholderExists($var)) {
+                        $tpl->replace($this->{$var}->$method($data->{$var}), $var);
+                    } else {
+                        $tpl->append($this->{$var}->$method($data->{$var}), 'DETAILS');
+                    }
+                }
+            }
+            
+            
+            // Добавяме табове
+            if(count($detailTabbed)) {
+                
+                asort($detailTabbed);
+              
+                $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+
+                foreach($detailTabbed as $var => $order) {
+
+                    $url = Url::addParams($_SERVER['REQUEST_URI'], array('Tab' => $var)) . '#detailTabs';
+ 
+                    $tabs->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $url);
+
+                    if($var == $data->Tab || (!$data->Tab && !$selected)) {
+                        $selected = $var;
+                    }
+                }
+                
+                if($selected ==  $this->details[$selected]) {
                     $method = 'renderDetail';
                 } else {
-                    $method = 'render' . $var;
+                    $method = 'render' . $selected;
                 }
-                
-                if($tpl->isPlaceholderExists($var)) {
-                    $tpl->replace($this->{$var}->$method($data->{$var}), $var);
-                } else {
-                    $tpl->append($this->{$var}->$method($data->{$var}), 'DETAILS');
-                }
+
+                $tabHtml = $tabs->renderHtml($this->{$selected}->$method($data->{$selected}), $selected);
+
+                $tabHtml = new ET("<div style='margin-top:20px;'><a name='detailTabs'></a>[#1#]</div>", $tabHtml);
+
+                $tpl->append($tabHtml, 'DETAILS');
             }
         }
         
