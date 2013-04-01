@@ -184,12 +184,12 @@ class core_Query extends core_FieldSet
                 if ($first || !$or) {
                     
                     // Добавяме във where
-                    $this->where("#{$field} = '{$cond}'");
+                    $this->where(array("#{$field} = '[#1#]'", $cond));
                     
                 } else {
 
                     // Добавяме в orWhere
-                    $this->orWhere("#{$field} = '{$cond}'");   
+                    $this->orWhere(array("#{$field} = '[#1#]'", $cond));   
                 }
                 
                 // Отбелязваме, че вече сме влезли за първи път
