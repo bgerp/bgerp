@@ -21,7 +21,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, bgerp_plg_GroupByDate';
+    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, bgerp_plg_GroupByDate, plg_Search';
     
 
     /**
@@ -48,6 +48,12 @@ class bgerp_Notifications extends core_Manager
     var $canRead = 'admin';
     
     
+    /** 
+	 *  Полета по които ще се търси
+	 */
+	var $searchFields = 'msg';
+	
+	
     /**
      * Описание на модела
      */
@@ -216,6 +222,9 @@ class bgerp_Notifications extends core_Manager
             $data->query->where("#state = 'active'");
         }
         
+        // Подготвяме филтрирането
+        $Notifications->prepareListFilter($data);
+        
         // Подготвяме навигацията по страници
         $Notifications->prepareListPager($data);
         
@@ -271,7 +280,11 @@ class bgerp_Notifications extends core_Manager
         $tpl = new ET("
             <div class='clearfix21 portal' style='background-color:#fff8f8'>
             <div style='background-color:#fee' class='legend'>[#PortalTitle#]</div>
-            [#PortalPagerTop#]
+            <div>
+            <div style='float:right'>[#SEARCH#]</div>
+            <div style='float:left'>[#PortalPagerTop#]</div>
+            <div class='clearfix21'></div>
+            </div>
             [#PortalTable#]
             [#PortalPagerBottom#]
             </div>
@@ -282,6 +295,13 @@ class bgerp_Notifications extends core_Manager
         
         // Попълваме горния страньор
         $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
+        
+    	if($data->listFilter && $data->pager->pagesCount > 22){
+    		$formTpl = $data->listFilter->renderHtml();
+    		$formTpl->removeBlocks();
+    		$formTpl->removePlaces();
+        	$tpl->append($formTpl, 'SEARCH');
+        }
         
         // Попълваме долния страньор
         $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
@@ -302,7 +322,22 @@ class bgerp_Notifications extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->orderBy("state,modifiedOn=DESC");
+    	$data->query->orderBy("modifiedOn=DESC");
+    	$data->listFilter->view = 'horizontal';
+    	//bp($data->listFilter);
+        $img = ht::createElement('img', array('src' => 'img/16/find.png'));
+        $data->listFilter->formAttr['id'] = 'portal-filter';
+        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png');
+        $data->listFilter->FNC('noticeSearch', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+    	$data->listFilter->showFields = 'noticeSearch';
+    	/*$data->query->orderBy("modifiedOn=DESC");
+        $data->listFilter->layout = new ET(getFileContent("bgerp/tpl/SimpleSearch.shtml"));
+        $data->listFilter->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
+        $data->listFilter->layout->replace('noticeSearch', "NAME");
+       
+        if($search = Request::get('noticeSearch')){
+        	plg_Search::applySearch($search, $data->query);
+        }*/
     }
     
     
