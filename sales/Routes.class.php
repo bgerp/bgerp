@@ -78,7 +78,7 @@ class sales_Routes extends core_Manager {
     function description()
     {
     	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,width=20em,mandatory,silent');
-    	$this->FLD('salesmanId', 'user(role=sales)', 'caption=Търговец,width=15em,mandatory');
+    	$this->FLD('salesmanId', 'user(roles=sales)', 'caption=Търговец,width=15em,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,width=6em,mandatory');
     	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em');
     }
@@ -193,7 +193,7 @@ class sales_Routes extends core_Manager {
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-		$data->listFilter->FNC('user', 'user(role=salesman,allowEmpty)', 'input,caption=Търговец,width=15em,placeholder=Потребител,silent');
+		$data->listFilter->FNC('user', 'user(roles=sales,allowEmpty)', 'input,caption=Търговец,width=15em,placeholder=Потребител,silent');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,width=6em,silent');
 		if($mvc->haveRightFor('write')){
 			$data->listFilter->setDefault('user', core_Users::getCurrent());
@@ -209,7 +209,7 @@ class sales_Routes extends core_Manager {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
     	$locIcon = sbf("img/16/location_pin.png");
-    	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->id, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
+    	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
     }
     
     
