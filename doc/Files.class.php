@@ -278,7 +278,7 @@ class doc_Files extends core_Manager
             
             // Темата да е линк към single' а на първиа документ документа
             $firstContainerLink = ht::createLink(str::limitLen($docProxyRow->title,35), array($docProxy, 'single', $docProxy->that), NULL, $attr);
-            $row->threadId = $row->threadId . " <- " . $firstContainerLink;    
+            $row->threadId = $row->threadId . " « " . $firstContainerLink;    
         }
         $fRec = fileman_Files::fetchByFh($rec->fileHnd);
         
