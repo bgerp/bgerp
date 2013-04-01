@@ -121,14 +121,6 @@ class sales_Sales extends core_Master
     
     
     /**
-     * Списък от systemId-та на номеклатури, в които документа се добавя автоматично
-     * 
-     * @var string|array
-     */
-    public $autoList = 'sales';
-    
-    
-    /**
      * 
      */
    var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoiceSale.shtml';
