@@ -28,6 +28,7 @@ $open-thread:#e0ffe0;
 	padding-left:22px;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
+	height:24px;
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -541,6 +542,8 @@ option.team {
 	background-image:url(../img/16/toggle-expand.png) !important;
 	background-repeat:no-repeat !important;
 	width: 24px !important;
+	height:24px;
+	position: relative;
 }
 
 .more-btn.show-btn{
