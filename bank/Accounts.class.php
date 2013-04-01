@@ -179,6 +179,8 @@ class bank_Accounts extends core_Master {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
+
+        $data->TabCaption = 'Банка';
     }
     
     

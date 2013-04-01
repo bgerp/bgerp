@@ -449,7 +449,9 @@ class acc_Items extends core_Manager
     
     
     public static function prepareObjectLists($data)
-    {
+    {   
+        $data->TabCaption = 'Номенклатури';
+
         /* @var $masterMvc core_Mvc */
         $masterMvc = $data->masterMvc; 
         

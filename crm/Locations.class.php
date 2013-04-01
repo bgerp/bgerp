@@ -154,6 +154,8 @@ class crm_Locations extends core_Master {
         foreach ($data->recs as $rec) {
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
+
+        $data->TabCaption = 'Локации';
     }
 
 

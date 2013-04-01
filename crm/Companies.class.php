@@ -77,7 +77,7 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected, plg_Printing,
-                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select, groups_Extendable';
+                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select';
     
     
     /**
@@ -119,7 +119,8 @@ class crm_Companies extends core_Master
     /**
      * Детайли, на модела
      */
-    var $details = 'CompanyExpandData=crm_Persons';
+    var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
+                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items';
     
     
     /**

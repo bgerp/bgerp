@@ -277,6 +277,8 @@ class price_ListToCustomers extends core_Detail
             }
         }
 
+        $data->TabCaption = 'Цени';
+
     }
 
 

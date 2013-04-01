@@ -28,7 +28,7 @@ class acc_plg_Registry extends core_Plugin
         $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
         $mvc->fetchFieldsBeforeDelete['id'] = 'id';
         
-        if (static::supportExtenders($mvc)) {
+     /*   if (static::supportExtenders($mvc)) {
             // Динамично прикачане на екстендера acc_Items към регистровия мениджър.
             $mvc->addExtender('lists', 
                 array(
@@ -39,7 +39,7 @@ class acc_plg_Registry extends core_Plugin
             );
         } elseif ($mvc instanceof core_Master) {
             $mvc->attachDetails('ObjectLists=acc_Items');
-        }
+        } */
     }
 
 
