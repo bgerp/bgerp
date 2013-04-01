@@ -129,10 +129,12 @@ class support_Components extends core_Detail
         // Ако е зададено systemId
         if ($systemId) {
             
-            // Намира тези само от тази система
-            $query->where("#systemId = '{$systemId}'");
+            // Всички системи
+            $allSystemsArr = support_Systems::getSystems($systemId);
+            
+            $query->orWhereArr('systemId', $allSystemsArr);    
         }
-        
+
         // Обхождаме резултатите
         while($rec = $query->fetch()) {
             
@@ -140,6 +142,43 @@ class support_Components extends core_Detail
             $componentArr[$rec->id] = static::getVerbal($rec, 'name');
         }
         
+        // Ако има окрити компоненти
+        if (count($componentArr)) {
+            
+            // Премахваме повтарящите се
+            $componentArr = array_unique($componentArr);        
+        }
+        
         return $componentArr;
+    }
+    
+    
+    /**
+     * Масив с id' тата на еднаквите компоненти по име
+     * 
+     * @param integer $id - Id на компонента
+     * 
+     * @return array $arr - Масив, с id'тата на компонентите със същото име
+     */
+    static function getSame($id)
+    {
+        // Името на компонента
+        $name = static::fetchField($id, 'name');
+        
+        // Името в долен регистър
+        $name = mb_strtolower($name);
+        
+        // Запитване за да вземем всичките компоненти със съответното име
+        $query = static::getQuery();
+        $query->where(array("LOWER(#name) = '[#1#]'", $name));
+        
+        // Обхождаме записите
+        while ($rec = $query->fetch()) {
+            
+            // Добавяме в масива
+            $arr[$rec->id] = $rec->id;
+        }
+        
+        return $arr;
     }
 }
