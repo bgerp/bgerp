@@ -87,7 +87,7 @@ class acc_journal_Item
     
     public function force($listId)
     {
-        $itemId = acc_Lists::updateItem($this->classId, $this->objectId, $listId, TRUE);
+        expect($itemId = acc_Items::force($this->classId, $this->objectId, $listId), "Не може да се форсира перо [{$this->classId}, {$this->objectId}]");
         
         if (isset($this->id)) {
             expect($this->id == $itemId);
