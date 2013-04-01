@@ -2030,3 +2030,42 @@ table.styled-table tr:hover td {
 	border: solid 1px #ddddff;
 	
 }
+
+#portal-filter {
+	width: 9em;
+	border: solid 1px #ccc;
+	float: right;
+	display: block;
+	position: relative;
+	height: 1.2em; 	
+	margin: 7px 0 5px 2px; 	
+	background: rgba(255, 255, 255, 0.7);
+	@include border-radius(3px);
+}
+
+#portal-filter .formFields input.combo {
+	height: 1.2em;
+    width: 9em;
+	border: none !important;
+	background:none;
+    width: 8.3em !important;
+}
+
+#portal-filter select{
+	height: 1.2em;
+    width: 8.3em;
+	visibility:hidden !important;
+}
+
+#portal-filter .button {
+	width: 16px;
+	height:20px;
+	margin-right:0;
+	right: -3px;
+    top: 0em;
+	position: absolute;
+	border: none;
+	background-color: transparent;
+	cursor: pointer;
+	display: inline-block 
+}
