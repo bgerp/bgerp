@@ -596,7 +596,7 @@ class fileman_Files extends core_Master
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
 
         // Вербалното име на файла
-        $row->fileName = "<span class='linkWithIcon' style='margin-left:-15px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
+        $row->fileName = "<span class='linkWithIcon' style='margin-left:-7px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
         
         // Иконата за редактиране     
         $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
