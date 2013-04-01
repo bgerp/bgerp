@@ -612,7 +612,7 @@ class sales_Sales extends core_Master
      */
     public static function getDefaultDealer($rec)
     {
-        
+        expect($rec->folderId);
 
         // Отговорника на папката на контрагента ...
         $inChargeUserId = doc_Folders::fetchField($rec->folderId, 'inCharge');
