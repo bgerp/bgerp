@@ -34,6 +34,7 @@ $quiet-gray:#888;
 	padding-left:22px !important;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
+	height:24px;
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
