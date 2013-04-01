@@ -360,7 +360,7 @@ class acc_Periods extends core_Manager
      */
     public static function touch($date)
     {
-        expect($periodRec = static::fetchByDate($date));
+        expect($periodRec = static::fetchByDate($date), "Липсва счетоводен период вкючващ {$date}");
 
         $periodRec->lastEntry = dt::now(TRUE); // дата и час
         
