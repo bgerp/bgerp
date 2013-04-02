@@ -2048,12 +2048,12 @@ table.styled-table tr:hover td {
 	@include border-radius(3px);
 }
 
-#portal-filter .formFields input.combo {
+#portal-filter .formFields input {
 	height: 1.2em;
     width: 9em;
 	border: none !important;
 	background:none;
-    width: 8.3em !important;
+    width: 8.5em !important;
 }
 
 #portal-filter select{
