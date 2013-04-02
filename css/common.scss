@@ -31,10 +31,11 @@ $quiet-gray:#888;
 }
 
 @mixin btn-style() {
-	padding-left:22px !important;  
+	padding-left:22px;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
 	height:24px;
+	font-size: 13px;
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -541,8 +542,9 @@ div.hFormField {
     background-color:#ccc; 
     border:solid 1px #aaa;
 }
+
 .vertical input{
-	margin-left:2px;
+	margin-left:0;
 }
 .narrow .vertical .formToolbar { 
     padding:0 11px 5px 11px !important;
@@ -601,7 +603,6 @@ input[type="text"]{
 
 .chzn-container{
 	top:0px;
-	margin-left:2px;
 	height:25px;
 }
 
