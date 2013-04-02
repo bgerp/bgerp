@@ -282,12 +282,9 @@ class bgerp_Notifications extends core_Manager
         
         $tpl = new ET("
             <div class='clearfix21 portal' style='background-color:#fff8f8'>
-            <div style='background-color:#fee' class='legend'>[#PortalTitle#]</div>
-            <div>
-            <div style='float:right'>[#ListFilter#]</div>
-            <div style='float:left'>[#PortalPagerTop#]</div>
-            <div class='clearfix21'></div>
-            </div>
+            <div style='background-color:#fee' class='legend'>[#PortalTitle#]
+            <div class='portal-filter noticeFilter'>[#ListFilter#]</div></div>
+            [#PortalPagerTop#]
             [#PortalTable#]
             [#PortalPagerBottom#]
             </div>
@@ -299,7 +296,7 @@ class bgerp_Notifications extends core_Manager
         // Попълваме горния страньор
         $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
         
-    	if($data->listFilter && $data->pager->pagesCount > 1){
+    	if($data->listFilter && $data->pager->pagesCount > -1){
     		$formTpl = $data->listFilter->renderHtml();
     		$formTpl->removeBlocks();
     		$formTpl->removePlaces();
@@ -325,10 +322,13 @@ class bgerp_Notifications extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->query->orderBy("modifiedOn=DESC");
     	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->formAttr['id'] = 'portal-filter';
-        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png');
+        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png,id=noticeSearchBtnPortal');
+        $data->listFilter->action = getCurrentUrl();
+        if($page = Request::get('P_bgerp_Notifications')){
+        	$data->listFilter->FNC('P_bgerp_Notifications', 'int', 'input=hidden');
+        	$data->listFilter->setDefault('P_bgerp_Recently', $page);
+        }
         $data->listFilter->showFields = 'noticeSearch';
     }
     

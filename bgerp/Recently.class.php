@@ -251,12 +251,9 @@ class bgerp_Recently extends core_Manager
         
         $tpl = new ET("
             <div class='clearfix21 portal' style='background-color:#f8f8ff'>
-            <div style='background-color:#eef' class='legend'>[#PortalTitle#]</div>
-            <div>
-            <div style='float:right'>[#ListFilter#]</div>
-            <div style='float:left'>[#PortalPagerTop#]</div>
-            <div class='clearfix21'></div>
-            </div>
+            <div style='background-color:#eef' class='legend'>[#PortalTitle#]
+            <div class='portal-filter recentlyFilter'>[#ListFilter#]</div></div>
+            [#PortalPagerTop#]
             [#PortalTable#]
             [#PortalPagerBottom#]
             </div>
@@ -268,7 +265,7 @@ class bgerp_Recently extends core_Manager
         // Попълваме горния страньор
         $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
         
-        if($data->listFilter && $data->pager->pagesCount > 1){
+        if($data->listFilter && $data->pager->pagesCount > -1){
         	$tpl->append($data->listFilter->renderHtml(), 'ListFilter');
         }
        
@@ -292,8 +289,12 @@ class bgerp_Recently extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->formAttr['id'] = 'portal-filter';
-        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png');
+        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png,id=recentlySearchBtnPortal');
+        $data->listFilter->action = getCurrentUrl();
+        if($page = Request::get('P_bgerp_Recently')){
+        	$data->listFilter->FNC('P_bgerp_Recently', 'int', 'input=hidden');
+        	$data->listFilter->setDefault('P_bgerp_Recently', $page);
+        }
         $data->listFilter->showFields = 'search';
 	}
     
