@@ -98,7 +98,7 @@ class change_Plugin extends core_Plugin
         if($form->isSubmitted()) {
             
             // Извикваме фунцкията, за да дадем възможност за добавяне от други хора
-            $mvc->invoke('AfterInputChanges');
+            $mvc->invoke('AfterInputChanges', array($rec, $form->rec));
             
             // Записваме промени
             $mvc->save($form->rec, $allowedFieldsArr);
