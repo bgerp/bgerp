@@ -31,7 +31,7 @@ $quiet-gray:#888;
 }
 
 @mixin btn-style() {
-	padding-left:22px;  
+	padding-left:22px !important;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
 	height:24px;
@@ -410,6 +410,7 @@ table.listTable>thead>tr>th {
 	padding-bottom:5px; 
 	float:left;
 }
+
 .narrow .listFilter{
 	margin-left: -3px;
 }
@@ -700,8 +701,12 @@ input, select, textarea {
 	padding-left:22px !important;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
+	height:24px;
 }
 
+.docBgIcon{
+	line-height:24px;
+}
 /* BUTTONS */
 a.button, input[type=button], input[type=submit] {
     margin-right:3px;
@@ -735,33 +740,37 @@ a.button, input[type=button], input[type=submit] {
 	border-right:1px solid #999;
 	border-left:none;
 	margin-right:0 !important;
-	@include border-radius(0 !important);
+	@include border-radius(0);
 }
-.narrow .single-thread .toolbar div .button:first-child{
-	border-left:1px solid #999;
-	@include border-radius4(5px,0,0,5px !important);
-}
-.narrow .single-thread .toolbar div .button:last-child{
-	@include border-radius4(0,5px,5px,0 !important);
-}
-.narrow .listToolbar .btn-left { 
-    @include rounded(top, right, 0px !important);
-    @include rounded(bottom, right, 0px !important);
-	border-right: none !important;
+
+.narrow .toolbar .btn-left { 
+    @include rounded(top, right, 0px);
+    @include rounded(bottom, right, 0px);
+	border-right: none ;
 	margin:0px !important;
 }
 
-.narrow .listToolbar .btn-right {
-	@include rounded(top, left, 0px !important) ;
-	@include rounded(bottom, left, 0px !important);
+.narrow .toolbar .btn-right {
+	@include rounded(top, left, 0px) ;
+	@include rounded(bottom, left, 0px);
 	margin:0px 0px 0 0 !important;
 	
 }
 
-.narrow .listToolbar .btn-middle { 
-	@include border-radius(0px !important);
-	border-right: none !important;
+.narrow .toolbar .btn-middle { 
+	@include border-radius(0px);
+	border-right: none;
 	margin:0px !important;
+}
+
+.narrow .single-thread .toolbar div .button:first-child{
+	border-left:1px solid #999;
+	@include rounded(top,left,5px);
+	@include rounded(bottom,left,5px);
+}
+.narrow .single-thread .toolbar div .button:last-child{
+	@include rounded(top, right, 5px );
+	@include rounded(bottom, right, 5px);
 }
 
 a.button:hover, input:hover[type=button] , input:hover[type=submit]{
