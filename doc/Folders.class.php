@@ -138,7 +138,7 @@ class doc_Folders extends core_Master
             $data->title = 'Папките на |*<font color="green">' .
             $data->listFilter->fields['users']->type->toVerbal($data->listFilter->rec->users) . '</font>';
         } else {
-            $data->title = 'Търсене във всички папки на |*<font color="green">"' .
+            $data->title = 'Търсене на папки отговарящи на |*<font color="green">"' .
             $data->listFilter->fields['search']->type->toVerbal($data->listFilter->rec->search) . '"</font>';
         }
         
