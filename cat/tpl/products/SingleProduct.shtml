@@ -1,7 +1,7 @@
 <div style="display:inline-block" class="singleView">
 [#SingleToolbar#]
 	<div class="folder-cover">
-	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Продукт <b style="color:green;">[#name#]</b></div></h2>
+	<h2><div class=" [#STATE_CLASS#] special-title">Продукт <b style="color:green;">[#name#]</b></div></h2>
 	<table class="styled-table">
 		<tr>
 			<td class="title-style" width="100px">Код</td>

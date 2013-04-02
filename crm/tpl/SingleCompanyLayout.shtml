@@ -1,7 +1,7 @@
 <div style="display: inline-block;">
     [#SingleToolbar#]
     <div class="folder-cover">
-        <div class="block_title [#STATE_CLASS#]">
+        <div class="block_title [#STATE_CLASS#] special-title">
             [#title#]
         </div>
         <!--ET_BEGIN image-->
