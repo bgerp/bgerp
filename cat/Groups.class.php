@@ -38,7 +38,7 @@ class cat_Groups extends groups_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name';
+    var $listFields = 'id,name,systemId';
     
     
     /**
@@ -84,6 +84,7 @@ class cat_Groups extends groups_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
+        $this->FLD('systemId', 'varchar(32)', 'caption=System Id');
         $this->FLD('info', 'text', 'caption=Информация');
         $this->FLD('productCnt', 'int', 'input=none');
     }

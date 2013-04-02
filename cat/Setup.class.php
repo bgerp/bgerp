@@ -110,7 +110,7 @@ class cat_Setup
     	$html .= cat_setup_UoM::setup();
     	
         // Зареждане на Категории от csv файл
-        $html .= cat_setup_Categories::setup();
+        $html .= cat_setup_Groups::setup();
 
         // Зареждане на продукти от csv файл
         $html .= cat_setup_Products::setup();
