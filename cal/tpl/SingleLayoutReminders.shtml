@@ -8,35 +8,52 @@
 		<div class='antetka' style='line-height:150%;'>
 			<b>[#title#]</b><br>
 			<small>
-			<div>
-				Приоритет: [#priority#]
-			</div>
-			<div>
-				Споделяне: [#shareLog#]
-			</div>
+	    	<table cellspacing='1' class='top-table'>
+			<div class='block_left'>
+			     <tr>
+			     	<td style='width: 280px;'>Приоритет: [#priority#]</td>
+			     	<!--ET_BEGIN timeStart--><td style='width: 280px;'>Начало: [#timeStart#]</td><!--ET_END timeStart-->
+			     	<!--ET_BEGIN timePreviously--><td style='width: 280px;'>Предварително: [#timePreviously#]</td><!--ET_END timePreviously-->
+			     </tr>
+			     
+			     <tr>
+			     	<td style='width: 280px;'>Споделяне: [#shareLog#]</td>
+			     	<td style='width: 280px;'>Следващо напомняне: [#nextStartTime#]</td>
+			     </tr>
+			     
+			     <tr>
+			     	<td style='width: 280px;'>Действие: [#action#]</td>
+			     	<!--ET_BEGIN repetitionEach-->   
+			     	<td style='width: 280px;'>Повторение <!--ET_BEGIN each-->[#each#]<!--ET_END each--> [#repetitionEach#]<!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType--></td> 
+			     	<!--ET_END repetitionEach-->
+			    </tr>
+			    <tr>
+			    	<td></td>
+			     	<!--ET_BEGIN repetitionTypeMonth-->
+			     	<td style='width: 280px;'>Съблюдаване на [#repetitionTypeMonth#]</td>
+			     	<!--ET_END repetitionTypeMonth-->
+
+			     </tr>
+
 			
-			<!--ET_BEGIN action-->
-	        Действие: [#action#]</br>                   
-			<!--ET_END action-->
 			
-			<!--ET_BEGIN time-->
-            Начало: [#timeStart#]</br>
-            Следващо напомняне: [#nextStartTime#]</br>
-            <!--ET_END time-->
+           
             
-            <!--ET_BEGIN timePreviously-->
-            Предварително: [#timePreviously#]</br>
-            <!--ET_END timePreviously-->
+            
+            
+            
+          
+            
             
 
 			
-			<!--ET_BEGIN repetitionEach-->Повторение на: [#repetitionEach#]<!--ET_END repetitionEach-->   <!--ET_BEGIN repetitionEach-->[#repetitionType#]<!--ET_END repetitionEach--></br>
-		    <!--ET_BEGIN repetitionAbidance-->Съблюдаване на: [#repetitionAbidance#]<!--ET_END repetitionAbidance-->
+			
+		    
 		    
             
 			
-		 
-
+		 		</div>
+            </table>
 			</small>
 		</div>
  	    <div style='padding-top:10px;'>[#description#]</div>
