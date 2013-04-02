@@ -251,6 +251,9 @@ class cal_Tasks extends core_Master
         // Подготвяме навигацията по страници
         self::prepareListPager($data);
         
+        // Подготвяме филтър формата
+        self::prepareListFilter($data);
+        
         // Подготвяме записите за таблицата
         self::prepareListRecs($data);
  
@@ -361,8 +364,6 @@ class cal_Tasks extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	
-        
     	$userId = core_Users::getCurrent();
         $data->query->orderBy("#timeStart=ASC,#state=DESC");
         
@@ -400,7 +401,7 @@ class cal_Tasks extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'taskSearch, selectedUsers';
+        $data->listFilter->showFields = 'search, selectedUsers';
         
         $data->listFilter->input('selectedUsers', 'silent');
     }
