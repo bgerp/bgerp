@@ -223,7 +223,7 @@ class core_Master extends core_Manager
         // Поставяме детайлите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
-                $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed));
+                $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed) + 1);
                 
                 // Стойност -1 в подредбата има смисъл на отказ, детайла да се покаже в този матер
                 if($order === -1) continue;
@@ -285,7 +285,7 @@ class core_Master extends core_Manager
 
                 $tabHtml = $tabs->renderHtml($this->{$selected}->$method($data->{$selected}), $selected);
 
-                $tabHtml = new ET("<div style='margin-top:20px;'><a name='detailTabs'></a>[#1#]</div>", $tabHtml);
+                $tabHtml = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div><a name='detailTabs'></a>[#1#]</div>", $tabHtml);
 
                 $tpl->append($tabHtml, 'DETAILS');
             }
