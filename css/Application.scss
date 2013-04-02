@@ -513,7 +513,7 @@ dl {
 	@include no-shadow();
 }
 .vertical select{
-	margin-left:2px;
+	margin-left:0px;
 }
 .horizontal{
 	margin-top:0 !important;
@@ -1440,10 +1440,6 @@ fieldset.sharing-history {
     /*max-width:500px; махнато заради селекта при изпращане на емейли */
 }
 
-input.combo{
-	margin-left:2px !important;
-}
-
 .hasDatepick{
 	margin-left:2px;
 }
@@ -2015,8 +2011,9 @@ table.styled-table tr:hover td {
 
 /*пренаписване на някои стилове на селекти тип chosen*/
 .chzn-container-multi .chzn-choices .search-field input{
-	padding:3px !important;
+	padding:4px 4px 3px 4px !important;
 	font-size:0.9em !important;
+	height:21px;
 }
 
 .chzn-container-multi .chzn-choices .search-choice .search-choice-close {
