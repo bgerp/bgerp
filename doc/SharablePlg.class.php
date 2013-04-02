@@ -50,6 +50,7 @@ class doc_SharablePlg extends core_Plugin
             static::markViewed($mvc, $data);
         }  
         
+        $data->rec->sharedUsers = $mvc->getShared($data->rec->id);
         $history = static::prepareHistory($data->rec);
                 
         // показваме (ако има) с кого е споделен файла
@@ -89,7 +90,7 @@ class doc_SharablePlg extends core_Plugin
         
         $userId = core_Users::getCurrent('id');
         
-        if (!type_Keylist::isIn($userId, $rec->sharedUsers)) {
+        if (!type_Keylist::isIn($userId, $mvc->getShared($data->rec->id))) {
             // Документа не е споделен с текущия потребител - не правим нищо
             return;
         }
@@ -127,7 +128,6 @@ class doc_SharablePlg extends core_Plugin
         if (!empty($rec->sharedViews)) {
             $history = unserialize($rec->sharedViews) + $history;
         }
-        
         
         return $history;
     }
@@ -175,6 +175,6 @@ class doc_SharablePlg extends core_Plugin
         $sharedInDocs = $mvc->fetchField($id, 'sharedUsers');
         
         // Обединяваме потребителите, на които е споделен
-        $shared = type_Keylist::merge($sharedInDocs, $shared);    
+        $shared = type_Keylist::merge($sharedInDocs, $shared);
     }
 }
