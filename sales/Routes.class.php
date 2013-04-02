@@ -210,6 +210,19 @@ class sales_Routes extends core_Manager {
     {   
     	$locIcon = sbf("img/16/location_pin.png");
     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
+    	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
+    	if($locationState == 'rejected'){
+    		$row->ROW_ATTR['class'] .= ' state-rejected';
+    	}
+    }
+    
+    
+    /**
+     * Реализация по подразбиране на метода getEditUrl()
+     */
+    public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
+    {
+    	$editUrl['locationId'] = $rec->locationId;
     }
     
     
@@ -246,13 +259,19 @@ class sales_Routes extends core_Manager {
     	// Подготвяме маршрутите ако има налични за тази локация
     	$query = $this->getQuery();
     	$query->where(array("#locationId = [#1#]", $data->masterData->rec->id));
+    	$query->where("#state != 'rejected'");
     	
     	$results = array();
     	while ($rec = $query->fetch()){
     		$row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
     		$routeArr['tools'] = $row->tools;
     		$routeArr['salesmanId'] = $row->salesmanId;
-    		$routeArr['nextVisit'] = $this->calcNextVisit($rec);
+    		if($data->masterData->rec->state != 'rejected'){
+    			$routeArr['nextVisit'] = $this->calcNextVisit($rec);
+    		} else {
+    			$routeArr['nextVisit'] = tr("Маршрутите са оттеглени");
+    		}
+    		
     		$results[] = (object)$routeArr;
     	}
     		
@@ -261,7 +280,6 @@ class sales_Routes extends core_Manager {
     
     
     /**
-     * 
      * Изчислява кога е следващото посещение на обекта
      * @param stdClass $rec - запис от модела
      * @return string $date - вербално име на следващата дата
@@ -318,4 +336,39 @@ class sales_Routes extends core_Manager {
     		
     	return $tpl;
     }
+    
+    
+    /**
+     * Модификация на ролите
+     */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'changestate' && $rec->id) {
+			
+			// Ако локацията е оттеглена, не позволяваме да се променя
+			// състоянието на маршрутите
+			$locationState = crm_Locations::fetchField($rec->locationId, 'state');
+			if($locationState == 'rejected'){
+				$res = 'no_one';
+			}
+		}
+	}
+	
+	
+	/**
+	 * Променя състоянието на всички маршрути след промяна на
+	 * това на локацията им
+	 * @param int $locationId - id на локация
+	 */
+	public function changeState($locationId)
+	{
+		$locationState = crm_Locations::fetchField($locationId, 'state');
+		$query = $this->getQuery();
+		$query->where("#locationId = {$locationId}");
+		while($rec = $query->fetch()){
+			($locationState == 'rejected') ? $state = 'closed' : $state = 'active';
+			$rec->state = $state;
+			$this->save($rec);
+		}
+	}
 }
