@@ -104,7 +104,7 @@ class acc_Periods extends core_Manager
      */
     static function on_CalcTitle($mvc, $rec)
     {
-        $rec->title = dt::mysql2verbal($rec->end, "M-Y");
+        $rec->title = dt::mysql2verbal($rec->end, "F Y");
     }
     
     

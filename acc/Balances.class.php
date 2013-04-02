@@ -26,7 +26,7 @@ class acc_Balances extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting';
+    var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing';
                     
     
     
@@ -81,7 +81,7 @@ class acc_Balances extends core_Master
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'acc/tpl/SingleLayoutBalance.shtml';
-     
+    
     
     /**
      * Описание на модела (таблицата)
@@ -123,30 +123,25 @@ class acc_Balances extends core_Master
     
     
     /**
-     * @todo Чака за документация...
-     */
-    static function on_AfterPrepareSingleFields($mvc, $data)
-    {
-        if ($mvc->accountRec) {
-            $data->singleFields = array();
-        }
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
     static function on_AfterPrepareSingleTitle($mvc, $data)
     {
-        $row = $mvc->recToVerbal($data->rec, 'fromDate, toDate');
-        
         if ($mvc->accountRec) {
-            $data->title = $mvc->accountRec->num . '. ' . $mvc->accountRec->title . ': ';
+            $data->row->accountId = acc_Accounts::getRecTitle($mvc->accountRec);
         } else {
-            $data->title = 'Обобщен';
+            $data->row->accountId = 'Обобщен';
         }
-        $data->title .= ' баланс за периода от ' .
-        $row->fromDate . ' до ' . $row->toDate;
+
+        $data->title = new ET('<span class="quiet">Баланс</span> ' . $data->row->periodId);
+    }
+    
+    
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if (!empty($mvc->accountRec)) {
+            $data->toolbar->addBtn('Обобщен ' . $data->row->periodId, array($mvc, 'single', $data->rec->id));
+        }
     }
     
     
