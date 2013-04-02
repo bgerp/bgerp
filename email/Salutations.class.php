@@ -203,12 +203,12 @@ class email_Salutations extends core_Manager
         // Вземаме записа
         while ($rec = $query->fetch()) {
             
-            // Ако обръщението е празен стринг
+            // Ако обръщението не е празен стринг
             if (trim($rec->{$field})) break;
         }
 
         // Ако има id на нишка, но не сме открили обръщение
-        if (!($fieldRec = $rec->{$field}) && $threadId) {
+        if (!($fieldRec = $rec->{$field}) && $threadId && static::isGoodRec($folderId)) {
             
             // Вземаме последното обръщение в паката
             $fieldRec = static::getRecForField($field, $folderId, FALSE, $userId);
