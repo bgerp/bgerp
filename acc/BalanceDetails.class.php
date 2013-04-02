@@ -712,9 +712,9 @@ class acc_BalanceDetails extends core_Detail
         
         $accId = $rec->{"{$type}AccId"};
         
-        $ent1Id = !empty($rec->{"{$type}Ent1"}) ? $rec->{"{$type}Ent1"} : null;
-        $ent2Id = !empty($rec->{"{$type}Ent2"}) ? $rec->{"{$type}Ent2"} : null;
-        $ent3Id = !empty($rec->{"{$type}Ent3"}) ? $rec->{"{$type}Ent3"} : null;
+        $ent1Id = !empty($rec->{"{$type}Item1"}) ? $rec->{"{$type}Item1"} : null;
+        $ent2Id = !empty($rec->{"{$type}Item2"}) ? $rec->{"{$type}Item2"} : null;
+        $ent3Id = !empty($rec->{"{$type}Item3"}) ? $rec->{"{$type}Item3"} : null;
          
         if ($ent1Id != null || $ent2Id != null || $ent3Id != null) {
             
