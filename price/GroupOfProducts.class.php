@@ -27,7 +27,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Заглавие
      */
-    var $singleTitle = 'Продукт';
+    var $singleTitle = 'Ценова група';
     
     
     /**

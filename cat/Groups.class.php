@@ -77,40 +77,6 @@ class cat_Groups extends groups_Manager
     var $canDelete = 'admin,acc';
 
 
-    /**
-     * Допустими екстендери
-     *
-     * @var array
-     * @see getExtenders
-     */
-    protected $extendersArr = array(
-        'packagings' => array(
-            'className' => 'cat_products_Packagings',
-            'prefix' => 'Packagings',
-            'title' => 'Опаковки',
-        ),
-        'parameters' => array(
-            'className' => 'cat_products_Params',
-            'prefix'    => 'Params',
-            'title'     => 'Параметри',
-        ),
-        'files' => array(
-            'className' => 'cat_products_Files',
-            'prefix'    => 'Files',
-            'title'     => 'Файлове',
-        ),
-        'lists' => array(
-            'className' => 'acc_Items',
-            'prefix'    => 'ObjectLists',
-            'title'     => 'Номенклатура',
-        ),
-        'pricegroup' => array(
-            'className' => 'price_GroupOfProducts',
-            'prefix'    => 'PriceGroup',
-            'title'     => 'Ценова група',
-        ),
-    );
-    
     
     /**
      * Описание на модела

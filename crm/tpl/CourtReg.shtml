@@ -1,0 +1,16 @@
+<dl>
+	<!--ET_BEGIN regCourt-->
+    <dt>Съдилище</dt>
+    <dd>[#regCourt#]&nbsp;</dd>
+	<!--ET_END regCourt-->
+
+	<!--ET_BEGIN regDecisionNumber-->
+    <dt>Решение</dt>
+    <dd>[#regDecisionNumber#] / [#regDecisionDate#] г.&nbsp;</dd>
+	<!--ET_END regDecisionNumber-->
+
+	<!--ET_BEGIN regCompanyFileNumber-->
+    <dt>Фирмено дело</dt>
+    <dd>[#regCompanyFileNumber#] / [#regCompanyFileYear#] г.&nbsp;</dd>
+	<!--ET_END regCompanyFileNumber-->
+</dl>

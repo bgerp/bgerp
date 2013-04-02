@@ -1,0 +1,135 @@
+<?php
+class crm_ext_CourtReg extends core_Detail
+{
+    /**
+     * Име на поле от модела, външен ключ към мастър записа
+     */
+    var $masterKey = 'companyId';
+
+    var $title = 'Лични карти';
+
+    /**
+     * Плъгини и MVC класове, които се зареждат при инициализация
+     */
+    var $loadList = 'crm_Wrapper,plg_RowTools';
+    
+    var $currentTab = 'Фирми';
+    
+    
+    /**
+     * Описание на модела
+     */
+    public function description()
+    {
+        $this->FLD('companyId', 'key(mvc=crm_Companies)', 'input=hidden,silent');
+        
+        // Данни за съдебната регистрация
+        $this->FLD('regCourt', 'varchar', 'caption=Решение по регистрация->Съдилище,width=60%');
+        $this->FLD('regDecisionNumber', 'int', 'caption=Решение по регистрация->Номер');
+        $this->FLD('regDecisionDate', 'date', 'caption=Решение по регистрация->Дата');
+        
+        // Фирмено дело
+        $this->FLD('regCompanyFileNumber', 'int', 'caption=Фирмено дело->Номер');
+        $this->FLD('regCompanyFileYear', 'int', 'caption=Фирмено дело->Година');
+
+        $this->setDbUnique('companyId');
+
+        // Може ли двама души да имат една карта?
+        // $this->setDbUnique('idCardNumber');
+
+    }
+    
+
+    /**
+     *
+     */
+    public static function prepareCourtReg($data)
+    {
+        $data->TabCaption = 'Регистрация';
+
+        expect($data->masterId);
+        
+        if(!$data->CourtReg) {
+            $data->CourtReg = new stdClass();
+        }
+
+        $data->CourtReg->rec = static::fetch("#companyId = {$data->masterId}");
+        if ($data->CourtReg->rec) {
+            $data->CourtReg->row = static::recToVerbal($data->CourtReg->rec);    
+        }
+        $data->canChange = static::haveRightFor('edit');
+    }
+    
+
+    /**
+     *
+     */
+    public static function renderCourtReg($data)
+    {
+        $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        
+        $tpl->append(tr('Съдебна регистрация'), 'title');        
+
+        if ($data->canChange && !Mode::is('printing')) {
+            
+            $rec = $data->CourtReg->rec;
+
+            if ($rec->regCourt || $rec->regDecisionNumber || $rec->regDecisionDate || $rec->regCompanyFileNumber || $rec->regCompanyFileYear) {
+                $url = array(get_called_class(), 'edit', $rec->id, 'ret_url' => TRUE);
+                $courtRegTpl = new ET(getFileContent('crm/tpl/CourtReg.shtml'));
+                $courtRegTpl->placeObject($data->CourtReg->row);
+            } else {
+                $courtRegTpl = new ET(tr('Няма данни'));
+                $url = array(get_called_class(), 'add', 'companyId' => $data->masterId, 'ret_url' => TRUE);
+            }
+            $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
+            $tpl->append(
+                ht::createLink(
+                    $img, $url, FALSE,
+                    'title=' . tr('Промяна на данните')
+                ),
+                'title'
+            );
+        }
+        
+        $tpl->append($courtRegTpl, 'content');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Модифициране на edit формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+    	$conf = core_Packs::getConfig('crm');
+    	
+        $form = $data->form;
+        
+        // За да гарантираме релацията 1:1
+        $form->rec->id = $mvc->fetchField("#companyId = {$form->rec->companyId}", 'id');
+        
+        for($i = 1989; $i <= date('Y'); $i++) $years[$i] = $i;
+        
+        $form->setSuggestions('regCompanyFileYear', $years);
+        
+        $dcQuery = drdata_DistrictCourts::getQuery();
+        
+        while($dcRec = $dcQuery->fetch()) {
+            $dcName = drdata_DistrictCourts::getVerbal($dcRec, 'type');
+            $dcName .= ' - ';
+            $dcName .= drdata_DistrictCourts::getVerbal($dcRec, 'city');
+            $dcSug[$dcName] = $dcName;
+        }
+        
+        $form->setSuggestions('regCourt', $dcSug);
+
+ 
+        $data->form->title = 'Съдебна регистрация на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
+    }
+}
