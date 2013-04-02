@@ -25,7 +25,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg';
+    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg, plg_Search';
     
 
     /**
@@ -56,12 +56,19 @@ class cal_Tasks extends core_Master
      */
     var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
     
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'title, description';
 
     
+    /**
+	 * Как се казва поелто за пълнотекстово търсене
+	 */
+	var $searchInputField = 'taskSearch';
+	
+	
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
@@ -240,9 +247,6 @@ class cal_Tasks extends core_Master
         
         // Подготвяме полетата за показване
         $data->listFields = 'timeStart,title,progress';
-           
-        // Подготвяме формата за филтриране
-        // $this->prepareListFilter($data);
 
         $now = dt::verbal2mysql();
         
@@ -252,6 +256,17 @@ class cal_Tasks extends core_Master
         
         // Подготвяме навигацията по страници
         self::prepareListPager($data);
+        
+        // Подготвяме филтър формата
+        self::prepareListFilter($data);
+        if($data->listFilter){
+        	
+        	// Модифицираме филтър формата за портала
+	    	$data->listFilter->formAttr['id'] = 'portal-filter';
+	    	unset($data->listFilter->toolbar->buttons);
+	        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png');
+	        $data->listFilter->showFields = 'taskSearch';
+        }
         
         // Подготвяме записите за таблицата
         self::prepareListRecs($data);
@@ -270,11 +285,23 @@ class cal_Tasks extends core_Master
         self::prepareListRows($data);
         
         $tpl = new ET("
-            [#PortalPagerTop#]
+            <div>
+            <div style='float:right'>[#ListFilter#]</div>
+            <div style='float:left'>[#PortalPagerTop#]</div>
+            <div class='clearfix21'></div>
+            </div>
             [#PortalTable#]
           ");
         
         // Попълваме таблицата с редовете
+        
+    	if($data->listFilter && $data->pager->pagesCount > 1){
+    		$formTpl = $data->listFilter->renderHtml();
+    		$formTpl->removeBlocks();
+    		$formTpl->removePlaces();
+        	$tpl->append($formTpl, 'ListFilter');
+        }
+        
         $tpl->append(self::renderListTable($data), 'PortalTable');
 
         return $tpl;
@@ -394,7 +421,7 @@ class cal_Tasks extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'selectedUsers';
+        $data->listFilter->showFields = 'taskSearch, selectedUsers';
         
         $data->listFilter->input('selectedUsers', 'silent');
     }
@@ -694,6 +721,18 @@ class cal_Tasks extends core_Master
         //Създаваме, кофа, където ще държим всички прикачени файлове в задачи
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calTasks', 'Прикачени файлове в задачи', NULL, '104857600', 'user', 'user');
+    	
+        $count = 0;
+    	$query = static::getQuery();
+    	$query->orderBy("#id", "DESC");
+    	while($rec = $query->fetch()){
+    		
+    		// Обновяваме ключовите думи на Задачите, ако нямат
+    		$mvc->save($rec);
+    		$count++;
+    	}
+    	
+    	$res .= "Обновени ключови думи на  {$count} записа в Задачи";
     }
 
        
