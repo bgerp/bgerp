@@ -97,7 +97,7 @@ class support_Issues extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
-    				doc_SharablePlg, doc_AssignPlg, plg_Sorting';
+    				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin';
 
     
     /**
@@ -157,11 +157,11 @@ class support_Issues extends core_Master
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%, mandatory");
-        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент');
+        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент, changable');
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
         
         // Възлагане на задача (за doc_AssignPlg)
-        $this->FLD('assign', 'user(roles=powerUser)', 'caption=Възложено на,input=none');
+        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none, changable');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
@@ -424,36 +424,6 @@ class support_Issues extends core_Master
     
     
     /**
-     * Функция, която прихваща след активирането на документа
-     */
-    public static function on_Activation($mvc, &$rec)
-    {
-        // Ако няма компонент и имаме id
-        if ((!$rec->componentId) && ($rec->id)) {
-            
-            // Извличаме записите
-            $nRec = $mvc->fetch($rec->id);   
-        } elseif ($rec->componentId) {
-            
-            $nRec = $rec;
-        }
-        
-        // Ако има компонент
-        if ($nRec->componentId) {
-            
-            // Отговорниците на компонента
-            $maintainers = support_Components::fetchField($nRec->componentId, 'maintainers');
-
-            // Към отговорниците да не се показва текущия потребител, защото той е inCharge
-            $maintainers = type_Keylist::removeKey($maintainers, core_Users::getCurrent());
-
-            // Обядиняваме отговорниците и споделените потребители
-            $rec->sharedUsers = type_Keylist::merge($nRec->sharedUsers, $maintainers);      
-        }
-    }
-    
-    
-    /**
      * Затваря сигналите в даден тред
      * 
      * @param doc_Threads $threadId - id на нишката
@@ -640,10 +610,28 @@ class support_Issues extends core_Master
     
     
     /**
-     * Прихваща извикване на функцията afterSubmitAssign @see doc_AssignPlg->on_BeforeAction
+     * Потребителя, на когото е възложена задачата
      */
-    function on_AfterSubmitAssign($mvc, $rec)
+    function on_AfterGetShared($mvc, &$shared, $id)
     {
-        // TODO да се записва в лога
+    
+        // Вземаме записа
+        $rec = $mvc->fetch($id);
+        
+        // Ако не е активе, връщаме
+        if ($rec->state != 'active') return ;
+        
+        // Ако има компонент
+        if ($rec->componentId) {
+            
+            // Отговорниците на компонента
+            $maintainers = support_Components::fetchField($rec->componentId, 'maintainers');
+
+            // Към отговорниците да не се показва създателя
+            $maintainers = type_Keylist::removeKey($maintainers, $rec->createdBy);
+            
+            // Добавяме към споделените
+            $shared = type_Keylist::merge($maintainers, $shared);
+        }
     }
 }

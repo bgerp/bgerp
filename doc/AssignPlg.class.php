@@ -22,6 +22,12 @@ class doc_AssignPlg extends core_Plugin
     
     
     /**
+     * 
+     */
+    var $loadList = 'change_Plugin';
+    
+    
+    /**
      * Извиква се след описанието на модела
      */
     function on_AfterDescription(&$mvc)
@@ -30,7 +36,7 @@ class doc_AssignPlg extends core_Plugin
         if(!$mvc->fields['assign']) {
             
             // Добавяме в модела
-            $mvc->FLD('assign', 'user(roles=user)', 'caption=Възложен на,input=none');
+            $mvc->FLD('assign', 'user(roles=user)', 'caption=Възложен на,input=none, changable');
         }
         
         // Ако няма такова поле
@@ -49,155 +55,66 @@ class doc_AssignPlg extends core_Plugin
     }
     
     
-	/**
-     * Добавя бутони за възлагане на задача към единичния изглед на документа
-     */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        // Ако имаме права за възлагане
-        if ($mvc->haveRightFor('assign', $data->rec)) {
-            $assignUrl = array(
-                $mvc,
-                'assign',
-                $data->rec->id,
-                'ret_url' => TRUE
-            );
-            $data->toolbar->addBtn('Възлагане', $assignUrl, 'class=btn-assign, order=14');
-        }
-    }
-    
-    
     /**
-     * Извиква се след изчисляването на необходимите роли за това действие
+     * Прихваща извикването на AfterInputChanges в change_Plugin
+     * 
+     * @param core_MVc $mvc
+     * @param object $oldRec - Стария запис
+     * @param object $newRec - Новия запис
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    function on_AfterInputChanges($mvc, $oldRec, $newRec)
     {
-        // Определяме правата за възлагане
-        if ($action == 'assign') {
+        // На кого е била възложена задачата преди това
+        $oldAssigned = $oldRec->assign;
+        
+        // На кого е възложено сега
+        $newAssigned = $newRec->assign;
+
+        // Вземаме всички записи
+        $rec = $mvc->fetch($oldRec->id);
+        
+        // Ако е била възложена на някой друг преди това
+        if ($newAssigned && ($oldAssigned != $newAssigned)) {
+
+            // URL' то което ще се премахва или показва от нотификациите
+            $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);  
+
+            // Премахваме контейнера от достъпните
+            doc_ThreadUsers::removeContainer($rec->containerId);
             
-            // Само активните документи могат да се възлат
-            if ($rec &&$rec->state != 'active') {
-                
-                // Никой няма такива права, ако не е активен
-                $requiredRoles = 'no_one';
-            }   
-        }
-    }
-    
-    
-    /**
-     * Реализация на екшън-а 'act_Assign'
-     */
-    function on_BeforeAction($mvc, &$res, $action)
-    {
-        // Ако екшъна не е assign
-        if($action != 'assign') return;
-        
-        // Проверяваме за права
-        $mvc->requireRightFor('assign');
-        
-        // Вземаме формата към този модел
-        $form = $mvc->getForm();
-        
-        // Въвеждаме id-то
-        $form->input('id, assign', 'silent');
-        
-        // Очакваме да има такъв запис
-        expect($rec = $mvc->fetch($form->rec->id));
-        
-        // Очакваме потребителя да има права за възлагане на съответния запис
-        $mvc->requireRightFor('assign', $rec);
-        
-        // URL' то където ще се редиректва
-        $retUrl = getRetUrl();
-        
-        // Ако няма такова URL, връщаме към single' а
-        $retUrl = ($retUrl) ? ($retUrl) : array($mvc, 'single', $form->rec->id);
-        
-        // Името на документа
-        $docSingleTitle = $mvc->singleTitle; 
-        $docSingleTitleLower = mb_strtolower($docSingleTitle); 
-        
-        // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
-        if($form->isSubmitted()) {
+            // Премахваме този документ от нотификациите за стария потребител
+            bgerp_Notifications::setHidden($keyUrl, 'yes', $oldAssigned);
             
-            // На кого е била възложена задачата преди това
-            $oldAssigned = $mvc->fetchField($form->rec->id, 'assign');
+            // Добавяме документа в нотификациите за новия потреибител
+            bgerp_Notifications::setHidden($keyUrl, 'no', $newAssigned);
             
-            // Ако е била възложена на някой друг преди това
-            if ($oldAssigned && ($oldAssigned != $form->rec->assign)) {
-                
-                // URL' то което ще се премахва или показва от нотификациите
-                $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                
-                // Премахваме контейнера от достъпните
-                doc_ThreadUsers::removeContainer($rec->containerId);
-                
-                // Премахваме този документ от нотификациите за стария потребител
-                bgerp_Notifications::setHidden($keyUrl, 'yes', $oldAssigned);
-                
-                // Добавяме документа в нотификациите за новия потреибител
-                bgerp_Notifications::setHidden($keyUrl, 'no', $form->rec->assign);
-                
-                // Премахваме документа от "Последно" за стария потребител
-                bgerp_Recently::setHidden('document', $rec->containerId, 'yes', $oldAssigned);
-                
-                // Добавяме документа в "Последно" за новия потребител
-                bgerp_Recently::setHidden('document', $rec->containerId, 'no', $form->rec->assign);
-            }
+            // Премахваме документа от "Последно" за стария потребител
+            bgerp_Recently::setHidden('document', $rec->containerId, 'yes', $oldAssigned);
+            
+            // Добавяме документа в "Последно" за новия потребител
+            bgerp_Recently::setHidden('document', $rec->containerId, 'no', $newAssigned);
             
             // Определяме кой е модифицирал записа
-            $form->rec->assignedBy = Users::getCurrent();
+            $rec->assignedBy = Users::getCurrent();
             
             // Записваме момента на създаването
-            $form->rec->assignedOn = dt::verbal2Mysql();
+            $rec->assignedOn = dt::verbal2Mysql();
             
-            //Упдейтва състоянието и данните за имейл-а
-            $mvc->save($form->rec, 'assign, assignedBy, assignedOn');
+            // Променяме възложителя
+            $rec->assign = $newAssigned;
             
+            // Променяме двете полета
+            $mvc->save($rec, 'assignedBy, assignedOn, assign');
+        
             // Нотифицираме възложения потребител
-            $mvc->notificateAssigned($form->rec->id);
+            $mvc->notificateAssigned($rec);
             
-            // Даваме възможност на други функции да се прикачат след приключване на възлагането
-            $mvc->invoke('afterSubmitAssign', array($rec));
+            // Името на документа
+            $docSingleTitle = mb_strtolower($mvc->singleTitle); 
             
             // Добавяме съобщение
-            core_Statuses::add(tr("Успешно възложихте|* {$docSingleTitleLower} |на|*: " . $mvc->getVerbal($form->rec, 'assign')));
-            
-            // Редиректваме
-            return redirect($retUrl);
+            core_Statuses::add(tr("Успешно възложихте|* {$docSingleTitle} |на|*: " . $mvc->getVerbal($newRec, 'assign')));
         }
-        
-        // Ако вече е била възложена
-        if ($rec->assign) {
-            
-            // Избираме по подразбиране
-            $form->setDefault('assign', $rec->assign);
-        }
-        
-        // Задаваме да се показват само полетата, които ни интересуват
-        $form->showFields = 'assign';
-        
-        // Променяме името на полете
-        $form->fields['assign']->caption = 'Потребител';
-        
-        // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
-        
-        // Титлата на формата
-        $form->title = "Възлагане на |*{$docSingleTitleLower}";
-
-        // Титлата на документа
-        $title = $mvc->getDocumentRow($form->rec->id)->title;
-
-        // Информацията
-        $form->info = new ET ('[#1#]', tr("|*<b>|{$docSingleTitle}|*: <i style='color:blue'>{$title}</i></b>"));
-        
-        // Рендираме изгледа
-        $res = $mvc->renderWrapping($form->renderHtml());
-        
-        return FALSE;
     }
     
     
@@ -205,10 +122,10 @@ class doc_AssignPlg extends core_Plugin
      * Дефолт имплементацията на notificateAssigned($id)
      * Изпраща нотификация до възложения потребител
      */
-    static function on_AfterNotificateAssigned($mvc, $res, $id)
+    static function on_AfterNotificateAssigned($mvc, $res, $iRec)
     {
-        // Записа за съответния сигнал
-        $iRec = $mvc->fetch($id);
+        // id на записа
+        $id = $iRec->id;
         
         // Нишката
         $threadId = $iRec->threadId;
@@ -233,7 +150,7 @@ class doc_AssignPlg extends core_Plugin
         
         // Титлата на документа в долния регистър
         $docSingleTitleLower = mb_strtolower($mvc->singleTitle); 
-        
+
         // Заглавието на сигнала във НЕвербален вид
         $title = str::limitLen($mvc->getDocumentRow($id)->recTitle, 90);
         
@@ -241,7 +158,6 @@ class doc_AssignPlg extends core_Plugin
         $message = tr("|*{$nick} |възложи|* {$docSingleTitleLower}: \"{$title}\"");
         $url = array('doc_Containers', 'list', 'threadId' => $threadId);
         $customUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'docId' => $docHnd, '#' => $docHnd);
-//        $url = $customUrl = array($mvc, 'single', $id);
         
         // Определяме приоритете на нотификацията
         if ($iRec->priority) {
@@ -279,7 +195,7 @@ class doc_AssignPlg extends core_Plugin
     
     
 	/**
-     * Добавя ново поле, което съдържа датата, в чист вид
+     * Вербалните стойности на датата и възложителя
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
@@ -304,10 +220,38 @@ class doc_AssignPlg extends core_Plugin
      */
     function on_AfterGetShared($mvc, &$shared, $id)
     {
-        // Възложен на
-        $assignedUser = $mvc->fetchField($id, 'assign');
+        // Вземаме записите
+        $assignedRec = $mvc->fetch($id, 'assign, assignedBy', FALSE);
         
-        // Обединява с другите шерната потребители
-        $shared = type_Keylist::merge($assignedUser, $shared);
+        // Възложен на
+        $assignedUser = $assignedRec->assign;
+        
+        // Възложен от
+        $assignedBy = $assignedRec->assignedBy;
+
+        // Ако възложителят е различен от възложения
+        if ($assignedUser != $assignedBy) {
+            
+            // Обединява с другите шерната потребители
+            $shared = type_Keylist::merge($assignedUser, $shared);   
+        }
+    }
+    
+    
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Определяме правата за възлагане
+        if ($action == 'assign') {
+            
+            // Само активните документи могат да се възлат
+            if ($rec && $rec->state != 'active') {
+                
+                // Никой няма такива права, ако не е активен
+                $requiredRoles = 'no_one';
+            }   
+        }
     }
 }
