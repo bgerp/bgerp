@@ -131,18 +131,34 @@ class crm_Locations extends core_Master {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $cMvc = cls::get($rec->contragentCls);
         $field = $cMvc->rowToolsSingleField;
         $cRec = $cMvc->fetch($rec->contragentId);
         $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
         $row->contragent = $cRow->{$field};
+        if($rec->state == 'rejected'){
+        	if($fields['-single']){
+        		$row->headerRejected = ' state-rejected';
+        	} else {
+        		$row->ROW_ATTR['class'] .= ' state-rejected';
+        	}
+        }
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    {
+    	$mvc->routes->changeState($id);
+    }
+    
+    
+    /**
+     * Подготвя локациите на контрагента
      */
     function prepareContragentLocations($data)
     {
@@ -173,7 +189,7 @@ class crm_Locations extends core_Master {
    	 */
    	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if(sales_Sales::haveRightFor('write')){
+    	if(sales_Sales::haveRightFor('write') && $data->rec->state != 'rejected'){
     		$contragentCls = cls::get($data->rec->contragentCls);
     		$cRec = $contragentCls->fetch($data->rec->contragentId);
     		$url = array('sales_Sales', 'add','folderId' => $cRec->folderId, 'deliveryLocationId' => $data->rec->id);
