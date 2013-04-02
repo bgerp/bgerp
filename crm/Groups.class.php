@@ -38,13 +38,13 @@ class crm_Groups extends groups_Manager
     /**
      * Кои полета да се листват
      */
-    var $listFields = 'order,title=Заглавие,extenders';
+    var $listFields = 'id,title=Заглавие';
     
     
     /**
      * Поле за инструментите
      */
-    var $rowToolsField = 'order';
+    var $rowToolsField = 'id';
     
     
     /**
@@ -65,56 +65,18 @@ class crm_Groups extends groups_Manager
     var $defaultAccess = 'public';
 
 
-    /**
-     * Допустими екстендери
-     * 
-     * @var array
-     * @see getEx
-     */
-    protected $extendersArr = array(
-        'bankAccount' => array(
-            'className' => 'bank_Accounts',
-            'prefix' => 'ContragentBankAccounts',
-            'title' => 'Банкови сметки',
-        ),
-        'profile' => array(
-            'className' => 'crm_Profiles',
-            'prefix'    => 'Profile',
-            'title'     => 'Потребителски Профил',
-        ),
-        'idCard' => array(
-            'className' => 'crm_ext_IdCards',
-            'prefix'    => 'IdCard',
-            'title'     => 'Лична карта',
-        ),
-        'locations' => array(
-            'className' => 'crm_Locations',
-            'prefix'    => 'ContragentLocations',
-            'title'     => 'Локации',
-        ),
-        'lists' => array(
-            'className' => 'acc_Items',
-            'prefix'    => 'ObjectLists',
-            'title'     => 'Номенклатура',
-        ),
-        'pricelists' => array(
-            'className' => 'price_ListToCustomers',
-            'prefix'    => 'Pricelists',
-            'title'     => 'Ценоразпис',
-        ),
-    );
-    
-    
+
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('order', 'order', 'caption=Но.');
-        $this->FLD('name', 'varchar(128)', 'caption=Име на групата,width=100%');
+        $this->FLD('sysId', 'varchar(16)', 'caption=СисИД,input=none,column=none');
+        $this->FLD('name', 'varchar(128)', 'caption=Група,width=100%,mandatory');
+        $this->FLD('allow', 'enum(companies_and_persons=Фирми и лица,companies=Само фирми,persons=Само лица)', 'caption=Съдържание,notNull');
         $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none');
         $this->FLD('personsCnt', 'int', 'caption=Брой->Лица,input=none');
-        $this->FLD('info', 'text', 'caption=Описание');
+        $this->FLD('info', 'richtext', 'caption=Описание');
         
         $this->setDbUnique("name");
     }
@@ -124,10 +86,27 @@ class crm_Groups extends groups_Manager
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
-        $data->query->orderBy('#order');
+        $data->query->orderBy('#name');
     }
 
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($rec->sysId && $action == 'delete') {
+            $requiredRoles = 'no_one';
+        }
+    }
     
+
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -146,11 +125,13 @@ class crm_Groups extends groups_Manager
         $name = $mvc->getVerbal($rec, 'name');
         $info = $mvc->getVerbal($rec, 'info');
         
-        $row->title = "<b>$name</b><br />";
-        if($info)  $row->title .= "<small>$info</small><br />";
+        $row->title = "<b>$name</b>";
+        if($info)  $row->title .= "<div><small>$info</small></div>";
+        $row->title .= '<div>';
         $row->title .= "<span style='font-size:14px;'>Брой фирми:</span> ". $row->companiesCnt;
         $row->title .= ", <span style='font-size:14px;'>Брой лица:</span> ".  $row->personsCnt;
-       
+        $row->title .= '</div>';
+
         
         $extArr  = arr::make($rec->extenders);
         foreach($extArr as $ext) {
@@ -170,77 +151,104 @@ class crm_Groups extends groups_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        // BEGIN В случай, че няма данни в таблицата, зареждаме от масив.
-        if (! ($r = $mvc->fetch('1=1')) ) { 
-            // BEGIN масив с данни за инициализация
-            $data = array(
-                array(
-                    'name' => 'Клиенти',
-                    'sortId' => 30,
-                	'extenders' => 'lists,locations'
-                ),
-                array(
-                    'name' => 'Доставчици',
-                    'sortId' => 31,
-                	'extenders' => 'bankAccount,lists,locations',
-                ),
-                array(
-                    'name' => 'Дебитори',
-                    'sortId' => 32,
-                	'extenders' => 'locations'
-                ),
-                array(
-                    'name' => 'Кредитори',
-                    'sortId' => 33,
-                	'extenders' => 'bankAccount,locations'
-                ),
-                array(
-                    'name' => 'Служители',
-                    'sortId' => 34,
-                	'extenders' => 'bankAccount,locations,idCard'
-                ),
-                array(
-                    'name' => 'Управители',
-                    'sortId' => 36,
-                	'extenders' => 'bankAccount,profile,idCard,lists'
-                ),
-                array(
-                    'name' => 'Свързани лица',
-                    'sortId' => 37,
-                	'extenders' => 'bankAccount,idCard,lists'
-                ),
-                array(
-                    'name' => 'Организации и институции',
-                    'sortId' => 38,
-                	'extenders' => 'bankAccount,locations,lists'
-                )
-            );
+        // BEGIN масив с данни за инициализация
+        $data = array(
+            array(
+                'name'   => 'Клиенти',
+                'sysId'  => 'customers',
+                'exName' => 'КЛИЕНТИ',
+            ),
+            array(
+                'name'   => 'Доставчици',
+                'sysId'  => 'suppliers',
+                'exName' => 'ДОСТАВЧИЦИ',
+            ),
+            array(
+                'name'  => 'Дебитори',
+                'sysId'  => 'debitors',
+                'exName' => 'ДЕБИТОРИ',
+            ),
+            array(
+                'name'   => 'Кредитори',
+                'sysId'  => 'creditors',
+                'exName' => 'КРЕДИТОРИ',
+            ),
+            array(
+                'name'   => 'Служители',
+                'sysId'  => 'employees',
+                'exName' => 'Служители',
+                'allow'  => 'persons',
+            ),
+            array(
+                'name'   => 'Управители',
+                'sysId'  => 'managers ',
+                'exName' => 'Управители',
+                'allow'  => 'persons',
+            ),
+            array(
+                'name'   => 'Свързани лица',
+                'sysId'  => 'related',
+                'exName' => 'Свързани лица',
+            ),
+            array(
+                'name'   => 'Институции',
+                'sysId'  => 'institutions',
+                'exName' => 'Организации и институции',
+                'allow'  => 'companies',
+            ),
+            array(
+                'name' => 'Потребители',
+                'sysId' => 'users',
+                'exName' => 'Потребителски профили',
+                'allow'  => 'persons',
+            ),
+
+        );
+        
+        // END масив с данни за инициализация
+        
+        
+        $nAffected = 0;
+        
+        // BEGIN За всеки елемент от масива
+        foreach ($data as $newData) {
             
-            // END масив с данни за инициализация
+            $newRec = (object) $newData;
+
+            $rec = $mvc->fetch("#sysId = '{$newRec->sysId}'");
+
+            if(!$rec) {
+                $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->name}')");
+            }
             
-            
-            $nAffected = 0;
-            
-            // BEGIN За всеки елемент от масива
-            foreach ($data as $rec) {
-                $rec = (object)$rec;
-                
+            if(!$rec) {
+                $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->exName}')");
+            }
+
+            if(!$rec) {
+                $rec = new stdClass();
                 $rec->companiesCnt = 0;
-                $rec->PersonsCnt = 0;
-                
-                $mvc->save($rec, NULL, 'ignore');
-                 
+                $rec->personsCnt = 0;
+            }
+            
+            setIfNot($newRec->allow, 'companies_and_persons');
+
+            $rec->name  = $newRec->name;
+            $rec->sysId = $newRec->sysId;
+            $rec->allow = $newRec->allow;
+
+            if(!$rec->id) {
                 $nAffected++;
             }
-            
-            // END За всеки елемент от масива
-            
-            if ($nAffected) {
-                $res .= "<li style='color:green;'>Добавени са {$nAffected} групи.</li>";
-            }
+
+            $mvc->save($rec, NULL, 'replace');
         }
         
-        // END В случай, че няма данни в таблицата, зареждаме от масив.        
+        // END За всеки елемент от масива
+        
+        if ($nAffected) {
+            $res .= "<li style='color:green;'>Добавени са {$nAffected} групи.</li>";
+        }
     }
     
     
@@ -265,8 +273,5 @@ class crm_Groups extends groups_Manager
         return $idArr;
     }
     
-    function act_Test ()
-    {
-    	bp(crm_Profiles::fetchCrmGroup());
-    }
+
 }

@@ -120,7 +120,7 @@ class crm_Companies extends core_Master
      * Детайли, на модела
      */
     var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items';
+                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,CourtReg=crm_ext_CourtReg';
     
     
     /**
@@ -198,18 +198,9 @@ class crm_Companies extends core_Master
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого');
-        
-        // Данни за съдебната регистрация
-        $this->FLD('regCourt', 'varchar', 'caption=Решение по регистрация->Съдилище,width=60%');
-        $this->FLD('regDecisionNumber', 'int', 'caption=Решение по регистрация->Номер');
-        $this->FLD('regDecisionDate', 'date', 'caption=Решение по регистрация->Дата');
-        
-        // Фирмено дело
-        $this->FLD('regCompanyFileNumber', 'int', 'caption=Фирмено дело->Номер');
-        $this->FLD('regCompanyFileYear', 'int', 'caption=Фирмено дело->Година');
-        
+                
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember,silent');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,where=#allow !\\= \\\'persons\\\')', 'caption=Групи->Групи,remember,silent');
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -356,23 +347,6 @@ class crm_Companies extends core_Master
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
                     $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
         }
-        
-        for($i = 1989; $i <= date('Y'); $i++) $years[$i] = $i;
-        
-        $form->setSuggestions('regCompanyFileYear', $years);
-        
-        $dcQuery = drdata_DistrictCourts::getQuery();
-        
-        while($dcRec = $dcQuery->fetch()) {
-            $dcName = drdata_DistrictCourts::getVerbal($dcRec, 'type');
-            $dcName .= ' - ';
-            $dcName .= drdata_DistrictCourts::getVerbal($dcRec, 'city');
-            $dcSug[$dcName] = $dcName;
-        }
-        
-        $form->setSuggestions('regCourt', $dcSug);
-
-      
     }
     
     

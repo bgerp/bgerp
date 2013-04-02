@@ -349,7 +349,17 @@ class crm_Profiles extends core_Master
      * Подготвя данните необходими за рендиране на профил на визитка
      */
     function prepareProfile($data)
-    {
+    {   
+        $data->TabCaption = 'Профил';
+        $data->Order      = 5;
+
+        $usersGroupId = crm_Groups::fetchField("#sysId = 'users'", 'id');
+
+        if(!type_Keylist::isIn($usersGroupId, $data->masterData->rec->groupList)) {
+            $data->Order = -1;
+            return;
+        }
+
         expect($data->masterId);
 
         $data->profile = static::fetch("#personId = {$data->masterId}");
@@ -500,43 +510,6 @@ class crm_Profiles extends core_Master
             // Само админ може да променя записите на другите
             if ($rec->userId != $currUserId) $requiredRoles = 'admin';
         }
-    }
-    
-    
-    /**
-     * След инсталиране на пакета CRM:
-     * 
-     *  о Създаване на CRM-група за потребителски профили (ако няма)
-     *  o Конфигуриране на групата за профили с екстендер 'profile'
-     *
-     * @param crm_Profiles $mvc
-     * @param stdClass $res
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        $profilesGroup = $mvc::profilesGroupName();
-        
-        core_Users::forceSystemUser();
-        
-        // Създаване (ако няма) на група в crm_Groups за потребителските профили. 
-        if (!$profiles = crm_Groups::fetch("#name = '{$profilesGroup}'")) {
-            $profiles = (object)array(
-                'name' => $profilesGroup,
-                'extenders' => 'profile',
-            );
-            crm_Groups::save($profiles);
-        }
-        
-        // Добавяме (ако няма) екстендер 'profiles' на групата за потребителски профили 
-        $extenders = type_Keylist::toArray($profiles->extenders);
-        
-        if (!isset($extenders['profile'])) {
-            $profiles->extenders['profile'] = 'profile';
-            $profiles->extenders = type_Keylist::fromArray($profiles->extenders);
-            crm_Groups::save($profiles);
-        }
-        
-        core_Users::cancelSystemUser();
     }
     
     

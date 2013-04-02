@@ -85,6 +85,7 @@ class crm_Setup
             'crm_Companies',
             'crm_Persons',
             'crm_ext_IdCards',
+            'crm_ext_CourtReg',
             'crm_Profiles',
             'crm_Locations',
         );

@@ -72,7 +72,7 @@ class crm_Persons extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,  plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Importer, groups_Extendable';
+                     bgerp_plg_Importer';
 
 
     /**
@@ -140,7 +140,8 @@ class crm_Persons extends core_Master
      * 
      * @var string|array
      */
-    public $details = '';
+    public $details = 'Profile=crm_Profiles,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
+                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,IdCard=crm_ext_IdCards';
     
 
     /**
@@ -198,7 +199,7 @@ class crm_Persons extends core_Master
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember,silent');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,where=#allow !\\= \\\'companies\\\')', 'caption=Групи->Групи,remember,silent');
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');

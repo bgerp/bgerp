@@ -36,11 +36,8 @@ class crm_ext_IdCards extends core_Detail
     
     public static function prepareIdCard($data)
     {
-        if (get_class($data->masterMvc) != 'crm_Persons') {
-            // Позволено само за физически лица
-            return;
-        }
-        
+        $data->TabCaption = 'ЛК';
+
         expect($data->masterId);
         
         if(!$data->IdCard) {
