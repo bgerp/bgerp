@@ -1260,6 +1260,26 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото наимей по подразбиране
+     */
+    static function getDefaultEmailBody($id, $forward)
+    {
+        // Ако препращаме
+        if ($forward) {
+            
+            // Манипулатора на документа
+            $handle = static::getHandle($id);
+
+            // Текстова част
+            $text = tr("Моля запознайте се с препратения имейл|* #{$handle}.");    
+        }
+        
+        return $text;
+    }
+    
+    
+    /**
      * Подготвя иконата за единичния изглед
      */
     static function on_AfterPrepareSingle($mvc, $data)
@@ -1524,6 +1544,15 @@ class email_Outgoings extends core_Master
                     $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
                 }
             }
+
+            // Добавяме бутон за препращане на имейла
+            $data->toolbar->addBtn('Препращане', array(
+                    'email_Outgoings',
+                    'forward',
+                    $data->rec->containerId,
+                    'ret_url' => TRUE,
+                ), 'class=btn-forward, order=20, row=2'
+            );
         }
     }
     
@@ -1662,17 +1691,26 @@ class email_Outgoings extends core_Master
      */
     function act_Forward()
     {
-        // id'то на документа
-        $id = Request::get('id', 'int');
+        // id'то на контейнера
+        $cid = Request::get('id', 'int');
+        
+        // Записите на контейнер
+        $cRec = doc_Containers::fetch($cid);
+
+        // Инстанция на класа
+        $class = cls::get($cRec->docClass);
+        
+        // id на записа
+        $id = $cRec->docId;
         
         // Вземаме записа
-        $rec = email_Incomings::fetch($id);
+        $rec = $class::fetch($id);
         
         // Оттеглените имейли, да не може да се препращат
         expect($rec->state != 'rejected', 'Не може да се препраща оттеглен имейл.');
         
         // Проверяваме за права
-        email_Incomings::requireRightFor('single', $rec);
+        $class::requireRightFor('single', $rec);
         
         $data = new stdClass();
         
@@ -1803,7 +1841,7 @@ class email_Outgoings extends core_Master
         $retUrl = getRetUrl();
         
         // Ако няма ret_url, създаваме го
-        $retUrl = ($retUrl) ? $retUrl : toUrl(array('email_Incomings','single', $id));
+        $retUrl = ($retUrl) ? $retUrl : toUrl(array($class,'single', $id));
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Избор', 'default', array('class' => 'btn-save'));
