@@ -1461,7 +1461,7 @@ class email_Incomings extends core_Master
                 $data->toolbar->addBtn('Препращане', array(
                         'email_Outgoings',
                         'forward',
-                        $data->rec->id,
+                        $data->rec->containerId,
                         'ret_url' => TRUE,
                     ), 'class=btn-forward, order=20, row=2'
                 );
