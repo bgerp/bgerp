@@ -61,12 +61,6 @@ class cal_Tasks extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'title, description';
-
-    
-    /**
-	 * Как се казва поелто за пълнотекстово търсене
-	 */
-	var $searchInputField = 'taskSearch';
 	
 	
     /**
@@ -257,17 +251,6 @@ class cal_Tasks extends core_Master
         // Подготвяме навигацията по страници
         self::prepareListPager($data);
         
-        // Подготвяме филтър формата
-        self::prepareListFilter($data);
-        if($data->listFilter){
-        	
-        	// Модифицираме филтър формата за портала
-	    	$data->listFilter->formAttr['id'] = 'portal-filter';
-	    	unset($data->listFilter->toolbar->buttons);
-	        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png');
-	        $data->listFilter->showFields = 'taskSearch';
-        }
-        
         // Подготвяме записите за таблицата
         self::prepareListRecs($data);
  
@@ -285,11 +268,7 @@ class cal_Tasks extends core_Master
         self::prepareListRows($data);
         
         $tpl = new ET("
-            <div>
-            <div style='float:right'>[#ListFilter#]</div>
-            <div style='float:left'>[#PortalPagerTop#]</div>
-            <div class='clearfix21'></div>
-            </div>
+            [#PortalPagerTop#]
             [#PortalTable#]
           ");
         
@@ -359,9 +338,9 @@ class cal_Tasks extends core_Master
         }
     }
 
+    
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
-    	//bp(&$roles, $action, $rec, $userId);
     	if($action == 'postpone'){
 	    	if ($rec->id) {
 	        	if ($rec->state !== 'active' || (!$rec->timeStart) ) { 
@@ -721,19 +700,5 @@ class cal_Tasks extends core_Master
         //Създаваме, кофа, където ще държим всички прикачени файлове в задачи
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calTasks', 'Прикачени файлове в задачи', NULL, '104857600', 'user', 'user');
-    	
-        $count = 0;
-    	$query = static::getQuery();
-    	$query->orderBy("#id", "DESC");
-    	while($rec = $query->fetch()){
-    		
-    		// Обновяваме ключовите думи на Задачите, ако нямат
-    		$mvc->save($rec);
-    		$count++;
-    	}
-    	
-    	$res .= "Обновени ключови думи на  {$count} записа в Задачи";
     }
-
-       
 }
