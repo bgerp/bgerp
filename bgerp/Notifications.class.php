@@ -54,6 +54,12 @@ class bgerp_Notifications extends core_Manager
 	var $searchFields = 'msg';
 	
 	
+	/**
+	 * Как се казва поелто за пълнотекстово търсене
+	 */
+	var $searchInputField = 'noticeSearch';
+	
+	
     /**
      * Описание на модела
      */
@@ -212,9 +218,6 @@ class bgerp_Notifications extends core_Manager
         // Подготвяме полетата за показване
         $data->listFields = 'modifiedOn=Време,msg=Съобщение';
         
-        // Подготвяме формата за филтриране
-        // $this->prepareListFilter($data);
-        
         $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
         $data->query->orderBy("state,modifiedOn=DESC");
 
@@ -281,7 +284,7 @@ class bgerp_Notifications extends core_Manager
             <div class='clearfix21 portal' style='background-color:#fff8f8'>
             <div style='background-color:#fee' class='legend'>[#PortalTitle#]</div>
             <div>
-            <div style='float:right'>[#SEARCH#]</div>
+            <div style='float:right'>[#ListFilter#]</div>
             <div style='float:left'>[#PortalPagerTop#]</div>
             <div class='clearfix21'></div>
             </div>
@@ -296,11 +299,11 @@ class bgerp_Notifications extends core_Manager
         // Попълваме горния страньор
         $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
         
-    	if($data->listFilter && $data->pager->pagesCount > 22){
+    	if($data->listFilter && $data->pager->pagesCount > 1){
     		$formTpl = $data->listFilter->renderHtml();
     		$formTpl->removeBlocks();
     		$formTpl->removePlaces();
-        	$tpl->append($formTpl, 'SEARCH');
+        	$tpl->append($formTpl, 'ListFilter');
         }
         
         // Попълваме долния страньор
@@ -324,28 +327,27 @@ class bgerp_Notifications extends core_Manager
     {
     	$data->query->orderBy("modifiedOn=DESC");
     	$data->listFilter->view = 'horizontal';
-    	//bp($data->listFilter);
-        $img = ht::createElement('img', array('src' => 'img/16/find.png'));
-        $data->listFilter->formAttr['id'] = 'portal-filter';
+    	$data->listFilter->formAttr['id'] = 'portal-filter';
         $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png');
-        $data->listFilter->FNC('noticeSearch', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
-    	$data->listFilter->showFields = 'noticeSearch';
-    	/*$data->query->orderBy("modifiedOn=DESC");
-        $data->listFilter->layout = new ET(getFileContent("bgerp/tpl/SimpleSearch.shtml"));
-        $data->listFilter->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
-        $data->listFilter->layout->replace('noticeSearch', "NAME");
-       
-        if($search = Request::get('noticeSearch')){
-        	plg_Search::applySearch($search, $data->query);
-        }*/
+        $data->listFilter->showFields = 'noticeSearch';
     }
     
     
     /**
      * Какво правим след сетъпа на модела?
      */
-    static function on_AfterSetupMVC()
+    static function on_AfterSetupMVC($mvc, &$res)
     {
-    
+    	$count = 0;
+    	$query = static::getQuery();
+    	$query->orderBy("#id", "DESC");
+    	while($rec = $query->fetch()){
+    		
+    		// Обновяваме ключовите думи на нотификациите, ако нямат
+    		$mvc->save($rec);
+    		$count++;
+    	}
+    	
+    	$res .= "Обновени ключови думи на  {$count} записа в Нотификациите";
     }
 }

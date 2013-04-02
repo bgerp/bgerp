@@ -292,7 +292,6 @@ class bgerp_Recently extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->view = 'horizontal';
-        $img = ht::createElement('img', array('src' => 'img/16/find.png'));
         $data->listFilter->formAttr['id'] = 'portal-filter';
         $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png');
         $data->listFilter->showFields = 'search';
@@ -314,6 +313,6 @@ class bgerp_Recently extends core_Manager
     		$mvc->save_($rec);
     	}
     	
-    	$res .= "Обновени ключови думи на  {$count} записа в bgerp_Recently";
+    	$res .= "Обновени ключови думи на  {$count} записа в Последно";
     }
 }
