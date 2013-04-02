@@ -2048,41 +2048,60 @@ table.styled-table tr:hover td {
 	
 }
 
-#portal-filter {
+
+.portal-filter{
+	position:relative;
+	min-width:30px;
+	float:right;
+}
+	
+.portal-filter .hFormField {
 	width: 9em;
 	border: solid 1px #ccc;
 	float: right;
 	display: block;
 	position: relative;
 	height: 1.2em; 	
-	margin: 7px 0 5px 2px; 	
+	margin: 0px 0 0px 7px; 	
 	background: rgba(255, 255, 255, 0.7);
 	@include border-radius(3px);
+	display1:none;
 }
 
-#portal-filter .formFields input {
+.portal-filter .formFields input {
 	height: 1.2em;
     width: 9em;
 	border: none !important;
 	background:none;
+	font-size:0.9em;
+	line-height:1.2em;
     width: 8.5em !important;
 }
 
-#portal-filter select{
+.portal-filter select{
 	height: 1.2em;
     width: 8.3em;
 	visibility:hidden !important;
 }
+.portal-filter .formToolbar{
+	width: 30px;
+	height:20px;
+	margin-right:0 !important;
+	right: 0px !important;
+    top: 0em !important;
+	position: absolute;
+}
 
-#portal-filter .button {
+.portal-filter .formToolbar .button{
 	width: 16px;
 	height:20px;
 	margin-right:0;
-	right: -3px;
-    top: 0em;
+	right: 0px !important;
+    top: 0em !important;
 	position: absolute;
 	border: none;
 	background-color: transparent;
+	background-position: center center;
 	cursor: pointer;
 	display: inline-block;
 }
