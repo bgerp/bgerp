@@ -63,10 +63,9 @@
             <div class="groupList">
                 <!--ET_BEGIN regDecisionNumber--><span>№: <b>[#regDecisionNumber#]</b></span><!--ET_END regDecisionNumber-->
                 <!--ET_BEGIN regDecisionDate--><span>&nbsp;&nbsp;|Дата|*: <b>[#regDecisionDate#]</b></span><!--ET_END regDecisionDate-->
+             	<!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div> <!--ET_END regCourt--> 
             </div>
-            <!--ET_BEGIN regCourt-->
-            <div><b>[#regCourt#]</b></div>
-            <!--ET_END regCourt--> 
+           
         </fieldset>
         <!--ET_END regDecision-->
         <!--ET_BEGIN regCompanyFile-->
