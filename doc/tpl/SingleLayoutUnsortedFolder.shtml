@@ -1,55 +1,34 @@
 <div style="display:inline-block">
 [#SingleToolbar#]
                  
-	<div class='document'>
-		<div class='header [#STATE_CLASS#]'>
-		<span >Проект » [#name#] ([#state#])</span>
-		</div>
+	<div class='folder-cover'>
+		<h2>
+		<div class='[#STATE_CLASS#] special-title' style="font-size:0.9em">Проект » [#name#] ([#state#])<div>
+		</h2>
 
-        <!-- BEGIN Блок ляво -->
-        <div class='block_left'>
-        
-			 <table cellspacing='1' class='top-table'>
-			     
-	             <tr>
-	                 <td class="quiet" align="left" width='50%'>Папка:</td>
-	                 <td>[#folderId#]</td>
-	             </tr>
-
-				<tr>
-					<td class="quiet" align="left" width='50%'>Отговорници:</td>
-					<td>[#inCharge#] ([#createdOn#])</td>
-				
-				</tr>
-
-				<tr>
-                     <td class="quiet" align="left" width='50%'>Достъп:</td>
-                     <td>[#access#]</td>
-              
-                </tr>
+			     <!--ET_BEGIN lastUsedOn-->
+				[#lastUsedOn#]
+				<div><span class="quiet">Последна промяна: </span> [#lastUsedOn#] </div>
+				<!--ET_END lastUsedOn-->
+				<div><span class="quiet">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
+				 <!--ET_BEGIN lastUsedOn-->            
                 
-                <tr>
-                     <td class="quiet" align="left" width='50%'>Споделяне:</td>
-                     <td>[#shared#]</td>
-              
-                </tr>
-                
-                              
-                <tr>
-                     <td class="quiet" align="left" width='50%'>Последна промяна:</td>
-                     <td>[#lastUsedOn#]</td>
-              
-                </tr>
-              
-                <tr>
-                     <td class="quiet" align="left" width='50%'>Създаден от:</td>
-                     <td>[#createdBy#]</td>
-              
-                </tr>
                     
-             </table>
-         </div>    
-         <!-- END Блок ляво -->   
+             
+                <fieldset class="detail-info">
+		            <legend class="groupTitle">|Права|*</legend>
+		            <div class="groupList">
+						<dl>
+						<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
+						<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
+						<!--ET_BEGIN shared-->
+							<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
+						<!--ET_END shared-->
+						</dl>
+		             </div>
+		        </fieldset>
+               
+      
                      
          <div style='clear: both;'></div>
     </div>     
