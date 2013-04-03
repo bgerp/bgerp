@@ -43,7 +43,7 @@ class sales_Routes extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Created, plg_State2,
+    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting';
     
     
@@ -81,6 +81,7 @@ class sales_Routes extends core_Manager {
     	$this->FLD('salesmanId', 'user(roles=sales)', 'caption=Търговец,width=15em,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,width=6em,mandatory');
     	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em');
+    	$this->FLD('state','enum(active=Активен, rejected=Отказан)','caption=Статус');
     }
     
     
@@ -107,6 +108,7 @@ class sales_Routes extends core_Manager {
     	$options = array();
     	$varchar = cls::get("type_Varchar");
     	$locQuery = crm_Locations::getQuery();
+    	$locQuery->where("#state != 'rejected'");
     	if($locId = Request::get('locationId')){
     		$locQuery->where("#id = {$locId}");
     	}	
@@ -231,6 +233,7 @@ class sales_Routes extends core_Manager {
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+    	$data->query->orderBy("#state");
     	if($date = $data->listFilter->rec->date){
     			
     		// Изчисляваме дните между датата от модела и търсената
@@ -268,8 +271,6 @@ class sales_Routes extends core_Manager {
     		$routeArr['salesmanId'] = $row->salesmanId;
     		if($data->masterData->rec->state != 'rejected'){
     			$routeArr['nextVisit'] = $this->calcNextVisit($rec);
-    		} else {
-    			$routeArr['nextVisit'] = tr("Маршрутите са оттеглени");
     		}
     		
     		$results[] = (object)$routeArr;
@@ -316,12 +317,14 @@ class sales_Routes extends core_Manager {
 	function renderRoutes($data)
     {
     	$tpl = new ET(tr("|*" . getFileContent("sales/tpl/Routes.shtml")));
-    		
+    	
     	// Рендираме информацията за маршрутите
-    	$img = sbf('img/16/add.png');
-    	$addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
-    	$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute'));
-    	$tpl->replace($addBtn, 'BTN');
+    	if($data->masterData->rec->state != 'rejected'){
+	    	$img = sbf('img/16/add.png');
+	    	$addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
+	    	$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute')); 
+	    	$tpl->replace($addBtn, 'BTN');
+    	}
     	if($data->masterData->row->routes){
     		$tpl->replace(' ', 'HEADER');
 	    	foreach($data->masterData->row->routes as $route){
@@ -343,7 +346,7 @@ class sales_Routes extends core_Manager {
      */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'changestate' && $rec->id) {
+		if($action == 'edit' && $rec->id) {
 			
 			// Ако локацията е оттеглена, не позволяваме да се променя
 			// състоянието на маршрутите
@@ -366,7 +369,7 @@ class sales_Routes extends core_Manager {
 		$query = $this->getQuery();
 		$query->where("#locationId = {$locationId}");
 		while($rec = $query->fetch()){
-			($locationState == 'rejected') ? $state = 'closed' : $state = 'active';
+			($locationState == 'rejected') ? $state = $locationState : $state = 'active';
 			$rec->state = $state;
 			$this->save($rec);
 		}
