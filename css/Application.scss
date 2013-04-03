@@ -324,9 +324,13 @@ div.tab-control div.tab-page {
 .alphabet{
 	padding-bottom:5px;
 }
-.pages{
+.wide .pages{
 	clear:both;
 	margin:10px 2px 10px 2px;
+}
+.narrow .pages{
+	clear:both;
+	margin:0px 2px 15px 2px;
 }
 .doc_Folders .pages, .core_Packs .pages ,.acc_Items .pages, .core_Lg .pages, 
 .cal_Calendar .pages ,.cal_Holidays .pages, .core_Logs .pages{
