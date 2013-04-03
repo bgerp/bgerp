@@ -2064,7 +2064,6 @@ table.styled-table tr:hover td {
 	
 }
 
-
 .portal-filter{
 	position:relative;
 	min-width:30px;
@@ -2091,13 +2090,18 @@ table.styled-table tr:hover td {
 	border: none !important;
 	background:none;
 	font-size:0.9em;
-	line-height:1.2em;
+	position:relative;
+	top:-2px;
+	line-height:0.8em;
+	margin-top:0px !important;
     width: 8.5em !important;
+    outline:none !important;
 }
 
 .portal-filter select{
 	height: 1.2em;
     width: 8.3em;
+    line-height:1em;
 	visibility:hidden !important;
 }
 .portal-filter .formToolbar{
