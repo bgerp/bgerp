@@ -66,7 +66,7 @@ class statuses_Setup
         
         // Деинсталираме toast съобщения
         if($delCnt = $Plugins->deinstallPlugin('statuses_Toast')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'type_Richtext'";
+            $html .= "<li>Премахнати са {$delCnt} закачания на 'core_Statuses'";
         } else {
             $html .= "<li>Не са премахнати закачания на плъгина";
         }
