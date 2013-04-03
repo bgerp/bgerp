@@ -2083,7 +2083,7 @@ table.styled-table tr:hover td {
 	display1:none;
 }
 
-.portal-filter .formFields input {
+.portal-filter .hFormField input {
 	height: 1.2em;
     width: 9em;
 	border: none !important;
@@ -2107,7 +2107,7 @@ table.styled-table tr:hover td {
 	position: absolute;
 }
 
-.portal-filter .formToolbar .button{
+.portal-filter .button{
 	width: 16px;
 	height:20px;
 	margin-right:0;
@@ -2115,7 +2115,7 @@ table.styled-table tr:hover td {
     top: 0em !important;
 	position: absolute;
 	border: none;
-	background-color: transparent;
+	background-color: transparent !important;
 	background-position: center center;
 	cursor: pointer;
 	display: inline-block;

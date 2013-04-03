@@ -252,7 +252,7 @@ class bgerp_Recently extends core_Manager
         $tpl = new ET("
             <div class='clearfix21 portal' style='background-color:#f8f8ff'>
             <div style='background-color:#eef' class='legend'>[#PortalTitle#]
-            <div class='portal-filter recentlyFilter'>[#ListFilter#]</div></div>
+            [#ListFilter#]</div>
             [#PortalPagerTop#]
             [#PortalTable#]
             [#PortalPagerBottom#]
@@ -288,14 +288,7 @@ class bgerp_Recently extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png,id=recentlySearchBtnPortal');
-        $data->listFilter->action = getCurrentUrl();
-        if($page = Request::get('P_bgerp_Recently')){
-        	$data->listFilter->FNC('P_bgerp_Recently', 'int', 'input=hidden');
-        	$data->listFilter->setDefault('P_bgerp_Recently', $page);
-        }
-        $data->listFilter->showFields = 'search';
+        bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
 	}
     
     

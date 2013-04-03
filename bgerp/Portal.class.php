@@ -102,8 +102,38 @@ class bgerp_Portal extends core_Manager
         $tpl->append($calendarHeader, 'RIGHT_COLUMN');
         
         jquery_Jquery::enable($tpl);
-        $tpl->push('bgerp/js/scripts.js', 'JS');
+        $tpl->push('js/PortalSearch.js', 'JS');
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Подготвя форма за търсене в портала
+     * @param core_Mvc $mvc - викащия клас
+     * @param core_Form $form - филтър форма
+     */
+    public static function prepareSearchForm(core_Mvc $mvc, core_Form &$form)
+    {
+    	$form->view = 'horizontal';
+        $form->layout = new ET(getFileContent("bgerp/tpl/PortalSearch.shtml"));
+        ($mvc->className == 'bgerp_Recently') ? $name = 'recently' : $name = 'notice';
+        $form->layout->replace("{$name}Filter", 'CLASS');
+        $form->toolbar->addSbBtn('', NULL, "ef_icon=img/16/find.png,id={$name}SearchBtnPortal");
+        $form->setField('id', 'input=none');
+        
+        // Зареждаме всички стойности от GET заявката в формата, като
+        // пропускаме тези които не са параметри в нея
+    	foreach(core_Request::$vars['_GET'] as $key => $value){
+        	if($key != 'virtual_url' && $key != 'App' && $key != 'Ctr'
+        	 && $key != 'Act' && $key != 'Cmd'){
+        	 	if(!$form->fields[$key]){
+        	 		$form->FNC($key, 'varchar', 'input=hidden');
+        	 		$form->setDefault($key, $value);
+        	 	}
+        	 }
+        }
+        
+        $form->showFields = $mvc->searchInputField;
     }
 }

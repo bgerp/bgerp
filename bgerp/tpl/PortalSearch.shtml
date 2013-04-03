@@ -1,0 +1,5 @@
+<form method='[#ACTION#]' class='portal-filter [#CLASS#]'>
+[#FORM_FIELDS#]
+[#FORM_TOOLBAR#]
+[#FORM_HIDDEN#]
+</form>

@@ -283,7 +283,7 @@ class bgerp_Notifications extends core_Manager
         $tpl = new ET("
             <div class='clearfix21 portal' style='background-color:#fff8f8'>
             <div style='background-color:#fee' class='legend'>[#PortalTitle#]
-            <div class='portal-filter noticeFilter'>[#ListFilter#]</div></div>
+            [#ListFilter#]</div>
             [#PortalPagerTop#]
             [#PortalTable#]
             [#PortalPagerBottom#]
@@ -322,14 +322,7 @@ class bgerp_Notifications extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('', NULL, 'ef_icon=img/16/find.png,id=noticeSearchBtnPortal');
-        $data->listFilter->action = getCurrentUrl();
-        if($page = Request::get('P_bgerp_Notifications')){
-        	$data->listFilter->FNC('P_bgerp_Notifications', 'int', 'input=hidden');
-        	$data->listFilter->setDefault('P_bgerp_Recently', $page);
-        }
-        $data->listFilter->showFields = 'noticeSearch';
+    	bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
     }
     
     
