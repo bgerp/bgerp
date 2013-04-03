@@ -373,7 +373,7 @@ a.rtbutton:hover {
 
 /* Стилове за елемента 'list Table' */
 table.listTable { 
-    margin:0px;
+    margin:0px 0 15px 0;
     border: 1px solid #999;
     border-collapse: collapse;
 }
@@ -407,7 +407,7 @@ table.listTable>thead>tr>th {
 }
 
 .listFilter {
-	padding-bottom:5px; 
+	padding-bottom:10px; 
 	float:left;
 }
 
@@ -701,6 +701,9 @@ input, select, textarea {
 	padding-left:22px !important;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
+}
+
+.linkWithIcon{
 	height:24px;
 }
 
