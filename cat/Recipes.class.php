@@ -109,6 +109,26 @@ class cat_Recipes extends core_Master {
     
     
     /**
+     * За продуктите от кои групи могат да бъдат правени рецепти
+     * @see cat_Groups
+     */
+    protected static $recipeProductGroups = array('productsStandard',
+    											  'prefabrications',);
+    
+    
+    /**
+     * Продуктите от кои групи могат да бъдат включвани като съставка
+     * на рецепта
+     * @see cat_Groups
+     */
+    protected static $ingredientProductGroups = array(
+    							'materials',
+    							'labor',
+    							'externalServices',
+    							'prefabrications');
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -168,29 +188,75 @@ class cat_Recipes extends core_Master {
      */
 	public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	// Намираме всички продукти от каталога
-    	$children = $productsArr = array();
-	    $catQuery = cat_Products::getQuery();
-	    while($catRec = $catQuery->fetch()){
-	    	$productsArr[$catRec->id] = $catRec->name;
-	    }
+    	$options = $mvc->getProductOptions($data->form->rec);
+	    $data->form->setOptions('productId', $options);
+    }
+    
+    
+    /**
+     * Филтрира продуктите които могат да се добавят като начало на рецепта
+     * Ако добавяме нова рецепта: Зареждаме само продуктите, които са в
+     * 							  позволените групи, и изключваме тези
+     * 							  от тях които вече са рецепти
+     * Ако редактираме рецепта: Зареждаме всички продукти от позволените
+     * 							групи но изключваме продуктите които вече
+     * 							са съставка на рецептите				
+     * @param stdClass $rec - запис от модела
+     * @return array $options- опции с позволени продукти
+     * 
+     */
+    private function getProductOptions($rec)
+    {
+    	$children = array();
 	    
-    	if($data->form->rec->id){
+    	// зареждаме само продуктите, които могат да имат рецепти
+    	$productsArr = $this->getAvailableProducts('recipe');
+    	
+    	if($rec->id){
     		
     		// При редакция се подсигуряваме че неможе продукт
     		// който е съставка на рецептата да се добави като нейн начален
-	    	$mvc->getChildren($data->form->rec->productId, $children, TRUE);
+	    	$this->getChildren($rec->productId, $children, TRUE);
 	    } else {
 	    	
 	    	// При нова рецепта, изключваме продуктите, имащи вече рецепта
-    		$query = $mvc->getQuery();
-    		while($rec = $query->fetch()){
-    			$children[$rec->productId] = $rec->productId;
+    		$query = $this->getQuery();
+    		while($childRec = $query->fetch()){
+    			$children[$childRec->productId] = $childRec->productId;
     		}
     	}
     	
     	$options = array_diff_key($productsArr, $children);
-	    $data->form->setOptions('productId', $options);
+	    
+    	return $options;
+    }
+    
+    
+    /**
+     * Показва само продуктите, които могат да започват рецепта
+     * @param string $string - дали търсим продуктите за рецепта
+     * или съставка. Масивите са дефинирани като $recipeProductGroups и
+     * $ingredientProductGroups
+     * @return array $productsArr - масив с продукти, принадлежащи на
+     * търсените групи
+     */
+    private function getAvailableProducts($string)
+    {
+    	$productsArr = array();
+    	expect(isset(static::${"{$string}ProductGroups"}));
+    	$catQuery = cat_Products::getQuery();
+    	foreach (static::${"{$string}ProductGroups"} as $sysId){
+    		$groupId = cat_Groups::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
+    		$catQuery->orWhere("#groups LIKE '%|{$groupId}|%'");
+    	}
+    	
+    	if(!$catQuery->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма продукти, които могат да започват рецепти');
+    	
+    	while($catRec = $catQuery->fetch()){
+	    	$productsArr[$catRec->id] = $catRec->name;
+	    }
+	    
+	    return $productsArr;
     }
     
     
@@ -301,13 +367,12 @@ class cat_Recipes extends core_Master {
     	}
     	
     	// Намираме всички продукти от каталога
-    	$catQuery = cat_Products::getQuery();
-    	while($catRec = $catQuery->fetch()){
-    		$productsArr[$catRec->id] = $catRec->name;
-    	}
+    	$productsArr = $this->getAvailableProducts('ingredient');
+    	$options = array_diff_key($productsArr,$notAllowed);
+    	if(!count($options)) return Redirect(array($this, 'single', $id), FALSE, 'Неможе да се добавят нови съставки');
     	
     	// Връщаме тези продукти, които не част от $notAllowed
-    	return array_diff_key($productsArr,$notAllowed);
+    	return $options;
     }
     
     
