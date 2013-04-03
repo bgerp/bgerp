@@ -17,51 +17,46 @@
 			<td class="title-style">Мярка</td>
 			<td>[#measureId#]</td>
 		</tr>
-		<!--ET_BEGIN info-->
-		<tr>
-			<td class="title-style">Детайли</td>
-			<td>[#info#]</td>
-		</tr>
-		<!--ET_END info-->
 		<!--ET_BEGIN categoryId-->
 		<tr>
 			<td class="title-style">Категория</td>
 			<td>[#categoryId#]</td>
 		</tr>
 		<!--ET_END categoryId-->
-		<!--ET_BEGIN groups-->
-		<tr>
-			<td class="title-style">Групи</td>
-			<td>[#groups#]</td>
-		</tr>
-		<!--ET_END groups-->
+		
 	</table>
-	
-	<table class="styled-table" >
-		<tr>
-			<th>Права</th>
-		</tr>
-		<tr>
-			<td class="title-style" width="100px">Отговорник</td>
-			<td>[#inCharge#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">Достъп</td>
-			<td>[#access#]</td>
-		</tr>
-		<!--ET_BEGIN shared-->
-		<tr>
-			<td class="title-style">Споделяне</td>
-			<td>[#shared#]</td>
-		</tr>
-		<!--ET_END shared-->
-	</table>
-		<!--ET_BEGIN modify-->
+	<!--ET_BEGIN modify-->
 		[#modify#]
 		<div><span class="quiet">Модифициране: </span>от [#modifiedBy#] на [#modifiedOn#] </div>
 		<!--ET_END modify-->
 		<div><span class="quiet">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
-	
+		
+		<!--ET_BEGIN info-->
+		<fieldset class="detail-info">
+            <legend class="groupTitle">|Детайли|*</legend>
+			<div class="groupList">[#info#]</div>
+		</fieldset>
+		<!--ET_END info-->
+		<!--ET_BEGIN groups-->
+		<fieldset class="detail-info">
+            <legend class="groupTitle">|Групи|*</legend>
+            <div class="groupList">
+				[#groups#]
+            </div>
+        </fieldset>
+		<!--ET_END groups-->
+	<fieldset class="detail-info">
+            <legend class="groupTitle">|Права|*</legend>
+            <div class="groupList">
+				<dl>
+				<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
+				<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
+				<!--ET_BEGIN shared-->
+					<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
+				<!--ET_END shared-->
+				</dl>
+             </div>
+        </fieldset>
 	[#DETAILS#]
 	</div>
 </div>

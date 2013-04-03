@@ -448,7 +448,7 @@ a.profile {
 
 
 dl {
-	margin: 0 0 0.5em 0;
+	margin:0;
 	dt {
 		display: block;
 		float: left;
@@ -747,7 +747,7 @@ div.acc-detail {
 }
 
 .detail-info {
-	margin-top: 10px;
+	margin: 10px 0 0 0;
 	padding: 5px;
 	border: solid 1px #ccc;
 	@include border-radius(5px);
@@ -755,8 +755,23 @@ div.acc-detail {
 		margin-left: 5px;
 		vertical-align: middle;
 	}
+	dl{
+		margin-top:-2px;
+	}
+	&.portal{
+		padding-top:5px;
+		p{
+			margin:0;
+		}
+		table.listTable th{
+			background:#f1f1f1 !important;
+			border:1px solid #fff !important;
+			display:table-cell !important;
+			visibility:visible !important;
+			vertical-align:middle !important;
+		}
+	}
 }
-
 .portal {
   margin-top: 15px;
   padding: 10px;
