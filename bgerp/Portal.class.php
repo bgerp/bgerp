@@ -79,13 +79,18 @@ class bgerp_Portal extends core_Manager
         $tpl->append(bgerp_Recently::render(), 'LEFT_COLUMN');
         
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
-
-
-        // Задачи
+		
+        $img = sbf('img/16/add.png');
+		$addUrl = array('cal_Tasks', 'add');
+		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
+        
+		// Задачи
         $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:20px;">
-            <div class="legend" style="background-color:#ffd;">' . tr('Задачи') . '</div>
+            <div class="legend" style="background-color:#ffd;">' . tr('Задачи') . '&nbsp;[#ADD_BTN#]</div>
             [#TASKS#]
             </div>');
+        
+        $tasksTpl->append($addBtn, 'ADD_BTN');
         
         $tasksTpl->append(cal_Tasks::renderPortal(), 'TASKS');
 
