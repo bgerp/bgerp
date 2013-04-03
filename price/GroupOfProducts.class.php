@@ -330,10 +330,13 @@ class price_GroupOfProducts extends core_Detail
 
 
     /**
-     *
+     * Подготовка на данните за детайла
      */
     public static function preparePriceGroup($data)
     { 
+        $data->TabCaption = 'Ценова група';
+        $data->Order = 5;
+
         static::prepareDetail($data);
 
         $data->toolbar->removeBtn('*');

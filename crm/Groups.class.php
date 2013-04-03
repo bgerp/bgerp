@@ -101,7 +101,7 @@ class crm_Groups extends groups_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($rec->sysId && $action == 'delete') {
+        if(($rec->sysId || $rec->companiesCnt ||  $rec->personsCnt) && $action == 'delete') {
             $requiredRoles = 'no_one';
         }
     }
