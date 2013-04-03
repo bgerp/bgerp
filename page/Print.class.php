@@ -34,8 +34,7 @@ class page_Print extends page_Html {
         
         $this->append("
          * {
-             background-color: white !important;
-             DIV.background-image: none !important;
+             
            }
          ", "STYLES");
         

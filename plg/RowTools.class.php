@@ -65,16 +65,9 @@ class plg_RowTools extends core_Plugin
         }
         
         if ($mvc->haveRightFor('edit', $rec)) {
-            
+            $editUrl = $mvc->getEditUrl($rec);
             $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
-            
-            $editUrl = array(
-                $mvc,
-                'edit',
-                'id' => $rec->id,
-                'ret_url' => $retUrl
-            );
-            
+
             $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
         }
         
@@ -102,6 +95,31 @@ class plg_RowTools extends core_Plugin
             $tpl->append($deleteLink, 'TOOLS');
             $row->{$field} = $tpl;
         }
+    }
+    
+    
+    /**
+     * Реализация по подразбиране на метода getEditUrl()
+     * 
+     * @param core_Mvc $mvc
+     * @param array $editUrl
+     * @param stdClass $rec
+     */
+    public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
+    {
+        // URL за връщане след редакция
+        if(method_exists($mvc, 'getRetUrl')) {
+            $retUrl = $mvc->getRetUrl($rec);
+        } else {
+            $retUrl = TRUE;
+        }
+        
+        $editUrl = array(
+            $mvc,
+            'edit',
+            'id' => $rec->id,
+            'ret_url' => $retUrl
+        );
     }
     
     
