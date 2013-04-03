@@ -17,13 +17,6 @@
 			<td class="title-style">Мярка</td>
 			<td>[#measureId#]</td>
 		</tr>
-		<!--ET_BEGIN categoryId-->
-		<tr>
-			<td class="title-style">Категория</td>
-			<td>[#categoryId#]</td>
-		</tr>
-		<!--ET_END categoryId-->
-		
 	</table>
 	<!--ET_BEGIN modify-->
 		[#modify#]
