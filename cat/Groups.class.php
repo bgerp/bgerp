@@ -84,7 +84,7 @@ class cat_Groups extends groups_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('systemId', 'varchar(32)', 'caption=System Id');
+        $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'text', 'caption=Информация');
         $this->FLD('productCnt', 'int', 'input=none');
     }
@@ -110,6 +110,24 @@ class cat_Groups extends groups_Manager
         }
     }
     
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {   
+        // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
+        if(($rec->sysId || $rec->productCnt) && $action == 'delete') {
+            $requiredRoles = 'no_one';
+        }
+    }
+
     
     /**
      * @todo Чака за документация...

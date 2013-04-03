@@ -1,6 +1,6 @@
 <dl>
 <!--ET_BEGIN param-->
     <dt>[#paramId#]</dt>
-    <dd>[#paramValue#]</dd>
+    <dd>[#paramValue#] [#tools#]</dd>
 <!--ET_END param-->
 </dl>

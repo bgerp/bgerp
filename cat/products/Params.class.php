@@ -12,7 +12,6 @@
  * @since     v 0.1
  * @link
  */
-use Buzz\Client\FileGetContents;
 
 class cat_products_Params extends cat_products_Detail
 {
@@ -28,19 +27,20 @@ class cat_products_Params extends cat_products_Detail
      * Заглавие
      */
     var $title = 'Параметри';
-    
+    var $singleTitle = 'Параметър';
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'paramId, paramValue';
+    var $listFields = 'paramId, paramValue, tools=Пулт';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper';
+    var $loadList = 'cat_Wrapper,plg_RowTools';
     
+    var $rowToolsField = 'tools';
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
@@ -55,7 +55,7 @@ class cat_products_Params extends cat_products_Detail
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър');
-        $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност');
+        $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
         
         $this->setDbUnique('productId,paramId');
     }
@@ -66,16 +66,8 @@ class cat_products_Params extends cat_products_Detail
      */
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/edit.png') . " valign=bottom style='margin-left:5px;'>", array($mvc, 'edit', 'productId'=>$data->masterId));
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на колоните ($data->listFields)
-     */
-    static function on_AfterPrepareListFields($mvc, $data)
-    {
-        $data->query->orderBy('#id');
+        $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", 
+            array($mvc, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE));
     }
     
     
@@ -94,13 +86,15 @@ class cat_products_Params extends cat_products_Detail
             $rows = &$data->rows;
             
             foreach ($recs as $i=>$rec) {
+                
                 $row = $rows[$i];
                 
                 $paramRec = cat_Params::fetch($rec->paramId);
                 
-                $row->paramValue .= ' ' . cat_Params::getVerbal($paramRec, 'suffix');
+                $row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
             }
         }
+      
     }
     
     
@@ -109,8 +103,19 @@ class cat_products_Params extends cat_products_Detail
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
-        $data->form = $mvc->getParamsForm($productId);
+        $form = $data->form;
+        expect($productId = $form->rec->productId);
+        $options = cat_Params::makeArray4Select();
+        
+        $query = self::getQuery();
+
+        while($rec = $query->fetch("#productId = $productId")) {
+           unset($options[$rec->paramId]);
+        }
+
+        expect(count($options));
+
+        $form->setOptions('paramId', $options);
     }
     
     
@@ -128,57 +133,8 @@ class cat_products_Params extends cat_products_Detail
     }
     
     
-    /**
-     * @todo Чака за документация...
-     */
-    static function &getParamsForm($productId, &$form = NULL)
-    {
-        $productRec = cat_Products::fetch($productId);
-        $form = cat_Categories::getParamsForm($productRec->categoryId, $form);
-        
-        if (!$form->getField('productId', FALSE)) {
-            $form->FLD('productId', 'key(mvc=cat_Products)', 'silent,input=hidden');
-            $form->setDefault('productId', $productId);
-        }
-        
-        if (!$form->title) {
-            $form->title = "Параметри на |*" . cat_Products::getVerbal($productRec, 'name');
-        }
-        
-        $query = static::getQuery();
-        $query->where("#productId = {$productId}");
-        
-        while ($rec = $query->fetch()) {
-            $form->setDefault("value_{$rec->paramId}", $rec->paramValue);
-            $form->FLD("id_{$rec->paramId}", "key(mvc=cat_Products_Params)", "input=hidden");
-            $form->setDefault("id_{$rec->paramId}", $rec->id);
-        }
-        
-        return $form;
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function processParamsForm($form)
-    {
-        $productId = $form->rec->productId;
-        
-        foreach ((array)$form->rec as $n=>$v) {
-            list($n, $key) = explode('_', $n, 2);
-            
-            if ($n == 'value') {
-                $paramId = $key;
-                $id = $form->rec->{"id_{$paramId}"};
-                $paramValue = $v;
-                
-                $rec = (object)compact('id', 'productId', 'paramId', 'paramValue');
-                static::save($rec);
-            }
-        }
-    }
-    
+ 
+ 
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -186,9 +142,9 @@ class cat_products_Params extends cat_products_Detail
     static function on_AfterInputEditForm($mvc, $form)
     {
         if ($form->isSubmitted()) {
-            $mvc->processParamsForm($form);
+             
             
-            redirect(array('cat_Products', 'single', $form->rec->productId));
+             
         }
     }
     

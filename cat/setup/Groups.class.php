@@ -33,11 +33,11 @@ class cat_setup_Groups extends core_Mvc
                 $rec = new stdClass();
                 $rec->name = $csvRow[0];
                 $rec->info = $csvRow[1];
-                $rec->systemId = $csvRow[2];
+                $rec->sysId = $csvRow[2];
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 
                 // Ако има запис с този 'name'
-                if($rec->id = $Products->fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')){
+                if($rec->id = $Products->fetchField(array("#sysId = '[#1#]'", $rec->sysId), 'id')){
                  	$updated++;
                 } else {
                     $created++;

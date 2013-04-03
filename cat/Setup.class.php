@@ -56,7 +56,6 @@ class cat_Setup
             'cat_products_Params',
             'cat_products_Packagings',
             'cat_products_Files',
-            'cat_Categories',
             'cat_Params',
             'cat_Packagings',
             'cat_PricePolicyMockup',

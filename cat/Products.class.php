@@ -64,7 +64,7 @@ class cat_Products extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name,code,categoryId,groups,tools=Пулт';
+    var $listFields = 'name,code,groups,tools=Пулт';
     
     
     /**
@@ -149,8 +149,7 @@ class cat_Products extends core_Master {
         $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=EAN,width=15em');
 		$this->FLD('info', 'richtext', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
-        $this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория,placeholder=Категория,remember=info');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи,maxColumns=2');
         
         $this->setDbUnique('code');
     }
@@ -189,8 +188,8 @@ class cat_Products extends core_Master {
         //Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
-            if (preg_match('/[^0-9a-zа-я]/iu', $rec->code)) {
-                $form->setError('code', 'Полето може да съдържа само букви и цифри.');
+            if (preg_match('/[^0-9a-zа-я\- ]/iu', $rec->code)) {
+                $form->setError('code', 'Полето може да съдържа само букви, цифри, терета или интервали.');
             }
            
         	foreach(array('eanCode', 'code') as $code) {
@@ -265,7 +264,6 @@ class cat_Products extends core_Master {
                 $rowCounter++;
                 $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));
                 $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
-                $row->name = "{$row->name}<div><small>" . $mvc->getVerbal($rec, 'info') . "</small></div>";
             }
         }
     }
@@ -282,33 +280,15 @@ class cat_Products extends core_Master {
     {
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
             'caption=Подредба,input,silent,remember');
-        $data->listFilter->setField('categoryId',
-            'placeholder=Всички категории,caption=Категория,input,silent,remember');
-        $data->listFilter->getField('categoryId')->type->params['allowEmpty'] = TRUE;
+
+        $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
+            'placeholder=Всички групи,caption=Група,input,silent,remember');
+
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->showFields = 'order,categoryId';
-        $data->listFilter->input('order,categoryId', 'silent');
+        $data->listFilter->showFields = 'order,groupId';
+        $data->listFilter->input('order,groupId', 'silent');
         
-        /**
-         * @todo Кандидат за плъгин - перманентни полета на форма
-         *
-         * Плъгина може да се прикачи към формата, на on_AfterInput(). Трябва обаче да се
-         * измисли еднозначно съответствие между име на поле на конкретна форма и името на
-         * съответната стойност в сесията. Полетата на формите са именувани, но формите не са.
-         */
-        
-        if (!$data->listFilter->rec->categoryId && !is_null(Request::get('categoryId'))) {
-            $data->listFilter->rec->categoryId = Mode::get('cat_Products::listFilter::categoryId');
-        } else {
-            Mode::setPermanent('cat_Products::listFilter::categoryId', $data->listFilter->rec->categoryId);
-        }
-        
-        if (!$data->listFilter->rec->order) {
-            $data->listFilter->rec->order = Mode::get('cat_Products::listFilter::order');
-        } else {
-            Mode::setPermanent('cat_Products::listFilter::order', $data->listFilter->rec->order);
-        }
     }
     
     
@@ -330,125 +310,14 @@ class cat_Products extends core_Master {
             $data->query->orderBy('#createdOn=DESC');
         }
         
-        if ($data->listFilter->rec->categoryId) {
-            $data->query->where("#categoryId = {$data->listFilter->rec->categoryId}");
+        if ($data->listFilter->rec->groupId) {
+            $data->query->where("#groups LIKE '|{$data->listFilter->rec->groupId}|'");
         }
     }
     
     
-    /**
-     * Изпълнява се преди запис на ред в таблицата
-     */
-    static function on_BeforeSave($mvc, &$id, $rec)
-    {
-        if ($rec->id) {
-            if (!$rec->_old) {
-                $rec->_old = new stdClass();
-            }
-            $rec->_old->categoryId = $mvc->fetchField($rec->id, 'categoryId');
-            $rec->_old->groups = $mvc->fetchField($rec->id, 'groups');
-        }
-    }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
-    {
-        if ($rec->_old->categoryId != $rec->categoryId) {
-            if ($rec->_old->categoryId) {
-                cat_Categories::updateProductCnt($rec->_old->categoryId);
-            }
-            cat_Categories::updateProductCnt($rec->categoryId);
-        }
-        
-        $oldGroups = type_Keylist::toArray($rec->_old->groups);
-        $groups = type_Keylist::toArray($rec->groups);
-        $notifyGroups = array_diff(
-            array_merge($oldGroups, $groups),
-            array_intersect($oldGroups, $groups)
-        );
-        
-        foreach ($notifyGroups as $groupId) {
-            cat_Groups::updateProductCnt($groupId);
-        }
-    }
-    
-    
-    /**
-     * Запомняме категориите и групите на продуктите, които ще бъдат изтрити,
-     * за да нотифицираме мастър моделите - cat_Categories и cat_Groups
-     */
-    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
-    {
-        $_query = clone($query);
-        $query->categoryIds = array();
-        $query->groupIds = array();
-        
-        while ($rec = $_query->fetch($cond)) {
-            if ($rec->categoryId) {
-                $query->categoryIds[] = $rec->categoryId;
-            }
-            $query->groupIds = array_merge(
-                $query->groupIds,
-                type_Keylist::toArray($rec->groups)
-            );
-        }
-        
-        $query->categoryIds = array_unique($query->categoryIds);
-        $query->groupIds = array_unique($query->groupIds);
-    }
-    
-    
-    /**
-     * Обновява мастър моделите cat_Categories и cat_Groups след изтриване на продукти
-     */
-    static function on_AfterDelete($mvc, &$res, $query)
-    {
-        foreach ($query->categoryIds as $id) {
-            cat_Categories::updateProductCnt($id);
-        }
-        
-        foreach ($query->groupIds as $id) {
-            cat_Groups::updateProductCnt($id);
-        }
-    }
-    
-    
-    /**
-     * Продуктите, заведени в дадено множество от групи.
-     *
-     * @param mixed $groups keylist(mvc=cat_Groups)
-     * @param string $fields кои полета на продукта са необходими; NULL = всички
-     */
-    static function fetchByGroups($groups, $fields = NULL)
-    {
-        $result = array();
-        
-        if (count($groups = type_Keylist::toArray($groups)) > 0) {
-            $query = self::getQuery();
-            
-            foreach ($groups as $group) {
-                $query->orWhere("#groups LIKE '%|{$group}|%'");
-            }
-            
-            if (isset($fields)) {
-                $fields = arr::make($fields, TRUE);
-                
-                if (!isset($fields['id'])) {
-                    $fields['id'] = 'id';
-                }
-                $query->show($fields);
-            }
-            
-            while ($rec = $query->fetch()) {
-                $result[$rec->id] = $rec;
-            }
-        }
-        
-        return $result;
-    }
+ 
+ 
     
     
     /**

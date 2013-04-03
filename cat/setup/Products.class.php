@@ -34,7 +34,6 @@ class cat_setup_Products extends core_Mvc
                 $rec->name = $csvRow[0];
                 $rec->code = $csvRow[1];
                 $rec->measureId = cat_UoM::fetchField("#name = '{$csvRow[2]}'", "id");
-               	$rec->categoryId = cat_Categories::fetchField("#name = '{$csvRow[3]}'", "id");
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 
                 // Ако има запис с този 'name'

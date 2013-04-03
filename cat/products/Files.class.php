@@ -121,7 +121,10 @@ class cat_products_Files extends cat_products_Detail
     
 
     public static function prepareFiles($data)
-    {
+    {   
+        $data->TabCaption = 'Файлове';
+        $data->Order = 10;
+
         static::prepareDetail($data);
     }
     
