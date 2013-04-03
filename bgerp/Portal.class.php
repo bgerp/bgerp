@@ -120,8 +120,7 @@ class bgerp_Portal extends core_Manager
      */
     public static function prepareSearchForm(core_Mvc $mvc, core_Form &$form)
     {
-    	$form->view = 'horizontal';
-        $form->layout = new ET(getFileContent("bgerp/tpl/PortalSearch.shtml"));
+    	$form->layout = new ET(getFileContent("bgerp/tpl/PortalSearch.shtml"));
         ($mvc->className == 'bgerp_Recently') ? $name = 'recently' : $name = 'notice';
         $form->layout->replace("{$name}Filter", 'CLASS');
         $form->toolbar->addSbBtn('', NULL, "ef_icon=img/16/find.png,id={$name}SearchBtnPortal");
@@ -138,7 +137,5 @@ class bgerp_Portal extends core_Manager
         	 	}
         	 }
         }
-        
-        $form->showFields = $mvc->searchInputField;
     }
 }

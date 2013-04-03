@@ -288,7 +288,13 @@ class bgerp_Recently extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = $mvc->searchInputField;
+    	if(Request::get('Act') == 'Show'){
+        	bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
+    	} else {
+    		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+    	}
 	}
     
     
