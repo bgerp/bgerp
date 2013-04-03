@@ -38,7 +38,7 @@ class cat_Groups extends groups_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,systemId';
+    var $listFields = 'id,name,sysId';
     
     
     /**
