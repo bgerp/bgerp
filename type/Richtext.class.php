@@ -116,7 +116,7 @@ class type_Richtext extends type_Blob
      */
     function toVerbal($value)
     {
-        if(!$value) return NULL;
+        if (!strlen($value)) return NULL;
         
         if (Mode::is('text', 'plain')) {
             $res = strip_tags($this->toHtml($value));
@@ -156,7 +156,7 @@ class type_Richtext extends type_Blob
      */
     function toHtml($html)
     {
-        if(!$html) return "";
+        if (!strlen($html)) return "";
         
         $textMode = Mode::get('text');
 
@@ -512,15 +512,7 @@ class type_Richtext extends type_Blob
         if(!trim($code)) return "";
         $lg = $match[2];
 
-        
-        if($lg) {
-            // $Geshi = cls::get('geshi_Import');
-            // $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
-            
-            $code1 = "<pre class='richtext code'>" . rtrim($code) . "</pre>";;
-        } else {
-            $code1 = "<pre class='richtext'>" . rtrim($code) . "</pre>";;
-        }
+        $code1 = "<pre class='richtext code {$lg}'><code>" . rtrim($code) . "</code></pre>";;
         
         $this->_htmlBoard[$place] = $code1;
         
@@ -853,7 +845,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: yellow;' title='Жълт фон' onclick=\"s('[bg=yellow]', '[/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title='Код' onclick=\"s('[code=php]', '[/code]', document.getElementById('{$formId}'))\">Код</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title='Код' onclick=\"s('[code]', '[/code]', document.getElementById('{$formId}'))\">Код</a>", 'TBL_GROUP2');
         
         $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='Удебелен текст' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
         
