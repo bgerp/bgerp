@@ -21,14 +21,16 @@ $(document).ready(function () {
 	});
 	
 	$('.recentlyFilter').live("submit", (function(e) {
-		if($(".recentlyFilter .hFormField select").val() == '' && $(".recentlyFilter .hFormField input").val() == ''){
-			e.preventDefault();
-		}
+		if(($(".recentlyFilter .hFormField select").val() == null || $(".recentlyFilter .hFormField select").val() == '') &&
+				$(".recentlyFilter .hFormField input").val() == ''){
+					e.preventDefault();
+			}
 	}));
 	
 	$('.noticeFilter').live("submit", (function(e) {
-		if($(".noticeFilter .hFormField select").val() == '' && $(".noticeFilter .hFormField input").val() == ''){
-			e.preventDefault();
+		if(($(".noticeFilter .hFormField select").val() == null || $(".noticeFilter .hFormField select").val() == '') &&
+			$(".noticeFilter .hFormField input").val() == ''){
+				e.preventDefault();
 		}
 	}));
 });
