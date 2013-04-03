@@ -784,6 +784,7 @@ div.acc-detail {
     margin-top: -35px;
     margin-left: 10px;
     z-index: 100;
+    line-height:20px;
     padding: 5px;
     border: solid 1px #ccc;
     @include border-radius(5px);
@@ -2067,6 +2068,7 @@ table.styled-table tr:hover td {
 .portal-filter{
 	position:relative;
 	min-width:30px;
+	height:20px;
 	float:right;
 }
 	

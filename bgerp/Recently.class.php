@@ -251,8 +251,8 @@ class bgerp_Recently extends core_Manager
         
         $tpl = new ET("
             <div class='clearfix21 portal' style='background-color:#f8f8ff'>
-            <div style='background-color:#eef' class='legend'>[#PortalTitle#]
-            [#ListFilter#]</div>
+            <div style='background-color:#eef' class='legend'><div style='float:left'>[#PortalTitle#]</div>
+            [#ListFilter#]<div class='clearfix21'></div></div>
             [#PortalPagerTop#]
             [#PortalTable#]
             [#PortalPagerBottom#]
