@@ -181,7 +181,7 @@ class type_Key extends type_Int {
             if(!count($options)) {
                 
                 if($this->params['allowEmpty']) {
-                    $options = array('' => '&nbsp;');
+                    $options = array('' => (object) array('title' => $this->params['allowEmpty'] ? $attr['placeholder'] : '&nbsp;', 'attr' => array('style' => 'color:#aaa;')));
                 }
                 
                 if (!is_array($this->options)) {
