@@ -82,7 +82,7 @@ class bgerp_Portal extends core_Manager
 		
         $img = sbf('img/16/add.png');
 		$addUrl = array('cal_Tasks', 'add');
-		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
+		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask'));
         
 		// Задачи
         $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:20px;">
