@@ -90,7 +90,7 @@ class cat_products_Packagings extends cat_products_Detail
     public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
         if ($action == 'add') {
-            if (isset($rec) && !count($mvc::getPackagingOptions($rec->productId))) {
+            if (isset($rec) && !count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             } 
         }
@@ -104,7 +104,7 @@ class cat_products_Packagings extends cat_products_Detail
     {
         $data->toolbar->removeBtn('*');
         
-        if ($mvc->haveRightFor('add', (object)array('productId'=>$data->masterId)) && count($mvc::getPackagingOptions($data->masterId) > 0)) {
+        if ($mvc->haveRightFor('add', (object)array('productId'=>$data->masterId)) && count($mvc::getRemainingOptions($data->masterId) > 0)) {
         	$data->addUrl = array(
                 $mvc,
                 'add',
@@ -113,8 +113,8 @@ class cat_products_Packagings extends cat_products_Detail
             );
         }
     }
-    
-    
+
+
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -138,16 +138,45 @@ class cat_products_Packagings extends cat_products_Detail
     
     
     /**
+     * Връща не-използваните параметри за конкретния продукт, като опции
+     *
+     * @param $productId int ид на продукта
+     * @param $id int ид от текущия модел, което не трябва да бъде изключено
+     */
+    static function getRemainingOptions($productId, $id = NULL)
+    {
+        $options = cat_Packagings::makeArray4Select();
+        
+        if(count($options)) {
+            $query = self::getQuery();
+            
+            if($id) {
+                $query->where("#id != {$id}");
+            }
+
+            while($rec = $query->fetch("#productId = $productId")) {
+               unset($options[$rec->packagingId]);
+            }
+        } else {
+            $options = array();
+        }
+
+        return $options;
+    }
+
+    
+    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $options = $mvc::getPackagingOptions($data->form->rec->productId, $data->form->rec->id);
+        $options = $mvc::getRemainingOptions($data->form->rec->productId, $data->form->rec->id);
         
         if (empty($options)) {
             // Няма повече недефинирани опаковки
             redirect(getRetUrl(), FALSE, tr('Няма повече недефинирани опаковки'));
         }
+
         $data->form->setOptions('packagingId', $options);
         
         $productRec = cat_Products::fetch($data->form->rec->productId);
@@ -167,19 +196,6 @@ class cat_products_Packagings extends cat_products_Detail
         $data->form->title = "{$titleMsg} |*" . cat_Products::getVerbal($productRec, 'name');
     }
     
-    
-    /**
-     * Опаковките, определени от категорията на продукта и все още не дефинирани за този него.
-     *
-     * @param int ид на продукт
-     * @return array опциите, подходящи за @link core_Form::setOptions()
-     */
-    static function getPackagingOptions($productId, $id=NULL)
-    {
-        $options = cat_Packagings::makeArray4Select();
-        
-        return $options;
-    }
    
     
     /**

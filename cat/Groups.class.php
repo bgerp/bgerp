@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends groups_Manager
+class cat_Groups extends core_Manager
 {
     
     
@@ -103,7 +103,7 @@ class cat_Groups extends groups_Manager
             foreach ($data->rows as $i=>&$row) {
                 $rec = $data->recs[$i];
                 $row->productCnt = intval($rec->productCnt);
-                $row->name = $mvc->getVerbal($rec, 'name');
+                $row->name = tr($mvc->getVerbal($rec, 'name'));
                 $row->name .= " ({$row->productCnt})";
                 $row->name .= "<div><small>" . $mvc->getVerbal($rec, 'info') . "</small></div>";
             }
@@ -138,5 +138,31 @@ class cat_Groups extends groups_Manager
         $productCnt = $query->count("#groups LIKE '%|{$id}|%'");
         
         return static::save((object)compact('id', 'productCnt'));
+    }
+
+
+    /**
+     * Връща keylist от id-та на групи, съответстващи на даден стрингов
+     * списък от sysId-та, разделени със запетайки
+     */
+    function getKeylistBySysIds($list, $strict = FALSE)
+    {
+        $sysArr = arr::make($list);
+
+        foreach($sysArr as $sysId) {
+            $id = self::fetchField("#sysId == '{$sysId}'", 'id');
+            if($strict) {
+                expect($id, $sysId, $list);
+            }
+            if($id) {
+                $keylist .= '|' . $id;
+            }
+        }
+
+        if($keylist) {
+            $keylist .= '|';
+        }
+
+        return $keylist;
     }
 }

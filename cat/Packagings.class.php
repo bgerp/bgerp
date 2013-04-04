@@ -5,7 +5,6 @@
 /**
  * Мениджър на опаковки
  *
- * Всяка категория (@see cat_Categories) има нула или повече опаковки. Това са опаковките, в
  * които могат да бъдат пакетирани продуктите (@see cat_Products), принадлежащи на категорията.
  *
  *
@@ -93,21 +92,27 @@ class cat_Packagings extends core_Manager
         $this->FLD('contentMetals', 'percent', 'caption=Метали');
         $this->FLD('contentWood', 'percent', 'caption=Дървесина');
     }
-    
-    
+
+
     /**
-     * Създава input поле или комбо-бокс
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
      */
-    static function createInput($rec, $form)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $name = "packvalue_{$rec->id}";
-        $caption = "Опаковки->{$rec->name}";
-        $type = 'varchar(255)';
-        
-        $form->FLD($name, $type, "input,caption={$caption}");
+        if($action == 'delete' && $rec->id) {
+            if(cat_products_Packagings::fetch("#packagingId = $rec->id")) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
-    
-    
+
+
     /**
      * Записи за инициализиране на таблицата
      *

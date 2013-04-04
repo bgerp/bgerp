@@ -60,17 +60,7 @@ class cat_products_Params extends cat_products_Detail
         $this->setDbUnique('productId,paramId');
     }
     
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-        $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", 
-            array($mvc, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE));
-    }
-    
-    
+     
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -104,18 +94,42 @@ class cat_products_Params extends cat_products_Detail
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
-        expect($productId = $form->rec->productId);
-        $options = cat_Params::makeArray4Select();
         
-        $query = self::getQuery();
+        expect($productId = $form->rec->productId);
 
-        while($rec = $query->fetch("#productId = $productId")) {
-           unset($options[$rec->paramId]);
-        }
+        $options = self::getRemainingOptions($productId, $form->rec->id);
 
         expect(count($options));
 
         $form->setOptions('paramId', $options);
+    }
+
+    
+    /**
+     * Връща не-използваните параметри за конкретния продукт, като опции
+     *
+     * @param $productId int ид на продукта
+     * @param $id int ид от текущия модел, което не трябва да бъде изключено
+     */
+    static function getRemainingOptions($productId, $id = NULL)
+    {
+        $options = cat_Params::makeArray4Select();
+        
+        if(count($options)) {
+            $query = self::getQuery();
+            
+            if($id) {
+                $query->where("#id != {$id}");
+            }
+
+            while($rec = $query->fetch("#productId = $productId")) {
+               unset($options[$rec->paramId]);
+            }
+        } else {
+            $options = array();
+        }
+
+        return $options;
     }
     
     
@@ -169,14 +183,29 @@ class cat_products_Params extends cat_products_Detail
     }
     
 
+    /**
+     * Подготвя данните за екстеншъна с параметрите на продукта
+     */
     public static function prepareParams($data)
     {
         static::prepareDetail($data);
+        
+        if(count(self::getRemainingOptions($data->masterId))) {
+            $data->addUrl = array('cat_products_Params', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+        }
+
     }
     
-    
+
+    /**
+     * Рендира екстеншъна с параметри на продукт
+     */
     public static function renderParams($data)
     {
+        if($data->addUrl) {
+            $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+        }
+
         return static::renderDetail($data);
     }
 }

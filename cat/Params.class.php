@@ -5,9 +5,6 @@
 /**
  * Мениджира динамичните параметри на категориите
  *
- * Всяка категория (@see cat_Categories) има нула или повече динамични параметри. Те са всъщност
- * параметрите на продуктите (@see cat_Products), които принадлежат на категорията.
- *
  *
  * @category  bgerp
  * @package   cat
@@ -108,30 +105,25 @@ class cat_Params extends core_Manager
         }
     }
     
-    
+
     /**
-     * Създава input поле или комбо-бокс
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
      */
-    static function createInput($rec, $form)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $name = "value_{$rec->id}";
-        $caption = static::getVerbal($rec, 'name');
-        
-        $type = $rec->type;
-        
-        switch ($type) {
-            case 'color' :
-                $type = 'varchar';
-                break;
+        if($action == 'delete' && $rec->id) {
+            if(cat_products_Params::fetch("#paramId = $rec->id")) {
+                $requiredRoles = 'no_one';
+            }
         }
-        
-        $suffix = static::getVerbal($rec, 'suffix');
-        
-        $caption = str_replace('=', '&#61;', $caption);
-        $suffix = str_replace('=', '&#61;', $suffix);
-        
-        $form->FLD($name, $type, "input,caption={$caption},unit={$suffix}");
     }
+
     
     
     /**

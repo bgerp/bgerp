@@ -122,7 +122,7 @@ class crm_Groups extends groups_Manager
     	$row->companiesCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
         $row->personsCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
        
-        $name = $mvc->getVerbal($rec, 'name');
+        $name = tr($mvc->getVerbal($rec, 'name'));
         $info = $mvc->getVerbal($rec, 'info');
         
         $row->title = "<b>$name</b>";
