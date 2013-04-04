@@ -149,8 +149,8 @@ class doc_DocumentPlg extends core_Plugin
             // Ако не е чернова
             if ($data->rec->state != 'draft') {
                 
-                // Ако имаме права за добавяне и single права на треда
-                if (($mvc->haveRightFor('add', $data->rec)) && (doc_Threads::haveRightFor('single', $data->rec->threadId))) {
+                // Ако имаме права за клониране
+                if ($mvc->haveRightFor('clone', $data->rec->id)) {
                     
                     $retUrl = array($mvc, 'single', $data->rec->id);
                 
@@ -675,7 +675,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $rec = $data->form->rec;
         
-        //Ако редактираме запис
+        // Ако редактираме запис
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId   
         if($rec->id) {
             $exRec = $mvc->fetch($rec->id);
@@ -683,54 +683,54 @@ class doc_DocumentPlg extends core_Plugin
             
             //Изискваме да има права
             doc_Threads::requireRightFor('single', $mvc->threadId);
-            
-            //Ако създаваме копие    
         } elseif (Request::get('Clone') && ($rec->originId)) {
-            //Данните за документната система
+            
+            // Ако създаваме копие 
+            
+            // id на записа
+            $id = doc_Containers::fetch($rec->originId)->docId;
+            
+            // Очакваме да имаме права за клониране
+            expect($mvc->haveRightFor('clone', $id), 'Нямате права за създаване на копие');
+            
+            // Данните за документната система
             $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');
             expect($containerRec);
-            $threadId = $containerRec->threadId;
-            $folderId = $containerRec->folderId;
             
-            //Първия запис в threada
-            $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
+            // Добавяме id' тата на нишките и папките
+            $rec->threadId = $containerRec->threadId;
+            $rec->folderId = $containerRec->folderId;
             
-            //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейл-а на текущия потребител
-            if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
-                $folderId = doc_Folders::getDefaultFolder();
-            }
+            // Първия запис в threada
+            $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
             
-            //Ако копираме първия запис в треда, тогава създаваме нов тред
+            // Ако копираме първия запис в треда, тогава създаваме нов тред
             if ($firstContainerId == $rec->originId) {
-                //Премахваме id' то на треда за да се създаде нов
-                unset($rec->threadId);
-            } else {
-                //Изискваме да има права в треда
-                doc_Threads::requireRightFor('single', $threadId);
                 
-                //Присвояваме id' то на треда където се клонира, ако не е първия запис
-                $rec->threadId = $threadId;
+                // Премахваме id' то на треда за да се създаде нов
+                unset($rec->threadId);
             }
             
-            //Записите от БД
+            // Записите от БД
             $mvcRec = $mvc::fetch("#containerId = '{$rec->originId}'");
             
             //Създаваме масив с всички полета, които ще клонираме
             $cloneFieldsArr = arr::make($mvc->cloneFields);
             
+            // Ако има полета за клониране
             if (count($cloneFieldsArr)) {
+                
+                // Обхождаме всичките
                 foreach ($cloneFieldsArr as $cloneField) {
-                    //Заместваме съдържанието на всички полета със записите от БД
+                    
+                    // Заместваме съдържанието на всички полета със записите от БД
                     $rec->$cloneField = $mvcRec->$cloneField;
                 }
             }
-            
-            //Записваме id' то на папката
-            $rec->folderId = $folderId;
+        } elseif ($rec->originId) {
             
             // Ако имаме $originId и не създаваме копие - намираме треда
-        
-        } elseif ($rec->originId) {
+            
             expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
             
             // Трябва да имаме достъп до нишката на оригиналния документ
@@ -880,7 +880,32 @@ class doc_DocumentPlg extends core_Plugin
                 if (doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
                     $requiredRoles = 'user';
                 }
+            } elseif ($action == 'clone') {
+                
+                // Ако клонираме
+                
+                // id на първия документ
+                $firstContainerId = doc_Threads::fetch($rec->threadId)->firstContainerId;
+                
+                // Ако е първи документ в нишката
+                if ($firstContainerId == $rec->containerId) {
+                    
+                    // Проверяваме за сингъл права в папката
+                    $havaRightForClone = doc_Folders::haveRightFor('single', $rec->folderId);
+                } else {
+                    
+                    // За останалите, проверяваме за сингъл в нишката
+                    $havaRightForClone = doc_Threads::haveRightFor('single', $rec->threadId);
+                }
+                
+                // Ако един от двата начина върне, че имаме права
+                if ($havaRightForClone) {
+                
+                    // Задаваме права
+                    $requiredRoles = 'user';
+                }
             }
+            
         }
     }
     
