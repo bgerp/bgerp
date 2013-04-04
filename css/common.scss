@@ -286,11 +286,29 @@ p.richtext {
 pre.richtext {
     font-family: Courier New,monospace;
     padding:10px;
-    background-color:#ffe;
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50FFFFE6,endColorstr=#50FFFFE6); 
+    zoom: 1;
+    background-color:rgba(255, 255, 230, 0.5);
     color:#000;
     line-height:120%;
-    border:solid 1px #ccc;
+    border:solid 1px #ddd;
 	white-space: pre-wrap;	
+}
+
+.wide pre.richtext.code{
+	padding:0;
+	max-width: 830px;
+	border:1px solid #ddd;
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+    zoom: 1;
+    width:100%;
+	background:rgba(245,245,255,0.5);
+}
+
+pre.richtext.code code{
+	background:none;
 }
 
 .richtext .oneLineCode {
@@ -318,7 +336,7 @@ pre.richtext {
 
 }
 pre.code{
-	background: rgba(255,255,230,0.5);
+    background: rgba(255,255,230,0.5);
 }
 div.richtext li {
     margin:0px;

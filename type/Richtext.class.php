@@ -512,7 +512,14 @@ class type_Richtext extends type_Blob
         if(!trim($code)) return "";
         $lg = $match[2];
 
-        $code1 = "<pre class='richtext code {$lg}'><code>" . rtrim($code) . "</code></pre>";;
+        if($lg) {
+            if ($lg != 'auto') {
+                $classLg = " {$lg}";
+            }
+            $code1 = "<pre class='richtext code{$classLg}'><code>" . rtrim($code) . "</code></pre>"; 
+        } else {
+            $code1 = "<pre class='richtext'>" . rtrim($code) . "</pre>";
+        }
         
         $this->_htmlBoard[$place] = $code1;
         
@@ -845,7 +852,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: yellow;' title='Жълт фон' onclick=\"s('[bg=yellow]', '[/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title='Код' onclick=\"s('[code]', '[/code]', document.getElementById('{$formId}'))\">Код</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title='Код' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'))\">Код</a>", 'TBL_GROUP2');
         
         $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='Удебелен текст' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
         
