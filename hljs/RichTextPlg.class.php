@@ -24,6 +24,6 @@ class hljs_RichTextPlg extends core_Plugin
         $place = $mvc->getPlace();
         
         // Добавяме шаблона
-        $mvc->_htmlBoard[$place] = hljs_Adapter::enable();
+        $mvc->_htmlBoard[$place] = hljs_Adapter::enable('github');
     }
 }
