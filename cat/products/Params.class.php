@@ -54,7 +54,7 @@ class cat_products_Params extends cat_products_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory');
         $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
         
         $this->setDbUnique('productId,paramId');
@@ -100,7 +100,11 @@ class cat_products_Params extends cat_products_Detail
         $options = self::getRemainingOptions($productId, $form->rec->id);
 
         expect(count($options));
-
+        
+        if(!$data->form->rec->id){
+        	$options = array('' => '') + $options;
+        }
+		
         $form->setOptions('paramId', $options);
     }
 
