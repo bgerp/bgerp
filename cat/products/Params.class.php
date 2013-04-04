@@ -134,23 +134,6 @@ class cat_products_Params extends cat_products_Detail
     
     
     /**
-     * Подготовка на бутоните на формата за добавяне/редактиране.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareEditToolbar($mvc, $data)
-    {
-        $productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
-        $data->form->toolbar->addBtn('Отказ', array('cat_Products', 'single', $productId), array('class'=>'btn-cancel'));
-    }
-    
-    
- 
- 
-    
-    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     static function on_AfterInputEditForm($mvc, $form)
