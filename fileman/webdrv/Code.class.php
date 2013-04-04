@@ -47,6 +47,7 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
 				'title'   => 'Съдържание',
 				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Съдържание</legend>{$contentStr}</fieldset></div>",
 				'order' => 7,
+				'tpl' => $contentStr,
 			);
         
         return $tabsArr;

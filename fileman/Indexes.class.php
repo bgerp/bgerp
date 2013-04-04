@@ -161,9 +161,14 @@ class fileman_Indexes extends core_Manager
         
         // Рендираме съдържанието на таба
         $tpl = $tabs->renderHtml($body, $currentTab);
-		
-		$tpl->prepend("<br>");
-
+        
+        // Ако има подаден шаблон
+        if ($tabsArr[$currentTab]->tpl) {
+            
+            // Добавяме чакащите елементи от шаблона
+            $tpl->processContent($tabsArr[$currentTab]->tpl); // TODO вероятно ще се промени    
+        }
+        
         return $tpl;
     }
     

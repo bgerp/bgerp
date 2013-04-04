@@ -15,7 +15,7 @@
 	</table>
 	
 	<!--ET_BEGIN fileDetail-->          
-		    <div id="fileDetail" style='margin-top: -11px;'>[#fileDetail#]</div>
+		    <div id="fileDetail">[#fileDetail#]</div>
 	<!--ET_END fileDetail-->
 	
 </div>
