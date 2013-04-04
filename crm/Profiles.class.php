@@ -540,32 +540,8 @@ class crm_Profiles extends core_Master
             $mvc::syncUser($person);
         }
     }
-    
-    
-    /**
-     * Извилича служебната CRM-група в която се записват потребителските профили
-     * 
-     * @return stdClass
-     */
-    public static function fetchCrmGroup()
-    {
-        $profilesGroup = self::profilesGroupName(); 
-        
-        return crm_Groups::fetch("#name = '{$profilesGroup}'");
-    }
-    
-    
-    /**
-     * Името на група на визитника в която са всички визитки асоцииран с потребител
-     * 
-     * @return string
-     */
-    public static function profilesGroupName()
-    {
-        return 'Потребителски профили'; // @TODO да се изнесе като клас-променлива или в конфиг.
-    }
-    
-    
+
+
     /**
      * Визитката, асоциирана с потребителски акаунт
      * 
@@ -615,7 +591,7 @@ class crm_Profiles extends core_Master
                 'access'    => 'private',
                 'email'     => ''
             );
-            $profilesGroup = static::fetchCrmGroup();
+            $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
             $person->groupList = type_Keylist::addKey($person->groupList, $profilesGroup->id);
             $mustSave = TRUE;
         }
