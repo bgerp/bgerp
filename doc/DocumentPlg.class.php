@@ -158,7 +158,7 @@ class doc_DocumentPlg extends core_Plugin
                     $data->toolbar->addBtn('Копие', array(
                             $mvc,
                             'add',
-                            'originId' => $data->rec->containerId,
+                            'cloneId' => $data->rec->containerId,
                             'clone' => 'clone',
                             'ret_url'=>$retUrl
                         ),
@@ -683,19 +683,15 @@ class doc_DocumentPlg extends core_Plugin
             
             //Изискваме да има права
             doc_Threads::requireRightFor('single', $mvc->threadId);
-        } elseif (Request::get('clone') && ($rec->originId)) {
+        } elseif (Request::get('clone') && ($cloneId = Request::get('cloneId', 'int'))) {
             
             // Ако създаваме копие 
             
-            // id на записа
-            $id = doc_Containers::fetch($rec->originId)->docId;
-            
-            // Очакваме да имаме права за клониране
-            expect($mvc->haveRightFor('clone', $id), 'Нямате права за създаване на копие');
-            
             // Данните за документната система
-            $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');
-            expect($containerRec);
+            $containerRec = doc_Containers::fetch($cloneId);
+
+            // Очакваме да имаме права за клониране
+            expect($mvc->haveRightFor('clone', $containerRec->docId), 'Нямате права за създаване на копие');
             
             // Добавяме id' тата на нишките и папките
             $rec->threadId = $containerRec->threadId;
@@ -705,14 +701,17 @@ class doc_DocumentPlg extends core_Plugin
             $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
             
             // Ако копираме първия запис в треда, тогава създаваме нов тред
-            if ($firstContainerId == $rec->originId) {
+            if ($firstContainerId == $cloneId) {
                 
                 // Премахваме id' то на треда за да се създаде нов
                 unset($rec->threadId);
             }
             
             // Записите от БД
-            $mvcRec = $mvc::fetch("#containerId = '{$rec->originId}'");
+            $mvcRec = $mvc::fetch("#containerId = '{$cloneId}'");
+            
+            // Задаваме originId, на оригиналния документ originId
+            $rec->originId = $mvcRec->originId;
             
             //Създаваме масив с всички полета, които ще клонираме
             $cloneFieldsArr = arr::make($mvc->cloneFields);
@@ -729,9 +728,9 @@ class doc_DocumentPlg extends core_Plugin
             }
         } elseif ($rec->originId) {
             
-            // Ако имаме $originId и не създаваме копие - намираме треда
+            // Ако имаме $originId
             
-            expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
+            expect($oRec = doc_Containers::fetch($rec->originId));
             
             // Трябва да имаме достъп до нишката на оригиналния документ
             doc_Threads::requireRightFor('single', $oRec->threadId);
@@ -783,7 +782,7 @@ class doc_DocumentPlg extends core_Plugin
         if($form->rec->id) {
             $form->title = 'Редактиране на|* ';
         } else {
-            if(Request::get('clone') && ($rec->originId)) {
+            if(Request::get('clone')) {
                 $form->title = 'Копие на|* ';
             } else {
                 if($rec->threadId) {
@@ -905,7 +904,6 @@ class doc_DocumentPlg extends core_Plugin
                     $requiredRoles = 'user';
                 }
             }
-            
         }
     }
     
