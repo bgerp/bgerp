@@ -1,8 +1,9 @@
 <div style="display:inline-block" class="singleView">
 [#SingleToolbar#]
 	<div class="folder-cover">
-	<h2><div class=" [#STATE_CLASS#] special-title">Продукт <b style="color:green;">[#name#]</b></div></h2>
-	<table class="styled-table">
+		<div class="inner-folder">
+	<div class="block_title [#STATE_CLASS#] special-title">Продукт <b style="color:green;">[#name#]</b></div>
+	<table class="styled-table" style="margin-top:15px">
 		<tr>
 			<td class="title-style" width="100px">Код</td>
 			<td> [#code#]</td>
@@ -19,10 +20,6 @@
 		</tr>
 	</table>
 	<!--ET_BEGIN modify-->
-		[#modify#]
-		<div><span class="quiet">Модифициране: </span>от [#modifiedBy#] на [#modifiedOn#] </div>
-		<!--ET_END modify-->
-		<div><span class="quiet">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
 		
 		<!--ET_BEGIN info-->
 		<fieldset class="detail-info">
@@ -45,11 +42,20 @@
 				<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
 				<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
 				<!--ET_BEGIN shared-->
-					<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
+				<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
 				<!--ET_END shared-->
+				
+				<!--ET_BEGIN mod-->
+				[#mod#]
+					<dt>Модифициране: </dt><dd>от [#modifiedBy#] на [#modifiedOn#]</dd>
+				<!--ET_END mod-->
+				<dt>Създаване: </dt><dd> от [#createdBy#] на [#createdOn#]</dd>
 				</dl>
+				
+			
              </div>
         </fieldset>
 	[#DETAILS#]
+	</div>
 	</div>
 </div>

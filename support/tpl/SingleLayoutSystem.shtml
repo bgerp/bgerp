@@ -1,68 +1,53 @@
 <div style="display: inline-block;">
 	[#SingleToolbar#]
 	<div class="folder-cover">
-		<div class="block_title [#STATE_CLASS#]">
+	  <div class="inner-folder">
+		<div class="block_title [#STATE_CLASS#] special-title">
 	         |Поддръжка на|* "[#name#]"
         </div>
 		
-		<table cellspacing='1' class='top-table'>
-			
-			<!--ET_BEGIN folderId-->     
-				<tr>
-				    <td align="left" width='auto'>|Папка|*:</td>
-				    <td>[#folderId#]</td>
-				</tr>
-			<!--ET_END folderId-->
-			
-			<!--ET_BEGIN prototype-->     
-				<tr>
-				    <td align="left" width='auto'>|Прототип|*:</td>
-				    <td>[#prototype#]</td>
-				</tr>
-			<!--ET_END prototype-->
-			
-			<tr>
-				<td align="left" width='auto'>|Отговорник|*:</td>
-				<td>[#inCharge#]</td>
-			
-			</tr>
 		
-			<tr>
-	        	<td align="left" width='auto'>|Достъп|*:</td>
-	        	<td>[#access#]</td>
-	       
-	        </tr>
-		         
-			<!--ET_BEGIN shared-->
-				<tr>
-		     		<td align="left" width='auto'>|Споделяне|*:</td>
-		     		<td>[#shared#]</td>
-				</tr>
-			<!--ET_END shared-->
-		
-			<!--ET_BEGIN lastUsedOn-->              
-				<tr>
-				    <td align="left" width='auto'>|Последна промяна|*:</td>
-				    <td>[#lastUsedOn#]</td>
-				</tr>
-			<!--ET_END lastUsedOn-->
-			
-		    <tr>
-		    	<td align="left" width='auto'>|Създаден от|*:</td>
-		        <td>[#createdBy#] |на|* [#createdOn#]</td>
-		    </tr>
-		    
-		    <!--ET_BEGIN allowedTypes-->   
-	    	<tr>
-			    <td align="left" width='auto'>|Позволени типове|*:</td>
-			    <td>[#allowedTypes#]</td>
-			</tr>
+			 <!--ET_BEGIN prototype-->
+		        <fieldset class="detail-info">
+		            <legend class="groupTitle">|Прототип|*</legend>
+		            <div class="groupList">
+		                    
+						<div>[#prototype#]</div>
+				            
+		            </div>
+		        </fieldset>
+		       <!--ET_END prototype-->
+				<fieldset class="detail-info">
+	            <legend class="groupTitle">|Права|*</legend>
+	            <div class="groupList">
+					<dl>
+					<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
+					<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
+					<!--ET_BEGIN shared-->
+					<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
+					<!--ET_END shared-->
+					
+					<!--ET_BEGIN lastUsedOn-->
+						<dt>|Последна промяна|*: </dt><dd>[#lastUsedOn#]</dd>
+					<!--ET_END lastUsedOn-->
+					<dt>|Създаден|*: </dt><dd> от [#createdBy#] на [#createdOn#]</dd>
+					</dl>
+	             </div>
+	        </fieldset>
+			<!--ET_BEGIN allowedTypes-->
+			<fieldset class="detail-info">
+	            <legend class="groupTitle">|Позволени типове|*</legend>
+	            <div class="groupList">
+					[#allowedTypes#]
+	            </div>
+	        </fieldset>
 			<!--ET_END allowedTypes-->
-		</table>
-		
+		    
 		<div>
+		<br />
 			|Компоненти|*:
 			[#DETAILS#]
 		</div>
 	</div>
+   </div>
 </div>

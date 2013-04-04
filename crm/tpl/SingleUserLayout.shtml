@@ -1,7 +1,8 @@
 <div style="display: inline-block;">
    [#SingleToolbar#]
    <div class="folder-cover">
-      <div class="block_title [#STATE_CLASS#] special-title" >
+    <div class="inner-folder">
+   	   <div class="block_title [#STATE_CLASS#] special-title" >
          [#title#]
       </div>
       <!--ET_BEGIN image-->
@@ -43,4 +44,5 @@
    		[#PROFILE#]
         <div style="clear:both;"></div>
    </div>
+  </div>
 </div>

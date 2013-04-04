@@ -2,19 +2,8 @@
 [#SingleToolbar#]
                  
 	<div class='folder-cover'>
-		<h2>
-		<div class='[#STATE_CLASS#] special-title' style="font-size:0.9em">Проект » [#name#] ([#state#])<div>
-		</h2>
-
-			     <!--ET_BEGIN lastUsedOn-->
-				[#lastUsedOn#]
-				<div><span class="quiet">Последна промяна: </span> [#lastUsedOn#] </div>
-				<!--ET_END lastUsedOn-->
-				<div><span class="quiet">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
-				 <!--ET_BEGIN lastUsedOn-->            
-                
-                    
-             
+	  <div class='inner-folder'>
+		<div class='block_title [#STATE_CLASS#] special-title'>Проект » [#name#] ([#state#])</div>
                 <fieldset class="detail-info">
 		            <legend class="groupTitle">|Права|*</legend>
 		            <div class="groupList">
@@ -24,6 +13,7 @@
 						<!--ET_BEGIN shared-->
 							<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
 						<!--ET_END shared-->
+						<dt>Създаване: </dt><dd> от [#createdBy#] на [#createdOn#]</dd>
 						</dl>
 		             </div>
 		        </fieldset>
@@ -31,5 +21,6 @@
       
                      
          <div style='clear: both;'></div>
-    </div>     
+     </div>
+  </div>   
 </div>   

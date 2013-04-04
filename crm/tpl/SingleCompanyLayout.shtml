@@ -1,6 +1,7 @@
 <div style="display: inline-block;">
     [#SingleToolbar#]
     <div class="folder-cover">
+       <div class="inner-folder">
         <div class="block_title [#STATE_CLASS#] special-title">
             [#title#]
         </div>
@@ -90,4 +91,5 @@
         <div style="clear:both;"></div>
     </div>
     <!-- END container -->
+  </div>
 </div>
