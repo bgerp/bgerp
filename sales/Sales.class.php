@@ -20,6 +20,12 @@ class sales_Sales extends core_Master
      * @var string
      */
     public $title = 'Продажби';
+
+
+    /**
+     * Абревиатура
+     */
+    var $abbr = 'Sal';
     
     
     /**
