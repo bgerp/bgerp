@@ -1351,4 +1351,49 @@ class log_Documents extends core_Manager
         }
     }
     
+    
+    /**
+     * Проверява дали е изпратен имейл от този контейнер към имейлите
+     * 
+     * @param integer $containerId - id на контейнера
+     * @param string $emailTo - Имейли в to
+     * @param string $emailCc - Имейли в cc
+     */
+    static function isSended($containerId, $emailTo=FALSE, $emailCc=NULL)
+    {
+        // Ако не е подадено $containerId
+        if (!$containerId) return FALSE;
+        
+        // Екшъна за изпращане
+        $sendAction = static::ACTION_SEND;
+        
+        // Извличаме всички изпратени имейли от този контейнер
+        $query = static::getQuery();
+        $query->where("#containerId = '{$containerId}' AND #action = '{$sendAction}'");
+        
+        // Обхождаме всички записи
+        while ($rec = $query->fetch()) {
+            
+            // Ако имейлите до са зададени
+            if ($emailTo !== FALSE) {
+                
+                // Ако има CC имейли
+                if ($emailCc) {
+                    
+                    // Проверяваме to и cc дали съвпадат
+                    if (($rec->data->cc == $emailCc) && ($rec->data->to == $emailTo)) return TRUE;
+                } else {
+                    
+                    // Ако няма CC, проверяваме само to
+                    if ($rec->data->to == $emailTo) return TRUE;    
+                }
+            } elseif ($rec) {
+                
+                // Ако няма to имйел, но има изпращане
+                return TRUE;
+            }    
+        }
+
+        return FALSE;
+    }
 }

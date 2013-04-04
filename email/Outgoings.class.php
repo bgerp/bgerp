@@ -320,6 +320,16 @@ class email_Outgoings extends core_Master
             // Вземаме имейлите от cc
             $emailsCc = $groupEmailsArr['cc'][$key];
             
+            // Проверяваме дали същия имейл е изпращан преди
+            $isSendedBefore = log_Documents::isSended($rec->containerId, $emailTo, $emailsCc);
+
+            // Ако е изпращан преди
+            if ($isSendedBefore) {
+                
+                // В събджекта добавяме текста
+                $rec->subject = '***' . tr('Повторно изпращане', NULL, $lg) . '*** ' . $rec->subject;
+            }
+            
             // Данни за съответния екшън
             $action = array(
                     'containerId' => $rec->containerId,
