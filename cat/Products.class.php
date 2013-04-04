@@ -189,7 +189,7 @@ class cat_Products extends core_Master {
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
             if (preg_match('/[^0-9a-zа-я\- ]/iu', $rec->code)) {
-                $form->setError('code', 'Полето може да съдържа само букви, цифри, терета или интервали.');
+                $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета и интервали!');
             }
            
         	foreach(array('eanCode', 'code') as $code) {
