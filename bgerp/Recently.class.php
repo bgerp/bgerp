@@ -49,6 +49,12 @@ class bgerp_Recently extends core_Manager
     
     
     /**
+	 * Как се казва полето за пълнотекстово търсене
+	 */
+	var $searchInputField = 'recentlySearch';
+	
+	
+    /**
      * Описание на модела
      */
     function description()
@@ -265,7 +271,7 @@ class bgerp_Recently extends core_Manager
         // Попълваме горния страньор
         $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
         
-        if($data->listFilter && $data->pager->pagesCount > -1){
+        if($data->listFilter){
         	$tpl->append($data->listFilter->renderHtml(), 'ListFilter');
         }
        

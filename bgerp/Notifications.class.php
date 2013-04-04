@@ -55,7 +55,7 @@ class bgerp_Notifications extends core_Manager
 	
 	
 	/**
-	 * Как се казва поелто за пълнотекстово търсене
+	 * Как се казва полето за пълнотекстово търсене
 	 */
 	var $searchInputField = 'noticeSearch';
 	
@@ -296,7 +296,7 @@ class bgerp_Notifications extends core_Manager
         // Попълваме горния страньор
         $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
         
-    	if($data->listFilter && $data->pager->pagesCount > -1){
+    	if($data->listFilter){
     		$formTpl = $data->listFilter->renderHtml();
     		$formTpl->removeBlocks();
     		$formTpl->removePlaces();

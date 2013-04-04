@@ -1,35 +1,28 @@
 $(document).ready(function () {
 	
-	if($(".recentlyFilter .hFormField input").val() == '') {
-		$('.recentlyFilter .hFormField').hide();
-	}
-	
-	if($(".noticeFilter .hFormField input").val() == '') {
-		$('.noticeFilter .hFormField').hide();
-	}
-	
-	$("#recentlySearchBtnPortal").live("click", function(){
-		if($(".recentlyFilter .hFormField input").val() == ''){
-			$('.recentlyFilter .hFormField').toggle();
+	// Скриваме формите за търсене ако те са празни, при зареждане на страницата
+	$.each( $(".portal-filter .hFormField"), function(){
+		if($(this).children("input").val() == ''){
+			$(this).hide();
 		}
 	});
 	
-	$("#noticeSearchBtnPortal").live("click", function(){
-		if($(".noticeFilter .hFormField input").val() == ''){
-			$('.noticeFilter .hFormField').toggle();
-		}
-	});
-	
-	$('.recentlyFilter').live("submit", (function(e) {
-		if(($(".recentlyFilter .hFormField select").val() == null || $(".recentlyFilter .hFormField select").val() == '') &&
-				$(".recentlyFilter .hFormField input").val() == ''){
-					e.preventDefault();
+	// Ако инпута на формата е празен ние я Toggle-ваме
+	$(".SearchBtnPortal").live("click", function(){
+		var object = $(this).parents('.portal-filter').children(".hFormField");
+		if(object.children('input').val() == ''){
+			object.toggle();
+			if (object.is(':visible')) {
+				object.children('input').focus();  
 			}
-	}));
+		}
+	});
 	
-	$('.noticeFilter').live("submit", (function(e) {
-		if(($(".noticeFilter .hFormField select").val() == null || $(".noticeFilter .hFormField select").val() == '') &&
-			$(".noticeFilter .hFormField input").val() == ''){
+	/* Ако формата за търсене е празна скриваме, 
+	отказваме събмитапри натискане на бутона */
+	$('.portal-filter').live("submit", (function(e) {
+		var object = $(this).children('.hFormField').children('input');
+		if(object.val() == ''){
 				e.preventDefault();
 		}
 	}));

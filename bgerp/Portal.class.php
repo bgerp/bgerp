@@ -121,21 +121,44 @@ class bgerp_Portal extends core_Manager
     public static function prepareSearchForm(core_Mvc $mvc, core_Form &$form)
     {
     	$form->layout = new ET(getFileContent("bgerp/tpl/PortalSearch.shtml"));
-        ($mvc->className == 'bgerp_Recently') ? $name = 'recently' : $name = 'notice';
-        $form->layout->replace("{$name}Filter", 'CLASS');
-        $form->toolbar->addSbBtn('', NULL, "ef_icon=img/16/find.png,id={$name}SearchBtnPortal");
+    	$form->layout->replace($mvc->searchInputField, 'FLD_NAME');
+    	if($search = Request::get($mvc->searchInputField)){
+    		$form->layout->replace($search, 'VALUE');
+    	}
+    	$findIcon = sbf('img/16/find.png');
+    	$form->layout->replace($mvc->className, 'LIST');
+    	$form->layout->replace($findIcon, 'ICON');
+    	static::prepareSearchDataList($mvc, $form);
+        $form->toolbar->addSbBtn('', NULL, "ef_icon=img/16/find.png,class=SearchBtnPortal");
         $form->setField('id', 'input=none');
         
         // Зареждаме всички стойности от GET заявката в формата, като
         // пропускаме тези които не са параметри в нея
-    	foreach(core_Request::$vars['_GET'] as $key => $value){
-        	if($key != 'virtual_url' && $key != 'App' && $key != 'Ctr'
-        	 && $key != 'Act' && $key != 'Cmd'){
+        foreach(getCurrentUrl() as $key => $value){
+        	if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd'){
         	 	if(!$form->fields[$key]){
         	 		$form->FNC($key, 'varchar', 'input=hidden');
         	 		$form->setDefault($key, $value);
         	 	}
         	 }
         }
+    }
+    
+    
+    /**
+     * Подготовка на дата листа с предложения за формата за търсене
+     */
+    public static function prepareSearchDataList($mvc, &$form)
+    {
+    	$form->renderFields();
+    	$suggestions = $form->getSuggestions($mvc->searchInputField);
+    	$html = "<datalist id='{$mvc->className}'>\n";
+    	if(count($suggestions)){
+	    	foreach($suggestions as $string){
+	    		$html .= "<option value='{$string}'>\n";
+	    	}
+    	}
+    	$html .= "</datalist>\n";
+    	$form->layout->append(new ET($html), 'DATA_LIST');
     }
 }
