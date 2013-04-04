@@ -741,6 +741,7 @@ a.button, input[type=button], input[type=submit] {
 	-webkit-appearance: input;
     background-color:#ddd; 
     border:1px solid #bbb; 
+    height:24px;
     @include border-radius(3px);
     font-family: Arial, sans-serif; 
     font-size:13px;
