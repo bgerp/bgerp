@@ -279,7 +279,7 @@ class blast_Emails extends core_Master
         if (!$form->rec->id) {
             
             //Ако не създаваме копие
-            if (!Request::get('Clone')) {
+            if (!Request::get('clone')) {
                 
                 //По подразбиране да е избран текущия имейл на потребителя
                 $form->setDefault('from', email_Inboxes::getUserInboxId());  
@@ -308,7 +308,7 @@ class blast_Emails extends core_Master
         
         //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
         $rec = $data->form->rec;
-        if ((!$rec->id) && (!Request::get('Clone'))) {
+        if ((!$rec->id) && (!Request::get('clone'))) {
             $rec->recipient = '[#company#]';
             $rec->attn = '[#person#]';
             $rec->email = '[#email#]';

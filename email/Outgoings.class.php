@@ -817,7 +817,7 @@ class email_Outgoings extends core_Master
         $originId = $rec->originId;
         
         // Ако не редактираме и не клонираме
-        if (!($rec->id) && !(Request::get('Clone'))) {
+        if (!($rec->id) && !(Request::get('clone'))) {
     
             // Ако писмото не се препраща
             if (!$forward) {

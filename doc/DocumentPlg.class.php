@@ -159,7 +159,7 @@ class doc_DocumentPlg extends core_Plugin
                             $mvc,
                             'add',
                             'originId' => $data->rec->containerId,
-                            'Clone' => 'clone',
+                            'clone' => 'clone',
                             'ret_url'=>$retUrl
                         ),
                         'class=btn-clone, order=14, row=2');    
@@ -683,7 +683,7 @@ class doc_DocumentPlg extends core_Plugin
             
             //Изискваме да има права
             doc_Threads::requireRightFor('single', $mvc->threadId);
-        } elseif (Request::get('Clone') && ($rec->originId)) {
+        } elseif (Request::get('clone') && ($rec->originId)) {
             
             // Ако създаваме копие 
             
@@ -783,7 +783,7 @@ class doc_DocumentPlg extends core_Plugin
         if($form->rec->id) {
             $form->title = 'Редактиране на|* ';
         } else {
-            if(Request::get('Clone') && ($rec->originId)) {
+            if(Request::get('clone') && ($rec->originId)) {
                 $form->title = 'Копие на|* ';
             } else {
                 if($rec->threadId) {
@@ -891,15 +891,15 @@ class doc_DocumentPlg extends core_Plugin
                 if ($firstContainerId == $rec->containerId) {
                     
                     // Проверяваме за сингъл права в папката
-                    $havaRightForClone = doc_Folders::haveRightFor('single', $rec->folderId);
+                    $haveRightForClone = doc_Folders::haveRightFor('single', $rec->folderId);
                 } else {
                     
                     // За останалите, проверяваме за сингъл в нишката
-                    $havaRightForClone = doc_Threads::haveRightFor('single', $rec->threadId);
+                    $haveRightForClone = doc_Threads::haveRightFor('single', $rec->threadId);
                 }
                 
                 // Ако един от двата начина върне, че имаме права
-                if ($havaRightForClone) {
+                if ($haveRightForClone) {
                 
                     // Задаваме права
                     $requiredRoles = 'user';

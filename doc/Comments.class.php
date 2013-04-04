@@ -161,7 +161,7 @@ class doc_Comments extends core_Master
                 $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
             }
             
-            if ($cid && !Request::get('Clone')) {
+            if ($cid && !Request::get('clone')) {
                 
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($cid);
