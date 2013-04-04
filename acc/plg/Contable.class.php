@@ -163,4 +163,31 @@ class acc_plg_Contable extends core_Plugin
         
         $res = acc_Journal::saveTransaction($mvc->getClassId(), $id);
     }
+    
+    
+    /**
+     * Обект-транзакция, съответстващ на счетоводен документ, ако е възможно да се генерира
+     * 
+     * @param core_Mvc $mvc
+     * @param acc_journal_Transaction $transation FALSE, ако не може да се генерира транзакция
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetValidatedTransaction(core_Mvc $mvc, &$transaction, $rec)
+    {
+        try {
+            $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+            $transaction       = $transactionSource->getTransaction($rec);
+            
+            if (!empty($transaction)) {
+                // Проверяваме валидността на транзакцията
+                $transaction = new acc_journal_Transaction($transaction);
+                if (!$transaction->check()) {
+                    return FALSE;
+                }
+            } 
+        } catch (core_exception_Expect $ex) {
+            // Транзакцията не се валидира
+            $transaction = FALSE;
+        }
+    }
 }

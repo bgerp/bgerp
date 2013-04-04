@@ -264,28 +264,7 @@ class sales_Sales extends core_Master
                 break;
         }
     }
-    
-    
-    public function getValidatedTransaction($rec)
-    {
-        try {
-            $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $this);
-            $transaction       = $transactionSource->getTransaction($rec);
-            
-            if (!empty($transaction)) {
-                // Проверяваме валидността на транзакцията
-                $transaction = new acc_journal_Transaction($transaction);
-                if (!$transaction->check()) {
-                    return FALSE;
-                }
-            } 
-        } catch (core_exception_Expect $ex) {
-            // Транзакцията не се валидира
-            $transaction = FALSE;
-        }
-        
-        return $transaction;
-    }
+
     
     function on_AfterRenderSingle($mvc, $tpl, $data)
     {
@@ -926,7 +905,7 @@ class sales_Sales extends core_Master
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
-            'recTitle' => "Продажба №{$rec->id}",
+            'recTitle' => $this->getRecTitle($rec),
         );
         
         return $row;
