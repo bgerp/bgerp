@@ -32,7 +32,7 @@ class cat_Products extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
-                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select';
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select, plg_Search';
 
     
     /**
@@ -138,7 +138,13 @@ class cat_Products extends core_Master {
      */
     var $canSingle = 'admin, cat';
     
-
+	
+    /** 
+	 *  Полета по които ще се търси
+	 */
+	var $searchFields = 'name, code';
+	
+	
     /**
      * Описание на модела
      */
@@ -286,9 +292,8 @@ class cat_Products extends core_Master {
 
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->showFields = 'order,groupId';
-        $data->listFilter->input('order,groupId', 'silent');
-        
+        $data->listFilter->showFields = 'search,order,groupId';
+        $data->listFilter->input('order,groupId,search', 'silent');
     }
     
     
