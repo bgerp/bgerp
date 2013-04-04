@@ -88,9 +88,9 @@ class acc_Balances extends core_Master
      */
     function description()
     {
-        $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,column=none,mandatory');
-        $this->FLD('fromDate', 'date', 'input=none,caption=Период->от');
-        $this->FLD('toDate', 'date', 'input=none,caption=Период->до');
+        $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,mandatory');
+        $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
+        $this->FLD('toDate', 'date', 'input=none,caption=Период->до,column=none');
         $this->FLD('state', 'enum(draft=Горещ,active=Активен,rejected=Изтрит)', 'caption=Тип,input=none');
         $this->FLD('lastCalculate', 'datetime', 'input=none,caption=Последно изчисляване');
     }
@@ -106,6 +106,19 @@ class acc_Balances extends core_Master
         }
         
         return parent::act_Single();
+    }
+    
+    public static function on_AfterPrepareListRows($mvc, $data)
+    {
+        if (empty($data->rows)) {
+            return;
+        }
+        
+        foreach ($data->rows as $i=>$row) {
+            $data->rows[$i]->periodId = ht::createLink(
+                $row->periodId, array($mvc, 'single', $data->recs[$i]->id)
+            );
+        }
     }
     
     
