@@ -37,6 +37,7 @@ class store_Wrapper extends plg_ProtoWrapper
             $this->TAB('store_Documents', 'Документи');
         } else {
             $this->TAB('store_Stores', 'Складове', 'admin,store');
+            $this->TAB('store_ShipmentOrders', 'Експедиция', 'admin,store');
         }
         
             $this->title = 'Склад';

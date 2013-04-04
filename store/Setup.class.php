@@ -59,7 +59,8 @@ class store_Setup
             'store_Documents',
             'store_DocumentDetails',
             'store_Zones',
-            'store_PalletTypes'
+            'store_ShipmentOrders',
+            'store_ShipmentOrderDetails',
         );
         
         // Роля за power-user на този модул
