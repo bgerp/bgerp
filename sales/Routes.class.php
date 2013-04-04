@@ -44,7 +44,7 @@ class sales_Routes extends core_Manager {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Rejected';
     
     
     /**
@@ -73,6 +73,18 @@ class sales_Routes extends core_Manager {
     
     
     /**
+     * 
+     */
+    var $canDelete = 'no_one';
+    
+    
+    /**
+     * 
+     */
+    var $canReject = 'sales,admin';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -81,7 +93,7 @@ class sales_Routes extends core_Manager {
     	$this->FLD('salesmanId', 'user(roles=sales)', 'caption=Търговец,width=15em,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,width=6em,mandatory');
     	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em');
-    	$this->FLD('state','enum(active=Активен, rejected=Отказан)','caption=Статус');
+    	$this->FLD('state','enum(active=Активен, rejected=Оттеглен)','caption=Статус,input=none,value=active');
     }
     
     
@@ -213,7 +225,7 @@ class sales_Routes extends core_Manager {
     	$locIcon = sbf("img/16/location_pin.png");
     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
-    	if($locationState == 'rejected'){
+    	if($locationState == 'rejected' || $rec->state == 'rejected'){
     		$row->ROW_ATTR['class'] .= ' state-rejected';
     	}
     }
@@ -225,6 +237,19 @@ class sales_Routes extends core_Manager {
     public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
     	$editUrl['locationId'] = $rec->locationId;
+    }
+    
+    
+    /**
+     * Реализация по подразбиране на метода getEditUrl()
+     */
+    public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
+    {
+    	if($rec->state == 'active'){
+    		$deleteUrl = array($mvc, 'reject', $rec->id, 'ret_url' => TRUE);
+    	} else {
+    		$deleteUrl = array($mvc, 'restore', $rec->id, 'ret_url' => TRUE);
+    	}
     }
     
     
@@ -347,9 +372,12 @@ class sales_Routes extends core_Manager {
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'edit' && $rec->id) {
-			
-			// Ако локацията е оттеглена, не позволяваме да се променя
-			// състоянието на маршрутите
+			if($rec->state == 'rejected'){
+				$res = 'no_one';
+			}
+		}
+		
+		if($action == 'restore' && $rec->id){
 			$locationState = crm_Locations::fetchField($rec->locationId, 'state');
 			if($locationState == 'rejected'){
 				$res = 'no_one';
