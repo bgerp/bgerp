@@ -102,14 +102,14 @@ class store_ShipmentOrderDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, xQuantity, xPrice, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, quantity, price, discount, amount';
     
         
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'RowNumb';
-
+    
 
     /**
      * Описание на модела (таблицата)
@@ -123,23 +123,15 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         
-        // Количество в брой опаковки
-        $this->FLD('packQuantity', 'float', 'mandatory,caption=К-во');
+        // Количество в брой опаковки или в основна мярка, ако няма опаковка
+        $this->FLD('quantity', 'float', 'mandatory,caption=К-во');
         
-        // Количество в основна мярка
-        $this->FLD('quantity', 'float', 'input=none,caption=К-во');
+        // Цена за опаковка или цена за единица в осн. мярка, ако няма опаковка
+        $this->FLD('price', 'float', 'caption=Цена');
+        $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none,column=none');
         
-        // Цена за опаковка
-        $this->FLD('packPrice', 'float', 'caption=Цена');
-        
-        // Цена за единица продукт в основна мярка
-        $this->FLD('price', 'float', 'input=none,caption=Ед. Цена');
-        
-        $this->FLD('discount', 'percent', 'caption=Отстъпка');
+        // Стойност на реда във валутата, в която е записана цената
         $this->FNC('amount', 'float(decimals=2)', 'caption=Сума');
-        
-        $this->FNC('xPrice', 'double(minDecimals=2,maxDecimals=5)', 'caption=Цена');
-        $this->FNC('xQuantity', 'double(minDecimals=2,maxDecimals=5)', 'caption=К-во');
     }
     
     
@@ -151,16 +143,11 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public function on_CalcAmount(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->packPrice) || empty($rec->packQuantity)) {
+        if (empty($rec->price) || empty($rec->quantity)) {
             return;
         }
         
-        $rec->amount = $rec->packPrice * $rec->packQuantity;
-        
-        if (!empty($rec->discount)) {
-            $rec->amount *= (1-$rec->discount);
-        }
-        
+        $rec->amount = $rec->price * $rec->quantity;
         $rec->amount = round($rec->amount, 2);
     }
     
@@ -191,7 +178,7 @@ class store_ShipmentOrderDetails extends core_Detail
             $rec->{$mvc->masterKey} = $mvc->fetchField($rec->id, $mvc->masterKey);
         }
         
-        $mvc->updateMasterSummary($rec->{$mvc->masterKey}, $rec);
+        $mvc->updateMasterSummary($rec->{$mvc->masterKey});
     }
 
     
@@ -199,29 +186,58 @@ class store_ShipmentOrderDetails extends core_Detail
      * Обновява агрегатни стойности в мастър записа
      * 
      * @param int $masterId ключ на мастър модела
-     * @param stdClass $hotRec запис на модела, промяната на който е предизвикала обновяването
+     * @param boolean $force FALSE - само запомни ключа на мастъра, но не прави промени по БД
+     * 
+     *                       TRUE  - направи промените в БД сега! Тези промени ще засегнат:
+     *                       
+     *                               * Мастър записа с ключ $masterId, ако $masterId не е 
+     *                                 празно;
+     *                               * Всички мастър записи с ключове, добавени по-рано чрез 
+     *                                 извикване на този метод с параметър $force = FALSE.
+     *                        
      */
-    public function updateMasterSummary($masterId, $hotRec = NULL)
+    public function updateMasterSummary($masterId = NULL, $force = FALSE)
     {
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        
-        $amountDelivered = 0;
-        
-        $query->where("#{$this->masterKey} = '{$masterId}'");
-        
-        while ($rec = $query->fetch()) {
-            $amountDelivered += $rec->amount;
+        static $updatedMasterIds = array();
+         
+        if (!$force) {
+            if (!empty($masterId)) {
+                $updatedMasterIds[$masterId] = $masterId;
+            }
+            
+            return;
         }
         
-        store_ShipmentOrders::save(
-            (object)array(
-                'id' => $masterId,
-                'amountDelivered' => $amountDelivered
-            )
-        );
+        $masterIds = empty($masterId) ? $updatedMasterIds : array($masterId);
+        
+        foreach ($masterIds as $masterId) {
+            /* @var $query core_Query */
+            $query = static::getQuery();
+            
+            $amountDelivered = 0;
+            
+            $query->where("#{$this->masterKey} = '{$masterId}'");
+            
+            while ($rec = $query->fetch()) {
+                $amountDelivered += $rec->amount;
+            }
+            
+            store_ShipmentOrders::save(
+                (object)array(
+                    'id' => $masterId,
+                    'amountDelivered' => $amountDelivered
+                )
+            );
+        }
     }
-
+    
+    
+    public function on_Shutdown($mvc)
+    {
+        $mvc->updateMasterSummary(NULL /* ALL */, TRUE /* force update now */);
+    }
+    
+    
     /**
      * Извиква се преди изпълняването на екшън
      * 
@@ -263,17 +279,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (count($data->recs)) {
-            foreach ($data->recs as &$rec) {
-                if (empty($rec->packagingId)) {
-                    $rec->xPrice    = $rec->price;    // Единична цена
-                    $rec->xQuantity = $rec->quantity; // Количество в осн. мярка
-                } else {
-                    $rec->xPrice    = $rec->packPrice;
-                    $rec->xQuantity = $rec->packQuantity;
-                }
-            }
-        }
     }
     
     
@@ -299,12 +304,6 @@ class store_ShipmentOrderDetails extends core_Detail
                     } else {
                         $row->packagingId = '???';
                     }
-                } else {
-                    $row->xPrice .= 
-                        ' <small class="quiet" style="display: block;">' 
-                        . $row->quantity . ' x ' . $row->price . ' за ' . $row->uomId 
-                        . '</small>';
-                    $row->packagingId .= ' ' . ($rec->quantity / $rec->packQuantity) . ' ' . $row->uomId;
                 }
             }
         }
@@ -373,8 +372,6 @@ class store_ShipmentOrderDetails extends core_Detail
             if (empty($rec->packagingId)) {
                 // В продажба в основна мярка
                 $productsPerPack = 1;
-                $rec->price    = $rec->packPrice;
-                $rec->quantity = $rec->packQuantity;
             } else {
                 // Продажба на опаковки
                 if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
@@ -385,28 +382,14 @@ class store_ShipmentOrderDetails extends core_Detail
                 $productsPerPack = $packInfo->quantity;
             }
             
-            if (empty($rec->packPrice)) {
-                $rec->packPrice = $policyInfo->price;
-
-                // Цената идва от ценоразписа в основна валута. Конвертираме я към валутата
-                // на продажбата.
-                $rec->packPrice = 
-                    currency_CurrencyRates::convertAmount(
-                        $rec->packPrice, 
-                        $masterRec->date, 
-                        NULL, // Основната валута към $masterRec->date
-                        $masterRec->currencyId
-                    );
+            if (empty($rec->price)) {
+                $rec->price = $policyInfo->price * $productsPerPack;
             }
             if (empty($rec->discount)) {
                 $rec->discount = $policyInfo->discount;
             }
             
-            $rec->quantity = $rec->packQuantity * $productsPerPack;
-            $rec->price    = $rec->packPrice / $productsPerPack;
-            
             $rec->price = sales_Sales::roundPrice($rec->price);
-            $rec->packPrice = sales_Sales::roundPrice($rec->packPrice);
             
             // Записваме основната мярка на продукта
             $rec->uomId    = $productInfo->productRec->measureId;
