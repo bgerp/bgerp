@@ -1,38 +1,35 @@
-
-<div style="display:inline-block" class="singleView email-class">
-[#SingleToolbar#]
-	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Е-кутия <b style="color:green;">[#email#]</b></div></h2>
-	<table class="styled-table" width="100%">
-		<tr>
-			<td class="title-style" width="150px">Имейл</td>
-			<td> [#email#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">Сметка</td>
-			<td>[#accountId#]</td>
-		</tr>
-	</table>
-	<table class="styled-table" width="100%">
-		<tr>
-			<th colspan="2">Права</th>
-		</tr>
-		<tr>
-			<td width="150px"><span class="title-style">Отговорник:</span></td>
-			<td>[#inCharge#] </td>
-		<tr>
-			<td><span class="title-style">Достъп:</span></td>
-			<td> [#access#]</td>
-		</tr>
-		 <!--ET_BEGIN shared-->
-		<tr>
-			<td><span class="title-style">Споделяне:</span></td>
-			<td>[#shared#]</td>
-		</tr>
-		 <!--ET_END shared-->
-	</table>
-		<div><span class="quiet">Модифициране: </span>от [#modifiedBy#] на [#modifiedOn#] </div>
-		<div><span class="quiet">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
-		
-	</tbody>
-</table>
+<div style="display: inline-block;">
+	[#SingleToolbar#]
+	<div class="folder-cover">
+	  <div class="inner-folder">
+		<div class="block_title [#STATE_CLASS#] special-title">
+	         |Е-кутия|* <b style="color:green;">[#email#]</b>
+        </div>
+		<fieldset class="detail-info">
+	            <div class="groupList">
+					<dl>
+					<dt>|Имейл|*:</dt><dd> <b>[#email#]</b></dd>
+					<dt>|Сметка|*:</dt><dd> <b>[#accountId#]</b></dd>
+					
+					</dl>
+	             </div>
+	    </fieldset>
+		<fieldset class="detail-info">
+	            <legend class="groupTitle">|Права|*</legend>
+	            <div class="groupList">
+					<dl>
+					<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
+					<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
+					<!--ET_BEGIN shared-->
+					<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
+					<!--ET_END shared-->
+					
+					<!--ET_BEGIN mod-->
+					[#mod#]
+						<dt>|Модифициране|*: </dt><dd>от [#modifiedBy#] на [#modifiedOn#] </dd>
+					<!--ET_END mod-->
+					<dt>|Създаване|*: </dt><dd> от [#createdBy#] на [#createdOn#]</dd>
+					</dl>
+	             </div>
+	     </fieldset> 
 </div>
