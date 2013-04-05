@@ -43,6 +43,8 @@ if (setupKeyValid() && !setupProcess()) {
         return;
     } // Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
         elseif (!setupKeyValid() && setupProcess() && !isset($_COOKIE['setup'])) {
+            // Не спираме bgERP-a на потребителите по време на сетъп процес
+            return;
             halt("Процес на обновяване - опитайте по късно.");
         }
 
