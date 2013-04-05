@@ -2125,7 +2125,13 @@ table.styled-table tr:hover td {
 	height:20px;
 	float:right;
 }
-	
+.narrow .portal-filter{
+	margin-left:5px;
+	height: 1.0em;
+	top:-2px;
+	right:-2px;
+	position:relative;
+}
 .portal-filter .hFormField {
 	width: 9em;
 	border: solid 1px #ccc;
@@ -2140,18 +2146,28 @@ table.styled-table tr:hover td {
 }
 
 .portal-filter .hFormField input {
-	height: 1.2em;
+	height: 1.4em;
     width: 9em;
 	border: none !important;
 	background:none;
 	font-size:0.9em;
 	position:relative;
 	top:-1px;
-	line-height:1.2em;
-	padding-top:0.1em;
+	line-height:1.3em;
 	margin-top:0px !important;
     width: 8.5em !important;
     outline:none !important;
+}
+
+@-moz-document url-prefix() { 
+	.portal-filter .hFormField input {
+		top:-2px;
+	}
+}
+
+.narrow .portal-filter input{
+	height:1.2em;
+	top:0;
 }
 
 .portal-filter select{
@@ -2160,6 +2176,7 @@ table.styled-table tr:hover td {
     line-height:1em;
 	visibility:hidden !important;
 }
+
 .portal-filter .formToolbar{
 	width: 30px;
 	height:20px;
@@ -2177,10 +2194,18 @@ table.styled-table tr:hover td {
     top: 0em !important;
 	position: absolute;
 	border: none;
+	outline:none !important;
 	background-color: transparent !important;
 	background-position: center center;
 	cursor: pointer;
 	display: inline-block;
+
+}
+
+.narrow .portal-filter .button{
+	height:1.45em;
+	padding:2px 0;
+	background-color:rgb(221, 221, 221) !important;
 }
 
 .special-title{
