@@ -689,7 +689,10 @@ class doc_DocumentPlg extends core_Plugin
             
             // Данните за документната система
             $containerRec = doc_Containers::fetch($cloneId);
-
+            
+            // Очакваме да има такъв запис
+            expect($containerRec);
+            
             // Очакваме да имаме права за клониране
             expect($mvc->haveRightFor('clone', $containerRec->docId), 'Нямате права за създаване на копие');
             
