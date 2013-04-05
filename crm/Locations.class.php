@@ -91,14 +91,15 @@ class crm_Locations extends core_Master {
             office=Офис,shop=Магазин,
             storage=Склад,
             factory=Фабрика,
-            other=Друг)', 'caption=Тип,mandatory');
+            other=Друг)', 'caption=Тип,mandatory,width=15.4em');
         $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Юрисдикция,mandatory');
-        $this->FLD('place', 'varchar(64)', 'caption=Град,mandatory,oldFieldName=city');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес,mandatory');
-        $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
+        $this->FLD('address', 'varchar(255)', 'caption=Адрес');
+        $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код,width=15.4em');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
-        $this->FLD('comment', 'richtext', 'caption=@Информация');
+        $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
+        $this->FLD('comment', 'richtext(rows=4)', 'caption=@Информация');
     }
     
     
