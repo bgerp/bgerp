@@ -150,8 +150,10 @@ class bgerp_Portal extends core_Manager
      */
     public static function prepareSearchDataList($mvc, &$form)
     {
-    	$form->renderFields();
-    	$suggestions = $form->getSuggestions($mvc->searchInputField);
+    	$Recently = cls::get('recently_Values');
+    	$name = $form->mvc->dbTableName . "." . $mvc->searchInputField;
+    	$suggestions = $Recently->getSuggestions($name);
+    	
     	$html = "<datalist id='{$mvc->className}'>\n";
     	if(count($suggestions)){
 	    	foreach($suggestions as $string){
