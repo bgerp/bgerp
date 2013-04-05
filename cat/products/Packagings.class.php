@@ -176,7 +176,11 @@ class cat_products_Packagings extends cat_products_Detail
             // Няма повече недефинирани опаковки
             redirect(getRetUrl(), FALSE, tr('Няма повече недефинирани опаковки'));
         }
-
+		
+    	if(!$data->form->rec->id){
+        	$options = array('' => '') + $options;
+        }
+        
         $data->form->setOptions('packagingId', $options);
         
         $productRec = cat_Products::fetch($data->form->rec->productId);
