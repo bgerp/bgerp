@@ -541,9 +541,9 @@ function js2php(obj, path, new_path)
 function toggleDisplay(id)
 { 
 	if (typeof jQuery != 'undefined') {
- 	
+		var elem = $("#" + id).parent().find('.more-btn');
 	    $("#" + id).fadeToggle("slow");
-	    $('.more-btn').toggleClass('show-btn');
+	    elem.toggleClass('show-btn');
  
 	} else {
 	
