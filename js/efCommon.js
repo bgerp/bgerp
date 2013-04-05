@@ -681,7 +681,7 @@ function flashHashDoc(flasher)
 function flashDoc(docId, i)
 {
 	var tr = get$(docId);
-	console.log(tr.style.backgroundColor);
+	
 	var cells = tr.getElementsByTagName('td');
 	if(typeof i == 'undefined') {
         i = 1;
@@ -904,4 +904,73 @@ function getStatuses(url, timeout) {
    		
 		setTimeout(function(){getStatuses(url, timeout)}, timeout);
 }
- 
+
+
+/**
+ * Добавя event, който слуша за отпускане на мишката
+ */
+function startGettingText()
+{
+	window.onmouseup = saveSelectedTextToSession;
+}
+
+
+/**
+ * Записва избрания текст в сесията и текущото време
+ */
+function saveSelectedTextToSession()
+{
+	selText = getSelText();
+
+	// Ако има избран текст
+	if (selText.focusOffset != selText.anchorOffset) {
+		sessionStorage.selText = getSelText();
+		sessionStorage.selTime = new Date().getTime();
+		setTimeout(saveSelectedTextToSession, 1000)
+	}
+}
+
+
+/**
+ * Връща маркирания текст
+ * 
+ * @returns {String}
+ */
+function getSelText()
+{
+    var txt = '';
+     if (window.getSelection)
+    {
+        txt = window.getSelection();
+    }
+    else if (document.getSelection)
+    {
+        txt = document.getSelection();
+    }
+    else if (document.selection)
+    {
+        txt = document.selection.createRange().text;
+    }
+    else  { return; } 
+	
+	return txt;
+}
+
+
+/**
+ * Добавя в посоченото id на елемента, маркирания текст от сесията, като цитат, ако не е по стар от 5 секунди
+ * 
+ * @param id
+ */
+function appendQuote(id)
+{
+	selTime = sessionStorage.getItem('selTime');
+	now = new Date().getTime();
+	now = now-5000;
+	if (selTime > now) {
+		text = sessionStorage.getItem('selText');
+		if (text) {
+			get$(id).value += "\n[bQuote]" + text + "[/bQuote]";
+		}
+	}
+}

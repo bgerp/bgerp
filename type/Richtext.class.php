@@ -107,6 +107,13 @@ class type_Richtext extends type_Blob
             $tpl->append($link->html, $link->place);
         }
         
+        // Ако е зададено да се аппендва маркирания текст, като цитата
+        if ($this->params['appendQuote']) {
+            
+            // Добавяме функцията за апендване на цитата
+            $tpl->append("appendQuote('{$attr['id']}');", 'ON_LOAD');
+        }
+        
         return $tpl;
     }
     
