@@ -1364,12 +1364,23 @@ class log_Documents extends core_Manager
         // Ако не е подадено $containerId
         if (!$containerId) return FALSE;
         
+        // Конфигурацията на пакета
+        $conf = core_Packs::getConfig('log');
+        
+        // Датата след което ще се брои за повторно изпращане
+        $resendingTime = time() - $conf->LOG_EMAIL_RESENDING_TIME;
+        
+        // В MYSQL вид
+        $resendingTime = dt::timestamp2Mysql($resendingTime);
+        
         // Екшъна за изпращане
         $sendAction = static::ACTION_SEND;
         
-        // Извличаме всички изпратени имейли от този контейнер
+        // Извличаме всички изпратени имейли от този контейнер изпратени преди датата за повторно изпращане
         $query = static::getQuery();
-        $query->where("#containerId = '{$containerId}' AND #action = '{$sendAction}'");
+        $query->where("#containerId = '{$containerId}'");
+        $query->where("#action = '{$sendAction}'");
+        $query->where("#createdOn < '{$resendingTime}'");
         
         // Обхождаме всички записи
         while ($rec = $query->fetch()) {
