@@ -554,12 +554,12 @@ option.team {
 }
 
 .more-btn{
-	padding:3px 3px 3px 3px !important;
+	float:left;
+	padding:4px 3px 2px 3px !important;
 	background-position:center center;
 	background-image:url(../img/16/toggle-expand.png) !important;
 	background-repeat:no-repeat !important;
 	width: 24px !important;
-	height:24px;
 }
 
 .more-btn.show-btn{
@@ -567,19 +567,9 @@ option.team {
 }
 
 .narrow .more-btn{
-	top:2px;
-	position:relative;
 	width:24px !important;
 }
-@-moz-document url-prefix() {
-   .more-btn{
-		position:relative;
-   		top:1px;
-	}
-	.narrow .more-btn{
-	height:25px !important;
-	}
-}
+
 .wide .btn-export  { 
 	background-image:url('../img/16/table_export.png');
 	@include btn-style();
