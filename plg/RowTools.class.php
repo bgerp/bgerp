@@ -86,7 +86,7 @@ class plg_RowTools extends core_Plugin
         	$loadList = arr::make($mvc->loadList);
         	if(in_array('plg_Rejected', $loadList)){
         		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id)){
-        			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . ">";
+        			$deleteImg = "<img src=" . sbf('img/16/delete.png') . ">";
         			$deleteUrl = array(
 			            $mvc,
 			            'reject',
