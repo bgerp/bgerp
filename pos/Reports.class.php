@@ -92,7 +92,7 @@ class pos_Reports extends core_Master {
 	/**
      * Групиране на документите
      */
-    var $newBtnGroup = "3.4|Търговия";
+    var $newBtnGroup = "3.5|Търговия";
     
     
     /**

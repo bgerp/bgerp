@@ -99,7 +99,7 @@ class cat_Recipes extends core_Master {
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "10.1|Каталог";
+    var $newBtnGroup = "6.4|Счетоводни";
     
     
     /**

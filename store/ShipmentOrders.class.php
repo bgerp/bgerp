@@ -134,7 +134,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Групиране на документите
      */ 
-   var $newBtnGroup = "3.1|Експедиционно нареждане";
+   var $newBtnGroup = "3.2|Търговия";
    
     
     /**

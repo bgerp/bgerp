@@ -98,7 +98,7 @@ class survey_Surveys extends core_Master {
 	/**
      * Групиране на документите
      */
-    var $newBtnGroup = "8.1|Анкети";
+    var $newBtnGroup = "9.2|Обслужване";
     
     
     /**

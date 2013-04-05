@@ -105,7 +105,7 @@ class purchase_Offers extends core_Manager
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "3.2|Търговия";
+    var $newBtnGroup = "3.4|Търговия";
     
     /**
      * Описание на модела (таблицата)

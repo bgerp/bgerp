@@ -105,7 +105,7 @@ class lab_Tests extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "7.1|Лабораторни";
+    var $newBtnGroup = "9.1|Обслужване";
     
     /**
      * Описание на модела

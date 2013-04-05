@@ -241,19 +241,6 @@ class sales_Routes extends core_Manager {
     
     
     /**
-     * Реализация по подразбиране на метода getEditUrl()
-     */
-    public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
-    {
-    	if($rec->state == 'active'){
-    		$deleteUrl = array($mvc, 'reject', $rec->id, 'ret_url' => TRUE);
-    	} else {
-    		$deleteUrl = array($mvc, 'restore', $rec->id, 'ret_url' => TRUE);
-    	}
-    }
-    
-    
-    /**
      * Преди извличане на записите от БД
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
