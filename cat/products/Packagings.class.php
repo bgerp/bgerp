@@ -50,7 +50,7 @@ class cat_products_Packagings extends cat_products_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,silent,caption=Опаковка,mandatory');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,caption=Опаковка,mandatory');
         $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
         $this->FLD('netWeight', 'double(decimals=3)', 'input,caption=Тегло->Нето');
         $this->FLD('tareWeight', 'double(decimals=3)', 'input,caption=Тегло->Тара');
