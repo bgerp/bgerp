@@ -2124,6 +2124,7 @@ table.styled-table tr:hover td {
 	min-width:30px;
 	height:20px;
 	float:right;
+	outline:none !important;
 }
 .narrow .portal-filter{
 	margin-left:5px;
@@ -2200,6 +2201,10 @@ table.styled-table tr:hover td {
 	cursor: pointer;
 	display: inline-block;
 
+}
+
+.portal-filter .button::-moz-focus-inner {
+  border: 0;
 }
 
 .narrow .portal-filter .button{
