@@ -24,7 +24,7 @@ class cat_setup_Groups extends core_Mvc
     {
         $csvFile = __DIR__ . "/csv/Groups.csv";
     	
-        $Products = cls::get('cat_Groups');
+        $Groups = cls::get('cat_Groups');
         
         $created = $updated = 0;
         
@@ -37,13 +37,13 @@ class cat_setup_Groups extends core_Mvc
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 
                 // Ако има запис с този 'name'
-                if($rec->id = $Products->fetchField(array("#sysId = '[#1#]'", $rec->sysId), 'id')){
+                if($rec->id = $Groups->fetchField(array("#sysId = '[#1#]'", $rec->sysId), 'id')){
                  	$updated++;
                 } else {
                     $created++;
                 }
                
-                $Products->save($rec, NULL, 'IGNORE');
+                $Groups->save($rec, NULL, 'IGNORE');
             }
             
             fclose($handle);
