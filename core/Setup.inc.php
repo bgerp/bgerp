@@ -966,8 +966,8 @@ function gitHasNewVersion($repoPath, &$log)
     
     // Търсим реда в който има състоянието на зададеният бранч
     foreach ($arrRes as $row) {
-        $hasNewVersion = strpos($row, BGERP_GIT_BRANCH . " (local out of date)");
-        $hasUpdated = strpos($row, BGERP_GIT_BRANCH . " (up to date)");
+        $hasNewVersion = strpos($row, "(local out of date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
+        $hasUpdated = strpos($row, "(up to date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
     
         if($hasNewVersion !== FALSE) {
             $log[] = "new:[<b>$repoName</b>] Има нова версия.";
