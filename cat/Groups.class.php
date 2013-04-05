@@ -150,7 +150,7 @@ class cat_Groups extends core_Manager
         $sysArr = arr::make($list);
 
         foreach($sysArr as $sysId) {
-            $id = self::fetchField("#sysId == '{$sysId}'", 'id');
+            $id = self::fetchField("#sysId = '{$sysId}'", 'id');
             if($strict) {
                 expect($id, $sysId, $list);
             }
