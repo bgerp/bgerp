@@ -328,6 +328,10 @@ class email_Outgoings extends core_Master
                 
                 // В събджекта добавяме текста
                 $rec->_resending = 'Повторно изпращане';
+            } else {
+                
+                // Ако не е изпращане преди
+                $rec->_resending = NULL;
             }
             
             // Данни за съответния екшън
