@@ -327,7 +327,7 @@ class email_Outgoings extends core_Master
             if ($isSendedBefore) {
                 
                 // В събджекта добавяме текста
-                $rec->subject = '***' . tr('Повторно изпращане', NULL, $lg) . '*** ' . $rec->subject;
+                $rec->_resending = 'Повторно изпращане';
             }
             
             // Данни за съответния екшън

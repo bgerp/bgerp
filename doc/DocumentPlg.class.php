@@ -970,6 +970,9 @@ class doc_DocumentPlg extends core_Plugin
         
 //        if($data->threadCachedView === FALSE) {
             $tpl = $mvc->renderSingle($data);
+            if ($data->rec->_resending) {
+                $tpl->append(tr($data->rec->_resending), '_resending');    
+            }
             $tpl->removeBlocks();
             $tpl->removePlaces();
             
