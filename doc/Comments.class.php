@@ -136,7 +136,7 @@ class doc_Comments extends core_Master
     function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
-        $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Коментар,mandatory');
+        $this->FLD('body', 'richtext(rows=10,bucket=Comments, appendQuote)', 'caption=Коментар,mandatory');
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
     }
     

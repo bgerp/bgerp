@@ -174,6 +174,7 @@ class doc_Containers extends core_Manager
         bgerp_Notifications::clear($url);
         
         $tpl->appendOnce("flashHashDoc(flashDocInterpolation);", 'ON_LOAD');
+        $tpl->appendOnce("startGettingText();", 'ON_LOAD');
     }
     
     
