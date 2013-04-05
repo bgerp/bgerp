@@ -303,14 +303,14 @@ class cal_Tasks extends core_Master
             $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
         }
     }
-    
 
+    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        $mvc->updateTaskToCalendar($rec->id);
+    	$mvc->updateTaskToCalendar($rec->id);
     }
 
 
@@ -324,8 +324,10 @@ class cal_Tasks extends core_Master
         }
         
         if($mvc->haveRightFor('postpone', $data->rec)) {
-        	$data->toolbar->addBtn('Отлагане', array($mvc,'Postpone', 'postpone', 'taskId' => $data->rec->id), 'ef_icon=img/16/clock.png');
+        	$data->toolbar->addBtn('Отлагане', array($mvc,'Postpone', 'postpone', 'taskId' => $data->rec->id), 'ef_icon=img/16/clock_go.png');
         }
+        
+        $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/bell_clock2.png, row=2');
     }
 
 
@@ -644,7 +646,7 @@ class cal_Tasks extends core_Master
         return $this->renderWrapping($form->renderHtml());
     }
 
-
+    
     /**
      * Изпращане на нотификации за започването на задачите
      */
