@@ -865,7 +865,13 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($rec->id) {
+		if($action == 'add' && $rec->folderId){
+			if(!$mvc->canAddToFolder($rec->folderId, NULL)){
+				$requiredRoles = 'no_one';
+			}
+		}
+		
+    	if ($rec->id) {
             $rec = $mvc->fetch($rec->id);
             
             if($action == 'delete') {
