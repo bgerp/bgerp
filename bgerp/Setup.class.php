@@ -111,7 +111,7 @@ class bgerp_Setup {
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,acc,currency,doc,cms,
                   email,crm, cat, price, blast,rfid,hr,trz,lab,sales,mp,store,trans,cash,bank,
                   budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,blogm,forum,
-                  vislog,docoffice,incoming,support,survey,pos,change,sass,hljs";
+                  vislog,docoffice,incoming,support,survey,pos,change,sass";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if(defined('EF_PRIVATE_PATH')) {
