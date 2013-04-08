@@ -192,10 +192,6 @@ class sales_SalesDetails extends core_Detail
         
         $rec->amount = $rec->price * $rec->quantity;
         
-        if (!empty($rec->discount)) {
-            $rec->amount *= (1-$rec->discount);
-        }
-        
         $rec->amount = round($rec->amount, 2);
     }
     
@@ -315,7 +311,7 @@ class sales_SalesDetails extends core_Detail
             foreach ($data->rows as $i=>&$row) {
                 $rec = $data->recs[$i];
                 
-                $haveDiscount = $haveDiscount || ($rec->discount != 0);
+                $haveDiscount = $haveDiscount || !empty($rec->discount);
     
                 if (empty($rec->packagingId)) {
                     if ($rec->uomId) {
