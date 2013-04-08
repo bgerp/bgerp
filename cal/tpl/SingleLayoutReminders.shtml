@@ -1,5 +1,4 @@
-[#SingleToolbar#]
-                 
+[#SingleToolbar#]  
 	<div class='document'>
 		<div class='header [#STATE_CLASS#]'>
 			<div class='docBgIcon' style='[#iconStyle#]'>Напомняне <b>[#ident#]</b> ([#state#])</div>
@@ -8,35 +7,31 @@
 		<div class='antetka' style='line-height:150%;'>
 			<b>[#title#]</b><br>
 			<small>
-	    	<table cellspacing='1' class='top-table'>
 			<div class='block_left'>
+	    	<table cellspacing='1' class='top-table reminder-table'>
+			
 			     <tr>
-			     	<td style='width: 280px;'>Приоритет: [#priority#]</td>
-			     	<!--ET_BEGIN timeStart--><td style='width: 280px;'>Начало: [#timeStart#]</td><!--ET_END timeStart-->
-			     	<!--ET_BEGIN timePreviously--><td style='width: 280px;'>Предварително: [#timePreviously#]</td><!--ET_END timePreviously-->
+			     	<td>Приоритет: [#priority#]</td>
+			     	<td>Споделяне: [#shareLog#]</td>
 			     </tr>
-			     
 			     <tr>
-			     	<td style='width: 280px;'>Споделяне: [#shareLog#]</td>
-			     	<td style='width: 280px;'>Следващо напомняне: [#nextStartTime#]</td>
+			     	<!--ET_BEGIN timeStart--><td>Начало: [#timeStart#]</td><!--ET_END timeStart-->
+			     	<td>Следващо напомняне: [#nextStartTime#]</td>
 			     </tr>
-			     
 			     <tr>
-			     	<td style='width: 280px;'>Действие: [#action#]</td>
+			     	<td>Действие: [#action#]</td>
 			     	<!--ET_BEGIN repetitionEach-->   
-			     	<td style='width: 280px;'>Повторение <!--ET_BEGIN each-->[#each#]<!--ET_END each--> [#repetitionEach#]<!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType--></td> 
+			     	<td>Повторение <!--ET_BEGIN each-->[#each#]<!--ET_END each--> [#repetitionEach#]<!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType--></td> 
 			     	<!--ET_END repetitionEach-->
 			    </tr>
 			    <tr>
-			    	<td></td>
+			    	<!--ET_BEGIN timePreviously--><td style='width: 280px;'>Предварително: [#timePreviously#]</td><!--ET_END timePreviously-->
 			     	<!--ET_BEGIN repetitionTypeMonth-->
-			     	<td style='width: 280px;'>Съблюдаване на [#repetitionTypeMonth#]</td>
+			     	<td>Съблюдаване на [#repetitionTypeMonth#]</td>
 			     	<!--ET_END repetitionTypeMonth-->
-
 			    </tr>
-
-		 		</div>
             </table>
+            </div>
 			</small>
 		</div>
  	    <div style='padding-top:10px;'>[#description#]</div>
