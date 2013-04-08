@@ -25,7 +25,7 @@
 			     	<!--ET_END repetitionEach-->
 			    </tr>
 			    <tr>
-			    	<!--ET_BEGIN timePreviously--><td style='width: 280px;'>Предварително: [#timePreviously#]</td><!--ET_END timePreviously-->
+			    	<!--ET_BEGIN timePreviously--><td>Предварително: [#timePreviously#]</td><!--ET_END timePreviously-->
 			     	<!--ET_BEGIN repetitionTypeMonth-->
 			     	<td>Съблюдаване на [#repetitionTypeMonth#]</td>
 			     	<!--ET_END repetitionTypeMonth-->
