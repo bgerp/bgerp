@@ -747,7 +747,7 @@ div.acc-detail {
 
 .detail-info {
 	margin: 10px 0 0 0;
-	padding: 5px;
+	padding: 5px 10px;
 	border: solid 1px #ccc;
 	@include border-radius(5px);
 	img {
@@ -756,6 +756,14 @@ div.acc-detail {
 	}
 	dl{
 		margin-top:-2px;
+	}
+	.listRows{
+		margin-left:0 !important;
+	}
+	table tr{
+		height: 1em;
+		line-height: 1.1em;
+		padding: 0;
 	}
 	&.portal{
 		padding-top:5px;
@@ -944,7 +952,7 @@ div.folder-cover{
 	margin-bottom:0;
 }
 .right-align{
-	min-width:140px; 
+	min-width:120px; 
 	text-align:right;
 	line-height:16px;
 	padding-right:15px;

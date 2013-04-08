@@ -2,24 +2,20 @@
 [#SingleToolbar#]
 	<div class="folder-cover">
 		<div class="inner-folder">
-	<div class="block_title [#STATE_CLASS#] special-title">Продукт <b style="color:green;">[#name#]</b></div>
-	<table class="styled-table" style="margin-top:15px">
-		<tr>
-			<td class="title-style" width="100px">Код</td>
-			<td> [#code#]</td>
-		</tr>
-		<!--ET_BEGIN eanCode-->
-		<tr>
-			<td class="title-style" width="100px">EAN</td>
-			<td> [#eanCode#]</td>
-		</tr>
-		<!--ET_END eanCode-->
-		<tr>
-			<td class="title-style">Мярка</td>
-			<td>[#measureId#]</td>
-		</tr>
-	</table>
-	<!--ET_BEGIN modify-->
+	<div class="block_title [#STATE_CLASS#] special-title">[#img#] Продукт <b style="color:green;">[#name#]</b></div>
+
+	<fieldset class="detail-info">
+		<legend class="groupTitle">|Описание|*</legend>
+            <div class="groupList">
+				<dl>
+				<dt>|Код|*:</dt><dd> [#code#]</dd>
+				<!--ET_BEGIN eanCode-->
+				<dt>|EAN|*:</dt><dd> [#eanCode#]</dd>
+				<!--ET_END eanCode-->
+				<dt>|Мярка|*:</dt><dd> [#measureId#]</dd>
+				</dl>
+             </div>
+        </fieldset>
 		
 		<!--ET_BEGIN info-->
 		<fieldset class="detail-info">

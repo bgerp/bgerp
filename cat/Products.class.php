@@ -231,10 +231,10 @@ class cat_Products extends core_Master {
     {
         // fancybox ефект за картинките
         $Fancybox = cls::get('fancybox_Fancybox');
-        
+      
         $tArr = array(200, 150);
         $mArr = array(600, 450);
-        
+       
         $images_fields = array('image1',
             'image2',
             'image3',
@@ -250,6 +250,10 @@ class cat_Products extends core_Master {
         }
         
         // ENDOF fancybox ефект за картинките
+        
+        /*иконка пред името на продукта*/
+        $imageUrl = sbf("img/16/package-icon.png","");
+        $row->img = ht::createElement("img", array('src' => $imageUrl));
     }
     
     
