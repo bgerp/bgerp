@@ -844,7 +844,7 @@ div.folder-cover{
 	position:relative;
 	z-index:22;
 	border:1px solid #ccc;
-	@include border-radius4(3px,5px,3px,5px);
+	@include border-radius4(0px,25px,25px,0px);
 	box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
 	.inner-folder{
 		background-image:url('../img/folder-spiral.png');
@@ -889,6 +889,7 @@ div.folder-cover{
 	.block_title {
 		border-bottom: solid 1px #dddddd;
 		padding: 7px;
+		@include border-radius4(0,15px,0,0);
 		font-size: 1.4em;
 		color: #433;
 		margin-bottom:10px;
@@ -925,7 +926,14 @@ div.folder-cover{
 
 .narrow .folder-cover{
 	line-height:1.5em;
+	margin-left:0px;
 	font-size:0.8em;
+	padding:0px 0px 0px 5px;
+	.inner-folder{
+		margin:0;
+		background-image:none;
+		padding:10px 10px 10px 5px;
+	}
 }
 
 .printing .folder-cover {
