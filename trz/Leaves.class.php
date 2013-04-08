@@ -28,7 +28,7 @@ class trz_Leaves extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    trz_Wrapper';
+                    trz_Wrapper, trz_LeavesWrapper';
     
     
     /**
@@ -78,5 +78,19 @@ class trz_Leaves extends core_Manager
      */
     function description()
     {
+    }
+    
+    function act_Orders()
+    {
+    	$res = '1';
+
+        return $this->renderWrapping($res);
+    }
+    
+    function act_Applications()
+    {
+    	$res = '1';
+
+        return $this->renderWrapping($res);
     }
 }

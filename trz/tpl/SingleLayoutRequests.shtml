@@ -1,0 +1,28 @@
+[#SingleToolbar#]
+<div class='document'>
+	<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#]'>Молба <b>[#ident#]</b> ([#state#])</div>
+	</div>
+	<!--ET_END header-->
+	<h3>М О Л Б А</h3>
+	 ОТ: <b>[#personId#]</b></br>
+	 ОТНОСНО: ползване на <b>[#paid#]</b> годишен отпуск</br></br>
+	 Уважаеми г-н/ г-жо Управител,</br>
+	 	Моля, да ми разрешите да ползвам ….…….. дни платен годишен отпуск за [#useDaysFromYear#]г.,</br>
+	 	считано от <b>[#leaveFrom#]</b> до <b>[#leaveTo#]</b>.</br>
+	 Остатъкът от полагащия ми се общ размер ще ползвам допълнително в рамките на настоящата година след Ваше писмено разрешение.
+     Надявам се, че ще разрешите ползването на искания отпуск.</br></br> 
+     
+    <table width=100%>
+	<tr>
+	<td>гр.......................</td>
+	<td> </td>
+	<td aheight=50 valign=bottom align=right>Подпис: ...................</td>
+	</tr>
+	<tr>
+	<td height=50 valign=bottom>Дата: [#createdOn#]</td>
+	<td> </td>
+	</tr>
+	</table>
+
+</div>
