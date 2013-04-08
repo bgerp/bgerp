@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends core_Manager
+class cat_Groups extends core_Master
 {
     
     
@@ -32,13 +32,19 @@ class cat_Groups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, doc_FolderPlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,sysId';
+    var $listFields = 'id,name';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
     
     
     /**
@@ -77,6 +83,17 @@ class cat_Groups extends core_Manager
     var $canDelete = 'admin,acc';
 
 
+    /**
+     * Клас за елемента на обграждащия <div>
+     */
+    var $cssClass = 'folder-cover';
+    
+    
+    /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    
     
     /**
      * Описание на модела
@@ -90,24 +107,16 @@ class cat_Groups extends core_Manager
     }
     
     
-    /**
+	/**
      * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterPrepareListRows($mvc, $data)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
-                $rec = $data->recs[$i];
-                $row->productCnt = intval($rec->productCnt);
-                $row->name = tr($mvc->getVerbal($rec, 'name'));
-                $row->name .= " ({$row->productCnt})";
-                $row->name .= "<div><small>" . $mvc->getVerbal($rec, 'info') . "</small></div>";
-            }
-        }
+    	$row->productCnt = intval($rec->productCnt);
+    	if($fields['-list']){
+    		$row->name .= " ({$row->productCnt})";
+            //$row->name .= "<div><small>" . $mvc->getVerbal($rec, 'info') . "</small></div>";
+    	}
     }
     
     

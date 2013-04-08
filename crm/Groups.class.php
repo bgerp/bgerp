@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class crm_Groups extends groups_Manager
+class crm_Groups extends core_Master
 {
     
     
@@ -38,7 +38,7 @@ class crm_Groups extends groups_Manager
     /**
      * Кои полета да се листват
      */
-    var $listFields = 'id,title=Заглавие';
+    var $listFields = 'id,name=Заглавие';
     
     
     /**
@@ -65,7 +65,24 @@ class crm_Groups extends groups_Manager
     var $defaultAccess = 'public';
 
 
-
+	/**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
+    
+    
+    /**
+     * Клас за елемента на обграждащия <div>
+     */
+    var $cssClass = 'folder-cover';
+    
+    
+    /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'crm/tpl/SingleGroup.shtml';
+    
+    
     /**
      * Описание на модела
      */
@@ -114,7 +131,7 @@ class crm_Groups extends groups_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
     	$row->companiesCnt = $mvc->getVerbal($rec, 'companiesCnt');
     	$row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
@@ -122,24 +139,14 @@ class crm_Groups extends groups_Manager
     	$row->companiesCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
         $row->personsCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
        
-        $name = tr($mvc->getVerbal($rec, 'name'));
-        $info = $mvc->getVerbal($rec, 'info');
-        
-        $row->title = "<b>$name</b>";
-        if($info)  $row->title .= "<div><small>$info</small></div>";
-        $row->title .= '<div>';
-        $row->title .= "<span style='font-size:14px;'>Брой фирми:</span> ". $row->companiesCnt;
-        $row->title .= ", <span style='font-size:14px;'>Брой лица:</span> ".  $row->personsCnt;
-        $row->title .= '</div>';
-
-        
-        $extArr  = arr::make($rec->extenders);
-        foreach($extArr as $ext) {
-        	$row->extenders .= $mvc->extendersArr[$ext]['title'] .", ";
+        if($fields['-list']){
+	        $row->name = "<b>$row->name</b>";
+	        if($row->info)  $row->info .= "<div><small>$row->info</small></div>";
+		    $row->name .= '<div>';
+		    $row->name .= "<span style='font-size:14px;'>Брой фирми:</span> ". $row->companiesCnt;
+	        $row->name .= ", <span style='font-size:14px;'>Брой лица:</span> ".  $row->personsCnt;
+	        $row->name .= '</div>';
         }
-        $row->extenders = trim($row->extenders, ', ');
-        $row->extenders = "<span style='display:block; width:320px; font-size: 15px;'>".$row->extenders."</span>";
-        
     }
     
     
@@ -236,7 +243,7 @@ class crm_Groups extends groups_Manager
             $rec->name  = $newRec->name;
             $rec->sysId = $newRec->sysId;
             $rec->allow = $newRec->allow;
-
+			
             if(!$rec->id) {
                 $nAffected++;
             }
