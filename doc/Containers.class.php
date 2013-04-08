@@ -916,8 +916,42 @@ class doc_Containers extends core_Manager
             if(!core_Classes::fetch("#id = {$rec->docClass} && #state = 'active'")) {
                 $err[$rec->id] .= 'Not exists docClass; ';
             } else {
+                
+                // Ако няма docId
                 if(!$rec->docId) {
-                    $err[$rec->id] .= 'Not exists docId; ';
+                    
+                    // Ако има клас
+                    if ($rec->docClass) {
+                        
+                        // Инстанция на класа
+                        $docClass = cls::get($rec->docClass);
+                        
+                        // Вземаме docId от документа със съответноя контейнер
+                        $rec->docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id');
+                        
+                        // Ако има docId
+                        if ($rec->docId) {
+                            
+                            // Опитваме се да го запишем
+                            if (static::save($rec, 'docId')) {
+                                
+                                // Добавяме съобщение
+                                $err[$rec->id] .= "Repaired docId = '{$rec->docId}' from class '{$docClass->className}'; ";    
+                            } else {
+                                
+                                // Добавяме съобщение, ако евентуално не може да се запише
+                                $err[$rec->id] .= "Can' t save docId = '{$rec->docId}' from class '{$docClass->className}'; ";
+                            }
+                        } else {
+                            
+                            // Ако не можем да определим docId
+                            $err[$rec->id] .= "Can' t repair docClass = '{$rec->docClass}'; ";
+                        }
+                    } else {
+                        
+                        // Ако няма клас, няма как да се определи
+                        $err[$rec->id] .= 'Not exists docId; ';    
+                    }
                 } else {
 
                     $cls = cls::get($rec->docClass);
