@@ -47,7 +47,7 @@ class price_ConsumptionNorms extends core_Master {
 	
 	
 	/**
-	 * Брой рецепти на страница
+	 * Брой Разходна норми на страница
 	 */
 	var $listItemsPerPage = '40';
 	
@@ -109,7 +109,7 @@ class price_ConsumptionNorms extends core_Master {
     
     
     /**
-     * За продуктите от кои групи могат да бъдат правени рецепти
+     * За продуктите от кои групи могат да бъдат правени Разходни норми
      * @see cat_Groups
      */
     public static $normProductGroups = array('productsStandard', 'prefabrications', 'services');
@@ -117,7 +117,7 @@ class price_ConsumptionNorms extends core_Master {
     
     /**
      * Продуктите от кои групи могат да бъдат включвани като съставка
-     * на рецепта
+     * на нормата
      * @see cat_Groups
      */
     public static $ingredientProductGroups = array(
@@ -194,13 +194,13 @@ class price_ConsumptionNorms extends core_Master {
     
     
     /**
-     * Филтрира продуктите които могат да се добавят като начало на рецепта
-     * Ако добавяме нова рецепта: Зареждаме само продуктите, които са в
+     * Филтрира продуктите които могат да се добавят като начало на нормата
+     * Ако добавяме нова нормата: Зареждаме само продуктите, които са в
      * 							  позволените групи, и изключваме тези
-     * 							  от тях които вече са рецепти
-     * Ако редактираме рецепта: Зареждаме всички продукти от позволените
+     * 							  от тях които вече са нормати
+     * Ако редактираме нормата: Зареждаме всички продукти от позволените
      * 							групи но изключваме продуктите които вече
-     * 							са съставка на рецептите				
+     * 							са съставка на норматите				
      * @param stdClass $rec - запис от модела
      * @return array $options- опции с позволени продукти
      * 
@@ -209,17 +209,17 @@ class price_ConsumptionNorms extends core_Master {
     {
     	$children = array();
 	    
-    	// зареждаме само продуктите, които могат да имат рецепти
+    	// зареждаме само продуктите, които могат да имат нормати
     	$productsArr = $this->getAvailableProducts('norm');
     	
     	if($rec->id){
     		
     		// При редакция се подсигуряваме че неможе продукт
-    		// който е съставка на рецептата да се добави като нейн начален
+    		// който е съставка на нормата да се добави като нейн начален
 	    	$this->getChildren($rec->productId, $children, TRUE);
 	    } else {
 	    	
-	    	// При нова рецепта, изключваме продуктите, имащи вече рецепта
+	    	// При нова норма, изключваме продуктите, имащи вече норма
     		$query = $this->getQuery();
     		while($childRec = $query->fetch()){
     			$children[$childRec->productId] = $childRec->productId;
@@ -233,8 +233,8 @@ class price_ConsumptionNorms extends core_Master {
     
     
     /**
-     * Показва само продуктите, които могат да започват рецепта
-     * @param string $string - дали търсим продуктите за рецепта
+     * Показва само продуктите, които могат да започват норма
+     * @param string $string - дали търсим продуктите за нормата
      * или съставка. Масивите са дефинирани като $recipeProductGroups и
      * $ingredientProductGroups
      * @return array $productsArr - масив с продукти, принадлежащи на
@@ -250,7 +250,7 @@ class price_ConsumptionNorms extends core_Master {
     		$catQuery->orWhere("#groups LIKE '%|{$groupId}|%'");
     	}
     	
-    	if(!$catQuery->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма продукти, които могат да започват рецепти');
+    	if(!$catQuery->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма продукти, които могат да започват Разходна норма');
     	
     	while($catRec = $catQuery->fetch()){
 	    	$productsArr[$catRec->id] = $catRec->name;
@@ -262,7 +262,7 @@ class price_ConsumptionNorms extends core_Master {
     
     /**
      * Помощна функция която записва в един масив всички
-     * продукти които са част от дървото на рецептата
+     * продукти които са част от дървото на Разходната нормата
      * @param int $productId - id на продукта
      * @param array $children - масив събиращ децата
      * @param boolean $root - дали poductId е корена на дървото
@@ -334,19 +334,19 @@ class price_ConsumptionNorms extends core_Master {
 	
     /**
      * Филтриране на всички възможни продукти които могат
-     * да се добавят към дадена рецепта. Премахват се всички
-     * онези продукти, които имат за съставка въпросната рецепта
-     * @param int $id - id на рецепта
+     * да се добавят към дадена Разходна норма. Премахват се всички
+     * онези продукти, които имат за съставка въпросната норма
+     * @param int $id - id на Разходната норма
      * @param int $detailId - id на детайл
      * @return array - масив с позволените продукти
      */
     public function getAllowedProducts($id, $detailId)
     {
-    	// Кой продукт ще търсим във всички рецепти
+    	// Кой продукт ще търсим във всички Разходни норми
     	$needle = $this->fetchField($id, 'productId');
     	$productsArr = $notAllowed = array();
     	
-    	// За всяка рецепта проверяваме дали съдържа въпросния
+    	// За всяка Разходна норма проверяваме дали съдържа въпросния
     	// продукт, ако да добавяме нейния продукт в списък
     	// на неразрешените продукти
     	$query = $this->getQuery();
@@ -354,7 +354,7 @@ class price_ConsumptionNorms extends core_Master {
     		$this->searchProduct($rec->productId, $notAllowed, $needle);
     	}
     	
-    	// Изключваме и продуктите, които вече са част от рецептата
+    	// Изключваме и продуктите, които вече са част от Разходната норма
     	$dQuery = price_ConsumptionNormDetails::getQuery();
     	$dQuery->where("#normId = {$id}");
     	if($detailId){
@@ -377,7 +377,7 @@ class price_ConsumptionNorms extends core_Master {
     
     
     /**
-     * Рекурсивно обхождаме дървото на рецепта и търсим дали
+     * Рекурсивно обхождаме дървото на Разходната норма и търсим дали
      * тя съдържа някъде определен продукт, ако да то добавяме
      * всички продукти които са част от дървото към масив.
      * @param int $productId - текущия продукт
@@ -407,7 +407,7 @@ class price_ConsumptionNorms extends core_Master {
     	if($ingredients){
     		foreach($ingredients as $ing){
     			
-    			// Обхождаме всяка съставка на рецептата
+    			// Обхождаме всяка съставка на Разходната норма
 	    		$res = $this->searchProduct($ing->productId, $notAllowed, $needle, $path);
 	    	}
     	}
@@ -415,9 +415,9 @@ class price_ConsumptionNorms extends core_Master {
     
     
     /**
-     * Извлича рецепта по продукт
+     * Извлича Разходна норма по продукт
      * @param int $productId - id на продукт
-     * @return stdClass - запис на рецепта
+     * @return stdClass - запис на Разходна норма
      */
     public static function fetchByProduct($productId)
     {
@@ -459,17 +459,17 @@ class price_ConsumptionNorms extends core_Master {
     
     
     /**
-     * Изпълнява се след създаване на нова рецепта
+     * Изпълнява се след създаване на нова Разходна норма
      */
     function on_AfterCreate($mvc, $id)
     {
-    	// Обновяване на броя рецепти във всяка група
+    	// Обновяване на броя Разходни норми във всяка група
     	price_ConsumptionNormGroups::updateCount();
     }
     
     
     /**
-     * Изчислява себестойноста на всички листвани рецепти и ги
+     * Изчислява себестойноста на всички листвани Разходни норми и ги
      * записва в модел себестойности
      */
     function act_calcAll()
@@ -643,7 +643,7 @@ class price_ConsumptionNorms extends core_Master {
 			$query->where("#normId = {$rec->id}");
 			if(!$rec || $query->count() == 0){
 				
-				// Ако не сме създали още рецептата или няма
+				// Ако не сме създали още Разходна норма или няма
 				// съставки никой неможе да активира
 				$res = 'no_one';
 			}

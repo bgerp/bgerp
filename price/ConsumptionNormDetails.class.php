@@ -60,7 +60,7 @@ class price_ConsumptionNormDetails extends core_Detail {
     
 	
     /**
-	 * Брой рецепти на страница
+	 * Брой детайли на страница
 	 */
 	var $listItemsPerPage = '25';
 	
@@ -70,7 +70,7 @@ class price_ConsumptionNormDetails extends core_Detail {
      */
     function description()
     {
-    	$this->FLD('normId', 'key(mvc=price_ConsumptionNorms)', 'caption=Рецепта, input=hidden, silent');
+    	$this->FLD('normId', 'key(mvc=price_ConsumptionNorms)', 'caption=Норма, input=hidden, silent');
     	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
     	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=10em');
     	$this->FLD('quantity', 'int', 'caption=Количество,mandatory,width=10em');
@@ -145,7 +145,7 @@ class price_ConsumptionNormDetails extends core_Detail {
     {
     	// Филтрираме продуктите така че да немогат да се добавят
     	// продукти които използват вече текущия продукт, както
-    	// и продукти които са вече част от рецептата
+    	// и продукти които са вече част от нормата
     	$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->normId, $data->form->rec->id));
     	$productName = cat_Products::getTitleById($data->masterRec->productId);
     	($data->form->rec->id) ? $title = "Редактиране на съставка в норма" : $title = "Добавяне на съставка в норма";
@@ -179,7 +179,7 @@ class price_ConsumptionNormDetails extends core_Detail {
     
    /**
     * Помощна функция която записва в един масив всички
-    * продукти които са част от дървото на рецептата
+    * продукти които са част от дървото на нормата
     * @param int $productId - id на продукта
     * @param array $children - масив събиращ децата
     * @param boolean $root - дали poductId е корена на дървото

@@ -62,14 +62,14 @@ class price_ConsumptionNormGroups extends core_Manager {
     function description()
     {
 	     $this->FLD('title', 'varchar(255)', 'caption=Име, mandatory');
-	     $this->FLD('normCount', 'int', 'caption=Рецепти, input=none, value=0');
+	     $this->FLD('normCount', 'int', 'caption=Разходни норми, input=none, value=0');
 	    
 	     $this->setDbUnique('title');
     }
     
     
 	/**
-	* Обновяване на броя рецепти във всяка група
+	* Обновяване на броя Разходни норми във всяка група
 	*/
     public static function updateCount()
     {

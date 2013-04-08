@@ -11,7 +11,8 @@ $(document).ready(function () {
 	$(".SearchBtnPortal").live("click", function(){
 		var object = $(this).parents('.portal-filter').children(".hFormField");
 		if(object.children('input').val() == ''){
-			object.toggle();
+			object.animate({width:'toggle'},200);
+
 			if (object.is(':visible')) {
 				object.children('input').focus();  
 			}
