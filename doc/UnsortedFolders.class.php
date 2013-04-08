@@ -139,4 +139,9 @@ class doc_UnsortedFolders extends core_Master
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
         }
     }
+    
+    static function on_AfterRecToVerbal ($mvc, $row, $rec){
+    	$imageUrl = sbf("img/16/basket.png","");
+    	$row->img = ht::createElement("img", array('src' => $imageUrl));
+    }
 }

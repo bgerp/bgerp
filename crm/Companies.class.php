@@ -486,6 +486,8 @@ class crm_Companies extends core_Master
                 $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif') . " alt='no image'>";
             }
         }
+        $imageUrl = sbf("img/16/group.png","");
+        $row->img = ht::createElement("img", array('src' => $imageUrl));
         
         $row->country = $mvc->getVerbal($rec, 'country');
         
