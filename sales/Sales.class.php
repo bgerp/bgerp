@@ -912,6 +912,57 @@ class sales_Sales extends core_Master
     }
     
     
+    /**
+     * Данни за експедиция, записани в документа продажба
+     * 
+     * @param int $id key(mvc=sales_Sales)
+     * @return object
+     */
+    public function getShipmentInfo($id)
+    {
+        $rec = $this->fetch($id);
+        
+        return (object)array(
+             'contragentClassId' => $rec->contragentClassId,
+             'contragentId' => $rec->contragentId,
+             'deliveryTermId' => $rec->deliveryTermId,
+             'deliveryLocationId' => $rec->deliveryLocationId,
+             'deliveryTime' => $rec->deliveryTime,
+             'shipmentStoreId' => $rec->shipmentStoreId,
+        );
+    }
+    
+    
+    /**
+     * Детайли (продукти), записани в документа продажба
+     * 
+     * @param int $id key(mvc=sales_Sales)
+     * @return array
+     */
+    public function getProducts($id)
+    {
+        $products = array();
+        $query    = sales_SalesDetails::getQuery();
+        
+        $query->where("#saleId = {$id}");
+        
+        while ($rec = $query->fetch()) {
+            $products[] = (object)array(
+                'policyId'  => $rec->policyId,
+                'productId'  => $rec->productId,
+                'uomId'  => $rec->uomId,
+                'packagingId'  => $rec->packagingId,
+                'quantity'  => $rec->quantity,
+                'quantityInPack'  => $rec->quantityInPack,
+                'price'  => $rec->price,
+                'discount'  => $rec->discount,
+            );
+        }
+        
+        return $products;
+    }
+    
+    
     public static function roundPrice($price)
     {
         $precision = 2 + 

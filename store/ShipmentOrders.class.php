@@ -179,8 +179,19 @@ class store_ShipmentOrders extends core_Master
         );
     }
     
-    public static function on_AfterSave($mvc)
+    public static function on_AfterCreate($mvc, $rec)
     {
+        if (!empty($rec->originId)) {
+            
+            $origin = doc_Containers::getDocument($rec->originId);
+            
+            $products = $origin->getProducts();
+            
+            foreach ($products as $p) {
+                $p->shipmentId = $rec->id;
+                store_ShipmentOrderDetails::save($p);
+            }
+        }
     }
 
 
@@ -340,29 +351,56 @@ class store_ShipmentOrders extends core_Master
         
         /* @var $form core_Form */
         $form = $data->form;
-       
-        $form->setDefault('valior', dt::now());
+        $rec  = &$form->rec;
         
-        $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
+        $form->setDefault('valior', dt::now()); 
         
-        if (empty($form->rec->folderId)) {
-            expect($form->rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
+        // Определняне на стойности по подразбиране на базата на пораждащия документ (ако има)
+        $rec = $mvc->getDefaultsByOrigin($rec);
+        
+        if (empty($rec->folderId)) {
+            expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
         }
         
-        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
-        $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
+        /*
+         * Определяне на контрагента (ако още не е определен)
+         */
+        if (empty($rec->contragentClassId)) {
+            $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+        }
+        if (empty($rec->contragentId)) {
+            $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        }
         
         /*
-         * Условия за доставка по подразбиране
+         * Условия за доставка по подразбиране - трябва да е след определянето на контрагента, 
+         * тъй-като определянето зависи от него
          */
-        if (empty($form->rec->deliveryTermId)) {
-            $form->rec->deliveryTermId = $mvc::getDefaultDeliveryTermId($form->rec);
+        if (empty($rec->deliveryTermId)) {
+            $rec->deliveryTermId = $mvc::getDefaultDeliveryTermId($rec);
+        }
+        
+        if (empty($rec->shipmentStoreId)) {
+            $rec->shipmentStoreId = store_Stores::getCurrent('id', FALSE);
         }
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('deliveryLocationId')->type->options = 
             array(''=>'') +
-            crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+            crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+        
+    }
+    
+    
+    public function getDefaultsByOrigin($rec)
+    {
+        if (!empty($rec->originId)) {
+            $origin   = doc_Containers::getDocument($rec->originId);
+            $defaults = $origin->getShipmentInfo();
+            $rec      = (array)$rec + (array)$defaults;
+        }
+        
+        return (object)$rec;
     }
     
 
