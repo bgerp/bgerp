@@ -31,6 +31,8 @@
             </div>
         </fieldset>
 		<!--ET_END groups-->
+	
+	[#DETAILS#]
 	<fieldset class="detail-info">
             <legend class="groupTitle">|Права|*</legend>
             <div class="groupList">
@@ -51,7 +53,6 @@
 			
              </div>
         </fieldset>
-	[#DETAILS#]
 	</div>
 	</div>
 </div>
