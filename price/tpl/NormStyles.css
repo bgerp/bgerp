@@ -1,0 +1,31 @@
+.norm-master-table {
+}
+
+.norm-table{
+	border:1px solid #ccc;
+	width:530px;
+	border-collapse:collapse;
+	margin-bottom:5px;
+}
+
+.norm-table th{
+	border:1px solid #ccc;
+	padding:3px;
+	background:#f5f5f5;
+}
+
+.norm-table td{
+	border:1px solid #ccc;
+	padding:3px;
+}
+
+.norm-table .norm-cat{
+	border:none !important;
+	background:#eee;
+	font-style:italic;
+}
+
+.norm-row-cell{
+	padding-right:10px;
+	text-align:right;
+}

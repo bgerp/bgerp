@@ -3,17 +3,17 @@
 
 
 /**
- * Модел  Рецептурник
+ * Модел  Разходни норми
  *
  *
  * @category  bgerp
- * @package   cat
+ * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Recipes extends core_Master {
+class price_ConsumptionNorms extends core_Master {
     
     
     /**
@@ -25,13 +25,13 @@ class cat_Recipes extends core_Master {
     /**
      * Заглавие
      */
-    var $title = 'Рецептурник';
+    var $title = 'Разходни Норми';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Рецепта за себестойност';
+    var $singleTitle = 'Разходна норма';
     
     
     /**
@@ -43,7 +43,7 @@ class cat_Recipes extends core_Master {
     /**
 	 * Коментари на статията
 	 */
-	var $details = 'cat_RecipeDetails';
+	var $details = 'price_ConsumptionNormDetails';
 	
 	
 	/**
@@ -55,7 +55,7 @@ class cat_Recipes extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, cat_RecipeWrapper, doc_DocumentPlg,
+    var $loadList = 'plg_RowTools, price_Wrapper, price_ConsumptionNormWrapper, doc_DocumentPlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg';
     
     
@@ -75,13 +75,13 @@ class cat_Recipes extends core_Master {
     /**
      * Кой може да чете
      */
-    var $canRead = 'cat, admin';
+    var $canRead = 'price, admin';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'cat, admin';
+    var $canWrite = 'price, admin';
     
     
 	/**
@@ -93,7 +93,7 @@ class cat_Recipes extends core_Master {
     /**
      * Файл с шаблон за единичен изглед
      */
-    var $singleLayoutFile = 'cat/tpl/SingleLayoutRecipes.shtml';
+    var $singleLayoutFile = 'price/tpl/SingleLayoutConsumptionNorm.shtml';
     
     
     /**
@@ -112,8 +112,7 @@ class cat_Recipes extends core_Master {
      * За продуктите от кои групи могат да бъдат правени рецепти
      * @see cat_Groups
      */
-    protected static $recipeProductGroups = array('productsStandard',
-    											  'prefabrications',);
+    public static $normProductGroups = array('productsStandard', 'prefabrications', 'services');
     
     
     /**
@@ -121,11 +120,12 @@ class cat_Recipes extends core_Master {
      * на рецепта
      * @see cat_Groups
      */
-    protected static $ingredientProductGroups = array(
+    public static $ingredientProductGroups = array(
     							'materials',
     							'labor',
     							'externalServices',
-    							'prefabrications');
+    							'prefabrications',
+    							'consumables',);
     
     
     /**
@@ -136,7 +136,7 @@ class cat_Recipes extends core_Master {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
     	$this->FLD('uom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=18em');
     	$this->FLD('info', 'text(rows=4)', 'caption=Информация,width=18em');
-    	$this->FLD('groups', 'keylist(mvc=cat_RecipeGroups, select=title)', 'caption=Групи, mandatory');
+    	$this->FLD('groups', 'keylist(mvc=price_ConsumptionNormGroups, select=title)', 'caption=Групи, mandatory');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     
     	$this->setDbUnique('productId,uom');
@@ -168,8 +168,8 @@ class cat_Recipes extends core_Master {
    	 */
    	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$detailQuery = $mvc->cat_RecipeDetails->getQuery();
-    	$detailQuery->where("#recipeId = {$data->rec->id}");
+    	$detailQuery = $mvc->price_ConsumptionNormDetails->getQuery();
+    	$detailQuery->where("#normId = {$data->rec->id}");
     	if($detailQuery->count()){
     		
     		// Неможе да се изчислява цената на продукт, ако няма съставки
@@ -210,7 +210,7 @@ class cat_Recipes extends core_Master {
     	$children = array();
 	    
     	// зареждаме само продуктите, които могат да имат рецепти
-    	$productsArr = $this->getAvailableProducts('recipe');
+    	$productsArr = $this->getAvailableProducts('norm');
     	
     	if($rec->id){
     		
@@ -294,8 +294,8 @@ class cat_Recipes extends core_Master {
     	$rec = static::fetchByProduct($productId);
     	if(!$rec) return FALSE;
     	
-    	$query = cat_RecipeDetails::getQuery();
-    	$query->where("#recipeId = {$rec->id}");
+    	$query = price_ConsumptionNormDetails::getQuery();
+    	$query->where("#normId = {$rec->id}");
     	while($detail = $query->fetch()){
     		$obj = new stdClass();
     		$obj->productId = $detail->dProductId;
@@ -355,8 +355,8 @@ class cat_Recipes extends core_Master {
     	}
     	
     	// Изключваме и продуктите, които вече са част от рецептата
-    	$dQuery = cat_RecipeDetails::getQuery();
-    	$dQuery->where("#recipeId = {$id}");
+    	$dQuery = price_ConsumptionNormDetails::getQuery();
+    	$dQuery->where("#normId = {$id}");
     	if($detailId){
     		$dQuery->where("#id != {$detailId}");
     	}
@@ -464,7 +464,7 @@ class cat_Recipes extends core_Master {
     function on_AfterCreate($mvc, $id)
     {
     	// Обновяване на броя рецепти във всяка група
-    	cat_RecipeGroups::updateCount();
+    	price_ConsumptionNormGroups::updateCount();
     }
     
     
@@ -478,6 +478,7 @@ class cat_Recipes extends core_Master {
     	$count = 0;
     	$conf = core_Packs::getConfig('price');
     	$query = $this->getQuery();
+    	$query->where("#state = 'active'");
     	
     	// Предаваме параметрите получени от филтър формата
     	if($gr = Request::get('gr')){
@@ -490,7 +491,7 @@ class cat_Recipes extends core_Master {
     		plg_Search::applySearch($search, $query);
     	}
     	
-    	if($id = Request::get('recipeId')){
+    	if($id = Request::get('normId')){
     		$query->where("#id = {$id}");
     	}
     	
@@ -498,7 +499,7 @@ class cat_Recipes extends core_Master {
     		$listRec = new stdClass();
     		$listRec->listId = $conf->PRICE_LIST_COST;
     		$listRec->productId = $rec->productId;
-    		$listRec->price = cat_Recipes::calcCost($rec->productId, 1, NULL, $rec->uom);
+    		$listRec->price = price_ConsumptionNorms::calcCost($rec->productId, 1, NULL, $rec->uom);
     		$listRec->type = 'value';
     		$listRec->validFrom = dt::now();
     		if($listRec->price){
@@ -530,7 +531,7 @@ class cat_Recipes extends core_Master {
         	}
             $this->requireRightFor('add', $data->rec);
             if ($data->form->isSubmitted()){
-            	$price = cat_Recipes::calcCost($data->rec->productId, $rec->quantity, NULL, $rec->uom);
+            	$price = price_ConsumptionNorms::calcCost($data->rec->productId, $rec->quantity, NULL, $rec->uom);
             	$currency = acc_Periods::getBaseCurrencyCode();
             	return Redirect(array($this, 'single', $data->rec->id), FALSE, "Себестойноста  на {$rec->quantity}  {$data->row->productId} е {$price} <span class='cCode'>{$currency}</span>");
             }
@@ -572,8 +573,8 @@ class cat_Recipes extends core_Master {
 			$icon = sbf("img/16/package-icon.png");
 			$row->productId = ht::createLink($row->productId, array('cat_Products', 'single', $rec->productId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
 		
-			$dQuery = $mvc->cat_RecipeDetails->getQuery();
-			$dQuery->where("#recipeId = {$rec->id}");
+			$dQuery = $mvc->price_ConsumptionNormDetails->getQuery();
+			$dQuery->where("#normId = {$rec->id}");
 			$row->ingCount = $dQuery->count();
 		}
     }
@@ -614,7 +615,7 @@ class cat_Recipes extends core_Master {
 	{	
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->view = 'horizontal';
-		$data->listFilter->FNC('gr', 'key(mvc=cat_RecipeGroups, select=title, allowEmpty)', 'width=9em,silent');
+		$data->listFilter->FNC('gr', 'key(mvc=price_ConsumptionNormGroups, select=title, allowEmpty)', 'placeholder=Група,width=9em,silent');
 		$data->listFilter->FNC('measure', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'width=9em,caption=Мярка,silent');
 		$data->listFilter->showFields = 'search,gr,measure';
 		$data->listFilter->input();
@@ -638,8 +639,8 @@ class cat_Recipes extends core_Master {
 	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'activate') {
-			$query = $mvc->cat_RecipeDetails->getQuery();
-			$query->where("#recipeId = {$rec->id}");
+			$query = $mvc->price_ConsumptionNormDetails->getQuery();
+			$query->where("#normId = {$rec->id}");
 			if(!$rec || $query->count() == 0){
 				
 				// Ако не сме създали още рецептата или няма
@@ -659,7 +660,7 @@ class cat_Recipes extends core_Master {
     		
     		// След като документа се активира, изчисляваме и
     		// записваме неговата себестойност
-    		Redirect(array($mvc, 'calcAll', 'recipeId' => $rec->id, 'ret_url' => array($mvc, 'single', $id)));
+    		Redirect(array($mvc, 'calcAll', 'normId' => $rec->id, 'ret_url' => array($mvc, 'single', $id)));
     	}
    	}
 }

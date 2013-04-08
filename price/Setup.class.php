@@ -56,6 +56,9 @@ class price_Setup
             'price_ListToCustomers',
             'price_ListRules',
             'price_History',
+        	'price_ConsumptionNorms',
+        	'price_ConsumptionNormDetails',
+        	'price_ConsumptionNormGroups',
         );
         
         // Роля за power-user на този модул

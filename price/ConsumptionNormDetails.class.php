@@ -3,29 +3,29 @@
 
 
 /**
- * Мениджър за "Детайли на рецептите" 
+ * Мениджър за "Детайли на разходните норми" 
  *
  *
  * @category  bgerp
- * @package   cat
+ * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
-class cat_RecipeDetails extends core_Detail {
+class price_ConsumptionNormDetails extends core_Detail {
     
     
     /**
      * Заглавие
      */
-    var $title = 'Детайли на рецептите';
+    var $title = 'Детайли на разходните норми';
     
     
     /**
 	 * Мастър ключ към дъските
 	 */
-	var $masterKey = 'recipeId';
+	var $masterKey = 'normId';
     
     
 	/**
@@ -44,7 +44,7 @@ class cat_RecipeDetails extends core_Detail {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'tools=Пулт, dProductId, dUom, quantity';
+	var $listFields = 'tools=Пулт, id, dProductId, dUom, quantity';
 	
 	
     /**
@@ -70,11 +70,72 @@ class cat_RecipeDetails extends core_Detail {
      */
     function description()
     {
-    	$this->FLD('recipeId', 'key(mvc=cat_Recipes)', 'caption=Рецепта, input=hidden, silent');
+    	$this->FLD('normId', 'key(mvc=price_ConsumptionNorms)', 'caption=Рецепта, input=hidden, silent');
     	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
     	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=10em');
     	$this->FLD('quantity', 'int', 'caption=Количество,mandatory,width=10em');
     }
+    
+    
+	/**
+     * Преди извличане на записите от БД
+     */
+    public static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+    	if($data->rows){
+	    	foreach($data->rows as $row){
+	    		$arr = cat_Products::fetchField($data->recs[$row->id]->dProductId, 'groups');
+	    		$row->groups = type_Keylist::toArray($arr);
+	    	}
+    	}
+    }
+    
+    
+    /**
+     * 
+     * @param unknown_type $data
+     */
+    public function renderDetail_($data)
+    {
+        $tpl = new ET("");
+    	$tplDetail = new ET(tr('|*' . getFileContent('price/tpl/ConsumptionNormDetails.shtml')));
+    	$groups = price_ConsumptionNorms::$ingredientProductGroups;
+    	foreach($groups as $gr){
+    		$grRec = cat_Groups::fetch("#sysId = '{$gr}'");
+		    if(!$data->rows) break;
+    		$ingredients = array_filter($data->rows, function(&$val) use ($grRec) {
+    													if($res = in_array($grRec->id, $val->groups)){
+									    					unset($val);
+									    				}
+									    				return $res;});
+    		if(count($ingredients) != 0){
+    			$cloneTpl = clone $tplDetail;
+    			$cloneTpl->replace($grRec->name, 'Cat');
+    			foreach ($ingredients as $ing){
+    				$rowTpl = $cloneTpl->getBlock('ROW');
+    				$rowTpl->placeObject($ing);
+    				$rowTpl->removeBlocks();
+    				$rowTpl->append2master();
+    			}
+    			$cloneTpl->removeBlocks();
+    			$tpl->append($cloneTpl);
+    		}
+    	}
+    	$tpl->append(new ET("[#ListToolbar#]"));
+    	$tpl->replace($this->renderListToolbar($data),'ListToolbar');
+    	$tpl->push('price/tpl/NormStyles.css', 'CSS');
+    	
+    	return $tpl;	
+    }
+    
+    
+    /**
+     * 
+     */
+    function categoryone($var)
+	{
+		return (is_array($var) && $var['category'] == 1);
+	}
     
     
     /**
@@ -85,9 +146,9 @@ class cat_RecipeDetails extends core_Detail {
     	// Филтрираме продуктите така че да немогат да се добавят
     	// продукти които използват вече текущия продукт, както
     	// и продукти които са вече част от рецептата
-    	$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->recipeId, $data->form->rec->id));
+    	$data->form->setOptions('dProductId', $mvc->Master->getAllowedProducts($data->form->rec->normId, $data->form->rec->id));
     	$productName = cat_Products::getTitleById($data->masterRec->productId);
-    	($data->form->rec->id) ? $title = "Редактиране на съставка в рецепта" : $title = "Добавяне на съставка в рецепта";
+    	($data->form->rec->id) ? $title = "Редактиране на съставка в норма" : $title = "Добавяне на съставка в норма";
     	$data->form->title = tr($title) . " |*\"{$productName}\"";
     }
     
@@ -127,7 +188,7 @@ class cat_RecipeDetails extends core_Detail {
     	if(!array_key_exists($productId, $children) && !$root){
     		$children[$productId] = $productId;
     	}
-    	$ingredients = cat_Recipes::getIngredients($productId);
+    	$ingredients = price_ConsumptionNorms::getIngredients($productId);
     	if($ingredients){
     		foreach($ingredients as $ing){
     			$res = $this->getChildren($ing->productId, $children);
@@ -141,9 +202,9 @@ class cat_RecipeDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($recipeRec = cat_Recipes::fetchByProduct($rec->dProductId)){
+    	if($recipeRec = price_ConsumptionNorms::fetchByProduct($rec->dProductId)){
     		$icon = sbf("img/16/legend.png");
-    		$row->dProductId = ht::createLink($row->dProductId, array('cat_Recipes', 'single', $recipeRec->id), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+    		$row->dProductId = ht::createLink($row->dProductId, array('price_ConsumptionNorms', 'single', $recipeRec->id), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
     	} else {
     		$icon = sbf("img/16/package-icon.png");
 			$row->dProductId = ht::createLink($row->dProductId, array('cat_Products', 'single', $rec->dProductId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
@@ -156,10 +217,10 @@ class cat_RecipeDetails extends core_Detail {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
-		if($action == 'add' && isset($rec->recipeId)){
-			$masterRec = $mvc->Master->fetch($rec->recipeId);
+		if($action == 'add' && isset($rec->normId)){
+			$masterRec = $mvc->Master->fetch($rec->normId);
 			if($masterRec->state == 'draft'){
-				$res = 'cat, admin';
+				$res = 'price, admin';
 			}
 		}
 	}

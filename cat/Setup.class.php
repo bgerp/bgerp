@@ -59,9 +59,6 @@ class cat_Setup
             'cat_Params',
             'cat_Packagings',
             'cat_PricePolicyMockup',
-        	'cat_Recipes',
-        	'cat_RecipeDetails',
-        	'cat_RecipeGroups',
         );
         
         // Роля за power-user на този модул
