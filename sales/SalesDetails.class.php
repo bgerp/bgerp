@@ -122,16 +122,24 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
-        
+
         // Количество в основна мярка
         $this->FLD('quantity', 'float', 'caption=К-во,input=none');
+        
+        // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
+        // няма стойност, приема се за единица.
         $this->FLD('quantityInPack', 'float', 'input=none,column=none');
         
         // Цена за единица продукт в основна мярка
         $this->FLD('price', 'float', 'caption=Цена,input=none');
         
         $this->FNC('amount', 'float(decimals=2)', 'caption=Сума');
+        
+        // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $this->FNC('packQuantity', 'float', 'caption=К-во,input=input,mandatory');
+        
+        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма
+        // packagingId)
         $this->FNC('packPrice', 'float', 'caption=Цена,input=input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
