@@ -321,13 +321,14 @@ class cal_Tasks extends core_Master
     {
         if($data->rec->state == 'active') {
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
+            $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/bell_clock2.png, row=2');
         }
         
         if($mvc->haveRightFor('postpone', $data->rec)) {
-        	$data->toolbar->addBtn('Отлагане', array($mvc,'Postpone', 'postpone', 'taskId' => $data->rec->id), 'ef_icon=img/16/clock_go.png');
+        	$data->toolbar->addBtn('Отлагане', array($mvc,'Postpone', 'postpone', 'taskId' => $data->rec->id), 'ef_icon=img/16/clock.png');
         }
         
-        $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/bell_clock2.png, row=2');
+        
     }
 
 
