@@ -129,7 +129,7 @@ class cal_Reminders extends core_Master
     
     //var $cloneFields = 'title, priority, ';
     
-    static $suggestions = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
+    static $suggestions = array(1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
   
     /**
      * Описание на модела (таблицата)
@@ -161,7 +161,7 @@ class cal_Reminders extends core_Master
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително');
         
         // Колко пъти ще се повтаря напомнянето?
-        $this->FLD('repetitionEach', 'int',     'caption=Повторение->Всеки');
+        $this->FLD('repetitionEach', 'int(Min=0)',     'caption=Повторение->Всеки');
         
         // По какво ще се повтаря напомненето - дни, седмици, месеци, години
         $this->FLD('repetitionType', 'enum(   days=дена,
@@ -236,6 +236,7 @@ class cal_Reminders extends core_Master
     			$data->form->setDefault('timeStart', $rec->timeEnd);
     		}
     		$data->form->setDefault('timePreviously', "15 мин.");
+    	    $data->form->setDefault('repetitionEach', NULL);
 
 		}
         
@@ -245,20 +246,18 @@ class cal_Reminders extends core_Master
 
 
     /**
-     * Подготвяне на вербалните стойности
-     */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-      
-    }
-
-
-
-    /**
      * Проверява и допълва въведените данни от 'edit' формата
      */
     function on_AfterInputEditForm($mvc, $form)
     {
+    	$now = dt::now(FALSE);
+    	if ($form->isSubmitted()) {
+        	if($form->rec->timeStart < $now){
+        		// Добавяме съобщение за грешка
+                $form->setError('timeStart', "Датата за напомняне трябва да е след ". $now);
+        	}
+        	
+        }
     	$rec = $form->rec;
 
     }
@@ -273,41 +272,6 @@ class cal_Reminders extends core_Master
         $rec->nextStartTime = $mvc->calcNextStartTime($rec);
     }
 
-
-    /**
-     *
-     */
-    static function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-    	
-    }
-
-
-    /**
-     * След изтриване на запис
-     */
-    static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
-    {        
- 
-    }
-
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
-    {
-
-    	if($action == 'postpone'){
-	    	if ($rec->id) {
-	        	if ($rec->state !== 'active' || (!$rec->timeStart) ) { 
-	                $requiredRoles = 'no_one';
-	            }  else {
-	                if(!haveRole('ceo') || ($userId !== $rec->createdBy) &&
-	                !type_Keylist::isIn($userId, $rec->sharedUsers)) {
-	                	
-	                	$requiredRoles = 'no_one';
-	                }
-	            }
-    	     }
-         }
-    }
     
     /**
      * Прилага филтъра, така че да се показват записите за определение потребител
@@ -419,6 +383,11 @@ class cal_Reminders extends core_Master
     	
     	if($data->rec->action === 'notifyNoAns') $data->row->action = 'Нотификация-ако няма отговор';
 
+    	if($data->rec->repetitionEach === NULL){
+    		$data->row->each = '';
+	    	$data->row->repetitionType = '';
+	    	$data->row->repetitionTypeMonth = '';
+    	}
     }
    
 
@@ -481,18 +450,6 @@ class cal_Reminders extends core_Master
         
         return $row;
     }
-    
-    
-    /**
-     * Връща иконата на документа
-     */
-    function getIcon_($id)
-    {
-        //$rec = self::fetch($id);
-
-        //return "img/16/task-" . $rec->priority . ".png";
-    }
-
 
 
     /**
@@ -601,12 +558,12 @@ class cal_Reminders extends core_Master
         $startTs = dt::mysql2timestamp($rec->timeStart);
         
         // Ако искаме напомнянето да се изпълни само един път
-        if($rec->repetitionEach == 0 && $rec->timePreviously !== NULL && $startTs > $nowTs) {
+        if($rec->repetitionEach == NULL && $rec->timePreviously !== NULL) {
         	$nextStartTimeTs = $startTs - $rec->timePreviously ;
         	$nextStartTime = date("Y-m-d H:i:s", $nextStartTimeTs);
         	return $nextStartTime;
         	
-        } elseif($rec->repetitionEach == 0 && $rec->timePreviously == NULL && $startTs > $nowTs){
+        } elseif($rec->repetitionEach == NULL && $rec->timePreviously == NULL){
         	$nextStartTime = $rec->timeStart;
         	return $nextStartTime;
         	

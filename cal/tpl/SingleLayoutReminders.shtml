@@ -21,7 +21,7 @@
 			     <tr>
 			     	<td>Действие: [#action#]</td>
 			     	<!--ET_BEGIN repetitionEach-->   
-			     	<td>Повторение <!--ET_BEGIN each-->[#each#]<!--ET_END each--> [#repetitionEach#]<!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType--></td> 
+			     	 <!--ET_BEGIN each--><td>Повторение [#each#]<!--ET_END each--> <!--ET_BEGIN repetitionEach-->[#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType--></td> 
 			     	<!--ET_END repetitionEach-->
 			    </tr>
 			    <tr>
