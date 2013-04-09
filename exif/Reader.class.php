@@ -40,8 +40,14 @@ class exif_Reader
         // Трябва да има валиден път
         if (!$path) return NULL;
         
+        // ЕXIF информация
+        $exif = @exif_read_data($path);
+
+        // Изтриваме временния файл
+        fileman::deleteTempPath($path);
+        
         // Връщаме exif информация
-        return @exif_read_data($path);
+        return $exif;
     }
     
     
