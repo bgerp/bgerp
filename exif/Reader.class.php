@@ -35,7 +35,7 @@ class exif_Reader
         if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif')) return NULL;
         
         // Пътя до файла
-        $path = fileman_Files::fetchByFh($fileHnd, 'path');
+        $path = fileman::extract($fileHnd);
         
         // Трябва да има валиден път
         if (!$path) return NULL;
