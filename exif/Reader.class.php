@@ -4,7 +4,7 @@
 /**
  * Връщане на exif информация за файл
  *
- * @category  bgerp
+ * @category  vendors
  * @package   exif
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
