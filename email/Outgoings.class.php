@@ -1105,6 +1105,7 @@ class email_Outgoings extends core_Master
             
             // Добавяме атрибута
             $data->form->addAttr('email', array('data-role' => 'list'));
+            $data->form->addAttr('emailCc', array('data-role' => 'list'));
         }
     }
     
