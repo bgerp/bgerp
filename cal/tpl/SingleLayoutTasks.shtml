@@ -14,6 +14,7 @@
 			<div>
 				Отговорници: [#shareLog#]
 			</div>
+				
 			<!--ET_BEGIN timeStart-->
             Начало: [#timeStart#]<br>
             <!--ET_END timeStart-->
@@ -32,7 +33,7 @@
 			<!--ET_BEGIN workingTime-->
 	        Отработено време: [#workingTime#] </br>                   
 			<!--ET_END workingTime-->
-		 
+			
 
 			</small>
 		</div>
@@ -40,5 +41,13 @@
 		
 
         [#DETAILS#]
+        
+        
+		<!--ET_BEGIN changeLog-->
+    	<div class='change-log clearfix21'>
+        <span class='change-log-title'>|Лог|*</span>
+        	[#changeLog#]
+    	</div>
+        <!--ET_END changeLog-->
         <div style='clear: both;'></div>
     </div>         

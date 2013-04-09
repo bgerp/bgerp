@@ -25,7 +25,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg, plg_Search';
+    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg, plg_Search, change_Plugin';
     
 
     /**
@@ -154,13 +154,13 @@ class cal_Tasks extends core_Master
         $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory');
         
         // Начало на задачата
-        $this->FLD('timeStart', 'datetime', 'caption=Времена->Начало, silent');
+        $this->FLD('timeStart', 'datetime', 'caption=Времена->Начало, silent, changable');
         
         // Продължителност на задачата
-        $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност');
+        $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност, changable');
         
         // Краен срок на задачата
-        $this->FLD('timeEnd', 'datetime',     'caption=Времена->Край');
+        $this->FLD('timeEnd', 'datetime',     'caption=Времена->Край, changable');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -323,11 +323,6 @@ class cal_Tasks extends core_Master
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
             $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/bell_clock2.png, row=2');
         }
-        
-        if($mvc->haveRightFor('postpone', $data->rec)) {
-        	$data->toolbar->addBtn('Отлагане', array($mvc,'Postpone', 'postpone', 'taskId' => $data->rec->id), 'ef_icon=img/16/clock.png');
-        }
-        
         
     }
 
@@ -573,78 +568,6 @@ class cal_Tasks extends core_Master
         $rec = self::fetch($id);
 
         return "img/16/task-" . $rec->priority . ".png";
-    }
-
-    
-    function act_Postpone()
-    {
-    	self::requireRightFor('postpone');
-    	
-    	//Очакваме id-то на задачата
-    	$taskId = Request::get('taskId');
-      	$rec = self::fetch($taskId);
-    	
-      	// Днешната дата и час
-      	$today =  date('Y-m-d H:i:s');
-     
-      	// Проверка за конкретния запис
-    	self::requireRightFor('postpone', $rec);
-    	
-    	// Правим форма само с едно поле - датата и часа за отлагане
-    	$form = cls::get('core_Form');
-       
-        $form->FNC('postponeTime', 'datetime', 'caption=Отложи за ,input,mandatory,width=9em');
-        $form->setDefault('postponeTime', $rec->timeStart);
- 
-          
-        $form->input();
-        
-        // Проверка за грешки, ако формата е изпратена
-        if($form->isSubmitted()) {
-        	
-        	// Взимаме времето от формата
-        	$postpone = $form->rec->postponeTime;
-        	
-       		// Проверка за коректност на входни данни
-        	if ($postpone <= $today){
-                $form->setError('postponeTime', "Некоректни дата или час|*. </br> |Задачата може да се отложи след|* ".$today);
-            }
-        }
-		
-        // Ако формата е изпратенаи няма грешки, отлагаме и записваме в прогреса
-        if($form->isSubmitted()) {
-        	
-        	// Записваме отложения час
-        	$nRec->id = $taskId;
-       		$nRec->timeStart = $postpone;
-       		self::save($nRec);
-       		
-       		
-        	//Времето за отлагане в секунди
-            $secundes = strtotime($postpone)-strtotime($rec->timeStart);
-        	$time = cls::get('type_Time');
-        	$postponeData = $time->toVerbal($secundes);
-        	
-        	//Записваме съобщение с колкo време е отложена задачата
-        	$state = new stdClass();
-            $state->query = cal_TaskProgresses::getQuery();
-            
-            $state->taskId = $taskId;
-            $state->message = "Задачате е отложена с " . $postponeData;
-          
-            cal_TaskProgresses::save($state); 
-            
-       		return Redirect(array('cal_Tasks', 'single', $taskId));
-        }
-        
-        // Оформление на формата
-      	$form->title = "Отлагане на задача";
-        
-        $form->toolbar->addSbBtn("Отлагане");
-        $form->toolbar->addBtn("Отказ", array('cal_Tasks', 'single', $taskId), NULL, 'class=btn-cancel');
-        
-		// Рендиране на формата
-        return $this->renderWrapping($form->renderHtml());
     }
 
     
