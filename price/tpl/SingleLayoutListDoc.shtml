@@ -1,0 +1,58 @@
+[#SingleToolbar#]
+<!-- BEGIN container -->
+<div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#title#] <b>[#ident#]</b> ([#state#])</div>
+	</div>
+	<!--ET_END header-->
+	<table border='1px' class='order-table' cellpadding='4px'>
+	<tr>
+		<td>|Политика|*</td>
+		<td>[#policyId#]</td>
+	</tr>
+	<tr>
+		<td>|Дата|*</td>
+		<td>[#date#]</td>
+	</tr>
+	<tr>
+		<td>|Групи продукти|*</td>
+		<td>[#productGroups#]</td>
+	</tr>
+	<!--ET_BEGIN packagings-->
+	<tr>
+		<td>|Опаковки|*</td>
+		<td>[#packagings#]</td>
+	</tr>
+	<!--ET_END packagings-->
+	<tr>
+		<td colspan='2'>|Създадено на|* [#createdOn#] |от|* [#createdBy#]</td>
+	</tr>
+	</table>
+	<!--ET_BEGIN DETAILS-->
+	[#DETAILS#]
+	<!--ET_BEGIN ROW-->
+	<table border='1'>
+	<tr>
+		<th>|Код|*</th>
+		<th>|ЕАН|*</th>
+		<th>|Продукт|*</th>
+		<th>|Мярка|*</th>
+		<th>|Опаковка|*</th>
+		<th>|Цена|*</th>
+	</tr>
+	<tr>
+		<td>[#code#]</td>
+		<td>[#ean#]</td>
+		<td>[#productId#]</td>
+		<td>[#measureId#]</td>
+		<td>[#pack#]</td>
+		<td>[#price#]</td>
+	</tr>
+	</table>
+	<!--ET_END ROW-->
+	<!--ET_END DETAILS-->
+</div>
