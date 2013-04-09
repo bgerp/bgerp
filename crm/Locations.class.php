@@ -129,6 +129,22 @@ class crm_Locations extends core_Master {
     }
     
     
+     /**
+     * Изпълнява се след въвеждането на данните от заявката във формата
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {
+        $rec = $form->rec;
+        if(!$rec->gpsCoords && $rec->image){
+        	if($gps = exif_Reader::getGps($rec->image)){
+        		
+        		// Ако има GPS коодинати в снимката ги извличаме
+        		$rec->gpsCoords = $gps['lon'] . "," . $gps['lat'];
+        	}
+        }
+    }
+    
+    
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
