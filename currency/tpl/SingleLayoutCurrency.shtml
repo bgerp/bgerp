@@ -27,10 +27,14 @@
 				<tr>
 					<td class="quiet" align="left" width='1%'>Курс:</td>
 					<td>[#lastRate#]</td>
-				
 				</tr>
 				<!--ET_END info-->
-
+				<!--ET_BEGIN groups-->
+				<tr>
+					<td class="quiet" align="left" width='1%'>Групи</td>
+					<td>[#groups#]</td>
+				</tr>
+				<!--ET_END groups-->
 				<!--ET_BEGIN nameday-->
 				<tr>
                      <td class="quiet" colspan="2" style='padding-top:10px;'>Исторически курсове:</td>
@@ -40,9 +44,8 @@
                      <td colspan="2">[#DETAILS#]</td>
                  </tr>
 				<!--ET_END nameday-->
-                 
-                
              </table>
+             
          </div>    
          <!-- END Блок ляво -->   
                      
