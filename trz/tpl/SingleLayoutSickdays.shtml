@@ -1,0 +1,24 @@
+[#SingleToolbar#]  
+	<div class='document'>
+		<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#]'>Болничен лист <b>[#ident#]</b> ([#state#])</div>
+		</div>
+
+		
+			
+			<div class='block_left'>
+			<h3>БОЛНИЧЕН ЛИСТ №[#fitNoteNum#] </h3>
+	    	НА <b>[#personId#]</b></br>
+	    	Оригинал [#fitNoteFile#]</br>
+	    	От <b>[#startDate#]</b>
+	    	До <b>[#toDate#]</b></br>
+	    	Причина [#reason#]</br>
+	    	Забележка [#note#]</br>
+	    	Код по MKB [#icdCode#]</br>
+	    	Заплащане от работодателя [#paidByEmployer#]</br>
+	    	Заплащане от НЗК [#paidByHI#]
+            </div>
+
+
+        <div style='clear: both;'></div>
+    </div>         
