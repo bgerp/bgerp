@@ -42,6 +42,12 @@ class crm_Groups extends core_Master
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Група->указател";
+    
+    
+    /**
      * Поле за инструментите
      */
     var $rowToolsField = 'id';
