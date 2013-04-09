@@ -643,7 +643,7 @@ class core_App
 
             if ($name == '#') continue;
 
-            if ($value) {
+            if ($value !== FALSE && $value !== NULL) {
                 if (is_int($name)) {
                     $name = $value;
                     $value = $Request->get($name);
