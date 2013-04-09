@@ -62,7 +62,7 @@ class email_Salutations extends core_Manager
     /**
      * Полетата, които ще се показват
      */
-    var $listFields = 'id, folderId, threadId, salutation, userId';
+    var $listFields = 'id, folderId, threadId, salutation, lg, userId';
     
     
     /**
@@ -85,10 +85,11 @@ class email_Salutations extends core_Manager
      * @param doc_Folders $folderId - id на папка
      * @param doc_Threads $threadId - id на нишка
      * @param core_Users $userId - id на потребител
+     * @param boolean $depend - Дали да зависи от съдържанието на lg
      * 
      * @return string $salutation - Поздрава
      */
-    public static function get($folderId, $threadId = NULL, $userId = NULL)
+    public static function get($folderId, $threadId = NULL, $userId = NULL, $depend = TRUE)
     {
         // Ако не трябва да извлечем запис
         if (!static::isGoodRec($folderId, $threadId)) return ;
@@ -103,15 +104,16 @@ class email_Salutations extends core_Manager
      * @param doc_Folders $folderId - id на папка
      * @param doc_Threads $threadId - id на нишка
      * @param core_Users $userId - id на потребител
+     * @param boolean $depend - Дали да зависи от съдържанието на salutation
      * 
      * @param string $lg - Двубуквения код на езика
      */
-    public static function getLg($folderId = NULL, $threadId = NULL, $userId = NULL)
+    public static function getLg($folderId = NULL, $threadId = NULL, $userId = NULL, $depend = TRUE)
     {
         // Ако не трябва да извлечем запис
         if (!static::isGoodRec($folderId, $threadId)) return ;
         
-        return static::getRecForField('lg', $folderId, $threadId, $userId);
+        return static::getRecForField('lg', $folderId, $threadId, $userId, $depend);
     }
     
     
@@ -172,10 +174,11 @@ class email_Salutations extends core_Manager
      * @param doc_Folders $folderId - id на папка
      * @param doc_Threads $threadId - id на нишка
      * @param core_Users $userId - id на потребител
+     * @param boolean $depend - Дали да зависи от съдържанието на salutation (за $field=lg) или lg (за $field=salutation)
      * 
      * @param string $fieldRec - Резултата
      */
-    protected static function getRecForField($field, $folderId=NULL, $threadId = NULL, $userId = NULL)
+    protected static function getRecForField($field, $folderId=NULL, $threadId = NULL, $userId = NULL, $depend = TRUE)
     {
         // Вземаме всички обръщения от папката
         $query = static::getQuery();
@@ -203,8 +206,16 @@ class email_Salutations extends core_Manager
         // Вземаме записа
         while ($rec = $query->fetch()) {
             
-            // Ако обръщението не е празен стринг
-            if (trim($rec->{$field})) break;
+            // Ако зависи от съдържанието
+            if ($depend) {
+                
+                // Ако не е празен стринг lg и salutation
+                if (trim($rec->lg) && trim($rec->salutation)) break;    
+            } else {
+                
+                // Ако не е празен стринг {$field}
+                if (trim($rec->{$field})) break;
+            }
         }
 
         // Ако има id на нишка, но не сме открили обръщение
