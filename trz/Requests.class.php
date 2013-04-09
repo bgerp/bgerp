@@ -31,7 +31,7 @@ class trz_Requests extends core_Master
      /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Молба";
+    var $singleTitle = "Молба за отпуск";
     
     
     /**
@@ -115,7 +115,7 @@ class trz_Requests extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "5.2|ТРЗ"; 
+    var $newBtnGroup = "5.2|Човешки ресурси"; 
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -133,7 +133,7 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До');
     	$this->FLD('note', 'text', 'caption=Забележка');
-    	$this->FLD('useDaysFromYear', 'int(nowYear)', 'caption=Ползване от,unit=Година');
+    	$this->FLD('useDaysFromYear', 'int(nowYear, nowYear-1)', 'caption=Ползване от,unit=Година');
     	$this->FLD('paid', 'enum(paid=Платен, unpaid=Неплатен)', 'caption=Вид,export');
     }
     
@@ -143,25 +143,25 @@ class trz_Requests extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+    	if($data->listFilter->rec->leaveFrom) {
+    		$data->query->where("#leaveFrom = '{$data->listFilter->rec->leaveFrom}'");
+    	}elseif($data->listFilter->rec->leaveTo) {
+    		$data->query->where("#leaveTo = '{$data->listFilter->rec->leaveTo}'");
+    	}elseif($data->listFilter->rec->leaveTo && $data->listFilter->rec->leaveFrom) {
+    		$data->query->where("#leaveFrom >= '{$data->listFilter->rec->leaveFrom}'
+    							 AND #leaveTo <= '{$data->listFilter->rec->leaveTo}'");
+    	}
+    	
+        if($data->listFilter->rec->paid) {
+    		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
+    	}
 
-    	$groupList = cls::get('crm_Groups');
-        $group = 'Служители';
-        $employeesId = $groupList->fetchField("#name = '{$group}'", 'id');
-        
-        $employeesList = cls::get('crm_Persons');
-        
         $userId = core_Users::getCurrent();
-//       / /$data->query->orderBy("#timeStart=ASC,#state=DESC");
-        
-                
-        if($data->listFilter->rec->selectedUsers) {
-	           
-	         if($data->listFilter->rec->selectedUsers != 'all_users') {
-	                $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
-	               
-	           }
-            	
-        }  
+
+        /*if($data->listFilter->rec->selectedUsers) {
+        	$data->query->where("#personId = '{$data->listFilter->rec->selectedUsers}'");
+  	
+        }*/
     }
     
     
@@ -186,9 +186,9 @@ class trz_Requests extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'selectedUsers';
+        $data->listFilter->showFields = 'selectedUsers, leaveFrom, leaveTo, paid';
         
-        $data->listFilter->input('selectedUsers', 'silent');
+        $data->listFilter->input('selectedUsers, leaveFrom, leaveTo, paid', 'silent');
     }
 
     
@@ -197,8 +197,10 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+    	//bp($data->form->fields[personId]);
+    	
     	$cu = core_Users::getCurrent();
-        $data->form->setDefault('personId', "|".$cu."|");
+        $data->form->setDefault('personId', $cu);
         
          $rec = $data->form->rec;
     }
