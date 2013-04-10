@@ -59,6 +59,19 @@ class core_Tree extends core_BaseClass
                 $n->url = toUrl($url);
                 
                 $this->nodes[$currentPath] = $n;
+            } elseif (isset($this->nodes[$currentPath]) && ($this->nodes[$currentPath]->url != $url)) {
+                
+                // Ако има такъв запис и подаденото URL не съвпада 
+                
+                // Ако има URL
+                if ($url) {
+                    
+                    // Преобразуваме го
+                    $url = toUrl($url);    
+                }
+                
+                // Заместваме URL' то
+                $this->nodes[$currentPath]->url = $url;
             }
             
             $pid = $this->nodes[$currentPath]->id;
