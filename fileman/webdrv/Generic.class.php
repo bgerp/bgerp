@@ -789,22 +789,38 @@ class fileman_webdrv_Generic extends core_Manager
         // Изискваме да име права за single
         fileman_Files::requireRightFor('single', $rec);
         
-        // Опитваме се да създададем инстанция на класа
+        // Опитваме се да качим файла
         try {
             
-            // Инстанция на архива
-            $zip = static::getArchiveInst($rec);
+            // Опитваме се да вземем манипулатора на файла
+            $fh = static::uploadFileFromArchive($rec, Request::get('index', 'int'));
+            
+            // Ако всичко е ОК, редиректваме към сингъла на файла
+            return new Redirect(array('fileman_Files', 'single', $fh, '#' => 'fileDetail'));
         } catch (Exception $e) {
             
             // Ако възникне exception
             $debug = $e->getDebug();
-            
+
             // Връщаме грешката
             return $debug[1];
-        };
+        }
         
-        //Пътя до файла
-        $filePath = fileman_Files::fetchByFh($fh, 'path');
+        // Редиреткваме към single'а на качения файл
+        return new Redirect(array('fileman_Files', 'single', $fh, '#' => 'fileDetail'));    
+    }
+    
+    
+    /**
+     * Качва подадение файл от архива
+     * 
+     * @param fileman_Files $fRec - Записа за файла
+     * @param integer $index - Индекса на файла, който ще се качва
+     */
+    static function uploadFileFromArchive($fRec, $index)
+    {
+        // Инстанция на архива
+        $zip = static::getArchiveInst($fRec);
         
         // Вземаме съдържанието на файла
         $fileContent = $zip->getFromIndex($index);
@@ -821,21 +837,13 @@ class fileman_webdrv_Generic extends core_Manager
         // Очакваме да има съдържание
         expect($fileContent, 'Файлът няма съдържание');
         
-        // Инстанция на fileman
-        $filesInst = cls::get('fileman_Files');
-        
-        // Ако възникне грешка при качването на файла (липса на права)
-        try {
-            
-            // Добавяме файла в кофата
-            $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
-        } catch (Exception $e) {}
+        // Добавяме файла в кофата
+        $fh = fileman::absorbStr($fileContent, 'archive', $name);
         
         // Очакваме да няма грешка при добавянето
         expect($fh, 'Възникна грешка при обработката на файла');
-        
-        // Редиреткваме към single'а на качения файл
-        return new Redirect(array('fileman_Files', 'single', $fh, '#' => 'fileDetail'));    
+
+        return $fh;
     }
     
     
