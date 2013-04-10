@@ -145,11 +145,12 @@ class fileman_tests_Files extends unit_Class
         // Очакваме да има такива файлове
         ut::expectEqual(($content1 && $content2), TRUE);
         
+        // Тестваме имената с интервал и без разширение
         // Качваме файловете и вземаме манипулаторите им
-        $fh1 = fileman::absorbStr($content1, $bucket, 'test1.txt');
-        $fh1Name = fileman::absorbStr($content1, $bucket, 'test1.txt');
-        $fh2 = fileman::absorbStr($content2, $bucket, 'test2.txt');
-        $fh2Name = fileman::absorbStr($content2, $bucket, 'test2.txt');
+        $fh1 = fileman::absorbStr($content1, $bucket, 'test 1.txt');
+        $fh1Name = fileman::absorbStr($content1, $bucket, 'test 1.txt');
+        $fh2 = fileman::absorbStr($content2, $bucket, 'test 2');
+        $fh2Name = fileman::absorbStr($content2, $bucket, 'test 2');
         
         // Очакваме да има такива манипулатори
         ut::expectEqual(($fh1 && $fh2), TRUE);
@@ -159,13 +160,13 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual($fh2, $fh2Name);
         
         // Качваме първия файл с името на втория
-        $otherName = fileman::absorbStr($content1, $bucket, 'test2.txt');
+        $otherName = fileman::absorbStr($content1, $bucket, 'test 2.txt');
         
         // Очакваме манипулаторите да не им са равни
         ut::expectEqual((($fh1 != $fh2) && ($fh1 != $otherName)), TRUE);
         
         // Качваме първия файл с името на втория
-        $otherNameUnd = fileman::absorbStr($content1, $bucket, 'test2_1.txt');
+        $otherNameUnd = fileman::absorbStr($content1, $bucket, 'test 2_1.txt');
         
         // Очакваме манипулаторите им да са равни
         ut::expectEqual($otherNameUnd, $otherName);
