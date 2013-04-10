@@ -100,7 +100,7 @@ class archive_Adapter
             }
             
             // Добавяме пътя в дървото със съответното URL
-            $tableInst->addNode($path, $urlPath);
+            $tableInst->addNode($path, $urlPath, TRUE);
         }
         
         // Името
@@ -146,14 +146,30 @@ class archive_Adapter
      */
     public function getFile($index)
     {
-        // Вземаме обекта за съответния файл
-        $entry = $this->getEntries($index);
+        try {
+            
+            // Вземаме обекта за съответния файл
+            $entry = $this->getEntries($index);
+        } catch (Exception $e) {
+            
+            // Ако възникне грешка
+            expect(FALSE, 'Възникна грешка при свалянето на файла');
+        }
+        
         
         // Ако няма размер
         expect($entry->getSize(), 'Не е файл');
         
-        // Вземаме пътя до файла в архива
-        $path = $entry->getPath();
+        try {
+            
+            // Вземаме пътя до файла в архива
+            $path = $entry->getPath();
+        } catch (Exception $e) {
+            
+            // Ако възникне грешка
+            expect(FALSE, 'Не може да се определи пътя до файла.');
+        }
+        
         
         return $this->absorbFile($path);
     }
@@ -179,9 +195,16 @@ class archive_Adapter
      */
     protected function absorbFile($path)
     {
-        // Екстрактваме файла от архива и връщаме пътя във файловата система
-        $path = $this->extractEntry($path);
-
+        try {
+            
+            // Екстрактваме файла от архива и връщаме пътя във файловата система
+            $path = $this->extractEntry($path);
+        } catch (Exception $e) {
+            
+            // Ако възникне грешка
+            expect(FALSE, 'Не може да се екстрактен файла от архива');
+        }
+        
         // Ако е файл
         if (is_file($path)) {
             
