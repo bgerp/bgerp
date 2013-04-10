@@ -39,7 +39,7 @@ class price_ListDocs extends core_Master
     /**
 	 * Брой дeтайли на страница
 	 */
-	var $listDetailsPerPage = '30';
+	var $listDetailsPerPage = '10';
     
     
     /**
@@ -111,7 +111,7 @@ class price_ListDocs extends core_Master
     	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Продукти->Групи,columns=2');
-    	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=2');
+    	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     }
     
     
@@ -194,49 +194,89 @@ class price_ListDocs extends core_Master
     private function prepareSelectedProducts(&$data)
     {
     	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date);
-    	foreach($customerProducts as $id => $product){
-    		$productRec = cat_Products::fetch($id);
-    		if($data->rec->productGroups){
-    			$aGroups = type_Keylist::toArray($data->rec->productGroups);
-    			$pGroups = type_Keylist::toArray($productRec->groups);
-    			$intersectArr = array_intersect($aGroups,$pGroups);
-    			if(!count($intersectArr)) continue;
+    	
+    	if($customerProducts){
+    		foreach($customerProducts as $id => $product){
+    			$productRec = cat_Products::fetch($id);
+		    	if($data->rec->productGroups){
+		    		$aGroups = type_Keylist::toArray($data->rec->productGroups);
+		    		$pGroups = type_Keylist::toArray($productRec->groups);
+		    		$intersectArr = array_intersect($aGroups,$pGroups);
+		    		if(!count($intersectArr)) continue;
+		    	}
+	    		
+	    		$data->rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
+	    									   'code' => $productRec->code,
+	    									   'eanCode' => $productRec->eanCode,
+	    									   'measureId' => $productRec->measureId,
+	    									   'pack' => NULL,);
     		}
-    		
-    		$data->rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
-    									   'code' => $productRec->code,
-    									   'eanCode' => $productRec->eanCode,
-    									   'measureId' => $productRec->measureId);
     	}
     }
     
     
     /**
-     * 
+     *  Извличаме цената на листваните продукти
      */
     private function calculateProductsPrice(&$data)
     {
     	$rec = &$data->rec;
     	if(!count($rec->details->products)) return;
+    	$packArr = type_Keylist::toArray($rec->packagings);
     	
     	foreach($rec->details->products as &$product){
+    	
+    		// Изчисляваме цената за продукта в основна мярка
     		$product->price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
-    		if(!$product->price) {
-    			unset($rec->details->products[$product->productId]);
-    			continue;
-    		}
+	    	$rec->details->rows[] = $this->getVerbalDetail($product);
     		
-    		$rec->details->rows[] = $product;
-    		if(!$rec->packagings) continue;
-    		$packArr = type_Keylist::toArray($rec->packagings);
+    		// За всяка от избраните опаковки
     		foreach($packArr as $pack){
-    			if($price = price_ListRules::getPrice($rec->policyId, $product->productId, $pack, $rec->date)){
-    				//bp($product, $pack);
+    			
+    			// Проверяваме продукта поддържали избраната опаковка
+    			// ако поддържа и изчислява цената
+    			if($pInfo = cat_Products::getProductInfo($product->productId, $pack)){
+    				$productClone = clone $product;
+    				$productClone->price = price_ListRules::getPrice($rec->policyId, $product->productId, $pack, $rec->date);
+    				$productClone->pack = $pack;
+    				$productClone->eanCode = $pInfo->packagingRec->eanCode;
+    				$productClone->code = $pInfo->packagingRec->customCode;
+    				$rec->details->rows[] = $this->getVerbalDetail($productClone);
     			}
-    			//bp('ne');
     		}
     	}
-    	//bp($rec->details->products);
+    	
+    	$rec->details->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
+    	$rec->details->Pager->itemsCount = count($rec->details->rows);
+    	$rec->details->Pager->calc();
+    	
+    	unset($rec->details->products);
+    }
+    
+    
+    /**
+     * Обръщане на детаила във вербален вид
+     * @param stdClass $detailRec - запис на детайла
+     * @return stdClass $detailRow - вербално представяне на детайла
+     */
+    private function getVerbalDetail($detailRec)
+    {
+    	$varchar = cls::get('type_Varchar');
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	$detailRow = new stdClass();
+    	$detailRow->productId = cat_Products::getTitleById($detailRec->productId);
+    	$icon = sbf("img/16/package-icon.png");
+		$detailRow->productId = ht::createLink($detailRow->productId, array('cat_Products', 'single', $detailRec->productId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+    	$detailRow->measureId = cat_UoM::getTitleById($detailRec->measureId);
+    	if($detailRec->pack){
+    		$detailRow->pack = cat_Packagings::getTitleById($detailRec->pack);
+    	}
+    	$detailRow->price = $double->toVerbal($detailRec->price);
+    	$detailRow->code = $varchar->toVerbal($detailRec->code);
+    	$detailRow->eanCode = $varchar->toVerbal($detailRec->eanCode);
+    	
+    	return $detailRow;
     }
     
     
@@ -246,7 +286,7 @@ class price_ListDocs extends core_Master
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$mvc->renderDetails($tpl, $data);
-    	$tpl->push("price/tpl/ListDocStyles.css", "CSS");
+    	$tpl->push("price/tpl/NormStyles.css", "CSS");
     }
     
     
@@ -255,7 +295,28 @@ class price_ListDocs extends core_Master
      */
     private function renderDetails(&$tpl, $data)
     {
-    	//$detailTpl = $tpl->getBlock("DETAILS");
+    	$detailTpl = $tpl->getBlock("ROW");
+    	$count = 0;
+    	if($data->rec->details->rows){
+    		$start = $data->rec->details->Pager->rangeStart;
+    		$end = $data->rec->details->Pager->rangeEnd - 1;
+    		
+    		foreach ($data->rec->details->rows as $row){
+    			if($count >= $start && $count <= $end){
+	    			$rowTpl= clone $detailTpl;
+	    			$rowTpl->placeObject($row);
+	    			$rowTpl->removeBlocks();
+	    			$rowTpl->append2master();
+    			}
+    			$count++;
+    		}
+    	} else {
+    		$tpl->append("<tr><td colspan='6'> " . tr("Няма цени") . "</td></tr>", 'ROW');
+    	}
+    	
+    	if($data->rec->details->Pager){
+    		$tpl->append($data->rec->details->Pager->getHtml(), 'BottomPager');
+    	}
     }
     
     
@@ -267,6 +328,17 @@ class price_ListDocs extends core_Master
     	if(!$rec->productGroups) {
     		$row->productGroups = tr("Всички");
     	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+        if($action == 'activate' && !$rec->id) {
+        	$res ='no_one';
+        }
     }
     
     

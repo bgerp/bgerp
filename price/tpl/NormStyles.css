@@ -3,7 +3,6 @@
 
 .norm-table{
 	border:1px solid #ccc;
-	width:530px;
 	border-collapse:collapse;
 	margin-bottom:5px;
 }
@@ -28,4 +27,9 @@
 .norm-row-cell{
 	padding-right:10px;
 	text-align:right;
+}
+
+.product-code-style{
+	font-size:14px;
+	font-style:italic
 }

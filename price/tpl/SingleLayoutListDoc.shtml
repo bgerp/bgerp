@@ -9,9 +9,9 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#title#] <b>[#ident#]</b> ([#state#])</div>
 	</div>
 	<!--ET_END header-->
-	<table border='1px' class='order-table' cellpadding='4px'>
+	<table border='0px' cellpadding='2px'>
 	<tr>
-		<td>|Политика|*</td>
+		<td width='150px'>|Политика|*</td>
 		<td>[#policyId#]</td>
 	</tr>
 	<tr>
@@ -29,30 +29,31 @@
 	</tr>
 	<!--ET_END packagings-->
 	<tr>
-		<td colspan='2'>|Създадено на|* [#createdOn#] |от|* [#createdBy#]</td>
+		<td>|Създадено на|* </td>
+		<td>[#createdOn#] |от|* [#createdBy#]</td>
 	</tr>
 	</table>
-	<!--ET_BEGIN DETAILS-->
-	[#DETAILS#]
-	<!--ET_BEGIN ROW-->
-	<table border='1'>
+	<br />
+	<table border='1' class = 'norm-table'>
 	<tr>
 		<th>|Код|*</th>
 		<th>|ЕАН|*</th>
-		<th>|Продукт|*</th>
+		<th style='max-width:400px !important'>|Продукт|*</th>
 		<th>|Мярка|*</th>
 		<th>|Опаковка|*</th>
 		<th>|Цена|*</th>
 	</tr>
+	<!--ET_BEGIN ROW-->
+	[#ROW#]
 	<tr>
-		<td>[#code#]</td>
-		<td>[#ean#]</td>
+		<td class = 'product-code-style'>[#code#]</td>
+		<td class = 'product-code-style'>[#eanCode#]</td>
 		<td>[#productId#]</td>
 		<td>[#measureId#]</td>
 		<td>[#pack#]</td>
 		<td>[#price#]</td>
 	</tr>
-	</table>
 	<!--ET_END ROW-->
-	<!--ET_END DETAILS-->
+	</table>
+	[#BottomPager#]
 </div>
