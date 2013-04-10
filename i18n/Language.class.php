@@ -29,7 +29,11 @@ class i18n_Language {
     static function detect($text)
     {
         $res = self::getLgRates($text);
+        
+        if (!count($res)) {
 
+            return ;
+        }
         $maxs = array_keys($res, max($res));
 
         return $maxs[0];
@@ -42,6 +46,8 @@ class i18n_Language {
     static function getLgRates($text)
     {
         self::prepareLgAnalyzer();
+        
+        $rate = array();
         
         // Намираме масива от текста
         $arr = self::makeLgArray(mb_substr($text, 0, 1000));
