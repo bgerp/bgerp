@@ -1,0 +1,27 @@
+[#SingleToolbar#]
+<div class='document'>
+	<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#]'>Молба <b>[#ident#]</b> ([#state#])</div>
+	</div>
+	<!--ET_END header-->
+	<h3>З А П О В Е Д</h3>
+	 № ......./ .....................г.</br></br>
+	
+	 
+	 ОТНОСНО: разрешение за ползване на <b>[#isPaid#]</b> годишен отпуск</br></br>
+	 	С настоящата заповед разрешавам на:</br>
+	 <b>[#personId#]</b> да ползва ….…….. дни [#isPaid#] годишен отпуск за [#useDaysFromYear#]г.,</br>
+	 	считано от <b>[#leaveFrom#]</b> до <b>[#leaveTo#]</b>.</br>
+	
+    <table width=100%>
+	<tr>
+	<td>Работодател:......................</td>
+	<td> </td>
+	</tr>
+	<tr>
+	<td>/подпис и печат/ </td>
+	<td></td>
+	</tr>
+	</table>
+
+</div>
