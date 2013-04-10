@@ -280,8 +280,7 @@ class fileman_Files extends core_Master
     static function getPossibleName($fname, $bucketId)
     {
         // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
-        $fname = STR::utf2ascii($fname);
-        $fname = preg_replace('/[^a-zA-Z0-9\-_\.]+/', '_', $fname);
+        $fname = static::normalizeFileName($fname);
         
         // Циклим докато генерираме име, което не се среща до сега
         $fn = $fname;
@@ -324,6 +323,22 @@ class fileman_Files extends core_Master
         }
 
         return $fn;
+    }
+    
+    
+    /**
+     * Нормализира името на файла
+     * Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
+     * 
+     * @param string $fname - Името на файла
+     */
+    function normalizeFileName($fname)
+    {
+        // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
+        $fname = STR::utf2ascii($fname);
+        $fname = preg_replace('/[^a-zA-Z0-9\-_\.]+/', '_', $fname);
+        
+        return $fname;
     }
     
     
