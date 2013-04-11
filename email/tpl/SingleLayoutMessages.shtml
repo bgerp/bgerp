@@ -12,7 +12,7 @@
 		
 		  <!--ET_BEGIN subject-->          
 				<div style='margin-bottom:10px;'>
-				     Относно: <b>[#subject#]</b>
+				     |Относно|*: <b>[#subject#]</b>
 				</div>
 			<!--ET_END subject-->
 			<div class="em-holder" style='float:left;margin-right:10px;'>
