@@ -1086,8 +1086,10 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
     background-color: #cc6666;
 }
 
-.state-rejected td {
-	color:#999;
+.state-rejected td, .state-rejected .document th, .state-rejected .document td a, 
+.state-rejected .richtext, .state-rejected .richtext a, , .state-rejected .richtext div, .state-rejected .cCode{
+	color:#999 !important;
+	text-decoration:line-through;
 }
 
 .state-free { 
