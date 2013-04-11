@@ -33,7 +33,8 @@ class sales_Sales extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_RegisterIntf=sales_RegisterImpl,
-                          acc_TransactionSourceIntf=sales_TransactionSourceImpl';
+                          acc_TransactionSourceIntf=sales_TransactionSourceImpl,
+                          store_ShipmentIntf';
     
     
     /**
@@ -912,6 +913,11 @@ class sales_Sales extends core_Master
     }
     
     
+    /*
+     * РЕАЛИЗАЦИЯ НА store_ShipmentIntf
+     */
+    
+    
     /**
      * Данни за експедиция, записани в документа продажба
      * 
@@ -925,10 +931,10 @@ class sales_Sales extends core_Master
         return (object)array(
              'contragentClassId' => $rec->contragentClassId,
              'contragentId' => $rec->contragentId,
-             'deliveryTermId' => $rec->deliveryTermId,
-             'deliveryLocationId' => $rec->deliveryLocationId,
+             'termId' => $rec->deliveryTermId,
+             'locationId' => $rec->deliveryLocationId,
              'deliveryTime' => $rec->deliveryTime,
-             'shipmentStoreId' => $rec->shipmentStoreId,
+             'storeId' => $rec->shipmentStoreId,
         );
     }
     
@@ -939,7 +945,7 @@ class sales_Sales extends core_Master
      * @param int $id key(mvc=sales_Sales)
      * @return array
      */
-    public function getProducts($id)
+    public function getShipmentProducts($id)
     {
         $products = array();
         $query    = sales_SalesDetails::getQuery();

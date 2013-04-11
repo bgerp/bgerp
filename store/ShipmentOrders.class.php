@@ -159,13 +159,11 @@ class store_ShipmentOrders extends core_Master
         /*
          * Доставка
          */
-        $this->FLD('deliveryTermId', 'key(mvc=trans_DeliveryTerms,select=codeName)', 
-            'caption=Условие');
-        $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 
+        $this->FLD('termId', 'key(mvc=trans_DeliveryTerms,select=codeName)', 'caption=Условие');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 
             'caption=Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
-        $this->FLD('deliveryTime', 'datetime', 
-            'caption=Срок до'); // до кога трябва да бъде доставено
-        $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 
+        $this->FLD('deliveryTime', 'datetime', 'caption=Срок до'); // до кога трябва да бъде доставено
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)',
             'caption=От склад'); // наш склад, от където се експедира стоката
         
         /*
@@ -183,9 +181,9 @@ class store_ShipmentOrders extends core_Master
     {
         if (!empty($rec->originId)) {
             
-            $origin = doc_Containers::getDocument($rec->originId);
+            $origin = doc_Containers::getDocument($rec->originId, 'store_ShipmentIntf');
             
-            $products = $origin->getProducts();
+            $products = $origin->getShipmentProducts();
             
             foreach ($products as $p) {
                 $p->shipmentId = $rec->id;
@@ -376,28 +374,39 @@ class store_ShipmentOrders extends core_Master
          * Условия за доставка по подразбиране - трябва да е след определянето на контрагента, 
          * тъй-като определянето зависи от него
          */
-        if (empty($rec->deliveryTermId)) {
-            $rec->deliveryTermId = $mvc::getDefaultDeliveryTermId($rec);
+        if (empty($rec->termId)) {
+            $rec->termId = $mvc::getDefaultDeliveryTermId($rec);
         }
         
-        if (empty($rec->shipmentStoreId)) {
-            $rec->shipmentStoreId = store_Stores::getCurrent('id', FALSE);
+        if (empty($rec->storeId)) {
+            $rec->storeId = store_Stores::getCurrent('id', FALSE);
         }
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
-        $form->getField('deliveryLocationId')->type->options = 
+        $form->getField('locationId')->type->options = 
             array(''=>'') +
             crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
     }
     
     
+    /**
+     * Данни за ЕН по подразбиране на базата на документа-източик (origin)
+     * 
+     * Ако има origin, използва метода store_ShipmentIntf::getShipmentInfo() за да определи
+     * данните на ЕН по подразбиране.
+     * 
+     * @param stdClass $rec
+     * @return stdClass
+     */
     public function getDefaultsByOrigin($rec)
     {
         if (!empty($rec->originId)) {
             $origin   = doc_Containers::getDocument($rec->originId);
-            $defaults = $origin->getShipmentInfo();
-            $rec      = (array)$rec + (array)$defaults;
+            if ($origin->haveInterface('store_ShipmentIntf')) {
+                $defaults = $origin->getShipmentInfo();
+                $rec      = (array)$rec + (array)$defaults;
+            }
         }
         
         return (object)$rec;
@@ -415,7 +424,7 @@ class store_ShipmentOrders extends core_Master
         $deliveryTermId = NULL;
         
         // 1. Условията на последната продажба на същия клиент
-        if ($recentRec = self::getRecentSale($rec)) {
+        if ($recentRec = self::getRecentShipment($rec)) {
             $deliveryTermId = $recentRec->deliveryTermId;
         }
         
@@ -449,12 +458,12 @@ class store_ShipmentOrders extends core_Master
      * @param string $scope 'user' | 'team' | 'any'
      * @return stdClass
      */
-    protected static function getRecentSale($rec, $scope = NULL)
+    protected static function getRecentShipment($rec, $scope = NULL)
     {
         if (!isset($scope)) {
             foreach (array('user', 'team', 'any') as $scope) {
                 expect(!is_null($scope));
-                if ($recentRec = self::getRecentSale($rec, $scope)) {
+                if ($recentRec = self::getRecentShipment($rec, $scope)) {
                     return $recentRec;
                 }
             }
