@@ -1449,8 +1449,8 @@ class cal_Calendar extends core_Master
      	$nowTime = strstr(dt::now(), " ");
     	
     	// Рендираме деня
-    	$tpl = new ET(getFileContent($layout));
-    	
+    	$tpl = new ET(tr('|*' . getFileContent($layout)));
+        
     	$url = toUrl(array('cal_Tasks', 'add'));
     	
     	$jsFnc = "
@@ -1561,7 +1561,7 @@ class cal_Calendar extends core_Master
      	$nowTime = strstr(dt::now(), " ");
     	
     	// Рендиране на седмицата	
-        $tpl = new ET(getFileContent($layout));
+        $tpl = new ET(tr('|*' . getFileContent($layout)));
         
         $urlWeek = toUrl(array('cal_Tasks', 'add'));
     	
@@ -1669,7 +1669,7 @@ class cal_Calendar extends core_Master
     	$monthArr = self::generateMonth($data);
     	
     	// Зареждаме шаблона
-        $tpl = new ET(getFileContent($layout));
+        $tpl = new ET(tr('|*' . getFileContent($layout)));
         
         $urlMonth = toUrl(array('cal_Calendar', 'week'));
     	
@@ -1708,7 +1708,7 @@ class cal_Calendar extends core_Master
         $tpl->replace($link['nextMonth'], 'nextMonth');
         
         // Заглавието на страницата
-    	$tpl->replace('Събития за месец » '. $link['currentMonth'], 'title');
+    	$tpl->replace(tr('Събития за месец') . ' » '. $link['currentMonth'], 'title');
     	
     	return $tpl;
     }
@@ -1727,7 +1727,7 @@ class cal_Calendar extends core_Master
     	$fromFilter = explode(".", $fromFilter);
     	
 	    // Зареждаме шаблона
-        $tpl = new ET(getFileContent($layout));
+        $tpl = new ET(tr('|*' . getFileContent($layout)));
         
         $urlYear = toUrl(array('cal_Calendar', 'week'));
     	
