@@ -666,6 +666,10 @@ input, select, textarea {
 	padding-left: 3px;
 }
 
+textarea{
+	margin-left:0;
+}
+
 .readonly {
 	background:#ddd;
 	border:solid 1px #aaa;
