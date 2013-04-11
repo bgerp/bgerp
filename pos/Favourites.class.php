@@ -138,7 +138,8 @@ class pos_Favourites extends core_Manager {
     	$Policy = cls::get($posRec->policyId);
     	
     	// Изчличаме кеша, ако го няма го създаваме
-    	$cache = core_Cache::get('pos_Favourites', 'products');
+    	$cPoint = pos_Points::getCurrent('id', NULL, FALSE);
+    	$cache = core_Cache::get('pos_Favourites', "products{$cPoint}");
     	if(!$cache){
     		$query = static::getQuery();
 	    	$query->where("#pointId IS NULL");
@@ -152,16 +153,17 @@ class pos_Favourites extends core_Manager {
 		    	$obj->packagingId = $rec->packagingId;
 		    	$cache[$rec->id] = $obj;
 	    	}
-	    	core_Cache::set('pos_Favourites', 'products', $cache, 1440, array('cat_Products'));
+	    	core_Cache::set('pos_Favourites', "products{$cPoint}", $cache, 1440, array('cat_Products'));
 	    }
     	
-    	foreach($cache as $obj){
-    		
-    		// За всеки обект от кеша, изчисляваме актуалната му цена
-    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $obj->productId, $obj->packagingId, $obj->quantity, dt::verbal2mysql());
-    		$obj->price = $double->toVerbal($price->price);
-    	}
-    	
+	    if($cache){
+	    	foreach($cache as $obj){
+	    		
+	    		// За всеки обект от кеша, изчисляваме актуалната му цена
+	    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $obj->productId, $obj->packagingId, $obj->quantity, dt::verbal2mysql());
+	    		$obj->price = $double->toVerbal($price->price);
+	    	}
+	    }
     	return $cache;
     }
     
@@ -172,7 +174,8 @@ class pos_Favourites extends core_Manager {
 	public static function on_AfterSave($mvc, &$id, $rec)
     {
     	// Инвалидираме кеша
-    	core_Cache::remove('pos_Favourites', 'products');
+    	$cPoint = pos_Points::getCurrent('id', NULL, FALSE);
+    	core_Cache::remove('pos_Favourites', "products{$cPoint}");
     }
     
     
@@ -214,9 +217,12 @@ class pos_Favourites extends core_Manager {
     {
     	$tpl = new ET(getFileContent($data->theme.'/Favourites.shtml'));
     	$self = cls::get(get_called_class());
-    	$self->renderProducts($data->arr, $tpl);
-    	$self->renderCategories($data->categories, $tpl);
-    	
+    	if($data->arr){
+    		$self->renderProducts($data->arr, $tpl);
+    	}
+    	if($data->categories){
+    		$self->renderCategories($data->categories, $tpl);
+    	}
     	return $tpl;
     }
     
