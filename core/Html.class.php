@@ -506,7 +506,7 @@ class core_Html
 
         $attr['type'] = 'submit';
 
-        $attr['value'] = $title;
+        $attr['value'] = tr($title);
 
         // Оцветяваме бутона в зависимост от особеностите му
         if (isset($warning)) {
