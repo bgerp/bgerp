@@ -21,7 +21,7 @@ class git_Lib
     /**
      * Проверява за валидна git команда
      */
-    private static function Exists ()
+    private static function gitExists ()
 	{
 	    // Проверяваме дали Git е инсталиран
 	    exec('git', $output, $returnVar);
@@ -38,7 +38,7 @@ class git_Lib
 	 */
 	private static function currentBranch($repoPath, &$log)
 	{
-		if (!self::Exists()) {
+		if (!self::gitExists()) {
 	    	$log[] = "err:Не е открит Git!";
 	    	
 	    	return FALSE;
@@ -66,7 +66,7 @@ class git_Lib
 	 */
 	private static function checkout($repoPath, &$log, $branch='master')
 	{
-		if (!self::Exists()) {
+		if (!self::gitExists()) {
 	    	$log[] = "err:Не е открит Git!";
 	    	
 	    	return FALSE;
@@ -116,14 +116,15 @@ class git_Lib
 	
 	/**
 	 * Мърджва 2 бранча.
+	 * branch1 -> branch2
 	 */
 	public static function merge($repoPath, &$log, $branch1, $branch2)
 	{
 		if (!self::fetch($repoPath, $log, $branch1)) return FALSE;
 		if (!self::fetch($repoPath, $log, $branch2)) return FALSE;
 		if (!self::checkout($repoPath, $log, $branch2)) return FALSE;
-		$commandMerge = "git --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$branch}\" merge "
-		exec();
+		$commandMerge = "git --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge {$branch1}"
+		exec($commandMerge);
 		
 	}
 }
