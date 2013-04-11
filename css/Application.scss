@@ -1098,7 +1098,9 @@ table.mc-header a {
 .thread-opened > div > table.listTable > tbody > tr > td {
 	border: solid 1px green !important;
 }
-
+.document table.listTable{
+	margin-bottom:0;
+}
 .listTable{
   	.document h2 {
 		margin-top: 3px;
