@@ -335,7 +335,7 @@ class doc_Folders extends core_Master
                 // ако имаме повече отворени теми от преди
                 if($exOpenThreadsCnt < $rec->openThreadsCnt) {
                     
-                    $msg = tr('Отворени теми в') . " \"$rec->title\"";
+                    $msg = '|Отворени теми в|*' . " \"$rec->title\"";
                     
                     $url = array('doc_Threads', 'list', 'folderId' => $id);
                     

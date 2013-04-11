@@ -412,7 +412,7 @@ class doc_Containers extends core_Manager
                 // Нотифицираме всички споделени потребители на този контейнер
                 $sharedArr = type_Keylist::toArray($shared);
                 if(count($sharedArr)) {
-                    $message = "{$nick} сподели {$docSingleTitle} в \"{$threadTitle}\"";
+                    $message = "{$nick} |сподели|* |{$docSingleTitle}|* |в|* \"{$threadTitle}\"";
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
                     $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $docHnd, '#' => $docHnd);
                     $priority = 'normal';
@@ -426,7 +426,7 @@ class doc_Containers extends core_Manager
                 $subscribed = doc_ThreadUsers::getSubscribed($rec->threadId);
                 $subscribedArr = type_Keylist::toArray($subscribed);
                 if(count($subscribedArr)) { 
-                    $message = "{$nick} добави  {$docSingleTitle} в \"{$threadTitle}\"";
+                    $message = "{$nick} |добави|* |{$docSingleTitle}|* |в|* \"{$threadTitle}\"";
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
                     $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $docHnd, '#' => $docHnd);
                     $priority = 'normal';
