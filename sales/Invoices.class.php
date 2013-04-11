@@ -180,7 +180,7 @@ class sales_Invoices extends core_Master
         $this->FLD('currencyRate', 'double', 'caption=Валута->Курс');  
         
         // Доставка
-        $this->FLD('deliveryId', 'key(mvc=trans_DeliveryTerms, select=name, allowEmpty)', 'caption=Доставка->Условие');
+        $this->FLD('deliveryId', 'key(mvc=trans_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
         $this->FLD('deliveryPlace', 'varchar', 'caption=Доставка->Място');
         
         // Данъци
