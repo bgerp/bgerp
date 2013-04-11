@@ -92,8 +92,7 @@ class price_ConsumptionNormDetails extends core_Detail {
     
     
     /**
-     * 
-     * @param unknown_type $data
+     * Рендиране на детайлите
      */
     public function renderDetail_($data)
     {
@@ -122,20 +121,11 @@ class price_ConsumptionNormDetails extends core_Detail {
     		}
     	}
     	$tpl->append(new ET("[#ListToolbar#]"));
-    	$tpl->replace($this->renderListToolbar($data),'ListToolbar');
+    	$tpl->replace($this->renderListToolbar($data), 'ListToolbar');
     	$tpl->push('price/tpl/NormStyles.css', 'CSS');
     	
     	return $tpl;	
     }
-    
-    
-    /**
-     * 
-     */
-    function categoryone($var)
-	{
-		return (is_array($var) && $var['category'] == 1);
-	}
     
     
     /**
@@ -184,7 +174,8 @@ class price_ConsumptionNormDetails extends core_Detail {
     * @param array $children - масив събиращ децата
     * @param boolean $root - дали poductId е корена на дървото
     */
-   public function getChildren($productId, &$children, $root = FALSE){
+   public function getChildren($productId, &$children, $root = FALSE)
+   {
     	if(!array_key_exists($productId, $children) && !$root){
     		$children[$productId] = $productId;
     	}

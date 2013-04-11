@@ -21,15 +21,25 @@
 .norm-table .norm-cat{
 	border:none !important;
 	background:#eee;
-	font-style:italic;
+	padding-left:8px;
 }
 
 .norm-row-cell{
-	padding-right:10px;
-	text-align:right;
+	text-align:center;
 }
 
 .product-code-style{
 	font-size:14px;
 	font-style:italic
+}
+
+#price-div{
+	margin-top:5px;
+	margin-bottom:10px;
+	padding:6px;
+	display:inline-block;
+	background-color:#eee;
+	min-width: 320px;
+	1max-width:500px;
+	border:1px solid rgba(210, 210, 210, 0.8);
 }

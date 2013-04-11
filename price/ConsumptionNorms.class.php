@@ -267,7 +267,8 @@ class price_ConsumptionNorms extends core_Master {
      * @param array $children - масив събиращ децата
      * @param boolean $root - дали poductId е корена на дървото
      */
-    private function getChildren($productId, &$children, $root = FALSE){
+    private function getChildren($productId, &$children, $root = FALSE)
+    {
     	if(!array_key_exists($productId, $children) && !$root){
     		$children[$productId] = $productId;
     	}
@@ -503,8 +504,8 @@ class price_ConsumptionNorms extends core_Master {
     		$listRec->type = 'value';
     		$listRec->validFrom = dt::now();
     		if($listRec->price){
-    			$count++;
     			price_ListRules::save($listRec);
+    			$count++;
     		}
     	}
     	
@@ -518,11 +519,10 @@ class price_ConsumptionNorms extends core_Master {
     function act_calcPrice()
     {
     	$this->requireRightFor('read');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
     	$data = new stdClass();
-    	$data->rec = $rec;
-    	$data->row = $this->recToverbal($rec);
+    	expect($id = Request::get('id', 'int'));
+    	expect($data->rec = $this->fetch($id));
+    	$data->row = $this->recToverbal($data->rec);
     	$this->prepareCalcPrice($data);
     	if($data->form) {
         	$rec = $data->form->input();
@@ -533,7 +533,10 @@ class price_ConsumptionNorms extends core_Master {
             if ($data->form->isSubmitted()){
             	$price = price_ConsumptionNorms::calcCost($data->rec->productId, $rec->quantity, NULL, $rec->uom);
             	$currency = acc_Periods::getBaseCurrencyCode();
-            	return Redirect(array($this, 'single', $data->rec->id), FALSE, "Себестойноста  на {$rec->quantity}  {$data->row->productId} е {$price} <span class='cCode'>{$currency}</span>");
+            	$selMeasure = cat_UoM::getTitleById($rec->uom);
+            	$msg = tr("|Себестойноста  на|* {$rec->quantity} {$selMeasure} {$data->row->productId} е {$price} <span class='cCode'>{$currency}</span>");
+            	Mode::setPermanent('msg', $msg);
+            	return Redirect(array($this, 'single', $data->rec->id));
             }
     	}
     	
@@ -576,6 +579,10 @@ class price_ConsumptionNorms extends core_Master {
 			$dQuery = $mvc->price_ConsumptionNormDetails->getQuery();
 			$dQuery->where("#normId = {$rec->id}");
 			$row->ingCount = $dQuery->count();
+			if($msg = Mode::get('msg')){
+				$row->price = $msg;
+				Mode::setPermanent('msg', NULL);
+			}
 		}
     }
     
