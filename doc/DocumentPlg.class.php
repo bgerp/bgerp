@@ -801,7 +801,7 @@ class doc_DocumentPlg extends core_Plugin
             $thRec = doc_Threads::fetch($form->rec->threadId);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
-                $title = mb_strtolower($mvc->singleTitle) . $in . doc_Threads::recToVerbal($thRec)->title;
+                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . doc_Threads::recToVerbal($thRec)->title;
             }
         }
         
