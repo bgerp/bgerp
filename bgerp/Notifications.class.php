@@ -194,6 +194,11 @@ class bgerp_Notifications extends core_Manager
         } else {
             $attr['style'] = 'color:#666;';
         }
+        
+        // Превеждаме съобщението
+        // Спираме преовада и въте, ако има за превеждане, тогава се превежда
+        $row->msg = tr("|*{$row->msg}");
+        
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
     }
     
