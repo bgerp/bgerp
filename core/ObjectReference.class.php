@@ -98,6 +98,7 @@ class core_ObjectReference
         return $this->instance->{$property};
     }
     
+    
     public function __isset($property)
     {
         return isset($this->instance->{$property});
@@ -116,5 +117,23 @@ class core_ObjectReference
         }
         
         return $this->instance->class;
+    }
+    
+    
+    /**
+     * Поддържа ли се зададения интерфейс от тази референция?
+     * 
+     * @param string $interface
+     * @return boolean
+     */
+    public function haveInterface($interface)
+    {
+        if (isset($this->interface)) {
+            $class = $this->interface->class;
+        } else {
+            $class = $this->instance;
+        }
+        
+        return cls::haveInterface($interface, $class);
     }
 }
