@@ -57,7 +57,7 @@ class type_Key extends type_Int {
                 $rec = $mvc->fetch($value);
                 
                 if(!$rec) return '??????????????';
-
+                $rec->{$part} = tr($rec->{$part});
                 $v = $mvc->getVerbal($rec, $part);
                 
                 return $v;
@@ -68,9 +68,9 @@ class type_Key extends type_Int {
                     
                     if(!$value) return '??????????????';
 
-                    $value = $mvc->fields[$field]->type->toVerbal($value);
+                    $value = $mvc->fields[$field]->type->toVerbal(tr($value));
                 } else {
-                    $value = $mvc->getTitleById($value);
+                    $value = tr($mvc->getTitleById($value));
                 }
             }
         }
@@ -261,7 +261,7 @@ class type_Key extends type_Int {
                     
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
-                    $selOpt[trim($key)] = $v;
+                    $selOpt[trim($key)] = tr($v);
                 }
                 
                 $selOpt[$options[$value]] = $options[$value];
@@ -282,6 +282,8 @@ class type_Key extends type_Int {
                     }
                     
                     return new Redirect(array($mvc, 'list'), tr($msg));
+                } else {
+                    $options = array_map('tr', $options);
                 }
                 
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,

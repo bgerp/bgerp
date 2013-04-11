@@ -56,17 +56,17 @@ class type_Keylist extends core_Type {
             if(($part = $this->params['select']) && $part != '*') {
                 
                 $rec = $mvc->fetch($k);
-                
+                $rec->{$part} = tr($rec->{$part});
                 $res = $mvc->getVerbal($rec, $part);
                 
                 return $res;
             } else {
-                $value = $mvc->getTitleById($k);
+                $value = tr($mvc->getTitleById($k));
             }
         } elseif($this->params['function']) {
         
         } elseif($this->suggestions) {
-            $value = $this->suggestions[$k];
+            $value = tr($this->suggestions[$k]);
         }
         
         return $value;
@@ -172,7 +172,7 @@ class type_Keylist extends core_Type {
                         }
                         $html .= '</tr>';
                     }
-                    $html .= "\n<tr><td class='keylist-group' colspan='" . $col . "'>" . $v->title . "</td></tr>";
+                    $html .= "\n<tr><td class='keylist-group' colspan='" . $col . "'>" . tr($v->title) . "</td></tr>";
                     $i = 0;
                 } else {
                     $attrCB['id'] = $name . "_" . $key;
@@ -184,7 +184,7 @@ class type_Keylist extends core_Type {
                     } else {
                         unset($attrCB['checked']);
                     }
-                    
+                    $v = tr($v);
                     $cb = ht::createElement('input', $attrCB);
                     $cb->append("<label  for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     

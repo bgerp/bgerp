@@ -102,6 +102,7 @@ class type_CustomKey extends type_Key
             
             if (isset($titleField)) {
                 if ($rec = $this->fetchForeignRec($value)) {
+                    $rec->{$titleField} = tr($rec->{$titleField});
                     $verbalValue = $mvc->getVerbal($rec, $titleField);
                 }
             } else {
@@ -109,7 +110,7 @@ class type_CustomKey extends type_Key
                 // полето ключ се казва 'id'
                 expect($keyField == 'id');
                 
-                $verbalValue = $mvc->getTitleById($value);
+                $verbalValue = tr($mvc->getTitleById($value));
             }
         } else {
             // @TODO Какво да става ако не е зададен 'mvc' параметър на типа?
@@ -352,7 +353,7 @@ class type_CustomKey extends type_Key
                     
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
-                    $selOpt[trim($key)] = $v;
+                    $selOpt[trim($key)] = tr($v);
                 }
                 
                 $selOpt[$options[$value]] = $options[$value];
@@ -373,6 +374,8 @@ class type_CustomKey extends type_Key
                     }
                     
                     return new Redirect(array($mvc, 'list'), tr($msg));
+                } else {
+                    $options = array_map('tr', $options);
                 }
                 
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
