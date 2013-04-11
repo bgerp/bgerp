@@ -111,6 +111,10 @@ class acc_plg_Contable extends core_Plugin
                 }
             }
         }
+        
+        if ($requiredRoles != 'no_one') {
+            $requiredRoles .= (empty($requiredRoles) ? '' : ',') . 'acc';
+        }
     }
 
     
