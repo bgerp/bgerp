@@ -29,6 +29,10 @@
 	</tr>
 	<!--ET_END packagings-->
 	<tr>
+		<td>|Основна валута|*</td>
+		<td><span class='cCode'>[#baseCurrency#]</span></td>
+	</tr>
+	<tr>
 		<td>|Създадено на|* </td>
 		<td>[#createdOn#] |от|* [#createdBy#]</td>
 	</tr>
@@ -49,9 +53,9 @@
 		<td class = 'product-code-style'>[#code#]</td>
 		<td class = 'product-code-style'>[#eanCode#]</td>
 		<td>[#productId#]</td>
-		<td>[#measureId#]</td>
-		<td>[#pack#]</td>
-		<td>[#price#]</td>
+		<td class='norm-row-cell'>[#measureId#]</td>
+		<td class='norm-row-cell'>[#pack#]</td>
+		<td class='norm-row-cell'>[#price#]</td>
 	</tr>
 	<!--ET_END ROW-->
 	</table>

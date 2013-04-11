@@ -29,6 +29,12 @@ class price_ListDocs extends core_Master
     var $title = 'Ценоразписи';
     
     
+    /**
+     * Абревиатура
+     */
+    var $abbr = "Cnr";
+    
+    
      /**
      * Плъгини за зареждане
      */
@@ -81,7 +87,7 @@ class price_ListDocs extends core_Master
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/legend.png';
+    //var $singleIcon = 'img/16/legend.png';
     
     
     /**
@@ -143,8 +149,7 @@ class price_ListDocs extends core_Master
     	$polQuery = price_Lists::getQuery();
     	while($polRec = $polQuery->fetch()){
     		if(price_Lists::haveRightFor('read')){
-    			$polRow = price_Lists::recToVerbal($polRec, 'title');
-    			$options[$polRec->id] = $polRow->title;
+    			$options[$polRec->id] = price_Lists::getTitleById($polRec->id);
     		}
     	}
     	
@@ -233,8 +238,8 @@ class price_ListDocs extends core_Master
     		// За всяка от избраните опаковки
     		foreach($packArr as $pack){
     			
-    			// Проверяваме продукта поддържали избраната опаковка
-    			// ако поддържа и изчислява цената
+    			// Проверяваме продукта поддържали избраната
+    			// опаковка ако поддържа и изчислява цената
     			if($pInfo = cat_Products::getProductInfo($product->productId, $pack)){
     				$productClone = clone $product;
     				$productClone->price = price_ListRules::getPrice($rec->policyId, $product->productId, $pack, $rec->date);
@@ -249,7 +254,6 @@ class price_ListDocs extends core_Master
     	$rec->details->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
     	$rec->details->Pager->itemsCount = count($rec->details->rows);
     	$rec->details->Pager->calc();
-    	
     	unset($rec->details->products);
     }
     
@@ -328,6 +332,8 @@ class price_ListDocs extends core_Master
     	if(!$rec->productGroups) {
     		$row->productGroups = tr("Всички");
     	}
+    	
+    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->date);
     }
     
     
