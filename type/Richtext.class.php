@@ -859,7 +859,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: yellow;' title='Жълт фон' onclick=\"s('[bg=yellow]', '[/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title='Код' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'))\">Код</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title=" . tr("Код") . " onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'))\">" . tr("Код") . "</a>", 'TBL_GROUP2');
         
         $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='Удебелен текст' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
         
@@ -867,7 +867,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<a class=rtbutton style='text-decoration:underline;' title='Подчертан текст' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class=rtbutton title='Линк' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">линк</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton title=" . tr("Линк") . " onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">" . tr("линк") . "</a>", 'TBL_GROUP2');
         
         if(!Mode::is('screenMode', 'narrow')) {
             $toolbarArr->add("<a class=rtbutton title='Заглавие 1' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'))\">H1</a>", 'TBL_GROUP3');
