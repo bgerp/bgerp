@@ -5,7 +5,7 @@
  * Детайли на мениджър на експедиционни нареждания (@see store_ShipmentOrders)
  *
  * @category  bgerp
- * @package   sales
+ * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
@@ -40,7 +40,7 @@ class store_ShipmentOrderDetails extends core_Detail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
+    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, 
                         plg_AlignDecimals';
     
     
@@ -116,7 +116,7 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public function description()
     {
-        $this->FLD('shipmentId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent');
         
         $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
@@ -393,7 +393,7 @@ class store_ShipmentOrderDetails extends core_Detail
             
             $rec        = $form->rec;
 
-            $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
+            $masterRec  = store_ShipmentOrders::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
             /* @var $productRef cat_ProductAccRegIntf */
