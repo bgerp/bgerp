@@ -136,6 +136,11 @@ a {
 
 #framecontentBottom {
 	border-top: solid 2px $blue;
+	padding-left:3px;
+}
+
+.narrow #framecontentBottom {
+	padding:2px 5px 0 5px;
 }
 
 #subMenu {
