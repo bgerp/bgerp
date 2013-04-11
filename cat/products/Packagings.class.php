@@ -223,10 +223,10 @@ class cat_products_Packagings extends cat_products_Detail
     	$row->dimention = "{$row->sizeWidth} x {$row->sizeHeight} x {$row->sizeDepth}";
     	
     	if($rec->eanCode){
-    		$row->codecode = "EAN: {$row->eanCode} <br />";
+    		$row->code = "EAN: {$row->eanCode} <br />";
     	}
     	if($rec->customCode){
-    		$row->codecode .= "Вътрешен: {$row->customCode}";
+    		$row->code .= "Вътрешен: {$row->customCode}";
     	}
     	if($rec->netWeight){
     		$row->weight = "Нето: {$row->netWeight} <br />";
