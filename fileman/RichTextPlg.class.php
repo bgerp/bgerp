@@ -50,7 +50,7 @@ class fileman_RichTextPlg extends core_Plugin
             $url = fileman_Files::getUrLForAddFile($bucketId, $callbackName);
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
             
-            $fileUpload = new ET("<a class=rtbutton title='Прикачен файл' onclick=\"{$js}\">файл</a>");
+            $fileUpload = new ET("<a class=rtbutton title=" . tr("Прикачване на файл") . " onclick=\"{$js}\">" . tr("файл") . "</a>");
             
             $fileUpload->appendOnce($callback, 'SCRIPTS');
             
