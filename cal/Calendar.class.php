@@ -1649,7 +1649,7 @@ class cal_Calendar extends core_Master
    		$weekNb = self::prepareWeekNumber($data);
     	
         // Заглавие на страницата
-    	$tpl->replace('Събития за седмица » ' . $weekNb, 'title');
+    	$tpl->replace(tr('Събития за седмица') . ' » ' . $weekNb, 'title');
     	
     	// Рендираме масивите с дните и javaScript масива
     	$tpl->placeArray($weekArr->days);
@@ -1756,9 +1756,9 @@ class cal_Calendar extends core_Master
 						         
     		}
          }
-        
+
         // Заглавието на страницата
-    	$tpl->replace('Събития за година » '. $fromFilter[2], 'title');
+    	$tpl->replace(tr('Събития за година') . ' » '. $fromFilter[2], 'title');
 
     	// Имената на дните от седмицата
         $tpl->placeArray(dt::$weekDays);
