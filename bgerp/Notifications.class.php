@@ -111,6 +111,7 @@ class bgerp_Notifications extends core_Manager
         
         $rec->id = $r->id;
         $rec->state = 'active';
+        $rec->hidden = 'no';
         if($customUrl) {
             $rec->customUrl = toUrl($customUrl, 'local');
         }
@@ -168,7 +169,34 @@ class bgerp_Notifications extends core_Manager
         }
         
         while($rec = $query->fetch()) {
-            $rec->hidden = $hidden;
+            
+            // Ако ще се скрива
+            if ($hidden == 'yes') {
+                
+                // Ако имаме 
+                if ($rec->cnt > 0) {
+                    
+                    // Вадим един брой
+                    $rec->cnt--;
+                }
+                
+                // Ако няма нито един брой
+                if ($rec->cnt == 0) {
+                    
+                    // Скриваме
+                    $rec->hidden = $hidden;     
+                }
+            } elseif ($hidden == 'no') {
+                
+                // Ако ще се визуализира
+                
+                // Увеличаваме с единица
+                $rec->cnt++;
+                
+                // Показваме
+                $rec->hidden = $hidden;
+            }
+            
             self::save($rec);
         }
     }
