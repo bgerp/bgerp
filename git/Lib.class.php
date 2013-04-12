@@ -86,7 +86,7 @@ class git_Lib
 	    
 		$commandFetch = "git --git-dir=\"{$repoPath}/.git\" fetch origin +{$branch}:{$branch} 2>&1";
 		
-		$commandCheckOut = "git --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$branch}\" checkout {$branch} 2>&1";
+		$commandCheckOut = "git --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$branch} 2>&1";
 			
 		exec($commandFetch, $arrRes, $returnVar);
 		exec($commandCheckOut , $arrRes, $returnVar);
@@ -123,7 +123,7 @@ class git_Lib
 		if (!self::fetch($repoPath, $log, $branch1)) return FALSE;
 		if (!self::fetch($repoPath, $log, $branch2)) return FALSE;
 		if (!self::checkout($repoPath, $log, $branch2)) return FALSE;
-		$commandMerge = "git --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge {$branch1}"
+		$commandMerge = "git --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge {$branch1}";
 		exec($commandMerge);
 		
 	}
