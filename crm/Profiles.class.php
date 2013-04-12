@@ -355,7 +355,7 @@ class crm_Profiles extends core_Master
 
         $usersGroupId = crm_Groups::fetchField("#sysId = 'users'", 'id');
 
-        if(!type_Keylist::isIn($usersGroupId, $data->masterData->rec->groupList)) {
+        if(isset($data->masterData->rec) && !type_Keylist::isIn($usersGroupId, $data->masterData->rec->groupList)) {
             $data->Order = -1;
             return;
         }
