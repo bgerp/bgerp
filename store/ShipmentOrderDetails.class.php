@@ -305,7 +305,15 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $requiredRoles = store_ShipmentOrders::getRequiredRoles('edit', (object)array('id'=>$rec->shipmentId), $userId);
+        if ($action == 'delete') {
+            // Изтриването на ред от ЕН може да се прави от същите потребители, които имат 
+            // права да го редактират
+            $action = 'edit';
+        }
+        
+        // Прехвърляме правата за достъп до ЕН (мастъра) върху всеки ред от детайлите му. 
+        $requiredRoles = store_ShipmentOrders::getRequiredRoles($action, 
+            (object)array('id'=>$rec->shipmentId), $userId);
     }
     
     
@@ -332,6 +340,11 @@ class store_ShipmentOrderDetails extends core_Detail
     
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
+        
+        // Само който има право да контира експ. нареждане, само той вижда ценовата информация
+        if (!store_ShipmentOrders::haveRightFor('conto', $data->masterData->rec)) {
+            $data->listFields = array_diff_key($data->listFields, arr::make('price, discount, amount', TRUE));
+        }
     
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
@@ -375,6 +388,15 @@ class store_ShipmentOrderDetails extends core_Detail
             
             $data->form->setField('policyId', 'input=hidden');
             $data->form->setOptions('productId', $Policy->getProducts($data->masterRec->contragentClassId, $data->masterRec->contragentId));
+        }
+        
+        $masterId = $data->form->rec->{$data->masterKey};
+        
+        // Само който има право да контира експ. нареждане, само той вижда полетата за цена и 
+        // отстъпка 
+        if (!store_ShipmentOrders::haveRightFor('conto', (object)array('id'=>$masterId))) {
+            $data->form->setField('packPrice', 'input=none');
+            $data->form->setField('discount', 'input=none');
         }
     }
     
