@@ -139,6 +139,10 @@ class crm_Groups extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
+        // Ако няма стойности
+        if (!$rec->companiesCnt) $rec->companiesCnt=0;
+        if (!$rec->personsCnt) $rec->personsCnt=0;
+        
     	$row->companiesCnt = $mvc->getVerbal($rec, 'companiesCnt');
     	$row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
     	
