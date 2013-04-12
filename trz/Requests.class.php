@@ -43,7 +43,7 @@ class trz_Requests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid,state';
+    var $listFields = 'tools=Пулт,id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid, orders=Заповед';
     
     
     /**
@@ -94,6 +94,8 @@ class trz_Requests extends core_Master
     var $canDelete = 'powerUser';
   
     
+    //var $canOrders = 'ceo,trz';
+    
     /**
      * Икона за единичния изглед
      */
@@ -129,11 +131,11 @@ class trz_Requests extends core_Master
     function description()
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,where=#groupList LIKE \\\'%|7|%\\\')', 'caption=Служител');
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До');
     	$this->FLD('note', 'text', 'caption=Забележка');
-    	$this->FLD('useDaysFromYear', 'int(nowYear, nowYear-1)', 'caption=Ползване от,unit=Година');
+    	$this->FLD('useDaysFromYear', 'int(nowYest, nowYear-1)', 'caption=Ползване от,unit=Година');
     	$this->FLD('paid', 'enum(paid=Платен, unpaid=Неплатен)', 'caption=Вид,export');
     }
     
@@ -155,13 +157,18 @@ class trz_Requests extends core_Master
         if($data->listFilter->rec->paid) {
     		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
     	}
+    	
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->selectedUsers) {
+            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
+        }
 
-        $userId = core_Users::getCurrent();
+        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
+            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
+            
+        }
 
-        /*if($data->listFilter->rec->selectedUsers) {
-        	$data->query->where("#personId = '{$data->listFilter->rec->selectedUsers}'");
-  	
-        }*/
+
     }
     
     
@@ -179,7 +186,8 @@ class trz_Requests extends core_Master
         // Добавяме поле във формата за търсене
        
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-                
+        $data->listFilter->setDefault('selectedUsers', 'all_users'); 
+              
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
@@ -213,6 +221,44 @@ class trz_Requests extends core_Master
     {
     	$rec = $form->rec;
 
+    }
+    
+    
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+	    if($action == 'order'){
+			if ($rec->id) {
+				
+					if(!haveRole('ceo') || !haveRole('trz')) {
+				
+						$requiredRoles = 'no_one';
+				}
+		    }
+	    }
+    }
+    
+    /**
+	 * 
+     */
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+
+		if(!$mvc->haveRightFor('orders')){
+			unset($data->listFields['orders']);
+		}
+    }
+
+    
+    /**
+     *
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if($mvc->haveRightFor('orders') && $data->rec->state == 'active') {
+            
+            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), '');
+        }
+        
     }
     
     /**

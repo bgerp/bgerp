@@ -94,6 +94,7 @@ class trz_Orders extends core_Master
     var $canDelete = 'ceo, trz';
   
     
+    var $canOrders = 'ceo, trz';
     /**
      * Икона за единичния изглед
      */
@@ -128,7 +129,7 @@ class trz_Orders extends core_Master
      */
     function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,where=#groupList LIKE \\\'%|7|%\\\')', 'caption=Служител');
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До');
     	$this->FLD('note', 'text', 'caption=Забележка');
@@ -156,12 +157,15 @@ class trz_Orders extends core_Master
     		$data->query->where("#isPaid = '{$data->listFilter->rec->isPaid}'");
     	}
 
-        $userId = core_Users::getCurrent();
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->selectedUsers) {
+            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
+        }
 
-        /*if($data->listFilter->rec->selectedUsers) {
-        	$data->query->where("#personId = '{$data->listFilter->rec->selectedUsers}'");
-  	
-        }*/
+        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
+            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
+            
+        }
     }
     
     
@@ -179,6 +183,7 @@ class trz_Orders extends core_Master
         // Добавяме поле във формата за търсене
        
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->setDefault('selectedUsers', 'all_users');
                 
         $data->listFilter->view = 'horizontal';
         
@@ -202,9 +207,28 @@ class trz_Orders extends core_Master
     	$cu = core_Users::getCurrent();
         $data->form->setDefault('personId', $cu);
         
+        if($data->form->rec->originId){
+			// Ако напомнянето е по  документ задача намираме кой е той
+    		$doc = doc_Containers::getDocument($data->form->rec->originId);
+    		$class = $doc->className;
+    		$dId = $doc->that;
+    		$rec = $class::fetch($dId);
+    		
+    		// Извличаме каквато информация можем от оригиналния документ
+    		
+    		$data->form->setDefault('personId', $rec->personId);
+    		$data->form->setDefault('leaveFrom', $rec->leaveFrom);
+    		$data->form->setDefault('leaveTo', $rec->leaveTo);
+    		$data->form->setDefault('note', $rec->note);
+    		$data->form->setDefault('useDaysFromYear', $rec->useDaysFromYear);
+    		$data->form->setDefault('isPaid', $rec->paid);
+    
+
+		}
+        
          $rec = $data->form->rec;
     }
-    
+      
     
     /**
      * Проверява и допълва въведените данни от 'edit' формата
@@ -214,6 +238,8 @@ class trz_Orders extends core_Master
     	$rec = $form->rec;
 
     }
+    
+    
     
     /**
      * Интерфейсен метод на doc_DocumentIntf

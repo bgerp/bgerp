@@ -43,7 +43,7 @@ class trz_Sickdays extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,id,personId, fitNoteNum, fitNoteFile, startDate, toDate, reason, note, icdCode, paidByEmployer, paidByHI';
+    var $listFields = 'tools=Пулт,id,personId, fitNoteNum, fitNoteFile, startDate, toDate, reason, note, icdCode, accruals=Начисления';
     
     
     /**
@@ -67,31 +67,36 @@ class trz_Sickdays extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'ceo,trz';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'ceo,trz';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    var $canAdd = 'ceo,trz';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'powerUser';
+    var $canView = 'ceo,trz';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'powerUser';
+    var $canDelete = 'ceo,trz';
+    
+    /**
+     * Кой има право да прави начисления
+     */
+    var $canAccruals = 'ceo,trz,manager';
   
     
     /**
@@ -128,7 +133,7 @@ class trz_Sickdays extends core_Master
      */
     function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,where=#groupList LIKE \\\'%|7|%\\\')', 'caption=Служител');
     	$this->FLD('fitNoteNum', 'varchar', 'caption=Номер на болничния лист, hint=Номер/Серия/Година, mandatory');
     	$this->FLD('fitNoteFile', 'richtext(bucket=trzSickdays)', 'caption=Прикачен файл, mandatory');
     	$this->FLD('startDate', 'date', 'caption=Болниче->От, mandatory');
@@ -145,8 +150,8 @@ class trz_Sickdays extends core_Master
 								   10=Гледа дете до 18 години)', 'caption=Причина');
     	$this->FLD('note', 'richtext', 'caption=Забележка');
     	$this->FLD('icdCode', 'varchar(5)', 'caption=Код по MKB, hint=Международна класификация на болестите, mandatory');
-    	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, mandatory');
-    	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, mandatory');
+    	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=none');
+    	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=none');
     }
     
     
@@ -155,22 +160,15 @@ class trz_Sickdays extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+       
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->selectedUsers) {
+            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
+        }
 
-    	$groupList = cls::get('crm_Groups');
-        $group = 'Служители';
-        $employeesId = $groupList->fetchField("#name = '{$group}'", 'id');
-        
-        $employeesList = cls::get('crm_Persons');
-        
-        $userId = core_Users::getCurrent();
-           
-        if($data->listFilter->rec->selectedUsers) {
-	           
-	         if($data->listFilter->rec->selectedUsers != 'all_users') {
-	                $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
-	               
-	           }
-            	
+        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
+            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
+            
         }  
     }
     
@@ -209,6 +207,11 @@ class trz_Sickdays extends core_Master
     {
     	//bp($data->form->fields[personId]);
         $data->form->setDefault('reason', 3);
+        if(Request::get('accruals')){
+        	$data->form->setField('paidByEmployer', 'input, mandatory');
+        	$data->form->setField('paidByHI', 'input, mandatory');
+        	
+        }
 
         $rec = $data->form->rec;
     }
@@ -233,6 +236,32 @@ class trz_Sickdays extends core_Master
         
     	$rec = $form->rec;
 
+    }
+    
+	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+	    if($action == 'accruals'){
+			if ($rec->id) {
+				
+					if(!haveRole('ceo') || !haveRole('trz')) {
+				
+						$requiredRoles = 'no_one';
+				}
+		    }
+	    }
+    }
+    
+    /**
+	 *
+     */
+    static function on_AfterListFields($mvc, $data)
+    {
+bp($data->listFields);
+        if($mvc->requireRightFor('accruals', $rec)) {
+            //if ($rec->state == 'active'){
+                $row->accruals = Ht::createBtn('Начисления', array($this, 'add', $rec->id, 'accruals'=>'ok', 'ret_url' => TRUE, ''), NULL, 'ef_icon=img/16/lock.png');
+            //}
+        }
     }
 
     
@@ -274,6 +303,11 @@ class trz_Sickdays extends core_Master
         //$row->recTitle = $rec->title;
         
         return $row;
+    }
+    
+    function act_Accruals()
+    {
+    	self::requireRightFor('аccruals');
     }
 
 }
