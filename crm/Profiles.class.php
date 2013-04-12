@@ -181,7 +181,7 @@ class crm_Profiles extends core_Master
     public static function on_AfterRenderSingle(crm_Profiles $mvc, &$tpl, $data)
     {
         if ($data->rec->Person) {
-            $tpl = crm_Persons::renderSingle($data->rec->Person);
+            $tpl = self::renderSingle($data->rec->Person);
             $profileTpl = self::renderProfile($data);
             $tpl->append($profileTpl, 'PROFILE');
         }
