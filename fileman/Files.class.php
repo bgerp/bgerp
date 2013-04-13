@@ -332,7 +332,7 @@ class fileman_Files extends core_Master
      * 
      * @param string $fname - Името на файла
      */
-    function normalizeFileName($fname)
+    static function normalizeFileName($fname)
     {
         // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
         $fname = STR::utf2ascii($fname);
