@@ -95,7 +95,7 @@ class type_Users extends type_Keylist
                 
                 // Добавя в началото опция за избор на всички потребители на системата
                 $all = new stdClass();
-                $all->title = "Всички";
+                $all->title = tr("Всички");
                 $all->attr = array('style' => 'background-color:#ffc;');
                 $uQueryCopy = clone($uQuery);
                 $allUsers = '';
@@ -114,7 +114,7 @@ class type_Users extends type_Keylist
             
             foreach($teams as $t) {
                 $group = new stdClass();
-                $group->title = "Екип \"" . core_Roles::getVerbal($t, 'role') . "\"";
+                $group->title = tr('Екип') . " \"" . core_Roles::getVerbal($t, 'role') . "\"";
                 $group->attr = array('class' => 'team');
                 
                 $this->options[$t . ' team'] = $group;
