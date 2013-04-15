@@ -133,7 +133,7 @@ class trz_Sickdays extends core_Master
      */
     function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,where=#groupList LIKE \\\'%|1|%\\\')', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
     	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
     	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
     	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година');
