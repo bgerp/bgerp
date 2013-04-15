@@ -94,6 +94,12 @@ class support_Issues extends core_Master
     
     
     /**
+     * Кой може да променя активирани записи
+     */
+    var $canChange = 'support, admin, ceo';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
