@@ -24,7 +24,7 @@ class change_Plugin extends core_Plugin
         if ($data->rec->state != 'closed' && $data->rec->state != 'draft') {
 
             // Права за промяна
-            $canChange = $mvc->haveRightFor('canChange', $data->rec);
+            $canChange = $mvc->haveRightFor('change', $data->rec);
             
             // Ако има права за промяна
             if ($canChange) {
@@ -52,6 +52,9 @@ class change_Plugin extends core_Plugin
         
         // Ако има права за едитване
         $mvc->requireRightFor('edit');
+        
+        // Ако има права за промяна
+        $mvc->requireRightFor('change');
         
         // Вземаме формата към този модел
         $form = $mvc->getForm();
@@ -149,8 +152,7 @@ class change_Plugin extends core_Plugin
      */
     public function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
     {
-        
-        // Подготвяме масива с лгоа
+        // Подготвяме масива с лога
         $logArr = change_Log::prepareLog($mvc->className, $data->rec->id);
         
         // Рендираме изгледа
