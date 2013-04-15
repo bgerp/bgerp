@@ -614,11 +614,13 @@ class support_Issues extends core_Master
      */
     function on_AfterGetShared($mvc, &$shared, $id)
     {
-    
+        // Ако има споделени потребители връщамес
+        if ($shared) return ;
+        
         // Вземаме записа
         $rec = $mvc->fetch($id);
         
-        // Ако не е активе, връщаме
+        // Ако не е активен, връщаме
         if ($rec->state != 'active') return ;
         
         // Ако има компонент
