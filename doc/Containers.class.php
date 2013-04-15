@@ -505,7 +505,7 @@ class doc_Containers extends core_Manager
             return FALSE;
         }
         
-        return static::getDocument((object)array('docClass'=>$mvc, 'docId'=>$docRec), $intf);
+        return static::getDocument((object)array('docClass'=>$mvc, 'docId'=>$docRec->id), $intf);
     }
     
     protected static function parseHandle($handle)
