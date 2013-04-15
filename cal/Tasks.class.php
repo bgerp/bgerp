@@ -143,10 +143,10 @@ class cal_Tasks extends core_Master
     function description()
     {
         $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%');
-        $this->FLD('priority', 'enum(low=нисък,
-                                    normal=нормален,
-                                    high=висок,
-                                    critical=критичен)', 
+        $this->FLD('priority', 'enum(low=Нисък,
+                                    normal=Нормален,
+                                    high=Висок,
+                                    critical=Критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
         $this->FLD('description',     'richtext(bucket=calTasks)', 'caption=Описание,mandatory');
 
