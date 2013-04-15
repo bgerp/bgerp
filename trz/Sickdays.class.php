@@ -250,20 +250,18 @@ class trz_Sickdays extends core_Master
 		    }
 	    }
     }
-    
-    /**
-	 *
-     */
-    static function on_AfterListFields($mvc, $data)
-    {
-bp($data->listFields);
-        if($mvc->requireRightFor('accruals', $rec)) {
-            //if ($rec->state == 'active'){
-                $row->accruals = Ht::createBtn('Начисления', array($this, 'add', $rec->id, 'accruals'=>'ok', 'ret_url' => TRUE, ''), NULL, 'ef_icon=img/16/lock.png');
-            //}
-        }
-    }
 
+    /**
+     *
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if($mvc->haveRightFor('accruals') && $data->rec->state == 'active') {
+            
+            $data->toolbar->addBtn('Начисления', array('trz_Sickdays', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), '');
+        }
+        
+    }
     
     /**
      * Изпълнява се след начално установяване

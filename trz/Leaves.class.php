@@ -78,19 +78,8 @@ class trz_Leaves extends core_Manager
      */
     function description()
     {
+    	
     }
     
-    function act_Orders()
-    {
-    	$res = '1';
 
-        return $this->renderWrapping($res);
-    }
-    
-    function act_Applications()
-    {
-    	$res = '1';
-
-        return $this->renderWrapping($res);
-    }
 }
