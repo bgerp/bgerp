@@ -4,22 +4,7 @@
 	<div class='folder-cover'>
 	  <div class='inner-folder'>
 		<div class='block_title [#STATE_CLASS#] special-title'>[#img#] Проект » [#name#] ([#state#])</div>
-                <fieldset class="detail-info">
-		            <legend class="groupTitle">|Права|*</legend>
-		            <div class="groupList">
-						<dl>
-						<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
-						<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
-						<!--ET_BEGIN shared-->
-							<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
-						<!--ET_END shared-->
-						<dt>Създаване: </dt><dd> от [#createdBy#] на [#createdOn#]</dd>
-						</dl>
-		             </div>
-		        </fieldset>
-               
-      
-                     
+			[#DETAILS#]               
          <div style='clear: both;'></div>
      </div>
   </div>   

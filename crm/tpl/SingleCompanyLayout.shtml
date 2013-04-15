@@ -42,21 +42,6 @@
         </fieldset>
         <!--ET_END groupList-->
 
-		<!--ET_BEGIN groupList-->
-        <fieldset class="detail-info">
-            <legend class="groupTitle">|Права|*</legend>
-            <div class="groupList">
-				<dl>
-				<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
-				<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
-				<!--ET_BEGIN shared-->
-					<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
-				<!--ET_END shared-->
-				</dl>
-             </div>
-        </fieldset>
-        <!--ET_END groupList-->
-
         <!--ET_BEGIN regDecision-->
         [#regDecision#]
         <fieldset class="detail-info">
