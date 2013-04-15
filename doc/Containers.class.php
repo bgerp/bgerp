@@ -481,14 +481,37 @@ class doc_Containers extends core_Manager
      */
     static function getDocumentByHandle($handle, $intf = NULL)
     {
-        if (!$doc = doc_RichTextPlg::getAttachedDocs("#{$handle}")) {
+        if (!is_array($handle)) {
+            $handle = self::parseHandle($handle);
+        }
+        
+        //Проверяваме дали сме открили клас. Ако не - връщаме FALSE
+        if (!$mvc = self::getClassByAbbr($handle['abbr'])) {
             return FALSE;
         }
         
-        // извежда в променливи $mvc и $rec - мениджъра и записа на документа със зададения хендъл
-        extract(reset($doc));  
+        //Ако нямаме запис за съответното $id връщаме FALSE
+        if (!$docRec = $mvc::fetchByHandle($handle)) {
+            return FALSE;
+        }
         
-        return static::getDocument((object)array('docClass'=>$mvc, 'docId'=>$rec->id), $intf);
+        //Проверяваме дали имаме права за single. Ако не - FALSE
+        if (!$mvc->haveRightFor('single', $docRec)) {
+            return FALSE;
+        }
+        
+        return static::getDocument((object)array('docClass'=>$mvc, 'docId'=>$docRec), $intf);
+    }
+    
+    protected static function parseHandle($handle)
+    {
+        $handle = trim($handle);
+        
+        if (!preg_match("/(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})/", $handle, $matches)) {
+            return FALSE;
+        }
+        
+        return $matches;
     }
     
     

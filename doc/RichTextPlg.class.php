@@ -59,9 +59,12 @@ class doc_RichTextPlg extends core_Plugin
         //Име на файла
         $docName = $match['dsName'];
 
-        if (!$docRec = static::matchedHandleToRec($match, $mvc)) {
+        if (!$doc = doc_Containers::getDocumentByHandle($match)) {
             return $match[0];
         }
+        
+        $mvc    = $doc->instance;
+        $docRec = $doc->rec();
         
         //Създаваме линк към документа
         $link = bgerp_L::getDocLink($docRec->containerId, doc_DocumentPlg::getMidPlace());
@@ -78,7 +81,7 @@ class doc_RichTextPlg extends core_Plugin
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
-            $sbfIcon = sbf($mvc->getIcon($docRec->id), '"', $isAbsolute);
+            $sbfIcon = sbf($doc->getIcon(), '"', $isAbsolute);
             
             $title = substr($docName, 1);
             
@@ -141,12 +144,14 @@ class doc_RichTextPlg extends core_Plugin
             
             //Обхождаме всички намерени думи
             foreach ($matches as $match) {
-                if (!$rec = static::matchedHandleToRec($match, $mvc)) {
+                if (!$doc = doc_Containers::getDocumentByHandle($match)) {
                     continue;
                 }
                 
                 //Името на документа
-                $name = $mvc->getHandle($rec->id);
+                $name = $doc->getHandle();
+                $mvc  = $doc->getInstance();
+                $rec  = $doc->rec();
                 
                 $docs[$name] = compact('name', 'mvc', 'rec');
             }
@@ -191,34 +196,5 @@ class doc_RichTextPlg extends core_Plugin
             
             return $info;
         }
-    }
-    
-    
-    /**
-     * Помощен метод - извлича запис на документ според зададен хендъл
-     * 
-     * @param array $match парсиран хендъл на документа
-     * @param core_Mvc $mvc мениджър на документа
-     * @return stdClass запис от модела $mvc; FALSE при неуспех
-     */
-    protected static function matchedHandleToRec($match, &$mvc = NULL)
-    {
-        //Проверяваме дали сме открили клас. Ако не - връщаме FALSE
-        if (!$mvc = doc_Containers::getClassByAbbr($match['abbr'])) {
-            return FALSE;
-        }
-        
-        //Ако нямаме запис за съответното $id връщаме FALSE
-        if (!$docRec = $mvc::fetchByHandle($match)) {
-            return FALSE;
-        }
-        
-        //Проверяваме дали имаме права за single. Ако не - FALSE
-        if (!$mvc->haveRightFor('single', $docRec)) {
-            return FALSE;
-        }
-
-        // Връщаме намерения запис, съответстващ на хендъла
-        return $docRec;
     }
 }

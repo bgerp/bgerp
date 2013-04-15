@@ -618,6 +618,10 @@ class doc_DocumentPlg extends core_Plugin
     {
         $classId = core_Classes::getId($mvc);
         
+        if (is_object($id)) {
+            $id = $id->id;
+        }
+        
         $res = doc_Containers::fetch("#docId = {$id} AND #docClass = {$classId}");
     }
     
