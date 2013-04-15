@@ -225,17 +225,10 @@ class acc_Balances extends core_Master
                     }
                     $lastCalculate = dt::verbal2mysql();
 
-                    $rec->periodId = $pRec->id;
-
-                    self::save($rec);
-
-                    $bDetail = cls::get('acc_BalanceDetails');
-
-                    $bDetail->calculateBalance($rec);
-
+                    $rec->periodId      = $pRec->id;
                     $rec->lastCalculate = $lastCalculate;
-
-                    self::save($rec);
+                    
+                    self::save($rec); // Детайлите на баланса се изчисляват в on_AfterSave()
                 }
             }
         }

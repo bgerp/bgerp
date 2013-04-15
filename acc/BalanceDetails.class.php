@@ -595,6 +595,7 @@ class acc_BalanceDetails extends core_Detail
         $query->EXT('jid', 'acc_Journal', 'externalName=id');
         $query->where("#state = 'active'");
         $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
+        $query->orderBy('valior', 'ASC');
         
         while ($rec = $query->fetch()) {
             $this->calcAmount($rec);
@@ -616,15 +617,15 @@ class acc_BalanceDetails extends core_Detail
         // Намираме стратегиите на дебит и кредит с/ките (ако има)
         $debitStrategy = $this->getStrategyFor(
             $rec->debitAccId,
-            $rec->debitEnt1,
-            $rec->debitEnt2,
-            $rec->debitEnt3
+            $rec->debitItem1,
+            $rec->debitItem2,
+            $rec->debitItem3
         );
         $creditStrategy = $this->getStrategyFor(
             $rec->creditAccId,
-            $rec->creditEnt1,
-            $rec->creditEnt2,
-            $rec->creditEnt3
+            $rec->creditItem1,
+            $rec->creditItem2,
+            $rec->creditItem3
         );
         
         if ($creditStrategy) {
