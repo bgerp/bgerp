@@ -310,7 +310,13 @@ div.tab-control div.tab-row .tab {
 		font-weight: bold;
 	}
 }
-
+.narrow div.tab-control div.tab-row .tab:first-child{
+	margin-left:10px;
+}
+.narrow div.tab-control.alphabet div.tab-row .tab:first-child{
+	margin-left:2px;
+}
+	
 div.tab-control div.tab-page {
 	clear: both;
 	border: 1px solid #bbb;
@@ -321,9 +327,16 @@ div.tab-control div.tab-page {
 	@include border-radius(5px);
 	z-index: 2;
 }
+.narrow div.tab-control div.tab-page {
+	padding:0.5em;
+}
 
 .narrow div.alphabet{
 	margin-left:-2px;
+}
+
+.narrow div.tab-control.alphabet div.tab-page {
+	padding:0.1em;
 }
 
 .alphabet{
@@ -840,7 +853,6 @@ div.cover{
 }
 div.folder-cover{
 	background-image:url('../img/cover-bg.png');
-	padding:0px 0px 0px 35px;
 	display: inline-block;
 	min-width: 600px;
 	max-width: 750px;
@@ -850,19 +862,9 @@ div.folder-cover{
 	position:relative;
 	z-index:22;
 	border:1px solid #ccc;
-	@include border-radius4(0px,25px,25px,0px);
+	padding:20px 20px 20px 20px;
+	@include border-radius4(0px,25px,0px,0px);
 	box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
-	.inner-folder{
-		background-image:url('../img/folder-spiral.png');
-		background-position:left top;
-		background-repeat:repeat-y;
-		margin-left: -48px;
-		position:relative;
-		z-index:1;
-		border-left: none;
-		display:block;
-		padding: 25px 20px 20px 45px;
-	}
 	.detail-info{
 		background:#fff;
 	}
@@ -927,18 +929,27 @@ div.folder-cover{
 	}
 	.alphabet{
 		line-height:0.9em;
+		padding-bottom:0;
+	}
+	.tab-page .detail-info{
+		margin-bottom: 0 !important;
 	}
 }
 
 .narrow .folder-cover{
 	line-height:1.5em;
 	margin-left:0px;
+	margin-top:8px;
 	font-size:0.8em;
-	padding:0px 0px 0px 5px;
-	.inner-folder{
-		margin:0;
-		background-image:none;
-		padding:10px 10px 10px 5px;
+	padding:10px 10px 12px 10px;
+	.detail-info{
+		padding:3px 7px 7px 7px;
+	}
+	.tab-page{
+		padding:0 !important;
+	}
+	.tab-page .portal.detail-info{
+		margin-left:2px;
 	}
 }
 

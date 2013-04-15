@@ -228,7 +228,7 @@ class crm_Locations extends core_Master {
         if(count($data->rows)) {
             
             foreach($data->rows as $id => $row) {
-                $tpl->append("<div style='margin:3px;'>", 'content');
+                $tpl->append("<div>", 'content');
                 
                 $tpl->append("{$row->title}, {$row->type}", 'content');
                 
