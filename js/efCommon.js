@@ -920,11 +920,11 @@ function startGettingText()
  */
 function saveSelectedTextToSession()
 {
-	selText = getSelText();
+	var selText = getSelText();
 
 	// Ако има избран текст
 	if (selText.focusOffset != selText.anchorOffset) {
-		sessionStorage.selText = getSelText();
+		sessionStorage.selText = selText;
 		sessionStorage.selTime = new Date().getTime();
 		setTimeout(saveSelectedTextToSession, 1000)
 	}
