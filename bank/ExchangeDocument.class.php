@@ -25,7 +25,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Смяна на валута (Банки)";
+    var $title = "Банкови обмени на валути";
     
     
     /**
@@ -56,7 +56,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Смяна на валута (банки)';
+    var $singleTitle = 'Банкова обмяна на валута';
     
     
     /**

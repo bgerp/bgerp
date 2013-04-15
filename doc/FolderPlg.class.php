@@ -46,8 +46,26 @@ class doc_FolderPlg extends core_Plugin
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_FolderIntf'], 'doc_FolderIntf');
+
+        $mvc->details = arr::make($mvc->details);
+
+        $mvc->details['Rights'] = $mvc->className;
     }
     
+    
+    function on_AfterPrepareRights($mvc, $res, $data)
+    {
+        $data->TabCaption = 'Права';
+
+    }
+
+    function on_AfterRenderRights($mvc, &$tpl, $data)
+    {
+        $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
+                
+        $tpl->placeObject($data->masterData->row);
+    }
+
     
     /**
      * Извиква се след подготовка на фирмата за редактиране

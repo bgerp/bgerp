@@ -25,13 +25,13 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Вътрешно парични трансфери";
+    var $title = "Вътрешни касови трансфери";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, cash_DocumentWrapper, plg_Printing,acc_plg_Contable, acc_plg_DocumentSummary,
+    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing,acc_plg_Contable, acc_plg_DocumentSummary,
      	plg_Sorting,doc_DocumentPlg, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
@@ -56,7 +56,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Вътрешно паричен трансфер (каси)';
+    var $singleTitle = 'Вътрешен касов трансфер';
     
     
     /**
@@ -182,7 +182,7 @@ class cash_InternalMoneyTransfer extends core_Master
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
     	$form->FNC('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'input,caption=Операция');
-    	$form->title = 'Нов Вътрешен Паричен Трансфер';
+    	$form->title = 'Нов Вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class'=>'btn-next btn-move'));
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')), array('class'=>'btn-cancel'));
         

@@ -5,10 +5,10 @@ class bank_DocumentWrapper extends bank_Wrapper
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 		
-		$tabs->TAB('bank_IncomeDocument', 'Приходни банкови документи');
-		$tabs->TAB('bank_CostDocument', 'Разходни банкови документи');
-        $tabs->TAB('bank_InternalMoneyTransfer', 'Вътрешно парични трансфери');
-        $tabs->TAB('bank_ExchangeDocument', 'Превалутиране');
+		$tabs->TAB('bank_IncomeDocument', 'Приходни документи');
+		$tabs->TAB('bank_CostDocument', 'Разходни документи');
+        $tabs->TAB('bank_InternalMoneyTransfer', 'Вътрешни трансфери');
+        $tabs->TAB('bank_ExchangeDocument', 'Обмени на валути');
         
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
         $mvc->currentTab = 'Документи';

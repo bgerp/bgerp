@@ -25,13 +25,13 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Смяна на валута";
+    var $title = "Касови обмени на валути";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, cash_DocumentWrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing,
      	plg_Sorting,doc_DocumentPlg, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
@@ -57,7 +57,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Смяна на валута (каси)';
+    var $singleTitle = 'Касова обмяна на валута';
     
     
     /**
