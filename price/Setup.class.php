@@ -74,7 +74,7 @@ class price_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.44, 'Продукти', 'Ценообразуване', 'price_Lists', 'default', "{$role}, ceo");
+        $html .= $Menu->addItem(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "{$role}, ceo");
 
          
         return $html;

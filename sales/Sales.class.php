@@ -124,7 +124,7 @@ class sales_Sales extends core_Master
      *
      * @var string
      */
-    public $singleTitle = 'Документ за Продажба';
+    public $singleTitle = 'Продажба';
     
     
     /**
