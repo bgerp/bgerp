@@ -88,7 +88,7 @@ class acc_journal_EntrySide
         
         $this->amount = $data['amount']; // Сума в основна валута
         
-        if (isset($d['quantity'])) {
+        if (array_key_exists('quantity', $d)) {
             $this->quantity = $d['quantity'];
             unset($d['quantity']);
         }
