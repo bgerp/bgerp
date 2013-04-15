@@ -91,7 +91,7 @@ class bank_Accounts extends core_Master {
         $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory');     // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка,width=100%');
-        $this->FLD('comment', 'richtext(rows=6)', 'caption=Информация,width=100%');
+        $this->FLD('comment', 'richtext(rows=6)', 'caption=Бележки,width=100%');
         
         // Задаваме индексите и уникалните полета за модела
         $this->setDbIndex('contragentCls,contragentId');

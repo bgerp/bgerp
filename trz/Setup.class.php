@@ -53,6 +53,8 @@ class trz_Setup
             'trz_Leaves',
             'trz_Fines',
             'trz_Payrolls',
+        	'trz_Orders',
+            'trz_Requests',
         );
         
         // Роля за power-user на този модул

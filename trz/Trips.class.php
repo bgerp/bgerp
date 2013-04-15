@@ -14,21 +14,21 @@
  * @since     v 0.1
  * @title     Отпуски
  */
-class trz_Leaves extends core_Manager
+class trz_Trips extends core_Manager
 {
     
     
     /**
      * Заглавие
      */
-    var $title = 'Отпуски';
+    var $title = 'Командировки';
     
     
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    trz_Wrapper, trz_LeavesWrapper';
+                    trz_Wrapper';
     
     
     /**

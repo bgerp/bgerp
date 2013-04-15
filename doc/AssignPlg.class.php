@@ -110,10 +110,10 @@ class doc_AssignPlg extends core_Plugin
             $mvc->notificateAssigned($rec);
             
             // Името на документа
-            $docSingleTitle = mb_strtolower($mvc->singleTitle); 
+//            $docSingleTitle = mb_strtolower($mvc->singleTitle); 
             
             // Добавяме съобщение
-            core_Statuses::add(tr("Успешно възложихте|* {$docSingleTitle} |на|*: " . $mvc->getVerbal($newRec, 'assign')));
+//            core_Statuses::add(tr("Успешно възложихте|* {$docSingleTitle} |на|*: " . $mvc->getVerbal($newRec, 'assign')));
         }
     }
     

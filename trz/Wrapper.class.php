@@ -26,7 +26,8 @@ class trz_Wrapper extends plg_ProtoWrapper
         $this->TAB('trz_Salaries', 'Заплати', 'admin,trz');
         $this->TAB('trz_Bonuses', 'Премии', 'admin,trz');
         $this->TAB('trz_Sickdays', 'Болнични', 'admin,trz');
-        $this->TAB('trz_Leaves', 'Отпуски', 'admin,trz');
+        $this->TAB('trz_Requests', 'Отпуски', 'admin,trz');
+        $this->TAB('trz_Trips', 'Командировки', 'admin,trz');
         $this->TAB('trz_Fines', 'Глоби', 'admin,trz');
         $this->TAB('trz_Payrolls', 'Ведомост за заплати', 'admin,trz');
         

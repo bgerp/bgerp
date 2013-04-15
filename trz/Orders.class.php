@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   trz
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -43,7 +43,7 @@ class trz_Orders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,id,personId, leaveFrom, leaveTo, note, useDaysFromYear, isPaid, amount';
+    var $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, isPaid, amount';
     
     
     /**
@@ -54,7 +54,7 @@ class trz_Orders extends core_Master
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
     
     
     /**
@@ -117,24 +117,20 @@ class trz_Orders extends core_Master
      * Групиране на документите
      */
     var $newBtnGroup = "5.3|Човешки ресурси"; 
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-  //  var $rowToolsField = 'id';
-    
+
     
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,where=#groupList LIKE \\\'%|7|%\\\')', 'caption=Служител');
-    	$this->FLD('leaveFrom', 'date', 'caption=Считано->От');
-    	$this->FLD('leaveTo', 'date', 'caption=Считано->До');
-    	$this->FLD('note', 'text', 'caption=Забележка');
-    	$this->FLD('useDaysFromYear', 'int(nowYest, nowYear-1)', 'caption=Ползване от,unit=Година');
-    	$this->FLD('isPaid', 'enum(paid=Платен, unpaid=Неплатен)', 'caption=Вид,export');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
+    	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
+    	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
+    	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
+    	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
+    	$this->FLD('useDaysFromYear', 'int(nowYest, nowYear-1)', 'caption=Информация->Ползване от,unit=Година');
+    	$this->FLD('isPaid', 'enum(paid=Платен, unpaid=Неплатен)', 'caption=Вид,maxRadio=2,columns=2,notNull,value=paid');
     	$this->FLD('amount', 'double', 'caption=Начисления');
     }
     
@@ -203,6 +199,12 @@ class trz_Orders extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	//bp($data->form->fields[personId]);
+    	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
+    	for($i = 0; $i < 5; $i++){
+    		$years[] = $nowYear - $i;
+    	}
+    	$data->form->setSuggestions('useDaysFromYear', $years);
+    	$data->form->setDefault('useDaysFromYear', $years[0]);
     	
     	$cu = core_Users::getCurrent();
         $data->form->setDefault('personId', $cu);

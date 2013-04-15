@@ -593,6 +593,10 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetHandle($mvc, &$hnd, $id)
     {
+        if (is_object($id)) {
+            $id = $id->id;
+        }
+
         if(!$hnd) {
             $hnd = $mvc->abbr . $id;
         }
@@ -617,6 +621,10 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetContainer($mvc, &$res, $id)
     {
         $classId = core_Classes::getId($mvc);
+        
+        if (is_object($id)) {
+            $id = $id->id;
+        }
         
         $res = doc_Containers::fetch("#docId = {$id} AND #docClass = {$classId}");
     }
@@ -926,6 +934,10 @@ class doc_DocumentPlg extends core_Plugin
         
         // Създаваме обекта $data
         $data = new stdClass();
+        
+        if (is_object($id)) {
+            $id = $id->id;
+        }
         
         // Ако сме подали $rec'a в опциите, с променени данни (за бласта)
         if ($options->rec->id == $id) {

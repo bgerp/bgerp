@@ -99,7 +99,7 @@ class crm_Groups extends core_Master
         $this->FLD('allow', 'enum(companies_and_persons=Фирми и лица,companies=Само фирми,persons=Само лица)', 'caption=Съдържание,notNull');
         $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none');
         $this->FLD('personsCnt', 'int', 'caption=Брой->Лица,input=none');
-        $this->FLD('info', 'richtext', 'caption=Описание');
+        $this->FLD('info', 'richtext', 'caption=Бележки');
         
         $this->setDbUnique("name");
     }

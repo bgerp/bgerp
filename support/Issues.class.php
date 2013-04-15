@@ -94,6 +94,12 @@ class support_Issues extends core_Master
     
     
     /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangeRec = 'support, admin, ceo';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
@@ -338,6 +344,13 @@ class support_Issues extends core_Master
         
         // Променяме съдържанието на полето тип с определения от нас масив, за да се показват само избраните
         $data->form->setOptions('typeId', $types);
+
+        // Ако няма роля support
+        if (!haveRole('support')) {
+            
+            // Скриваме полето за споделяне
+            $data->form->setField('sharedUsers', 'input=none');
+        }
     }
     
     
@@ -595,8 +608,15 @@ class support_Issues extends core_Master
         
         // Добавяме типа към заглавието
         $row->title    =  $this->getVerbal($rec, 'title');
-
-        $row->subTitle = "{$type}, {$component}";
+        
+        // Ако е възложено на някой
+        if ($rec->assign) {
+            
+            // В заглавието добавяме потребителя
+            $row->subTitle = $this->getVerbal($rec, 'assign') . ", ";   
+        }
+        
+        $row->subTitle .= "{$type}, {$component}";
 
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
@@ -614,11 +634,13 @@ class support_Issues extends core_Master
      */
     function on_AfterGetShared($mvc, &$shared, $id)
     {
-    
+        // Ако има споделени потребители връщамес
+        if ($shared) return ;
+        
         // Вземаме записа
         $rec = $mvc->fetch($id);
         
-        // Ако не е активе, връщаме
+        // Ако не е активен, връщаме
         if ($rec->state != 'active') return ;
         
         // Ако има компонент
