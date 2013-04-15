@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   trz
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -43,7 +43,7 @@ class trz_Sickdays extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,id,personId, fitNoteNum, fitNoteFile, startDate, toDate, reason, note, icdCode, accruals=Начисления';
+    var $listFields = 'id,personId, fitNoteNum, fitNoteFile, startDate, toDate, reason, note, icdCode';
     
     
     /**
@@ -54,7 +54,7 @@ class trz_Sickdays extends core_Master
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
     
     
     /**
@@ -256,9 +256,9 @@ class trz_Sickdays extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if($mvc->haveRightFor('accruals') && $data->rec->state == 'active') {
+        if($mvc->haveRightFor('accruals') && $data->rec->state == 'draft') {
             
-            $data->toolbar->addBtn('Начисления', array('trz_Sickdays', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), '');
+            $data->toolbar->addBtn('Начисления', array($mvc, 'add', 'id' => $data->rec->id, 'accruals' => TRUE), 'ef_icon=img/16/calculator.png');
         }
         
     }
