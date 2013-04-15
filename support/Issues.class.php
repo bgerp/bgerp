@@ -96,7 +96,7 @@ class support_Issues extends core_Master
     /**
      * Кой може да променя активирани записи
      */
-    var $canChange = 'support, admin, ceo';
+    var $canChangeRec = 'support, admin, ceo';
     
     
     /**
