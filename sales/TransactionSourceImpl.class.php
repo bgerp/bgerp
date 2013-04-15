@@ -106,11 +106,7 @@ class sales_TransactionSourceImpl
      */
     protected function fetchSaleData($id)
     {
-        if (is_object($id)) {
-            $rec = $id;
-        } else {
-            $rec = $this->class->fetch($id);
-        }
+        $rec = $this->class->fetchRec($id);
         
         expect($rec->id);
         

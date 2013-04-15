@@ -194,7 +194,7 @@ class cal_Reminders extends core_Master
     	$cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
         $data->form->setDefault('sharedUsers', "|".$cu."|");
-        $data->form->setDefault('repetitionEach', static::$suggestions[0]);
+        
         
         $folderList = cls::get('doc_Folders');
 		$folderId = $data->form->rec->folderId;
@@ -236,10 +236,10 @@ class cal_Reminders extends core_Master
     			$data->form->setDefault('timeStart', $rec->timeEnd);
     		}
     		$data->form->setDefault('timePreviously', "15 мин.");
-    	    $data->form->setDefault('repetitionEach', NULL);
+    	    $data->form->setDefault('repetitionEach', " ");
 
 		}
-        
+        $data->form->setDefault('repetitionEach', static::$suggestions[0]);
         
         $rec = $data->form->rec;
     }

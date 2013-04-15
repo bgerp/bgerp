@@ -182,13 +182,13 @@ class acc_plg_Contable extends core_Plugin
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
             
-            if (!empty($transaction)) {
-                // Проверяваме валидността на транзакцията
-                $transaction = new acc_journal_Transaction($transaction);
-                if (!$transaction->check()) {
-                    return FALSE;
-                }
-            } 
+            expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
+            
+            // Проверяваме валидността на транзакцията
+            $transaction = new acc_journal_Transaction($transaction);
+            if (!$transaction->check()) {
+                return FALSE;
+            }
         } catch (core_exception_Expect $ex) {
             // Транзакцията не се валидира
             $transaction = FALSE;
