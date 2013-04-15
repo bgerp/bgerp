@@ -485,6 +485,11 @@ class doc_Containers extends core_Manager
             $handle = self::parseHandle($handle);
         }
         
+        if (!$handle) {
+            // Невалиден хендъл
+            return FALSE;
+        }
+        
         //Проверяваме дали сме открили клас. Ако не - връщаме FALSE
         if (!$mvc = self::getClassByAbbr($handle['abbr'])) {
             return FALSE;
@@ -507,7 +512,7 @@ class doc_Containers extends core_Manager
     {
         $handle = trim($handle);
         
-        if (!preg_match("/(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})/", $handle, $matches)) {
+        if (!preg_match("/(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})/i", $handle, $matches)) {
             return FALSE;
         }
         
