@@ -128,12 +128,34 @@ class core_ObjectReference
      */
     public function haveInterface($interface)
     {
-        if (isset($this->interface)) {
-            $class = $this->interface->class;
+        return cls::haveInterface($interface, $this->getInstance());
+    }
+    
+    
+    /**
+     * Записа, към който е референция този обект
+     * 
+     * @return stdClass
+     */
+    public function rec()
+    {
+        return $this->getInstance()->fetchRec($this->that);
+    }
+    
+    
+    /**
+     * Първичния ключ на записа, към който е референция този обект
+     * 
+     * @return int
+     */
+    public function id()
+    {
+        if (is_object($this->that)) {
+            $id = $this->that->id;
         } else {
-            $class = $this->instance;
+            $id = $this->that;
         }
         
-        return cls::haveInterface($interface, $class);
+        return $id;
     }
 }
