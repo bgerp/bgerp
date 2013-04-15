@@ -595,8 +595,15 @@ class support_Issues extends core_Master
         
         // Добавяме типа към заглавието
         $row->title    =  $this->getVerbal($rec, 'title');
-
-        $row->subTitle = "{$type}, {$component}";
+        
+        // Ако е възложено на някой
+        if ($rec->assign) {
+            
+            // В заглавието добавяме потребителя
+            $row->subTitle = $this->getVerbal($rec, 'assign') . ", ";   
+        }
+        
+        $row->subTitle .= "{$type}, {$component}";
 
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
