@@ -133,11 +133,11 @@ class trz_Sickdays extends core_Master
      */
     function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,where=#groupList LIKE \\\'%|7|%\\\')', 'caption=Служител');
-    	$this->FLD('fitNoteNum', 'varchar', 'caption=Номер на болничния лист, hint=Номер/Серия/Година, mandatory');
-    	$this->FLD('fitNoteFile', 'richtext(bucket=trzSickdays)', 'caption=Прикачен файл, mandatory');
-    	$this->FLD('startDate', 'date', 'caption=Болниче->От, mandatory');
-    	$this->FLD('toDate', 'date', 'caption=Болниче->До, mandatory');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,where=#groupList LIKE \\\'%|1|%\\\')', 'caption=Служител');
+    	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
+    	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
+    	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година');
+    	$this->FLD('fitNoteFile', 'fileman_FileType(bucket=trzSickdays)', 'caption=Болничен лист->Файл');
     	$this->FLD('reason', 'enum(1=Майчинство до 15 дни,
 								   2=Майчинство до 410 дни,
 								   3=Заболяване,
@@ -147,9 +147,9 @@ class trz_Sickdays extends core_Master
 								   7=Професионално заболяване,
 								   8=Бащинство до 15 дни,
 								   9=Бащинство до 410 дни,
-								   10=Гледа дете до 18 години)', 'caption=Причина');
-    	$this->FLD('note', 'richtext', 'caption=Забележка');
-    	$this->FLD('icdCode', 'varchar(5)', 'caption=Код по MKB, hint=Международна класификация на болестите, mandatory');
+								   10=Гледа дете до 18 години)', 'caption=Информация->Причина');
+    	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
+    	$this->FLD('icdCode', 'varchar(5)', 'caption=Информация->MKB код, hint=Международна класификация на болестите');
     	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=none');
     	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=none');
     }
