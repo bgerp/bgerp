@@ -78,66 +78,9 @@ class crm_Profiles extends core_Master
     {
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
-        
-        $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого');
-        $this->FLD('logoEn', 'fileman_FileType(bucket=pictures)', 'caption=ЛогоЕН');
-        $this->FLD('signature', 'text', 'caption=Подпис');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
-    }
-    
-    
-    /**
-     * Връща логото на профила
-     * 
-     * @param integer $userId - id' то на съответния потребител
-     * @param boolean $en - Дали логото да е на английски
-     */
-    static function getLogo($userId = FALSE, $en = FALSE)
-    {
-        // Ако не е подаден потребител
-        if (!$userId) {
-            
-            // Използваме текущия
-            $userId = core_Users::getCurrent();
-        }
-        
-        // Вземаме записа
-        $rec = static::fetch("#userId = '{$userId}'");
-        
-        // Ако е зададен дасе връща логото на английски
-        if ($en) {
-            
-            // Връщаме него
-            return $rec->logoEn;    
-        }
-        
-        // Връщаме логото на потребителя
-        return $rec->logo;
-        
-    }
-    
-    
-    /**
-     * Връща подписа на съответния потребител
-     * 
-     * @param integer $userId - id' то на съответния потребител
-     */
-    static function getSignature($userId = NULL)
-    {
-        /// Ако не е подаден потребител 
-        if (!$userId) {
-            
-            // Използваме текущия
-            $userId = core_Users::getCurrent();
-        }
-        
-        // Вземаме записа
-        $rec = static::fetch("#userId = '{$userId}'");
-        
-        // Връщаме подписа на потребителя
-        return $rec->signature;
     }
     
     
@@ -424,10 +367,6 @@ class crm_Profiles extends core_Master
             $profileTpl->placeObject($userRow);
             
             $profileRow = crm_Profiles::recToVerbal($data->profile);
-
-            $profileTpl->append($profileRow->logo, 'logo');
-            $profileTpl->append($profileRow->logoEn, 'logoEn');
-            $profileTpl->append($profileRow->signature, 'signature');
             
             $profileTpl->removeBlocks();
 
@@ -436,18 +375,6 @@ class crm_Profiles extends core_Master
  
         if(!$data->profile->userId) {
             $tpl->append('<p>' . tr("Няма профил") . '</p>', 'content');
-        }
-        
-        if ($data->profile->id && crm_Profiles::haveRightFor('edit', $data->profile->id) && !Mode::is('printing')) {
-            $url = array('crm_Profiles', 'edit', $data->profile->id, 'ret_url' => TRUE);
-            $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' height='16'>";
-            $tpl->append(
-                ht::createLink(
-                    $img, $url, NULL, 
-                    'title=' . tr('Редактиране на потребителски профил')
-                ), 
-                'title'
-            );    
         }
         
         if($data->canChange && !Mode::is('printing')) {
