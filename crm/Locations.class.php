@@ -139,7 +139,7 @@ class crm_Locations extends core_Master {
         	if($gps = exif_Reader::getGps($rec->image)){
         		
         		// Ако има GPS коодинати в снимката ги извличаме
-        		$rec->gpsCoords = $gps['lon'] . "," . $gps['lat'];
+        		$rec->gpsCoords = $gps['lat'] . ", " . $gps['lon'];
         	}
         }
     }
