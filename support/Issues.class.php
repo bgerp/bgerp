@@ -344,6 +344,13 @@ class support_Issues extends core_Master
         
         // Променяме съдържанието на полето тип с определения от нас масив, за да се показват само избраните
         $data->form->setOptions('typeId', $types);
+
+        // Ако няма роля support
+        if (!haveRole('support')) {
+            
+            // Скриваме полето за споделяне
+            $data->form->setField('sharedUsers', 'input=none');
+        }
     }
     
     
