@@ -413,21 +413,14 @@ class type_Key extends type_Int {
      */
     private function filterByGroup(core_Mvc $mvc)
     {
-    	list($prefix, ) = explode('_', $this->params['mvc']); 
-        $defaultGroupManager = $prefix . "_Groups";
-            	
-        // Търсим дали има дефиниран 'groupsManager' в мениджъра, 
-        // ако няма приемаме, че той е < префикса на мениджъра >_Groups
-        setIfNot($mvc->groupsManager, $defaultGroupManager);
-            	
-        // Трябва да има такъв мениджър
-        expect($GroupManager = cls::get($mvc->groupsManager));
-            	
         // Ако не е посочено 'groupsField', приемаме че то се казва "groups"
         setIfNot($mvc->groupsField, 'groups');
-            	
+		$fieldParams = $mvc->getField($mvc->groupsField)->type->params;
+        $GroupManager = cls::get($fieldParams['mvc']);
+
         // Проверяваме дали мениджъра има поле sysId или systemId
         $groupQuery = $GroupManager->getQuery();
+        
         if($sysIdField = $GroupManager->fields['sysId']){
             $sysIdField = 'sysId';
         } elseif($GroupManager->fields['systemId']) {
