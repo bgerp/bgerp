@@ -328,8 +328,10 @@ class price_ListDocs extends core_Master
     		}
     		
     		foreach ($grouped as $groupId => $products){
-    			$groupsArr = type_keylist::toArray($rec->productGroups);
-    			if(!in_array($groupId, $groupsArr)) return;
+    			if($rec->productGroups){
+	    			$groupsArr = type_keylist::toArray($rec->productGroups);
+	    			if(!in_array($groupId, $groupsArr)) return;
+    			}
     			if(count($products) != 0){
 					
 					// Слагаме името на групата
