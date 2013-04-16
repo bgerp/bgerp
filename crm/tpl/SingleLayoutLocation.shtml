@@ -2,32 +2,18 @@
 	[#SingleToolbar#]
 	<div class="info-table">
 		<div class="cover">
-			<h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b></h2>
+			<h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
 			
 			<fieldset class="detail-info">
-	         <legend class="groupTitle">|Собственик|*</legend>
+	         <legend class="groupTitle">|Информация|*</legend>
 	         <div class="groupList">
 		         <ul>  
 			        <li class="info">
-			        	<span class="part">[#contragent#] </span>
+			        	<span class="gray-title">|Тип|*:</span> [#type#]
 					</li>
 		         </ul>  
 	         </div>
 	      </fieldset>
-	      
-	      <fieldset class="detail-info">
-	        <legend class="groupTitle">|Наименование|*</legend>
-	         <div class="groupList">
-				[#title#]
-			</div>
-		  </fieldset>
-		  
-		  <fieldset class="detail-info">
-	        <legend class="groupTitle">|Тип|*</legend>
-	         <div class="groupList">
-				[#type#]
-			</div>
-		  </fieldset>
 		  
 		  <fieldset class="detail-info">
 	        <legend class="groupTitle">|Адрес|*</legend>
