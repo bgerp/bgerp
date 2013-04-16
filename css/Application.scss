@@ -1297,7 +1297,8 @@ div.attachments {
 		border-bottom: solid 1px #e0e0e0;
 	}
 	.file {
-		max-height:30px;
+		max-height:32px;
+		height:auto;
 		overflow:hidden;
 		display: block;
 		margin-bottom: 2px;
