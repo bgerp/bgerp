@@ -371,14 +371,21 @@ class doc_DocumentPlg extends core_Plugin
      *
      * Ако $mvc->defaultFolder != FALSE, тогава връща папка 'куп' с име - $mvc->defaultFolder или заглавието на класа
      * Ако $mvc->defaultFolder === FALSE или нямаме достъп до папката 'куп', тогава се връща основната папка за всеки потребител
+     * 
+     * @param core_Mvc $mvc
+     * @param int $folderId
+     * @param int $userId
+     * @param boolean $bForce FALSE - не прави опит да създаде папката по подразбиране, в случай
+     *                                че тя не съществува
      */
-    function on_AfterGetDefaultFolder($mvc, &$folderId, $userId = NULL)
+    function on_AfterGetDefaultFolder($mvc, &$folderId, $userId = NULL, $bForce = TRUE)
     {
         if (!$folderId) {
             if($mvc->defaultFolder !== FALSE) {
                 $unRec = new stdClass();
                 $unRec->name = $mvc->defaultFolder ? $mvc->defaultFolder : $mvc->title;
-                $folderId = doc_UnsortedFolders::forceCoverAndFolder($unRec);
+                
+                $folderId = doc_UnsortedFolders::forceCoverAndFolder($unRec, $bForce);
             }
 
             // Ако текущия потребител няма права за тази папка, или тя не е определена до сега,
