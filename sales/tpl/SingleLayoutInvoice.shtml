@@ -7,9 +7,7 @@
 
 <table width=100% cellpadding="0" cellspacing="0">
     <tbody>
-
-
-    <tr>
+<tr>
         <td>
          
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
@@ -54,7 +52,7 @@
                                 <td class="bigData">[#contragentVatNo#]</td>
                             </tr>
                             <tr>
-                                <td><small><b>Идентификационен номер</b></small></td>
+                                <td><small><b>|Идентификационен номер|*</b></small></td>
                             </tr>
                             <tr>
                                 <td class="bigData">[#contragentTaxId#]</td>
@@ -72,7 +70,7 @@
                                 <td class="bigData">[#MyCompanyVatNo#]</td>
                             </tr>
                             <tr>
-                                <td><small><b>Идентификационен номер</b></small></td>
+                                <td><small><b>|Идентификационен номер|*</b></small></td>
                             </tr>
                             <tr>
                                 <td class="bigData">[#taxId#]</td>
@@ -99,10 +97,10 @@
                     </td>
                     <td class="topCell" valign="top" width="40%">
                         <div>Плащане / <i>Payment</i><div>
-                        <div>Плащане 35 дни след датата на данъчното събитие</div>
-                        <div>Краен срок за плащане: <b>[#DUE_DATE#]</b></div>
+                        <div>|Плащане 35 дни след датата на данъчното събитие|*</div>
+                        <div>|Краен срок за плащане|*: <b>[#DUE_DATE#]</b></div>
                         <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                        <div class="smallData">Лихва за просрочено плащане <b>[#OVERDUE_INTEREST_RATE#]</b> на ден</div>
+                        <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> на ден</div>
                          <!--ET_END OVERDUE_INTEREST_RATE-->
                         <div><hr>Банкова с-ка / <i>Bank account</i><div>
                         <div class="smallData">[#BANK_NAME#]</div>
@@ -115,7 +113,7 @@
                         <table>
                             <tbody><tr>
                                 <td style="padding-top: 5px; text-align: right;">
-                                    Съставил: ..................................&nbsp;
+                                    |Съставил|*: ..................................&nbsp;
                                     <br>
                              
                                 </td>
@@ -125,7 +123,7 @@
                             </tr>
                              <!--ET_BEGIN vatDate-->  
                             <tr>
-                                <td style="padding-top: 10px; text-align: right;">Дата на данъчното събитие:</td>
+                                <td style="padding-top: 10px; text-align: right;">|Дата на данъчното събитие|*:</td>
                             </tr>
                              
                             <tr>
@@ -135,7 +133,7 @@
                              
                              <!--ET_BEGIN VAT_REASON--> 
                             <tr>
-                                <td style="padding-top:10px; text-align:right;">Основание за размера на ДДС:</td>
+                                <td style="padding-top:10px; text-align:right;">|Основание за размера на ДДС|*:</td>
                             </tr>
                             <tr>
                                 <td align="RIGHT"><b>[#VAT_REASON#]</b></td>

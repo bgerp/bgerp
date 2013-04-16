@@ -43,7 +43,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'itemId, quantity, unit, price, amount, note, tools=Пулт';
+    var $listFields = 'productId, quantity, unit, price, amount, note, tools=Пулт';
     
     
     /**
@@ -65,24 +65,27 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
+     * sysId-та на  групи, от които можем да задаваме продукти
+     */
+    public static $productGroups = array('goods', 
+    									 'productsStandard', 
+    									 'productsNonStand', 
+    									 'services');
+    /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
-        $this->FLD('itemId', 'acc_type_Item', 'caption=Перо,mandatory');
-        $this->FLD('itemType', 'enum(standard, custom)', 'caption=Тип, input=hidden, silent');
+        $this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
         $this->FLD('quantity', 'double(decimals=4)', 'caption=Количество,mandatory');
-        
-        $this->FLD('priceType', 'enum(policy=По ценова политика, history=По предишна цена, input=Въведена цена)', 'caption=Ценообразуване, input=none');
+        $this->FLD('priceType', 'enum(policy=По ценова политика, history=По предишна цена, input=Въведена цена)', 'caption=Ценообразуване, input=hidden, silent');
+        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
         $this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input=none');
-        
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение', array('attr'=>array('rows'=>2)));
-        
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума, column');
         $this->FNC('unit', 'varchar', 'caption=Мярка');
-        
-        $this->setDbUnique('invoiceId, itemId');
+        $this->setDbUnique('invoiceId, productId');
     }
     
     
@@ -106,94 +109,60 @@ class sales_InvoiceDetails extends core_Detail
      */
     static function on_CalcUnit($mvc, $rec)
     {
-        if ($rec->itemId) {
-            $itemRec = acc_Items::fetch($rec->itemId);
-            $rec->unit = acc_Items::getVerbal($itemRec, 'uomId');
+        if ($rec->productId) {
+        	$productRec = cat_Products::fetch($rec->productId);
+            $rec->unit = cat_Products::getVerbal($productRec, 'measureId');
         }
     }
     
     
     /**
      * Подготовка на бутоните за добавяне на нови редове на фактурата 
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->toolbar->removeBtn('*');
-        
-        $addUrl = array($mvc, 'add', $mvc->masterKey=>$data->masterId, 'ret_url'=>true);
-        
-        $data->toolbar->addBtn('Стандартен продукт', 
-            $addUrl + array('itemType'=>'standard'), 
-            array('class'=>'btn-add')
-        );
+    	if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
+            
+            $contragentItem = acc_Items::fetch($data->masterData->rec->contragentAccItemId);
+            $addUrl = $data->toolbar->buttons['btnAdd']->url;
+            foreach ($pricePolicies as $policyId=>$Policy) {
+                $Policy = cls::getInterface('price_PolicyIntf', $Policy);
+                
+                $data->toolbar->addBtn($Policy->getPolicyTitle($contragentItem->classId, $contragentItem->objectId), $addUrl + array('policyId' => $policyId,),
+                    "id=btnAdd-{$policyId},class=btn-shop");
+            }
+            
+            $data->toolbar->addBtn('По предишна цена', $addUrl + array('priceType' => 'history'));
+            $data->toolbar->addBtn('Въведена цена', $addUrl + array('priceType' => 'input'));
+            unset($data->toolbar->buttons['btnAdd']);
+        }
     }
     
     
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        /* @var $form core_Form */
         $form = $data->form;
-        
-        switch ($form->rec->itemType)
-        {
-            case 'standard':
-                $itemField = $form->getField('itemId');
-                $itemField->type->params['lists'] = 'standardProducts|goods';
-                
-                $form->setField('priceType, price', 'input=input');
-                
-                break;
-            case 'custom':
-            default:
-                bp('TODO ...');
+        $form->setOptions('productId', cat_Products::getByGroup($mvc::$productGroups));
+    	
+        if($type = Request::get('priceType', 'varchar')){
+        	$form->setField('policyId', 'input=none');
+        	$form->setReadOnly('priceType');
+        	if($type == 'input'){
+        		$form->setField('price', 'input,mandatory');
+        	}
+        } else {
+        	$form->setDefault('priceType', 'policy');
         }
     }
 
 
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-        if (!$form->isSubmitted()) {
-            return;
-        }
-        
-        switch ($form->rec->itemType)
-        {
-            case 'standard':
-                $mvc::validatePrice($form);
-                
-                if (!$form->gotErrors()) {
-                    // Ако няма грешки, прави опит да изчисли цената според избраната стратегия
-                    $mvc::calculatePrice($form);
-                }
-                
-                break;
-                
-            case 'custom':
-                
-            default:
-                $form->setError('itemType', 'Не е реализирано');
-        }
-    }
-    
-    
-    /**
-     * Валидация на полето 'price'
-     * 
-     * Ако има, задава грешки и предупреждения във формата.
-     * 
-     * @param core_Form $form
-     */
-    public static function validatePrice(core_Form $form)
-    {
-        $rec = $form->rec;
-        
-        if ($rec->priceType == 'input' && !$rec->price) {
-            $form->setError('price',
-                'Полето е задължително'
-            );
+        if ($form->isSubmitted()) {
+           
+           // Ако няма грешки, прави опит да изчисли цената според избраната стратегия
+           $mvc::calculatePrice($form);
         }
     }
     
@@ -216,16 +185,20 @@ class sales_InvoiceDetails extends core_Detail
             case 'input':
                 return;
             case 'policy':
-                /**
-                 * @TODO цената според актуалната ценова политика (този продукт и този клас клиенти)
-                 */
-                $form->setError('priceType', 'Не е реализирано');
-                break;
+                
+            	$masterRec = sales_Invoices::fetch($rec->invoiceId);
+                $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
+            	
+                $Policy = cls::get($rec->policyId);
+                $rec->price= $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId)->price;
+               
+            	break;
             case 'history':
+            	
                 /**
                 * Последната цена, на която този продукт е фактуриран на този клиент.
                 */
-                $recentPrice = static::getRecentPriceFor($rec->itemId, $rec->invoiceId);
+                $recentPrice = static::getRecentPriceFor($rec->productId, $rec->invoiceId);
                 
                 if ($recentPrice !== FALSE) {
                     if ($rec->price && $rec->price != $recentPrice) {
@@ -235,27 +208,31 @@ class sales_InvoiceDetails extends core_Detail
                     }
                     $rec->price = $recentPrice;
                 } elseif (!$rec->price) {
-                    $form->setError('priceType, price', 'Невъзможно е да се определи предишна цена');
+                    $form->setError('price', 'Невъзможно е да се определи предишна цена');
                 }
                 
                 break;
         }
     }
 
-
-    public static function getRecentPriceFor($itemId, $invoiceId)
+	
+    /**
+     * Намира последната цена за даден продукт
+     * @param int $productId - продукт, за който проверяваме
+     * @param int $invoiceId - фактура
+     * @return double $recentPrice - последната цена
+     */
+    public static function getRecentPriceFor($productId, $invoiceId)
     {
         expect($contragentAccItemId = sales_Invoices::fetchField($invoiceId, 'contragentAccItemId'));
     
-        /* @var $query core_Query */
         $query = static::getQuery();
-    
-        $query->EXT('contragentAccItemId', 'sales_Invoices', 'externalName=contragentAccItemId,externalKey=invoiceId');
+    	$query->EXT('contragentAccItemId', 'sales_Invoices', 'externalName=contragentAccItemId,externalKey=invoiceId');
         $query->EXT('invoiceDate', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
         $query->EXT('invoiceState', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
     
         $query->where("#contragentAccItemId = {$contragentAccItemId}");
-        $query->where("#itemId = {$itemId}");
+        $query->where("#productId = {$productId}");
         $query->where("#invoiceId <> {$invoiceId}");
         $query->where("#invoiceState <> 'rejected'");
         $query->where("#price IS NOT NULL");
@@ -272,12 +249,6 @@ class sales_InvoiceDetails extends core_Detail
     }
     
     
-    public static function on_BeforeSave($mvc, $id, $rec)
-    {
-        
-    }
-    
-    
     /**
      * Подготвя шаблона за детайлите
      *
@@ -286,18 +257,19 @@ class sales_InvoiceDetails extends core_Detail
      * @param stdClass $data
      */
     function on_AfterRenderDetail1($mvc, &$res, $data)
-    { return;
-        $res = new ET("
+    {return;
+    
+        $res = new ET(tr("|*" . "
             <table class=\"invTable\" border=\"0\" cellpadding=\"1\" cellspacing=\"0\" width=\"100%\">
                 <tbody>
                 <tr>
-                    <td class=\"topCell\" align=\"center\">№</td>
-                    <td class=\"topCell\" align=\"center\">Наименование<br><i>Description</i></td>
-                    <td class=\"topCell\" align=\"center\">Мярка<br><i>Measure</i></td>
-                    <td class=\"topCell\" align=\"center\">Количество<br><i>Quantity</i></td>
-                    <td class=\"topCell\" align=\"center\">Цена<br><i>Price</i></td>
-                    <td class=\"topCell\" align=\"center\">Стойност<br><i>Amount</i></td>
-                </tr>");
+                    <td class=\"topCell\" align=\"center\">|№|*</td>
+                    <td class=\"topCell\" align=\"center\">|Наименование|*<br><i>Description</i></td>
+                    <td class=\"topCell\" align=\"center\">|Мярка|*<br><i>Measure</i></td>
+                    <td class=\"topCell\" align=\"center\">|Количество|*<br><i>Quantity</i></td>
+                    <td class=\"topCell\" align=\"center\">|Цена|*<br><i>Price</i></td>
+                    <td class=\"topCell\" align=\"center\">|Стойност|*<br><i>Amount</i></td>
+                </tr>"));
         
         // Брояч на редовете
         $row = new stdClass();
