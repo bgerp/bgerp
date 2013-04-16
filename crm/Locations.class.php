@@ -155,6 +155,12 @@ class crm_Locations extends core_Master {
         $cRec = $cMvc->fetch($rec->contragentId);
         $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
         $row->contragent = $cRow->{$field};
+       
+    	if($rec->image) {
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
+		}
+			
         if($rec->state == 'rejected'){
         	if($fields['-single']){
         		$row->headerRejected = ' state-rejected';

@@ -4,9 +4,17 @@
 		<div class="cover">
 			<h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
 			
+			<!--ET_BEGIN image-->
+		     <div class="crmImage">
+			 	<div>  
+			    	[#image#]
+			 	</div>
+		     </div>
+	      	<!--ET_END image-->
+	      
 			<fieldset class="detail-info">
-	         <legend class="groupTitle">|Информация|*</legend>
-	         <div class="groupList">
+	        <legend class="groupTitle">|Информация|*</legend>
+	        <div class="groupList">
 		         <ul>  
 			        <li class="info">
 			        	<span class="gray-title">|Тип|*:</span> [#type#]
@@ -14,7 +22,7 @@
 		         </ul>  
 	         </div>
 	      </fieldset>
-		  
+ 
 		  <fieldset class="detail-info">
 	        <legend class="groupTitle">|Адрес|*</legend>
 	         <div class="groupList">
