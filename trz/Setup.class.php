@@ -50,7 +50,7 @@ class trz_Setup
             'trz_Salaries',
             'trz_Bonuses',
             'trz_Sickdays',
-            'trz_Leaves',
+            'trz_Trips',
             'trz_Fines',
             'trz_Payrolls',
         	'trz_Orders',
