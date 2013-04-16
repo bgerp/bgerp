@@ -333,6 +333,7 @@ div.tab-control div.tab-page {
 
 .narrow div.alphabet{
 	margin-left:-2px;
+	padding-bottom:0;
 }
 
 .narrow div.tab-control.alphabet div.tab-page {
@@ -2296,9 +2297,18 @@ table.styled-table tr:hover td {
 .reminder-table td{
     width:400px;
 }
-            	
+
 .narrow .reminder-table td{
    width:180px;
    padding-right:20px;
    white-space: nowrap;
+}
+
+@media print{
+	.linkWithIcon, .docBgIcon,.button{
+		padding-left:0 !important;
+	}
+	span.sharing-history-title{
+		padding-left:3px !important;
+	}
 }
