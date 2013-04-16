@@ -210,7 +210,7 @@ class price_ConsumptionNorms extends core_Master {
     	$children = array();
 	    
     	// зареждаме само продуктите, които могат да имат нормати
-    	$productsArr = $this->getAvailableProducts('norm');
+    	$productsArr = cat_Products::getByGroup(static::$normProductGroups);
     	
     	if($rec->id){
     		
@@ -229,34 +229,6 @@ class price_ConsumptionNorms extends core_Master {
     	$options = array_diff_key($productsArr, $children);
 	    
     	return $options;
-    }
-    
-    
-    /**
-     * Показва само продуктите, които могат да започват норма
-     * @param string $string - дали търсим продуктите за нормата
-     * или съставка. Масивите са дефинирани като $recipeProductGroups и
-     * $ingredientProductGroups
-     * @return array $productsArr - масив с продукти, принадлежащи на
-     * търсените групи
-     */
-    private function getAvailableProducts($string)
-    {
-    	$productsArr = array();
-    	expect(isset(static::${"{$string}ProductGroups"}));
-    	$catQuery = cat_Products::getQuery();
-    	foreach (static::${"{$string}ProductGroups"} as $sysId){
-    		$groupId = cat_Groups::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
-    		$catQuery->orWhere("#groups LIKE '%|{$groupId}|%'");
-    	}
-    	
-    	if(!$catQuery->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма продукти, които могат да започват Разходна норма');
-    	
-    	while($catRec = $catQuery->fetch()){
-	    	$productsArr[$catRec->id] = $catRec->name;
-	    }
-	    
-	    return $productsArr;
     }
     
     
@@ -368,7 +340,7 @@ class price_ConsumptionNorms extends core_Master {
     	}
     	
     	// Намираме всички продукти от каталога
-    	$productsArr = $this->getAvailableProducts('ingredient');
+    	$productsArr = cat_Products::getByGroup(static::$ingredientProductGroups);
     	$options = array_diff_key($productsArr,$notAllowed);
     	if(!count($options)) return Redirect(array($this, 'single', $id), FALSE, 'Неможе да се добавят нови съставки');
     	
