@@ -3,7 +3,7 @@
 
 
 /**
- * Документ Ценоразпис
+ * Документ "Ценоразпис"
  *
  *
  * @category  bgerp
@@ -131,6 +131,9 @@ class price_ListDocs extends core_Master
     	$form->setOptions('policyId', $mvc->getDefaultPolicies($form->rec));
     	$folderClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	if($folderClass == 'crm_Companies' || $folderClass == 'crm_Persons'){
+    		
+    		// Ако корицата е Фирма или Лице, намираме 
+    		// ценовата и политика и се слага по-подразбиране
     		$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
     		$defaultList = price_ListToCustomers::getListForCustomer($folderClass::getClassId(), $contragentId);
     		$form->setDefault('policyId', $defaultList);
@@ -166,7 +169,7 @@ class price_ListDocs extends core_Master
     		if(!$form->rec->title){
     			$polRec = price_Lists::fetch($form->rec->policyId);
     			$policyName = price_Lists::getVerbal($polRec, 'title');
-    			$form->rec->title = $mvc->singleTitle . ' "'. $policyName . '"';
+    			$form->rec->title = "{$mvc->singleTitle} \"{$policyName}\"";
     		}
     	}
     }
@@ -186,7 +189,10 @@ class price_ListDocs extends core_Master
      */
     private function prepareDetails(&$data)
     {
+    	// Подготвяме продуктите спрямо избраните групи
     	$this->prepareSelectedProducts($data);
+    	
+    	// Намираме цената на всички продукти
     	$this->calculateProductsPrice($data);
     }
     
@@ -198,19 +204,20 @@ class price_ListDocs extends core_Master
      */
     private function prepareSelectedProducts(&$data)
     {
+    	$rec = &$data->rec;
     	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date);
     	
     	if($customerProducts){
     		foreach($customerProducts as $id => $product){
     			$productRec = cat_Products::fetch($id);
-		    	if($data->rec->productGroups){
-		    		$aGroups = type_Keylist::toArray($data->rec->productGroups);
+		    	if($rec->productGroups){
+		    		$aGroups = type_Keylist::toArray($rec->productGroups);
 		    		$pGroups = type_Keylist::toArray($productRec->groups);
-		    		$intersectArr = array_intersect($aGroups,$pGroups);
+		    		$intersectArr = array_intersect($aGroups, $pGroups);
 		    		if(!count($intersectArr)) continue;
 		    	}
 	    		
-	    		$data->rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
+	    		$rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
 	    									   'code' => $productRec->code,
 	    									   'eanCode' => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
@@ -241,12 +248,13 @@ class price_ListDocs extends core_Master
     			// Проверяваме продукта поддържали избраната
     			// опаковка ако поддържа и изчислява цената
     			if($pInfo = cat_Products::getProductInfo($product->productId, $pack)){
-    				$productClone = clone $product;
-    				$productClone->price = price_ListRules::getPrice($rec->policyId, $product->productId, $pack, $rec->date);
-    				$productClone->pack = $pack;
-    				$productClone->eanCode = $pInfo->packagingRec->eanCode;
-    				$productClone->code = $pInfo->packagingRec->customCode;
-    				$rec->details->rows[] = $this->getVerbalDetail($productClone);
+    				$clone = clone $product;
+    				$price = price_ListRules::getPrice($rec->policyId, $product->productId, $pack, $rec->date);
+    				$clone->price = $pInfo->packagingRec->quantity * $price;
+    				$clone->pack = $pack;
+    				$clone->eanCode = $pInfo->packagingRec->eanCode;
+    				$clone->code = $pInfo->packagingRec->customCode;
+    				$rec->details->rows[] = $this->getVerbalDetail($clone);
     			}
     		}
     	}
@@ -299,13 +307,14 @@ class price_ListDocs extends core_Master
      */
     private function renderDetails(&$tpl, $data)
     {
+    	$rec = &$data->rec;
     	$detailTpl = $tpl->getBlock("ROW");
     	$count = 0;
-    	if($data->rec->details->rows){
-    		$start = $data->rec->details->Pager->rangeStart;
-    		$end = $data->rec->details->Pager->rangeEnd - 1;
+    	if($rec->details->rows){
+    		$start = $rec->details->Pager->rangeStart;
+    		$end = $rec->details->Pager->rangeEnd - 1;
     		
-    		foreach ($data->rec->details->rows as $row){
+    		foreach ($rec->details->rows as $row){
     			if($count >= $start && $count <= $end){
 	    			$rowTpl= clone $detailTpl;
 	    			$rowTpl->placeObject($row);
@@ -318,8 +327,8 @@ class price_ListDocs extends core_Master
     		$tpl->append("<tr><td colspan='6'> " . tr("Няма цени") . "</td></tr>", 'ROW');
     	}
     	
-    	if($data->rec->details->Pager){
-    		$tpl->append($data->rec->details->Pager->getHtml(), 'BottomPager');
+    	if($rec->details->Pager){
+    		$tpl->append($rec->details->Pager->getHtml(), 'BottomPager');
     	}
     }
     
