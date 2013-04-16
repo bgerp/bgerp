@@ -389,7 +389,7 @@ class price_ListToCustomers extends core_Detail
         }
         
         $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
-
+		
         $rec = new stdClass();
 
         $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);

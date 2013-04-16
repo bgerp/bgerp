@@ -45,7 +45,7 @@ class price_ListDocs extends core_Master
     /**
 	 * Брой дeтайли на страница
 	 */
-	var $listDetailsPerPage = '10';
+	var $listDetailsPerPage = '60';
     
     
     /**
@@ -205,7 +205,8 @@ class price_ListDocs extends core_Master
     private function prepareSelectedProducts(&$data)
     {
     	$rec = &$data->rec;
-    	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date);
+    	$productQuery = cat_Products::getQuery();
+    	$customerProducts = $productQuery->fetchAll();
     	
     	if($customerProducts){
     		foreach($customerProducts as $id => $product){
@@ -217,11 +218,13 @@ class price_ListDocs extends core_Master
 		    		if(!count($intersectArr)) continue;
 		    	}
 	    		
+		    	$arr = cat_Products::fetchField($productRec->id, 'groups');
 	    		$rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
 	    									   'code' => $productRec->code,
 	    									   'eanCode' => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
-	    									   'pack' => NULL,);
+	    									   'pack' => NULL,
+	    									   'groups' => array_values(type_Keylist::toArray($arr)));
     		}
     	}
     }
@@ -240,7 +243,7 @@ class price_ListDocs extends core_Master
     	
     		// Изчисляваме цената за продукта в основна мярка
     		$product->price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
-	    	$rec->details->rows[] = $this->getVerbalDetail($product);
+	    	$rec->details->rows[] = $product;
     		
     		// За всяка от избраните опаковки
     		foreach($packArr as $pack){
@@ -254,7 +257,7 @@ class price_ListDocs extends core_Master
     				$clone->pack = $pack;
     				$clone->eanCode = $pInfo->packagingRec->eanCode;
     				$clone->code = $pInfo->packagingRec->customCode;
-    				$rec->details->rows[] = $this->getVerbalDetail($clone);
+    				$rec->details->rows[] = $clone;
     			}
     		}
     	}
@@ -308,20 +311,46 @@ class price_ListDocs extends core_Master
     private function renderDetails(&$tpl, $data)
     {
     	$rec = &$data->rec;
-    	$detailTpl = $tpl->getBlock("ROW");
+    	$detailTpl = $tpl->getBlock("DETAIL");
     	$count = 0;
     	if($rec->details->rows){
+    		
+    		// Начало и край на пейджъра
     		$start = $rec->details->Pager->rangeStart;
     		$end = $rec->details->Pager->rangeEnd - 1;
     		
-    		foreach ($rec->details->rows as $row){
-    			if($count >= $start && $count <= $end){
-	    			$rowTpl= clone $detailTpl;
-	    			$rowTpl->placeObject($row);
-	    			$rowTpl->removeBlocks();
-	    			$rowTpl->append2master();
-    			}
-    			$count++;
+    		// Всички продуктови групи
+    		$grouped = array();
+    		foreach($rec->details->rows as &$product){
+    			$firstGroup = $product->groups[0];
+    			$grouped[$firstGroup][] = clone $product;
+    			unset($product);
+    		}
+    		
+    		foreach ($grouped as $groupId => $products){
+    			$groupsArr = type_keylist::toArray($rec->productGroups);
+    			if(!in_array($groupId, $groupsArr)) return;
+    			if(count($products) != 0){
+					
+					// Слагаме името на групата
+					$groupTpl = clone $detailTpl;
+					$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP');
+					foreach ($products as $row){
+						
+						// Показваме информацията с продукта
+		    			$row = $this->getVerbalDetail($row);
+		    			if($count >= $start && $count <= $end){
+			    			$rowTpl = $groupTpl->getBlock('ROW');
+			    			$rowTpl->placeObject($row);
+			    			$rowTpl->removeBlocks();
+			    			$rowTpl->append2master();
+			    		}
+		    			$count++;
+    				}
+    				
+    				$groupTpl->removeBlocks();
+			    	$tpl->append($groupTpl, 'DETAIL');
+				}
     		}
     	} else {
     		$tpl->append("<tr><td colspan='6'> " . tr("Няма цени") . "</td></tr>", 'ROW');
@@ -331,7 +360,6 @@ class price_ListDocs extends core_Master
     		$tpl->append($rec->details->Pager->getHtml(), 'BottomPager');
     	}
     }
-    
     
     /**
      * След преобразуване на записа в четим за хора вид.
