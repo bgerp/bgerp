@@ -469,11 +469,41 @@ class cat_Products extends core_Master {
      *  @return boolean int/FALSE - id на продукта с такъв код или
      *  FALSE ако няма такъв продукт
      */
-    function checkIfCodeExists($code){
+    function checkIfCodeExists($code)
+    {
     	if($info = cat_Products::getByCode($code)) {
     		return $info;
     	} else {
     		return FALSE;
     	}
+    }
+    
+    
+    /**
+     * Връща всички продукти които са в посочените групи/група 
+     * зададени, чрез техни systemId-та
+     * @param mixed $group - sysId (стринг) или масив от sysId-та на групи
+     * @return array $result - Продукти отговарящи на посочената група/групи
+     */
+    public static function getByGroup($group)
+    {
+    	if(!is_array($group)){
+    		$group = array($group);
+    	}
+    	
+    	$result = array();
+    	$query = static::getQuery();
+    	foreach($group as $sysId){
+    		$groupId = cat_Groups::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
+    		$query->orWhere("#groups LIKE '%|{$groupId}|%'");
+    	}
+    	
+    	if(!$query->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма продукти в посочените групи');
+    	
+    	while($rec = $query->fetch()){
+	    	$result[$rec->id] = $rec->name;
+	    }
+	    
+	    return $result;
     }
 }
