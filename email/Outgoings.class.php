@@ -964,8 +964,8 @@ class email_Outgoings extends core_Master
                 // Ако има replyTo използваме него
                 if ($oContragentData->replyToEmail) {
                     
-                    // Имейлите да се вземат от replyTo
-                    $rec->email = $oContragentData->replyToEmail;
+                    // Вземаме стринга само с имейлите и го добавяме в имейл полето
+                    $rec->email = email_Mime::getAllEmailsFromStr($oContragentData->replyToEmail);
                     $replyTo = TRUE;    
                 } else {
                     
@@ -1081,7 +1081,7 @@ class email_Outgoings extends core_Master
                 // Имейлите за премахване
                 $emailForRemove = array($recEmails[0]);
             } else {
-                 
+                
                 // replyTo в имейлите за премахване
                 $emailForRemove = $recEmails;
             }
