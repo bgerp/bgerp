@@ -891,7 +891,7 @@ class i18n_Charset extends core_MVC {
         } elseif($fromCharset == 'MIK') {
             $str = self::iconvMik2Utf8($str, $mode);
         } elseif($fromCharset == 'HTML_ENTITIES') {
-            $str = html_entity_decode($str, ENT_QUOTES);
+            $str = html_entity_decode($str, ENT_QUOTES, 'UTF-8');
         } elseif($fromCharset == 'CP1251_REP_UTF8') {
             static $fromCP1251, $toCP1251;
             if(!$fromCP1251) {
