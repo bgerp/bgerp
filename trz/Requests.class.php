@@ -172,6 +172,19 @@ class trz_Requests extends core_Master
     
     
     /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+        if($rec->leaveFrom &&  $rec->leaveTo){
+	    	$days = static::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	    	$rec->leaveDays = $days->workDays;
+        }
+
+    }
+ 
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -224,6 +237,7 @@ class trz_Requests extends core_Master
      */
     function on_AfterInputEditForm($mvc, $form)
     {
+
     	$rec = $form->rec;
 
     }
@@ -250,10 +264,57 @@ class trz_Requests extends core_Master
     {
         if($mvc->haveRightFor('orders') && $data->rec->state == 'active') {
             
-            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''),'class=btn-order');
+            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/order.png');
         }
         
     }
+    
+    static public function act_Test()
+    {
+    	$p = 1;
+    	$a = '2013-05-02 00:00:00';
+    	$b = '2013-05-10 00:00:00';
+    	bp(static::calcLeaveDays($a,$b));
+    }
+    
+    
+    static public function calcLeaveDays($leaveFrom, $leaveTo)
+    {
+    	$a = cal_calendar::getDateType($leaveFrom);
+    	$leaveFromSql = "{$leaveFrom} 00:00:00";
+    	$leaveToSql = "{$leaveTo} 00:00:00";
+    	    	
+     	$leaveFromTsm = mktime(0, 0, 0, dt::mysql2verbal($leaveFromSql, 'n'), 
+    									dt::mysql2verbal($leaveFromSql, 'j'),
+    									dt::mysql2verbal($leaveFromSql, 'Y') );
+    	$leaveToTsm = mktime(0, 0, 0, dt::mysql2verbal($leaveToSql, 'n'), 
+    									dt::mysql2verbal($leaveToSql, 'j'),
+    									dt::mysql2verbal($leaveToSql, 'Y') );
+    									
+    	
+        $allDays = (($leaveToTsm - $leaveFromTsm + (24*60*60)) / (24*60*60));
+        
+    	$nonWorking = $workDays = 0;
+    	
+    	while($leaveFromTsm <= $leaveToTsm){
+    		if(((date("N", $leaveFromTsm) == '6' || date("N", $leaveFromTsm) == '7') 
+    		    && (cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm)) != 'workday'))
+    		    || (cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm)) == 'non-working')
+    		    || (cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm))== 'holiday') ){
+    			$nonWorking++;
+    		} elseif((cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm)) == NULL ) ||
+    		         (cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm)) == 'workday')) {
+    			$workDays++;
+    		}
+    		$leaveFromTsm +=  24*60*60;
+    		
+    		
+    	}
+    	
+    	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
+ 
+    }
+    
     
     /**
      * Интерфейсен метод на doc_DocumentIntf
