@@ -51,7 +51,7 @@ class price_ListDocs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, date, policyId, productGroups, packagings, state, createdOn, createdBy';
+    var $listFields = 'tools=Пулт, title, date, policyId, state, createdOn, createdBy';
     
     
     /**
@@ -205,8 +205,7 @@ class price_ListDocs extends core_Master
     private function prepareSelectedProducts(&$data)
     {
     	$rec = &$data->rec;
-    	$productQuery = cat_Products::getQuery();
-    	$customerProducts = $productQuery->fetchAll();
+    	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date); 
     	
     	if($customerProducts){
     		foreach($customerProducts as $id => $product){
@@ -224,7 +223,7 @@ class price_ListDocs extends core_Master
 	    									   'eanCode' => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
 	    									   'pack' => NULL,
-	    									   'groups' => array_values(type_Keylist::toArray($arr)));
+	    									   'groups' => type_Keylist::toArray($arr));
     		}
     	}
     }
@@ -240,7 +239,7 @@ class price_ListDocs extends core_Master
     	$packArr = type_Keylist::toArray($rec->packagings);
     	
     	foreach($rec->details->products as &$product){
-    	
+    		
     		// Изчисляваме цената за продукта в основна мярка
     		$product->price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
 	    	$rec->details->rows[] = $product;
@@ -255,6 +254,7 @@ class price_ListDocs extends core_Master
     				$price = price_ListRules::getPrice($rec->policyId, $product->productId, $pack, $rec->date);
     				$clone->price = $pInfo->packagingRec->quantity * $price;
     				$clone->pack = $pack;
+    				$clone->perPack = $pInfo->packagingRec->quantity;
     				$clone->eanCode = $pInfo->packagingRec->eanCode;
     				$clone->code = $pInfo->packagingRec->customCode;
     				$rec->details->rows[] = $clone;
@@ -264,6 +264,9 @@ class price_ListDocs extends core_Master
     	
     	$rec->details->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
     	$rec->details->Pager->itemsCount = count($rec->details->rows);
+    	if(Mode::is('printing')){
+    		$rec->details->Pager->itemsPerPage = 10000;
+    	}
     	$rec->details->Pager->calc();
     	unset($rec->details->products);
     }
@@ -279,14 +282,24 @@ class price_ListDocs extends core_Master
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
+    	
     	$detailRow = new stdClass();
     	$detailRow->productId = cat_Products::getTitleById($detailRec->productId);
-    	$icon = sbf("img/16/package-icon.png");
-		$detailRow->productId = ht::createLink($detailRow->productId, array('cat_Products', 'single', $detailRec->productId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
-    	$detailRow->measureId = cat_UoM::getTitleById($detailRec->measureId);
-    	if($detailRec->pack){
-    		$detailRow->pack = cat_Packagings::getTitleById($detailRec->pack);
+    	
+    	if(!Mode::is('printing')){
+	    	$icon = sbf("img/16/package-icon.png");
+	    	$url = array('cat_Products', 'single', $detailRec->productId);
+			$detailRow->productId = ht::createLink($detailRow->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
     	}
+    	
+		if($detailRec->pack){
+    		$detailRow->pack = cat_Packagings::getTitleById($detailRec->pack);
+    		$measureShort = cat_UoM::fetchField($detailRec->measureId, 'shortName');
+    		$detailRow->pack .= " &nbsp;({$detailRec->perPack}/{$measureShort})";
+		} else {
+    		$detailRow->measureId = cat_UoM::getTitleById($detailRec->measureId);
+    	}
+    	
     	$detailRow->price = $double->toVerbal($detailRec->price);
     	$detailRow->code = $varchar->toVerbal($detailRec->code);
     	$detailRow->eanCode = $varchar->toVerbal($detailRec->eanCode);
@@ -315,23 +328,17 @@ class price_ListDocs extends core_Master
     	$count = 0;
     	if($rec->details->rows){
     		
+    		if($rec->productGroups){
+	    		$groupsArr = type_Keylist::toArray($rec->productGroups);
+    		}
+    		
     		// Начало и край на пейджъра
     		$start = $rec->details->Pager->rangeStart;
     		$end = $rec->details->Pager->rangeEnd - 1;
     		
-    		// Всички продуктови групи
-    		$grouped = array();
-    		foreach($rec->details->rows as &$product){
-    			$firstGroup = $product->groups[0];
-    			$grouped[$firstGroup][] = clone $product;
-    			unset($product);
-    		}
-    		
+    		// Преподреждаме продуктите групирани по Групи
+    		$grouped = $this->groupProductsByGroups($rec->details->rows, $groupsArr);
     		foreach ($grouped as $groupId => $products){
-    			if($rec->productGroups){
-	    			$groupsArr = type_keylist::toArray($rec->productGroups);
-	    			if(!in_array($groupId, $groupsArr)) return;
-    			}
     			if(count($products) != 0){
 					
 					// Слагаме името на групата
@@ -363,16 +370,70 @@ class price_ListDocs extends core_Master
     	}
     }
     
+    
+    /**
+     * Преподреждане на продуктите, групирани по групи
+     *  	- Ако един продукт е в няколко групи, то 
+     *  	  го групираме само към първата обходена
+     *  	- Ако са посочени определени групи, то продукта
+     *  	  го показваме в първата обходена група, която е
+     *  	  посочена в масива с определените групи
+     * @param array $array - Масив с информацията за продуктите
+     * @param array $groupsArr - Кои групи ще се показват,
+     * 							 NULL ако са всичките
+     * @return array $grouped - масив с групираните продукти
+     */
+    private function groupProductsByGroups(&$array, $groupsArr)
+    {
+    	$grouped = array();
+    	foreach($array as $id => $product){
+    		foreach ($product->groups as $group){
+    			if($groupsArr){
+    				if(in_array($group, $groupsArr)){
+    					$firstGroup = $group;
+    					break;
+    				}
+    			} else {
+    				$firstGroup = $group;
+    				break;
+    			}
+    		}
+    		
+    		$grouped[$firstGroup][] = clone $product;
+    		unset($array[$id]);
+    	}
+    	
+    	return $grouped;
+    }
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->header = "{$row->title} &nbsp;<b>{$row->ident}</b> ({$row->state})";
+    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->date);
+    	
     	if(!$rec->productGroups) {
     		$row->productGroups = tr("Всички");
     	}
     	
-    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->date);
+    	// Модифицираме данните които показваме при принтиране
+    	if(Mode::is('printing')){
+    		$row->printHeader = tr($row->title);
+    		$row->currency =  $row->baseCurrency;
+    		$row->created =  $row->date;
+    		$row->number =  $row->id;
+    		unset($row->header);
+    		unset($row->baseCurrency);
+    		unset($row->productGroups);
+    		unset($row->packagings);
+    		unset($row->createdOn);
+    		unset($row->createdBy);
+    		unset($row->policyId);
+    		unset($row->date);
+    	}
     }
     
     

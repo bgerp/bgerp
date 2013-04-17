@@ -5,6 +5,7 @@
 	border:1px solid #ccc;
 	border-collapse:collapse;
 	margin-bottom:5px;
+	margin-top:5px;
 }
 
 .norm-table th{
@@ -30,7 +31,7 @@
 
 .product-code-style{
 	font-size:14px;
-	font-style:italic
+	1font-style:italic
 }
 
 #price-div{
@@ -43,3 +44,30 @@
 	1max-width:500px;
 	border:1px solid rgba(210, 210, 210, 0.8);
 }
+
+.pricelist-group-label{
+	line-height:24px;
+	text-indent:15px;
+}
+
+.pricelist-group-label, .pricelist-group-label b {
+	background-color: #666 !important;
+	color:white;
+}
+
+#print-header{
+	padding-top:15px;
+	font-weight:bold;
+	font-size:1.2em;
+}
+
+@media print{
+	.norm-table{
+		margin-top: 0px;
+	}
+	
+	.pricelist-group-label, .pricelist-group-label b {
+		background-color: #666 !important;
+		color:white;
+	}
+}	
