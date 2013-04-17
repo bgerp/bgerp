@@ -313,7 +313,7 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($action == 'delete') {
+        if ($action == 'delete' || $action == 'add') {
             // Изтриването на ред от ЕН може да се прави от същите потребители, които имат 
             // права да го редактират
             $action = 'edit';
