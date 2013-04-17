@@ -126,6 +126,8 @@ class acc_journal_EntrySide
         $this->price    = isset($data->price)    ? floatval($data->price) : NULL;
         $this->account  = $data->account instanceof acc_journal_Account ? $data->account :
                                 new acc_journal_Account($data->account);
+        
+        expect(!isset($this->quantity) || $this->quantity > 0, 'Зададено не-положително количество: ' . $this->quantity);
 
         $this->items = array();
 
@@ -152,6 +154,10 @@ class acc_journal_EntrySide
         if (!property_exists($this, $name)) {
             return FALSE;
         }
+        
+        if ($name == 'price') {
+            return !is_null($this->getPrice());
+        }
     
         return isset($this->{$name});
     }
@@ -167,7 +173,11 @@ class acc_journal_EntrySide
     public function __get($name)
     {
         expect(property_exists($this, $name), $name);
-    
+
+        if ($name == 'price') {
+            return $this->getPrice();
+        }
+        
         return $this->{$name};
     }
     
@@ -241,5 +251,24 @@ class acc_journal_EntrySide
         );
 
         return $rec;
+    }
+    
+    
+    /**
+     * Връща зададената или изчислена цена
+     * 
+     * @return float NULL, ако цената нито е зададена, нито може да бъде изчислена
+     */
+    protected function getPrice()
+    {
+        if (isset($this->price)) {
+            return $this->price;
+        }
+        
+        if (isset($this->amount) && isset($this->quantity)) {
+            return $this->amount / $this->quantity;
+        }
+        
+        return NULL;
     }
 }
