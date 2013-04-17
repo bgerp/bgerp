@@ -135,7 +135,7 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=Година');
-    	$this->FLD('paid', 'enum(paid=Платен, unpaid=Неплатен)', 'caption=Вид, maxRadio=2,columns=2,notNull,value=paid');
+    	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Вид, maxRadio=2,columns=2,notNull,value=paid');
     }
     
     
@@ -250,7 +250,7 @@ class trz_Requests extends core_Master
     {
         if($mvc->haveRightFor('orders') && $data->rec->state == 'active') {
             
-            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/order.png');
+            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''),'class=btn-order');
         }
         
     }

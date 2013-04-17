@@ -4,19 +4,25 @@
 			<div class='docBgIcon' style='[#iconStyle#]'>Болничен лист <b>[#ident#]</b> ([#state#])</div>
 		</div>
 
-		
+			<div class='antetka' style='line-height:160%;'>
+			<small>
+			<div>
+				<div><b>БОЛНИЧЕН ЛИСТ</b></div>
+				<!--ET_BEGIN createdDate--><div>№ [#fitNoteNum#] / [#createdDate#]|г|*.</div><!--ET_END createdDate-->
+			</div>
+		 	</small>
+	   	
+		<div style='clear: both;'></div>
+	</div> 
 			
 			<div class='block_left'>
-			<h3>БОЛНИЧЕН ЛИСТ №[#fitNoteNum#] </h3>
-	    	НА <b>[#personId#]</b></br>
-	    	Оригинал [#fitNoteFile#]</br>
-	    	От <b>[#startDate#]</b>
-	    	До <b>[#toDate#]</b></br>
-	    	Причина [#reason#]</br>
-	    	Забележка [#note#]</br>
-	    	Код по MKB [#icdCode#]</br>
-	    	Заплащане от работодателя [#paidByEmployer#]</br>
-	    	Заплащане от НЗК [#paidByHI#]
+			<!--ET_BEGIN personId--><p><b>Служител:</b> [#personId#]</p><!--ET_END personId-->
+			<p><b>Период:</b> от <b>[#startDate#]</b> до <b>[#toDate#]</b></p>
+	    	<p><b>Причина:</b> [#reason#]</p>
+	    	<!--ET_BEGIN note--><div class='richtext-holder'><b>Забележка:</b> [#note#]</div><!--ET_END note-->
+	    	<!--ET_BEGIN icdCode--><p><b>Код по MKB:</b> [#icdCode#]</p><!--ET_END icdCode-->
+	    	<!--ET_BEGIN paidByEmployer--><p><b>Заплащане от работодателя:</b> [#paidByEmployer#]</p><!--ET_END paidByEmployer-->
+	    	<!--ET_BEGIN paidByHI--><p><b>Заплащане от НЗК:</b> [#paidByHI#]</p><!--ET_END paidByHI-->
             </div>
 
 
