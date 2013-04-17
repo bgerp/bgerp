@@ -88,18 +88,6 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
-     * Изчислява полето 'amount'
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     */
-    static function on_CalcAmount($mvc, $rec)
-    {
-        $rec->amount = round($rec->price * $rec->quantity, 2);
-    }
-    
-    
-    /**
      * Подготовка на бутоните за добавяне на нови редове на фактурата 
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
