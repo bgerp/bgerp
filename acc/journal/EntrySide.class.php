@@ -192,14 +192,12 @@ class acc_journal_EntrySide
     
 
     /**
-     * Изчислява, ако е възможно, незададеното amount/price/quantity
+     * Изчислява, ако е възможно, незададеното amount/quantity
      * 
-     *  amount = price * quantity
-     *  
-     * Ако са зададени:
-     *  
-     *   o точно две стойности  - изчислява третата, така че да задоволи горното тъждество
-     *   o в останалите случаи (< 2 или точно 3 ст-сти) - не прави нищо
+     *  amount   = price * quantity, ако са зададени price и quantity
+     *  quantity = amount / price, ако са зададени price и amount
+     *
+     *  В останалите случаи не прави нищо.
      */
     public function evaluate()
     {
@@ -211,9 +209,6 @@ class acc_journal_EntrySide
                 break;
             case isset($this->amount) && isset($this->price):
                 $this->quantity = $this->amount / $this->price;
-                break;
-            case isset($this->amount) && isset($this->quantity):
-                $this->price = $this->amount / $this->quantity;
                 break;
         }
     }
