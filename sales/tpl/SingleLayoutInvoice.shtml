@@ -12,22 +12,22 @@
          
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
-                    <td class="cell" width="35%"><b>Получател / <i>Buyer</i></b></td>
+                    <td class="cell" width="35%"><b>|Получател|* / <i>Buyer</i></b></td>
                     <td class="cell" rowspan="3" align="center" width="30%">
-                        <font style="font-size:16pt;"><b> ФАКТУРА / <i>INVOICE</i> </b> </font><br>
+                        <font style="font-size:16pt;"><b> |ФАКТУРА|* / <i>INVOICE</i> </b> </font><br>
                         
-                        <div style="padding-top:5px;">Номер / Number</div>
+                        <div style="padding-top:5px;">|Номер|* / Number</div>
                         <div class="bigData">[#number#]</div>
                         
-                        <div style="padding-top:5px;">Дата / Date</div>
+                        <div style="padding-top:5px;">|Дата|* / Date</div>
                         <div class="bigData">[#date#]</div>
     
                         <div style="padding-top:5px;">Място / Place</div>
                         <div class="bigData">[#dealPlace#]</div>
 
-                        <div style="padding-top:5px;" class="bigData"><font color="999999"><b>ОРИГИНАЛ/<i>ORIGINAL</i></b></font></div>
+                        <div style="padding-top:5px;" class="bigData"><font color="999999"><b>|ОРИГИНАЛ|*/<i>ORIGINAL</i></b></font></div>
                     </td>
-                    <td class="cell" width="35%"><b>Доставчик / <i>Seller</i></b> </td>
+                    <td class="cell" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
                 </tr>           
                 <tr>
                     <td class="cell">
@@ -46,7 +46,7 @@
                     <td class="cell">
                         <table cellpadding="0" cellspacing="2">
                             <tbody><tr>
-                                <td><small><b>номер по ЗДДС / <i>VAT ID</i></b></small></td>
+                                <td><small><b>|номер по ЗДДС|* / <i>VAT ID</i></b></small></td>
                             </tr>
                             <tr>
                                 <td class="bigData">[#contragentVatNo#]</td>
@@ -64,7 +64,7 @@
                     <td class="cell">
                         <table>
                             <tbody><tr>
-                                <td><small><b>номер по ЗДДС / <i>VAT ID</i></b></small></td>
+                                <td><small><b>|номер по ЗДДС|* / <i>VAT ID</i></b></small></td>
                             </tr>
                             <tr>
                                 <td class="bigData">[#MyCompanyVatNo#]</td>
@@ -89,22 +89,22 @@
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="topCell" valign="top" width="30%">
-                       <div style="padding-top: 5px;">Отговорен за стопанската операция:<br><br>
+                       <div style="padding-top: 5px;">|Отговорен за стопанската операция|*:<br><br>
                         ...........................................................
                         </div>
                         <br><br>
                         <span class="richtext"> </span>      
                     </td>
                     <td class="topCell" valign="top" width="40%">
-                        <div>Плащане / <i>Payment</i><div>
+                        <div>|Плащане|* / <i>Payment</i><div>
                         <div>|Плащане 35 дни след датата на данъчното събитие|*</div>
                         <div>|Краен срок за плащане|*: <b>[#DUE_DATE#]</b></div>
                         <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                        <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> на ден</div>
+                        <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</div>
                          <!--ET_END OVERDUE_INTEREST_RATE-->
-                        <div><hr>Банкова с-ка / <i>Bank account</i><div>
+                        <div><hr>|Банкова с-ка|* / <i>Bank account</i><div>
                         <div class="smallData">[#BANK_NAME#]</div>
-                        <div class="smallData">[#BANK_ACCOUNT#]</b></div>
+                        <div class="smallData">[#BANK_ACCOUNT#]</div>
                         <div class="smallData">[#BIC#]</div>
                         </div></div></div></div>
                     </td>
@@ -143,7 +143,7 @@
                         </table>
                         <!--ET_BEGIN TO_SALES-->  
                         <div style="padding:10px;">
-                            <div style="padding-top:5px;">Към продажба / <i>To sale</i></div>
+                            <div style="padding-top:5px;">|Към продажба|* / <i>To sale</i></div>
                             <div class="bigData">[#TO_SALES#]</div>
                         </div>
                            <!--ET_END TO_SALES-->  
