@@ -9,7 +9,7 @@
 	 <p class="centered">От: <b>[#personId#]</b></p>
 	 <p class="centered">Относно: ползване на <b>[#paid#]</b> годишен отпуск</p></br>
 	 <p class="indent">Уважаеми г-н/ г-жо Управител,</p>
-	 <p class="indent">Моля, да ми разрешите да ползвам [#leaveDays#] дни платен годишен отпуск за [#useDaysFromYear#]г., считано от <b>[#leaveFrom#]</b> до <b>[#leaveTo#]</b>.</p>
+	 <p class="indent">Моля, да ми разрешите да ползвам <b>[#leaveDays#] дни</b> платен годишен отпуск за [#useDaysFromYear#]г., считано от <b>[#leaveFrom#]</b> до <b>[#leaveTo#]</b>.</p>
 	 <p class="indent">Надявам се, че ще разрешите ползването на искания отпуск.</p></br> 
      
     <table width=100%>

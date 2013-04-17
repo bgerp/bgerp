@@ -10,7 +10,7 @@
 	<h3 class="centered">З А П О В Е Д </h3>
 	 <p class="centered">№ [#id#] / [#createdDate#]|г|*.</p>	 
 	 <p class="centered">Относно: разрешение за ползване на <b>[#isPaid#]</b> годишен отпуск</p><br />
-	 <p class="indent">С настоящата заповед разрешавам на <b>[#personId#]</b> да ползва [#leaveDays#] дни [#isPaid#] годишен отпуск за [#useDaysFromYear#]г., 
+	 <p class="indent">С настоящата заповед разрешавам на <b>[#personId#]</b> да ползва <b>[#leaveDays#] дни</b> [#isPaid#] годишен отпуск за [#useDaysFromYear#]г., 
 	 	считано от <b>[#leaveFrom#]</b> до <b>[#leaveTo#]</b>.</p><br />
 	
     <table width=100%>
