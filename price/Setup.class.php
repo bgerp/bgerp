@@ -76,6 +76,7 @@ class price_Setup
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "{$role}, ceo");
 
+        $html .= $this->loadSetupData();
          
         return $html;
     }
@@ -90,5 +91,18 @@ class price_Setup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    /**
+     * Инициализране на началните данни
+     */
+    function loadSetupData()
+    {
+    	
+    	$html .= price_setup_Groups::setup();
+    	
+    	$html .= price_ListRules::setup();
+    	
+    	return $html;
     }
 }

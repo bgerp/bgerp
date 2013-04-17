@@ -444,4 +444,34 @@ class price_ListRules extends core_Detail
     }
 
     
+    /**
+     * Задаваме надценки/отстъпки за началните категории
+     */
+    static function setup()
+    {
+        $csvFile = __DIR__ . "/setup/csv/Groups.csv";
+        $conf = core_Packs::getConfig('price');
+        $inserted = 0;
+        
+        if (($handle = fopen($csvFile, "r")) !== FALSE) {
+            while (($csvRow = fgetcsv($handle, 2000, ",")) !== FALSE) {
+            	if($groupId = price_Groups::fetchField("#title = '{$csvRow[0]}'", 'id')){
+            		$rec = new stdClass();
+	        		$rec->listId = $conf->PRICE_LIST_CATALOG;
+	        		$rec->groupId = $groupId;
+	        		$rec->discount = $csvRow[2] * 10; //Задаваме груповата наддценка в проценти
+	        		$rec->type = 'groupDiscount';
+	        		$rec->validFrom = dt::now();
+        		
+        			static::save($rec);
+        			$inserted++;
+            	}
+            }
+            $res .= "<li style='color:green;'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
+        } else {
+        	$res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+        }
+        
+        return $res;
+    }
 }
