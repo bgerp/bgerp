@@ -750,6 +750,8 @@ class store_ShipmentOrders extends core_Master
         
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
+                'amount' => $detailRec->amount , // В основна валута
+                
                 'debit' => array(
                     '7013', // Сметка "7013. Приходи чрез ЕН". @TODO: ВРЕМЕННО, ДО УТОЧНЯВАНЕ НА КОНТИРАНЕТО!!!
                         array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
