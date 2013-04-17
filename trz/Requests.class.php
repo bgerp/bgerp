@@ -133,9 +133,13 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-    	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=Година');
-    	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Вид, maxRadio=2,columns=2,notNull,value=paid');
+    	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
+    	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
+    	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=Ще отговаря->на GSM, maxRadio=3,columns=3,notNull,value=yes');
+    	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=Ще отговаря->в системата, maxRadio=3,columns=3,notNull,value=yes');
+    	
+    	
     }
     
     
@@ -164,10 +168,7 @@ class trz_Requests extends core_Master
 
         if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
             $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
-            
         }
-
-
     }
     
     
@@ -177,7 +178,7 @@ class trz_Requests extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         if($rec->leaveFrom &&  $rec->leaveTo){
-	    	$days = static::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	    	$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	    	$rec->leaveDays = $days->workDays;
         }
 
@@ -276,45 +277,7 @@ class trz_Requests extends core_Master
     	$b = '2013-05-10 00:00:00';
     	bp(static::calcLeaveDays($a,$b));
     }
-    
-    
-    static public function calcLeaveDays($leaveFrom, $leaveTo)
-    {
-    	$a = cal_calendar::getDateType($leaveFrom);
-    	$leaveFromSql = "{$leaveFrom} 00:00:00";
-    	$leaveToSql = "{$leaveTo} 00:00:00";
-    	    	
-     	$leaveFromTsm = mktime(0, 0, 0, dt::mysql2verbal($leaveFromSql, 'n'), 
-    									dt::mysql2verbal($leaveFromSql, 'j'),
-    									dt::mysql2verbal($leaveFromSql, 'Y') );
-    	$leaveToTsm = mktime(0, 0, 0, dt::mysql2verbal($leaveToSql, 'n'), 
-    									dt::mysql2verbal($leaveToSql, 'j'),
-    									dt::mysql2verbal($leaveToSql, 'Y') );
-    									
-    	
-        $allDays = (($leaveToTsm - $leaveFromTsm + (24*60*60)) / (24*60*60));
-        
-    	$nonWorking = $workDays = 0;
-    	
-    	while($leaveFromTsm <= $leaveToTsm){
-    		if(((date("N", $leaveFromTsm) == '6' || date("N", $leaveFromTsm) == '7') 
-    		    && (cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm)) != 'workday'))
-    		    || (cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm)) == 'non-working')
-    		    || (cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm))== 'holiday') ){
-    			$nonWorking++;
-    		} elseif((cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm)) == NULL ) ||
-    		         (cal_calendar::getDateType(date("Y-m-d H:i:s", $leaveFromTsm)) == 'workday')) {
-    			$workDays++;
-    		}
-    		$leaveFromTsm +=  24*60*60;
-    		
-    		
-    	}
-    	
-    	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
- 
-    }
-    
+
     
     /**
      * Интерфейсен метод на doc_DocumentIntf

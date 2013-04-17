@@ -881,9 +881,10 @@ class cal_Calendar extends core_Master
     	
     }
     
-    
     /**
-     * Намира какъв е типа на деня (празник, събота, неделя...)
+     * Намира какъв е типа на деня (празник, работен, не работен)
+     * @param datetime $date - mySQL формат на дата (гггг-мм-дд чч:мм:сс)
+     * Прави локален кеш на празниците. Връща масив с всички специални дни.
      */
     static public function getDateType($date)
     {
@@ -953,6 +954,48 @@ class cal_Calendar extends core_Master
     	}
    	
         return $class;
+    }
+    
+    
+    /**
+     * Изчисляваме работните дни между две дати
+     * @param datetime $leaveFrom
+     * @param datetime $leaveTo
+     * 
+     * Връща масив с броя на почивните, работните дни в периода
+     */
+    static public function calcLeaveDays($leaveFrom, $leaveTo)
+    {
+    	
+    	$nonWorking = $workDays = $allDays = 0;
+    	
+    	$curDate = $leaveFrom;
+    	
+    	while($curDate <= $leaveTo){
+    		
+    		$dateType = static::getDateType($curDate);
+    		
+    		if(!$dateType) {
+    			if(dt::isHoliday($curDate)) {
+    				$dateType = 'non-working';
+    			} else {
+    				$dateType = 'workday';
+    			}
+    		}
+    		
+    		if($dateType == 'workday') {
+    			$workDays++;
+    		} else {
+    			$nonWorking++;
+    		}
+    		
+    		$curDate = dt::addDays(1, $curDate); 
+    		
+    		$allDays++;
+    	}
+
+    	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
+ 
     }
 
     /**

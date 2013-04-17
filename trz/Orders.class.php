@@ -140,7 +140,7 @@ class trz_Orders extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         if($rec->leaveFrom &&  $rec->leaveTo){
-	    	$days = trz_Requests::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	    	$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	    	$rec->leaveDays = $days->workDays;
         }
 
