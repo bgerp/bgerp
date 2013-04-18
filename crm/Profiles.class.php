@@ -357,8 +357,8 @@ class crm_Profiles extends core_Master
             }
             
             if (!empty($userRow->lastLoginTime)) {
-                $userRow->lastLoginInfo = sprintf('%s от %s', 
-                    $userRow->lastLoginTime, $userRow->lastLoginIp
+                $userRow->lastLoginInfo = sprintf('%s от %s, активност: %s', 
+                    $userRow->lastLoginTime, $userRow->lastLoginIp, $userRow->lastActivityTime
                 );
             } else {
                 $userRow->lastLoginInfo = '<span class="quiet">Няма логин</span>';
@@ -643,10 +643,18 @@ class crm_Profiles extends core_Master
             $attr['class'] .= ' profile';
             foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor') as $role) {
                 if (core_Users::haveRole($role, $userId)) {
-                    $attr['class'] .= " {$role}";
+                    $attr['class'] .= " {$role}"; break;
                 } 
             }
+
+            $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
             
+            if($before < 5*60) {
+                $attr['class'] .= ' active';
+            } elseif($before > 60*60) {
+                $attr['class'] .= ' inactive';
+            }
+
             $link = ht::createLink($title, $url, $warning, $attr);
         }
         
