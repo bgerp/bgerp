@@ -41,18 +41,13 @@ class store_ShipmentOrders extends core_Master
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
                     doc_plg_BusinessDoc, acc_plg_Registry, acc_plg_Contable';
     
     
-    /**
-     * Активен таб на менюто
-     * 
-     * @var string
-     */
-    public $menuPage = 'Логистика:Складове';
+
     
     /**
      * Кой има право да чете?

@@ -25,8 +25,10 @@ class store_Wrapper extends plg_ProtoWrapper
     function description()
     {
       
-        
-        if ($selectedStoreId) {
+
+            $this->TAB('store_Stores', 'Складове', 'admin,store');
+            $this->TAB('store_ShipmentOrders', 'Експедиция', 'admin,store');
+
             $this->TAB('store_Movements', 'Движения', 'admin,store');
             $this->TAB('store_Pallets', 'Палети', 'admin,store');
             $this->TAB('store_Racks', 'Стелажи', 'admin,store');
@@ -35,10 +37,6 @@ class store_Wrapper extends plg_ProtoWrapper
             $this->TAB('store_Stores', 'Складове', 'admin,store');
             $this->TAB('store_PalletTypes', 'Видове палети', 'admin,store');
             $this->TAB('store_Documents', 'Документи');
-        } else {
-            $this->TAB('store_Stores', 'Складове', 'admin,store');
-            $this->TAB('store_ShipmentOrders', 'Експедиция', 'admin,store');
-        }
         
             $this->title = 'Склад';
        
