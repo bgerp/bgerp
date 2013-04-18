@@ -140,7 +140,8 @@ class core_Users extends core_Manager
         
         $this->FLD('lastLoginTime', 'datetime', 'caption=Последно->Логване,input=none');
         $this->FLD('lastLoginIp', 'varchar(16)', 'caption=Последно->IP,input=none');
-        
+        $this->FLD('lastActivityTime', 'datetime', 'caption=Последно->Активност,input=none');
+
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
     }
@@ -613,10 +614,10 @@ class core_Users extends core_Manager
         // от къде е
         if (!($sessUserRec = Mode::get('currentUserRec'))) {
             $rec = new stdClass();
-            $rec->lastLoginTime = $now;
+            $rec->lastLoginTime = $rec->lastActivityTime = $now;
             $rec->lastLoginIp = $Users->getRealIpAddr();
             $rec->id = $userRec->id;
-            $Users->save($rec, 'lastLoginTime,lastLoginIp');
+            $Users->save($rec, 'lastLoginTime,lastActivityTime,lastLoginIp');
             
             // Помним в сесията, кога сме се логнали
             $userRec->loginTime = $now;
@@ -679,6 +680,11 @@ class core_Users extends core_Manager
          
         Mode::setPermanent('currentUserRec', $userRec);
         
+        if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 3*60)) {
+            $userRec->lastActivityTime = $now;
+            self::save($userRec, 'lastActivityTime');
+        }
+
         $Users->invoke('afterLogin', array(&$userRec));
         
         return $userRec;
