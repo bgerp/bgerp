@@ -140,6 +140,9 @@ class store_ShipmentOrders extends core_Master
         
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)',
+            'caption=От склад, mandatory'); // наш склад, от където се експедира стоката
+        
         /*
          * Стойности
          */
@@ -158,8 +161,6 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 
             'caption=Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до'); // до кога трябва да бъде доставено
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)',
-            'caption=От склад'); // наш склад, от където се експедира стоката
         
         /*
          * Допълнително
