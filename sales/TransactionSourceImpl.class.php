@@ -200,15 +200,13 @@ class sales_TransactionSourceImpl
                 'debit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('sales_Sales', $rec->id),                     // Перо 2 - Документ-продажба
-                        array('currency_Currencies', $rec->currencyId),     // Перо 3 - Валута
+                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array('sales_Sales', $rec->id),               // Перо 1 - Документ-продажба
-                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
+                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -251,8 +249,7 @@ class sales_TransactionSourceImpl
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('sales_Sales', $rec->id),                     // Перо 2 - Документ-продажба
-                        array('currency_Currencies', $rec->currencyId),     // Перо 3 - Валута
+                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
             );
@@ -283,8 +280,7 @@ class sales_TransactionSourceImpl
             $entries[] = array(
                 'debit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array('sales_Sales', $rec->id),               // Перо 1 - Документ-продажба
-                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
+                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                 ),
                 
