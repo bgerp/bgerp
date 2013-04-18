@@ -37,7 +37,7 @@ class crm_Locations extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, contragent=Контрагент, type, countryId, place, pCode, address, comment, gln";
+    var $listFields = "id, title, contragent=Контрагент, type, countryId, place, pCode, address";
 
 
     /**
@@ -212,12 +212,24 @@ class crm_Locations extends core_Master {
    	 */
    	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if(sales_Sales::haveRightFor('write') && $data->rec->state != 'rejected'){
-    		$contragentCls = cls::get($data->rec->contragentCls);
-    		$cRec = $contragentCls->fetch($data->rec->contragentId);
-    		$url = array('sales_Sales', 'add','folderId' => $cRec->folderId, 'deliveryLocationId' => $data->rec->id);
+    	$rec = &$data->rec;
+    	if(sales_Sales::haveRightFor('write') && $rec->state != 'rejected'){
+    		$contragentCls = cls::get($rec->contragentCls);
+    		$cRec = $contragentCls->fetch($rec->contragentId);
+    		$url = array('sales_Sales', 'add','folderId' => $cRec->folderId, 'deliveryLocationId' => $rec->id);
     		$Sales = cls::get('sales_Sales');
     		$data->toolbar->addBtn($Sales->singleTitle, $url,  NULL, 'ef_icon=img/16/view.png');
+    	}
+    	
+    	if($rec->address && $rec->place && $rec->countryId){
+    		$address = "{$data->row->address},{$data->row->place},{$data->row->countryId}";
+    	} elseif($rec->gpsCoords) {
+    		$address = $rec->gpsCoords;
+    	}
+    	
+    	if($address){
+    		$url = "https://maps.google.com/?daddr={$address}";
+    		$data->toolbar->addBtn('Навигация', $url,  NULL, 'ef_icon=img/16/compass.png,target=_blank');
     	}
     }
     

@@ -22,7 +22,7 @@
 		         </ul>  
 	         </div>
 	      </fieldset>
- 
+	     
 		  <fieldset class="detail-info">
 	        <legend class="groupTitle">|Адрес|*</legend>
 	         <div class="groupList">
@@ -38,13 +38,29 @@
 			 <!--ET_BEGIN address-->
 				<div><span class="gray-title">|Адрес|*:</span> [#address#]</div>
 			 <!--ET_END address-->
+			 <!--ET_BEGIN gln-->
+			 <div><span class="gray-title">GLN |код|*:</span> [#gln#]</div>
+			 <!--ET_END gln-->
 			</div>
 		  </fieldset>
 		  
 		 <!--ET_BEGIN ROUTES-->
 		  [#routes#]
 		 <!--ET_END ROUTES-->
-		  
+		 
+ 		 <!--ET_BEGIN comment-->
+ 		 <fieldset class="detail-info">
+	        <legend class="groupTitle">|Бележки|*</legend>
+	        <div class="groupList">
+		         <ul>  
+			        <li class="info">
+			        	[#comment#]
+					</li>
+		         </ul>  
+	         </div>
+	      </fieldset>
+	      <!--ET_END comment-->
+	      
 		<fieldset class="detail-info">
 	      <legend class="groupTitle">|Създаден|*</legend>
 	        <div class="groupList">
