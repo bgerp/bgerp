@@ -137,9 +137,15 @@ class core_ObjectReference
      * 
      * @return stdClass
      */
-    public function rec()
+    public function rec($field = null)
     {
-        return $this->getInstance()->fetchRec($this->that);
+        $result = $this->getInstance()->fetchRec($this->that);
+        
+        if (!empty($field)) {
+            $result = $result->{$field};
+        }
+        
+        return $result;
     }
     
     
