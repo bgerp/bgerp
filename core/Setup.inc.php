@@ -968,8 +968,9 @@ function gitHasNewVersion($repoPath, &$log)
     foreach ($arrRes as $row) {
         $hasNewVersion = strpos($row, "(local out of date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
         $hasUpdated = strpos($row, "(up to date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
-    
-        if($hasNewVersion !== FALSE) {
+    	$fastForward = strpos($row, "(fast-forwardable)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
+    	
+        if($hasNewVersion !== FALSE || $fastForward !== FALSE) {
             $log[] = "new:[<b>$repoName</b>] Има нова версия.";
             
             return TRUE;
