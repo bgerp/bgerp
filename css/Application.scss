@@ -617,6 +617,35 @@ option.team {
 	@include btn-style();
 	background-image:url('../img/16/btn-order.png');
 }
+.linkwithicon{
+	&.sick{
+	background-image:url('../img/16/sick.png');
+	}
+	&.trip{
+	background-image:url('../img/16/briefcase2.png');
+	}
+	&.leave{
+	background-image:url('../img/16/beach.png');
+	}
+	&.home{
+	background-image:url('../img/16/house_blue.png');
+	}
+	&.office{
+	background-image:url('../img/16/company-building-icon.png');
+	}
+	&.work{
+	background-image:url('../img/16/clock_green.png');
+	}
+	&.after-work{
+	background-image:url('../img/16/clock_red.png');
+	}
+	&.birthday{
+	background-image:url('../img/16/birthday.png');
+	}
+	&.nameday{
+	background-image:url('../img/16/orthodox.png');
+	}
+}
 .more-btn{
 	float:left;
 	padding:4px 3px 2px 3px !important;
@@ -1039,6 +1068,85 @@ div.folder-cover{
 	line-height: 1.2em;
 	margin-top: 0px;
 }
+.fright{
+	float:right;
+}
+.fleft{
+	float:left;
+}
+.user-profile{
+	border:1px solid #ccc;
+	border-radius:5px;
+	background:#f1f1f1;	
+	margin-top:15px;
+	.user-title{
+		position:relative;
+		padding:67px 20px 10px 127px;
+		font-size:1.3em;
+		text-shadow:1px 1px 2px rgba(0,0,0,0.7);
+		background: rgb(234,234,234); /* Old browsers */
+		background: -moz-linear-gradient(top, rgba(234,234,234,1) 0%, rgba(97,97,98,1) 100%); /* FF3.6+ */
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(234,234,234,1)), color-stop(100%,rgba(97,97,98,1))); /* Chrome,Safari4+ */
+		background: -webkit-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* Opera 11.10+ */
+		background: -ms-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* IE10+ */
+		background: linear-gradient(to bottom, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* W3C */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eaeaea', endColorstr='#616162',GradientType=0 ); /* IE6-9 */
+		color:#fff;
+		font-weight:bold;
+		border-radius:5px 5px 0 0;
+	}
+   .profile-image img{
+		position:absolute;
+		top:15px;
+		left:15px;
+		width:95px;
+		@include border-radius(3px);
+		border:3px solid #fff;
+		box-shadow:0 1px 4px rgba(0,0,0,0.5);
+	}
+	.linkwithicon{
+		height:19px;
+		padding-top:1px;
+	}
+	> .groupList{
+		margin-left:10px;
+	}
+	.card-profile{
+		margin:0 10px 10px;
+	}
+	.fright{
+		margin-left:10px;
+	}
+	.inner-holder{
+		padding:15px 15px 15px 15px;
+	}
+	.detail-info{
+		background:#fff;
+	}
+	.detail-info.portal dt{
+		min-width:86px;
+	}
+}
+.narrow .user-profile{
+	margin-top:7px;
+	min-width:380px;
+	.user-title{
+		font-size:1.1em;
+	}
+	.detail-info{
+		font-size:0.8em;
+	}
+	.linkWithIcon{
+		height:16px;
+		padding-top:1px;
+		white-space:nowrap;
+	}
+	.fleft,.fright{
+		float:none;
+		margin-left:0;
+	}
+} 
 
 .wide .groupList{
 	font-size:0.9em;

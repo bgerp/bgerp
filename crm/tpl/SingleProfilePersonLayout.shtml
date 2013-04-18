@@ -1,16 +1,15 @@
 <div>
-	<div class="block_title [#STATE_CLASS#] special-title" >
+	<div class="user-title" >
 	      	[#title#]
-	</div>
-	
 	<!--ET_BEGIN image-->
-		<div class="crmImage">
+		<div class="profile-image">
 			<div>  
 				[#image#]
 			</div>
 		</div>
 	<!--ET_END image-->
-	
+	</div>
+	<div class="inner-holder">
 	<!--ET_BEGIN contacts-->
 		[#contacts#]
 		<fieldset class="detail-info">
@@ -46,4 +45,3 @@
 			</div>
 		</fieldset>
 	<!--ET_END contacts-->
-</div>
