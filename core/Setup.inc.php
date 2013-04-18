@@ -970,7 +970,7 @@ function gitHasNewVersion($repoPath, &$log)
         $hasUpdated = strpos($row, "(up to date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
     	$fastForward = strpos($row, "(fast-forwardable)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
     	
-        if($hasNewVersion !== FALSE || $fastForward !== FALSE) {
+        if($hasNewVersion !== FALSE) {
             $log[] = "new:[<b>$repoName</b>] Има нова версия.";
             
             return TRUE;
@@ -979,6 +979,12 @@ function gitHasNewVersion($repoPath, &$log)
         if($hasUpdated !== FALSE) {
             
             return FALSE;
+        }
+        
+        if($fastForward !== FALSE) {
+        	$log[] = "wrn:[<b>$repoName</b>] Необходима е ръчна намеса";
+        	
+        	return FALSE;
         }
     }
     $log[] = "err:[<b>$repoName</b>] Не е открит зададеният бранч.";
