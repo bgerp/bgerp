@@ -183,6 +183,14 @@ class trz_Requests extends core_Master
         }
 
     }
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+    	$mvc->updateRequestsToCalendar($rec->id);
+    }
  
     
     /**
@@ -273,9 +281,71 @@ class trz_Requests extends core_Master
     static public function act_Test()
     {
     	$p = 1;
-    	$a = '2013-05-02 00:00:00';
-    	$b = '2013-05-10 00:00:00';
-    	bp(static::calcLeaveDays($a,$b));
+    	$a = '2013-05-02';
+    	$b = '2013-05-10';
+    	bp(cal_Calendar::calcLeaveDays($a,$b));
+    }
+    
+    /**
+     * Обновява информацията за задачата в календара
+     */
+    static function updateRequestsToCalendar($id)
+    {
+        $rec = static::fetch($id);
+        
+        $events = array();
+        
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+        
+        // Префикс на ключовете за записите в календара от тази задача
+        $prefix = "REQ-{$id}";
+
+        $curDate = $rec->leaveFrom;
+    	
+    	while($curDate < dt::addDays(1, $rec->leaveTo)){
+        // Подготвяме запис за началната дата
+	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft')) {
+	            
+	            $calRec = new stdClass();
+	                
+	            // Ключ на събитието
+	            $calRec->key = $prefix . "-{$curDate}";
+	            
+	            // Начало на отпуската
+	            $calRec->time = $curDate;
+	            
+	            // Дали е цял ден?
+	            $calRec->allDay = 'yes';
+	            
+	            // Икона на записа
+	            $calRec->type  = 'leave';
+	
+	            $personName = crm_Persons::fetchField($rec->personId, 'name');
+	            // Заглавие за записа в календара
+	            $calRec->title = "{$personName} е в отпуск";
+	
+	            // В чии календари да влезе?
+	            $calRec->users = '';
+	            
+	            // Статус на задачата
+	            $calRec->state = $rec->state;
+	            
+	            // Url на задачата
+	            $calRec->url = toUrl(array('trz_Requests', 'Single', $id), 'local'); 
+	            
+	            $events[] = $calRec;
+	        }
+	        $curDate = dt::addDays(1, $curDate);
+    	}
+
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
 
     
