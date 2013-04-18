@@ -43,7 +43,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId, quantity, unit=Мярка, price, amount, tools=Пулт';
+    var $listFields = 'productId, quantity, packagingId, price, packQuantity, amount, tools=Пулт';
     
     
     /**
@@ -73,10 +73,13 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
         $this->FLD('quantity', 'double(decimals=4)', 'caption=Количество,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
+        $this->FLD('quantityInPack', 'double', 'input=none,column=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input');
+        $this->FLD('packQuantity', 'double', 'caption=К-во,input=none');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
-        $this->setDbUnique('invoiceId, productId');
+        $this->setDbUnique('invoiceId, productId, packagingId');
     }
     
     
@@ -110,8 +113,7 @@ class sales_InvoiceDetails extends core_Detail
         $form = $data->form;
         $Policy = cls::get($form->rec->policyId);
         
-        // Поакзваме само продуктите спрямо ценовата
-        // политиказа контрагента
+        // Поакзваме само продуктите спрямо ценовата политиказа контрагента
         $masterRec = $mvc->Master->fetch($form->rec->invoiceId);
         $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
         $products = $Policy->getProducts($contragentItem->classId, $contragentItem->objectId);
@@ -124,23 +126,36 @@ class sales_InvoiceDetails extends core_Detail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-        if ($form->isSubmitted()) {
-           
-          if(!$form->rec->price){
-          	
-          	// Ако не е зададена цена, извличаме я от избраната политика
-          	$masterRec = sales_Invoices::fetch($form->rec->invoiceId);
-            $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
-            $Policy = cls::get($form->rec->policyId);
-            $form->rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $form->rec->productId)->price;
+        if($form->isSubmitted()) {
+            $rec = &$form->rec;
           
-	        if(!$form->rec->price){
-	          $form->setError('price', 'Неможе да се определи цена');
+            if(!$pInfo = cat_Products::getProductInfo($rec->productId, $rec->packagingId)){
+          	   $form->setError('packagingId', 'Продукта не се предлага в посочената опаковка');
+          	   return;
+            }
+          
+            if($rec->packagingId){
+          	   $rec->quantityInPack = $pInfo->packagingRec->quantity;
+            } else {
+           	   $rec->quantityInPack = 1;
+            }
+          
+            $rec->packQuantity = $rec->quantityInPack * $rec->quantity;
+            if(!$form->rec->price){
+          	
+            // Ако не е зададена цена, извличаме я от избраната политика
+          	$masterRec = sales_Invoices::fetch($rec->invoiceId);
+            $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
+            $Policy = cls::get($rec->policyId);
+            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
+          
+	        if(!$rec->price){
+	            $form->setError('price', 'Неможе да се определи цена');
 	        }
           }
           
-          // Изчисляваме цената
-          $form->rec->amount = round($form->rec->price * $form->rec->quantity, 2);
+           // Изчисляваме цената
+           $form->rec->amount = round($form->rec->price * $form->rec->quantity, 2);
         }
     }
 
@@ -150,49 +165,22 @@ class sales_InvoiceDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$varchar = cls::get('type_Varchar');
-    	$row->quantity = $varchar->toVerbal(floatval($rec->quantity));
+    	$row->quantity = floatval($row->quantity);
+    	$row->packQuantity = floatval($rec->packQuantity);
     	
     	if($rec->note){
+    		$varchar = cls::get('type_Varchar');
 	    	$row->note = $varchar->toVerbal($rec->note);
 	    	$row->productId .= "<br/><small style='color:#555;'>{$row->note}</small>";
     	}
     	
     	$productRec = cat_Products::fetch($rec->productId);
-        $row->unit = cat_Products::getVerbal($productRec, 'measureId');
-    }
-	
-    
-    /**
-     * Намира последната цена за даден продукт
-     * @TODO Не се използва засега
-     * @param int $productId - продукт, за който проверяваме
-     * @param int $invoiceId - фактура
-     * @return double $recentPrice - последната цена
-     */
-    public static function getRecentPriceFor($productId, $invoiceId)
-    {
-        expect($contragentAccItemId = sales_Invoices::fetchField($invoiceId, 'contragentAccItemId'));
-    
-        $query = static::getQuery();
-    	$query->EXT('contragentAccItemId', 'sales_Invoices', 'externalName=contragentAccItemId,externalKey=invoiceId');
-        $query->EXT('invoiceDate', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
-        $query->EXT('invoiceState', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
-    
-        $query->where("#contragentAccItemId = {$contragentAccItemId}");
-        $query->where("#productId = {$productId}");
-        $query->where("#invoiceId <> {$invoiceId}");
-        $query->where("#invoiceState <> 'rejected'");
-        $query->where("#price IS NOT NULL");
-        $query->orderBy('invoiceDate', 'DESC');
-        $query->limit(1);
-    
-        $recentPrice = FALSE;
-    
-        if ($rec = $query->fetch()) {
-            $recentPrice = $rec->price;
-        }
-    
-        return $recentPrice;
+    	if($rec->packagingId){
+    		$row->quantityInPack = floatval($rec->quantityInPack);
+    		$measureShort = cat_UoM::fetchField($productRec->measureId, 'shortName');
+    		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
+    	} else {
+    		$row->packagingId = cat_Products::getVerbal($productRec, 'measureId');
+    	}
     }
 }
