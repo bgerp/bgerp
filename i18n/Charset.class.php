@@ -385,7 +385,7 @@ class i18n_Charset extends core_MVC {
         $assumedCharsets = $newAssumedCharsets;
 
         if($isHtml && self::is7bit($text)) {  
-            $text = html_entity_decode($text, ENT_QUOTES);
+            $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
             if(!self::is7bit($text)) {
 
                 return 'HTML_ENTITIES';
