@@ -594,11 +594,21 @@ option.team {
 	color: #fc0;
 }
 
-.wide .btn-posting  { 
+.wide .btn-posting { 
 	background-image:url('../img/16/comment_add.png');
 	@include btn-style();
-	
 }
+
+.wide .btn-person { 
+	background-image:url('../img/16/vcard.png');
+	@include btn-style();
+}
+
+.wide .btn-profile { 
+	background-image:url('../img/16/user.png');
+	@include btn-style();
+}
+
 .wide .btn-zoho{
 	@include btn-style();
 }
