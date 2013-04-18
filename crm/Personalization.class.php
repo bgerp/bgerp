@@ -107,6 +107,9 @@ class crm_Personalization extends core_Detail
      */
     public static function renderPersonalization($data)
     {
+        // Ако нямаме права да не се показва
+        if (!$data->canChange) return NULL;
+        
         // Шаблона за детейлите
         $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
         
@@ -135,7 +138,7 @@ class crm_Personalization extends core_Detail
         }
         
         // Ако не принтираме и имаме права
-        if ($data->canChange && !Mode::is('printing')) {
+        if (!Mode::is('printing')) {
             
             // Ако има записи
             if ($haveRec) {
