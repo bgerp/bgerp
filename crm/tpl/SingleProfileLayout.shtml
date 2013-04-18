@@ -1,0 +1,27 @@
+<div style="display: inline-block;">
+	[#SingleToolbar#]
+	
+	<div class="folder-cover">
+		<div class="inner-folder">
+
+			<!--ET_BEGIN personInfo-->
+				[#personInfo#]
+			<!--ET_END personInfo-->
+			
+			<div style="clear:both;"></div>
+			
+			<!--ET_BEGIN userInfo-->
+				[#userInfo#]
+			<!--ET_END userInfo-->
+			
+			<div style="clear:both;"></div>
+			
+			<!--ET_BEGIN DETAILS-->
+				[#DETAILS#]
+			<!--ET_END DETAILS-->
+			
+			<div style="clear:both;"></div>
+			
+		</div>
+	</div>
+</div>
