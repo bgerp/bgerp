@@ -118,6 +118,7 @@ class price_ListDocs extends core_Master
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
+    	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
     }
     
     
@@ -169,7 +170,7 @@ class price_ListDocs extends core_Master
     		if(!$form->rec->title){
     			$polRec = price_Lists::fetch($form->rec->policyId);
     			$policyName = price_Lists::getVerbal($polRec, 'title');
-    			$form->rec->title = "{$mvc->singleTitle} \"{$policyName}\"";
+    			$form->rec->title = "{$mvc->singleTitle} \"{$policyName}\" {$form->rec->id}";
     		}
     	}
     }
@@ -180,20 +181,23 @@ class price_ListDocs extends core_Master
    	 */
    	static function on_AfterPrepareSingle($mvc, &$data)
     {
-    	$mvc->prepareDetails($data);
+    	// Обработваме детайлите ако ги няма записани
+    	if(!$data->rec->products){
+    		$mvc->prepareDetails($data);
+    	}
     }
     
     
     /**
-     * Подготвяне на "Детайлите" на ценоразписа
+     *  Подготовка на детайлите
      */
     private function prepareDetails(&$data)
     {
     	// Подготвяме продуктите спрямо избраните групи
-    	$this->prepareSelectedProducts($data);
-    	
-    	// Намираме цената на всички продукти
-    	$this->calculateProductsPrice($data);
+	    $this->prepareSelectedProducts($data);
+	    	
+	    // Намираме цената на всички продукти
+	    $this->calculateProductsPrice($data);
     }
     
     
@@ -230,7 +234,7 @@ class price_ListDocs extends core_Master
     
     
     /**
-     *  Извличаме цената на листваните продукти
+     *  Извличане на цената на листваните продукти
      */
     private function calculateProductsPrice(&$data)
     {
@@ -261,13 +265,6 @@ class price_ListDocs extends core_Master
     			}
     		}
     	}
-    	
-    	$rec->details->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
-    	$rec->details->Pager->itemsCount = count($rec->details->rows);
-    	if(Mode::is('printing')){
-    		$rec->details->Pager->itemsPerPage = 10000;
-    	}
-    	$rec->details->Pager->calc();
     	unset($rec->details->products);
     }
     
@@ -295,7 +292,7 @@ class price_ListDocs extends core_Master
 		if($detailRec->pack){
     		$detailRow->pack = cat_Packagings::getTitleById($detailRec->pack);
     		$measureShort = cat_UoM::fetchField($detailRec->measureId, 'shortName');
-    		$detailRow->pack .= " &nbsp;({$detailRec->perPack}/{$measureShort})";
+    		$detailRow->pack .= " &nbsp;({$detailRec->perPack} {$measureShort})";
 		} else {
     		$detailRow->measureId = cat_UoM::getTitleById($detailRec->measureId);
     	}
@@ -325,20 +322,19 @@ class price_ListDocs extends core_Master
     {
     	$rec = &$data->rec;
     	$detailTpl = $tpl->getBlock("DETAIL");
-    	$count = 0;
-    	if($rec->details->rows){
+    	
+    	if($rec->details->rows || $rec->products){
     		
-    		if($rec->productGroups){
+    	   if($rec->productGroups){
 	    		$groupsArr = type_Keylist::toArray($rec->productGroups);
     		}
     		
-    		// Начало и край на пейджъра
-    		$start = $rec->details->Pager->rangeStart;
-    		$end = $rec->details->Pager->rangeEnd - 1;
-    		
     		// Преподреждаме продуктите групирани по Групи
-    		$grouped = $this->groupProductsByGroups($rec->details->rows, $groupsArr);
-    		foreach ($grouped as $groupId => $products){
+    		if(!$rec->products){
+    			$rec->products = $this->groupProductsByGroups($rec->details->rows, $groupsArr);
+    		}
+    		
+    		foreach ($rec->products as $groupId => $products){
     			if(count($products) != 0){
 					
 					// Слагаме името на групата
@@ -348,14 +344,11 @@ class price_ListDocs extends core_Master
 						
 						// Показваме информацията с продукта
 		    			$row = $this->getVerbalDetail($row);
-		    			if($count >= $start && $count <= $end){
-			    			$rowTpl = $groupTpl->getBlock('ROW');
-			    			$rowTpl->placeObject($row);
-			    			$rowTpl->removeBlocks();
-			    			$rowTpl->append2master();
-			    		}
-		    			$count++;
-    				}
+		    			$rowTpl = $groupTpl->getBlock('ROW');
+			    		$rowTpl->placeObject($row);
+			    		$rowTpl->removeBlocks();
+			    		$rowTpl->append2master();
+			    	}
     				
     				$groupTpl->removeBlocks();
 			    	$tpl->append($groupTpl, 'DETAIL');
@@ -363,10 +356,6 @@ class price_ListDocs extends core_Master
     		}
     	} else {
     		$tpl->append("<tr><td colspan='6'> " . tr("Няма цени") . "</td></tr>", 'ROW');
-    	}
-    	
-    	if($rec->details->Pager){
-    		$tpl->append($rec->details->Pager->getHtml(), 'BottomPager');
     	}
     }
     
@@ -408,6 +397,24 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * При активиране записваме групираните продукти в модела
+     */
+	public static function on_Activation($mvc, &$rec)
+    {
+    	$data = new stdClass();
+    	$data->rec = $mvc->fetch($rec->id);
+    	$mvc->prepareDetails($data);
+    	
+    	if($rec->productGroups){
+	    	$groupsArr = type_Keylist::toArray($data->rec->productGroups);
+    	}
+    	
+    	$data->rec->products = $mvc->groupProductsByGroups($data->rec->details->rows, $groupsArr);
+    	$mvc->save($data->rec);
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -421,7 +428,7 @@ class price_ListDocs extends core_Master
     	
     	// Модифицираме данните които показваме при принтиране
     	if(Mode::is('printing')){
-    		$row->printHeader = tr($row->title);
+    		$row->printHeader = $row->title;
     		$row->currency =  $row->baseCurrency;
     		$row->created =  $row->date;
     		$row->number =  $row->id;

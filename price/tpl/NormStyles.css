@@ -26,7 +26,7 @@
 }
 
 .norm-row-cell{
-	text-align:center;
+	1text-align:лефт;
 }
 
 .product-code-style{
@@ -51,7 +51,7 @@
 }
 
 .pricelist-group-label, .pricelist-group-label b {
-	background-color: #666 !important;
+	background-color: #636363 !important;
 	color:white;
 }
 
@@ -67,7 +67,7 @@
 	}
 	
 	.pricelist-group-label, .pricelist-group-label b {
-		background-color: #666 !important;
+		background-color: #636363 !important;
 		color:white;
 	}
 }	

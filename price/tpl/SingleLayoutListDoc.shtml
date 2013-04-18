@@ -49,7 +49,7 @@
 	<!--ET_BEGIN printHeader-->
 	<tr>
 		<td colspan = '2'><span id = 'print-header'>[#printHeader#]</span><br>
-		<span id = 'sub-title'>№[#number#] &nbsp; |Дата|* &nbsp;[#created#] &nbsp;&nbsp;|валута|*  &nbsp;[#currency#]</span>
+		<span id = 'sub-title'>№[#number#] &nbsp; |Дата|* &nbsp;[#created#] &nbsp;&nbsp;|Валута|*  &nbsp;[#currency#]</span>
 		</td>
 	</tr>
 	<!--ET_END printHeader-->
