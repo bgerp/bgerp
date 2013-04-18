@@ -121,6 +121,9 @@ class crm_Profiles extends core_Master
         // Ако има personId
         if ($data->rec->personId) {
 
+            // Създаваме обекта
+            $data->Person = new stdClass();
+            
             // Вземаме записите
             $data->Person->rec = crm_Persons::fetch($data->rec->personId);
             
@@ -139,6 +142,9 @@ class crm_Profiles extends core_Master
         
         // Ако има userId
         if ($data->rec->userId) {
+            
+            // Създаваме обекта
+            $data->User = new stdClass();
             
             // Вземаме записите
             $data->User->rec = core_Users::fetch($data->rec->userId);
