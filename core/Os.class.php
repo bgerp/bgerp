@@ -408,4 +408,32 @@ class core_Os
         
         return $lastModificationDir[$dir];
     }
+    
+    
+    /**
+     * Функция, която връща резултата от изпълнението на посленидния preg
+     * В preg_ фунцкиите, ако възникне грешка връщат NULL
+     */
+    static function pregLastError()
+    {
+        $pregLastError = preg_last_error();
+        
+        if ($pregLastError == PREG_NO_ERROR) {
+            $res = 'There is no error.';
+        } else if ($pregLastError == PREG_INTERNAL_ERROR) {
+            $res = 'There is an internal error!';
+        } else if ($pregLastError == PREG_BACKTRACK_LIMIT_ERROR) {
+            $res = 'Backtrack limit was exhausted!';
+        } else if ($pregLastError == PREG_RECURSION_LIMIT_ERROR) {
+            $res = 'Recursion limit was exhausted!';
+        } else if ($pregLastError == PREG_BAD_UTF8_ERROR) {
+            $res = 'Bad UTF8 error!';
+        } else if ($pregLastError == PREG_BAD_UTF8_ERROR) {
+            $res = 'Bad UTF8 offset error!';
+        } else {
+            $res = 'Unrecognized error!';
+        }
+        
+        return $res;
+    }
 }
