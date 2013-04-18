@@ -65,13 +65,6 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
-     * sysId-та на  групи, от които можем да задаваме продукти
-     */
-    public static $productGroups = array('goods', 
-    									 'productsStandard', 
-    									 'productsNonStand', 
-    									 'services');
-    /**
      * Описание на модела
      */
     function description()
@@ -94,7 +87,7 @@ class sales_InvoiceDetails extends core_Detail
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
             $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
-            
+           
             $contragentItem = acc_Items::fetch($data->masterData->rec->contragentAccItemId);
             $addUrl = $data->toolbar->buttons['btnAdd']->url;
             foreach ($pricePolicies as $policyId=>$Policy) {
@@ -115,7 +108,14 @@ class sales_InvoiceDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
-        $form->setOptions('productId', cat_Products::getByGroup($mvc::$productGroups));
+        $Policy = cls::get($form->rec->policyId);
+        
+        // Поакзваме само продуктите спрямо ценовата
+        // политиказа контрагента
+        $masterRec = $mvc->Master->fetch($form->rec->invoiceId);
+        $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
+        $products = $Policy->getProducts($contragentItem->classId, $contragentItem->objectId);
+        $form->setOptions('productId', $products);
     }
 
 
