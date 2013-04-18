@@ -1,4 +1,16 @@
 <?php
+
+
+/**
+ * Детайл на профилите
+ *
+ * @category  bgerp
+ * @package   crm
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2013 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.12
+ */
 class crm_ext_Personalization extends core_Detail
 {
     
@@ -6,7 +18,7 @@ class crm_ext_Personalization extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'personId';
+    var $masterKey = 'profileId';
 
     
     /**
@@ -44,13 +56,13 @@ class crm_ext_Personalization extends core_Detail
      */
     public function description()
     {
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent');
+        $this->FLD('profileId', 'key(mvc=crm_Profiles)', 'input=hidden,silent');
         $this->FLD('signature', 'text', 'caption=Писмо->Подпис');
         $this->FLD('header', 'text', 'caption=Писмо->Привет');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Български');
         $this->FLD('logoEn', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Английски');
 
-        $this->setDbUnique('personId');
+        $this->setDbUnique('profileId');
     }
     
     
@@ -59,18 +71,18 @@ class crm_ext_Personalization extends core_Detail
      */
     public static function preparePersonalization($data)
     {
-        // Името на таба
-        $data->TabCaption = 'Персонализация';
-
         // Очакваме да има masterId
         expect($data->masterId);
 
+        // Ако няма
         if(!$data->Personalization) {
+            
+            // Създаваме клас
             $data->Personalization = new stdClass();
         }
         
         // Вземаме записите
-        $data->Personalization->rec = static::fetch("#personId = {$data->masterId}");
+        $data->Personalization->rec = static::fetch("#profileId = {$data->masterId}");
         
         // Ако има записи
         if ($data->Personalization->rec) {
@@ -78,9 +90,9 @@ class crm_ext_Personalization extends core_Detail
             // Вземаме вербалните им стойности
             $data->Personalization->row = static::recToVerbal($data->Personalization->rec);    
         }
-        
+
         // Кой може да променя
-        $data->canChange = static::haveRightFor('edit');
+        $data->canChange = crm_Profiles::haveRightFor('edit', $data->masterId) && static::haveRightFor('edit', $data->Personalization->rec);
     }
     
     
@@ -95,46 +107,53 @@ class crm_ext_Personalization extends core_Detail
         // Титлата
         $tpl->append(tr('Персонализация'), 'title');        
 
-        // Ако не принтираме
-        if (!Mode::is('printing')) {
+        // Записите от модела
+        $rec = $data->Personalization->rec;
+        
+        // Ако има една от стойностите
+        if ($rec->signature || $rec->header || $rec->logo || $rec->logoEn) {
             
-            $rec = $data->Personalization->rec;
-
-            // Ако има една от стойностите
-            if ($rec->signature || $rec->header || $rec->logo || $rec->logoEn) {
+            // Флаг, указващ, че има записи
+            $haveRec = TRUE;
+            
+            // Шаблона
+            $idCardTpl = new ET(tr("|*" . getFileContent('crm/tpl/Personalization.shtml')));
+            
+            // Вкарваме вербалние данни
+            $idCardTpl->placeObject($data->Personalization->row);
+        } else {
+            
+            // Ако няма запис
+            $idCardTpl = new ET(tr('Няма данни')); 
+            
+        }
+        
+        // Ако не принтираме и имаме права
+        if ($data->canChange && !Mode::is('printing')) {
+            
+            // Ако има записи
+            if ($haveRec) {
                 
                 // URL за промяна
-                $url = array(get_called_class(), 'edit', $rec->id, 'ret_url' => TRUE);
-                
-                // Шаблона
-                $idCardTpl = new ET(tr("|*" . getFileContent('crm/tpl/Personalization.shtml')));
-                
-                // Вкарваме вербалние данни
-                $idCardTpl->placeObject($data->Personalization->row);
+                $url = array('crm_ext_Personalization', 'edit', $rec->id, 'ret_url' => TRUE);
             } else {
                 
-                // Ако няма запис
-                $idCardTpl = new ET(tr('Няма данни'));
-                
-                // URL' то
-                $url = array(get_called_class(), 'add', 'personId'=>$data->masterId, 'ret_url' => TRUE);
-            }
+                // URL за добавяне
+                $url = array('crm_ext_Personalization', 'add', 'profileId'=>$data->masterId, 'ret_url' => TRUE);
+            } 
             
             // Иконата за редактиране
             $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
             
-            // Добавяме линка
-            $tpl->append(
-                ht::createLink(
-                    $img, $url, FALSE,
-                    'title=' . tr('Промяна на персонализация')
-                ),
-                'title'
-            );
+            // Създаме линка
+            $link = ht::createLink($img, $url, FALSE,'title=' . tr('Промяна на персонализация'));
             
-            // Добавяме шаблона
-            $tpl->append($idCardTpl, 'content');
+            // Добавяме линка
+            $tpl->append($link,'title');
         }
+        
+        // Добавяме шаблона
+        $tpl->append($idCardTpl, 'content');
         
         return $tpl;
     }
@@ -152,10 +171,10 @@ class crm_ext_Personalization extends core_Detail
         $form = $data->form;
         
         // За да гарантираме релацията 1:1
-        $form->rec->id = $mvc->fetchField("#personId = {$form->rec->personId}", 'id');
+        $form->rec->id = $mvc->fetchField("#profileId = {$form->rec->profileId}", 'id');
 
         // Титлата
-        $form->title = 'Персонализация на|* ' .  $mvc->Master->getVerbal($data->masterRec, 'name');
+        $form->title = 'Персонализация на|* ' .  crm_Persons::getVerbal($data->masterRec->personId, 'name');
     }
     
     
@@ -173,7 +192,7 @@ class crm_ext_Personalization extends core_Detail
         // Ако няма запис, връщаме
         if (!$rec) return ;
         
-        // Ако е зададен дасе връща логото на английски
+        // Ако е зададен да се връща логото на английски
         if ($en) {
             
             // Връщаме него
@@ -236,14 +255,32 @@ class crm_ext_Personalization extends core_Detail
         }
         
         // id на потребителя
-        $personId = crm_Profiles::getProfile($userId)->id;
+        $profileId = crm_Profiles::getProfile($userId)->id;
 
         // Ако няма потребител
-        if (!$personId) return ;
+        if (!$profileId) return ;
         
         // Вземаме записа
-        $rec = static::fetch("#personId = '{$personId}'");
+        $rec = static::fetch("#profileId = '{$profileId}'");
         
         return $rec;
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако променяме или добавяме
+        if ($action == 'edit' || $action == 'add') {
+            
+            // Ако има профил и userId не е текущия потребител
+            if ($rec->profileId && crm_Profiles::fetch($rec->profileId)->userId != core_Users::getCurrent()) {
+                
+                // Само админ
+                $requiredRoles = 'admin';
+            }
+        }
     }
 }
