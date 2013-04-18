@@ -58,7 +58,6 @@ class cat_Setup
             'cat_products_Files',
             'cat_Params',
             'cat_Packagings',
-            'cat_PricePolicyMockup',
         );
         
         // Роля за power-user на този модул

@@ -53,6 +53,7 @@ class sales_Setup
             'sales_Sales',
             'sales_SalesDetails',
         	'sales_Routes',
+        	'sales_SalesLastPricePolicy',
         );
         
         // Роля за power-user на този модул
