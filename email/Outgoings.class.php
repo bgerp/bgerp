@@ -746,7 +746,7 @@ class email_Outgoings extends core_Master
         core_Lg::push($lg);
         
         $textTpl = static::getDocumentBody($oRec->id, 'plain', (object)array('rec' => $oRec));
-        $text    = html_entity_decode($textTpl->getContent());
+        $text    = html_entity_decode($textTpl->getContent(), ENT_COMPAT | ENT_HTML401, 'UTF-8');
         
         core_Lg::pop();
         
@@ -884,7 +884,7 @@ class email_Outgoings extends core_Master
                 $oRow = $oDoc->getDocumentRow();
                 
                 // Заглавието на темата
-                $title = html_entity_decode($oRow->title);
+                $title = html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                 
                 $oContragentData = $oDoc->getContragentData();    
                 
