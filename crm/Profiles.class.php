@@ -24,7 +24,7 @@ class crm_Profiles extends core_Master
     /**
      * 
      */
-	var $details = 'Personalization=crm_ext_Personalization';
+	var $details = 'Personalization=crm_Personalization';
 
 	
     /**

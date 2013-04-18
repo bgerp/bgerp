@@ -72,11 +72,11 @@ class bgerp_plg_Blank extends core_Plugin
         if ($lg != 'en') {
             
             // Вземаме логото на потребителя
-            $companyLogoFh = crm_ext_Personalization::getLogo();    
+            $companyLogoFh = crm_Personalization::getLogo();    
         } else {
             
             // Вземамем логото на потребителя на ЕН
-            $companyLogoFh = crm_ext_Personalization::getLogo(FALSE, TRUE);
+            $companyLogoFh = crm_Personalization::getLogo(FALSE, TRUE);
         }
         
         // Ако няма лого на потребителя

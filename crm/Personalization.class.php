@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.12
  */
-class crm_ext_Personalization extends core_Detail
+class crm_Personalization extends core_Detail
 {
     
     
@@ -43,6 +43,12 @@ class crm_ext_Personalization extends core_Detail
      * 
      */
     var $canAdd = 'powerUser';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'crm_ext_Personalization';
     
     
     /**
@@ -135,11 +141,11 @@ class crm_ext_Personalization extends core_Detail
             if ($haveRec) {
                 
                 // URL за промяна
-                $url = array('crm_ext_Personalization', 'edit', $rec->id, 'ret_url' => TRUE);
+                $url = array('crm_Personalization', 'edit', $rec->id, 'ret_url' => TRUE);
             } else {
                 
                 // URL за добавяне
-                $url = array('crm_ext_Personalization', 'add', 'profileId'=>$data->masterId, 'ret_url' => TRUE);
+                $url = array('crm_Personalization', 'add', 'profileId'=>$data->masterId, 'ret_url' => TRUE);
             } 
             
             // Иконата за редактиране

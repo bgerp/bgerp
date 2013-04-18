@@ -1145,7 +1145,7 @@ class email_Outgoings extends core_Master
         $tpl = new ET(getFileContent("email/tpl/OutgoingHeader.shtml"));
         
         // Вземаме привета от потребителя
-        $header = crm_ext_Personalization::getHeader();
+        $header = crm_Personalization::getHeader();
         
         // Ако е зададен привет
         if ($header) {
@@ -1191,7 +1191,7 @@ class email_Outgoings extends core_Master
     function getFooter()
     {
         // Вземаме подписа от потребителя
-        $signature = crm_ext_Personalization::getSignature();
+        $signature = crm_Personalization::getSignature();
 
         // Ако има подпис, превеждаме го и го връщаме
         if ($signature) {
