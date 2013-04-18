@@ -175,7 +175,7 @@ class blast_Lists extends core_Master
                 $caption = trim($valueArr[1]);
                 
                 //Ескейпваме заглавието
-//                $caption = htmlspecialchars($caption);
+//                $caption = htmlspecialchars($caption, ENT_COMPAT | ENT_HTML401, 'UTF-8');
 //                $caption = core_Type::escape($caption);
                 
                 //Ескейпваме непозволените символи в заглавието

@@ -336,7 +336,7 @@ abstract class FeedWriter
 		{
 			foreach ($attributes as $key => $value)
 			{
-				$value = htmlspecialchars($value);
+				$value = htmlspecialchars($value, ENT_COMPAT | ENT_HTML401, 'UTF-8');
 				$attrText .= " $key=\"$value\" ";
 			}
 
@@ -362,7 +362,7 @@ abstract class FeedWriter
 		}
 		else
 		{
-			$nodeText .= (in_array($tagName, $this->CDATAEncoding))? $this->sanitizeCDATA($tagContent) : htmlspecialchars($tagContent);
+			$nodeText .= (in_array($tagName, $this->CDATAEncoding))? $this->sanitizeCDATA($tagContent) : htmlspecialchars($tagContent, ENT_COMPAT | ENT_HTML401, 'UTF-8');
 		}
 		
 		$nodeText .= (in_array($tagName, $this->CDATAEncoding)) ? ']]>' : '';
