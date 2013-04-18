@@ -459,18 +459,48 @@ a.profile {
 	@include border-radius(2px);
 	&.ceo {
 		color: blue;
+		&.soon{
+			color:darken(blue,15%);
+		}
+		&.ago{
+			color:darken(blue,25%);
+		}
 	}
 	&.manager {
 		color: #009999;
+		&.soon{
+			color:darken(#009999,15%);
+		}
+		&.ago{
+			color:darken(#009999,25%);
+		}
 	}
 	&.officer {
-	color: green;
+		color: green;
+		&.soon{
+			color:darken(green,15%);
+		}
+		&.ago{
+			color:darken(green,25%);
+		}
 	}
 	&.executive {
-	color: #aa6600;
+		color: #aa6600;
+		&.soon{
+			color:darken(#aa6600,15%);
+		}
+		&.ago{
+			color:darken(#aa6600,25%);
+		}
 	}
 	&.contractor {
-	color: #f00;
+		color: #f00;
+		&.soon{
+			color:darken(#f00,15%);
+		}
+		&.ago{
+			color:darken(#f00,25%);
+		}
 	}
 }
 
