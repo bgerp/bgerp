@@ -459,18 +459,48 @@ a.profile {
 	@include border-radius(2px);
 	&.ceo {
 		color: blue;
+		&.soon{
+			color:darken(blue,15%);
+		}
+		&.ago{
+			color:darken(blue,25%);
+		}
 	}
 	&.manager {
 		color: #009999;
+		&.soon{
+			color:darken(#009999,15%);
+		}
+		&.ago{
+			color:darken(#009999,25%);
+		}
 	}
 	&.officer {
-	color: green;
+		color: green;
+		&.soon{
+			color:darken(green,15%);
+		}
+		&.ago{
+			color:darken(green,25%);
+		}
 	}
 	&.executive {
-	color: #aa6600;
+		color: #aa6600;
+		&.soon{
+			color:darken(#aa6600,15%);
+		}
+		&.ago{
+			color:darken(#aa6600,25%);
+		}
 	}
 	&.contractor {
-	color: #f00;
+		color: #f00;
+		&.soon{
+			color:darken(#f00,15%);
+		}
+		&.ago{
+			color:darken(#f00,25%);
+		}
 	}
 }
 
@@ -564,15 +594,29 @@ option.team {
 	color: #fc0;
 }
 
-.wide .btn-posting  { 
+.wide .btn-posting { 
 	background-image:url('../img/16/comment_add.png');
 	@include btn-style();
-	
 }
+
+.wide .btn-person { 
+	background-image:url('../img/16/vcard.png');
+	@include btn-style();
+}
+
+.wide .btn-profile { 
+	background-image:url('../img/16/user.png');
+	@include btn-style();
+}
+
 .wide .btn-zoho{
 	@include btn-style();
 }
 
+.wide .btn-order{
+	@include btn-style();
+	background-image:url('../img/16/btn-order.png');
+}
 .more-btn{
 	float:left;
 	padding:4px 3px 2px 3px !important;
@@ -755,6 +799,35 @@ div.acc-detail {
 
 .document .block_left{
 	margin-top:10px;
+}
+
+.document .centered{
+	text-align:center;
+}
+
+.document p{
+	margin-top:0;
+	margin-bottom:10px;
+	line-height:150%;
+}
+
+.document .indent{
+	text-indent:25px;
+}
+
+.document h3{
+	margin-bottom:10px;
+}
+
+.document div.richtext-holder{
+	margin-top:0;
+	margin-bottom:10px;
+	line-height:150%;
+}
+
+.document div.richtext-holder .richtext{
+	display:inline;
+	color:#000;	
 }
 
 .narrow .printing .folder-cover{

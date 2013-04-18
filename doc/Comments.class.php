@@ -166,7 +166,7 @@ class doc_Comments extends core_Master
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($cid);
                 $oRow = $oDoc->getDocumentRow();
-                $rec->subject = tr('|За|*: ') . html_entity_decode($oRow->title);    
+                $rec->subject = tr('|За|*: ') . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');    
             }
         }
     }

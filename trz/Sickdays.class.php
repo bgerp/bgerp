@@ -150,6 +150,8 @@ class trz_Sickdays extends core_Master
 								   10=Гледа дете до 18 години)', 'caption=Информация->Причина');
     	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
     	$this->FLD('icdCode', 'varchar(5)', 'caption=Информация->MKB код, hint=Международна класификация на болестите');
+    	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=Ще отговаря->на GSM, maxRadio=3,columns=3,notNull,value=yes');
+    	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=Ще отговаря->в системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=none');
     	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=none');
     }

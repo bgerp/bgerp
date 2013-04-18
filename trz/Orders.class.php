@@ -130,10 +130,21 @@ class trz_Orders extends core_Master
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
     	$this->FLD('useDaysFromYear', 'int(nowYest, nowYear-1)', 'caption=Информация->Ползване от,unit=Година');
-    	$this->FLD('isPaid', 'enum(paid=Платен, unpaid=Неплатен)', 'caption=Вид,maxRadio=2,columns=2,notNull,value=paid');
+    	$this->FLD('isPaid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Вид,maxRadio=2,columns=2,notNull,value=paid');
     	$this->FLD('amount', 'double', 'caption=Начисления');
     }
     
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+        if($rec->leaveFrom &&  $rec->leaveTo){
+	    	$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	    	$rec->leaveDays = $days->workDays;
+        }
+
+    }
     
     /**
      * Прилага филтъра, така че да се показват записите за определение потребител
@@ -163,7 +174,7 @@ class trz_Orders extends core_Master
             
         }
     }
-    
+
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -221,6 +232,7 @@ class trz_Orders extends core_Master
     		$data->form->setDefault('personId', $rec->personId);
     		$data->form->setDefault('leaveFrom', $rec->leaveFrom);
     		$data->form->setDefault('leaveTo', $rec->leaveTo);
+    		$data->form->setDefault('leaveDays', $rec->leaveDays);
     		$data->form->setDefault('note', $rec->note);
     		$data->form->setDefault('useDaysFromYear', $rec->useDaysFromYear);
     		$data->form->setDefault('isPaid', $rec->paid);

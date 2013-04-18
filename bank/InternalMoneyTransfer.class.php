@@ -420,19 +420,13 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     public static function canAddToFolder($folderId, $folderClass)
     {
-        if (empty($folderClass)) {
-            $folderClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        }
-    	
         // Може да създаваме документ-а само в дефолт папката му
-        if($folderId == static::getDefaultFolder()) {
+        if ($folderId == static::getDefaultFolder(NULL /* userId */, FALSE /* bForce */)) {
         	
         	return TRUE;
         } 
         	
        return FALSE;
-        
     }
     
     

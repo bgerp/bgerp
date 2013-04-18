@@ -23,7 +23,7 @@
                         <!--ET_BEGIN contragentAddress-->
                             [#contragentAddress#]<br>
                         <!--ET_END contragentAddress-->
-                        [#deliveryLocationId#]
+                        [#locationId#]
 					</div>
 					<!--ET_END contragent-->
                     </td>
@@ -61,11 +61,11 @@
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="topCell first" valign="top" width="30%">
-                        <!--ET_BEGIN deliveryTermId-->
+                        <!--ET_BEGIN termId-->
                     	<div>
-                            Условие: <b>[#deliveryTermId#]</b>
+                            Условие: <b>[#termId#]</b>
                        	</div>
-                       	<!--ET_END deliveryTermId-->
+                       	<!--ET_END termId-->
                        	
                         <!--ET_BEGIN deliveryTime-->
                         <div>
@@ -73,11 +73,11 @@
                         </div>
                         <!--ET_END deliveryTime-->
     
-                        <!--ET_BEGIN shipmentStoreId-->
+                        <!--ET_BEGIN storeId-->
                         <div>
-                            От склад: <b>[#shipmentStoreId#] </b>
+                            От склад: <b>[#storeId#] </b>
                         </div>
-                        <!--ET_END shipmentStoreId-->
+                        <!--ET_END storeId-->
                              
         
                         <!--ET_BEGIN note-->

@@ -746,7 +746,7 @@ class email_Outgoings extends core_Master
         core_Lg::push($lg);
         
         $textTpl = static::getDocumentBody($oRec->id, 'plain', (object)array('rec' => $oRec));
-        $text    = html_entity_decode($textTpl->getContent());
+        $text    = html_entity_decode($textTpl->getContent(), ENT_COMPAT | ENT_HTML401, 'UTF-8');
         
         core_Lg::pop();
         
@@ -884,7 +884,7 @@ class email_Outgoings extends core_Master
                 $oRow = $oDoc->getDocumentRow();
                 
                 // Заглавието на темата
-                $title = html_entity_decode($oRow->title);
+                $title = html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                 
                 $oContragentData = $oDoc->getContragentData();    
                 
@@ -964,8 +964,8 @@ class email_Outgoings extends core_Master
                 // Ако има replyTo използваме него
                 if ($oContragentData->replyToEmail) {
                     
-                    // Имейлите да се вземат от replyTo
-                    $rec->email = $oContragentData->replyToEmail;
+                    // Вземаме стринга само с имейлите и го добавяме в имейл полето
+                    $rec->email = email_Mime::getAllEmailsFromStr($oContragentData->replyToEmail);
                     $replyTo = TRUE;    
                 } else {
                     
@@ -1081,7 +1081,7 @@ class email_Outgoings extends core_Master
                 // Имейлите за премахване
                 $emailForRemove = array($recEmails[0]);
             } else {
-                 
+                
                 // replyTo в имейлите за премахване
                 $emailForRemove = $recEmails;
             }
@@ -1145,7 +1145,7 @@ class email_Outgoings extends core_Master
         $tpl = new ET(getFileContent("email/tpl/OutgoingHeader.shtml"));
         
         // Вземаме привета от потребителя
-        $header = crm_ext_Personalization::getHeader();
+        $header = crm_Personalization::getHeader();
         
         // Ако е зададен привет
         if ($header) {
@@ -1191,7 +1191,7 @@ class email_Outgoings extends core_Master
     function getFooter()
     {
         // Вземаме подписа от потребителя
-        $signature = crm_ext_Personalization::getSignature();
+        $signature = crm_Personalization::getSignature();
 
         // Ако има подпис, превеждаме го и го връщаме
         if ($signature) {

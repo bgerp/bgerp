@@ -1236,8 +1236,8 @@ class blast_Emails extends core_Master
             $this->emailData[$listId][$email] = unserialize($recList->data);
             
             $mid = doc_DocumentPlg::getMidPlace();
-            $urlBg = htmlentities(toUrl(array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => 'bg'), 'absolute'));
-            $urlEn = htmlentities(toUrl(array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => 'en'), 'absolute'));
+            $urlBg = htmlentities(toUrl(array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => 'bg'), 'absolute'), ENT_COMPAT | ENT_HTML401, 'UTF-8');
+            $urlEn = htmlentities(toUrl(array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => 'en'), 'absolute'), ENT_COMPAT | ENT_HTML401, 'UTF-8');
 
             //Създаваме линковете
             $this->emailData[$listId][$email]['otpisvane'] = "[link={$urlBg}]тук[/link]";

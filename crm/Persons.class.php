@@ -140,8 +140,8 @@ class crm_Persons extends core_Master
      * 
      * @var string|array
      */
-    public $details = 'Profile=crm_Profiles,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,IdCard=crm_ext_IdCards, Personalization=crm_ext_Personalization';
+    public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
+                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,IdCard=crm_ext_IdCards';
     
 
     /**
@@ -1970,6 +1970,27 @@ class crm_Persons extends core_Master
         // Никой да не може да изтрива
         if ($action == 'delete') {
             $requiredRoles = 'no_one';
+        }
+    }
+
+    
+    /**
+     * 
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        // Ако има профил
+        if ($profileRec = crm_Profiles::fetch("#personId = '{$data->rec->id}'")) {
+            
+            // Ако има права за single на профила
+            if (crm_Profiles::haveRightFor('single', $profileRec)) {
+                
+                // URL към профила
+                $profileUrl = crm_Profiles::getUrl($profileRec->userId);
+                
+                // Добавяме бутон към профилите
+                $data->toolbar->addBtn(tr('Профил'), $profileUrl, 'id=btnProfile, class=btn-profile');  
+            }
         }
     }
 }

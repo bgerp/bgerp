@@ -41,18 +41,13 @@ class store_ShipmentOrders extends core_Master
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
                     doc_plg_BusinessDoc, acc_plg_Registry, acc_plg_Contable';
     
     
-    /**
-     * Активен таб на менюто
-     * 
-     * @var string
-     */
-    public $menuPage = 'Логистика:Складове';
+
     
     /**
      * Кой има право да чете?
@@ -750,6 +745,8 @@ class store_ShipmentOrders extends core_Master
         
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
+                'amount' => $detailRec->amount , // В основна валута
+                
                 'debit' => array(
                     '7013', // Сметка "7013. Приходи чрез ЕН". @TODO: ВРЕМЕННО, ДО УТОЧНЯВАНЕ НА КОНТИРАНЕТО!!!
                         array('cat_Products', $detailRec->productId), // Перо 1 - Продукт

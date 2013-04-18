@@ -1,22 +1,32 @@
 <?php
+
+
 /**
  * Мениджър на потребителски профили
  *
  * @category  bgerp
  * @package   crm
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
  */
 class crm_Profiles extends core_Master
 {
+    
+    
     /**
      * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = array();
-	
+    
+    
+    /**
+     * 
+     */
+	var $details = 'Personalization=crm_Personalization';
 
+	
     /**
      * Заглавие на мениджъра
      */
@@ -38,7 +48,7 @@ class crm_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created,crm_Wrapper,plg_RowTools';
+    var $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing';
 
 
     /**
@@ -68,8 +78,14 @@ class crm_Profiles extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'crm/tpl/SingleUserLayout.shtml';
+    var $singleLayoutFile = 'crm/tpl/SingleProfileLayout.shtml';
     
+    
+    /**
+     * 
+     */
+    var $canSingle = 'user';
+
     
     /**
      * Описание на модела (таблицата)
@@ -85,25 +101,77 @@ class crm_Profiles extends core_Master
     
     
     /**
-     * Подготовка за рендиране на единичния изглед
      * 
-     * Използва crm_Persons::prepareSingle() за да подготви данните и за асоциирата визитка.
-     *  
-     * @param crm_Profiles $mvc
-     * @param stdClass $data
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        // Премахваме edit бутона
+        $data->toolbar->removeBtn('btnEdit');
+        
+        // Премахваме бутона за изтриване
+        $data->toolbar->removeBtn('btnDelete');
+    }
+    
+    
+    /**
+     * Подготовка за рендиране на единичния изглед
      */
     public static function on_AfterPrepareSingle(crm_Profiles $mvc, $data)
     {
+        // Ако има personId
         if ($data->rec->personId) {
-            if(!$data->rec->Person) {
-                $data->rec->Person = new stdClass();
+
+            // Създаваме обекта
+            $data->Person = new stdClass();
+            
+            // Вземаме записите
+            $data->Person->rec = crm_Persons::fetch($data->rec->personId);
+            
+            // Подготвяме сингъла
+            crm_Persons::prepareSingle($data->Person);
+            
+            // Ако има права за сингъл
+            if (crm_Persons::haveRightFor('single', $data->Person->rec)) {
+                
+                if ($data->Person->rec->id) {
+                    // Добавяме бутон към сингъла на лицето
+                    $data->toolbar->addBtn(tr('Визитка'), array('crm_Persons', 'single', $data->Person->rec->id), 'id=btnPerson, class=btn-person');    
+                }
             }
-            $data->rec->Person->rec = crm_Persons::fetch($data->rec->personId);
-            crm_Persons::prepareSingle($data->rec->Person);
-            $data->masterId = $data->rec->personId;
-            $mvc->prepareProfile($data);
-            //bp($data);
         }
+        
+        // Ако има userId
+        if ($data->rec->userId) {
+            
+            // Създаваме обекта
+            $data->User = new stdClass();
+            
+            // Вземаме записите
+            $data->User->rec = core_Users::fetch($data->rec->userId);
+            
+            // Вземаме вербалните стойности на записите
+            $data->User->row = core_Users::recToVerbal($data->User->rec);
+            
+            // Ако е текущия потребител или ceo или admin
+            if (haveRole('admin, ceo') || core_Users::getCurrent() == $data->User->rec->id) {
+                
+                // URL за промяна на профила
+                $changePassUrl =  array('crm_Profiles', 'changePassword', 'ret_url'=>TRUE);
+                
+                // Линк за промяна на URL
+                $changePasswordLink = ht::createLink('(' . tr('cмяна' . ')'), $changePassUrl, FALSE, 'title=' . tr('Смяна на парола'));
+                
+                // Променяме паролата
+                $data->User->row->password = str_repeat('*', 7) . " " . $changePasswordLink;
+            } else {
+                
+                // Премахваме информацията, която не трябва да се вижда от другите
+                unset($data->User->row->password);
+                unset($data->User->row->lastLoginTime);
+                unset($data->User->row->lastLoginIp);
+            }
+        }
+        
     }
     
     
@@ -121,13 +189,27 @@ class crm_Profiles extends core_Master
      * @param core_ET $tpl
      * @param stdClass $data
      */
-    public static function on_AfterRenderSingle(crm_Profiles $mvc, &$tpl, $data)
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if ($data->rec->Person) {
-            $tpl = self::renderSingle($data->rec->Person);
-            $profileTpl = self::renderProfile($data);
-            $tpl->append($profileTpl, 'PROFILE');
-        }
+        
+        // Вземам шаблона за лицето
+        $pTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfilePersonLayout.shtml')));
+        
+        // Заместваме данните
+        $pTpl->placeObject($data->Person->row);
+        
+        // Заместваме в шаблона
+        $tpl->prepend($pTpl, 'personInfo');
+        
+        
+        // Вземаме шаблона за потребителя
+        $uTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileUserLayout.shtml')));
+        
+        // Заместваме данните
+        $uTpl->placeObject($data->User->row);
+        
+        // Заместваме в шаблона
+        $tpl->prepend($uTpl, 'userInfo');
     }
     
     
@@ -230,7 +312,6 @@ class crm_Profiles extends core_Master
         
         return $tpl;
     }
-    
      
 
     /**
@@ -279,166 +360,6 @@ class crm_Profiles extends core_Master
         $data->form->toolbar->addBtn('Нов потребител', $addUserUrl, array('class'=>'btn-add'));
     }
     
-
-    /*
-     * Методи за подготовка и показване на потребителски профил като детайл на визитка
-     * 
-     *  o prepareProfile()
-     *  o renderProfile()
-     *  
-     */
-    
-    /**
-     * Подготвя данните необходими за рендиране на профил на визитка
-     */
-    function prepareProfile($data)
-    {   
-        $data->TabCaption = 'Профил';
-        $data->Order      = 5;
-
-        $usersGroupId = crm_Groups::fetchField("#sysId = 'users'", 'id');
-
-        if(isset($data->masterData->rec) && !type_Keylist::isIn($usersGroupId, $data->masterData->rec->groupList)) {
-            $data->Order = -1;
-            return;
-        }
-
-        expect($data->masterId);
-
-        $data->profile = static::fetch("#personId = {$data->masterId}");
-
-        if($data->profile->userId) {
-            if ($data->profile) {
-                $data->profile->userRec = core_Users::fetch($data->profile->userId);
-                if(core_Users::getCurrent() == $data->profile->userId) {
-                    
-                    // Ако потребителя е влизал само един път, няма да има lastLoginTime
-                    if ($lastLoginTime = core_Users::getCurrent('lastLoginTime')) {
-                        $data->profile->userRec->lastLoginTime = $lastLoginTime;    
-                    }
-                    
-                    // Ако потребителя е влизал само един път, няма да има lastLoginIp
-                    if ($lastLoginIp = core_Users::getCurrent('lastLoginIp')) {
-                        $data->profile->userRec->lastLoginIp = $lastLoginIp;   
-                    }
-                }
-            }
-        
-            if($data->profile->userRec->id == core_Users::getCurrent('id')) {
-                $data->changePassUrl =  array($this, 'changePassword', 'ret_url'=>TRUE);
-            }
-        }
-
-        $data->canChange = haveRole('admin');
-    }
-    
-    
-    /**
-     * Рендира потребителски профил
-     */
-    static function renderProfile($data)
-    {
-        $tpl = new ET(tr('|*' . getFileContent('crm/tpl/ContragentDetail.shtml')));
-        
-        $tpl->append(tr('Потребителски профил'), 'title');
-        
-        if ($data->profile->userId) {
-            $profileTpl = new ET(tr('|*' . getFileContent('crm/tpl/Profile.shtml')));
-            $userRow = core_Users::recToVerbal($data->profile->userRec);
-            
-            $profileTpl->append(str_repeat('*', 7), 'password');
-
-            if ($data->changePassUrl) {
-                $changePasswordBtn = ht::createLink(
-                    '(' . tr('cмяна' . ')'), $data->changePassUrl, FALSE, 
-                    'title=' . tr('Смяна на парола')
-                );
-                $profileTpl->append($changePasswordBtn, 'password');
-            }
-            
-            if (!empty($userRow->lastLoginTime)) {
-                $userRow->lastLoginInfo = sprintf('%s от %s, активност: %s', 
-                    $userRow->lastLoginTime, $userRow->lastLoginIp, $userRow->lastActivityTime
-                );
-            } else {
-                $userRow->lastLoginInfo = '<span class="quiet">Няма логин</span>';
-            }
-
-            $profileTpl->placeObject($userRow);
-            
-            $profileRow = crm_Profiles::recToVerbal($data->profile);
-            
-            $profileTpl->removeBlocks();
-
-            $tpl->append($profileTpl, 'content');
-        } 
- 
-        if(!$data->profile->userId) {
-            $tpl->append('<p>' . tr("Няма профил") . '</p>', 'content');
-        }
-        
-        if($data->canChange && !Mode::is('printing')) {
-            
-            if(!$data->profile) {
-                $url = array('crm_Profiles', 'edit', 'personId' => $data->masterId, 'ret_url' => TRUE);
-                $img = "<img src=" . sbf('img/16/user_add.png') . " width='16' height='16'>";
-                $tpl->append(
-                    ht::createLink(
-                        $img, $url, FALSE, 
-                        'title=' . tr('Асоцииране с потребител')
-                    ), 
-                    'title'
-                );
-            } else {
-                
-                $url = array('core_Users', 'edit', $data->profile->userId, 'ret_url' => TRUE);
-                $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
-                $tpl->append(
-                    ht::createLink(
-                        $img, $url, NULL, 
-                        'title=' . tr('Редактиране на потребителските данни за достъп')
-                    ), 
-                    'title'
-                );
-
-                $url = array($this, 'delete', $data->profile->id, 'ret_url' => TRUE);
-                $img = "<img src=" . sbf('img/16/cross.png') . " width='16' height='16'>";
-                $tpl->append(
-                    ht::createLink(
-                        $img, $url, 'Внимание! Връзката между визитката и потребителя ще бъде прекъсната!', 
-                        'title=' . tr('Разкачане на визитката от потребителя')
-                    ), 
-                    'title'
-                );
-            }
-        }
-        
-        return $tpl;
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        // Ако едитваме
-        if ($action == 'edit' && $rec) {
-
-            // Текущия потребител
-            $currUserId = core_Users::getCurrent();
-            
-            // Само админ може да променя записите на другите
-            if ($rec->userId != $currUserId) $requiredRoles = 'admin';
-        }
-    }
-    
     
     /**
      * Промяна на данните на асоциирания потребител след запис на визитка
@@ -459,6 +380,9 @@ class crm_Profiles extends core_Master
     }
     
     
+    /**
+     * 
+     */
     public static function on_AfterSave(crm_Profiles $mvc, $id, $profile)
     {
         if ($profile->_syncUser) {
@@ -603,11 +527,11 @@ class crm_Profiles extends core_Master
      */
     public static function getUrl($userId)
     {
-        
         // Извличаме профила (връзката м/у потребител и визитка)
         $personId = static::fetchField("#userId = {$userId}", 'id');
 
         if (!$personId) {
+            
             // Няма профил или не е асоцииран с визитка
             return FALSE;
         }
@@ -683,6 +607,24 @@ class crm_Profiles extends core_Master
                     $row->personId = ht::createLink($row->personId, array('crm_Persons', 'single', $rec->personId));
                     $row->userId   = static::createLink($rec->userId);
                 }
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако редактираме или добавяме
+        if ($action == 'edit' || $action == 'add') {
+            
+            // Ако текущия потребител не е userId
+            if ($rec->userId != core_Users::getCurrent()) {
+                
+                // Изискваме роля admin
+                $requiredRoles = 'admin';
             }
         }
     }

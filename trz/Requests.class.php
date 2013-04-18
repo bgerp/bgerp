@@ -133,9 +133,13 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-    	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=Година');
-    	$this->FLD('paid', 'enum(paid=Платен, unpaid=Неплатен)', 'caption=Вид, maxRadio=2,columns=2,notNull,value=paid');
+    	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
+    	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
+    	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=Ще отговаря->на GSM, maxRadio=3,columns=3,notNull,value=yes');
+    	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=Ще отговаря->в системата, maxRadio=3,columns=3,notNull,value=yes');
+    	
+    	
     }
     
     
@@ -164,12 +168,22 @@ class trz_Requests extends core_Master
 
         if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
             $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
-            
         }
-
-
     }
     
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_BeforeSave($mvc, &$id, $rec)
+    {
+        if($rec->leaveFrom &&  $rec->leaveTo){
+	    	$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	    	$rec->leaveDays = $days->workDays;
+        }
+
+    }
+ 
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -224,6 +238,7 @@ class trz_Requests extends core_Master
      */
     function on_AfterInputEditForm($mvc, $form)
     {
+
     	$rec = $form->rec;
 
     }
@@ -250,10 +265,19 @@ class trz_Requests extends core_Master
     {
         if($mvc->haveRightFor('orders') && $data->rec->state == 'active') {
             
-            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/order.png');
+            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''),'class=btn-order');
         }
         
     }
+    
+    static public function act_Test()
+    {
+    	$p = 1;
+    	$a = '2013-05-02 00:00:00';
+    	$b = '2013-05-10 00:00:00';
+    	bp(static::calcLeaveDays($a,$b));
+    }
+
     
     /**
      * Интерфейсен метод на doc_DocumentIntf
