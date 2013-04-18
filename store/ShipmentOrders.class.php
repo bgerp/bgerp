@@ -395,12 +395,17 @@ class store_ShipmentOrders extends core_Master
      */
     public function getDefaultsByOrigin($rec)
     {
-        if (!empty($rec->originId)) {
-            $origin   = doc_Containers::getDocument($rec->originId);
-            if ($origin->haveInterface('store_ShipmentIntf')) {
-                $defaults = $origin->getShipmentInfo();
-                $rec      = (array)$rec + (array)$defaults;
-            }
+        expect($rec->originId);
+        
+        $origin = doc_Containers::getDocument($rec->originId);
+        
+        if ($origin->rec('state') != 'active') {
+            redirect(array('sales_Sales', 'single', $origin->rec('id')), FALSE, "Продажбата не е активна");
+        }
+        
+        if ($origin->haveInterface('store_ShipmentIntf')) {
+            $defaults = $origin->getShipmentInfo();
+            $rec      = (array)$rec + (array)$defaults;
         }
         
         return (object)$rec;
