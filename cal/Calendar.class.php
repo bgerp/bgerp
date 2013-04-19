@@ -314,7 +314,9 @@ class cal_Calendar extends core_Master
         $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
         	$attr['style'] = 'background-image:url(' . sbf("img/16/beach.png") . ');';
-        } else{
+        } elseif($rec->type == 'sickday') {
+        	$attr['style'] = 'background-image:url(' . sbf("img/16/sick.png") . ');';
+        }else{
         	$attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
    		}
         if($rec->priority <= 0) {
@@ -1235,7 +1237,7 @@ class cal_Calendar extends core_Master
 	     		$img = self::getIconByType($rec->type, $rec->key);
 				
 	     		if($hourKey == "allDay" ){
-	     			if($rec->type == 'leave' || $rec->type == 'sickday') {
+	     			if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task') {
 	     				$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 35) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			} else {
 	     				$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
@@ -1296,7 +1298,7 @@ class cal_Calendar extends core_Master
 	            $img = self::getIconByType($rec->type, $rec->key);
 	            
 	            if($hourKey == "allDay"){
-	            	if($rec->type == 'leave' || $rec->type == 'sickday'){
+	            	if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task'){
 	            		$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 20) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	            	} else {
 	            		$weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
@@ -1369,10 +1371,10 @@ class cal_Calendar extends core_Master
 	            $img = self::getIconByType($rec->type, $rec->key);
 	            
 	        	if($hourKey == "allDay" ){
-	     			if($rec->type == 'leave' || $rec->type == 'sickday') {
-	     				$dayData[$hourKey][$dayKey] .= $monthDate->monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 17) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	     			if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task') {
+	     				$monthDate->monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 17) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			} else {
-	     				$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	     				$monthDate->monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
 	     			}
 	     		}
 	     		
