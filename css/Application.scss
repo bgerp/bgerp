@@ -609,6 +609,11 @@ option.team {
 	@include btn-style();
 }
 
+.wide .btn-user { 
+	background-image:url('../img/16/user_add.png');
+	@include btn-style();
+}
+
 .wide .btn-zoho{
 	@include btn-style();
 }
@@ -1621,6 +1626,9 @@ ul.history {
 		&.pdf b {
 			background-color:$quiet-gray;
 			color: #fff;
+		}
+		&.changed b {
+			background-color: #600;
 		}
 	}
 	.detailed b {

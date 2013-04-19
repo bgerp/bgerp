@@ -1991,6 +1991,24 @@ class crm_Persons extends core_Master
                 // Добавяме бутон към профилите
                 $data->toolbar->addBtn(tr('Профил'), $profileUrl, 'id=btnProfile, class=btn-profile');  
             }
+        } else {
+            
+            // Ако има запис и имаме права admin
+            if ($data->rec->id && haveRole('admin')) {
+                
+                // sysId на групата
+                $crmId = crm_Groups::getIdFromSysId('users');
+                
+                // Ако е в групата на потребители
+                if (type_Keylist::isIn($crmId, $data->rec->groupList)) {
+                    
+                    // URL за създаване на потребител
+                    $personUrl = array('core_Users', 'add', 'personId' => $data->rec->id, 'ret_url' => TRUE);
+                    
+                    // Добавяме бутона
+                    $data->toolbar->addBtn(tr('Потребител'), $personUrl, 'id=btnUser, class=btn-user');     
+                }
+            }
         }
     }
 }

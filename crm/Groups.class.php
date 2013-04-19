@@ -290,5 +290,15 @@ class crm_Groups extends core_Master
         return $idArr;
     }
     
-
+    
+    /**
+     * Връща id то на записа от подадения sysId
+     * 
+     * @param string $sysId
+     */
+    static function getIdFromSysId($sysId)
+    {
+        
+        return static::fetchField("#sysId = '{$sysId}'");
+    }
 }
