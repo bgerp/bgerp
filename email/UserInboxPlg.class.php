@@ -141,7 +141,7 @@ class email_UserInboxPlg extends core_Plugin
             if ($inCharge) {
                 //Ако потребителя не е собственик на новата папка показваме грешка
                 if ($form->rec->id != $inCharge) {
-                    $form->setError('nick', "Моля въведете друг '{$form->fields['nick']->caption}'. Папката е заета от друг потребител.");
+                    $form->setError('nick', "Моля въведете друг|* '{$form->fields['nick']->caption}'. |Папката е заета от друг потребител.");
                 }
             }
         }
@@ -168,7 +168,7 @@ class email_UserInboxPlg extends core_Plugin
                 
                 $name = crm_Persons::getVerbal($personRec, 'name');
                 
-                $data->form->title = 'Създаване на потребител за ' . $name;
+                $data->form->title = 'Създаване на потребител за|* ' . $name;
                 
                 $data->form->FNC('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,caption=Визитка');
                 $data->form->setDefault('personId', $personId);

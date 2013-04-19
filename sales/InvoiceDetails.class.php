@@ -65,6 +65,12 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
+     * Кой таб да бъде отворен
+     */
+    var $currentTab = 'Фактури';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -110,7 +116,7 @@ class sales_InvoiceDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $form = $data->form;
+      	$form = $data->form;
         $Policy = cls::get($form->rec->policyId);
         
         // Поакзваме само продуктите спрямо ценовата политиказа контрагента
@@ -118,6 +124,10 @@ class sales_InvoiceDetails extends core_Detail
         $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
         $products = $Policy->getProducts($contragentItem->classId, $contragentItem->objectId);
         $form->setOptions('productId', $products);
+        
+        $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
+        (Request::get('add')) ? $action = tr("Добавяне") : $action = tr("Редактиране");
+      	$form->title = "{$action} на запис в {$masterTitle}";
     }
 
 
@@ -181,6 +191,23 @@ class sales_InvoiceDetails extends core_Detail
     		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
     	} else {
     		$row->packagingId = cat_Products::getVerbal($productRec, 'measureId');
+    	}
+    }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'write' && isset($rec->invoiceId)){
+    		
+    		// Ако фактурата е генерирана от вече контирана продажба
+    		// неможе да се добавят нови продукти
+    		$invoiceRec = $mvc->Master->fetch($rec->invoiceId);
+    		if($invoiceRec->originId || ($invoiceRec->docType && $invoiceRec->docId)){
+    			$res = 'no_one';
+    		}
     	}
     }
 }

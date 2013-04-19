@@ -1,6 +1,6 @@
 <fieldset class="detail-info">
 
-	<legend class="groupTitle">|Потребителски данни|*</legend>
+	<legend class="groupTitle">|Потребителски данни|*<!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></legend>
 	
 	<div class="groupList">
 		<dl>

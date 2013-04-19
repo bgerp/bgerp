@@ -228,6 +228,17 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Интерфейсен метод за вземане на продуктите (@see store_ShipmentIntf)
+     * @param int $id - ид на бележка
+     * @return array $products - Масив от продукти
+     */
+    public function getShipmentProducts($id)
+    {
+    	return static::getProducts($id);
+    }
+    
+    
+    /**
      * Извлича информацията за всички продукти които са продадени чрез
      * тази бележки, във вид подходящ за контирането
      * @param int id - ид на бележката
@@ -253,7 +264,7 @@ class pos_Receipts extends core_Master {
 	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
 	    	
 	    	if($info->packagingRec){
-	    		$packagingId = $info->packagingRec->id;
+	    		$packagingId = $info->packagingRec->packagingId;
 	    		$quantityInPack = $info->packagingRec->quantity;
 	    	} else {
 	    		$packagingId = NULL;

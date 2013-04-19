@@ -176,7 +176,7 @@ class sales_Invoices extends core_Master
         $this->FLD('accountId', 'key(mvc=bank_Accounts, select=iban)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
 
         // Валута
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута->Код');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута->Код,width=6em');
         $this->FLD('currencyRate', 'double', 'caption=Валута->Курс');  
         
         // Доставка
@@ -203,22 +203,25 @@ class sales_Invoices extends core_Master
             'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
             'caption=Вид, input=none'
         );
-         
+        
+        $this->FLD('docType', 'class(interface=store_ShipmentIntf)', 'input=hidden,silent');
+        $this->FLD('docId', 'int', 'input=hidden,silent');
         
         $this->setDbUnique('number');
     }
     
     
+    /**
+     * След подготовка на формата
+     */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        /* @var $form core_Form */
         $form = $data->form;
         
         if (!$form->rec->id) {
-            /*
-             * При създаване на нова ф-ра зареждаме полетата на формата с разумни стойности по 
-             * подразбиране.
-             */
+            // При създаване на нова ф-ра зареждаме полетата на 
+            // формата с разумни стойности по подразбиране.
+             
             $mvc::setFormDefaults($form);
         }
         
@@ -253,8 +256,45 @@ class sales_Invoices extends core_Master
         foreach ($mvc->fields as $fName=>$field) {
             $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
         }
-
-       
+	}
+    
+	
+	/**
+	 * Генерира фактура ако идва от продажба или пос продажба
+	 */
+	public static function on_AfterCreate($mvc, $rec)
+    {
+    	if(!empty($rec->originId)){
+    		
+    		// Ако се генерира от продажба
+    		$origin = doc_Containers::getDocument($rec->originId, 'store_ShipmentIntf');
+        	$products = $origin->getShipmentProducts();
+    	} elseif($rec->docType && $rec->docId) {
+    		
+    		// Ако се генерира от пос продажба
+    		$origin = cls::get($rec->docType);
+    		$products = $origin->getShipmentProducts($rec->docId);
+    	}
+    	
+    	
+    	
+    	if(isset($products) && count($products) != 0){
+	    	
+    		// Записваме информацията за продуктите в детайла
+	    	foreach ($products as $product){
+	    		$dRec = new stdClass();
+	    		$dRec->invoiceId = $rec->id;
+	    		$dRec->productId = $product->productId;
+	    		$dRec->packagingId = $product->packagingId;
+	    		$dRec->policyId = $product->policyId;
+	    		$dRec->price = $product->price;
+	    		$dRec->quantityInPack = $product->quantityInPack;
+	    		$dRec->quantity = $product->quantity;
+	    		$dRec->packQuantity = $product->quantity * $product->quantityInPack;
+	    		$dRec->amount = $dRec->packQuantity * $product->price;
+	    		$mvc->sales_InvoiceDetails->save($dRec);
+	    	}
+    	}
     }
     
     
@@ -525,6 +565,20 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * След проверка на ролите
+     */
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && isset($rec->id)){
+    		
+    		if($rec->originId || ($rec->docType && $rec->docId)){
+    			$res = 'no_one';
+    		}
+    	}
+    }
+    
+    
+    /**
      * Данните на най-новата активна (т.е. контирана) ф-ра в зададена папка
      *
      * @param int $folderId key(mvc=doc_Folders)
@@ -631,7 +685,6 @@ class sales_Invoices extends core_Master
         
 		$row = new stdClass();
 
-        //$row->title = $this->getHandle($rec->id);   //TODO може да се премени
         $row->title = "Фактура №{$rec->number}";
         
         $row->author = $this->getVerbal($rec, 'createdBy');

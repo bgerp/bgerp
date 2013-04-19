@@ -329,7 +329,7 @@ class trz_Requests extends core_Master
 	
 	            $personName = crm_Persons::fetchField($rec->personId, 'name');
 	            // Заглавие за записа в календара
-	            $calRec->title = "{$personName} е в отпуск";
+	            $calRec->title = "Отпуск:{$personName}";
 	
 	            // В чии календари да влезе?
 	            $calRec->users = '';

@@ -459,7 +459,7 @@ class price_ListRules extends core_Detail
             		$rec = new stdClass();
 	        		$rec->listId = $conf->PRICE_LIST_CATALOG;
 	        		$rec->groupId = $groupId;
-	        		$rec->discount = $csvRow[2] * 10; //Задаваме груповата наддценка в проценти
+	        		$rec->discount = $csvRow[2]; //Задаваме груповата наддценка в проценти
 	        		$rec->type = 'groupDiscount';
 	        		$rec->validFrom = dt::now();
         		

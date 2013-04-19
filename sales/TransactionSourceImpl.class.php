@@ -27,14 +27,14 @@ class sales_TransactionSourceImpl
      * Счетоводната транзакция за породена от документ-продажба може да се раздели на три
      * части:
      *
-     * 1. Задължаване на с/ката на клиента - безусловно, винаги
+     * 1. Задължаване на с/ката на клиента
      *
-     *    Dt: 411  - Вземания от клиенти               (Клиент, Докум. за продажба, Валута)
-     *    Ct: 7011 - Приходи от продажби по Документи  (Докум. за продажба, Стоки и Продукти)
+     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
+     *    Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
      * 
      * 2. Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 7011 - Приходи от продажби по Документи (Докум. за продажба, Стоки и Продукти)
+     *    Dt: 7011 - Приходи от продажби по Документи (Стоки и Продукти)
      *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
      *
      *    Цените, по които се изписват продуктите от с/ка 321 са според зададената стратегия 
@@ -43,7 +43,12 @@ class sales_TransactionSourceImpl
      *
      *    Dt: 501 - Каси                  (Каса, Валута) или
      *        503 - Разпл. с/ки           (Сметка, Валута)
-     *    Ct: 411 - Вземания от клиенти   (Клиент, Докум. за продажба, Валута)
+     *    Ct: 411 - Вземания от клиенти   (Клиент, Валута)
+     *    
+     * Такава транзакция се записва в журнала само при условие, че продабата е от текущата каса
+     * и от текущия склад. В противен случай счетоводна транзакция не се прави. Вместо това,
+     * първите две части се осчетоводяват при експедирането на стоката, а третата - при получа-
+     * ване на плащане.
      *
      * @param int|object $id първичен ключ или запис на продажба
      * @return object NULL означава, че документа няма отношение към счетоводството, няма да генерира
@@ -52,33 +57,32 @@ class sales_TransactionSourceImpl
      */
     public function getTransaction($id)
     {
-        $rec = $this->fetchSaleData($id);
+        $entries = array();
+        $rec     = $this->class->fetchRec($id);
         
-        // Всяка продажба трябва да има поне един детайл
-        expect(count($rec->details) > 0);
-        
-        // Записите от тип 1 (вземане от клиент)
-        $entries = $this->getTakingPart($rec);
-        
-        // Записите от тип 2 (експедиция, ако са изпълнени условията)
-        if ($this->hasDeliveryPart($rec)) {
+        if ($this->hasDeliveryPart($rec) && $this->hasPaymentPart($rec)) {
+            // Директна продажба - задаваме контирането
+            
+            $rec = $this->fetchSaleData($rec);
+            
+            // Всяка продажба трябва да има поне един детайл
+            expect(count($rec->details) > 0);
+            
+            // Записите от тип 1 (вземане от клиент)
+            $entries = $this->getTakingPart($rec);
+            
+            // Записите от тип 2 (експедиция)
             $entries = array_merge($entries, $this->getDeliveryPart($rec));
-        }
-        
-        // Записите от тип 3 (получаване на плащане, ако са изпълнени условията)
-        if ($this->hasPaymentPart($rec)) {
+            
+            // Записите от тип 3 (получаване на плащане)
             $entries = array_merge($entries, $this->getPaymentPart($rec));
-        }
+        }            
         
-        $transaction = NULL;
-        
-        if (!empty($entries)) {
-            $transaction = (object)array(
-                'reason'  => 'Продажба #' . $rec->id,
-                'valior'  => $rec->valior,
-                'entries' => $entries, 
-            );
-        }
+        $transaction = (object)array(
+            'reason'  => 'Продажба #' . $rec->id,
+            'valior'  => $rec->valior,
+            'entries' => $entries, 
+        );
         
         return $transaction;
     }
@@ -180,8 +184,8 @@ class sales_TransactionSourceImpl
     /**
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
-     *    Dt: 411  - Вземания от клиенти               (Клиент, Докум. за продажба, Валута)
-     *    Ct: 7011 - Приходи от продажби по Документи  (Докум. за продажба, Стоки и Продукти)
+     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
+     *    Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
      *    
      * @param stdClass $rec
      * @return array
@@ -200,15 +204,13 @@ class sales_TransactionSourceImpl
                 'debit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('sales_Sales', $rec->id),                     // Перо 2 - Документ-продажба
-                        array('currency_Currencies', $rec->currencyId),     // Перо 3 - Валута
+                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array('sales_Sales', $rec->id),               // Перо 1 - Документ-продажба
-                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
+                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -223,7 +225,7 @@ class sales_TransactionSourceImpl
      * 
      *    Dt: 501 - Каси                  (Каса, Валута) или
      *        503 - Разпл. с/ки           (Сметка, Валута)
-     *    Ct: 411 - Вземания от клиенти   (Клиент, Докум. за продажба, Валута)
+     *    Ct: 411 - Вземания от клиенти   (Клиент, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -251,8 +253,7 @@ class sales_TransactionSourceImpl
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('sales_Sales', $rec->id),                     // Перо 2 - Документ-продажба
-                        array('currency_Currencies', $rec->currencyId),     // Перо 3 - Валута
+                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
             );
@@ -267,7 +268,7 @@ class sales_TransactionSourceImpl
      * 
      * Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 7011 - Приходи от продажби по Документи (Докум. за продажба, Стоки и Продукти)
+     *    Dt: 7011 - Приходи от продажби по Документи (Стоки и Продукти)
      *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
      *    
      * @param stdClass $rec
@@ -283,8 +284,7 @@ class sales_TransactionSourceImpl
             $entries[] = array(
                 'debit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array('sales_Sales', $rec->id),               // Перо 1 - Документ-продажба
-                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
+                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                 ),
                 

@@ -104,10 +104,13 @@ class cat_Setup
     	// Зареждане на Мерни еденици от csv файл
     	$html .= cat_setup_UoM::setup();
     	
+    	// Зареждане на Опаковки от csv файл
+        $html .= cat_setup_Packagings::setup();
+        
         // Зареждане на Категории от csv файл
         $html .= cat_setup_Groups::setup();
 
-        // Зареждане на продукти от csv файл
+        // Зареждане на Продукти от csv файл
         $html .= cat_setup_Products::setup();
         
         return $html;

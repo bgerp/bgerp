@@ -33,7 +33,7 @@ class store_ShipmentOrders extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_RegisterIntf=sales_RegisterImpl,
-                          acc_TransactionSourceIntf';
+                          acc_TransactionSourceIntf=store_shipmentorders_Transaction';
     
     
     /**
@@ -43,7 +43,7 @@ class store_ShipmentOrders extends core_Master
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv,
-					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
+					doc_EmailCreatePlg, bgerp_plg_Blank,
                     doc_plg_BusinessDoc, acc_plg_Registry, acc_plg_Contable';
     
     
@@ -140,6 +140,9 @@ class store_ShipmentOrders extends core_Master
         
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)',
+            'caption=От склад, mandatory'); // наш склад, от където се експедира стоката
+        
         /*
          * Стойности
          */
@@ -158,8 +161,6 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 
             'caption=Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до'); // до кога трябва да бъде доставено
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)',
-            'caption=От склад'); // наш склад, от където се експедира стоката
         
         /*
          * Допълнително
@@ -218,7 +219,6 @@ class store_ShipmentOrders extends core_Master
              * активират.
              */
             case 'conto':
-            case 'activate':
                 if (empty($rec->id) || $rec->state != 'draft') {
                     // Незаписаните продажби не могат нито да се контират, нито да се активират
                     $requiredRoles = 'no_one';
@@ -396,12 +396,17 @@ class store_ShipmentOrders extends core_Master
      */
     public function getDefaultsByOrigin($rec)
     {
-        if (!empty($rec->originId)) {
-            $origin   = doc_Containers::getDocument($rec->originId);
-            if ($origin->haveInterface('store_ShipmentIntf')) {
-                $defaults = $origin->getShipmentInfo();
-                $rec      = (array)$rec + (array)$defaults;
-            }
+        expect($rec->originId);
+        
+        $origin = doc_Containers::getDocument($rec->originId);
+        
+        if ($origin->rec('state') != 'active') {
+            redirect(array('sales_Sales', 'single', $origin->rec('id')), FALSE, "Продажбата не е активна");
+        }
+        
+        if ($origin->haveInterface('store_ShipmentIntf')) {
+            $defaults = $origin->getShipmentInfo();
+            $rec      = (array)$rec + (array)$defaults;
         }
         
         return (object)$rec;
@@ -703,88 +708,5 @@ class store_ShipmentOrders extends core_Master
         );
         
         return $row;
-    }
-    
-    /**
-     * Връща счетоводната транзакция, породена от ЕН.
-     *  
-     * Контирането на ЕН следното:
-     *
-     *    Dt: 7011 - Приходи от продажби по Документи (Докум. за продажба, Стоки и Продукти)
-     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
-     *
-     *    Цените, по които се изписват продуктите от с/ка 321 са според зададената стратегия
-     *     
-     * @param int $id
-     * @return array
-     * @see acc_TransactionSourceIntf::getTransaction()
-     */
-    public function getTransaction($id)
-    {
-        // Извличаме записа на ЕН и неговите детайли (експедираните продукти)
-        $rec = self::fetchRec($id);
-        
-        expect($rec->id);
-        
-        // Извличаме детайлите на ЕН
-        /* @var $detailQuery core_Query */
-        $detailQuery = store_ShipmentOrderDetails::getQuery();
-        $detailQuery->where("#shipmentId = '{$rec->id}'");
-        $rec->details  = array();
-        
-        while ($dRec = $detailQuery->fetch()) {
-            $rec->details[] = $dRec;
-        }
-        
-        if (empty($rec->details)) {
-            // Няма продукти в ЕН - няма счетоводма транзакция
-            return NULL;
-        }
-        
-        $entries = array();
-        
-        foreach ($rec->details as $detailRec) {
-            $entries[] = array(
-                'amount' => $detailRec->amount , // В основна валута
-                
-                'debit' => array(
-                    '7013', // Сметка "7013. Приходи чрез ЕН". @TODO: ВРЕМЕННО, ДО УТОЧНЯВАНЕ НА КОНТИРАНЕТО!!!
-                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
-                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
-                ),
-                
-                'credit' => array(
-                    '321', // Сметка "321. Стоки и Продукти"
-                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
-                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
-                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
-                ),
-            );
-        }
-        
-        $transaction = (object)array(
-            'reason'  => 'ЕН #' . $rec->id,
-            'valior'  => $rec->valior,
-            'entries' => $entries,
-        );
-        
-        return $transaction;
-    }
-    
-    
-    /**
-     * Нотификация за успешно записана счетоводна транзакция.
-     *
-     * @param int $id
-     * @return array
-     * @see acc_TransactionSourceIntf::getTransaction()
-     */
-    function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        
-        $rec->state = 'active';
-        
-        return self::save($rec);
     }
 }
