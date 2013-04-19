@@ -163,6 +163,19 @@ class crm_Profiles extends core_Master
                 
                 // Променяме паролата
                 $data->User->row->password = str_repeat('*', 7) . " " . $changePasswordLink;
+                
+                // Ако има роля admin
+                if (haveRole('admin')) {
+                    
+                    // Иконата за редактиране
+                    $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
+                    
+                    // URL за промяна
+                    $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => TRUE);
+                    
+                    // Създаме линка
+                    $data->User->row->editLink = ht::createLink($img, $url, FALSE,'title=' . tr('Промяна на персонализация'));  
+                }
             } else {
                 
                 // Премахваме информацията, която не трябва да се вижда от другите
