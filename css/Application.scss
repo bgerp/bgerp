@@ -459,47 +459,47 @@ a.profile {
 	@include border-radius(2px);
 	&.ceo {
 		color: blue;
-		&.soon{
+		&.inactive{
 			color:darken(blue,15%);
 		}
-		&.ago{
-			color:darken(blue,25%);
+		&.active{
+			color:lighten(blue,15%);
 		}
 	}
 	&.manager {
 		color: #009999;
-		&.soon{
+		&.inactive{
 			color:darken(#009999,15%);
 		}
-		&.ago{
-			color:darken(#009999,25%);
+		&.active{
+			color:lighten(#009999,15%);
 		}
 	}
 	&.officer {
 		color: green;
-		&.soon{
+		&.inactive{
 			color:darken(green,15%);
 		}
-		&.ago{
-			color:darken(green,25%);
+		&.active{
+			color:lighten(green,15%);
 		}
 	}
 	&.executive {
 		color: #aa6600;
-		&.soon{
+		&.inactive{
 			color:darken(#aa6600,15%);
 		}
-		&.ago{
-			color:darken(#aa6600,25%);
+		&.active{
+			color:lighten(#aa6600,15%);
 		}
 	}
 	&.contractor {
 		color: #f00;
-		&.soon{
+		&.inactive{
 			color:darken(#f00,15%);
 		}
-		&.ago{
-			color:darken(#f00,25%);
+		&.active{
+			color:lighten(#f00,15%);
 		}
 	}
 }
