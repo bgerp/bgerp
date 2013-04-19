@@ -209,6 +209,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$double->params['decimals'] = 2;
     	
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
+    	
     	$row->productId = $varchar->toVerbal($productInfo->productRec->name);
     	$row->code = $varchar->toVerbal($productInfo->productRec->code);
     	
@@ -398,11 +399,15 @@ class pos_ReceiptDetails extends core_Detail {
     		return $rec->productid = NULL;
     	}
     	
-    	$rec->productId = $product->productId;
+    	$info = cat_Products::getProductInfo($product->productId, $product->packagingId);
+    	if($info->packagingRec){
+    		$rec->value = $info->packagingRec->packagingId;
+    		$perPack = $info->packagingRec->quantity;
+    	} else {
+    		$perPack = 1;
+    	}
     	
-    	if($product->packagingId) {
-    		$rec->value = $product->packagingId;
-    	} 
+    	$rec->productId = $product->productId;
     	
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	$policyId = pos_Points::fetchField($receiptRec->pointId, 'policyId');
@@ -420,7 +425,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$rec->discountPercent = $price->discount;
     	}
     	
-    	$rec->amount = $rec->price * $rec->quantity;
+    	$rec->amount = $rec->price * $rec->quantity * $perPack;
     }
     
     
@@ -494,6 +499,29 @@ class pos_ReceiptDetails extends core_Detail {
     	} 
     	
     	return FALSE;
+    }
+    
+    
+    /**
+     * Определяме кой е клиента на бележката
+     * @param int $receiptId - id на бележка
+     * @return mixed $rec - запис на клиента, FALSE ако няма
+     */
+    public function hasClient($receiptId)
+    {
+    	$query = $this->getQuery();
+    	$query->where(array("#receiptId = [#1#]", $receiptId));
+    	$query->where(array("#receiptId = [#1#]", $receiptId));
+    	$query->where("#action = 'client|ccard'");
+    	$query->orderBy("#id", "DESC");
+    	
+    	$rec = $query->fetch();
+    	if(!$rec) return FALSE;
+    	
+    	$res = new stdClass();
+    	list($res->id, $res->class) = explode('|', $rec->param);
+    	
+    	return $res;
     }
     
     

@@ -19,7 +19,7 @@ class pos_Receipts extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'acc_TransactionSourceIntf';
+    var $interfaces = 'acc_TransactionSourceIntf, store_ShipmentIntf';
     
     
     /**
@@ -182,6 +182,19 @@ class pos_Receipts extends core_Master {
     		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
     							   'ef_icon=img/16/application_view_list.png, order=18');    
     	}
+    	
+    	if($data->rec->state != 'draft' && $data->rec->state != 'closed' && sales_Invoices::haveRightFor('add')){
+    		if($client = $mvc->pos_ReceiptDetails->hasClient($data->rec->id)){
+    		$contragentClass = $client->class;
+    		$contragentRec = $contragentClass::fetch($client->id);
+    		$url = array('sales_Invoices',
+    					 'add',
+    					 'folderId' => $contragentRec->folderId, 
+    					 'docType' => static::getClassId(), 
+    					 'docId' => $data->rec->id);
+    		$data->toolbar->addBtn('Фактура', $url, 'ef_icon=img/16/invoice.png, order=18');
+    		}
+    	}
     }
     
     
@@ -222,9 +235,11 @@ class pos_Receipts extends core_Master {
      * 						   TRUE връща само броя на продуктите
      * @return array $products - Масив от продукти
      */
-    public static function fetchProducts($id, $count = FALSE)
+    public static function getProducts($id, $count = FALSE)
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
+    	$posRec = pos_Points::fetch($rec->pointId);
+    	
     	$products = array();
     	$totalQuantity = 0;
     	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
@@ -237,17 +252,22 @@ class pos_Receipts extends core_Master {
 	    while($rec = $query->fetch()) {
 	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
 	    	
-	    	// Ако продукта няма опаковка к-то му е 1
-	    	($info->packagingRec) ? $quantity = $info->packagingRec->quantity : $quantity = 1;
-	    	$rec->quantity = $quantity * $rec->quantity;
+	    	if($info->packagingRec){
+	    		$packagingId = $info->packagingRec->id;
+	    		$quantityInPack = $info->packagingRec->quantity;
+	    	} else {
+	    		$packagingId = NULL;
+	    		$quantityInPack = 1;
+	    	}
 	    	
 	    	$totalQuantity += $rec->quantity;
 	    	$products[] = (object) array(
+	    		'policyId' => $posRec->policyId,
 	    		'productId' => $rec->productId,
-		    	'contragentClassId' => $rec->contragentClass,
-		    	'contragentId' => $rec->contragentObjectId,
-	    		'currencyId' => $currencyId,
-		    	'amount' => $rec->amount,
+		    	'price' => $rec->price,
+	    	    'packagingId' => $packagingId,
+	    	    'quantityInPack' => $quantityInPack,
+	    	    'uomId' => $info->productRec->measureId,
 		    	'quantity' => $rec->quantity);
 	    }
 	    
@@ -272,7 +292,7 @@ class pos_Receipts extends core_Master {
     			
     			// "Продажба" : преизчисляваме общата стойност на бележката
     			$rec->total = $this->countTotal($rec->id);
-    			$rec->productCount = pos_Receipts::fetchProducts($rec->id, TRUE);
+    			$rec->productCount = pos_Receipts::getProducts($rec->id, TRUE);
     			$change = $rec->paid - $rec->total;
     			if($change > 0) {
     				$rec->change = $change;
@@ -396,11 +416,16 @@ class pos_Receipts extends core_Master {
     public static function getTransaction($id)
     {
     	expect($rec = static::fetch($id));
-    	$products = static::fetchProducts($id);
+    	$products = static::getProducts($id);
     	$posRec = pos_Points::fetch($rec->pointId);
+    	
+    	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
+    	$currencyCode = currency_Currencies::getCodeById($currencyId);
+    	
     	foreach ($products as $product) {
-    		$currencyCode = currency_Currencies::getCodeById($product->currencyId);
-    		$amount = currency_CurrencyRates::convertAmount($product->amount, $rec->createdOn, $currencyCode);
+    		$totalQuantity = $product->quantity * $product->quantityInPack;
+    		$totalAmount = $totalQuantity * $product->price;
+    		$amount = currency_CurrencyRates::convertAmount($totalAmount, $rec->createdOn, $currencyCode);
 	    	
     		// Първо Отчитаме прихода от продажбата
     		$entries[] = array(
@@ -408,13 +433,13 @@ class pos_Receipts extends core_Master {
 	        'debit' => array(
 	            '501',  // Сметка "501. Каси"
 	                array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
-	                array('currency_Currencies', $product->currencyId),     // Перо 3 - Валута
-	            'quantity' => $product->amount), // "брой пари" във валутата на продажбата
+	                array('currency_Currencies', $currencyId),     // Перо 3 - Валута
+	            'quantity' => $amount), // "брой пари" във валутата на продажбата
 	        
 	        'credit' => array(
 	            '7012', // Сметка "7012. Приходи от POS продажби"
 	              	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	            'quantity' => $product->quantity), // Количество продукт в основната му мярка
+	            'quantity' => $totalQuantity), // Количество продукт в основната му мярка
 	    	);
 	    	
 	    	// После отчитаме експедиране от склада
@@ -422,13 +447,13 @@ class pos_Receipts extends core_Master {
 		        'debit' => array(
 		            '7012', // Сметка "7012. Приходи от POS продажби"
 		            	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	            	'quantity' => $product->quantity), // Количество продукт в основната му мярка
+	            	'quantity' => $totalQuantity), // Количество продукт в основната му мярка
 		        
 		        'credit' => array(
 		            '321', // Сметка "321. Стандартни продукти"
 		              	array('store_Stores', $posRec->storeId), // Перо 1 - Склад
 		              	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	                'quantity' => $product->quantity), // Количество продукт в основната му мярка
+	                'quantity' => $totalQuantity), // Количество продукт в основната му мярка
 	    	);
     	}
     	
