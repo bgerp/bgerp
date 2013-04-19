@@ -160,7 +160,11 @@ class crm_Locations extends core_Master {
 			$Fancybox = cls::get('fancybox_Fancybox');
 			$row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
 		}
-			
+		
+		if(!$rec->gpsCoords){
+			unset($row->gpsCoords);
+		}
+		
         if($rec->state == 'rejected'){
         	if($fields['-single']){
         		$row->headerRejected = ' state-rejected';

@@ -73,8 +73,11 @@
 			</div>
 		</fieldset>
 		
+		<!--ET_BEGIN gpsCoords-->
 		<div class="loc-map">
 			[#gpsCoords#]
 		</div>
+		<!--ET_END gpsCoords-->
+	
 	</div>
 </div>
