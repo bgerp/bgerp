@@ -71,28 +71,18 @@ class sales_SalesLastPricePolicy extends core_Manager
        	  $date = dt::now();
         }
        
-        $salesQuery = sales_Sales::getQuery();
-        $salesQuery->where("#contragentClassId = {$customerClass}");
-        $salesQuery->where("#contragentId = {$customerId}");
-        $salesQuery->where("#valior <= '{$date}'");
-        $salesQuery->where("#state = 'active'");
-        $salesQuery->orderBy('#valior', 'DESC');
-        $allSales = $salesQuery->fetchAll();
-        
+        // Намира последната цена на която продукта е бил 
+        // продаден на този контрагент
         $detailQuery = sales_SalesDetails::getQuery();
-    	foreach ($allSales as $sale){
-       		 $detailQuery->orWhere("#saleId = {$sale->id}");
-        }
-        
-        $detailQuery->where("#productId = {$productId}");
-        
-        if($packagingId){
-        	$detailQuery->where("#packagingId = {$packagingId}");
-        } else {
-        	$detailQuery->where("#packagingId IS NULL");
-        }
-       
-        $detailQuery->orderBy('#saleId', 'DESC');
+        $detailQuery->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
+        $detailQuery->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
+        $detailQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+        $detailQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+        $detailQuery->where("#contragentClassId = {$customerClass}");
+        $detailQuery->where("#contragentId = {$customerId}");
+        $detailQuery->where("#valior <= '{$date}'");
+        $detailQuery->where("#state = 'active'");
+        $detailQuery->orderBy('#valior', 'DESC');
         
         $lastRec = $detailQuery->fetch();
         if(!$lastRec){
