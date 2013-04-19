@@ -253,7 +253,7 @@ class pos_Receipts extends core_Master {
 	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
 	    	
 	    	if($info->packagingRec){
-	    		$packagingId = $info->packagingRec->id;
+	    		$packagingId = $info->packagingRec->packagingId;
 	    		$quantityInPack = $info->packagingRec->quantity;
 	    	} else {
 	    		$packagingId = NULL;
