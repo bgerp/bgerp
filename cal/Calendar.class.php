@@ -1133,6 +1133,8 @@ class cal_Calendar extends core_Master
 		
 		}elseif($type == 'leave'){
 			$img = "<img class='calImg'  src=". sbf('img/16/beach.png') .">&nbsp;";
+		} elseif($type == 'sickday'){
+			$img = "<img class='calImg'  src=". sbf('img/16/sick.png') .">&nbsp;";
 		}
 			
 		return $img;
@@ -1232,11 +1234,15 @@ class cal_Calendar extends core_Master
 	     	    // Картинката за задачите
 	     		$img = self::getIconByType($rec->type, $rec->key);
 				
-	     		if($hourKey == "allDay" && $rec->type == 'leave') $dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='calLeave'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	     		if($hourKey == "allDay" ){
+	     			if($rec->type == 'leave' || $rec->type == 'sickday') {
+	     				$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 35) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	     			} else {
+	     				$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	     			}
+	     		}
 	    		
-	    		if($hourKey == "allDay" && $rec->type != 'leave') $dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
-	    		
-	    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00")$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 35) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	     		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00")$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 35) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	    		
 	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 35) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	
@@ -1289,13 +1295,17 @@ class cal_Calendar extends core_Master
 	     	    // Картинката за задачите
 	            $img = self::getIconByType($rec->type, $rec->key);
 	            
-	            if($hourKey == "allDay" && $rec->type == 'leave') $weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='calLeave'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	            if($hourKey == "allDay"){
+	            	if($rec->type == 'leave' || $rec->type == 'sickday'){
+	            		$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 20) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	            	} else {
+	            		$weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	            	}
+	            } 
 	            
-	            if($hourKey == "allDay" && $rec->type != 'leave') $weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	            if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 20) . "</p>", $url, NULL, array('title' => $rec->title)) .'</div>';
 	    		
-	    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 20) . "</p>", $url, NULL, array('title' => $rec->title)) .'</div>';
-	    		
-	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 14) . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
+	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 15) . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
 	        }
         }
         
@@ -1358,13 +1368,17 @@ class cal_Calendar extends core_Master
 	     	    // Картинката за задачите
 	            $img = self::getIconByType($rec->type, $rec->key);
 	            
-	            if($hourKey == "allDay" && $rec->type == 'leave') $monthDate->monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='calLeave'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	           
-	    		if($hourKey == "allDay" && $rec->type != 'leave') $monthDate->monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	        	if($hourKey == "allDay" ){
+	     			if($rec->type == 'leave' || $rec->type == 'sickday') {
+	     				$dayData[$hourKey][$dayKey] .= $monthDate->monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 17) . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
+	     			} else {
+	     				$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	     			}
+	     		}
+	     		
+	            if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" .$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 20) . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
 	    		
-	    		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" .$img.ht::createLink("<p class='state-{$rec->state}'>" . str::limitLen($rec->title, 20) . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
-	    		
-	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 11) . "</p>", $url, NULL, array('title' => $rec->title)).'</div>';
+	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . str::limitLen($rec->title, 12) . "</p>", $url, NULL, array('title' => $rec->title)).'</div>';
 	        }
         }
        
@@ -1386,6 +1400,31 @@ class cal_Calendar extends core_Master
        
         // До края на същия ден
         $toDate = $from['toDate'];
+        
+        // TODO всеки ден от отпуската
+        $stateYearLeave = self::prepareStateYear($fromDate, $toDate, $selectedUsers, $type = 'leave');
+    
+        if(is_array($stateYearLeave)){
+	        foreach($stateYearLeave as $rec){
+	        	
+				// Разбиваме това време на: ден, месец и година
+				$recDay = dt::mysql2Verbal($rec->time, 'j');
+				$recMonth = dt::mysql2Verbal($rec->time, 'n');
+				$recYear = dt::mysql2Verbal($rec->time, 'Y');
+				
+				// Таймстамп на всеки запис
+				$recT = mktime(0, 0, 0, $recMonth, $recDay, $recYear);
+						
+				// В коя седмица е този ден
+				$weekKey = date('W', $recT);
+				
+				// Кой ден от седмицата е
+				$dayKey = "d".date('N', $recT);
+				
+				// Добавяме звезда там където имаме събитие
+				$yearDate->yearArr[$recMonth][$weekKey][$dayKey] = "<img class='starImg' src=". sbf('img/16/star_3.png') .">" . $recDay;
+	        }
+        }
         
         $stateYear = self::prepareStateYear($fromDate, $toDate, $selectedUsers, $type = 'task');
     
@@ -1411,31 +1450,6 @@ class cal_Calendar extends core_Master
 	        }
         }
 
-        // TODO всеки ден от отпуската
-        $stateYearLeave = self::prepareStateYear($fromDate, $toDate, $selectedUsers, $type = 'leave');
-    
-        if(is_array($stateYearLeave)){
-	        foreach($stateYearLeave as $rec){
-	        	
-				// Разбиваме това време на: ден, месец и година
-				$recDay = dt::mysql2Verbal($rec->time, 'j');
-				$recMonth = dt::mysql2Verbal($rec->time, 'n');
-				$recYear = dt::mysql2Verbal($rec->time, 'Y');
-				
-				// Таймстамп на всеки запис
-				$recT = mktime(0, 0, 0, $recMonth, $recDay, $recYear);
-						
-				// В коя седмица е този ден
-				$weekKey = date('W', $recT);
-				
-				// Кой ден от седмицата е
-				$dayKey = "d".date('N', $recT);
-				
-				// Добавяме звезда там където имаме събитие
-				$yearDate->yearArr[$recMonth][$weekKey][$dayKey] = "<img class='starImg' src=". sbf('img/16/star_3.png') .">" . $recDay;
-	        }
-        }
-       
         return $yearDate;
     }
     

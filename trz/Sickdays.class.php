@@ -265,6 +265,15 @@ class trz_Sickdays extends core_Master
         
     }
     
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+    	$mvc->updateSickdaysToCalendar($rec->id);
+    }
+    
     /**
      * Изпълнява се след начално установяване
      */
@@ -273,6 +282,69 @@ class trz_Sickdays extends core_Master
         //Създаваме, кофа, където ще държим всички прикачени файлове на болничните листи
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('trzSickdays', 'Прикачени файлове в болнични листи', NULL, '104857600', 'user', 'user');
+    }
+    
+    /**
+     * Обновява информацията за задачата в календара
+     */
+    static function updateSickdaysToCalendar($id)
+    {
+        $rec = static::fetch($id);
+        
+        $events = array();
+        
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+        
+        // Префикс на ключовете за записите в календара от тази задача
+        $prefix = "Sick-{$id}";
+
+        $curDate = $rec->startDate;
+    	
+    	while($curDate < dt::addDays(1, $rec->toDate)){
+        // Подготвяме запис за началната дата
+	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft')) {
+	            
+	            $calRec = new stdClass();
+	                
+	            // Ключ на събитието
+	            $calRec->key = $prefix . "-{$curDate}";
+	            
+	            // Начало на отпуската
+	            $calRec->time = $curDate;
+	            
+	            // Дали е цял ден?
+	            $calRec->allDay = 'yes';
+	            
+	            // Икона на записа
+	            $calRec->type  = 'sickday';
+	
+	            $personName = crm_Persons::fetchField($rec->personId, 'name');
+	            
+	            // Заглавие за записа в календара
+	            $calRec->title = "Болничен:{$personName}";
+	
+	            // В чии календари да влезе?
+	            $calRec->users = '';
+	            
+	            // Статус на задачата
+	            $calRec->state = $rec->state;
+	            
+	            // Url на задачата
+	            $calRec->url = toUrl(array('trz_Sickdays', 'Single', $id), 'local'); 
+	            
+	            $events[] = $calRec;
+	        }
+	        $curDate = dt::addDays(1, $curDate);
+    	}
+
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
     
