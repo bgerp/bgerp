@@ -617,7 +617,7 @@ option.team {
 	@include btn-style();
 	background-image:url('../img/16/btn-order.png');
 }
-.linkwithicon{
+.linkWithIcon{
 	&.sick{
 	background-image:url('../img/16/sick.png');
 	}
@@ -1081,7 +1081,7 @@ div.folder-cover{
 	margin-top:15px;
 	.user-title{
 		position:relative;
-		padding:67px 20px 10px 127px;
+		padding:70px 20px 10px 132px;
 		font-size:1.3em;
 		text-shadow:1px 1px 2px rgba(0,0,0,0.7);
 		background: rgb(234,234,234); /* Old browsers */
@@ -1096,16 +1096,25 @@ div.folder-cover{
 		font-weight:bold;
 		border-radius:5px 5px 0 0;
 	}
-   .profile-image img{
+   .profile-image>a, .profile-image div{
 		position:absolute;
 		top:15px;
 		left:15px;
-		width:95px;
+		width:100px;
+		height:100px;
 		@include border-radius(3px);
 		border:3px solid #fff;
 		box-shadow:0 1px 4px rgba(0,0,0,0.5);
+		display:block;
+		text-align:center;
+		background:#fff;
+		overflow:hidden;
+		img{
+			width:auto;
+			height:100px;
+		}
 	}
-	.linkwithicon{
+	.linkWithIcon{
 		height:19px;
 		padding-top:1px;
 	}
@@ -1123,6 +1132,7 @@ div.folder-cover{
 	}
 	.detail-info{
 		background:#fff;
+		min-width: 400px;
 	}
 	.detail-info.portal dt{
 		min-width:86px;
@@ -1136,6 +1146,13 @@ div.folder-cover{
 	}
 	.detail-info{
 		font-size:0.8em;
+		min-width:auto;
+		dt{
+			width:85px;
+		}
+		dd{
+			max-width:200px;
+		}
 	}
 	.linkWithIcon{
 		height:16px;

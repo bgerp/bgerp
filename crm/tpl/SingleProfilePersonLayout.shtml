@@ -1,6 +1,6 @@
 <div>
 	<div class="user-title" >
-	      	[#title#]
+	      	[#name#]
 	<!--ET_BEGIN image-->
 		<div class="profile-image">
 			<div>  
