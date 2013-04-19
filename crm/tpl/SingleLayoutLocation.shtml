@@ -60,7 +60,13 @@
 	         </div>
 	      </fieldset>
 	      <!--ET_END comment-->
-	      
+	     
+		<!--ET_BEGIN gpsCoords-->
+		<div class="loc-map">
+			[#gpsCoords#]
+		</div>
+		<!--ET_END gpsCoords-->
+	
 		<fieldset class="detail-info">
 	      <legend class="groupTitle">|Създаден|*</legend>
 	        <div class="groupList">
@@ -72,12 +78,5 @@
 		        </ul>  
 			</div>
 		</fieldset>
-		
-		<!--ET_BEGIN gpsCoords-->
-		<div class="loc-map">
-			[#gpsCoords#]
-		</div>
-		<!--ET_END gpsCoords-->
-	
 	</div>
 </div>
