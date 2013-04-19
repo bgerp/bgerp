@@ -193,4 +193,21 @@ class sales_InvoiceDetails extends core_Detail
     		$row->packagingId = cat_Products::getVerbal($productRec, 'measureId');
     	}
     }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'write' && isset($rec->invoiceId)){
+    		
+    		// Ако фактурата е генерирана от вече контирана продажба
+    		// неможе да се добавят нови продукти
+    		$invoiceRec = $mvc->Master->fetch($rec->invoiceId);
+    		if($invoiceRec->originId || ($invoiceRec->docType && $invoiceRec->docId)){
+    			$res = 'no_one';
+    		}
+    	}
+    }
 }
