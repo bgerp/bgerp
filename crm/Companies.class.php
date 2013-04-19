@@ -228,7 +228,7 @@ class crm_Companies extends core_Master
         
         if($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
-                $cond = "#name NOT REGEXP '^[a-zA-ZА-Яа-я]'";
+                $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
                 $cond = array();
@@ -236,7 +236,7 @@ class crm_Companies extends core_Master
                 
                 foreach($alphaArr as $a) {
                     $cond[0] .= ($cond[0] ? ' OR ' : '') .
-                    "(LOWER(#name) LIKE LOWER('[#{$i}#]%'))";
+                    "( LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) LIKE LOWER('[#{$i}#]%'))";
                     $cond[$i] = $a;
                     $i++;
                 }
