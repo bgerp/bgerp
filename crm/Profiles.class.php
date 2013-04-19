@@ -174,7 +174,7 @@ class crm_Profiles extends core_Master
                     $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => TRUE);
                     
                     // Създаме линка
-                    $data->User->row->editLink = ht::createLink($img, $url, FALSE,'title=' . tr('Промяна на персонализация'));  
+                    $data->User->row->editLink = ht::createLink($img, $url, FALSE,'title=' . tr('Редактиране на потребителски данни'));  
                 }
             } else {
                 
