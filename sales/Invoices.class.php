@@ -268,16 +268,15 @@ class sales_Invoices extends core_Master
     		
     		// Ако се генерира от продажба
     		$origin = doc_Containers::getDocument($rec->originId, 'store_ShipmentIntf');
-            $products = $origin->getShipmentProducts();
-    	
+        	$products = $origin->getShipmentProducts();
     	} elseif($rec->docType && $rec->docId) {
     		
     		// Ако се генерира от пос продажба
-    		$originClass = cls::get($rec->docType);
-    		if(method_exists($originClass, 'getProducts')){
-    			$products = $originClass->getProducts($rec->docId);
-    		}
+    		$origin = cls::get($rec->docType);
+    		$products = $origin->getShipmentProducts($rec->docId);
     	}
+    	
+    	
     	
     	if(isset($products) && count($products) != 0){
 	    	
@@ -562,6 +561,20 @@ class sales_Invoices extends core_Master
         $contragentData = $sourceClass::getContragentData($sourceObjectId);
     
         return $contragentData;
+    }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && isset($rec->id)){
+    		
+    		if($rec->originId || ($rec->docType && $rec->docId)){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
