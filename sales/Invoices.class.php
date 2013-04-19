@@ -279,19 +279,22 @@ class sales_Invoices extends core_Master
     		}
     	}
     	
-    	// Записваме информацията за продуктите в детайла
-    	foreach ($products as $product){
-    		$dRec = new stdClass();
-    		$dRec->invoiceId = $rec->id;
-    		$dRec->productId = $product->productId;
-    		$dRec->packagingId = $product->packagingId;
-    		$dRec->policyId = $product->policyId;
-    		$dRec->price = $product->price;
-    		$dRec->quantityInPack = $product->quantityInPack;
-    		$dRec->quantity = $product->quantity;
-    		$dRec->packQuantity = $product->quantity * $product->quantityInPack;
-    		$dRec->amount = $dRec->packQuantity * $product->price;
-    		$mvc->sales_InvoiceDetails->save($dRec);
+    	if(isset($products) && count($products) != 0){
+	    	
+    		// Записваме информацията за продуктите в детайла
+	    	foreach ($products as $product){
+	    		$dRec = new stdClass();
+	    		$dRec->invoiceId = $rec->id;
+	    		$dRec->productId = $product->productId;
+	    		$dRec->packagingId = $product->packagingId;
+	    		$dRec->policyId = $product->policyId;
+	    		$dRec->price = $product->price;
+	    		$dRec->quantityInPack = $product->quantityInPack;
+	    		$dRec->quantity = $product->quantity;
+	    		$dRec->packQuantity = $product->quantity * $product->quantityInPack;
+	    		$dRec->amount = $dRec->packQuantity * $product->price;
+	    		$mvc->sales_InvoiceDetails->save($dRec);
+	    	}
     	}
     }
     
