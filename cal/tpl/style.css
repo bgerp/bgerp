@@ -178,6 +178,9 @@ img.calWeekAdd{
 	margin:4px 2px;
 	overflow:hidden;
 	white-space:nowrap;
+	 text-overflow: clip;
+-o-text-overflow: clip;
+-ms-text-overflow: clip;
 }
 .task img{
 	float:left;
@@ -356,6 +359,7 @@ table.mc_calendar td.calDayN:hover{
 }
 table.mc_calendar td.calWeek{
 	max-width:140px;
+	vertical-align: top !important;
 }
 
 table.mc-calendar td.mc-today{
