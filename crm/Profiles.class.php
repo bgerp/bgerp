@@ -37,13 +37,17 @@ class crm_Profiles extends core_Master
      * Наименование на единичния обект
      */
     var $singleTitle = "Профил";
-
+    
 
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/vcard.png';
+    var $singleIcon = 'img/16/user-profile.png';
 
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'userId';
 
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
@@ -85,7 +89,8 @@ class crm_Profiles extends core_Master
      * 
      */
     var $canSingle = 'user';
-
+    
+    var $listFields = 'userId,personId,lastLoginTime=Последно логване';
     
     /**
      * Описание на модела (таблицата)
@@ -94,6 +99,7 @@ class crm_Profiles extends core_Master
     {
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
+        $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -600,6 +606,15 @@ class crm_Profiles extends core_Master
 
 
     /**
+     * Изпълнява се след подготовка на данните за списъчния изглед
+     */
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy("lastLoginTime", "DESC");
+    }
+
+
+    /**
      * След подготовката на редовете на списъчния изглед
      * 
      * Прави ника и името линкове към профилната визитка (в контекста на crm_Profiles)
@@ -617,8 +632,8 @@ class crm_Profiles extends core_Master
                 $rec = &$recs[$i];
         
                 if ($url = $mvc::getUrl($rec->userId)) {
-                    $row->personId = ht::createLink($row->personId, array('crm_Persons', 'single', $rec->personId));
-                    $row->userId   = static::createLink($rec->userId);
+                    $row->personId = ht::createLink($row->personId, array('crm_Persons', 'single', $rec->personId), NULL, array('ef_icon' => 'img/16/vcard.png'));
+                    $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
                 }
             }
         }
