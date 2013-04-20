@@ -60,6 +60,12 @@ class cat_Groups extends core_Master
     
     
     /**
+     * Икона за единичен изглед
+     */
+    var $singleIcon = 'img/16/category-icon.png';
+
+    
+    /**
      * Права
      */
     var $canRead = 'admin,user';
@@ -106,9 +112,9 @@ class cat_Groups extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
+        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
-        $this->FLD('info', 'text', 'caption=Информация');
+        $this->FLD('info', 'richtext', 'caption=Бележки');
         $this->FLD('productCnt', 'int', 'input=none');
     }
     

@@ -97,7 +97,7 @@ class email_Inboxes extends core_Master
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/inbox-image-icon.png';
+    var $singleIcon = 'img/16/cover-inbox.png';
     
     
     /**
@@ -274,9 +274,6 @@ class email_Inboxes extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     { 
-    	$imageUrl = sbf("img/16/inbox-image-icon.png","");
-    	$row->img = ht::createElement("img", array('src' => $imageUrl));
-    	
         if(($fields['-list'] || $fields['-single']) && $rec->accountId) {
             
             $accRec = email_Accounts::fetch($rec->accountId);

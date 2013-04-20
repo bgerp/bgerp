@@ -458,48 +458,48 @@ a.profile {
 	padding: 2px;
 	@include border-radius(2px);
 	&.ceo {
-		color: blue;
+		color: #0000cc;
 		&.inactive{
-			color:darken(blue,15%);
+			color:#333399;
 		}
 		&.active{
-			color:lighten(blue,15%);
+			color: #0000ff;
 		}
 	}
 	&.manager {
-		color: #009999;
+		color: #a000b0;
 		&.inactive{
-			color:darken(#009999,15%);
+			color: #773387;
 		}
 		&.active{
-			color:lighten(#009999,15%);
+			color:#bb00cb;
 		}
 	}
 	&.officer {
-		color: green;
+		color: #00cc00;
 		&.inactive{
-			color:darken(green,15%);
+			color:#448844;
 		}
 		&.active{
-			color:lighten(green,15%);
+			color:#00ff00;
 		}
 	}
 	&.executive {
 		color: #aa6600;
 		&.inactive{
-			color:darken(#aa6600,15%);
+			color:#886622;
 		}
 		&.active{
-			color:lighten(#aa6600,15%);
+			color:#dd8800;
 		}
 	}
 	&.contractor {
-		color: #f00;
+		color: #cc0000;
 		&.inactive{
-			color:darken(#f00,15%);
+			color:#993333;
 		}
 		&.active{
-			color:lighten(#f00,15%);
+			color:#ff0000;
 		}
 	}
 }
@@ -605,7 +605,7 @@ option.team {
 }
 
 .wide .btn-profile { 
-	background-image:url('../img/16/user.png');
+	background-image:url('../img/16/user-profile.png');
 	@include btn-style();
 }
 
@@ -622,6 +622,7 @@ option.team {
 	@include btn-style();
 	background-image:url('../img/16/btn-order.png');
 }
+
 .linkWithIcon{
 	&.sick{
 	background-image:url('../img/16/sick.png');
@@ -1007,11 +1008,16 @@ div.folder-cover{
 		border-bottom: solid 1px #dddddd;
 		padding: 7px;
 		@include border-radius4(0,15px,0,0);
-		font-size: 1.4em;
+		font-size: 1.35em;
 		color: #433;
 		margin-bottom:10px;
 		text-shadow: 1px 1px 1px #ddd;
+		img {
+			vertical-align:top;
+		}
 	}
+
+ 
 	.block_left {
 		clear: left;
 		background: #ffffff;
@@ -1062,6 +1068,10 @@ div.folder-cover{
 	}
 }
 
+.narrow .block_title {
+	font-size: 1.2em !important;
+}
+
 .printing .folder-cover {
 	border: none;
 	font-size: 0.8em;
@@ -1074,6 +1084,7 @@ div.folder-cover{
 	line-height: 1.2em;
 	margin-top: 0px;
 }
+
 .fright{
 	float:right;
 }

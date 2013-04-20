@@ -38,13 +38,19 @@ class crm_Groups extends core_Master
     /**
      * Кои полета да се листват
      */
-    var $listFields = 'id,name=Заглавие';
+    var $listFields = 'id,name=Заглавие,content=Съдържание';
     
     
     /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Група->указател";
+    
+    
+    /**
+     * Икона за единичен изглед
+     */
+    var $singleIcon = 'img/16/group.png';
     
     
     /**
@@ -148,14 +154,14 @@ class crm_Groups extends core_Master
     	
     	$row->companiesCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
         $row->personsCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
-       
+        
+        $row->name = "<b>$row->name</b>";
+        
         if($fields['-list']){
-	        $row->name = "<b>$row->name</b>";
-	        if($row->info)  $row->info .= "<div><small>$row->info</small></div>";
-		    $row->name .= '<div>';
-		    $row->name .= "<span style='font-size:14px;'>Брой фирми:</span> ". $row->companiesCnt;
-	        $row->name .= ", <span style='font-size:14px;'>Брой лица:</span> ".  $row->personsCnt;
-	        $row->name .= '</div>';
+		    $row->content = '<div>';
+		    $row->content .= "<span style='font-size:14px;'>Брой фирми:</span> ". $row->companiesCnt;
+	        $row->content .= ", <span style='font-size:14px;'>Брой лица:</span> ".  $row->personsCnt;
+	        $row->content .= '</div>';
         }
     }
     

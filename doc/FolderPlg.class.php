@@ -330,10 +330,20 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Ако отговорника на папката е системата
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->inCharge == -1) {
             $row->inCharge = '@system';
+        }
+        
+        if($fields['-single']) {
+            if(Mode::is('screenMode', 'narrow')) {
+                $imageUrl = sbf($mvc->singleIcon, "");
+                $row->SingleIcon = ht::createElement("img", array('src' => $imageUrl));
+            } else {
+                $imageUrl = sbf(str_replace('/16/', '/24/', $mvc->singleIcon), "");
+                $row->SingleIcon = ht::createElement("img", array('src' => $imageUrl));
+            }
         }
     }
 }

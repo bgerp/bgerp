@@ -3,7 +3,7 @@
                  
 	<div class='folder-cover'>
 	  <div class='inner-folder'>
-		<div class='block_title [#STATE_CLASS#] special-title'>[#img#] Проект » [#name#] ([#state#])</div>
+		<div class='block_title [#STATE_CLASS#] special-title'>[#SingleIcon#] Проект » [#name#] ([#state#])</div>
 			[#DETAILS#]               
          <div style='clear: both;'></div>
      </div>

@@ -58,7 +58,7 @@ class cat_Products extends core_Master {
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/package-icon.png';
+    var $singleIcon = 'img/16/wooden-box.png';
     
     
     /**
@@ -227,33 +227,30 @@ class cat_Products extends core_Master {
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal ($mvc, $row, $rec)
+    static function on_AfterRecToVerbal ($mvc, $row, $rec, $fields = array())
     {
-        // fancybox ефект за картинките
-        $Fancybox = cls::get('fancybox_Fancybox');
-      
-        $tArr = array(200, 150);
-        $mArr = array(600, 450);
-       
-        $images_fields = array('image1',
-            'image2',
-            'image3',
-            'image4',
-            'image5');
-        
-        foreach ($images_fields as $image) {
-            if ($rec->{$image} == '') {
-                $row->{$image} = NULL;
-            } else {
-                $row->{$image} = $Fancybox->getImage($rec->{$image}, $tArr, $mArr);
+        if($fields['-single']) {
+            // fancybox ефект за картинките
+            $Fancybox = cls::get('fancybox_Fancybox');
+          
+            $tArr = array(200, 150);
+            $mArr = array(600, 450);
+           
+            $images_fields = array('image1',
+                'image2',
+                'image3',
+                'image4',
+                'image5');
+            
+            foreach ($images_fields as $image) {
+                if ($rec->{$image} == '') {
+                    $row->{$image} = NULL;
+                } else {
+                    $row->{$image} = $Fancybox->getImage($rec->{$image}, $tArr, $mArr);
+                }
             }
+            // ENDOF fancybox ефект за картинките
         }
-        
-        // ENDOF fancybox ефект за картинките
-        
-        /*иконка пред името на продукта*/
-        $imageUrl = sbf("img/16/package-icon.png","");
-        $row->img = ht::createElement("img", array('src' => $imageUrl));
     }
     
     

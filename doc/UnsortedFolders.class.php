@@ -56,7 +56,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/basket.png';
+    var $singleIcon = 'img/16/project-archive.png';
     
     /**
      * Шаблон за единичния изглед
@@ -138,10 +138,5 @@ class doc_UnsortedFolders extends core_Master
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
         }
-    }
-    
-    static function on_AfterRecToVerbal ($mvc, $row, $rec){
-    	$imageUrl = sbf("img/16/basket.png","");
-    	$row->img = ht::createElement("img", array('src' => $imageUrl));
     }
 }

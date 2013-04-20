@@ -156,9 +156,6 @@ class support_Systems extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$imageUrl = sbf("img/16/system-monitor.png","");
-    	$row->img = ht::createElement("img", array('src' => $imageUrl));
-    	
         // Ако имаме създадена папка
         if ($rec->folderId) {
             

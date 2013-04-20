@@ -433,8 +433,6 @@ class crm_Persons extends core_Master
                 }
 
             }
-            $imageUrl = sbf("img/16/vcard.png","");
-            $row->img = ht::createElement("img", array('src' => $imageUrl));
         }
 
         $row->country = $mvc->getVerbal($rec, 'country');
