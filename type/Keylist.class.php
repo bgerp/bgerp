@@ -271,6 +271,8 @@ class type_Keylist extends core_Type {
         
         $kArr = explode('|', $klist);
         
+        $resArr = array();
+        
         foreach($kArr as $key) {
             if($key !== '') {
                 $resArr[$key] = $key;
