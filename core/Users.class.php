@@ -138,9 +138,9 @@ class core_Users extends core_Manager
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
             'caption=Състояние,notNull,default=draft');
         
-        $this->FLD('lastLoginTime', 'datetime', 'caption=Последно->Логване,input=none');
+        $this->FLD('lastLoginTime', 'datetime(format=smartTime)', 'caption=Последно->Логване,input=none');
         $this->FLD('lastLoginIp', 'varchar(16)', 'caption=Последно->IP,input=none');
-        $this->FLD('lastActivityTime', 'datetime', 'caption=Последно->Активност,input=none');
+        $this->FLD('lastActivityTime', 'datetime(format=smartTime)', 'caption=Последно->Активност,input=none');
 
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
