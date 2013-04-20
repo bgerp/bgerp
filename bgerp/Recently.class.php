@@ -309,16 +309,19 @@ class bgerp_Recently extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-    	$count = 0;
-    	$query = static::getQuery();
-    	$query->orderBy("#id", "DESC");
-    	while($rec = $query->fetch()){
-    		if($rec->searchKeywords) continue;
-    		$rec->searchKeywords = $mvc->getObjectTitle($rec);
-    		$count++;
-    		$mvc->save_($rec);
-    	}
-    	
-    	$res .= "Обновени ключови думи на  {$count} записа в Последно";
+        if($mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+            $count = 0;
+            $query = static::getQuery();
+            $query->orderBy("#id", "DESC");
+            
+            while($rec = $query->fetch()){
+                if($rec->searchKeywords) continue;
+                $rec->searchKeywords = $mvc->getObjectTitle($rec);
+                $count++;
+                $mvc->save_($rec);
+            }
+            
+            $res .= "Обновени ключови думи на  {$count} записа в Последно";
+        }
     }
 }
