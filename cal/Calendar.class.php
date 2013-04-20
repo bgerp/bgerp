@@ -264,7 +264,7 @@ class cal_Calendar extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px');
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->setdefault('from', date('Y-m-d'));
+        $data->listFilter->setDefault('from', date('Y-m-d'));
         
         $data->listFilter->view = 'horizontal';
         
@@ -279,6 +279,10 @@ class cal_Calendar extends core_Master
         }
         
         $data->listFilter->input('selectedUsers, from', 'silent');
+
+        setIfNot($data->listFilter->rec->from,  date('Y-m-d'));
+        setIfNot($data->listFilter->rec->selectedUsers,  '|' . core_Users::getCurrent() . '|');
+
     }
 
     
@@ -543,7 +547,7 @@ class cal_Calendar extends core_Master
             if(!isset($data[$i])) {
                 $data[$i] = new stdClass();
             }
-            $data[$i]->url = toUrl(array('cal_Calendar', 'list', 'from' => "{$i}-{$month}-{$year}"));;
+            $data[$i]->url = toUrl(array('cal_Calendar', Mode::is('screenMode', 'narrow') ? 'day' : 'week', 'from' => "{$i}-{$month}-{$year}"));;
         }
 
         $tpl = new ET("[#MONTH_CALENDAR#] <br> [#AGENDA#]");
@@ -770,7 +774,7 @@ class cal_Calendar extends core_Master
     {
     	$fromFilter = $data->listFilter->rec->from;
     	$fromFilter = explode("-", $fromFilter);
-  
+ 
         for($i = 0; $i < 7; $i++){
         	$days[$i] = dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $fromFilter[1], $fromFilter[2] + $i - 3, $fromFilter[0])),'l'). "<br>".
         				dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $fromFilter[1], $fromFilter[2] + $i - 3, $fromFilter[0])),'d.m.Y');
@@ -1020,7 +1024,7 @@ class cal_Calendar extends core_Master
     }
   
     /**
-     * Намира началната и крайната дата за деня.
+     * Намира началното и крайното време за деня.
      * Взима данни от филтъра
      */
     static function getFromToDay($data)
@@ -1036,6 +1040,7 @@ class cal_Calendar extends core_Master
         return $from;
     }
     
+
     /**
      * Намира началната и крайната дата за седмицата.
      * Взима данни от филтъра
