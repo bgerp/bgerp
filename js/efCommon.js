@@ -203,23 +203,26 @@ function comboBoxInit(id, suffix)
 { 
 	var txtCombo = get$(id);
 	var selCombo = get$(id + suffix);
-	var width = txtCombo.offsetWidth;
- 	var arrow = selCombo.offsetHeight - 7;
 
-	selCombo.style.width = (width + 0) + 'px'; 
-	txtCombo.style.width = (width -  arrow + 2) + 'px';
-	txtCombo.style.marginRight = (arrow+2) + 'px';
-	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow - 3) + 'px)';
-	txtCombo.style.paddingRight = '2px';
+	if(txtCombo && selCombo) {
+		var width = txtCombo.offsetWidth;
+		var arrow = selCombo.offsetHeight - 7;
 
-	if(txtCombo.offsetHeight != selCombo.offsetHeight) {
-		txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
-		// txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
-		txtCombo.style.marginTop = '2px';
-		selCombo.style.marginTop = '2px';
+		selCombo.style.width = (width + 0) + 'px'; 
+		txtCombo.style.width = (width -  arrow + 2) + 'px';
+		txtCombo.style.marginRight = (arrow+2) + 'px';
+		selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow - 3) + 'px)';
+		txtCombo.style.paddingRight = '2px';
+
+		if(txtCombo.offsetHeight != selCombo.offsetHeight) {
+			txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
+			// txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
+			txtCombo.style.marginTop = '2px';
+			selCombo.style.marginTop = '2px';
+		}
+
+		selCombo.style.visibility = 'visible';
 	}
-
-	selCombo.style.visibility = 'visible';
 }
 
 
