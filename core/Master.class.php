@@ -282,8 +282,12 @@ class core_Master extends core_Manager
                 } else {
                     $method = 'render' . $selected;
                 }
-
-                $tabHtml = $tabs->renderHtml($this->{$selected}->$method($data->{$selected}), $selected);
+                
+                if(count($detailTabbed) > 1) {
+                    $tabHtml = $tabs->renderHtml($this->{$selected}->$method($data->{$selected}), $selected);
+                } else {
+                    $tabHtml = $this->{$selected}->$method($data->{$selected});
+                }
 
                 $tabHtml = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div><a name='detailTabs'></a>[#1#]</div>", $tabHtml);
 
