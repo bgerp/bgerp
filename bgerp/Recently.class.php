@@ -316,9 +316,9 @@ class bgerp_Recently extends core_Manager
             
             while($rec = $query->fetch()){
                 if($rec->searchKeywords) continue;
-                $rec->searchKeywords = $mvc->getObjectTitle($rec);
+                $rec->searchKeywords = $mvc->getSearchKeywords($rec);
+                $mvc->save_($rec, 'searchKeywords');
                 $count++;
-                $mvc->save_($rec);
             }
             
             $res .= "Обновени ключови думи на  {$count} записа в Последно";

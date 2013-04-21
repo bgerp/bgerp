@@ -375,9 +375,10 @@ class bgerp_Notifications extends core_Manager
             $query = static::getQuery();
             $query->orderBy("#id", "DESC");
             while($rec = $query->fetch()){
-                
                 // Обновяваме ключовите думи на нотификациите, ако нямат
-                $mvc->save_($rec);
+                if($rec->searchKeywords) continue;
+                $rec->searchKeywords = $mvc->getSearchKeywords($rec);
+                $mvc->save_($rec, 'searchKeywords');
                 $count++;
             }
             
