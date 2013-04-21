@@ -296,7 +296,7 @@ class bgerp_Recently extends core_Manager
     {
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = $mvc->searchInputField;
-    	if(Request::get('Act') == 'Show'){
+    	if(strtolower(Request::get('Act')) == 'show'){
         	bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
     	} else {
     		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
