@@ -105,7 +105,7 @@ class email_Outgoings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin';
     
     
     /**
@@ -1750,10 +1750,10 @@ class email_Outgoings extends core_Master
         } 
 
         // Добавяме функционални полета
-        $form->FNC('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'input,silent,caption=Папка->Лице');          
-        $form->FNC('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'input,silent,caption=Папка->Фирма');          
+        $form->FNC('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'input,silent,caption=Папка->Лице,width=100%');          
+        $form->FNC('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'input,silent,caption=Папка->Фирма,width=100%');          
                     
-        $form->FNC('userEmail', 'email', 'input=input,silent,caption=Имейл->Адрес');
+        $form->FNC('userEmail', 'email', 'input=input,silent,caption=Имейл->Адрес,width=100%,recently');
 
         $form->input();
 
