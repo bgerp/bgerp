@@ -33,7 +33,7 @@ class core_Html
                     
 
                     if (is_string($content)) {
-                        // $content = htmlspecialchars($content);
+                        // $content = htmlspecialchars($content, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                         /**
                          * Необходимо ли е да се ескейпва символи различни от двойни кавички
                          * в стойностите на HTML атрибутите?
@@ -506,7 +506,7 @@ class core_Html
 
         $attr['type'] = 'submit';
 
-        $attr['value'] = $title;
+        $attr['value'] = tr($title);
 
         // Оцветяваме бутона в зависимост от особеностите му
         if (isset($warning)) {

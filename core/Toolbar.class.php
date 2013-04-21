@@ -220,7 +220,7 @@ class core_Toolbar extends core_BaseClass
             if($flagRow2) {
                 // $toolbar->append("<a href=\"javascript:toggleDisplay('Row2_{$rowId}')\" style=\"font-weight:bold;\" class=\"linkWithIcon\"><img src=" . sbf('img/16/plus.png') . " /> </a>", "ROW0");
 				
-                $toolbar->prepend(ht::createFnBtn('', "toggleDisplay('Row2_{$rowId}');", NULL, 'ef_icon=img/16/toggle-expand.png, class=more-btn'), "ROW0");
+                $toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'ef_icon=img/16/toggle-expand.png, class=more-btn'), "ROW0");
             }
 
             

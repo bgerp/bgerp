@@ -317,10 +317,10 @@ class core_Packs extends core_Manager
        		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
        	}
        	
-        $row->install = ht::createLink("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
+        $row->install = ht::createLink(tr("Обновяване"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
         
         if($rec->deinstall == 'yes') {
-           $row->deinstall = ht::createLink("Оттегляне", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-deinstall"));
+           $row->deinstall = ht::createLink(tr("Оттегляне"), array($mvc, 'deinstall', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-deinstall"));
         } else {
            $row->deinstall = "";
         }
@@ -335,7 +335,7 @@ class core_Packs extends core_Manager
        
 
         if($conf->getConstCnt()) {
-            $row->config = ht::createLink("Настройки", array($mvc, 'config', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-config"));
+            $row->config = ht::createLink(tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-config"));
         }
 
         if($conf->haveErrors()) {

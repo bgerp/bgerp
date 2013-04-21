@@ -47,8 +47,6 @@ class type_User extends type_Key
     
     /**
      * Подготвя опциите според зададените параметри.
-     * Ако е посочен суфикс, извеждате се само интерфейсите
-     * чието име завършва на този суфикс
      */
     private function prepareOptions()
     {
@@ -91,7 +89,7 @@ class type_User extends type_Key
             
             foreach($teams as $t) {
                 $group = new stdClass();
-                $group->title = "Екип \"" . core_Roles::getVerbal($t, 'role') . "\"";
+                $group->title = tr('Екип') . " \"" . core_Roles::getVerbal($t, 'role') . "\"";
                 $group->attr = array('class' => 'team');
                 $group->group = TRUE;
                 $group->keylist = $this->options[$t . ' team'] = $group;
