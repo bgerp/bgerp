@@ -73,9 +73,9 @@ class currency_CurrencyRates extends core_Detail
     function description()
     {
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,chart=diff');
-        $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Към основна валута,width=6em');
-        $this->FLD('date', 'date', 'caption=Курс->дата,chart=ax');
-        $this->FLD('rate', 'double', 'caption=Курс->стойност,chart=ay');
+        $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Курс->База,width=6em');
+        $this->FLD('date', 'date', 'caption=Курс->Дата,chart=ax');
+        $this->FLD('rate', 'double', 'caption=Курс->Стойност,chart=ay');
         
         $this->setDbUnique('currencyId,baseCurrencyId,date');
     }
