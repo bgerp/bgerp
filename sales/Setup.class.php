@@ -47,7 +47,6 @@ class sales_Setup
     function install()
     {
         $managers = array(
-            'sales_Deals',
             'sales_Invoices',
             'sales_InvoiceDetails',
             'sales_Sales',
