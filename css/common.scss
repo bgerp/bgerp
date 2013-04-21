@@ -34,6 +34,8 @@ $quiet-gray:#888;
 	padding-left:22px !important;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
+	height:24px;
+	font-size: 13px;
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -278,17 +280,37 @@ p.richtext {
 	}
 }
 .richtext-quote{
+	font-size: 0.9em;
+	color: #444;
 	padding: 2px 0 0 15px;
 	border-left: 5px solid #e0e0e0;
 }
 pre.richtext {
     font-family: Courier New,monospace;
     padding:10px;
-    background-color:#ffe;
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50FFFFE6,endColorstr=#50FFFFE6); 
+    zoom: 1;
+    background-color:rgba(255, 255, 230, 0.5);
     color:#000;
     line-height:120%;
-    border:solid 1px #ccc;
+    border:solid 1px #ddd;
 	white-space: pre-wrap;	
+}
+
+.wide pre.richtext.code{
+	padding:0;
+	max-width: 830px;
+	border:1px solid #ddd;
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+    zoom: 1;
+    width:100%;
+	background:rgba(245,245,255,0.5);
+}
+
+pre.richtext.code code{
+	background:none;
 }
 
 .richtext .oneLineCode {
@@ -316,7 +338,7 @@ pre.richtext {
 
 }
 pre.code{
-	background: rgba(255,255,230,0.5);
+    background: rgba(255,255,230,0.5);
 }
 div.richtext li {
     margin:0px;
@@ -371,7 +393,7 @@ a.rtbutton:hover {
 
 /* Стилове за елемента 'list Table' */
 table.listTable { 
-    margin:0px;
+    margin:0px 0 15px 0;
     border: 1px solid #999;
     border-collapse: collapse;
 }
@@ -405,11 +427,15 @@ table.listTable>thead>tr>th {
 }
 
 .listFilter {
-	padding-bottom:5px; 
+	padding-bottom:10px; 
 	float:left;
 }
+
 .narrow .listFilter{
 	margin-left: -3px;
+}
+.narrow .tab-page .listFilter{
+	margin-left:0;
 }
 
 .listSummary {
@@ -540,8 +566,9 @@ div.hFormField {
     background-color:#ccc; 
     border:solid 1px #aaa;
 }
+
 .vertical input{
-	margin-left:2px;
+	margin-left:0;
 }
 .narrow .vertical .formToolbar { 
     padding:0 11px 5px 11px !important;
@@ -598,13 +625,6 @@ input[type="text"]{
 	margin-left:2px;
 }
 
-.chzn-container{
-	top:0px;
-	margin-left:2px;
-	height:25px;
-}
-
-
 /* Стилове за страньора 'hlp_Pager' */
 a.pager {
     font-weight:bold;
@@ -639,8 +659,12 @@ input, select, textarea {
 	-webkit-box-sizing:border-box;
 	-moz-box-sizing:border-box;
 	border: solid 1px #9999ff;
-	font-size:1.06em;
+	font-size:1.07em;
 	padding-left: 3px;
+}
+
+textarea{
+	margin-left:0;
 }
 
 .readonly {
@@ -700,19 +724,28 @@ input, select, textarea {
 	background-position: 3px center;
 }
 
+.linkWithIcon{
+	height:24px;
+}
+
+.docBgIcon{
+	line-height:24px;
+}
 /* BUTTONS */
 a.button, input[type=button], input[type=submit] {
     margin-right:3px;
     color:$dark-blue;
     font-weight:bold;
+    line-height:15px;
     text-decoration:none;
     cursor:pointer;
     width:auto;
     overflow:visible;
-	display:inline-block;
-	-webkit-appearance: input;
+    display:inline-block;
+    -webkit-appearance: input;
     background-color:#ddd; 
     border:1px solid #bbb; 
+    height:24px;
     @include border-radius(3px);
     font-family: Arial, sans-serif; 
     font-size:13px;
@@ -723,43 +756,54 @@ a.button, input[type=button], input[type=submit] {
 	background-color:#eee; 
 	border:1px solid #999; 
 	@include border-radius(5px);
+	height:25px;
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
     font-size:100%;
 	font-size: 0.9em;
-    line-height:130%; 
-    padding:1px 4px 1px 4px; /* IE6 */
+    padding:3px 4px 2px 4px; /* IE6 */
 }
+
+@-moz-document url-prefix() { 
+	.narrow a.button, .narrow input[type=button], .narrow input[type=submit]{
+		 padding:0px 4px 2px 4px; /* IE6 */
+	}
+}
+
 .narrow .single-thread .toolbar .button{
 	border-right:1px solid #999;
 	border-left:none;
 	margin-right:0 !important;
-	@include border-radius(0 !important);
+	@include border-radius(0);
 }
-.narrow .single-thread .toolbar div .button:first-child{
-	border-left:1px solid #999;
-	@include border-radius4(5px,0,0,5px !important);
-}
-.narrow .single-thread .toolbar div .button:last-child{
-	@include border-radius4(0,5px,5px,0 !important);
-}
-.narrow .listToolbar .btn-left { 
-    @include rounded(top, right, 0px !important);
-    @include rounded(bottom, right, 0px !important);
-	border-right: none !important;
+
+.narrow .toolbar .btn-left { 
+    @include rounded(top, right, 0px);
+    @include rounded(bottom, right, 0px);
+	border-right: none ;
 	margin:0px !important;
 }
 
-.narrow .listToolbar .btn-right {
-	@include rounded(top, left, 0px !important) ;
-	@include rounded(bottom, left, 0px !important);
+.narrow .toolbar .btn-right {
+	@include rounded(top, left, 0px) ;
+	@include rounded(bottom, left, 0px);
 	margin:0px 0px 0 0 !important;
 	
 }
 
-.narrow .listToolbar .btn-middle { 
-	@include border-radius(0px !important);
-	border-right: none !important;
+.narrow .toolbar .btn-middle { 
+	@include border-radius(0px);
+	border-right: none;
 	margin:0px !important;
+}
+
+.narrow .single-thread .toolbar div .button:first-child{
+	border-left:1px solid #999;
+	@include rounded(top,left,5px);
+	@include rounded(bottom,left,5px);
+}
+.narrow .single-thread .toolbar div .button:last-child{
+	@include rounded(top, right, 5px );
+	@include rounded(bottom, right, 5px);
 }
 
 a.button:hover, input:hover[type=button] , input:hover[type=submit]{
@@ -1009,6 +1053,7 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
 div.statuses-success , div.statuses-error, div.statuses-warning{
 	background-color:#ffffcc;	
 }
+
 .state-draft {
     background-color: #bef7fd;
 }
@@ -1031,11 +1076,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
     background-color: #eee;
 }
 
-.state-stopped {
-    background-color: #feadad;
-}
-
-.state-blocked {
+.state-stopped, .state-blocked {
     background-color: #ffaa00;
 }
 
@@ -1043,8 +1084,10 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
     background-color: #cc6666;
 }
 
-.state-rejected td {
-	color:#999;
+.state-rejected td, .state-rejected .document th, .state-rejected .document td a, 
+.state-rejected .richtext, .state-rejected .richtext a, , .state-rejected .richtext div, .state-rejected .cCode{
+	color:#999 !important;
+	text-decoration:line-through;
 }
 
 .state-free { 

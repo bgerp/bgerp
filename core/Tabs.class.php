@@ -71,7 +71,12 @@ class core_Tabs extends core_BaseClass
      */
     function renderHtml_($body, $selectedTab = NULL)
     {
-		// Изчисляване сумата от символите на всички табове
+        // Ако няма конфигурирани табове, рендираме само тялото       
+        if (!count($this->tabs)) {
+            return $body;
+        }
+        
+        // Изчисляване сумата от символите на всички табове
 		foreach($this->captions as $tab => $caption) {
 			$sumLen += mb_strlen(strip_tags(trim($caption))) + 1;
 		}
@@ -83,11 +88,6 @@ class core_Tabs extends core_BaseClass
 		}
 
 
-        //         
-        if (!count($this->tabs)) {
-            return $body;
-        }
-        
         //      ,       
         if (!$selectedTab) {
             $selectedTab = Request::get('selectedTab');

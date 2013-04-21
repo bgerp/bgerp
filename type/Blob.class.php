@@ -97,7 +97,7 @@ class type_Blob extends core_Type {
                     $c = $value{$i * $rowLen + $j};
                     
                     if(ord($c) >= 32 && ord($c) <= 127) {
-                        $str .= htmlentities($c);
+                        $str .= htmlentities($c, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                     } else {
                         if(ord($c)<32) {
                             $str .= '<font color=grey>&copy;</font>';

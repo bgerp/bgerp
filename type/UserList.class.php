@@ -67,7 +67,7 @@ class type_UserList extends type_Keylist
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;
             $group = new stdClass();
-            $group->title = "Екип \"" . core_Roles::getVerbal($t, 'role') . "\"";
+            $group->title = tr('Екип') . " \"" . core_Roles::getVerbal($t, 'role') . "\"";
             $group->attr = array('class' => 'team');
             $group->group = TRUE;
 

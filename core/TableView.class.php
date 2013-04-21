@@ -220,7 +220,7 @@ class core_TableView extends core_BaseClass
             }
         } else {
             $rowTpl = $tpl->getBlock("ROW");
-            $tpl->append("<tr><td colspan=\"" . $this->colspan . "\"> Няма записи </td></tr>", "ROW");
+            $tpl->append("<tr><td colspan=\"" . $this->colspan . "\"> " . tr("Няма записи") . " </td></tr>", "ROW");
         }
         
         if ($this->rowBefore) {
