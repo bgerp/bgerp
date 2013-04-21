@@ -309,7 +309,7 @@ class bgerp_Recently extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        if($mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+        if(!$mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
             $count = 0;
             $query = static::getQuery();
             $query->orderBy("#id", "DESC");
