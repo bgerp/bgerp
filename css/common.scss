@@ -1053,6 +1053,7 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
 div.statuses-success , div.statuses-error, div.statuses-warning{
 	background-color:#ffffcc;	
 }
+
 .state-draft {
     background-color: #bef7fd;
 }
@@ -1075,11 +1076,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
     background-color: #eee;
 }
 
-.state-stopped {
-    background-color: #feadad;
-}
-
-.state-blocked {
+.state-stopped, .state-blocked {
     background-color: #ffaa00;
 }
 
