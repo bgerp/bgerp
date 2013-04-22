@@ -880,11 +880,30 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-		if($action == 'add' && $rec->folderId){
-			if(!$mvc->canAddToFolder($rec->folderId, NULL)){
-				$requiredRoles = 'no_one';
-			}
-		}
+        // Ако добавяме
+        if ($action == 'add') {
+            
+            // Ако има нишка
+            if ($rec->threadId) {
+                
+                // Ако няма права за добавяне в нишката
+                if($mvc->canAddToThread($rec->threadId, NULL) === FALSE){
+    	            
+                    // Никой не може да добавя
+    				$requiredRoles = 'no_one';
+    			}        
+            } elseif ($rec->folderId) {
+                
+                // Ако създаваме нова нишка
+                
+                // Ако няма права за добавяне в папката
+                if($mvc->canAddToFolder($rec->folderId, NULL) === FALSE){
+                    
+                    // Никой не може да добавя
+    				$requiredRoles = 'no_one';
+    			}    
+            }
+        }
 		
     	if ($rec->id) {
             $rec = $mvc->fetch($rec->id);
