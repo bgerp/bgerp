@@ -277,16 +277,16 @@ class sales_Routes extends core_Manager {
     	$query->where("#state != 'rejected'");
     	
     	$results = array();
-    	while ($rec = $query->fetch()){
+     	while ($rec = $query->fetch()){
+            $data->masterData->row->haveRoutes = TRUE;
+    		if($data->masterData->rec->state != 'rejected'){
+                $nextVisit = $this->calcNextVisit($rec);
+    			if($nextVisit === FALSE) continue;
+                $routeArr['nextVisit'] = $nextVisit;
+    		}
     		$row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
     		$routeArr['tools'] = $row->tools;
     		$routeArr['salesmanId'] = $row->salesmanId;
-    		if($data->masterData->rec->state != 'rejected'){
-                $nextVisit = $this->calcNextVisit($rec);
-    			if($nextVisit) {
-                    $routeArr['nextVisit'] = $nextVisit;
-                }
-    		}
     		
     		$results[] = (object)$routeArr;
     	}
@@ -305,7 +305,7 @@ class sales_Routes extends core_Manager {
     	$nowTs = dt::mysql2timestamp(dt::now());
     	$interval = 24 * 60 * 60 * 7;
 
-    	if(!$rec->dateFld) return;
+    	if(!$rec->dateFld) return FALSE;
 
     	$startTs = dt::mysql2timestamp($rec->dateFld);
     	$diff = $nowTs - $startTs;
@@ -313,7 +313,11 @@ class sales_Routes extends core_Manager {
     		$nextStartTimeTs = $startTs;
     	} else {
     		if(!$rec->repeatWeeks){
-    			$rec->repeatWeeks = 1;
+                if($rec->dateFld == date('Y-m-d')) {
+                    return dt::mysql2verbal($rec->dateFld, "d.m.Y D");
+                } else {
+    			    return FALSE;
+                }
     		}
     		$interval = $interval * $rec->repeatWeeks;
     		$nextStartTimeTs = (floor(($diff)/$interval) + 1) * $interval;
@@ -341,7 +345,8 @@ class sales_Routes extends core_Manager {
 	    	$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute')); 
 	    	$tpl->replace($addBtn, 'BTN');
     	}
-    	if($data->masterData->row->routes){
+
+    	if(count($data->masterData->row->routes)){  
     		$tpl->replace(' ', 'HEADER');
 	    	foreach($data->masterData->row->routes as $route){
 	    		$cl = $tpl->getBlock("ROW");
@@ -349,10 +354,17 @@ class sales_Routes extends core_Manager {
 	    		$cl->removeBlocks();
 	    		$cl->append2master();
 	    	}
+           
     	} else {
-    		$tpl->append("<li>" . tr('Не е включена в маршрут') . "</li>", 'ROW');
+            if($data->masterData->row->haveRoutes) {
+                $tpl->append(tr('Няма бъдещи посещения'), 'INFO');
+            } else {
+    		    $tpl->append(tr('Не е включена в маршрут'), 'INFO');
+            }
     	}
-    		
+
+        $tpl->removeBlocks();  
+
     	return $tpl;
     }
     

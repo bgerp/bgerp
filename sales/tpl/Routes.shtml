@@ -12,6 +12,7 @@
 				</ul>
 			</li>
 		<!--ET_END HEADER-->
+
 		<!--ET_BEGIN ROW-->
 		[#ROW#]
 			<li>
@@ -22,6 +23,10 @@
 				</ul>
 			</li>
 		<!--ET_END ROW-->
+
+		<!--ET_BEGIN INFO-->
+		<li style='padding:5px;'><i>[#INFO#]</i></li>
+		<!--ET_END INFO-->
 		</ul>
 	</div>
 </fieldset>
