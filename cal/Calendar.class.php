@@ -317,7 +317,7 @@ class cal_Calendar extends core_Master
         $url = getRetUrl($rec->url);
         $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
-        	$attr['style'] = 'background-image:url(' . sbf("img/16/beach.png") . ');';
+        	$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';
         } elseif($rec->type == 'sickday') {
         	$attr['style'] = 'background-image:url(' . sbf("img/16/sick.png") . ');';
         }else{
@@ -1139,7 +1139,7 @@ class cal_Calendar extends core_Master
 			$img = "<img class='calImg'  src=". sbf('img/16/end-date.png') .">&nbsp;";
 		
 		}elseif($type == 'leave'){
-			$img = "<img class='calImg'  src=". sbf('img/16/beach.png') .">&nbsp;";
+			$img = "<img class='calImg'  src=". sbf('img/16/leaves.png') .">&nbsp;";
 		} elseif($type == 'sickday'){
 			$img = "<img class='calImg'  src=". sbf('img/16/sick.png') .">&nbsp;";
 		}
