@@ -220,7 +220,8 @@ class pos_Receipts extends core_Master {
 	    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
 	    	$tpl->push('pos/js/scripts.js', 'JS');
 	    	$tpl->push($data->theme . '/style.css', 'CSS');
-	    	if($data->products && count($data->products->arr) > 0) {
+	    	
+	    	if($data->products->arr) {
 	    		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
 	    	}
     	}

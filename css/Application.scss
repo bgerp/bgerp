@@ -1640,6 +1640,9 @@ ul.history {
 		&.changed b {
 			background-color: #600;
 		}
+		&.forward b {
+			background-color: #900;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;

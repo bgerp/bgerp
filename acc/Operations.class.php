@@ -217,4 +217,25 @@ class acc_Operations extends core_Manager
     	return $rec;
     }
     
+    
+	/**
+     * За NULL-ява празните systemId
+     */
+    function on_BeforeSetupMvc($mvc, &$res) 
+    {
+        if($mvc->db->tableExists($mvc->dbTableName)) {
+            $query = $mvc->getQuery();
+            while($rec = $query->fetch()) {
+                $saveFlag = FALSE;
+                if($rec->systemId === '') {
+                    $rec->systemId = NULL;
+                    $saveFlag = TRUE;
+                }
+
+                if($saveFlag) {
+                    $mvc->save($rec);
+                }
+            }
+        }
+    }
 }

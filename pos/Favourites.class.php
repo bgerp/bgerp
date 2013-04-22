@@ -299,7 +299,7 @@ class pos_Favourites extends core_Manager {
     	}
     	
     	$row->productId .= $pack;
-    	$icon = sbf("img/16/package-icon.png");
+    	$icon = sbf("img/16/wooden-box.png");
     	$row->productId = ht::createLink($row->productId, array("cat_Products", 'single', $rec->productId), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
     }
 }

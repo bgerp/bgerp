@@ -330,8 +330,12 @@ class trz_Sickdays extends core_Master
 	            // Заглавие за записа в календара
 	            $calRec->title = "Болничен:{$personName}";
 	
+	            $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+	            $personId = array($personProfile->userId => 0);
+	            $user = type_Keylist::fromArray($personId);
+	            
 	            // В чии календари да влезе?
-	            $calRec->users = '';
+	            $calRec->users = $user;
 	            
 	            // Статус на задачата
 	            $calRec->state = $rec->state;

@@ -329,7 +329,7 @@ class pos_Reports extends core_Master {
     		} else {
     			$row->pack = cat_UoM::getTitleById($product->measureId);
     		}
-    		$icon = sbf("img/16/package-icon.png");
+    		$icon = sbf("img/16/wooden-box.png");
     		$row->value = $product->code . " - " . $product->name;
     		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $row->value), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
     	} else {

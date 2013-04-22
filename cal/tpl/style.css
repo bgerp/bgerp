@@ -1,7 +1,3 @@
-#calWeek {
-}
-
-
 div.block_left{
 	clear: both;
     padding: 0 10px 10px 0;
@@ -9,7 +5,6 @@ div.block_left{
     margin: 0 2em 1em 0;
     position: relative;
 }
-
 
 table.calTable{
 	max-width:87em;
@@ -20,7 +15,6 @@ table.calTable{
     border-collapse: collapse;
 	cellspacing: 2;
     colspan: 2;
-
 }
 
 table.mc-calendar {
@@ -30,22 +24,19 @@ table.mc-calendar {
 
 table.mc_calendar td.calWeekN {
 	color:black;
-	width:12em;
-	min-width:8em;
 	border: 2px solid #D1D7D1;
 	background-color: #D1D7D1;
 	height:2em;
+	vertical-align: top !important;
+	max-width:140px;
     font: small Arial,sans-serif;
 	font-size: 0.7em;
 	padding:1px;
-  
 }
 
 table.mc_calendar td.calWeek {
-	
 	color:black;
-	width:12em;
-	min-width:8em;
+	min-width:140px;
 	border: 2px solid #E8EFE8;
 	background-color: #E8EFE8;
 	height:2em;
@@ -53,11 +44,9 @@ table.mc_calendar td.calWeek {
 	font-size: 0.7em;
 	padding:1px;
 	cursor: pointer;
-  
 }
 
 table.mc_calendar td.calWeekTime {
-
 	max-width:3em;
 	min-width:3em;
     border-collapse: collapse;
@@ -66,10 +55,10 @@ table.mc_calendar td.calWeekTime {
 	height:2em;
 	font: small Arial,sans-serif;
 	font-size: 0.7em;
+	cursor: pointer;
 }
 
 table.mc_calendar td.calDayTime {
-	
 	color:black;
 	max-width:6em;
 	min-width:6em;
@@ -82,7 +71,6 @@ table.mc_calendar td.calDayTime {
 }
 
 table.mc_calendar td.calWeekH {
-	
 	color:black;
 	max-width:3em;
 	min-width:3em;
@@ -105,14 +93,12 @@ table.mc_calendar td.calDayH {
 	height:2em;
 	font: small Arial,sans-serif;
 	font-size: 0.7em;
-	
 }
 
 table.mc_calendar tr.calDayC {
-	
 	background-color: #D1D7D1;
-	
 }
+
 table.mc_calendar tr.calDayC .calWeekH, table.mc_calendar tr.calDayC .calDayH{
 	background:#e6e9e6;
 }
@@ -121,7 +107,6 @@ table.mc_calendar tr.calDayD .calWeekH, table.mc_calendar tr.calDayD .calDayH{
 	background:#f8faf8;
 }
 table.mc_calendar td.calDay {
-	
 	color:black;
 	min-width:20em;
 	border-collapse: collapse;
@@ -133,13 +118,11 @@ table.mc_calendar td.calDay {
 	background-color: #E8EFE8;
 	padding:1px;
 	cursor: pointer;
-
+	vertical-align:top;
 }
 
 table.mc_calendar td.calDayN {
 	color:black;
-	width:14em;
-	min-width:11em;
 	border: 2px solid #D1D7D1;
 	background-color: #D1D7D1;
 	height:2em;
@@ -147,9 +130,9 @@ table.mc_calendar td.calDayN {
 	font-size: 0.7em;
 	padding:1px;
 	cursor: pointer;
+	vertical-align:top;
 }
-
-                               
+                          
 img.calWeek{
 	float: right;
 	position: relative;
@@ -160,27 +143,24 @@ img.calWeekAdd{
 	float: right;
 	position: relative;
 	display:none;
-
 }
+
 .add-task-btn{
 	display: block;
 	width: 16px;
 	height: 16px;
 	position: absolute;
-	top: 50%;
-	margin-top: -8px;
+	top: 4px;
 	right: 5px;
 	cursor:pointer !important;
 }
+
 .task{
 	clear:both;
 	font-weight:normal;
-	margin:4px 2px;
+	margin:0px 2px 3px;
 	overflow:hidden;
 	white-space:nowrap;
-	 text-overflow: clip;
--o-text-overflow: clip;
--ms-text-overflow: clip;
 }
 .task img{
 	float:left;
@@ -194,7 +174,6 @@ img.calWeekAdd{
 	margin:0;
 }
 
-
 img.starImg{
 	width: 9px;
 	height: 9px;
@@ -203,26 +182,26 @@ img.starImg{
 
 table.mc_calendar td.mc-todayD {
 	border:solid 2px red;
-	colspan: 2;
 	height:2em;
+	vertical-align:top;
 	font: small Arial,sans-serif;
 	font-size: 0.7em;
 	background-color:#E8EFE8;
 }
 
 table.mc_calendar td.mc-todayN{
-
 	border:solid 2px red;
 	background-color: #D1D7D1;
 	height:2em;
     font: small Arial,sans-serif;
 	font-size: 0.7em;
 	colspan: 2;
-
+	vertical-align:top;
 }
 
 table.mc_calendar td .relative-holder{
 	position:relative;
+	padding-top:3px;
 }
 
 p.calWeek{
@@ -243,7 +222,6 @@ p.calWeek{
 }
 
 p.calLeave{
-	
 	border: 1px solid #e8a5bb;
 	background-image: url("nqkvo_pole5c.png");
 	margin-top:0.2em;
@@ -256,9 +234,7 @@ p.calLeave{
 	width: 8.3em;
 	overflow:hidden;
 	font-weight:normal ;
-
 }
-
 
 p.calTitle{
 	font: small Arial,sans-serif;
@@ -267,7 +243,6 @@ p.calTitle{
 	font-weight:bold;
 	line-height:150%;
 }
-
 
 td.mc-calendar {
 	text-align:left;
@@ -278,7 +253,6 @@ td.mc-calendar {
 	font-weight:bold;
 	cursor: pointer;
 }
-
 
 table.mc-calendar td.mc-day {
 	text-align:left;
@@ -294,7 +268,6 @@ table.mc-calendar td.mc-day {
 	border:solid 2px #e8efe8;
 	padding:1px;
 	cursor: pointer;
-
 }
 
 table.mc-calendar td.mc-week-nb {
@@ -309,9 +282,7 @@ table.mc-calendar td.mc-wd-name {
  	padding-left:1px;
     border-collapse: collapse;
 	colspan: 2;
-
 }
-
 
 table.mc-calendar td.mc-day:hover{
 	background-color: #ffff66;
@@ -337,7 +308,6 @@ table.mc-calendar td.mc-today:hover{
 	background-color: #ffff66;
 }
 
-
 table.mc_calendar td.mc-todayD:hover{
 	background-color: #ffff66;
 }
@@ -357,6 +327,7 @@ table.mc_calendar td.calWeekN:hover{
 table.mc_calendar td.calDayN:hover{
 	background-color: #ffff66;
 }
+
 table.mc_calendar td.calWeek{
 	max-width:140px;
 	vertical-align: top !important;
@@ -392,7 +363,6 @@ table.mc-calendar-year td.mc-day {
 	padding:1px;
 	font-weight:bold;
 	cursor: pointer;
-	
 }
 
 table.mc-calendar-year a.mc-day{
@@ -409,7 +379,6 @@ table.mc-calendar-year td.mc-wd-name {
  	padding-right:3px;
 }
 
-
 table.mc-calendar-year td.mc-sunday {
 	color:green;
 }
@@ -421,7 +390,6 @@ table.mc-calendar-year td.mc-holiday {
 table.mc-calendar-year td.mc-saturday {
 	color:#006030;
 }
-
 
 table.mc-calendar-year td.mc-day:hover {
 	background-color: #ffff66;
@@ -435,15 +403,15 @@ table.mc-calendar-year td.mc-today {
 	font-weight:bold;
 	width:2.8em;
 	cursor: pointer;
+	vertical-align:top;
 }
 
-
 .holiday{
-	color: red;
+	color: red;	
 }
 .saturday{
 	color: #006030;
 }
 .sunday{
-	color: green;
+	color: green;	
 }

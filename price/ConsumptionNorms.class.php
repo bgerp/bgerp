@@ -545,7 +545,7 @@ class price_ConsumptionNorms extends core_Master {
     	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 		
 		if($fields['-single']){
-			$icon = sbf("img/16/package-icon.png");
+			$icon = sbf("img/16/wooden-box.png");
 			$row->productId = ht::createLink($row->productId, array('cat_Products', 'single', $rec->productId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
 		
 			$dQuery = $mvc->price_ConsumptionNormDetails->getQuery();

@@ -33,8 +33,7 @@ class sales_Sales extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_RegisterIntf=sales_RegisterImpl,
-                          acc_TransactionSourceIntf=sales_TransactionSourceImpl,
-                          store_ShipmentIntf';
+                          acc_TransactionSourceIntf=sales_TransactionSourceImpl';
     
     
     /**
@@ -45,7 +44,7 @@ class sales_Sales extends core_Master
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
-                    doc_plg_BusinessDoc, acc_plg_Registry';
+                    doc_plg_BusinessDoc, acc_plg_Registry, store_plg_Shippable';
     
     
     /**

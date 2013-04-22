@@ -102,12 +102,8 @@ class bgerp_Notifications extends core_Manager
         $query = bgerp_Notifications::getQuery();
         $r = $query->fetch("#userId = {$rec->userId} AND #url = '{$rec->url}'");
         
-        // Ако съобщението е активно от преди това - увеличаваме брояча му
-        if ($r->state == 'active') {
-            $rec->cnt = $r->cnt + 1;
-        } else {
-            $rec->cnt = 1;
-        }
+        // Увеличаваме брояча
+        $rec->cnt = $r->cnt + 1;
         
         $rec->id = $r->id;
         $rec->state = 'active';
@@ -146,7 +142,6 @@ class bgerp_Notifications extends core_Manager
         
         while($rec = $query->fetch()) {
             $rec->state = 'closed';
-            $rec->cnt = 0;
             bgerp_Notifications::save($rec, 'state');
         }
     }

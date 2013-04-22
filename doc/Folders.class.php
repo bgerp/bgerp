@@ -392,7 +392,16 @@ class doc_Folders extends core_Master
                 $mustSave = TRUE;
             }
         }
-        
+
+    	if($isReject) {
+			$rec->state = 'rejected';
+			$mustSave = TRUE;
+		}
+
+		if($isRevert) {
+			$mustSave = TRUE;
+		}
+                
         if($mustSave) {
             if($isRevert || !$rec->state) {
                 $rec->state = 'open';

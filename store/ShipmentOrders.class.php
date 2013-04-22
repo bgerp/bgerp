@@ -25,7 +25,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'shp';
+    var $abbr = 'exp';
     
     
     /**
@@ -175,10 +175,9 @@ class store_ShipmentOrders extends core_Master
     
     public static function on_AfterCreate($mvc, $rec)
     {
-        if (!empty($rec->originId)) {
-            
-            $origin = doc_Containers::getDocument($rec->originId, 'store_ShipmentIntf');
-            
+        $origin = static::getOrigin($rec, 'store_ShipmentIntf');
+        
+        if ($origin) {
             $products = $origin->getShipmentProducts();
             
             foreach ($products as $p) {
@@ -346,7 +345,7 @@ class store_ShipmentOrders extends core_Master
         $form = $data->form;
         $rec  = &$form->rec;
         
-        $form->setDefault('valior', dt::now()); 
+        $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE))); 
         
         // Определняне на стойности по подразбиране на базата на пораждащия документ (ако има)
         $rec = $mvc->getDefaultsByOrigin($rec);
@@ -382,6 +381,22 @@ class store_ShipmentOrders extends core_Master
             array(''=>'') +
             crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
+        if (empty($rec->id)) {
+            // Ако създаваме нов запис и стойностите по подразбиране са достатъчни за валидиране
+            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
+            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
+            // е нужно в последствие.
+            
+            $form->validate(NULL, FALSE, (array)$form->rec);
+            
+            if (!$form->gotErrors()) {
+                if (self::save($form->rec)) {
+                    redirect(array($mvc, 'single', $form->rec->id));
+                }
+            } else {
+                $form->errors = array();
+            }
+        }
     }
     
     
@@ -396,9 +411,7 @@ class store_ShipmentOrders extends core_Master
      */
     public function getDefaultsByOrigin($rec)
     {
-        expect($rec->originId);
-        
-        $origin = doc_Containers::getDocument($rec->originId);
+        expect($origin = static::getOrigin($rec));
         
         if ($origin->rec('state') != 'active') {
             redirect(array('sales_Sales', 'single', $origin->rec('id')), FALSE, "Продажбата не е активна");
@@ -689,6 +702,26 @@ class store_ShipmentOrders extends core_Master
         
         $tpl->placeObject($total);
     }
+    
+    
+    /**
+     * Връща документа, породил зададения документ
+     * 
+     * @param int|object $id
+     * @param string $intf
+     * @return NULL|core_ObjectReference
+     */
+    public static function getOrigin($id, $intf = NULL)
+    {
+        $rec = static::fetchRec($id);
+        
+        if (!$rec->originId) {
+            return NULL;
+        }
+        
+        return doc_Containers::getDocument($rec->originId, $intf);
+    }
+    
     
     /**
      * 

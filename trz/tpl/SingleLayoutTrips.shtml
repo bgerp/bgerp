@@ -1,0 +1,44 @@
+[#SingleToolbar#]
+                 
+	<div class='document'>
+		<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#]'>Командировка <b>[#ident#]</b> ([#state#])</div>
+		</div>
+
+		
+			<br>
+			Служител: [#personId#] </br>
+				
+			<!--ET_BEGIN startDate-->
+            От: [#startDate#]<br>
+            <!--ET_END startDate-->
+
+			<!--ET_BEGIN toDate-->
+            До: [#toDate#]<br>
+            <!--ET_END toDate-->
+            
+			<!--ET_BEGIN place-->
+	        Место: [#place#]</br>                   
+			<!--ET_END place-->
+	
+			
+			<!--ET_BEGIN purpose-->
+	        Цел: [#purpose#] </br>                   
+			<!--ET_END purpose-->
+			
+			<!--ET_BEGIN amountRoad-->
+	        Пътни: [#amountRoad#] </br>                   
+			<!--ET_END amountRoad-->
+			
+			<!--ET_BEGIN amountDaily-->
+	        Дневни: [#amountDaily#] </br>                   
+			<!--ET_END amountDaily-->
+			
+			<!--ET_BEGIN amountHouse-->
+	        Квартирни: [#amountHouse#] </br>                   
+			<!--ET_END amountHouse-->
+
+        [#DETAILS#]
+   
+        <div style='clear: both;'></div>
+    </div>         

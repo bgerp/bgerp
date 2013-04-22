@@ -34,6 +34,8 @@ class log_Wrapper extends plg_ProtoWrapper
         if (!empty($url['containerId'])) {
             $this->TAB(array_merge($url, array('action'=>'open')), 'Виждания', 'admin, doc');
             $this->TAB(array_merge($url, array('action'=>'download')), 'Сваляния', 'admin, doc');
+            $this->TAB(array_merge($url, array('action'=>'changed')), 'Промени', 'admin, doc');
+            $this->TAB(array_merge($url, array('action'=>'forward')), 'Препращания', 'admin, doc');
             
 //            $urlFiles = $url;
 //            $urlFiles[0] = 'log_Files';

@@ -264,7 +264,7 @@ class cal_Calendar extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px');
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->setDefault('from', date('Y-m-d'));
+        $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->view = 'horizontal';
         
@@ -279,10 +279,6 @@ class cal_Calendar extends core_Master
         }
         
         $data->listFilter->input('selectedUsers, from', 'silent');
-
-        setIfNot($data->listFilter->rec->from,  date('Y-m-d'));
-        setIfNot($data->listFilter->rec->selectedUsers,  '|' . core_Users::getCurrent() . '|');
-
     }
 
     
@@ -320,9 +316,11 @@ class cal_Calendar extends core_Master
         	$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';
         } elseif($rec->type == 'sickday') {
         	$attr['style'] = 'background-image:url(' . sbf("img/16/sick.png") . ');';
+        }elseif($rec->type == 'trip'){
+			$attr['style'] = 'background-image:url(' . sbf("img/16/working-travel.png") . ');';    		
         }else{
-        	$attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
-   		}
+         	$attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
+    	}
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
         }
@@ -547,7 +545,7 @@ class cal_Calendar extends core_Master
             if(!isset($data[$i])) {
                 $data[$i] = new stdClass();
             }
-            $data[$i]->url = toUrl(array('cal_Calendar', Mode::is('screenMode', 'narrow') ? 'day' : 'week', 'from' => "{$i}-{$month}-{$year}"));;
+            $data[$i]->url = toUrl(array('cal_Calendar', 'list', 'from' => "{$i}-{$month}-{$year}"));;
         }
 
         $tpl = new ET("[#MONTH_CALENDAR#] <br> [#AGENDA#]");
@@ -774,7 +772,7 @@ class cal_Calendar extends core_Master
     {
     	$fromFilter = $data->listFilter->rec->from;
     	$fromFilter = explode("-", $fromFilter);
- 
+  
         for($i = 0; $i < 7; $i++){
         	$days[$i] = dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $fromFilter[1], $fromFilter[2] + $i - 3, $fromFilter[0])),'l'). "<br>".
         				dt::mysql2Verbal(date("Y-m-d", mktime(0, 0, 0, $fromFilter[1], $fromFilter[2] + $i - 3, $fromFilter[0])),'d.m.Y');
@@ -1024,7 +1022,7 @@ class cal_Calendar extends core_Master
     }
   
     /**
-     * Намира началното и крайното време за деня.
+     * Намира началната и крайната дата за деня.
      * Взима данни от филтъра
      */
     static function getFromToDay($data)
@@ -1040,7 +1038,6 @@ class cal_Calendar extends core_Master
         return $from;
     }
     
-
     /**
      * Намира началната и крайната дата за седмицата.
      * Взима данни от филтъра
@@ -1139,9 +1136,11 @@ class cal_Calendar extends core_Master
 			$img = "<img class='calImg'  src=". sbf('img/16/end-date.png') .">&nbsp;";
 		
 		}elseif($type == 'leave'){
-			$img = "<img class='calImg'  src=". sbf('img/16/leaves.png') .">&nbsp;";
+ 	        $img = "<img class='calImg'  src=". sbf('img/16/leaves.png') .">&nbsp;"; 		
 		} elseif($type == 'sickday'){
 			$img = "<img class='calImg'  src=". sbf('img/16/sick.png') .">&nbsp;";
+		}elseif($type == 'trip'){
+			$img = "<img class='calImg'  src=". sbf('img/16/working-travel.png') .">&nbsp;";
 		}
 			
 		return $img;
@@ -1242,7 +1241,7 @@ class cal_Calendar extends core_Master
 	     		$img = self::getIconByType($rec->type, $rec->key);
 				
 	     		if($hourKey == "allDay" ){
-	     			if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task') {
+	     			if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task' || $rec->type == 'trip') {
 	     				$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			} else {
 	     				$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
@@ -1303,7 +1302,7 @@ class cal_Calendar extends core_Master
 	            $img = self::getIconByType($rec->type, $rec->key);
 	            
 	            if($hourKey == "allDay"){
-	            	if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task'){
+	            	if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task' || $rec->type == 'trip'){
 	            		$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	            	} else {
 	            		$weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
@@ -1376,7 +1375,7 @@ class cal_Calendar extends core_Master
 	            $img = self::getIconByType($rec->type, $rec->key);
 	            
 	        	if($hourKey == "allDay" ){
-	     			if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task') {
+	     			if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task' || $rec->type == 'trip') {
 	     				$monthDate->monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title. "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			} else {
 	     				$monthDate->monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
@@ -1685,8 +1684,17 @@ class cal_Calendar extends core_Master
     		document.location = '{$urlWeek}?timeStart[d]=' + dt;
 		}";
     	
+    	$urlCal = toUrl(array('cal_Calendar', 'week'));
+    	$jsCalFnc = "
+    	function goToWeekDate(dt)
+    	{
+    		document.location = '{$urlCal}?from=' + dt;
+		}";
+    	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
     	$tpl->appendOnce($jsDblFnc, 'SCRIPTS');
+    	$tpl->appendOnce($jsCalFnc, 'SCRIPTS');
+    	
  
     
     	
@@ -1733,6 +1741,13 @@ class cal_Calendar extends core_Master
 		     // задаваме уникално ид
 		    for($j = 0; $j < 26; $j++){
 		
+		    	if($h == '0') {
+		    		$h = '24';
+		    	} 
+		    	/*elseif($h == 'allDay'){
+		    		$h = '25';
+		    	}*/
+		    	
 				// Линкове на картинката
 				$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
 				

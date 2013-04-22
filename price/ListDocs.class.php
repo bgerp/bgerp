@@ -40,12 +40,6 @@ class price_ListDocs extends core_Master
      */
     var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg';
-                    
-    
-    /**
-	 * Брой дeтайли на страница
-	 */
-	var $listDetailsPerPage = '60';
     
     
     /**
@@ -194,7 +188,7 @@ class price_ListDocs extends core_Master
     private function prepareDetails(&$data)
     {
     	// Подготвяме продуктите спрямо избраните групи
-	    $this->prepareSelectedProducts($data);
+	    $this->prepareProducts($data);
 	    	
 	    // Намираме цената на всички продукти
 	    $this->calculateProductsPrice($data);
@@ -206,7 +200,7 @@ class price_ListDocs extends core_Master
      * на групите показваме всички продукти, ако има ограничение - само тези
      * които са в посочените групи
      */
-    private function prepareSelectedProducts(&$data)
+    private function prepareProducts(&$data)
     {
     	$rec = &$data->rec;
     	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date); 
@@ -249,19 +243,10 @@ class price_ListDocs extends core_Master
 	    	$rec->details->rows[] = $product;
     		
     		// За всяка от избраните опаковки
-    		foreach($packArr as $pack){
-    			
-    			// Проверяваме продукта поддържали избраната
-    			// опаковка ако поддържа и изчислява цената
-    			if($pInfo = cat_Products::getProductInfo($product->productId, $pack)){
-    				$clone = clone $product;
-    				$price = price_ListRules::getPrice($rec->policyId, $product->productId, $pack, $rec->date);
-    				$clone->price = $pInfo->packagingRec->quantity * $price;
-    				$clone->pack = $pack;
-    				$clone->perPack = $pInfo->packagingRec->quantity;
-    				$clone->eanCode = $pInfo->packagingRec->eanCode;
-    				$clone->code = $pInfo->packagingRec->customCode;
-    				$rec->details->rows[] = $clone;
+    		foreach($packArr as $packId){
+    			$object = $this->calculateProductWithPack($rec, $product, $packId);
+    			if($object) {
+    				$rec->details->rows[] = $object;
     			}
     		}
     	}
@@ -270,38 +255,63 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Обръщане на детаила във вербален вид
-     * @param stdClass $detailRec - запис на детайла
-     * @return stdClass $detailRow - вербално представяне на детайла
+     * Проверяване дали продукта поддържа избраната опаковка 
+     * ако поддържа и изчислява цената, и ъпдейтва информацията
+     * @param stdClass $rec - записа от модела
+     * @param stdClass $product - информацията за продукта
+     * @param int $packId - ид на опаковката
+     * @return stdClass $clone - информация за продукта с опаковката
      */
-    private function getVerbalDetail($detailRec)
+    private function calculateProductWithPack($rec, $product, $packId)
+    {
+    	if($info = cat_Products::getProductInfo($product->productId, $packId)){
+    		$clone = clone $product;
+    		$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packId, $rec->date);
+    		$clone->price = $info->packagingRec->quantity * $price;
+    		$clone->perPack = $info->packagingRec->quantity;
+    		$clone->eanCode = $info->packagingRec->eanCode;
+    		$clone->code = $info->packagingRec->customCode;
+    		$clone->pack = $packId;
+    		
+    		return $clone;
+    	}
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Обръщане на детайла във вербален вид
+     * @param stdClass $rec - запис на детайла
+     * @return stdClass $row - вербално представяне на детайла
+     */
+    private function getVerbalDetail($rec)
     {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	
-    	$detailRow = new stdClass();
-    	$detailRow->productId = cat_Products::getTitleById($detailRec->productId);
+    	$row = new stdClass();
+    	$row->productId = cat_Products::getTitleById($rec->productId);
     	
     	if(!Mode::is('printing')){
-	    	$icon = sbf("img/16/package-icon.png");
-	    	$url = array('cat_Products', 'single', $detailRec->productId);
-			$detailRow->productId = ht::createLink($detailRow->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+	    	$icon = sbf("img/16/wooden-box.png");
+	    	$url = array('cat_Products', 'single', $rec->productId);
+			$row->productId = ht::createLink($row->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
     	}
     	
-		if($detailRec->pack){
-    		$detailRow->pack = cat_Packagings::getTitleById($detailRec->pack);
-    		$measureShort = cat_UoM::fetchField($detailRec->measureId, 'shortName');
-    		$detailRow->pack .= " &nbsp;({$detailRec->perPack} {$measureShort})";
+		if($rec->pack){
+    		$row->pack = cat_Packagings::getTitleById($rec->pack);
+    		$measureShort = cat_UoM::fetchField($rec->measureId, 'shortName');
+    		$row->pack .= " &nbsp;({$rec->perPack} {$measureShort})";
 		} else {
-    		$detailRow->measureId = cat_UoM::getTitleById($detailRec->measureId);
+    		$row->measureId = cat_UoM::getTitleById($rec->measureId);
     	}
     	
-    	$detailRow->price = $double->toVerbal($detailRec->price);
-    	$detailRow->code = $varchar->toVerbal($detailRec->code);
-    	$detailRow->eanCode = $varchar->toVerbal($detailRec->eanCode);
+    	$row->price = $double->toVerbal($rec->price);
+    	$row->code = $varchar->toVerbal($rec->code);
+    	$row->eanCode = $varchar->toVerbal($rec->eanCode);
     	
-    	return $detailRow;
+    	return $row;
     }
     
     
@@ -341,8 +351,6 @@ class price_ListDocs extends core_Master
 					$groupTpl = clone $detailTpl;
 					$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP');
 					foreach ($products as $row){
-						
-						// Показваме информацията с продукта
 		    			$row = $this->getVerbalDetail($row);
 		    			$rowTpl = $groupTpl->getBlock('ROW');
 			    		$rowTpl->placeObject($row);
