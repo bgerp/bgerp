@@ -25,7 +25,12 @@
                         <div style="padding-top:5px;">Място / Place</div>
                         <div class="bigData">[#dealPlace#]</div>
 
-                        <div style="padding-top:5px;" class="bigData"><font color="999999"><b>|ОРИГИНАЛ|*/<i>ORIGINAL</i></b></font></div>
+                        <div style="padding-top:5px;" class="bigData">
+                        	<font color="999999"><b>|ОРИГИНАЛ|*/<i>ORIGINAL</i></b></font><br />
+                        	<!--ET_BEGIN POS-->
+                        	<span style='font-weight:normal;'>[#POS#]</span>
+                        	<!--ET_ENDIN POS-->
+                        </div>
                     </td>
                     <td class="cell" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
                 </tr>           

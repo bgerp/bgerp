@@ -50,12 +50,6 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Дали може да бъде само в началото на нишка
-     */
-    var $onlyFirstInThread = TRUE;
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'number, vatDate, contragentName, contragentVatNo, contragentCountryId ';
@@ -407,6 +401,7 @@ class sales_Invoices extends core_Master
         }
     }
     
+    
     /**
      * Попълване на шаблона на единичния изглед с данни на доставчика (Моята фирма)
      * 
@@ -426,6 +421,17 @@ class sales_Invoices extends core_Master
         $tpl->replace($ownCompanyData->country, 'MyCountry');
         $tpl->replace($address, 'MyAddress');
         $tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if($rec->docType && $rec->docId){
+    		$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
+    	}
     }
     
     
