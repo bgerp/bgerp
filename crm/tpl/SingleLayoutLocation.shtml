@@ -22,6 +22,9 @@
 					<li class="info">
 			        	<span class="gray-title">GLN |код|*:</span> [#gln#]
 					</li>
+					<li class="info">
+			        	[#comment#]
+					</li>
 		         </ul> 
 		     </div>
 	      </fieldset>
@@ -42,24 +45,11 @@
 				<div><span class="gray-title">|Адрес|*:</span> [#address#]</div>
 			 <!--ET_END address-->
 			</div>
-		  </fieldset>
+		</fieldset>
 		  
-		 <!--ET_BEGIN ROUTES-->
+		<!--ET_BEGIN ROUTES-->
 		  [#routes#]
-		 <!--ET_END ROUTES-->
-		 
- 		 <!--ET_BEGIN comment-->
- 		 <fieldset class="detail-info">
-	        <legend class="groupTitle">|Бележки|*</legend>
-	        <div class="groupList">
-		         <ul>  
-			        <li class="info">
-			        	[#comment#]
-					</li>
-		         </ul>  
-	         </div>
-	      </fieldset>
-	      <!--ET_END comment-->
+		<!--ET_END ROUTES-->
 	     
 		<!--ET_BEGIN gpsCoords-->
 		<div class="loc-map">
