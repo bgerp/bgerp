@@ -696,7 +696,8 @@ class doc_Containers extends core_Manager
             list($order, $group) = explode('|', $mvc->newBtnGroup);
 
             if($mvc->haveRightFor('add', $rec)) {
-                $docArrSort[$order*1000] = array($group, $mvc->singleTitle, $class);
+                $ind = $order*10000 + $i++;
+                $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
             }
         }
         
