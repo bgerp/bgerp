@@ -19,8 +19,11 @@
 			        <li class="info">
 			        	<span class="gray-title">|Тип|*:</span> [#type#]
 					</li>
-		         </ul>  
-	         </div>
+					<li class="info">
+			        	<span class="gray-title">GLN |код|*:</span> [#gln#]
+					</li>
+		         </ul> 
+		     </div>
 	      </fieldset>
 	     
 		  <fieldset class="detail-info">
@@ -38,9 +41,6 @@
 			 <!--ET_BEGIN address-->
 				<div><span class="gray-title">|Адрес|*:</span> [#address#]</div>
 			 <!--ET_END address-->
-			 <!--ET_BEGIN gln-->
-			 <div><span class="gray-title">GLN |код|*:</span> [#gln#]</div>
-			 <!--ET_END gln-->
 			</div>
 		  </fieldset>
 		  
