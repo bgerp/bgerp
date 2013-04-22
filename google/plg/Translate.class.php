@@ -48,7 +48,7 @@ EOT;
         if ($rec->lg != core_Lg::getCurrent() && 
             !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
             !Mode::is('text', 'plain')  &&
-            $fields['-single']
+            $fields['-single'] && trim($row->textPart)
              ) {
 
             $row->textPart = new core_ET(
