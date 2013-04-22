@@ -193,7 +193,6 @@ class bgerp_Notifications extends core_Manager
             }
             
             self::save($rec);
-//            bp($rec);
         }
     }
 
