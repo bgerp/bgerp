@@ -313,11 +313,14 @@ class cal_Calendar extends core_Master
         $url = getRetUrl($rec->url);
         $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
-        	$attr['style'] = 'background-image:url(' . sbf("img/16/beach.png") . ');';
+        	$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';
         } elseif($rec->type == 'sickday') {
         	$attr['style'] = 'background-image:url(' . sbf("img/16/sick.png") . ');';
+        }elseif($rec->type == 'trip'){
+			$attr['style'] = 'background-image:url(' . sbf("img/16/working-travel.png") . ');';    		
         }else{
-			$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';    		}
+         $attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
+    	}
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
         }
@@ -1681,8 +1684,17 @@ class cal_Calendar extends core_Master
     		document.location = '{$urlWeek}?timeStart[d]=' + dt;
 		}";
     	
+    	$urlCal = toUrl(array('cal_Calendar', 'week'));
+    	$jsCalFnc = "
+    	function goToWeekDate(dt)
+    	{
+    		document.location = '{$urlCal}?from=' + dt;
+		}";
+    	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
     	$tpl->appendOnce($jsDblFnc, 'SCRIPTS');
+    	$tpl->appendOnce($jsCalFnc, 'SCRIPTS');
+    	
  
     
     	
