@@ -219,9 +219,9 @@ class sales_Invoices extends core_Master
         $form = $data->form;
         
         if (!$form->rec->id) {
-            // При създаване на нова ф-ра зареждаме полетата на 
+            
+        	// При създаване на нова ф-ра зареждаме полетата на 
             // формата с разумни стойности по подразбиране.
-             
             $mvc::setFormDefaults($form);
         }
         
@@ -229,6 +229,9 @@ class sales_Invoices extends core_Master
     }
     
     
+    /**
+     * След изпращане на формата
+     */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if (!$form->isSubmitted()) {
@@ -275,8 +278,6 @@ class sales_Invoices extends core_Master
     		$origin = cls::get($rec->docType);
     		$products = $origin->getShipmentProducts($rec->docId);
     	}
-    	
-    	
     	
     	if(isset($products) && count($products) != 0){
 	    	
@@ -384,6 +385,9 @@ class sales_Invoices extends core_Master
     }
     
     
+    /**
+     * Преди запис в модела
+     */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
         if (empty($rec->vatDate)) {
@@ -516,16 +520,12 @@ class sales_Invoices extends core_Master
         
         if (!empty($rec->contragentCountryId)) {
             $currencyCode    = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
-            $rec->currencyId = currency_Currencies::fetchField("#code = '{$currencyCode}'", 'id');
+            $rec->currencyId = currency_Currencies::getIdByCode($currencyCode);
             
             if ($rec->currencyId) {
-                // Задаване на избор за банкова сметка.
-                $ownBankAccounts = bank_Accounts::makeArray4Select('iban',
-                    "#contragentCls = " . crm_Companies::getClassId() . " AND " .
-                    "#contragentId  = " . BGERP_OWN_COMPANY_ID
-                );
-                
-                $form->getField('accountId')->type->options = $ownBankAccounts;
+            	
+                // Задаване на избор за банкова сметка
+                $form->getField('accountId')->type->options = bank_OwnAccounts::getOwnAccounts();
             }
         }
     }
@@ -571,6 +571,7 @@ class sales_Invoices extends core_Master
     {
     	if($action == 'edit' && isset($rec->id)){
     		
+    		// Фактурата неможе се едитва, ако е възоснова на продажба
     		if($rec->originId || ($rec->docType && $rec->docId)){
     			$res = 'no_one';
     		}
@@ -677,38 +678,36 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-        
 		$row = new stdClass();
-
         $row->title = "Фактура №{$rec->number}";
-        
         $row->author = $this->getVerbal($rec, 'createdBy');
-        
         $row->authorId = $rec->createdBy;
-        
         $row->state = $rec->state;
-        
         $row->recTitle = $row->title;
         
         return $row;
     }
     
     
+   /**
+    * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+    */
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        
         $number = $self->fetchField($id, 'number');
-        
         return $self->abbr . $number;
     } 
     
     
+   /**
+    * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+    */
     public static function fetchByHandle($parsedHandle)
     {
         return static::fetch("#number = '{$parsedHandle['id']}'");
