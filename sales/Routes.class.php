@@ -282,7 +282,10 @@ class sales_Routes extends core_Manager {
     		$routeArr['tools'] = $row->tools;
     		$routeArr['salesmanId'] = $row->salesmanId;
     		if($data->masterData->rec->state != 'rejected'){
-    			$routeArr['nextVisit'] = $this->calcNextVisit($rec);
+                $nextVisit = $this->calcNextVisit($rec);
+    			if($nextVisit) {
+                    $routeArr['nextVisit'] = $nextVisit;
+                }
     		}
     		
     		$results[] = (object)$routeArr;
@@ -301,8 +304,9 @@ class sales_Routes extends core_Manager {
     {
     	$nowTs = dt::mysql2timestamp(dt::now());
     	$interval = 24 * 60 * 60 * 7;
-    	
-    	if(!$rec->dateFld) break;
+
+    	if(!$rec->dateFld) return;
+
     	$startTs = dt::mysql2timestamp($rec->dateFld);
     	$diff = $nowTs - $startTs;
     	if($diff < 0){
