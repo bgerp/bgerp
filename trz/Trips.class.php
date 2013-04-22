@@ -74,6 +74,11 @@ class trz_Trips extends core_Master
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,trz';
+    
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "5.2|Човешки ресурси"; 
  
     
     /**
