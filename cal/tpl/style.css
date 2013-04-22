@@ -182,6 +182,7 @@ img.starImg{
 table.mc_calendar td.mc-todayD {
 	border:solid 2px red;
 	height:2em;
+	vertical-align:top;
 	font: small Arial,sans-serif;
 	font-size: 0.7em;
 	background-color:#E8EFE8;
