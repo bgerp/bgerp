@@ -232,6 +232,111 @@ class core_Form extends core_FieldSet
     
     
     /**
+     * Валидиране полетата на форма с възможност за други стойности
+     * 
+     * @param string|array $fields
+     * @param boolean $silent
+     * @param array $values
+     * @return boolean
+     */
+    public function validate($fields = NULL, $silent = FALSE, $values = NULL)
+    {
+        $fields = $fields ? $fields : $this->showFields;
+        
+        if ($fields) {
+            $fields = $this->selectFields("", $fields);
+        } elseif($silent) {
+            $fields = $this->selectFields("#silent == 'silent'");
+        } else {
+            $fields = $this->selectFields("#input != 'none'");
+        }
+        
+        if (!count($fields)) return FALSE;
+        
+        foreach ($fields as $name => $field) {
+        
+            expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
+        
+            $value = isset($values[$name]) ? $values[$name] : Request::get($name);
+        
+            // Ако $silent, не сме критични към празните стойности
+            if(($value === NULL) && $silent) continue;
+        
+            if ($value === "" && $field->mandatory) {
+                $this->setError($name, "Непопълнено задължително поле" .
+                    "|* <b>'|{$field->caption}|*'</b>!");
+                continue;
+            }
+        
+            $type = $field->type;
+        
+            // Предаваме някои свойства на полето на типа
+            $options = $field->options;
+        
+            // Ако във формата има опции, те отиват в типа
+            if(count($options)) {
+                $type->options = $options;
+            }
+        
+            // Правим проверка, дали избраната стойност е от множеството
+            if (is_array($options) && !is_a($type, 'type_Key')) {
+                // Не могат да се селектират неща които не са опции
+                if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
+                    $this->setError($name, "Невъзможна стойност за полето" .
+                        "|* <b>|{$field->caption}|*</b>!");
+                    continue;
+                }
+        
+                // Не могат да се селектират групи!
+                if (is_object($options[$value]) && $options[$value]->group) {
+                    $this->setError($name, "Група не може да бъде стойност за полето" .
+                        "|* <b>|{$field->caption}|*</b>!");
+                    continue;
+                }
+        
+                // Празна опция се приема според типа. Числата стават NULL
+                if($options[$value] === '' && $value === '') {
+                    $value = $type->fromVerbal($value);
+                }
+            } else {
+        
+                $value = $type->fromVerbal($value);
+        
+                // Вдигаме грешка, ако стойността от Request
+                // не може да се конвертира към вътрешния тип
+                if ($type->error) {
+        
+                    $result = array('error' => $type->error);
+        
+                    $this->setErrorFromResult($result, $field, $name);
+        
+                    continue;
+                }
+        
+                if (($value === NULL || $value === '') && $field->mandatory) {
+                    $this->setError($name, "Непопълнено задължително поле" .
+                        "|* <b>'|{$field->caption}|*'</b>!");
+                    continue;
+                }
+        
+                // Валидиране на стойността чрез типа
+                $result = $type->isValid($value);
+        
+                // Ако имаме нова стойност след валидацията - присвояваме я.
+                // По този начин стойността се 'нормализира'
+                if ($result['value']) {
+                    $value = $result['value'];
+                }
+        
+                $this->setErrorFromResult($result, $field, $name);
+            }
+        
+            $this->rec->{$name} = $value;
+        }        
+    }
+    
+    
+    /**
      * Задава екшън-а на формата
      */
     function setAction($params)
