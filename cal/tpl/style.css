@@ -55,6 +55,7 @@ table.mc_calendar td.calWeekTime {
 	height:2em;
 	font: small Arial,sans-serif;
 	font-size: 0.7em;
+	cursor: pointer;
 }
 
 table.mc_calendar td.calDayTime {
@@ -404,11 +405,11 @@ table.mc-calendar-year td.mc-today {
 }
 
 .holiday{
-	color: red;
+	color: red;	
 }
 .saturday{
 	color: #006030;
 }
 .sunday{
-	color: green;
+	color: green;	
 }

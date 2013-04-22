@@ -319,7 +319,7 @@ class cal_Calendar extends core_Master
         }elseif($rec->type == 'trip'){
 			$attr['style'] = 'background-image:url(' . sbf("img/16/working-travel.png") . ');';    		
         }else{
-         $attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
+         	$attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
     	}
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
@@ -1741,6 +1741,13 @@ class cal_Calendar extends core_Master
 		     // задаваме уникално ид
 		    for($j = 0; $j < 26; $j++){
 		
+		    	if($h == '0') {
+		    		$h = '24';
+		    	} 
+		    	/*elseif($h == 'allDay'){
+		    		$h = '25';
+		    	}*/
+		    	
 				// Линкове на картинката
 				$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
 				
