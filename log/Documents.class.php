@@ -71,12 +71,18 @@ class log_Documents extends core_Manager
      */
     var $listFields = 'createdOn, createdBy, action=Какво, containerId=Кое, dataBlob';
     
+    
+    /**
+     * 
+     */
     var $listFieldsSet = array(
         self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, cc=Копие, receivedOn=Получено, returnedOn=Върнато',
         self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOnTime=Видяно',
         self::ACTION_OPEN => 'seenOnTime=Дата, seenFromIp=IP, reason=Основание',
         self::ACTION_DOWNLOAD => 'fileHnd=Файл, seenOnTime=Свалено->На, seenFromIp=Свалено->От',
+        self::ACTION_CHANGE => 'createdOn=Променено->На, createdBy=Променено->От, field=Поле, oldValue=Стара стойност',
     );
+    
     
     /**
      * Масов-кеш за историите на контейнерите по нишки
@@ -102,6 +108,7 @@ class log_Documents extends core_Manager
     const ACTION_FAX     = 'fax';
     const ACTION_PDF     = 'pdf';
     const ACTION_DOWNLOAD = 'download';
+    const ACTION_CHANGE = 'changed';
     
     
     /**
@@ -119,6 +126,7 @@ class log_Documents extends core_Manager
             self::ACTION_FAX     . '=факс',
             self::ACTION_PDF     . '=PDF',
             self::ACTION_DOWNLOAD . '=сваляне',
+            self::ACTION_CHANGE . '=промяна',
         );
         
         // Тип на събитието
@@ -142,7 +150,7 @@ class log_Documents extends core_Manager
         
         $this->FNC('data', 'text', 'input=none,column=none');
         $this->FNC('seenOnTime', 'datetime(format=smartTime)', 'input=none');
-        $this->FNC('seenFrom', 'key(mvc=core_Users)', 'input=none');
+        $this->FNC('seenFrom', 'user', 'input=none');
         $this->FNC('receivedOn', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('returnedOn', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('seenFromIp', 'ip', 'input=none');
@@ -194,7 +202,7 @@ class log_Documents extends core_Manager
             expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
         }
 
-        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD))) {
+        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE))) {
             $rec->mid = static::generateMid();
         }
         
@@ -301,7 +309,7 @@ class log_Documents extends core_Manager
     
         static::save($retRec);
 
-        $msg = "Върнато писмо: " . doc_Containers::getDocTitle($sendRec->containerId);
+        $msg = tr("Върнато писмо|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
     
         // Нотификация за връщането на писмото до изпращача му
         bgerp_Notifications::add(
@@ -349,7 +357,7 @@ class log_Documents extends core_Manager
     
         static::save($rcvRec);
         
-        $msg = "Потвърдено получаване: " . doc_Containers::getDocTitle($sendRec->containerId);
+        $msg = tr("Потвърдено получаване|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
         
         // Нотификация за получаване на писмото до адресата.
         /*
@@ -450,11 +458,80 @@ class log_Documents extends core_Manager
         
         static::pushAction($action);
         
-        $msg = "Видян документ: " . doc_Containers::getDocTitle($action->containerId);
+        $msg = tr("Видян документ|*: ") . doc_Containers::getDocTitle($action->containerId);
         
         core_Logs::add('doc_Containers', $action->containerId, $msg);
         
         return $action;
+    }
+    
+    
+    /**
+     * Отбелязва като променен някой документ
+     * 
+     * @param integer $containerId - id на контейнера
+     * @param integer $threadId - id на треда
+     */
+    public static function changed($logRecArr)
+    {
+        // Екшъна за проманя
+        $changeAction = static::ACTION_CHANGE;
+        
+        // Обхождаме масива с логовете
+        foreach ((array)$logRecArr as $logRec) {
+            
+            // Ако има docId и docClass
+            if ($logRec->docId && $logRec->docClass) {
+                
+                // Инстанция на класа
+                $docClass = cls::get($logRec->docClass);
+                
+                // Записите за съответния клас
+                $dRec = $docClass->fetch($logRec->docId);
+                
+                // id на контейнера
+                $containerId = $dRec->containerId;
+                
+                // id на треда
+                $threadId = $dRec->threadId;
+                
+                // Ако няма запис
+                if (!$rec) {
+                    
+                    // Вземаме записа, ако има такъв
+                    $rec = static::fetch("#containerId = '{$containerId}' AND #action = '{$changeAction}'");
+                    
+                    // Ако няма запис
+                    if (!$rec) {
+                        
+                        // Създаваме обект с данни
+                        $rec = (object)array(
+                            'action' => $changeAction,
+                            'containerId' => $containerId,
+                            'threadId' => $threadId,
+                            'data' => new stdClass(),
+                        );    
+                    }
+                }
+                
+                // Добавяме данните
+                $rec->data->{$changeAction}[$logRec->id] = array(
+                    'docId' => $logRec->docId,
+                    'docClass' => $logRec->docClass
+                );
+            }
+        }
+        
+        // Пушваме съответното действие
+        static::pushAction($rec);
+        
+        // Съобщение в лога
+        $msg = tr("Редактиран документ|*: ") . doc_Containers::getDocTitle($containerId);
+        
+        // Добавяме запис в лога
+        core_Logs::add('doc_Containers', $rec->containerId, $msg);
+        
+        return $rec;
     }
     
     
@@ -521,7 +598,7 @@ class log_Documents extends core_Manager
         static::pushAction($rec);
         
         // Добавяме запис в лога
-        $msg = "Свален файл: " . fileman_Download::getDownloadLink($fh);
+        $msg = tr("Свален файл|*: ") . fileman_Download::getDownloadLink($fh);
         
         core_Logs::add('doc_Containers', $rec->containerId, $msg);
 
@@ -653,18 +730,19 @@ class log_Documents extends core_Manager
         
         $open = self::ACTION_OPEN;
         $download = self::ACTION_DOWNLOAD;
+        $change = self::ACTION_CHANGE;
         
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
-            if (($rec->action != $open) && ($rec->action != $download)) {
+            if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change)) {
                 $data[$rec->containerId]->summary[$rec->action] += 1;
             }
-            
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
+            $data[$rec->containerId]->summary[$change] += count($rec->data->{$change});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
-        
+
         return $data;
     }
     
@@ -728,6 +806,7 @@ class log_Documents extends core_Manager
                 static::ACTION_PRINT   => array('отпечатване', 'отпечатвания'),
                 static::ACTION_OPEN   => array('виждане', 'виждания'),
                 static::ACTION_DOWNLOAD => array('сваляне', 'сваляния'),
+                static::ACTION_CHANGE => array('промяна', 'промени'),
             );
         }
 
@@ -741,6 +820,7 @@ class log_Documents extends core_Manager
                 static::ACTION_PDF     => static::ACTION_PRINT,
                 static::ACTION_OPEN    => static::ACTION_OPEN,
                 static::ACTION_DOWNLOAD    => static::ACTION_DOWNLOAD,
+                static::ACTION_CHANGE    => static::ACTION_CHANGE,
             );
         }
         
@@ -843,6 +923,7 @@ class log_Documents extends core_Manager
             || $action == static::ACTION_PRINT 
             || $action == static::ACTION_OPEN
             || $action == static::ACTION_DOWNLOAD
+            || $action == static::ACTION_CHANGE
         );
         
         return $action;
@@ -870,6 +951,10 @@ class log_Documents extends core_Manager
             case $mvc::ACTION_DOWNLOAD:
                 $mvc->currentTab = 'Сваляния';
                 $mvc::prepareDownloadSubset($data);
+                break;
+            case $mvc::ACTION_CHANGE:
+                $mvc->currentTab = 'Промени';
+                $mvc::prepareChangeSubset($data);
                 break;
             default:
                 expect(FALSE);
@@ -967,7 +1052,7 @@ class log_Documents extends core_Manager
         // Обхождаме записите
         foreach ($recs as $id=>$rec) {
             
-            // Ако няма зададени действия пррскачаме
+            // Ако няма зададени действия прескачаме
             if (count($rec->data->{$download}) == 0) {
                 
                 continue;
@@ -1001,6 +1086,55 @@ class log_Documents extends core_Manager
         // Подреждаме масива
         ksort($rows);
         
+        // Променяме всички вербални данни, да показват откритите от нас
+        $data->rows = $rows;
+    }
+    
+    
+    /**
+     * Подготвяме подмножеството на променените файлове
+     * 
+     * @param object $data
+     */
+    static function prepareChangeSubset($data)
+    {
+        // Всички записи
+        $recs = $data->recs;
+        
+        // Ако няма записи не се изпълнява
+        if (empty($data->recs)) {
+            
+            return;
+        }
+        
+        // Екшъна
+        $change = static::ACTION_CHANGE;
+        
+        // Масив с данните във вербален вид
+        $rows = array();
+        
+        // Обхождаме записите
+        foreach ($recs as $id=>$rec) {
+            
+            // Ако няма зададени действия прескачаме
+            if (count($rec->data->{$change}) == 0) {
+                
+                continue;
+            }
+
+            // Обхождаме всички сваляния
+            foreach ($rec->data->{$change} as $changeData) {
+                
+                // Ако няма docId или docClass прескачаме
+                if (!$changeData['docId'] || !$changeData['docClass']) continue;
+                
+                // Вземаме запите
+                $rows = change_Log::prepareLogRow($changeData['docClass'], $changeData['docId']);
+
+                break;
+            }
+        }
+
         // Променяме всички вербални данни, да показват откритите от нас
         $data->rows = $rows;
     }
@@ -1308,7 +1442,7 @@ class log_Documents extends core_Manager
             $rec = static::fetch(array("#mid = '[#1#]'", $mid));
             
             // Ако екшъна е един от посочените, връщаме FALSE
-            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD))) {
+            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE))) {
                 
                 return FALSE;
             }

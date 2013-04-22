@@ -1378,5 +1378,17 @@ class doc_DocumentPlg extends core_Plugin
 
         $res = $url;
     }
-
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * 
+     * @param core_MVc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+        // Отбелязване в лога
+        log_Documents::changed($recsArr);
+    }
 }
