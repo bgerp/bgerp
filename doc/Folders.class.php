@@ -216,7 +216,7 @@ class doc_Folders extends core_Master
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if($rec->openThreadsCnt) {
-            $row->threads = "<span style='float-right; background-color:#aea;padding:1px;border:solid 1px #9d9;'>$openThreads</span>";
+            $row->threads = "<span style='float-right; color:#5a6;'>$openThreads</span>";
         }
         
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
@@ -392,7 +392,16 @@ class doc_Folders extends core_Master
                 $mustSave = TRUE;
             }
         }
-        
+
+    	if($isReject) {
+			$rec->state = 'rejected';
+			$mustSave = TRUE;
+		}
+
+		if($isRevert) {
+			$mustSave = TRUE;
+		}
+                
         if($mustSave) {
             if($isRevert || !$rec->state) {
                 $rec->state = 'open';
