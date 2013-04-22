@@ -81,6 +81,7 @@ class log_Documents extends core_Manager
         self::ACTION_OPEN => 'seenOnTime=Дата, seenFromIp=IP, reason=Основание',
         self::ACTION_DOWNLOAD => 'fileHnd=Файл, seenOnTime=Свалено->На, seenFromIp=Свалено->От',
         self::ACTION_CHANGE => 'createdOn=Променено->На, createdBy=Променено->От, field=Поле, oldValue=Стара стойност',
+        self::ACTION_FORWARD => 'seenOnTime=Препратено->На, seenFrom=Препратено->От, document=Документ',
     );
     
     
@@ -109,6 +110,7 @@ class log_Documents extends core_Manager
     const ACTION_PDF     = 'pdf';
     const ACTION_DOWNLOAD = 'download';
     const ACTION_CHANGE = 'changed';
+    const ACTION_FORWARD = 'forward';
     
     
     /**
@@ -127,6 +129,7 @@ class log_Documents extends core_Manager
             self::ACTION_PDF     . '=PDF',
             self::ACTION_DOWNLOAD . '=сваляне',
             self::ACTION_CHANGE . '=промяна',
+            self::ACTION_FORWARD . '=препращане',
         );
         
         // Тип на събитието
@@ -202,7 +205,7 @@ class log_Documents extends core_Manager
             expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
         }
 
-        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE))) {
+        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD))) {
             $rec->mid = static::generateMid();
         }
         
@@ -467,10 +470,69 @@ class log_Documents extends core_Manager
     
     
     /**
+     * Отбелязва, когато препращаме имейл
+     * 
+     * @param object $eRec - Записа
+     */
+    public static function forward($eRec)
+    {
+        // От кой документ се създава записа
+        $originId = $eRec->originId;
+        
+        // Ако няма originId
+        if (!$originId) return ;
+        
+        // Екшъна за проманя
+        $forwardAction = static::ACTION_FORWARD;
+        
+        // Вземаме записите за контейнера на документа, от който се създава имейла
+        $cRec = doc_Containers::fetch($originId);
+        
+        // id на контейнера, който ще запишем в модела
+        $containerId = $originId;
+        
+        // id на нишката, който ще запишем в модела
+        $threadId = $cRec->threadId;
+        
+        // Вземаме записа, ако има такъв
+        $rec = static::fetch("#containerId = '{$containerId}' AND #action = '{$forwardAction}'");
+        
+        // Ако няма запис
+        if (!$rec) {
+            
+            // Създаваме обект с данни
+            $rec = (object)array(
+                'action' => $forwardAction,
+                'containerId' => $containerId,
+                'threadId' => $threadId,
+                'data' => new stdClass(),
+            );    
+        }
+        
+        // Добавяме данните
+        $rec->data->{$forwardAction}[] = array(
+            'on' => dt::now(true),
+            'from' => core_Users::getCurrent(),
+            'containerId'  => $eRec->containerId
+        );
+        
+        // Пушваме съответното действие
+        static::pushAction($rec);
+
+        // Съобщение в лога
+        $msg = tr("Препратен имейл|*: ") . doc_Containers::getDocTitle($containerId);
+        
+        // Добавяме запис в лога
+        core_Logs::add('doc_Containers', $rec->containerId, $msg);
+        
+        return $rec;
+    }
+    
+    
+    /**
      * Отбелязва като променен някой документ
      * 
-     * @param integer $containerId - id на контейнера
-     * @param integer $threadId - id на треда
+     * @param object $logRecArr - Записа
      */
     public static function changed($logRecArr)
     {
@@ -731,15 +793,17 @@ class log_Documents extends core_Manager
         $open = self::ACTION_OPEN;
         $download = self::ACTION_DOWNLOAD;
         $change = self::ACTION_CHANGE;
+        $forward = self::ACTION_FORWARD;
         
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
-            if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change)) {
+            if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change) && ($rec->action != $forward)) {
                 $data[$rec->containerId]->summary[$rec->action] += 1;
             }
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
             $data[$rec->containerId]->summary[$change] += count($rec->data->{$change});
+            $data[$rec->containerId]->summary[$forward] += count($rec->data->{$forward});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
 
@@ -807,6 +871,7 @@ class log_Documents extends core_Manager
                 static::ACTION_OPEN   => array('виждане', 'виждания'),
                 static::ACTION_DOWNLOAD => array('сваляне', 'сваляния'),
                 static::ACTION_CHANGE => array('промяна', 'промени'),
+                static::ACTION_FORWARD => array('препратен', 'препратени'),
             );
         }
 
@@ -821,6 +886,7 @@ class log_Documents extends core_Manager
                 static::ACTION_OPEN    => static::ACTION_OPEN,
                 static::ACTION_DOWNLOAD    => static::ACTION_DOWNLOAD,
                 static::ACTION_CHANGE    => static::ACTION_CHANGE,
+                static::ACTION_FORWARD    => static::ACTION_FORWARD,
             );
         }
         
@@ -924,6 +990,7 @@ class log_Documents extends core_Manager
             || $action == static::ACTION_OPEN
             || $action == static::ACTION_DOWNLOAD
             || $action == static::ACTION_CHANGE
+            || $action == static::ACTION_FORWARD
         );
         
         return $action;
@@ -955,6 +1022,10 @@ class log_Documents extends core_Manager
             case $mvc::ACTION_CHANGE:
                 $mvc->currentTab = 'Промени';
                 $mvc::prepareChangeSubset($data);
+                break;
+            case $mvc::ACTION_FORWARD:
+                $mvc->currentTab = 'Препращания';
+                $mvc::prepareForwardSubset($data);
                 break;
             default:
                 expect(FALSE);
@@ -1137,6 +1208,72 @@ class log_Documents extends core_Manager
 
         // Променяме всички вербални данни, да показват откритите от нас
         $data->rows = $rows;
+    }
+    
+    
+    /**
+     * Подготвяме подмножеството на препратените имейли
+     * 
+     * @param unknown_type $data
+     */
+    static function prepareForwardSubset($data)
+    {
+        // Всички записи
+        $recs = $data->recs;
+
+        // Ако няма записи не се изпълнява
+        if (empty($data->recs)) {
+            
+            return;
+        }
+        
+        // Екшъна
+        $forwardAction = static::ACTION_FORWARD;
+        
+        // Масив с данните във вербален вид
+        $rows = array();
+        
+        // Обхождаме записите
+        foreach ($recs as $rec) {
+            
+            // Ако няма запис за препращане на съответния запис прескачаме            
+            if (!count($rec->data->$forwardAction)) continue;
+            
+            // Обхождаме всички препратени записи
+            foreach ($rec->data->{$forwardAction} as $forwardRec) {
+                
+                // Записите
+                $row = (object)array(
+                    'seenOnTime' => $forwardRec['on'],
+                    'seenFrom' => $forwardRec['from'],
+                );
+
+                // Записите във вербален вид
+                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+                
+                // Вземаме документите
+                $doc = doc_Containers::getDocument($forwardRec['containerId']);
+                
+                // Ако имаме права за сингъл на документ
+                if ($doc->instance->haveRightFor('sinlge', $doc->that)) {
+                
+                    // Вербални данни на докуемент
+                    $docRow = $doc->getDocumentRow();
+                    
+                    // Създаваме линк към документа
+                    $row->document = ht::createLink($docRow->title, array($doc, 'single', $doc->that));    
+                }
+                
+                // Добавяме в главния масив
+                $rows[$forwardRec['on']] = $row;    
+            }
+        }
+
+        // Сортираме по дата
+        ksort($rows);
+        
+        // Заместваме данните за рендиране
+        $data->rows = $rows; 
     }
     
     
@@ -1442,7 +1579,7 @@ class log_Documents extends core_Manager
             $rec = static::fetch(array("#mid = '[#1#]'", $mid));
             
             // Ако екшъна е един от посочените, връщаме FALSE
-            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE))) {
+            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD))) {
                 
                 return FALSE;
             }

@@ -735,6 +735,13 @@ class email_Outgoings extends core_Master
             // Записваме обръщението в модела
             email_Salutations::create($nRec);
         }
+        
+        // Ако препащме имейла
+        if ($rec->forward && $rec->originId) {
+            
+            // Записваме в лога, че имейла, който е създаден е препратен
+            log_Documents::forward($rec);
+        }
     }
     
     
@@ -1106,6 +1113,16 @@ class email_Outgoings extends core_Master
             // Добавяме атрибута
             $data->form->addAttr('email', array('data-role' => 'list'));
             $data->form->addAttr('emailCc', array('data-role' => 'list'));
+        }
+        
+        // Ако препращаме писмото
+        if ($forward) {
+            
+            // Добавяме функционално поле
+            $data->form->FNC('forward', 'varchar', 'input=hidden');
+            
+            // Задаваме стойност
+            $data->form->setDefault('forward', $forward);  
         }
     }
     
