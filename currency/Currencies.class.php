@@ -36,11 +36,19 @@ class currency_Currencies extends core_Master {
      */
     var $singleLayoutFile = 'currency/tpl/SingleLayoutCurrency.shtml';
     
+
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = "Валута";
+
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/zone_money.png';
     
+
     /**
      * Кой може да изтрива
      */
@@ -57,6 +65,13 @@ class currency_Currencies extends core_Master {
      */
     var $listFields = "id, name, code, lastUpdate, lastRate, state, createdOn, createdBy";
     
+    
+    /**
+     * Полето "name" да е хипервръзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'name';
+
+
     /**
      * Полетата, които ще се показват в единичния изглед
      */
@@ -74,8 +89,8 @@ class currency_Currencies extends core_Master {
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Валута->Име,mandatory');
-        $this->FLD('code', 'varchar(3)', 'caption=Валута->Код,mandatory');
+        $this->FLD('name', 'varchar(64)', 'caption=Наименование,width=100%,mandatory');
+        $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,width=60px');
         $this->FLD('lastUpdate', 'date', 'caption=Последно->обновяване, input=none');
         $this->FLD('lastRate', 'double', 'caption=Последно->курс, input=none');
         $this->FLD('groups', 'keylist(mvc=currency_CurrencyGroups, select=name)', 'caption=Групи');
