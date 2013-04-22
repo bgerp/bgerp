@@ -21,7 +21,6 @@
 
 .norm-table .norm-cat{
 	border:none !important;
-	background:#eee;
 	padding-left:8px;
 }
 
@@ -46,7 +45,7 @@
 	text-indent:15px;
 }
 
-.pricelist-group-label, .pricelist-group-label b {
+.pricelist-group-label, .pricelist-group-label b, .norm-cat {
 	background-color: #636363 !important;
 	color:white;
 }
