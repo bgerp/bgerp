@@ -57,19 +57,19 @@ class sales_Routes extends core_Manager {
     /**
      * Кой може да чете
      */
-    var $canRead = 'sales,admin';
+    var $canRead = 'sales,ceo';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'sales';
+    var $canWrite = 'sales,ceo';
     
     
     /**
      * Кой може да пише
      */
-    var $canAdd = 'sales';
+    var $canAdd = 'sales,ceo';
     
     
     /**
@@ -81,7 +81,7 @@ class sales_Routes extends core_Manager {
     /**
      * 
      */
-    var $canReject = 'sales,admin';
+    var $canReject = 'sales,ceo';
     
     
     /**

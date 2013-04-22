@@ -100,6 +100,8 @@ class crm_Locations extends core_Master {
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         $this->FLD('comment', 'richtext(rows=4)', 'caption=@Информация');
+
+        $this->setDbUnique('gln');
     }
     
     
@@ -290,8 +292,6 @@ class crm_Locations extends core_Master {
         
         return $tpl;
     }
-    
-
 
 
     /**
@@ -358,5 +358,33 @@ class crm_Locations extends core_Master {
         }
 
         return $locationRecs;
+    }
+
+
+    /**
+     * За NULL-ява празните gln и gpsCoords
+     */
+    function on_BeforeSetupMvc($mvc, &$res) 
+    {
+        if($mvc->db->tableExists($mvc->dbTableName)) {
+            $query = $mvc->getQuery();
+            while($rec = $query->fetch()) {
+                
+                $saveFlag = FALSE;
+                
+                if($rec->gln === '') {
+                    $rec->gln = NULL;
+                    $saveFlag = TRUE;
+                }
+                 if($rec->gpsCoords === '') {
+                    $rec->gpsCoords = NULL;
+                    $saveFlag = TRUE;
+                }
+
+                if($saveFlag) {
+                    $mvc->save($rec);
+                }
+            }
+        }
     }
 }
