@@ -196,6 +196,7 @@ table.mc_calendar td.mc-todayN{
     font: small Arial,sans-serif;
 	font-size: 0.7em;
 	colspan: 2;
+	vertical-align:top;
 }
 
 table.mc_calendar td .relative-holder{
@@ -402,6 +403,7 @@ table.mc-calendar-year td.mc-today {
 	font-weight:bold;
 	width:2.8em;
 	cursor: pointer;
+	vertical-align:top;
 }
 
 .holiday{
