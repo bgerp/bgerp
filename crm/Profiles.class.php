@@ -98,7 +98,7 @@ class crm_Profiles extends core_Master
     function description()
     {
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
+        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
         $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId');
 
         $this->setDbUnique('userId');
@@ -375,6 +375,8 @@ class crm_Profiles extends core_Master
             'personId'=>Request::get('personId'), 
             'ret_url'=>getRetUrl()
         );
+
+        $data->form->setField('personId', 'input');
         
         $data->form->toolbar->addBtn('Нов потребител', $addUserUrl, array('class'=>'btn-add'));
     }
