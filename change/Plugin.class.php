@@ -107,7 +107,10 @@ class change_Plugin extends core_Plugin
             $mvc->save($form->rec, $allowedFieldsArr);
             
             // Записваме лога на промените
-            change_Log::create($mvc->className, $allowedFieldsArr, $rec, $form->rec);
+            $savedRecsArr = change_Log::create($mvc->className, $allowedFieldsArr, $rec, $form->rec);
+            
+            // Извикваме фунцкия, след като запишем
+            $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
             
             // Редиректваме
             return redirect($retUrl);

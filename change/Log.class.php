@@ -80,6 +80,9 @@ class change_Log extends core_Manager
      */
     static function create($docClass, $fieldsArr, $oldRec, $newRec)
     {
+        // Резултатния масив, който ще връщаме
+        $recsArr = array();
+        
         // Ако е id на клас
         if (is_numeric($docClass)) {
             
@@ -109,10 +112,129 @@ class change_Log extends core_Manager
             
             // Записваме
             static::save($rec);
+            
+            // Добавяме в масива
+            $recsArr[] = $rec;
         }
+        
+        return $recsArr;
     }
     
     
+    /**
+     * Подготвяме записите за лога във вербален вид
+     * 
+     * @param mixed $docClass - Името или id на класа
+     * @param string $docId - id' на документа
+     * 
+     * @return array $res - Масив с данни
+     */
+    static function prepareLogRow($docClass, $docId)
+    {
+        // Ако е id на клас
+        if (is_numeric($docClass)) {
+            
+            // Използваме id' то
+            $docClassId = $docClass;   
+        } else {
+            
+            // Вземаме id' то на класа
+            $docClassId = core_Classes::fetchIdByName($docClass);
+        }
+        
+        // Масив с данните
+        $res = array();
+        
+        // Вземаме всички записи от класа и документи и ги подреждаме по дата
+        $query = static::getQuery();
+        $query->where("#docClass = '{$docClassId}'");
+        $query->where("#docId = '{$docId}'");
+//        $query->orderBy("field");
+        $query->orderBy("createdOn", 'DESC');
+        
+        // Обхождаме масива
+        while ($rec = $query->fetch()) {
+            
+            // Вербалнате стойности
+            $row = static::recToVerbal($rec, 'createdBy, createdOn');
+            
+            // Вербални стойности на останалите полета
+            $row->field = static::getFieldCaption($rec);
+            $row->oldValue = static::getValue($rec, 'oldValue');
+            $row->newValue = static::getValue($rec, 'newValue');
+            $row->docClass = cls::get($rec->docClass);
+            
+            // Добавяме в масива
+            $res[] = $row;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Връща заглавието на полето
+     * 
+     * @param object $rec - Записите
+     */
+    static function getFieldCaption($rec)
+    {
+        // Инстанция на класа
+        $class = cls::get($rec->docClass);
+        
+        // Заглавието на полето
+        $fieldCaption = $class->fields[$rec->field]->caption;
+        
+        return $fieldCaption;
+    }
+    
+    
+    /**
+     * Връща вербалната стойност на данните в зададеното поле
+     * 
+     * @param object $rec - Записите
+     * @param string $field - Полето
+     * 
+     * @return string $value - Стойността
+     */
+    static function getValue($rec, $field='oldValue')
+    {
+        // Старата стойност
+        $value = $rec->{$field};
+        
+        // Инстанция на класа
+        $class = cls::get($rec->docClass);
+        
+        // Типа на полето
+        $type = $class->fields[$rec->field]->type;
+
+        // Ако има стойност
+        if (trim($value)) {
+            
+            // Ако типа е родител на наследник или от тип type_Key
+            if (is_a($type, 'type_Key')) {
+                
+                // Стойността във вербален вид
+                $value = $type->toVerbal($value);
+            } else {
+                
+                // Тримваме и ескейпваме текста
+                $value = core_Type::escape(str::limitLen($value, 70));
+            }    
+        } else {
+            
+            // Ако няма стойност
+            $value = '';
+        }
+        
+        return $value;
+    }
+    
+    
+    /*
+     * НАЧАЛО
+     * За премахване
+     */
     /**
      * Подготвяме записите за лога
      * 
@@ -316,4 +438,8 @@ class change_Log extends core_Manager
         
         return static::renderWrapping($tpl);
     }
+    /*
+     * КРАЙ
+     * За премахване
+     */
 }
