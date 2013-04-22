@@ -372,6 +372,9 @@ class core_Cron extends core_Manager
         
         $rec->state = 'free';
         
+        // По подразбиране 50 секунди времелимит за извършване на операцията
+        setIfNot($rec->timeLimit, 50);
+        
         $this->save($rec);
         
         if(!$id) return $rec->id;

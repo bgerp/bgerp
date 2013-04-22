@@ -16,8 +16,6 @@
  */
 class core_Html
 {
-
-
     /**
      * Композира xHTML елемент
      */
@@ -644,6 +642,8 @@ class core_Html
         } else {
             $name = "sm" . $i;
             $attr['onChange'] = "window.location =  this.value; this.removeOption();  ";
+            $attr['onfocus']  = "this.selectedIndex = -1;";
+            $attr['onblur']   = "if(this.selectedIndex == -1) {this.selectedIndex = '{$selected}'}";
             $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . "button";
             $attr['id'] = $name;
             $selectMenu = ht::createSelect($name, $options, $selected, $attr);
