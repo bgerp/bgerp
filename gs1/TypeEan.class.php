@@ -25,7 +25,13 @@ class gs1_TypeEan extends type_Varchar
      */
     var $dbFieldLen = 18;
     
-    
+
+    /**
+     * Празната стойност има смисъл на NULL
+     */
+    var $nullIfEmpty = TRUE;
+
+
     /**
      * Инициализиране на обекта
      */

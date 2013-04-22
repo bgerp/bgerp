@@ -17,7 +17,13 @@ cls::load('type_Varchar');
  */
 class location_Type extends type_Varchar {
     
-    
+
+    /**
+     * Празната стойност има смисъл на NULL
+     */
+    var $nullIfEmpty = TRUE;
+
+
     /**
      * @todo Чака за документация...
      */
