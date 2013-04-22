@@ -382,6 +382,15 @@ class store_ShipmentOrders extends core_Master
             array(''=>'') +
             crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
+        $form->validate(NULL, FALSE, (array)$form->rec);
+        
+        if (!$form->gotErrors()) {
+            if (self::save($form->rec)) {
+                redirect(array($mvc, 'single', $form->rec->id));
+            }
+        } else {
+            $form->errors = array();
+        }
     }
     
     
