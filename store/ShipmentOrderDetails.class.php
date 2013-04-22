@@ -125,7 +125,7 @@ class store_ShipmentOrderDetails extends core_Detail
     public function description()
     {
         $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent');
+        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика,silent,input=none');
         
         $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
@@ -141,16 +141,16 @@ class store_ShipmentOrderDetails extends core_Detail
         // Цена за единица продукт в основна мярка
         $this->FLD('price', 'float', 'caption=Цена,input=none');
         
-        $this->FNC('amount', 'float(decimals=2)', 'caption=Сума');
+        $this->FNC('amount', 'float(decimals=2)', 'caption=Сума,input=none');
         
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $this->FNC('packQuantity', 'float', 'caption=К-во,input=input,mandatory');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма 
         // packagingId)
-        $this->FNC('packPrice', 'float', 'caption=Цена,input=input');
+        $this->FNC('packPrice', 'float', 'caption=Цена,input=none');
         
-        $this->FLD('discount', 'percent', 'caption=Отстъпка');
+        $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
     }
 
 
@@ -388,24 +388,19 @@ class store_ShipmentOrderDetails extends core_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        if ($policyId = $data->form->rec->policyId) {
-            /* @var $Policy price_PolicyIntf */
-            $Policy = cls::get($policyId);
-            
-            $data->form->setField('policyId', 'input=hidden');
-            $data->form->setOptions('productId', $Policy->getProducts($data->masterRec->contragentClassId, $data->masterRec->contragentId));
+        $origin = store_ShipmentOrders::getOrigin($data->masterRec, 'store_ShipmentIntf');
+        
+        $products = $origin->getShipmentProducts();
+        
+        $options = array();
+        
+        foreach ($products as $p) {
+            $options[$p->productId] = cat_Products::getTitleById($p->productId);
         }
         
-        $masterId = $data->form->rec->{$data->masterKey};
-        
-        // Само който има право да контира експ. нареждане, само той вижда полетата за цена и 
-        // отстъпка 
-        if (!store_ShipmentOrders::haveRightFor('valuate', (object)array('id'=>$masterId))) {
-            $data->form->setField('packPrice', 'input=none');
-            $data->form->setField('discount', 'input=none');
-        }
+        $data->form->setOptions('productId', $options);
     }
     
     
@@ -417,74 +412,39 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
-            if ($form->isSubmitted() && !$form->gotErrors()) {
+        if ($form->isSubmitted() && !$form->gotErrors()) {
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
             
             $rec        = $form->rec;
 
-            $masterRec  = store_ShipmentOrders::fetch($rec->{$mvc->masterKey});
-            $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
+            $origin        = store_ShipmentOrders::getOrigin($rec->{$mvc->masterKey}, 'store_ShipmentIntf');
+            $availProducts = $origin->getShipmentProducts();
+            $shipmentProduct = NULL;
+            $exactProduct  = NULL;
             
-            /* @var $productRef cat_ProductAccRegIntf */
-            $productRef  = new core_ObjectReference('cat_Products', $rec->productId);
-            $productInfo = $productRef->getProductInfo();
-            
-            expect($productInfo);
-            
-            // Определяне на цена, количество и отстъпка за опаковка
-            
-            /* @var $Policy price_PolicyIntf */
-            $Policy = cls::get($rec->policyId);
-            
-            $policyInfo = $Policy->getPriceInfo(
-                $masterRec->contragentClassId, 
-                $masterRec->contragentId, 
-                $rec->productId,
-                $rec->packagingId,
-                $rec->packQuantity,
-                $masterRec->date
-            );
-            
-            if (empty($rec->packagingId)) {
-                // В продажба в основна мярка
-                $rec->quantityInPack = 1;
-            } else {
-                // Продажба на опаковки
-                if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
-                    $form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
-                    return;
+            foreach ($availProducts as $p) {
+                if ($p->productId == $rec->productId) {
+                    $shipmentProduct = $p;
+                    if ($p->packagingId == $rec->packagingId) {
+                        $exactProduct = $p;
+                        break;
+                    }
                 }
-                
-                $rec->quantityInPack = $packInfo->quantity;
             }
             
-            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            
-            if (empty($rec->packPrice)) {
-                $rec->price = $policyInfo->price;
-
-                // Цената идва от ценоразписа в основна валута. Конвертираме я към валутата
-                // на продажбата.
-                $rec->price = 
-                    currency_CurrencyRates::convertAmount(
-                        $rec->price, 
-                        $masterRec->date, 
-                        NULL, // Основната валута към $masterRec->date
-                        $masterRec->currencyId
-                    );
+            if (empty($shipmentProduct)) {
+                $form->setError('productId', 'Продуктът не е наличен за експедиция');
+            } elseif (empty($exactProduct)) {
+                $form->setError('packagingId', 'Продуктът не е наличен за експедиция в тази опаковка');
             } else {
-                $rec->price  = $rec->packPrice  / $rec->quantityInPack;
+                $rec->policyId = $exactProduct->policyId; 
+                $rec->uomId    = $exactProduct->uomId; 
+                $rec->price    = $exactProduct->price; 
+                $rec->discount = $exactProduct->discount; 
+                $rec->quantityInPack = $exactProduct->quantityInPack; 
+                $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             }
-            
-            if (empty($rec->discount)) {
-                $rec->discount = $policyInfo->discount;
-            }
-            
-            $rec->price = sales_Sales::roundPrice($rec->price);
-            
-            // Записваме основната мярка на продукта
-            $rec->uomId    = $productInfo->productRec->measureId;
         }
     }
     
@@ -498,26 +458,5 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    }
-    
-    
-    public static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
-            
-            $customerClass = $data->masterData->rec->contragentClassId;
-            $customerId    = $data->masterData->rec->contragentId;
-        
-            $addUrl = $data->toolbar->buttons['btnAdd']->url;
-            
-            foreach ($pricePolicies as $policyId=>$Policy) {
-                $Policy = cls::getInterface('price_PolicyIntf', $Policy);
-                $data->toolbar->addBtn($Policy->getPolicyTitle($customerClass, $customerId), $addUrl + array('policyId' => $policyId,),
-                    "id=btnAdd-{$policyId},class=btn-shop");
-            }
-            
-            unset($data->toolbar->buttons['btnAdd']);
-        }
     }
 }
