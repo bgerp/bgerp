@@ -197,7 +197,7 @@ class price_ConsumptionNormDetails extends core_Detail {
     		$icon = sbf("img/16/legend.png");
     		$row->dProductId = ht::createLink($row->dProductId, array('price_ConsumptionNorms', 'single', $recipeRec->id), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
     	} else {
-    		$icon = sbf("img/16/package-icon.png");
+    		$icon = sbf("img/16/wooden-box.png");
 			$row->dProductId = ht::createLink($row->dProductId, array('cat_Products', 'single', $rec->dProductId), NULL, "style=background-image:url({$icon}),class=linkWithIcon");
     	}
     }

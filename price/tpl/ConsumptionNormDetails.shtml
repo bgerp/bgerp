@@ -10,8 +10,8 @@
 <!--ET_BEGIN ROW-->
 <tr>
 	<td>[#dProductId#]</td>
-	<td class='norm-row-cell'>[#dUom#]</td>
-	<td class='norm-row-cell'>[#quantity#]</td>
+	<td style='text-align:center;'>[#dUom#]</td>
+	<td style='text-align:right;padding-right:8px'>[#quantity#]</td>
 </tr>
 <!--ET_END ROW-->
 </table>
