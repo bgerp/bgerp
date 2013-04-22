@@ -394,7 +394,7 @@ a.rtbutton:hover {
 /* Стилове за елемента 'list Table' */
 table.listTable { 
     margin:0px 0 15px 0;
-    border: 1px solid #999;
+    border: 1px solid #bbb;
     border-collapse: collapse;
 }
 
@@ -403,16 +403,16 @@ table.listTable>tbody>tr:hover  {
 }
 
 table.listTable>tbody>tr>td {
-    border: 1px solid #999;
+    border: 1px solid #bbb;
     padding: 3px; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
 }
 
 table.listTable>thead>tr>th {
-    border: 1px solid #999;
+    border: 1px solid #bbb;
     padding: 3px;
-    background-color:#ddd;
+    background-color:#eee;
     font-weight:bold;
 }
 
@@ -1065,7 +1065,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-opened {
-    background-color: #aaffbb;
+    background-color: #ccffdd;
 }
 
 .state-pending, .state-waiting{
