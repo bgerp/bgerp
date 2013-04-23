@@ -964,6 +964,8 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
+        $this->log('Отвори нишка', $id);
+        
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
     
@@ -996,6 +998,8 @@ class doc_Threads extends core_Manager
         $this->save($rec);
         
         $this->updateThread($rec->id);
+        
+        $this->log('Затвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
