@@ -35,8 +35,13 @@ class core_Packs extends core_Manager
      */
     var $canDeinstall = 'admin';
     
-    var $listItemsPerPage=18;
+
+    /**
+     * По колко пакета да показва на страница
+     */
+    var $listItemsPerPage = 24;
     
+
     /**
      * Полета, които ще се показват в листов изглед
      */
