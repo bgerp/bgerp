@@ -129,7 +129,7 @@ class cal_Reminders extends core_Master
     
     //var $cloneFields = 'title, priority, ';
     
-    static $suggestions = array(1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
+    static $suggestions = array("", 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
   
     /**
      * Описание на модела (таблицата)
