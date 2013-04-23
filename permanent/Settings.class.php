@@ -12,7 +12,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Перманентни данни
+ * @title     Клас за перманентни данни
  */
 class permanent_Settings extends core_Manager
 {

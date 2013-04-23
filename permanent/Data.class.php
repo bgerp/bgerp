@@ -1,17 +1,4 @@
 <?php
-/**
- * Хранилището за перманентни данни.
- * В бъдеще може да използва NOSQL база данни
- *
- * @category   bgERP 2.0
- * @package    permanent
- * @title:     Хранилище за данни
- * @author     Димитър Минеков <mitko@extrapack.com>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
- */
-
 
 /**
  * Хранилището за перманентни данни.

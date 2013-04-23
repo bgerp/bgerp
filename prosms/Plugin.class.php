@@ -11,7 +11,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     SMS
+ * @title     SMS-и през Pro-SMS
  */
 class prosms_Plugin extends core_Plugin
 {
