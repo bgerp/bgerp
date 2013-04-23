@@ -68,7 +68,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Банкова сметка на фирмата';
+    var $singleTitle = 'Банкова сметка';
     
     
     /**
