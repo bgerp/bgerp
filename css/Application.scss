@@ -1352,7 +1352,45 @@ td.portal-date {
 	margin-top: 10px;
 	min-width: 0px;
 }
-
+table.mc-calendar {
+  width: 100%;
+  font-size: 0.8em;
+  td.mc-day {
+    text-align: right;
+    border: none;
+    background-color: #e8efe8;
+    border: solid 2px #e8efe8;
+    padding: 1px;
+    font-weight: bold;
+    cursor: pointer;
+    &:hover {
+      background-color: #ffff66;
+    }
+  }
+  td.mc-week-nb {
+    border: none;
+    padding: 3px;
+  }
+  td.mc-wd-name {
+    text-align: right;
+    padding-right: 3px;
+  }
+  td.mc-sunday {
+    color: green;
+  }
+  td.mc-holiday {
+    color: red !important;
+  }
+  td.mc-saturday {
+    color: #006030;
+  }
+  td.mc-today {
+    border: solid 2px red;
+  }
+}
+table.mc-header a {
+  color: #999;
+}
 /*
  * Стилове за счетоводството
  */

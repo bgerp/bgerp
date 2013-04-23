@@ -219,6 +219,7 @@ p.calWeek{
 
 .task{
 	clear:both;
+	text-align: left;
 	font-weight:normal;
 	margin:0px 2px 4px;
 	overflow:hidden;
