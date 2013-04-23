@@ -93,11 +93,21 @@ class sales_Sales extends core_Master
      */
     public $canDelete = 'admin,sales';
     
+
+    /**
+     * Документа продажба може да бъде само начало на нишка
+     * 
+     * Допълнително, папката в която могат да се създават нишки-продажби трябва да бъде с корица
+     * контрагент. Това се гарантира с метода @see canAddToFolder()
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-     public $listFields = 'id, valior, contragentClassId, contragentId, currencyId, amountDeal, amountDelivered, amountPaid, 
+    public $listFields = 'id, valior, contragentClassId, contragentId, currencyId, amountDeal, amountDelivered, amountPaid, 
                              dealerId, initiatorId,
                              createdOn, createdBy';
     
@@ -890,6 +900,26 @@ class sales_Sales extends core_Master
         
         $tpl->placeObject($total);
     }
+    
+    
+    /**
+     * Може ли документ-продажба да се добави в посочената папка?
+     * 
+     * Документи-продажба могат да се добавят само в папки с корица контрагент.
+     *
+     * @param $folderId int ид на папката
+     * @param $coverClass string класът на корицата на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId, $coverClass)
+    {
+        if (empty($coverClass)) {
+            $coverClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+    
+        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
     
     /**
      * 
