@@ -307,11 +307,20 @@ class bank_PaymentOrders extends core_Master
      */
     public static function canAddToFolder($folderId, $folderClass)
     {
-        if (empty($folderClass)) {
-            $folderClass = doc_Folders::fetchCoverClassName($folderId);
-        }
+        return FALSE;
+    }
     
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons';
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     */
+	public static function canAddToThread($threadId, $firstClass)
+    {
+    	$firstInThread = doc_Threads::getFirstContainerId($threadId);
+    	$originDoc = doc_Containers::getDocument($firstInThread);
+    	
+    	return $originDoc->className == 'bank_IncomeDocument' || $originDoc->className == 'bank_CostDocument';
     }
     
     
