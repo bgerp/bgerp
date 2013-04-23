@@ -58,7 +58,13 @@ class bank_CashWithdrawOrders extends core_Master
      */
     var $singleTitle = 'Нареждане разписка';
     
+
+    /**
+     * Икона на документа
+     */
+    var $singleIcon = 'img/16/nrrz.png';
     
+
     /**
      * Абревиатура
      */

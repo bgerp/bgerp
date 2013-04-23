@@ -59,6 +59,12 @@ class bank_DepositSlips extends core_Master
      */
     var $singleTitle = 'Вносна бележка';
     
+
+    /**
+     * Икона на документа
+     */
+    var $singleIcon = 'img/16/vnb.png';
+
     
     /**
      * Абревиатура

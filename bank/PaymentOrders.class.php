@@ -60,6 +60,12 @@ class bank_PaymentOrders extends core_Master
     
     
     /**
+     * Икона на документа
+     */
+    var $singleIcon = 'img/16/pln.png';
+
+    
+    /**
      * Абревиатура
      */
     var $abbr = "Pn";
