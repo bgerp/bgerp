@@ -12,7 +12,7 @@
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Ценоразписи
+ * @title     Ценоразписи от каталога
  */
 class price_Lists extends core_Master
 {

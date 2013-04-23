@@ -12,7 +12,7 @@
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Ценоразписи
+ * @title     Правила за ценоразписи
  */
 class price_ListToCustomers extends core_Detail
 {

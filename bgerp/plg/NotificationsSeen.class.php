@@ -12,7 +12,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Известявания
+ * @title     Маркиране на прочетено известяване
  */
 class bgerp_plg_NotificationsSeen extends core_Plugin
 {

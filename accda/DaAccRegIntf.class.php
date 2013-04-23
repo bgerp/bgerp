@@ -12,7 +12,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Дълготрайни активи
+ * @title     Интерфейс за дълготрайни активи
  */
 class accda_DaAccRegIntf extends acc_RegisterIntf
 {
