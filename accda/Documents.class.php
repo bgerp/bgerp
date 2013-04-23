@@ -115,6 +115,23 @@ class accda_Documents extends core_Manager
     }
     
     
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     * @param $firstClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $folderClass)
+    {
+        if (empty($folderClass)) {
+            $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+    
+        return $folderClass == 'store_Stores';
+    }
+    
+    
     /**
      * Екшън по подразбиране.
      * Извежда картинка, че страницата е в процес на разработка

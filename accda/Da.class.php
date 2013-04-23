@@ -25,6 +25,12 @@ class accda_Da extends core_Master
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Заглавие
      */
     var $title = 'Регистър на дълготрайните активи';
@@ -151,6 +157,24 @@ class accda_Da extends core_Master
         
         return $result;
     }
+    
+    
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     * @param $firstClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $folderClass)
+    {
+        if (empty($folderClass)) {
+            $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+    
+        return $folderClass == 'store_Stores';
+    }
+    
     
     
     /**
