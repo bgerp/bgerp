@@ -444,8 +444,11 @@ class cash_Rko extends core_Master
         if (empty($folderClass)) {
             $folderClass = doc_Folders::fetchCoverClassName($folderId);
         }
-    
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons';
+    	
+        // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
+       $cover = doc_Folders::getCover($folderId);
+       return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons'
+         || ($cover->className == 'cash_Cases' && $cover->that == cash_Cases::getCurrent('id', FALSE));
     }
     
     

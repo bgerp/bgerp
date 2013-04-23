@@ -274,8 +274,11 @@ class bank_CostDocument extends core_Master
         if (empty($folderClass)) {
             $folderClass = doc_Folders::fetchCoverClassName($folderId);
         }
-    
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons';
+    	
+        // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата сметка
+        $cover = doc_Folders::getCover($folderId);
+        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons'
+         || ($cover->className == 'bank_OwnAccounts' && $cover->that == bank_OwnAccounts::getCurrent('id', FALSE));
     }
     
     
