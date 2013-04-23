@@ -29,15 +29,27 @@ class cash_Cases extends core_Master {
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Каса";
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, name, cashier';
+    var $listFields = 'tools=Пулт, name, cashier';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current';
+    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created';
     
     
     /**

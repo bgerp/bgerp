@@ -16,7 +16,7 @@
  * @since     v 0.1
  * @TODO      Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията от bagdealing.
  */
-class store_Stores extends core_Manager
+class store_Stores extends core_Master
 {
     
     
@@ -33,9 +33,15 @@ class store_Stores extends core_Manager
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Склад";
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected';
+    var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg';
     
     
     /**
@@ -77,20 +83,24 @@ class store_Stores extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, chiefId, workersIds, comment, lastUsedOn';
+    var $listFields = 'id, name, chiefId';
     
     /**
-     *  @todo Чака за документация...
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    /**
-     *  @todo Чака за документация...
-     */
+    var $rowToolsSingleField = 'name';
     
     
     /**
      * var $rowToolsField = 'tools';
      */
     var $autoList = 'stores';
+    
+    
+    /**
+     * Файл с шаблон за единичен изглед
+     */
+    var $singleLayoutFile = 'store/tpl/SingleLayoutStore.shtml';
     
     
     /**

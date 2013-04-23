@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class pos_Points extends core_Manager {
+class pos_Points extends core_Master {
     
     
     /**
@@ -25,7 +25,7 @@ class pos_Points extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected,
+    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, doc_FolderPlg,
                      pos_Wrapper, plg_Sorting, plg_Printing, plg_Current';
 
     
@@ -38,13 +38,19 @@ class pos_Points extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, caseId, storeId, policyId';
+    var $listFields = 'tools=Пулт, title, caseId';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
+    
+    
+   /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'title';
     
     
     /**
@@ -65,6 +71,12 @@ class pos_Points extends core_Manager {
     var $canReject = 'admin, pos';
     
 
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    var $singleLayoutFile = 'pos/tpl/SinglePointLayout.shtml';
+    
+    
     /**
      * Описание на модела
      */
@@ -106,6 +118,16 @@ class pos_Points extends core_Manager {
     	}
     	
     	return FALSE;
+    }
+    
+    
+	/**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$urlArr = toUrl(array('pos_Receipts', 'single'));
+    	$data->toolbar->addFnBtn("Отвори", "window.open('{$urlArr}')");
     }
     
     

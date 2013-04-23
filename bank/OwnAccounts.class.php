@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_OwnAccounts extends core_Manager {
+class bank_OwnAccounts extends core_Master {
     
     
     /**
@@ -26,7 +26,7 @@ class bank_OwnAccounts extends core_Manager {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
-                     plg_Sorting, plg_Current, plg_LastUsedKeys';
+                     plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg';
     
     
     /**
@@ -38,7 +38,7 @@ class bank_OwnAccounts extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'title, bankAccountId, tools=Пулт';
+    var $listFields = 'tools=Пулт, title, bankAccountId';
     
     
     /**
@@ -72,6 +72,12 @@ class bank_OwnAccounts extends core_Manager {
     
     
     /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'title';
+    
+    
+    /**
      * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
      * $autoList.
      * 
@@ -79,6 +85,12 @@ class bank_OwnAccounts extends core_Manager {
      * @var string
      */
     var $autoList = 'bankAcc';
+    
+    
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    var $singleLayoutFile = 'bank/tpl/SingleLayoutOwnAccount.shtml';
     
     
     /**

@@ -2,13 +2,16 @@
 [#SingleToolbar#]
 	<div class="folder-cover">
 		<div class="inner-folder">
-			<div class="block_title state-active special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b></div>
+			<div class="block_title state-active special-title">[#SingleIcon#] |Банкова сметка|* <b style="color:green;">[#title#]</b></div>
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
 					<dl>
-						<dt>|Номер|*:</dt><dd> [#id#]</dd>
-						<dt>|Касиер|*</dt><dd> [#cashier#]</dd>
+						<dt>|Номер|*:</dt><dd>[#id#]</dd>
+						<dt>|Сметка|*</dt><dd>[#bankAccountId#]</dd>
+						<dt>|Титуляри|*</dt><dd>[#titulars#]</dd>
+						<dt>|Заедно|*</dt><dd>[#together#]</dd>
+						<dt>|оператори|*</dt><dd>[#operators#]</dd>
 					</dl>
 				</div>
 			</fieldset>
