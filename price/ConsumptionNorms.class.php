@@ -631,6 +631,38 @@ class price_ConsumptionNorms extends core_Master {
 	
 	
 	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     * @param $firstClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $folderClass)
+    {
+        if (empty($folderClass)) {
+            $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+    
+        return $folderClass == 'cat_Products';
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     */
+	public static function canAddToThread($threadId, $firstClass)
+    {
+    	if (empty($firstClass)) {
+    		$folderId = doc_Threads::fetchField($threadId, 'folderId');
+            $firstClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+        
+        return $firstClass == 'cat_Products';
+    }
+    
+    
+	/**
 	 * След запис на документа
 	 */
 	public static function on_AfterSave($mvc, &$id, $rec)
