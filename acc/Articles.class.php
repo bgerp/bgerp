@@ -80,12 +80,6 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Дали може да бъде само в началото на нишка
-     */
-    var $onlyFirstInThread = TRUE;
-    
-    
-    /**
      * Кой има право да чете?
      */
     var $canRead = 'acc,admin';
@@ -369,5 +363,23 @@ class acc_Articles extends core_Master
         $row->recTitle = $rec->reason;
         
         return $row;
+    }
+    
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     * @param $firstClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $folderClass)
+    {
+        if (empty($folderClass)) {
+            $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+    	
+        // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
+        $cover = doc_Folders::getCover($folderId);
+        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons' || $folderClass == 'doc_UnsortedFolders';
     }
 }
