@@ -118,6 +118,9 @@ class trz_Trips extends core_Master
 		$this->FLD('toDate', 'date',     'caption=Считано->До');
         $this->FLD('place',    'richtext(rows=5)', 'caption=Място');
     	$this->FLD('purpose', 'richtext(rows=5)', 'caption=Цел');
+    	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
+    	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
+    	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
     	$this->FLD('amountRoad', 'double', 'caption=Начисления->Пътни');
     	$this->FLD('amountDaily', 'double', 'caption=Начисления->Дневни');
     	$this->FLD('amountHouse', 'double', 'caption=Начисления->Квартирни');
