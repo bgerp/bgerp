@@ -621,6 +621,21 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Референция към първия документ в зададена нишка
+     * 
+     * @param int $id key(mvc=doc_Threads)
+     * @return core_ObjectReference референция към документ
+     */
+    public static function getFirstDocument($id)
+    {
+        $containerId = static::getFirstContainerId($id);
+        $firstDoc    = doc_Containers::getDocument($containerId);
+        
+        return $firstDoc;
+    }
+    
+    
+    /**
      * Добавя нишка в опашката за опресняване на стат. информация.
      * 
      * Същинското опресняване ще случи при shutdown на текущото изпълнение, при това еднократно

@@ -721,7 +721,45 @@ class store_ShipmentOrders extends core_Master
         
         return doc_Containers::getDocument($rec->originId, $intf);
     }
+
+
+    /**
+     * ЕН не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     *
+     * Допълнително, първия документ на нишка, в която е допустомо да се създаде ЕН трябва да
+     * бъде от клас sales_Sales. Това се гарантира от @see store_ShipmentOrders::canAddToThread()
+     *
+     * @param $folderId int ид на папката
+     * @param $coverClass string класът на корицата на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId, $coverClass)
+    {
+        return FALSE;
+    }
     
+    
+    /**
+     * Може ли ЕН да се добави в посочената нишка?
+     *
+     * Експедиционните нареждания могат да се добавят само в нишки с начало - документ-продажба
+     *
+     * @param $folderId int ид на папката
+     * @param $firstDocClass string класът първия документ в нишката
+     * @return boolean
+     */
+    public static function canAddToThread($threadId, $firstDocClass)
+    {
+        if (empty($firstDocClass)) {
+            $firstDoc      = doc_Threads::getFirstDocument($threadId);
+            $firstDocClass = $firstDoc->className;
+        } else {
+            $firstDocClass = cls::getClassName($firstDocClass);
+        }
+        
+        return 'sales_Sales' == $firstDocClass;
+    }
+        
     
     /**
      * 
