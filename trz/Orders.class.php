@@ -12,7 +12,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Отпуски
+ * @title     Заповеди за отпуски
  */
 class trz_Orders extends core_Master
 {
