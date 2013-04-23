@@ -892,14 +892,13 @@ function gitCurrentBranch($repoPath, &$log)
         return FALSE;
     }
     
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" branch";
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" rev-parse --abbrev-ref HEAD";
 
     exec($command, $arrRes, $returnVar);
     // Търсим реда с текущият бранч
     foreach ($arrRes as $row) {
-        if (strpos($row, "*") !== FALSE) {
-            return trim(substr($row, strpos($row, "*") + 1, strlen($row)));
-        }
+        $row = trim($row);
+        if ($row !== 'HEAD') return $row);
     }
     $repoName = basename($repoPath);
     $log[] = "err: {$repoName} няма текущ бранч!";
@@ -971,8 +970,8 @@ function gitHasNewVersion($repoPath, &$log)
     foreach ($arrRes as $row) {
         $hasNewVersion = strpos($row, "(local out of date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
         $hasUpdated = strpos($row, "(up to date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
-    	$fastForward = strpos($row, "(fast-forwardable)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
-    	
+        $fastForward = strpos($row, "(fast-forwardable)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
+        
         if($hasNewVersion !== FALSE) {
             $log[] = "new:[<b>$repoName</b>] Има нова версия.";
             
@@ -985,9 +984,9 @@ function gitHasNewVersion($repoPath, &$log)
         }
         
         if($fastForward !== FALSE) {
-        	$log[] = "wrn:[<b>$repoName</b>] Необходима е ръчна намеса";
-        	
-        	return FALSE;
+            $log[] = "wrn:[<b>$repoName</b>] Необходима е ръчна намеса";
+            
+            return FALSE;
         }
     }
     $log[] = "err:[<b>$repoName</b>] Не е открит зададеният бранч.";
