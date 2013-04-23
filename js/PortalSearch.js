@@ -24,9 +24,7 @@ $(document).ready(function () {
 	$('.portal-filter').live("submit", (function(e) {
 		var object = $(this).children('.hFormField').children('input');
 		if(object.val() == ''){
-			if (object.is(':visible')) {
-				e.preventDefault(); 
-			}
+			e.preventDefault(); 
 		}
 	}));
 });
