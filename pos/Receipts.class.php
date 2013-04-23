@@ -33,7 +33,7 @@ class pos_Receipts extends core_Master {
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary,
     				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
-                     acc_plg_Contable';
+                     acc_plg_Contable,plg_Modified';
 
     
     /**
@@ -167,6 +167,12 @@ class pos_Receipts extends core_Master {
     	if($fields['-list']){
     		$row->title = "Бърза продажба №{$row->id}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
+    	}
+    	
+    	if($rec->state != 'draft'){
+    		
+    		// показваме датата на последната модификация на документа, ако е активиран
+    		$row->valior = dt::mysql2verbal($rec->modifiedOn, "d.m.Y H:i:s");
     	}
     }
 

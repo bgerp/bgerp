@@ -62,20 +62,19 @@
 	margin-right:15px;
 }
 
-#receipt-total-sum {
-	margin-top: 1px;
-	font-size: 26px;
-	font-weight:bold;
-}
-
 .info-right {
 	float:right;
 	font-style:italic;
 }
 
-#total-label {
-	margin-top:2px;
-	display:block;
+#total-label, #receipt-total-sum  {
+	font-size:26px;
+	font-weight:bold;
+}
+
+.receipt-info-right {
+	text-align:right;
+	padding-right: 10px;
 }
 
 #receipt-details-th {
@@ -157,6 +156,7 @@ input.error {
 }
 
 #receipt-info{
+	text-indent:12px;
 	width:100%;
 	float:left;
 	background-color:rgb(221,221,221);
@@ -242,6 +242,14 @@ div.scrollWrapper{
 		background-color:rgb(153, 153, 255) !important;
 }
 
+.receipt-quantity{
+	width:110px;
+}
+
+.receipt-price{
+	width:200px;
+}
+
 @media print{
 	div.scrollWrapper{
 		max-height:none;
@@ -249,15 +257,46 @@ div.scrollWrapper{
 		border:1px solid #000;
 		border-left:none;
 		border-right:none;
-		width:522px;
+		width:412px;
 	}
 	
 	table.scrollable td{
 		border:1px solid #000;
+		width:412px;
 	}
 	
 	#receipt-info{
 		margin-top:-1px;
+	}
+	
+	#single-receipt {
+		width:412px;
+	}
+	
+	#receipt-table {
+		width:412px;
+	}
+	
+	.single-receipt-wrapper{
+		padding:0px;
+		margin:0px;
+		border:0px;
+	}
+	
+	.receipt-quantity{
+		width:90px !important;
+	}
+	
+	.receipt-price{
+		width:70px !important;
+	}
+	
+	.receipt-amount{
+		width:80px !important;
+	}
+	
+	#receipt-number{
+		float:left;
 	}
 }
 
