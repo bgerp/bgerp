@@ -239,7 +239,7 @@ class cal_Reminders extends core_Master
     	    $data->form->setDefault('repetitionEach', " ");
 
 		}
-        $data->form->setDefault('repetitionEach', static::$suggestions[0]);
+        
         
         $rec = $data->form->rec;
     }
