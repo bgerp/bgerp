@@ -25,7 +25,7 @@ class pos_Reports extends core_Master {
     /**
      * Заглавие
      */
-    var $title = 'Отчети за бързи продажби';
+    var $title = 'Отчети за POS продажби';
     
     
     /**
@@ -38,7 +38,7 @@ class pos_Reports extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Отчет за бързи продажби";
+    var $singleTitle = "Отчет за POS продажби";
     
     
     /**
@@ -176,7 +176,7 @@ class pos_Reports extends core_Master {
     	$storeId = pos_Points::fetchField($rec->pointId, 'storeId');
     	$row->storeId = store_Stores::getTitleById($storeId);
     	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-    	$row->title = "Отчет за бърза продажба №{$rec->id}";
+    	$row->title = "Отчет за POS продажба №{$rec->id}";
     	
     	if($fields['-list']) {
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
@@ -354,7 +354,7 @@ class pos_Reports extends core_Master {
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = "Отчет за бърза продажба №{$rec->id}";
+        $row->title = "Отчет за POS продажба №{$rec->id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -450,10 +450,27 @@ class pos_Reports extends core_Master {
      * След обработка на ролите
      */
 	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{// bp();
+	{
 		// Никой неможе да редактира бележка
 		if($action == 'activate' && !$rec) {
 			$res = 'no_one';
 		}
 	}
+	
+	
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     * @param $firstClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $folderClass)
+    {
+        if (empty($folderClass)) {
+            $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+    
+        return $folderClass == 'pos_Points';
+    }
 }
