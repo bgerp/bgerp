@@ -9,9 +9,9 @@
 		<!--ET_BEGIN event-->	
          <div class='block_left'>
          
-                <table cellspacing='1' class='mc_calendar'>
+                <table cellspacing='1' class='mc-calendar mc-calendar-week'>
 				<tr>
-					 <td class="calWeekTime"><b>Време</b></td>
+					 <th class="calWeekTime"><b>Време</b></th>
                      <td onclick="goToWeekDate('[#date0Js#]');" class="[#c0#]"><b>[#0#]</b></td>
                      <td onclick="goToWeekDate('[#date1Js#]');" class="[#c1#]"><b>[#1#]</b></td>
                      <td onclick="goToWeekDate('[#date2Js#]');" class="[#c2#]"><b>[#2#]</b></td>
@@ -26,7 +26,7 @@
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr class="[#colTr#]" data-cal-time="[#timeJs#]">
                  
-                     <td class="calWeekH">[#time#]</td>
+                     <th class="calWeekH">[#time#]</th>
                      <td ondblclick="createDblWeekTask('[#date0Js#]+[#timeJs#]:00');" [#over0#][#out0#] class="[#col#]" data-cal-date="[#date0Js#]"><div class="relative-holder">[#d0#]<a class="add-task-btn" onclick="createWeekTask('[#date0Js#]+[#timeJs#]:00');">[#href0#]</a></div></td>
                      <td ondblclick="createDblWeekTask('[#date1Js#]+[#timeJs#]:00');" [#over1#][#out1#] class="[#col#]" data-cal-date="[#date1Js#]"><div class="relative-holder">[#d1#]<a class="add-task-btn" onclick="createWeekTask('[#date1Js#]+[#timeJs#]:00');">[#href1#]</a></div></td>
                      <td ondblclick="createDblWeekTask('[#date2Js#]+[#timeJs#]:00');" [#over2#][#out2#] class="[#col#]" data-cal-date="[#date2Js#]"><div class="relative-holder">[#d2#]<a class="add-task-btn" onclick="createWeekTask('[#date2Js#]+[#timeJs#]:00');">[#href2#]</a></div></td>

@@ -10,9 +10,9 @@
 		<!--ET_BEGIN event-->
 		<div class='block_left'>
          
-                <table cellspacing='1' class='mc_calendar'>
+                <table cellspacing='1' class='mc-calendar mc-calendar-day'>
 				<tr>
-                     <td class="calDayTime" style='width:50px'>Време</td>
+                     <th class="calDayTime">Време</th>
                      <td class="calDayTime">Заглавие</td>
                      
                  </tr>
@@ -20,7 +20,7 @@
                  
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr class="[#colTr#]" data-cal-time="[#timeJs#]"> 
-                     <td class="calDayH">[#time#]</td>
+                     <th class="calDayH">[#time#]</th>
                      <td ondblclick="createDblTask('[#dateJs#]');" [#over0#] [#out0#] class="[#now#]" data-cal-date="[#dateJs#]"><div class="relative-holder">[#tasktitle#]<a class="add-task-btn" onclick="createTask('[#dateJs#]');">[#href0#]</a></div></td>
                      
                  </tr>

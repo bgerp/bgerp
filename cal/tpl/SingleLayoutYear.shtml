@@ -3,16 +3,14 @@
 			<span>[#ListFilter#]</span>
 	    </div>
 <div class="clearfix21"></div>
-<table cellspacing='5'>
-		
-
+<table cellspacing='0' class='mc-calendar-all-year'>
 	<tr>
 		<td>
 		<div class='block_left'>
-			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month1#]</div>
+			<table  class='mc-calendar-year'>
+				<div class='month-name'>[#month1#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -24,7 +22,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI1-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -43,9 +41,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month2#]</div>
+				<div class='month-name'>[#month2#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -57,7 +55,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI2-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -75,9 +73,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month3#]</div>
+				<div class='month-name'>[#month3#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -89,7 +87,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI3-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -110,9 +108,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month4#]</div>
+				<div class='month-name'>[#month4#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -124,7 +122,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI4-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -142,9 +140,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month5#]</div>
+				<div class='month-name'>[#month5#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -156,7 +154,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI5-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -174,9 +172,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month6#]</div>
+				<div class='month-name'>[#month6#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -188,7 +186,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI6-->
                 <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -209,9 +207,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month7#]</div>
+				<div class='month-name'>[#month7#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -223,7 +221,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI7-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -241,9 +239,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month8#]</div>
+				<div class='month-name'>[#month8#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -255,7 +253,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI8-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -273,9 +271,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month9#]</div>
+				<div class='month-name'>[#month9#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -287,7 +285,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI9-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -308,9 +306,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month10#]</div>
+				<div class='month-name'>[#month10#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -322,7 +320,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI10-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -342,9 +340,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month11#]</div>
+				<div class='month-name'>[#month11#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -356,7 +354,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI11-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
@@ -374,9 +372,9 @@
 		<td>
 		<div class='block_left'>
 			<table class='mc-calendar-year'>
-				<div style='width:150px;text-align:center;font-weight:bold;'>[#month12#]</div>
+				<div class='month-name'>[#month12#]</div>
 				 <tr>
-				 	<td class='mc-wd-name'>Сд</td>
+				 	<th class='mc-wd-name'>Сд</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -388,7 +386,7 @@
 			          
                  <!--ET_BEGIN COMMENT_LI12-->
                  <tr> 
-                     <td class='mc-week-nb'>[#weekNum#]</td>
+                     <th class='mc-week-nb'>[#weekNum#]</th>
                      <td onclick="createLink('[#date1Js#]');" class="[#now1#]" data-cal-date="[#date1Js#]"><div class='event'>[#c1#]</div>[#d1#]</td>
                      <td onclick="createLink('[#date2Js#]');" class="[#now2#]" data-cal-date="[#date2Js#]"><div class='event'>[#c2#]</div>[#d2#]</td>
                      <td onclick="createLink('[#date3Js#]');" class="[#now3#]" data-cal-date="[#date3Js#]"><div class='event'>[#c3#]</div>[#d3#]</td>
