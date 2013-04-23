@@ -1,85 +1,83 @@
-<?php
-
+<?php 
 
 
 /**
- * Мениджър на заявки за покупки
+ * Циркулярни SMS-и
  *
  *
  * @category  bgerp
- * @package   purchase
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @package   blast
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Заявки за покупки
  */
-class purchase_Requests extends core_Manager
+class blast_Sms extends core_Manager
 {
     
     
     /**
      * Заглавие
      */
-    var $title = 'Заявки за покупки';
-    
-    
-    /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    purchase_Wrapper';
+    var $title = "Циркулярни SMS-и";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,purchase';
+    var $canRead = 'admin, blast';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,purchase';
+    var $canEdit = 'admin, blast';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,purchase';
+    var $canAdd = 'admin, blast';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,purchase';
+    var $canView = 'admin, blast';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin, blast';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,purchase';
+    var $canDelete = 'admin, blast';
     
     
     /**
-     * Полета, които ще се показват в листов изглед
+     * Кой може да праша информационните съобщения?
      */
-    var $listFields = 'tools=Пулт';
+    var $canBlast = 'admin, blast';
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * Плъгини за зареждане
      */
-    var $rowToolsField = 'tools';
+    var $loadList = 'blast_Wrapper';
     
     
     /**
-     * Описание на модела (таблицата)
+     * Описание на модела
      */
     function description()
     {
+
     }
-    
+
     
     /**
      * Екшън по подразбиране.

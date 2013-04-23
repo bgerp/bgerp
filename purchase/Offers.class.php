@@ -116,6 +116,19 @@ class purchase_Offers extends core_Manager
     
     
     /**
+     * Екшън по подразбиране.
+     * Извежда картинка, че страницата е в процес на разработка
+     */
+    function act_Default()
+    {
+    	$text = tr('В процес на разработка');
+    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
+
+        return $this->renderWrapping($underConstructionImg);
+    }
+    
+    
+    /**
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */

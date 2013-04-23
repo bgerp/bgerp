@@ -79,4 +79,16 @@ class trz_Fines extends core_Manager
     function description()
     {
     }
+    
+    /**
+     * Екшън по подразбиране.
+     * Извежда картинка, че страницата е в процес на разработка
+     */
+    function act_Default()
+    {
+    	$text = tr('В процес на разработка');
+    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
+
+        return $this->renderWrapping($underConstructionImg);
+    }
 }
