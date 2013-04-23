@@ -40,23 +40,6 @@
 					<td>|Ресто|*:</td>
 					<td class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
 				</tr>
-				<!--<tr>
-					<td>
-						<div id='receipt-payments'>
-							<div id='receipt-paid'>: &nbsp;<b>[#paid#]</b> <small>[#currency#]</small></div>
-							<div id='receipt-change'>: &nbsp;[#change#] <small>[#currency#]</small></div>
-						</div>
-					</td>
-					<td>
-						<div id='receipt-contragent'>: <br /></div>
-					</td>
-					<td>
-						<div id='receipt-total'>
-							<span id='total-label'></span>
-							<div id='receipt-total-sum'> </div>
-						</div>
-					</td>
-				</tr>-->
 			</table>
 			<div class="clearfix21"></div>
 			[#ADD_FORM#]
