@@ -50,7 +50,7 @@ class doc_AssignPlg extends core_Plugin
         if(!$mvc->fields['assignedBy']) {
             
             // Добавяме в модела
-            $mvc->FLD('assignedBy', 'key(mvc=core_Users)', 'caption=Възложено->От,input=none');
+            $mvc->FLD('assignedBy', 'user', 'caption=Възложено->От,input=none');
         }
     }
     
@@ -199,13 +199,43 @@ class doc_AssignPlg extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        // Ако има данни
+        // Инстанция на класа
+        $typeUserInst = cls::get('type_User');
+        
+        // Ако има assignedBy
         if ($rec->assignedBy) {
             
-            // Вербалната стойност
-            $row->assignedBy = core_Users::getVerbal($rec->assignedBy, 'nick');    
+            // Вербална стойност
+            $row->assignedBy = $typeUserInst->toVerbal($rec->assignedBy);
+            
+            // URL към профила
+            $assignedByProfile = crm_Profiles::getUrl($rec->assignedBy);
+            
+            // Ако има профил
+            if ($assignedByProfile) {
+                
+                // Добавяме линк към профила
+                $row->assignedBy = ht::createLink($row->assignedBy, $assignedByProfile);  
+            }
         }
         
+        // Ако има assign
+        if ($rec->assign) {
+            
+            // Вербална стойност
+            $row->assign = $typeUserInst->toVerbal($rec->assign);
+            
+            // URL към профила
+            $assignedProfile = crm_Profiles::getUrl($rec->assign);
+            
+            // Ако има профил
+            if ($assignedProfile) {
+                
+                // Добавяме линк към профила
+                $row->assign = ht::createLink($row->assign, $assignedProfile);
+            }
+        }
+
         // Ако има данни
         if ($rec->assignedDate) {
             
