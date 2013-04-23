@@ -199,41 +199,18 @@ class doc_AssignPlg extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        // Инстанция на класа
-        $typeUserInst = cls::get('type_User');
-        
         // Ако има assignedBy
         if ($rec->assignedBy) {
             
             // Вербална стойност
-            $row->assignedBy = $typeUserInst->toVerbal($rec->assignedBy);
-            
-            // URL към профила
-            $assignedByProfile = crm_Profiles::getUrl($rec->assignedBy);
-            
-            // Ако има профил
-            if ($assignedByProfile) {
-                
-                // Добавяме линк към профила
-                $row->assignedBy = ht::createLink($row->assignedBy, $assignedByProfile);  
-            }
+            $row->assignedBy = crm_Profiles::createLink($rec->assignedBy);
         }
         
         // Ако има assign
         if ($rec->assign) {
             
             // Вербална стойност
-            $row->assign = $typeUserInst->toVerbal($rec->assign);
-            
-            // URL към профила
-            $assignedProfile = crm_Profiles::getUrl($rec->assign);
-            
-            // Ако има профил
-            if ($assignedProfile) {
-                
-                // Добавяме линк към профила
-                $row->assign = ht::createLink($row->assign, $assignedProfile);
-            }
+            $row->assign = crm_Profiles::createLink($rec->assign);
         }
 
         // Ако има данни
