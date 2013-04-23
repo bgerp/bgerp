@@ -174,6 +174,9 @@ class pos_Receipts extends core_Master {
     		// показваме датата на последната модификация на документа, ако е активиран
     		$row->valior = dt::mysql2verbal($rec->modifiedOn, "d.m.Y H:i:s");
     	}
+    	
+    	$cu = core_Users::fetch($rec->createdBy);
+    	$row->createdBy = core_Users::recToVerbal($cu)->names;
     }
 
     

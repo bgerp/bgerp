@@ -156,6 +156,7 @@ input.error {
 }
 
 #receipt-info{
+	padding-top:30px;
 	text-indent:12px;
 	width:100%;
 	float:left;
@@ -164,6 +165,18 @@ input.error {
 	border-right:1px solid black;
 	border-bottom:1px solid black;
 	border-collapse:collapse;
+}
+
+#cashier {
+	padding-left:10px;
+}
+
+#th-quantity{
+	width:130px;
+}
+
+#th-price{
+	width:220px;
 }
 
 .receipt-discount-td {
@@ -179,6 +192,7 @@ input.error {
 	color:darkred;
 	font-style:italic;
 }
+
 .buttons-row{
 	clear:both;
 	float:left;
@@ -226,7 +240,6 @@ table.scrollable tr:first-child td{
 div.scrollWrapper{
   float:left;
   width:550px;
-  1max-height:269px;
   overflow-y:auto;
   border-right:1px solid #000;
   border-bottom:1px solid #000;
@@ -269,11 +282,7 @@ div.scrollWrapper{
 		margin-top:-1px;
 	}
 	
-	#single-receipt {
-		width:412px;
-	}
-	
-	#receipt-table {
+	#single-receipt, #receipt-table {
 		width:412px;
 	}
 	
@@ -295,8 +304,21 @@ div.scrollWrapper{
 		width:80px !important;
 	}
 	
+	#receipt-number, #receipt-title, #cashier{
+		float:left !important;
+		padding:0px !important;
+	}
+	
 	#receipt-number{
-		float:left;
+		margin-top:0px;
+	}	
+	
+	#th-quantity{
+		width:138px;
+	}
+	
+	#th-price{
+		width:114px;
 	}
 }
 

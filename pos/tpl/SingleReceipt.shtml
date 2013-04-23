@@ -7,12 +7,14 @@
 					<td colspan='3'>
 						<div id=''><span id='receipt-title'>|Касова бележка|*</span>
 						<span id='receipt-number'> &nbsp;<b>№[#id#]</b>,
-						  &nbsp;&nbsp;|Дата|*: &nbsp;&nbsp;<b>[#valior#]</b></span></div> 
+						  &nbsp;&nbsp;|Дата|*: &nbsp;&nbsp;<b>[#valior#]</b></span>
+						  <span id = 'cashier'>|Касиер|*: &nbsp;[#createdBy#]</span>
+						  </div> 
 					</td>
 				</tr>
 				<tr id='receipt-details-th'>
-					<td width="130px">|Количество|*</td>
-					<td width="220px">|Цена|*</td>
+					<td id='th-quantity'>|Количество|*</td>
+					<td id='th-price'>|Цена|*</td>
 					<td>|Стойност|*</td>
 				</tr>
 			</table>
@@ -23,10 +25,10 @@
 				</table>
 			</div>
 			<!--ET_END DETAILS-->
-			<table border='0' cellpadding='3px' cellspacing='0px' id = 'receipt-info'>
+			<table border='0' cellpadding='0px' cellspacing='0px' id = 'receipt-info'>
 				<tr>
-					<td>|Клиент|*:</td>
-					<td class = 'receipt-info-right'>[#contragentName#]</td>
+					<td style='padding-top:6px'>|Клиент|*:</td>
+					<td style='padding-top:6px' class = 'receipt-info-right'>[#contragentName#]</td>
 				</tr>
 				<tr>
 					<td id = 'total-label'>|Общо|*:</td>
@@ -37,8 +39,8 @@
 					<td class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
 				</tr>
 				<tr>
-					<td>|Ресто|*:</td>
-					<td class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
+					<td style='padding-bottom:6px'>|Ресто|*:</td>
+					<td style='padding-bottom:6px' class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
 				</tr>
 			</table>
 			<div class="clearfix21"></div>
