@@ -124,15 +124,13 @@ class price_ListDocs extends core_Master
     	$form = &$data->form;
     	$form->setDefault('date', dt::now());
     	$form->setOptions('policyId', $mvc->getDefaultPolicies($form->rec));
-    	$folderClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
-    	if(cls::haveInterface('doc_ContragentDataIntf', $folderClass)){
+    	$folderClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
     		
-    		// Ако корицата е Фирма или Лице, намираме 
-    		// ценовата и политика и се слага по-подразбиране
-    		$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-    		$defaultList = price_ListToCustomers::getListForCustomer($folderClass::getClassId(), $contragentId);
-    		$form->setDefault('policyId', $defaultList);
-    	}
+    	// Намираме политиката на зададената папка, ако няма
+    	// по подрабзиране е "каталог"
+    	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
+    	$defaultList = price_ListToCustomers::getListForCustomer($folderClassId, $coverId);
+    	$form->setDefault('policyId', $defaultList);
     }
     
     
