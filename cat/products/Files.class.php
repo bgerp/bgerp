@@ -117,10 +117,14 @@ class cat_products_Files extends cat_products_Detail
             $tpl->append($addBtn, 'TITLE');
         }
         
-        foreach((array)$data->rows as $row) {
-            $block = $tpl->getBlock('row');
-            $block->placeObject($row);
-            $block->append2Master();
+        if(count($data->rows)){
+	        foreach((array)$data->rows as $row) {
+	            $block = $tpl->getBlock('row');
+	            $block->placeObject($row);
+	            $block->append2Master();
+	        }
+        } else {
+        	$tpl->replace(tr("Няма записи"), 'row');
         }
             
         return $tpl;
