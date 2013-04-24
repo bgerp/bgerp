@@ -238,7 +238,11 @@ class trz_Requests extends core_Master
     	$cu = core_Users::getCurrent();
         $data->form->setDefault('personId', $cu);
         
-         $rec = $data->form->rec;
+        $rec = $data->form->rec;
+        if($rec->folderId){
+	        $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $data->form->setReadonly('personId');
+        }
     }
     
     
@@ -351,6 +355,32 @@ class trz_Requests extends core_Master
     	}
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка 
+     *
+     * @param $folderId int ид на папката
+     * @param $coverClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $coverClass)
+    {
+        if (empty($coverClass)) {
+            $coverClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+        
+        if ('crm_Persons' != $coverClass) {
+        	return FALSE;
+        }
+        
+        $personId = doc_Folders::fetchCoverId($folderId);
+        
+        $personRec = crm_Persons::fetch($personId);
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        
+        return type_Keylist::isIn($emplGroupId, $personRec->groupList);
     }
 
     
