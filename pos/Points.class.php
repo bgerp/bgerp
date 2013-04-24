@@ -66,6 +66,12 @@ class pos_Points extends core_Master {
     
     
     /**
+     * Икона за единичен изглед
+     */
+    var $singleIcon = 'img/16/cash-register-icon.png';
+    
+    
+    /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'admin, pos';

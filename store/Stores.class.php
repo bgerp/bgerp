@@ -98,6 +98,12 @@ class store_Stores extends core_Master
     
     
     /**
+     * Икона за единичен изглед
+     */
+    var $singleIcon = 'img/16/home-icon.png';
+    
+    
+    /**
      * Файл с шаблон за единичен изглед
      */
     var $singleLayoutFile = 'store/tpl/SingleLayoutStore.shtml';

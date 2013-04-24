@@ -35,6 +35,12 @@ class cash_Cases extends core_Master {
     
     
     /**
+     * Икона за единичен изглед
+     */
+    var $singleIcon = 'img/16/safe-icon.png';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт, name, cashier';

@@ -94,6 +94,12 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+     * Икона за единичен изглед
+     */
+    var $singleIcon = 'img/16/Money-icon.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
