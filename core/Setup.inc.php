@@ -24,7 +24,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 }
 
 // Колко време е валидно заключването - в секунди
-DEFINE ('SETUP_LOCK_PERIOD', 180);
+DEFINE ('SETUP_LOCK_PERIOD', 600);
 
 defIfNot('BGERP_GIT_BRANCH', 'dev');
 
@@ -968,8 +968,8 @@ function gitHasNewVersion($repoPath, &$log)
     foreach ($arrRes as $row) {
         $hasNewVersion = strpos($row, "(local out of date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
         $hasUpdated = strpos($row, "(up to date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
-    	$fastForward = strpos($row, "(fast-forwardable)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
-    	
+        $fastForward = strpos($row, "(fast-forwardable)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
+        
         if($hasNewVersion !== FALSE) {
             $log[] = "new:[<b>$repoName</b>] Има нова версия.";
             
@@ -982,9 +982,9 @@ function gitHasNewVersion($repoPath, &$log)
         }
         
         if($fastForward !== FALSE) {
-        	$log[] = "wrn:[<b>$repoName</b>] Необходима е ръчна намеса";
-        	
-        	return FALSE;
+            $log[] = "wrn:[<b>$repoName</b>] Необходима е ръчна намеса";
+            
+            return FALSE;
         }
     }
     $log[] = "err:[<b>$repoName</b>] Не е открит зададеният бранч.";
