@@ -432,7 +432,7 @@ class cash_Pko extends core_Master
     	
         // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
         $cover = doc_Folders::getCover($folderId);
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons'
+        return cls::haveInterface('doc_ContragentDataIntf', $folderClass)
          || ($cover->className == 'cash_Cases' && $cover->that == cash_Cases::getCurrent('id', FALSE));
     }
     

@@ -125,7 +125,7 @@ class price_ListDocs extends core_Master
     	$form->setDefault('date', dt::now());
     	$form->setOptions('policyId', $mvc->getDefaultPolicies($form->rec));
     	$folderClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
-    	if($folderClass == 'crm_Companies' || $folderClass == 'crm_Persons'){
+    	if(cls::haveInterface('doc_ContragentDataIntf', $folderClass)){
     		
     		// Ако корицата е Фирма или Лице, намираме 
     		// ценовата и политика и се слага по-подразбиране

@@ -378,8 +378,6 @@ class acc_Articles extends core_Master
             $folderClass = doc_Folders::fetchCoverClassName($folderId);
         }
     	
-        // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
-        $cover = doc_Folders::getCover($folderId);
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons' || $folderClass == 'doc_UnsortedFolders';
+        return cls::haveInterface('doc_ContragentDataIntf', $folderClass) || $folderClass == 'doc_UnsortedFolders';
     }
 }

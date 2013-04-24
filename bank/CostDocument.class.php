@@ -277,7 +277,7 @@ class bank_CostDocument extends core_Master
     	
         // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата сметка
         $cover = doc_Folders::getCover($folderId);
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons'
+        return cls::haveInterface('doc_ContragentDataIntf', $folderClass)
          || ($cover->className == 'bank_OwnAccounts' && $cover->that == bank_OwnAccounts::getCurrent('id', FALSE));
     }
     

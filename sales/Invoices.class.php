@@ -679,7 +679,7 @@ class sales_Invoices extends core_Master
             $folderClass = doc_Folders::fetchCoverClassName($folderId);
         }
     
-        return $folderClass == 'crm_Companies' || $folderClass == 'crm_Persons';
+        return cls::haveInterface('doc_ContragentDataIntf', $folderClass);
     }
     
     
