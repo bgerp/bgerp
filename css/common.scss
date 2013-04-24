@@ -1084,8 +1084,8 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
     background-color: #cc6666;
 }
 
-.state-rejected td, .state-rejected .document th, .state-rejected .document td a, 
-.state-rejected .richtext, .state-rejected .richtext a, , .state-rejected .richtext div, .state-rejected .cCode{
+.state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3,
+.state-rejected .richtext, .state-rejected .richtext a, , .state-rejected .richtext div, .state-rejected .cCode ,.state-rejected .antetka{
 	color:#999 !important;
 	text-decoration:line-through;
 }
