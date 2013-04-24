@@ -1,18 +1,12 @@
 <div class="product-files">
 <!--ET_BEGIN row-->
     <div class="file" style="border-bottom:1px dashed #ccc;padding: 5px 0px 3px">
-    <div style="float: left;margin-right:10px">[#createdOn#]</div>
-       <div style="float: left;margin-right:10px">
-       [#file#]
-       <!--ET_BEGIN description-->
-       <br/>
-       <p style="float:left"  class="quiet">
-           [#description#]
-       </p>
-       <!--ET_END description-->
+    <div style="float:left;margin-right:10px">[#createdOn#]</div>
+       <div style="float:left;margin-right:10px">
+       [#file#] <span class="quiet" style="margin-left:10px">[#description#]</span>
        </div>
-       <div style="float: left;margin-right:8px">|от|* <b>[#createdBy#]</b></div>
-       <div style="float: right;">[#tools#]</div>
+       <div style="float:left;margin-right:8px">|от|* <b>[#createdBy#]</b></div>
+       <div style="float:right;">[#tools#]</div>
        <div class="clearfix21"></div>
     </div>
 <!--ET_END row-->
