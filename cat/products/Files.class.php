@@ -31,13 +31,13 @@ class cat_products_Files extends cat_products_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'file,description,tools';
+    var $listFields = 'file,description,tools,createdOn,createdBy';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools';
+    var $loadList = 'cat_Wrapper, plg_RowTools, plg_Created';
     
     
     /**
@@ -45,6 +45,10 @@ class cat_products_Files extends cat_products_Detail
      */
     var $tabName = 'cat_Products';
     
+    
+    /**
+     * Поле за редактиране на ред
+     */
     var $rowToolsField = 'tools';
     
     
@@ -100,9 +104,13 @@ class cat_products_Files extends cat_products_Detail
         $form->title = "Файл към|* {$productName}";
     }
     
+    
+    /**
+     * Рендиране на детайла
+     */
     public function renderDetail_($data)
     {
-        $tpl = new ET(getFileContent('cat/tpl/products/Files.shtml'));
+        $tpl = new ET(tr("|*" . getFileContent('cat/tpl/products/Files.shtml')));
         
         if ($data->addUrl) {
             $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
@@ -112,14 +120,25 @@ class cat_products_Files extends cat_products_Detail
         foreach((array)$data->rows as $row) {
             $block = $tpl->getBlock('row');
             $block->placeObject($row);
-            
             $block->append2Master();
         }
             
         return $tpl;
     }
     
+    
+    /**
+     * Преди подготовка на списъчния изглед
+     */
+    static function on_BeforePrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('createdOn', 'DESC');
+    }
 
+    
+    /**
+     * Подготовка на файловете
+     */
     public static function prepareFiles($data)
     {   
         $data->TabCaption = 'Файлове';
@@ -129,6 +148,9 @@ class cat_products_Files extends cat_products_Detail
     }
     
     
+    /**
+     * Рендиране на файловете
+     */
     public static function renderFiles($data)
     {
         return static::renderDetail($data);
