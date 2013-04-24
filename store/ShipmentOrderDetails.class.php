@@ -92,14 +92,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
     
     /**
-     * Кой може да остойностява ЕН
-     * 
-     * @var string|array
-     */
-    public $canValuate = 'admin, acc';
-    
-    
-    /**
      * Брой записи на страница
      * 
      * @var integer
@@ -349,8 +341,8 @@ class store_ShipmentOrderDetails extends core_Detail
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
-        // Само който има право да контира експ. нареждане, само той вижда ценовата информация
-        if (!store_ShipmentOrders::haveRightFor('valuate', $data->masterData->rec)) {
+        // Определяме кой вижда ценовата информация
+        if (!store_ShipmentOrders::haveRightFor('viewprices', $data->masterData->rec)) {
             $data->listFields = array_diff_key($data->listFields, arr::make('price, discount, amount', TRUE));
         }
     

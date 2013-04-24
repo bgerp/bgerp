@@ -44,7 +44,7 @@ class store_ShipmentOrders extends core_Master
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, bgerp_plg_Blank,
-                    doc_plg_BusinessDoc, acc_plg_Registry, acc_plg_Contable';
+                    doc_plg_BusinessDoc, acc_plg_Registry';
     
     
 
@@ -87,6 +87,14 @@ class store_ShipmentOrders extends core_Master
      * @var string|array
      */
     public $canDelete = 'admin,store';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     * 
+     * @var string|array
+     */
+    public $canConto = 'admin,store';
     
     
     /**
@@ -212,29 +220,12 @@ class store_ShipmentOrders extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         switch ($action) {
-            /*
-             * Контират се само документи (продажби) които генерират *непразни* транзакции.
-             * Документите (продажбите), които не генерират счетоводни транзакции могат да се
-             * активират.
-             */
             case 'conto':
                 if (empty($rec->id) || $rec->state != 'draft') {
-                    // Незаписаните продажби не могат нито да се контират, нито да се активират
+                    // Незаписаните ЕН не могат да се контират
                     $requiredRoles = 'no_one';
-                    break;
-                } 
-                
-                if (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE) {
+                } elseif (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE) {
                     // Невъзможно е да се генерира транзакция
-                    $requiredRoles = 'no_one';
-                    break;
-                }
-                
-                // Активиране е позволено само за продажби, които не генерират транзакции
-                // Контиране е позволено само за продажби, които генерират транзакции
-                $deniedAction = ($transaction->isEmpty() ? 'conto' : 'activate');
-                
-                if ($action == $deniedAction) {
                     $requiredRoles = 'no_one';
                 }
                 break;
