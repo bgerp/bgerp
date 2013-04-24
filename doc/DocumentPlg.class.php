@@ -1410,4 +1410,27 @@ class doc_DocumentPlg extends core_Plugin
         // Отбелязване в лога
         log_Documents::changed($recsArr);
     }
+    
+    
+    /**
+     * Връща документа, породил зададения документ - реализация по подразбиране
+     *
+     * @param core_Mvc $mvc
+     * @param object $origin
+     * @param int|object $id
+     * @param string $intf
+     * @return NULL|core_ObjectReference
+     */
+    public static function on_AfterGetOrigin(core_Mvc $mvc, &$origin, $rec, $intf = NULL)
+    {
+        if (!empty($origin)) {
+            return;
+        }
+        
+        $rec = $mvc->fetchRec($rec);
+        
+        if ($rec->originId) {
+            $origin = doc_Containers::getDocument($rec->originId, $intf);
+        }
+    }
 }
