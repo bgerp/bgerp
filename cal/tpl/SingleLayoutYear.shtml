@@ -3,10 +3,8 @@
 			<span>[#ListFilter#]</span>
 	    </div>
 <div class="clearfix21"></div>
-<table cellspacing='0' class='mc-calendar-all-year'>
-	<tr>
-		<td>
-		<div class='block_left'>
+
+		<div class='floating-div'>
 			<table  class='mc-calendar-year'>
 				<div class='month-name'>[#month1#]</div>
 				 <tr>
@@ -37,9 +35,8 @@
                  </table>
              
         </div>
-		</td>
-		<td>
-		<div class='block_left'>
+	
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month2#]</div>
 				 <tr>
@@ -69,9 +66,8 @@
                          
                  </table>
         </div>         
-		</td>
-		<td>
-		<div class='block_left'>
+	
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month3#]</div>
 				 <tr>
@@ -101,12 +97,8 @@
                          
                  </table>
         </div>         
-		</td>
-	</tr>
 	
-	<tr>
-		<td>
-		<div class='block_left'>
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month4#]</div>
 				 <tr>
@@ -136,9 +128,8 @@
                          
                  </table>
         </div>         
-		</td>
-		<td>
-		<div class='block_left'>
+	
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month5#]</div>
 				 <tr>
@@ -168,9 +159,8 @@
                          
                  </table>
         </div>         
-		</td>
-		<td>
-		<div class='block_left'>
+		
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month6#]</div>
 				 <tr>
@@ -200,12 +190,8 @@
                          
                  </table>
         </div>         
-		</td>
-	</tr>
 	
-	<tr>
-		<td>
-		<div class='block_left'>
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month7#]</div>
 				 <tr>
@@ -235,9 +221,8 @@
                          
                  </table>
         </div>         
-		</td>
-		<td>
-		<div class='block_left'>
+		
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month8#]</div>
 				 <tr>
@@ -267,9 +252,8 @@
                          
                  </table>
         </div>         
-		</td>
-		<td>
-		<div class='block_left'>
+		
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month9#]</div>
 				 <tr>
@@ -299,12 +283,8 @@
                          
                  </table>
         </div>         
-		</td>
-	</tr>
 	
-	<tr>
-		<td>
-		<div class='block_left'>
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month10#]</div>
 				 <tr>
@@ -335,10 +315,8 @@
         
                  </table>
         </div>          
-		</td>
 		
-		<td>
-		<div class='block_left'>
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month11#]</div>
 				 <tr>
@@ -368,9 +346,8 @@
                          
                  </table>
         </div>
-		</td>
-		<td>
-		<div class='block_left'>
+		
+		<div class='floating-div'>
 			<table class='mc-calendar-year'>
 				<div class='month-name'>[#month12#]</div>
 				 <tr>
@@ -400,8 +377,4 @@
                          
                  </table>
         </div>        
-		</td>
-	</tr>
-
-
-</table>
+		<div class='clearfix21'></div>

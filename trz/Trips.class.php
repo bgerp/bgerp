@@ -126,6 +126,7 @@ class trz_Trips extends core_Master
     	$this->FLD('amountHouse', 'double', 'caption=Начисления->Квартирни');
     }
     
+    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -133,6 +134,7 @@ class trz_Trips extends core_Master
     {
     	$mvc->updateTripsToCalendar($rec->id);
     }
+    
     
     /**
      * Прилага филтъра, така че да се показват записите за определение потребител
@@ -162,6 +164,7 @@ class trz_Trips extends core_Master
         }
     }
     
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -188,6 +191,20 @@ class trz_Trips extends core_Master
         
         $data->listFilter->input('selectedUsers, startDate, toDate', 'silent');
     }
+    
+    /**
+     * Подготовка на формата за добавяне/редактиране
+     */
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $rec = $data->form->rec;
+        
+        if ($rec->folderId) {
+	        $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $data->form->setReadonly('personId');
+        }
+    }
+    
     
     /**
      * Обновява информацията за задачата в календара
@@ -255,6 +272,8 @@ class trz_Trips extends core_Master
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
+    
+    
 
     /**
      * Интерфейсен метод на doc_DocumentIntf
@@ -283,6 +302,32 @@ class trz_Trips extends core_Master
         //$row->recTitle = $rec->title;
         
         return $row;
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка 
+     *
+     * @param $folderId int ид на папката
+     * @param $coverClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $coverClass)
+    {
+        if (empty($coverClass)) {
+            $coverClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+        
+        if ('crm_Persons' != $coverClass) {
+        	return FALSE;
+        }
+        
+        $personId = doc_Folders::fetchCoverId($folderId);
+        
+        $personRec = crm_Persons::fetch($personId);
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        
+        return type_Keylist::isIn($emplGroupId, $personRec->groupList);
     }
     
 

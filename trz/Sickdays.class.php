@@ -126,14 +126,14 @@ class trz_Sickdays extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
   //  var $rowToolsField = 'id';
-    
+
     
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,readonly');
     	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
     	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
     	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година');
@@ -215,8 +215,14 @@ class trz_Sickdays extends core_Master
         	$data->form->setField('paidByHI', 'input, mandatory');
         	
         }
-
+        
         $rec = $data->form->rec;
+        if($rec->folderId){
+	        $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $data->form->setReadonly('personId');
+        }
+
+        
     }
     
     
@@ -350,6 +356,32 @@ class trz_Sickdays extends core_Master
     	}
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка 
+     *
+     * @param $folderId int ид на папката
+     * @param $coverClass string класът на корицата на папката
+     */
+    public static function canAddToFolder($folderId, $coverClass)
+    {
+        if (empty($coverClass)) {
+            $coverClass = doc_Folders::fetchCoverClassName($folderId);
+        }
+        
+        if ('crm_Persons' != $coverClass) {
+        	return FALSE;
+        }
+        
+        $personId = doc_Folders::fetchCoverId($folderId);
+        
+        $personRec = crm_Persons::fetch($personId);
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        
+        return type_Keylist::isIn($emplGroupId, $personRec->groupList);
     }
     
     
