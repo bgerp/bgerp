@@ -206,6 +206,7 @@ table  div {
 
 p.calWeek{
 	background-image: url("nqkvo_pole4c.png");
+	text-align:left;
 	border-radius:2px;
 	box-shadow:0 0 2px #86b8e3;
 	padding:2px;
