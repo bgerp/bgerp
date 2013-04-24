@@ -970,11 +970,16 @@ div.folder-cover{
 	margin-left:3px;
 	line-height:1.2em;
 	position:relative;
-	z-index:22;
 	border:1px solid #ccc;
 	padding:20px 20px 20px 20px;
 	@include border-radius4(0px,25px,0px,0px);
 	box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
+	&.state-opened{
+		background-image:url('../img/cover-bg-green.png');
+	}
+	&.state-active{
+		background-image:url('../img/cover-bg-yellow.png');
+	}
 	.detail-info{
 		background:#fff;
 	}

@@ -1,6 +1,6 @@
 <div style="display: inline-block;">
    [#SingleToolbar#]
-   <div class="folder-cover">
+   <div class="folder-cover [#STATE_CLASS#]">
 	   <div class="inner-folder">
 	      <div class="block_title [#STATE_CLASS#] special-title">
 	         [#SingleIcon#] [#title#]
