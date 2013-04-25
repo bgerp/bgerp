@@ -1,0 +1,18 @@
+<table>
+	<tr>
+		<th>№</th>
+		<th>Описание</th>
+		<th>Количество</th>
+		<th>Цена</th>
+		<th>Стойност</th>
+	</tr>
+<!--ET_BEGIN ROW-->
+	<tr>
+		<td></td>
+		<td>[#productId#]</td>
+		<td>[#quantity#]</td>
+		<td>[#price#]</td>
+		<td>[#amount#]</td>
+	</tr>
+<!--ET_END ROW-->
+</table>

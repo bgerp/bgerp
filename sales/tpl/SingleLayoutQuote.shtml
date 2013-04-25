@@ -1,0 +1,54 @@
+[#SingleToolbar#]
+<div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>|Оферта на доставчик|* <b>№[#id#]</b></div>
+	</div>
+	<!--ET_END header-->
+	<div id='quote-body'>
+	<h2 class='centered quote-title'>|ОФЕРТА|*</h2>
+	
+	<p id='quoteNumber' class='centered'>
+		<b>№[#number#] / [#date#]</b>
+	</p>
+	
+	<p id='quoteReff' class='centered'>
+		<b>|Ваш реф|*.: &nbsp;[#reff#]</b>
+	</p>
+	
+	<div class="fleft cInfo">
+	<p><b>|Получател на офертата|*:</b></p>
+	<p>[#contragentName#]</p>
+	<p>[#contragentAdress#]</p>
+	</div>
+	
+	<div class="fright cContact">
+	<table>
+		<tr>
+			<td align='right'>|Имейл|*:</td><td>[#email#]</td>
+		</tr>
+		<tr>
+			<td align='right'>|Факс|*:</td><td>[#fax#]</td>
+		</tr>
+		<tr>
+			<td align='right'>|Тел|*:</td><td>[#tel#]</td>
+		</tr>
+	</table>
+	</div>
+	<div class="clearfix21"></div>
+	<!--ET_BEGIN DETAILS-->
+	[#DETAILS#]
+	<!--ET_END DETAILS-->
+	
+	<p id='condition-title'> Условия към офертата </p>
+	<ol id='conditions'>
+		<li> Всички цени са в [#currencyId#] с [#wat#] ДДС</li>
+		<li> Начин на плащане: [#paymentMethodId#]</li>
+		<li> Начин на доставка: [#deliveryTermId#]</li>
+	</ol>
+	
+	</div>
+</div>
