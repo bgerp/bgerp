@@ -82,4 +82,74 @@ class hr_Shifts extends core_Master
             core_Message::redirect("Моля въведете поне един работен режим", 'page_Error', NULL, array('hr_WorkingCycles'));
         }
     }
+    
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+//    	/bp($data->rec, $res, $data->row->calendar);
+		$year = dt::mysql2verbal($data->rec->startingOn, "Y");
+		$month = dt::mysql2verbal($data->rec->startingOn, "n");
+		
+		 // Таймстамп на първия ден на месеца
+        $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
+
+        // Броя на дните в месеца (= на последната дата в месеца);
+        $lastDay = date('t', $firstDayTms);
+        
+        for($i = 1; $i <= $lastDay; $i++){
+        	$daysTs = mktime(0, 0, 0, $month, $i, $year);
+        	$date = date("Y-m-d H:i", $daysTs);
+    		$d[$i]->html = "(" . static::getShiftDay($data->rec, $date) . ")";
+        }//bp($d);
+        
+        $res->row->month = dt::getMonth($month, $format = 'F', $lg = 'bg');
+    	$res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d);
+
+    }
+    
+    function on_AfterRenderWrapping($mvc, &$tpl)
+    {
+    	jquery_Jquery::enable($tpl);
+    	
+    	$tpl->push('hr/tpl/style.css', 'CSS');
+    }
+    
+    function act_Test()
+    {
+    	$id = 3;
+    	$rec = self::fetch("#id='{$id}'");
+    	
+    	$date = '2013-05-03 00:00:00';
+    	//$cycle = $rec->cycle;
+    	//$recCycle = hr_WorkingCycles::fetch("#id='{$cycle}'");
+    	//bp($rec,$recCycle, hr_WorkingCycleDetails::getDayOptions($recCycle, 1));
+    	bp(static::getShiftDay($rec, $date));
+    }
+    
+    static public function getShiftDay($recShift, $date)
+    {
+    	// По кой цикъл работи смяната
+    	// Кога започва графика на смяната
+    	$cycle = $recShift->cycle;
+    	$startOn = $recShift->startingOn;
+    	
+    	// Продължителността на цикъла в дни
+    	$cycleDuration = hr_WorkingCycles::fetchField($cycle, 'cycleDuration');
+    
+    	// В кой ден от цикъла сме
+    	$dayIs = (dt::daysBetween($date, $startOn) + 1) % $cycleDuration;
+    	
+    	// Извличане на данните за циклите
+        $stateDetails = hr_WorkingCycleDetails::getQuery();
+
+		// Подробности за конкретния цикъл
+		$stateDetails->where("#cycleId='{$cycle}' AND #day='{$dayIs}'");
+        
+		// Взимаме записа на точно този избран ден от цикъла
+		// Кога за почва режима и с каква продължителност е
+		$cycleDetails = $stateDetails->fetch();
+		$dayStart = $cycleDetails->start;
+		$dayDuration = $cycleDetails->duration;
+		
+		return hr_WorkingCycleDetails::getWorkingShiftType($dayStart, $dayDuration);
+    }
 }

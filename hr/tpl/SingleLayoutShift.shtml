@@ -24,7 +24,10 @@
 			<td class="title-style">Служители</td>
 			<td>[#employersCnt#]</td>
 		</tr>
+
 		<!--ET_END employersCnt-->
 	</table>
+	
+	<h2>График за месец [#month#]</h2>[#calendar#]</br>
 	<div><span class="title-style">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
 </div>

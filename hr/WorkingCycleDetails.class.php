@@ -47,8 +47,8 @@ class hr_WorkingCycleDetails extends core_Detail
 
         $this->FLD('day', 'int', 'caption=Ден,mandatory');
         $this->FLD('start', 'time(suggestions=00:00|01:00|02:00|03:00|04:00|05:00|06:00|07:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|19:00|20:00|21:00|22:00|23:00,format=H:M)', 'caption=Начало');
-        $this->FLD('duration', 'time(suggestions=6:00|6:30|7:00|7:30|8:00|8:30|9:00|9:30|10:00|10:30|11:00|11:30|12:00)', 'caption=Времетраене');
-        $this->FLD('break',    'time(suggestions=0:30|00:45|1:00)', 'caption=Почивка');
+        $this->FLD('duration', 'time(suggestions=00|6:00|6:30|7:00|7:30|8:00|8:30|9:00|9:30|10:00|10:30|11:00|11:30|12:00)', 'caption=Времетраене');
+        $this->FLD('break',    'time(suggestions=00|0:30|00:45|1:00|00)', 'caption=Почивка');
 
     }
     
@@ -80,31 +80,59 @@ class hr_WorkingCycleDetails extends core_Detail
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $night = self::getSection($rec->start, $rec->duration, 21*60*60, 8*60*60);
+        $max = self::getWorkingShiftType($rec->start, $rec->duration);
         
-        $first = self::getSection($rec->start, $rec->duration, 5*60*60, 8*60*60);
-        
-        $second = self::getSection($rec->start, $rec->duration, 13*60*60, 8*60*60);
-        
-        $normal = self::getSection($rec->start, $rec->duration, 9*60*60, 8*60*60);
-
-        $max = max($night, $first, $second, $normal);
-        
-        if($rec->duration == 0) {
+        if($max == 0) {
             $type = 'почивка';
-        } elseif($max == $night) {
+        } elseif($max == 3) {
             $type = 'нощен';
-        } elseif ($max == $first) {
+        } elseif ($max == 1) {
             $type = 'първи';
-        } elseif ($max == $second) {
+        } elseif ($max == 2) {
             $type = 'втори';
-        } elseif ($max == $normal) {
+        } elseif ($max == 4) {
             $type = 'дневен';
         }
+        
 
         $row->mode = tr($type);
     }
+    
+    
+    /**
+     * 
+     */
+    static public function getWorkingShiftType($start, $duration)
+    {
+        
+        
+    	$night = self::getSection($start, $duration, 21*60*60, 8*60*60);
+        
+        $first = self::getSection($start, $duration, 5*60*60, 8*60*60);
+        
+        $second = self::getSection($start, $duration, 13*60*60, 8*60*60);
+        
+        $normal = self::getSection($start, $duration, 9*60*60, 8*60*60);
+                
+        $max = max($night, $first, $second, $normal);
+       
+        if($duration == 0) {
+            $shiftType = 0;
+        }elseif($max == $night) {
+            $shiftType = 3;
+        } elseif ($max == $first) {
+            $shiftType = 1;
+        } elseif ($max == $second) {
+            $shiftType = 2;
+        } elseif ($max == $normal) {
+            $shiftType = 4;
+        }
 
+        return $shiftType;
+    }
+
+    
+    
     /**
      * Връща сечението на два периода задаени с начало и продълцителност
      * За периодите се очаква, че са задаени в часове:минути формат
