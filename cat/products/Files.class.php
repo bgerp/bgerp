@@ -31,13 +31,13 @@ class cat_products_Files extends cat_products_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'file,description,tools,createdOn,createdBy';
+    var $listFields = 'file,description,modifiedOn,modifiedBy,tools=Пулт';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools, plg_Created';
+    var $loadList = 'cat_Wrapper, plg_RowTools, plg_Created, plg_Modified';
     
     
     /**
@@ -86,8 +86,8 @@ class cat_products_Files extends cat_products_Detail
             $data->addUrl = array(
                 $mvc,
                 'add',
-                'productId'=>$data->masterId,
-                'ret_url'=>getCurrentUrl() + array('#'=>get_class($mvc))
+                'productId' => $data->masterId,
+                'ret_url' => getCurrentUrl() + array('#' => get_class($mvc))
             );
         }
     }
@@ -108,7 +108,7 @@ class cat_products_Files extends cat_products_Detail
     /**
      * Рендиране на детайла
      */
-    public function renderDetail_($data)
+    public function renderDetail1_($data)
     {
         $tpl = new ET(tr("|*" . getFileContent('cat/tpl/products/Files.shtml')));
         
@@ -136,7 +136,7 @@ class cat_products_Files extends cat_products_Detail
      */
     static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
-    	$data->query->orderBy('createdOn', 'DESC');
+    	$data->query->orderBy('modifiedOn', 'DESC');
     }
 
     
