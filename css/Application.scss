@@ -988,7 +988,7 @@ div.folder-cover{
 		background-image:url('../img/cover-bg-yellow.png');
 	}
 	.detail-info{
-		background:#fff;
+		background:none;
 	}
 	.groupTitle {
 		color: #333;
@@ -1028,11 +1028,8 @@ div.folder-cover{
 			vertical-align:top;
 		}
 	}
-
- 
 	.block_left {
 		clear: left;
-		background: #ffffff;
 		font-size: 12px;
 		padding: 0 10px 10px 0;
 		min-width: 250px;
@@ -1045,7 +1042,6 @@ div.folder-cover{
 		}
 	}
 	.block_right {
-		background: #ffffff;
 		min-width: 100px;
 		font-size: 12px;
 		padding: 0 0 10px 10px;
