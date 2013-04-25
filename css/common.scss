@@ -769,7 +769,7 @@ a.button, input[type=button], input[type=submit] {
 	}
 }
 
-.narrow .single-thread .toolbar .button{
+.narrow .toolbar .button{
 	border-right:1px solid #999;
 	border-left:none;
 	margin-right:0 !important;
@@ -779,7 +779,6 @@ a.button, input[type=button], input[type=submit] {
 .narrow .toolbar .btn-left { 
     @include rounded(top, right, 0px);
     @include rounded(bottom, right, 0px);
-	border-right: none ;
 	margin:0px !important;
 }
 
@@ -792,16 +791,16 @@ a.button, input[type=button], input[type=submit] {
 
 .narrow .toolbar .btn-middle { 
 	@include border-radius(0px);
-	border-right: none;
+
 	margin:0px !important;
 }
 
-.narrow .single-thread .toolbar div .button:first-child{
+.narrow .toolbar div .button:first-child{
 	border-left:1px solid #999;
 	@include rounded(top,left,5px);
 	@include rounded(bottom,left,5px);
 }
-.narrow .single-thread .toolbar div .button:last-child{
+.narrow .toolbar div .button:last-child{
 	@include rounded(top, right, 5px );
 	@include rounded(bottom, right, 5px);
 }
