@@ -161,7 +161,7 @@ class php_Test extends core_Manager
                         $class == 'catpr_Pricelists' ||
                         $class == 'catpr_Pricegroups' ||
                         $class == 'catpr_Discounts' ||
-                        $class == 'trans_DeliveryTerms' ||
+                        $class == 'salecond_DeliveryTerms' ||
                         $class == 'sales_Deals' ||
                         $class == 'sales_Invoices' ||
                         $class == 'sales_InvoiceDetails' || //core_Details
