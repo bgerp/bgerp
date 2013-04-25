@@ -79,6 +79,12 @@ class store_ShipmentOrders extends core_Master
      * @var string|array
      */
     public $canView = 'admin,store';
+
+
+    /**
+     * Кой може да го види?
+     */
+    var $canViewprices = 'admin,acc';
     
     
     /**
