@@ -20,6 +20,11 @@ class store_plg_Shippable extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('store_ShipmentIntf');
+        
+        $canShip = arr::make($mvc->canShip, TRUE);
+        $canShip['store'] = 'store';
+        
+        $mvc->canShip = $canShip;
     }
     
     
