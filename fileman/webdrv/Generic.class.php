@@ -177,7 +177,7 @@ class fileman_webdrv_Generic extends core_Manager
             }
             
             // Атрибути на thumbnail изображението
-            $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '', 'style' => 'margin: 5px auto; display: block;');
+            $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '', 'style' => 'margin: 5px auto; display: block; max-width:100%;height:auto');
             
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
