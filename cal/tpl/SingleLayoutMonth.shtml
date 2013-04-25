@@ -11,7 +11,7 @@
 		<!--ET_BEGIN event-->	
          <div class='block_left'>
        
-	            <table class='mc-header' width='100%' cellpadding='0'>
+	            <table class='mc-header' width='1000px' cellpadding='0'>
 	                <tr>
 	                    <td align='left'><a href='[#prevtLink#]'>[#prevMonth#]</a></td>
 	                    <td align='center'><b>[#currentMonth#]</b></td>
