@@ -1,8 +1,9 @@
 .floating-div{
     padding: 0 10px 10px 0;
-    float: left;
-    margin: 0.5em 2.2em 0.5em 0;
+    display:inline-block;
+    margin: 0.5em 2em 0.5em 0;
     width:300px;
+    
 }
 
  table.mc-calendar {
