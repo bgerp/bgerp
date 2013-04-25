@@ -157,7 +157,7 @@ class store_ShipmentOrders extends core_Master
         /*
          * Доставка
          */
-        $this->FLD('termId', 'key(mvc=trans_DeliveryTerms,select=codeName)', 'caption=Условие');
+        $this->FLD('termId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Условие');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 
             'caption=Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до'); // до кога трябва да бъде доставено
@@ -430,7 +430,7 @@ class store_ShipmentOrders extends core_Master
      * Условия за доставка по подразбиране
      * 
      * @param stdClass $rec
-     * @return int key(mvc=trans_DeliveryTerms)
+     * @return int key(mvc=salecond_DeliveryTerms)
      */
     public static function getDefaultDeliveryTermId($rec)
     {
@@ -442,10 +442,10 @@ class store_ShipmentOrders extends core_Master
         }
         
         // 2. Условията определени от локацията на клиента (държава, населено място)
-        // @see trans_DeliveryTermsByPlace
+        // @see salecond_DeliveryTermsByPlace
         if (empty($deliveryTermId)) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $deliveryTermId = trans_DeliveryTerms::getDefault($contragent->getContragentData());
+            $deliveryTermId = salecond_DeliveryTerms::getDefault($contragent->getContragentData());
         }
         
         return $deliveryTermId;

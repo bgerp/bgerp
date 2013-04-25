@@ -164,7 +164,7 @@ class sales_Invoices extends core_Master
         $this->FLD('vatCanonized', 'drdata_VatType', 'caption=Получател->Vat Canonized, input=none');
 
         // Плащане
-        $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Плащане->Начин');
+        $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods, select=name)', 'caption=Плащане->Начин');
                 
         // Наша банкова сметка (при начин на плащане по банков път)
         $this->FLD('accountId', 'key(mvc=bank_Accounts, select=iban)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
@@ -174,7 +174,7 @@ class sales_Invoices extends core_Master
         $this->FLD('currencyRate', 'double', 'caption=Валута->Курс');  
         
         // Доставка
-        $this->FLD('deliveryId', 'key(mvc=trans_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
+        $this->FLD('deliveryId', 'key(mvc=salecond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
         $this->FLD('deliveryPlace', 'varchar', 'caption=Доставка->Място');
         
         // Данъци

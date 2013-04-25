@@ -173,7 +173,7 @@ class sales_Sales extends core_Master
         /*
          * Доставка
          */
-        $this->FLD('deliveryTermId', 'key(mvc=trans_DeliveryTerms,select=codeName)', 
+        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 
             'caption=Доставка->Условие');
         $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 
             'caption=Доставка->Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
@@ -185,7 +185,7 @@ class sales_Sales extends core_Master
         /*
          * Плащане
          */
-        $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods,select=name)',
+        $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)',
             'caption=Плащане->Начин,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)',
             'caption=Плащане->Валута');
@@ -439,7 +439,7 @@ class sales_Sales extends core_Master
      * Условия за доставка по подразбиране
      * 
      * @param stdClass $rec
-     * @return int key(mvc=trans_DeliveryTerms)
+     * @return int key(mvc=salecond_DeliveryTerms)
      */
     public static function getDefaultDeliveryTermId($rec)
     {
@@ -451,10 +451,10 @@ class sales_Sales extends core_Master
         }
         
         // 2. Условията определени от локацията на клиента (държава, населено място)
-        // @see trans_DeliveryTermsByPlace
+        // @see salecond_DeliveryTermsByPlace
         if (empty($deliveryTermId)) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $deliveryTermId = trans_DeliveryTerms::getDefault($contragent->getContragentData());
+            $deliveryTermId = salecond_DeliveryTerms::getDefault($contragent->getContragentData());
         }
         
         return $deliveryTermId;
@@ -477,7 +477,7 @@ class sales_Sales extends core_Master
      * Условия за доставка по подразбиране
      * 
      * @param stdClass $rec
-     * @return int key(mvc=trans_DeliveryTerms)
+     * @return int key(mvc=salecond_DeliveryTerms)
      */
     public static function getDefaultPaymentMethodId($rec)
     {
@@ -490,7 +490,7 @@ class sales_Sales extends core_Master
 
         // 2. Ако има фиксирана каса - плащането (по подразбиране) е в брой (кеш, COD)
         if (!$paymentMethodId && $rec->caseId) {
-            $paymentMethodId = bank_PaymentMethods::fetchField("#name = 'COD'", 'id');
+            $paymentMethodId = salecond_PaymentMethods::fetchField("#name = 'COD'", 'id');
         }
         
         // 3. Според последната продажба към този клиент
@@ -501,7 +501,7 @@ class sales_Sales extends core_Master
         // 4. Според данните на клиента
         if (!$paymentMethodId) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $paymentMethodId = bank_PaymentMethods::getDefault($contragent->getContragentData()); 
+            $paymentMethodId = salecond_PaymentMethods::getDefault($contragent->getContragentData()); 
         }
         
         return $paymentMethodId;
