@@ -53,6 +53,7 @@ class store_Setup
             'store_Stores',
             'store_Movements',
             'store_Pallets',
+            'store_PalletTypes',
             'store_Racks',
             'store_RackDetails',
             'store_Products',
