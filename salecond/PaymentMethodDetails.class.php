@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   bank
+ * @package   salecond
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_PaymentMethodDetails extends core_Detail
+class salecond_PaymentMethodDetails extends core_Detail
 {
     
     
@@ -33,14 +33,20 @@ class bank_PaymentMethodDetails extends core_Detail
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools,
-                     plg_Printing, bank_Wrapper, plg_Sorting,
-                     PaymentMethods=bank_PaymentMethods';
+                     plg_Printing, plg_Sorting,
+                     PaymentMethods=salecond_PaymentMethods';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'paymentMethodId';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'bank_PaymentMethodDetails';
     
     
     /**
@@ -58,7 +64,7 @@ class bank_PaymentMethodDetails extends core_Detail
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
-    var $tabName = "bank_PaymentMethods";
+    var $tabName = "salecond_PaymentMethods";
     
     
     /**
@@ -66,7 +72,7 @@ class bank_PaymentMethodDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods)', 'caption=Начин на плащане, input=hidden, silent');
+        $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods)', 'caption=Начин на плащане, input=hidden, silent');
         $this->FLD('base', 'enum(beforeOrderDate=Преди датата на договора, 
                                  afterOrderDate=След датата на договора,
                                  beforeTransferDate=Преди датата на предаване на стоката,

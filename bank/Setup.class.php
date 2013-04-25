@@ -68,8 +68,6 @@ class bank_Setup
         	'bank_PaymentOrders',
             'bank_CashWithdrawOrders',
         	'bank_DepositSlips',
-            'bank_PaymentMethods',
-            'bank_PaymentMethodDetails'
         );
         
         // Роля за power-user на този модул

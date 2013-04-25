@@ -26,7 +26,6 @@ class bank_Wrapper extends plg_ProtoWrapper
        $this->TAB('bank_OwnAccounts', 'Наши сметки', 'admin, bank');
        $this->TAB('bank_IncomeDocument', 'Документи', 'admin, bank');
        $this->TAB('bank_PaymentOrders', 'Бланки', 'admin, bank');
-       $this->TAB('bank_PaymentMethods', 'Начини на плащане', 'admin, common');
        $this->title = 'Банка';
     }
 }

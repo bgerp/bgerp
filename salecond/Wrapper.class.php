@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'trans_Wrapper'
+ * Клас 'salecond_Wrapper'
  *
  * Поддържа системното меню на пакета trans
  *
@@ -15,7 +15,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_Wrapper extends plg_ProtoWrapper
+class salecond_Wrapper extends plg_ProtoWrapper
 {
     
     /**
@@ -23,9 +23,10 @@ class trans_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-               
-        $this->TAB('trans_DeliveryTerms', 'Условия на доставка');
-   
+        $this->TAB('salecond_PaymentMethods', 'Начини на плащане');    
+        $this->TAB('salecond_DeliveryTerms', 'Условия на доставка');
+   		$this->TAB('salecond_Others', 'Други');
+   		
         $this->title = 'Логистика';
     }
 }

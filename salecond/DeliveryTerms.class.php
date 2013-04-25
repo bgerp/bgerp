@@ -3,26 +3,26 @@
 
 
 /**
- * Клас 'trans_DeliveryTerms' - Условия на доставка
+ * Клас 'salecond_DeliveryTerms' - Условия на доставка
  *
  * Набор от стандартните условия на доставка (FOB, DAP, ...)
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   salecond
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_DeliveryTerms extends core_Master
+class salecond_DeliveryTerms extends core_Master
 {
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, trans_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, salecond_Wrapper';
     
     
     /**
@@ -41,6 +41,13 @@ class trans_DeliveryTerms extends core_Master
      * @todo Чака за документация...
      */
     var $canSingle = 'user';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'trans_DeliveryTerms';
+    
     
     /**
      * Заглавие
@@ -61,7 +68,7 @@ class trans_DeliveryTerms extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'trans/tpl/SingleDeliveryTerms.shtml';
+    var $singleLayoutFile = 'salecond/tpl/SingleDeliveryTerms.shtml';
     
     
     /**
@@ -84,7 +91,7 @@ class trans_DeliveryTerms extends core_Master
      * 
      * @see doc_ContragentDataIntf
      * @param stdClass $contragentInfo
-     * @return int key(mvc=trans_DeliveryTerms) 
+     * @return int key(mvc=salecond_DeliveryTerms) 
      */
     public static function getDefault($contragentInfo)
     {

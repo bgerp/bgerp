@@ -3,26 +3,26 @@
 
 
 /**
- * Клас 'bank_PaymentMethods' -
+ * Клас 'salecond_PaymentMethods' -
  *
  *
  * @category  bgerp
- * @package   bank
+ * @package   salecond
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class bank_PaymentMethods extends core_Master
+class salecond_PaymentMethods extends core_Master
 {
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, plg_State,
-                     PaymentMethodDetails=bank_PaymentMethodDetails';
+    var $loadList = 'plg_Created, plg_RowTools, salecond_Wrapper, plg_State,
+                     PaymentMethodDetails=salecond_PaymentMethodDetails';
     
     
     /**
@@ -46,7 +46,13 @@ class bank_PaymentMethods extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'bank_PaymentMethodDetails';
+    var $details = 'salecond_PaymentMethodDetails';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'bank_PaymentMethods';
     
     
     /**
@@ -95,7 +101,7 @@ class bank_PaymentMethods extends core_Master
      * 
      * @see doc_ContragentDataIntf
      * @param stdClass $contragentInfo
-     * @return int key(mvc=bank_PaymentMethods) 
+     * @return int key(mvc=salecond_PaymentMethods) 
      */
     public static function getDefault($contragentInfo)
     {

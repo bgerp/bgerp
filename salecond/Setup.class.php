@@ -3,20 +3,20 @@
 
 
 /**
- * class trans_Setup
+ * class salecond_Setup
  *
  * Инсталиране/Деинсталиране на
  * админ. мениджъри с общо предназначение
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   salecond
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_Setup
+class salecond_Setup
 {
     
     
@@ -29,7 +29,7 @@ class trans_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'trans_DeliveryTerms';
+    var $startCtr = 'salecond_DeliveryTerms';
     
     
     /**
@@ -47,7 +47,7 @@ class trans_Setup
     /**
      * Описание на модула
      */
-    var $info = "Транспортни операции";
+    var $info = "Условия на продажба";
     
     
     /**
@@ -56,11 +56,14 @@ class trans_Setup
     function install()
     {
         $managers = array(
-            'trans_DeliveryTerms',
+        	'salecond_PaymentMethods',
+        	'salecond_PaymentMethodDetails',
+        	'salecond_DeliveryTerms',
+        	'salecond_Others',
         );
         
         // Роля за power-user на този модул
-        $role = 'trans';
+        $role = 'salecond';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -71,7 +74,7 @@ class trans_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.3, 'Логистика', 'Транспорт', 'trans_DeliveryTerms', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Търговия', 'Условия', 'salecond_PaymentMethods', 'default', "{$role}, admin");
         
         return $html;
     }
