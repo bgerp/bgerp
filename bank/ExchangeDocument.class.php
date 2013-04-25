@@ -337,9 +337,8 @@ class bank_ExchangeDocument extends core_Master
      * посочената папка като начало на нишка
      *
      * @param $folderId int ид на папката
-     * @param $firstClass string класът на корицата на папката
      */
-    public static function canAddToFolder($folderId, $folderClass)
+    public static function canAddToFolder($folderId)
     {
         // Може да създаваме документ-а само в дефолт папката му
         if ($folderId == static::getDefaultFolder(NULL /* userId */, FALSE /* bForce */)) {

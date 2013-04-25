@@ -897,7 +897,7 @@ class doc_DocumentPlg extends core_Plugin
                 // Ако създаваме нова нишка
                 
                 // Ако няма права за добавяне в папката
-                if($mvc->canAddToFolder($rec->folderId, NULL) === FALSE){
+                if($mvc->canAddToFolder($rec->folderId) === FALSE){
                     
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
@@ -1096,7 +1096,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
      */
-    function on_AfterCanAddToFolder($mvc, &$res, $folderId, $folderClass)
+    function on_AfterCanAddToFolder($mvc, &$res, $folderId)
     {
         $res = TRUE;
     }

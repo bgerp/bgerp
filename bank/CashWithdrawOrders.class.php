@@ -254,9 +254,8 @@ class bank_CashWithdrawOrders extends core_Master
      * посочената папка като начало на нишка
      *
      * @param $folderId int ид на папката
-     * @param $firstClass string класът на корицата на папката
      */
-    public static function canAddToFolder($folderId, $folderClass)
+    public static function canAddToFolder($folderId)
     {
         return FALSE;
     }

@@ -110,11 +110,10 @@ class doc_DocumentIntf
      * посочената папка като начало на нишка
      *
      * @param $folderId int ид на папката
-     * @param $firstClass string класът на корицата на папката
      */
-    static function canAddToFolder($folderId, $folderClass)
+    static function canAddToFolder($folderId)
     {
-        return $this->class->canAddToFolder($folderId, $folderClass);
+        return $this->class->canAddToFolder($folderId);
     }
     
     

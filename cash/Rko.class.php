@@ -437,18 +437,15 @@ class cash_Rko extends core_Master
      * посочената папка като начало на нишка
      *
      * @param $folderId int ид на папката
-     * @param $firstClass string класът на корицата на папката
      */
-    public static function canAddToFolder($folderId, $folderClass)
+    public static function canAddToFolder($folderId)
     {
-        if (empty($folderClass)) {
-            $folderClass = doc_Folders::fetchCoverClassName($folderId);
-        }
-    	
         // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
        $cover = doc_Folders::getCover($folderId);
-       return cls::haveInterface('doc_ContragentDataIntf', $folderClass)
-         || ($cover->className == 'cash_Cases' && $cover->that == cash_Cases::getCurrent('id', FALSE));
+       
+       return $cover->haveInterface('doc_ContragentDataIntf') || 
+           ($cover->className == 'cash_Cases' && 
+            $cover->that == cash_Cases::getCurrent('id', FALSE) );
     }
     
     

@@ -267,18 +267,15 @@ class bank_CostDocument extends core_Master
      * посочената папка като начало на нишка
      *
      * @param $folderId int ид на папката
-     * @param $firstClass string класът на корицата на папката
      */
-    public static function canAddToFolder($folderId, $folderClass)
+    public static function canAddToFolder($folderId)
     {
-        if (empty($folderClass)) {
-            $folderClass = doc_Folders::fetchCoverClassName($folderId);
-        }
-    	
-        // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата сметка
         $cover = doc_Folders::getCover($folderId);
-        return cls::haveInterface('doc_ContragentDataIntf', $folderClass)
-         || ($cover->className == 'bank_OwnAccounts' && $cover->that == bank_OwnAccounts::getCurrent('id', FALSE));
+        
+        // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата сметка
+        return $cover->haveInterface('doc_ContragentDataIntf') || 
+            ($cover->className == 'bank_OwnAccounts' && 
+             $cover->that == bank_OwnAccounts::getCurrent('id', FALSE) );
     }
     
     

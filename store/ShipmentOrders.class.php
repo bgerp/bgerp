@@ -733,10 +733,9 @@ class store_ShipmentOrders extends core_Master
      * бъде от клас sales_Sales. Това се гарантира от @see store_ShipmentOrders::canAddToThread()
      *
      * @param $folderId int ид на папката
-     * @param $coverClass string класът на корицата на папката
      * @return boolean
      */
-    public static function canAddToFolder($folderId, $coverClass)
+    public static function canAddToFolder($folderId)
     {
         return FALSE;
     }

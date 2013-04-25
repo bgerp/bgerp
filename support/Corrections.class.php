@@ -196,11 +196,9 @@ class support_Corrections extends core_Master
      * посочената папка като начало на нишка
      *
      * @param int $folderId - id на папката
-     * @param string $firstClass - класът на корицата на папката
-     * 
      * @return boolean
      */
-    public static function canAddToFolder($folderId, $folderClass)
+    public static function canAddToFolder($folderId)
     {
         // Да не може да се добавя в папка, като начало на нишка
         return FALSE;

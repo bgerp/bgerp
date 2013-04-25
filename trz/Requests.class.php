@@ -363,13 +363,10 @@ class trz_Requests extends core_Master
      * посочената папка 
      *
      * @param $folderId int ид на папката
-     * @param $coverClass string класът на корицата на папката
      */
-    public static function canAddToFolder($folderId, $coverClass)
+    public static function canAddToFolder($folderId)
     {
-        if (empty($coverClass)) {
-            $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        }
+        $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
         if ('crm_Persons' != $coverClass) {
         	return FALSE;
