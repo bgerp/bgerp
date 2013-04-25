@@ -75,6 +75,12 @@ class email_Incomings extends core_Master
      */
     var $canDelete = 'no_one';
     
+    
+    /**
+     * Кой има право да го чете?
+     */
+    var $canSingle = 'ceo, email';
+    
      
     /**
      * Плъгини за зареждане
