@@ -746,18 +746,13 @@ class store_ShipmentOrders extends core_Master
      *
      * Експедиционните нареждания могат да се добавят само в нишки с начало - документ-продажба
      *
-     * @param $folderId int ид на папката
-     * @param $firstDocClass string класът първия документ в нишката
+     * @param int $threadId key(mvc=doc_Threads)
      * @return boolean
      */
-    public static function canAddToThread($threadId, $firstDocClass)
+    public static function canAddToThread($threadId)
     {
-        if (empty($firstDocClass)) {
-            $firstDoc      = doc_Threads::getFirstDocument($threadId);
-            $firstDocClass = $firstDoc->className;
-        } else {
-            $firstDocClass = cls::getClassName($firstDocClass);
-        }
+        $firstDoc      = doc_Threads::getFirstDocument($threadId);
+        $firstDocClass = $firstDoc->className;
         
         return 'sales_Sales' == $firstDocClass;
     }

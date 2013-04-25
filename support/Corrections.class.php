@@ -178,14 +178,11 @@ class support_Corrections extends core_Master
      * Проверка дали нов документ може да бъде
      * добавен в посочената нишк-а
      *
-     * @param $threadId int ид на нишката
-     * @param $firstClass string класът на първия документ в нишката
-     * 
+     * @param int $threadId key(mvc=doc_Threads)
      * @return boolean
      */
-    public static function canAddToThread($threadId, $firstClass)
+    public static function canAddToThread($threadId)
     {
-        
         // Ако някой от документите в нишката, е support_Issue
         return doc_Containers::checkDocumentExistInThread($threadId, 'support_Issues');
     }

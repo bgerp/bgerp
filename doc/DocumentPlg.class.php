@@ -887,7 +887,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($rec->threadId) {
                 
                 // Ако няма права за добавяне в нишката
-                if($mvc->canAddToThread($rec->threadId, NULL) === FALSE){
+                if($mvc->canAddToThread($rec->threadId) === FALSE){
     	            
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
@@ -1103,9 +1103,9 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
+     * Реализация по подразбиране на интерфейсния метод ::canAddToThread()
      */
-    function on_AfterCanAddToThread($mvc, &$res, $threadId, $firstClass)
+    function on_AfterCanAddToThread($mvc, &$res, $threadId)
     {
         $res = !($mvc->onlyFirstInThread);
     }

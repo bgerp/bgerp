@@ -264,13 +264,15 @@ class bank_CashWithdrawOrders extends core_Master
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
+     * 
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
      */
-	public static function canAddToThread($threadId, $firstClass)
+	public static function canAddToThread($threadId)
     {
-    	$firstInThread = doc_Threads::getFirstContainerId($threadId);
-    	$originDoc = doc_Containers::getDocument($firstInThread);
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	return $originDoc->className == 'bank_IncomeDocument' || $originDoc->className == 'bank_CostDocument';
+    	return $firstDoc->className == 'bank_IncomeDocument' || $firstDoc->className == 'bank_CostDocument';
     }
     
     

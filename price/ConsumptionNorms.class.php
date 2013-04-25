@@ -647,15 +647,16 @@ class price_ConsumptionNorms extends core_Master {
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
+     * 
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
      */
-	public static function canAddToThread($threadId, $firstClass)
+	public static function canAddToThread($threadId)
     {
-    	if (empty($firstClass)) {
-    		$folderId = doc_Threads::fetchField($threadId, 'folderId');
-            $firstClass = doc_Folders::fetchCoverClassName($folderId);
-        }
+		$folderId = doc_Threads::fetchField($threadId, 'folderId');
+        $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
-        return $firstClass == 'cat_Products';
+        return $coverClass == 'cat_Products';
     }
     
     

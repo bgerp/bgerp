@@ -118,15 +118,14 @@ class doc_DocumentIntf
     
     
     /**
-     * Проверка дали нов документ може да бъде
-     * добавен в посочената ник-а
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
-     * @param $threadId int ид на нишката
-     * @param $firstClass string класът на първия документ в нишката
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
      */
-    function canAddToThread($threadId, $firstClass)
+    function canAddToThread($threadId)
     {
-        return $this->class->canAddToThread($threadId, $firstClass);
+        return $this->class->canAddToThread($threadId);
     }
     
     
