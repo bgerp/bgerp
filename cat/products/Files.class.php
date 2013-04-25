@@ -106,32 +106,6 @@ class cat_products_Files extends cat_products_Detail
     
     
     /**
-     * Рендиране на детайла
-     */
-    public function renderDetail1_($data)
-    {
-        $tpl = new ET(tr("|*" . getFileContent('cat/tpl/products/Files.shtml')));
-        
-        if ($data->addUrl) {
-            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
-            $tpl->append($addBtn, 'TITLE');
-        }
-        
-        if(count($data->rows)){
-	        foreach((array)$data->rows as $row) {
-	            $block = $tpl->getBlock('row');
-	            $block->placeObject($row);
-	            $block->append2Master();
-	        }
-        } else {
-        	$tpl->replace(tr("Няма записи"), 'row');
-        }
-            
-        return $tpl;
-    }
-    
-    
-    /**
      * Преди подготовка на списъчния изглед
      */
     static function on_BeforePrepareListFilter($mvc, &$res, $data)
