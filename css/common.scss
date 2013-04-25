@@ -253,6 +253,12 @@ p.richtext {
     background-color: #92aee6;
     background-image: url('../img/Help-icon.png');
 }
+
+.narrow .richtext-question, .narrow .richtext-info,.narrow .richtext-error,.narrow .richtext-success,
+.narrow .richtext-warning,.narrow .richtext-tip,.narrow .richtext-text{
+	margin-left:5px;
+	margin-right:0;	
+}
 @media print{
 	.richtext-question{
     	padding-left:10px;
