@@ -74,7 +74,7 @@ class salecond_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.1, 'Търговия', 'Условия', 'salecond_PaymentMethods', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Търговия', 'Условия', 'salecond_DeliveryTerms', 'default', "{$role}, admin");
         
         return $html;
     }

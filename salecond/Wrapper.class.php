@@ -23,9 +23,9 @@ class salecond_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('salecond_PaymentMethods', 'Начини на плащане');    
         $this->TAB('salecond_DeliveryTerms', 'Условия на доставка');
-   		$this->TAB('salecond_Others', 'Други');
+    	$this->TAB('salecond_PaymentMethods', 'Начини на плащане');    
+        $this->TAB('salecond_Others', 'Други');
    		
         $this->title = 'Логистика';
     }
