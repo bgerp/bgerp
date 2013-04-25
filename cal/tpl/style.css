@@ -46,7 +46,8 @@
 }
 
 .mc-calendar-day{
-	width:300px !important ;
+	min-width: 200px !important;
+	max-width: 600px;
 }
 
 .mc-calendar-month, .mc-calendar-week{

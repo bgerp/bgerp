@@ -9,7 +9,7 @@
 					
 		<!--ET_BEGIN event-->
 		<div class='block_left'>
-         
+         		<div class="clearfix21"></div>
                 <table cellspacing='1' class='mc-calendar mc-calendar-day'>
 				<tr>
                      <th class="calDayTime">Време</th>
