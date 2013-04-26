@@ -1006,4 +1006,45 @@ class sales_Sales extends core_Master
         
         return $price;
     }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param core_ObjectReference $saleRef
+     * @param core_ObjectReference $descendantRef
+     */
+    public static function on_DescendantChanged($mvc, $saleRef)
+    {
+        $descendants = $saleRef->getDescendants();
+        $shipped     = array();
+        
+        foreach ($descendants as $d) {
+            if ($d->rec('state') != 'active') {
+                continue;
+            }
+            
+            if ($d->haveInterface('store_ShipmentIntf')) {
+                $dProducts = $d->getShipmentProducts();
+                foreach ($dProducts as $p) {
+                    $shipped[$p->packagingId][$p->productId] += $p->quantity;
+                }
+            }
+        }    
+            
+        $query    = sales_SalesDetails::getQuery();
+        $saleId   = $saleRef->id();
+        
+        $saleDetailRecs = $query->fetchAll("#saleId = {$saleId}");
+        
+        foreach ($saleDetailRecs as $dRec) {
+            $R = (object)array(
+                'id' => $dRec->id,
+                'quantityDelivered' => $shipped[$dRec->packagingId][$dRec->productId], 
+            );
+            sales_SalesDetails::save($R);
+        }
+        
+        sales_SalesDetails::updateMasterSummary($saleId);
+    }
 }

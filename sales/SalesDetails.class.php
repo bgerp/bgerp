@@ -102,7 +102,7 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packQuantity, packagingId, uomId, packPrice, quantity, price, discount, amount';
+    public $listFields = 'productId, packQuantity, packagingId, uomId, packPrice, quantity, quantityDelivered, price, discount, amount';
     
         
     /**
@@ -125,6 +125,9 @@ class sales_SalesDetails extends core_Detail
 
         // Количество в основна мярка
         $this->FLD('quantity', 'float', 'caption=К-во,input=none');
+        
+        $this->FLD('quantityDelivered', 'float(decimals=2)', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
+        
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
@@ -232,23 +235,26 @@ class sales_SalesDetails extends core_Detail
      * @param int $masterId ключ на мастър модела
      * @param stdClass $hotRec запис на модела, промяната на който е предизвикала обновяването
      */
-    public function updateMasterSummary($masterId, $hotRec = NULL)
+    public static function updateMasterSummary($masterId, $hotRec = NULL)
     {
         /* @var $query core_Query */
         $query = static::getQuery();
         
-        $amountDeal = 0;
+        $amountDeal      = 0;
+        $amountDelivered = 0;
         
-        $query->where("#{$this->masterKey} = '{$masterId}'");
+        $query->where("#saleId = '{$masterId}'");
         
         while ($rec = $query->fetch()) {
             $amountDeal += $rec->amount;
+            $amountDelivered += $rec->quantityDelivered * $rec->price;
         }
         
         sales_Sales::save(
             (object)array(
                 'id' => $masterId,
-                'amountDeal' => $amountDeal
+                'amountDeal' => $amountDeal,
+                'amountDelivered' => $amountDelivered,
             )
         );
     }
