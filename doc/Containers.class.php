@@ -79,6 +79,7 @@ class doc_Containers extends core_Manager
         // Мастери - нишка и папка
         $this->FLD('folderId' , 'key(mvc=doc_Folders)', 'caption=Папки');
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
+        $this->FLD('originId' , 'key(mvc=doc_Containers)', 'caption=Основание');
         
         // Документ
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ->Клас');
@@ -356,7 +357,7 @@ class doc_Containers extends core_Manager
         // 2. Промяна на състоянието на документа (активиране, оттегляне, възстановяване)
         // 3. Промяна на папката на документа
         
-        $fields = 'state,folderId,threadId,containerId';
+        $fields = 'state,folderId,threadId,containerId,originId';
         
         $docRec = $docMvc->fetch($rec->docId, $fields);
         
