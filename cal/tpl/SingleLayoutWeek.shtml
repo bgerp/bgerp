@@ -7,8 +7,9 @@
 
 		<div class="clearfix" style="min-height:30px;"></div>
 		<!--ET_BEGIN event-->	
+		
          <div class='block_left'>
-         
+         		<div class="clearfix21"></div>
                 <table cellspacing='1' class='mc-calendar mc-calendar-week'>
 				<tr>
 					 <th class="calWeekTime"><b>Време</b></th>
