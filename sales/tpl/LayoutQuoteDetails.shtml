@@ -1,18 +1,53 @@
-<table>
+<table border='1' class = 'products-table' cellpadding='4px' cellspacing='4px'>
 	<tr>
-		<th>№</th>
-		<th>Описание</th>
-		<th>Количество</th>
-		<th>Цена</th>
-		<th>Стойност</th>
+		<th width='4%'>№</th>
+		<th width='50%'>|Описание|*</th>
+		<th>|Количество|*</th>
+		<th>|Цена|*</th>
+		<th>|Стойност|*</th>
+		<!--ET_BEGIN toolsTh-->
+		<th>|Пулт|* [#toolsTh#]</th>
+		<!--ET_END toolsTh-->
 	</tr>
 <!--ET_BEGIN ROW-->
 	<tr>
-		<td></td>
-		<td>[#productId#]</td>
-		<td>[#quantity#]</td>
-		<td>[#price#]</td>
-		<td>[#amount#]</td>
+		<td>[#index#]</td>
+		<!--ET_BEGIN productId-->
+		<td rowspan = '[#rowspan#]' valign='top'>[#productId#]</td>
+		<!--ET_END productId-->
+		<td class='misc-info' align='right'>
+		[#quantity#]
+		<!--ET_BEGIN tolerance-->
+		<div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
+		<!--ET_END tolerance-->
+		<!--ET_BEGIN term-->
+		<div class='quiantity-misc'>|срок|* &nbsp;<b>[#term#] &nbsp;|дни|*</b></div>
+		<!--ET_END term-->
+		</td>
+		<td class='misc-info' align='right'>
+		<b>[#price#]</b>
+		<!--ET_BEGIN discount-->
+		<div class='discount'>[#discount#] |ТО|*</div>
+		<!--ET_END discount-->
+		</td>
+		<td class='misc-info' align='right'>
+		<b>[#amount#]</b>
+		<!--ET_BEGIN discAmount-->
+		<div class='discount'>[#discAmount#]</div>
+		<!--ET_END discAmount-->
+		</td>
+		<!--ET_BEGIN tools-->
+		<td class='misc-info' align='right'>[#tools#]</td>
+		<!--ET_END tools-->
 	</tr>
 <!--ET_END ROW-->
+<!--ET_BEGIN total-->
+<tr>
+	<td colspan='4' id='total-td-label'>|Общо|*</td>
+	<td colspan='2' align='right'>
+	<b>[#total#]</b>
+	<div class='discount'>[#totalDisc#]</div>
+	</td>
+</tr>
+<!--ET_END total-->
 </table>

@@ -21,3 +21,90 @@
 	font-weight:bold;
 	text-decoration:underline;
 }
+
+#condition-title, #conditions,#quote-username{
+	margin-left:30px;
+	margin-top:30px;
+}
+
+#conditions{
+	margin-top:5px;
+}
+
+#quote-sign{
+	margin-top:-10px;
+	margin-left: 130px;
+}
+
+#details-holder, #optional-holder{
+	margin-left:30px;
+	padding-top:30px;
+}
+
+#optional-holder{
+	padding-top:40px;
+}
+
+#details-holder p, #optional-holder p{
+	margin-bottom:10px;
+	font-weight:bold;
+}
+
+#total-td-label{
+	text-align:right;
+	padding-right:8px;
+	vertical-align:middle !important;
+	border-bottom:1px solid #fff !important;
+	border-left:1px solid #fff !important;
+}
+
+.products-table{
+	border:1px solid #ccc;
+	width:95%;
+	border-collapse:collapse;
+}
+
+.products-table th{
+	border:1px solid #ccc;
+	background-color:#eee;
+}
+
+.products-table td{
+	border:1px solid #ccc;
+}
+
+.doc_Containers table.listTable td.misc-info{
+	vertical-align:middle !important;
+}
+
+.discount {
+	color:green;
+	margin-top:5px
+}
+
+.quiantity-misc{
+	padding-top:5px;
+}
+
+.listToolbar{
+	margin-left:20px;
+}
+
+@media print{
+	.products-table{
+		width:95%;
+		margin-left:0px;
+	}
+	
+	.document{
+		width:100%;
+	}
+	
+	#condition-title{
+		margin-top:10px;
+	}
+	
+	.cContact{
+		margin-right:0px;
+	}
+}

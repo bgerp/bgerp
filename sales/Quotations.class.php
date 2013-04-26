@@ -1,6 +1,6 @@
 <?php
 /**
- * Клас 'sales_Quotes'
+ * Клас 'sales_Quotations'
  *
  * Мениджър на документи за Оферта за продажба
  *
@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_Quotes extends core_Master
+class sales_Quotations extends core_Master
 {
     /**
      * Заглавие
@@ -23,7 +23,13 @@ class sales_Quotes extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'Quo';
+    var $abbr = 'Q';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'sales_Quotes';
     
     
     /**
@@ -73,7 +79,7 @@ class sales_Quotes extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, reff, date, contragentName, deliveryTermId, deliveryTime, createdOn,createdBy';
+    public $listFields = 'tools=Пулт, reff, date, contragentName, deliveryTermId, createdOn,createdBy';
     
     
     /**
@@ -91,7 +97,7 @@ class sales_Quotes extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'sales_QuotesDetails' ;
+    public $details = 'sales_QuotationsDetails' ;
     
 
     /**
@@ -177,6 +183,11 @@ class sales_Quotes extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$varchar = cls::get('type_Varchar');
+    	
+    	if(!Mode::is('printing')){
+    		$row->header = $mvc->singleTitle . " №<b>{$rec->id}</b>";
+    	}
+    	
     	$contragentData =  doc_Folders::getContragentData($rec->folderId);
     	$row->contragentAdress = trim(sprintf("%s %s\n%s", $contragentData->place, $contragentData->pCode, $contragentData->country));
     	if($contragentData->person) {
@@ -195,6 +206,11 @@ class sales_Quotes extends core_Master
     	$row->contragentAdress = $varchar->toVerbal($row->contragentAdress);
     	
 		$row->number = "Q{$row->id}";
+		
+		$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->date);
+		
+		$cuRec = core_Users::fetch(core_Users::getCurrent());
+		$row->username = core_Users::recToVerbal($cuRec, 'names')->names;
     }
     
     
@@ -206,7 +222,7 @@ class sales_Quotes extends core_Master
     	$rec = static::fetch($id);
     	$self = cls::get(get_called_class());
     	
-    	return $self->abbr . $rec->number;
+    	return $self->abbr . $rec->id;
     }
     
     

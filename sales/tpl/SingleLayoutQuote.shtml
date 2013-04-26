@@ -5,7 +5,7 @@
 	<!--ET_END blank-->
 	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>|Оферта на доставчик|* <b>№[#id#]</b></div>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
 	<div id='quote-body'>
@@ -40,15 +40,32 @@
 	</div>
 	<div class="clearfix21"></div>
 	<!--ET_BEGIN DETAILS-->
+	<div id='details-holder'>
+	<p>|Оферирани продукти/услуги|*</p>
 	[#DETAILS#]
+	</div>
 	<!--ET_END DETAILS-->
 	
-	<p id='condition-title'> Условия към офертата </p>
+	<!--ET_BEGIN OPTIONAL-->
+	<div id='optional-holder'>
+	<p>|Опционални продукти/услуги|*</p>
+	[#OPTIONAL#]
+	</div>
+	<!--ET_END OPTIONAL-->
+	
+	[#ListToolbar#]
+	<p id='condition-title'> Условия към офертата|* </p>
 	<ol id='conditions'>
-		<li> Всички цени са в [#currencyId#] с [#wat#] ДДС</li>
-		<li> Начин на плащане: [#paymentMethodId#]</li>
-		<li> Начин на доставка: [#deliveryTermId#]</li>
+		<li>|Всички цени са в|* [#currencyId#] |с|* [#wat#] |ДДС|*</li>
+		<li>|Офертата е валидна до 30 дни след датата на издаване|*</li>
+		<li>|Начин на плащане|*: [#paymentMethodId#]</li>
+		<li>|Начин на доставка|*: [#deliveryTermId#]</li>
+		<!--ET_END OTHERS-->
+		[#OTHERS#]
+		<!--ET_END OTHERS-->
 	</ol>
 	
+	<p id='quote-username'>|Изготвил офертата|*: &nbsp;&nbsp;[#username#]</p>
+	<p id='quote-sign'>/.........................................../</p>
 	</div>
 </div>
