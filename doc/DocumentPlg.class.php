@@ -1433,4 +1433,29 @@ class doc_DocumentPlg extends core_Plugin
             $origin = doc_Containers::getDocument($rec->originId, $intf);
         }
     }
+    
+    
+    /**
+     * Реализация по подразбиране на метод getDescendants()
+     * 
+     * Метода връща референции към документите (от всевъзможни типове), чието основание (originId)
+     * е точно зададения чрез $originDocId документ.
+     * 
+     * @param core_Mvc $mvc
+     * @param array $chain масив от core_ObjectReference
+     * @param int $originDocId key(mvc=$mvc)
+     */
+    public static function on_AfterGetDescendants(core_Mvc $mvc, &$chain, $originDocId)
+    {
+        $chain = array();
+        
+        /* @var $query core_Query */
+        $query = doc_Containers::getQuery();
+        
+        $chainContainers = $query->fetchAll("#originId = " . $mvc->getContainer($originDocId)->id, 'id, originId');
+        
+        foreach ($chainContainers as $cc) {
+            $chain[] = doc_Containers::getDocument($cc->id);
+        }
+    }
 }
