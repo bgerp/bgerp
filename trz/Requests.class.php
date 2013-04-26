@@ -330,7 +330,7 @@ class trz_Requests extends core_Master
 	            $calRec->allDay = 'yes';
 	            
 	            // Икона на записа
-	            $calRec->type  = 'leave';
+	            $calRec->type  = 'leaves';
 	
 	            $personName = crm_Persons::fetchField($rec->personId, 'name');
 	            // Заглавие за записа в календара

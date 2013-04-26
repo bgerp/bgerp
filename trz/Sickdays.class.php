@@ -330,7 +330,7 @@ class trz_Sickdays extends core_Master
 	            $calRec->allDay = 'yes';
 	            
 	            // Икона на записа
-	            $calRec->type  = 'sickday';
+	            $calRec->type  = 'sick';
 	
 	            $personName = crm_Persons::fetchField($rec->personId, 'name');
 	            

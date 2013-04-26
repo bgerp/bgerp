@@ -245,7 +245,7 @@ class trz_Trips extends core_Master
 	            $calRec->allDay = 'yes';
 	            
 	            // Икона на записа
-	            $calRec->type  = 'trip';
+	            $calRec->type  = 'working-travel';
 	
 	            $personName = crm_Persons::fetchField($rec->personId, 'name');
 	            // Заглавие за записа в календара
