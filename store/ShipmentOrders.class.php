@@ -33,7 +33,8 @@ class store_ShipmentOrders extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_RegisterIntf=sales_RegisterImpl,
-                          acc_TransactionSourceIntf=store_shipmentorders_Transaction';
+                          acc_TransactionSourceIntf=store_shipmentorders_Transaction,
+                          store_ShipmentIntf';
     
     
     /**
@@ -776,5 +777,61 @@ class store_ShipmentOrders extends core_Master
         );
         
         return $row;
+    }
+    
+    
+    /*
+     * РЕАЛИЗАЦИЯ НА store_ShipmentIntf
+     */
+    
+    
+    /**
+     * Данни за експедиция, записани в ЕН
+     * 
+     * @param int $id key(mvc=sales_Sales)
+     * @return object
+     */
+    public function getShipmentInfo($id)
+    {
+        $rec = $this->fetchRec($id);
+        
+        return (object)array(
+             'contragentClassId' => $rec->contragentClassId,
+             'contragentId' => $rec->contragentId,
+             'termId' => $rec->termId,
+             'locationId' => $rec->locationId,
+             'deliveryTime' => $rec->deliveryTime,
+             'storeId' => $rec->storeId,
+        );
+    }
+    
+    
+    /**
+     * Детайли (продукти), записани в документа продажба
+     * 
+     * @param int $id key(mvc=sales_Sales)
+     * @return array
+     */
+    public function getShipmentProducts($id)
+    {
+        $products = array();
+        $query    = store_ShipmentOrderDetails::getQuery();
+        
+        $query->where("#shipmentId = {$id}");
+        
+        while ($rec = $query->fetch()) {
+            $products[] = (object)array(
+                'policyId'  => $rec->policyId,
+                'productId'  => $rec->productId,
+                'uomId'  => $rec->uomId,
+                'packagingId'  => $rec->packagingId,
+                'quantity'  => $rec->quantity,
+                'quantityInPack'  => $rec->quantityInPack,
+                'price'  => $rec->price,
+                'discount'  => $rec->discount,
+            );
+        }
+        
+        return $products;
     }
 }

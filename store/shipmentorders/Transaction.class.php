@@ -78,6 +78,13 @@ class store_shipmentorders_Transaction
         if ($this->class->save($rec)) {
             $this->class->invoke('Activation', array($rec));
         }
+        
+        // Нотификация към пораждащия документ, че нещо във веригата му от породени документи
+        // се е променило.
+        if ($origin = $this->class->getOrigin($rec)) {
+            $rec = new core_ObjectReference($this->class, $rec);
+            $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
+        }
     }
     
     
