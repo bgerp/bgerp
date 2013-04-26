@@ -24,7 +24,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 }
 
 // Колко време е валидно заключването - в секунди
-DEFINE ('SETUP_LOCK_PERIOD', 180);
+DEFINE ('SETUP_LOCK_PERIOD', 600);
 
 defIfNot('BGERP_GIT_BRANCH', 'dev');
 
@@ -375,7 +375,9 @@ if($step == 2) {
                     $repoName = basename($repoPath);
                     
                     // Превключваме репозиторито в зададения в конфигурацията бранч
-                    gitSetBranch($repoPath, $log);
+                    if (!gitSetBranch($repoPath, $log)) {
+                        continue;
+                    }
                          
                     // Ако имаме команда за revert на репозиторито - изпълняваме я
                     if($revert == $repoName) {
@@ -832,20 +834,13 @@ function getGitCmd(&$gitCmd)
         return;
     }
 
-    if(!defined('BGERP_GIT_PATH')) {
-        defIfNot('BGERP_GIT_PATH', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '"C:/Program Files (x86)/Git/bin/git.exe"' : 'git');
-    }
+    defIfNot('BGERP_GIT_PATH', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '"C:/Program Files (x86)/Git/bin/git.exe"' : 'git');
 
     // Проверяваме дали не идва от installBuilder-a
-    exec(BGERP_GIT_PATH, $output, $returnVar);
-
-    if (strpos($output['0'], "usage: git") !== FALSE) {
-        $gitCmd = BGERP_GIT_PATH;
-        
-        return TRUE;
-    }
+    exec(BGERP_GIT_PATH . " --version", $output, $returnVar);
+    $gitCmd = BGERP_GIT_PATH;
     
-    return FALSE;
+    return ($returnVar == 0);
 }
 
 
@@ -882,7 +877,7 @@ function linksToHtml($links)
 
 
 /**
- * Връща текущият бранч на репозиторито
+ * Връща текущият бранч на репозиторито или FALSE ако не е сетнат
  */
 function gitCurrentBranch($repoPath, &$log)
 {
@@ -892,13 +887,14 @@ function gitCurrentBranch($repoPath, &$log)
         return FALSE;
     }
     
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" rev-parse --abbrev-ref HEAD";
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" rev-parse --abbrev-ref HEAD 2>&1";
 
     exec($command, $arrRes, $returnVar);
-    // Търсим реда с текущият бранч
-    foreach ($arrRes as $row) {
-        $row = trim($row);
-        if ($row !== 'HEAD') return $row);
+    // Първият ред съдържа резултата
+    $res = trim($arrRes['0']);
+    if ($res !== 'HEAD' && $returnVar == 0) {
+        
+        return $res;
     }
     $repoName = basename($repoPath);
     $log[] = "err: {$repoName} няма текущ бранч!";
@@ -933,17 +929,30 @@ function gitSetBranch($repoPath, &$log, $branch=NULL)
     $commandCheckOut = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$requiredBranch} 2>&1";
  
     exec($commandFetch, $arrRes, $returnVar);
-  
-    exec($commandCheckOut , $arrRes, $returnVar);
-    // Проверяваме резултата
-    foreach ($arrRes as $row) {
-        if (strpos($row, "Switched to branch '{$requiredBranch}'") !== FALSE) {
-            $log[] = "info: $repoName превключен {$requiredBranch} бранч.";
+    if ($returnVar !== 0) {
+        foreach ($arrRes as $val) {
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$requiredBranch} fetch:" . $val):"";
+        }
+        
+        return FALSE;
+    } else {
+        exec($commandCheckOut , $arrRes, $returnVar);
+        if ($returnVar !== 0) {
+            foreach ($arrRes as $val) {
+                $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$requiredBranch} checkOut:" . $val):"";
+            }
+            
+            return FALSE;
+        } else {
+            // Ако и двете команди са успешни значи всичко е ОК
+            $log[] = "info: [<b>$repoName</b>] превключен {$requiredBranch} бранч.";
             
             return TRUE;
         }
+        
     }
-    $log[] = "err: Грешка при превключване в бранч {$requiredBranch} на репозитори - $repoName";
+
+//    $log[] = "err: [<b>$repoName</b>] Грешка при превключване в бранч {$requiredBranch}";
     
     return FALSE;
 }
