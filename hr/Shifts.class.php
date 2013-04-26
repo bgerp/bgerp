@@ -111,9 +111,10 @@ class hr_Shifts extends core_Master
         for($i = 1; $i <= $lastDay; $i++){
         	$daysTs = mktime(0, 0, 0, $month, $i, $year);
         	$date = date("Y-m-d H:i", $daysTs);
+        	$d[$i] = new stdClass();
     		$d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($data->rec, $date)] . "</span>";
         }
-        
+       
         $res->row->month = dt::getMonth($month, $format = 'F', $lg = 'bg');
     	$res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d);
 
