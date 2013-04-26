@@ -1,6 +1,6 @@
 table.mc-calendar {
-	width: 100%;
 	font-size: 0.8em;
+	width:500px;
 }
 
 table.mc-calendar td.mc-day {
@@ -13,12 +13,18 @@ table.mc-calendar td.mc-day {
 	width: 10em;
 	
 }
-
+table.mc-calendar td.mc-day span{
+	opacity:0.8;
+	margin-left:5px;
+	text-transform:uppercase;
+}
 table.mc-calendar td.mc-week-nb {
 	border: none;
 	padding: 3px;
 }
-
+.mc-wd-name{
+	text-align:center !important;
+}
 table.mc-calendar td.mc-wd-name {
 	text-align: right;
 	padding-right: 3px;
@@ -34,10 +40,6 @@ table.mc-calendar td.mc-holiday {
 
 table.mc-calendar td.mc-saturday {
 	color: #006030;
-}
-
-table.mc-calendar td.mc-day:hover {
-	background-color: #ffff66;
 }
 
 table.mc-calendar td.mc-today {

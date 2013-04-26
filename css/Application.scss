@@ -2564,4 +2564,20 @@ div.locImage{
 	span.sharing-history-title{
 		padding-left:3px !important;
 	}
+	.shifts table.mc-calendar{
+		border-collapse:collapse;
+		width:100% !important;
+	}
+	.shifts table.mc-calendar td{
+		padding:5px;
+	}
+	.shifts table.mc-calendar td.mc-day{
+		border:1px solid #ccc !important;
+	}
+	.shifts .mc-wd-name{
+		text-align:center !important;
+	}
+	.shifts table.mc-calendar td.mc-day span{
+		text-transform:uppercase;
+	}
 }
