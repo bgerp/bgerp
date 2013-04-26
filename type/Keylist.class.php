@@ -244,7 +244,7 @@ class type_Keylist extends core_Type {
                 if(empty($id) && empty($val)) continue;
                 
                 if(!ctype_digit(trim($id))) {
-                    throw new Exception("Некоректен списък '{$id}' => '{$val}', '{$value}'");
+                    throw new Exception("Некоректен списък '{$id}' => '{$val}', '{$res}'");
                 }
                 
                 $res .= "|" . $id;
