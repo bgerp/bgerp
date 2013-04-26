@@ -656,6 +656,7 @@ class cal_Calendar extends core_Master
 
     function act_Test()
     {
+    	
     	$m = 9;
     	$y = 2012;
     
@@ -1123,7 +1124,9 @@ class cal_Calendar extends core_Master
     static public function getIconByType($type, $key)
     {
     	 // Картинката за задачите
-     
+        
+       
+    	
 		if($type == 'task'){
 			$idTask = str_replace("TSK-", " ", $key);
 			$idTask = str_replace("-Start", " ", $idTask);
@@ -1141,6 +1144,10 @@ class cal_Calendar extends core_Master
 			$img = "<img class='calImg'  src=". sbf('img/16/sick.png') .">&nbsp;";
 		}elseif($type == 'trip'){
 			$img = "<img class='calImg'  src=". sbf('img/16/working-travel.png') .">&nbsp;";
+		} else {
+	    	$type = strtolower($type);
+	    	$img = "<img class='calImg'  src=". sbf('img/16/'.$type.'.png') .">&nbsp;";
+			
 		}
 			
 		return $img;
@@ -1244,7 +1251,7 @@ class cal_Calendar extends core_Master
 	     			if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task' || $rec->type == 'trip') {
 	     				$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			} else {
-	     				$dayData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	     				$dayData[$hourKey][$dayKey] .= $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
 	     			}
 	     		}
 	    		
@@ -1305,7 +1312,7 @@ class cal_Calendar extends core_Master
 	            	if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task' || $rec->type == 'trip'){
 	            		$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	            	} else {
-	            		$weekData[$hourKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	            		$weekData[$hourKey][$dayKey] .= $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
 	            	}
 	            } 
 	            
@@ -1378,7 +1385,7 @@ class cal_Calendar extends core_Master
 	     			if($rec->type == 'leave' || $rec->type == 'sickday' || $rec->type == 'task' || $rec->type == 'trip') {
 	     				$monthDate->monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title. "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			} else {
-	     				$monthDate->monthArr[$weekKey][$dayKey] .= ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	     				$monthDate->monthArr[$weekKey][$dayKey] .= $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
 	     			}
 	     		}
 	     		
