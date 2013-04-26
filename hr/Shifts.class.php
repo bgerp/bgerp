@@ -83,9 +83,22 @@ class hr_Shifts extends core_Master
         }
     }
     
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+       // bp($row, $rec, $mvc);
+        $row->calendar = tr($type);
+    }
+    
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-//    	/bp($data->rec, $res, $data->row->calendar);
+    	static $shiftMap = array(
+    		0 => '',
+    		1 => 'I',
+    		2 => 'II',
+    		3 => 'н',
+    		4 => 'д',
+ 		);
+
 		$year = dt::mysql2verbal($data->rec->startingOn, "Y");
 		$month = dt::mysql2verbal($data->rec->startingOn, "n");
 		
@@ -98,12 +111,17 @@ class hr_Shifts extends core_Master
         for($i = 1; $i <= $lastDay; $i++){
         	$daysTs = mktime(0, 0, 0, $month, $i, $year);
         	$date = date("Y-m-d H:i", $daysTs);
-    		$d[$i]->html = "(" . static::getShiftDay($data->rec, $date) . ")";
-        }//bp($d);
+    		$d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($data->rec, $date)] . "</span>";
+        }
         
         $res->row->month = dt::getMonth($month, $format = 'F', $lg = 'bg');
     	$res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d);
 
+    }
+    
+    static public function on_AfterRenderSingle($mvc, $data)
+    {
+    	
     }
     
     function on_AfterRenderWrapping($mvc, &$tpl)
@@ -119,12 +137,16 @@ class hr_Shifts extends core_Master
     	$rec = self::fetch("#id='{$id}'");
     	
     	$date = '2013-05-03 00:00:00';
-    	//$cycle = $rec->cycle;
-    	//$recCycle = hr_WorkingCycles::fetch("#id='{$cycle}'");
-    	//bp($rec,$recCycle, hr_WorkingCycleDetails::getDayOptions($recCycle, 1));
+
     	bp(static::getShiftDay($rec, $date));
     }
     
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $recShift
+     * @param unknown_type $date
+     */
     static public function getShiftDay($recShift, $date)
     {
     	// По кой цикъл работи смяната
