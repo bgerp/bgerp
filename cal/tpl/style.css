@@ -208,15 +208,17 @@ table  div {
 .holiday-title{
 	clear:both;
 	text-align:left;
+	margin-bottom:4px;
 }
 .holiday-title img{
-	position:relative;
-	top:4px;
+	display:inline-block;
+	float:left;
+	vertical-align:middle;
 }
 p.calWeek{
 	text-align: left;
 	font-weight: normal;
-	margin: 0 2px 2px 2px;
+	margin: 0 2px 0 2px;
 	overflow: hidden;
 	white-space: nowrap;
 	background: url("nqkvo_pole4c.png");
