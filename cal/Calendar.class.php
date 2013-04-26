@@ -1246,7 +1246,7 @@ class cal_Calendar extends core_Master
 	     			if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel') {
 	     				$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			} else {
-	     				$dayData[$hourKey][$dayKey] .= $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	     				$dayData[$hourKey][$dayKey] .="<div class='holiday-title'>". $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			}
 	     		}
 	    		
@@ -1307,7 +1307,7 @@ class cal_Calendar extends core_Master
 	            	if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel'){
 	            		$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	            	} else {
-	            		$weekData[$hourKey][$dayKey] .= $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	            		$weekData[$hourKey][$dayKey] .="<div class='holiday-title'>". $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	            	}
 	            } 
 	            
@@ -1380,7 +1380,7 @@ class cal_Calendar extends core_Master
 	     			if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel') {
 	     				$monthDate->monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title. "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			} else {
-	     				$monthDate->monthArr[$weekKey][$dayKey] .= $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title));
+	     				$monthDate->monthArr[$weekKey][$dayKey] .="<div class='holiday-title'>". $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
 	     			}
 	     		}
 	     		

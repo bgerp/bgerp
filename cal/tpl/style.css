@@ -205,26 +205,34 @@ table  div {
   -ms-text-overflow: clip;
   overflow: hidden;
 }
-
-p.calWeek{
-	background-image: url("nqkvo_pole4c.png");
+.holiday-title{
+	clear:both;
 	text-align:left;
+}
+.holiday-title img{
+	position:relative;
+	top:4px;
+}
+p.calWeek{
+	text-align: left;
+	font-weight: normal;
+	margin: 0 2px 2px 2px;
+	overflow: hidden;
+	white-space: nowrap;
+	background: url("nqkvo_pole4c.png");
 	border-radius:2px;
 	box-shadow:0 0 2px #86b8e3;
 	padding:2px;
-	margin:2px 2px 5px 2px;
-	background-position: center; 
+	background-position: center;
 	color: #1d1d1d;
-	white-space: nowrap;
-	overflow:hidden;
-	font-weight:normal;
+	display: inline-block;
 }
 
 .task{
 	clear:both;
 	text-align: left;
 	font-weight:normal;
-	margin:0px 2px 4px;
+	margin:3px 2px 4px;
 	overflow:hidden;
 	white-space:nowrap;
 }
