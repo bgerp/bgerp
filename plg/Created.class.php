@@ -1,7 +1,5 @@
 <?php
 
-
-
 /**
  * Клас 'plg_Created' - Поддръжка на createdOn и createdBy
  *
@@ -17,7 +15,17 @@
 class plg_Created extends core_Plugin
 {
     
+    /**
+     * Константа с id-то на системния потребител
+     */
+    const EF_SYS_USER_ID = -1;
     
+    /**
+     * Константа с id-то на анинимния потребител
+     */
+    const EF_ANONYM_USER_ID = 0;
+    
+
     /**
      * Извиква се след описанието на модела
      */
@@ -26,9 +34,35 @@ class plg_Created extends core_Plugin
         // Добавяне на необходимите полета
         $invoker->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
         $invoker->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
+        
+        // По подразбиране никой не може да редактира данни, записани от системата
+        setIfNot($invoker->canEditsysdata, 'user');
+        setIfNot($invoker->canDeletesysdata, 'no_one');
     }
     
     
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($requiredRoles != 'no_one' && $rec->id && $rec->createdBy == self::EF_SYS_USER_ID) {
+            if($action == 'edit') { 
+                $requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
+            }
+            if($action == 'delete') {
+                $requiredRoles = $mvc->getRequiredRoles('deletesysdata', $rec, $userId);
+            }
+        }
+    }
+    
+
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -51,7 +85,7 @@ class plg_Created extends core_Plugin
                 $rec->createdBy = Users::getCurrent();
                 
                 if (!$rec->createdBy) {
-                    $rec->createdBy = 0;
+                    $rec->createdBy = self::EF_ANONYM_USER_ID;
                 }
             }
             
@@ -68,7 +102,7 @@ class plg_Created extends core_Plugin
      */
     function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if($data->form->rec->createdBy == -1 && $mvc->protectedSystemFields) {
+        if($data->form->rec->createdBy == self::EF_SYS_USER_ID && $mvc->protectedSystemFields) {
             $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, TRUE);
             
             foreach($data->form->fields as &$f) {
@@ -85,9 +119,9 @@ class plg_Created extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if($rec->createdBy == -1) {
+        if($rec->createdBy == self::EF_SYS_USER_ID) {
             $row->createdBy = '@sys';
-        } elseif($rec->createdBy == 0) {
+        } elseif($rec->createdBy == self::EF_ANONYM_USER_ID) {
             $row->createdBy = '@anonym';
         } else {
             $row->createdBy = core_Users::getVerbal($rec->createdBy, 'nick');
