@@ -332,7 +332,7 @@ class core_Form extends core_FieldSet
             }
         
             $this->rec->{$name} = $value;
-        }        
+        }         
     }
     
     
@@ -498,8 +498,8 @@ class core_Form extends core_FieldSet
      */
     function renderInfo_()
     {
-        if (!$this->info)
-        return NULL;
+        if (!$this->info) return NULL;
+
         
         return new ET($this->info);
     }
@@ -834,11 +834,37 @@ class core_Form extends core_FieldSet
                     $vars[$field->name] = isset($rec[$field->name]) ? $rec[$field->name] : NULL;
                 }
             }
+            
+
         }
         
+        // Защита на id - параметъра
+        if($vars['id']) {
+            $mvc = $this->getMvc();
+            $vars['id'] = $mvc->protectId($vars['id']);
+        }
+ 
         return $vars;
     }
-    
+
+
+    /**
+     * Връща MVC класа, асоцииран към формата
+     */
+    function getMvc()
+    {
+        if(!($mvc = $this->mvc)) {
+            $ctr = $this->action['Ctr'];
+            if(!$ctr) {
+                expect($ctr = $this->action[0]);
+            }
+
+            $mvc = cls::get($ctr);
+        }
+        
+        return $mvc;
+    }
+
     
     /**
      * Рендира hidden полетата на формата

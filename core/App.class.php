@@ -414,6 +414,11 @@ class core_App
         if (count($_GET)) {
             $get = $_GET;
             unset($get['virtual_url'], $get['ajax_mode']);
+            
+            if(($id = $get['id']) && ($ctr = $get['Ctr'])) {
+                $mvc = cls::get($ctr);
+                $get['id'] = $mvc->unprotectId($id);
+            }
 
             return $get;
         }
@@ -458,7 +463,7 @@ class core_App
                     error('Повече от едномерен масив в URL-то не се поддържа', $key);
                 }
             }
-
+ 
             return $get;
         }
     }
@@ -545,10 +550,8 @@ class core_App
 
         // Очакваме, че параметъра е масив
         expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
-
+        
         $Request = core_Cls::get('core_Request');
-
-        $Request->doProtect($params);
 
         if ($params[0]) {
             $params['Ctr'] = $params[0];
@@ -603,10 +606,16 @@ class core_App
         if(is_array($params['ret_url'])) {
             $params['ret_url'] = static::toUrl($params['ret_url'], 'local');
         }
+        
+
 
         // Ако е необходимо локално URL, то то се генерира с помощна функция
         if($type == 'local') {
+
             return static::toLocalUrl($params);
+        } else {
+            // Ако има зашитени полета, събира ги и ги криптира
+            $Request->doProtect($params);
         }
 
         // Зпочваме подготовката на URL-то

@@ -8,6 +8,14 @@
 defIfNot('EF_DB_TABLE_PREFIX', '');
 
 
+
+/**
+ * Дължина на контролната сума, която се добавя към id-тата
+ */
+defIfNot('EF_ID_CHECKSUM_LEN', 3);
+
+
+
 /**
  * Клас 'core_Mvc' - Манипулации на модела (таблица в db)
  *
@@ -976,4 +984,35 @@ class core_Mvc extends core_FieldSet
     {
         return cls::get(get_called_class());
     }
+
+
+    /**
+     * Добавя контролна сума към ID параметър
+     */
+    function protectId($id)
+    {
+        $hash = substr(base64_encode(md5(EF_SALT . $mvc->className . $id)), 0, EF_ID_CHECKSUM_LEN);
+        
+        return $id . $hash;
+    }
+    
+
+    /**
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     */
+    function unprotectId($id)
+    {
+        $idStrip = substr($id, 0, strlen($id) - EF_ID_CHECKSUM_LEN);
+        $idProt  = $this->protectId($idStrip);
+
+        if($id == $idProt) {
+
+            return $idStrip;
+        } else {
+            sleep(3);
+
+            return FALSE;
+        }
+    }
+
 }

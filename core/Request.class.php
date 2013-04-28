@@ -82,6 +82,51 @@ class core_Request
                 }
             }
         }
+        
+        // Декодира защитеното id
+        if(($id = self::get('id')) && ($ctr = self::get('Ctr'))) {
+            $id = self::unprotectId($id, $ctr);
+            self::push(array('id' => $id));
+        }
+    }
+
+
+    /**
+     * Декодира защитеното id
+     */
+    static function unprotectId($id, $mvc)
+    {
+        if(is_string($mvc)) {
+            $mvc = cls::get($mvc);
+        }
+
+        return $mvc->unprotectId($id);
+    }
+    
+    
+    /**
+     * Връща сесийно валиден хеш на подаденото съдържание
+     */
+    static function getSessHash($c, $len = 4)
+    {
+        $res = substr(base64_encode(md5(Mode::getPermanentKey() . $c)), 0, $len);
+
+        return $res;
+    }
+
+
+    /**
+     * Проверка дали заявката съдържа код за сесийно потвърждаване
+     */
+    static function isConfirmed()
+    {
+        $id = self::get('id');
+        if(self::get('Cf') === self::getSessHash($id)) {
+
+            return TRUE;
+        }
+
+        return FALSE;
     }
     
     
@@ -133,6 +178,14 @@ class core_Request
                 $prot = str::addHash($prot, 16);
                 $arr['Protected'] = $prot;
             }
+        }
+        
+        // Защита на ИД-то
+        if($arr['id'] && $arr['Ctr']) {
+             
+             $mvc = cls::get($arr['Ctr']);
+
+             $arr['id'] = $mvc->protectId($arr['id']);
         }
     }
     

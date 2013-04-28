@@ -404,7 +404,7 @@ class core_Html
         return ht::createElement('textarea', $attr, $value, TRUE);
     }
 
-
+   
     /**
      * Създава бутон - хиперлинк
      */
@@ -418,9 +418,18 @@ class core_Html
         if((is_array($url) && count($url) == 0) || !$url) {
             $attr['disabled'] = "disabled";
         }
+        
+        // URL с потвърждение
+        if(is_array($url) && $warning) {
+            $content = $url['id'] ? $url['id'] : $url[2]; 
+            if($content) {
+                $url['Cf'] = core_Request::getSessHash($content); 
+            }
+        }
 
         // Правим URL-to
         $url = toUrl($url);
+        
 
         // Подготвяме атрибутите
         $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
@@ -589,6 +598,14 @@ class core_Html
             $attr['onclick'] = "if (!confirm('" . str_replace("'", "\'", $warning) .
             "')) return false; " . $attr['onclick'];
         }
+        
+        // URL с потвърждение
+        if(is_array($url) && $warning) {
+            $content = $url['id'] ? $url['id'] : $url[2]; 
+            if($content) {
+                $url['Cf'] = core_Request::getSessHash($content); 
+            }
+        }
 
         if (is_array($url)) {
             if(count($url)) {
@@ -597,9 +614,14 @@ class core_Html
                 $url = '';
             }
         }
-
+        
         if($url) {
-            $attr['href'] = $url;
+            if($warning) {
+                $attr['onclick'] .= " document.location='{$url}'";
+                $attr['href'] = '#';
+            } else {
+                $attr['href'] = $url;
+            }
         }
 
         if($attr['ef_icon']) {

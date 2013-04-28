@@ -49,7 +49,7 @@ class plg_Current extends core_Plugin
     {
         if ($action == 'setcurrent') {
             
-            $id = Request::get('id');
+            $id = Request::get('id', 'int');
             
             expect($rec = $mvc->fetch($id));
             

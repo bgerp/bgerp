@@ -47,7 +47,7 @@ class core_Master extends core_Manager
         $data = new stdClass();
         
         // Трябва да има id
-        expect($id = Request::get('id'));
+        expect($id = Request::get('id', 'int'));
         
         // Трябва да има $rec за това $id
         if(!($data->rec = $this->fetch($id))) { 
