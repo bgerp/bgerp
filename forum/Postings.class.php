@@ -725,8 +725,9 @@ class forum_Postings extends core_Detail {
 	 *  Екшън за заключване/отключване на тема. Заключена тема неможе да бъде коментирана повече
 	 */
 	function act_Lock()
-	{
-		expect($rec = $this->fetch(Request::get('id')));
+	{   
+        $id = Request::get('id', 'int');
+		expect($rec = $this->fetch($id));
 		$this->requireRightFor('write', $rec);
 		
 		// променяме статуса на темата на заключенa/отключенa

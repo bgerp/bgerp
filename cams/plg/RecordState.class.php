@@ -86,7 +86,7 @@ class cams_plg_RecordState extends core_Plugin
         
         $mvc->requireRightFor($act, NULL, NULL, $retUrl);
         
-        expect($id = Request::get('id'));
+        expect($id = Request::get('id', 'int'));
         
         expect($rec = $mvc->fetch($id));
         

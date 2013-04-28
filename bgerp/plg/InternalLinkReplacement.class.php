@@ -31,8 +31,8 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         $params = type_Richtext::parseInternalUrl($rest);
         
         // Всички параметри
-        $ctr = $params['Ctr'];
-        $act = $params['Act'];
+        $ctr = strtolower($params['Ctr']);
+        $act = strtolower($params['Act']);
         $threadId = $params['threadId'];
         
         // Папки
@@ -69,7 +69,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             return FALSE;    
         }
 
-        // Сингле
+        // Сингъл
         if ($act == 'single') {
 
             // Вземаме вербалния линка към папката
@@ -82,7 +82,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
                 $res = static::getNotAccessMsg();
             }
 
-            // Прекратяваме по нататъшното изпълнени на програмата
+            // Прекратяваме по нататъшното изпълнени на обработката на събитието
             return FALSE;         
         }
         

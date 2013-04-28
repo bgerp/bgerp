@@ -436,7 +436,7 @@ class acc_Periods extends core_Manager
         $this->requireRightFor('close');
 
         // Затваряме период
-        $id = Request::get('id');
+        $id = Request::get('id', 'int');
         
         $rec = new stdClass();
         

@@ -195,7 +195,7 @@ class cms_Content extends core_Manager
      */
     function act_Show()
     {  
-        $menuId = Request::get('id');
+        $menuId = Request::get('id', 'int');
         
         if(!$menuId) {
             $query = self::getQuery();

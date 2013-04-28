@@ -79,7 +79,7 @@ class cms_Feeds extends core_Manager {
 	function act_Get()
 	{
 		// Извличаме записа на хранилката
-		expect($id = Request::get('id'));
+		expect($id = Request::get('id', 'int'));
 		expect($rec = $this->fetch($id));
 		
 		// Инстанцираме източника

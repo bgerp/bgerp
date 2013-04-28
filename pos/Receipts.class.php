@@ -506,7 +506,7 @@ class pos_Receipts extends core_Master {
     function act_Single()
     {   
         $this->requireRightFor('single');
-    	$id = Request::get('id');
+    	$id = Request::get('id', 'int');
         if(!$id) {
         	$id = Request::get('receiptId');
         }
