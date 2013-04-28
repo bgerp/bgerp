@@ -98,7 +98,7 @@ class type_Key extends type_Int {
             $options = $mvc->makeArray4select($field);
         }
         
-        if(!is_numeric($value)) {
+        if(!is_numeric($value) && count($options)) {
             foreach($options as $id => $v) {
                 if (!is_string($v)) {
                     if(!$v->group) {
