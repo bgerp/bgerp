@@ -66,13 +66,13 @@ class plg_RowTools extends core_Plugin
         
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
-            $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
+            $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
 
             $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {
-            $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . ">";
+            $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
             $deleteUrl = array(
 	            $mvc,
 	            'delete',
@@ -86,7 +86,7 @@ class plg_RowTools extends core_Plugin
         	$loadList = arr::make($mvc->loadList);
         	if(in_array('plg_Rejected', $loadList)){
         		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)){
-        			$deleteImg = "<img src=" . sbf('img/16/delete.png') . ">";
+        			$deleteImg = "<img src=" . sbf('img/16/delete.png') . " alt=\"" . tr('Оттегляне') . "\">";
         			$deleteUrl = array(
 			            $mvc,
 			            'reject',
@@ -96,7 +96,7 @@ class plg_RowTools extends core_Plugin
                 		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id}");
         			
         		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
-        			$deleteImg = "<img src=" . sbf('img/16/restore-icon.png') . ">";
+        			$deleteImg = "<img src=" . sbf('img/16/restore-icon.png') . " alt=\"" . tr('Възстановяване') . "\">";
         				
         			$deleteUrl = array(
 			            $mvc,
