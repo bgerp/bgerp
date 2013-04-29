@@ -548,9 +548,6 @@ class email_Inboxes extends core_Master
      */
     static function removeOurEmails($emailsArr)
     {
-        //Масив с имейли за премахване
-        $emailForRemove = array();
-        
         // Данни за кеширане
         $cacheType = 'ourEmails';
         $cacheHandle = 'allEmails';
@@ -559,6 +556,9 @@ class email_Inboxes extends core_Master
         
         // Ако няма в кеша или е променен
         if (!$emailForRemove = core_Cache::get($cacheType, $cacheHandle, $keepMinutes, $depends)) {
+            
+            //Масив с имейли за премахване
+            $emailForRemove = array();
             
             // Извличаме всички имейли
             $query = static::getQuery();
