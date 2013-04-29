@@ -80,18 +80,35 @@ class bgerp_Portal extends core_Manager
         
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
 		
-        $img = sbf('img/16/add.png');
-		$addUrl = array('cal_Tasks', 'add');
-		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask'));
         
 		// Задачи
+        if(Mode::is('listTasks', 'by')) {
+           $taskTitle   = tr('Задачи от');
+           $switchTitle = tr('Задачи към ') . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+        } else {
+            $taskTitle = tr('Задачи към');
+            $switchTitle = tr('Задачи от ') . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+        }
+
+        $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
+
         $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:20px;">
-            <div class="legend" style="background-color:#ffd;">' . tr('Задачи') . '&nbsp;[#ADD_BTN#]</div>
+            <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]</div>
             [#TASKS#]
             </div>');
         
+        // Бутон за добавяне на задачи
+        $img = sbf('img/16/add.png');
+		$addUrl = array('cal_Tasks', 'add');
+		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => 'Добавяне на нова задача'));
         $tasksTpl->append($addBtn, 'ADD_BTN');
         
+        // Бутон за смяна от <-> към
+        $img = sbf('img/16/arrow-switch-270.png');
+		$addUrl = array('cal_Tasks', 'SwitchByTo');
+		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => $switchTitle, 'id' => 'switchTasks'));
+        $tasksTpl->append($addBtn, 'SWITCH_BTN');
+       
         $tasksTpl->append(cal_Tasks::renderPortal(), 'TASKS');
 
         $tpl->append($tasksTpl, 'RIGHT_COLUMN');

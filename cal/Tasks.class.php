@@ -244,7 +244,11 @@ class cal_Tasks extends core_Master
 
         $now = dt::verbal2mysql();
         
-        $data->query->where("#sharedUsers LIKE '%|{$userId}|%' AND (#timeStart < '{$now}' || #timeStart IS NULL)");
+        if(Mode::is('listTasks', 'by')) {
+            $data->query->where("#createdBy = $userId AND (#timeStart < '{$now}' || #timeStart IS NULL)");
+        } else {
+            $data->query->where("#sharedUsers LIKE '%|{$userId}|%' AND (#timeStart < '{$now}' || #timeStart IS NULL)");
+        }
         $data->query->where("#state = 'active'");
         $data->query->orderBy("timeStart=DESC");
         
@@ -602,6 +606,21 @@ class cal_Tasks extends core_Master
 
             $this->save($rec, 'notifySent');
         }
+    }
+
+
+    /**
+     * Сменя задачите в сесията между 'поставените към', на 'поставените от' и обратно
+     */
+    function act_SwitchByTo()
+    {
+        if(Mode::is('listTasks', 'by')) {
+            Mode::setPermanent('listTasks', 'to');
+        } else {
+            Mode::setPermanent('listTasks', 'by');
+        }
+
+        return new Redirect(array('Portal', 'Show', '#' => 'switchTasks'));
     }
 
 

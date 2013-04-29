@@ -569,15 +569,15 @@ class crm_Profiles extends core_Master
      * @param string $warning  @see core_Html::createLink()
      * @param array $attr      @see core_Html::createLink()
      */
-    public static function createLink($userId, $title = NULL, $warning = FALSE, $attr = array())
+    public static function createLink($userId = NULL, $title = NULL, $warning = FALSE, $attr = array())
     {   
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+
         if(!$title) {
             $userRec = core_Users::fetch($userId);
-            list($l, $r) = explode('@', $userRec->nick);
-            $title = str_replace(' ', '&nbsp;', mb_convert_case(str_replace(array('.', '_'), array(' ', ' '), $l), MB_CASE_TITLE, "UTF-8"));
-            if($r) {
-                $title .= '@' . $r;
-            }
+            $title = self::getUserTitle($userRec->nick);
         }
 
         $link = $title;
@@ -604,6 +604,21 @@ class crm_Profiles extends core_Master
         }
         
         return $link;
+    }
+    
+
+    /**
+     * Обработва ника на потребителя, така, че да изглежда добре 
+     */
+    static function getUserTitle($nick)
+    {
+        list($l, $r) = explode('@', $nick);
+        $title = str_replace(' ', '&nbsp;', mb_convert_case(str_replace(array('.', '_'), array(' ', ' '), $l), MB_CASE_TITLE, "UTF-8"));
+        if($r) {
+            $title .= '@' . $r;
+        }
+
+        return $title;
     }
 
 
