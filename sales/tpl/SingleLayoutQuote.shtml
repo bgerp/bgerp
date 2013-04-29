@@ -7,65 +7,71 @@
 	<div class='header [#STATE_CLASS#]'>
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
-	<!--ET_END header-->
-	<div id='quote-body'>
-	<h2 class='centered quote-title'>|ОФЕРТА|*</h2>
 	
-	<p id='quoteNumber' class='centered'>
-		<b>№[#number#] / [#date#]</b>
-	</p>
-	
-	<p id='quoteReff' class='centered'>
-		<b>|Ваш реф|*.: &nbsp;[#reff#]</b>
-	</p>
-	
-	<div class="fleft cInfo">
-	<p><b>|Получател на офертата|*:</b></p>
-	<p>[#contragentName#]</p>
-	<p>[#contragentAdress#]</p>
-	</div>
-	
-	<div class="fright cContact">
-	<table>
-		<tr>
-			<td align='right'>|Имейл|*:</td><td>[#email#]</td>
-		</tr>
-		<tr>
-			<td align='right'>|Факс|*:</td><td>[#fax#]</td>
-		</tr>
-		<tr>
-			<td align='right'>|Тел|*:</td><td>[#tel#]</td>
-		</tr>
+	<table border = '0'id='quot-table'>
+	<tr>
+		<td rowspan='2' id='quot-title-td'>
+		<div class='quote-title'>|ОФЕРТА|*</div>
+		<p class='title-info'>
+			№  &nbsp;<b>[#number#]</b> 
+		</p>
+		<p class='title-info'>
+			|Дата|*: &nbsp;<b>[#date#]</b>
+		</p>
+		<p class='title-info'>
+			|Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
+		</p>
+		</td>
+		<td>
+		<p class='title-info receiver'>|Получател на офертата|*:</p>
+		<p class='title-info'>[#contragentName#]</p>
+		<p class='title-info'>[#contragentAdress#]</p>
+		</td>
+	</tr>
+	<tr>
+		<td style='padding-top:20px;vertical-align:top'>
+		<!--ET_BEGIN email-->
+			<p class='title-info'>|Имейл|*: &nbsp;[#email#]</p>
+		<!--ET_END email-->
+		<!--ET_BEGIN fax-->
+			<p class='title-info'>|Факс|*: &nbsp;[#fax#]</p>
+		<!--ET_END fax-->
+		<!--ET_BEGIN tel-->
+			<p class='title-info'>|Тел|*: &nbsp;[#tel#]</p>
+		<!--ET_END tel-->
+		</td>
+	</tr>
 	</table>
-	</div>
+	
 	<div class="clearfix21"></div>
 	<!--ET_BEGIN DETAILS-->
 	<div id='details-holder'>
-	<p>|Оферирани продукти/услуги|*</p>
+	<p>|Оферирани продукти и услуги|*</p>
 	[#DETAILS#]
 	</div>
 	<!--ET_END DETAILS-->
 	
 	<!--ET_BEGIN OPTIONAL-->
+	<div class="page-break"></div>
+	
 	<div id='optional-holder'>
-	<p>|Опционални продукти/услуги|*</p>
+	<p>|Опционални продукти и услуги|*</p>
 	[#OPTIONAL#]
 	</div>
 	<!--ET_END OPTIONAL-->
 	
 	[#ListToolbar#]
-	<p id='condition-title'> Условия към офертата|* </p>
+	<p id='condition-title'> |Условия на офертата|* [#addOther#]</p>
 	<ol id='conditions'>
-		<li>|Всички цени са в|* [#currencyId#] |с|* [#wat#] |ДДС|*</li>
+		<li>|Всички цени са в|* [#paymentCurrencyId#] [#wat#]  |на ДДС|*</li>
 		<li>|Офертата е валидна до 30 дни след датата на издаване|*</li>
 		<li>|Начин на плащане|*: [#paymentMethodId#]</li>
 		<li>|Начин на доставка|*: [#deliveryTermId#]</li>
 		<!--ET_END OTHERS-->
-		[#OTHERS#]
+		[#others#]
 		<!--ET_END OTHERS-->
 	</ol>
 	
-	<p id='quote-username'>|Изготвил офертата|*: &nbsp;&nbsp;[#username#]</p>
-	<p id='quote-sign'>/.........................................../</p>
+	<p id='quote-username'><b>|Изготвил офертата|*:</b> <span id='sign-place'></span>/ &nbsp;<b>[#username#]</b>&nbsp; /</p>
 	</div>
 </div>

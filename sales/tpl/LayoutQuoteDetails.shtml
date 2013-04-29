@@ -9,8 +9,10 @@
 		<th>|Пулт|* [#toolsTh#]</th>
 		<!--ET_END toolsTh-->
 	</tr>
+
 <!--ET_BEGIN ROW-->
-	<tr>
+[#ROW#]
+<tr>
 		<td>[#index#]</td>
 		<!--ET_BEGIN productId-->
 		<td rowspan = '[#rowspan#]' valign='top'>[#productId#]</td>

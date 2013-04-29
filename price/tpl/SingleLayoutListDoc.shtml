@@ -79,7 +79,7 @@
 		<td align='right'>[#price#]</td>
 	</tr>
 	<!--ET_END ROW-->
-	<!--ET_END DETAIL-->
+	<!--ET_END DETAILS-->
 	</table>
 	[#BottomPager#]
 </div>

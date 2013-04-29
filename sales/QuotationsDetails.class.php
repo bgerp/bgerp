@@ -36,7 +36,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'no_one';
+    var $canAdd = 'admin,sales';
     
     
     /**
@@ -101,7 +101,7 @@ class sales_QuotationsDetails extends core_Detail {
     static function on_CalcDiscAmount($mvc, $rec)
     {
     	if($rec->discount && $rec->quantity){
-    		$disc = round(($rec->amount * $rec->discount / 100), 2);
+    		$disc = round(($rec->amount * $rec->discount), 2);
     		$rec->discAmount = $rec->amount - $disc;
     	}
     }
@@ -139,9 +139,12 @@ class sales_QuotationsDetails extends core_Detail {
 	    			$form->setError('price', 'Неможе да се изчисли цената за този клиент');
 	    		}
 	    		
-	    		$rec->price = $price->price;
+	    		// Конвертираме цената към посочената валута в офертата
+	    		$convertedPrice = currency_CurrencyRates::convertAmount($price->price, $masterRec->date, NULL, $masterRec->paymentCurrencyId);
+	    		$rec->price = $convertedPrice;
+	    		
 	    		if(!$rec->discount){
-		    		$rec->discount = $price->discount;
+	    			$rec->discount = $price->discount;
 	    		}
 	    	}
     	}
@@ -233,8 +236,14 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	if(!$data->rows) return;
     	$total = $totalDisc = 0;
-    	foreach($data->recs as $rec){
+    	$prevProduct = NULL;
+    	foreach($data->recs as $i => $rec){
     		if($rec->optional == 'no'){
+    			if(!$prevProduct){
+    				$prevProduct = $rec->productId;
+    			} else {
+    				if($rec->productId == $prevProduct) return;
+    			}
     			
     			// Ако няма количество, цената неможе да се изчисли
     			if(!$rec->quantity) return;
@@ -243,6 +252,10 @@ class sales_QuotationsDetails extends core_Detail {
     				$totalDisc += $rec->discAmount; 
     			}
     		}
+    	}
+    	
+    	if($totalDisc == 0){
+    		$totalDisc = NULL;
     	}
     	
     	$data->total = (object) array('total' => $total, 'totalDisc' => $totalDisc);
@@ -267,41 +280,46 @@ class sales_QuotationsDetails extends core_Detail {
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
     	$oCount = $dCount = 1;
-    	foreach($data->rows as $index => $arr){
-    		list(, $optional) = explode("|", $index);
-    		foreach($arr as $key => $row){
-    			if($key == 0){
-    				
-    				// Задаваме rowspan на полето за продукта, взависимост от данните
-    				$row->rowspan = count($arr);
-    			}
-    			
-    			// Взависимост дали е опционален продукта 
-    			// го добавяме към определения шаблон
-    			if($optional == 'no'){
-    				$rowTpl = $dTpl->getBlock('ROW');
-    				$id = &$dCount;
-    			} else {
-    				$rowTpl = $oTpl->getBlock('ROW');
-    				$id = &$oCount;
-    			} 
-    			
-    			$row->index = $id++;
-    			$rowTpl->placeObject($row);
-    			$rowTpl->removeBlocks();
-    			$rowTpl->append2master();
-    		}
-    		
+    	if($data->rows){
+	    	foreach($data->rows as $index => $arr){
+	    		list(, $optional) = explode("|", $index);
+	    		foreach($arr as $key => $row){
+	    			if($key == 0){
+	    				
+	    				// Задаваме rowspan на полето за продукта, взависимост от данните
+	    				$row->rowspan = count($arr);
+	    			}
+	    			
+	    			// Взависимост дали е опционален продукта 
+	    			// го добавяме към определения шаблон
+	    			if($optional == 'no'){
+	    				$rowTpl = $dTpl->getBlock('ROW');
+	    				$id = &$dCount;
+	    			} else {
+	    				$rowTpl = $oTpl->getBlock('ROW');
+	    				$id = &$oCount;
+	    			} 
+	    			
+	    			$row->index = $id++;
+	    			$rowTpl->placeObject($row);
+	    			$rowTpl->removeBlocks();
+	    			$rowTpl->append2master();
+	    		}
+	    	}
     	}
-    	
     	if($data->total){
     		$dTpl->placeObject($data->total);
     	}
     	
     	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
+    	
     	$dTpl->removeBlocks();
     	$tpl->append($dTpl, 'DETAILS');
-    	$tpl->append($oTpl, 'OPTIONAL');
+    	
+    	// Ако няма опционални продукти не рендираме таблицата им
+    	if($oCount > 1){
+    		$tpl->append($oTpl, 'OPTIONAL');
+    	}
     	
     	return $tpl;
     }

@@ -23,7 +23,7 @@ class sales_Quotations extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'Q';
+    var $abbr = 'Quo';
     
     
     /**
@@ -97,7 +97,7 @@ class sales_Quotations extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'sales_QuotationsDetails' ;
+    public $details = 'sales_QuotationsDetails,others=sales_QuotationsOthers' ;
     
 
     /**
@@ -129,8 +129,8 @@ class sales_Quotations extends core_Master
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em');
-        $this->FLD('paymentCurrencyId', 'key(mvc=currency_Currencies,select=code)','caption=Плащане->Валута,width=8em');
-        $this->FLD('wat', 'percent(min=0,max=1,decimals=0)','caption=Плащане->ДДС,width=8em');
+        $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
+        $this->FLD('wat', 'enum(yes=с начисляване,no=без начисляване)','caption=Плащане->ДДС');
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
     }
     
@@ -143,10 +143,41 @@ class sales_Quotations extends core_Master
        $form = $data->form;
        $form->setDefault('date', dt::now());
        
-       $form->setSuggestions('wat', array('0'=>'0', '0.07' => '7', '0.2' => '20'));
+       //$form->setSuggestions('wat', array('0'=>'0', '0.07' => '7', '0.2' => '20'));
        $mvc->populateContragentData($form);
+       ($mvc->getDefaultWat($form->rec->contragentClassId, $form->rec->contragentId)) ? $form->setDefault('wat', 'yes') : $form->setDefault('wat', 'no');
     }
-
+	
+    
+    /**
+     * 
+     * @param int $contragentClassId -
+     * @param false $contragentId -
+     * @return boolean TRUE/FALSE - 
+     */
+    function getDefaultWat($contragentClassId, $contragentId)
+    {
+    	// Ако контрагента е лице, начисляваме ДДС
+    	if($contragentClassId == crm_Persons::getClassId()) return TRUE;
+    	
+    	$contragentClass = cls::get($contragentClassId);
+    	$data = $contragentClass::getContragentData($contragentId);
+    	$conf = core_Packs::getConfig('crm');
+    	$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'", 'id');
+    	
+    	// за всички BG фирми начисляваме ДДС
+    	if($ownCountryId == $data1->countryId) return TRUE;
+    	
+    	// Всички фирми имащи BG в Ват номера си
+    	if($data->vatNo && (preg_match("/^BG/", $data->vatNo))) return TRUE;
+    	
+    	// за всички чуждестранни фирми с липсващ/невалиден wat номер
+    	if($ownCountryId != $data->countryId && !$data->vatNo) return TRUE;
+    	
+    	// Ако никое не е изпълнено не начисляваме ДДС
+    	return FALSE;
+    }
+    
     
     /**
      * Попълваме информацията за контрагента
@@ -166,14 +197,6 @@ class sales_Quotations extends core_Master
     	$form->setReadOnly('contragentName');
     	$currencyCode  = drdata_Countries::fetchField($data->countryId, 'currencyCode');
         $rec->currencyId = currency_Currencies::getIdByCode($currencyCode);
-    }
-    
-    
-	/**
-     * Извиква се след въвеждането на данните от Request във формата
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
     }
     
     
@@ -206,8 +229,6 @@ class sales_Quotations extends core_Master
     	$row->contragentAdress = $varchar->toVerbal($row->contragentAdress);
     	
 		$row->number = "Q{$row->id}";
-		
-		$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->date);
 		
 		$cuRec = core_Users::fetch(core_Users::getCurrent());
 		$row->username = core_Users::recToVerbal($cuRec, 'names')->names;
@@ -248,5 +269,29 @@ class sales_Quotations extends core_Master
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$tpl->push('sales/tpl/styles.css', 'CSS');
+    }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    {
+    	if($action == 'activate'){
+    		if(!$rec->id) {
+    			
+    			// Ако документа се създава, то неможе да се активира
+    			$res = 'no_one';
+    		} else {
+    			
+    			// Ако няма задължителни продукти/услуги неможе да се активира
+    			$detailQuery = sales_QuotationsDetails::getQuery();
+    			$detailQuery->where("#quoteId = {$rec->id}");
+    			$detailQuery->where("#optional = 'no'");
+    			if(!$detailQuery->count()){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
 }
