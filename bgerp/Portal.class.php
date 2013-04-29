@@ -84,10 +84,10 @@ class bgerp_Portal extends core_Manager
 		// Задачи
         if(Mode::is('listTasks', 'by')) {
            $taskTitle   = tr('Задачи от');
-           $switchTitle = tr('Задачи към ') . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+           $switchTitle = tr('Задачи към') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
         } else {
             $taskTitle = tr('Задачи към');
-            $switchTitle = tr('Задачи от ') . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+            $switchTitle = tr('Задачи от') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
         }
 
         $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
@@ -100,7 +100,7 @@ class bgerp_Portal extends core_Manager
         // Бутон за добавяне на задачи
         $img = sbf('img/16/add.png');
 		$addUrl = array('cal_Tasks', 'add');
-		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => 'Добавяне на нова задача'));
+		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => 'Добавяне на нова Задача'));
         $tasksTpl->append($addBtn, 'ADD_BTN');
         
         // Бутон за смяна от <-> към
