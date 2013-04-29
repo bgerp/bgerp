@@ -1,20 +1,18 @@
 table.mc-calendar {
 	font-size: 0.8em;
 	width:500px;
+	1border-collapse:collapse;
 }
 
 table.mc-calendar td.mc-day {
 	text-align: right;
 	border: none;
-	background-color: #e8efe8;
-	border: solid 2px #e8efe8;
-	padding: 1px;
 	font-weight: bold;
 	width: 10em;
 	
 }
 table.mc-calendar td.mc-day span{
-	opacity:0.8;
+	color:#000;
 	margin-left:5px;
 	text-transform:uppercase;
 }
@@ -49,25 +47,31 @@ table.mc-calendar td.mc-today {
 table.mc-header a {
 	color: #999;
 }
+.cal-legend{
+	table-layout:fixed;
+}
+.cal-legend td{
+	font-weight:bold;
+	text-align:center;
+	padding:3px;
+}
 
 table.mc-calendar td.rest{
-	
-	background-color: blue; important!
+	background-color:#FEADAD; important!
 }
 
 table.mc-calendar td.first{
-	
-	background-color: red; important!
+	background-color: #AFB; important!
 }
+
 table.mc-calendar td.second{
-	
-	background-color: pink; important!
+	background-color: #FE7; important!
 }
+
 table.mc-calendar td.third{
-	
-	background-color: orange; important!
+	background-color: #BEF7FD; important!
 }
+
 table.mc-calendar td.diurnal{
-	
-	background-color: yellow; important!
+	background-color: #FED; important!
 }
