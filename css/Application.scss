@@ -400,7 +400,18 @@ div.alphabet div.tab-page {
 .narrow div.alphabet  div.tab-row {
 	width: 330px;
 }
-
+div.small-tabs {
+	.tab-page{
+		padding:5px 10px 10px !important;
+		.detail-info{
+			padding:0px;
+		}
+	}
+	div.tab-row .tab {
+		font-size:0.8em;	
+	}
+}
+	
 div.crmImage {
 	padding:10px 0px 8px 8px;
 	float:right;
