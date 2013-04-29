@@ -156,6 +156,7 @@ class drdata_Banks extends core_Manager
      */
     static function getBankName($iban)
     {
+    	if(preg_match("/^#/", $iban)) return NULL;
     	$parts = iban_Type::getParts($iban);
     	
     	if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
@@ -173,8 +174,10 @@ class drdata_Banks extends core_Manager
      */
     static function getBankBic($iban)
     {
+    	if(preg_match("/^#/", $iban)) return NULL;
     	$parts = iban_Type::getParts($iban);
-    	if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '[#1#]'", $parts['bank']))) {
+    	
+    	if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
     		return $rec->bic;
     	} else {
     		return NULL;
