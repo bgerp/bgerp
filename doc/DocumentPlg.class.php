@@ -463,7 +463,7 @@ class doc_DocumentPlg extends core_Plugin
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     $hnd = $mvc->getHandle($rec->id);
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, 'Q' => Request::get('Q'), 'cid' => Request::get('cid'), 'Tab' => Request::get('Tab'), '#' => $hnd);
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, 'Q' => Request::get('Q'), 'Cid' => Request::get('Cid'), 'Tab' => Request::get('Tab'), '#' => $hnd);
                     
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;

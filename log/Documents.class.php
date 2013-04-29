@@ -1696,7 +1696,7 @@ class log_Documents extends core_Manager
 	                 $document, 
 	                 'single', 
 	                 $document->that,
-	                 'cid' => $cid, 
+	                 'Cid' => $cid, 
 	                 'Tab' => $detailTab,
 	                );
 
