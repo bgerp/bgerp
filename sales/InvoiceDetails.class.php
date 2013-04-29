@@ -126,7 +126,7 @@ class sales_InvoiceDetails extends core_Detail
         $form->setOptions('productId', $products);
         
         $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
-        (Request::get('add')) ? $action = tr("Добавяне") : $action = tr("Редактиране");
+        (Request::get('Act') == 'add') ? $action = tr("Добавяне") : $action = tr("Редактиране");
       	$form->title = "{$action} на запис в {$masterTitle}";
     }
 

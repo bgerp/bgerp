@@ -167,7 +167,7 @@ class sales_Invoices extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods, select=name)', 'caption=Плащане->Начин');
                 
         // Наша банкова сметка (при начин на плащане по банков път)
-        $this->FLD('accountId', 'key(mvc=bank_Accounts, select=iban)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
+        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
 
         // Валута
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута->Код,width=6em');
@@ -179,7 +179,7 @@ class sales_Invoices extends core_Master
         
         // Данъци
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-        $this->FLD('vatRate', 'percent', 'caption=Данъци->ДДС %');
+        $this->FLD('vatRate', 'enum(yes=с начисляване,no=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
 
         // Допълнителна информация
@@ -217,6 +217,13 @@ class sales_Invoices extends core_Master
         	// При създаване на нова ф-ра зареждаме полетата на 
             // формата с разумни стойности по подразбиране.
             $mvc::setFormDefaults($form);
+        }
+        
+        if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
+        	$form->setDefault('accountId', $ownAcc);
+        	$form->setReadOnly('accountId');
+        } else {
+        	$form->setField('accountId', 'input=none');
         }
         
         $mvc::populateContragentData($form);
