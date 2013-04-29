@@ -1,0 +1,8 @@
+<!--ET_BEGIN others-->
+	[#others#]
+	<li>
+    [#otherId#]: [#otherValue#] <span class='other-tools'>[#tools#]</span>
+    </li>
+<!--ET_END others-->
+
+

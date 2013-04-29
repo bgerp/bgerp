@@ -46,7 +46,9 @@ class salecond_Others extends core_Manager
      */
     function description()
     {
-    	//$this->FLD('other', 'key(mvc=salecond_Others,select=description)', '');
-    	//$this->FLD('description', 'varchar', 'caption=Описание,input');
+    	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
+        $this->FLD('type', 'enum(double=Число, int=Цяло число, varchar=Текст, color=Цвят, date=Дата)', 'caption=Тип');
+        
+        $this->setDbUnique('name');
     }
 }
