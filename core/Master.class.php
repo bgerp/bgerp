@@ -270,7 +270,7 @@ class core_Master extends core_Manager
 
                     $url = Url::addParams($_SERVER['REQUEST_URI'], array('Tab' => $var)) . '#detailTabs';
  
-                    $tabs->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $url);
+                    $tabs->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : $url);
 
                     if($var == $data->Tab || (!$data->Tab && !$selected)) {
                         $selected = $var;
