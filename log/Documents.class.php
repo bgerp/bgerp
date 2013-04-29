@@ -937,8 +937,15 @@ class log_Documents extends core_Manager
             $rec->mid = static::generateMid();
         }
         
+        // Ако има изпращач
+        if ($rec->data->sendedBy) {
+            
+            // Използваме него за createdBy
+            $rec->createdBy = $rec->data->sendedBy;
+        }
+        
         /*
-         * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и
+         * Забележка: plg_Created ще попълни полетата createdBy (ако не са зададени) и
          *             createdOn (кога е станало това)
          */
         
