@@ -73,6 +73,21 @@ class doc_DocumentPlg extends core_Plugin
         // Добавяне на полета за modified
         $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none');
         $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none');
+        
+        // Ако има cid и Tab, показваме детайлите
+        if (Request::get('cid') && Request::get('Tab')) {
+            
+            // Ако има данни, преобразуваме ги в масив
+            $mvc->details = arr::make($mvc->details);
+            
+            // Детайлите
+            $mvc->details['Send'] = 'log_Documents';
+            $mvc->details['Open'] = 'log_Documents';
+            $mvc->details['Download'] = 'log_Documents';
+            $mvc->details['Forward'] = 'log_Documents';
+            $mvc->details['Print'] = 'log_Documents';
+            $mvc->details['Changed'] = 'log_Documents';
+        }
     }
     
     
@@ -448,7 +463,7 @@ class doc_DocumentPlg extends core_Plugin
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     $hnd = $mvc->getHandle($rec->id);
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, 'Q' => Request::get('Q'), '#' => $hnd);
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, 'Q' => Request::get('Q'), 'cid' => Request::get('cid'), 'Tab' => Request::get('Tab'), '#' => $hnd);
                     
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;

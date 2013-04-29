@@ -9,8 +9,8 @@
  *
  * @category  bgerp
  * @package   doc
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -27,7 +27,7 @@ class log_Documents extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'ceo';
     
     
     /**
@@ -45,13 +45,13 @@ class log_Documents extends core_Manager
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    var $canView = 'ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'ceo';
     
     
     /**
@@ -73,19 +73,6 @@ class log_Documents extends core_Manager
     
     
     /**
-     * 
-     */
-    var $listFieldsSet = array(
-        self::ACTION_SEND  => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, toEmail=До, cc=Копие, receivedOn=Получено, returnedOn=Върнато',
-        self::ACTION_PRINT => 'createdOn=Дата, createdBy=Потребител, containerId=Кое, action=Действие, seenOnTime=Видяно',
-        self::ACTION_OPEN => 'seenOnTime=Дата, seenFromIp=IP, reason=Основание',
-        self::ACTION_DOWNLOAD => 'fileHnd=Файл, seenOnTime=Свалено->На, seenFromIp=Свалено->От',
-        self::ACTION_CHANGE => 'createdOn=Променено->На, createdBy=Променено->От, field=Поле, oldValue=Стара стойност',
-        self::ACTION_FORWARD => 'seenOnTime=Препратено->На, seenFrom=Препратено->От, document=Документ',
-    );
-    
-    
-    /**
      * Масов-кеш за историите на контейнерите по нишки
      *
      * @var array
@@ -100,16 +87,70 @@ class log_Documents extends core_Manager
      */
     const CACHE_TYPE = 'thread_history';
     
+    
+    /**
+     * Екшъна за изпращане
+     */
     const ACTION_SEND    = 'send';
+    
+    
+    /**
+     * Екшъна за връщане
+     */
     const ACTION_RETURN  = '_returned';
+    
+    
+    /**
+     * Екшъна за получаване
+     */
     const ACTION_RECEIVE = '_received';
+    
+    
+    /**
+     * Екшъна за отваряне
+     */
     const ACTION_OPEN    = 'open';
+    
+    
+    /**
+     * Екшъна за печатане
+     */
     const ACTION_PRINT   = 'print';
+    
+    
+    /**
+     * Екшъна за показване
+     */
     const ACTION_DISPLAY = 'display';
+    
+    
+    /**
+     * Екшъна за факс
+     */
     const ACTION_FAX     = 'fax';
+    
+    
+    /**
+     * Екшъна за PDF
+     */
     const ACTION_PDF     = 'pdf';
+    
+    
+    /**
+     * Екшъна за сваляне
+     */
     const ACTION_DOWNLOAD = 'download';
+    
+    
+    /**
+     * Екшъна за промяна
+     */
     const ACTION_CHANGE = 'changed';
+    
+    
+    /**
+     * Екшъна за препращане
+     */
     const ACTION_FORWARD = 'forward';
     
     
@@ -118,6 +159,7 @@ class log_Documents extends core_Manager
      */
     function description()
     {
+        // enum полетата на екшъните
         $actionsEnum = array(
             self::ACTION_SEND    . '=имейл',
             self::ACTION_RETURN  . '=връщане',
@@ -148,47 +190,733 @@ class log_Documents extends core_Manager
         
 //         $this->FLD('baseParentId', 'key(mvc=log_Documents, select=action)', 'input=none,caption=Основание');
         
-        // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
-        $this->FLD("dataBlob", "blob", 'caption=Обстоятелства,column=none');
+        // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат) и компресирани
+        $this->FLD("dataBlob", "blob(serialize, compress)", 'caption=Обстоятелства,column=none');
         
+        // Други функционални полета
         $this->FNC('data', 'text', 'input=none,column=none');
-        $this->FNC('seenOnTime', 'datetime(format=smartTime)', 'input=none');
-        $this->FNC('seenFrom', 'user', 'input=none');
         $this->FNC('receivedOn', 'datetime(format=smartTime)', 'input=none');
         $this->FNC('returnedOn', 'datetime(format=smartTime)', 'input=none');
-        $this->FNC('seenFromIp', 'ip', 'input=none');
-        $this->FNC('reason', 'html', 'input=none');
+        $this->FNC('openAction', 'html', 'input=none');
+        $this->FNC('time', 'datetime(format=smartTime)', 'input=none, caption=Време');
+        $this->FNC('from', 'user', 'input=none');
+        $this->FNC('ip', 'ip', 'input=none');
+        $this->FNC('toEmail', 'emails', 'input=none');
+        $this->FNC('cc', 'emails', 'input=none');
         
         $this->setDbIndex('containerId');
+        
         $this->setDbUnique('mid');
-    }
+    } 
     
     
+    /**
+     * Изчислява data полето
+     */
     function on_CalcData($mvc, $rec)
     {
-        $rec->data = @unserialize($rec->dataBlob);
+        // Вземаме dataBlob
+        $rec->data = $rec->dataBlob;
+        
+        // Ако е празно
         if (empty($rec->data)) {
+            
+            // Нов празен обект
             $rec->data = new StdClass();
         }
     }
     
 
+    /**
+     * Изчислява receivedOn
+     */
     function on_CalcReceivedOn($mvc, $rec)
     {
+        // Ако екшъна е изпращане и има receivedOn в data
 		if ($rec->action == static::ACTION_SEND && !empty($rec->data->receivedOn)) {
+		    
+		    // Използваме него
 			$rec->receivedOn = $rec->data->receivedOn;
 		}
     }
     
-
+    
+    /**
+     * Изчислява returnedOn
+     */
     function on_CalcReturnedOn($mvc, $rec)
     {
+        // Ако екшъна е изпращане и има returnedOn в data
 		if ($rec->action == static::ACTION_SEND && !empty($rec->data->returnedOn)) {
+		    
+		    // Използваме него
 			$rec->returnedOn = $rec->data->returnedOn;
 		}
     }
+    
+    
+    /**
+     * След изчислянване на вербалната стойност
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        // Ако има from
+        if ($rec->from) {
+            
+            // Линк към визитката
+            $row->from = crm_Profiles::createLink($rec->from);
+        }
+    }
+    
+    
+    /**
+     * Подготвяне на данните за рендиране на детайла за препращания
+     * 
+     * @param object $data
+     */
+    function prepareForward($data)
+    {
+        // Вземаме cid от URL' то
+        $cid = Request::get('cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        // Името на таба
+        $data->TabCaption = 'Препращания';
+        
+        // Екшъна
+        $action = static::ACTION_FORWARD;
+        
+        // Вземаме записите
+        $recs = static::getRecs($cid, $action);
+        
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
+        // Масив с данните във вербален вид
+        $rows = array();
+        
+        // Обхождаме записите
+        foreach ($recs as $rec) {
+            
+            // Ако няма запис за препращане на съответния запис прескачаме            
+            if (!count($rec->data->$action)) continue;
+            
+            // Обхождаме всички препратени записи
+            foreach ($rec->data->{$action} as $forwardRec) {
+                
+                // Записите
+                $row = (object)array(
+                    'time' => $forwardRec['on'],
+                    'from' => $forwardRec['from'],
+                );
+
+                // Записите във вербален вид
+                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+                
+                // Вземаме документите
+                $doc = doc_Containers::getDocument($forwardRec['containerId']);
+
+                // Ако имаме права за сингъл на документ
+                if ($doc->instance->haveRightFor('single', $doc->that)) {
+                
+                    // Вербални данни на докуемент
+                    $docRow = $doc->getDocumentRow();
+                    
+                    // Създаваме линк към документа
+                    $row->document = ht::createLink($docRow->title, array($doc, 'single', $doc->that));    
+                }
+                
+                // Добавяме в главния масив
+                $rows[$forwardRec['on']] = $row;    
+            }
+        }
+
+        // Сортираме по дата
+        krsort($rows);
+        
+        // Заместваме данните за рендиране
+        $data->rows = $rows; 
+    }
+    
+    
+    /**
+     * Рендиране на данните за шаблона на детайла за препращания
+     * 
+     * @param object $data
+     */
+    function renderForward($data)
+    {
+        // Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+
+        // Вземаме таблицата с попълнени данни
+        $forwardTpl = $inst->get($data->rows, 'time=Дата, from=Потребител, document=Документ');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($forwardTpl, 'content');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготвяне на данните за рендиране на детайла за принтирания
+     * 
+     * @param object $data
+     */
+    function preparePrint($data)
+    {
+        // Вземаме cid от URL' то
+        $cid = Request::get('cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        // Името на таба
+        $data->TabCaption = 'Отпечатвания';
+        
+        // Екшъните
+        $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF);
+        
+        // Вземаме записите
+        $recs = static::getRecs($cid, $actionArr);
+        
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+       
+        // Обхождаме записите
+        foreach ($recs as $rec) {
+            
+            // Записите
+            $row = (object)array(
+                'time' => $rec->createdOn,
+                'from' => $rec->createdBy,
+                'action' => $rec->action,
+            );
+
+            // Записите във вербален вид
+            $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            // Екшъна за отваряне
+            $openAction = static::ACTION_OPEN;
+            
+            // Добавяме класа на състоянието
+            $row->ROW_ATTR['class'] .= ' ' . ($rec->data->{$openAction} ? 'state-closed' : 'state-active');
+            
+            // Екшъна за отваряне
+            $row->openAction = static::renderOpenActions($rec);
+            
+            // Добавяме в главния масив
+            $rows[$rec->createdOn] = $row;    
+        }
+
+        // Сортираме по дата
+        krsort($rows);
+        
+        // Заместваме данните за рендиране
+        $data->rows = $rows; 
+    }
+    
+    
+    /**
+     * Рендиране на данните за шаблона на детайла за принтирания
+     * 
+     * @param object $data
+     */
+    function renderPrint($data)
+    {
+        // Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $printTpl = $inst->get($data->rows, 'time=Дата, from=Потребител, action=Действие, openAction=Видяно');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($printTpl, 'content');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготвяне на данните за рендиране на детайла за отваряния
+     * 
+     * @param object $data
+     */
+    function prepareOpen($data)
+    {
+        // Вземаме cid от URL' то
+        $cid = Request::get('cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        // Името на таба
+        $data->TabCaption = 'Виждания';
+        
+        // Екшъна
+        $action = static::ACTION_OPEN;
+        
+        // Вземаме записите
+        $recs = static::getRecs($cid);
+
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
+        // Масив с данния във вербален вид
+        $rows = array();
+        
+        // Бутона да не е линк
+        $data->disabled = TRUE;
+        
+        // Обхождаме всички записи
+        foreach ($recs as $i=>$rec) {
+            
+            // Ако не виждан
+            if (count($rec->data->{$action}) == 0) {
+                
+                continue;
+            } else {
+                
+                // Бутона да не е линк
+                $data->disabled = FALSE;
+            }
+            
+            // Обхождаме всички записи
+            foreach ($rec->data->{$action} as $o) {
+                
+                // Данните, които ще се визуализрат
+                $row = (object)array(
+                    'time' => $o['on'],
+                    'ip' => $o['ip'],
+                    'openAction' => static::formatViewReason($rec),
+                );
+                
+                // Данните във вербален вид
+                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+                
+                // Добавяме в масива
+                $rows[$o['on']] = $row;
+            }
+        }
+
+        // Сортираме масива
+        krsort($rows);
+        
+        // Дабавяме в $data
+        $data->rows = $rows; 
+    }
+    
+    
+	/**
+     * Рендиране на данните за шаблона на детайла за отваряния
+     * 
+     * @param object $data
+     */
+    function renderOpen($data)
+    {
+        // Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $openTpl = $inst->get($data->rows, 'time=Дата, ip=IP, openAction=Основание');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($openTpl, 'content');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготвяне на данните за рендиране на детайла за изпращания
+     * 
+     * @param object $data
+     */
+    function prepareSend($data)
+    {
+        // Вземаме cid от URL' то
+        $cid = Request::get('cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        // Името на таба
+        $data->TabCaption = 'Изпращания';
+        
+        // Екшъните
+        $actionArr = array(static::ACTION_SEND, static::ACTION_FAX);
+        
+        // Вземаме записите
+        $recs = static::getRecs($cid, $actionArr);
+
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
+        // Вземаме всички записи
+        foreach ($recs as $i=>$rec) {
+
+            // Изчистваме нотификациите
+            $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_SEND);
+            bgerp_Notifications::clear($linkArr, $rec->createdBy);
+            
+            // Данните, които ще се визуализрат
+            $row = (object)array(
+                'time' => $rec->createdOn,
+                'from' => $rec->createdBy,
+            	'toEmail' => $rec->data->to,
+                'cc' => $rec->data->cc,
+                'returnedOn' => $rec->returnedOn,
+            );
+            
+            // Записите във вербален вид
+            $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            // Рендираме екшъна за виждане
+            $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
+            
+            // Стейта на класа
+            $stateClass = 'state-active';
+            
+            switch (true) {
+                
+                // Ако е получен
+                case !empty($row->receivedOn):
+                    $stateClass = 'state-closed';
+                    break;
+                    
+                // Ако е върнато
+                case !empty($row->returnedOn):
+                    $stateClass = 'state-rejected';
+                    break;
+            }
+            
+            // Доабвяме класа към атрибутите на полето
+            $row->ROW_ATTR['class'] .= ' ' . $stateClass;
+            
+            // Добавяме в масива
+            $rows[$rec->createdOn] = $row;
+        }
+
+        // Сортираме по дата
+        krsort($rows);
+        
+        // Заместваме данните за рендиране
+        $data->rows = $rows;
+    }
+    
+    
+    /**
+     * Рендиране на данните за шаблона на детайла за изпращания
+     * 
+     * @param object $data
+     */
+    function renderSend($data)
+    {
+        // Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $sendTpl = $inst->get($data->rows, 'time=Дата, from=Потребител, toEmail=До, cc=Копие, receivedOn=Получено, returnedOn=Върнато');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($sendTpl, 'content');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготвяне на данните за рендиране на детайла за сваляния
+     * 
+     * @param object $data
+     */
+    function prepareDownload($data)
+    {
+        // Вземаме cid от URL' то
+        $cid = Request::get('cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        // Името на таба
+        $data->TabCaption = 'Сваляния';
+        
+        // Екшъна
+        $action = static::ACTION_DOWNLOAD;
+        
+        // Вземаме записите
+        $recs = static::getRecs($cid, $action);
+
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+       
+        $rows = array();
+
+        // Обхождаме записите
+        foreach ($recs as $rec) {
+
+            // Ако няма зададени действия прескачаме
+            if (count($rec->data->{$action}) == 0) continue;
+            
+            // Обхождаме всички сваляния
+            foreach ($rec->data->{$action} as $fh => $downData) {
+                foreach ($downData as $downData2) {
+                    // СЪздаваме обект със запсиите
+                    $nRec = (object)array(
+                        'time' => $downData2['seenOnTime'],
+                        'from' => $downData2['seenFrom'],
+                        'ip' => $downData2['ip'],
+                    );
+                    
+                    // Вземаме вербалните стойности
+                    $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
+                    
+                    // Превръщаме манипулатора, в линк за сваляне
+                    $row->fileHnd = fileman_Download::getDownloadLink($fh);
+                    
+                    // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
+                    $row->ip = $row->from ? $row->from : $row->ip;
+                    
+                    // Записваме в масив данните, с ключ датата
+                    $rows[$nRec->time] = $row;    
+                }
+            }
+        }
+
+        // Подреждаме масива
+        krsort($rows);
+
+        // Променяме всички вербални данни, да показват откритите от нас
+        $data->rows = $rows;
+    }
+	
+	
+	/**
+     * Рендиране на данните за шаблона на детайла за сваляния
+     * 
+     * @param object $data
+     */
+    function renderDownload($data)
+    {
+        // Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $sendTpl = $inst->get($data->rows, 'time=Дата, ip=Свалено от, fileHnd=Файл');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($sendTpl, 'content');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготвяне на данните за рендиране на детайла за промени
+     * 
+     * @param object $data
+     */
+    function prepareChanged($data)
+    {
+        // Вземаме cid от URL' то
+        $cid = Request::get('cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        // Името на таба
+        $data->TabCaption = 'Промени';
+        
+        // Екшъна
+        $action = static::ACTION_CHANGE;
+        
+        // Вземаме записите
+        $recs = static::getRecs($cid, $action);
+
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+       
+        $rows = array();
+        
+        // Обхождаме записите
+        foreach ($recs as $rec) {
+
+            // Ако няма зададени действия прескачаме
+            if (count($rec->data->{$action}) == 0) continue;
+
+            // Обхождаме всички сваляния
+            foreach ($rec->data->{$action} as $changeData) {
+               
+                // Ако няма docId или docClass прескачаме
+                if (!$changeData['docId'] || !$changeData['docClass']) continue;
+                
+                // Вземаме запите
+                $rows = change_Log::prepareLogRow($changeData['docClass'], $changeData['docId']);
+
+                break;
+            }
+        }
+
+        // Променяме всички вербални данни, да показват откритите от нас
+        $data->rows = $rows;
+    }
+    
+    
+    /**
+     * Рендиране на данните за шаблона на детайла за промени
+     * 
+     * @param object $data
+     */
+    function renderChanged($data)
+    {
+        // Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $sendTpl = $inst->get($data->rows, 'createdOn=Дата, createdBy=От, field=Поле, oldValue=Стара стойност');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($sendTpl, 'content');
+        
+        return $tpl;
+    }  
+    
+    
+    /**
+     * Връща шаблона на детайла
+     * 
+     * @param string $title - Заглавието на детайла
+     */
+    static function getLogDetailTpl()
+    {
+        // Шаблона
+        $tpl = getTplFromFile('log/tpl/LogDetail.shtml');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Връща записа за съответния контейнер със съответния екшъна
+     * 
+     * @param integer $cid - containerId
+     * @param mixed $action - Масив или стринг с екшъна
+     * 
+     * @return array $recsArr - Масив с намерените записи
+     */
+    function getRecs($cid, $action = NULL)
+    {
+        // Очакваме да има $cid
+        expect($cid);
+        
+        // Вземаме всики със записис от съответния контейнер
+        $query = static::getQuery();
+        $query->where("#containerId = '{$cid}'");
+        
+        // Ако има подаден action
+        if ($action) {
+            
+            // Ако е масив
+            if (is_array($action)) {
+                
+                // Добавяме екшъните с или
+                $query->orWhereArr('action', $action);
+            } else {
+                
+                // Ако не е масив, а стринг добавяме екшъна в клаузата
+                $query->where("#action = '{$action}'");
+            }
+        }
+        
+        // Намираме всички записи, които отговарят на критериите ни
+        while ($rec = $query->fetch()) {
+            
+            // Добавяме в масива
+            $recsArr[] =  $rec;
+        }
+        
+        return $recsArr;
+    }
 
     
+    /**
+     * 
+     */
     public static function saveAction($actionData)
     {
         $rec = (object)array_merge((array)static::getAction(), (array)$actionData);
@@ -227,12 +955,18 @@ class log_Documents extends core_Manager
     }
     
     
+    /**
+     * Вкарва екшъна
+     */
     public static function pushAction($actionData)
     {
         Mode::push('action', (object)$actionData);
     }
     
     
+    /**
+     * Изкарва екшъна
+     */
     public static function popAction()
     {
         if ($action = static::getAction()) {
@@ -243,12 +977,18 @@ class log_Documents extends core_Manager
     }
 
     
+    /**
+     * Връща екшъна
+     */
     public static function getAction($offset = 0)
     {
         return Mode::get('action', $offset);
     }
 
     
+    /**
+     * Проверява дали има екшън
+     */
     public static function hasAction()
     {
         return Mode::get('action');
@@ -269,18 +1009,27 @@ class log_Documents extends core_Manager
     }
     
     
+    /**
+     * Извлича записа по подаден $mid
+     */
     protected static function fetchByMid($mid)
     {
         return static::fetch(array("#mid = '[#1#]'", $mid));
     }
 
-
+    
+    /**
+     * Извлича записа по подаден cid
+     */
     protected static function fetchByCid($cid)
     {
         return static::fetch(array("#containerId = [#1#]", $cid));
     }
 
-
+    
+    /**
+     * Отбелязва имейла за върнат
+     */
     public static function returned($mid, $date = NULL)
     {
         if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
@@ -315,9 +1064,10 @@ class log_Documents extends core_Manager
         $msg = tr("Върнато писмо|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
     
         // Нотификация за връщането на писмото до изпращача му
+        $linkArr = static::getLinkToSingle($sendRec->containerId, static::ACTION_SEND);
         bgerp_Notifications::add(
             $msg, // съобщение
-            array('log_Documents', 'list', 'containerId' => $sendRec->containerId), // URL
+            $linkArr, // URL
             $sendRec->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
@@ -327,7 +1077,10 @@ class log_Documents extends core_Manager
         return TRUE;
     }
 
-
+    
+    /**
+     * Отбелязва имейла за получен
+     */
     public static function received($mid, $date = NULL, $IP = NULL)
     {
         if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
@@ -366,13 +1119,15 @@ class log_Documents extends core_Manager
         /*
          * За сега отпада: @link https://github.com/bgerp/bgerp/issues/353#issuecomment-8531333
          *  
+        $linkArr = static::getLinkToSingle($sendRec->containerId, static::ACTION_SEND);
         bgerp_Notifications::add(
             $msg, // съобщение
-            array('log_Documents', 'list', 'containerId' => $sendRec->containerId), // URL
+            $linkArr, // URL
             $sendRec->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
         */
+        
         
         core_Logs::add(get_called_class(), $sendRec->id, $msg);
     
@@ -382,6 +1137,7 @@ class log_Documents extends core_Manager
     
     /**
      * Преди показването на документ по MID
+     * Отбелязва документа за видян
      * 
      * @param int $cid key(mvc=doc_Containers)
      * @param string $mid
@@ -435,9 +1191,9 @@ class log_Documents extends core_Manager
     /**
      * Помощен метод - маркира запис като видян и го добавя в стека с действията.
      * 
-     *  Ако има зададен запис за родителско действие ($parent) и той се маркира като видян.
-     *  Стека с действията се пълни в паметта; записа му в БД става в края на заявката
-     *  @see log_Documents::on_Shutdown()
+     * Ако има зададен запис за родителско действие ($parent) и той се маркира като видян.
+     * Стека с действията се пълни в паметта; записа му в БД става в края на заявката
+     * @see log_Documents::on_Shutdown()
      * 
      * @param stdClass $action запис на този модел
      */
@@ -609,9 +1365,6 @@ class log_Documents extends core_Manager
     {
         $downloadAction = static::ACTION_DOWNLOAD;
         
-        // IP' то на потребителя
-        $ip = core_Users::getRealIpAddr();
-        
         // Очакваме да има запис, в който е цитиран файла
         expect($sendRec = static::getActionRecForMid($mid, FALSE));
         expect(is_object($sendRec->data));
@@ -619,8 +1372,17 @@ class log_Documents extends core_Manager
         // Вземаме записа, ако има такъв
         $rec = static::fetch("#containerId = '{$sendRec->containerId}' AND #action = '{$downloadAction}'");
         
+        // IP' то на потребителя
+        $ip = core_Users::getRealIpAddr();
+        
+        // id' то на текущия потребител
+        $currUser = core_Users::getCurrent('id');
+        
+        // 
+        $actionToken = ($currUser) ? $currUser : $ip;
+
         // Ако съответния потребител е свалял файла
-        if (!empty($rec->data->{$downloadAction}[$fh][$ip])) {
+        if (!empty($rec->data->{$downloadAction}[$fh][$actionToken])) {
             
             return TRUE;    
         }
@@ -641,19 +1403,16 @@ class log_Documents extends core_Manager
         }
         
         // Добавяме данните
-        $rec->data->{$downloadAction}[$fh][$ip] = array(
+        $rec->data->{$downloadAction}[$fh][$actionToken] = array(
             'ip' => $ip,
             'seenOnTime' => $date,
         );
-        
-        // id' то на текущия потребител
-        $currUser = core_Users::getCurrent('id');
         
         // Ако има логнат потребител
         if ($currUser) {
             
             // Добавяме id' то му
-            $rec->data->{$downloadAction}[$fh][$ip]['seenFrom'] = $currUser; 
+            $rec->data->{$downloadAction}[$fh][$actionToken]['seenFrom'] = $currUser; 
         }
 
         // Пушваме съответното действие
@@ -682,6 +1441,14 @@ class log_Documents extends core_Manager
         return $mid;
     }
     
+    
+    /**
+     * Изпълнява се преди всеки запис в модела
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $id
+     * @param unknown_type $rec
+     */
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (empty($rec->data)) {
@@ -691,7 +1458,7 @@ class log_Documents extends core_Manager
                 $rec->data = (object)$rec->data;
             }
         
-            $rec->dataBlob = serialize($rec->data);
+            $rec->dataBlob = $rec->data;
         }
     }
     
@@ -754,6 +1521,7 @@ class log_Documents extends core_Manager
         core_Cache::remove(static::CACHE_TYPE, $cacheKey);
     }
     
+    
     /**
      * Ключ, под който се записва историята на нишка в кеша
      *
@@ -766,6 +1534,7 @@ class log_Documents extends core_Manager
     {
         return $threadId;
     }
+    
     
     /**
      * Преизчислява историята на нишка
@@ -850,7 +1619,7 @@ class log_Documents extends core_Manager
 
     
     /**
-     * @todo Чака за документация...
+     * Рендира историята на действията
      */
     public static function renderSummary($data)
     {
@@ -900,16 +1669,8 @@ class log_Documents extends core_Manager
             if (isset($wordings[$action])) {
                 $actionVerbal = $wordings[$action][intval($count > 1)];
             }
-           
-	        $link = ht::createLink(
-	           "<b>{$count}</b><span>{$actionVerbal}</span>", 
-	             array(
-	               get_called_class(), 
-	                  'list', 
-	                  'containerId'=>$data->containerId, 
-	                  'action' => $actionToTab[$action]
-	                )
-	            );
+            $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr);
             
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
@@ -921,18 +1682,25 @@ class log_Documents extends core_Manager
     
     
     /**
-     * Шаблон (ET) съдържащ историята на документа в този контейнер.
-     *
-     * @param int $container key(mvc=doc_Containers)
-     * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера
-     * @return core_ET
-     * @deprecated
+     * Връща линк към сингъла на документа
+     * 
+     * @param unknown_type $cid
+     * @param unknown_type $action
      */
-    public static function getHistory($containerId, $threadId)
+    static function getLinkToSingle($cid, $action)
     {
-        $data = static::prepareContainerHistory($containerId, $threadId);
+        $document = doc_Containers::getDocument($cid);
+        $detailTab = ucfirst(strtolower($action));
         
-        return static::renderHistory($data);
+        $link = array(
+	                 $document, 
+	                 'single', 
+	                 $document->that,
+	                 'cid' => $cid, 
+	                 'Tab' => $detailTab,
+	                );
+
+        return $link;
     }
     
     
@@ -949,392 +1717,32 @@ class log_Documents extends core_Manager
         
         return static::renderSummary($data);
     }
-    
+
     
     /**
+     * Връща форматирано виждането на документа
      * 
-     * @param log_Documents $mvc
-     * @param core_Query $query
+     * @param unknown_type $rec
+     * @param unknown_type $deep
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $mvc->restrictListedActions($data->query);
-    }
-    
-    
-    /**
-     * @param core_Query $query
-     */
-    function restrictListedActions($query)
-    {
-        switch (static::getCurrentSubset()) {
-            case static::ACTION_SEND:
-                $query->where(sprintf("#action = '%s' OR #action = '%s'", static::ACTION_SEND, static::ACTION_FAX));
-                break;
-            case static::ACTION_PRINT:
-                $query->where(sprintf("#action = '%s' OR #action = '%s'", static::ACTION_PRINT, static::ACTION_PDF));
-                break;
-        }
-    }
-    
-    
-    static function getCurrentSubset()
-    {
-        if (!$action = Request::get('action')) {
-            $action = static::ACTION_SEND;
-        }
-        
-        expect(
-               $action == static::ACTION_SEND 
-            || $action == static::ACTION_PRINT 
-            || $action == static::ACTION_OPEN
-            || $action == static::ACTION_DOWNLOAD
-            || $action == static::ACTION_CHANGE
-            || $action == static::ACTION_FORWARD
-        );
-        
-        return $action;
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_AfterPrepareListRows(log_Documents $mvc, &$data)
-    {
-        switch ($subset = $mvc::getCurrentSubset()) {
-            case $mvc::ACTION_SEND:
-                $mvc->currentTab = 'Изпращания';
-                $mvc::prepareSendSubset($data);
-                break;
-            case $mvc::ACTION_PRINT:
-                $mvc->currentTab = 'Отпечатвания';
-                $mvc::preparePrintSubset($data);
-                break;
-            case $mvc::ACTION_OPEN:
-                $mvc->currentTab = 'Виждания';
-                $mvc::prepareOpenSubset($data);
-                break;
-            case $mvc::ACTION_DOWNLOAD:
-                $mvc->currentTab = 'Сваляния';
-                $mvc::prepareDownloadSubset($data);
-                break;
-            case $mvc::ACTION_CHANGE:
-                $mvc->currentTab = 'Промени';
-                $mvc::prepareChangeSubset($data);
-                break;
-            case $mvc::ACTION_FORWARD:
-                $mvc->currentTab = 'Препращания';
-                $mvc::prepareForwardSubset($data);
-                break;
-            default:
-                expect(FALSE);
-        }
-
-        if (!empty($mvc->listFieldsSet[$subset])) {
-            $data->listFields = arr::make($mvc->listFieldsSet[$subset], TRUE);
-        }
-        
-        if (Request::get('containerId', 'int') && isset($data->listFields['containerId'])) {
-            unset($data->listFields['containerId']);
-        }
-    }
-    
-    
-    static function prepareSendSubset($data)
-    {
-        $rows = $data->rows;
-        $recs = $data->recs;
-        
-        if (empty($data->recs)) {
-            return;
-        }
-
-        foreach ($recs as $i=>$rec) {
-            $row = $rows[$i];
-        
-            if (!$data->doc) {
-                $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
-            }
-            
-            $row->toEmail    = $rec->data->to;
-            $row->cc    = $rec->data->cc;
-            $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
-            $row->returnedOn = static::getVerbal($rec, 'returnedOn');
-            
-            $stateClass = 'state-active';
-            
-            switch (true) {
-                case !empty($row->receivedOn):
-                    $stateClass = 'state-closed';
-                    break;
-                case !empty($row->returnedOn):
-                    $stateClass = 'state-rejected';
-                    break;
-            }
-            
-            $row->ROW_ATTR['class'] .= ' ' . $stateClass;
-        }
-    }
-    
-    
-    static function preparePrintSubset($data)
-    {
-        $rows = $data->rows;
-        $recs = $data->recs;
-        
-        if (empty($data->recs)) {
-            return;
-        }
-        
-        foreach ($recs as $i=>$rec) {
-            $row = $rows[$i];
-        
-            if (!$data->doc) {
-                $row->containerId = ht::createLink($row->containerId, array(get_called_class(), 'list', 'containerId'=>$rec->containerId));
-            }
-            
-            $row->seenOnTime = static::renderOpenActions($rec);
-            
-            $row->ROW_ATTR['class'] .= ' ' . (empty($row->seenOnTime) ? 'state-closed' : 'state-active');
-        }
-    }
-    
-    
-    /**
-     * Подготвяме подмножеството на свалените файлове
-     * 
-     * @param object $data
-     */
-    static function prepareDownloadSubset(&$data)
-    {
-        // Всички записи
-        $recs = $data->recs;
-        
-        // Ако няма записи не се изпълнява
-        if (empty($data->recs)) {
-            
-            return;
-        }
-        
-        $download = static::ACTION_DOWNLOAD;
-        $rows = array();
-        
-        // Обхождаме записите
-        foreach ($recs as $id=>$rec) {
-            
-            // Ако няма зададени действия прескачаме
-            if (count($rec->data->{$download}) == 0) {
-                
-                continue;
-            }
-            
-            // Обхождаме всички сваляния
-            foreach ($rec->data->{$download} as $fh => $downData) {
-                foreach ($downData as $downData2) {
-                    // СЪздаваме обект със запсиите
-                    $nRec = (object)array(
-                        'seenOnTime' => $downData2['seenOnTime'],
-                        'seenFrom' => $downData2['seenFrom'],
-                        'seenFromIp' => $downData2['ip'],
-                    );
-                    
-                    // Вземаме вербалните стойности
-                    $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
-                    
-                    // Превръщаме манипулатора, в линк за сваляне
-                    $row->fileHnd = fileman_Download::getDownloadLink($fh);
-                    
-                    // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
-                    $row->seenFromIp = $row->seenFrom ? $row->seenFrom : $row->seenFromIp;
-                    
-                    // Записваме в масив данните, с ключ датата
-                    $rows[$nRec->seenOnTime] = $row;    
-                }
-            }
-        }
-        
-        // Подреждаме масива
-        ksort($rows);
-        
-        // Променяме всички вербални данни, да показват откритите от нас
-        $data->rows = $rows;
-    }
-    
-    
-    /**
-     * Подготвяме подмножеството на променените файлове
-     * 
-     * @param object $data
-     */
-    static function prepareChangeSubset($data)
-    {
-        // Всички записи
-        $recs = $data->recs;
-        
-        // Ако няма записи не се изпълнява
-        if (empty($data->recs)) {
-            
-            return;
-        }
-        
-        // Екшъна
-        $change = static::ACTION_CHANGE;
-        
-        // Масив с данните във вербален вид
-        $rows = array();
-        
-        // Обхождаме записите
-        foreach ($recs as $id=>$rec) {
-            
-            // Ако няма зададени действия прескачаме
-            if (count($rec->data->{$change}) == 0) {
-                
-                continue;
-            }
-
-            // Обхождаме всички сваляния
-            foreach ($rec->data->{$change} as $changeData) {
-                
-                // Ако няма docId или docClass прескачаме
-                if (!$changeData['docId'] || !$changeData['docClass']) continue;
-                
-                // Вземаме запите
-                $rows = change_Log::prepareLogRow($changeData['docClass'], $changeData['docId']);
-
-                break;
-            }
-        }
-
-        // Променяме всички вербални данни, да показват откритите от нас
-        $data->rows = $rows;
-    }
-    
-    
-    /**
-     * Подготвяме подмножеството на препратените имейли
-     * 
-     * @param unknown_type $data
-     */
-    static function prepareForwardSubset($data)
-    {
-        // Всички записи
-        $recs = $data->recs;
-
-        // Ако няма записи не се изпълнява
-        if (empty($data->recs)) {
-            
-            return;
-        }
-        
-        // Екшъна
-        $forwardAction = static::ACTION_FORWARD;
-        
-        // Масив с данните във вербален вид
-        $rows = array();
-        
-        // Обхождаме записите
-        foreach ($recs as $rec) {
-            
-            // Ако няма запис за препращане на съответния запис прескачаме            
-            if (!count($rec->data->$forwardAction)) continue;
-            
-            // Обхождаме всички препратени записи
-            foreach ($rec->data->{$forwardAction} as $forwardRec) {
-                
-                // Записите
-                $row = (object)array(
-                    'seenOnTime' => $forwardRec['on'],
-                    'seenFrom' => $forwardRec['from'],
-                );
-
-                // Записите във вербален вид
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                
-                // Вземаме документите
-                $doc = doc_Containers::getDocument($forwardRec['containerId']);
-                
-                // Ако имаме права за сингъл на документ
-                if ($doc->instance->haveRightFor('sinlge', $doc->that)) {
-                
-                    // Вербални данни на докуемент
-                    $docRow = $doc->getDocumentRow();
-                    
-                    // Създаваме линк към документа
-                    $row->document = ht::createLink($docRow->title, array($doc, 'single', $doc->that));    
-                }
-                
-                // Добавяме в главния масив
-                $rows[$forwardRec['on']] = $row;    
-            }
-        }
-
-        // Сортираме по дата
-        ksort($rows);
-        
-        // Заместваме данните за рендиране
-        $data->rows = $rows; 
-    }
-    
-    
-    static function prepareOpenSubset($data)
-    {
-        $recs = $data->recs;
-        
-        if (empty($data->recs)) {
-            return;
-        }
-
-        $open = static::ACTION_OPEN;
-        $rows = array();
-        
-        foreach ($recs as $i=>$rec) {
-            
-            if (count($rec->data->{$open}) == 0) {
-                continue;
-            }
-            
-            foreach ($rec->data->{$open} as $o) {
-            
-                $row = (object)array(
-                    'seenOnTime' => $o['on'],
-                    'seenFromIp' => $o['ip'],
-                    'reason' => static::formatViewReason($rec)
-                );
-                
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                
-                $rows[$o['on']] = $row;
-                
-            }
-        }
-        
-        ksort($rows);
-        $data->rows = $rows; 
-    }
-    
-    
     protected static function formatViewReason($rec, $deep = TRUE)
     {
         switch ($rec->action) {
-            case self::ACTION_SEND:
-                return 'Имейл до ' . $rec->data->to . ' / ' . static::getVerbal($rec, 'createdOn');
-            case self::ACTION_PRINT:
+            case static::ACTION_SEND:
+                $row = (object)array('toEmail' => $rec->data->to);
+                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+                return 'Имейл до ' . $row->toEmail . ' / ' . static::getVerbal($rec, 'createdOn');
+            case static::ACTION_PRINT:
                 return 'Отпечатване / ' . static::getVerbal($rec, 'createdOn');
-            case self::ACTION_OPEN:
+            case static::ACTION_OPEN:
                 if ($deep && !empty($rec->parentId)) {
                     $parentRec = static::fetch($rec->parentId);
                     $res = static::formatViewReason($parentRec, FALSE);
                 } else {
+                    $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
                     $doc = doc_Containers::getDocument($rec->containerId);
                     $docRow = $doc->getDocumentRow();
-                    $res = 'Показване на ' . 
-                        ht::createLink($docRow->title, 
-                            array(
-                                get_called_class(), 'containerId' => $rec->containerId,
-                                'action' => 'open'
-                            )
-                        ) . ' / ' . static::getVerbal($rec, 'createdOn');
+                    $res = 'Показване на ' . ht::createLink($docRow->title, $linkArr) . ' / ' . static::getVerbal($rec, 'createdOn');
                 }
                 return $res;
             default:
@@ -1354,6 +1762,7 @@ class log_Documents extends core_Manager
     private static function renderOpenActions($rec, $date = NULL, $brief = TRUE)
     {
         $openActionName = static::ACTION_OPEN;
+
         $html = '';
         
         if (!empty($rec->data->{$openActionName})) {
@@ -1369,16 +1778,13 @@ class log_Documents extends core_Manager
         }
         
         $html .= static::getVerbal($rec, 'receivedOn');
+        $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
             $html .= ' (' . $firstOpen['ip'] . ') ';
             $html .= ht::createLink(
                 count($rec->data->{$openActionName}),
-                array(
-                    get_called_class(),
-                    'containerId' => $rec->containerId,
-                    'action' => static::ACTION_OPEN
-                ),
+                $linkArr,
                 FALSE,
                 array(
                     'class' => 'badge',
@@ -1391,67 +1797,7 @@ class log_Documents extends core_Manager
         return $html;
     }
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_AfterPrepareListFields($mvc, $data)
-    {
-        if ($data->containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
-            unset($data->listFields['containerId']);
-            $data->query->where("#containerId = {$data->containerId}");
-            $data->doc = doc_Containers::getDocument($data->containerId, 'doc_DocumentIntf');
-        }
-        
-        $data->query->orderBy('#createdOn', 'DESC');
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_AfterPrepareListTitle(log_Documents $mvc, $data)
-    {
-        if (!$data->containerId) {
-            $data->title = "История";
-        }
-        
-        $url = array('log_Documents', 'list', 'containerId' => $data->containerId);
-        
-        if (($subset = $mvc::getCurrentSubset()) != $mvc::ACTION_SEND) {
-            $url += array('action' => $subset);
-        }
-        
-        bgerp_Notifications::clear($url);
-    }
-    
 
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_AfterRenderListTitle(log_Documents $mvc, &$tpl, $data)
-    {
-        /* @var $doc doc_DocumentIntf */
-        $doc = $data->doc;
-        
-        if ($doc) {
-            $row = $doc->getDocumentRow();
-            $tpl = new ET('<div class="listTitle">' . $doc->getLink() . '</div>');
-        }
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_AfterRenderListTable($mvc, &$tpl, $data)
-    {
-        if ($data->doc) {
-            $tpl->append($data->doc->getDocumentBody());
-        }
-    }
-    
-    
     /**
      * Връща cid' а на документа от URL.
      * 
@@ -1597,10 +1943,11 @@ class log_Documents extends core_Manager
     
     
     /**
-     * 
+     * При приключване на изпълнените на скрипта
      */
     public static function on_Shutdown($mvc)
     {
+        // Записва в БД всички действия от стека
         static::flushActions();
     }
     
