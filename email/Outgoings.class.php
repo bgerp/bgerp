@@ -351,6 +351,9 @@ class email_Outgoings extends core_Master
                 $action['data']->cc = $emailsCc;
             }
             
+            // Добавяме изпращача
+            $action['data']->sendedBy = core_Users::getCurrent();
+            
             // Пушваме екшъна
             log_Documents::pushAction($action);
         

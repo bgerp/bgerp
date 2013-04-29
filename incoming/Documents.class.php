@@ -145,7 +145,7 @@ class incoming_Documents extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
-        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory', array('attr' => array('onclick' => "window.location.href = '?fh=dBHc3r';")));
         $this->FLD('number', 'varchar', 'caption=Номер, width=50%');
         $this->FLD('date', 'date', 'caption=Дата, width=50%');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума, width=50%');
