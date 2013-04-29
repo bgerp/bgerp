@@ -620,7 +620,7 @@ class cal_Tasks extends core_Master
             Mode::setPermanent('listTasks', 'by');
         }
 
-        return new Redirect(array('Portal', 'Show', '#' => 'switchTasks'));
+        return new Redirect(array('Portal', 'Show', '#' => Mode::is('screenMode', 'narrow') ? 'switchTasks' : NULL));
     }
 
 
