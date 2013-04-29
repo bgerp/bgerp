@@ -413,6 +413,19 @@ class cal_Calendar extends core_Master
                         $class .= ' mc-today';
                     }
                     
+                    if($data[$d]->type == '0'){
+                    	$class .= ' rest'; 
+                    }elseif($data[$d]->type == '1'){
+                    	$class .= ' first';
+                    }elseif($data[$d]->type == '2'){
+                    	$class .= ' second';
+                    }elseif($data[$d]->type == '3'){
+                    	$class .= ' third';
+                    }elseif($data[$d]->type == '4'){
+                    	$class .= ' diurnal';
+                    }
+                    
+                                        
                     // URL към което сочи деня
                     $url = $data[$d]->url;
                  

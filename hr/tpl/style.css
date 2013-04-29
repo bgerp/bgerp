@@ -49,3 +49,25 @@ table.mc-calendar td.mc-today {
 table.mc-header a {
 	color: #999;
 }
+
+table.mc-calendar td.rest{
+	
+	background-color: blue; important!
+}
+
+table.mc-calendar td.first{
+	
+	background-color: red; important!
+}
+table.mc-calendar td.second{
+	
+	background-color: pink; important!
+}
+table.mc-calendar td.third{
+	
+	background-color: orange; important!
+}
+table.mc-calendar td.diurnal{
+	
+	background-color: yellow; important!
+}

@@ -100,7 +100,14 @@ class hr_WorkingCycleDetails extends core_Detail
     
     
     /**
-     * 
+     * Връща число от 0 до 4 за типа на режима на смяната
+     * 0 - почивка
+     * 1 - първи
+     * 2 - втори
+     * 3 - нощен
+     * 4 - дневен
+     * @param time $start - започването на режима в секунди
+     * @param time $duration - продължителността на режима в секънди
      */
     static public function getWorkingShiftType($start, $duration)
     {

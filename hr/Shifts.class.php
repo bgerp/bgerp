@@ -82,12 +82,7 @@ class hr_Shifts extends core_Master
             core_Message::redirect("Моля въведете поне един работен режим", 'page_Error', NULL, array('hr_WorkingCycles'));
         }
     }
-    
-    function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-       // bp($row, $rec, $mvc);
-        $row->calendar = tr($type);
-    }
+
     
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
@@ -111,20 +106,28 @@ class hr_Shifts extends core_Master
         for($i = 1; $i <= $lastDay; $i++){
         	$daysTs = mktime(0, 0, 0, $month, $i, $year);
         	$date = date("Y-m-d H:i", $daysTs);
-        	$d[$i] = new stdClass();
+        	$d[$i] = new stdClass(); 
+    		
     		$d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($data->rec, $date)] . "</span>";
+    		$d[$i]->type = (string)static::getShiftDay($data->rec, $date);
+    		
+	        if($d[$i]->type == '0'){
+	        	$res->row->shift0 = ' rest'; 
+	        } elseif($d[$i]->type == '1'){
+	        	$res->row->shift1 = ' first';
+	        } elseif($d[$i]->type == '2'){
+	        	$res->row->shift2 = ' second';
+	        } elseif($d[$i]->type == '3'){
+	        	$res->row->shift3 = ' third';
+	        } elseif($d[$i]->type == '4'){
+	        	$res->row->shift4 = ' diurnal';
+	        }
         }
-       
+        //bp($d);
         $res->row->month = dt::getMonth($month, $format = 'F', $lg = 'bg');
     	$res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d);
+   }
 
-    }
-    
-    static public function on_AfterRenderSingle($mvc, $data)
-    {
-    	
-    }
-    
     function on_AfterRenderWrapping($mvc, &$tpl)
     {
     	jquery_Jquery::enable($tpl);
@@ -142,11 +145,13 @@ class hr_Shifts extends core_Master
     	bp(static::getShiftDay($rec, $date));
     }
     
+    
     /**
+     * По зададена смяна и ден от календара
+     * връща режима на смяната
      * 
-     * Enter description here ...
-     * @param unknown_type $recShift
-     * @param unknown_type $date
+     * @param stdClass $recShift
+     * @param mySQL date $date
      */
     static public function getShiftDay($recShift, $date)
     {
