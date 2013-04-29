@@ -35,6 +35,12 @@
 			</small>
 		</div>
  	    <div style='padding-top:10px;'>[#description#]</div>
-
+		
+		<!--ET_BEGIN DETAILS-->
+			<div class='details'>
+				[#DETAILS#]
+			</div>
+		<!--ET_END DETAILS-->
+		
         <div style='clear: both;'></div>
     </div>         

@@ -22,7 +22,13 @@
 		<div>[#body#]</div>
 	</div>
 	<!--ET_END body--> 
- 
+ 	
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
+	
     <!--ET_BEGIN shareLog-->
     <div class='sharing-history clearfix21'>
         <span class='sharing-history-title'>|Споделяне|*</span>

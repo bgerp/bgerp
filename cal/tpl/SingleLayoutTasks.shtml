@@ -39,15 +39,11 @@
 		</div>
  	    <div style='padding-top:10px;'>[#description#]</div>
 		
-
-        [#DETAILS#]
-        
-        
-		<!--ET_BEGIN changeLog-->
-    	<div class='change-log clearfix21'>
-        <span class='change-log-title'>|Лог|*</span>
-        	[#changeLog#]
-    	</div>
-        <!--ET_END changeLog-->
+		<!--ET_BEGIN DETAILS-->
+			<div class='details'>
+				[#DETAILS#]
+			</div>
+		<!--ET_END DETAILS-->
+		
         <div style='clear: both;'></div>
     </div>         

@@ -27,4 +27,11 @@
 
 
         <div style='clear: both;'></div>
+        
+		<!--ET_BEGIN DETAILS-->
+			<div class='details'>
+				[#DETAILS#]
+			</div>
+		<!--ET_END DETAILS-->
+		
     </div>         

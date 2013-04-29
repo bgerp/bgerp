@@ -101,12 +101,20 @@
 	
 	<div style='clear: both;'></div>
 	
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
+	
 	<!-- BEGIN footer -->        
 	<div class='clear_l f_left block_subtitle mt_50px'>
 	    
 	</div>
 	<!-- END footer -->
-	  
+	
+	
+	
 	<div style='clear: both;'></div>
 	   
 </div>

@@ -52,6 +52,12 @@
              </table>
          </div>    
          <!-- END Блок ляво -->   
-                     
+         
+		<!--ET_BEGIN DETAILS-->
+			<div class='details'>
+				[#DETAILS#]
+			</div>
+		<!--ET_END DETAILS-->
+		
          <div style='clear: both;'></div>
     </div>         

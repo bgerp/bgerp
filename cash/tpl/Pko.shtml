@@ -76,5 +76,12 @@
 			</td>
 		</tr>
 	</table>
+	
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
+	
 </div>
 <!-- END container -->

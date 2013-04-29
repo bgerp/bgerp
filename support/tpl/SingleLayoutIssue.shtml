@@ -30,20 +30,19 @@
 		<div>[#description#]</div>
 	</div>
 	<!--ET_END body--> 
- 
+ 	
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
+	
     <!--ET_BEGIN shareLog-->
     <div class='sharing-history clearfix21'>
         <span class='sharing-history-title'>|Споделяне|*</span>
         [#shareLog#]
     </div>
     <!--ET_END shareLog-->
-    
-    <!--ET_BEGIN changeLog-->
-    <div class='change-log clearfix21'>
-        <span class='change-log-title'>|Лог|*</span>
-        [#changeLog#]
-    </div>
-	<!--ET_END changeLog-->  
 
 </div>
 <!-- END container -->

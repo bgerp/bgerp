@@ -74,7 +74,13 @@
 				<div style='background-color:#ddd;border-top:solid 1px #000; border-left:solid 1px #000; 
 						border-right:solid 1px #000; padding:5px; font-size:1.2em;'>|Списък с контакти|*:
 			        </div>
-                               [#DETAILS#]
+                               
+					<!--ET_BEGIN DETAILS-->
+						<div class='details'>
+							[#DETAILS#]
+						</div>
+					<!--ET_END DETAILS-->
+					
                         </div>
 		</div>
 	<!-- ET_END DETAILS -->

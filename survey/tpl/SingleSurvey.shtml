@@ -11,6 +11,12 @@
 		<div id='survey-info'>|Пусната на|* [#createdOn#] |от|* [#createdBy#], &nbsp;&nbsp;|Краен срок за гласуване|*: <span id='enddate'>[#enddate#]</span></div>
 		<div id='shortDesc'>[#description#]</div>
 	</div>
-	[#DETAILS#]
+	
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
+	
 	<div id='survey-list-toolbar'>[#ListToolbar#]</div>
 </div>

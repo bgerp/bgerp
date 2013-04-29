@@ -56,8 +56,12 @@
 	</table>
 	
 	<table border='1' class = 'norm-table'>
-	<!--ET_BEGIN DETAIL-->
-	[#DETAIL#]
+	
+	<!--ET_BEGIN DETAILS-->
+	<div class='details'>
+		[#DETAILS#]
+	</div>
+	
 	<tr><td colspan = '6' class='pricelist-group-label'><b>[#GROUP#]</b></td></tr>
 	<tr>
 		<th>|Код|*</th>

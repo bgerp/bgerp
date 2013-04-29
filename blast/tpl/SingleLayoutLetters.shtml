@@ -98,7 +98,13 @@
 			border-right:solid 1px #000; padding:5px; font-size:1.2em;'>|Писма за печатане|*:
 	</div>
 	
-	<div>[#DETAILS#]</div>
+	
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
+	
 </div>
 
 <!-- END Блок долу -->

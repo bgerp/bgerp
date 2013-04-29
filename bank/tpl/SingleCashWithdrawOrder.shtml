@@ -179,6 +179,12 @@
 	        </div>    
 	        <!-- END belejka -->    
 	    
+			<!--ET_BEGIN DETAILS-->
+				<div class='details'>
+					[#DETAILS#]
+				</div>
+			<!--ET_END DETAILS-->
+			
 	    </div>
 	<!-- END belejka_container -->
 </div><!-- document -->

@@ -20,7 +20,11 @@
 			<div id='price-div'>[#price#]</div>
 		<!--ET_END price-->
 	<br />
-<!--ET_BEGIN DETAILS-->
-[#DETAILS#]
-<!--ET_END DETAILS-->
+
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
+	
 </div>

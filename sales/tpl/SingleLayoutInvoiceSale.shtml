@@ -57,6 +57,13 @@
 			<div class="details">
             		[#sales_SalesDetails#]
            	</div>
+           	
+			<!--ET_BEGIN DETAILS-->
+				<div class='details'>
+					[#DETAILS#]
+				</div>
+			<!--ET_END DETAILS-->
+			
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>

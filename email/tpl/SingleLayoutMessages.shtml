@@ -74,8 +74,12 @@
 		<div>[#textPart#]</div>
 	</div>
 	<!--ET_END textPart--> 
-
 	
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
     
 </div>
 <!-- END document -->
