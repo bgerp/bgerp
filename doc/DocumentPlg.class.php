@@ -75,7 +75,7 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none');
         
         // Ако има cid и Tab, показваме детайлите
-        if (Request::get('cid') && Request::get('Tab')) {
+        if (Request::get('Cid') && Request::get('Tab')) {
             
             // Ако има данни, преобразуваме ги в масив
             $mvc->details = arr::make($mvc->details);

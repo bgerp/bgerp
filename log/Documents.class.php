@@ -277,7 +277,7 @@ class log_Documents extends core_Manager
     function prepareForward($data)
     {
         // Вземаме cid от URL' то
-        $cid = Request::get('cid', 'int');
+        $cid = Request::get('Cid', 'int');
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) return ;
@@ -381,7 +381,7 @@ class log_Documents extends core_Manager
     function preparePrint($data)
     {
         // Вземаме cid от URL' то
-        $cid = Request::get('cid', 'int');
+        $cid = Request::get('Cid', 'int');
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) return ;
@@ -472,7 +472,7 @@ class log_Documents extends core_Manager
     function prepareOpen($data)
     {
         // Вземаме cid от URL' то
-        $cid = Request::get('cid', 'int');
+        $cid = Request::get('Cid', 'int');
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) return ;
@@ -574,7 +574,7 @@ class log_Documents extends core_Manager
     function prepareSend($data)
     {
         // Вземаме cid от URL' то
-        $cid = Request::get('cid', 'int');
+        $cid = Request::get('Cid', 'int');
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) return ;
@@ -684,7 +684,7 @@ class log_Documents extends core_Manager
     function prepareDownload($data)
     {
         // Вземаме cid от URL' то
-        $cid = Request::get('cid', 'int');
+        $cid = Request::get('Cid', 'int');
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) return ;
@@ -782,7 +782,7 @@ class log_Documents extends core_Manager
     function prepareChanged($data)
     {
         // Вземаме cid от URL' то
-        $cid = Request::get('cid', 'int');
+        $cid = Request::get('Cid', 'int');
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) return ;
