@@ -415,6 +415,9 @@ div.alphabet div.tab-page {
 			.detail-info{
 				padding:0px;
 			}
+			.listTable th, .listTable td{
+				border:1px solid #bbb !important;
+			}
 	}
 	div.tab-row .tab {
 		font-size:0.8em;
