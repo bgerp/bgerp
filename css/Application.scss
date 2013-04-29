@@ -400,15 +400,49 @@ div.alphabet div.tab-page {
 .narrow div.alphabet  div.tab-row {
 	width: 330px;
 }
-div.small-tabs {
+
+/*alphabet табовете в документ да изглеждат като основните, но по-малки*/
+.single-thread .document div.alphabet {
 	.tab-page{
 		padding:5px 10px 10px !important;
-		.detail-info{
-			padding:0px;
-		}
+		clear: both;
+		border: 1px solid #bbb;
+		background: #ffffff;
+		position: relative;
+		top: 1px;
+		@include border-radius(5px);
+		z-index: 2;
+			.detail-info{
+				padding:0px;
+			}
 	}
 	div.tab-row .tab {
-		font-size:0.8em;	
+		font-size:0.8em;
+		font-family: arial;
+		box-shadow:none;
+		display: inline;
+		margin: 1px -16px -1px 18px;
+		float: left;
+		padding: 4px 5px 4px 5px;
+		background: #ddd;
+		border: 1px solid #bbb;
+		border-bottom: none;
+		z-index: 1;
+		white-space: nowrap;
+		position: relative;
+		@include border-radius4(5px, 5px, 0px, 0px);
+		border-top: 2px solid $blue;
+		&.selected {
+			background: #ffffff;
+			border: 1px solid #bbb;
+			border-top: 2px solid $blue;
+			border-bottom: none;
+			z-index: 3;
+			padding: 5px 5px 4px 5px;
+			margin: 1px -16px -3px 18px;
+			top: 0px;
+			font-weight: bold;
+		}	
 	}
 }
 	
