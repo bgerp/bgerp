@@ -1962,7 +1962,7 @@ class log_Documents extends core_Manager
     /**
      * Записва в БД всички действия от стека
      */
-    protected static function flushActions()
+    public static function flushActions()
     {
         $count = 0;
         

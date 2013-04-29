@@ -411,11 +411,11 @@ class email_Outgoings extends core_Master
                 static::log('Unable to send to ' . $allEmailsToStr, $rec->id);
                 $failure[] = $allEmailsToStr;
             }
+            
+            // Записваме историята
+            log_Documents::flushActions();
         }
         
-        // Попваме всички екшъни
-        log_Documents::popAction();
-            
         // Ако има успешно изпращане
         if ($success) {
             $msg = 'Успешно изпратено до: ' . implode(', ', $success);
