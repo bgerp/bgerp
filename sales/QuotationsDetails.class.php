@@ -255,10 +255,16 @@ class sales_QuotationsDetails extends core_Detail {
     		}
     	}
     	
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	
     	if($totalDisc == 0){
     		$totalDisc = NULL;
+    	} else {
+    		$totalDisc = $double->toVerbal(currency_CurrencyRates::convertAmount($totalDisc, $data->masterData->rec->date, NULL, $data->masterData->rec->paymentCurrencyId));
     	}
     	
+    	$total = $double->toVerbal(currency_CurrencyRates::convertAmount($total, $data->masterData->rec->date, NULL, $data->masterData->rec->paymentCurrencyId));
     	$data->total = (object) array('total' => $total, 'totalDisc' => $totalDisc);
     }
     

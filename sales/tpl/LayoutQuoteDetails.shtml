@@ -45,10 +45,10 @@
 <!--ET_END ROW-->
 <!--ET_BEGIN total-->
 <tr>
-	<td colspan='4' id='total-td-label'>|Общо|*</td>
+	<td colspan='4' id='total-td-label'></td>
 	<td colspan='2' align='right'>
-	<b>[#total#]</b>
-	<div class='discount'>[#totalDisc#]</div>
+	|Общо|*: &nbsp;<b>[#total#]</b>
+	<div class='discount'> |След ТО|*: &nbsp; [#totalDisc#]</div>
 	</td>
 </tr>
 <!--ET_END total-->

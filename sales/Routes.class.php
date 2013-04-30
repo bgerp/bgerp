@@ -121,7 +121,7 @@ class sales_Routes extends core_Manager {
     	$varchar = cls::get("type_Varchar");
     	$locQuery = crm_Locations::getQuery();
     	$locQuery->where("#state != 'rejected'");
-    	if($locId = Request::get('locationId')){
+    	if($locId = Request::get('locationId', 'int')){
     		$locQuery->where("#id = {$locId}");
     	}	
     	
