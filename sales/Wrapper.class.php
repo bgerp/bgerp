@@ -24,8 +24,8 @@ class sales_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('sales_Sales', 'Продажби', 'admin,sales');
         $this->TAB('sales_Invoices', 'Фактури', 'admin,sales');
-        $this->TAB('sales_Routes', 'Маршрути', 'admin,sales');
         $this->TAB('sales_Quotations', 'Оферти', 'admin,sales');
+        $this->TAB('sales_Routes', 'Маршрути', 'admin,sales');
         
         $this->title = 'Покупки';
         
