@@ -47,6 +47,8 @@ class hr_Shifts extends core_Master
     var $canRead = 'admin,hr';
     
     
+    var $details = 'hr_ShiftDetails';
+    
     /**
      * Кой може да пише?
      */
@@ -183,10 +185,12 @@ class hr_Shifts extends core_Master
     {
     	$id = 3;
     	$rec = self::fetch("#id='{$id}'");
+    	$recDetail = hr_ShiftDetails::fetch("#shiftId='{$id}'");
     	
     	$date = '2013-05-03 00:00:00';
 
-    	bp(static::getShiftDay($rec, $date));
+    	//bp(static::getShiftDay($rec, $date));
+    	bp(static::putNewShiftDetail($rec, $recDetail));
     }
     
     
@@ -223,5 +227,18 @@ class hr_Shifts extends core_Master
 		$dayDuration = $cycleDetails->duration;
 		
 		return hr_WorkingCycleDetails::getWorkingShiftType($dayStart, $dayDuration);
+    }
+    
+    
+    /**
+     * 
+     */
+    static public function putNewShiftDetail($recShift, $recDetail)
+    {
+    	if($recDetail->startingOn > $recShift->startingOn)
+    	{
+    		bp($recDetail->startingOn > $recShift->startingOn, $recDetail->startingOn , $recShift->startingOn);
+    	}
+    	
     }
 }

@@ -1,6 +1,6 @@
 <div  class="singleView shifts">
 [#SingleToolbar#]
-	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Смяна <b style="color:green;">[#name#]</b></div></h2>
+	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">График на звено <b style="color:green;">[#name#]</b> за месец [#month#]</div></h2>
 	<table class="styled-table" width="300px">
 		<tr>
 			<td class="title-style"> №</td>
@@ -28,7 +28,7 @@
 		<!--ET_END employersCnt-->
 	</table>
 	
-	<h2>График за месец [#month#]</h2>[#calendar#]</br>
+	</br>[#calendar#]</br>
 	<table class='mc-calendar cal-legend'>
 		<tr>
 			<!--ET_BEGIN shift1--><td class="[#shift1#]">I - първа смяна</td><!--ET_END shift1-->
