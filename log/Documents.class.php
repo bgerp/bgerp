@@ -618,20 +618,39 @@ class log_Documents extends core_Manager
             
             // Рендираме екшъна за виждане
             $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
+
+            // Полето за върнато и полуяено
+            $row->returnedAndReceived = $row->receivedOn;
+            
+            // Ако има връщане
+            if ($row->returnedOn) {
+                
+                // Добавяме го
+                $row->returnedAndReceived .= "<br />" . tr("Върнато") . ": {$row->returnedOn}";
+            }
+            
+            // Имейлите До
+            $row->emails = $row->toEmail;
+            
+            // Ако има копие
+            if ($row->cc) {
+                
+                // Добавяме към имейлите
+                $row->emails .= "<br />" . tr("Kп") . ": {$row->cc}";
+            }
             
             // Стейта на класа
             $stateClass = 'state-active';
-            
             switch (true) {
-                
-                // Ако е получен
-                case !empty($row->receivedOn):
-                    $stateClass = 'state-closed';
-                    break;
                     
                 // Ако е върнато
                 case !empty($row->returnedOn):
                     $stateClass = 'state-rejected';
+                    break;
+                    
+                // Ако е получен
+                case !empty($row->receivedOn):
+                    $stateClass = 'state-closed';
                     break;
             }
             
@@ -667,7 +686,7 @@ class log_Documents extends core_Manager
         $inst = cls::get('core_TableView');
         
         // Вземаме таблицата с попълнени данни
-        $sendTpl = $inst->get($data->rows, 'time=Дата, from=Потребител, toEmail=До, cc=Копие, receivedOn=Получено, returnedOn=Върнато');
+        $sendTpl = $inst->get($data->rows, 'time=Дата, from=Потребител, emails=До, returnedAndReceived=Получено');
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
