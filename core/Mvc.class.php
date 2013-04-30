@@ -991,7 +991,7 @@ class core_Mvc extends core_FieldSet
      */
     function protectId($id)
     {
-        $hash = substr(base64_encode(md5(EF_SALT . $mvc->className . $id)), 0, EF_ID_CHECKSUM_LEN);
+        $hash = substr(base64_encode(md5(EF_SALT . $this->className . $id)), 0, EF_ID_CHECKSUM_LEN);
         
         return $id . $hash;
     }
