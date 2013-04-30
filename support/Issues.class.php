@@ -177,6 +177,23 @@ class support_Issues extends core_Master
     
     
     /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param int $folderId - id на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+        // Името на класа
+        $coverClassName = doc_Folders::fetchCoverClassName($folderId);
+        
+        // Ако не support_systems, не може да се добави
+        if (strtolower($coverClassName) != 'support_systems') return FALSE;
+    }
+    
+    
+    /**
      * 
      */
     function on_CalcSystemIdShow($mvc, $rec)
