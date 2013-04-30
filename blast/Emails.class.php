@@ -932,7 +932,7 @@ class blast_Emails extends core_Master
                     )
                 );
                 
-                log_Documents::popAction();
+                log_Documents::flushActions();
             }
             
             Mode::pop('currentUserRec');
