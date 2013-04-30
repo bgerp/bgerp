@@ -9,12 +9,14 @@ table.mc-calendar td.mc-day {
 	border: none;
 	font-weight: bold;
 	width: 10em;
+	color:#333; 
 	
 }
 table.mc-calendar td.mc-day span{
-	color:#000;
-	margin-left:5px;
+	margin-left:7px;
 	text-transform:uppercase;
+	width:10px;
+	text-align:center;
 }
 table.mc-calendar td.mc-week-nb {
 	border: none;
@@ -47,31 +49,29 @@ table.mc-calendar td.mc-today {
 table.mc-header a {
 	color: #999;
 }
-.cal-legend{
-	table-layout:fixed;
-}
+
 .cal-legend td{
 	font-weight:bold;
 	text-align:center;
 	padding:3px;
 }
 
-table.mc-calendar td.rest{
-	background-color:#FEADAD; important!
+table.mc-calendar td.rest span, .cal-legend td.rest{
+	color:#D00; important!
 }
 
-table.mc-calendar td.first{
-	background-color: #AFB; important!
+table.mc-calendar td.first span, .cal-legend td.first{
+	color: #008400; important!
 }
 
-table.mc-calendar td.second{
-	background-color: #FE7; important!
+table.mc-calendar td.second span, .cal-legend td.second{
+	color:#df770b; important!
 }
 
-table.mc-calendar td.third{
-	background-color: #BEF7FD; important!
+table.mc-calendar td.third span, .cal-legend td.third{
+	color: #0005c1; important!
 }
 
-table.mc-calendar td.diurnal{
-	background-color: #FED; important!
+table.mc-calendar td.diurnal span, .cal-legend td.diurnal{
+	color:  #770ea3; important!
 }

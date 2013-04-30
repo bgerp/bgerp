@@ -87,7 +87,7 @@ class hr_Shifts extends core_Master
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	static $shiftMap = array(
-    		0 => '',
+    		0 => 'п',
     		1 => 'I',
     		2 => 'II',
     		3 => 'н',
