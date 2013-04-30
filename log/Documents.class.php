@@ -642,16 +642,17 @@ class log_Documents extends core_Manager
             // Стейта на класа
             $stateClass = 'state-active';
             switch (true) {
+
+                // Ако е получен
+                case !empty($row->receivedOn):
+                    $stateClass = 'state-closed';
+                    break;
                     
                 // Ако е върнато
                 case !empty($row->returnedOn):
                     $stateClass = 'state-rejected';
                     break;
-                    
-                // Ако е получен
-                case !empty($row->receivedOn):
-                    $stateClass = 'state-closed';
-                    break;
+                
             }
             
             // Доабвяме класа към атрибутите на полето
