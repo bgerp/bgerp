@@ -148,17 +148,4 @@ class change_Plugin extends core_Plugin
         
         return FALSE;
     }
-    
-    
-    /**
-     * 
-     */
-    public function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
-    {
-        // Подготвяме масива с лога
-        $logArr = change_Log::prepareLog($mvc->className, $data->rec->id);
-        
-        // Рендираме изгледа
-        $tpl->append(change_Log::renderLog($logArr), 'changeLog');
-    }
 }
