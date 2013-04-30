@@ -341,15 +341,19 @@ class blast_Emails extends core_Master
                 $listId = $mvc->fetchField($form->rec->id, 'listId');
             }
             
-            // Копие на масива
-            $nRecArr = $recArr;
-
             // Вземаме Относно и Съобщение
-            $bodyAndSubject = $nRecArr['body'] . ' ' . $nRecArr['subject'];
+            $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
             
-            // Премахваме ги от масива
-            unset($nRecArr['body']);
-            unset($nRecArr['subject']);
+            // Масив с данни от плейсхолдера
+            $nRecArr['address'] = $recArr['address'];
+            $nRecArr['place'] = $recArr['place'];
+            $nRecArr['pcode'] = $recArr['pcode'];
+            $nRecArr['country'] = $recArr['country'];
+            $nRecArr['fax'] = $recArr['fax'];
+            $nRecArr['tel'] = $recArr['tel'];
+            $nRecArr['email'] = $recArr['email'];
+            $nRecArr['attn'] = $recArr['attn'];
+            $nRecArr['recipient'] = $recArr['recipient'];
             
             // Обикаляме всички останали стойности в масива
             foreach ($nRecArr as $field) {
