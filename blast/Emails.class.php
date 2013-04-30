@@ -570,7 +570,7 @@ class blast_Emails extends core_Master
             blast_Emails::save($form->rec, 'state,startOn,sendPerMinute,activatedBy');
             
             //След успешен запис редиректваме
-            $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+            $link = array('blast_Emails', 'single', $rec->id);
             
             // Добавяме съобщение в статуса
             core_Statuses::add(tr("Успешно активирахте бласт имейл-а"));
