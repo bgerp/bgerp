@@ -30,7 +30,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
 	 * Мастър ключ към дъските
 	 */
-	var $masterKey = 'quoteId';
+	var $masterKey = 'quotationId';
     
     
     /**
@@ -68,7 +68,7 @@ class sales_QuotationsDetails extends core_Detail {
      */
     function description()
     {
-    	$this->FLD('quoteId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
+    	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
     	$this->FLD('quantity', 'double(decimals=4)', 'caption=К-во,width=8em;');
@@ -114,9 +114,9 @@ class sales_QuotationsDetails extends core_Detail {
     {
        $form = $data->form;
        (Request::get('edit')) ? $title = tr("Редактиране") : $title = tr("Добавяне");
-       $form->title = $title . " " . tr("|на запис в Оферта|* №{$form->rec->quoteId}");
+       $form->title = $title . " " . tr("|на запис в Оферта|* №{$form->rec->quotationId}");
     
-       $masterRec = $mvc->Master->fetch($form->rec->quoteId);
+       $masterRec = $mvc->Master->fetch($form->rec->quotationId);
        $Policy = cls::get($form->rec->policyId);
        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
        $form->setOptions('productId', $products);
@@ -131,7 +131,7 @@ class sales_QuotationsDetails extends core_Detail {
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
 	    	$Policy = cls::get($rec->policyId);
-	    	$masterRec = $mvc->Master->fetch($rec->quoteId);
+	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
 	    	
 	    	if(!$rec->price){
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, 1, $masterRec->date);
@@ -140,8 +140,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		}
 	    		
 	    		// Конвертираме цената към посочената валута в офертата
-	    		$convertedPrice = currency_CurrencyRates::convertAmount($price->price, $masterRec->date, NULL, $masterRec->paymentCurrencyId);
-	    		$rec->price = $convertedPrice;
+	    		$rec->price = $price->price;
 	    		
 	    		if(!$rec->discount){
 	    			$rec->discount = $price->discount;
@@ -218,6 +217,8 @@ class sales_QuotationsDetails extends core_Detail {
     			// Ако има вече такъв продукт, го махаме от записа
     			unset($row->productId);
     		}
+    		
+    		
     		$newRows[$pId][] = $row;
     	}
     	
@@ -272,7 +273,8 @@ class sales_QuotationsDetails extends core_Detail {
     	// Шаблон за задължителните продукти
     	$dTpl = new ET(tr("|*" . getFileContent('sales/tpl/LayoutQuoteDetails.shtml')));
     	
-    	if(!Mode::is('printing')){
+    	if(!Mode::is('printing') && $data->masterData->rec->state == 'draft'){
+    		
     		// Маха се th-то на полето за редакция, ако се принтира
     		$dTpl->replace(' ', 'toolsTh');
     	}
@@ -346,6 +348,33 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->discount = "+ {$row->discount}%";
     	} elseif($rec->discount && $rec->discount > 0){
     		$row->discount = "- {$row->discount}";
+    	}
+    	
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	$masterRec = $mvc->Master->fetch($rec->quotationId);
+    	$row->price = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->price, $masterRec->date, NULL, $masterRec->paymentCurrencyId));
+    	
+    	if($rec->amount != '???'){
+    		$row->amount = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->amount, $masterRec->date, NULL, $masterRec->paymentCurrencyId));
+    	}
+    	
+    	if($rec->discAmount){
+    		$row->discAmount = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->discAmount, $masterRec->date, NULL, $masterRec->paymentCurrencyId));
+    	}
+    }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    {
+    	if($action == 'add' && isset($rec)){
+    		$quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');
+    		if($quoteState != 'draft'){
+    			$res = 'no_one';
+    		}
     	}
     }
 }

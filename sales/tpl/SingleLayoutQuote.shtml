@@ -46,7 +46,7 @@
 	<div class="clearfix21"></div>
 	<!--ET_BEGIN DETAILS-->
 	<div id='details-holder'>
-	<p>|Оферирани продукти и услуги|*</p>
+	<p class='table-detail-header'>|Оферирани продукти и услуги|*</p>
 	[#DETAILS#]
 	</div>
 	<!--ET_END DETAILS-->
@@ -55,7 +55,7 @@
 	<div class="page-break"></div>
 	
 	<div id='optional-holder'>
-	<p>|Опционални продукти и услуги|*</p>
+	<p class='table-detail-header'>|Опционални продукти и услуги|*</p>
 	[#OPTIONAL#]
 	</div>
 	<!--ET_END OPTIONAL-->

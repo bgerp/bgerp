@@ -23,7 +23,7 @@ class sales_Quotations extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'Quo';
+    var $abbr = 'Q';
     
     
     /**
@@ -79,13 +79,13 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, reff, date, contragentName, deliveryTermId, createdOn,createdBy';
+    public $listFields = 'tools=Пулт, number=Номер, reff, date, contragentName, deliveryTermId, createdOn,createdBy';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'reff';
+    var $rowToolsSingleField = 'number';
     
     
     /**
@@ -97,7 +97,7 @@ class sales_Quotations extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'sales_QuotationsDetails,others=sales_QuotationsOthers' ;
+    public $details = 'sales_QuotationsDetails, others=sales_QuotationsOthers' ;
     
 
     /**
@@ -143,17 +143,23 @@ class sales_Quotations extends core_Master
        $form = $data->form;
        $form->setDefault('date', dt::now());
        
-       //$form->setSuggestions('wat', array('0'=>'0', '0.07' => '7', '0.2' => '20'));
        $mvc->populateContragentData($form);
        ($mvc->getDefaultWat($form->rec->contragentClassId, $form->rec->contragentId)) ? $form->setDefault('wat', 'yes') : $form->setDefault('wat', 'no');
     }
 	
     
     /**
+     * Дали да се начислява ДДС на контрагента
+     * Начисляваме ДДС в следния ред:
+     * 1. Ако контрагента е лице - винаги
+     * 2. Ако контрагента е българска фирма - винаги
+     * 3. Ако фирмата има "BG" в wat номера си - винаги
+     * 4. Ако фирмата не е българска и няма данъчен номер - винаги
+     * 5. Ако никое не е изпълнено - не начисляваме ДДС
      * 
-     * @param int $contragentClassId -
-     * @param false $contragentId -
-     * @return boolean TRUE/FALSE - 
+     * @param int $contragentClassId - ид на класа на контрагента
+     * @param false $contragentId - ид на контрагента
+     * @return boolean TRUE/FALSE - начислява ли се или не ДДС
      */
     function getDefaultWat($contragentClassId, $contragentId)
     {
@@ -166,7 +172,7 @@ class sales_Quotations extends core_Master
     	$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'", 'id');
     	
     	// за всички BG фирми начисляваме ДДС
-    	if($ownCountryId == $data1->countryId) return TRUE;
+    	if($ownCountryId == $data->countryId) return TRUE;
     	
     	// Всички фирми имащи BG в Ват номера си
     	if($data->vatNo && (preg_match("/^BG/", $data->vatNo))) return TRUE;
@@ -186,8 +192,11 @@ class sales_Quotations extends core_Master
     {
     	$rec = &$form->rec;
     	expect($data = doc_Folders::getContragentData($rec->folderId), "Проблем с данните за контрагент по подразбиране");
-    	$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    	$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+    	$contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+    	$contragentId = doc_Folders::fetchCoverId($rec->folderId);
+    	$form->setDefault('contragentClassId', $contragentClassId);
+    	$form->setDefault('contragentId', $contragentId);
+    	
     	if($data->person) {
     		$form->setDefault('contragentName', $data->person);
     		
@@ -195,20 +204,26 @@ class sales_Quotations extends core_Master
     		$form->setDefault('contragentName', $data->company);
     	}
     	$form->setReadOnly('contragentName');
-    	$currencyCode  = drdata_Countries::fetchField($data->countryId, 'currencyCode');
-        $rec->currencyId = currency_Currencies::getIdByCode($currencyCode);
+    	
+    	if($data->countryId){
+    		$currencyCode  = drdata_Countries::fetchField($data->countryId, 'currencyCode');
+    	} else {
+    		$currencyCode = acc_Periods::getBaseCurrencyCode($rec->date);
+    	}
+    	
+    	$form->setDefault('paymentCurrencyId', $currencyCode);
     }
     
     
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$varchar = cls::get('type_Varchar');
     	
     	if(!Mode::is('printing')){
-    		$row->header = $mvc->singleTitle . " №<b>{$rec->id}</b>";
+    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
     	}
     	
     	$contragentData =  doc_Folders::getContragentData($rec->folderId);
@@ -227,8 +242,10 @@ class sales_Quotations extends core_Master
     		$row->tel =  $varchar->toVerbal($contragentData->tel);
     	}
     	$row->contragentAdress = $varchar->toVerbal($row->contragentAdress);
-    	
-		$row->number = "Q{$row->id}";
+    	$row->number = $mvc->getHandle($rec->id);
+		if($fields['-list']){
+			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
+		}
 		
 		$cuRec = core_Users::fetch(core_Users::getCurrent());
 		$row->username = core_Users::recToVerbal($cuRec, 'names')->names;
@@ -286,7 +303,7 @@ class sales_Quotations extends core_Master
     			
     			// Ако няма задължителни продукти/услуги неможе да се активира
     			$detailQuery = sales_QuotationsDetails::getQuery();
-    			$detailQuery->where("#quoteId = {$rec->id}");
+    			$detailQuery->where("#quotationId = {$rec->id}");
     			$detailQuery->where("#optional = 'no'");
     			if(!$detailQuery->count()){
     				$res = 'no_one';
