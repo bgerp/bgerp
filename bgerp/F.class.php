@@ -29,7 +29,7 @@ class bgerp_F extends core_Manager
     {
         // MID' а на документа
         $mid = Request::get('id');
-        
+
         // Името на файла
         $name = Request::get('n');
 
@@ -67,5 +67,26 @@ class bgerp_F extends core_Manager
         
         // Редиректваме към линка
         redirect($url);    
+    }
+    
+    
+    /**
+     * 
+     * @see core_Mvc::unprotectId()
+     */
+    function unprotectId($id)
+    {
+        return ($id);
+    }
+    
+    
+    /**
+     * 
+     * @see core_Mvc::protectId()
+     */
+    function protectId($id)
+    {
+        
+        return ($id);
     }
 }
