@@ -93,9 +93,51 @@ class hr_Shifts extends core_Master
     		3 => 'н',
     		4 => 'д',
  		);
+ 		
+ 		$month = Request::get('cal_month', 'int');
+        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+        $year  = Request::get('cal_year', 'int');
 
-		$year = dt::mysql2verbal($data->rec->startingOn, "Y");
-		$month = dt::mysql2verbal($data->rec->startingOn, "n");
+        if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
+            $year = date('Y');
+            $month = date('n');
+        }
+
+        // Добавяне на първия хедър
+        $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
+
+        $pm = $month-1;
+        if($pm == 0) {
+            $pm = 12;
+            $py = $year-1;
+        } else {
+            $py = $year;
+        }
+        $prevMonth = tr(dt::$months[$pm-1]) . " " .$py;
+
+        $nm = $month+1;
+        if($nm == 13) {
+            $nm = 1;
+            $ny = $year+1;
+        } else {
+            $ny = $year;
+        }
+        $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
+        
+        $link = $_SERVER['REQUEST_URI'];
+        $nextLink = Url::addParams($link, array('cal_month' => $nm, 'cal_year' => $ny));
+        $prevtLink = Url::addParams($link, array('cal_month' => $pm, 'cal_year' => $py));
+
+        $header = "<table class='mc-header' width='100%' cellpadding='0'>
+                <tr>
+                    <td align='left'><a href='{$prevtLink}'>{$prevMonth}</a></td>
+                    <td align='center'><b>{$currentMonth}</b></td>
+                    <td align='right'><a href='{$nextLink}'>{$nextMonth}</a></td>
+                </tr>
+            </table>";
+
+		//$year = dt::mysql2verbal($data->rec->startingOn, "Y");
+		//$month = Request::get('cal_month', 'int');
 		
 		 // Таймстамп на първия ден на месеца
         $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
@@ -123,14 +165,16 @@ class hr_Shifts extends core_Master
 	        	$res->row->shift4 = ' diurnal';
 	        }
         }
-        //bp($d);
+        
+    	
         $res->row->month = dt::getMonth($month, $format = 'F', $lg = 'bg');
-    	$res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d);
+    	$res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d, $header);
    }
 
     function on_AfterRenderWrapping($mvc, &$tpl)
     {
     	jquery_Jquery::enable($tpl);
+    	
     	
     	$tpl->push('hr/tpl/style.css', 'CSS');
     }

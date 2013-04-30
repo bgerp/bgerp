@@ -1480,8 +1480,8 @@ class cal_Calendar extends core_Master
     static function prepareMonhtHeader($data)
     {
     	
-    	$date = $data->listFilter->rec->from;
-    	$date = explode("-", $date);
+    	//$date = $data->listFilter->rec->from;
+    	$date = explode("-", $data);
 	  
         // Разбиваме я на ден, месец и година
         $day = $date[2];
@@ -1836,7 +1836,8 @@ class cal_Calendar extends core_Master
         
         $tpl->placeArray(static::$weekDays);
         
-        $link = static::prepareMonhtHeader($data);
+        $date = $data->listFilter->rec->from;
+        $link = static::prepareMonhtHeader($date);
 
         // Добавяне на първия хедър
         $tpl->replace($link['prevtLink'], 'prevtLink');
