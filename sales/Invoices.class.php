@@ -449,6 +449,12 @@ class sales_Invoices extends core_Master
     	if($rec->docType && $rec->docId){
     		$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
     	}
+    	
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	if($rec->dealValue){
+    		$row->dealValue = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->dealValue, $rec->date, NULL, $rec->currencyId));
+    	}
     }
     
     

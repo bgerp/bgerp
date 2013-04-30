@@ -158,9 +158,8 @@ class sales_InvoiceDetails extends core_Detail
             $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
             $Policy = cls::get($rec->policyId);
             
-            $price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
-          	$rec->price = currency_CurrencyRates::convertAmount($price, $masterRec->date, NULL, $masterRec->currencyId);
-	        
+            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
+          	
             if(!$rec->price){
 	            $form->setError('price', 'Неможе да се определи цена');
 	        }
@@ -194,6 +193,12 @@ class sales_InvoiceDetails extends core_Detail
     	} else {
     		$row->packagingId = cat_Products::getVerbal($productRec, 'measureId');
     	}
+    	
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	$masterRec = $mvc->Master->fetch($rec->invoiceId);
+    	$row->price = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->price, $masterRec->date, NULL, $masterRec->currencyId));
+    	$row->amount = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->amount, $masterRec->date, NULL, $masterRec->currencyId));
     }
     
     
