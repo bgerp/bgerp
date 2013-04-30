@@ -127,9 +127,9 @@ class acc_Periods extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if($mvc->haveRightFor('reports', $rec)) {
-            $row->reports = Ht::createBtn('Справки', array('acc_Reports', 'List', $rec->id), NULL, NULL, 'ef_icon=img/16/report.png');
-        }
+        /*if($mvc->haveRightFor('reports', $rec)) {
+           $row->reports = Ht::createBtn('Справки', array('acc_Reports', 'List', $rec->id), NULL, NULL, 'ef_icon=img/16/report.png');
+        }*/
         
         if($mvc->haveRightFor('close', $rec)) {
             if ($rec->state == 'active'){
