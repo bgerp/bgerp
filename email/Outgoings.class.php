@@ -469,11 +469,37 @@ class email_Outgoings extends core_Master
      */
     function prepareSendForm_($data)
     {
-        $data->form = email_Sent::getForm();
-        $data->form->setAction(array($mvc, 'send'));
-        $data->form->title = 'Изпращане на имейл';
         
+        $data->form = cls::get('core_Form');
+        $form = $data->form;
+        $data->form->setAction(array($this, 'send'));
+        $data->form->title = 'Изпращане на имейл';
+//        $fields = $data->form->selectFields("#name != 'id'");
+//        $data->form->setField($fields, 'input=none');
         $id = Request::get('id', 'int');
+        
+        $form->FNC('id', 'int', 'input=hidden, silent');
+        $form->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От адрес,mandatory');
+        $form->FLD('emailTo', 'email', 'caption=До,input=none');
+        $form->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
+                                    cp1251=Windows Cyrillic|* (CP1251),
+                                    koi8-r=Rus Cyrillic|* (KOI8-R),
+                                    cp2152=Western|* (CP1252),
+                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=4');
+//        $form->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
+//        $form->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
+        $form->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
+        $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
+        $form->FLD('mid', 'varchar', 'input=none,caption=Ключ');
+        
+        // дата на получаване на писмото (NULL ако няма информация дали е получено)
+//        $this->FLD('receivedOn', 'datetime(format=smartTime)', 'input=none,caption=Получено->На');
+        
+        // IP от което е получено писмото (NULL ако няма информация от къде е получено)
+//        $this->FLD('receivedIp', 'ip', 'input=none,caption=Получено->IP');
+        
+        // дата на връщане на писмото (в случай, че не е получено)
+//        $this->FLD('returnedOn', 'datetime(format=smartTime)', 'input=none,caption=Върнато на');
         
         $data->form->FNC(
             'emailsTo',
