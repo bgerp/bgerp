@@ -364,15 +364,14 @@ class blast_Emails extends core_Master
             $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
             
             // Масив с данни от плейсхолдера
-            $nRecArr['address'] = $recArr['address'];
-            $nRecArr['place'] = $recArr['place'];
-            $nRecArr['pcode'] = $recArr['pcode'];
-            $nRecArr['country'] = $recArr['country'];
-            $nRecArr['fax'] = $recArr['fax'];
-            $nRecArr['tel'] = $recArr['tel'];
-            $nRecArr['email'] = $recArr['email'];
             $nRecArr['attn'] = $recArr['attn'];
-            $nRecArr['recipient'] = $recArr['recipient'];
+            $nRecArr['email'] = $recArr['email'];
+            $nRecArr['tel'] = $recArr['tel'];
+            $nRecArr['fax'] = $recArr['fax'];
+            $nRecArr['country'] = $recArr['country'];
+            $nRecArr['pcode'] = $recArr['pcode'];
+            $nRecArr['place'] = $recArr['place'];
+            $nRecArr['address'] = $recArr['address'];
             
             // Обикаляме всички останали стойности в масива
             foreach ($nRecArr as $field) {
