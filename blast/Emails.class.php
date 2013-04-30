@@ -672,7 +672,7 @@ class blast_Emails extends core_Master
         //Очакваме потребителя да има права за спиране
         $this->haveRightFor('stop', $rec);
         
-        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        $link = array('blast_Emails', 'single', $rec->id);
         
         //Променяме статуса на спрян
         $recUpd = new stdClass();
