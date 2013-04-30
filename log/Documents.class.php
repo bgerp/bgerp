@@ -650,7 +650,7 @@ class log_Documents extends core_Manager
                     
                 // Ако е върнато
                 case !empty($row->returnedOn):
-                    $stateClass = 'state-rejected';
+                    $stateClass = 'state-stopped';
                     break;
                 
             }
