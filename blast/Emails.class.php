@@ -189,6 +189,25 @@ class blast_Emails extends core_Master
     }
 
     
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param int $folderId - id на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+        // Името на класа
+        $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+
+        // Ако не е папка проект или контрагент, не може да се добави
+        if (($coverClassName != 'doc_unsortedfolders') && 
+            ($coverClassName != 'crm_persons') &&
+            ($coverClassName != 'crm_companies')) return FALSE;
+    }
+    
+    
  	/**
      * Добавяне на филтър
      * Сортиране на записите

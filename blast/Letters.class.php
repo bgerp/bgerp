@@ -163,6 +163,25 @@ class blast_Letters extends core_Master
         $this->FLD('template', 'enum(default=По подразбиране, triLeft=3 сгъвания - ляво,
             triRight=3 сгъвания - дясно)', 'caption=Шаблон');
     }
+
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param int $folderId - id на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+        // Името на класа
+        $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+
+        // Ако не е папка проект или контрагент, не може да се добави
+        if (($coverClassName != 'doc_unsortedfolders') && 
+            ($coverClassName != 'crm_persons') &&
+            ($coverClassName != 'crm_companies')) return FALSE;
+    }
     
     
     /**
