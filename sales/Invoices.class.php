@@ -546,10 +546,7 @@ class sales_Invoices extends core_Master
             
             if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 	        	$form->setDefault('accountId', $ownAcc);
-	        	$form->setReadOnly('accountId');
-	        } else {
-	        	$form->setField('accountId', 'input=none');
-	        }
+	        } 
         }
     }
 
