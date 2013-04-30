@@ -133,21 +133,30 @@ class bank_Accounts extends core_Master {
     
     /**
      * След зареждане на форма от заявката. (@see core_Form::input())
-     *
-     * @param core_Mvc $mvc
-     * @param core_Form $form
      */
     static function on_AfterInputEditForm($mvc, &$form)
     {
-        // ако формата е събмитната, и банката и бика не са попълнени, то ги
-        // извличаме от IBAN-a
+        // ако формата е събмитната, и банката и бика не са попълнени,  
+        // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение 
+        // ако те се разминават с тези в системата
     	if($form->isSubmitted()){
+    		$bank = drdata_Banks::getBankName($form->rec->iban);
 	        if(!$form->rec->bank){
-		    		$form->rec->bank = drdata_Banks::getBankName($form->rec->iban);
-		    	}
-		    if(!$form->rec->bic) {
-		    		$form->rec->bic = drdata_Banks::getBankBic($form->rec->iban);
-		    	}
+	        	$form->rec->bank = $bank;
+	        } else {
+	        	if($bank && $form->rec->bank != $bank){
+	        		$form->setWarning('bank', "Въвели сте за банка '{$form->rec->bank}' а IBAN-a отговаря на банка '{$bank}'. Сигурни ли сте че искате да продължите");
+	        	}
+	        }
+	        
+	        $bic = drdata_Banks::getBankBic($form->rec->iban);
+    		if(!$form->rec->bic){
+	        	$form->rec->bic = $bic;
+	        } else {
+	        	if($bank && $form->rec->bic != $bic){
+	        		$form->setWarning('bic', "Въвели сте за bic '{$form->rec->bic}' а правилния bic е '{$bic}'. Сигурни ли сте че искате да продължите");
+	        	}
+	        }
 		}
     }
     
