@@ -232,7 +232,6 @@ class support_Issues extends core_Master
         
         // Опитваме се да вземеме return ult' то
         $retUrl = getRetUrl();
-        $retUrl = ($retUrl) ? $retUrl : array('support_Issues', 'selectSystem');
 
         // Ако има systemId
         if ($systemId) {
@@ -261,22 +260,8 @@ class support_Issues extends core_Master
         // Записите за класа, който се явява корица
         $coverClassRec = doc_Folders::fetch($folderId);
         
-        //id' то на класа, който е корица
-        $coverClassId = $coverClassRec->coverClass;
-        
-        //Името на корицата на класа
-        $coverClassName = cls::getClassName($coverClassId);
-
-        // Ако ковъра на класа не е supportSystems
-        if ($coverClassName != 'support_Systems') {
-            
-            // Редиректваме към избор на система
-            return redirect(array($mvc, 'selectSystem', 'ret_url' => $retUrl));
-        } else {
-            
-            // Задаваме systemId да е id' то на ковъра
-            $systemId = $coverClassRec->coverId;
-        }
+        // Задаваме systemId да е id' то на ковъра
+        $systemId = $coverClassRec->coverId;
         
         // Всички системи, които наследяваме
         $allSystemsArr = support_Systems::getSystems($systemId);
@@ -368,88 +353,6 @@ class support_Issues extends core_Master
             // Скриваме полето за споделяне
             $data->form->setField('sharedUsers', 'input=none');
         }
-    }
-    
-    
-    /**
-     * Екшън за избиранер на система
-     */
-    function act_SelectSystem()
-    {
-        // Проверяваме за права
-        self::requireRightFor('add');
-        
-        // Вземаме формата към този модел
-        $form = $this->getForm();
-        
-        // Създаваме поле за избор на система
-        $form->FNC('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory');
-        
-        // Въвеждаме съдържанието на полетата
-        $form->input('systemId');
-        
-        // Ако формата е изпратена
-        if($form->isSubmitted()) {
-            
-            // Очакваме да е сетнат systemId
-            expect($systemId = $form->rec->systemId);
-            
-            // Редиректваме към създаването на сигнал с избраната система
-            return redirect(array($this, 'add', 'systemId' => $systemId, 'ret_url' => TRUE));
-        }
-        
-        // URL' то където ще редиректвамеа
-        $retUrl = getRetUrl();
-        
-        // Ако, няма създаваме си
-        $retUrl = ($retUrl) ? $retUrl : array('support_Issues');
-        
-        // Вземаме всички системи, до които имаме достъп
-        $accessedSystemsArr = support_Systems::getAccessed();
-        
-        // Броя на системите, до които имаме достъп
-        $accessedSystemsCnt = count($accessedSystemsArr);
-        
-        // Ако няма нито една система, до която да имаме достъп
-        if (!$accessedSystemsCnt) {
-            
-            // Добавяме съобщение за грешка
-            core_Statuses::add(tr('Няма достъпна система|*.'));
-            
-            // Ако има права за добавяне на система
-            if (support_Systems::haveRightFor('add')) {
-                
-                // Линк за препращаме към станицата за добавяне на система
-                $redirectArr = array('support_Systems', 'add', 'ret_url' => $retUrl);    
-            } else {
-                
-                // Ако нямаме права, препащаме където сочи return URL' то
-                $redirectArr = $retUrl;
-            }
-            
-            // Препащаме
-            return redirect($redirectArr);
-            
-        } elseif ($accessedSystemsCnt == 1) {
-
-            // Ако има само една достъпна система, препращане към създаването на докумев в нея
-            return redirect(array('support_Issues', 'add', 'systemId' => key($accessedSystemsArr), 'ret_url' => $retUrl));
-        } 
-        
-        // Ако достъпните ситеми са повече от 1, тогава ги показваме
-        $form->setOptions('systemId', $accessedSystemsArr);
-
-        // Кои полета да се показват
-        $form->showFields = 'systemId';
-        
-        // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Избор', 'select', array('class' => 'btn-select'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
-        
-        // Титлата на формата
-        $form->title = 'Избор на система';
-        
-        return $this->renderWrapping($form->renderHtml());
     }
     
     
