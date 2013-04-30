@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Клас 'ales_QuotationsOthers'
+ * Клас 'sales_QuotationsOthers'
  *
  *
  * @category  bgerp
- * @package   cat
+ * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -32,6 +32,7 @@ class sales_QuotationsOthers extends core_Detail
      * Единично заглавие
      */
     var $singleTitle = 'Друго условие';
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -104,11 +105,27 @@ class sales_QuotationsOthers extends core_Detail
      */
     public static function renderOthers($data)
     {
-      	if(sales_Quotations::haveRightFor('add') && !Mode::is('printing')){
+      	if(sales_QuotationsOthers::haveRightFor('write', $data->masterData->rec) && !Mode::is('printing')){
       		$addUrl = array('sales_QuotationsOthers', 'add', "quotationId" => $data->masterId, 'ret_url' => TRUE);
     		$data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . ">", $addUrl , FALSE, array('id' => 'add-others'));
       	}
       	
     	return static::renderDetail($data);
+    }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    {
+    	if($action == 'write' && $rec->id){
+    		
+    		// Ако офертата е активирана или отказана неможем да модифицираме
+    		$quoteState = sales_Quotations::fetchField($rec->id, 'state');
+    		if($quoteState != 'draft'){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }
