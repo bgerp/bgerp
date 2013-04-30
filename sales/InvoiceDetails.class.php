@@ -212,4 +212,13 @@ class sales_InvoiceDetails extends core_Detail
     		}
     	}
     }
+    
+    
+	/**
+     * След запис, обновяваме информацията в мастъра
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    {
+        $mvc->Master->updateInvoice($rec->invoiceId);
+    }
 }

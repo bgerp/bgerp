@@ -206,6 +206,23 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Преизчисляваме сумата на фактурата
+     * @param int $id - ид на фактурата
+     */
+    public function updateInvoice($id)
+    {
+    	$rec = $this->fetch($id);
+    	$detaiLQuery = sales_InvoiceDetails::getQuery();
+    	$detaiLQuery->where("#invoiceId = {$id}");
+    	while($detail = $detaiLQuery->fetch()){
+    		$rec->dealValue += $detail->amount;
+    	}
+    	
+    	$this->save($rec);
+    }
+    
+    
+    /**
      * След подготовка на формата
      */
     public static function on_AfterPrepareEditForm($mvc, $data)

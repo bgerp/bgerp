@@ -22,7 +22,7 @@
                         <div style="padding-top:5px;">|Дата|* / Date</div>
                         <div class="bigData">[#date#]</div>
     
-                        <div style="padding-top:5px;">Място / Place</div>
+                        <div style="padding-top:5px;">|Място|* / Place</div>
                         <div class="bigData">[#dealPlace#]</div>
 
                         <div style="padding-top:5px;" class="bigData">
@@ -120,7 +120,13 @@
        
                     <td class="topCell" align="right" valign="top" width="30%">
                         <table>
-                            <tbody><tr>
+                            <tbody>
+                            <tr>
+                            	<td>
+                            	|Общо|*:<span style='float:right'> <span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></span>
+                            	</td>
+                            </tr>
+                            <tr>
                                 <td style="padding-top: 5px; text-align: right;">
                                     |Съставил|*: ..................................&nbsp;
                                     <br>
