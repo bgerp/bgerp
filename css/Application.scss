@@ -417,6 +417,15 @@ div.alphabet div.tab-page {
 			.listTable th, .listTable td{
 				border:1px solid #bbb !important;
 			}
+			.state-active{
+				background-color:#FED;
+			}
+			.state-stopped{
+				background-color: #FEADAD;
+			}
+			.state-closed{
+				background-color: #eee;
+			}
 	}
 	div.tab-row .tab {
 		font-size:0.8em;
