@@ -404,13 +404,12 @@ div.alphabet div.tab-page {
 /*alphabet табовете в документ да изглеждат като основните, но по-малки*/
 .single-thread .document div.alphabet {
 	.tab-page{
-		padding:5px 10px 10px !important;
+		padding:0px 0px 0px !important;
 		clear: both;
-		border: 1px solid #bbb;
-		background: #ffffff;
+		border-top: 1px solid #bbb;
 		position: relative;
 		top: 1px;
-		@include border-radius(5px);
+		@include border-radius(0px);
 		z-index: 2;
 			.detail-info{
 				padding:0px;
@@ -424,31 +423,53 @@ div.alphabet div.tab-page {
 		font-family: arial;
 		box-shadow:none;
 		display: inline;
-		margin: 1px -16px -1px 18px;
+		margin: 1px 0px -1px 2px;
 		float: left;
-		padding: 4px 5px 4px 5px;
 		background: #ddd;
 		border: 1px solid #bbb;
 		border-bottom: none;
+		color:#999;
 		z-index: 1;
 		white-space: nowrap;
 		position: relative;
+		padding:0;
 		@include border-radius4(5px, 5px, 0px, 0px);
-		border-top: 2px solid $blue;
+		a{
+			display:inline-block;
+			color:#048;
+			padding: 4px 5px 4px 5px;
+			@include border-radius4(5px, 5px, 0px, 0px);
+		}
+		span{
+			display:inline-block;
+			padding: 4px 5px 4px 5px;
+		}
+		&:hover a{
+			background-color:#FFC !important;
+			color:#048 !important;
+		}
+		&:hover span{
+			background-color:#ddd !important;
+		}
 		&.selected {
+			margin:1px 0px -3px 2px;
 			background: #ffffff;
 			border: 1px solid #bbb;
-			border-top: 2px solid $blue;
 			border-bottom: none;
 			z-index: 3;
-			padding: 5px 5px 4px 5px;
-			margin: 1px -16px -3px 18px;
+			padding:0;
 			top: 0px;
 			font-weight: bold;
+			a{
+				padding:4px 5px 5px 5px;
+			}
 		}	
 	}
 }
+.thread-opened div.alphabet  .tab.selected{
+	background-color:#E0FFE0 !important;
 	
+}
 div.crmImage {
 	padding:10px 0px 8px 8px;
 	float:right;
