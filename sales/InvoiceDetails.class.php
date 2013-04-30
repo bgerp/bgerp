@@ -157,9 +157,11 @@ class sales_InvoiceDetails extends core_Detail
           	$masterRec = sales_Invoices::fetch($rec->invoiceId);
             $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
             $Policy = cls::get($rec->policyId);
-            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
-          
-	        if(!$rec->price){
+            
+            $price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
+          	$rec->price = currency_CurrencyRates::convertAmount($price, $masterRec->date, NULL, $masterRec->currencyId);
+	        
+            if(!$rec->price){
 	            $form->setError('price', 'Неможе да се определи цена');
 	        }
           }

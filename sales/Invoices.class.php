@@ -170,7 +170,7 @@ class sales_Invoices extends core_Master
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
 
         // Валута
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Валута->Код,width=6em');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
         $this->FLD('currencyRate', 'double', 'caption=Валута->Курс');  
         
         // Доставка
@@ -217,13 +217,6 @@ class sales_Invoices extends core_Master
         	// При създаване на нова ф-ра зареждаме полетата на 
             // формата с разумни стойности по подразбиране.
             $mvc::setFormDefaults($form);
-        }
-        
-        if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
-        	$form->setDefault('accountId', $ownAcc);
-        	$form->setReadOnly('accountId');
-        } else {
-        	$form->setField('accountId', 'input=none');
         }
         
         $mvc::populateContragentData($form);
@@ -532,14 +525,14 @@ class sales_Invoices extends core_Master
         }
         
         if (!empty($rec->contragentCountryId)) {
-            $currencyCode    = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
-            $rec->currencyId = currency_Currencies::getIdByCode($currencyCode);
+            $rec->currencyId = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
             
-            if ($rec->currencyId) {
-            	
-                // Задаване на избор за банкова сметка
-                $form->getField('accountId')->type->options = bank_OwnAccounts::getOwnAccounts();
-            }
+            if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
+	        	$form->setDefault('accountId', $ownAcc);
+	        	$form->setReadOnly('accountId');
+	        } else {
+	        	$form->setField('accountId', 'input=none');
+	        }
         }
     }
 
