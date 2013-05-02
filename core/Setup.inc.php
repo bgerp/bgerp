@@ -28,6 +28,9 @@ DEFINE ('SETUP_LOCK_PERIOD', 600);
 
 defIfNot('BGERP_GIT_BRANCH', 'dev');
 
+defIfNot('BGERP_GIT_PATH', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '"C:/Program Files (x86)/Git/bin/git.exe"' : 'git');
+
+
 if (setupKeyValid() && !setupProcess()) {
     // Опит за стартиране на сетъп
     if (!setupLock()) {
@@ -1050,7 +1053,7 @@ function gitPullRepo($repoPath, &$log)
     
     $repoName = basename($repoPath);
     
-    $commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch 2>&1";
+    $res = execGit("--git-dir=\"{$repoPath}/.git\" fetch 2>&1");
 
     $commandMerge = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/" . BGERP_GIT_BRANCH ." 2>&1";
 
