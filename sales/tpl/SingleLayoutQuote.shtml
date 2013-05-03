@@ -52,8 +52,6 @@
 	<!--ET_END DETAILS-->
 	
 	<!--ET_BEGIN OPTIONAL-->
-	<div class="page-break"></div>
-	
 	<div id='optional-holder'>
 	<p class='table-detail-header'>|Опционални продукти и услуги|*</p>
 	[#OPTIONAL#]
