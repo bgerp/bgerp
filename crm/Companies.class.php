@@ -675,6 +675,19 @@ class crm_Companies extends core_Master
             }
         }
     }
+
+
+    /**
+     * Връща информацията, която има за нашата фирма
+     */
+    static function fetchOurCompany()
+    {
+        $conf = core_Packs::getConfig('crm');
+        $rec = self::fetch($conf->BGERP_OWN_COMPANY_ID);
+        $rec->classId = core_Classes::fetchIdByName('crm_Companies');
+        
+        return $rec;
+    }
     
     
     /**
