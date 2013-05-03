@@ -61,6 +61,9 @@ class type_Richtext extends type_Blob
     {
         // По подразбиране да се компресира
         setIfNot($params['params']['compress'], 'compress');
+        
+        // По подразбиране е средно голямо
+        setIfNot($params['params']['size'], 1000000);
 
         // Ако е зададено да не се компресира
         if ($params['params']['compress'] == 'no') {
