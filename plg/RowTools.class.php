@@ -40,11 +40,7 @@ class plg_RowTools extends core_Plugin
                     'ret_url' => TRUE
                 ));
 
-            if(cls::haveInterface('doc_DocumentIntf', $mvc)) {
-                $icon = $mvc->getIcon($rec->id);
-            } else {
-                $icon = $mvc->singleIcon;
-            }
+            $icon = $mvc->getIcon($rec->id);
             
             if($singleField = $mvc->rowToolsSingleField) { 
                 $attr1['class'] = 'linkWithIcon';
@@ -121,6 +117,18 @@ class plg_RowTools extends core_Plugin
         }
     }
     
+    
+    /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    {
+        if(!$res) { 
+            $res = $mvc->singleIcon;
+        }
+    }
+
     
     /**
      * Реализация по подразбиране на метода getEditUrl()
