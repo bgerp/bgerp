@@ -57,11 +57,12 @@ function ef_autoload($className)
         
         return TRUE;
     } else {
+
         return core_Cls::load($className, TRUE);;
     }
 }
 
-spl_autoload_register('ef_autoload', true, true);
+spl_autoload_register('ef_autoload', TRUE, TRUE);
 
 
 /**
