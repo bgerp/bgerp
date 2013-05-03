@@ -49,7 +49,7 @@ class bank_Accounts extends core_Master {
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/money.png';
+    var $singleIcon = 'img/16/bank.png';
     
     
     /**
@@ -83,11 +83,6 @@ class bank_Accounts extends core_Master {
         $this->FLD('contragentCls', 'class', 'caption=Контрагент->Клас,mandatory,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory,width=6em');
-        $this->FLD('type', 'enum(current=Разплащателна,
-            deposit=Депозитна,
-            loan=Кредитна,
-            personal=Персонална,
-            capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory');     // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка,width=100%');
@@ -159,6 +154,27 @@ class bank_Accounts extends core_Master {
 	        }
 		}
     }
+
+
+    /**
+     * Връща иконата за сметката
+     */
+    function getIcon($id)
+    {
+        $rec = $this->fetch($id);
+
+        $ourCompanyRec = crm_Companies::fetchOurCompany();
+
+        if($rec->contragentId == $ourCompanyRec->id && $rec->contragentCls == $ourCompanyRec->classId) {
+            $ownBA = cls::get('bank_OwnAccounts');
+            $icon =  $ownBA->singleIcon;
+        } else {
+            $icon =  $this->singleIcon;
+        }
+
+        return $icon;
+    }
+
     
     
     /**

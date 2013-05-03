@@ -96,7 +96,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/Money-icon.png';
+    var $singleIcon = 'img/16/own-bank.png';
     
     
     /**
@@ -105,10 +105,15 @@ class bank_OwnAccounts extends core_Master {
     function description()
     {
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
+        $this->FLD('type', 'enum(current=Разплащателна,
+            deposit=Депозитна,
+            loan=Кредитна,
+            personal=Персонална,
+            capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име,mandatory');
         $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
-        $this->FLD('operators', 'userList(bank,bankWorker)', 'caption=Оператори,mandatory');
+        $this->FLD('operators', 'userList(roles=bank)', 'caption=Оператори,mandatory');
     }
     
 
@@ -135,7 +140,7 @@ class bank_OwnAccounts extends core_Master {
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
     	$optionAccounts = $mvc->getPossibleBankAccounts();
-    	$operators = $mvc->getOperators();
+    	
     	$titulars = $mvc->getTitulars();
         
         $data->form->setOptions('bankAccountId', $optionAccounts);
@@ -177,14 +182,14 @@ class bank_OwnAccounts extends core_Master {
      */
     function getPossibleBankAccounts()
     {
-    	$conf = core_Packs::getConfig('crm');
     	$bankAccounts = cls::get('bank_Accounts');
     	
     	// Извличаме само онези сметки, които са на нашата фирма и не са
         // записани в bank_OwnAccounts
+        $ourCompany        = crm_Companies::fetchOurCompany();
         $queryBankAccounts = $bankAccounts->getQuery();
-        $queryBankAccounts->where("#contragentId = {$conf->BGERP_OWN_COMPANY_ID}");
-        $queryBankAccounts->where("#contragentCls = " . core_Classes::getId('crm_Companies'));
+        $queryBankAccounts->where("#contragentId = {$ourCompany->id}");
+        $queryBankAccounts->where("#contragentCls = {$ourCompany->classId}");
         $options = array();
         
         while($rec = $queryBankAccounts->fetch()) {
@@ -198,29 +203,6 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * Извличаме само потребителите с роля bank
-     * @return array $suggestions - масив от потребители
-     */
-    function getOperators()
-    {
-    	$suggestions = array();
-    	$query = core_Users::getQuery();
-    	while($rec = $query->fetch()) {
-    		if(core_Users::haveRole('bank', $rec->id)) {
-    			$row = core_Users::recToVerbal($rec);
-    			$suggestions[$rec->id] = $row->names;
-    		}
-    	}
-    	
-    	if(count($suggestions) == 0) {
-    		return Redirect(array('core_Users', 'list'), NULL, 'Няма потребители с права "bank"');
-    	}
-    	
-    	return $suggestions;
-    }    
-    
-    
-    /**
      * Проверка дали може да се добавя банкова сметка в ownAccounts(Ако броя
      * на собствените сметки отговаря на броя на сметките на Моята компания в
      * bank_Accounts то неможем да добавяме нова сметка от този мениджър
@@ -228,14 +210,16 @@ class bank_OwnAccounts extends core_Master {
      */
     function canAddOwnAccount()
     {
-    	$conf = core_Packs::getConfig('crm');
-    	$accountsQuery = bank_Accounts::getQuery();
-    	$accountsQuery->where("#contragentId = {$conf->BGERP_OWN_COMPANY_ID}");
-        $accountsQuery->where("#contragentCls = " . core_Classes::getId('crm_Companies'));
+        $ourCompany = crm_Companies::fetchOurCompany();
+    	
+        $accountsQuery = bank_Accounts::getQuery();
+    	$accountsQuery->where("#contragentId = {$ourCompany->id}");
+        $accountsQuery->where("#contragentCls = {$ourCompany->classId}");
         $accountsNumber = $accountsQuery->count();
     	$ownAccountsQuery = $this->getQuery();
     	$ownAccountsNumber = $ownAccountsQuery->count();
-    	if($ownAccountsNumber == $accountsNumber) {
+    	
+        if($ownAccountsNumber == $accountsNumber) {
     		return FALSE;
     	}
     	
