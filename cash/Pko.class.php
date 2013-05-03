@@ -285,15 +285,13 @@ class cash_Pko extends core_Master
 		    $row->amountVerbal = $amountVerbal;
 		    	
     		// Вземаме данните за нашата фирма
-    		$conf = core_Packs::getConfig('crm');
-    		$companyId = $conf->BGERP_OWN_COMPANY_ID;
-        	$myCompany = crm_Companies::fetch($companyId);
-        	$row->organisation = $myCompany->name;
+        	$ourCompany = crm_Companies::fetchOurCompany();
+        	$row->organisation = $ourCompany->name;
         	$row->organisation .= trim(
                 sprintf("<br>%s %s<br> %s", 
-                    $myCompany->place,
-                    $myCompany->pCode,
-                    $myCompany->address
+                    $ourCompany->place,
+                    $ourCompany->pCode,
+                    $ourCompany->address
                 )
             );
             
