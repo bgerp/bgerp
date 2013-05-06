@@ -262,7 +262,7 @@ class trz_Trips extends core_Master
 	            $calRec->state = $rec->state;
 	            
 	            // Url на задачата
-	            $calRec->url = toUrl(array('trz_Trips', 'Single', $id), 'local'); 
+	            $calRec->url = array('trz_Trips', 'Single', $id); 
 	            
 	            $events[] = $calRec;
 	        }

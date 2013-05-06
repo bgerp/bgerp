@@ -90,7 +90,7 @@ class bgerp_Notifications extends core_Manager
         $rec = new stdClass();
         $rec->msg = $msg;
         
-        $rec->url = toUrl($urlArr, 'local');
+        $rec->url = toUrl($urlArr, 'local', FALSE);
         $rec->userId = $userId;
         $rec->priority = $priority;
         
@@ -109,7 +109,7 @@ class bgerp_Notifications extends core_Manager
         $rec->state = 'active';
         $rec->hidden = 'no';
         if($customUrl) {
-            $rec->customUrl = toUrl($customUrl, 'local');
+            $rec->customUrl = toUrl($customUrl, 'local', FALSE);
         }
         
         bgerp_Notifications::save($rec);
@@ -130,7 +130,7 @@ class bgerp_Notifications extends core_Manager
         if(empty($userId)) {
             return;
         }
-        $url = toUrl($urlArr, 'local');
+        $url = toUrl($urlArr, 'local', FALSE);
         $query = bgerp_Notifications::getQuery();
         
         if($userId == '*') {
@@ -153,7 +153,7 @@ class bgerp_Notifications extends core_Manager
      */
     static function setHidden($urlArr, $hidden = 'yes', $userId=NULL) 
     {
-        $url = toUrl($urlArr, 'local');
+        $url = toUrl($urlArr, 'local', FALSE);
         
         $query = self::getQuery();
 
@@ -206,7 +206,7 @@ class bgerp_Notifications extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $url = getRetUrl($rec->customUrl ? $rec->customUrl : $rec->url);
+        $url = parseLocalUrl($rec->customUrl ? $rec->customUrl : $rec->url, FALSE);
         
         if($rec->cnt > 1) {
             //  $row->msg .= " ({$rec->cnt})";

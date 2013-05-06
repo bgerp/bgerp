@@ -348,7 +348,7 @@ class trz_Sickdays extends core_Master
 	            $calRec->state = $rec->state;
 	            
 	            // Url на задачата
-	            $calRec->url = toUrl(array('trz_Sickdays', 'Single', $id), 'local'); 
+	            $calRec->url = array('trz_Sickdays', 'Single', $id); 
 	            
 	            $events[] = $calRec;
 	        }

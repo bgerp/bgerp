@@ -339,7 +339,7 @@ class cal_Holidays extends core_Master
                     $calRec->title = self::getVerbal($rec, 'type') . ': ' . $calRec->title;
                 }
                 
-                $calRec->url    = toUrl(array('cal_Holidays', 'single', $rec->id), 'local');
+                $calRec->url   = array('cal_Holidays', 'single', $rec->id);
                 
                 $calRec->users = $card[$rec->type];
                 

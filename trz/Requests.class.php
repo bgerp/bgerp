@@ -347,7 +347,7 @@ class trz_Requests extends core_Master
 	            $calRec->state = $rec->state;
 	            
 	            // Url на задачата
-	            $calRec->url = toUrl(array('trz_Requests', 'Single', $id), 'local'); 
+	            $calRec->url = array('trz_Requests', 'Single', $id); 
 	            
 	            $events[] = $calRec;
 	        }

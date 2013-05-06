@@ -537,7 +537,7 @@ class email_Outgoings extends core_Master
     
             //Ако има поне един клас, който да имплементира интерфейса
             if ($clsCount) {
-                $data->form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => getRetUrl()), 'class=btn-fax');      
+                $data->form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => TRUE), 'class=btn-fax');      
             }
         }
         

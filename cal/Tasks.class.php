@@ -459,7 +459,7 @@ class cal_Tasks extends core_Master
             $calRec->priority = self::getNumbPriority($rec);
 
             // Url на задачата
-            $calRec->url = toUrl(array('cal_Tasks', 'Single', $id), 'local'); 
+            $calRec->url = array('cal_Tasks', 'Single', $id); 
             
             $events[] = $calRec;
         }
@@ -494,7 +494,7 @@ class cal_Tasks extends core_Master
             $calRec->priority = self::getNumbPriority($rec) - 1;
 
             // Url на задачата
-            $calRec->url = toUrl(array('cal_Tasks', 'Single', $id), 'local'); 
+            $calRec->url = array('cal_Tasks', 'Single', $id); 
             
             $events[] = $calRec;
         }

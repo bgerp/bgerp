@@ -205,6 +205,9 @@ class cal_Calendar extends core_Master
                     $res['new']++;
                 }
 
+                // Ако ->url е масив, от него правим локално url без протекция
+                $e->url = toUrl($e->url, 'local', FALSE);
+
                 self::save($e);
             }
         }
@@ -306,11 +309,12 @@ class cal_Calendar extends core_Master
      */
     static function recToVerbal(&$rec)
     {
-    	
     	$row = parent::recToVerbal_($rec);
 
     	$lowerType = strtolower($rec->type);
-        $url = getRetUrl($rec->url);
+       
+        $url = parseLocalUrl($rec->url, FALSE);
+ 
         $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
         	$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';
@@ -1247,7 +1251,7 @@ class cal_Calendar extends core_Master
 			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
 			    
 			    // Линк към събитието
-	     		$url = getRetUrl($rec->url);
+	     		$url = parseLocalUrl($rec->url, FALSE);
 	               
 	     		// Ид-то на събитието
 	    		$id = substr(strrchr($rec->url, "/"),1);
@@ -1308,7 +1312,7 @@ class cal_Calendar extends core_Master
 			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
 			    
 			    // Линк към събитието
-	     		$url = getRetUrl($rec->url);
+	     		$url = parseLocalUrl($rec->url, FALSE);
 	               
 	     		// Ид-то на събитието
 	    		$id = substr(strrchr($rec->url, "/"),1);
@@ -1381,7 +1385,7 @@ class cal_Calendar extends core_Master
 			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
 			    
 			    // Линк към събитието
-	     		$url = getRetUrl($rec->url);
+	     		$url = parseLocalUrl($rec->url, FALSE);
 	               
 	     		// Ид-то на събитието
 	    		$id = substr(strrchr($rec->url, "/"),1);

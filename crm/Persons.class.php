@@ -666,7 +666,7 @@ class crm_Persons extends core_Master
                 
                 $calRec->users = '';
 
-                $calRec->url = toUrl(array('crm_Persons', 'Single', $id), 'local');
+                $calRec->url = array('crm_Persons', 'Single', $id);
 
                 $calRec->priority = 90;
 

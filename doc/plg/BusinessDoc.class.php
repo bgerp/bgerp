@@ -67,7 +67,7 @@ class doc_plg_BusinessDoc extends core_Plugin
             // @TODO валидиране и редирект с определения folderId или originId
             if ($p = static::getReasonParams($form)) {
                 $tpl = new Redirect(
-                    toUrl(array($mvc, $action) + $p + array('retUrl'=>static::getRetUrl($mvc)))
+                    toUrl(array($mvc, $action) + $p + array('retUrl' => static::getRetUrl($mvc)))
                 );
                 
                 // За да прекъснем веригата от събития (on_BeforeAction и act_Action)
@@ -138,7 +138,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     protected static function getRetUrl($mvc)
     {
         if (!$retUrl = getRetUrl()) {
-            $retUrl = toUrl(array($mvc, 'list'));
+            $retUrl = toUrl(array($mvc, 'list'), 'local');
         }
     
         return $retUrl;
