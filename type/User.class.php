@@ -72,7 +72,7 @@ class type_User extends type_Key
             $uQuery->where("#state = 'active'");
             
             // Потребителите, които ще покажем, трябва да имат посочените роли
-            $roles = core_Roles::keylistFromVerbal($this->params['roles']);
+            $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
             $uQuery->likeKeylist('roles', $roles);
             
             if(haveRole($this->params['rolesForAll'])) {

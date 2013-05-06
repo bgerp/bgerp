@@ -103,7 +103,7 @@ class core_Users extends core_Manager
     /**
      * Кои колонки да се показват в табличния изглед
      */
-    var $listFields = 'id,title=Имена,roles,last=Последно';
+    var $listFields = 'id,title=Имена,rolesInput,last=Последно';
     
     
     /**
@@ -133,7 +133,8 @@ class core_Users extends core_Manager
         
         $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=15em');
         
-        $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли,oldFieldName=Role');
+        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли');
+        $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
             'caption=Състояние,notNull,default=draft');
@@ -445,41 +446,56 @@ class core_Users extends core_Manager
         $row->last->append("<br>");
         
         $row->last->append($row->lastLoginTime);
+
+        $rolesInputArr = type_Keylist::toArray($rec->rolesInput);
+        $rolesArr      = type_Keylist::toArray($rec->roles);
+
+        foreach($rolesArr as $roleId) {
+
+            if(!$rolesInputArr[$roleId]) {
+                $addRoles .= ($addRoles ? ', ' : '') . core_Roles::fetchByName($roleId);
+            }
+        }
+
+        if($addRoles) {
+
+            $row->rolesInput .= "<div style='color:#666;'>" . tr("индиректно") . ": " . $addRoles . "</div>";
+        }
+
+        $row->rolesInput = "<div style='max-width:400px;'>{$row->rolesInput}</div>";
     }
     
     
     /**
      * Изпълнява се преди запис на ред в таблицата
      */
-    static function on_BeforeSave($mvc, &$id, &$rec)
+    static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
     {
-        if($rec->id) {
-            return;
+        if(!$rec->id) {
+            $haveUsers = !!$mvc->fetch('1=1');
+        } else {
+            $haveUsers = TRUE;
         }
-        $haveUsers = !!$mvc->fetch('1=1');
-        
-        
-        $rolesArr = type_Keylist::toArray($rec->roles);
-        
-        // Всеки потребител има роля 'user'
-        $rolesArr[$mvc->core_Roles->fetchByName('user')] = TRUE;
-        
-        // Първия потребител има роля 'admin' и активен статус
-        if(!$haveUsers) {
-            $rolesArr[$mvc->core_Roles->fetchByName('admin')] = TRUE;
-            $rec->state = 'active';
-        }
-        
-        // Изчисляваме останалите роли на потребителя
-        foreach($rolesArr as $roleId => $dummy) {
-            $rolesArr += core_Roles::getRolesArr($roleId);
-        }
-        
-        // Правим масива от изчислени роли към keylist
-        $rec->roles = '|';
-        
-        foreach($rolesArr as $roleId => $dummy) {
-            $rec->roles .= $roleId . '|';
+ 
+        $fields = $mvc->prepareSaveFields($fields, $rec);
+      
+        if($rec->rolesInput && $fields['roles']) {
+            $rolesArr = type_Keylist::toArray($rec->rolesInput);
+            
+            // Всеки потребител има роля 'user'
+            $userRoleId = $mvc->core_Roles->fetchByName('user');
+            $rolesArr[$userRoleId] = $userRoleId;
+            
+            // Първия потребител има роля 'admin' и активен статус
+            if(!$haveUsers) {
+                $roleAdminId = $mvc->core_Roles->fetchByName('admin');
+                $rolesArr[$roleAdminId] = $roleAdminId;
+                $rec->state = 'active';
+            }
+     
+            $rolesArr = core_Roles::expand($rolesArr);
+
+            $rec->roles = type_Keylist::fromArray($rolesArr);
         }
         
     }
@@ -668,12 +684,7 @@ class core_Users extends core_Manager
         
         if ($userRec->state != 'active' || $userRec->maxIdleTime > EF_USERS_SESS_TIMEOUT) {
             $Users->logout();
-            
-            global $_GET;
-            $get = $_GET;
-            unset($get['virtual_url'], $get['ajax_mode']);
-            
-            redirect($get);
+            redirect(getCurrentUrl());
         }
         
         $userRec->refreshTime = $now;
@@ -729,7 +740,7 @@ class core_Users extends core_Manager
             
             // Опитваме да получим адрес за връщане от заявката
             $retUrl = $retUrl ? $retUrl : getCurrentUrl();
-            
+        
             // Редиректваме към формата за логване, 
             // като изпращаме и адрес за връщане
             redirect(array(
@@ -795,20 +806,16 @@ class core_Users extends core_Manager
             $roleId = core_Roles::fetchByName($roleId);
         }
         
-        expect($roleId > 0, roleId);
+        expect($roleId > 0, $roleId);
         expect($userId > 0, $userId);
         
-        $uRec = core_Users::fetch($userId, 'roles');
+        $uRec = core_Users::fetch($userId, 'rolesInput');
         $rolesArr = type_Keylist::toArray($uRec->roles);
         $rolesArr[$roleId] = $roleId;
-        
-        // Добавяме наследените роли
-        $inheritRolesArr = type_Keylist::toArray(core_Roles::getInheritRoles($roleId));
-        $rolesArr += $inheritRolesArr;
 
-        $uRec->roles = type_Keylist::fromArray($rolesArr);
+        $uRec->rolesInput = type_Keylist::fromArray($rolesArr);
         
-        core_Users::save($uRec, 'roles');
+        core_Users::save($uRec, 'rolesInput');
     }
     
     
@@ -867,24 +874,6 @@ class core_Users extends core_Manager
     
     
     /**
-     * Всички потребители на системата с даден ранг
-     *
-     * @param string $rank - ceo, manager, officer, executive, contractor
-     * @return array масив от първични ключове на потребители
-     */
-    static function getByRank($rank)
-    {
-        $users = array();
-        
-        if ($rankRoleId = core_Roles::fetchField("#role = '{$rank}' AND #type = 'rang'", 'id')) {
-            $users = static::getByRole($rankRoleId);
-        }
-        
-        return $users;
-    }
-    
-    
-    /**
      * Всички потребители с дадена роля
      *
      * @param mixed $roleId ид на роля или масив от ид на роли
@@ -892,7 +881,7 @@ class core_Users extends core_Manager
      * FALSE - потребителите имащи тази и/или някоя от наследените й роли
      * @return array
      */
-    static function getByRole($roleId, $strict = FALSE)
+    static function getByRole($roleId)
     {
         $users = array();
         
@@ -902,18 +891,8 @@ class core_Users extends core_Manager
             $roleId   = core_Roles::fetchByName($roleId);
         }
         
-        if (!$strict) {
-            $roles = core_Roles::expand($roleId);
-        } elseif (!is_array($roleId)) {
-            $roles = array($roleId);
-        } else {
-            $roles = $roleId;
-        }
-        
-        /* @var $query core_Query */
         $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $query->likeKeylist('roles', $roles);
+        $query->where("#roles = {$roleId} AND #state = 'active'");
         
         while ($rec = $query->fetch()) {
             $users[$rec->id] = $rec->id;
@@ -925,6 +904,7 @@ class core_Users extends core_Manager
     
     /**
      * Проверка дали потребителя има посочената роля/роли
+     * @param $roles array, keylist, list
      */
     static function haveRole($roles, $userId = NULL)
     {
@@ -932,7 +912,7 @@ class core_Users extends core_Manager
         
         $Roles = cls::get('core_Roles');
         
-        if($roles{0} == '|' && $roles{strlen($roles)-1} == '|') {
+        if(type_Keylist::isKeylist($roles)) {
             foreach(type_Keylist::toArray($roles) as $roleId) {
                 $requiredRoles[] = $Roles->fetchByName($roleId);
             }
@@ -940,18 +920,20 @@ class core_Users extends core_Manager
             $requiredRoles = arr::make($roles);
         }
         
-        foreach ($requiredRoles as $role) {
-            
-            // Всеки потребител има роля 'every_one'
-            if ($role == 'every_one') return TRUE;
-            
-            // Никой потребител, няма роля 'none'
-            if ($role == 'no_one' && !isDebug()) continue;
-            
-            $roleId = $Roles->fetchByName($role);
-            
-            // Съдържа ли се ролята в keylist-а от роли на потребителя?
-            if(type_Keylist::isIn($roleId, $userRoles)) return TRUE;
+        if(count($requiredRoles)) {
+            foreach ($requiredRoles as $role) {
+                
+                // Всеки потребител има роля 'every_one'
+                if ($role == 'every_one') return TRUE;
+                
+                // Никой потребител, няма роля 'none'
+                if ($role == 'no_one' && !isDebug()) continue;
+                
+                $roleId = $Roles->fetchByName($role);
+                
+                // Съдържа ли се ролята в keylist-а от роли на потребителя?
+                if(type_Keylist::isIn($roleId, $userRoles)) return TRUE;
+            }
         }
         
         return FALSE;
@@ -965,7 +947,7 @@ class core_Users extends core_Manager
     static function requireRole($requiredRoles, $retUrl = NULL, $action = NULL)
     {
         Users::refreshSession();
-        
+       
         if (!Users::haveRole($requiredRoles)) {
             Users::forceLogin($retUrl);
             error('Недостатъчни права за този ресурс', array(
@@ -978,6 +960,19 @@ class core_Users extends core_Manager
         return TRUE;
     }
     
+
+    /**
+     * Преизчислява за всеки потребител, всички преизчислени роли
+     */
+    static function rebuildRoles()
+    {
+        $query = self::getQuery();
+
+        while($rec = $query->fetch()) {
+            self::save($rec, 'roles');
+        }
+    }
+
     
     /**
      * Заглавието на потребителя в този запис
@@ -1026,22 +1021,7 @@ class core_Users extends core_Manager
      * Начално инсталиране в системата
      */
     static function on_AfterSetupMVC($mvc, &$res)
-    {
-        
-        // Правим конверсия на полето roles
-        $query = $mvc->getQuery();
-        
-        while($rec = $query->fetch()) {
-            if($rec->roles && $rec->roles{0} != '|') {
-                $roleId = $rec->roles;
-                
-                if($roleId) {
-                    $rec->roles = "|" . $roleId . "|";
-                    $mvc->save($rec);
-                }
-            }
-        }
-        
+    { 
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
         $rec = new stdClass();

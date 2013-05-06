@@ -62,7 +62,7 @@ class type_UserList extends type_Keylist
         $teams = core_Roles::getRolesByType('team');
         $teams = self::toArray($teams);
 
-        $roles = core_Roles::keylistFromVerbal($this->params['roles']);
+        $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
 
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;

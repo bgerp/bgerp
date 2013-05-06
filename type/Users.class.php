@@ -83,7 +83,7 @@ class type_Users extends type_Keylist
             }
             
             // Потребителите, които ще покажем, трябва да имат посочените роли
-            $roles = core_Roles::keylistFromVerbal($this->params['roles']);
+            $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
             $uQuery->likeKeylist('roles', $roles);
             
             // Масива, където ще пълним опциите
