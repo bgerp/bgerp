@@ -447,8 +447,8 @@ class core_Users extends core_Manager
         
         $row->last->append($row->lastLoginTime);
 
-        $rolesInputArr = type_Keylist::toArray($rec->rolesInput);
-        $rolesArr      = type_Keylist::toArray($rec->roles);
+        $rolesInputArr = keylist::toArray($rec->rolesInput);
+        $rolesArr      = keylist::toArray($rec->roles);
 
         foreach($rolesArr as $roleId) {
 
@@ -480,7 +480,7 @@ class core_Users extends core_Manager
         $fields = $mvc->prepareSaveFields($fields, $rec);
       
         if($rec->rolesInput && $fields['roles']) {
-            $rolesArr = type_Keylist::toArray($rec->rolesInput);
+            $rolesArr = keylist::toArray($rec->rolesInput);
             
             // Всеки потребител има роля 'user'
             $userRoleId = $mvc->core_Roles->fetchByName('user');
@@ -495,7 +495,7 @@ class core_Users extends core_Manager
      
             $rolesArr = core_Roles::expand($rolesArr);
 
-            $rec->roles = type_Keylist::fromArray($rolesArr);
+            $rec->roles = keylist::fromArray($rolesArr);
         }
         
     }
@@ -810,10 +810,10 @@ class core_Users extends core_Manager
         expect($userId > 0, $userId);
         
         $uRec = core_Users::fetch($userId, 'rolesInput');
-        $rolesArr = type_Keylist::toArray($uRec->roles);
+        $rolesArr = keylist::toArray($uRec->roles);
         $rolesArr[$roleId] = $roleId;
 
-        $uRec->rolesInput = type_Keylist::fromArray($rolesArr);
+        $uRec->rolesInput = keylist::fromArray($rolesArr);
         
         core_Users::save($uRec, 'rolesInput');
     }
@@ -826,7 +826,7 @@ class core_Users extends core_Manager
     {
         $roles = core_Users::getRoles($userId);
         
-        $rolesArr = type_Keylist::toArray($roles);
+        $rolesArr = keylist::toArray($roles);
         
         $roleQuery = core_Roles::getQuery();
         
@@ -842,7 +842,7 @@ class core_Users extends core_Manager
             }
         }
         
-        return type_Keylist::fromArray($res);
+        return keylist::fromArray($res);
     }
     
     
@@ -866,7 +866,7 @@ class core_Users extends core_Manager
                 $res[$rec->id] = $rec->id;
             }
             
-            $teamMates = type_Keylist::fromArray($res);
+            $teamMates = keylist::fromArray($res);
         }
         
         return $teamMates;
@@ -912,8 +912,8 @@ class core_Users extends core_Manager
         
         $Roles = cls::get('core_Roles');
         
-        if(type_Keylist::isKeylist($roles)) {
-            foreach(type_Keylist::toArray($roles) as $roleId) {
+        if(keylist::isKeylist($roles)) {
+            foreach(keylist::toArray($roles) as $roleId) {
                 $requiredRoles[] = $Roles->fetchByName($roleId);
             }
         } else {
@@ -932,7 +932,7 @@ class core_Users extends core_Manager
                 $roleId = $Roles->fetchByName($role);
                 
                 // Съдържа ли се ролята в keylist-а от роли на потребителя?
-                if(type_Keylist::isIn($roleId, $userRoles)) return TRUE;
+                if(keylist::isIn($roleId, $userRoles)) return TRUE;
             }
         }
         

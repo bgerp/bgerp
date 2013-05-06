@@ -216,7 +216,7 @@ class core_Query extends core_FieldSet
      */
     function likeKeylist($field, $keylist, $or = FALSE)
     {
-        $keylistArr = type_Keylist::toArray($keylist);
+        $keylistArr = keylist::toArray($keylist);
         
         $isFirst = TRUE;
         

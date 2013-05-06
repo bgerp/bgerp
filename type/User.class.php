@@ -83,7 +83,7 @@ class type_User extends type_Key
                 $teams = core_Users::getUserRolesByType(NULL, 'team');
             }
             
-            $teams = type_Keylist::toArray($teams);
+            $teams = keylist::toArray($teams);
             
             $this->options = array();
             

@@ -38,6 +38,7 @@ function ef_autoload($className)
 {
     $aliases = array('arr' => 'core_Array',
         'dt' => 'core_DateTime',
+        'keylist' => 'type_Keylist',
         'ht' => 'core_Html',
         'et' => 'core_ET',
         'str' => 'core_String',

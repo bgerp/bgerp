@@ -144,7 +144,7 @@ class core_Roles extends core_Manager
     static function expand($roles, &$current = array())
     {
         if (!is_array($roles)) {
-            $roles = type_Keylist::toArray($roles, TRUE);
+            $roles = keylist::toArray($roles, TRUE);
         }
         
         foreach ($roles as $role) {
@@ -180,7 +180,7 @@ class core_Roles extends core_Manager
             $res[$roleRec->id] = $roleRec->id;
         }
         
-        return type_Keylist::fromArray($res);
+        return keylist::fromArray($res);
     }
 
 
@@ -190,7 +190,7 @@ class core_Roles extends core_Manager
     static function getRolesAsKeylist($roles)
     {
         // Ако входния аргумент е keylist - директно го връщаме
-        if(type_Keylist::isKeylist($roles)) {
+        if(keylist::isKeylist($roles)) {
 
             return $roles;
         }
@@ -205,7 +205,7 @@ class core_Roles extends core_Manager
             $keylistArr[$id] = $id;
         }
         
-        $keylist = type_Keylist::fromArray($keylistArr);
+        $keylist = keylist::fromArray($keylistArr);
         
         return $keylist;
     }
@@ -223,11 +223,11 @@ class core_Roles extends core_Manager
         $res = array();
 
         if(is_string($roles) && $roles) {
-            if(!type_Keylist::isKeylist($roles)) {
+            if(!keylist::isKeylist($roles)) {
                 //Вземаме всики типове роли
                 $roles = self::getRolesAsKeylist($roles);
             }
-            $roles = type_Keylist::toArray($roles);
+            $roles = keylist::toArray($roles);
         } elseif(is_int($roles)) {
             $roles = array($roles => $roles);
         } else {
@@ -269,7 +269,7 @@ class core_Roles extends core_Manager
                 if ($expandedRoles[$rec->id]) {
                     $form->setError('inherit', "|Не може да се наследи роля, която е или наследява текущата роля");  
                 } else {
-                    $rec->inherit = type_Keylist::fromArray($expandedRoles);
+                    $rec->inherit = keylist::fromArray($expandedRoles);
                 }
 
             }
@@ -282,8 +282,8 @@ class core_Roles extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $rolesInputArr = type_Keylist::toArray($rec->inheritInput);
-        $rolesArr      = type_Keylist::toArray($rec->inherit);
+        $rolesInputArr = keylist::toArray($rec->inheritInput);
+        $rolesArr      = keylist::toArray($rec->inherit);
 
         foreach($rolesArr as $roleId) {
 
@@ -326,7 +326,7 @@ class core_Roles extends core_Manager
                 
                 $calcRolesArr = self::expand($rec->inheritInput);
                 
-                $calcRolesKeylist = type_Keylist::fromArray($calcRolesArr);
+                $calcRolesKeylist = keylist::fromArray($calcRolesArr);
 
                 if(($calcRolesKeylist || $rec->inherit) && ($calcRolesKeylist != $rec->inherit)) {
                     $rec->inherit = $calcRolesKeylist;

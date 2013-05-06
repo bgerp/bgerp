@@ -110,7 +110,7 @@ class type_Users extends type_Keylist
                 $teams = core_Users::getUserRolesByType(NULL, 'team');
             }
             
-            $teams = type_Keylist::toArray($teams);
+            $teams = keylist::toArray($teams);
             
             foreach($teams as $t) {
                 $group = new stdClass();

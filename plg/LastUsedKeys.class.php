@@ -70,7 +70,7 @@ class plg_LastUsedKeys extends core_Plugin
                     $usedClass = cls::get($mvc->fields[$field]->type->params['mvc']);
                     
                     if($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
-                        $keysArr = type_Keylist::toArray($rec->{$field});
+                        $keysArr = keylist::toArray($rec->{$field});
                         
                         if(count($keysArr)) {
                             foreach($keysArr as $key) {
