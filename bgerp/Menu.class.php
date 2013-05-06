@@ -375,7 +375,7 @@ class bgerp_Menu extends core_Manager
         $rec->autoHide = $autoHide;
         $rec->createdBy = -1;     // По този начин, системният потребител е автор на менюто
         $Roles = cls::get('core_Roles');
-        $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
+        $rec->accessByRoles = $Roles->getRolesAsKeylist($accessByRoles);
         
         $rec->id = $this->fetchField(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1", 
             $menu, $subMenu, $ctr, $act), 'id');

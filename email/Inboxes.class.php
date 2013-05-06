@@ -528,7 +528,7 @@ class email_Inboxes extends core_Master
         // Намираме масив с потребителите, които имат право на вътрешен имейл
         if(!$powerUsers) {
             $userQuery = core_Users::getQuery();
-            $powerRoles = core_Roles::keylistFromVerbal('executive,officer,manager,ceo');
+            $powerRoles = core_Roles::getRolesAsKeylist('executive,officer,manager,ceo');
             $userQuery->likeKeylist('roles', $roles);
             while($uRec = $userQuery->fetch()) {
                 $powerUsers[$uRec->nick] = $uRec;
