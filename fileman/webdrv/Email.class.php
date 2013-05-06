@@ -254,9 +254,9 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     {
         
         $filesKeyList = $mime->getFiles();
-        $filesArr = type_Keylist::toArray($filesKeyList);
+        $filesArr = keylist::toArray($filesKeyList);
         // Масив с всички прикачени файлове
-        $filesArr = type_Keylist::toArray($filesKeyList);
+        $filesArr = keylist::toArray($filesKeyList);
         
         foreach ($filesArr as $keyD => $dummy) {
             $filesStr .= fileman_Download::getDownloadLinkById($keyD) . "\n";

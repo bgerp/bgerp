@@ -320,7 +320,7 @@ class fileman_Files2 extends core_Master
         if (!is_array($fhKeylist)) {
             
             // Превъращаме keyList в масив
-            $fhArr = type_Keylist::toArray($fhKeylist);
+            $fhArr = keylist::toArray($fhKeylist);
         } else {
             
             // Използваме масива
@@ -383,7 +383,7 @@ class fileman_Files2 extends core_Master
         if (!is_array($idKeylist)) {
             
             // Превъращаме keyList в масив
-            $idArr = type_Keylist::toArray($idKeylist);
+            $idArr = keylist::toArray($idKeylist);
         } else {
             
             // Използваме масива
