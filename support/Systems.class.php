@@ -297,10 +297,10 @@ class support_Systems extends core_Master
                 while ($rec = $query->fetch()) {
                     
                     // Към споделените добавяме и inCharge
-                    $shared = type_Keylist::addKey($rec->shared, $rec->inCharge);
+                    $shared = keylist::addKey($rec->shared, $rec->inCharge);
                     
                     // Споделените от родителите ги добавяме към текущия
-                    $form->rec->shared = type_Keylist::merge($shared, $form->rec->shared);
+                    $form->rec->shared = keylist::merge($shared, $form->rec->shared);
                 }
                 
                 // Ако сме избрали за прототип някой от наследниците

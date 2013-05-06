@@ -241,7 +241,7 @@ class cal_Calendar extends core_Master
       if(!$data->listFilter->rec->selectedUsers) {
       	
 		  $data->listFilter->rec->selectedUsers = 
-		  type_Keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  }
        // bp($data->listFilter->rec);
         if($data->listFilter->rec->selectedUsers) {

@@ -270,7 +270,7 @@ class blast_Letters extends core_Master
         Mode::set('printing');
         
         //Преобразуваме keylist полето в масив
-        $lettersDetArr = type_Keylist::toArray($letterDetail->listDetailsId);
+        $lettersDetArr = keylist::toArray($letterDetail->listDetailsId);
         
         //Променяме статуса на детайла на затворен  и добавяме дата на принтиране
         $newLetterDetail = new stdClass();
@@ -476,7 +476,7 @@ class blast_Letters extends core_Master
         while ($recListDetail = $queryListDetails->fetch()) {
             
             //Ако нямаме запис с id'то в модела, тогава го добавяме към масива
-            if (!type_Keylist::isIn($recListDetail->id, $exist)) {
+            if (!keylist::isIn($recListDetail->id, $exist)) {
                 $allNewId[$recListDetail->id] = $recListDetail->id;
             }
         }
@@ -490,7 +490,7 @@ class blast_Letters extends core_Master
             //Групираме записите по максималния брой, който ще се печатат заедно
             for ($i = 0; $i < count($allNewId); $i = $i + $numLetters) {
                 $slicedNewId = array_slice($allNewId, $i, $numLetters, TRUE);
-                $keylist = type_Keylist::fromArray($slicedNewId);
+                $keylist = keylist::fromArray($slicedNewId);
                 
                 //Добавяме новите записи в модела
                 $newLetterDetail = new stdClass();

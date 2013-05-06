@@ -346,7 +346,7 @@ class doc_Folders extends core_Master
                     bgerp_Notifications::add($msg, $url, $userId, $priority);
                     
                     if($rec->shared) {
-                        foreach(type_Keylist::toArray($rec->shared) as $userId) {
+                        foreach(keylist::toArray($rec->shared) as $userId) {
                             bgerp_Notifications::add($msg, $url, $userId, $priority);
                         }
                     }
@@ -513,7 +513,7 @@ class doc_Folders extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        $teammates = type_Keylist::toArray(core_Users::getTeammates($userId));
+        $teammates = keylist::toArray(core_Users::getTeammates($userId));
         $ceos      = core_Users::getByRole('ceo');
         $managers  = core_Users::getByRole('manager');
         

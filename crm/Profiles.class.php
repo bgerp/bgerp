@@ -464,7 +464,7 @@ class crm_Profiles extends core_Master
                 'email'     => ''
             );
             $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
-            $person->groupList = type_Keylist::addKey($person->groupList, $profilesGroup->id);
+            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
             $mustSave = TRUE;
         }
         

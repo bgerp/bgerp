@@ -584,7 +584,7 @@ class crm_Companies extends core_Master
         $query = $this->getQuery();
         
         while($rec = $query->fetch()) {
-            $keyArr = type_Keylist::toArray($rec->groupList);
+            $keyArr = keylist::toArray($rec->groupList);
             
             foreach($keyArr as $groupId) {
                 $groupsCnt[$groupId]++;

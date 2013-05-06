@@ -58,7 +58,7 @@ class acc_plg_Registry extends core_Plugin
     
             if ($data->form->rec->id) {
                 $data->form->setDefault('lists',
-                    type_Keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
+                    keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
             }
         }
     }
@@ -82,7 +82,7 @@ class acc_plg_Registry extends core_Plugin
         if (!empty($mvc->autoList)) {
             // Автоматично добавяне към номенклатурата $autoList
             expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
-            $rec->lists = type_Keylist::addKey($rec->lists, $autoListId);
+            $rec->lists = keylist::addKey($rec->lists, $autoListId);
         }
         $fieldListArr = arr::make($fieldList, TRUE);
     

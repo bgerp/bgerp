@@ -85,7 +85,7 @@ class price_ConsumptionNormDetails extends core_Detail {
     	if($data->rows){
 	    	foreach($data->rows as $row){
 	    		$arr = cat_Products::fetchField($data->recs[$row->id]->dProductId, 'groups');
-	    		$row->groups = type_Keylist::toArray($arr);
+	    		$row->groups = keylist::toArray($arr);
 	    	}
     	}
     }

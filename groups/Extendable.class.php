@@ -87,7 +87,7 @@ class groups_Extendable extends core_Plugin
         $groupsFieldName = static::getGroupsFieldName($master);
         
         // ИД-тата на групите в които е записа $rec  
-        $groupIds = type_Keylist::toArray($rec->{$groupsFieldName});
+        $groupIds = keylist::toArray($rec->{$groupsFieldName});
         
         expect($GroupsManager = static::getGroupsManager($master));
         

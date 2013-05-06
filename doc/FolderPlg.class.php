@@ -251,7 +251,7 @@ class doc_FolderPlg extends core_Plugin
         // Ако текущия потребител не е отговорник на тази корица на папка, 
         // правим необходимото за да му я споделим
         if($cu != $rec->inCharge && $cu > 0) {
-            $rec->shared = type_Keylist::addKey($rec->shared, $cu);
+            $rec->shared = keylist::addKey($rec->shared, $cu);
         }
 
         // Този синтаксис заобикаля предупрежденията на PHP5.4 за Deprecated: Call-time pass-by-reference

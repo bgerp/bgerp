@@ -277,7 +277,7 @@ class trz_Orders extends core_Master
         $personRec = crm_Persons::fetch($personId);
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
-        return type_Keylist::isIn($emplGroupId, $personRec->groupList);
+        return keylist::isIn($emplGroupId, $personRec->groupList);
     }
     
     /**

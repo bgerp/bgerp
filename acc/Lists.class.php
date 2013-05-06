@@ -246,7 +246,7 @@ class acc_Lists extends core_Manager {
         
         $listIds = acc_Items::fetchField("#classId = {$classId} AND #objectId = {$objectId}", 'lists');
         
-        if (count($listIds = type_Keylist::toArray($listIds))) {
+        if (count($listIds = keylist::toArray($listIds))) {
             foreach ($listIds as $listId) {
                 $rec = self::fetch($listId);
                 $result [$listId] = self::getVerbal($rec, 'title');
@@ -304,7 +304,7 @@ class acc_Lists extends core_Manager {
     static function addItem($listId, $class, $objectId)
     {
         if ($itemRec = self::fetchItem($class, $objectId)) {
-            $lists = type_Keylist::addKey($itemRec->lists, $listId);
+            $lists = keylist::addKey($itemRec->lists, $listId);
         } else {
             $lists = $listId;
         }
@@ -336,7 +336,7 @@ class acc_Lists extends core_Manager {
         
         if (is_string($lists) && substr($lists, 0, 1) == '|' && substr($lists, -1, 1) == '|') {
             // Ако списъка е подаден като keylist, конвертираме го в масив
-            $lists = type_Keylist::toArray($lists);
+            $lists = keylist::toArray($lists);
         }
         
         $lists = arr::make($lists); // NULL, стринг-масив или масив -> масив
@@ -384,7 +384,7 @@ class acc_Lists extends core_Manager {
         $oldLists = array();
         
         if ($itemRec) {
-            $oldLists = type_Keylist::toArray(trim($itemRec->lists, '|'));
+            $oldLists = keylist::toArray(trim($itemRec->lists, '|'));
             
             // Ако $forced не е FALSE, сместваме досегашните номенклатури с новите
             if ($forced !== TRUE) {
@@ -415,7 +415,7 @@ class acc_Lists extends core_Manager {
             }
         }
         
-        $itemRec->lists = type_Keylist::fromArray($lists);
+        $itemRec->lists = keylist::fromArray($lists);
         
         // Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
         $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
@@ -497,7 +497,7 @@ class acc_Lists extends core_Manager {
         $form->input(null, true);
         
         $form->fields['lists']->type->suggestions = self::getPossibleLists($form->rec->classId);
-        $form->fields['lists']->value = type_Keylist::fromArray(self::getItemLists($form->rec->classId, $form->rec->objectId));
+        $form->fields['lists']->value = keylist::fromArray(self::getItemLists($form->rec->classId, $form->rec->objectId));
         
         $form->input();
         

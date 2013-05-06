@@ -336,7 +336,7 @@ class blogm_Articles extends core_Master {
 
         $this->blogm_Comments->prepareComments($data);
 		
-        $data->selectedCategories = type_Keylist::toArray($data->rec->categories);
+        $data->selectedCategories = keylist::toArray($data->rec->categories);
 		
        	$this->prepareNavigation($data);
 

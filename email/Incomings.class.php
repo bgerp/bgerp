@@ -621,7 +621,7 @@ class email_Incomings extends core_Master
         if($fields['-single']) {
             if ($rec->files) {
                 
-                $vals = type_Keylist::toArray($rec->files);
+                $vals = keylist::toArray($rec->files);
                 
                 if($rec->htmlFile) {
                     unset($vals[$rec->htmlFile]);
@@ -1543,7 +1543,7 @@ class email_Incomings extends core_Master
         }
          
         // Превръщаме в масив
-        $filesArr = type_Keylist::toArray($rec->files);
+        $filesArr = keylist::toArray($rec->files);
          
          // Ако има HTML файл
          if ($rec->htmlFile) {
@@ -1576,7 +1576,7 @@ class email_Incomings extends core_Master
     {
         $rec = self::fetch($id);
 
-        $files = type_Keylist::toArray($rec->files);
+        $files = keylist::toArray($rec->files);
  
         if($rec->htmlFile) {
             unset($files[$rec->htmlFile]);

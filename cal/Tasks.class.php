@@ -352,7 +352,7 @@ class cal_Tasks extends core_Master
 	                $requiredRoles = 'no_one';
 	            }  else {
 	                if(!haveRole('ceo') || ($userId !== $rec->createdBy) &&
-	                !type_Keylist::isIn($userId, $rec->sharedUsers)) {
+	                !keylist::isIn($userId, $rec->sharedUsers)) {
 	                	
 	                	$requiredRoles = 'no_one';
 	                }
@@ -587,7 +587,7 @@ class cal_Tasks extends core_Master
         while($rec = $query->fetch()) {
             list($date, $time) = explode(' ', $rec->timeStart);  
             if($time != '00:00:00') {
-                $subscribedArr = type_Keylist::toArray($rec->sharedUsers); 
+                $subscribedArr = keylist::toArray($rec->sharedUsers); 
                 if(count($subscribedArr)) { 
                     $message = "Стартирана е задачата \"" . $this->getVerbal($rec, 'title') . "\"";
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);

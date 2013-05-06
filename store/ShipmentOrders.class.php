@@ -496,7 +496,7 @@ class store_ShipmentOrders extends core_Master
                 break;
             case 'team':
                 $teamMates = core_Users::getTeammates(core_Users::getCurrent('id'));
-                $teamMates = type_Keylist::toArray($teamMates);
+                $teamMates = keylist::toArray($teamMates);
                 if (!empty($teamMates)) {
                     $query->where('#createdBy IN (' . implode(', ', $teamMates) . ')');
                 }

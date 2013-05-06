@@ -157,8 +157,8 @@ class email_Sent extends core_Manager
             'threadId' => $threadId,
             'containerId' => $containerId,
             'encoding' => $options['encoding'],
-            'attachments' => (is_array($body->attachments)) ? type_Keylist::fromArray($body->attachments) :$body->attachments,
-            'documents' => (is_array($body->documents)) ? type_Keylist::fromArray($body->documents) :$body->documents,
+            'attachments' => (is_array($body->attachments)) ? keylist::fromArray($body->attachments) :$body->attachments,
+            'documents' => (is_array($body->documents)) ? keylist::fromArray($body->documents) :$body->documents,
         );
         
         $emailsTo = type_Emails::toArray($emailsTo);
@@ -215,8 +215,8 @@ class email_Sent extends core_Manager
             'boxFrom' => $boxFrom,
             'mid'     => $body->__mid,
             'encoding' => $options['encoding'],
-            'attachments' => (is_array($body->attachments)) ? type_Keylist::fromArray($body->attachments) :$body->attachments,
-            'documents' => (is_array($body->documents)) ? type_Keylist::fromArray($body->documents) :$body->documents,
+            'attachments' => (is_array($body->attachments)) ? keylist::fromArray($body->attachments) :$body->attachments,
+            'documents' => (is_array($body->documents)) ? keylist::fromArray($body->documents) :$body->documents,
         );
         
         $message = (object)$messageBase;
@@ -691,7 +691,7 @@ class email_Sent extends core_Manager
         $users = array();
         
         if ($data->listFilter->rec->users) {
-            $users = type_Keylist::toArray($data->listFilter->rec->users);
+            $users = keylist::toArray($data->listFilter->rec->users);
         }
         
         if (empty($users)) {

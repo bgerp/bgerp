@@ -686,7 +686,7 @@ class crm_Persons extends core_Master
         $query = $this->getQuery();
 
         while($rec = $query->fetch()) {
-            $keyArr = type_Keylist::toArray($rec->groupList);
+            $keyArr = keylist::toArray($rec->groupList);
 
             foreach($keyArr as $groupId) {
                 $groupsCnt[$groupId]++;
@@ -1998,7 +1998,7 @@ class crm_Persons extends core_Master
                 $crmId = crm_Groups::getIdFromSysId('users');
                 
                 // Ако е в групата на потребители
-                if (type_Keylist::isIn($crmId, $data->rec->groupList)) {
+                if (keylist::isIn($crmId, $data->rec->groupList)) {
                     
                     // URL за създаване на потребител
                     $personUrl = array('core_Users', 'add', 'personId' => $data->rec->id, 'ret_url' => TRUE);

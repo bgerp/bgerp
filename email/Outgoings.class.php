@@ -261,7 +261,7 @@ class email_Outgoings extends core_Master
             $attachments = fileman_Files::getIdFromFh($rec->attachmentsFh);
         
             //Записваме прикачените файлове
-            $rec->attachments = type_KeyList::fromArray($attachments);
+            $rec->attachments = keylist::fromArray($attachments);
         }
         
         // Генерираме списък с документи, избрани за прикачане
@@ -379,7 +379,7 @@ class email_Outgoings extends core_Master
                 $documents = fileman_Files::getIdFromFh($rec->documentsFh);
             
                 //Записваме прикачените файлове
-                $rec->documents = type_KeyList::fromArray($documents);
+                $rec->documents = keylist::fromArray($documents);
             }
     
             // ... и накрая - изпращане.

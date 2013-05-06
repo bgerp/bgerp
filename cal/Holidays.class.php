@@ -513,7 +513,7 @@ class cal_Holidays extends core_Master
  				}
     			
     			if($rec->shared) {
-	    			foreach(type_Keylist::toArray($rec->shared) as $userId) {
+	    			foreach(keylist::toArray($rec->shared) as $userId) {
 	    				$profiles[$rec->country][$userId] = TRUE;
 	    			}
     			}
@@ -533,7 +533,7 @@ class cal_Holidays extends core_Master
 	    		}
 	    		
 	    		if($recCompanies->shared) {
-		    		foreach(type_Keylist::toArray($recCompanies->shared) as $userId) {
+		    		foreach(keylist::toArray($recCompanies->shared) as $userId) {
 		    			$profiles[$recCompanies->country][$userId] = TRUE;
 		    		}
 	    		}
@@ -545,7 +545,7 @@ class cal_Holidays extends core_Master
     		
     		$recPerson = drdata_Countries::fetch("#id = '{$id}'");
     		
-    		$a = type_Keylist::fromArray($profile);
+    		$a = keylist::fromArray($profile);
     		
     		$inChargePerCountry[$recPerson->letterCode2] = $a;
     		

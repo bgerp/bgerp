@@ -338,7 +338,7 @@ class trz_Requests extends core_Master
 	            
 	            $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
 	            $personId = array($personProfile->userId => 0);
-	            $user = type_Keylist::fromArray($personId);
+	            $user = keylist::fromArray($personId);
 	
 	            // В чии календари да влезе?
 	            $calRec->users = $user;
@@ -377,7 +377,7 @@ class trz_Requests extends core_Master
         $personRec = crm_Persons::fetch($personId);
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
-        return type_Keylist::isIn($emplGroupId, $personRec->groupList);
+        return keylist::isIn($emplGroupId, $personRec->groupList);
     }
 
     

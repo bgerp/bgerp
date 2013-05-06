@@ -489,7 +489,7 @@ class cal_Reminders extends core_Master
     
     static public function doUsefullyPerformance($rec)
     {   
-    	$subscribedArr = type_Keylist::toArray($rec->sharedUsers); 
+    	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 		if(count($subscribedArr)) { 
 			foreach($subscribedArr as $userId) {  
 				if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {

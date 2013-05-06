@@ -240,7 +240,7 @@ class doc_AssignPlg extends core_Plugin
         if ($assignedUser != $assignedBy) {
             
             // Обединява с другите шерната потребители
-            $shared = type_Keylist::merge($assignedUser, $shared);   
+            $shared = keylist::merge($assignedUser, $shared);   
         }
     }
     

@@ -203,7 +203,7 @@ class acc_Items extends core_Manager
      */
     static function on_AfterSave($mvc, $id, $rec)
     {
-        $affectedLists = type_Keylist::toArray($rec->lists);
+        $affectedLists = keylist::toArray($rec->lists);
         
         foreach ($affectedLists as $listId) {
             $mvc->Lists->updateSummary($listId);
@@ -221,7 +221,7 @@ class acc_Items extends core_Manager
         $query->_listsForUpdate = array();
         
         while($rec = $tmpQuery->fetch($cond)) {
-            $query->_listsForUpdate += type_Keylist::toArray($rec->lists);
+            $query->_listsForUpdate += keylist::toArray($rec->lists);
         }
     }
     
@@ -583,7 +583,7 @@ class acc_Items extends core_Manager
             if (!empty($register->autoList)) {
                 // Автоматично добавяне към номенклатурата $autoList
                 expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $register->autoList), 'id'));
-                $itemRec->lists = type_Keylist::addKey($itemRec->lists, $autoListId);
+                $itemRec->lists = keylist::addKey($itemRec->lists, $autoListId);
             }
         }
             
@@ -613,7 +613,7 @@ class acc_Items extends core_Manager
         $rec->classId  = $classId;
         $rec->objectId = $objectId;
         
-        if (!empty($rec->id) && type_Keylist::isIn($listId, $rec->lists)) {
+        if (!empty($rec->id) && keylist::isIn($listId, $rec->lists)) {
             // Идеята е да се буферира многократното обновяване на едно и също перо само за
             // да му се смени състоянието и датата на последно използване
             self::touch($rec);
@@ -621,7 +621,7 @@ class acc_Items extends core_Manager
             
             // Ако перото не е в номенкл. $listId (независимо дали се създава за пръв път или
             // вече го има), добавяме го и записваме на момента.
-            $rec->lists = type_Keylist::addKey($itemRec->lists, $listId);
+            $rec->lists = keylist::addKey($itemRec->lists, $listId);
             $rec->state      = 'active';
             $rec->lastUseOn = dt::now();
         

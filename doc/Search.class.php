@@ -147,7 +147,7 @@ class doc_Search extends core_Manager
             if (!empty($filterRec->author) && $filterRec->author != 'all_users' && (strpos($maintainers, '|-1|') === FALSE)) {
                 
                 // Масив с всички избрани автори
-                $authorArr = type_Keylist::toArray($filterRec->author);
+                $authorArr = keylist::toArray($filterRec->author);
                 
                 $firstTime = TRUE;
                 // Обхождаме масива

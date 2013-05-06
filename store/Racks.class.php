@@ -325,7 +325,7 @@ class store_Racks extends core_Master
                 
                 /* Подготовка на масив с групите от стелажа */
                 $currentGroupsInUseArr = array();
-                $groupsAllowedArr = type_Keylist::toArray($rec->groupsAllowed);
+                $groupsAllowedArr = keylist::toArray($rec->groupsAllowed);
                 $groupsForDeleteInUse = array();
                 
                 if (!$rowsForDeleteInUse && !$columnsForDeleteInUse) {
@@ -335,7 +335,7 @@ class store_Racks extends core_Master
                                 $productId = $palletsInStoreArr[$rec->id][$mvc->rackRowConv($testRow)][$testColumn]['productId'];
                                 $catProductId = store_Products::fetchField($productId, 'name');
                                 $productGroups = cat_Products::fetchField($catProductId, 'groups');
-                                $productGroupsArr = type_Keylist::toArray($productGroups);
+                                $productGroupsArr = keylist::toArray($productGroups);
                                 
                                 foreach ($productGroupsArr as $v) {
                                     if (empty($currentGroupsInUseArr)) {
@@ -707,10 +707,10 @@ class store_Racks extends core_Master
         
         $productName = store_Products::fetchField("#id = {$productId}", 'name');
         $productGroups = cat_Products::fetchField("#id = {$productName}", 'groups');
-        $productGroupsArr = type_Keylist::toArray($productGroups);
+        $productGroupsArr = keylist::toArray($productGroups);
         
         $groupsAllowed = self::fetchField("#id = {$rackId}", 'groupsAllowed');
-        $groupsAllowedArr = type_Keylist::toArray($groupsAllowed);
+        $groupsAllowedArr = keylist::toArray($groupsAllowed);
         
         if (count($groupsAllowedArr)) {
             $groupsCheck = FALSE;

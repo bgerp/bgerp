@@ -331,11 +331,11 @@ class support_Issues extends core_Master
         while ($sRec = $sQuery->fetch()) {
             
             // Обединяваме всички позволени типове
-            $allowedTypes = type_Keylist::merge($sRec->allowedTypes, $allowedTypes);
+            $allowedTypes = keylist::merge($sRec->allowedTypes, $allowedTypes);
         }
 
         // Разрешените типове за съответната система
-        $allowedTypesArr = type_Keylist::toArray($allowedTypes);
+        $allowedTypesArr = keylist::toArray($allowedTypes);
 
         // Обхождаме масива с всички разрешени типове
         foreach ($allowedTypesArr as $allowedType) {
@@ -570,10 +570,10 @@ class support_Issues extends core_Master
             $maintainers = support_Components::fetchField($rec->componentId, 'maintainers');
 
             // Към отговорниците да не се показва създателя
-            $maintainers = type_Keylist::removeKey($maintainers, $rec->createdBy);
+            $maintainers = keylist::removeKey($maintainers, $rec->createdBy);
             
             // Добавяме към споделените
-            $shared = type_Keylist::merge($maintainers, $shared);
+            $shared = keylist::merge($maintainers, $shared);
         }
     }
 }

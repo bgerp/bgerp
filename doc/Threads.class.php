@@ -710,7 +710,7 @@ class doc_Threads extends core_Manager
         }
         
         // Попълваме полето за споделените потребители
-        $rec->shared = type_Keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
+        $rec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
 
         if($firstDcRec) {
             // Първи документ в треда
@@ -875,7 +875,7 @@ class doc_Threads extends core_Manager
         if($action == 'single') {
             if(doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
                 $res = 'user';
-            } elseif(type_Keylist::isIn($userId, $rec->shared)) {
+            } elseif(keylist::isIn($userId, $rec->shared)) {
                 $res = 'user';
             } else {
                 $res = 'no_one';

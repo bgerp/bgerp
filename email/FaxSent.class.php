@@ -154,7 +154,7 @@ class email_FaxSent extends core_Manager
                 $attachments = fileman_Files::getIdFromFh($data->rec->attachmentsFh);
 
                 //Записваме прикачените файлове
-                $data->rec->attachments = type_KeyList::fromArray($attachments);
+                $data->rec->attachments = keylist::fromArray($attachments);
             }
             
             // Генерираме списък с документи, избрани за прикачане
@@ -200,7 +200,7 @@ class email_FaxSent extends core_Manager
                     $documents = fileman_Files::getIdFromFh($data->rec->documentsFh);
                 
                     //Записваме прикачените файлове
-                    $data->rec->documents = type_KeyList::fromArray($documents);
+                    $data->rec->documents = keylist::fromArray($documents);
                 }
                 
                 // ... и накрая - изпращане. 

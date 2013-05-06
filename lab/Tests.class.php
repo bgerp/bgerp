@@ -436,7 +436,7 @@ class lab_Tests extends core_Master
                 // 4. От избраните записи от TestDetails правим масив с id-тата на тестовете 
                 // 5. Правим заявка, която вади тестовете, чийто id-та са IN (масива с id-та на избраните тестове)   
                 if ($data->listFilter->rec->paramIdFilter) {
-                    $selectedParamsArr = type_Keylist::toArray($data->listFilter->rec->paramIdFilter);
+                    $selectedParamsArr = keylist::toArray($data->listFilter->rec->paramIdFilter);
                     
                     // If some params are selected in the filter 
                     if (count($selectedParamsArr)) {

@@ -78,7 +78,7 @@ class doc_ThreadUsers extends core_Manager
         if(is_int($users)) {
             $usersArr = array($users => $users);
         } else {
-            $usersArr = type_Keylist::toArray($users);
+            $usersArr = keylist::toArray($users);
         }
 
         if(count($usersArr)) {

@@ -653,7 +653,7 @@ class sales_Sales extends core_Master
                 break;
             case 'team':
                 $teamMates = core_Users::getTeammates(core_Users::getCurrent('id'));
-                $teamMates = type_Keylist::toArray($teamMates);
+                $teamMates = keylist::toArray($teamMates);
                 if (!empty($teamMates)) {
                     $query->where('#createdBy IN (' . implode(', ', $teamMates) . ')');
                 }
@@ -773,7 +773,7 @@ class sales_Sales extends core_Master
         // Показваме тези полета. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'filterDealerId, fromDate, toDate';
         
-        $data->listFilter->setDefault('filterDealerId', type_Keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE)));
+        $data->listFilter->setDefault('filterDealerId', keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE)));
     
         $filter = $data->listFilter->input();
         
@@ -787,7 +787,7 @@ class sales_Sales extends core_Master
             $query->where(
                 sprintf(
                     '#dealerId IN (%s)', 
-                    implode(',', type_Keylist::toArray($filter->filterDealerId))
+                    implode(',', keylist::toArray($filter->filterDealerId))
                 )
             );
         }

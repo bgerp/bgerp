@@ -207,8 +207,8 @@ class price_ListDocs extends core_Master
     		foreach($customerProducts as $id => $product){
     			$productRec = cat_Products::fetch($id);
 		    	if($rec->productGroups){
-		    		$aGroups = type_Keylist::toArray($rec->productGroups);
-		    		$pGroups = type_Keylist::toArray($productRec->groups);
+		    		$aGroups = keylist::toArray($rec->productGroups);
+		    		$pGroups = keylist::toArray($productRec->groups);
 		    		$intersectArr = array_intersect($aGroups, $pGroups);
 		    		if(!count($intersectArr)) continue;
 		    	}
@@ -219,7 +219,7 @@ class price_ListDocs extends core_Master
 	    									   'eanCode' => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
 	    									   'pack' => NULL,
-	    									   'groups' => type_Keylist::toArray($arr));
+	    									   'groups' => keylist::toArray($arr));
     		}
     	}
     }
@@ -232,7 +232,7 @@ class price_ListDocs extends core_Master
     {
     	$rec = &$data->rec;
     	if(!count($rec->details->products)) return;
-    	$packArr = type_Keylist::toArray($rec->packagings);
+    	$packArr = keylist::toArray($rec->packagings);
     	
     	foreach($rec->details->products as &$product){
     		
@@ -334,7 +334,7 @@ class price_ListDocs extends core_Master
     	if($rec->details->rows || $rec->products){
     		
     	   if($rec->productGroups){
-	    		$groupsArr = type_Keylist::toArray($rec->productGroups);
+	    		$groupsArr = keylist::toArray($rec->productGroups);
     		}
     		
     		// Преподреждаме продуктите групирани по Групи
@@ -412,7 +412,7 @@ class price_ListDocs extends core_Master
     	$mvc->prepareDetails($data);
     	
     	if($rec->productGroups){
-	    	$groupsArr = type_Keylist::toArray($data->rec->productGroups);
+	    	$groupsArr = keylist::toArray($data->rec->productGroups);
     	}
     	
     	$data->rec->products = $mvc->groupProductsByGroups($data->rec->details->rows, $groupsArr);

@@ -411,7 +411,7 @@ class doc_Containers extends core_Manager
                 $nick = mb_convert_case($nick, MB_CASE_TITLE, 'UTF-8');
                  
                 // Нотифицираме всички споделени потребители на този контейнер
-                $sharedArr = type_Keylist::toArray($shared);
+                $sharedArr = keylist::toArray($shared);
                 if(count($sharedArr)) {
                     $message = "{$nick} |сподели|* |{$docSingleTitle}|* |в|* \"{$threadTitle}\"";
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
@@ -425,7 +425,7 @@ class doc_Containers extends core_Manager
 
                 // Нотифицираме всички абонати на дадената нишка
                 $subscribed = doc_ThreadUsers::getSubscribed($rec->threadId);
-                $subscribedArr = type_Keylist::toArray($subscribed);
+                $subscribedArr = keylist::toArray($subscribed);
                 if(count($subscribedArr)) { 
                     $message = "{$nick} |добави|* |{$docSingleTitle}|* |в|* \"{$threadTitle}\"";
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
