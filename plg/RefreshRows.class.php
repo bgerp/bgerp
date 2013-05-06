@@ -53,8 +53,7 @@ class plg_RefreshRows extends core_Plugin
             
             die;
         } else {
-            $params = $_GET;
-            unset($params['virtual_url']);
+            $params = getCurrentUrl();
             $params['ajax_mode'] = 1;
             $url = toUrl($params);
             
