@@ -80,7 +80,9 @@ class type_Keylist extends core_Type {
      */
     public function toMysql($value, $db, $notNull, $defValue)
     {
-        return parent::toMysql($value, $db, $notNull, $defValue);
+        $value = parent::toMysql($value, $db, $notNull, $defValue);
+        
+        return $value;
     }
     
     
@@ -239,6 +241,11 @@ class type_Keylist extends core_Type {
     static function fromArray($value)
     {
         if(count($value)) {
+
+            // Сортираме ключовете на масива, за да има
+            // стринга винаги нормализиран вид - от по-малките към по-големите
+            ksort($value);
+
             foreach($value as $id => $val)
             {
                 if(empty($id) && empty($val)) continue;
@@ -360,5 +367,20 @@ class type_Keylist extends core_Type {
         $klist = self::fromArray($klist);
         
         return $klist;
+    }
+
+
+    /**
+     * Връща истина или лъжа за това дали дадения стринг отговаря за синтаксиса на keylist
+     */
+    static function isKeylist($str)
+    {
+        if(is_string($str) && preg_match("/^\\|[\\-0-9\\|]+\\|$/", $str)) {
+            $res = TRUE;
+        } else {
+            $res = FALSE;
+        }
+
+        return $res;
     }
 }
