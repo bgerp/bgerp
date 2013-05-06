@@ -359,6 +359,9 @@ class acc_ArticleDetails extends core_Detail
             
             if (!empty($acc->rec->{$listPart})) {
                 $listId = $acc->rec->{$listPart};
+                if(!isset($acc->groups[$i])) {
+                    $acc->groups[$i] = new stdClass();
+                }
                 $acc->groups[$i]->rec = acc_Lists::fetch($listId);
                 $acc->isDimensional = acc_Lists::isDimensional($listId);
             }
