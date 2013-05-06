@@ -201,26 +201,41 @@ class core_Mvc extends core_FieldSet
 
         return $rec;
     }
-
-
+    
+    
     /**
+    
      * Малко по-гъвкава вариация на fetch()
+    
      *
+    
      * Ако първия аргумент е запис, просто го връща. В противен случай вика fetch()
+    
      *
+    
      * @param mixed $id ст-ст на първичен ключ, SQL условие или обект
+    
      * @param mixed $fields @see self::fetch()
+    
      * @param bool $cache @see self::fetch()
+    
      * @return stdClass
+    
      */
+    
     public static function fetchRec($id, $fields = '*', $cache = TRUE)
+   
     {
+        
         $rec = $id;
+
         if (!is_object($rec)) {
             $rec = static::fetch($id, $fields, $cache);
         }
-    
+
+        
         return $rec;
+   
     }
     
 
@@ -242,17 +257,8 @@ class core_Mvc extends core_FieldSet
      */
     function save_(&$rec, $fields = NULL, $mode = NULL)
     {
-        if ($fields === NULL) {
-            $recFields = get_object_vars($rec);
-
-            foreach ($recFields as $name => $dummy) {
-                if ($this->fields[$name]->kind == 'FLD') {
-                    $fields[$name] = TRUE;
-                }
-            }
-        } else {
-            $fields = arr::make($fields, TRUE);
-        }
+        
+        $fields = $this->prepareSaveFields($fields, $rec);
 
         $table = $this->dbTableName;
 
@@ -275,7 +281,6 @@ class core_Mvc extends core_FieldSet
             }
 
             $mysqlField = str::phpToMysqlName($name);
-
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
 
@@ -293,7 +298,7 @@ class core_Mvc extends core_FieldSet
                 break;
 
             default :
-            if ($rec->id > 0) {
+            if ($rec->id > 0) { 
                 $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
             } else {
                 $query = "INSERT  INTO `{$table}` SET {$query}";
@@ -312,6 +317,28 @@ class core_Mvc extends core_FieldSet
         }
 
         return $rec->id;
+    }
+
+
+    /**
+     * Подготвя като масив полетата за записване
+     */
+    function prepareSaveFields($fields, $rec)
+    {
+        if ($fields === NULL) {
+            
+            $recFields = get_object_vars($rec);
+
+            foreach ($recFields as $name => $dummy) {
+                if ($this->fields[$name]->kind == 'FLD') {
+                    $fields[$name] = TRUE;
+                }
+            }
+        } else {
+            $fields = arr::make($fields, TRUE);
+        }
+
+        return $fields;
     }
 
 
