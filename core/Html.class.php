@@ -428,8 +428,12 @@ class core_Html
         }
 
         // Правим URL-to
-        $url = toUrl($url);
-        
+        try {
+            $url = toUrl($url);
+        } catch(core_exception_Expect $e) {
+            $url = NULL;
+            $attr['style'] .= ' border:dotted 1px red;';
+        }
 
         // Подготвяме атрибутите
         $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
@@ -609,7 +613,12 @@ class core_Html
 
         if (is_array($url)) {
             if(count($url)) {
-                $url = toUrl($url);
+                try {
+                    $url = toUrl($url);
+                } catch(core_exception_Expect $e) {
+                    $url = NULL;
+                    $attr['style'] .= ' border:dotted 1px red;';
+                }
             } else {
                 $url = '';
             }
