@@ -149,6 +149,12 @@ class blast_Letters extends core_Master
     
     
     /**
+     * 
+     */
+    var $cloneFields = 'listId, subject, sender, date, outNumber, text, numLetters, template';
+
+    
+    /**
      * Описание на модела
      */
     function description()
