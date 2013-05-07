@@ -2647,6 +2647,14 @@ div.locImage{
    padding-right:20px;
    white-space: nowrap;
 }
+.acc_ArticleDetails form {
+	.formFields{
+		margin-top:10px;
+	}
+	.formToolbar{
+		margin-top:3px;
+	}
+}
 
 @media print{
 	.linkWithIcon, .docBgIcon,.button{
