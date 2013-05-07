@@ -120,7 +120,6 @@ class email_Setup
         $managers = array(
             'email_Incomings',
             'email_Outgoings',
-            'email_Sent',
             'email_Inboxes',
             'email_Accounts',
             'email_Router',
