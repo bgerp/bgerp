@@ -66,7 +66,7 @@ class log_Files extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'log_Wrapper, plg_Created';
+    var $loadList = 'plg_Created';
     
     
     /**
