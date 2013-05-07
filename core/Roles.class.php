@@ -257,7 +257,23 @@ class core_Roles extends core_Manager
     static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
-
+        
+        // Ако формата е изпратена успешно
+        if ($form->isSubmitted()) {
+            
+            // Шаблона за проверка на валидна роля
+            // Да започва с буква(кирилица или латиница) или долна черта
+            // Може да съдържа само: букви(кирилица или латиница), цифри, '_' и '|'
+            $pattern = "/^[a-zА-Я\_]{1}[a-z0-9А-Я\_\|]*$/iu";
+            
+            // Ако не е валидна роля
+            if (!preg_match($pattern, $rec->role)) {
+                
+                // Сетваме грешка
+                $form->setError('role', 'Некоректно име на роля|* ' . $mvc->getVerbal($form->rec, 'role'));    
+            }
+        }
+        
         // Ако формата е субмитната и редактираме запис
         if ($form->isSubmitted() && ($rec->id)) {
             
