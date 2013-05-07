@@ -194,15 +194,15 @@ class blast_Letters extends core_Master
         $query->where("#keyField = 'names' OR #keyField = 'company'");
         
         while ($rec = $query->fetch()) {
-            $files[$rec->id] = core_Type::escape($rec->title);
+            $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
         }
         
         //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
         if (!$files) {
             
-            return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
+            return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
         }
-        
+
         $form = $data->form;
         
         if (!$form->rec->id) {
@@ -212,6 +212,7 @@ class blast_Letters extends core_Master
             //Ако добавяме нов показваме всички списъци
             $form->setOptions('listId', $files, $form->rec->id);
         } else {
+            
             //Ако редактираме, показваме списъка, който го редактираме
             $file[$form->rec->listId] = $files[$form->rec->listId];
             $form->setOptions('listId', $file, $form->rec->id);
