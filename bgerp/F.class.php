@@ -71,22 +71,25 @@ class bgerp_F extends core_Manager
     
     
     /**
+     * Да не се добавя контролна сума към ID параметър
      * 
-     * @see core_Mvc::unprotectId()
-     */
-    function unprotectId($id)
-    {
-        return ($id);
-    }
-    
-    
-    /**
-     * 
-     * @see core_Mvc::protectId()
+     * @see core_Mvc::protectId($id)
      */
     function protectId($id)
     {
         
-        return ($id);
+        return $id;
+    }
+    
+    
+    /**
+     * Да не се проверява контролната сума към id-то
+     * 
+     * @see core_Mvc::unprotectId($id)
+     */
+    function unprotectId($id)
+    {
+        
+        return $id;
     }
 }
