@@ -467,6 +467,8 @@ class crm_Persons extends core_Master
             // Email
             $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
             $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+
+            $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
         }
         
         $row->title =  $mvc->getTitleById($rec->id);
