@@ -307,4 +307,34 @@ class core_Lg extends core_Manager
         
         return $tpl;
     }
+    
+    
+    /**
+     * Транслитерира подадения стринг в латиница, ако текущия език не е кирилски и в текста има поне един символ на кирилица
+     * 
+     * @param string $str - Стринга, който ще се транслитерира
+     * 
+     * @retunr string $str - Резултата след обработката
+     */
+    static function transliterate($str)
+    {
+        // Езици, които използват кирилица
+        $cyrillicLangArr = array('bg', 'ru', 'md', 'sr');
+
+        // Текущия език
+        $currLg = static::getCurrent();
+        
+        // Ако текущия език не е в масива с кирилицте
+        if (!in_array($currLg, $cyrillicLangArr)) {
+            
+            // Ако в текста има кирилица
+            if (preg_match('/\p{Cyrillic}/ui', $str)) {
+                
+                // Преобразуваме текста в ascii
+                $str = str::utf2ascii($str);
+            }    
+        }
+        
+        return $str;
+    }
 }
