@@ -123,8 +123,9 @@ class email_UserInboxPlg extends core_Plugin
             if(core_Users::fetch('1=1')) {
 
                 //Вземаме броя на срещанията на всички типове роли
-                $rolesByTypeArr = core_Roles::countRolesByType($form->rec->rolesInput);
-                
+                $expandedRoles  = core_Roles::expand($form->rec->rolesInput);
+                $rolesByTypeArr = core_Roles::countRolesByType($expandedRoles);
+
                 if($rolesByTypeArr['rang'] < 1 && $form->rec->state == 'active') {
                     $form->setError('roles', "Потребителя трябва да има поне една роля за ранг!");
                 }
