@@ -406,7 +406,8 @@ div.alphabet div.tab-page {
 	.tab-page{
 		padding:0px 0px 0px !important;
 		clear: both;
-		border-top: 1px solid #bbb;
+		border-top: 1px solid #ccc;
+		box-shadow:0 -1px 1px rgba(0,0,0,0.1);
 		position: relative;
 		top: 1px;
 		@include border-radius(0px);
@@ -427,12 +428,15 @@ div.alphabet div.tab-page {
 				background-color: #eee;
 			}
 	}
+	.detail-info{
+			border:none !important;
+	}
 	div.tab-row .tab {
 		font-size:0.8em;
 		font-family: arial;
 		box-shadow:none;
 		display: inline;
-		margin: 1px 0px -1px 2px;
+		margin: 1px -8px -1px 10px;
 		float: left;
 		background: #ddd;
 		border: 1px solid #bbb;
@@ -461,9 +465,10 @@ div.alphabet div.tab-page {
 			background-color:#ddd !important;
 		}
 		&.selected {
-			margin:1px 0px -3px 2px;
+			margin: 1px -8px -3px 10px;
 			background: #ffffff;
-			border: 1px solid #bbb;
+			border: 1px solid #ccc;
+			box-shadow:0 -1px 1px rgba(0,0,0,0.2);
 			border-bottom: none;
 			z-index: 3;
 			padding:0;
