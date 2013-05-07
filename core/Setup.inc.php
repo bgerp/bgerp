@@ -828,26 +828,6 @@ die;
 //=======================
 
 /**
- * Връща абсолютният път до git командата или FALSE, ако не го намери
- */
-function getGitCmd(&$gitCmd)
-{
-    if($gitCmd) {
-
-        return;
-    }
-
-    defIfNot('BGERP_GIT_PATH', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '"C:/Program Files (x86)/Git/bin/git.exe"' : 'git');
-
-    // Проверяваме дали не идва от installBuilder-a
-    exec(BGERP_GIT_PATH . " --version", $output, $returnVar);
-    $gitCmd = BGERP_GIT_PATH;
-    
-    return ($returnVar == 0);
-}
-
-
-/**
  * Преобразува лог от вътрешни операции към HTML
  */
 function logToHtml($log, &$stat)
@@ -878,29 +858,31 @@ function linksToHtml($links)
     return $html;
 }
 
+/**
+ * Изпълнява git команда и връща стрингoвия резултат
+ */
+function gitExec($cmd, &$output)
+{
+    exec(BGERP_GIT_PATH . " {$cmd}", $output, $returnVar);
+    
+    return ($returnVar == 0);    
+}
 
 /**
  * Връща текущият бранч на репозиторито или FALSE ако не е сетнат
  */
 function gitCurrentBranch($repoPath, &$log)
 {
-    if (!getGitCmd($gitCmd)) {
-        $log[] = "err:Не е открит Git!";
-        
-        return FALSE;
-    }
     
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" rev-parse --abbrev-ref HEAD 2>&1";
+    $command = " --git-dir=\"{$repoPath}/.git\" rev-parse --abbrev-ref HEAD 2>&1";
 
-    exec($command, $arrRes, $returnVar);
-    // Първият ред съдържа резултата
-    $res = trim($arrRes['0']);
-    if ($res !== 'HEAD' && $returnVar == 0) {
-        
-        return $res;
-    }
     $repoName = basename($repoPath);
-    $log[] = "err: {$repoName} няма текущ бранч!";
+
+    // Първият ред съдържа резултата
+    if (gitExec($command, $res)) {
+        
+        return trim($res[0]);
+    }
     
     return FALSE;
 }
@@ -911,15 +893,15 @@ function gitCurrentBranch($repoPath, &$log)
  */
 function gitSetBranch($repoPath, &$log, $branch=NULL)
 {
-    if (!getGitCmd($gitCmd)) {
-        $log[] = "err:Не е открит Git!";
-        
-        return FALSE;
-    }
+
     $repoName = basename($repoPath);
+
     $currentBranch = gitCurrentBranch($repoPath, $log);
+
     if (isset($branch)) {
-        if ($currentBranch == $branch) return TRUE;
+        if ($currentBranch == $branch) {
+            return TRUE;
+        }
         $requiredBranch = $branch;
     } elseif ($currentBranch == BGERP_GIT_BRANCH) {
         return TRUE;
@@ -927,20 +909,18 @@ function gitSetBranch($repoPath, &$log, $branch=NULL)
         $requiredBranch = BGERP_GIT_BRANCH;
     }
     
-    $commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch origin +{$requiredBranch}:{$requiredBranch} 2>&1";
+    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin +{$requiredBranch}:{$requiredBranch} 2>&1";
     
-    $commandCheckOut = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$requiredBranch} 2>&1";
+    $commandCheckOut = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$requiredBranch} 2>&1";
  
-    exec($commandFetch, $arrRes, $returnVar);
-    if ($returnVar !== 0) {
+    if (!gitExec($commandFetch, $arrRes)) {
         foreach ($arrRes as $val) {
             $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$requiredBranch} fetch:" . $val):"";
         }
         
         return FALSE;
     } else {
-        exec($commandCheckOut , $arrRes, $returnVar);
-        if ($returnVar !== 0) {
+        if (!gitExec($commandFetch, $arrRes)) {
             foreach ($arrRes as $val) {
                 $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$requiredBranch} checkOut:" . $val):"";
             }
@@ -966,17 +946,17 @@ function gitSetBranch($repoPath, &$log, $branch=NULL)
  */
 function gitHasNewVersion($repoPath, &$log)
 {
-    if (!getGitCmd($gitCmd)) {
-        $log[] = "err:Не е открит Git!";
+    $repoName = basename($repoPath);
+    
+    $command = " --git-dir=\"{$repoPath}/.git\" remote show origin";
+
+    if (!gitExec($command, $arrRes)) {
+        foreach ($arrRes as $val) {
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при remote show origin: " . $val):"";
+        }
         
         return FALSE;
     }
-    
-    $repoName = basename($repoPath);
-    
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" remote show origin";
-
-    exec($command, $arrRes, $returnVar);
   
     // Търсим реда в който има състоянието на зададеният бранч
     foreach ($arrRes as $row) {
@@ -1012,17 +992,18 @@ function gitHasNewVersion($repoPath, &$log)
  */
 function gitHasChanges($repoPath, &$log)
 {
-    if (!getGitCmd($gitCmd)) {
-        $log[] = "err:Не е открит Git!";
+
+    $repoName = basename($repoPath);
+    
+    $command = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" status -s 2>&1";
+
+    if (!gitExec($command, $arrRes)) {
+        foreach ($arrRes as $val) {
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при status: " . $val):"";
+        }
         
         return FALSE;
     }
-    
-    $repoName = basename($repoPath);
-    
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" status -s";
-
-    exec($command, $arrRes, $returnVar);
   
     // $states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
     $states = array("M" => "Модифициран", "A"=>"Добавен");
@@ -1045,45 +1026,32 @@ function gitHasChanges($repoPath, &$log)
  */
 function gitPullRepo($repoPath, &$log)
 {
-    if (!getGitCmd($gitCmd)) {
-        $log[] = "err:Не е открит Git!";
+    
+    $repoName = basename($repoPath);
+    
+    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch 2>&1";
+
+    $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/" . BGERP_GIT_BRANCH ." 2>&1";
+
+    if (!gitExec($commandFetch, $arrResFetch)) {
+        foreach ($arrRes as $val) {
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при fetch: " . $val):"";
+        }
+        
+        return FALSE;
+    }
+  
+    if (!gitExec($commandMerge, $arrResMerge)) {
+        foreach ($arrRes as $val) {
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при merge origin/" . BGERP_GIT_BRANCH .": " . $val):"";
+        }
         
         return FALSE;
     }
     
-    $repoName = basename($repoPath);
-    
-    $res = execGit("--git-dir=\"{$repoPath}/.git\" fetch 2>&1");
-
-    $commandMerge = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/" . BGERP_GIT_BRANCH ." 2>&1";
-
-    exec($commandFetch, $arrResFetch, $returnVar);
-  
-    exec($commandMerge, $arrResMerge, $returnVar);
-    
-    $arrRes = array_merge($arrResFetch + $arrResMerge);
-        
-    $success = array("Alredy up-to-date.", "Fast-forward");
-    
-    foreach ($success as $needle) {
-        if (array_search($needle, $arrRes) !== FALSE) {
-            $log[] = "new:<b>[{$repoName}]</b> е обновено.";
+    $log[] = "new:<b>[{$repoName}]</b> е обновено.";
             
-            return TRUE;
-        }
-    }
-    
-    // Показваме грешката, ако не е сработило горното условие
-    foreach ($arrRes as $res) {
-        if (strpos($res, 'error:') !== FALSE || strpos($res, 'fatal:') !== FALSE) {
-            $err = substr($res, strrpos($res, ":")+1);
-            $log[] = "err:<b>[{$repoName}]</b> НЕ е обновено: {$err}";
-            
-            return FALSE;
-        }
-    }
-    
-    return FALSE;
+    return TRUE;
 }
 
 
@@ -1092,25 +1060,17 @@ function gitPullRepo($repoPath, &$log)
  */
 function gitRevertRepo($repoPath, &$log)
 {
-    if (!getGitCmd($gitCmd)) {
-        $log[] = "err:Не е открит Git!";
-        
-        return FALSE;
-    }
     
     $repoName = basename($repoPath);
     
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/" . BGERP_GIT_BRANCH ."2>&1";
+    $command = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/" . BGERP_GIT_BRANCH ." 2>&1";
     
-    exec($command, $arrRes, $returnVar);
-
-    foreach ($arrRes as $res) { 
-        if (strpos($res, 'fatal:') !== FALSE) {
-            $err = substr($res, strrpos($res, ":")+1);
-            $log[] = "err:<b>[{$repoName}]</b> НЕ е възстановено: {$err}";
-            
-            return FALSE;
+    if (!gitExec($command, $arrRes)) {
+        foreach ($arrRes as $val) {
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при reset --hard origin/" . BGERP_GIT_BRANCH ." :" . $val):"";
         }
+        
+        return FALSE;
     }
 
     $log[] = "msg:Репозиторито <b>[{$repoName}]</b> е възстановено";
