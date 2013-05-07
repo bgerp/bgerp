@@ -454,6 +454,8 @@ class sales_Invoices extends core_Master
     		$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
     	}
     	
+    	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->date);
+    	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	if($rec->dealValue && $fields['-single']){
@@ -466,11 +468,7 @@ class sales_Invoices extends core_Master
 			$percent = cls::get('type_Percent');
 			$row->vatPercent = $percent->toVerbal($period->vatRate);
 			$row->vatAmount = $double->toVerbal($vat);
-			
-			$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->date);
-			
 			$row->total = $double->toVerbal($rec->dealValue + $vat);
-			
 			$SpellNumber = cls::get('core_SpellNumber');
 			$row->amountVerbal = $SpellNumber->asCurrency($rec->dealValue + $vat, 'bg', FALSE);
     	}
