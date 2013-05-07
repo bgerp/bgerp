@@ -479,8 +479,12 @@ form {
  
  .narrow .formError {
  	width:auto;
-    padding:2px; 
+ 	margin:4px;
+    padding:5px; 
     font-family:Arial,Verdana;
+    ul{
+    	margin-left: 10px;
+    }
 }
 
  .formError li.ignored{
