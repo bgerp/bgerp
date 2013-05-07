@@ -233,6 +233,8 @@ class blast_Letters extends core_Master
             $subject = '[' . tr('Липсва заглавие') . ']';
         }
         
+        $row = new stdClass();
+
         //Заглавие
         $row->title = $subject;
         
