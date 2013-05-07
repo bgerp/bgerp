@@ -95,8 +95,29 @@
 			<!--ET_END DETAILS-->
 			
             <div class="lines"></div>
+            
+            <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
+                <tbody>
+                <tr>
+                <td width='70%'>
+                <!--ET_BEGIN amountVerbal-->
+                     <span style='float:left;'>|С думи|*: [#amountVerbal#]</span></td>
+                <!--ET_END amountVerbal-->
+                </td>
+                <td>
+                <div>|Стойност|* / Subtotal :<span style='float:right'> <span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></span></div>
+                <div>|Данъчна основа|* :<span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatBase#]</b></span></div>
+                <div>|ДДС|* / VAT &nbsp;<b>[#vatPercent#]</b> : <span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatAmount#]</b></span></div>
+                <div>|Общо|* / Total :<span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#total#]</b></span></div>
+                </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="lines"></div>
+            
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
-                <tbody><tr>
+                <tbody>
+                <tr>
                     <td class="topCell" valign="top" width="30%">
                        <div style="padding-top: 5px;">|Отговорен за стопанската операция|*:<br><br>
                         ...........................................................
@@ -122,16 +143,10 @@
                         <table>
                             <tbody>
                             <tr>
-                            	<td>
-                            	|Общо|*:<span style='float:right'> <span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></span>
-                            	</td>
-                            </tr>
-                            <tr>
                                 <td style="padding-top: 5px; text-align: right;">
                                     |Съставил|*: ..................................&nbsp;
                                     <br>
-                             
-                                </td>
+                             	</td>
                             </tr>
                             <tr>
                                 <td align="RIGHT">[#RESPONSABLE#]</td>

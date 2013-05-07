@@ -245,7 +245,7 @@ class sales_Invoices extends core_Master
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-        if (!$form->isSubmitted()) {
+        if ($form->isSubmitted()) {
             return;
         }
 
@@ -269,6 +269,10 @@ class sales_Invoices extends core_Master
 
         foreach ($mvc->fields as $fName=>$field) {
             $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
+        }
+        
+        if(!$form->rec->currencyRate){
+        	$form->rec->currencyRate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->currencyId), 4);
         }
 	}
     
@@ -450,10 +454,23 @@ class sales_Invoices extends core_Master
     		$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
     	}
     	
+    	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->date);
+    	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	if($rec->dealValue){
+    	if($rec->dealValue && $fields['-single']){
+    		$row->vatBase = $row->dealValue;
     		$row->dealValue = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->dealValue, $rec->date, NULL, $rec->currencyId));
+    		
+			$period = acc_Periods::fetchByDate($rec->date);
+			$vat = $rec->dealValue * $period->vatRate;
+			
+			$percent = cls::get('type_Percent');
+			$row->vatPercent = $percent->toVerbal($period->vatRate);
+			$row->vatAmount = $double->toVerbal($vat);
+			$row->total = $double->toVerbal($rec->dealValue + $vat);
+			$SpellNumber = cls::get('core_SpellNumber');
+			$row->amountVerbal = $SpellNumber->asCurrency($rec->dealValue + $vat, 'bg', FALSE);
     	}
     }
     
@@ -665,7 +682,7 @@ class sales_Invoices extends core_Master
     
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото наимей по подразбиране
+     * Връща тялото на имейла по подразбиране
      */
     static function getDefaultEmailBody($id)
     {

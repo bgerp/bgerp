@@ -618,6 +618,17 @@ dl {
 		max-width:76%;
 	}
 }
+table{
+	.dt {
+		width: 21.5%;
+		text-align: right;
+		color: $quiet-gray;
+		line-height: 1em;
+		white-space: nowrap;
+		padding-right:10px;
+		vertical-align:top;
+	}
+}
 .vertical .formTitle {
 	background-color: #99f;
 	border: solid 1px #88e;
@@ -1191,6 +1202,7 @@ div.folder-cover{
 	float:left;
 }
 .user-profile{
+	max-width:860px;
 	border:1px solid #ccc;
 	border-radius:5px;
 	background:#f1f1f1;	
@@ -1248,32 +1260,38 @@ div.folder-cover{
 	}
 	.detail-info{
 		background:#fff;
-		min-width: 400px;
 	}
-	.detail-info.portal dt{
-		min-width:86px;
+	.detail-info.portal .dt{
+		width:1%;
+		min-width:85px
 	}
 }
 .narrow .user-profile{
-	margin-top:7px;
-	min-width:380px;
+	margin-top:7px; 
+	min-width:100px;
+	max-width:600px;
 	.user-title{
 		font-size:1.1em;
+		padding:70px 20px 10px 127px;
+	}
+	table .dt{
+		padding-right:5px;
+	}
+	.profile-image>a, .profile-image div{
+		left:10px;
+		top:10px;
 	}
 	.detail-info{
 		font-size:0.8em;
-		min-width:auto;
-		dt{
-			width:85px;
-		}
-		dd{
-			max-width:200px;
-		}
+		min-width:90%;
+	}
+	.inner-holder{
+		padding:10px;
 	}
 	.linkWithIcon{
-		height:16px;
+		height:auto;
 		padding-top:1px;
-		white-space:nowrap;
+		
 	}
 	.fleft,.fright{
 		float:none;

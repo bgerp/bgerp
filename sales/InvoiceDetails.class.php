@@ -43,7 +43,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId, quantity, packagingId, price, packQuantity, amount, tools=Пулт';
+    var $listFields = 'productId, packagingId, quantity, price, amount, tools=Пулт';
     
     
     /**
@@ -77,12 +77,11 @@ class sales_InvoiceDetails extends core_Detail
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         $this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
-        $this->FLD('quantity', 'double(decimals=4)', 'caption=Количество,mandatory');
+        $this->FLD('quantity', 'double(decimals=4)', 'caption=К-во,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         $this->FLD('quantityInPack', 'double', 'input=none,column=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input');
-        $this->FLD('packQuantity', 'double', 'caption=К-во,input=none');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
         $this->setDbUnique('invoiceId, productId, packagingId');
@@ -150,7 +149,6 @@ class sales_InvoiceDetails extends core_Detail
            	   $rec->quantityInPack = 1;
             }
           
-            $rec->packQuantity = $rec->quantityInPack * $rec->quantity;
             if(!$form->rec->price){
           	
             // Ако не е зададена цена, извличаме я от избраната политика
@@ -176,8 +174,7 @@ class sales_InvoiceDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->quantity = floatval($row->quantity);
-    	$row->packQuantity = floatval($rec->packQuantity);
+    	$row->quantity = floatval($rec->quantity);
     	
     	if($rec->note){
     		$varchar = cls::get('type_Varchar');

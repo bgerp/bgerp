@@ -75,34 +75,6 @@ class email_Sent extends core_Manager
     static $mimes = NULL;
     
     
-    /**
-     * Описание на модела (таблицата)
-     */
-    function description()
-    {
-        $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От адрес,mandatory');
-        $this->FLD('emailTo', 'email', 'caption=До,input=none');
-        $this->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
-                                    cp1251=Windows Cyrillic|* (CP1251),
-                                    koi8-r=Rus Cyrillic|* (KOI8-R),
-                                    cp2152=Western|* (CP1252),
-                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=4');
-        $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
-        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
-        $this->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
-        $this->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
-        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
-        
-        // дата на получаване на писмото (NULL ако няма информация дали е получено)
-        $this->FLD('receivedOn', 'datetime(format=smartTime)', 'input=none,caption=Получено->На');
-        
-        // IP от което е получено писмото (NULL ако няма информация от къде е получено)
-        $this->FLD('receivedIp', 'ip', 'input=none,caption=Получено->IP');
-        
-        // дата на връщане на писмото (в случай, че не е получено)
-        $this->FLD('returnedOn', 'datetime(format=smartTime)', 'input=none,caption=Върнато на');
-    }
-    
     
     /**
      * Изпраща имейл
@@ -120,6 +92,8 @@ class email_Sent extends core_Manager
      * ->encoding string как да се кодират символите на изходящия имейл
      * ->no_thread_hnd boolean дали в изходящото писмо да има информация за нишката
      * (в събджекта, MIME-хедъри-те и пр.)
+     * 
+     * @deprecated
      */
     static function send($containerId, $threadId, $boxFrom, $emailsTo, $subject, $body, $options)
     {
@@ -384,6 +358,8 @@ class email_Sent extends core_Manager
      * @param string $date Дата на изпращане на обратната разписка (NULL - днешна дата)
      * @param string $ip IP адрес, от който е изпратена разписката
      * @return boolean TRUE - обратната разписка е обработена нормално и FALSE противен случай
+     * 
+     * @deprecated
      */
     public static function received($mid, $date = NULL, $ip = NULL)
     {
@@ -415,6 +391,8 @@ class email_Sent extends core_Manager
      * @param string $mid Уникален ключ на писмото, което не е доставено
      * @param string $date дата на върнатото писмо
      * @return boolean TRUE намерено е писмото-оригинал и събитието е отразено;
+     * 
+     * @deprecated
      */
     public static function returned($mid, $date = NULL)
     {

@@ -503,4 +503,24 @@ class cat_Products extends core_Master {
 	    
 	    return $result;
     }
+    
+    
+    /**
+     * Връща ДДС  на даден продукт
+     * @param int $productId - Ид на продукт
+     * @param date $date - Дата към която начисляваме ДДС-то
+     * @return double $vat - ДДС-то на продукта 
+     */
+    public static function getVat($productId, $date = NULL)
+    {
+    	if(!$date){
+    		$date = dt::now();
+    	}
+    	
+    	$period = acc_Periods::fetchByDate($date);
+    	
+    	// Взимаме ДДС-то от периода
+    	//@TODO Да се взима ДДС-то с приоритет от продукта
+    	return $period->vatRate;
+    }
 }

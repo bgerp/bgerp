@@ -35,13 +35,13 @@ class sales_Quotations extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg,
                     doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc';
        
     
@@ -79,19 +79,13 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number=Номер, reff, date, contragentName, deliveryTermId, createdOn,createdBy';
+    public $listFields = 'id, number=Номер, reff, date, contragentName, deliveryTermId, createdOn,createdBy';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'number';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
 
 
     /**
@@ -130,7 +124,8 @@ class sales_Quotations extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em');
         $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
-        $this->FLD('wat', 'enum(yes=с начисляване,no=без начисляване)','caption=Плащане->ДДС');
+        $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
+        $this->FLD('vat', 'enum(yes=с начисляване,no=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
     }
     
@@ -144,16 +139,29 @@ class sales_Quotations extends core_Master
        $form->setDefault('date', dt::now());
        
        $mvc->populateContragentData($form);
-       ($mvc->getDefaultWat($form->rec->contragentClassId, $form->rec->contragentId)) ? $form->setDefault('wat', 'yes') : $form->setDefault('wat', 'no');
+       ($mvc->getDefaultVat($form->rec->contragentClassId, $form->rec->contragentId)) ? $form->setDefault('vat', 'yes') : $form->setDefault('vat', 'no');
     }
 	
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+	    	if(!$form->rec->rate){
+		    	$form->rec->rate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->paymentCurrencyId), 4);
+		    }
+    	}
+    }
+    
     
     /**
      * Дали да се начислява ДДС на контрагента
      * Начисляваме ДДС в следния ред:
      * 1. Ако контрагента е лице - винаги
      * 2. Ако контрагента е българска фирма - винаги
-     * 3. Ако фирмата има "BG" в wat номера си - винаги
+     * 3. Ако фирмата има "BG" в vat номера си - винаги
      * 4. Ако фирмата не е българска и няма данъчен номер - винаги
      * 5. Ако никое не е изпълнено - не начисляваме ДДС
      * 
@@ -161,7 +169,7 @@ class sales_Quotations extends core_Master
      * @param false $contragentId - ид на контрагента
      * @return boolean TRUE/FALSE - начислява ли се или не ДДС
      */
-    function getDefaultWat($contragentClassId, $contragentId)
+    function getDefaultVat($contragentClassId, $contragentId)
     {
     	// Ако контрагента е лице, начисляваме ДДС
     	if($contragentClassId == crm_Persons::getClassId()) return TRUE;
@@ -177,7 +185,7 @@ class sales_Quotations extends core_Master
     	// Всички фирми имащи BG в Ват номера си
     	if($data->vatNo && (preg_match("/^BG/", $data->vatNo))) return TRUE;
     	
-    	// за всички чуждестранни фирми с липсващ/невалиден wat номер
+    	// за всички чуждестранни фирми с липсващ/невалиден vat номер
     	if($ownCountryId != $data->countryId && !$data->vatNo) return TRUE;
     	
     	// Ако никое не е изпълнено не начисляваме ДДС
@@ -310,5 +318,20 @@ class sales_Quotations extends core_Master
     			}
     		}
     	}
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+       
+        $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . '#[#handle#]');
+        
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }

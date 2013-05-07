@@ -75,9 +75,6 @@ class log_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.25, 'Документи', 'История', 'log_Documents', 'default', "admin");
-        
         return $html;
     }
     

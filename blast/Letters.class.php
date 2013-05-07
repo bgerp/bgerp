@@ -149,6 +149,12 @@ class blast_Letters extends core_Master
     
     
     /**
+     * 
+     */
+    var $cloneFields = 'listId, subject, sender, date, outNumber, text, numLetters, template';
+
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -194,15 +200,15 @@ class blast_Letters extends core_Master
         $query->where("#keyField = 'names' OR #keyField = 'company'");
         
         while ($rec = $query->fetch()) {
-            $files[$rec->id] = core_Type::escape($rec->title);
+            $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
         }
         
         //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
         if (!$files) {
             
-            return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
+            return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
         }
-        
+
         $form = $data->form;
         
         if (!$form->rec->id) {
@@ -212,6 +218,7 @@ class blast_Letters extends core_Master
             //Ако добавяме нов показваме всички списъци
             $form->setOptions('listId', $files, $form->rec->id);
         } else {
+            
             //Ако редактираме, показваме списъка, който го редактираме
             $file[$form->rec->listId] = $files[$form->rec->listId];
             $form->setOptions('listId', $file, $form->rec->id);
@@ -299,8 +306,11 @@ class blast_Letters extends core_Master
                 //Името на мастер шаблона
                 $templateFile = ucfirst($this->letterTemp->template);
                 
+                // Пътя до файла от пакета
+                $filePath = "blast/tpl/{$templateFile}LettersTemplate.shtml";
+                
                 //Пътя до мастер шаблона
-                $fullPath = getFullPath("blast/tpl/{$templateFile}LettersTemplate.shtml");
+                $fullPath = getFullPath($filePath);
                 
                 //Проверява дали е файл
                 if (!is_file($fullPath)) {
@@ -311,7 +321,7 @@ class blast_Letters extends core_Master
                 }
                 
                 //Вземаме съдържанието на мастър шаблона
-                $tpl = new ET(tr(file_get_contents($fullPath)));
+                $tpl = getTplFromFile($filePath);
                 
                 //Заместваме данните за потребителя в мастър шаблона и ги присвоява на променливата
                 $allLetters .= $this->tplReplace($tpl);

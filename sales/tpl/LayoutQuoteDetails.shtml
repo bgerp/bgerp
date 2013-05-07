@@ -48,7 +48,9 @@
 	<td colspan='4' id='total-td-label'></td>
 	<td colspan='2' align='right'>
 	|Общо|*: &nbsp;<b>[#total#]</b>
+	<!--ET_BEGIN totalDisc-->
 	<div class='discount'> |След ТО|*: &nbsp; [#totalDisc#]</div>
+	<!--ET_END totalDisc-->
 	</td>
 </tr>
 <!--ET_END total-->

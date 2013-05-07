@@ -60,7 +60,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, quantity, price, discount, tolerance, term, optional, amount, discAmount, tools=Пулт';
+    public $listFields = 'productId, quantity, price, discount, tolerance, term, optional, amount, discAmount';
     
     
   	/**
@@ -71,7 +71,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
-    	$this->FLD('quantity', 'double(decimals=4)', 'caption=К-во,width=8em;');
+    	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em;');
         $this->FLD('discount', 'percent(decimals=0)', 'caption=Отстъпка,width=8em;');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
@@ -261,10 +261,12 @@ class sales_QuotationsDetails extends core_Detail {
     	if($totalDisc == 0){
     		$totalDisc = NULL;
     	} else {
-    		$totalDisc = $double->toVerbal(currency_CurrencyRates::convertAmount($totalDisc, $data->masterData->rec->date, NULL, $data->masterData->rec->paymentCurrencyId));
+    		$totalDisc = round($totalDisc / $data->masterData->rec->rate, 2);
+    		$totalDisc = $double->toVerbal($totalDisc);
     	}
     	
-    	$total = $double->toVerbal(currency_CurrencyRates::convertAmount($total, $data->masterData->rec->date, NULL, $data->masterData->rec->paymentCurrencyId));
+    	$total = round($total / $data->masterData->rec->rate, 2);
+    	$total = $double->toVerbal($total);
     	$data->total = (object) array('total' => $total, 'totalDisc' => $totalDisc);
     }
     
@@ -320,7 +322,6 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
-    	
     	$dTpl->removeBlocks();
     	$tpl->append($dTpl, 'DETAILS');
     	
@@ -338,10 +339,13 @@ class sales_QuotationsDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	
     	if(!$rec->quantity){
     		$row->quantity = '???';
     	} else {
-    		$row->quantity = floatval($row->quantity);
+    		$row->quantity = $double->toVerbal(floatval($rec->quantity));
     	}
     	
     	// Временно докато се изесним какво се прави с productManCls
@@ -356,17 +360,30 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->discount = "- {$row->discount}";
     	}
     	
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
     	$masterRec = $mvc->Master->fetch($rec->quotationId);
-    	$row->price = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->price, $masterRec->date, NULL, $masterRec->paymentCurrencyId));
+    	$vat = cat_Products::getVat($rec->productId, $masterRec->date);
+    	
+    	$price = round($rec->price / $masterRec->rate, 2);
+    	if($masterRec->vat == 'yes'){
+    		$price = $price + ($price * $vat);
+    	}
+    	
+    	$row->price = $double->toVerbal($price);
     	
     	if($rec->amount != '???'){
-    		$row->amount = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->amount, $masterRec->date, NULL, $masterRec->paymentCurrencyId));
+    		$amount = round($rec->amount / $masterRec->rate, 2);
+	    	if($masterRec->vat == 'yes'){
+	    		$amount = $amount + ($amount * $vat);
+	    	}
+    		$row->amount = $double->toVerbal($amount);
     	}
     	
     	if($rec->discAmount){
-    		$row->discAmount = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->discAmount, $masterRec->date, NULL, $masterRec->paymentCurrencyId));
+    		$disc = round($rec->discAmount / $masterRec->rate, 2);
+	    	if($masterRec->vat == 'yes'){
+		    	$disc = $disc + ($disc * $vat);
+		    }
+    		$row->discAmount = $double->toVerbal($disc);
     	}
     }
     
