@@ -98,6 +98,16 @@ function tr($text, $userId = 0, $key = FALSE)
 
 
 /**
+ * Транслитериране на стринг. Използва core_Lg
+ */
+function transliterate($text)
+{
+    
+    return core_Lg::transliterate($text);
+}
+
+
+/**
  * Връща шаблона на подадения файл през превода
  * 
  * @param string $file - Пътя на файла от пакета нататък

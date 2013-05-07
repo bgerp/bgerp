@@ -318,6 +318,9 @@ class core_Lg extends core_Manager
      */
     static function transliterate($str)
     {
+        // Ако е празен стринг
+        if (!trim($str)) return $str;
+        
         // Езици, които използват кирилица
         $cyrillicLangArr = array('bg', 'ru', 'md', 'sr');
 
