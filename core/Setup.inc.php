@@ -1006,15 +1006,23 @@ function gitHasChanges($repoPath, &$log)
     }
   
     // $states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
-    $states = array("M" => "Модифициран", "A"=>"Добавен");
+    $statesWarning = array("M" => "Модифициран", "A"=>"Добавен", "D"=>"Изтрит");
+    $statesInfo = array("??"=>"Непознат");
+    $wrn = FALSE;
     if (!empty($arrRes)) {
         foreach ($arrRes as $row) {
             $row = trim($row);
             $arr = split(" ", $row);
-            $log[] = "wrn:<b>[{$repoName}]</b> " . $states[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
+            if (isset($statesWarning[$arr[0]])) {
+                $log[] = "wrn:<b>[{$repoName}]</b> " . $statesWarning[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
+                $wrn = TRUE;
+            }
+            if (isset($statesInfo[$arr[0]])) {
+                $log[] = "inf:<b>[{$repoName}]</b> " . $statesInfo[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
+            }
         }
         
-        return TRUE;
+        return $wrn;
     }
     
     return FALSE;
