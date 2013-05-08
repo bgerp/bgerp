@@ -1,0 +1,8 @@
+Дължина,double,см,length
+Височина,double,см,height
+Тегло,double,гр,weightGr
+Тегло,double,кг,weightKg
+Цвят,varchar,,color
+Дебелина,double,микрон,thickness
+Обем,double,литри,volume
+ДДС,double,%,vat
