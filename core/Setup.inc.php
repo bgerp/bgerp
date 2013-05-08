@@ -943,6 +943,7 @@ function gitSetBranch($repoPath, &$log, $branch=NULL)
 
 /**
  * Дали има по-нова версия на това репозитори в зададения бранч?
+ * Проба за git ls-remote . setup
  */
 function gitHasNewVersion($repoPath, &$log)
 {
