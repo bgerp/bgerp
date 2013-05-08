@@ -102,7 +102,7 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packQuantity, packagingId, uomId, packPrice, quantity, quantityDelivered, price, discount, amount';
+    public $listFields = 'productId, packQuantity=Количество->Поръчано, quantityDelivered=Количество->Доставено, packagingId, uomId, packPrice, discount, amount';
     
         
     /**
@@ -124,14 +124,14 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
 
         // Количество в основна мярка
-        $this->FLD('quantity', 'float', 'caption=К-во,input=none');
+        $this->FLD('quantity', 'float', 'caption=К-во (ед),input=none');
         
-        $this->FLD('quantityDelivered', 'float(decimals=2)', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
+        $this->FLD('quantityDelivered', 'float(decimals=2)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
         
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
-        $this->FLD('quantityInPack', 'float', 'input=none,column=none');
+        $this->FLD('quantityInPack', 'float', 'input=none');
         
         // Цена за единица продукт в основна мярка
         $this->FLD('price', 'float', 'caption=Цена,input=none');
