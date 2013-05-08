@@ -255,8 +255,8 @@ class sales_Quotations extends core_Master
 			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
 		}
 		
-		$cuRec = core_Users::fetch(core_Users::getCurrent());
-		$row->username = core_Users::recToVerbal($cuRec, 'names')->names;
+		$username = core_Users::fetch($rec->createdBy);
+		$row->username = core_Users::recToVerbal($username, 'names')->names;
     }
     
     

@@ -340,13 +340,16 @@ class sales_QuotationsDetails extends core_Detail {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
     	
     	if(!$rec->quantity){
     		$row->quantity = '???';
     	} else {
-    		$row->quantity = $double->toVerbal(floatval($rec->quantity));
+    		$quantity = floatval($rec->quantity);
+    		$parts = explode('.', $quantity);
+    		$double->params['decimals'] = count($parts[1]);
+    		$row->quantity = $double->toVerbal($rec->quantity);
     	}
+    	$double->params['decimals'] = 2;
     	
     	// Временно докато се изесним какво се прави с productManCls
     	$uomId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -364,6 +367,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$vat = cat_Products::getVat($rec->productId, $masterRec->date);
     	
     	$price = round($rec->price / $masterRec->rate, 2);
+    	
     	if($masterRec->vat == 'yes'){
     		$price = $price + ($price * $vat);
     	}
