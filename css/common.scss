@@ -67,6 +67,11 @@ $quiet-gray:#888;
     @include border-radius(5px);
     position:relative;
 }
+
+select, input, textarea{
+	background:#fff;
+}
+
 select.combo {  
 	position: absolute; 
     visibility:hidden;
@@ -621,6 +626,7 @@ input[type="text"]{
 
 .wide .checkbox, .wide .radiobutton, .wide input[type=checkbox], .wide input[type=radio] { 
 	border: none !important;
+	box-shadow:none;
 }
 
 .narrow .formAll {
