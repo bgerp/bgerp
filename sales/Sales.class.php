@@ -156,6 +156,7 @@ class sales_Sales extends core_Master
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 
             'caption=Фактуриране,maxRadio=3,columns=3');
+        $this->FLD('chargeVat', 'enum(yes=с ДДС,no=без ДДС)', 'caption=ДДС');
         
         /*
          * Стойности
@@ -432,6 +433,14 @@ class sales_Sales extends core_Master
         $form->getField('deliveryLocationId')->type->options = 
             array(''=>'') +
             crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+        
+        /*
+         * Начисляване на ДДС по подразбиране
+         */
+        $form->setDefault('chargeVat', 
+            sales_Quotations::getDefaultVat($form->rec->contragentClassId, $form->rec->contragentId) ?
+                'yes' : 'no'
+        );
     }
     
 
