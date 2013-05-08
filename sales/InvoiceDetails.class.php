@@ -29,6 +29,12 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'RowNumb';
+    
+    
+    /**
      * @todo Чака за документация...
      */
     var $pageMenu = "Фактури";
@@ -43,13 +49,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId, packagingId, quantity, price, amount, tools=Пулт';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'productId, packagingId, quantity, price, amount';
     
     
     /**
@@ -174,7 +174,11 @@ class sales_InvoiceDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->quantity = floatval($rec->quantity);
+    	$double = cls::get('type_Double');
+    	$quantity = floatval($rec->quantity);
+    	$parts = explode('.', $quantity);
+    	$double->params['decimals'] = count($parts[1]);
+    	$row->quantity = $double->toVerbal($quantity);
     	
     	if($rec->note){
     		$varchar = cls::get('type_Varchar');
@@ -184,14 +188,17 @@ class sales_InvoiceDetails extends core_Detail
     	
     	$productRec = cat_Products::fetch($rec->productId);
     	if($rec->packagingId){
-    		$row->quantityInPack = floatval($rec->quantityInPack);
+    		$quantityInPack = floatval($rec->quantityInPack);
+    		$parts = explode('.', $quantityInPack);
+    		$double->params['decimals'] = count($parts[1]);
+    		$row->quantityInPack = $double->toVerbal($rec->quantityInPack);
     		$measureShort = cat_UoM::fetchField($productRec->measureId, 'shortName');
     		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
     	} else {
     		$row->packagingId = cat_Products::getVerbal($productRec, 'measureId');
     	}
     	
-    	$double = cls::get('type_Double');
+    	
     	$double->params['decimals'] = 2;
     	$masterRec = $mvc->Master->fetch($rec->invoiceId);
     	$row->price = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->price, $masterRec->date, NULL, $masterRec->currencyId));

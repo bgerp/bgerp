@@ -99,16 +99,33 @@
             <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                <td width='70%'>
+                <td style='text-align:center;vertical-align:middle !important'>
+                <div>
+                |С думи|*:
                 <!--ET_BEGIN amountVerbal-->
-                     <span style='float:left;'>|С думи|*: [#amountVerbal#]</span></td>
+                [#amountVerbal#]
                 <!--ET_END amountVerbal-->
+                </div>
                 </td>
-                <td>
-                <div>|Стойност|* / Subtotal :<span style='float:right'> <span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></span></div>
-                <div>|Данъчна основа|* :<span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatBase#]</b></span></div>
-                <div>|ДДС|* / VAT &nbsp;<b>[#vatPercent#]</b> : <span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatAmount#]</b></span></div>
-                <div>|Общо|* / Total :<span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#total#]</b></span></div>
+                <td style='padding-top:3px;padding-bottom:3px;width:35%'>
+                <table border='0' style='' cellpadding='3px' width='100%' cellspacing='0px'>
+                <tr>
+	                <td style='text-align:right'>|Стойност|* / Subtotal :</td>
+	                <td><span style='float:right'> <span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></span></td>
+                </tr>
+                <tr>
+                	<td style='text-align:right'>|Данъчна основа|* :</td>
+                	<td><span style='float:right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatBase#]</b></span></td>
+                </tr>
+                <tr>
+                	<td style='text-align:right'>|ДДС|* / VAT :</td>
+                	<td><span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatAmount#]</b></span></td>
+                </tr>
+                <tr>
+                	<td style='text-align:right'>|Общо|* / Total :</td>
+                	<td><span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#total#]</b></span></td>
+                </tr>
+                </table>
                 </td>
                 </tr>
                 </tbody>
@@ -118,25 +135,42 @@
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="topCell" valign="top" width="30%">
-                       <div style="padding-top: 5px;">|Отговорен за стопанската операция|*:<br><br>
+                   <td class="topCell" valign="top" width="30%">
+                   <div>|Доставка|* / <i>Delivery</i></div>
+                   <div>|Условие|*: [#deliveryId#]</div>
+                   <div>|Място|*: [#deliveryPlace#]</div>
+                   <!--ET_BEGIN additionalInfo-->
+                   <hr>
+                   <div>|Бележки|* / <i>Notes</i></div>
+                   <div>[#additionalInfo#]</div>
+                   <!--ET_END additionalInfo-->
+                   <hr>
+                   <div>|Отговорен за стопанската операция|*:<br><br>
                         ...........................................................
+                        [#responsible#]
                         </div>
-                        <br><br>
-                        <span class="richtext"> </span>      
-                    </td>
-                    <td class="topCell" valign="top" width="40%">
-                        <div>|Плащане|* / <i>Payment</i><div>
-                        <div>|Плащане 35 дни след датата на данъчното събитие|*</div>
+                  </td>
+                   <td class="topCell" valign="top" width="40%">
+                        <div>|Плащане|* / <i>Payment</i></div>
+                        <div>|Начин|*: [#paymentMethodId#]</div>
+                        <div>|Валута|*: [#currencyId#]</div>
                         <div>|Краен срок за плащане|*: <b>[#DUE_DATE#]</b></div>
                         <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
                         <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</div>
-                         <!--ET_END OVERDUE_INTEREST_RATE-->
-                        <div><hr>|Банкова с-ка|* / <i>Bank account</i><div>
-                        <div class="smallData">[#BANK_NAME#]</div>
-                        <div class="smallData">[#BANK_ACCOUNT#]</div>
-                        <div class="smallData">[#BIC#]</div>
-                        </div></div></div></div>
+                        <!--ET_END OVERDUE_INTEREST_RATE-->
+                        <!--ET_BEGIN accountId-->
+                        <div>
+	                        <hr>|Банкова с-ка|*: [#accountId#]
+	                        <div class="smallData">[#bic#], [#bank#]</div>
+		                </div>
+                        <!--ET_END accountId-->
+                        
+                        <!--ET_BEGIN caseId-->
+                        <div>
+	                        <hr>
+	                        |Каса|*:  [#caseId#]
+	                    </div>
+                        <!--ET_END caseId-->
                     </td>
        
                     <td class="topCell" align="right" valign="top" width="30%">
@@ -149,7 +183,7 @@
                              	</td>
                             </tr>
                             <tr>
-                                <td align="RIGHT">[#RESPONSABLE#]</td>
+                                <td align="RIGHT">[#username#]</td>
                             </tr>
                              <!--ET_BEGIN vatDate-->  
                             <tr>
@@ -178,7 +212,7 @@
                         </div>
                            <!--ET_END TO_SALES-->  
                     </td>
-                </tr>           
+                </tr>        
                 </tbody>
             </table>
  

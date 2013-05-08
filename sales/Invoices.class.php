@@ -144,17 +144,15 @@ class sales_Invoices extends core_Master
         // Номер на фактурата
         $this->FLD('number', 'int', 'caption=Номер, export=Csv');
 
-        // Съставил фактурата
-        $this->FLD('creatorName', 'varchar(255)', 'caption=Съставил, input=none');
-        
         /*
          * Данни за контрагента - получател на фактурата
          */
         // Перо в номенклатурата с клиенти съответстващо на контрагента
         $this->FLD('contragentAccItemId', 
             'acc_type_Item(lists=' . self::CLIENTS_ACC_LIST . ')', 'notNull,input=none,column=none');
-        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory,width=100%');
-        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,width=100%');
+        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory');
+        $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник');
+        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->ЕИК/VAT №, mandatory');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData');
@@ -167,8 +165,8 @@ class sales_Invoices extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods, select=name)', 'caption=Плащане->Начин');
                 
         // Наша банкова сметка (при начин на плащане по банков път)
-        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
-
+        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
+		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         // Валута
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
         $this->FLD('currencyRate', 'double', 'caption=Валута->Курс');  
@@ -212,6 +210,7 @@ class sales_Invoices extends core_Master
     public function updateInvoice($id)
     {
     	$rec = $this->fetch($id);
+    	$rec->dealValue = 0;
     	$detaiLQuery = sales_InvoiceDetails::getQuery();
     	$detaiLQuery->where("#invoiceId = {$id}");
     	while($detail = $detaiLQuery->fetch()){
@@ -235,8 +234,6 @@ class sales_Invoices extends core_Master
             // формата с разумни стойности по подразбиране.
             $mvc::setFormDefaults($form);
         }
-        
-        $mvc::populateContragentData($form);
     }
     
     
@@ -458,19 +455,31 @@ class sales_Invoices extends core_Master
     	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	if($rec->dealValue && $fields['-single']){
-    		$row->vatBase = $row->dealValue;
-    		$row->dealValue = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->dealValue, $rec->date, NULL, $rec->currencyId));
-    		
-			$period = acc_Periods::fetchByDate($rec->date);
-			$vat = $rec->dealValue * $period->vatRate;
-			
-			$percent = cls::get('type_Percent');
-			$row->vatPercent = $percent->toVerbal($period->vatRate);
-			$row->vatAmount = $double->toVerbal($vat);
-			$row->total = $double->toVerbal($rec->dealValue + $vat);
-			$SpellNumber = cls::get('core_SpellNumber');
-			$row->amountVerbal = $SpellNumber->asCurrency($rec->dealValue + $vat, 'bg', FALSE);
+    	if($fields['-single']){
+	    	if($rec->dealValue){
+	    		$row->vatBase = $row->dealValue;
+	    		$row->dealValue = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->dealValue, $rec->date, NULL, $rec->currencyId));
+	    		
+				$period = acc_Periods::fetchByDate($rec->date);
+				$vat = $rec->dealValue * $period->vatRate;
+				
+				$percent = cls::get('type_Percent');
+				$row->vatPercent = $percent->toVerbal($period->vatRate);
+				$row->vatAmount = $double->toVerbal($vat);
+				$row->total = $double->toVerbal($rec->dealValue + $vat);
+				$SpellNumber = cls::get('core_SpellNumber');
+				$row->amountVerbal = $SpellNumber->asCurrency($rec->dealValue + $vat, 'bg', FALSE);
+	    	}
+	    	
+	    	if($rec->accountId){
+	    		$varchar = cls::get('type_Varchar');
+	    		$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+	    		$row->bank = $varchar->toVerbal($ownAcc->bank);
+	    		$row->bic = $varchar->toVerbal($ownAcc->bic);
+	    	}
+	    	
+	    	$username = core_Users::fetch($rec->createdBy);
+			$row->username = core_Users::recToVerbal($username, 'names')->names;
     	}
     }
     
@@ -531,7 +540,6 @@ class sales_Invoices extends core_Master
          *  3. Има само данни за лице
          *  4. Нито едно от горните не е вярно
          */
-        
         if (empty($contragentData->company) && empty($contragentData->person)) {
             // Случай 4: нито фирма, нито лице
             // TODO доколко допустимо е да се стигне до тук?
@@ -600,7 +608,7 @@ class sales_Invoices extends core_Master
             // Намерения клас-източник на данни за контрагент не поддържа doc_ContragentDataIntf
             return;
         }
-    
+    	
         $contragentData = $sourceClass::getContragentData($sourceObjectId);
     
         return $contragentData;
@@ -617,6 +625,16 @@ class sales_Invoices extends core_Master
     		// Фактурата неможе се едитва, ако е възоснова на продажба
     		if($rec->originId || ($rec->docType && $rec->docId)){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'activate'){
+    		if(!$rec->id){
+    			$res = 'no_one';
+    		} else {
+    			if(!sales_InvoiceDetails::fetch("#invoiceId = {$rec->id}")){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }
