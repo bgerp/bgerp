@@ -86,6 +86,7 @@ class cat_Params extends core_Manager
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
         $this->FLD('type', 'enum(double=Число, int=Цяло число, varchar=Текст, color=Цвят, date=Дата)', 'caption=Тип');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
+        $this->FLD('sysId', 'varchar(32)', 'input=none');
         
         $this->FNC('typeExt', 'varchar', 'caption=Име');
         
@@ -118,70 +119,20 @@ class cat_Params extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($action == 'delete' && $rec->id) {
-            if(cat_products_Params::fetch("#paramId = $rec->id")) {
+            if($rec->sysId || cat_products_Params::fetch("#paramId = $rec->id")) {
                 $requiredRoles = 'no_one';
             }
         }
     }
-
     
-    
+   
     /**
-     * Зареждане на първоначални данни
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
+     * Връща ид-то на параметъра по зададен sysId
+     * @param string $sysId
+     * @return int $id - ид на параметъра
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function fetchIdBySysId($sysId)
     {
-        $initData = array(
-            array(
-                'name' => 'Дължина',
-                'type' => 'double',
-                'suffix' => 'см',
-            ),
-            array(
-                'name' => 'Височина',
-                'type' => 'double',
-                'suffix' => 'см',
-            ),
-            array(
-                'name' => 'Тегло',
-                'type' => 'double',
-                'suffix' => 'гр',
-            ),
-            array(
-                'name' => 'Тегло',
-                'type' => 'double',
-                'suffix' => 'кг',
-            ),
-            array(
-                'name' => 'Цвят',
-                'type' => 'varchar',
-                'suffix' => '',
-            ),
-            array(
-                'name' => 'Дебелина',
-                'type' => 'double',
-                'suffix' => 'микрон',
-            ),
-            array(
-                'name' => 'Обем',
-                'type' => 'double',
-                'suffix' => 'литри',
-            )
-        );
-        
-        foreach ($initData as $rec) {
-            $rec = (object)$rec;
-            $rec->id = $mvc->fetchField("#name = '{$rec->name}' AND #suffix = '{$rec->suffix}'", 'id');
-            $isUpdate = !empty($rec->id);
-            
-            if ($mvc->save($rec)) {
-                $res .= "<li>" . ($isUpdate ? 'Обновен' : 'Добавен') . " параметър {$rec->name} [{$rec->suffix}]</li>";
-            } else {
-                $res .= "<li class=\"error\">Проблем при" . ($isUpdate ? 'обновяване' : 'добавяне') . " на параметър {$rec->name} [{$rec->suffix}]</li>";
-            }
-        }
+    	return static::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
     }
 }

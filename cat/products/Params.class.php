@@ -151,6 +151,23 @@ class cat_products_Params extends cat_products_Detail
     
     
     /**
+     * Връща стойноста на даден параметър за даден продукт по негово sysId
+     * @param int $productId - ид на продукт
+     * @param int $sysId - sysId на параметъра
+     * @return varchar $value - стойноста на параметъра
+     */
+    public static function fetchParamValue($productId, $sysId)
+    {
+     	$paramId = cat_Params::fetchIdBySysId($sysId);
+     	if($paramId){
+     		return static::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
+     	}
+     	
+     	return NULL;
+    }
+    
+    
+    /**
      * Рендираме общия изглед за 'List'
      */
     function renderDetail_($data)

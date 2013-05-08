@@ -113,6 +113,9 @@ class cat_Setup
         // Зареждане на Продукти от csv файл
         $html .= cat_setup_Products::setup();
         
+        // Зареждане на Параметри от csv файл
+        $html .= cat_setup_Params::setup();
+        
         return $html;
     }
 }
