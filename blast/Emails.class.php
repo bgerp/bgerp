@@ -364,6 +364,7 @@ class blast_Emails extends core_Master
             $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
             
             // Масив с данни от плейсхолдера
+            $nRecArr['recipient'] = $recArr['recipient'];
             $nRecArr['attn'] = $recArr['attn'];
             $nRecArr['email'] = $recArr['email'];
             $nRecArr['tel'] = $recArr['tel'];
