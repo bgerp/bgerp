@@ -55,4 +55,13 @@ class doc_ContragentDataIntf
     {
         return $this->class->getDefaultEmailBody($originId);
     }
+    
+    
+	/**
+     * Връща дали на контрагента се начислява ДДС
+     */
+    function getDefaultVat($id)
+    {
+        return $this->class->getDefaultVat($id);
+    }
 }
