@@ -293,7 +293,7 @@ class sales_Quotations extends core_Master
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = $this->abbr . $rec->id;
+        $row->title = "Оферта №" .$this->abbr . $rec->id;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;

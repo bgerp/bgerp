@@ -20,7 +20,7 @@ class sales_Invoices extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf';
     
     
     /**
@@ -45,8 +45,8 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
-					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing,
-                    doc_SequencerPlg, doc_plg_BusinessDoc';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing,
+                    doc_SequencerPlg, doc_plg_BusinessDoc, acc_plg_Contable';
     
     
     /**
@@ -169,7 +169,7 @@ class sales_Invoices extends core_Master
 		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         // Валута
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
-        $this->FLD('currencyRate', 'double', 'caption=Валута->Курс');  
+        $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em'); 
         
         // Доставка
         $this->FLD('deliveryId', 'key(mvc=salecond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
@@ -246,30 +246,14 @@ class sales_Invoices extends core_Master
             return;
         }
 
-        //
-        // Идея за шаблон за валидация на данни от потребителя. Предимства:
-        //
-        //  * Кратки и добре обособени методи за валидация - по един за поле;
-        //  * възможност за добавяне нови на валидационни правила в плъгини.
-        //
-
-        // Не е добра идея, защото:
-        // 1. 90% от полетата се валидират чрез параметрите в описанията си.
-        //    Това тук ще генерира много излишни събития
-        // 2. Идеята на този метод е да се правят валидации на няколко полета едновременно.
-        //    За повечето полета в описанието на типа можем да сложим valid=Class::Method, 
-        //    който да валидира полето, при положение, че неговата валидност не зависи от др. полета
-        // 3. По-доброто тук е да се извикат директно и последователно функциите за валидиране. 
-        //    Плъгините пак са възможни, защото действието на 'setError' и 'setWarning' е монотонно
-
         acc_Periods::checkDocumentDate($form);
 
         foreach ($mvc->fields as $fName=>$field) {
             $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
         }
         
-        if(!$form->rec->currencyRate){
-        	$form->rec->currencyRate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->currencyId), 4);
+        if(!$form->rec->rate){
+        	$form->rec->rate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->currencyId), 4);
         }
 	}
     
@@ -443,6 +427,25 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if($rec->dealValue  && $fields['-single']){
+    		$rec->baseAmount = $rec->dealValue;
+    		$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
+    		$rec->vatPercent = $rec->vatAmount = 0;
+    		if($rec->vatRate == 'yes'){
+    			$period = acc_Periods::fetchByDate($rec->date);
+    			$rec->vatAmount = $rec->baseAmount * $period->vatRate;
+				$rec->vatPercent = $period->vatRate;
+			}
+			$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
+    	}
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -452,23 +455,22 @@ class sales_Invoices extends core_Master
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->date);
-    	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	if($fields['-single']){
 	    	if($rec->dealValue){
-	    		$row->vatBase = $row->dealValue;
-	    		$row->dealValue = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->dealValue, $rec->date, NULL, $rec->currencyId));
+	    		$row->baseAmount = $double->toVerbal($rec->baseAmount);
 	    		
-				$period = acc_Periods::fetchByDate($rec->date);
-				$vat = $rec->dealValue * $period->vatRate;
+	    		$percent = cls::get('type_Percent');
+	    		$parts = explode(".", $rec->vatPercent);
+	    		$percent->params['decimals'] = count($parts[1]);
+	    		
+				$row->vatPercent = $percent->toVerbal($rec->vatPercent);
+				$row->vatAmount = $double->toVerbal($rec->vatAmount);
+				$row->total = $double->toVerbal($rec->total);
 				
-				$percent = cls::get('type_Percent');
-				$row->vatPercent = $percent->toVerbal($period->vatRate);
-				$row->vatAmount = $double->toVerbal($vat);
-				$row->total = $double->toVerbal($rec->dealValue + $vat);
 				$SpellNumber = cls::get('core_SpellNumber');
-				$row->amountVerbal = $SpellNumber->asCurrency($rec->dealValue + $vat, 'bg', FALSE);
+				$row->amountVerbal = $SpellNumber->asCurrency($rec->total, 'bg', FALSE);
 	    	}
 	    	
 	    	if($rec->accountId){
@@ -486,20 +488,12 @@ class sales_Invoices extends core_Master
     
     /**
      * Зарежда разумни начални стойности на полетата на форма за фактура.
-     * 
-     * @param core_Form $form
      */
     public static function setFormDefaults(core_Form $form)
     {
         // Днешна дата в полето `date`
         if (empty($form->rec->date)) {
             $form->rec->date = dt::now();
-        }
-        
-        // ДДС % по-подразбиране - от периода към датата на ф-рата
-        $periodRec = acc_Periods::fetchByDate($form->rec->date);
-        if ($periodRec) {
-            $form->rec->vatRate = $periodRec->params->vatRate;
         }
 
         // Данни за контрагент
@@ -530,7 +524,9 @@ class sales_Invoices extends core_Master
         expect($folderId = $rec->folderId);
         
         // Извличаме данните на контрагент по подразбиране
-        $contragentData = static::getDefaultContragentData($folderId);
+         $sourceClass    = doc_Folders::fetchCoverClassName($folderId);
+         $sourceObjectId = doc_Folders::fetchCoverId($folderId);
+         $contragentData = $sourceClass::getContragentData($sourceObjectId);
         
         /*
          * Разглеждаме четири случая според данните в $contragentData
@@ -580,39 +576,6 @@ class sales_Invoices extends core_Master
 	        } 
         }
     }
-
-
-    /**
-     * Данни за контрагент подразбиране при създаване на нова фактура.
-     *
-     * По дефиниция, данните за контрагента се вземат от:
-     *
-     *  * най-новата активна (т.е. контирана) ф-ра в папката, в която се създава новата
-     *  * ако няма такава - от корицата на тази папка; класът на тази корица задължително трябва
-     *                      да поддържа интерфейса doc_ContragentDataIntf
-     *
-     * @param int $folderId key(mvc=doc_Folders)
-     * @return stdClass @see doc_ContragentDataIntf::getContragentData()
-     */
-    protected static function getDefaultContragentData($folderId)
-    {
-        if ($lastInvoiceRec = static::getLastActiveInvoice($folderId)) {
-            $sourceClass    = __CLASS__;
-            $sourceObjectId = $lastInvoiceRec->id;
-        } else {
-            $sourceClass    = doc_Folders::fetchCoverClassName($folderId);
-            $sourceObjectId = doc_Folders::fetchCoverId($folderId);
-        }
-    
-        if (!cls::haveInterface('doc_ContragentDataIntf', $sourceClass)) {
-            // Намерения клас-източник на данни за контрагент не поддържа doc_ContragentDataIntf
-            return;
-        }
-    	
-        $contragentData = $sourceClass::getContragentData($sourceObjectId);
-    
-        return $contragentData;
-    }
     
     
     /**
@@ -628,7 +591,7 @@ class sales_Invoices extends core_Master
     		}
     	}
     	
-    	if($action == 'activate'){
+    	if($action == 'conto'){
     		if(!$rec->id){
     			$res = 'no_one';
     		} else {
@@ -648,7 +611,6 @@ class sales_Invoices extends core_Master
      */
     protected static function getLastActiveInvoice($folderId)
     {
-        /* @var $query core_Query */
         $query = static::getQuery();
         $query->where("#folderId = {$folderId}");
         $query->where("#state <> 'rejected'");
@@ -770,4 +732,43 @@ class sales_Invoices extends core_Master
     {
         return static::fetch("#number = '{$parsedHandle['id']}'");
     } 
+
+    
+	/**
+     * @see acc_TransactionSourceIntf::getTransaction
+     */
+    public static function finalizeTransaction($id)
+    {
+        $rec = (object)array(
+            'id' => $id,
+            'state' => 'active'
+        );
+        
+        return self::save($rec);
+    }
+    
+    
+    /**
+   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
+   	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 */
+    public static function getTransaction($id)
+    {
+       	// Извличаме записа
+        expect($rec = self::fetch($id));
+        bp($rec);
+    }
+    
+    
+    /**
+     * @see acc_TransactionSourceIntf::rejectTransaction
+     */
+    public static function rejectTransaction($id)
+    {
+        $rec = self::fetch($id, 'id,state,valior');
+        
+        if ($rec) {
+            static::reject($id);
+        }
+    }
 }

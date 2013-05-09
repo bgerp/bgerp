@@ -201,8 +201,12 @@ class sales_InvoiceDetails extends core_Detail
     	
     	$double->params['decimals'] = 2;
     	$masterRec = $mvc->Master->fetch($rec->invoiceId);
-    	$row->price = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->price, $masterRec->date, NULL, $masterRec->currencyId));
-    	$row->amount = $double->toVerbal(currency_CurrencyRates::convertAmount($rec->amount, $masterRec->date, NULL, $masterRec->currencyId));
+    	
+    	$price = round($rec->price / $masterRec->rate, 2);
+    	$row->price = $double->toVerbal($price);
+    	
+    	$amount = round($rec->amount / $masterRec->rate, 2);
+    	$row->amount = $double->toVerbal($amount);
     }
     
     
