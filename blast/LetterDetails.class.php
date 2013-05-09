@@ -111,8 +111,31 @@ class blast_LetterDetails extends core_Detail
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        // Бутон за принтиране
         $row->print = HT::createBtn('Печат', array('blast_Letters', 'print', 'detailId' => $rec->id, 'Printing' => 'yes'),
             FALSE, array('target' => '_blank'), array('class' => 'print'));
+        
+        // Масив с всички детайли
+        $listDetArr = type_Keylist::toArray($rec->listDetailsId);
+        
+        // Обхождаме масива
+        foreach ($listDetArr as $listDet) {
+            
+            // Вземаме записа за детайла
+            $listDetRec = blast_ListDetails::fetch($listDet);
+            
+            // Ако има стринг, добавяме запетая
+            $str .= ($str) ? ', ' : '';
+            
+            // Вземаме името на полето
+            $key = blast_ListDetails::getVerbal($listDetRec, 'key');
+            
+            // Добавяме към стринга
+            $str .= ht::createLink($listDet, array('blast_ListDetails', 'edit', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $key));
+        }
+        
+        // Добавяме стринга
+        $row->listDetailsId = $str;
     }
     
     
