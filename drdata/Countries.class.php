@@ -40,7 +40,13 @@ class drdata_Countries extends core_Manager {
      */
     static $countryToLanguages = array();
 
-
+	
+    /**
+     * Списък с кодовете на държавите от европейския съюз
+     */
+    static $euCountries = array('BE','BG','CY','CZ','DK','EE','EL','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT');
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -67,7 +73,20 @@ class drdata_Countries extends core_Manager {
         $this->setDbIndex('letterCode3');
     }
     
-
+	
+    /**
+     * Дали държавата е в EU
+     * @param int $countryId - ид на държавата
+     * @return boolean TRUE/FALSE
+     */
+    public static function isEu($countryId)
+    {
+    	expect($abbr = static::fetchField($countryId, 'letterCode2'));
+    	
+    	return in_array($abbr, static::$euCountries);
+    }
+    
+    
     /**
      * Попълва езиците, които се говорят в дадена страна
      */
