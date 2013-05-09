@@ -399,7 +399,7 @@ class blast_Emails extends core_Master
             $allFieldsArr = array();
             
             //Вземаме всички имена на полетата на данните, които ще се заместват
-            preg_match_all('/(\s|^)([^=]+)/', $listsRecAllFields, $allFieldsArr);
+            preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
 
             //Добавяме полетата, които се добавят от системата
             $allFieldsArr[2][] = 'unsubscribe';
@@ -408,6 +408,7 @@ class blast_Emails extends core_Master
             
             //Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
             foreach ($allFieldsArr[2] as $field) {
+                $field = trim($field);
                 $fieldsArr[$field] = $field;
             }
             
@@ -416,6 +417,8 @@ class blast_Emails extends core_Master
             
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
+                
+                $placeHolder = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
                 if (!$fieldsArr[$placeHolder]) {
@@ -436,6 +439,8 @@ class blast_Emails extends core_Master
             
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($bodyAndSubPlaceHolder as $placeHolder) {
+                
+                $placeHolder = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
                 if (!$fieldsArr[$placeHolder]) {
