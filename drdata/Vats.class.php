@@ -181,6 +181,35 @@ class drdata_Vats extends core_Manager
     
     
     /**
+     * Дали начисляваме ДДС по даден ВАТ номер и държава
+     * @param int $vat
+     * @param int $countryId
+     */
+    public static function isValidVat($vat, $countryId)
+    {
+    	if($countryId){
+    		// Дали държавата е в ЕС
+    		$inEu = drdata_Countries::isEu($countryId);
+    	}
+    	
+        if($vat){
+        	// Дали има валиден ват
+        	$hasValidVat = drdata_Vats::isHaveVatPrefix($vat);
+        }
+        
+        $ownCompany = $ourCompany = crm_Companies::fetchOurCompany();
+        $abbr = substr($ownCompany->vatId, 0, 2);
+        
+        // Ако държавата е в ЕС, Има валиден ват и не е myCompany не начисляваме
+        if($inEu || ($hasValidVat && substr($vat, 0, 2) != $abbr)){
+        	return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
+    
+    /**
      * Проверява дали номерът започва с префикс, като за VAT
      */
     function isHaveVatPrefix($value)
