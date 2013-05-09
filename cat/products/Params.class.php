@@ -142,10 +142,30 @@ class cat_products_Params extends cat_products_Detail
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        if ($form->isSubmitted()) {
-             
+        if($form->isSubmitted()) {
+            $rec= &$form->rec;
+            $paramType = cat_Params::fetchField($rec->paramId, 'type');
             
-             
+            // взависимост от избрания параметър проверяваме дали 
+            // стойността му е във валиден формат за неговия тип
+            switch($paramType){
+            	case 'double':
+            		if(!is_numeric($rec->paramValue)){
+            			$form->setError('paramValue', "Невалидна стойност за параметър. Трябва да е число");
+            		}
+            		break;
+            	case 'int':
+            		if(!ctype_digit($rec->paramValue)){
+            			$form->setError('paramValue', "Невалидна стойност за параметър. Трябва да е цяло число");
+            		}
+            		break;
+            	case 'date':
+            		$date = cls::get('type_Date');
+            		if(!$date->fromVerbal($rec->paramValue)){
+            			$form->setError('paramValue', "Невалидна стойност за параметър. Трябва да е валидна дата");
+            		}
+            		break;
+            }
         }
     }
     
