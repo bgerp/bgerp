@@ -276,6 +276,10 @@ class log_Documents extends core_Manager
      */
     function prepareForward($data)
     {
+        // Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
         // Вземаме cid от URL' то
         $cid = Request::get('Cid', 'int');
         
@@ -380,6 +384,10 @@ class log_Documents extends core_Manager
      */
     function preparePrint($data)
     {
+        // Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
         // Вземаме cid от URL' то
         $cid = Request::get('Cid', 'int');
         
@@ -471,6 +479,10 @@ class log_Documents extends core_Manager
      */
     function prepareOpen($data)
     {
+        // Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
         // Вземаме cid от URL' то
         $cid = Request::get('Cid', 'int');
         
@@ -573,6 +585,10 @@ class log_Documents extends core_Manager
      */
     function prepareSend($data)
     {
+        // Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
         // Вземаме cid от URL' то
         $cid = Request::get('Cid', 'int');
         
@@ -703,6 +719,10 @@ class log_Documents extends core_Manager
      */
     function prepareDownload($data)
     {
+        // Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
         // Вземаме cid от URL' то
         $cid = Request::get('Cid', 'int');
         
@@ -801,6 +821,10 @@ class log_Documents extends core_Manager
      */
     function prepareChanged($data)
     {
+        // Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
         // Вземаме cid от URL' то
         $cid = Request::get('Cid', 'int');
         
