@@ -185,7 +185,7 @@ class drdata_Vats extends core_Manager
      */
     function isHaveVatPrefix($value)
     {
-        $vatPrefixes = arr::make("BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB", TRUE);
+        $vatPrefixes = arr::make("BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT", TRUE);
         
         if($vatPrefixes[substr($value, 0, 2)]) {
             
