@@ -129,7 +129,7 @@ class core_Form extends core_FieldSet
         
         // Ако не е тихо въвеждане и нямаме тихо въвеждане, 
         // връщаме въведено към момента
-        if((!$this->cmd || $this->cmd == 'refresh') && !$silent) return $this->rec;
+        if((!$this->cmd) && !$silent) return $this->rec;
         
         // Отбелязан ли е чекбоксът "Игнорирай предупрежденията?"
         $this->ignore = Request::get('Ignore');
@@ -155,7 +155,7 @@ class core_Form extends core_FieldSet
             // Ако $silent, не сме критични към празните стойности
             if(($value === NULL) && $silent) continue;
             
-            if ($value === "" && $field->mandatory) {
+            if ($value === "" && $field->mandatory && $this->cmd != 'refresh') {
                 $this->setError($name, "Непопълнено задължително поле" .
                     "|* <b>'|{$field->caption}|*'</b>!");
                 continue;
@@ -206,7 +206,7 @@ class core_Form extends core_FieldSet
                     continue;
                 }
                 
-                if (($value === NULL || $value === '') && $field->mandatory) {
+                if (($value === NULL || $value === '') && $field->mandatory && $this->cmd != 'refresh') {
                     $this->setError($name, "Непопълнено задължително поле" .
                         "|* <b>'|{$field->caption}|*'</b>!");
                     continue;
