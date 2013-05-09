@@ -250,14 +250,11 @@ class blast_Letters extends core_Master
     {
         $rec = $this->fetch($id);
         
-        // Сменяме мода не текст
-        mode::push('text', 'plain');
-        
         // Вземаме стойността
         $subject = $this->getVerbal($rec, 'subject');
         
-        // Връщаме предишния мод
-        mode::pop('text');
+        // Превръщаме в стринг
+        $subject = strip_tags($subject);
         
         // Максимална дължина
         $subject = str::limitLen($subject, 70);
@@ -423,6 +420,9 @@ class blast_Letters extends core_Master
         
         // Добавяме линк към листа
         $data->row->ListLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId));
+        
+        // Превръщаме в стринг заглавието
+        $data->row->subject = strip_tags($data->row->subject);
         
         // Ако не е детайл рендираме шаблона по подразбиране
         return getTplFromFile($this->singleLayoutFile);
