@@ -119,6 +119,7 @@ class sales_Quotations extends core_Master
     {
     	$this->FLD('date', 'date', 'caption=Дата, mandatory,width=8em'); 
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Клиент,mandatory,width=15em');
+    	$this->FLD('receiver', 'key(mvc=crm_Persons, select=name)', 'caption=Получател');
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
@@ -219,6 +220,17 @@ class sales_Quotations extends core_Master
     		$currencyCode = acc_Periods::getBaseCurrencyCode($rec->date);
     	}
     	
+    	if($contragentClassId == crm_Companies::getClassId()){
+    		$options = array();
+    		$personQuery = crm_Persons::getQuery();
+    		$personQuery->where("#buzCompanyId = {$contragentId}");
+    		while($pRec = $personQuery->fetch()){
+    			$options[$pRec->id] = crm_Persons::recToVerbal($pRec, 'name')->name;
+    		}
+    	}
+    	
+    	(!count($options)) ? $form->setField('receiver', 'input=none') : $form->setOptions('receiver', $options);
+    	
     	$form->setDefault('paymentCurrencyId', $currencyCode);
     }
     
@@ -235,21 +247,18 @@ class sales_Quotations extends core_Master
     	}
     	
     	$contragentData =  doc_Folders::getContragentData($rec->folderId);
-    	$row->contragentAdress = trim(sprintf("%s %s\n%s", $contragentData->place, $contragentData->pCode, $contragentData->country));
+    	
+    	
     	if($contragentData->person) {
     		$row->contragentAdress .= " {$contragentData->pAddress}";
-    		$row->email =  $varchar->toVerbal($contragentData->pEmail);
-    		$row->fax =  $varchar->toVerbal($contragentData->pFax);
-    		$row->tel =  $varchar->toVerbal($contragentData->pTel);
     	}
 
     	if($contragentData->company) {
     		$row->contragentAdress .= " {$contragentData->address}";
-    		$row->email =  $varchar->toVerbal($contragentData->email);
-    		$row->fax =  $varchar->toVerbal($contragentData->fax);
-    		$row->tel =  $varchar->toVerbal($contragentData->tel);
     	}
-    	$row->contragentAdress = $varchar->toVerbal($row->contragentAdress);
+
+    	$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$contragentData->pCode, $contragentData->place, $contragentData->country));
+    	    	//$row->contragentAdress = $varchar->toVerbal($row->contragentAdress);
     	$row->number = $mvc->getHandle($rec->id);
 		if($fields['-list']){
 			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
@@ -257,6 +266,11 @@ class sales_Quotations extends core_Master
 		
 		$username = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($username, 'names')->names;
+		
+		if($rec->receiver){
+			$personRec = crm_Persons::fetch($rec->receiver);
+			$row->personPosition = crm_Persons::recToVerbal($personRec, 'buzPosition')->buzPosition;
+		}
     }
     
     

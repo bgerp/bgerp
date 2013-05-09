@@ -1,16 +1,15 @@
 #quot-table{
-	margin-top:20px;
+	margin-top:10px;
 	width:92%;
 	margin-left:30px;
 	border-collapse:collapse;
-	margin-bottom:10px;
+	margin-bottom:0px;
 }
 
 .quote-title{
-	font-size:54px;
+	font-size:68px;
 	font-weight:bold;
 	color:#636363;
-	margin-bottom:15px;
 	font-family: impact;
 }
 
@@ -23,6 +22,10 @@
 	text-decoration:underline;
 }
 
+.receiver-block{
+	margin-top:12px;
+	height:170px;
+}
 #condition-title{
 	font-weight:bold;
 	text-decoration:underline;
@@ -30,7 +33,7 @@
 
 #condition-title, #conditions, #quote-username{
 	margin-left:30px;
-	margin-top:30px;
+	margin-top:20px;
 }
 
 #sign-place{
@@ -50,10 +53,6 @@
 	padding-top:30px;
 }
 
-#optional-holder{
-	padding-top:40px;
-}
-
 #details-holder p, #optional-holder p{
 	margin-bottom:10px;
 	font-weight:bold;
@@ -63,8 +62,8 @@
 	text-align:right;
 	padding-right:8px;
 	vertical-align:middle !important;
-	border-bottom:1px solid #fff !important;
-	border-left:1px solid #fff !important;
+	border-bottom:1px solid transparent !important;
+	border-left:1px solid transparent !important;
 }
 
 .products-table{
@@ -100,8 +99,8 @@
 	padding-top:5px;
 }
 
-.listToolbar{
-	margin-left:20px;
+.document .listToolbar{
+	margin-left:25px;
 }
 
 .other-tools {
@@ -126,6 +125,10 @@
 	.document{
 		padding:0px;
 		width:92%;
+	}
+	
+	#quot-table{
+		margin-top:0px;
 	}
 	
 	#quot-table, #condition-title, #conditions,#quote-username, #details-holder, #optional-holder{
