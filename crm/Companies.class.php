@@ -752,6 +752,24 @@ class crm_Companies extends core_Master
     }
     
     
+	/**
+     * Дали на фирмата се начислява ДДС:
+     * Не начисляваме ако:
+     * 		1 . Не е от ЕС
+     * 		2.  Има ЕИК от ЕС, различен от BG
+     * Ако няма държава начисляваме ДДС
+     * @param int $id - id' то на записа
+     * @return boolean TRUE/FALSE
+     */
+    static function getDefaultVat($id)
+    {
+        $rec = static::fetch($id);
+        if(!$rec->country) return TRUE;
+        
+        return drdata_Vats::isValidVat($rec->vatId, $rec->country);
+    }
+    
+    
     /**
      * Фирмата, от чието лице работи bgerp (BGERP_OWN_COMPANY_ID)
      * 

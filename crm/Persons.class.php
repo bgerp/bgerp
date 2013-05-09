@@ -1015,7 +1015,23 @@ class crm_Persons extends core_Master
         }
     }
 
-
+    
+    /**
+     * Дали на лицето се начислява ДДС:
+     * Начисляваме винаги ако е в ЕУ
+     * Ако няма държава начисляваме ДДС
+     * @param int $id - id' то на записа
+     * @return boolean TRUE/FALSE
+     */
+    static function getDefaultVat($id)
+    {
+        $rec = static::fetch($id);
+        if(!$rec->country) return TRUE;
+        
+        return drdata_Countries::isEu($rec->country);
+    }
+    
+    
     /**
      * Връща данните на лицето
      * @param integer $id    - id' то на записа
