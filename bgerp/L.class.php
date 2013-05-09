@@ -137,8 +137,15 @@ class bgerp_L extends core_Manager
             // Трасираме стека с действията докато намерим SEND екшън
             $i = 0;
             while ($action = log_Documents::getAction($i--)) {
+                
+                // Ако е изпратен
                 if ($action->action == log_Documents::ACTION_SEND) {
                     $options['__toEmail'] = $action->data->to;
+                }
+
+                // Ако е принтиран
+                if ($action->action == log_Documents::ACTION_PRINT) {
+                    $options['__toListId'] = $action->data->toListId;
                 }
             }
             
