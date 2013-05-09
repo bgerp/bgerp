@@ -233,7 +233,7 @@ class blast_Letters extends core_Master
         $rec = $data->form->rec;
         if ((!$rec->id) && (!Request::get('clone'))) {
             $rec->recipient = '[#company#]';
-            $rec->attn = '[#person#]';
+            $rec->attn = '[#names#]';
             $rec->country = '[#country#]';
             $rec->pcode = '[#postCode#]';
             $rec->place = '[#city#]';
@@ -648,10 +648,11 @@ class blast_Letters extends core_Master
             $allFieldsArr = array();
             
             //Вземаме всички имена на полетата на данните, които ще се заместват
-            preg_match_all('/(\s|^)([^=]+)/', $listsRecAllFields, $allFieldsArr);
+            preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
 
             //Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
             foreach ($allFieldsArr[2] as $field) {
+                $field = trim($field);
                 $fieldsArr[$field] = $field;
             }
             
@@ -660,6 +661,8 @@ class blast_Letters extends core_Master
             
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
+                
+                $placeHolder = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
                 if (!$fieldsArr[$placeHolder]) {
@@ -680,6 +683,8 @@ class blast_Letters extends core_Master
 
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($bodyAndSubPlaceHolder as $placeHolder) {
+                
+                $placeHolder = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
                 if (!$fieldsArr[$placeHolder]) {
