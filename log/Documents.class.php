@@ -1063,7 +1063,7 @@ class log_Documents extends core_Manager
     /**
      * Извлича записа по подаден $mid
      */
-    protected static function fetchByMid($mid)
+    public static function fetchByMid($mid)
     {
         return static::fetch(array("#mid = '[#1#]'", $mid));
     }

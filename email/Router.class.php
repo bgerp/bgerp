@@ -359,7 +359,7 @@ class email_Router extends core_Manager
             return NULL;
         }
         
-        if (!($sentRec = email_Sent::fetchByMid($mid, 'containerId, threadId'))) {
+        if (!($sentRec = log_Documents::fetchByMid($mid))) {
             return NULL;
         }
         

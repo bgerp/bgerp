@@ -432,6 +432,8 @@ class email_Sent extends core_Manager
      * @param string $mid
      * @param mixed $fields
      * @return int NULL, ако не е намерен такъв MID
+     * 
+     * @deprecated
      */
     public static function fetchByMid($mid, $fields = NULL)
     {
