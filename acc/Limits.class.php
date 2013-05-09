@@ -81,7 +81,7 @@ class acc_Limits extends core_Manager
         if (!empty($data->form->rec->acc)) {
             $accRec = $this->Accounts->fetch($data->form->rec->acc);
             
-            $data->form->addAttr('acc', array('onchange' => "this.form.elements['Cmd'].value = 'refresh'; this.form.submit();"));
+            $data->form->addAttr('acc', array('onchange' => "addCmdRefresh(this.form); this.form.submit();"));
             
             if (!empty($accRec->groupId1)) {
                 $data->form->setField('item1', 'input');
