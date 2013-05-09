@@ -7,7 +7,8 @@
 }
 
 .quote-title{
-	font-size:68px;
+	margin-top:12px;
+	font-size:32px;
 	font-weight:bold;
 	color:#636363;
 	font-family: impact;
@@ -50,7 +51,7 @@
 
 #details-holder, #optional-holder{
 	margin-left:30px;
-	padding-top:30px;
+	padding-top:0px;
 }
 
 #details-holder p, #optional-holder p{
