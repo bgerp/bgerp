@@ -195,8 +195,6 @@ class sales_SalesDetails extends core_Detail
         }
         
         $rec->amount = $rec->price * $rec->quantity;
-        
-        $rec->amount = round($rec->amount, 2);
     }
     
     
@@ -301,6 +299,27 @@ class sales_SalesDetails extends core_Detail
     
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
+        $recs     = $data->recs;
+        $salesRec = $data->masterData->rec;
+        
+        // amountDeal е записана в БД, но за да се избегнат грешки от закръгление я пресмятаме
+        // тук отново
+        $salesRec->amountDeal = 0;
+        
+        foreach ($recs as $rec) {
+            if ($salesRec->chargeVat == 'yes') {
+                $rec->packPrice = $rec->packPrice * (1 + $rec->vatPercent);
+            }
+            
+            $rec->amount = $rec->packPrice * $rec->packQuantity;
+            $rec->amount = sales_Sales::roundPrice($rec->amount);
+            
+            $salesRec->amountDeal += $rec->amount;
+        }
+        
+        // Заради промяната на amountDeal се налага отново да конвертираме мастър записа към 
+        // вербална стойност. 
+        $data->masterData->row->amountDeal = sales_Sales::recToVerbal($salesRec)->amountDeal;
     }
     
     
