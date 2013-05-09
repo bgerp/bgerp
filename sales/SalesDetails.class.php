@@ -146,6 +146,7 @@ class sales_SalesDetails extends core_Detail
         $this->FNC('packPrice', 'float', 'caption=Цена,input=input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
+        $this->FLD('vatPercent', 'percent', 'caption=ДДС,input=none');
     }
     
     
@@ -408,6 +409,10 @@ class sales_SalesDetails extends core_Detail
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
+            if (empty($rec->vatPercent)) {
+                $rec->vatPercent = $productRef->getVat($masterRec->date);
+            }
+              
             if (empty($rec->packPrice)) {
                 $rec->price = $policyInfo->price;
 
