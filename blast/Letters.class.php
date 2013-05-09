@@ -117,7 +117,7 @@ class blast_Letters extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, subject, listId, date, outNumber, numLetters';
+    var $listFields = 'id, subject, listId, numLetters';
     
     
     /**
@@ -152,7 +152,7 @@ class blast_Letters extends core_Master
     /**
      * 
      */
-    var $cloneFields = 'listId, subject, body, numLetters, template, date, recipient, attn, country, pcode, place, address,position';
+    var $cloneFields = 'listId, subject, body, numLetters, template, recipient, attn, country, pcode, place, address,position';
 
     
     /**
@@ -166,7 +166,6 @@ class blast_Letters extends core_Master
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory');
         $this->FLD('template', 'enum(triLeft=3 сгъвания - ляво,
             triRight=3 сгъвания - дясно)', 'caption=Шаблон, mandatory');
-        $this->FLD('date', 'date', 'caption=Дата');
         
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице');
@@ -240,7 +239,6 @@ class blast_Letters extends core_Master
             $rec->address = '[#address#]';
             $rec->position = '[#position#]';
             $rec->numLetters = 3;
-            $rec->date = dt::now();
         }
     }
     
@@ -410,9 +408,6 @@ class blast_Letters extends core_Master
             // Вземаме шаблона
             $tpl = getTplFromFile($filePath);
             
-            // Добавяме изходящия номер
-            $data->row->OutNumber = $this->getHandle($data->rec->id);
-
             return $tpl;        
         }
         
@@ -570,8 +565,8 @@ class blast_Letters extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         //Добавя филтър за търсене по "Тема" и "Време на започване"
-        $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%, 
-                hint=Търсене по "Заглавие" или "Дата"');
+        $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене, input, width=100%, 
+                hint=Търсене по "Заглавие"');
         
         $data->listFilter->showFields = 'filter';
         
@@ -583,7 +578,7 @@ class blast_Letters extends core_Master
         $filterInput = trim($data->listFilter->input()->filter);
         
         if($filterInput) {
-            $data->query->where(array("#subject LIKE '%[#1#]%' OR #date LIKE '%[#1#]%'", $filterInput));
+            $data->query->where(array("#subject LIKE '%[#1#]%'", $filterInput));
         }
         
         // Сортиране на записите по състояние и дата на създаване
