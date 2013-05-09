@@ -163,13 +163,12 @@ class core_Users extends core_Manager
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Ако няма регистрирани потребители, първият задължително е администратор
-        if(!$mvc->fetch('1=1')) {
+        if(self::isUsersEmpty()) {
             $data->form->setOptions('state' , array('active' => 'active'));
-            $data->form->setOptions('roles' , array($mvc->core_Roles->fetchByName('admin') => 'admin'));
             $data->form->title = 'Първоначална регистрация на администратор';
             
             $data->form->setField("state", 'input=none');
-            $data->form->setField("roles", 'input=none');
+            $data->form->setField("rolesInput", 'input=none');
             
             if(EF_USSERS_EMAIL_AS_NICK) {
                 $data->form->setField("nick", 'input=none');    
@@ -232,8 +231,14 @@ class core_Users extends core_Manager
         }
 
         if($form->gotErrors()) {
-            $form->rec->passNewHash   = '';
-            $form->rec->passExHash = '';
+            $rec->passNewHash   = '';
+            $rec->passExHash = '';
+        }
+        
+        // Ако регистрираме първия потребител, добавяме му роля `admin`
+        if(!$rec->id && $mvc->isUsersEmpty()) {
+            $rec->rolesInput = keylist::addKey($rec->rolesInput, $mvc->core_Roles->fetchByName('admin'));
+            $rec->state = 'active';
         }
     }
     
@@ -252,7 +257,7 @@ class core_Users extends core_Manager
         // Ако нямаме регистриран нито един потребител
         // и се намираме в дебъг режим, то тогава редиректваме
         // към вкарването на първия потребител (admin)
-        if(isDebug() && !$this->fetch('1=1')) {
+        if(self::isUsersEmpty()) {
             return new Redirect(array(
                     $this,
                     'add',
@@ -471,33 +476,27 @@ class core_Users extends core_Manager
      */
     static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
     {
-        if(!$rec->id) {
-            $haveUsers = !!$mvc->fetch('1=1');
-        } else {
-            $haveUsers = TRUE;
-        }
- 
-        $fields = $mvc->prepareSaveFields($fields, $rec);
-      
-        if($rec->rolesInput && $fields['roles']) {
+        if($rec->rolesInput) {
+
             $rolesArr = keylist::toArray($rec->rolesInput);
             
-            // Всеки потребител има роля 'user'
-            $userRoleId = $mvc->core_Roles->fetchByName('user');
-            $rolesArr[$userRoleId] = $userRoleId;
-            
-            // Първия потребител има роля 'admin' и активен статус
-            if(!$haveUsers) {
-                $roleAdminId = $mvc->core_Roles->fetchByName('admin');
-                $rolesArr[$roleAdminId] = $roleAdminId;
-                $rec->state = 'active';
-            }
-     
             $rolesArr = core_Roles::expand($rolesArr);
+
+            $userRoleId = $mvc->core_Roles->fetchByName('user');
+            
+            $rolesArr[$userRoleId] = $userRoleId;
 
             $rec->roles = keylist::fromArray($rolesArr);
         }
-        
+    }
+
+
+    /**
+     * Връща истина ако няма никакви регистрирани потребители до сега
+     */
+    static function isUsersEmpty()
+    {
+        return !self::fetch('1=1');
     }
     
     
@@ -709,7 +708,7 @@ class core_Users extends core_Manager
     {
         // Ако правим първо въвеждане и имаме логнат потребител - махаме го;
         if(Mode::get('currentUserRec')) {
-            if(!$this->fetch('1=1')) {
+            if(self::isUsersEmpty()) {
                 $this->logout();
             }
         }
@@ -810,12 +809,12 @@ class core_Users extends core_Manager
         expect($userId > 0, $userId);
         
         $uRec = core_Users::fetch($userId, 'rolesInput');
-        $rolesArr = keylist::toArray($uRec->roles);
+        $rolesArr = keylist::toArray($uRec->rolesInput);
         $rolesArr[$roleId] = $roleId;
 
         $uRec->rolesInput = keylist::fromArray($rolesArr);
         
-        core_Users::save($uRec, 'rolesInput');
+        core_Users::save($uRec, 'rolesInput,roles');
     }
     
     
@@ -970,7 +969,10 @@ class core_Users extends core_Manager
 
         while($rec = $query->fetch()) {
             self::save($rec, 'roles');
+            $i++;
         }
+
+        return "<li> Преизчислени са ролите на {$i} потребителя</li>";
     }
 
     

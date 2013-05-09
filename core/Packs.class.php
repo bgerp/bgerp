@@ -428,7 +428,7 @@ class core_Packs extends core_Manager
         
         echo $html;
         
-        die;
+        shutdown();
     }
     
     
@@ -560,7 +560,7 @@ class core_Packs extends core_Manager
         
         DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
         
-       return $res;
+        return $res;
     }
 
 

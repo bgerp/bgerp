@@ -37,10 +37,10 @@ class core_Roles extends core_Manager
     
     
     /**
-     * Статична променлива - флаг, че изчислените роли за наследяване 
+     * Променлива - флаг, че изчислените роли за наследяване 
      * и потребителските роли трябва да се преизчислят
      */
-    static $recalcRoles = FALSE;
+    var $recalcRoles = FALSE;
 
 
     /**
@@ -146,16 +146,16 @@ class core_Roles extends core_Manager
         if (!is_array($roles)) {
             $roles = keylist::toArray($roles, TRUE);
         }
-        
+       
         foreach ($roles as $role) {
             if (is_object($role)) {
                 $rec = $role;
             } elseif (is_numeric($role)) {
-                $rec = static::fetch($role);
+                $rec = static::fetch($role); 
             } else {
                 $rec = static::fetch("#role = '{$role}'");
             }
-            
+
             // Прескачаме насъсществуващите роли
             if(!$rec) continue;
             
@@ -323,7 +323,6 @@ class core_Roles extends core_Manager
      */
     static function rebuildRoles()
     {
-
         $i = 0;
 
         $maxI = self::count() + 1;
@@ -348,26 +347,40 @@ class core_Roles extends core_Manager
                     $rec->inherit = $calcRolesKeylist;
                     $haveChanges = TRUE;
                     $Roles->save_($rec, 'inherit');
+                    $ind++;
                 }
             }
 
         } while($haveChanges);
-
+        
+        return "<li> Преизчислени са $ind индиректни роли</li>";
     }
     
+    function act_Test()
+    {   
+        self::rebuildRoles();
+        core_Users::rebuildRoles();
+
+        return self::on_Shutdown($this);
+
+    }
+
 
     /**
      * Получава управлението, когато в модела има промени
      */
     static function haveChanges()
     {
-        self::$recalcRoles = TRUE;
+        $Roles = cls::get('core_Roles');
+
+        $Roles->recalcRoles = TRUE;
 
         // Нулираме статичната променлива
         self::$rolesArr = NULL;
         
         // Изтриваме кеша
         core_Cache::remove('core_Roles', 'allRoles');
+
     }
 
 
@@ -376,12 +389,12 @@ class core_Roles extends core_Manager
      */
     static function on_Shutdown($mvc)
     {
-        if(self::$recalcRoles) {
+        if($mvc->recalcRoles) {
             self::rebuildRoles();
             core_Users::rebuildRoles();
         }
 
-        self::$recalcRoles = FALSE;
+        $mvc->recalcRoles = FALSE;
     }
 
 
