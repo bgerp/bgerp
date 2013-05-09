@@ -91,6 +91,11 @@
 	margin-top:5px
 }
 
+.rowtools{
+	display:inline;
+	float:right;
+}
+
 .quiantity-misc{
 	padding-top:5px;
 }
