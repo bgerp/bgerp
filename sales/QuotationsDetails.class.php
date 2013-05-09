@@ -116,7 +116,6 @@ class sales_QuotationsDetails extends core_Detail {
 	    		$price = $price + ($price * $rec->vat);
 	    	}
 	    	$rec->vatPrice = $price;
-	    	//$rows[$id]->price = $double->toVerbal($price);
 	    	
 	    	// Сумата с добавено ддс и конвертирана
     		if($rec->amount != '???'){
@@ -124,7 +123,6 @@ class sales_QuotationsDetails extends core_Detail {
 		    	if($applyVat){
 		    		$rec->convAmount = $rec->convAmount + ($rec->convAmount * $rec->vat);
 		    	}
-	    		//$rows[$id]->amount = $double->toVerbal($rec->convAmount);
     		}
     		
     		// Отстъпката с добавено ДДС и конвертирана
@@ -133,7 +131,6 @@ class sales_QuotationsDetails extends core_Detail {
 		    	if($applyVat){
 			    	$rec->discAmountVat = $rec->discAmountVat + ($rec->discAmountVat * $rec->vat);
 			    }
-	    		//$row->discAmount = $double->toVerbal($rec->discAmountVat);
 	    	}
     	}
     }
