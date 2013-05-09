@@ -91,8 +91,13 @@
 }
 
 .rowtools{
-	display:inline;
-	float:right;
+	display:table-cell !important;
+	vertical-align:top;
+	padding-right:3px;
+}
+
+.tc{
+	display:table-cell;
 }
 
 .quiantity-misc{

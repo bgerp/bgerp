@@ -9,7 +9,7 @@
 <!--ET_BEGIN ROW-->
 [#ROW#]
 <tr>
-	<td><span style='float:left;display:inline-block'>[#index#]</span>[#tools#]</td>
+	<td>[#tools#]<div class='tc'>[#index#]</div></td>
 		<!--ET_BEGIN productId-->
 		<td rowspan = '[#rowspan#]' valign='top'>[#productId#]</td>
 		<!--ET_END productId-->
