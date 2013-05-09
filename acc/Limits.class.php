@@ -79,28 +79,28 @@ class acc_Limits extends core_Manager
     {
         // Ако е зададена с-ка
         if (!empty($data->form->rec->acc)) {
-            $accRec = $this->Accounts->fetch($data->form->rec->acc);
+            $accRec = $mvc->Accounts->fetch($data->form->rec->acc);
             
             $data->form->addAttr('acc', array('onchange' => "addCmdRefresh(this.form); this.form.submit();"));
-            
+
             if (!empty($accRec->groupId1)) {
                 $data->form->setField('item1', 'input');
-                $data->form->setField('item1', 'caption=Сметка->' . $this->Lists->fetchField($accRec->groupId1, 'title'));
-                $options = $this->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId1}");
+                $data->form->setField('item1', 'caption=Сметка->' . $mvc->Lists->fetchField($accRec->groupId1, 'title'));
+                $options = $mvc->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId1}");
                 $data->form->setOptions('item1', $options);
             }
             
             if (!empty($accRec->groupId2)) {
                 $data->form->setField('item2', 'input');
-                $data->form->setField('item2', 'caption=Сметка->' . $this->Lists->fetchField($accRec->groupId2, 'title'));
-                $options = $this->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId2}");
+                $data->form->setField('item2', 'caption=Сметка->' . $mvc->Lists->fetchField($accRec->groupId2, 'title'));
+                $options = $mvc->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId2}");
                 $data->form->setOptions('item2', $options);
             }
             
             if (!empty($accRec->groupId3)) {
                 $data->form->setField('item3', 'input');
-                $data->form->setField('item3', 'caption=Сметка->' . $this->Lists->fetchField($accRec->groupId3, 'title'));
-                $options = $this->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId3}");
+                $data->form->setField('item3', 'caption=Сметка->' . $mvc->Lists->fetchField($accRec->groupId3, 'title'));
+                $options = $mvc->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId3}");
                 $data->form->setOptions('item3', $options);
             }
         }
