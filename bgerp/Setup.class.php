@@ -173,6 +173,10 @@ class bgerp_Setup {
         
         $html .= $Menu->repair();
         
+        // Принудително обновяване на ролите
+        $html .= core_Roles::rebuildRoles();
+        $html .= core_Users::rebuildRoles();
+
 
         return $html;
     }
