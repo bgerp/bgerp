@@ -161,7 +161,7 @@ class blast_Letters extends core_Master
     function description()
     {
         $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък, mandatory');
-        $this->FLD('subject', 'varchar', 'caption=Заглавие, width=100%, mandatory');
+        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory');
         $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory');
         $this->FLD('template', 'enum(triLeft=3 сгъвания - ляво,
@@ -250,7 +250,17 @@ class blast_Letters extends core_Master
     {
         $rec = $this->fetch($id);
         
+        // Сменяме мода не текст
+        mode::push('text', 'plain');
+        
+        // Вземаме стойността
         $subject = $this->getVerbal($rec, 'subject');
+        
+        // Връщаме предишния мод
+        mode::pop('text');
+        
+        // Максимална дължина
+        $subject = str::limitLen($subject, 70);
         
         //Ако заглавието е празно, тогава изписва съответния текст
         if(!trim($subject)) {
