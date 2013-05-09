@@ -126,7 +126,7 @@ class sales_Quotations extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em');
         $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
-        $this->FLD('vat', 'enum(yes=с начисляване,no=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
+        $this->FLD('vat', 'enum(yes=с начисляване,freed=освеободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
     }
     
@@ -140,7 +140,6 @@ class sales_Quotations extends core_Master
        $form->setDefault('date', dt::now());
        
        $mvc->populateContragentData($form);
-       ($mvc->getDefaultVat($form->rec->contragentClassId, $form->rec->contragentId)) ? $form->setDefault('vat', 'yes') : $form->setDefault('vat', 'no');
     }
 	
     
@@ -154,43 +153,6 @@ class sales_Quotations extends core_Master
 		    	$form->rec->rate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->paymentCurrencyId), 4);
 		    }
     	}
-    }
-    
-    
-    /**
-     * Дали да се начислява ДДС на контрагента
-     * Начисляваме ДДС в следния ред:
-     * 1. Ако контрагента е лице - винаги
-     * 2. Ако контрагента е българска фирма - винаги
-     * 3. Ако фирмата има "BG" в vat номера си - винаги
-     * 4. Ако фирмата не е българска и няма данъчен номер - винаги
-     * 5. Ако никое не е изпълнено - не начисляваме ДДС
-     * 
-     * @param int $contragentClassId - ид на класа на контрагента
-     * @param false $contragentId - ид на контрагента
-     * @return boolean TRUE/FALSE - начислява ли се или не ДДС
-     */
-    function getDefaultVat($contragentClassId, $contragentId)
-    {
-    	// Ако контрагента е лице, начисляваме ДДС
-    	if($contragentClassId == crm_Persons::getClassId()) return TRUE;
-    	
-    	$contragentClass = cls::get($contragentClassId);
-    	$data = $contragentClass::getContragentData($contragentId);
-    	$conf = core_Packs::getConfig('crm');
-    	$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'", 'id');
-    	
-    	// за всички BG фирми начисляваме ДДС
-    	if($ownCountryId == $data->countryId) return TRUE;
-    	
-    	// Всички фирми имащи BG в Ват номера си
-    	if($data->vatNo && (preg_match("/^BG/", $data->vatNo))) return TRUE;
-    	
-    	// за всички чуждестранни фирми с липсващ/невалиден vat номер
-    	if($ownCountryId != $data->countryId && !$data->vatNo) return TRUE;
-    	
-    	// Ако никое не е изпълнено не начисляваме ДДС
-    	return FALSE;
     }
     
     

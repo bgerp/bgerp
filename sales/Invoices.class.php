@@ -177,7 +177,7 @@ class sales_Invoices extends core_Master
         
         // Данъци
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-        $this->FLD('vatRate', 'enum(yes=с начисляване,no=без начисляване)', 'caption=Данъци->ДДС %');
+        $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освеободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
 
         // Допълнителна информация
@@ -528,6 +528,12 @@ class sales_Invoices extends core_Master
          $sourceObjectId = doc_Folders::fetchCoverId($folderId);
          $contragentData = $sourceClass::getContragentData($sourceObjectId);
         
+    	$contragentClass = cls::get($sourceClass);
+    	if($contragentClass->getDefaultVat($sourceObjectId)){
+    		$form->setDefault('vat', 'yes');
+    	} else {
+    		$form->setDefault('vat', 'export');
+    	}
         /*
          * Разглеждаме четири случая според данните в $contragentData
          * 
