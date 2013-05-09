@@ -134,7 +134,7 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('quantityInPack', 'float', 'input=none');
         
         // Цена за единица продукт в основна мярка
-        $this->FLD('price', 'float', 'caption=Цена,input=none');
+        $this->FLD('price', 'double(minDecimals=2)', 'caption=Цена,input=none');
         
         $this->FNC('amount', 'float(decimals=2)', 'caption=Сума');
         
@@ -143,7 +143,7 @@ class sales_SalesDetails extends core_Detail
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма
         // packagingId)
-        $this->FNC('packPrice', 'float', 'caption=Цена,input=input');
+        $this->FNC('packPrice', 'float(minDecimals=2)', 'caption=Цена,input=input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FLD('vatPercent', 'percent', 'caption=ДДС,input=none');
@@ -432,8 +432,6 @@ class sales_SalesDetails extends core_Detail
             if (empty($rec->discount)) {
                 $rec->discount = $policyInfo->discount;
             }
-            
-            $rec->price = sales_Sales::roundPrice($rec->price);
             
             // Записваме основната мярка на продукта
             $rec->uomId    = $productInfo->productRec->measureId;
