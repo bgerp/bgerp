@@ -5,15 +5,11 @@
 		<th>|Количество|*</th>
 		<th>|Цена|*</th>
 		<th>|Стойност|*</th>
-		<!--ET_BEGIN toolsTh-->
-		<th>|Пулт|* [#toolsTh#]</th>
-		<!--ET_END toolsTh-->
 	</tr>
-
 <!--ET_BEGIN ROW-->
 [#ROW#]
 <tr>
-		<td>[#index#]</td>
+	<td><span style='float:left;display:inline-block'>[#index#]</span>[#tools#]</td>
 		<!--ET_BEGIN productId-->
 		<td rowspan = '[#rowspan#]' valign='top'>[#productId#]</td>
 		<!--ET_END productId-->
@@ -38,9 +34,6 @@
 		<div class='discount'>[#discAmount#]</div>
 		<!--ET_END discAmount-->
 		</td>
-		<!--ET_BEGIN tools-->
-		<td class='misc-info' align='right'>[#tools#]</td>
-		<!--ET_END tools-->
 	</tr>
 <!--ET_END ROW-->
 <!--ET_BEGIN total-->

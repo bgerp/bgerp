@@ -1004,9 +1004,16 @@ class doc_DocumentPlg extends core_Plugin
         //     o има зададен екшън - log_Documents::hasAction()
         if (!Mode::is('text', 'html') && log_Documents::hasAction()) {
             if (!isset($options->rec->__mid)) {
-                $data->__MID__ = log_Documents::saveAction(
-                    array('containerId' => $data->rec->containerId)
-                );
+                
+                // Ако няма стойност
+                if (!isset($data->__MID__)) {
+                    
+                    // Тогава да се запише нов екшън
+                    $data->__MID__ = log_Documents::saveAction(
+                        array('containerId' => $data->rec->containerId)
+                    );    
+                }
+                
                 if (is_object($options)) {
                     
                     // Ако не е обект, създаваме го

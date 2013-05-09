@@ -96,6 +96,47 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    static function on_AfterPrepareListRecs($mvc, $data)
+    {
+    	$recs = &$data->recs;
+    	$rows = &$data->rows;
+    	$masterRec = $data->masterData->rec;
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
+    	
+    	foreach($recs as $id => $rec){
+    		$rec->vat = cat_Products::getVat($rec->productId, $masterRec->date);
+    		
+    		// Цената с добавено ДДС и конвертирана
+    		$price = round($rec->price / $masterRec->rate, 2);
+	    	if($applyVat){
+	    		$price = $price + ($price * $rec->vat);
+	    	}
+	    	$rec->vatPrice = $price;
+	    	
+	    	// Сумата с добавено ддс и конвертирана
+    		if($rec->amount != '???'){
+	    		$rec->convAmount = round($rec->amount / $masterRec->rate, 2);
+		    	if($applyVat){
+		    		$rec->convAmount = $rec->convAmount + ($rec->convAmount * $rec->vat);
+		    	}
+    		}
+    		
+    		// Отстъпката с добавено ДДС и конвертирана
+	    	if($rec->discAmount){
+	    		$rec->discAmountVat= round($rec->discAmount / $masterRec->rate, 2);
+		    	if($applyVat){
+			    	$rec->discAmountVat = $rec->discAmountVat + ($rec->discAmountVat * $rec->vat);
+			    }
+	    	}
+    	}
+    }
+    
+    
+    /**
      * Изчислява на сумата с приложена отстъпка
      */
     static function on_CalcDiscAmount($mvc, $rec)
@@ -248,24 +289,16 @@ class sales_QuotationsDetails extends core_Detail {
     			
     			// Ако няма количество, цената неможе да се изчисли
     			if(!$rec->quantity) return;
-    			$total += $rec->amount;
-    			if($rec->discAmount){
-    				$totalDisc += $rec->discAmount; 
+    			$total += $rec->convAmount;
+    			if($rec->discAmountVat){
+    				$totalDisc += $rec->discAmountVat; 
     			}
     		}
     	}
     	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	
-    	if($totalDisc == 0){
-    		$totalDisc = NULL;
-    	} else {
-    		$totalDisc = round($totalDisc / $data->masterData->rec->rate, 2);
-    		$totalDisc = $double->toVerbal($totalDisc);
-    	}
-    	
-    	$total = round($total / $data->masterData->rec->rate, 2);
+    	(!$totalDisc) ? $totalDisc = NULL : $totalDisc = $double->toVerbal($totalDisc);
     	$total = $double->toVerbal($total);
     	$data->total = (object) array('total' => $total, 'totalDisc' => $totalDisc);
     }
@@ -349,7 +382,6 @@ class sales_QuotationsDetails extends core_Detail {
     		$double->params['decimals'] = count($parts[1]);
     		$row->quantity = $double->toVerbal($rec->quantity);
     	}
-    	$double->params['decimals'] = 2;
     	
     	// Временно докато се изесним какво се прави с productManCls
     	$uomId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -363,32 +395,15 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->discount = "- {$row->discount}";
     	}
     	
-    	$masterRec = $mvc->Master->fetch($rec->quotationId);
-    	$vat = cat_Products::getVat($rec->productId, $masterRec->date);
-    	
-    	$price = round($rec->price / $masterRec->rate, 2);
-    	
-    	if($masterRec->vat == 'yes'){
-    		$price = $price + ($price * $vat);
+    	$double->params['decimals'] = 2;
+    	$row->price = $double->toVerbal($rec->vatPrice);
+    	if($rec->convAmount){
+    		$row->amount = $double->toVerbal($rec->convAmount);
+    	} else {
+    		$row->amount = '???';
     	}
     	
-    	$row->price = $double->toVerbal($price);
-    	
-    	if($rec->amount != '???'){
-    		$amount = round($rec->amount / $masterRec->rate, 2);
-	    	if($masterRec->vat == 'yes'){
-	    		$amount = $amount + ($amount * $vat);
-	    	}
-    		$row->amount = $double->toVerbal($amount);
-    	}
-    	
-    	if($rec->discAmount){
-    		$disc = round($rec->discAmount / $masterRec->rate, 2);
-	    	if($masterRec->vat == 'yes'){
-		    	$disc = $disc + ($disc * $vat);
-		    }
-    		$row->discAmount = $double->toVerbal($disc);
-    	}
+    	$row->discAmount = $double->toVerbal($rec->discAmountVat);
     }
     
     

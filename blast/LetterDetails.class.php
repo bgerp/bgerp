@@ -107,11 +107,11 @@ class blast_LetterDetails extends core_Detail
     
     
     /**
-     * Добавя бутон на файловете, които са за клишета
+     * Добавя бутон на файловете, за печатане
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->print = HT::createBtn('Печат', array('blast_Letters', 'print', $rec->id, 'Printing' => 'yes'),
+        $row->print = HT::createBtn('Печат', array('blast_Letters', 'print', 'detailId' => $rec->id, 'Printing' => 'yes'),
             FALSE, array('target' => '_blank'), array('class' => 'print'));
     }
     

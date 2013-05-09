@@ -427,7 +427,7 @@ class log_Documents extends core_Manager
             $row->openAction = static::renderOpenActions($rec);
             
             // Добавяме в главния масив
-            $rows[$rec->createdOn] = $row;    
+            $rows[$rec->id] = $row;    
         }
 
         // Сортираме по дата

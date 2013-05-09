@@ -10,37 +10,28 @@
 	
 	<table border = '0'id='quot-table'>
 	<tr>
-		<td rowspan='2' id='quot-title-td'>
+		<td id='quot-title-td' style="vertical-align:top">
 		<div class='quote-title'>|ОФЕРТА|*</div>
-		<p class='title-info'>
-			№  &nbsp;<b>[#number#]</b> 
-		</p>
-		<p class='title-info'>
-			|Дата|*: &nbsp;<b>[#date#]</b>
-		</p>
-		<p class='title-info'>
-			|Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
-		</p>
+			<p class='title-info'>
+				№  &nbsp;<b>[#number#]</b> 
+			</p>
+			<p class='title-info'>
+				|Дата|*: &nbsp;<b>[#date#]</b>
+			</p>
+			<p class='title-info'>
+				|Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
+			</p>
 		</td>
 		<td>
-		<p class='title-info receiver'>|Получател на офертата|*:</p>
-		<p class='title-info'>[#contragentName#]</p>
-		<p class='title-info'>[#contragentAdress#]</p>
+		<div class='receiver-block'>
+			<p class='title-info receiver'>|Получател|*:</p>
+			<p class='title-info'>[#receiver#]<!--ET_BEGIN personPosition-->, [#personPosition#]<!--ET_END personPosition--></p>
+			<p class='title-info'>[#contragentName#]</p>
+			<p class='title-info'>[#contragentAdress#]</p>
+		</div>
 		</td>
 	</tr>
-	<tr>
-		<td style='padding-top:20px;vertical-align:top'>
-		<!--ET_BEGIN email-->
-			<p class='title-info'>|Имейл|*: &nbsp;[#email#]</p>
-		<!--ET_END email-->
-		<!--ET_BEGIN fax-->
-			<p class='title-info'>|Факс|*: &nbsp;[#fax#]</p>
-		<!--ET_END fax-->
-		<!--ET_BEGIN tel-->
-			<p class='title-info'>|Тел|*: &nbsp;[#tel#]</p>
-		<!--ET_END tel-->
-		</td>
-	</tr>
+	
 	</table>
 	
 	<div class="clearfix21"></div>

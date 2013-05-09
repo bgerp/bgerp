@@ -8,13 +8,14 @@
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/148
  */
 class blast_Letters extends core_Master
 {
+    
     
    /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
@@ -104,7 +105,7 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, plg_Printing, doc_DocumentPlg';
+    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank';
     
     
     /**
@@ -151,7 +152,7 @@ class blast_Letters extends core_Master
     /**
      * 
      */
-    var $cloneFields = 'listId, subject, sender, date, outNumber, text, numLetters, template';
+    var $cloneFields = 'listId, subject, body, numLetters, template, date, recipient, attn, country, pcode, place, address,position';
 
     
     /**
@@ -159,18 +160,23 @@ class blast_Letters extends core_Master
      */
     function description()
     {
-        $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък за разпращане');
+        $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък, mandatory');
         $this->FLD('subject', 'varchar', 'caption=Заглавие, width=100%, mandatory');
-        $this->FLD('sender', 'varchar', 'caption=Адресант, width=100%, mandatory');
+        $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory');
+        $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory');
+        $this->FLD('template', 'enum(triLeft=3 сгъвания - ляво,
+            triRight=3 сгъвания - дясно)', 'caption=Шаблон, mandatory');
         $this->FLD('date', 'date', 'caption=Дата');
-        $this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none');     //манипулатора на документа //TODO да се реализира
-        $this->FLD('text', 'richtext', 'caption=Текст');
-        $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат едновременно, mandatory, value=3');
-        $this->FLD('template', 'enum(default=По подразбиране, triLeft=3 сгъвания - ляво,
-            triRight=3 сгъвания - дясно)', 'caption=Шаблон');
+        
+        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
+        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
+        $this->FLD('position', 'varchar', 'caption=Адресант->Длъжност');
     }
 
-    
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -195,10 +201,9 @@ class blast_Letters extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$res, &$data)
     {
-        //Добавя в лист само списъци на с имейли
+        //Добавя в лист само списъци на лица и фирми
         $query = blast_Lists::getQuery();
         $query->where("#keyField = 'names' OR #keyField = 'company'");
-        
         while ($rec = $query->fetch()) {
             $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
         }
@@ -222,6 +227,20 @@ class blast_Letters extends core_Master
             //Ако редактираме, показваме списъка, който го редактираме
             $file[$form->rec->listId] = $files[$form->rec->listId];
             $form->setOptions('listId', $file, $form->rec->id);
+        }
+    
+        //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
+        $rec = $data->form->rec;
+        if ((!$rec->id) && (!Request::get('clone'))) {
+            $rec->recipient = '[#company#]';
+            $rec->attn = '[#person#]';
+            $rec->country = '[#country#]';
+            $rec->pcode = '[#postCode#]';
+            $rec->place = '[#city#]';
+            $rec->address = '[#address#]';
+            $rec->position = '[#position#]';
+            $rec->numLetters = 3;
+            $rec->date = dt::now();
         }
     }
     
@@ -265,166 +284,162 @@ class blast_Letters extends core_Master
      */
     function act_Print()
     {
-        //Права за работа с екшън-а
-        requireRole('blast, admin');
-        
         //Вземаме id'то на детайла на писмото
-        expect($id = Request::get('id', 'int'));
+        expect($detailId = Request::get('detailId', 'int'));
         
         //Вземаме детайла на писмото
-        expect($letterDetail = blast_LetterDetails::fetch($id));
+        expect($letterDetail = blast_LetterDetails::fetch($detailId));
         
-        //Променяме мода за принтиране
-        Mode::set('wrapper', 'page_Print');
-        Mode::set('printing');
+        // Шаблона, който ще връщаме
+        $tpl = new ET();
         
-        //Преобразуваме keylist полето в масив
-        $lettersDetArr = keylist::toArray($letterDetail->listDetailsId);
+        // Масив с листовете използвани в детайла
+        $listDetIdsArr = type_Keylist::toArray($letterDetail->listDetailsId);
         
-        //Променяме статуса на детайла на затворен  и добавяме дата на принтиране
-        $newLetterDetail = new stdClass();
-        $newLetterDetail->id = $letterDetail->id;
-        $newLetterDetail->state = 'closed';
-        $newLetterDetail->printedDate = dt::verbal2mysql();
-        blast_LetterDetails::save($newLetterDetail);
-        
-        $letterId = $letterDetail->letterId;
-        
-        //Проверяваме дали има други непринтирани писма, и ако няма сменяме състоянието на затворено
-        $this->closeLetter($letterId);
-        
-        if (count($lettersDetArr)) {
+        // Обхождаме масива
+        foreach ($listDetIdsArr as $listDet) {
             
-            //Сетва шаблона на писмото
-            $this->setTemplates($letterId);
+            // Опции за документа
+            $options = new stdClass();
+
+            // Вземаме мастера на детайла
+            $options->rec = static::fetch($letterDetail->letterId);
             
-            foreach ($lettersDetArr as $letDetId) {
-                
-                //Сетва детайла за потребителя
-                $this->setUserDetails($letDetId);
-                
-                //Името на мастер шаблона
-                $templateFile = ucfirst($this->letterTemp->template);
-                
-                // Пътя до файла от пакета
-                $filePath = "blast/tpl/{$templateFile}LettersTemplate.shtml";
-                
-                //Пътя до мастер шаблона
-                $fullPath = getFullPath($filePath);
-                
-                //Проверява дали е файл
-                if (!is_file($fullPath)) {
-                    
-                    $link = array('doc_Containers', 'list', 'threadId' => $this->letterTemp->threadId);
-                    
-                    return new Redirect($link, tr("Файлът на шаблона не може да се намери. Моля изберете друг шаблон."));
-                }
-                
-                //Вземаме съдържанието на мастър шаблона
-                $tpl = getTplFromFile($filePath);
-                
-                //Заместваме данните за потребителя в мастър шаблона и ги присвоява на променливата
-                $allLetters .= $this->tplReplace($tpl);
-            }
-        }
-        
-        //Връща резултата
-        return $allLetters;
-    }
-    
-    
-    /**
-     * Взема шаблона на писмото
-     */
-    function setTemplates($id)
-    {
-        $this->letterTemp = blast_Letters::fetch("#id = $id");
-    }
-    
-    
-    /**
-     * Сетваме детайла за потребителите
-     */
-    function setUserDetails($id)
-    {
-        if ($this->userDetails['id'] != $id) {
-            $listDetails = blast_ListDetails::fetch("#id = $id");
-            $this->userDetails['id'] = $id;
-            $this->userDetails['data'] = unserialize($listDetails->data);
+            // Добавяме listId до кого е
+            $options->__toListId = $listDet;
             
-            $this->replace();
+            // Пушваме екшъна
+            log_Documents::pushAction(array('data' => array('toListId' => $listDet)));
+            
+            // Вземаме документа в xhtml формат
+            $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
+            
+            // Добавяме към шаблона
+            $tpl->append($res);
+            
+            // Попваме съответния екшън
+            log_Documents::popAction();
         }
-    }
-    
-    
-    /**
-     * Заместваме данните за потребителя
-     */
-    function replace()
-    {
-        expect($this->letterTemp);
-        $this->userDetails['text'] = $this->letterTemp->text;
-        
-        if (count($this->userDetails['data'])) {
-            foreach ($this->userDetails['data'] as $key => $value) {
-                $this->userDetails['text'] = str_ireplace('[#' . $key . '#]', $value, $this->userDetails['text']);
-            }
-        }
-        
-        //Изчистваме richtext' а, и го преобразуваме в чист текстов вид
-        $Rich = cls::get('type_Richtext');
-        
-        //Емулираме html режим
-        Mode::push('text', 'html');
-        
-        //TODO променено от richtext2text
-        $this->userDetails['text'] = $Rich->toVerbal($this->userDetails['text']);
-        
-        //Връщаме старата стойност на text
-        Mode::pop('text');
-    }
-    
-    
-    /**
-     * Заместваме плейсхолдерите в шаблона
-     */
-    function tplReplace($tpl)
-    {
-        //Заместваме текстовата част в мастер шаблона
-        $tpl->replace($this->userDetails['text'], 'textPart');
-        
-        //Заместваме частта за потребителските данни в мастер шаблона
-        if (count($this->userDetails['data'])) {
-            foreach ($this->userDetails['data'] as $key => $value) {
-                $tpl->replace($value, $key);
-            }
+
+        // Ако състоянито на детайла не е затворен
+        // За да запишем датата на първото отпечтване
+        if ($letterDetail->state != 'closed') {
+            
+            //Променяме статуса на детайла на затворен  и добавяме дата на принтиране
+            $newLetterDetail = new stdClass();
+            $newLetterDetail->id = $letterDetail->id;
+            $newLetterDetail->state = 'closed';
+            $newLetterDetail->printedDate = dt::verbal2mysql();
+            blast_LetterDetails::save($newLetterDetail);    
+            
+            //Проверяваме дали има други непринтирани писма, и ако няма сменяме състоянието на затворено
+            $this->closeLetter($letterDetail->letterId);
         }
         
-        //Заместваме данните за изпращача в мастър шаблона
-        $tpl->replace($this->letterTemp->subject, 'subject');
-        $tpl->replace($this->letterTemp->sender, 'sender');
-        $tpl->replace($this->letterTemp->date, 'date');
-        $tpl->replace($this->letterTemp->outNumber, 'outNumber');
-        $tpl->replace(dt::mysql2verbal($this->letterTemp->modifiedOn, "d.m.Y"), 'date');
-        
-        //Връщаме шаблона
         return $tpl;
     }
     
     
     /**
-     * Ако няма повече записи за принтиране сменяме състоянието на писмото на "спряно"
+     * 
+     */
+    function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        
+        // Фетчваме детайла за съответния лист
+        $detailRec = blast_ListDetails::fetch($options->__toListId);
+        
+        // Десериализираме данните
+        $data = unserialize($detailRec->data);
+
+        // Ако има id
+        if ($id) {
+            
+            // Вземаме данните от базата
+            $options->rec = static::fetch($id);    
+        }
+        
+        // Обхождаме масива с данните
+        foreach ((array)$data as $key => $value) {
+            
+            // Какво ще заместваме
+            $search = "[#{$key}#]";
+            
+            //Заместваме данните
+            $options->rec->body = str_ireplace($search, $value, $options->rec->body);
+            $options->rec->subject = str_ireplace($search, $value, $options->rec->subject);
+            $options->rec->recipient = str_ireplace($search, $value, $options->rec->recipient);
+            $options->rec->attn = str_ireplace($search, $value, $options->rec->attn);
+            $options->rec->country = str_ireplace($search, $value, $options->rec->country);
+            $options->rec->pcode = str_ireplace($search, $value, $options->rec->pcode);
+            $options->rec->place = str_ireplace($search, $value, $options->rec->place);
+            $options->rec->address = str_ireplace($search, $value, $options->rec->address);
+            $options->rec->position = str_ireplace($search, $value, $options->rec->position);
+        }
+        
+        // Добавяме, че разглеждаме детайла
+        $options->rec->__detail = TRUE;
+    }
+    
+    
+    /**
+     * 
+     * 
+     */
+    function renderSingleLayout_(&$data)
+    {
+        // Ако разглеждаме детайла
+        if ($data->rec->__detail) {
+            
+            // Името на шаблона
+            $templateFile = ucfirst($data->rec->template);
+            
+            // Пътя до файла от пакета
+            $filePath = "blast/tpl/{$templateFile}LettersTemplate.shtml";
+            
+            // Целия път до шаблона
+            $fullPath = getFullPath($filePath);
+            
+            //Проверява дали е файл
+            if (!is_file($fullPath)) {
+
+                // Редиректваме към сингъла
+                return redirect(array('blast_Letters', 'single', $data->rec->id), FALSE,tr("Файлът на шаблона не може да се намери. Моля изберете друг шаблон."));
+            }
+            
+            // Вземаме шаблона
+            $tpl = getTplFromFile($filePath);
+            
+            // Добавяме изходящия номер
+            $data->row->OutNumber = $this->getHandle($data->rec->id);
+
+            return $tpl;        
+        }
+        
+        // Добавяме линк към листа
+        $data->row->ListLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId));
+        
+        // Ако не е детайл рендираме шаблона по подразбиране
+        return getTplFromFile($this->singleLayoutFile);
+    }
+    
+    
+    /**
+     * Ако няма повече записи за принтиране сменяме състоянието на писмото на "затворено"
      */
     function closeLetter($id)
     {
+        // Вземаме детайла на писмото което не е принтирано
         $details = blast_LetterDetails::fetch("#letterId = '$id' AND #printedDate IS NULL");
         
         //Ако няма нито един запис
         if ($details === FALSE) {
+            
+            // Сменяме състоянието на затворено
             $newLetter = new stdClass();
             $newLetter->id = $id;
-            $newLetter->state = 'stopped';
-            blast_Letters::save($newLetter);
+            $newLetter->state = 'closed';
+            blast_Letters::save_($newLetter); // Ако е прекъсваема, отбелязва с 1 повече принтиране в историята
         }
     }
     
@@ -512,10 +527,8 @@ class blast_Letters extends core_Master
             }
         }
         
-        //След като приключи операцията редиректваме към същата страница, където се намирахме
-        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-        
-        return new Redirect($link, tr("Успешно активирахте писмото."));
+        // След като приключи операцията редиректваме към същата страница, където се намирахме
+        return redirect(array('blast_Letters', 'single', $rec->id), FALSE, tr("Успешно активирахте писмото."));
     }
     
     
@@ -545,9 +558,8 @@ class blast_Letters extends core_Master
         $recUpd->state = 'draft';
         blast_Letters::save($recUpd);
         
-        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-        
-        return new Redirect($link, tr("Успешно спряхте писмото."));
+        // След като приключи операцията редиректваме към същата страница, където се намирахме
+        return redirect(array('blast_Letters', 'single', $rec->id), FALSE, tr("Успешно спряхте писмото."));
     }
     
     
@@ -577,5 +589,131 @@ class blast_Letters extends core_Master
         // Сортиране на записите по състояние и дата на създаване
         $data->query->orderBy('state', 'ASC');
         $data->query->orderBy('createdOn', 'DESC');
+    }
+    
+    
+	/**
+	* Изпълнява се след въвеждането на даните от формата
+	* Проверява дали сме въвели несъществуващ шаблон
+	*/
+    function on_AfterInputEditForm($mvc, &$form)
+    {
+        // Ако сме субмитнали формата
+        if ($form->isSubmitted()) {
+            
+            // Масив с всички записи
+            $recArr = (array)$form->rec;
+            
+            // id' то на листа, от който се вземат данните на потребителя
+            if (!$listId = $form->rec->listId) {
+                
+                // Вземаме от записа
+                $listId = $mvc->fetchField($form->rec->id, 'listId');
+            }
+            
+            // Вземаме Относно и Съобщение
+            $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
+            
+            // Масив с данни от плейсхолдера
+            $nRecArr['recipient'] = $recArr['recipient'];
+            $nRecArr['attn'] = $recArr['attn'];
+            $nRecArr['country'] = $recArr['country'];
+            $nRecArr['pcode'] = $recArr['pcode'];
+            $nRecArr['place'] = $recArr['place'];
+            $nRecArr['address'] = $recArr['address'];
+            $nRecArr['position'] = $recArr['position'];
+            
+            // Обикаляме всички останали стойности в масива
+            foreach ($nRecArr as $field) {
+                
+                // Всички данни ги записваме в една променлива
+                $allRecsWithPlaceHolders .= ' ' . $field;    
+            }
+
+            // Създаваме шаблон
+            $tpl = new ET($allRecsWithPlaceHolders);
+            
+            // Вземаме всички шаблони, които се използват
+            $allPlaceHolder = $tpl->getPlaceHolders();
+            
+            // Шаблон на Относно и Съобщение
+            $bodyAndSubTpl = new ET($bodyAndSubject);
+            
+            // Вземаме всички шаблони, които се използват
+            $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
+
+            // Вземаме всички полета, които ще се заместват
+            $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');
+            
+            $allFieldsArr = array();
+            
+            //Вземаме всички имена на полетата на данните, които ще се заместват
+            preg_match_all('/(\s|^)([^=]+)/', $listsRecAllFields, $allFieldsArr);
+
+            //Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
+            foreach ($allFieldsArr[2] as $field) {
+                $fieldsArr[$field] = $field;
+            }
+            
+            // Премахваме дублиращите се плейсхолдери
+            $allPlaceHolder = array_unique($allPlaceHolder);
+            
+            //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
+            foreach ($allPlaceHolder as $placeHolder) {
+                
+                // Ако плейсхолдера го няма във листа
+                if (!$fieldsArr[$placeHolder]) {
+                    
+                    // Добавяме към съобщението за предупреждение
+                    $warning .= ($warning) ? ", {$placeHolder}" : $placeHolder;
+                    
+                    // Стринг на плейсхолдера
+                    $placeHolderStr = "[#" . $placeHolder . "#]";
+                    
+                    // Добавяме го в масива
+                    $warningPlaceHolderArr[$placeHolderStr] = $placeHolderStr;
+                }
+            }
+            
+            // Премахваме дублиращите се плейсхолдери
+            $bodyAndSubPlaceHolder = array_unique($bodyAndSubPlaceHolder);
+
+            //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
+            foreach ($bodyAndSubPlaceHolder as $placeHolder) {
+                
+                // Ако плейсхолдера го няма във листа
+                if (!$fieldsArr[$placeHolder]) {
+
+                    // Добавяме към съобщението за грешка
+                    $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
+                }
+            }
+
+            // Показваме грешка, ако има шаблони, които сме въвели в повече в Относно и Съощение
+            if ($error) {
+                $form->setError('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$error}");    
+            }
+            
+            // Показваме предупреждение за останалите шаблони
+            if ($warning) {
+                
+                // Сетваме грешката
+                $form->setWarning('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$warning}"); 
+                
+                // При игнориране на грешката
+                if (!$form->gotErrors()) {
+                    
+                    // Обхождаме масива с стойност
+                    foreach ($nRecArr as $field => $val) {
+                        
+                        // Премахваме всички плейсхолдери, които не се използват
+                        $val = str_ireplace((array)$warningPlaceHolderArr, '', $val);    
+                        
+                        // Добавяме към записа
+                        $form->rec->{$field} = $val;
+                    }
+                }
+            }
+        }
     }
 }

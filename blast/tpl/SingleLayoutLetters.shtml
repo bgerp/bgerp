@@ -7,7 +7,7 @@
 	 	<span style='[#iconStyle#]'>|Циркулярно писмо|* - [#ident#]</span>
 	 </div>
 	<!-- END Заглавие -->                     
-	
+	<!--ET_BEGIN listLink--><div><b style="margin-bottom:10px; display:block">Лист: [#ListLink#]</b></div><!--ET_END listLink-->
 	<!-- BEGIN Писмо -->
 	<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>
 		<div>  
@@ -83,7 +83,7 @@
  	<!--ET_BEGIN text--> 
 	<div style='padding:10px;'>
 		<div style='margin-top: 10px; padding:5px; border:solid 1px #000; background-color:#eee;' class='clearfix21'>|Текст|*:</div>
-		<div>[#text#]</div>
+		<div>[#body#]</div>
 	</div>
 	<!--ET_END text--> 
 	
