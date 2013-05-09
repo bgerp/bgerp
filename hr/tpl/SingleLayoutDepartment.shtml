@@ -1,6 +1,11 @@
-<div style="display:inline-block" class="singleView">
 [#SingleToolbar#]
-	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">Отдел <b style="color:green;">[#name#]</b></div></h2>
+<div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#]'>Структорно звено <b>[#name#]</b></div>
+	</div>
 	<table class="styled-table" width="100%">
 		<tr>
 			<td class="title-style"> №</td>
@@ -11,15 +16,36 @@
 			<td>[#name#]</td>
 		</tr>
 		<tr>
+			<td class="title-style">Тип</td>
+			<td>[#type#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">В състава на</td>
+			<td>[#staff#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Подчинен на</td>
+			<td>[#dependent#]</td>
+		</tr>
+		<tr>
 			<td class="quiet">Локация</td>
 			<td>[#locationId#]</td>
 		</tr>
 	 	<!--ET_BEGIN employersCnt-->
 		<tr>
-			<td class="title-style">Служители</td>
+			<td class="title-style">Щат на служителите</td>
+			<td>[#employersCntAll#]</td>
+		</tr>
+		<tr>
+			<td class="title-style">Hазначени служители</td>
 			<td>[#employersCnt#]</td>
 		</tr>
 		<!--ET_END employersCnt-->
+		<tr>
+			<td class="title-style">График</td>
+			<td>[#schedule#]</td>
+		</tr>
 	</table>
-	<div><span class="title-style">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
+	[#DETAILS#]
+	
 </div>

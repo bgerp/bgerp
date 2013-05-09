@@ -2,7 +2,7 @@
 
 
 /**
- * Смени
+ * Структура
  *
  *
  * @category  bgerp
@@ -19,13 +19,13 @@ class hr_Departments extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Отдели";
+    var $title = "Организационна структура";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Отдел";
+    var $singleTitle = "Структорно звено";
     
     
     /**
@@ -33,12 +33,18 @@ class hr_Departments extends core_Master
      */
     var $pageMenu = "Персонал";
     
+    /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'doc_DocumentIntf';
+    
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
-                    plg_SaveAndNew, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
+   
+    var $loadList = 'plg_RowTools, hr_Wrapper,  plg_Printing, doc_FolderPlg,
+                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
     
     /**
@@ -60,13 +66,27 @@ class hr_Departments extends core_Master
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id, name, type, staff, dependent, locationId, employersCntAll, employersCnt, schedule';
+    
+    
+    var $details = 'grafic=hr_WorkingCycles';
+    
+    /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,width=100%');
+        $this->FLD('type', 'enum(department=отдел, link=звено, brigade=бригада)', 'caption=Тип, mandatory,width=100%');
+        $this->FLD('staff', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=В състава на,width=100%');
+        $this->FLD('dependent', 'keylist(mvc=hr_Departments, select=name)', "caption=Подчинен на,width=100%");
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
-        $this->FLD('employersCnt', 'datetime', "caption=Служители,input=none");
+        $this->FLD('employersCntAll', 'int', "caption=Служители->Щат, input=none");
+        $this->FLD('employersCnt', 'int', "caption=Служители->Назначени, input=none");
+        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name)', "caption=Работно време->График");
+        $this->FLD('startingOn', 'datetime', "caption=Работно време->Начало");
         
         $this->setDbUnique('name');
     }
@@ -80,6 +100,30 @@ class hr_Departments extends core_Master
         $data->form->setOptions('locationId', array('' => '&nbsp;') + crm_Locations::getOwnLocations());
     }
     
+    /**
+     * Проверка за зацикляне след субмитване на формата. Разпъване на всички наследени роли
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {
+        $rec = $form->rec;
+
+        // Ако формата е субмитната и редактираме запис
+        if ($form->isSubmitted() && ($rec->id)) {
+            
+            if($rec->staff || $rec->dependent) {
+                
+                $expandedDepartment = self::expand($form->rec->dependent);
+                
+                // Ако има грешки
+                if ($expandedDepartment[$rec->id]) {
+                    $form->setError('dependent', "|Не може отдела да е подчинен на себе си");  
+                } else {
+                    $rec->dependent = keylist::fromArray($expandedDepartment);
+                }
+
+            }
+         }
+    }
     
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
@@ -103,5 +147,62 @@ class hr_Departments extends core_Master
                 $rec->orderId = ($parentRec->orderId + $parentRec->id) * 1000;
             }
         }
+    }
+    
+    
+    static public function expand($departments, &$current = array())
+    {
+    	if (!is_array($departments)) {
+            $departments = keylist::toArray($departments, TRUE);
+        }
+        
+        foreach ($departments as $department) {
+            if (is_object($department)) {
+                $rec = $department;
+            } elseif (is_numeric($department)) {
+                $rec = static::fetch($department);
+            } else {
+                $rec = static::fetch("#dependent = '{$department}'");
+            }
+            
+            // Прескачаме насъсществуващите роли
+            if(!$rec) continue;
+            
+            if ($rec && !isset($current[$rec->id])) {
+                $current[$rec->id] = $rec->id;
+                $current += static::expand($rec->dependent, $current);
+            }
+        }
+        
+        return $current;
+    }
+    
+    /**
+     * Интерфейсен метод на doc_DocumentIntf
+     *
+     * @param int $id
+     * @return stdClass $row
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        $row = new stdClass();
+        
+        //Заглавие
+        $row->title = "Структорно звено {$rec->name}";
+        
+        //Създателя
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        //Състояние
+        $row->state = $rec->state;
+        
+        //id на създателя
+        $row->authorId = $rec->createdBy;
+        
+        //$row->recTitle = $rec->title;
+        
+        return $row;
     }
 }

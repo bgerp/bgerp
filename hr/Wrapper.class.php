@@ -28,9 +28,9 @@ class hr_Wrapper extends plg_ProtoWrapper
                 
         $this->TAB('hr_EmployeeContracts', 'Назначения', 'admin,hr');
         $this->TAB('hr_Positions', 'Длъжности', 'admin,hr');
-        $this->TAB('hr_Departments', 'Отдели', 'admin,hr');
-        $this->TAB('hr_Shifts', 'График','admin,hr');
-        $this->TAB('hr_WorkingCycles', 'Цикли', 'admin,dma');
+        $this->TAB('hr_Departments', 'Структура', 'admin,hr');
+        //$this->TAB('hr_Shifts', 'График','admin,hr');
+        $this->TAB('hr_WorkingCycles', 'График', 'admin,dma,hr');
         $this->TAB('hr_ContractTypes', 'Шаблони', 'admin,hr');
         
         $this->title = 'Персонал';

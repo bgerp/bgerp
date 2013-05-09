@@ -19,7 +19,7 @@ class hr_WorkingCycles extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Работни цикли";
+    var $title = "Смени";
     
     
     /**
@@ -107,6 +107,28 @@ class hr_WorkingCycles extends core_Master
         $maxNight = $tTime->toVerbal($maxNight);
 
         $data->row->info = "Max night: $maxNight<br>";
+    }
+    
+    
+    /**
+     * Подготвя локациите на контрагента
+     */
+    function prepareGrafic($data)
+    {
+        
+
+        $data->TabCaption = 'График';
+    }
+    
+    
+    /**
+     * Рендира данните
+     */
+    function renderGrafic($data)
+    {
+        
+        
+        return "ОК";
     }
 
 }
