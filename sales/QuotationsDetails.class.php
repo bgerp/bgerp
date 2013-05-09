@@ -356,7 +356,7 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
     	$dTpl->removeBlocks();
-    	$tpl->append($dTpl, 'DETAILS');
+    	$tpl->append($dTpl, 'MANDATORY');
     	
     	// Ако няма опционални продукти не рендираме таблицата им
     	if($oCount > 1){

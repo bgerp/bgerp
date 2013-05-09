@@ -35,12 +35,12 @@
 	</table>
 	
 	<div class="clearfix21"></div>
-	<!--ET_BEGIN DETAILS-->
+	<!--ET_BEGIN MANDATORY-->
 	<div id='details-holder'>
 	<p class='table-detail-header'>|Оферирани продукти и услуги|*</p>
-	[#DETAILS#]
+	[#MANDATORY#]
 	</div>
-	<!--ET_END DETAILS-->
+	<!--ET_END MANDATORY-->
 	
 	<!--ET_BEGIN OPTIONAL-->
 	<div id='optional-holder'>
@@ -62,5 +62,9 @@
 	</ol>
 	
 	<p id='quote-username'><b>|Изготвил офертата|*:</b> <span id='sign-place'></span>/ &nbsp;<b>[#username#]</b>&nbsp; /</p>
+	
+	<!--ET_BEGIN DETAILS-->
+	[#DETAILS#]
+	<!--ET_END DETAILS-->
 	</div>
 </div>
