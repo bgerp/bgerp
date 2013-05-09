@@ -56,9 +56,9 @@
 		<li>|Офертата е валидна до 30 дни след датата на издаване|*</li>
 		<li>|Начин на плащане|*: [#paymentMethodId#]</li>
 		<li>|Начин на доставка|*: [#deliveryTermId#]</li>
-		<!--ET_END OTHERS-->
+		<!--ET_BEGIN others-->
 		[#others#]
-		<!--ET_END OTHERS-->
+		<!--ET_END others-->
 	</ol>
 	
 	<p id='quote-username'><b>|Изготвил офертата|*:</b> <span id='sign-place'></span>/ &nbsp;<b>[#username#]</b>&nbsp; /</p>
