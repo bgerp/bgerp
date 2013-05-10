@@ -314,7 +314,7 @@ class blast_Letters extends core_Master
             $options->__toListId = $listDet;
             
             // Пушваме екшъна
-            log_Documents::pushAction(array('data' => array('toListId' => $listDet)));
+            log_Documents::pushAction(array('data' => array('toListId' => $listDet, 'listId' => $options->rec->listId)));
             
             //Намираме преполагаемия език на писмото
             Mode::push('lg', static::getLanguage($options->rec->body));
