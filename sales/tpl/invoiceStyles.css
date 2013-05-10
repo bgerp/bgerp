@@ -76,7 +76,7 @@
 	padding-top:3px;
 }
 
-#contragent-vat{
+.contragent-vat{
 	padding-top:15px;
 	font-size:12px;
 	font-weight:bold;
@@ -84,4 +84,10 @@
 
 #inv-holder{
 	margin-top:10px;
+}
+
+#seller-label{
+}
+
+#seller-info{
 }
