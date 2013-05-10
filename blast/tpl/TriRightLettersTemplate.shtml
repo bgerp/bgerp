@@ -8,7 +8,7 @@
 		<table width=100%>
 			<tr>
 				<td valign='top' style='padding:0 45px;'>
-						<div style='font-size: 22px;'>[#subject#]</div>
+						<div style='font-size: 20px;'>[#subject#]</div>
 				</td>
 				<td width=48% style='padding-right:75px;'>
 						<div style='color: #636363;text-decoration: underline;'>Получател:</div>

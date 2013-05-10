@@ -53,7 +53,7 @@
 					</div>
 			</td>
 			<td valign='top' style='padding-right:45px;'>
-						<div style='font-size: 22px;'>[#subject#]</div>
+						<div style='font-size: 20px;'>[#subject#]</div>
 			</td>
 		</tr>
 	</table>
