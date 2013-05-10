@@ -690,7 +690,7 @@ class log_Documents extends core_Manager
             $row->time = $time;
             
             // Добавяме в масива
-            $rows[$rec->createdOn] = $row;
+            $rows[$rec->id] = $row;
         }
 
         // Сортираме по дата
