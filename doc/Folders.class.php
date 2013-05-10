@@ -112,12 +112,6 @@ class doc_Folders extends core_Master
         $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
-        // Вземаме стойността по подразбиране, която може да се покаже
-        $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
-        
-        // Задаваме стойността по подразбиране
-        $data->listFilter->setDefault('users', $default);
-        
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
