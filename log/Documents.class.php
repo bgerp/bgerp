@@ -339,11 +339,11 @@ class log_Documents extends core_Manager
                 }
                 
                 // Добавяме в главния масив
-                $rows[$forwardRec['on']] = $row;    
+                $rows[] = $row;    
             }
         }
 
-        // Сортираме по дата
+        // Сортираме
         krsort($rows);
         
         // Заместваме данните за рендиране
@@ -547,9 +547,9 @@ class log_Documents extends core_Manager
                 
                 // Данните във вербален вид
                 $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                
+
                 // Добавяме в масива
-                $rows[$o['on']] = $row;
+                $rows[] = $row;
             }
         }
 
@@ -790,7 +790,7 @@ class log_Documents extends core_Manager
                     $row->ip = $row->from ? $row->from : $row->ip;
                     
                     // Записваме в масив данните, с ключ датата
-                    $rows[$nRec->time] = $row;    
+                    $rows[] = $row;    
                 }
             }
         }
