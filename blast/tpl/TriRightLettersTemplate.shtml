@@ -1,11 +1,11 @@
 
-<div class='document' style='page-break-after:always;max-width:850px'>
+<div class='document' style='page-break-after:always;max-width:850px;float:none;'>
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
 	
-	<div class='headerPart' style='margin: 55px 0px 20px 0px;width: 100%; max-width: 900px;'>
-		<table width=100%>
+	<div class='headerPart' style='margin: 55px 0px 20px 0px; width: 100%; max-width: 900px;'>
+		<table width='100%'>
 			<tr>
 				<td valign='top' style='padding:0 45px;'>
 						<div style='font-size: 20px;'>[#subject#]</div>
@@ -50,10 +50,7 @@
 									[#country#]
 								</div>
 							<!--ET_END country-->
-						</div>
-						
-						
-					</div>
+					</div>		
 			</td>
 		</tr>
 	</table>
