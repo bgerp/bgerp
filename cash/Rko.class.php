@@ -238,15 +238,15 @@ class cash_Rko extends core_Master
 	    	$rec->peroCase = cash_Cases::getCurrent();
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
-		    if(!$rec->rate){
+        	if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = round(1/currency_CurrencyRates::getRate($rec->valior, NULL, currency_Currencies::getCodeById($rec->currencyId)), 4);
+		    	$rec->rate = round(1/currency_CurrencyRates::getRate($rec->valior, NULL, $currencyCode, 4));
+		    } else {
+		    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
+		    		$form->setWarning('rate', 'Въведения курс има много голяма разлика спрямо очакваната');
+		    	}
 		    }
-		    
-		    if($rec->rate != 1) {
-		   		$rec->equals = round($rec->amount * $rec->rate, 2);
-		    } 
     	}
     	
     	acc_Periods::checkDocumentDate($form);
