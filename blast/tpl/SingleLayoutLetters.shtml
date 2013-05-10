@@ -15,7 +15,7 @@
 					<tr>
 						
 								<!--ET_BEGIN subject--> 
-									    <td><b>[#subject#]</b></td>
+									    <td width='60%'><b>[#subject#]</b></td>
 									    <!--ET_END subject-->
 									    <td align='right'>
 									    	<table>
