@@ -316,8 +316,14 @@ class blast_Letters extends core_Master
             // Пушваме екшъна
             log_Documents::pushAction(array('data' => array('toListId' => $listDet)));
             
+            //Намираме преполагаемия език на писмото
+            Mode::push('lg', static::getLanguage($options->rec->body));
+            
             // Вземаме документа в xhtml формат
             $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
+
+            // Връщаме езика по подразбиране
+            Mode::pop('lg');
             
             // Добавяме към шаблона
             $tpl->append($res);
@@ -725,5 +731,26 @@ class blast_Letters extends core_Master
                 }
             }
         }
+    }
+    
+    
+	/**
+     * Намира предполагаемия език на текста
+     * 
+     * @param text $body - Текста, в който ще се търси
+     * 
+     * @return string $lg - Двубуквеното означение на предполагаемия език
+     */
+    static function getLanguage($body)
+    {
+        //Масив с всички предполагаеми езици
+        $lg = i18n_Language::detect($body);
+        
+        //Ако езика не е bg, връщаме en
+        if ($lg != 'bg') {
+            $lg = 'en';
+        }
+        
+        return $lg;
     }
 }
