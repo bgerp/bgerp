@@ -57,8 +57,6 @@ class sales_Invoices extends core_Master
     
     /**
      * Колоната, в която да се появят инструментите на plg_RowTools
-     * 
-     * @var string
      */
     public $rowToolsField = 'number';
     
@@ -92,21 +90,21 @@ class sales_Invoices extends core_Master
      */
     var $canDelete = 'admin, sales';
     
+    
     /**
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
+    
     
     /**
      * Поле за търсене
      */
     var $searchFields = 'number, date, contragentName';
     
+    
     /**
      * Име на полето съдържащо номер на фактурата
-     * 
-     * @var int
-     * @see doc_SequencerPlg
      */
     var $sequencerField = 'number';
     
@@ -117,15 +115,15 @@ class sales_Invoices extends core_Master
      */
     var $singleIcon = 'img/16/invoice.png';
     
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "3.3|Търговия";
     
+    
     /**
      * SystemId на номенклатура "Клиенти"
-     * 
-     * @var string
      */
     const CLIENTS_ACC_LIST = 'clients';
     
@@ -135,19 +133,9 @@ class sales_Invoices extends core_Master
      */
     function description()
     {
-        // Дата на фактурата
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
-        
-        // Място на сделката
         $this->FLD('place', 'varchar(64)', 'caption=Място, mandatory');
-        
-        // Номер на фактурата
         $this->FLD('number', 'int', 'caption=Номер, export=Csv');
-
-        /*
-         * Данни за контрагента - получател на фактурата
-         */
-        // Перо в номенклатурата с клиенти съответстващо на контрагента
         $this->FLD('contragentAccItemId', 
             'acc_type_Item(lists=' . self::CLIENTS_ACC_LIST . ')', 'notNull,input=none,column=none');
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory');
@@ -157,36 +145,19 @@ class sales_Invoices extends core_Master
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData');
-        
-        // TODO да се мине през функцията за канонизиране от drdata_Vats 
-        $this->FLD('vatCanonized', 'drdata_VatType', 'caption=Получател->Vat Canonized, input=none');
-
-        // Плащане
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods, select=name)', 'caption=Плащане->Начин');
-                
-        // Наша банкова сметка (при начин на плащане по банков път)
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
 		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
-        // Валута
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em'); 
-        
-        // Доставка
         $this->FLD('deliveryId', 'key(mvc=salecond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
         $this->FLD('deliveryPlace', 'varchar', 'caption=Доставка->Място');
-        
-        // Данъци
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освеободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
-
-        // Допълнителна информация
-        $this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
-        
-        // Скрити полета
+		$this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
-
-        $this->FLD('state', 
+		$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
@@ -255,6 +226,9 @@ class sales_Invoices extends core_Master
         if(!$form->rec->rate){
         	$form->rec->rate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->currencyId), 4);
         }
+        
+        $Vats = cls::get('drdata_Vats');
+        $form->rec->contragentVatNo = $Vats->canonize($form->rec->contragentVatNo);
 	}
     
 	
@@ -306,16 +280,11 @@ class sales_Invoices extends core_Master
      */
     public function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
     {
-        if (empty($rec->date)) {
-            return;
-        }
-        
         if (!empty($rec->id)) {
             // Промяна на съществуваща ф-ра - не правим нищо
             return;
         }
         
-        /* @var $query core_Query */
         $query = $mvc->getQuery();
         $query->where("#state != 'rejected'");
         $query->orderBy('date', 'DESC');
@@ -341,10 +310,6 @@ class sales_Invoices extends core_Master
      * Валидиране на полето 'number' - номер на фактурата
      * 
      * Предупреждение при липса на ф-ра с номер едно по-малко от въведения.
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     * @param core_Form $form
      */
     public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
     {
@@ -363,10 +328,6 @@ class sales_Invoices extends core_Master
      * Валидиране на полето 'vatDate' - дата на данъчно събитие (ДС)
      * 
      * Грешка ако ДС е след датата на фактурата или на повече от 5 дни преди тази дата.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     * @param core_Form $form
      */
     public function on_ValidateVatDate(core_Mvc $mvc, $rec, core_Form $form)
     {
@@ -406,9 +367,6 @@ class sales_Invoices extends core_Master
     
     /**
      * Попълване на шаблона на единичния изглед с данни на доставчика (Моята фирма)
-     * 
-     * @param core_Mvc $mvc
-     * @param core_ET $tpl
      */
     public function on_AfterRenderSingle($mvc, core_ET $tpl)
     {
@@ -503,13 +461,6 @@ class sales_Invoices extends core_Master
     
     /**
      * Изчислява данните на контрагента и ги зарежда във форма за създаване на нова ф-ра
-     * 
-     * По дефиниция, данните за контрагента се вземат от:
-     * 
-     *  * най-новата активна ф-ра в папката, в която се създава новата
-     *  * ако няма такава - от корицата на тази папка
-     * 
-     * @param core_Form $form форма, в чиито полета да се заредят данните за контрагента
      */
     protected static function populateContragentData(core_Form $form)
     {
@@ -534,20 +485,6 @@ class sales_Invoices extends core_Master
     	} else {
     		$form->setDefault('vat', 'export');
     	}
-        /*
-         * Разглеждаме четири случая според данните в $contragentData
-         * 
-         *  1. Има данни за фирма и данни за лице
-         *  2. Има само данни за фирма
-         *  3. Има само данни за лице
-         *  4. Нито едно от горните не е вярно
-         */
-        if (empty($contragentData->company) && empty($contragentData->person)) {
-            // Случай 4: нито фирма, нито лице
-            // TODO доколко допустимо е да се стигне до тук?
-            expect(FALSE, 'Проблем с данните за контрагент по подразбиране');
-            return;
-        }
         
         $rec->contragentCountryId = $contragentData->countryId;
         
@@ -562,12 +499,6 @@ class sales_Invoices extends core_Master
                 )
             );
             $rec->contragentVatNo = $contragentData->vatNo;
-            
-            if (!empty($contragentData->person)) {
-                // Случай 1: данни за фирма + данни за лице
-                
-                // TODO за сега не правим нищо допълнително
-            }
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
             $rec->contragentName    = $contragentData->person;
@@ -677,7 +608,7 @@ class sales_Invoices extends core_Master
         //Създаваме шаблона
         $tpl = new ET(tr("Моля запознайте се с приложената фактура:") . "\n#[#handle#]");
         
-        //Заместваме датата в шаблона
+        //Заместваме хендъра в шаблона
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
