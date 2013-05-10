@@ -699,6 +699,10 @@ class sales_Sales extends core_Master
             $row->amountDeal = '0.00';
         }
         $row->amountDeal = $row->currencyId . ' ' . $row->amountDeal;
+
+        if ($rec->chargeVat == 'no') {
+            $row->chargeVat = '';
+        }
     }
     
     
