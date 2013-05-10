@@ -144,8 +144,6 @@ class cash_Pko extends core_Master
     	$this->FLD('creditAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('equals', 'double(decimals=2)', 'caption=Валута->Равностойност,input=none');
-    	$this->FLD('baseCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Основна,input=hidden');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('peroCase', 'key(mvc=cash_Cases, select=name)','input=none');
@@ -241,14 +239,8 @@ class cash_Pko extends core_Master
 		    if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
+		    	$rec->rate = round(1/currency_CurrencyRates::getRate($rec->valior, NULL, currency_Currencies::getCodeById($rec->currencyId)), 4);
 		    }
-		    
-		    if($rec->rate != 1) {
-		   		$rec->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
-		    } 
-		    
-	    	$rec->baseCurrency = acc_Periods::getBaseCurrencyId($rec->valior);
 	    }
     	
 	    acc_Periods::checkDocumentDate($form);
@@ -273,6 +265,14 @@ class cash_Pko extends core_Master
                 )
             );
     	
+            if($rec->rate != 1) {
+            	$double = cls::get('type_Double');
+            	$double->params['decimals'] = 0;
+		   		$rec->equals = round($rec->amount * $rec->rate, 2);
+		   		$row->equals = $double->toVerbal($rec->equals);
+		   		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
+		    } 
+		    
             if(!$rec->equals) {
 	    		
 	    		//не показваме курса ако валутата на документа съвпада с тази на периода
