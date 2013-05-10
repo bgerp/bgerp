@@ -167,13 +167,13 @@ class blast_Letters extends core_Master
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
             triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory');
         
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма, width=100%');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице, width=100%');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, width=100%');
+        $this->FLD('position', 'varchar', 'caption=Адресант->Длъжност, width=100%');
+        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма, width=100%');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, width=100%');
         $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код, width=100%');
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с, width=100%');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, width=100%');
-        $this->FLD('position', 'varchar', 'caption=Адресант->Длъжност, width=100%');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, width=100%');
     }
 
     /**
