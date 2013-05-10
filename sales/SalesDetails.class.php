@@ -444,7 +444,7 @@ class sales_SalesDetails extends core_Detail
                 $rec->price = 
                     currency_CurrencyRates::convertAmount(
                         $rec->price, 
-                        $masterRec->date, 
+                        $masterRec->valior, 
                         NULL, // Основната валута към $masterRec->date
                         $masterRec->currencyId
                     );
