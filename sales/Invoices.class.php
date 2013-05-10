@@ -45,7 +45,7 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, doc_ActivatePlg,
                     doc_SequencerPlg, doc_plg_BusinessDoc, acc_plg_Contable';
     
     
@@ -94,7 +94,7 @@ class sales_Invoices extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
+    var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice2.shtml';
     
     
     /**
@@ -153,7 +153,7 @@ class sales_Invoices extends core_Master
         $this->FLD('deliveryId', 'key(mvc=salecond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
         $this->FLD('deliveryPlace', 'varchar', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-        $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освеободено,export=без начисляване)', 'caption=Данъци->ДДС %');
+        $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
 		$this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
@@ -273,10 +273,6 @@ class sales_Invoices extends core_Master
      * Валидиране на полето 'date' - дата на фактурата
      * 
      * Предупреждение ако има фактура с по-нова дата (само при update!)
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     * @param core_Form $form
      */
     public function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
     {
@@ -535,22 +531,36 @@ class sales_Invoices extends core_Master
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'edit' && isset($rec->id)){
-    		
-    		// Фактурата неможе се едитва, ако е възоснова на продажба
-    		if($rec->originId || ($rec->docType && $rec->docId)){
-    			$res = 'no_one';
-    		}
-    	}
-    	
-    	if($action == 'conto'){
-    		if(!$rec->id){
-    			$res = 'no_one';
-    		} else {
-    			if(!sales_InvoiceDetails::fetch("#invoiceId = {$rec->id}")){
-    				$res = 'no_one';
-    			}
-    		}
+    	switch ($action) {
+    		case 'edit':
+	    	    // Фактурата неможе се едитва, ако е възоснова на продажба
+	    		if($rec->originId || ($rec->docType && $rec->docId)){
+	    			$res = 'no_one';
+	    		}
+    			break;
+           
+            case 'conto':
+            case 'activate':
+               if (empty($rec->id) || $rec->state != 'draft') {
+                    // Незаписаните продажби не могат нито да се контират, нито да се активират
+                    $res = 'no_one';
+                    break;
+                } 
+               
+                if (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE) {
+                    // Невъзможно е да се генерира транзакция
+                    $res = 'no_one';
+                    break;
+                }
+                
+                // Активиране е позволено само за продажби, които не генерират транзакции
+                // Контиране е позволено само за продажби, които генерират транзакции
+                $deniedAction = ($transaction->isEmpty() ? 'conto' : 'activate');
+               
+                if ($action == $deniedAction) {
+                    $res = 'no_one';
+                }
+                break;
     	}
     }
     
@@ -707,20 +717,23 @@ class sales_Invoices extends core_Master
     public static function getTransaction($id)
     {
        	// Извличаме записа
-        expect($rec = self::fetch($id));
+        expect($rec = self::fetchRec($id));
         static::prepareAdditionalInfo($rec);
         $contragentItem = acc_Items::fetch($rec->contragentAccItemId);
         
         $result = (object)array(
             'reason' => "Фактура №{$rec->number}", // основанието за ордера
             'valior' => $rec->date,   // датата на ордера
-            'entries' => array(
-                array(
-                    'amount' => $rec->vatAmount,	// равностойноста на сумата в основната валута
+            );
+		
+        $entries = array();
+        if($rec->vatAmount){
+        	$entries[] = array(
+                    'amount' => $rec->vatAmount,  // равностойноста на сумата в основната валута
                     
                     'debit' => array(
                         '411', // дебитната сметка
-                            array($contragentItem->classId, $contragentItem->objectId),
+                           array($contragentItem->classId, $contragentItem->objectId),
                             array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->date)),
                         'quantity' => $rec->vatAmount,
                     ),
@@ -728,12 +741,12 @@ class sales_Invoices extends core_Master
                     'credit' => array(
                         '4532', // кредитна сметка
                         'quantity' => $rec->vatAmount,
-                    ),
-                )
-            )
-        );
-        //bp($result);
-        return TRUE;
+                    ));
+        }
+        
+      	$result->entries = $entries;
+      	//bp($result);
+        return $result;
     }
     
     
