@@ -175,4 +175,24 @@ class type_User extends type_Key
         
         return $this->options[$key]->title;
     }
+    
+    
+    /**
+     * Проверява, дали типа се съдържа в опциите
+     */
+    function fitInDomain($type)
+    {
+        // Подготвяме опциите
+        $this->prepareOptions();
+
+        // Вземаме първия от масива
+        $type = reset($this->options);
+        
+        // Обхождаме опциите
+        foreach ($this->options as $options) {
+            
+            // Ако има стойност, връщаме я
+            if ($options->value) return $options->value;
+        }
+    }
 }
