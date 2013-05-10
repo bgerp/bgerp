@@ -418,10 +418,10 @@ class blast_Emails extends core_Master
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
                 
-                $placeHolder = strtolower($placeHolder);
+                $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
-                if (!$fieldsArr[$placeHolder]) {
+                if (!$fieldsArr[$placeHolderL]) {
                     
                     // Добавяме към съобщението за предупреждение
                     $warning .= ($warning) ? ", {$placeHolder}" : $placeHolder;
@@ -440,10 +440,10 @@ class blast_Emails extends core_Master
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($bodyAndSubPlaceHolder as $placeHolder) {
                 
-                $placeHolder = strtolower($placeHolder);
+                $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
-                if (!$fieldsArr[$placeHolder]) {
+                if (!$fieldsArr[$placeHolderL]) {
                     
                     // Добавяме към съобщението за грешка
                     $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
