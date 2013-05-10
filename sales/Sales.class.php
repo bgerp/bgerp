@@ -437,8 +437,8 @@ class sales_Sales extends core_Master
         /*
          * Начисляване на ДДС по подразбиране
          */
-        $form->setDefault('chargeVat', 
-            sales_Quotations::getDefaultVat($form->rec->contragentClassId, $form->rec->contragentId) ?
+        $contragentRef = new core_ObjectReference($form->rec->contragentClassId, $form->rec->contragentId);
+        $form->setDefault('chargeVat', $contragentRef->getDefaultVat() ?
                 'yes' : 'no'
         );
     }
