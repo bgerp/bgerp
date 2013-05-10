@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Валутни курсове
  *
@@ -15,7 +16,12 @@
  */
 class currency_CurrencyRates extends core_Detail
 {
-    
+    /**
+	 * На колко процента разлика между очакваната и въведената сума при
+	 * превалутиране да сетва предупреждение
+	 */
+	static $allowedExchangeDeviation = 5;
+	
 	/**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -350,5 +356,27 @@ class currency_CurrencyRates extends core_Detail
 			// Предпазване от добавяне на нов постинг в act_List
 			$res = 'no_one';
 		}
+    }
+    
+    
+    /**
+     * Функция изчисляваща дали има отклонение между подадена сума
+     * и курса от системата между две валути.
+     * Приемливото отклонение е дефинирано в , дефолт 5%
+     * @param double $givenRate - подаден курс.
+     * @param string $from - код от коя валута
+     * @param string $то - код към коя валута
+     * @return boolean TRUE/FALSE
+     */
+    public static function hasDeviation($givenRate, $date, $from, $to)
+    {
+    	$percent = static::$allowedExchangeDeviation;
+    	$knownRate = static::getRate($date, $from, $to);
+    	
+    	$difference = round(abs($givenRate - $knownRate) / min($givenRate, $knownRate) * 100);
+    	if($difference > $percent) {
+		    return FALSE;
+		} 
+		return TRUE;
     }
 }
