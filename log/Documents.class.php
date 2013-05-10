@@ -428,11 +428,20 @@ class log_Documents extends core_Manager
             // Екшъна за отваряне
             $openAction = static::ACTION_OPEN;
             
-            // Добавяме класа на състоянието
-            $row->ROW_ATTR['class'] .= ' ' . ($rec->data->{$openAction} ? 'state-closed' : 'state-active');
+            // Състоянието
+            $state = ($rec->data->{$openAction}) ? 'state-closed' : 'state-active';
             
             // Екшъна за отваряне
             $row->openAction = static::renderOpenActions($rec);
+            
+            // Добавяме индикатор за състоянието
+            $time = "<div class='rowtools'>";
+            $time .= "<div style='padding-right: 5px;' class='l'>";
+            $time .= "<div class='stateIndicator {$state}'>";
+            $time .= "</div> </div> <div class='r'>{$row->time}</div></div>";
+            
+            // Заместваме времето с индикатора и времето
+            $row->time = $time;
             
             // Добавяме в главния масив
             $rows[$rec->id] = $row;    
@@ -671,8 +680,14 @@ class log_Documents extends core_Manager
                 
             }
             
-            // Доабвяме класа към атрибутите на полето
-            $row->ROW_ATTR['class'] .= ' ' . $stateClass;
+            // Индикатор за състоянието
+            $time = "<div class='rowtools'>";
+            $time .= "<div style='padding-right: 5px;' class='l'>";
+            $time .= "<div class='stateIndicator {$stateClass}'>";
+            $time .= "</div> </div> <div class='r'>{$row->time}</div></div>";
+            
+            // Заместваме времето с индикатора и времето
+            $row->time = $time;
             
             // Добавяме в масива
             $rows[$rec->createdOn] = $row;
