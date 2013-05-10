@@ -11,7 +11,7 @@
 						<div style='font-size: 20px;'>[#subject#]</div>
 				</td>
 				<td width=50% style='padding-right:75px;padding-left:20px'>
-						<div style='color: #636363;text-decoration: underline;'>Получател:</div>
+						<div style='color: #636363;text-decoration: underline;'>|Получател|*:</div>
 						<div style='font-size: 16px;min-height:150px'>
 						
 							<!--ET_BEGIN attn-->
