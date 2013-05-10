@@ -316,15 +316,9 @@ class blast_Letters extends core_Master
             // Пушваме екшъна
             log_Documents::pushAction(array('data' => array('toListId' => $listDet, 'listId' => $options->rec->listId)));
             
-            //Намираме преполагаемия език на писмото
-            Mode::push('lg', static::getLanguage($options->rec->body));
-            
             // Вземаме документа в xhtml формат
             $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
 
-            // Връщаме езика по подразбиране
-            Mode::pop('lg');
-            
             // Добавяме към шаблона
             $tpl->append($res);
             
@@ -356,7 +350,6 @@ class blast_Letters extends core_Master
      */
     function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
-        
         // Фетчваме детайла за съответния лист
         $detailRec = blast_ListDetails::fetch($options->__toListId);
         
@@ -369,6 +362,9 @@ class blast_Letters extends core_Master
             // Вземаме данните от базата
             $options->rec = static::fetch($id);    
         }
+        
+        // Намираме преполагаемия език на писмото
+        core_Lg::push(static::getLanguage($options->rec->body));
         
         // Обхождаме масива с данните
         foreach ((array)$data as $key => $value) {
@@ -390,6 +386,16 @@ class blast_Letters extends core_Master
         
         // Добавяме, че разглеждаме детайла
         $options->rec->__detail = TRUE;
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        // Връщаме стария език
+        core_Lg::pop('lg');
     }
     
     

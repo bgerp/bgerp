@@ -648,14 +648,8 @@ class blast_Emails extends core_Master
             return $this->renderWrapping($form->renderHtml());
         }
         
-        //Намираме преполагаемия език на съобщението
-        Mode::push('lg', $this->getLanguage($emailRec->body));
-        
         // Тялото на съобщението
         $body = $this->getEmailBody($emailRec, $email);
-        
-        // Връщаме езика по подразбиране
-        Mode::pop('lg');
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
@@ -939,15 +933,9 @@ class blast_Emails extends core_Master
                     )
                 );
             
-                //Намираме преполагаемия език на съобщението
-                Mode::push('lg', $this->getLanguage($nRec->body));
-
                 //Тялото на съобщението
                 $body = $this->getEmailBody($nRec, $emailTo, TRUE);
                 
-                //Връщаме езика по подразбиране
-                Mode::pop('lg');
-
                 //Извикваме функцията за изпращане на имейли
                 $status = email_Sent::sendOne(
                     $boxFrom,
@@ -1282,7 +1270,7 @@ class blast_Emails extends core_Master
      * 
      * @return string $lg - Двубуквеното означение на предполагаемия език
      */
-    function getLanguage($body)
+    static function getLanguage($body)
     {
         //Масив с всички предполагаеми езици
         $lg = i18n_Language::detect($body);
@@ -1451,7 +1439,10 @@ class blast_Emails extends core_Master
         
         // Очакваме да има такъв запис
         expect($emailRec);
-
+        
+        // Намираме преполагаемия език на съобщението
+        core_Lg::push(static::getLanguage($emailRec->body));
+        
         $listDetailRec = blast_ListDetails::fetch("#listId = '{$emailRec->listId}' AND #key = '{$options->__toEmail}'");
         $listSendRec = blast_ListSend::fetch("#listDetailId = '{$listDetailRec->id}' AND #emailId = '{$emailRec->id}'");
 
@@ -1465,5 +1456,15 @@ class blast_Emails extends core_Master
 
         // Добавяме данните в rec'a
         $options->rec = $emailRec;
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        // Връщаме езика по подразбиране
+        core_Lg::pop();
     }
 }
