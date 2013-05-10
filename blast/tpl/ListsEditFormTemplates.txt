@@ -18,10 +18,10 @@
 #address = Адрес
 
 #Препоръчителни за "Писма"
-#company=Фирма
 #names=Лице
-#country=Държава
+#position=Длъжност
+#company=Фирма
 #postCode=П. код
 #city=Град/с
 #address=Адрес
-#position=Длъжност
+#country=Държава
