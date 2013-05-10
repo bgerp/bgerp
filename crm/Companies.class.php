@@ -271,21 +271,13 @@ class crm_Companies extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
-        // По подразбиране кое да е избрано
-        if (haveRole($data->listFilter->fields['users']->type->params['rolesForAll'])) {
-            
-            // Ако има права за всички, да са избани всички
-            $data->listFilter->setDefault('users', 'all_users');    
-        } else {
-            
-            // Текущия потребител
-            $currUserId = core_Users::getCurrent();
+        // Вземаме стойността по подразбиране, която може да се покаже
+        $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
         
-            // Ако няма права за всички да е избран текущия потребител
-            $data->listFilter->setDefault('users', "|$currUserId|"); 
-        }
+        // Задаваме стойността по подразбиране
+        $data->listFilter->setDefault('users', $default);
         
         // Подготовка на полето за подредба
         foreach($mvc->listOrderBy as $key => $attr) {
