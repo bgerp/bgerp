@@ -435,10 +435,9 @@ class log_Documents extends core_Manager
             $row->openAction = static::renderOpenActions($rec);
             
             // Добавяме индикатор за състоянието
-            $time = "<div class='rowtools'>";
-            $time .= "<div style='padding-right: 5px;' class='l'>";
+            $time = "<div>";
             $time .= "<div class='stateIndicator {$state}'>";
-            $time .= "</div> </div> <div class='r'>{$row->time}</div></div>";
+            $time .= "</div> <div class='inline-date'>{$row->time}</div></div>";
             
             // Заместваме времето с индикатора и времето
             $row->time = $time;
@@ -681,10 +680,9 @@ class log_Documents extends core_Manager
             }
             
             // Индикатор за състоянието
-            $time = "<div class='rowtools'>";
-            $time .= "<div style='padding-right: 5px;' class='l'>";
-            $time .= "<div class='stateIndicator {$stateClass}'>";
-            $time .= "</div> </div> <div class='r'>{$row->time}</div></div>";
+            $time = "<div>";
+            $time .= "<div class='stateIndicator {$state}'>";
+            $time .= "</div> <div class='inline-date'>{$row->time}</div></div>";
             
             // Заместваме времето с индикатора и времето
             $row->time = $time;

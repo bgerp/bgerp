@@ -4,7 +4,7 @@ $dark-blue:#036;
 $red:#c00;
 $quiet-gray:#888;
 $open-thread:#e0ffe0;
-$history-bg:#fefead;
+$history-bg:#fefec2;
 
 @mixin border-radius($radius) {
     -moz-border-radius: $radius;
@@ -404,6 +404,7 @@ div.alphabet div.tab-page {
 
 /*alphabet табовете в документ да изглеждат като основните, но по-малки*/
 .single-thread .document div.alphabet {
+	padding-bottom:0;
 	.tab-page{
 		padding:0px 0px 0px !important;
 		clear: both;
@@ -431,14 +432,19 @@ div.alphabet div.tab-page {
 					border-radius:0 0 5px 0;
 				}
 			}
-			.state-active .stateIndicator{
-				background-color:#FED;
+			.stateIndicator,.inline-date{
+				display:inline-block;
 			}
-			.state-stopped .stateIndicator{
-				background-color: #FEADAD;
-			}
-			.state-closed .stateIndicator{
-				background-color: #eee;
+			.stateIndicator{
+				&.state-active{
+					background-color:#FED;
+				}
+				&.state-stopped{
+					background-color: #FEADAD;
+				}
+				&.state-closed{
+					background-color: #ddd;
+				}
 			}
 			.listTable th{
 				background-color:$history-bg;
