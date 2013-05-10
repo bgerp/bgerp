@@ -306,6 +306,10 @@ class sales_SalesDetails extends core_Detail
         // тук отново
         $salesRec->amountDeal = 0;
         
+        if (empty($recs)) {
+            return;
+        }
+        
         foreach ($recs as $rec) {
             if ($salesRec->chargeVat == 'yes') {
                 $rec->packPrice = $rec->packPrice * (1 + $rec->vatPercent);
