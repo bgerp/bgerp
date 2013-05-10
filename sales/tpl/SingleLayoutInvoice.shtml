@@ -1,38 +1,34 @@
 [#SingleToolbar#]
 <div class='document'>
- 
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
-
-<table width=100% cellpadding="0" cellspacing="0">
+	<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+	</div>
+	<!--ET_END header-->
+<table width=100% cellpadding="0" cellspacing="0" id='inv-holder'>
     <tbody>
 <tr>
         <td>
-         
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="cell" width="35%"><b>|Получател|* / <i>Buyer</i></b></td>
                     <td class="cell" rowspan="3" align="center" width="30%">
-                        <font style="font-size:16pt;"><b> |ФАКТУРА|* / <i>INVOICE</i> </b> </font><br>
-                        
-                        <div style="padding-top:5px;">|Номер|* / Number</div>
+                        <div class='invoiceTitle'>|ФАКТУРА|* / <i>INVOICE</i></div><br>
+                        <div class='invInfo'>|Номер|* / Number</div>
                         <div class="bigData">[#number#]</div>
-                        
-                        <div style="padding-top:5px;">|Дата|* / Date</div>
+                        <div class='invInfo'>|Дата|* / Date</div>
                         <div class="bigData">[#date#]</div>
-    
-                        <div style="padding-top:5px;">|Място|* / Place</div>
+    					<div class='invInfo'>|Място|* / Place</div>
                         <div class="bigData">[#dealPlace#]</div>
-
-                        <div style="padding-top:5px;" class="bigData">
-                        	<font color="999999"><b>|ОРИГИНАЛ|*/<i>ORIGINAL</i></b></font><br />
-                        	<!--ET_BEGIN POS-->
+						<div class='invInfo bigData'>
+                        	<div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div><br />
                         	<span style='font-weight:normal;'>[#POS#]</span>
-                        	<!--ET_ENDIN POS-->
                         </div>
                     </td>
-                    <td class="cell" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
+                    <td class="cell" width="35%"><b></b> </td>
                 </tr>           
                 <tr>
                     <td class="cell">
@@ -55,12 +51,6 @@
                             </tr>
                             <tr>
                                 <td class="bigData">[#contragentVatNo#]</td>
-                            </tr>
-                            <tr>
-                                <td><small><b>|Идентификационен номер|*</b></small></td>
-                            </tr>
-                            <tr>
-                                <td class="bigData">[#contragentTaxId#]</td>
                             </tr>
                             </tbody>
                         </table>
@@ -99,7 +89,7 @@
             <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                <td style='text-align:center;vertical-align:middle !important'>
+                <td id='say-words'>
                 <div>
                 |С думи|*:
                 <!--ET_BEGIN amountVerbal-->
@@ -107,23 +97,23 @@
                 <!--ET_END amountVerbal-->
                 </div>
                 </td>
-                <td style='padding-top:3px;padding-bottom:3px;width:35%'>
-                <table border='0' style='' cellpadding='3px' width='100%' cellspacing='0px'>
+                <td id='invoice-info' width='40%'>
+                <table border='0'cellpadding='3px' width='100%' cellspacing='0px'>
                 <tr>
-	                <td style='text-align:right'>|Стойност|* / Subtotal :</td>
-	                <td><span style='float:right'> <span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></span></td>
+	                <td class='info-right'>|Стойност|* / Subtotal :</td>
+	                <td class='info-right'><span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></td>
                 </tr>
                 <tr>
-                	<td style='text-align:right'>|Данъчна основа|* :</td>
-                	<td><span style='float:right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#baseAmount#]</b></span></td>
+                	<td class='info-right'>|Данъчна основа|* :</td>
+                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#baseAmount#]</b></td>
                 </tr>
                 <tr>
-                	<td style='text-align:right'>|ДДС|* / VAT <b>[#vatPercent#]</b> :</td>
-                	<td><span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatAmount#]</b></span></td>
+                	<td class='info-right'>|ДДС|* / VAT <b>[#vatPercent#]</b> :</td>
+                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatAmount#]</b></td>
                 </tr>
                 <tr>
-                	<td style='text-align:right'>|Общо|* / Total :</td>
-                	<td><span style='float:right'> <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#total#]</b></span></td>
+                	<td class='info-right'>|Общо|* / Total :</td>
+                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#total#]</b></td>
                 </tr>
                 </table>
                 </td>
@@ -194,7 +184,7 @@
                             </tr>
                              <!--ET_BEGIN vatDate-->  
                             <tr>
-                                <td style="padding-top: 10px; text-align: right;">|Дата на данъчното събитие|*:</td>
+                                <td class='invoice-vat-info'>|Дата на данъчното събитие|*:</td>
                             </tr>
                              
                             <tr>
@@ -204,7 +194,7 @@
                              
                              <!--ET_BEGIN VAT_REASON--> 
                             <tr>
-                                <td style="padding-top:10px; text-align:right;">|Основание за размера на ДДС|*:</td>
+                                <td class='invoice-vat-info'>|Основание за размера на ДДС|*:</td>
                             </tr>
                             <tr>
                                 <td align="RIGHT"><b>[#VAT_REASON#]</b></td>
@@ -222,13 +212,8 @@
                 </tr>        
                 </tbody>
             </table>
- 
         </td>
-    </tr>
-    <tr>
-        <td></td>
     </tr>
     </tbody>
 </table>
-
 </div>

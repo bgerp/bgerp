@@ -381,6 +381,8 @@ class sales_Invoices extends core_Master
         $tpl->replace($ownCompanyData->country, 'MyCountry');
         $tpl->replace($address, 'MyAddress');
         $tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
+        
+        $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
     
@@ -390,16 +392,26 @@ class sales_Invoices extends core_Master
     static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->dealValue  && $fields['-single']){
-    		$rec->baseAmount = $rec->dealValue;
-    		$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
-    		$rec->vatPercent = $rec->vatAmount = 0;
-    		if($rec->vatRate == 'yes'){
-    			$period = acc_Periods::fetchByDate($rec->date);
-    			$rec->vatAmount = $rec->baseAmount * $period->vatRate;
-				$rec->vatPercent = $period->vatRate;
-			}
-			$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
+    		$mvc::prepareAdditionalInfo($rec);
     	}
+    }
+    
+    
+    /**
+     * Помощна функция за добавяне на допълнителна информация
+     * към $rec-a относно ДДС, то данъчната основа и други данни
+     */
+    private static function prepareAdditionalInfo(&$rec)
+    {
+    	$rec->baseAmount = $rec->dealValue;
+    	$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
+    	$rec->vatPercent = $rec->vatAmount = 0;
+    	if($rec->vatRate == 'yes'){
+    		$period = acc_Periods::fetchByDate($rec->date);
+    		$rec->vatAmount = $rec->baseAmount * $period->vatRate;
+			$rec->vatPercent = $period->vatRate;
+		}
+		$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
     }
     
     
@@ -438,6 +450,9 @@ class sales_Invoices extends core_Master
 	    		$row->bic = $varchar->toVerbal($ownAcc->bic);
 	    	}
 	    	
+	    	if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . " №<b>{$row->number}</b> ({$row->state})" ;
+	    	}
 	    	$username = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($username, 'names')->names;
     	}
@@ -693,7 +708,32 @@ class sales_Invoices extends core_Master
     {
        	// Извличаме записа
         expect($rec = self::fetch($id));
-        bp($rec);
+        static::prepareAdditionalInfo($rec);
+        $contragentItem = acc_Items::fetch($rec->contragentAccItemId);
+        
+        $result = (object)array(
+            'reason' => "Фактура №{$rec->number}", // основанието за ордера
+            'valior' => $rec->date,   // датата на ордера
+            'entries' => array(
+                array(
+                    'amount' => $rec->vatAmount,	// равностойноста на сумата в основната валута
+                    
+                    'debit' => array(
+                        '411', // дебитната сметка
+                            array($contragentItem->classId, $contragentItem->objectId),
+                            array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->date)),
+                        'quantity' => $rec->vatAmount,
+                    ),
+                    
+                    'credit' => array(
+                        '4532', // кредитна сметка
+                        'quantity' => $rec->vatAmount,
+                    ),
+                )
+            )
+        );
+        //bp($result);
+        return TRUE;
     }
     
     
