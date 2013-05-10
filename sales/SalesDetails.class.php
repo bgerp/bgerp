@@ -316,7 +316,7 @@ class sales_SalesDetails extends core_Detail
             }
             
             $rec->amount = $rec->packPrice * $rec->packQuantity;
-            $rec->amount = sales_Sales::roundPrice($rec->amount);
+            $rec->amount = round($rec->amount, 2);
             
             $salesRec->amountDeal += $rec->amount;
         }
