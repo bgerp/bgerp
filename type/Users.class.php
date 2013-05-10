@@ -171,6 +171,22 @@ class type_Users extends type_Keylist
     
     
     /**
+     * Проверява, дали типа се съдържа в опциите
+     */
+    function fitInDomain($type)
+    {
+        // Подготвяме опциите
+        $this->prepareOptions();
+
+        // Вземаме първия от масива
+        $type = reset($this->options);
+        
+        // Връщаме ключа
+        return $type->keylist;
+    }
+    
+    
+    /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function fromVerbal_($value)
