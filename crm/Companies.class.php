@@ -517,7 +517,7 @@ class crm_Companies extends core_Master
         
         $vat = $vatType->toVerbal($rec->vatId);
         
-        $row->title .= ($vat ? "&nbsp;&nbsp;<div style='float:right'>{$vat}</div>" : "");
+        $row->title .= ($vat ? "&nbsp;&nbsp;<div style='display:inline-block'>{$vat}</div>" : "");
         $row->nameList .= ($vat ? "<div style='font-size:0.8em;margin-top:5px;'>{$vat}</div>" : "");
         
         //bp($row);
