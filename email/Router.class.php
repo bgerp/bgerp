@@ -363,6 +363,12 @@ class email_Router extends core_Manager
             return NULL;
         }
         
+        // Документа
+        $document = doc_Containers::getDocument($sentRec->containerId);
+        
+        // Ако е бласт имейл, връщаме NULL
+        if (strtolower($document->className) == 'blast_emails') return NULL;
+        
         $rec->originId = $sentRec->containerId;
         
         return $sentRec->threadId;
