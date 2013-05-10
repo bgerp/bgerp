@@ -8,7 +8,7 @@
 		<table width=100%>
 			<tr>
 				<td width=55% style='padding-left:55px;'>
-						<div style='color: #636363;text-decoration: underline;'>Получател:</div>
+						<div style='color: #636363;text-decoration: underline;'>|Получател|*:</div>
 						<div style='font-size: 16px;min-height:135px'>
 						
 							<!--ET_BEGIN attn-->
