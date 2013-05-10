@@ -6,6 +6,9 @@
 	<div class='header [#STATE_CLASS#]'>
 			<div class='docBgIcon' style='[#iconStyle#]'>Структорно звено <b>[#name#]</b></div>
 	</div>
+	<div class='antetka' style='line-height:150%;'>
+	<small>
+    <div class='block_left'>
 	<table class="styled-table" width="100%">
 		<tr>
 			<td class="title-style"> №</td>
@@ -19,33 +22,59 @@
 			<td class="title-style">Тип</td>
 			<td>[#type#]</td>
 		</tr>
+		
+		<!--ET_BEGIN staff-->
 		<tr>
 			<td class="title-style">В състава на</td>
 			<td>[#staff#]</td>
 		</tr>
+		<!--ET_END staff-->
+		
+		<!--ET_BEGIN dependent-->
 		<tr>
 			<td class="title-style">Подчинен на</td>
 			<td>[#dependent#]</td>
 		</tr>
+		<!--ET_END dependent-->
+		
+		<!--ET_BEGIN locationId-->
 		<tr>
 			<td class="quiet">Локация</td>
 			<td>[#locationId#]</td>
 		</tr>
-	 	<!--ET_BEGIN employersCnt-->
+		<!--ET_END locationId-->
+		
+	 	<!--ET_BEGIN employersCntAll-->
 		<tr>
 			<td class="title-style">Щат на служителите</td>
 			<td>[#employersCntAll#]</td>
 		</tr>
+		<!--ET_END employersCntAll-->
+		
+		<!--ET_BEGIN employersCnt-->
 		<tr>
 			<td class="title-style">Hазначени служители</td>
 			<td>[#employersCnt#]</td>
 		</tr>
 		<!--ET_END employersCnt-->
+		
+		<!--ET_BEGIN schedule-->
 		<tr>
 			<td class="title-style">График</td>
 			<td>[#schedule#]</td>
 		</tr>
+		<!--ET_END schedule-->
+		
+		<!--ET_BEGIN startingOn-->
+		<tr>
+			<td class="title-style">Започва на</td>
+			<td>[#startingOn#]</td>
+		</tr>
+		<!--ET_END startingOn-->
 	</table>
+	</small>
+	</div>
+	</div>
 	[#DETAILS#]
 	
 </div>

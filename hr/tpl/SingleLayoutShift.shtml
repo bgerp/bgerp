@@ -1,34 +1,9 @@
 <div  class="singleView shifts">
 [#SingleToolbar#]
-	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">График на звено <b style="color:green;">[#name#]</b> за месец [#month#]</div></h2>
-	<table class="styled-table" width="300px">
-		<tr>
-			<td class="title-style"> №</td>
-			<td>[#id#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">Наименование</td>
-			<td>[#name#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">Раб. цикъл</td>
-			<td>[#cycle#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">Започване на</td>
-			<td>[#startingOn#]</td>
-		</tr>
-		
-	 	<!--ET_BEGIN employersCnt-->
-		<tr>
-			<td class="title-style">Служители</td>
-			<td>[#employersCnt#]</td>
-		</tr>
-
-		<!--ET_END employersCnt-->
-	</table>
+	<fieldset class="detail-info">
 	
-	</br>[#calendar#]</br>
+	<legend class="groupTitle">Работен график <input id="btnPrint" class="btn-print button" type="button" value="Печат" onclick="goPrinting()" style="color:#008800;"></legend>
+	[#calendar#]</br>
 	<table class='mc-calendar cal-legend'>
 		<tr>
 			<!--ET_BEGIN shift1--><td class="[#shift1#]">I - първа смяна</td><!--ET_END shift1-->
@@ -39,6 +14,6 @@
 			
 		</tr>
 	</table>
-	<br />
-	<div><span class="title-style">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
+	</fieldset>
+	
 </div>

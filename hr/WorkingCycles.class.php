@@ -108,16 +108,98 @@ class hr_WorkingCycles extends core_Master
 
         $data->row->info = "Max night: $maxNight<br>";
     }
-    
+
     
     /**
      * Подготвя локациите на контрагента
      */
     function prepareGrafic($data)
     {
-        
+    	expect($data->masterId);
+    	$shift = hr_Departments::fetchField($data->masterId, 'schedule');
+    	
+    	if($shift){
+	    	$name = hr_Departments::fetchField($data->masterId, 'name');
+	    	$startingOn = hr_Departments::fetchField($data->masterId, 'startingOn');
+	    	
+	    	$state = self::getQuery();
+	    	$state->where("#id='{$shift}'");
+	    	$cycleDetails = $state->fetch();
+	    	
+	    	static $shiftMap = array(
+	    		0 => 'п',
+	    		1 => 'I',
+	    		2 => 'II',
+	    		3 => 'н',
+	    		4 => 'д',
+	 		);
+	 		
+	 		$month = Request::get('cal_month', 'int');
+	        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+	        $year  = Request::get('cal_year', 'int');
+	
+	        if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
+	            $year = date('Y');
+	            $month = date('n');
+	        }
+	
+	        // Добавяне на първия хедър
+	        $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
+	
+	        $pm = $month-1;
+	        if($pm == 0) {
+	            $pm = 12;
+	            $py = $year-1;
+	        } else {
+	            $py = $year;
+	        }
+	        $prevMonth = tr(dt::$months[$pm-1]) . " " .$py;
+	
+	        $nm = $month+1;
+	        if($nm == 13) {
+	            $nm = 1;
+	            $ny = $year+1;
+	        } else {
+	            $ny = $year;
+	        }
+	        $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
+	        
+	        $link = $_SERVER['REQUEST_URI'];
+	        $nextLink = Url::addParams($link, array('cal_month' => $nm, 'cal_year' => $ny));
+	        $prevtLink = Url::addParams($link, array('cal_month' => $pm, 'cal_year' => $py));
 
-        $data->TabCaption = 'График';
+			// Таймстамп на първия ден на месеца
+	        $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
+	
+	        // Броя на дните в месеца (= на последната дата в месеца);
+	        $lastDay = date('t', $firstDayTms);
+	        
+	        for($i = 1; $i <= $lastDay; $i++){
+	        	$daysTs = mktime(0, 0, 0, $month, $i, $year);
+	        	$date = date("Y-m-d H:i", $daysTs);
+	        	$d[$i] = new stdClass(); 
+	    		
+	    		$d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
+	    		$d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
+	    		
+		        
+	        }
+	
+	        $data->TabCaption = 'График';
+ 
+	        return (object) array('year'=>$year,
+	        					  'month'=>$month, 
+	        					  'd'=>$d, 
+							      'prevtLink'=>$prevtLink,
+							      'prevMonth'=>$prevMonth,
+							      'currentMonth'=>$currentMonth,
+							      'nextLink'=>$nextLink,
+							      'nextMonth'=>$nextMonth,
+	        					  'header'=>$header, 
+	        					  'lastDay'=>$lastDay,
+	        					  'name'=>$name,
+	        );
+    	}
     }
     
     
@@ -126,9 +208,110 @@ class hr_WorkingCycles extends core_Master
      */
     function renderGrafic($data)
     {
+    	$urlShift = toUrl(array('hr_WorkingCycle', 'print'));
+    	
+    	$jsFnc = "
+    	function goPrinting()
+    	{
+    		window.open = '{$urlShift}?Printing=yes';
+    		
+		}";
+    	
+    	
+        $prepareRecs = static::prepareGrafic($data);
         
+        if($prepareRecs){
         
-        return "ОК";
+	        $header = "<table class='mc-header' width='100%' cellpadding='0'>
+		                <tr>
+		                    <td align='left'><a href='{$prepareRecs->prevtLink}'>{$prepareRecs->prevMonth}</a></td>
+		                    <td align='center'><b>{$prepareRecs->currentMonth}</b></td>
+		                    <td align='right'><a href='{$prepareRecs->nextLink}'>{$prepareRecs->nextMonth}</a></td>
+		                </tr>
+		            </table>";
+       
+        
+	        $tpl = new ET(getFileContent('hr/tpl/SingleLayoutShift.shtml'));
+	        
+	        $tpl->push('hr/tpl/style.css', 'CSS');
+	        $tpl->appendOnce($jsFnc, 'SCRIPTS');
+	        
+	        $tpl->append($prepareRecs->name, 'name');
+	        
+	        $monthHeader = dt::getMonth($prepareRecs->month, $format = 'F', $lg = 'bg');
+	        $tpl->append($monthHeader, 'month');
+	        
+	        $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d, $header);
+	        $tpl->append($calendar, 'calendar');
+	        
+	        for($j = 0; $j <= 4; $j++){
+	        	for($i = 1; $i <= $prepareRecs->lastDay; $i++){
+			        if($prepareRecs->d[$i]->type == '0' && '0' == $j){
+			        	$tpl->append(' rest', "shift{$j}");
+			        } elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
+				        $tpl->append(' first', "shift{$j}");
+				    } elseif($prepareRecs->d[$i]->type == '2' && '2' == $j){
+				        $tpl->append(' second', "shift{$j}");
+				    } elseif($prepareRecs->d[$i]->type == '3' && '3' == $j){
+				        $tpl->append(' third', "shift{$j}");
+				    } elseif($prepareRecs->d[$i]->type == '4' && '4' == $j){
+				        $tpl->append(' diurnal', "shift{$j}");
+				    }
+		        }
+	        }
+        }
+        
+        return $tpl;
+    }
+    
+    
+    function act_Test()
+    {
+    	$id = 3;
+    	$rec = self::fetch("#id='{$id}'");
+    	//$recDetail = hr_ShiftDetails::fetch("#shiftId='{$id}'");
+    	
+    	$date = '2013-05-03 00:00:00';
+
+    	bp(static::getShiftDay($rec, $date));
+    	//bp(static::putNewShiftDetail($rec, $recDetail));
+    }
+ 
+    
+    /**
+     * По зададена смяна и ден от календара
+     * връща режима на смяната
+     * 
+     * @param stdClass $recShift
+     * @param mySQL date $date
+     */
+    static public function getShiftDay($recShift, $date, $startOn)
+    {
+    	
+    	// По кой цикъл работи смяната
+    	// Кога започва графика на смяната
+    	$cycle = $recShift->id;
+    	//$startOn = $recShift->startingOn;
+    	
+    	// Продължителността на цикъла в дни
+    	$cycleDuration = $recShift->cycleDuration;
+    
+    	// В кой ден от цикъла сме
+    	$dayIs = (dt::daysBetween($date, $startOn) + 1) % $cycleDuration;
+    	
+    	// Извличане на данните за циклите
+        $stateDetails = hr_WorkingCycleDetails::getQuery();
+
+		// Подробности за конкретния цикъл
+		$stateDetails->where("#cycleId='{$cycle}' AND #day='{$dayIs}'");
+        
+		// Взимаме записа на точно този избран ден от цикъла
+		// Кога за почва режима и с каква продължителност е
+		$cycleDetails = $stateDetails->fetch();
+		$dayStart = $cycleDetails->start;
+		$dayDuration = $cycleDetails->duration;
+		
+		return hr_WorkingCycleDetails::getWorkingShiftType($dayStart, $dayDuration);
     }
 
 }
