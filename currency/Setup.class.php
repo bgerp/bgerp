@@ -6,6 +6,12 @@
 defIfNot('CURRENCY_BASE_CODE', 'BGN');
 
 
+/**
+ * На колко процента разлика между очакваната и въведената сума при
+ * превалутиране да сетва предупреждение
+ */
+defIfNot('EXCHANGE_DEVIATION', '0.05');
+
 
 /**
  * class currency_Setup
@@ -63,6 +69,7 @@ class currency_Setup extends core_ProtoSetup
             //Задаване на основна валута
             'CURRENCY_BASE_CODE' => array ('varchar', 'mandatory'),
          
+    		'EXCHANGE_DEVIATION' => array ('percent', 'mandatory'),
         );
     
 

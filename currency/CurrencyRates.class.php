@@ -16,12 +16,6 @@
  */
 class currency_CurrencyRates extends core_Detail
 {
-    /**
-	 * На колко процента разлика между очакваната и въведената сума при
-	 * превалутиране да сетва предупреждение
-	 */
-	static $allowedExchangeDeviation = 5;
-	
 	/**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -370,7 +364,8 @@ class currency_CurrencyRates extends core_Detail
      */
     public static function hasDeviation($givenRate, $date, $from, $to)
     {
-    	$percent = static::$allowedExchangeDeviation;
+    	$conf = core_Packs::getConfig('currency');
+    	$percent = $conf->EXCHANGE_DEVIATION * 100;
     	$knownRate = static::getRate($date, $from, $to);
     	
     	$difference = round(abs($givenRate - $knownRate) / min($givenRate, $knownRate) * 100);
