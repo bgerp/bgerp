@@ -164,8 +164,8 @@ class blast_Letters extends core_Master
         $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory, width=100%');
         $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, width=100%');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory');
-        $this->FLD('template', 'enum(triLeft=3 сгъвания - ляво,
-            triRight=3 сгъвания - дясно)', 'caption=Шаблон, mandatory');
+        $this->FLD('template', 'enum(triLeft=3 части - ляво,
+            triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory');
         
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма, width=100%');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице, width=100%');
