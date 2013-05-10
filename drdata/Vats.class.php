@@ -212,7 +212,7 @@ class drdata_Vats extends core_Manager
     /**
      * Проверява дали номерът започва с префикс, като за VAT
      */
-    function isHaveVatPrefix($value)
+    public static function isHaveVatPrefix($value)
     {
         $vatPrefixes = arr::make("BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT", TRUE);
         
