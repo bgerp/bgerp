@@ -398,7 +398,7 @@ class support_Issues extends core_Master
         $data->listFilter->getField('componentId')->type->params['allowEmpty'] = TRUE;
          
         // Добавяме функционално поле за отговорници
-        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=user)', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support)', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Кои полета да се показват
         $data->listFilter->showFields = 'systemIdShow, componentId, maintainers';
@@ -409,19 +409,11 @@ class support_Issues extends core_Master
         // Да се показват в хоризонтална подредба
         $data->listFilter->view = 'horizontal';
         
-        // По подразбиране кое да е избрано
-        if (haveRole($data->listFilter->fields['maintainers']->type->params['rolesForAll'])) {
-            
-            // Ако има права за всички, да са избани всички
-            $data->listFilter->setDefault('maintainers', 'all_users');    
-        } else {
-            
-            // Текущия потребител
-            $currUserId = core_Users::getCurrent();
-
-            // Ако няма права за всички да е избран текущия потребител
-            $data->listFilter->setDefault('maintainers', "|$currUserId|"); 
-        }
+        // Вземаме стойността по подразбиране, която може да се покаже
+        $default = $data->listFilter->getField('maintainers')->type->fitInDomain('all_users');
+        
+        // Задаваме стойността по подразбиране
+        $data->listFilter->setDefault('maintainers', $default);
 
         // Полетата да не са задължителни и да се субмитва формата при промяната им
         $data->listFilter->setField('componentId', array('attr' => array('onchange' => 'this.form.submit();')));
