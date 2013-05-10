@@ -7,7 +7,7 @@
 	<div class='header [#STATE_CLASS#]'>
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
-	
+	<!--ET_END header-->
 	<table border = '0'id='quot-table'>
 	<tr>
 		<td id='quot-title-td' style="vertical-align:top">
