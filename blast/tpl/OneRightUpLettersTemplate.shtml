@@ -1,10 +1,10 @@
 
-<div style='page-break-after:always;max-width:900px'>
+<div class='document' style='page-break-after:always;max-width:850px'>
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
 	
-	<div class='headerPart' style='margin: 65px 0px 20px 0px;width: 100%; max-width: 900px;'>
+	<div class='headerPart' style='margin: 55px 0px 20px 0px;width: 100%; max-width: 900px;'>
 		<table width=100%>
 			<tr>
 				<td valign='top' style='padding:0 45px;'>
@@ -12,7 +12,7 @@
 				</td>
 				<td width=50% style='padding-right:75px;padding-left:20px'>
 						<div style='color: #636363;text-decoration: underline;'>|Получател|*:</div>
-						<div style='font-size: 16px;min-height:150px'>
+						<div style='font-size: 16px;line-height:20px;min-height:185px'>
 						
 							<!--ET_BEGIN attn-->
 								<div>

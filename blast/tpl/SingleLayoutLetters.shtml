@@ -13,41 +13,66 @@
 			<small>   
 				<table class='top-table' width='100%' cellspacing='1'>
 					<tr>
-						<td>
-							<table cellspacing='5' class='top-table'>
-								<!--ET_BEGIN subject--> 
-								<tr>
-									    <td colspan='2'><b>[#subject#]</b></td>
-									    
-								</tr>
-								<!--ET_END subject-->  
-								
-								<!--ET_BEGIN sender-->          
-									<tr>
-									    <td align='right'>|Адресант|*:</td>
-									    <td>[#sender#]</td>
-									</tr>
-								<!--ET_END sender-->
-								
-								<!--ET_BEGIN date-->          
-									<tr>
-									    <td align='right'>|Дата|*:</td>
-									    <td>[#date#]</td>
-									</tr>
-								<!--ET_END date-->
-								
-								<!--ET_BEGIN outNumber-->          
-									<tr>
-									    <td align='right'>|Изходящ номер|*:</td>
-									    <td>[#outNumber#]</td>
-									</tr>
-								<!--ET_END outNumber-->
-							</table>
-						</td>
 						
-						<td  align='right'>
-							
-						</td>
+								<!--ET_BEGIN subject--> 
+									    <td><b>[#subject#]</b></td>
+									    <!--ET_END subject-->
+									    <td align='right'>
+									    	<table>
+									    	
+									    	<!--ET_BEGIN recipient-->          
+												<tr>
+												    <td align='right'>|Лице|*:</td>
+												    <td>[#attn#]</td>
+												</tr>
+											<!--ET_END recipient-->
+											
+											<!--ET_BEGIN position-->          
+												<tr>
+												    <td align='right'>|Длъжност|*:</td>
+												    <td>[#position#]</td>
+												</tr>
+											<!--ET_END position-->
+											
+									    	<!--ET_BEGIN recipient-->          
+												<tr>
+												    <td align='right'>|Фирма|*:</td>
+												    <td>[#recipient#]</td>
+												</tr>
+											<!--ET_END recipient-->
+											
+											<!--ET_BEGIN place-->          
+												<tr>
+												    <td align='right'>|Град/с|*:</td>
+												    <td>[#place#]</td>
+												</tr>
+											<!--ET_END place-->
+											
+											<!--ET_BEGIN pcode-->          
+												<tr>
+												    <td align='right'>|П. код|*:</td>
+												    <td>[#pcode#]</td>
+												</tr>
+											<!--ET_END pcode-->
+											
+											<!--ET_BEGIN address-->          
+												<tr>
+												    <td align='right'>|Адрес|*:</td>
+												    <td>[#address#]</td>
+												</tr>
+											<!--ET_END address-->
+											
+											<!--ET_BEGIN country-->          
+												<tr>
+												    <td align='right'>|Държава|*:</td>
+												    <td>[#country#]</td>
+												</tr>
+											<!--ET_END country-->
+									    	</table>
+									    </td> 
+								</tr>
+								
+
 					</tr>
 				</table>
 			</small>  
