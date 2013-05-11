@@ -16,8 +16,6 @@
  */
 class core_Html
 {
-
-
     /**
      * Композира xHTML елемент
      */
@@ -33,7 +31,7 @@ class core_Html
                     
 
                     if (is_string($content)) {
-                        // $content = htmlspecialchars($content);
+                        // $content = htmlspecialchars($content, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                         /**
                          * Необходимо ли е да се ескейпва символи различни от двойни кавички
                          * в стойностите на HTML атрибутите?
@@ -99,6 +97,7 @@ class core_Html
         $tpl->appendOnce("comboBoxInit('{$attr['id']}', '{$suffix}'); ", "ON_LOAD");
 
         $attr['id'] = $attr['id'] . $suffix;
+        $name = $attr['name'] = $attr['name'] . $suffix;
 
         // Долното кара да не работи селекта в firefox-mobile
         //$attr['tabindex'] = "-1";
@@ -505,7 +504,7 @@ class core_Html
 
         $attr['type'] = 'submit';
 
-        $attr['value'] = $title;
+        $attr['value'] = tr($title);
 
         // Оцветяваме бутона в зависимост от особеностите му
         if (isset($warning)) {
@@ -643,6 +642,8 @@ class core_Html
         } else {
             $name = "sm" . $i;
             $attr['onChange'] = "window.location =  this.value; this.removeOption();  ";
+            $attr['onfocus']  = "this.selectedIndex = -1;";
+            $attr['onblur']   = "if(this.selectedIndex == -1) {this.selectedIndex = '{$selected}'}";
             $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . "button";
             $attr['id'] = $name;
             $selectMenu = ht::createSelect($name, $options, $selected, $attr);

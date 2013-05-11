@@ -27,7 +27,7 @@ class plg_State extends core_Plugin
             $invoker->FLD('state',
                 'enum(draft=Чернова,
                   pending=Чакащо,
-                  active=Активирано,
+                  active=Активно,
                   opened=Отворено,
                   waiting=Чакащо,
                   closed=Приключено,

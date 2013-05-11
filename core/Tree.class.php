@@ -38,13 +38,15 @@ class core_Tree extends core_BaseClass
     /**
      * Добавя елемент в дървото
      */
-    function addNode($path, $url)
+    function addNode($path, $url, $onlyLastUrl = FALSE)
     {
         $nodes = explode("->", $path);
         
         $pid = -1;
         
-        foreach($nodes as $node) {
+        $nodesCnt = count($nodes);
+
+        foreach($nodes as $key => $node) {
             
             $currentPath .= ($currentPath ? "->" : "") . $node;
             
@@ -56,7 +58,14 @@ class core_Tree extends core_BaseClass
                 $n->pid = $pid;
                 $pid = $n->id;
                 $n->title = $node;
-                $n->url = toUrl($url);
+
+                // Ако е задедено само на последния nod да се добавя URL
+                if (!$onlyLastUrl || ($onlyLastUrl && ($key == $nodesCnt-1))) {
+                    
+                    if ($url) { 
+                        $n->url = toUrl($url);       
+                    }
+                }
                 
                 $this->nodes[$currentPath] = $n;
             }
@@ -126,7 +135,7 @@ class core_Tree extends core_BaseClass
         if($selectedId) {
             // $tpl->append("\n{$name}.openTo({$selectedId}, true);", 'treeDesciption');
         }
-        
+
         $tpl->replace($name, 'treeName');
         
         $tpl->replace($body, 'body');

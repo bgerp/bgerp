@@ -203,23 +203,26 @@ function comboBoxInit(id, suffix)
 { 
 	var txtCombo = get$(id);
 	var selCombo = get$(id + suffix);
-	var width = txtCombo.offsetWidth;
- 	var arrow = selCombo.offsetHeight - 7;
 
-	selCombo.style.width = (width + 0) + 'px'; 
-	txtCombo.style.width = (width -  arrow + 2) + 'px';
-	txtCombo.style.marginRight = (arrow+2) + 'px';
-	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow - 3) + 'px)';
-	txtCombo.style.paddingRight = '2px';
+	if(txtCombo && selCombo) {
+		var width = txtCombo.offsetWidth;
+		var arrow = selCombo.offsetHeight - 7;
 
-	if(txtCombo.offsetHeight != selCombo.offsetHeight) {
-		txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
-		// txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
-		txtCombo.style.marginTop = '2px';
-		selCombo.style.marginTop = '2px';
+		selCombo.style.width = (width + 0) + 'px'; 
+		txtCombo.style.width = (width -  arrow + 2) + 'px';
+		txtCombo.style.marginRight = (arrow+2) + 'px';
+		selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow - 3) + 'px)';
+		txtCombo.style.paddingRight = '2px';
+
+		if(txtCombo.offsetHeight != selCombo.offsetHeight) {
+			txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
+			// txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
+			txtCombo.style.marginTop = '2px';
+			selCombo.style.marginTop = '2px';
+		}
+
+		selCombo.style.visibility = 'visible';
 	}
-
-	selCombo.style.visibility = 'visible';
 }
 
 
@@ -232,7 +235,9 @@ function comboSelectOnChange(id, value, suffix)
 	var exVal = inp.value;
 
 	if(exVal != '' && inp.getAttribute('data-role') == 'list') {
-		get$(id).value += ', ' +  value; 
+		if (value) {
+			get$(id).value += ', ' +  value; 
+		}
 	} else {
 		get$(id).value = value.replace(/&lt;/g, '<'); 
 	}
@@ -539,8 +544,9 @@ function js2php(obj, path, new_path)
 function toggleDisplay(id)
 { 
 	if (typeof jQuery != 'undefined') {
- 	
-	    $("#" + id).toggle("slow");
+		var elem = $("#" + id).parent().find('.more-btn');
+	    $("#" + id).fadeToggle("slow");
+	    elem.toggleClass('show-btn');
  
 	} else {
 	
@@ -664,17 +670,21 @@ function SetWithCheckedButton()
 	 }
 }
 
-function flashHashDoc()
+function flashHashDoc(flasher)
 {
 	var h = window.location.hash.substr(1); 
 	if(h) {
-		flashDoc(h);
+		if (!flasher) {
+			flasher = flashDoc;
+		}
+		flasher(h);
 	}
 }
 
 function flashDoc(docId, i)
 {
 	var tr = get$(docId);
+	
 	var cells = tr.getElementsByTagName('td');
 	if(typeof i == 'undefined') {
         i = 1;
@@ -695,8 +705,96 @@ function flashDoc(docId, i)
 		cells[0].style.backgroundColor = 'transparent';
 		cells[1].style.backgroundColor = 'transparent';
 	}
+	
 }
 
+function flashDocCss3(docId)
+{
+	var tr = get$(docId),
+		oldClassName = tr.className;
+	
+	tr.className = (tr.className || '') + ' flash';
+	
+	setTimeout(function () {
+		tr.className += ' transition';
+		setTimeout(function () {
+			tr.className = oldClassName + ' transition';
+		}, 1);
+	}, 1);
+}
+
+function flashDocInterpolation(docId)
+{
+	// linear interpolation between two values a and b
+    // u controls amount of a/b and is in range [0.0,1.0]
+    function lerp(a,b,u) {
+        return (1-u) * a + u * b;
+    };
+    
+    function fade(element, property, start, end, duration) {
+      var interval = 10;
+      var steps = duration/interval;
+      var step_u = 1.0/steps;
+      var u = 0.0;
+      var theInterval = setInterval(function(){
+        if (u >= 1.0){ clearInterval(theInterval) }
+        var r = parseInt(lerp(start.r, end.r, u));
+        var g = parseInt(lerp(start.g, end.g, u));
+        var b = parseInt(lerp(start.b, end.b, u));
+        var colorname = 'rgb('+r+','+g+','+b+')';
+        element.style.backgroundColor=colorname;
+        u += step_u;
+      }, interval);
+    };
+    
+    // in action
+    var el = get$(docId); // your element
+    var endColorHex = getBackgroundColor(el);
+    var flashColor = {r:255, g:  255, b:  128};  // yellow
+
+    el.style.backgroundColor='#ffff80';
+    setTimeout(function () {
+        el.style.backgroundColor=endColorHex;
+    }, 2010);
+
+    if (endColorHex.substring(0, 1) != '#') {
+        return;
+    }
+    
+    var endColor = {
+		r: parseInt(endColorHex.substring(1,3),16),
+		g: parseInt(endColorHex.substring(3,5),16),
+    	b: parseInt(endColorHex.substring(5,7),16)
+    };
+    
+    fade(el,'background-color', flashColor, endColor, 2000);
+
+}
+
+function getBackgroundColor(el)
+{
+	var bgColor = $(el).css('background-color');
+	if (bgColor == 'transparent'){
+		bgColor = 'rgba(0, 0, 0, 0)';
+	}
+	return rgb2hex(bgColor);
+}
+
+function rgb2hex(rgb) {
+	
+    if (  rgb.search("rgb") == -1 ) {
+         return rgb;
+    } else {
+         rgb = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?\)$/);
+         function hex(x) {
+              return ("0" + parseInt(x).toString(16)).slice(-2);
+         }
+         if (rgb[4] != 'undefined' && rgb[4] == 0) {
+        	 rgb[1] = rgb[2] = rgb[3] = 255;
+         }
+         return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]); 
+    }
+}
 
 /**
  * Задава максиналната височина на опаковката и основното съдържание
@@ -809,4 +907,73 @@ function getStatuses(url, timeout) {
    		
 		setTimeout(function(){getStatuses(url, timeout)}, timeout);
 }
- 
+
+
+/**
+ * Добавя event, който слуша за отпускане на мишката
+ */
+function startGettingText()
+{
+	window.onmouseup = saveSelectedTextToSession;
+}
+
+
+/**
+ * Записва избрания текст в сесията и текущото време
+ */
+function saveSelectedTextToSession()
+{
+	var selText = getSelText();
+
+	// Ако има избран текст
+	if (selText.focusOffset != selText.anchorOffset) {
+		sessionStorage.selText = selText;
+		sessionStorage.selTime = new Date().getTime();
+		setTimeout(saveSelectedTextToSession, 1000)
+	}
+}
+
+
+/**
+ * Връща маркирания текст
+ * 
+ * @returns {String}
+ */
+function getSelText()
+{
+    var txt = '';
+     if (window.getSelection)
+    {
+        txt = window.getSelection();
+    }
+    else if (document.getSelection)
+    {
+        txt = document.getSelection();
+    }
+    else if (document.selection)
+    {
+        txt = document.selection.createRange().text;
+    }
+    else  { return; } 
+	
+	return txt;
+}
+
+
+/**
+ * Добавя в посоченото id на елемента, маркирания текст от сесията, като цитат, ако не е по стар от 5 секунди
+ * 
+ * @param id
+ */
+function appendQuote(id)
+{
+	selTime = sessionStorage.getItem('selTime');
+	now = new Date().getTime();
+	now = now-5000;
+	if (selTime > now) {
+		text = sessionStorage.getItem('selText');
+		if (text) {
+			get$(id).value += "\n[bQuote]" + text + "[/bQuote]";
+		}
+	}
+}

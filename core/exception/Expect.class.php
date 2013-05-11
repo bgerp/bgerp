@@ -193,6 +193,7 @@ function expect($expr)
 {
     //    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
     if (!$expr) {
+    	file_put_contents(EF_TEMP_PATH . '/err.log', 'Неочакван аргумент: ' . print_r(func_get_args(), TRUE) ."\n" . date("Y-m-d H:i:s"));
         throw new core_exception_Expect('Неочакван аргумент', func_get_args());
     }
 

@@ -7,7 +7,8 @@
  *
  * Мениджърът, към който се закача този плъгин трябва да има пропърти
  * searchFields = "field1,field2,..." в които да са описани полетата за търсене
- *
+ * По пдоразбиране полето за търсене в филтер формата се казва 'search', 
+ * да се смени името му трябва да се дефинира в съответния мениджър searchInputField
  *
  * @category  ef
  * @package   plg
@@ -30,6 +31,9 @@ class plg_Search extends core_Plugin
         if (!$mvc->fields['searchKeywords']) {
             $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
         }
+        
+        // Как ще се казва полето за търсене, по подразбиране  е 'search'
+        setIfNot($mvc->searchInputField, 'search');
     }
     
     
@@ -37,9 +41,12 @@ class plg_Search extends core_Plugin
      * Извиква се преди запис в MVC класа. Генерира ключовите
      * думи за записа, които се допълват в полето searchKeywords
      */
-    function on_BeforeSave($mvc, $id, $rec)
+    function on_BeforeSave($mvc, $id, $rec, $fields=NULL)
     {
-        $rec->searchKeywords = $mvc->getSearchKeywords($rec);
+        if(!$fields || arr::haveSection($fields, $mvc->searchFields)) {
+
+            $rec->searchKeywords = $mvc->getSearchKeywords($rec);
+        }
     }
     
     /**
@@ -51,6 +58,7 @@ class plg_Search extends core_Plugin
         
         $searchKeywords = self::getKeywords($mvc, $rec);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -87,7 +95,7 @@ class plg_Search extends core_Plugin
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+        $data->listFilter->FNC($mvc->searchInputField, 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     }
     
     
@@ -104,9 +112,8 @@ class plg_Search extends core_Plugin
         $data->listFilter->input(null, 'silent');
         
         $filterRec = $data->listFilter->rec;
-        
-        if ($filterRec->search) {
-            static::applySearch($filterRec->search, $data->query);
+        if ($filterRec->{$mvc->searchInputField}) {
+            static::applySearch($filterRec->{$mvc->searchInputField}, $data->query);
         }
     }
     

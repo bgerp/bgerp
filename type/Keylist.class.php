@@ -244,7 +244,7 @@ class type_Keylist extends core_Type {
                 if(empty($id) && empty($val)) continue;
                 
                 if(!ctype_digit(trim($id))) {
-                    throw new Exception("Некоректен списък $id => $val");
+                    throw new Exception("Некоректен списък '{$id}' => '{$val}', '{$res}'");
                 }
                 
                 $res .= "|" . $id;
@@ -271,6 +271,8 @@ class type_Keylist extends core_Type {
         
         $kArr = explode('|', $klist);
         
+        $resArr = array();
+        
         foreach($kArr as $key) {
             if($key !== '') {
                 $resArr[$key] = $key;
@@ -283,10 +285,23 @@ class type_Keylist extends core_Type {
     
     /**
      * Проверява дали ключът присъства в дадения keylist
+     * Ако ключът е масив, проверява се дали поне един негов елемент
+     * присъства в дадения keylist
      */
     static function isIn($key, $list)
     {
-        return strpos($list, '|' . $key . '|') !== FALSE;
+        if(is_array($key)) {
+            foreach($key as $k) {
+                if(self::isIn($k, $list)) {
+
+                    return TRUE;
+                }
+            }
+        } else {
+            return strpos($list, '|' . $key . '|') !== FALSE;
+        }
+
+        return FALSE;
     }
     
     
@@ -342,7 +357,7 @@ class type_Keylist extends core_Type {
         if (isset($klist[$key])) {
             unset($klist[$key]);
         }
-        $klist = self::fromVerbal($klist);
+        $klist = self::fromArray($klist);
         
         return $klist;
     }

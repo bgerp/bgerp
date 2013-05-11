@@ -98,6 +98,7 @@ class core_ObjectReference
         return $this->instance->{$property};
     }
     
+    
     public function __isset($property)
     {
         return isset($this->instance->{$property});
@@ -116,5 +117,51 @@ class core_ObjectReference
         }
         
         return $this->instance->class;
+    }
+    
+    
+    /**
+     * Поддържа ли се зададения интерфейс от тази референция?
+     * 
+     * @param string $interface
+     * @return boolean
+     */
+    public function haveInterface($interface)
+    {
+        return cls::haveInterface($interface, $this->getInstance());
+    }
+    
+    
+    /**
+     * Записа, към който е референция този обект
+     * 
+     * @return stdClass
+     */
+    public function rec($field = null)
+    {
+        $result = $this->getInstance()->fetchRec($this->that);
+        
+        if (!empty($field)) {
+            $result = $result->{$field};
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
+     * Първичния ключ на записа, към който е референция този обект
+     * 
+     * @return int
+     */
+    public function id()
+    {
+        if (is_object($this->that)) {
+            $id = $this->that->id;
+        } else {
+            $id = $this->that;
+        }
+        
+        return $id;
     }
 }

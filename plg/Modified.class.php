@@ -49,7 +49,7 @@ class plg_Modified extends core_Plugin
     {   
         if($rec->createdBy == -1) {
             $row->modifiedBy = '@sys';
-        } elseif($rec->createdBy == -1) {
+        } elseif($rec->createdBy == 0) {
             $row->modifiedBy = '@anonym';
         } else {
             $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');

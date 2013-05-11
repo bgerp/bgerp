@@ -172,6 +172,11 @@ class type_Key extends type_Int {
                 $where = $this->params['where'];
             }
             
+            // Ако е зададено поле group='sysId'
+            if ($this->params['group']) {
+            	$where = $this->filterByGroup($mvc);
+            }
+            
             Debug::startTimer('prepareOPT ' . $this->params['mvc']);
             
             $options = array();
@@ -181,7 +186,7 @@ class type_Key extends type_Int {
             if(!count($options)) {
                 
                 if($this->params['allowEmpty']) {
-                    $options = array('' => '&nbsp;');
+                    $options = array('' => (object) array('title' => $this->params['allowEmpty'] ? $attr['placeholder'] : '&nbsp;', 'attr' => array('style' => 'color:#aaa;')));
                 }
                 
                 if (!is_array($this->options)) {
@@ -398,5 +403,39 @@ class type_Key extends type_Int {
         echo json_encode($res);
         
         die;
+    }
+    
+    
+    /**
+     * Добавя филтриране на резултатите по група зададена с нейно sysId
+     * @param core_Mvc $mvc - мениджър на ключа
+     * @return string - 'where' клауза за филтриране по Ид на група
+     */
+    private function filterByGroup(core_Mvc $mvc)
+    {
+        // Ако не е посочено 'groupsField', приемаме че то се казва "groups"
+        setIfNot($mvc->groupsField, 'groups');
+		$fieldParams = $mvc->getField($mvc->groupsField)->type->params;
+        $GroupManager = cls::get($fieldParams['mvc']);
+
+        // Проверяваме дали мениджъра има поле sysId или systemId
+        $groupQuery = $GroupManager->getQuery();
+        
+        if($sysIdField = $GroupManager->fields['sysId']){
+            $sysIdField = 'sysId';
+        } elseif($GroupManager->fields['systemId']) {
+            $sysIdField = 'systemId';
+        }
+            	
+        // Очакваме мениджъра да поддържа или sysId или systemId
+        expect($sysIdField, 'Мениджъра не поддържа sysId-та');
+        $groupQuery->where("#{$sysIdField} = '{$this->params['group']}'");
+            	
+        // Очакваме да има запис зад това sysId
+        expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId');
+            	
+        // Модифицираме заявката като добавяме филтриране по група, която
+        // е зададена с нейно Id - отговарящо на посоченото systemId
+        return "#{$mvc->groupsField} LIKE '%|{$groupRec->id}|%'";
     }
 }

@@ -368,4 +368,72 @@ class core_Os
 		
 	    return @rmdir($dir);
     }
+    
+    
+    /**
+     * Връща времето на последната промяна на файл в директорията
+     * 
+     * @param string $dir - Директорията
+     * 
+     * @return integer - Времето на последната промяна
+     */
+    static function getLastModified($dir)
+    {
+        // Всички файлове
+        $files = scandir($dir);
+        
+        // Запазваме в променлива, за да не вземаме 2 пъти за една и съща директория
+        static $lastModificationDir = array();
+        
+        // Ако вече сме гледали в директория
+        if (!$lastModificationDir[$dir]) {
+            
+            // Обхождаме файловете
+            foreach ($files as $file) {
+                
+                // Прескачаме ги
+                if ($file == '.' || $file == '..') continue;
+                
+                // Вземаме времето на промяна на последния файл
+                $time = filemtime($dir . DIRECTORY_SEPARATOR . $file);
+                
+                // Ако времето е по - голямо от записаното в директорията
+                if ($time > $lastModificationDir[$dir]) {
+                    
+                    // Записваме времето на последната промяна
+                    $lastModificationDir[$dir] = $time;
+                }
+            }
+        }
+        
+        return $lastModificationDir[$dir];
+    }
+    
+    
+    /**
+     * Функция, която връща резултата от изпълнението на посленидния preg
+     * В preg_ фунцкиите, ако възникне грешка връщат NULL
+     */
+    static function pregLastError()
+    {
+        $pregLastError = preg_last_error();
+        
+        if ($pregLastError == PREG_NO_ERROR) {
+            $res = 'There is no error.';
+        } else if ($pregLastError == PREG_INTERNAL_ERROR) {
+            $res = 'There is an internal error!';
+        } else if ($pregLastError == PREG_BACKTRACK_LIMIT_ERROR) {
+            $res = 'Backtrack limit was exhausted!';
+        } else if ($pregLastError == PREG_RECURSION_LIMIT_ERROR) {
+            $res = 'Recursion limit was exhausted!';
+        } else if ($pregLastError == PREG_BAD_UTF8_ERROR) {
+            $res = 'Bad UTF8 error!';
+        } else if ($pregLastError == PREG_BAD_UTF8_ERROR) {
+            $res = 'Bad UTF8 offset error!';
+        } else {
+            $res = 'Unrecognized error!';
+        }
+        
+        return $res;
+    }
 }

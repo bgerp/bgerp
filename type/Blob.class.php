@@ -97,7 +97,7 @@ class type_Blob extends core_Type {
                     $c = $value{$i * $rowLen + $j};
                     
                     if(ord($c) >= 32 && ord($c) <= 127) {
-                        $str .= htmlentities($c);
+                        $str .= htmlentities($c, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                     } else {
                         if(ord($c)<32) {
                             $str .= '<font color=grey>&copy;</font>';
@@ -168,7 +168,14 @@ class type_Blob extends core_Type {
     {   
         // Ако е указано - декомпресираме
         if($value !== NULL && $this->params['compress']) {
-            $value = @gzuncompress($value);
+            $valueUnCompr = @gzuncompress($value);
+            
+            // Ако компресирането е било успешно
+            if($valueUnCompr !== FALSE) {
+                
+                // Използваме го
+                $value = $valueUnCompr;
+            }
         }
         
         // Ако е указано - десериализираме

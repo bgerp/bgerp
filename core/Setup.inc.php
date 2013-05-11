@@ -24,7 +24,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 }
 
 // Колко време е валидно заключването - в секунди
-DEFINE ('SETUP_LOCK_PERIOD', 180);
+DEFINE ('SETUP_LOCK_PERIOD', 600);
 
 defIfNot('BGERP_GIT_BRANCH', 'dev');
 
@@ -33,18 +33,22 @@ if (setupKeyValid() && !setupProcess()) {
     if (!setupLock()) {
         halt("Грешка при стартиране на Setup.");
     }
-    setcookie("setup", setupKey() , time()+SETUP_LOCK_PERIOD);
-} // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
-    elseif (!setupKeyValid() && !setupProcess()) {
-            // Ако има останало cookie го чистим
-            if (isset($_COOKIE['setup'])) {
-                setcookie("setup", "", time()-3600);    
-            }       
-        return;
-    } // Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
-        elseif (!setupKeyValid() && setupProcess() && !isset($_COOKIE['setup'])) {
-            halt("Процес на обновяване - опитайте по късно.");
-        }
+    setcookie("setup", setupKey(), time() + SETUP_LOCK_PERIOD);
+} elseif (!setupKeyValid() && !setupProcess()) {
+    // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
+    // Ако има останало cookie го чистим
+    if (isset($_COOKIE['setup'])) {
+        setcookie("setup", "", time()-3600);    
+    }
+    
+    return;
+} elseif (!setupKeyValid() && setupProcess() && !isset($_COOKIE['setup'])) {
+    // Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
+    // Не спираме bgERP-a на потребителите по време на сетъп процес
+    
+    return;
+    // halt("Процес на обновяване - опитайте по късно.");
+}
 
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
@@ -53,11 +57,11 @@ $texts['currentStep'] = $step;
 // Собственото URL
 $selfUri = "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
 
-list($selfUri,) = explode('&', $selfUri);
+
 
 // URL на следващата стъпка
-$selfUrl = $selfUri . '&amp;step=' . $step;
-$nextUrl = $selfUri . '&amp;step=' . ($step+1);
+$selfUrl = addParams($selfUri, array('step' => $step));
+$nextUrl = addParams($selfUri, array('step' => $step+1));
 
 // Определяме линка към приложението
 $appUri = $selfUrl; 
@@ -69,10 +73,6 @@ if (strpos($appUri,'/?') !== FALSE) {
 } 
 
 
-for($i = 1; $i <= 4; $i++) {
-    $nextUrl = str_replace('&step=' . $i, '', $nextUrl);
-}
-$nextUrl = "{$nextUrl}&amp;step=" . ($step+1);
 
 if (isset($_REQUEST['cancel'])) {
     setupUnlock();
@@ -322,7 +322,7 @@ if($step == 1) {
 
 // Стъпка 2: Обновяване
 if($step == 2) {
-    
+     
     $log = array();
     $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
     switch ($checkUpdate) {
@@ -332,7 +332,7 @@ if($step == 2) {
             $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »";
             $links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
             break;
-        case TRUE :
+        case TRUE : 
             // Проверки за Гит и новости на пакети 
             // Проверка за наличие на Git
             if (!getGitCmd($gitCmd)) {
@@ -375,8 +375,10 @@ if($step == 2) {
                     $repoName = basename($repoPath);
                     
                     // Превключваме репозиторито в зададения в конфигурацията бранч
-                    gitSetBranch($repoPath, $log);
-                    
+                    if (!gitSetBranch($repoPath, $log)) {
+                        continue;
+                    }
+                         
                     // Ако имаме команда за revert на репозиторито - изпълняваме я
                     if($revert == $repoName) {
                         gitRevertRepo($repoPath, $log);
@@ -620,6 +622,9 @@ if($step == 5) {
  * Setup на bgerp
  **********************************/
 if ($step == 'setup') {
+
+    set_time_limit(1000);
+
     $calibrate = 1000;
     $totalRecords = 137560;
     $totalTables = 225;
@@ -824,24 +829,18 @@ die;
  */
 function getGitCmd(&$gitCmd)
 {
-    
+    if($gitCmd) {
+
+        return;
+    }
+
+    defIfNot('BGERP_GIT_PATH', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '"C:/Program Files (x86)/Git/bin/git.exe"' : 'git');
+
     // Проверяваме дали не идва от installBuilder-a
-    exec(BGERP_GIT_PATH, $output, $returnVar);
-    if (strpos($output['0'], "usage: git") !== FALSE) {
-        $gitCmd = BGERP_GIT_PATH;
-        
-        return TRUE;
-    }
+    exec(BGERP_GIT_PATH . " --version", $output, $returnVar);
+    $gitCmd = BGERP_GIT_PATH;
     
-    // Проверяваме дали Git не е инсталиран
-    exec('git', $output, $returnVar);
-    if (strpos($output['0'], "usage: git") !== FALSE) {
-        $gitCmd = 'git';
-        
-        return TRUE;
-    }
-    
-    return FALSE;
+    return ($returnVar == 0);
 }
 
 
@@ -878,7 +877,7 @@ function linksToHtml($links)
 
 
 /**
- * Връща текущият бранч на репозиторито
+ * Връща текущият бранч на репозиторито или FALSE ако не е сетнат
  */
 function gitCurrentBranch($repoPath, &$log)
 {
@@ -888,14 +887,14 @@ function gitCurrentBranch($repoPath, &$log)
         return FALSE;
     }
     
-    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" branch";
+    $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" rev-parse --abbrev-ref HEAD 2>&1";
 
     exec($command, $arrRes, $returnVar);
-    // Търсим реда с текущият бранч
-    foreach ($arrRes as $row) {
-        if (strpos($row, "*") !== FALSE) {
-            return trim(substr($row, strpos($row, "*")+1, strlen($row)));
-        }
+    // Първият ред съдържа резултата
+    $res = trim($arrRes['0']);
+    if ($res !== 'HEAD' && $returnVar == 0) {
+        
+        return $res;
     }
     $repoName = basename($repoPath);
     $log[] = "err: {$repoName} няма текущ бранч!";
@@ -928,18 +927,32 @@ function gitSetBranch($repoPath, &$log, $branch=NULL)
     $commandFetch = "$gitCmd --git-dir=\"{$repoPath}/.git\" fetch origin +{$requiredBranch}:{$requiredBranch} 2>&1";
     
     $commandCheckOut = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$requiredBranch} 2>&1";
-        
+ 
     exec($commandFetch, $arrRes, $returnVar);
-    exec($commandCheckOut , $arrRes, $returnVar);
-    // Проверяваме резултата
-    foreach ($arrRes as $row) {
-        if (strpos($row, "Switched to branch '{$requiredBranch}'") !== FALSE) {
-            $log[] = "info: $repoName превключен {$requiredBranch} бранч.";
+    if ($returnVar !== 0) {
+        foreach ($arrRes as $val) {
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$requiredBranch} fetch:" . $val):"";
+        }
+        
+        return FALSE;
+    } else {
+        exec($commandCheckOut , $arrRes, $returnVar);
+        if ($returnVar !== 0) {
+            foreach ($arrRes as $val) {
+                $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$requiredBranch} checkOut:" . $val):"";
+            }
+            
+            return FALSE;
+        } else {
+            // Ако и двете команди са успешни значи всичко е ОК
+            $log[] = "info: [<b>$repoName</b>] превключен {$requiredBranch} бранч.";
             
             return TRUE;
         }
+        
     }
-    $log[] = "err: Грешка при превключване в бранч {$requiredBranch} на репозитори - $repoName";
+
+//    $log[] = "err: [<b>$repoName</b>] Грешка при превключване в бранч {$requiredBranch}";
     
     return FALSE;
 }
@@ -961,12 +974,13 @@ function gitHasNewVersion($repoPath, &$log)
     $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" remote show origin";
 
     exec($command, $arrRes, $returnVar);
-    
+  
     // Търсим реда в който има състоянието на зададеният бранч
     foreach ($arrRes as $row) {
-        $hasNewVersion = strpos($row, BGERP_GIT_BRANCH . " (local out of date)");
-        $hasUpdated = strpos($row, BGERP_GIT_BRANCH . " (up to date)");
-    
+        $hasNewVersion = strpos($row, "(local out of date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
+        $hasUpdated = strpos($row, "(up to date)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
+        $fastForward = strpos($row, "(fast-forwardable)") && strpos($row, "pushes to " . BGERP_GIT_BRANCH);
+        
         if($hasNewVersion !== FALSE) {
             $log[] = "new:[<b>$repoName</b>] Има нова версия.";
             
@@ -974,6 +988,12 @@ function gitHasNewVersion($repoPath, &$log)
         }
         
         if($hasUpdated !== FALSE) {
+            
+            return FALSE;
+        }
+        
+        if($fastForward !== FALSE) {
+            $log[] = "wrn:[<b>$repoName</b>] Необходима е ръчна намеса";
             
             return FALSE;
         }
@@ -1000,7 +1020,7 @@ function gitHasChanges($repoPath, &$log)
     $command = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" status -s";
 
     exec($command, $arrRes, $returnVar);
-    
+  
     // $states = array("M" => "Модифициран", "??"=>"Непознат", "A"=>"Добавен");
     $states = array("M" => "Модифициран", "A"=>"Добавен");
     if (!empty($arrRes)) {
@@ -1035,7 +1055,7 @@ function gitPullRepo($repoPath, &$log)
     $commandMerge = "$gitCmd --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge origin/" . BGERP_GIT_BRANCH ." 2>&1";
 
     exec($commandFetch, $arrResFetch, $returnVar);
-    
+  
     exec($commandMerge, $arrResMerge, $returnVar);
     
     $arrRes = array_merge($arrResFetch + $arrResMerge);
@@ -1236,6 +1256,71 @@ function dataBaseStat()
     return array($tables->TABLES, $rows->RECS);
 }
 
-function getRandomString($length = 15) {
+
+function getRandomString($length = 15)
+{
     return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, $length);
+}
+
+
+/**
+ * Добавя параметър в стринг представящ URL
+ */
+function addParams($url, $newParams)
+{
+    $purl = parse_url($url);
+    
+    if (!$purl) return FALSE;
+    
+    $params = array();
+    
+    if (!empty($purl["query"])) {
+        parse_str($purl["query"], $params);
+    }
+    
+    // Добавяме новите параметри
+    foreach ($newParams as $key => $value) {
+        $params[$key] = $value;
+    }
+    
+    $purl["query"] = "";
+    
+    foreach ($params as $name => $value) {
+        if (is_array($value)) {
+            foreach ($value as $key => $v) {
+                $purl["query"] .= ($purl["query"] ? '&' : '') . "{$name}[{$key}]=" . urlencode($v);
+            }
+        } else {
+            $purl["query"] .= ($purl["query"] ? '&' : '') . "{$name}=" . urlencode($value);
+        }
+    }
+
+    $res = "";
+    
+    if (isset($purl["scheme"])) {
+        $res .= $purl["scheme"] . "://";
+    }
+    
+    if (isset($purl["user"])) {
+        $res .= $purl["user"];
+        $res .= $purl["pass"];
+        $res .= "@";
+    }
+    $res .= $purl["host"];
+    
+    if ($purl["port"]) {
+        $res .= ":" . $purl["port"];
+    }
+    
+    $res .= $purl["path"];
+    
+    if (isset($purl["query"])) {
+        $res .= "?" . $purl["query"];
+    }
+    
+    if (isset($purl["fragment"])) {
+        $res .= "#" . $purl["fragment"];
+    }
+
+    return $res;
 }

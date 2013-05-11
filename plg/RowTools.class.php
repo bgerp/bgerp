@@ -58,41 +58,58 @@ class plg_RowTools extends core_Plugin
         }
         
         // URL за връщане след редакция/изтриване
-        if(method_exists($mvc, 'getSingleUrl')) {
-            $retUrl = $mvc->getSingleUrl($rec->id);
+        if(method_exists($mvc, 'getRetUrl')) {
+            $retUrl = $mvc->getRetUrl($rec);
         } else {
             $retUrl = TRUE;
         }
         
         if ($mvc->haveRightFor('edit', $rec)) {
-            
+            $editUrl = $mvc->getEditUrl($rec);
             $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
-            
-            $editUrl = array(
-                $mvc,
-                'edit',
-                'id' => $rec->id,
-                'ret_url' => $retUrl
-            );
-            
+
             $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
         }
         
-        if ($mvc->haveRightFor('delete', $rec)) {
-            
+         if ($mvc->haveRightFor('delete', $rec)) {
             $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . ">";
-            
             $deleteUrl = array(
-                $mvc,
-                'delete',
-                'id' => $rec->id,
-                'ret_url' => $retUrl
-            );
-            
-            $deleteLink = ht::createLink($deleteImg, $deleteUrl,
+	            $mvc,
+	            'delete',
+	            'id' => $rec->id,
+	            'ret_url' => $retUrl
+        	);
+        	
+        	$deleteLink = ht::createLink($deleteImg, $deleteUrl,
                 tr('Наистина ли желаете записът да бъде изтрит?'), "id=del{$rec->id}");
+        } else {
+        	$loadList = arr::make($mvc->loadList);
+        	if(in_array('plg_Rejected', $loadList)){
+        		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)){
+        			$deleteImg = "<img src=" . sbf('img/16/delete.png') . ">";
+        			$deleteUrl = array(
+			            $mvc,
+			            'reject',
+			            'id' => $rec->id,
+			            'ret_url' => TRUE);
+			         $deleteLink = ht::createLink($deleteImg, $deleteUrl,
+                		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id}");
+        			
+        		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
+        			$deleteImg = "<img src=" . sbf('img/16/restore-icon.png') . ">";
+        				
+        			$deleteUrl = array(
+			            $mvc,
+			            'restore',
+			            'id' => $rec->id,
+			            'ret_url' => TRUE);
+			            
+			        $deleteLink = ht::createLink($deleteImg, $deleteUrl,
+                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},class=btn-restore");
+        		}
+        	}
         }
-        
+                
         if($singleLink || $editLink || $deleteLink) {
             // Вземаме съдържанието на полето, като шаблон
             $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>");
@@ -102,6 +119,56 @@ class plg_RowTools extends core_Plugin
             $tpl->append($deleteLink, 'TOOLS');
             $row->{$field} = $tpl;
         }
+    }
+    
+    
+    /**
+     * Реализация по подразбиране на метода getEditUrl()
+     * 
+     * @param core_Mvc $mvc
+     * @param array $editUrl
+     * @param stdClass $rec
+     */
+    public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
+    {
+        // URL за връщане след редакция
+        if(method_exists($mvc, 'getRetUrl')) {
+            $retUrl = $mvc->getRetUrl($rec);
+        } else {
+            $retUrl = TRUE;
+        }
+        
+        $editUrl = array(
+            $mvc,
+            'edit',
+            'id' => $rec->id,
+            'ret_url' => $retUrl
+        );
+    }
+    
+    
+	/**
+     * Реализация по подразбиране на метода getDeleteUrl()
+     * 
+     * @param core_Mvc $mvc
+     * @param array $editUrl
+     * @param stdClass $rec
+     */
+    public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
+    {
+        // URL за връщане след редакция
+        if(method_exists($mvc, 'getDeleteUrl')) {
+            $retUrl = $mvc->getDeleteUrl($rec);
+        } else {
+            $retUrl = TRUE;
+        }
+        
+        $deleteUrl = array(
+            $mvc,
+            'delete',
+            'id' => $rec->id,
+            'ret_url' => $retUrl
+        );
     }
     
     

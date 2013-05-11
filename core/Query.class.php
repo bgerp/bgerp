@@ -163,6 +163,55 @@ class core_Query extends core_FieldSet
     
     
     /**
+     * Добавя с 'AND' и/или с 'OR' ново условие за масива
+     * 
+     * @param string $field - Името на полето
+     * @param array $arr - Масив с всички данни
+     * @param boolean $or - Дали да е 'OR' 
+     */
+    function whereArr($field, $condArr, $or = FALSE)
+    {
+        // Ако е масив
+        if (is_array($condArr)) {
+            
+            // Дали за първи път обхождаме масива
+            $first = TRUE;
+            
+            // Обхождаме масива
+            foreach ($condArr as $cond) {
+                
+                // Ако за първи път
+                if ($first || !$or) {
+                    
+                    // Добавяме във where
+                    $this->where(array("#{$field} = '[#1#]'", $cond));
+                    
+                } else {
+
+                    // Добавяме в orWhere
+                    $this->orWhere(array("#{$field} = '[#1#]'", $cond));   
+                }
+                
+                // Отбелязваме, че вече сме влезли за първи път
+                $first = FALSE;
+            }
+        }
+    }
+    
+    
+    /**
+     * Добавя с 'OR' ново условие за WHERE
+     * 
+     * @param string $field - Името на полето
+     * @param array $arr - Масив с всички данни
+     */
+    function orWhereArr($field, $condArr)
+    {
+        $this->whereArr($field, $condArr, TRUE);
+    }
+    
+    
+    /**
      * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
      */
     function likeKeylist($field, $keylist, $or = FALSE)
