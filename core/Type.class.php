@@ -164,9 +164,10 @@ class core_Type extends core_BaseClass
                 $mysqlVal = 'NULL';
             } else {
                 if($defValue === NULL) {
-                    $defValue = "''";
+                    $mysqlVal = "''";
+                } else {
+                    $mysqlVal = "'" . $db->escape($defValue) . "'";
                 }
-                $mysqlVal = "'" . $db->escape($defValue) . "'";
             }
         } else {
             $mysqlVal = "'" . $db->escape($value) . "'";
