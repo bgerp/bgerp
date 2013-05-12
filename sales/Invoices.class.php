@@ -491,7 +491,7 @@ class sales_Invoices extends core_Master
          $contragentData = $sourceClass::getContragentData($sourceObjectId);
         
     	$contragentClass = cls::get($sourceClass);
-    	if($contragentClass->getDefaultVat($sourceObjectId)){
+    	if($contragentClass->shouldChargeVat($sourceObjectId)){
     		$form->setDefault('vat', 'yes');
     	} else {
     		$form->setDefault('vat', 'export');

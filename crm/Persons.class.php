@@ -1028,9 +1028,10 @@ class crm_Persons extends core_Master
      * @param int $id - id' то на записа
      * @return boolean TRUE/FALSE
      */
-    static function getDefaultVat($id)
+    static function shouldChargeVat($id)
     {
         $rec = static::fetch($id);
+        
         if(!$rec->country) return TRUE;
         
         return drdata_Countries::isEu($rec->country);

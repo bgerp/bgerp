@@ -766,12 +766,32 @@ class crm_Companies extends core_Master
      * @param int $id - id' то на записа
      * @return boolean TRUE/FALSE
      */
-    static function getDefaultVat($id)
+    static function shouldChargeVat($id)
     {
         $rec = static::fetch($id);
-        if(!$rec->country) return TRUE;
         
-        return drdata_Vats::isValidVat($rec->vatId, $rec->country);
+        // Ако не е посочена държава, вингаи начисляваме ДДС
+        if(!$rec->country) {
+
+            return TRUE;
+        }
+        
+        // Ако не е в Еропейския съюз, не начисляваме ДДС
+        if(!drdata_Countries::isEu($rec->country)) {
+
+            return FALSE;
+        }
+ 
+        $ownCompany = crm_Companies::fetchOurCompany();
+        
+        // Ако има валиден ват и не е от държавата на myCompany не начисляваме
+        if(drdata_Vats::isHaveVatPrefix($rec->vatId) && ($ownCompany->country != $rec->country)){
+        	
+            return FALSE;
+        }
+
+        return TRUE;
+
     }
     
     

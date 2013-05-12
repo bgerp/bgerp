@@ -60,8 +60,8 @@ class doc_ContragentDataIntf
 	/**
      * Връща дали на контрагента се начислява ДДС
      */
-    function getDefaultVat($id)
+    function shouldChargeVat($id)
     {
-        return $this->class->getDefaultVat($id);
+        return $this->class->shouldChargeVat($id);
     }
 }
