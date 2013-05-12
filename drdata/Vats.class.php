@@ -146,7 +146,7 @@ class drdata_Vats extends core_Manager
      * @param string $vat
      * @return string 'syntax', 'valid', 'invalid', 'unknown'
      */
-    function check(&$vat)
+    public function check(&$vat)
     {
         $canonocalVat = $this->canonize($vat);
         
@@ -181,35 +181,6 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     * Дали начисляваме ДДС по даден ВАТ номер и държава
-     * @param int $vat
-     * @param int $countryId
-     */
-    public static function isValidVat($vat, $countryId)
-    {
-    	if($countryId){
-    		// Дали държавата е в ЕС
-    		$inEu = drdata_Countries::isEu($countryId);
-    	}
-    	
-        if($vat){
-        	// Дали има валиден ват
-        	$hasValidVat = drdata_Vats::isHaveVatPrefix($vat);
-        }
-        
-        $ownCompany = $ourCompany = crm_Companies::fetchOurCompany();
-        $abbr = substr($ownCompany->vatId, 0, 2);
-        
-        // Ако държавата е в ЕС, Има валиден ват и не е myCompany не начисляваме
-        if($inEu || ($hasValidVat && substr($vat, 0, 2) != $abbr)){
-        	return FALSE;
-        }
-        
-        return TRUE;
-    }
-    
-    
-    /**
      * Проверява дали номерът започва с префикс, като за VAT
      */
     public static function isHaveVatPrefix($value)
@@ -217,7 +188,7 @@ class drdata_Vats extends core_Manager
         $vatPrefixes = arr::make("BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT", TRUE);
         
         if($vatPrefixes[substr($value, 0, 2)]) {
-            
+ 
             return TRUE;
         } else {
             
