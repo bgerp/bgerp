@@ -32,12 +32,7 @@ class hr_Departments extends core_Master
      * @todo Чака за документация...
      */
     var $pageMenu = "Персонал";
-    
-    /**
-     * Поддържани интерфейси
-     */
-    var $interfaces = 'doc_DocumentIntf';
-    
+        
     
     /**
      * Плъгини за зареждане
@@ -177,32 +172,4 @@ class hr_Departments extends core_Master
         return $current;
     }
     
-    /**
-     * Интерфейсен метод на doc_DocumentIntf
-     *
-     * @param int $id
-     * @return stdClass $row
-     */
-    function getDocumentRow($id)
-    {
-        $rec = $this->fetch($id);
-        
-        $row = new stdClass();
-        
-        //Заглавие
-        $row->title = "Структорно звено {$rec->name}";
-        
-        //Създателя
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        
-        //Състояние
-        $row->state = $rec->state;
-        
-        //id на създателя
-        $row->authorId = $rec->createdBy;
-        
-        //$row->recTitle = $rec->title;
-        
-        return $row;
-    }
 }
