@@ -110,7 +110,7 @@ class bank_OwnAccounts extends core_Master {
             loan=Кредитна,
             personal=Персонална,
             capital=Набирателна)', 'caption=Тип,mandatory');
-        $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory');
+        $this->FLD('title', 'varchar(128)', 'caption=Наименование');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име,mandatory');
         $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
         $this->FLD('operators', 'userList(roles=bank)', 'caption=Оператори,mandatory');
@@ -248,6 +248,21 @@ class bank_OwnAccounts extends core_Master {
     	}
     	
     	return $acc;
+    }
+    
+
+    /**
+     * Изпълнява се след въвеждането на данните от формата
+     */
+    function on_AfterInputEditForm($mvc, $form)
+    {
+        $rec = $form->rec;
+        
+        if($form->isSubmitted()) {
+            if(!$rec->title) {
+                $rec->title = bank_Accounts::fetchField($rec->bankAccountId, 'iban');
+            }
+        }
     }
     
     
