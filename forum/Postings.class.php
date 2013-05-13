@@ -103,7 +103,7 @@ class forum_Postings extends core_Detail {
     	$data->form->title = tr("Започване на нова тема в") . " <b>{$boardRow->title}</b>";
     	
     	// Ако постинга е коментар
-    	if($themeId = Request::get('themeId')) {
+    	if($themeId = Request::get('themeId', 'int')) {
     		
     		expect($themeRec = static::fetch($themeId));
     		$themeRow = $mvc->Master->recToVerbal($themeRec, 'id,title');
