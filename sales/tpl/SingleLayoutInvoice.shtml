@@ -78,11 +78,11 @@
             </table>
 			<div class="lines"></div>
 			
-			<!--ET_BEGIN DETAILS-->
+			<!--ET_BEGIN sales_InvoiceDetails-->
 				<div class='details'>
-					[#DETAILS#]
+					[#sales_InvoiceDetails#]
 				</div>
-			<!--ET_END DETAILS-->
+			<!--ET_END sales_InvoiceDetails-->
 			
             <div class="lines"></div>
             
@@ -214,6 +214,11 @@
             </table>
         </td>
     </tr>
-    </tbody>
+    </tbody> 
 </table>
+<!--ET_BEGIN DETAILS-->
+	<div class='details'>
+		[#DETAILS#]
+	</div>
+<!--ET_END DETAILS-->
 </div>

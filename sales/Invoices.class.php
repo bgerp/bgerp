@@ -498,6 +498,10 @@ class sales_Invoices extends core_Master
     	}
         
         $rec->contragentCountryId = $contragentData->countryId;
+        if(!$rec->contragentCountryId){
+        	$myCompany = crm_Companies::fetchOwnCompany();
+        	$rec->contragentCountryId = $myCompany->countryId;
+        }
         
         if (!empty($contragentData->company)) {
             // Случай 1 или 2: има данни за фирма
@@ -516,13 +520,10 @@ class sales_Invoices extends core_Master
             $rec->contragentAddress = $contragentData->pAddress;
         }
         
-        if (!empty($rec->contragentCountryId)) {
-            $rec->currencyId = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
-            
-            if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
+        $rec->currencyId = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
+        if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 	        	$form->setDefault('accountId', $ownAcc);
 	        } 
-        }
     }
     
     
@@ -745,8 +746,7 @@ class sales_Invoices extends core_Master
         }
         
       	$result->entries = $entries;
-      	//bp($result);
-        return $result;
+      	return $result;
     }
     
     
