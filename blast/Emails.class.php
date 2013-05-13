@@ -723,7 +723,7 @@ class blast_Emails extends core_Master
         //GET променливите от линка
         $mid = Request::get("m");
         $lang = Request::get("l");
-        $cid = Request::get('id');
+        $cid = Request::get('id', 'int');
         $uns = Request::get("uns");
         
         expect($cid && $mid);
