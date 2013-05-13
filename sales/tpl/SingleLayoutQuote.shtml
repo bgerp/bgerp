@@ -62,9 +62,10 @@
 	</ol>
 	
 	<p id='quote-username'><b>|Изготвил офертата|*:</b> <span id='sign-place'></span>/ &nbsp;<b>[#username#]</b>&nbsp; /</p>
-	
-	<!--ET_BEGIN DETAILS-->
-	[#DETAILS#]
-	<!--ET_END DETAILS-->
+		<div class='details'>
+			<!--ET_BEGIN DETAILS-->
+			[#DETAILS#]
+			<!--ET_END DETAILS-->
+		</div>
 	</div>
 </div>
