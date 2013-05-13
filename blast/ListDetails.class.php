@@ -433,10 +433,16 @@ class blast_ListDetails extends core_Detail
         
         if($res == 'SUCCESS') {
             
-            $csv = trim($exp->getValue('#csvData'));
+            $csv = $exp->getValue('#csvData');
             $delimiter = $exp->getValue('#delimiter');
+           
             $enclosure = $exp->getValue('#enclosure');
-            $csvRows = explode("\n", $csv);
+            
+            if(!is_array($csv)) {
+                $csvRows = explode("\n", trim($csv));
+            } else {
+                 $csvRows = $csv;
+            }
             
             // Ако първия ред са имена на колони - махаме ги
             if($exp->getValue('#firstRow') == 'columnNames') {
@@ -448,7 +454,7 @@ class blast_ListDetails extends core_Detail
             
             $newCnt = $skipCnt = $updateCnt = 0;
             
-            if(count($csvRows)) {
+            if(count($csvRows)) {  
                 foreach($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
                     $rec = new stdClass();
@@ -577,7 +583,11 @@ class blast_ListDetails extends core_Detail
      */
     static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL)
     {
-        $rowsOrig = explode("\n", $csvData);
+        if(is_array($csvData)) {
+            $rowsOrig = $csvData;
+        } else {
+            $rowsOrig = explode("\n", $csvData);
+        }
         
         foreach($rowsOrig as $r) {
             if(trim($r)) {
@@ -664,10 +674,10 @@ class blast_ListDetails extends core_Detail
             }
             $haveColumns = TRUE;
             
-            $csv .= $rCsv . "\n";
+            $csv[] = $rCsv;
         }
         
-        $csv = $columns . "\n" . $csv;
+        $csv = array($columns) + $csv;
         
         return $csv;
     }
