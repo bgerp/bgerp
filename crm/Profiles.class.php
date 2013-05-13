@@ -372,7 +372,7 @@ class crm_Profiles extends core_Master
         $addUserUrl = array(
             'core_Users', 
             'add', 
-            'personId'=>Request::get('personId'), 
+            'personId'=>Request::get('personId', 'int'), 
             'ret_url'=>getRetUrl()
         );
 
