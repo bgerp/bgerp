@@ -61,6 +61,9 @@ class type_Richtext extends type_Blob
     {
         // По подразбиране да се компресира
         setIfNot($params['params']['compress'], 'compress');
+        
+        // По подразбиране е средно голямо
+        setIfNot($params['params']['size'], 1000000);
 
         // Ако е зададено да не се компресира
         if ($params['params']['compress'] == 'no') {
@@ -763,9 +766,9 @@ class type_Richtext extends type_Blob
         if(!stripos($url, '://')) return $url;
 
         if( core_Url::isLocal($url, $rest) ) {
-            $result = $this->internalUrl($url, str::limitLen($url,120), $rest);
+            $result = $this->internalUrl($url, str::limitLen(urldecode($url), 120), $rest);
         } else {
-            $result = $this->externalUrl($url, str::limitLen($url,120));
+            $result = $this->externalUrl($url, str::limitLen(urldecode($url), 120));
         }
         return $result;
     }
@@ -780,6 +783,8 @@ class type_Richtext extends type_Blob
      */
     public function internalUrl_($url, $title, $rest)
     {
+        $title = type_Varchar::escape($title);
+
         if(!Mode::is('text', 'plain')) {
             return "<a href=\"{$url}\">{$title}</a>";    
         }
@@ -796,7 +801,9 @@ class type_Richtext extends type_Blob
      * @param string HTML код
      */
     public function externalUrl_($url, $title)
-    {
+    {   
+        $title = type_Varchar::escape($title);
+
         if(!Mode::is('text', 'plain')) {
             $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
             
@@ -923,11 +930,11 @@ class type_Richtext extends type_Blob
             $pId++;
         }
         
-        // Всички параметри, които проверяваме да са в долния регистър
-        $params['Ctr'] = mb_strtolower($params['Ctr']);
-        $params['Act'] = mb_strtolower($params['Act']);
-        $params['threadId'] = mb_strtolower($params['threadId']);
-        $params['folderId'] = mb_strtolower($params['folderId']);
+        // Декодира защитеното id
+        if(($id = $params['id']) && ($ctr = $params['Ctr'])) {
+            $id = core_Request::unprotectId($id, $ctr);
+            $params['id'] = $id;
+        }
         
         return $params;
     }

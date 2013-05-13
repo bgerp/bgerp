@@ -39,6 +39,8 @@ class plg_Printing extends core_Plugin
         $url = getCurrentUrl();
         
         $url['Printing'] = 'yes';
+
+        self::addCmdParams($url);
         
         $data->toolbar->addBtn('Печат', $url,
             'id=btnPrint,target=_blank,class=btn-print');
@@ -52,14 +54,17 @@ class plg_Printing extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        // Бутон за отпечатване
-        $data->toolbar->addBtn('Печат', array(
+        $url = array(
                 $mvc,
                 'single',
                 $data->rec->id,
                 'Printing' => 'yes',
-            ),
-            'id=btnPrint,target=_blank,class=btn-print,row=2');
+            );
+
+        self::addCmdParams($url);
+
+        // Бутон за отпечатване
+        $data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,class=btn-print,row=2');
     }
     
     
@@ -103,4 +108,22 @@ class plg_Printing extends core_Plugin
             return FALSE;
         }
     }
+
+
+    /**
+     * Добавя ваички командни параметри от GET заявката
+     */
+    function addCmdParams(&$url)
+    {
+        $cUrl = getCurrentUrl();
+
+        if(count($cUrl)) {
+            foreach($cUrl as $param => $value) {
+                if($param{0} < 'a' || $param{0} > 'z') {
+                    $url[$param] = $value;
+                }
+            }
+        }
+    }
+
 }

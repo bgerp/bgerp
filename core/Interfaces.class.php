@@ -128,7 +128,7 @@ class core_Interfaces extends core_Manager
     static function getKeylist($class)
     {
         $keylist = self::getInterfaceIds($class);
-        $keylist = type_Keylist::fromArray($keylist);
+        $keylist = keylist::fromArray($keylist);
         
         return $keylist;
     }

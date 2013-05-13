@@ -151,6 +151,7 @@ class plg_Rejected extends core_Plugin
     function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if ($action == 'reject') {
+            expect(Request::isConfirmed());
             $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             $mvc->requireRightFor('reject', $rec);
@@ -161,6 +162,7 @@ class plg_Rejected extends core_Plugin
         }
         
         if ($action == 'restore') {
+            expect(Request::isConfirmed());
             $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             $mvc->requireRightFor('restore', $rec);

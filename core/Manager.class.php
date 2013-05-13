@@ -187,6 +187,8 @@ class core_Manager extends core_Mvc
         
         $this->requireRightFor($data->cmd, NULL, NULL, $data->retUrl);
         
+        expect(Request::isConfirmed());
+
         expect($data->id = Request::get('id', 'int'),
             "Липсва id на записа за изтриване");
         

@@ -58,7 +58,7 @@ class type_Group extends type_Key
         $baseQuery->show($keylist);
         
         while($baseRec = $baseQuery->fetch()) {
-            $arr = type_Keylist::toArray($baseRec->{$keylist});
+            $arr = keylist::toArray($baseRec->{$keylist});
             
             foreach($arr as $id => $dummy) {
                 $groups[$id]++;

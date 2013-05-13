@@ -8,6 +8,14 @@
 defIfNot('EF_DB_TABLE_PREFIX', '');
 
 
+
+/**
+ * Дължина на контролната сума, която се добавя към id-тата
+ */
+defIfNot('EF_ID_CHECKSUM_LEN', 3);
+
+
+
 /**
  * Клас 'core_Mvc' - Манипулации на модела (таблица в db)
  *
@@ -193,26 +201,41 @@ class core_Mvc extends core_FieldSet
 
         return $rec;
     }
-
-
+    
+    
     /**
+    
      * Малко по-гъвкава вариация на fetch()
+    
      *
+    
      * Ако първия аргумент е запис, просто го връща. В противен случай вика fetch()
+    
      *
+    
      * @param mixed $id ст-ст на първичен ключ, SQL условие или обект
+    
      * @param mixed $fields @see self::fetch()
+    
      * @param bool $cache @see self::fetch()
+    
      * @return stdClass
+    
      */
+    
     public static function fetchRec($id, $fields = '*', $cache = TRUE)
+   
     {
+        
         $rec = $id;
+
         if (!is_object($rec)) {
             $rec = static::fetch($id, $fields, $cache);
         }
-    
+
+        
         return $rec;
+   
     }
     
 
@@ -234,17 +257,8 @@ class core_Mvc extends core_FieldSet
      */
     function save_(&$rec, $fields = NULL, $mode = NULL)
     {
-        if ($fields === NULL) {
-            $recFields = get_object_vars($rec);
-
-            foreach ($recFields as $name => $dummy) {
-                if ($this->fields[$name]->kind == 'FLD') {
-                    $fields[$name] = TRUE;
-                }
-            }
-        } else {
-            $fields = arr::make($fields, TRUE);
-        }
+        
+        $fields = $this->prepareSaveFields($fields, $rec);
 
         $table = $this->dbTableName;
 
@@ -267,7 +281,6 @@ class core_Mvc extends core_FieldSet
             }
 
             $mysqlField = str::phpToMysqlName($name);
-
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
 
@@ -285,7 +298,7 @@ class core_Mvc extends core_FieldSet
                 break;
 
             default :
-            if ($rec->id > 0) {
+            if ($rec->id > 0) { 
                 $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
             } else {
                 $query = "INSERT  INTO `{$table}` SET {$query}";
@@ -304,6 +317,28 @@ class core_Mvc extends core_FieldSet
         }
 
         return $rec->id;
+    }
+
+
+    /**
+     * Подготвя като масив полетата за записване
+     */
+    function prepareSaveFields($fields, $rec)
+    {
+        if ($fields === NULL) {
+            
+            $recFields = get_object_vars($rec);
+
+            foreach ($recFields as $name => $dummy) {
+                if ($this->fields[$name]->kind == 'FLD') {
+                    $fields[$name] = TRUE;
+                }
+            }
+        } else {
+            $fields = arr::make($fields, TRUE);
+        }
+
+        return $fields;
     }
 
 
@@ -976,4 +1011,35 @@ class core_Mvc extends core_FieldSet
     {
         return cls::get(get_called_class());
     }
+
+
+    /**
+     * Добавя контролна сума към ID параметър
+     */
+    function protectId($id)
+    {
+        $hash = substr(base64_encode(md5(EF_SALT . $this->className . $id)), 0, EF_ID_CHECKSUM_LEN);
+        
+        return $id . $hash;
+    }
+    
+
+    /**
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     */
+    function unprotectId($id)
+    {
+        $idStrip = substr($id, 0, strlen($id) - EF_ID_CHECKSUM_LEN);
+        $idProt  = $this->protectId($idStrip);
+
+        if($id == $idProt) {
+
+            return $idStrip;
+        } else {
+            sleep(3);
+
+            return FALSE;
+        }
+    }
+
 }

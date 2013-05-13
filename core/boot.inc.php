@@ -38,6 +38,7 @@ function ef_autoload($className)
 {
     $aliases = array('arr' => 'core_Array',
         'dt' => 'core_DateTime',
+        'keylist' => 'type_Keylist',
         'ht' => 'core_Html',
         'et' => 'core_ET',
         'str' => 'core_String',
@@ -57,11 +58,12 @@ function ef_autoload($className)
         
         return TRUE;
     } else {
+
         return core_Cls::load($className, TRUE);;
     }
 }
 
-spl_autoload_register('ef_autoload', true, true);
+spl_autoload_register('ef_autoload', TRUE, TRUE);
 
 
 /**
@@ -92,6 +94,29 @@ function tr($text, $userId = 0, $key = FALSE)
     $Lg = core_Cls::get('core_Lg');
     
     return $Lg->translate($text, $userId, $key);
+}
+
+
+/**
+ * Транслитериране на стринг. Използва core_Lg
+ */
+function transliterate($text)
+{
+    
+    return core_Lg::transliterate($text);
+}
+
+
+/**
+ * Връща шаблона на подадения файл през превода
+ * 
+ * @param string $file - Пътя на файла от пакета нататък
+ * 
+ * @return core_Et - Обект
+ */
+function getTplFromFile($file)
+{
+    return core_ET::getTplFromFile($file);
 }
 
 

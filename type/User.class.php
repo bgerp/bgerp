@@ -72,7 +72,7 @@ class type_User extends type_Key
             $uQuery->where("#state = 'active'");
             
             // Потребителите, които ще покажем, трябва да имат посочените роли
-            $roles = core_Roles::keylistFromVerbal($this->params['roles']);
+            $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
             $uQuery->likeKeylist('roles', $roles);
             
             if(haveRole($this->params['rolesForAll'])) {
@@ -83,7 +83,7 @@ class type_User extends type_Key
                 $teams = core_Users::getUserRolesByType(NULL, 'team');
             }
             
-            $teams = type_Keylist::toArray($teams);
+            $teams = keylist::toArray($teams);
             
             $this->options = array();
             
@@ -174,5 +174,32 @@ class type_User extends type_Key
         if (!$exist) return NULL;
         
         return $this->options[$key]->title;
+    }
+    
+    
+    /**
+     * Проверява, дали типа се съдържа в опциите
+     */
+    function fitInDomain($type)
+    {
+        // Подготвяме опциите
+        $this->prepareOptions();
+        
+        // Обхождаме опциите
+        foreach ($this->options as $options) {
+            
+            // Вземаме стойността
+            $val = $options->value;
+            
+            if ($val) {
+                // Ако стойността е равна на търсената връщаме я
+                if ($val == $type) return $val;
+                
+                // Ако има стойност и няма първа стойност сетваме я
+                if (!$firstVal) $firstVal = $val;    
+            }
+        }
+        
+        return $firstVal;
     }
 }

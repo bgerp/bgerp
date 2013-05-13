@@ -55,7 +55,8 @@ class core_Toolbar extends core_BaseClass
      */
     function addFnBtn($title, $function, $params = array(), $moreParams = array())
     {
-        $btn->type = 'function';
+        $btn = new stdClass();
+    	$btn->type = 'function';
         $btn->title = $title;
         $btn->fn = $function;
         $this->add($btn, $params, $moreParams);

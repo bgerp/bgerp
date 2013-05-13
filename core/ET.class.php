@@ -790,4 +790,18 @@ class core_ET extends core_BaseClass
     {
         return $this->getContent();
     }
+    
+    
+    /**
+     * Връща шаблона на подадения файл през превода
+     * 
+     * @param string $file - Пътя на файла от пакета нататък
+     * 
+     * @return core_Et - Обект
+     */
+    static function getTplFromFile($file)
+    {
+
+        return new ET(tr("|*" . getFileContent($file)));
+    }
 }

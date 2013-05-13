@@ -34,7 +34,12 @@ class type_Url extends type_Varchar {
         
         $attr['target'] = '_blank';
         $attr['class'] = 'out';
-        $value = HT::createLink($value, $value, FALSE, $attr);
+        if(!strpos($value, '://')) {
+            $url = 'http://' . $value;
+        } else {
+            $url = $value;
+        }
+        $value = HT::createLink($value, $url, FALSE, $attr);
         
         return $value;
     }

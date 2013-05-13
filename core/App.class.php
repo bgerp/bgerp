@@ -405,7 +405,7 @@ class core_App
 
 
     /**
-     * @todo Чака за документация...
+     * Връща текущото GET URL
      */
     public static function getCurrentUrl()
     {
@@ -414,6 +414,11 @@ class core_App
         if (count($_GET)) {
             $get = $_GET;
             unset($get['virtual_url'], $get['ajax_mode']);
+            
+            if(($id = $get['id']) && ($ctr = $get['Ctr'])) {
+                $mvc = cls::get($ctr);
+                $get['id'] = $mvc->unprotectId($id);
+            }
 
             return $get;
         }
@@ -421,16 +426,14 @@ class core_App
 
 
     /**
-     * Връща масив, който представлява URL-то където трябва да
-     * се използва за връщане след изпълнението на текущата задача
+     *  Връща масив, който представлява вътрешното представяне на 
+     * локалното URL подадено като аргумент
      */
-    public static function getRetUrl($retUrl = NULL)
-    {
-        if (!$retUrl) {
-            $retUrl = core_Request::get('ret_url');
-        }
-        if ($retUrl) {
-            $arr = explode('/', $retUrl);
+    public static function parseLocalUrl($str, $unprotect = TRUE)
+    {   
+        $get = array();
+        if ($str) {
+            $arr = explode('/', $str);
 
             $get['App'] = $arr[0];
             $get['Ctr'] = $arr[1];
@@ -458,9 +461,28 @@ class core_App
                     error('Повече от едномерен масив в URL-то не се поддържа', $key);
                 }
             }
-
-            return $get;
+            
+            // Премахваме защитата на id-то, ако има такава
+            if($get['id'] && $unprotect) {
+                expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'));
+            }
         }
+        
+        return $get;
+    }
+
+
+    /**
+     * Връща масив, който представлява URL-то където трябва да
+     * се използва за връщане след изпълнението на текущата задача
+     */
+    public static function getRetUrl()
+    {
+        $retUrl = core_Request::get('ret_url');
+        
+        $res = self::parseLocalUrl($retUrl);
+
+        return $res;
     }
 
 
@@ -529,7 +551,7 @@ class core_App
      *
      * $param string $type Може да бъде relative|absolute|internal
      */
-    public static function toUrl($params = array(), $type = 'relative')
+    public static function toUrl($params = array(), $type = 'relative', $protect = TRUE)
     {
         if(!$params) $params = array();
 
@@ -545,10 +567,8 @@ class core_App
 
         // Очакваме, че параметъра е масив
         expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
-
+        
         $Request = core_Cls::get('core_Request');
-
-        $Request->doProtect($params);
 
         if ($params[0]) {
             $params['Ctr'] = $params[0];
@@ -603,11 +623,16 @@ class core_App
         if(is_array($params['ret_url'])) {
             $params['ret_url'] = static::toUrl($params['ret_url'], 'local');
         }
+        
+        if($protect) {
+            $Request->doProtect($params);
+        }
 
         // Ако е необходимо локално URL, то то се генерира с помощна функция
         if($type == 'local') {
+
             return static::toLocalUrl($params);
-        }
+        }  
 
         // Зпочваме подготовката на URL-то
 
@@ -1114,9 +1139,9 @@ function sbf($rPath, $qt = '"', $absolute = FALSE)
  *
  * $param string $type Може да бъде relative|absolute|internal
  */
-function toUrl($params = array(), $type = 'relative')
+function toUrl($params = array(), $type = 'relative', $protect = TRUE)
 {
-    return core_App::toUrl($params, $type);
+    return core_App::toUrl($params, $type, $protect);
 }
 
 
@@ -1146,6 +1171,16 @@ function getBoot($absolute = FALSE)
 function getCurrentUrl()
 {
     return core_App::getCurrentUrl();
+}
+
+
+/**
+ *  Връща масив, който представлява вътрешното представяне на 
+ * локалното URL подадено като аргумент
+ */
+function parseLocalUrl($str, $unprotect = TRUE)
+{
+    return core_App::parseLocalUrl($str, $unprotect);
 }
 
 

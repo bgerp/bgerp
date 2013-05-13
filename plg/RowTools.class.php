@@ -40,11 +40,7 @@ class plg_RowTools extends core_Plugin
                     'ret_url' => TRUE
                 ));
 
-            if(cls::haveInterface('doc_DocumentIntf', $mvc)) {
-                $icon = $mvc->getIcon($rec->id);
-            } else {
-                $icon = $mvc->singleIcon;
-            }
+            $icon = $mvc->getIcon($rec->id);
             
             if($singleField = $mvc->rowToolsSingleField) { 
                 $attr1['class'] = 'linkWithIcon';
@@ -66,13 +62,13 @@ class plg_RowTools extends core_Plugin
         
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
-            $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
+            $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
 
             $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {
-            $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . ">";
+            $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
             $deleteUrl = array(
 	            $mvc,
 	            'delete',
@@ -86,7 +82,7 @@ class plg_RowTools extends core_Plugin
         	$loadList = arr::make($mvc->loadList);
         	if(in_array('plg_Rejected', $loadList)){
         		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)){
-        			$deleteImg = "<img src=" . sbf('img/16/delete.png') . ">";
+        			$deleteImg = "<img src=" . sbf('img/16/delete.png') . " alt=\"" . tr('Оттегляне') . "\">";
         			$deleteUrl = array(
 			            $mvc,
 			            'reject',
@@ -96,31 +92,44 @@ class plg_RowTools extends core_Plugin
                 		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id}");
         			
         		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
-        			$deleteImg = "<img src=" . sbf('img/16/restore-icon.png') . ">";
+        			$restoreImg = "<img src=" . sbf('img/16/restore.png') . " alt=\"" . tr('Възстановяване') . "\">";
         				
-        			$deleteUrl = array(
+        			$restoreUrl = array(
 			            $mvc,
 			            'restore',
 			            'id' => $rec->id,
 			            'ret_url' => TRUE);
 			            
-			        $deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},class=btn-restore");
+			        $restoreLink = ht::createLink($restoreImg, $restoreUrl,
+                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id}");
         		}
         	}
         }
                 
-        if($singleLink || $editLink || $deleteLink) {
+        if ($singleLink || $editLink || $deleteLink || $restoreLink) {
             // Вземаме съдържанието на полето, като шаблон
             $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>");
             $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
             $tpl->append($singleLink, 'TOOLS');
             $tpl->append($editLink, 'TOOLS');
             $tpl->append($deleteLink, 'TOOLS');
+            $tpl->append($restoreLink, 'TOOLS');
             $row->{$field} = $tpl;
         }
     }
     
+    
+    /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    {
+        if(!$res) { 
+            $res = $mvc->singleIcon;
+        }
+    }
+
     
     /**
      * Реализация по подразбиране на метода getEditUrl()

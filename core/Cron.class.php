@@ -164,7 +164,7 @@ class core_Cron extends core_Manager
         // трябва да се стартира в защитен вид, ние се предпазваме от евентуална външна намеса
         $id = str::checkHash(Request::get('id'));
         
-        if (!$id) {
+        if (!$id || !is_numeric($id)) {
             $cryptId = Request::get('id');
             $msg = "Error: ProcessRun -> incorrect crypted id: {$cryptId}";
             $this->log($msg);

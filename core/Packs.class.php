@@ -35,8 +35,13 @@ class core_Packs extends core_Manager
      */
     var $canDeinstall = 'admin';
     
-    var $listItemsPerPage=18;
+
+    /**
+     * По колко пакета да показва на страница
+     */
+    var $listItemsPerPage = 24;
     
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -402,16 +407,15 @@ class core_Packs extends core_Manager
         if(!$nextUrl) {
             // Ако нямаме нито един потребител, редиректваме за добавяне на администратор
             if(!$Users->fetch('1=1')) {
-                $url = toUrl(array('core_Users', 'add', 'ret_url' => TRUE));
+                $url = array('core_Users', 'add', 'ret_url' => TRUE);
             } else {
-                global $_GET;
-                $get = $_GET;
-                unset($get['virtual_url'], $get['ajax_mode']);
-                $url = toUrl($get);
+                $url = getCurrentUrl();
             }
         } else {
-            $url = toUrl($nextUrl);
+            $url = $nextUrl;
         }
+
+        $url = toUrl($url);
         
         $html .= "<meta http-equiv='refresh' content='15;url={$url}' />";
         
@@ -424,7 +428,7 @@ class core_Packs extends core_Manager
         
         echo $html;
         
-        die;
+        shutdown();
     }
     
     
@@ -556,7 +560,7 @@ class core_Packs extends core_Manager
         
         DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
         
-       return $res;
+        return $res;
     }
 
 

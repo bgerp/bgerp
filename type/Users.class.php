@@ -83,7 +83,7 @@ class type_Users extends type_Keylist
             }
             
             // Потребителите, които ще покажем, трябва да имат посочените роли
-            $roles = core_Roles::keylistFromVerbal($this->params['roles']);
+            $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
             $uQuery->likeKeylist('roles', $roles);
             
             // Масива, където ще пълним опциите
@@ -110,7 +110,7 @@ class type_Users extends type_Keylist
                 $teams = core_Users::getUserRolesByType(NULL, 'team');
             }
             
-            $teams = type_Keylist::toArray($teams);
+            $teams = keylist::toArray($teams);
             
             foreach($teams as $t) {
                 $group = new stdClass();
@@ -167,6 +167,26 @@ class type_Users extends type_Keylist
         }
         
         return ht::createSelect($name, $this->options, $key, $attr);
+    }
+    
+    
+    /**
+     * Проверява, дали типа се съдържа в опциите
+     */
+    function fitInDomain($type)
+    {
+        // Подготвяме опциите
+        $this->prepareOptions();
+        
+        // Ако подадения тип не е в опциите
+        if (!$typeObj = $this->options[$type]) {
+            
+            // Вземаме първия от масива
+            $typeObj = reset($this->options);    
+        }
+        
+        // Връщаме ключа
+        return $typeObj->keylist;
     }
     
     

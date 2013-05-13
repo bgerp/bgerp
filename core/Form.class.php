@@ -129,7 +129,7 @@ class core_Form extends core_FieldSet
         
         // Ако не е тихо въвеждане и нямаме тихо въвеждане, 
         // връщаме въведено към момента
-        if((!$this->cmd || $this->cmd == 'refresh') && !$silent) return $this->rec;
+        if((!$this->cmd) && !$silent) return $this->rec;
         
         // Отбелязан ли е чекбоксът "Игнорирай предупрежденията?"
         $this->ignore = Request::get('Ignore');
@@ -155,7 +155,7 @@ class core_Form extends core_FieldSet
             // Ако $silent, не сме критични към празните стойности
             if(($value === NULL) && $silent) continue;
             
-            if ($value === "" && $field->mandatory) {
+            if ($value === "" && $field->mandatory && $this->cmd != 'refresh') {
                 $this->setError($name, "Непопълнено задължително поле" .
                     "|* <b>'|{$field->caption}|*'</b>!");
                 continue;
@@ -206,7 +206,7 @@ class core_Form extends core_FieldSet
                     continue;
                 }
                 
-                if (($value === NULL || $value === '') && $field->mandatory) {
+                if (($value === NULL || $value === '') && $field->mandatory && $this->cmd != 'refresh') {
                     $this->setError($name, "Непопълнено задължително поле" .
                         "|* <b>'|{$field->caption}|*'</b>!");
                     continue;
@@ -228,6 +228,111 @@ class core_Form extends core_FieldSet
         }
         
         return $this->rec;
+    }
+    
+    
+    /**
+     * Валидиране полетата на форма с възможност за други стойности
+     * 
+     * @param string|array $fields
+     * @param boolean $silent
+     * @param array $values
+     * @return boolean
+     */
+    public function validate($fields = NULL, $silent = FALSE, $values = NULL)
+    {
+        $fields = $fields ? $fields : $this->showFields;
+        
+        if ($fields) {
+            $fields = $this->selectFields("", $fields);
+        } elseif($silent) {
+            $fields = $this->selectFields("#silent == 'silent'");
+        } else {
+            $fields = $this->selectFields("#input != 'none'");
+        }
+        
+        if (!count($fields)) return FALSE;
+        
+        foreach ($fields as $name => $field) {
+        
+            expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
+        
+            $value = isset($values[$name]) ? $values[$name] : Request::get($name);
+        
+            // Ако $silent, не сме критични към празните стойности
+            if(($value === NULL) && $silent) continue;
+        
+            if ($value === "" && $field->mandatory) {
+                $this->setError($name, "Непопълнено задължително поле" .
+                    "|* <b>'|{$field->caption}|*'</b>!");
+                continue;
+            }
+        
+            $type = $field->type;
+        
+            // Предаваме някои свойства на полето на типа
+            $options = $field->options;
+        
+            // Ако във формата има опции, те отиват в типа
+            if(count($options)) {
+                $type->options = $options;
+            }
+        
+            // Правим проверка, дали избраната стойност е от множеството
+            if (is_array($options) && !is_a($type, 'type_Key')) {
+                // Не могат да се селектират неща които не са опции
+                if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
+                    $this->setError($name, "Невъзможна стойност за полето" .
+                        "|* <b>|{$field->caption}|*</b>!");
+                    continue;
+                }
+        
+                // Не могат да се селектират групи!
+                if (is_object($options[$value]) && $options[$value]->group) {
+                    $this->setError($name, "Група не може да бъде стойност за полето" .
+                        "|* <b>|{$field->caption}|*</b>!");
+                    continue;
+                }
+        
+                // Празна опция се приема според типа. Числата стават NULL
+                if($options[$value] === '' && $value === '') {
+                    $value = $type->fromVerbal($value);
+                }
+            } else {
+        
+                $value = $type->fromVerbal($value);
+        
+                // Вдигаме грешка, ако стойността от Request
+                // не може да се конвертира към вътрешния тип
+                if ($type->error) {
+        
+                    $result = array('error' => $type->error);
+        
+                    $this->setErrorFromResult($result, $field, $name);
+        
+                    continue;
+                }
+        
+                if (($value === NULL || $value === '') && $field->mandatory) {
+                    $this->setError($name, "Непопълнено задължително поле" .
+                        "|* <b>'|{$field->caption}|*'</b>!");
+                    continue;
+                }
+        
+                // Валидиране на стойността чрез типа
+                $result = $type->isValid($value);
+        
+                // Ако имаме нова стойност след валидацията - присвояваме я.
+                // По този начин стойността се 'нормализира'
+                if ($result['value']) {
+                    $value = $result['value'];
+                }
+        
+                $this->setErrorFromResult($result, $field, $name);
+            }
+        
+            $this->rec->{$name} = $value;
+        }         
     }
     
     
@@ -393,8 +498,8 @@ class core_Form extends core_FieldSet
      */
     function renderInfo_()
     {
-        if (!$this->info)
-        return NULL;
+        if (!$this->info) return NULL;
+
         
         return new ET($this->info);
     }
@@ -729,11 +834,37 @@ class core_Form extends core_FieldSet
                     $vars[$field->name] = isset($rec[$field->name]) ? $rec[$field->name] : NULL;
                 }
             }
+            
+
         }
         
+        // Защита на id - параметъра
+        if($vars['id']) {
+            $mvc = $this->getMvc();
+            $vars['id'] = $mvc->protectId($vars['id']);
+        }
+ 
         return $vars;
     }
-    
+
+
+    /**
+     * Връща MVC класа, асоцииран към формата
+     */
+    function getMvc()
+    {
+        if(!($mvc = $this->mvc)) {
+            $ctr = $this->action['Ctr'];
+            if(!$ctr) {
+                expect($ctr = $this->action[0]);
+            }
+
+            $mvc = cls::get($ctr);
+        }
+        
+        return $mvc;
+    }
+
     
     /**
      * Рендира hidden полетата на формата

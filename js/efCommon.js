@@ -977,3 +977,22 @@ function appendQuote(id)
 		}
 	}
 }
+
+
+/**
+ * Добавя скрито инпут поле Cmd със стойност refresh
+ * 
+ * @param form
+ */
+function addCmdRefresh(form)
+{
+	var input = document.createElement("input");
+	
+	input.setAttribute("type", "hidden");
+
+	input.setAttribute("name", "Cmd");
+
+	input.setAttribute("value", "refresh");
+
+	form.appendChild(input);
+}
