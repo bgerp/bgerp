@@ -177,12 +177,16 @@ class type_Users extends type_Keylist
     {
         // Подготвяме опциите
         $this->prepareOptions();
-
-        // Вземаме първия от масива
-        $type = reset($this->options);
+        
+        // Ако подадения тип не е в опциите
+        if (!$typeObj = $this->options[$type]) {
+            
+            // Вземаме първия от масива
+            $typeObj = reset($this->options);    
+        }
         
         // Връщаме ключа
-        return $type->keylist;
+        return $typeObj->keylist;
     }
     
     
