@@ -1115,6 +1115,7 @@ class crm_Persons extends core_Master
         
         $query = static::getQuery();
         $query->where("#buzCompanyId = '{$companyId}'");
+        $query->where("#state != 'rejected'");
         
         // Извличаме всички потребители, които са свързани с фирмата
         while($rec = $query->fetch()) {
