@@ -175,7 +175,7 @@ class core_Detail extends core_Manager
                     $this,
                     'add',
                     $masterKey => $data->masterId,
-                    'ret_url' => array($data->masterMvc, 'single', $rec->{$masterKey})
+                    'ret_url' => array($data->masterMvc, 'single', $rec->{$masterKey}, 'Tab' => Request::get('Tab'))
                 ),
                 'id=btnAdd,class=btn-add');
         }

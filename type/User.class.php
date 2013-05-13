@@ -184,15 +184,22 @@ class type_User extends type_Key
     {
         // Подготвяме опциите
         $this->prepareOptions();
-
-        // Вземаме първия от масива
-        $type = reset($this->options);
         
         // Обхождаме опциите
         foreach ($this->options as $options) {
             
-            // Ако има стойност, връщаме я
-            if ($options->value) return $options->value;
+            // Вземаме стойността
+            $val = $options->value;
+            
+            if ($val) {
+                // Ако стойността е равна на търсената връщаме я
+                if ($val == $type) return $val;
+                
+                // Ако има стойност и няма първа стойност сетваме я
+                if (!$firstVal) $firstVal = $val;    
+            }
         }
+        
+        return $firstVal;
     }
 }

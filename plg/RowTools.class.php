@@ -92,27 +92,28 @@ class plg_RowTools extends core_Plugin
                 		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id}");
         			
         		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
-        			$deleteImg = "<img src=" . sbf('img/16/restore-icon.png') . " alt=\"" . tr('Възстановяване') . "\">";
+        			$restoreImg = "<img src=" . sbf('img/16/restore.png') . " alt=\"" . tr('Възстановяване') . "\">";
         				
-        			$deleteUrl = array(
+        			$restoreUrl = array(
 			            $mvc,
 			            'restore',
 			            'id' => $rec->id,
 			            'ret_url' => TRUE);
 			            
-			        $deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},class=btn-restore");
+			        $restoreLink = ht::createLink($restoreImg, $restoreUrl,
+                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id}");
         		}
         	}
         }
                 
-        if($singleLink || $editLink || $deleteLink) {
+        if ($singleLink || $editLink || $deleteLink || $restoreLink) {
             // Вземаме съдържанието на полето, като шаблон
             $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>");
             $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
             $tpl->append($singleLink, 'TOOLS');
             $tpl->append($editLink, 'TOOLS');
             $tpl->append($deleteLink, 'TOOLS');
+            $tpl->append($restoreLink, 'TOOLS');
             $row->{$field} = $tpl;
         }
     }
