@@ -2719,6 +2719,16 @@ div.locImage{
 		margin-top:3px;
 	}
 }
+.document.print-letter{
+	page-break-after:always;
+	max-width:850px;
+	float:none;
+	padding:15px;
+}
+
+.document.print-letter:last-child {
+     page-break-after: auto;
+}
 
 @media print{
 	.linkWithIcon, .docBgIcon,.button{

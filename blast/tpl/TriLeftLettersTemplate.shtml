@@ -1,5 +1,5 @@
 
-<div class='document' style='page-break-after:always;max-width:850px; float:none;'>
+<div class='document print-letter'>
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
@@ -48,9 +48,6 @@
 								</div>
 							<!--ET_END country-->
 						</div>
-						
-						
-					</div>
 			</td>
 			<td valign='top' style='padding-right:45px;'>
 						<div style='font-size: 20px;'>[#subject#]</div>
