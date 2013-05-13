@@ -103,7 +103,7 @@ class store_shipmentorders_Transaction
         expect($rec->id);
         
         // Извличаме базовата продажба
-        expect($sale = doc_Containers::getDocument($rec->originId));
+        expect($sale = $this->class->getOrigin($rec));
         expect($sale->getInstance() instanceof sales_Sales);
         
         // Преобразуване на трибуквен ISO код на валута към първичен ключ на валута

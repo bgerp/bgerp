@@ -1457,8 +1457,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Реализация по подразбиране на метод getDescendants()
      * 
-     * Метода връща референции към документите (от всевъзможни типове), чието основание (originId)
-     * е точно зададения чрез $originDocId документ.
+     * Метода връща референции към документите (от всевъзможни типове), които са от същата нишка
      * 
      * @param core_Mvc $mvc
      * @param array $chain масив от core_ObjectReference
@@ -1471,7 +1470,14 @@ class doc_DocumentPlg extends core_Plugin
         /* @var $query core_Query */
         $query = doc_Containers::getQuery();
         
-        $chainContainers = $query->fetchAll("#originId = " . $mvc->getContainer($originDocId)->id, 'id, originId');
+        $threadId   = $mvc->fetchField($originDocId, 'threadId');
+        $docClassId = $mvc->getClassId();
+        
+        $chainContainers = $query->fetchAll("
+            #threadId = {$threadId} 
+            AND #docId <> {$originDocId} 
+            AND #docClass <> {$docClassId}
+        ", 'id, originId');
         
         foreach ($chainContainers as $cc) {
             $chain[] = doc_Containers::getDocument($cc->id);

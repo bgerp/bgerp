@@ -191,8 +191,6 @@ class store_ShipmentOrderDetails extends core_Detail
         }
     
         $rec->amount = $rec->price * $rec->quantity;
-    
-        $rec->amount = round($rec->amount, 2);
     }
         
     
