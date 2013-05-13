@@ -178,4 +178,217 @@ class drdata_Countries extends core_Manager {
             }
         }
     }
+
+    public static function getIdByName($country)
+    {
+        $canonicNames = array(
+            'malta' => "malta",
+            'austria' => "austria",
+            'germany' => "germany",
+            'france' => "france",
+            'sweden' => "sweden",
+            'switzerland' => "switzerland",
+            'italy' => "italy",
+            'netherlands' => "netherlands",
+            'greece' => "greece",
+            'uk and spain' => "united kingdom",
+            'macedonia' => "macedonia",
+            'cyprus' => "cyprus",
+            'the netherlands' => "netherlands",
+            'belgium' => "belgium",
+            'nederlands' => "netherlands",
+            'spain' => "spain",
+            'german' => "germany",
+            'latvia' => "latvia",
+            'norway' => "norway",
+            'denmark' => "denmark",
+            'denmark' => "denmark",
+            'skopje macedonia' => "macedonia",
+            'united kingdom' => "united kingdom",
+            'ireland' => "ireland",
+            'romania' => "romania",
+            'norway' => "norway",
+            'malta-europe' => "malta",
+            'reggio emilia italia' => "italy",
+            'lithuania' => "lithuania",
+            'portugal' => "portugal",
+            'czech republic' => "czech republic",
+            'england' => "united kingdom",
+            'luxembourg' => "luxembourg",
+            'hungary' => "hungary",
+            'slovenia' => "slovenia",
+            'bosnia and hercegowina' => "bosnia and hercegowina",
+            'roamnia' => "romania",
+            'croatia' => "croatia",
+            'uk' => "united kingdom",
+            'estonia' => "estonia",
+            'untited kingdom' => "united kingdom",
+            'bosnia and herzegovina' => "bosnia and herzegovina",
+            'slovakia (slovak republic)' => "slovakia",
+            'finland' => "finland",
+            'sewden' => "sweden",
+            'italia' => "italy",
+            '08630 abrera-barcelona (spain)' => "spain",
+            'yugoslavia' => "yugoslavia",
+            'monaco' => "monaco",
+            'slovakia' => "slovakia",
+            'scotland' => "scotland",
+            'ch 8575 bürglen' => "switzerland",
+            'belgique' => "belgium",
+            'uk' => "united kingdom",
+            'kosovo' => "kosovo",
+            'nederland' => "netherlands",
+            'slowakische republik' => "slovakia",
+            'switzerland/italy' => "switzerland",
+            'italy' => "italy",
+            'hellas' => "greece",
+            'r. macedonia' => "macedonia",
+            'iceland' => "iceland",
+            'italia' => "italy",
+            'switerland' => "switzerland",
+            'mallorca - spain' => "spain",
+            'greece ltd.' => 'greece',
+            'castelnuovo della daunia (fg)it.' => 'italy',
+            'be' => "belgium",
+            'greeece' => "greece",
+            'north ireland' => "north ireland",
+            'serbia' => "serbia",
+            'torino ( italia )' => "italy",
+            'españa' => "spain",
+            'bry sur marne, france' => "france",
+            'malta' => "malta",
+            'slovak republic' => "slovakia",
+            'belgium' => "belgium",
+            'germany' => "germany",
+            'greece thesaloniki' => "greece",
+            'athens greece' => "greece",
+            'bonorva (ss) italy' => "italy",
+            'torino' => "italy",
+            'france' => "france",
+            'united kongdom' => "united kingdom",
+            'grèce' => "greece",
+            'holland' => "netherlands",
+            'andorra' => "andorra",
+            'belgium' => "belgium",
+            'italy' => "italy",
+            'cz' => "czech republic",
+            'san marino' => "san marino",
+            'gemany' => "germany",
+            'norvège' => "norway",
+            'lithuania' => "lithuania",
+            'ittaly' => "italy",
+            'finand' => "finland",
+            'spain' => "spain",
+            'greese' => "greece",
+            'slovenija' => "slovenia",
+            'latvia' => "latvia",
+            'ireland' => "ireland",
+            'czech  republic' => "",
+            'czech rep.' => "czech republic",
+            'swiss' => "switzerland",
+            'northern ireland' => "north ireland",
+            '37200 tours, france' => "france",
+            'netherlands' => "netherlands",
+            'charleville- france' => "france",
+            'estona' => "estonia",
+            'creece' => "greece",
+            'svitzerland' => "switzerland",
+            'switzerland' => "switzerland",
+            'latvijas republika' => "latvia",
+            'brugherio (mi) italia' => "italy",
+            'savona - italiy' => "italy",
+            'холандия' => "netherlands",
+            'македонија' => "macedonia",
+            'grottaglie (ta) - italia' => "italy",
+            'lituanie' => "lithuania",
+            'румъния' => "romaina",
+            'france' => "france",
+            'francе' => "france",
+            'yougoslavie' => "yugoslavia",
+            'danmark' => "denmark",
+            'stornara(fg)italia' => "italy",
+            'united kingdom, england' => "united kingdom",
+            'greece' => "greece",
+            'iraland' => "ireland",
+            'builgaria and uk' => "united kingdom",
+            'portugal' => "portugal",
+            'norawy' => "norway",
+            'liechtenstein' => "liechtenstein",
+            'roumanie' => "romania",
+            'romania' => "romania",
+            'slowenia' => "slovenia",
+            'belgium.' => "belgium",
+            'luxemburg' => "luxembourg",
+            'slovenska republika' => "slovenia",
+            'svizzera' => "switzerland",
+            'slovaquie' => "slovakia",
+            'marseille france' => "france",
+            'marseillr france' => "france",
+            'd' => "germany",
+            '1264 københavn k - denmark' => "denmark",
+            'chez republic' => "czech republic",
+            'deutschland' => "germany",
+            'greek' => "greece",
+            'espana' => "spain",
+            'lille france' => "france",
+            '2791 dragoer denmark' => "denmark",
+            'lithuania, central europe' => "lithuania",
+            'macedonia' => "macedonia",
+            'swizerland' => "switzerland",
+            'makedonija' => "macedonia" 
+        );
+
+        $country = mb_strtolower($country);
+
+        if($canonicalNames[$country]) {
+            $country = $canonicalNames[$country];
+        }
+
+        $rec = self::fetch(array("LOWER(#formalName) LIKE '[#1#]'", $country));
+
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#commonName) LIKE '[#1#]'", $country));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#commonNameBg) LIKE '[#1#]'", $country));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#commonName) LIKE '%[#1#]'", $country));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#commonNameBg) LIKE '%[#1#]'", $country));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#formalName) LIKE '%[#1#]'", $country));
+        }
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#commonName) LIKE '%[#1#]%'", $country));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", $country));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#formalName) LIKE '%[#1#]%'", $country));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#letterCode2) LIKE '[#1#]'", $country));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#letterCode3) LIKE '[#1#]'", $country));
+        }
+
+        if($rec) {
+
+            return $rec->id;
+        }
+
+    }
 }
