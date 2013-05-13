@@ -459,7 +459,7 @@ class sales_SalesDetails extends core_Detail
                 // Потребителя въвежда цените с ДДС
                 $rec->packPrice = $rec->packPrice / (1 + $rec->vatPercent);
                 
-                // Изчисляваме цената за единца продукт в осн. мярка
+                // Изчисляваме цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
             }
             
