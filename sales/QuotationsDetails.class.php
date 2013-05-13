@@ -198,6 +198,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	} else {
 	    		$vat = cat_Products::getVat($form->rec->productId, $masterRec->date);
        			$rec->price = $rec->price / (1 + $vat);
+	    		$rec->price = round($rec->price * $masterRec->rate, 2);
 	    	}
     	}
     }
