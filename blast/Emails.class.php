@@ -726,6 +726,8 @@ class blast_Emails extends core_Master
         $cid = Request::get('id');
         $uns = Request::get("uns");
         
+        expect($cid && $mid);
+        
         //Сменяме езика за да може да  се преведат съобщенията
         core_Lg::push($lang);
 
