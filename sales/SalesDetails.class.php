@@ -143,7 +143,7 @@ class sales_SalesDetails extends core_Detail
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма
         // packagingId)
-        $this->FNC('packPrice', 'float(minDecimals=2)', 'caption=Цена,input=input');
+        $this->FNC('packPrice', 'float(minDecimals=2,maxDecimals=100)', 'caption=Цена,input=input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FLD('vatPercent', 'percent', 'caption=ДДС,input=none');
@@ -384,6 +384,7 @@ class sales_SalesDetails extends core_Detail
         
         if (!empty($data->form->rec->packPrice)) {
             $salesRec = sales_Sales::fetch($data->form->rec->saleId);
+            $data->form->rec->packPrice = $data->form->rec->packPrice * (1 + $data->form->rec->vatPercent);
             $data->form->rec->packPrice = $data->form->rec->packPrice / $salesRec->currencyRate;
         }
     }
@@ -453,7 +454,12 @@ class sales_SalesDetails extends core_Detail
                 // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
                 // на продажбата. Конвертираме цената към основна валута по курса, зададен
                 // в мастър-продажбата.
-                $rec->packPrice = $masterRec->currencyRate * $rec->packPrice; 
+                $rec->packPrice = $masterRec->currencyRate * $rec->packPrice;
+                
+                // Потребителя въвежда цените с ДДС
+                $rec->packPrice = $rec->packPrice / (1 + $rec->vatPercent);
+                
+                // Изчисляваме цената за единца продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
             }
             
