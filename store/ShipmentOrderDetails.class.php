@@ -102,7 +102,7 @@ class store_ShipmentOrderDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, quantity, price, discount, amount';
+    public $listFields = 'productId, packQuantity, packagingId, uomId, price, discount, amount';
     
         
     /**
@@ -124,7 +124,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         
         // Количество в основна мярка
-        $this->FLD('quantity', 'float', 'caption=К-во,input=none');
+        $this->FLD('quantity', 'double', 'caption=К-во,input=none');
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
