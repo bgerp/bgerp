@@ -33,20 +33,21 @@
 #invoice-header{
 	width:100%;
 	overflow:hidden;
-	padding-top:5px;
+	padding-top:20px;
 	padding-bottom:15px;
+	min-height:200px;
 }
 
 #titleHolder{
 	float:left;
 	display:inline-block;
-	width:50%;
+	width:53%;
 }
 
 #contragent-data{
 	float:right;
 	display:inline-block;
-	width:50%;
+	width:47%;
 }
 
 #invoiceTitle2{
@@ -77,8 +78,8 @@
 }
 
 .contragent-vat{
-	padding-top:15px;
-	font-size:12px;
+	padding-top:20px;
+	font-size:14px;
 	font-weight:bold;
 }
 
