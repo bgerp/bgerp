@@ -121,7 +121,7 @@ class captcha_Type extends core_Type {
         
         $font = dirname(__FILE__) . '/fonts/arial.ttf';
         
-        $code = core_Cache::get(CAPTCHA_CACHE_TYPE, Request::get('id'));
+        $code = core_Cache::get(CAPTCHA_CACHE_TYPE, Request::get('id', 'int'));
         
         /* font size will be 75% of the image height */
         $font_size = $height * 0.75;
