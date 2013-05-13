@@ -510,7 +510,7 @@ class pos_Receipts extends core_Master {
         $this->requireRightFor('single');
     	$id = Request::get('id', 'int');
         if(!$id) {
-        	$id = Request::get('receiptId');
+        	$id = Request::get('receiptId', 'int');
         }
         $data = new stdClass();
         expect($data->rec = $this->fetch($id));
