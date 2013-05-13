@@ -195,8 +195,10 @@ class bank_ExchangeDocument extends core_Master
 		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
 		    	
-		    // Каква сума очакваме да е въведена
-		    $expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode, $dCode);
+    		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $cCode, $dCode)){
+		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    					   Сигурни ли сте че искате да запишете документа');
+		    }
 		    
 		    // Каква е равностойноста на обменената сума в основната валута за периода
 		    if($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)){
@@ -204,41 +206,7 @@ class bank_ExchangeDocument extends core_Master
 		    } else {
 		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
 		    }
-		    
-		    
-		    
-		    // Проверяваме дали дебитната сума има голяма разлика
-		    // спрямо очакваната, ако да сетваме предупреждение
-		    if(!static::compareAmounts($rec->debitQuantity, $expAmount)) {
-		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
-		    					   Сигурни ли сте че искате да запишете документа');
-		    }
 		}
-    }
-    
-    
-    /**
-     *  Функция проверяваща колко '%' е отклонението от очакваната
-     *  сума и тази получена след превалутирането
-     *  @param double $givenAmount - Въведената сума
-     *  @param double $expAmount - Очакваната сума
-     *  @return boolean TRUE/FALSE - Имали голямо отклонение
-     */
-    static function compareAmounts($givenAmount, $expAmount)
-    {
-    	$conf = core_Packs::getConfig('bank');
-    	$percent = $conf->BANK_EXCHANGE_DIFFERENCE;
-		    	
-		// Намираме разликата в проценти между реалната и очакваната
-		// дебитна сума. Ако разликата им е по-голяма от 5%
-		// връщаме FALSE
-		$difference = abs($givenAmount - $expAmount) / min($givenAmount, $expAmount) * 100;
-		if(round($difference, 2) > $percent) {
-		    
-			return FALSE;
-		} 
-		
-		return TRUE;
     }
     
     
