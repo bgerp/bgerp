@@ -128,7 +128,7 @@ class cms_Articles extends core_Manager
 		//bp($conf->CMS_OGRAPH_IMAGE, toUrl($conf->CMS_OGRAPH_IMAGE,'absolute'));
         Mode::set('cmsLayout', $conf->CMS_THEME . '/Articles.shtml');
 
-        $id = Request::get('id');
+        $id = Request::get('id', 'int');
         
         if(!$id || !is_numeric($id)) { 
             $menuId =  Mode::get('cMenuId');
