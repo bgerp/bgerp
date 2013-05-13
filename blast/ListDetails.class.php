@@ -217,8 +217,9 @@ class blast_ListDetails extends core_Detail
     function act_Stop()
     {
         // id' то на записа
-        $id = Request::get('id');
-        $id = $this->db->escape($id);
+        $id = Request::get('id', 'int');
+        
+        expect($id);
         
         // Очакваме да има такъв запис
         $rec = $this->fetch($id);
@@ -243,8 +244,9 @@ class blast_ListDetails extends core_Detail
     function act_Activate()
     {
         // id' то на записа
-        $id = Request::get('id');
-        $id = $this->db->escape($id);
+        $id = Request::get('id', 'int');
+        
+        expect($id);
         
         // Очакваме да има такъв запис
         $rec = $this->fetch($id);
