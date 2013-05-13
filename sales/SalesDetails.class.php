@@ -126,7 +126,8 @@ class sales_SalesDetails extends core_Detail
         // Количество в основна мярка
         $this->FLD('quantity', 'float', 'caption=Количество,input=none');
         
-        $this->FLD('quantityDelivered', 'float(decimals=2)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
+        $this->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
+        $this->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
         
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
@@ -179,6 +180,22 @@ class sales_SalesDetails extends core_Detail
         }
         
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+    }
+    
+    
+    /**
+     * Изчисляване на доставеното количеството на реда в брой опаковки
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function on_CalcPackQuantityDelivered(core_Mvc $mvc, $rec)
+    {
+        if (empty($rec->quantityDelivered) || empty($rec->quantityInPack)) {
+            return;
+        }
+        
+        $rec->packQuantityDelivered = $rec->quantityDelivered / $rec->quantityInPack;
     }
     
     
@@ -360,7 +377,7 @@ class sales_SalesDetails extends core_Detail
                 
                 $row->quantity = new core_ET('
                     <div style="float: left; width: 50%; text-align: left;">[#packQuantity#]</div>
-                    <div style="float: right; width: 50%; margin-left: -6px;">[#quantityDelivered#]</div>
+                    <div style="float: right; width: 50%; margin-left: -6px;">[#packQuantityDelivered#]</div>
                 ');
                 $row->quantity->placeObject($row);
             }
