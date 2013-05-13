@@ -633,7 +633,7 @@ class forum_Postings extends core_Detail {
 	function act_Move()
 	{
 		$this->requireRightFor('write');
-		expect($id = Request::get('themeId'));
+		expect($id = Request::get('themeId', 'int'));
 		expect($rec = $this->fetch($id));
 		
 		$data = new stdClass();
