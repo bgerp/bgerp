@@ -134,7 +134,7 @@ class cms_Articles extends core_Manager
             $menuId =  Mode::get('cMenuId');
 
             if(!$menuId) {
-                $menuId = Request::get('menuId');
+                $menuId = Request::get('menuId', 'int');
             }
             if(!$menuId) {
                 return new Redirect(array('Index'));
