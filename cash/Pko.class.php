@@ -239,7 +239,7 @@ class cash_Pko extends core_Master
 		    if(!$rec->rate){
 		    	
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = round(1/currency_CurrencyRates::getRate($rec->valior, NULL, $currencyCode, 4));
+		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
 		    } else {
 		    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
 		    		$form->setWarning('rate', 'Въведения курс има много голяма разлика спрямо очакваната');
