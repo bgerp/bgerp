@@ -311,9 +311,13 @@ class sales_SalesDetails extends core_Detail
         }
         
         foreach ($recs as $rec) {
+            // Начисляваме ДДС, при нужда
             if ($salesRec->chargeVat == 'yes') {
                 $rec->packPrice = $rec->packPrice * (1 + $rec->vatPercent);
             }
+            
+            // Конвертираме цените във валутата на продажбата
+            $rec->packPrice = $rec->packPrice / $salesRec->currencyRate;
             
             $rec->amount = $rec->packPrice * $rec->packQuantity;
             $rec->amount = round($rec->amount, 2);
@@ -377,6 +381,11 @@ class sales_SalesDetails extends core_Detail
             $data->form->setField('policyId', 'input=hidden');
             $data->form->setOptions('productId', $Policy->getProducts($data->masterRec->contragentClassId, $data->masterRec->contragentId));
         }
+        
+        if (!empty($data->form->rec->packPrice)) {
+            $salesRec = sales_Sales::fetch($data->form->rec->saleId);
+            $data->form->rec->packPrice = $data->form->rec->packPrice / $salesRec->currencyRate;
+        }
     }
     
     
@@ -437,18 +446,14 @@ class sales_SalesDetails extends core_Detail
             }
               
             if (empty($rec->packPrice)) {
+                // Цената идва от ценоразписа. От ценоразписа цените идват в основна валута и 
+                // няма нужда от конвертиране.
                 $rec->price = $policyInfo->price;
-
-                // Цената идва от ценоразписа в основна валута. Конвертираме я към валутата
-                // на продажбата.
-                $rec->price = 
-                    currency_CurrencyRates::convertAmount(
-                        $rec->price, 
-                        $masterRec->valior, 
-                        NULL, // Основната валута към $masterRec->date
-                        $masterRec->currencyId
-                    );
             } else {
+                // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
+                // на продажбата. Конвертираме цената към основна валута по курса, зададен
+                // в мастър-продажбата.
+                $rec->packPrice = $masterRec->currencyRate * $rec->packPrice; 
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
             }
             
