@@ -102,7 +102,7 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packQuantity=Количество->Поръчано, quantityDelivered=Количество->Доставено, packagingId, uomId, packPrice, discount, amount';
+    public $listFields = 'productId, quantity, packagingId, uomId, packPrice, discount, amount';
     
         
     /**
@@ -124,7 +124,7 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
 
         // Количество в основна мярка
-        $this->FLD('quantity', 'float', 'caption=К-во (ед),input=none');
+        $this->FLD('quantity', 'float', 'caption=Количество,input=none');
         
         $this->FLD('quantityDelivered', 'float(decimals=2)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
         
@@ -357,6 +357,12 @@ class sales_SalesDetails extends core_Detail
                     $shortUomName = cat_UoM::fetchField($rec->uomId, 'shortName');
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
+                
+                $row->quantity = new core_ET('
+                    <div style="float: left; width: 50%; text-align: left;">[#packQuantity#]</div>
+                    <div style="float: right; width: 50%; margin-left: -6px;">[#quantityDelivered#]</div>
+                ');
+                $row->quantity->placeObject($row);
             }
         }
 
