@@ -206,7 +206,7 @@ class cams_Cameras extends core_Master
      */
     function act_ApplyPtzCmd()
     {
-        if(!($id = Request::get('id'))) return new Redirect(array($this));
+        if(!($id = Request::get('id', 'int'))) return new Redirect(array($this));
         
         if(!($rec = $this->fetch($id))) return new Redirect(array($this));
         
