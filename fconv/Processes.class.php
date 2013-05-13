@@ -76,7 +76,7 @@ class fconv_Processes extends core_Manager
         
         if ($result) {
             if (core_Os::deleteDir($script->tempDir)) {
-                fconv_Processes::delete("#processId = '{$pid}'");
+                fconv_Processes::delete(array("#processId = '[#1#]'", $pid));
                 
                 return TRUE;
             }
