@@ -626,7 +626,7 @@ class doc_Containers extends core_Manager
      */
     function act_Activate()
     {
-        $containerId = Request::get('containerId');
+        $containerId = Request::get('containerId', 'int');
         
         //Очакваме да име
         expect($containerId);
