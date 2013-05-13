@@ -233,6 +233,18 @@ class sales_Quotations extends core_Master
 			$personRec = crm_Persons::fetch($rec->receiver);
 			$row->personPosition = crm_Persons::recToVerbal($personRec, 'buzPosition')->buzPosition;
 		}
+		
+		switch($rec->vat){
+			case 'yes':
+				$row->vat = tr('с начислено');
+				break;
+			case 'freed':
+				$row->vat = tr('освободено от');
+				break;
+			case 'export':
+				$row->vat = tr('без начисление на');
+				break;
+		}
     }
     
     
@@ -309,5 +321,16 @@ class sales_Quotations extends core_Master
         
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
+    }
+    
+    
+	/**
+     * Документи-оферти могат да се добавят само в папки с корица контрагент.
+     */
+    public static function canAddToFolder($folderId)
+    {
+        $coverClass = doc_Folders::fetchCoverClassName($folderId);
+    
+        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     }
 }
