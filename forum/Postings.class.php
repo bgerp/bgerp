@@ -394,7 +394,7 @@ class forum_Postings extends core_Detail {
 	 */
 	function act_New()
 	{
-		expect($boardId = Request::get('boardId'));
+		expect($boardId = Request::get('boardId', 'int'));
 		expect($rec = $this->Master->fetch($boardId));
 		$this->requireRightFor('add', $rec);
 		
