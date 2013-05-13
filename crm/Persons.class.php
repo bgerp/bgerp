@@ -821,6 +821,7 @@ class crm_Persons extends core_Master
         if(!$data->query) {
             $query = $this->getQuery();
             $query->where("#buzCompanyId = {$data->masterId}");
+            $query->where("#state != 'rejected'");
         } else {
             $query = $data->query;
         }
