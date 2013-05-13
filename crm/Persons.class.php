@@ -821,6 +821,7 @@ class crm_Persons extends core_Master
         if(!$data->query) {
             $query = $this->getQuery();
             $query->where("#buzCompanyId = {$data->masterId}");
+            $query->where("#state != 'rejected'");
         } else {
             $query = $data->query;
         }
@@ -1114,6 +1115,7 @@ class crm_Persons extends core_Master
         
         $query = static::getQuery();
         $query->where("#buzCompanyId = '{$companyId}'");
+        $query->where("#state != 'rejected'");
         
         // Извличаме всички потребители, които са свързани с фирмата
         while($rec = $query->fetch()) {

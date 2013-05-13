@@ -117,7 +117,7 @@ class pos_Receipts extends core_Master {
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
-    	$id = Request::get('id');
+    	$id = Request::get('id', 'int');
     	if($action == 'single' && !$id) {
     		
     			// Ако не е зададено Ид, намираме кой е последно добавената бележка
@@ -378,10 +378,12 @@ class pos_Receipts extends core_Master {
     {
     	$total = 0;
     	$query = pos_ReceiptDetails::getQuery();
+    	$date = $this->fetchField($id, 'createdOn');
     	$query->where("#receiptId = {$id}");
     	$query->where("#action LIKE '%sale%'");
     	while($dRec = $query->fetch()) {
-    		$total += $dRec->amount;
+    		$vat = cat_Products::getVat($dRec->productId, $date);
+    		$total += $dRec->amount + ($dRec->amount * $vat);
     	}
     	
     	return $total;
@@ -508,7 +510,7 @@ class pos_Receipts extends core_Master {
         $this->requireRightFor('single');
     	$id = Request::get('id', 'int');
         if(!$id) {
-        	$id = Request::get('receiptId');
+        	$id = Request::get('receiptId', 'int');
         }
         $data = new stdClass();
         expect($data->rec = $this->fetch($id));

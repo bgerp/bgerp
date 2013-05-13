@@ -350,12 +350,15 @@ class blast_Letters extends core_Master
      */
     function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
-        // Фетчваме детайла за съответния лист
-        $detailRec = blast_ListDetails::fetch($options->__toListId);
+        if ($options->__toListId) {
+            
+            // Фетчваме детайла за съответния лист
+            $detailRec = blast_ListDetails::fetch($options->__toListId);    
         
-        // Десериализираме данните
-        $data = unserialize($detailRec->data);
-
+            // Десериализираме данните
+            $data = unserialize($detailRec->data);
+        }
+        
         // Ако има id
         if ($id) {
             

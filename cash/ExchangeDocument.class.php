@@ -189,22 +189,17 @@ class cash_ExchangeDocument extends core_Master
 		    $rec->creditPrice = $cRate;
 		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
-		    	
-		    // Каква сума очакваме да е въведена
-		    $expAmount = currency_CurrencyRates::convertAmount($rec->creditQuantity, $rec->valior, $cCode, $dCode);
-    		
+		   
+		    if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $cCode, $dCode)){
+		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    					   Сигурни ли сте че искате да запишете документа');
+		    }
+		    
 		    // Каква е равностойноста на обменената сума в основната валута за периода
 		    if($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)){
 		    	$rec->equals = $rec->creditQuantity * $rec->rate;
 		    } else {
 		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
-		    }
-		    	
-		    // Проверяваме дали дебитната сума има голяма разлика
-		    // спрямо очакваната, ако да сетваме предупреждение
-		    if(!bank_ExchangeDocument::compareAmounts($rec->debitQuantity, $expAmount)) {
-		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
-		    					   Сигурни ли сте че искате да запишете документа');
 		    }
     	}
     }

@@ -173,7 +173,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$action = $mvc->getAction($rec->action);
     	switch($action->type) {
     		case "sale":
-    			$mvc->renderSale($rec, $row);
+    			$mvc->renderSale($rec, $row, $receiptDate);
     			break;
     		case "payment":
     			$row->actionValue = pos_Payments::getTitleById($action->value);
@@ -202,13 +202,17 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * Рендира информацията за направената продажба
      */
-    function renderSale($rec, &$row)
+    function renderSale($rec, &$row, $receiptDate)
     {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
+    	
+    	$vat = cat_Products::getVat($rec->productId, $receiptDate);
+    	$row->price = $double->toVerbal($rec->price + ($rec->price * $vat));
+    	$row->amount = $double->toVerbal($rec->amount + ($rec->amount * $vat));
     	
     	$row->productId = $varchar->toVerbal($productInfo->productRec->name);
     	$row->code = $varchar->toVerbal($productInfo->productRec->code);

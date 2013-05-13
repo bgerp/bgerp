@@ -574,6 +574,10 @@ class blast_Emails extends core_Master
         
         // Въвеждаме съдържанието на полетата
         $form->input('sendPerMinute, startOn');
+
+        // Стойности по подразбиране
+        $form->setDefault('sendPerMinute', $rec->sendPerMinute);
+        $form->setDefault('startOn', $rec->startOn);
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
         if($form->isSubmitted()) {
@@ -723,8 +727,10 @@ class blast_Emails extends core_Master
         //GET променливите от линка
         $mid = Request::get("m");
         $lang = Request::get("l");
-        $cid = Request::get('id');
+        $cid = Request::get('id', 'int');
         $uns = Request::get("uns");
+        
+        expect($cid && $mid);
         
         //Сменяме езика за да може да  се преведат съобщенията
         core_Lg::push($lang);

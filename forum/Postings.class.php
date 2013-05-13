@@ -103,7 +103,7 @@ class forum_Postings extends core_Detail {
     	$data->form->title = tr("Започване на нова тема в") . " <b>{$boardRow->title}</b>";
     	
     	// Ако постинга е коментар
-    	if($themeId = Request::get('themeId')) {
+    	if($themeId = Request::get('themeId', 'int')) {
     		
     		expect($themeRec = static::fetch($themeId));
     		$themeRow = $mvc->Master->recToVerbal($themeRec, 'id,title');
@@ -394,7 +394,7 @@ class forum_Postings extends core_Detail {
 	 */
 	function act_New()
 	{
-		expect($boardId = Request::get('boardId'));
+		expect($boardId = Request::get('boardId', 'int'));
 		expect($rec = $this->Master->fetch($boardId));
 		$this->requireRightFor('add', $rec);
 		
@@ -633,7 +633,7 @@ class forum_Postings extends core_Detail {
 	function act_Move()
 	{
 		$this->requireRightFor('write');
-		expect($id = Request::get('themeId'));
+		expect($id = Request::get('themeId', 'int'));
 		expect($rec = $this->fetch($id));
 		
 		$data = new stdClass();

@@ -190,6 +190,7 @@ class sales_Sales extends core_Master
             'caption=Плащане->Начин,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)',
             'caption=Плащане->Валута');
+        $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)',
             'caption=Плащане->Банкова сметка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
@@ -304,6 +305,10 @@ class sales_Sales extends core_Master
         
         // Описателното (вербалното) състояние на документа
         $tpl->replace($data->row->state, 'stateText');
+        
+        if ($data->rec->currencyRate != 1) {
+            $tpl->replace('(<span class="quiet">' . tr('курс') . "</span> {$data->row->currencyRate})", 'currencyRateText');
+        }
     }
     
     
@@ -683,6 +688,17 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+        if (!$form->isSubmitted()) {
+            return;
+        }
+        
+        /*
+         * Ако не е въведен валутен курс, използва се курса към датата на документа 
+         */
+        if (empty($form->rec->currencyRate)) {
+            $form->rec->currencyRate = 
+                currency_CurrencyRates::getRate($form->rec->valior, $form->rec->currencyId, NULL);
+        }
     }
     
     

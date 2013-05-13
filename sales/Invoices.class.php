@@ -214,7 +214,17 @@ class sales_Invoices extends core_Master
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
-            return;
+           if(!$form->rec->rate){
+        		$form->rec->rate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->currencyId, NULL), 4);
+        	}
+        
+    		if(!currency_CurrencyRates::hasDeviation($form->rec->rate, $form->rec->date, $form->rec->currencyId, NULL)){
+		    	$form->setWarning('rate', 'Въведения курс има много голяма разлика спрямо очакваната');
+			}
+		    	
+        	$Vats = cls::get('drdata_Vats');
+        	$form->rec->contragentVatNo = $Vats->canonize($form->rec->contragentVatNo);
+        	return;
         }
 
         acc_Periods::checkDocumentDate($form);
@@ -222,13 +232,6 @@ class sales_Invoices extends core_Master
         foreach ($mvc->fields as $fName=>$field) {
             $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
         }
-        
-        if(!$form->rec->rate){
-        	$form->rec->rate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->currencyId), 4);
-        }
-        
-        $Vats = cls::get('drdata_Vats');
-        $form->rec->contragentVatNo = $Vats->canonize($form->rec->contragentVatNo);
 	}
     
 	
@@ -387,7 +390,8 @@ class sales_Invoices extends core_Master
      */
     static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($rec->dealValue  && $fields['-single']){
+    	if($fields['-single']){
+    		
     		$mvc::prepareAdditionalInfo($rec);
     	}
     }
@@ -399,15 +403,17 @@ class sales_Invoices extends core_Master
      */
     private static function prepareAdditionalInfo(&$rec)
     {
-    	$rec->baseAmount = $rec->dealValue;
-    	$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
-    	$rec->vatPercent = $rec->vatAmount = 0;
-    	if($rec->vatRate == 'yes'){
-    		$period = acc_Periods::fetchByDate($rec->date);
-    		$rec->vatAmount = $rec->baseAmount * $period->vatRate;
-			$rec->vatPercent = $period->vatRate;
-		}
-		$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
+    	if($rec->dealValue  && $rec->rate){
+	    	$rec->baseAmount = $rec->dealValue;
+	    	$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
+	    	$rec->vatPercent = $rec->vatAmount = 0;
+	    	if($rec->vatRate == 'yes'){
+	    		$period = acc_Periods::fetchByDate($rec->date);
+	    		$rec->vatAmount = $rec->baseAmount * $period->vatRate;
+				$rec->vatPercent = $period->vatRate;
+			}
+			$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
+    	}
     }
     
     
@@ -498,6 +504,10 @@ class sales_Invoices extends core_Master
     	}
         
         $rec->contragentCountryId = $contragentData->countryId;
+        if(!$rec->contragentCountryId){
+        	$myCompany = crm_Companies::fetchOwnCompany();
+        	$rec->contragentCountryId = $myCompany->countryId;
+        }
         
         if (!empty($contragentData->company)) {
             // Случай 1 или 2: има данни за фирма
@@ -516,13 +526,10 @@ class sales_Invoices extends core_Master
             $rec->contragentAddress = $contragentData->pAddress;
         }
         
-        if (!empty($rec->contragentCountryId)) {
-            $rec->currencyId = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
-            
-            if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
+        $rec->currencyId = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
+        if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 	        	$form->setDefault('accountId', $ownAcc);
 	        } 
-        }
     }
     
     
@@ -745,8 +752,7 @@ class sales_Invoices extends core_Master
         }
         
       	$result->entries = $entries;
-      	//bp($result);
-        return $result;
+      	return $result;
     }
     
     

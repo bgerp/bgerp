@@ -106,30 +106,33 @@ class sales_QuotationsDetails extends core_Detail {
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
-    	
-    	foreach($recs as $id => $rec){
-    		$rec->vat = cat_Products::getVat($rec->productId, $masterRec->date);
-    		
-    		// Цената с добавено ДДС и конвертирана
-    		$price = round($rec->price / $masterRec->rate, 2);
-	    	if($applyVat){
-	    		$price = $price + ($price * $rec->vat);
-	    	}
-	    	$rec->vatPrice = $price;
-	    	
-	    	// Сумата с добавено ддс и конвертирана
-    		if($rec->amount != '???'){
-	    		$rec->convAmount = round($rec->amount / $masterRec->rate, 2);
-		    	if($applyVat){
-		    		$rec->convAmount = $rec->convAmount + ($rec->convAmount * $rec->vat);
+    	if($recs){
+	    	foreach($recs as $id => $rec){
+	    		$rec->vat = cat_Products::getVat($rec->productId, $masterRec->date);
+	    		
+	    		// Цената с добавено ДДС и конвертирана
+	    		if($applyVat){
+		    		$price = $rec->price + ($rec->price * $rec->vat);
 		    	}
-    		}
-    		
-    		// Отстъпката с добавено ДДС и конвертирана
-	    	if($rec->discAmount){
-	    		$rec->discAmountVat= round($rec->discAmount / $masterRec->rate, 2);
-		    	if($applyVat){
-			    	$rec->discAmountVat = $rec->discAmountVat + ($rec->discAmountVat * $rec->vat);
+	    		$price = round($price / $masterRec->rate, 2);
+		    	
+	    		$rec->vatPrice = $price;
+		    	
+		    	// Сумата с добавено ддс и конвертирана
+	    		if($rec->amount != '???'){
+	    			if($applyVat){
+			    		$convAmount = $rec->amount + ($rec->amount * $rec->vat);
+			    	}
+			    	
+	    			$rec->convAmount = round($convAmount / $masterRec->rate, 2);
+			    }
+	    		
+	    		// Отстъпката с добавено ДДС и конвертирана
+		    	if($rec->discAmount){
+		    		if($applyVat){
+				    	$discAmountVat = $rec->discAmount + ($rec->discAmount * $rec->vat);
+				    }
+		    		$rec->discAmountVat= round($discAmountVat / $masterRec->rate, 2);
 			    }
 	    	}
     	}
@@ -161,6 +164,12 @@ class sales_QuotationsDetails extends core_Detail {
        $Policy = cls::get($form->rec->policyId);
        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
        $form->setOptions('productId', $products);
+       
+       if($form->rec->price && $masterRec->rate){
+       	 	$price = round($form->rec->price / $masterRec->rate, 2);
+       	 	$vat = cat_Products::getVat($form->rec->productId, $masterRec->date);
+       		$form->rec->price = $price + ($price * $vat);
+       }
     }
     
     
@@ -186,6 +195,10 @@ class sales_QuotationsDetails extends core_Detail {
 	    		if(!$rec->discount){
 	    			$rec->discount = $price->discount;
 	    		}
+	    	} else {
+	    		$vat = cat_Products::getVat($form->rec->productId, $masterRec->date);
+       			$rec->price = $rec->price / (1 + $vat);
+	    		$rec->price = round($rec->price * $masterRec->rate, 2);
 	    	}
     	}
     }

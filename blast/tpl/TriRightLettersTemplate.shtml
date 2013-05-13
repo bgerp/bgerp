@@ -1,5 +1,5 @@
 
-<div class='document' style='page-break-after:always;max-width:850px;float:none;'>
+<div class='document print-letter'>
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
@@ -13,7 +13,6 @@
 				<td width=48% style='padding-right:75px;'>
 						<div style='color: #636363;text-decoration: underline;'>|Получател|*:</div>
 						<div style='font-size: 16px;min-height:135px'>
-						
 							<!--ET_BEGIN attn-->
 								<div>
 									[#attn#]
@@ -54,9 +53,9 @@
 			</td>
 		</tr>
 	</table>
-	</div>	
+	</div>
 	<div style='clear: both'></div>
-	
+		
 	<div class='textPart' style='text-align: justify; padding: 0 15px; margin-top:50px; max-width:900px'>
 		[#body#]
 	</div>

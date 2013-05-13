@@ -102,7 +102,7 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packQuantity=Количество->Поръчано, quantityDelivered=Количество->Доставено, packagingId, uomId, packPrice, discount, amount';
+    public $listFields = 'productId, quantity, packagingId, uomId, packPrice, discount, amount';
     
         
     /**
@@ -124,9 +124,10 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
 
         // Количество в основна мярка
-        $this->FLD('quantity', 'float', 'caption=К-во (ед),input=none');
+        $this->FLD('quantity', 'float', 'caption=Количество,input=none');
         
-        $this->FLD('quantityDelivered', 'float(decimals=2)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
+        $this->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
+        $this->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
         
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
@@ -143,7 +144,7 @@ class sales_SalesDetails extends core_Detail
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма
         // packagingId)
-        $this->FNC('packPrice', 'float(minDecimals=2)', 'caption=Цена,input=input');
+        $this->FNC('packPrice', 'float(minDecimals=2,maxDecimals=100)', 'caption=Цена,input=input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
         $this->FLD('vatPercent', 'percent', 'caption=ДДС,input=none');
@@ -179,6 +180,22 @@ class sales_SalesDetails extends core_Detail
         }
         
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+    }
+    
+    
+    /**
+     * Изчисляване на доставеното количеството на реда в брой опаковки
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function on_CalcPackQuantityDelivered(core_Mvc $mvc, $rec)
+    {
+        if (empty($rec->quantityDelivered) || empty($rec->quantityInPack)) {
+            return;
+        }
+        
+        $rec->packQuantityDelivered = $rec->quantityDelivered / $rec->quantityInPack;
     }
     
     
@@ -311,12 +328,16 @@ class sales_SalesDetails extends core_Detail
         }
         
         foreach ($recs as $rec) {
+            // Начисляваме ДДС, при нужда
             if ($salesRec->chargeVat == 'yes') {
                 $rec->packPrice = $rec->packPrice * (1 + $rec->vatPercent);
             }
             
+            // Конвертираме цените във валутата на продажбата
+            $rec->packPrice = $rec->packPrice / $salesRec->currencyRate;
+            
             $rec->amount = $rec->packPrice * $rec->packQuantity;
-            $rec->amount = sales_Sales::roundPrice($rec->amount);
+            $rec->amount = round($rec->amount, 2);
             
             $salesRec->amountDeal += $rec->amount;
         }
@@ -353,6 +374,12 @@ class sales_SalesDetails extends core_Detail
                     $shortUomName = cat_UoM::fetchField($rec->uomId, 'shortName');
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
+                
+                $row->quantity = new core_ET('
+                    <div style="float: left; width: 50%; text-align: left;">[#packQuantity#]</div>
+                    <div style="float: right; width: 50%; margin-left: -6px;">[#packQuantityDelivered#]</div>
+                ');
+                $row->quantity->placeObject($row);
             }
         }
 
@@ -376,6 +403,12 @@ class sales_SalesDetails extends core_Detail
             
             $data->form->setField('policyId', 'input=hidden');
             $data->form->setOptions('productId', $Policy->getProducts($data->masterRec->contragentClassId, $data->masterRec->contragentId));
+        }
+        
+        if (!empty($data->form->rec->packPrice)) {
+            $salesRec = sales_Sales::fetch($data->form->rec->saleId);
+            $data->form->rec->packPrice = $data->form->rec->packPrice * (1 + $data->form->rec->vatPercent);
+            $data->form->rec->packPrice = $data->form->rec->packPrice / $salesRec->currencyRate;
         }
     }
     
@@ -437,18 +470,19 @@ class sales_SalesDetails extends core_Detail
             }
               
             if (empty($rec->packPrice)) {
+                // Цената идва от ценоразписа. От ценоразписа цените идват в основна валута и 
+                // няма нужда от конвертиране.
                 $rec->price = $policyInfo->price;
-
-                // Цената идва от ценоразписа в основна валута. Конвертираме я към валутата
-                // на продажбата.
-                $rec->price = 
-                    currency_CurrencyRates::convertAmount(
-                        $rec->price, 
-                        $masterRec->date, 
-                        NULL, // Основната валута към $masterRec->date
-                        $masterRec->currencyId
-                    );
             } else {
+                // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
+                // на продажбата. Конвертираме цената към основна валута по курса, зададен
+                // в мастър-продажбата.
+                $rec->packPrice = $masterRec->currencyRate * $rec->packPrice;
+                
+                // Потребителя въвежда цените с ДДС
+                $rec->packPrice = $rec->packPrice / (1 + $rec->vatPercent);
+                
+                // Изчисляваме цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
             }
             

@@ -103,7 +103,7 @@
                         <!--ET_END paymentMethodId-->
                         
                         <!--ET_BEGIN currencyId-->
-                            <div>Валута:  <b>[#currencyId#]</b></div>
+                            <div>Валута:  <b>[#currencyId#]</b> [#currencyRateText#]</div>
                         <!--ET_END currencyId-->
                         
                         <!--ET_BEGIN bankAccountId-->

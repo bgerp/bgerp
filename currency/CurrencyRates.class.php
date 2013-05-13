@@ -239,6 +239,10 @@ class currency_CurrencyRates extends core_Detail
     	$fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
     	$toId   = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
     	
+    	if (!isset($date)) {
+    	    $date = dt::verbal2mysql();
+    	}
+    	
     	expect($fromId, "{$from}: Няма такава валута");
     	expect($toId,   "{$to}: Няма такава валута");
     	    	                            
@@ -251,11 +255,16 @@ class currency_CurrencyRates extends core_Detail
             return round($rate, 4);
         }
         
-        $baseCurrencyId = currency_Currencies::getIdByCode(static::$crossCurrencyCode);
+        $crossCurrencyId = currency_Currencies::getIdByCode(static::$crossCurrencyCode);
 
-        if (!is_null($rate = static::getCrossRate($date, $fromId, $toId, $baseCurrencyId))) {
-            return round($rate, 4);
+        if ($crossCurrencyId != $fromId && $crossCurrencyId != $toId) {
+            if (!is_null($rate = static::getCrossRate($date, $fromId, $toId, $crossCurrencyId))) {
+                return round($rate, 4);
+            }
         }
+        
+        $from = currency_Currencies::getCodeById($fromId);
+        $to   = currency_Currencies::getCodeById($toId);
 
         expect(FALSE, "Не може да се определи валутен курс {$from}->{$to}");
     }

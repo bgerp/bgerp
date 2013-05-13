@@ -127,6 +127,10 @@ class sales_InvoiceDetails extends core_Detail
         $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
         (Request::get('Act') == 'add') ? $action = tr("Добавяне") : $action = tr("Редактиране");
       	$form->title = "{$action} на запис в {$masterTitle}";
+      	
+   		 if($form->rec->price && $masterRec->rate){
+       	 	$form->rec->price = round($form->rec->price / $masterRec->rate, 2);
+         }
     }
 
 
@@ -149,19 +153,20 @@ class sales_InvoiceDetails extends core_Detail
            	   $rec->quantityInPack = 1;
             }
           
+            $masterRec = sales_Invoices::fetch($rec->invoiceId);
+            
             if(!$form->rec->price){
           	
-            // Ако не е зададена цена, извличаме я от избраната политика
-          	$masterRec = sales_Invoices::fetch($rec->invoiceId);
-            $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
-            $Policy = cls::get($rec->policyId);
-            
-            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
-          	
-            if(!$rec->price){
-	            $form->setError('price', 'Неможе да се определи цена');
-	        }
-          }
+	            // Ако не е зададена цена, извличаме я от избраната политика
+	          	$contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
+	            $Policy = cls::get($rec->policyId);
+	            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
+	          	if(!$rec->price){
+		            $form->setError('price', 'Неможе да се определи цена');
+		        }
+          	} else {$l = $rec->price;
+          		$rec->price = round($rec->price * $masterRec->rate, 2);
+          	}
           
            // Изчисляваме цената
            $form->rec->amount = round($form->rec->price * $form->rec->quantity, 2);
@@ -179,7 +184,7 @@ class sales_InvoiceDetails extends core_Detail
     	$parts = explode('.', $quantity);
     	$double->params['decimals'] = count($parts[1]);
     	$row->quantity = $double->toVerbal($quantity);
-    	
+    	//bp($rec);
     	if($rec->note){
     		$varchar = cls::get('type_Varchar');
 	    	$row->note = $varchar->toVerbal($rec->note);

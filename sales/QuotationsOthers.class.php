@@ -82,7 +82,7 @@ class sales_QuotationsOthers extends core_Detail
         }
         
         foreach((array)$data->rows as $row) {
-            $block = $tpl->getBlock('others');
+            $block = $tpl->getBlock('otherValue');
             $block->placeObject($row);
             $block->append2Master();
         }

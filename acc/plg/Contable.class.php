@@ -57,10 +57,10 @@ class acc_plg_Contable extends core_Plugin
             $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,class=btn-revert,warning=Наистина ли желаете документа да бъде сторниран?');
         }
         
-		if($data->rec->state == 'closed' && acc_Journal::haveRightFor('read')) {
-    		$journalRec = acc_Journal::fetch("#docId={$data->rec->id} && #docType='{$mvc::getClassId()}'");
+        $journalRec = acc_Journal::fetch("#docId={$data->rec->id} && #docType='{$mvc::getClassId()}'");
+		if(($data->rec->state == 'active' || $data->rec->state == 'closed') && acc_Journal::haveRightFor('read') && $journalRec) {
     		$journalUrl = array('acc_Journal', 'single', $journalRec->id);
-    		$data->toolbar->addBtn('Журнал', $journalUrl, '');
+    		$data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png');
     	}
     }
     

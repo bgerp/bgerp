@@ -150,7 +150,7 @@ class sales_Quotations extends core_Master
     {
     	if($form->isSubmitted()){
 	    	if(!$form->rec->rate){
-		    	$form->rec->rate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->paymentCurrencyId), 4);
+		    	$form->rec->rate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->paymentCurrencyId, NULL), 4);
 		    }
     	}
     }
@@ -210,7 +210,6 @@ class sales_Quotations extends core_Master
     	
     	$contragentData =  doc_Folders::getContragentData($rec->folderId);
     	
-    	
     	if($contragentData->person) {
     		$row->contragentAdress .= " {$contragentData->pAddress}";
     	}
@@ -220,7 +219,7 @@ class sales_Quotations extends core_Master
     	}
 
     	$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$contragentData->pCode, $contragentData->place, $contragentData->country));
-    	    	//$row->contragentAdress = $varchar->toVerbal($row->contragentAdress);
+    
     	$row->number = $mvc->getHandle($rec->id);
 		if($fields['-list']){
 			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
@@ -232,6 +231,22 @@ class sales_Quotations extends core_Master
 		if($rec->receiver){
 			$personRec = crm_Persons::fetch($rec->receiver);
 			$row->personPosition = crm_Persons::recToVerbal($personRec, 'buzPosition')->buzPosition;
+		}
+		
+		switch($rec->vat){
+			case 'yes':
+				$row->vat = tr('с начислено');
+				break;
+			case 'freed':
+				$row->vat = tr('освободено от');
+				break;
+			case 'export':
+				$row->vat = tr('без начисление на');
+				break;
+		}
+		
+		if($rec->rate == 1){
+			unset($row->rate);
 		}
     }
     
@@ -309,5 +324,16 @@ class sales_Quotations extends core_Master
         
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
+    }
+    
+    
+	/**
+     * Документи-оферти могат да се добавят само в папки с корица контрагент.
+     */
+    public static function canAddToFolder($folderId)
+    {
+        $coverClass = doc_Folders::fetchCoverClassName($folderId);
+    
+        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     }
 }

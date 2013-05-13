@@ -464,7 +464,7 @@ class price_ConsumptionNorms extends core_Master {
     		plg_Search::applySearch($search, $query);
     	}
     	
-    	if($id = Request::get('normId')){
+    	if($id = Request::get('normId', 'int')){
     		$query->where("#id = {$id}");
     	}
     	
