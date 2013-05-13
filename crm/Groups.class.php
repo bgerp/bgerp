@@ -273,6 +273,42 @@ class crm_Groups extends core_Master
             $res .= "<li style='color:green;'>Добавени са {$nAffected} групи.</li>";
         }
     }
+
+
+    /**
+     * Създава, ако не е групата с посочениете данни и връща id-то и
+     * $rec->name
+     * $rec->sysId
+     * $rec->allow (companies_and_persons, ...
+     * $rec->info
+     * $rec->inCharge => cu
+     * $rec->shared
+     * $rec->state = 'active'
+     */
+    public static function forceGroup($gRec)
+    {
+        $rec = self::fetch("#sysId = '{$gRec->sysId}'");
+
+        if(!$rec) {
+            $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}')");
+        }
+
+        if(!$rec) {
+            $rec = $gRec;
+            
+            setIfNot($rec->inCharge, core_Users::getCurrent());
+            setIfNot($rec->allow, 'companies_and_persons');
+            $rec->companiesCnt = 0;
+            $rec->personsCnt = 0;
+            setIfNot($rec->state, 'active');
+
+            self::save($rec);
+        }
+
+        return $rec->id;
+
+    }
+
     
     
     /**
