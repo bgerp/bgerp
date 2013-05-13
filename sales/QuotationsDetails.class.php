@@ -106,31 +106,32 @@ class sales_QuotationsDetails extends core_Detail {
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
-    	
-    	foreach($recs as $id => $rec){
-    		$rec->vat = cat_Products::getVat($rec->productId, $masterRec->date);
-    		
-    		// Цената с добавено ДДС и конвертирана
-    		$price = round($rec->price / $masterRec->rate, 2);
-	    	if($applyVat){
-	    		$price = $price + ($price * $rec->vat);
-	    	}
-	    	$rec->vatPrice = $price;
-	    	
-	    	// Сумата с добавено ддс и конвертирана
-    		if($rec->amount != '???'){
-	    		$rec->convAmount = round($rec->amount / $masterRec->rate, 2);
+    	if($recs){
+	    	foreach($recs as $id => $rec){
+	    		$rec->vat = cat_Products::getVat($rec->productId, $masterRec->date);
+	    		
+	    		// Цената с добавено ДДС и конвертирана
+	    		$price = round($rec->price / $masterRec->rate, 2);
 		    	if($applyVat){
-		    		$rec->convAmount = $rec->convAmount + ($rec->convAmount * $rec->vat);
+		    		$price = $price + ($price * $rec->vat);
 		    	}
-    		}
-    		
-    		// Отстъпката с добавено ДДС и конвертирана
-	    	if($rec->discAmount){
-	    		$rec->discAmountVat= round($rec->discAmount / $masterRec->rate, 2);
-		    	if($applyVat){
-			    	$rec->discAmountVat = $rec->discAmountVat + ($rec->discAmountVat * $rec->vat);
-			    }
+		    	$rec->vatPrice = $price;
+		    	
+		    	// Сумата с добавено ддс и конвертирана
+	    		if($rec->amount != '???'){
+		    		$rec->convAmount = round($rec->amount / $masterRec->rate, 2);
+			    	if($applyVat){
+			    		$rec->convAmount = $rec->convAmount + ($rec->convAmount * $rec->vat);
+			    	}
+	    		}
+	    		
+	    		// Отстъпката с добавено ДДС и конвертирана
+		    	if($rec->discAmount){
+		    		$rec->discAmountVat= round($rec->discAmount / $masterRec->rate, 2);
+			    	if($applyVat){
+				    	$rec->discAmountVat = $rec->discAmountVat + ($rec->discAmountVat * $rec->vat);
+				    }
+		    	}
 	    	}
     	}
     }

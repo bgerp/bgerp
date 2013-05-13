@@ -210,7 +210,6 @@ class sales_Quotations extends core_Master
     	
     	$contragentData =  doc_Folders::getContragentData($rec->folderId);
     	
-    	
     	if($contragentData->person) {
     		$row->contragentAdress .= " {$contragentData->pAddress}";
     	}
@@ -220,7 +219,7 @@ class sales_Quotations extends core_Master
     	}
 
     	$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$contragentData->pCode, $contragentData->place, $contragentData->country));
-    	    	//$row->contragentAdress = $varchar->toVerbal($row->contragentAdress);
+    
     	$row->number = $mvc->getHandle($rec->id);
 		if($fields['-list']){
 			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
