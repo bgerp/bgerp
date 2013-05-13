@@ -150,7 +150,7 @@ class sales_Quotations extends core_Master
     {
     	if($form->isSubmitted()){
 	    	if(!$form->rec->rate){
-		    	$form->rec->rate = round(1/currency_CurrencyRates::getRate($form->rec->date, NULL, $form->rec->paymentCurrencyId), 4);
+		    	$form->rec->rate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->paymentCurrencyId, NULL), 4);
 		    }
     	}
     }
@@ -243,6 +243,10 @@ class sales_Quotations extends core_Master
 			case 'export':
 				$row->vat = tr('без начисление на');
 				break;
+		}
+		
+		if($rec->rate == 1){
+			unset($row->rate);
 		}
     }
     
