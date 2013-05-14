@@ -155,7 +155,7 @@ class sales_Quotations extends core_Master
 		    }
 		    
     		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
-		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    	$form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
 		    					   Сигурни ли сте че искате да запишете документа');
 		    }
     	}
