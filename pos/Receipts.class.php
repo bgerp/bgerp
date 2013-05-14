@@ -287,6 +287,7 @@ class pos_Receipts extends core_Master {
 	    		'policyId' => $posRec->policyId,
 	    		'productId' => $rec->productId,
 		    	'price' => $rec->price,
+	    		'vatPrice' => $rec->price * $rec->param,
 	    	    'packagingId' => $packagingId,
 	    	    'quantityInPack' => $quantityInPack,
 	    	    'uomId' => $info->productRec->measureId,
@@ -442,6 +443,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = static::fetch($id));
     	$products = static::getProducts($id);
     	$posRec = pos_Points::fetch($rec->pointId);
+    	$totalVat = 0;
     	
     	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
     	$currencyCode = currency_Currencies::getCodeById($currencyId);
@@ -449,6 +451,7 @@ class pos_Receipts extends core_Master {
     	foreach ($products as $product) {
     		$totalQuantity = $product->quantity * $product->quantityInPack;
     		$totalAmount = $totalQuantity * $product->price;
+    		$totalVat += $product->vatPrice;
     		$amount = currency_CurrencyRates::convertAmount($totalAmount, $rec->createdOn, $currencyCode);
 	    	
     		// Първо Отчитаме прихода от продажбата
@@ -480,6 +483,21 @@ class pos_Receipts extends core_Master {
 	                'quantity' => $totalQuantity), // Количество продукт в основната му мярка
 	    	);
     	}
+    	
+    	$entries[] = array(
+                    'amount' => $totalVat,  // равностойноста на сумата в основната валута
+                    
+                    'debit' => array(
+                        '501',  // Сметка "501. Каси"
+	                		array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
+	                		array('currency_Currencies', $currencyId), 
+	                	'quantity' => $totalVat, 
+                    ),
+                    
+                    'credit' => array(
+                        '4532', // кредитна сметка
+                        'quantity' => $totalVat,
+                    ));
     	
     	$transaction = (object)array(
                 'reason'  => 'Касова бележка #' . $rec->id,
