@@ -55,7 +55,7 @@
 	<!--ET_END printHeader-->
 	</table>
 	
-	<table border='1' class = 'norm-table'>
+	<table border='1' class = 'norm-table' width='100%'>
 	
 	<!--ET_BEGIN GROUP-->
 	[#GROUP#]
