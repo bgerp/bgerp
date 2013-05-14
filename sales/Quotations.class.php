@@ -149,8 +149,14 @@ class sales_Quotations extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
-	    	if(!$form->rec->rate){
-		    	$form->rec->rate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->paymentCurrencyId, NULL), 4);
+    		$rec = &$form->rec;
+	    	if(!$rec->rate){
+		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
+		    }
+		    
+    		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
+		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    					   Сигурни ли сте че искате да запишете документа');
 		    }
     	}
     }
