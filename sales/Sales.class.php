@@ -1013,7 +1013,7 @@ class sales_Sales extends core_Master
                 'productId'  => $rec->productId,
                 'uomId'  => $rec->uomId,
                 'packagingId'  => $rec->packagingId,
-                'quantity'  => $rec->quantity,
+                'quantity'  => $rec->quantity - $rec->quantityDelivered,
                 'quantityInPack'  => $rec->quantityInPack,
                 'price'  => $rec->price,
                 'discount'  => $rec->discount,
