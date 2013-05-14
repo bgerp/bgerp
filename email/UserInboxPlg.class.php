@@ -152,7 +152,7 @@ class email_UserInboxPlg extends core_Plugin
     public static function on_AfterPrepareEditForm(core_Users $mvc, $data)
     {
         if (empty($data->form->rec->id)) {
-            $personId  = Request::get('personId');
+            $personId  = Request::get('personId', 'int');
             if (!empty($personId) && $personRec = crm_Persons::fetch($personId)) {
                 
                 $emails = type_Emails::toArray($personRec->email, type_Emails::VALID);
