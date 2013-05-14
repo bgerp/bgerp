@@ -59,7 +59,7 @@
 	
 	<!--ET_BEGIN GROUP-->
 	[#GROUP#]
-	<tr><td colspan = '6' class='pricelist-group-label'><b>[#GROUP#]</b></td></tr>
+	<tr><td colspan = '6' class='pricelist-group-label'><b>[#GROUP_NAME#]</b></td></tr>
 	<tr>
 		<th>|Код|*</th>
 		<th style='width:380px !important'>|Продукт|*</th>
