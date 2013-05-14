@@ -137,16 +137,4 @@ class blast_LetterDetails extends core_Detail
         // Добавяме стринга
         $row->listDetailsId = $str;
     }
-    
-    
-    /**
-     * Преди извличане на записите подрежда ги по дата на отпечатване и състояние
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, &$data)
-    {
-        $data->query->orderBy('#state', 'ASC');
-        $data->query->orderBy('#printedDate', 'DESC');
-        
-        return ;
-    }
 }
