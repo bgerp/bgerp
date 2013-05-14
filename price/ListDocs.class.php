@@ -329,7 +329,7 @@ class price_ListDocs extends core_Master
     private function renderDetails(&$tpl, $data)
     {
     	$rec = &$data->rec;
-    	$detailTpl = $tpl->getBlock("DETAILS");
+    	$detailTpl = $tpl->getBlock("GROUP");
     	
     	if($rec->details->rows || $rec->products){
     		
@@ -357,7 +357,7 @@ class price_ListDocs extends core_Master
 			    	}
     				
     				$groupTpl->removeBlocks();
-			    	$tpl->append($groupTpl, 'DETAILS');
+			    	$tpl->append($groupTpl, 'GROUP');
 				}
     		}
     	} else {

@@ -57,11 +57,8 @@
 	
 	<table border='1' class = 'norm-table'>
 	
-	<!--ET_BEGIN DETAILS-->
-	<div class='details'>
-		[#DETAILS#]
-	</div>
-	
+	<!--ET_BEGIN GROUP-->
+	[#GROUP#]
 	<tr><td colspan = '6' class='pricelist-group-label'><b>[#GROUP#]</b></td></tr>
 	<tr>
 		<th>|Код|*</th>
@@ -79,7 +76,12 @@
 		<td align='right'>[#price#]</td>
 	</tr>
 	<!--ET_END ROW-->
-	<!--ET_END DETAILS-->
+	<!--ET_END GROUP-->
 	</table>
 	[#BottomPager#]
+	<!--ET_BEGIN DETAILS-->
+	<div class='details'>
+		[#DETAILS#]
+	</div>
+	<!--ET_END DETAILS-->
 </div>
