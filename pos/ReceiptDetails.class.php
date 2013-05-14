@@ -431,6 +431,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$rec->discountPercent = $price->discount;
     	}
     	
+    	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->createdOn);
     	$rec->amount = $rec->price * $rec->quantity * $perPack;	
     }
     
@@ -634,7 +635,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$obj = new stdClass();
     		$obj->action = $arr['action'];
     		$obj->quantity = $rec->quantity;
-    		$obj->amount = $rec->amount;
+    		$obj->amount = $rec->amount + ($rec->amount * $rec->param);
     		$obj->date = $masterRec->createdOn;
     		$result[$index] = $obj;
     	}

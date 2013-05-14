@@ -145,6 +145,7 @@ class pos_Receipts extends core_Master {
     {
     	$rec = new stdClass();
     	$posId = pos_Points::getCurrent();
+    	
     	$rec->contragentName = tr('Анонимен Клиент');
     	$rec->contragentClass = core_Classes::getId('crm_Persons');
     	$rec->contragentObjectId = pos_Points::defaultContragent($posId);
