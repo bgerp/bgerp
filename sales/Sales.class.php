@@ -1003,17 +1003,22 @@ class sales_Sales extends core_Master
     public function getShipmentProducts($id)
     {
         $products = array();
+        $saleRec  = $this->fetchRec($id);
         $query    = sales_SalesDetails::getQuery();
         
-        $query->where("#saleId = {$id}");
+        $query->where("#saleId = {$saleRec->id}");
         
         while ($rec = $query->fetch()) {
+            if ($saleRec->chargeVat == 'yes') {
+                // Начисляваме ДДС
+                $rec->price *= 1 + cat_Products::getVat($rec->productId, $saleRec->valior);
+            } 
             $products[] = (object)array(
                 'policyId'  => $rec->policyId,
                 'productId'  => $rec->productId,
                 'uomId'  => $rec->uomId,
                 'packagingId'  => $rec->packagingId,
-                'quantity'  => $rec->quantity - $rec->quantityDelivered,
+                'quantity'  => $rec->quantity - $rec->quantityDelivered, // само остатъка за експедиране
                 'quantityInPack'  => $rec->quantityInPack,
                 'price'  => $rec->price,
                 'discount'  => $rec->discount,
