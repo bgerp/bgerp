@@ -79,7 +79,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number=Номер, reff, date, contragentName, deliveryTermId, createdOn,createdBy';
+    public $listFields = 'id, number=Номер, date, contragentName, deliveryTermId, createdOn,createdBy';
     
     
     /**
