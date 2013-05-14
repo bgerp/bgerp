@@ -147,7 +147,6 @@ class sales_SalesDetails extends core_Detail
         $this->FNC('packPrice', 'float(minDecimals=2,maxDecimals=100)', 'caption=Цена,input=input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
-        $this->FLD('vatPercent', 'percent', 'caption=ДДС,input=none');
     }
     
     
@@ -330,7 +329,7 @@ class sales_SalesDetails extends core_Detail
         foreach ($recs as $rec) {
             // Начисляваме ДДС, при нужда
             if ($salesRec->chargeVat == 'yes') {
-                $rec->packPrice = $rec->packPrice * (1 + $rec->vatPercent);
+                $rec->packPrice *= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
             }
             
             // Конвертираме цените във валутата на продажбата
@@ -397,18 +396,21 @@ class sales_SalesDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($policyId = $data->form->rec->policyId) {
+        $rec       = $data->form->rec;
+        $masterRec = $data->masterRec;
+        
+        if ($policyId = $rec->policyId) {
             /* @var $Policy price_PolicyIntf */
             $Policy = cls::get($policyId);
             
             $data->form->setField('policyId', 'input=hidden');
-            $data->form->setOptions('productId', $Policy->getProducts($data->masterRec->contragentClassId, $data->masterRec->contragentId));
+            $data->form->setOptions('productId', 
+                $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId));
         }
         
-        if (!empty($data->form->rec->packPrice)) {
-            $salesRec = sales_Sales::fetch($data->form->rec->saleId);
-            $data->form->rec->packPrice = $data->form->rec->packPrice * (1 + $data->form->rec->vatPercent);
-            $data->form->rec->packPrice = $data->form->rec->packPrice / $salesRec->currencyRate;
+        if (!empty($rec->packPrice)) {
+            $rec->packPrice *= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
+            $rec->packPrice /= $masterRec->currencyRate;
         }
     }
     
@@ -465,10 +467,6 @@ class sales_SalesDetails extends core_Detail
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
-            if (empty($rec->vatPercent)) {
-                $rec->vatPercent = $productRef->getVat($masterRec->date);
-            }
-              
             if (empty($rec->packPrice)) {
                 // Цената идва от ценоразписа. От ценоразписа цените идват в основна валута и 
                 // няма нужда от конвертиране.
@@ -477,10 +475,10 @@ class sales_SalesDetails extends core_Detail
                 // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
                 // на продажбата. Конвертираме цената към основна валута по курса, зададен
                 // в мастър-продажбата.
-                $rec->packPrice = $masterRec->currencyRate * $rec->packPrice;
+                $rec->packPrice *= $masterRec->currencyRate;
                 
                 // Потребителя въвежда цените с ДДС
-                $rec->packPrice = $rec->packPrice / (1 + $rec->vatPercent);
+                $rec->packPrice /= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
                 
                 // Изчисляваме цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
@@ -491,7 +489,7 @@ class sales_SalesDetails extends core_Detail
             }
             
             // Записваме основната мярка на продукта
-            $rec->uomId    = $productInfo->productRec->measureId;
+            $rec->uomId = $productInfo->productRec->measureId;
         }
     }
     
