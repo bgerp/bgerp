@@ -4,13 +4,13 @@
 		[#blank#]
 	<!--ET_END blank-->
 	
-	<div class='headerPart' style='margin: 55px 0px 20px 0px;width: 100%; max-width: 900px;'>
+	<div class='headerPart' style='margin: 15px 0px 20px 0px;width: 100%; max-width: 900px;'>
 		<table width='100%'>
 			<tr>
 				<td valign='top' style='padding:0 45px;'>
 						<div style='font-size: 20px;'>[#subject#]</div>
 				</td>
-				<td width=50% style='padding-right:75px;padding-left:20px'>
+				<td width=50% style='padding-right:75px;padding-left:50px'>
 						<div style='color: #636363;text-decoration: underline;'>|Получател|*:</div>
 						<div style='font-size: 16px;line-height:20px;min-height:185px'>
 						
