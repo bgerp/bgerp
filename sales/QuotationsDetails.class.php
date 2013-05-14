@@ -76,6 +76,7 @@ class sales_QuotationsDetails extends core_Detail {
         $this->FLD('discount', 'percent(decimals=0)', 'caption=Отстъпка,width=8em;');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'int', 'caption=Срок,unit=дни,width=8em;');
+    	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,value=no');
     	$this->FNC('amount', 'varchar', 'caption=Сума,input=none');
     	$this->FNC('discAmount', 'varchar', 'caption=Сума,input=none');
@@ -108,11 +109,10 @@ class sales_QuotationsDetails extends core_Detail {
     	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
     	if($recs){
 	    	foreach($recs as $id => $rec){
-	    		$rec->vat = cat_Products::getVat($rec->productId, $masterRec->date);
 	    		
 	    		// Цената с добавено ДДС и конвертирана
 	    		if($applyVat){
-		    		$price = $rec->price + ($rec->price * $rec->vat);
+		    		$price = $rec->price + ($rec->price * $rec->vatPercent);
 		    	}
 	    		$price = round($price / $masterRec->rate, 2);
 		    	
@@ -121,7 +121,7 @@ class sales_QuotationsDetails extends core_Detail {
 		    	// Сумата с добавено ддс и конвертирана
 	    		if($rec->amount != '???'){
 	    			if($applyVat){
-			    		$convAmount = $rec->amount + ($rec->amount * $rec->vat);
+			    		$convAmount = $rec->amount + ($rec->amount * $rec->vatPercent);
 			    	}
 			    	
 	    			$rec->convAmount = round($convAmount / $masterRec->rate, 2);
@@ -130,7 +130,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		// Отстъпката с добавено ДДС и конвертирана
 		    	if($rec->discAmount){
 		    		if($applyVat){
-				    	$discAmountVat = $rec->discAmount + ($rec->discAmount * $rec->vat);
+				    	$discAmountVat = $rec->discAmount + ($rec->discAmount * $rec->vatPercent);
 				    }
 		    		$rec->discAmountVat= round($discAmountVat / $masterRec->rate, 2);
 			    }
@@ -156,19 +156,21 @@ class sales_QuotationsDetails extends core_Detail {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-       $form = $data->form;
+       $form = &$data->form;
+       $rec = &$form->rec;
        (Request::get('edit')) ? $title = tr("Редактиране") : $title = tr("Добавяне");
-       $form->title = $title . " " . tr("|на запис в Оферта|* №{$form->rec->quotationId}");
-    
+       $form->title = $title . " " . tr("|на запис в Оферта|* №{$rec->quotationId}");
+       
        $masterRec = $mvc->Master->fetch($form->rec->quotationId);
-       $Policy = cls::get($form->rec->policyId);
+       $Policy = cls::get($rec->policyId);
        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
        $form->setOptions('productId', $products);
        
        if($form->rec->price && $masterRec->rate){
-       	 	$price = round($form->rec->price / $masterRec->rate, 2);
-       	 	$vat = cat_Products::getVat($form->rec->productId, $masterRec->date);
-       		$form->rec->price = $price + ($price * $vat);
+       	 	$price = round($rec->price / $masterRec->rate, 2);
+       	 	($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+       	 	
+       		$rec->price = $price + ($price * $vat);
        }
     }
     
@@ -180,10 +182,14 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
-	    	$Policy = cls::get($rec->policyId);
+	    	if(!$rec->vatPercent){
+	    		$rec->vatPercent = cat_Products::getVat($rec->productId, $masterRec->date);
+	    	}
+	    	
 	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
 	    	
 	    	if(!$rec->price){
+	    		$Policy = cls::get($rec->policyId);
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, 1, $masterRec->date);
 	    		if(!$price){
 	    			$form->setError('price', 'Неможе да се изчисли цената за този клиент');
@@ -196,8 +202,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    			$rec->discount = $price->discount;
 	    		}
 	    	} else {
-	    		$vat = cat_Products::getVat($form->rec->productId, $masterRec->date);
-       			$rec->price = $rec->price / (1 + $vat);
+       			$rec->price = $rec->price / (1 + $rec->vatPercent);
 	    		$rec->price = round($rec->price * $masterRec->rate, 2);
 	    	}
     	}
