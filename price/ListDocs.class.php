@@ -347,7 +347,7 @@ class price_ListDocs extends core_Master
 					
 					// Слагаме името на групата
 					$groupTpl = clone $detailTpl;
-					$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP');
+					$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP_NAME');
 					foreach ($products as $row){
 		    			$row = $this->getVerbalDetail($row);
 		    			$rowTpl = $groupTpl->getBlock('ROW');
@@ -361,7 +361,7 @@ class price_ListDocs extends core_Master
 				}
     		}
     	} else {
-    		$tpl->append("<tr><td colspan='6'> " . tr("Няма цени") . "</td></tr>", 'ROW');
+    		$tpl->replace("<tr><td colspan='5'> " . tr("Няма цени") . "</td></tr>", 'GROUP');
     	}
     }
     
