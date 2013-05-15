@@ -702,31 +702,6 @@ class store_ShipmentOrders extends core_Master
         
         $tpl->placeObject($total);
     }
-    
-    
-    /**
-     * Връща документа, породил зададения документ
-     * 
-     * @param int|object $id
-     * @param string $intf
-     * @return NULL|core_ObjectReference
-     */
-    public static function getOrigin_($rec, $intf = NULL)
-    {
-        $rec = static::fetchRec($rec);
-        
-        $origin = NULL;
-
-        // Намираме рефенция към пораждащия документ само ако не е зададен $originId. В противен
-        // случай референцията ще бъде определена по стандартния начин в
-        // doc_DocumentPlg::on_AfterGetOrigin()
-        if (!$rec->originId) {
-            $origin = doc_Threads::getFirstDocument($rec->threadId);
-            expect('sales_Sales' == $origin->className);
-        }
-        
-        return $origin;
-    }
 
 
     /**
