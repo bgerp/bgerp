@@ -678,9 +678,9 @@ class blast_ListDetails extends core_Detail
             
             $csv[] = $rCsv;
         }
-        
-        $csv = array($columns) + $csv;
-        
+
+        $csv = array_merge(array($columns),(array)$csv);
+
         return $csv;
     }
 }
