@@ -203,6 +203,8 @@ class blast_Letters extends core_Master
         //Добавя в лист само списъци на лица и фирми
         $query = blast_Lists::getQuery();
         $query->where("#keyField = 'names' OR #keyField = 'company' OR #keyField = 'uniqId'");
+        $query->orderBy("createdOn", 'DESC');
+        
         while ($rec = $query->fetch()) {
             $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
         }

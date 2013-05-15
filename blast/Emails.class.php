@@ -280,6 +280,7 @@ class blast_Emails extends core_Master
         //Добавя в лист само списъци с имейли
         $query = blast_Lists::getQuery();
         $query->where("#keyField = 'email'");
+        $query->orderBy("createdOn", 'DESC');
         
         while ($rec = $query->fetch()) {
             $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');

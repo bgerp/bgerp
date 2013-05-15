@@ -123,6 +123,8 @@ class blast_Lists extends core_Master
         $this->FNC('allFields', 'text', 'column=none,input=none');
         
         $this->FLD('contactsCnt', 'int', 'caption=Записи,input=none');
+        
+        $this->setDbUnique('title');
     }
 
     
