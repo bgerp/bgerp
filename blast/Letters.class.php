@@ -163,7 +163,7 @@ class blast_Letters extends core_Master
         $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък, mandatory');
         $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory, width=100%');
         $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, width=100%');
-        $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory');
+        $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory, input=none, hint=Колко писма ще се печатат едновременно');
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
             triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory');
         
@@ -238,7 +238,6 @@ class blast_Letters extends core_Master
             $rec->place = '[#city#]';
             $rec->address = '[#address#]';
             $rec->position = '[#position#]';
-            $rec->numLetters = 3;
         }
     }
     
@@ -474,10 +473,10 @@ class blast_Letters extends core_Master
         
         if (($state == 'draft') || ($state == 'stopped')) {
             //Добавяме бутона Активирай, ако състоянието е чернова или спряно
-            $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
+            $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id, 'ret_url' => TRUE), 'class=btn-activation');
         } elseif ($state == 'active') {
             //Добавяме бутона Спри, ако състоянието е активно или изчакване
-            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'class=btn-cancel');
+            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id, 'ret_url' => TRUE), 'class=btn-cancel');
         }
     }
     
@@ -487,68 +486,183 @@ class blast_Letters extends core_Master
      */
     function act_Activation()
     {
-        //Права за работа с екшън-а
+        // Права за работа с екшън-а
         requireRole('blast, admin');
         
         // Очакваме да има такъв запис
         expect($id = Request::get('id', 'int'));
         
-        expect($rec = $this->fetch($id));
+        // Вземаме формата към този модел
+        $form = $this->getForm();
         
-        // Очакваме потребителя да има права за синхронизиране
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        // Очакваме да имаме такъв запис
+        expect($rec = static::fetch($form->rec->id));
+
+        // Очакваме потребителя да има права за активиране
         $this->haveRightFor('activation', $rec);
         
-        ($rec->numLetters) ? $numLetters = $rec->numLetters : $numLetters = 1;
+        // Въвеждаме съдържанието на полетата
+        $form->input('numLetters');
+
+        // По подразбиране да е избрана стойността от записа
+        $form->setDefault('numLetters', $rec->numLetters);
         
-        $exist = '';
+        $retUrl = getRetUrl();
+    
+        //URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
-        //Променяме статуса на активен
-        $recList = new stdClass();
-        $recList->id = $rec->id;
-        $recList->state = 'active';
-        blast_Letters::save($recList);
-        
-        //Вземаме всички записи, които са добавени от предишното активиране в детайлите на писмото
-        $queryLetterDetail = blast_LetterDetails::getQuery();
-        $queryLetterDetail->where("#letterId = '$rec->id'");
-        
-        while ($recLetterDetail = $queryLetterDetail->fetch()) {
-            $exist .= $recLetterDetail->listDetailsId;
-        }
-        
-        //Вземаме всички детайли на листа, които са към избраното писмо
-        $queryListDetails = blast_ListDetails::getQuery();
-        $queryListDetails->where("#listId = '$rec->listId'");
-        
-        while ($recListDetail = $queryListDetails->fetch()) {
+        // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
+        if($form->isSubmitted()) {
             
-            //Ако нямаме запис с id'то в модела, тогава го добавяме към масива
-            if (!keylist::isIn($recListDetail->id, $exist)) {
-                $allNewId[$recListDetail->id] = $recListDetail->id;
-            }
-        }
-        
-        //Ако имаме поне един нов запис
-        if (count($allNewId)) {
-            
-            //Сортираме масива, като най - отгоре са записити с най - голямо id
-            arsort($allNewId);
-            
-            //Групираме записите по максималния брой, който ще се печатат заедно
-            for ($i = 0; $i < count($allNewId); $i = $i + $numLetters) {
-                $slicedNewId = array_slice($allNewId, $i, $numLetters, TRUE);
-                $keylist = keylist::fromArray($slicedNewId);
+            // Ако броя на отпечатваният не отговаря на броя записан в модела
+            if ($rec->numLetters && $rec->numLetters != $form->rec->numLetters) {
                 
-                //Добавяме новите записи в модела
-                $newLetterDetail = new stdClass();
-                $newLetterDetail->letterId = $rec->id;
-                $newLetterDetail->listDetailsId = $keylist;
-                blast_LetterDetails::save($newLetterDetail);
+                // Вземаме вербалната стойност
+                $numLetters = static::getVerbal($rec, 'numLetters');
+                
+                // Сетваме предупреждение
+                $form->setWarning('numLetters', "Ще важи само за новите записи. За старите е: {$numLetters}");
             }
         }
         
-        // След като приключи операцията редиректваме към същата страница, където се намирахме
-        return redirect(array('blast_Letters', 'single', $rec->id), FALSE, tr("Успешно активирахте писмото."));
+        // Ако формата е изпратена успешно
+        if($form->isSubmitted()) {
+            
+            // Броя на пимсмата, които ще се печатат едновремнно
+            $numLetters = $form->rec->numLetters;
+
+            // Очакваме да е зададение
+            expect($numLetters);
+            
+            // Записваме новия брой
+            $nRec = new stdClass();
+            $nRec->id = $form->rec->id;
+            $nRec->numLetters = $numLetters;
+            static::save($nRec, 'numLetters');
+            
+            //Променяме статуса на активен
+            $recList = new stdClass();
+            $recList->id = $rec->id;
+            $recList->state = 'active';
+            blast_Letters::save($recList, 'id, state');
+            
+            // Вземаме всички записи, които са добавени от предишното активиране в детайлите на писмото
+            $queryLetterDetail = blast_LetterDetails::getQuery();
+            $queryLetterDetail->where("#letterId = '$rec->id'");
+            
+            while ($recLetterDetail = $queryLetterDetail->fetch()) {
+                
+                // Добавяме keylist'а към стринга
+                $exist .= $recLetterDetail->listDetailsId;
+            }
+            
+            // Вземаме всички детайли на листа, които са към избраното писмо и не са спрени
+            $queryListDetails = blast_ListDetails::getQuery();
+            $queryListDetails->where("#listId = '$rec->listId'");
+            $queryListDetails->where("#state != 'stopped'");
+            
+            while ($recListDetail = $queryListDetails->fetch()) {
+
+                // Ако нямаме запис с id'то в модела
+                if (!keylist::isIn($recListDetail->id, $exist)) {
+                    
+                    // Добавяме към масива
+                    $allNewId[$recListDetail->id] = $recListDetail->id;
+                }
+            }
+            
+            // Ако имаме поне един нов запис
+            if (count($allNewId)) {
+                
+                // Сортираме масива, като най - отгоре са записити с най - малко id
+                asort($allNewId);
+
+                // Групираме записите по максималния брой, който ще се печатат заедно
+                for ($i = 0; $i < count($allNewId); $i = $i + $numLetters) {
+                    $slicedNewId = array_slice($allNewId, $i, $numLetters, TRUE);
+                    $keylist = keylist::fromArray($slicedNewId);
+
+                    //Добавяме новите записи в модела
+                    $newLetterDetail = new stdClass();
+                    $newLetterDetail->letterId = $rec->id;
+                    $newLetterDetail->listDetailsId = $keylist;
+                    blast_LetterDetails::save($newLetterDetail);
+                }
+            }
+
+            // След като приключи операцията редиректваме към същата страница, където се намирахме
+            return redirect($retUrl, FALSE, tr("Успешно активирахте писмото."));
+        }
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'numLetters';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        
+        // Добавяме титлата на формата
+        $form->title = "Активиране на писмо за печат";
+        $subject = $this->getVerbal($rec, 'subject');
+        
+        // Превръщаме в стринг
+        $subject = strip_tags($subject);
+        
+        // Вземаме датата
+        $date = dt::mysql2verbal($rec->createdOn);
+        
+        // Добавяме във формата информация, за да знаем за кое писмо става дума
+        $form->info = new ET ('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
+        
+        // Вземаме всички детайли, които не са спряни от съответния лист
+        $query = blast_ListDetails::getQuery();
+        $query->where("#listId = '{$rec->listId}'");
+        $query->where("#state != 'stopped'");
+        
+        // Обхождаме получените резултати
+        while ($qRec = $query->fetch()) {
+            
+            // Ако имаме права за single
+            if (blast_ListDetails::haveRightFor('single', $qRec)) {
+                
+                // Вземаме id' то
+                $listDet = $qRec->id;
+                
+                // Спираме по нататъшното изпълнение
+                break;
+            }
+        }
+        
+        // Опциите за създаване на тялот
+        $options = new stdClass();
+        
+        // Записите
+        $options->rec = $rec;
+        
+        // Добавяме listId до кого е
+        $options->__toListId = $listDet;
+        
+        // Вземаме документа в xhtml формат
+        $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
+        
+        // Получаваме изгледа на формата
+        $tpl = $form->renderHtml();
+        
+        // Добавяме превю на първото писмо, което ще печатаме
+        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерно писмо") . "</b></div>[#BLAST_LET#]</div>");
+        
+        // Добавяме към шаблона
+        $preview->append($res, 'BLAST_LET');
+        
+        // Добавяме изгледа към главния шаблон
+        $tpl->append($preview);
+        
+        // Рендираме шаблона и връщаме резултата
+        return static::renderWrapping($tpl);
     }
     
     
