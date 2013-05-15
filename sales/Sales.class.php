@@ -161,9 +161,9 @@ class sales_Sales extends core_Master
         /*
          * Стойности
          */
-        $this->FLD('amountDeal', 'float(decimals=2)', 'caption=Стойности->Поръчано,input=none'); // Сумата на договорената стока
-        $this->FLD('amountDelivered', 'float(decimals=2)', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
-        $this->FLD('amountPaid', 'float(decimals=2)', 'caption=Стойности->Платено,input=none'); // Сумата която е платена
+        $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none'); // Сумата на договорената стока
+        $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
+        $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none'); // Сумата която е платена
         
         /*
          * Контрагент
@@ -715,6 +715,15 @@ class sales_Sales extends core_Master
             $row->amountDeal = '0.00';
         }
         $row->amountDeal = $row->currencyId . ' ' . $row->amountDeal;
+        
+        if (!empty($rec->amountPaid)) {
+            $row->amountPaid = $row->currencyId . ' ' . $row->amountPaid;
+        }
+        
+        $amountType = $mvc->getField('amountDeal')->type;
+        
+        $row->amountToPay = $row->currencyId . ' ' 
+            . $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
 
         if ($rec->chargeVat == 'no') {
             $row->chargeVat = '';
@@ -1043,18 +1052,29 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Трасира веригата от документи, породени от дадена продажба. Извлича от тях експедираните 
+     * количества и платените суми.
      * 
      * @param core_Mvc $mvc
      * @param core_ObjectReference $saleRef
-     * @param core_ObjectReference $descendantRef
+     * @param core_ObjectReference $descendantRef кой породен документ е инициатор на трасирането
      */
-    public static function on_DescendantChanged($mvc, $saleRef)
+    public static function on_DescendantChanged($mvc, $saleRef, $descendantRef = NULL)
     {
+        // Набавяме списък на (референции към) документите, породени от $saleRef
         $descendants = $saleRef->getDescendants();
+        $saleRec     = $saleRef->rec();
         $shipped     = array();
+        
+        // Натрупваме планените суми във валутата на продажбата
+        $amountPaid  = 0;
+        
+        // Базовата валута към датата на продажбата
+        $saleBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($saleRec->valior);
         
         foreach ($descendants as $d) {
             if ($d->rec('state') != 'active') {
+                // Игнорираме неактивните документи
                 continue;
             }
             
@@ -1063,6 +1083,21 @@ class sales_Sales extends core_Master
                 foreach ($dProducts as $p) {
                     $shipped[$p->packagingId][$p->productId] += $p->quantity;
                 }
+            } elseif ($d->haveInterface('sales_PaymentIntf')) {
+                $pi = $d->getPaymentInfo();
+                
+                // Конвертираме платената сума към валутата на продажбата по курс към датата на
+                // платежния документ
+                $pi->amount = 
+                    currency_CurrencyRates::convertAmount(
+                        $pi->amount,         // платена сума 
+                        $pi->valior,         // дата на плащане
+                        $pi->currencyCode,   // валута, в която е платената сумата
+                        $saleRec->currencyId // валута на продажбата 
+                    );
+                
+                // Натрупваме в акумулатора за общо платени суми (във валутата на продажбата)
+                $amountPaid += $pi->amount;
             }
         }    
             
@@ -1078,6 +1113,11 @@ class sales_Sales extends core_Master
             );
             sales_SalesDetails::save($R);
         }
+        
+        // Записваме общо платената сума в основната валута към момента на продажбата
+        $saleRec->amountPaid = $amountPaid * $saleRec->currencyRate;
+        
+        self::save($saleRec);
         
         sales_SalesDetails::updateMasterSummary($saleId);
     }
