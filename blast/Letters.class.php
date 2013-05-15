@@ -510,9 +510,10 @@ class blast_Letters extends core_Master
         // По подразбиране да е избрана стойността от записа
         $form->setDefault('numLetters', $rec->numLetters);
         
+        // Вземаме ret_url
         $retUrl = getRetUrl();
     
-        //URL' то където ще се редиректва при отказ
+        // URL' то където ще се редиректва при отказ
         $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
@@ -687,13 +688,18 @@ class blast_Letters extends core_Master
         $recUpd = new stdClass();
         $recUpd->id = $rec->id;
         
-        //        $recUpd->state = 'stopped';
-        //За да може да се редактира
-        $recUpd->state = 'draft';
-        blast_Letters::save($recUpd);
+        // Състоянието да е спряно
+        $recUpd->state = 'stopped';
+        blast_Letters::save($recUpd, 'state');
+        
+        // Вземаме ret_url
+        $retUrl = getRetUrl();
+    
+        // URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
         // След като приключи операцията редиректваме към същата страница, където се намирахме
-        return redirect(array('blast_Letters', 'single', $rec->id), FALSE, tr("Успешно спряхте писмото."));
+        return redirect($retUrl, FALSE, tr("Успешно спряхте писмото."));
     }
     
     
