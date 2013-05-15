@@ -76,11 +76,6 @@ class core_Db extends core_BaseClass
      */
     var $lastRes;
     
-    /**
-     * Флаг, предотвратяващ автоматичното инсталиране при грешка в базата данни
-     */
-    static  $noAutoSetup;
-    
     
     /**
      * Номер на mySQL код за грешка при липсваща таблица
@@ -92,9 +87,9 @@ class core_Db extends core_BaseClass
      * Номер на mySQL код за грешка при непозната колона в таблица
      */
     const MYSQL_UNKNOWN_COLUMN = 1054;
-    
-    
-    /**
+
+
+     /**
      * Инициализиране на обекта
      * @param string $dbName
      * @param string $user
@@ -139,7 +134,9 @@ class core_Db extends core_BaseClass
             mysql_query('set character_set_client=' . $this->dbCharsetClient, $link);
             
             // Избираме указаната база от данни на сървъра
-            mysql_select_db($this->dbName);
+            if (!mysql_select_db($this->dbName)) {
+                error("Грешка при избиране на база {$this->dbName}", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            }
         }
         
         return $this->link;
@@ -643,7 +640,7 @@ class core_Db extends core_BaseClass
                 $error = mysql_error($this->link);
                 
                 if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) {
-               		// throw new core_exception_Expect ("Грешка в Базата данни.");
+                    // throw new core_exception_Expect ("Грешка в Базата данни.");
                 }
             }
 
