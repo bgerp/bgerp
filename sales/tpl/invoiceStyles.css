@@ -69,6 +69,10 @@
 	font-weight:bold;
 }
 
+#invType{
+	text-transform:uppercase;
+}
+
 #contragent-label{
 	font-weight:bold;
 }
@@ -81,6 +85,10 @@
 	padding-top:20px;
 	font-size:14px;
 	font-weight:bold;
+}
+
+#origin-title {
+	padding-top:5px;
 }
 
 #inv-holder{

@@ -14,12 +14,15 @@
         <td>
             <div id='invoice-header'>
             	<div id='titleHolder'>
-            		<div id='invoiceTitle2'>|ФАКТУРА|* / <i>INVOICE</i></div>
+            		<div id='invoiceTitle2'><span id='invType'>[#type#]</span></div>
             		<div class='title-subInfo'>|Номер|* / Number: <span class='subtitle-text'>[#number#]</span></div>
             		<div class='title-subInfo'>|Дата|* / Date: <span class='subtitle-text'>[#date#]</span></div>
             		<div class='title-subInfo'>|Място|* / Place: <span class='subtitle-text'>[#dealPlace#]</span></div>
             		<div class='title-subInfo original'>|ОРИГИНАЛ|* / <i>ORIGINAL</i></div>
             		<div style='font-weight:normal;'>[#POS#]</div>
+            		<!--ET_BEGIN origin-->[#origin1#]
+            		<div id='origin-title'>|Към Фактура|* <b>№[#origin#]</b> |от|* [#invDate#]</div>
+            		<!--ET_END origin-->
                 </div>
             	<div id='contragent-data'>
             		<div id='contragent-label'>Получател / Buyer</div>

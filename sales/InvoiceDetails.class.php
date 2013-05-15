@@ -225,7 +225,7 @@ class sales_InvoiceDetails extends core_Detail
     		// Ако фактурата е генерирана от вече контирана продажба
     		// неможе да се добавят нови продукти
     		$invoiceRec = $mvc->Master->fetch($rec->invoiceId);
-    		if($invoiceRec->originId || ($invoiceRec->docType && $invoiceRec->docId)){
+    		if(($invoiceRec->originId && $invoiceRec->type == 'invoice') || ($invoiceRec->docType && $invoiceRec->docId)){
     			$res = 'no_one';
     		}
     	}

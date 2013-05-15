@@ -16,7 +16,7 @@
                 <tbody><tr>
                     <td class="cell" width="35%"><b>|Получател|* / <i>Buyer</i></b></td>
                     <td class="cell" rowspan="3" align="center" width="30%">
-                        <div class='invoiceTitle'>|ФАКТУРА|* / <i>INVOICE</i></div><br>
+                        <div class='invoiceTitle'><span id='invType'>[#type#]</span></div><br>
                         <div class='invInfo'>|Номер|* / Number</div>
                         <div class="bigData">[#number#]</div>
                         <div class='invInfo'>|Дата|* / Date</div>
@@ -26,6 +26,9 @@
 						<div class='invInfo bigData'>
                         	<div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div><br />
                         	<span style='font-weight:normal;'>[#POS#]</span>
+                        	<!--ET_BEGIN origin-->
+                        	<div id='origin-title'>|към Фактура|* <b>№[#origin#]</b> |от|* [#invDate#]</div>
+                        	<!--ET_END origin-->
                         </div>
                     </td>
                     <td class="cell" width="35%"><b></b> </td>
