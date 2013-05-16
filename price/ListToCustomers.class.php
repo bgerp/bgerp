@@ -418,4 +418,14 @@ class price_ListToCustomers extends core_Detail
             return $title;
         }
     }
+    
+    
+	/**
+     * Връща мениджъра на продуктите (@see cat_Products)
+     * @return core_Classes $class - инстанция на мениджъра
+     */
+    public function getProductMan()
+    {
+        return cls::get('cat_Products');
+    }
 }
