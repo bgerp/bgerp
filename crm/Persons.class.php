@@ -481,7 +481,7 @@ class crm_Persons extends core_Master
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
         if($birthday) {
-            $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$birthday}</div>";
+            $row->title .= "&nbsp;&nbsp;<div style='display:inline-block'>{$birthday}</div>";
 
             if(strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
