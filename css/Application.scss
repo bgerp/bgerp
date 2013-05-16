@@ -2755,6 +2755,9 @@ div.locImage{
 .narrow .reminder-half{
 	width:100%;
 }
+.blast_ListDetails .listToolbar{
+	border-bottom:none !important;
+}
 
 @media print{
 	.linkWithIcon, .docBgIcon,.button{
