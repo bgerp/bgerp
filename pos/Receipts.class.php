@@ -514,9 +514,9 @@ class pos_Receipts extends core_Master {
      */
     public static function finalizeTransaction($id)
     {
-    	$rec = static::fetch($id);
+        $rec = self::fetchRec($id);
         $rec->state = 'active';
-
+        
         return self::save($rec);
     }
     

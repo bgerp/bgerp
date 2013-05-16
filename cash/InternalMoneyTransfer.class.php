@@ -362,11 +362,9 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     public static function finalizeTransaction($id)
     {
-        $rec = (object)array(
-            'id' => $id,
-            'state' => 'closed'
-        );
-        
+        $rec = self::fetchRec($id);
+        $rec->state = 'closed';
+                
         return self::save($rec);
     }
     

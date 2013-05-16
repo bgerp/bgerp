@@ -313,10 +313,8 @@ class acc_Articles extends core_Master
      */
     public static function finalizeTransaction($id)
     {
-        $rec = (object)array(
-            'id' => $id,
-            'state' => 'active'
-        );
+        $rec = self::fetchRec($id);
+        $rec->state = 'active';
         
         return self::save($rec, 'state');
     }

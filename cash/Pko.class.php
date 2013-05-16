@@ -377,8 +377,7 @@ class cash_Pko extends core_Master
      */
     public function finalizeTransaction($id)
     {
-        $rec = $this->fetchRec($id);
-        
+        $rec = self::fetchRec($id);
         $rec->state = 'active';
         
         if ($this->save($rec)) {
