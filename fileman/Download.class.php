@@ -249,8 +249,11 @@ class fileman_Download extends core_Manager {
             // 1024*1024
             $chunksize = 1048576;
             
-            // Ако е файла по - малък от 1 MB
-            if ($fileLen < $chunksize) { 
+            // Големината на файловете, над която ще се игнорира forceDownload
+            $chunksizeOb = 30 * $chunksize;
+
+            // Ако файла е по - малък от $chunksizeOb
+            if ($fileLen < $chunksizeOb) {
 
                 // Задаваме хедърите
                 header('Content-Description: File Transfer');
@@ -265,12 +268,44 @@ class fileman_Download extends core_Manager {
 //                header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
 //                header("Pragma: "); // TODO ако има проблеми с някои версии на IE
 //                header("Cache-Control: "); // TODO ако има проблеми с някои версии на IE
-                
-                // Предизвикваме сваляне на файла
-                readfile($link);  
+
+                // Ако е файла по - малък от 1 MB
+                if ($fileLen < $chunksize) { 
+                    
+                    // Предизвикваме сваляне на файла
+                    readfile($link);  
+                } else {
+                    
+                    // Стартираме нов буфер
+                    ob_start();
+                    
+                    // Вземаме манипулатора на файла
+                    $handle = fopen($link, 'rb'); 
+                    $buffer = ''; 
+                    
+                    // Докато стигнем края на файла
+                    while (!feof($handle)) { 
+                        
+                        // Вземаме част от файла
+                        $buffer = fread($handle, $chunksize); 
+                        
+                        // Показваме го на екрана
+                        echo $buffer; 
+                        
+                        // Изчистваме буфера
+                        ob_flush(); 
+                        flush(); 
+                    } 
+                    
+                    // Затваряме файла
+                    fclose($handle);
+                    
+                    // Спираме буфера, който сме стартирали
+                    ob_end_clean();
+                }
                 
                 // Прекратяваме изпълнението на скрипта
-                shutdown();     
+                shutdown();
             }
         }
         
