@@ -1510,6 +1510,13 @@ class crm_Persons extends core_Master
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
                     $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
         }
+        
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+            
+            // Да има само 2 колони
+            $data->form->setField('groupList', array('maxColumns' => 2));    
+        }
     }
     
     

@@ -81,7 +81,13 @@ class doc_FolderPlg extends core_Plugin
         if(!$data->form->rec->access) {
             $data->form->setDefault('access', $mvc->defaultAccess ? $mvc->defaultAccess : 'team');
         }
-
+        
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+            
+            // Да има само 2 колони
+            $data->form->setField('shared', array('maxColumns' => 2));    
+        }
     }
     
     
