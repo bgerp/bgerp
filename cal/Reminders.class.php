@@ -240,6 +240,9 @@ class cal_Reminders extends core_Master
 
 		}
         
+		if(Mode::is('screenMode', 'narrow')){
+			$data->form->fields[priority]->maxRadio = 2;
+		}
         
         $rec = $data->form->rec;
     }

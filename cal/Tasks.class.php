@@ -184,6 +184,10 @@ class cal_Tasks extends core_Master
     	$cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
         $data->form->setDefault('sharedUsers', "|".$cu."|");
+	
+        if(Mode::is('screenMode', 'narrow')){
+        	$data->form->fields[priority]->maxRadio = 2;
+        }
 
         $rec = $data->form->rec;
  
