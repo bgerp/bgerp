@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   tehno
+ * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class tehno_Setup
+class techno_Setup
 {
     
     
@@ -26,7 +26,7 @@ class tehno_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'tehno_GeneralProducts';
+    var $startCtr = 'techno_GeneralProducts';
     
     
     /**
@@ -47,11 +47,11 @@ class tehno_Setup
     function install()
     {
         $managers = array(
-            'tehno_GeneralProducts',
+            'techno_GeneralProducts',
         );
         
         // Роля за power-user на този модул
-        $role = 'tehno';
+        $role = 'techno';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -63,10 +63,10 @@ class tehno_Setup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('tehno_GeneralProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('techno_GeneralProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.1, 'Производство', 'Технологии', 'tehno_GeneralProducts', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Производство', 'Технологии', 'techno_GeneralProducts', 'default', "{$role}, admin");
         
         return $html;
     }

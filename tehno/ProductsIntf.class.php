@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Клас 'tehno_ProductsIntf' - Интерфейс за нестандартни продукти
+ * Клас 'techno_ProductsIntf' - Интерфейс за нестандартни продукти
  *
  *
  * @category  bgerp
- * @package   tehno
+ * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class tehno_ProductsIntf
+class techno_ProductsIntf
 {
     /**
      * Връща форма, с която могат да се въвеждат параметри на

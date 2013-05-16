@@ -7,19 +7,19 @@
  *
  *
  * @category  bgerp
- * @package   tehno
+ * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class tehno_GeneralProducts extends core_Manager {
+class techno_GeneralProducts extends core_Manager {
     
     
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'tehno_ProductsIntf';
+    var $interfaces = 'techno_ProductsIntf';
     
     
     /**
@@ -32,7 +32,7 @@ class tehno_GeneralProducts extends core_Manager {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, plg_Rejected, plg_State,
-                     tehno_Wrapper, plg_Sorting, plg_Printing, plg_Select';
+                     techno_Wrapper, plg_Sorting, plg_Printing, plg_Select';
 
 	
     /**
@@ -68,43 +68,43 @@ class tehno_GeneralProducts extends core_Manager {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin,tehno';
+    var $canRead = 'admin,techno';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'admin,tehno';
+    var $canEdit = 'admin,techno';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'admin,tehno,broker';
+    var $canAdd = 'admin,techno,broker';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,tehno,broker';
+    var $canView = 'admin,techno,broker';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'admin,tehno,broker';
+    var $canList = 'admin,techno,broker';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,tehno';
+    var $canDelete = 'admin,techno';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin,tehno';
+    var $canReject = 'admin,techno';
     
     
     /**
@@ -116,7 +116,7 @@ class tehno_GeneralProducts extends core_Manager {
     /**
      * 
      */
-    var $canSingle = 'admin, tehno';
+    var $canSingle = 'admin, techno';
 	
 	
     /**
@@ -127,7 +127,7 @@ class tehno_GeneralProducts extends core_Manager {
     	$this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
 		$this->FLD('description', 'richtext(rows=5)', 'caption=Описание');
 		$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory');
-		$this->FLD('image', 'fileman_FileType(bucket=tehno_GeneralProductsImages)', 'caption=Изображение');
+		$this->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Изображение');
     	
 		$this->FLD('price', 'double(decimals=2)', 'caption=Параметри->Цена,width=8em,mandatory');
     	$this->FLD('height', 'double(decimals=2)', 'caption=Параметри->Височина,width=8em');
