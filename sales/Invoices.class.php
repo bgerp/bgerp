@@ -158,7 +158,7 @@ class sales_Invoices extends core_Master
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
 		$this->FLD('reason', 'text(rows=2)', 'caption=Основание, input=none');
         $this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
-        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
+        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
@@ -209,12 +209,9 @@ class sales_Invoices extends core_Master
 	        
         	if($type){
 	        	$form->setField('reason', 'input');
-	        	$form->setField('changeAmount', 'input,mandatory');
-	        	if($type == 'debit_note'){
-	        		$form->setField('changeAmount', 'caption=Плащане->Увеличение');
-	        	} else {
-	        		$form->setField('changeAmount', 'caption=Плащане->Намаление');
-	        	}
+	        	$form->setField('changeAmount', 'input');
+	        	($type == 'debit_note') ? $caption = 'Увеличение' : $caption = 'Намаляване';
+	        	$form->setField('changeAmount', "caption=Плащане->{$caption}");
 	        }
 	        
         	// При създаване на нова ф-ра зареждаме полетата на 
@@ -249,20 +246,28 @@ class sales_Invoices extends core_Master
             $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
         }
 	}
-    
+	
 	
 	/**
-	 * Генерира фактура ако идва от продажба или пос продажба
+	 * Генерира фактура от пораждащ документ: може да се породи от:
+	 * 1. Продажба (@see sales_Sales)
+	 * 2. POS Продажба (@see pos_Receipts)
+	 * 3. Фактура (@see sales_Invoices) - тоест се прави ДИ или КИ
 	 */
 	public static function on_AfterCreate($mvc, $rec)
     {
     	if(!empty($rec->originId)){
+    		$origin = doc_Containers::getDocument($rec->originId);
     		if($rec->type == 'invoice'){
-    			// Ако се генерира от продажба
-    			$origin = doc_Containers::getDocument($rec->originId, 'store_ShipmentIntf');
-        		$products = $origin->getShipmentProducts();
+    			expect(cls::haveInterface('store_ShipmentIntf', $origin->className));
+    			$products = $origin->getShipmentProducts();
     		} else {
-    			//@TODO
+    			// Ако е ДИ или КИ и се генерира от фактура
+    			$products = $mvc->sales_InvoiceDetails->getInvoiceData($origin->that);
+    			if($rec->changeAmount) {
+    				$mvc->applyAmountChange($products, $rec);
+    				return;
+    			}
     		}
     	
     	} elseif($rec->docType && $rec->docId) {
@@ -276,18 +281,33 @@ class sales_Invoices extends core_Master
 	    	
     		// Записваме информацията за продуктите в детайла
 	    	foreach ($products as $product){
-	    		$dRec = new stdClass();
+	    		$dRec = clone $product;
 	    		$dRec->invoiceId = $rec->id;
-	    		$dRec->productId = $product->productId;
-	    		$dRec->packagingId = $product->packagingId;
-	    		$dRec->policyId = $product->policyId;
-	    		$dRec->price = $product->price;
-	    		$dRec->quantityInPack = $product->quantityInPack;
-	    		$dRec->quantity = $product->quantity;
 	    		$dRec->packQuantity = $product->quantity * $product->quantityInPack;
 	    		$dRec->amount = $dRec->packQuantity * $product->price;
 	    		$mvc->sales_InvoiceDetails->save($dRec);
 	    	}
+    	}
+    }
+    
+    
+    /**
+     * Помощна функция за прилагане на увеличение/намаляване на
+     * сумата на фактурата
+     * @param array $products - списък от продукти за ДИ или КИ
+     * @param stdClass $rec - запис на ДИ или КИ
+     */
+    public function applyAmountChange($products, $rec)
+    {
+    	if(!$rec->dealValue) return;
+    	$rec->changeAmount = (($rec->type == 'debit_note') ? 1 : -1) * $rec->changeAmount;
+    	
+    	foreach($products as $product){
+    		$queficient = round($product->amount / $rec->dealValue, 4);
+    		unset($product->id);
+    		$product->invoiceId = $rec->id;
+    		$product->amount = $rec->changeAmount * $queficient;
+    		sales_InvoiceDetails::save($product);
     	}
     }
     
@@ -505,10 +525,11 @@ class sales_Invoices extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
-    	if($rec->type == 'invoice' || $rec->state == 'active'){
+    	
+    	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
     		
-    		$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'));
-    		$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'));
+    		$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png');
+    		$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png');
     	}
     }
     
@@ -546,7 +567,7 @@ class sales_Invoices extends core_Master
     	$rec = $form->rec;
         if($rec->id) return;
         $invArr = (array)$origin->fetch();
-        foreach(array('id', 'number', 'date', 'containerId', 'dealValue') as $key){
+        foreach(array('id', 'number', 'date', 'containerId') as $key){
         	 unset($invArr[$key]);
         }
         

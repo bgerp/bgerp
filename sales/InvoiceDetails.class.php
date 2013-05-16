@@ -81,7 +81,7 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         $this->FLD('quantityInPack', 'double', 'input=none,column=none');
-        $this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input');
+        $this->FLD('price', 'double(decimals=2)', 'caption=Цена, input');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
         $this->setDbUnique('invoiceId, productId, packagingId');
@@ -184,7 +184,7 @@ class sales_InvoiceDetails extends core_Detail
     	$parts = explode('.', $quantity);
     	$double->params['decimals'] = count($parts[1]);
     	$row->quantity = $double->toVerbal($quantity);
-    	//bp($rec);
+    	
     	if($rec->note){
     		$varchar = cls::get('type_Varchar');
 	    	$row->note = $varchar->toVerbal($rec->note);
@@ -212,6 +212,11 @@ class sales_InvoiceDetails extends core_Detail
     	
     	$amount = round($rec->amount / $masterRec->rate, 2);
     	$row->amount = $double->toVerbal($amount);
+    	
+    	if($masterRec->type != 'invoice' && $masterRec->changeAmount){
+    		unset($row->quantity);
+    		unset($row->price);
+    	}
     }
     
     
@@ -229,6 +234,19 @@ class sales_InvoiceDetails extends core_Detail
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Извлича всички продукти от фактура
+     * @param int $invoiceId - ид на фактура
+     * @return array - списък от продукти
+     */
+    public function getInvoiceData($invoiceId)
+    {
+    	$query = $this->getQuery();
+    	$query->where("#invoiceId = {$invoiceId}");
+    	return $query->fetchAll();
     }
     
     
