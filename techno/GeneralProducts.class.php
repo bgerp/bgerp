@@ -181,4 +181,9 @@ class techno_GeneralProducts extends core_Manager {
     {
         //@TODO
     }
+    
+    function act_Test(){
+    	$l = cls::get('cat_Products');
+    	bp($l::fetch());
+    }
 }
