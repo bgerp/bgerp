@@ -1396,6 +1396,14 @@ td.portal-date {
 	width:96.5%;
 }
 
+.listTable td{
+	max-width:600px;
+}
+
+.wide .single-thread .listTable td{
+	max-width:900px;
+}
+
 .listTable>tbody>tr>td div.document {
 	border: none;
 	background: transparent;
@@ -2728,6 +2736,14 @@ div.locImage{
 
 .document.print-letter:last-child {
      page-break-after: auto;
+}
+.reminder-half{
+	width:50%;
+	display:block;
+	float:left;
+}
+.narrow .reminder-half{
+	width:100%;
 }
 
 @media print{
