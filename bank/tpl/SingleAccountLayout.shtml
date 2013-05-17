@@ -14,10 +14,6 @@
 			<td>IBAN:</td>
 			<td>[#iban#]</td>
 		</tr>
-		<tr>
-			<td>Тип:</td>
-			<td>[#type#]</td>
-		</tr>
 		<!--ET_BEGIN bank-->
 		<tr>
 			<td>Банка:</td>

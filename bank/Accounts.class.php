@@ -37,7 +37,7 @@ class bank_Accounts extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'id, iban, contragent=Контрагент, currencyId, type';
+    var $listFields = 'id, iban, contragent=Контрагент, currencyId';
     
     
     /**
