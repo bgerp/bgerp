@@ -366,8 +366,8 @@ class blast_ListDetails extends core_Detail
         
         $exp->DEF('#source=Източник', 'enum(csv=Copy&Paste на CSV данни, 
                                            csvFile=Файл със CSV данни,
-                                           groupCompanies=Група от "Контакти » Фирми",
-                                           groupPersons=Група от "Контакти » Лица",
+                                           groupCompanies=Група от "Указател » Фирми",
+                                           groupPersons=Група от "Указател » Лица",
                                            blastList=Друг списък от "Разпращане")', 'maxRadio=5,columns=1,mandatory');
         $exp->ASSUME('#source', '"csv"');
         $exp->question("#source", "Моля, посочете източника на данните:", TRUE, 'title=От къде ще се импортират данните?');
