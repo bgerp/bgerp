@@ -79,14 +79,8 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number=Номер, date, contragentName, deliveryTermId, createdOn,createdBy';
+    public $listFields = 'id, date, contragentName, deliveryTermId, createdOn,createdBy';
     
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'number';
-
 
     /**
      * Детайла, на модела
@@ -227,9 +221,6 @@ class sales_Quotations extends core_Master
     	$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$contragentData->pCode, $contragentData->place, $contragentData->country));
     
     	$row->number = $mvc->getHandle($rec->id);
-		if($fields['-list']){
-			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
-		}
 		
 		$username = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($username, 'names')->names;
