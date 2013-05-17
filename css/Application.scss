@@ -412,13 +412,13 @@ div.alphabet div.tab-page {
 		box-shadow:0 -1px 1px rgba(0,0,0,0.1);
 		position: relative;
 		top: 1px;
-		background-color:$history-bg;
 		@include border-radius4(5px,5px,0px,0px);
 		overflow:hidden;
 		z-index: 2;
 			.detail-info{
 				padding:0px;
 				margin-top:0px;
+				background-color:$history-bg;
 			}
 			 .listTable td{
 				border:1px dotted #bbb !important;
