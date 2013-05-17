@@ -20,16 +20,24 @@ class git_Lib
 
     /**
      * Изпълнява git команда и връща стрингoвия резултат
+     *
+     * @param string $cmd - Git командни параметри
+     * @param array() $output - масив с резултати
+     * @return boolean - При успешна команда - TRUE
      */
     private static function cmdExec ($cmd, &$output)
     {
-        exec(BGERP_GIT_PATH . " {$cmd}", $output, $returnVar);
+        exec("git {$cmd}", $output, $returnVar);
         
         return ($returnVar == 0);  
     }
 
     /**
      * Връща текущият бранч на репозитори
+     * 
+     * @param string $repoPath - път до git репозитори
+     * @param array() $output - масив с резултати
+     * @return boolean - При неуспех - FALSE или текущият бранч
      */
     private static function currentBranch($repoPath, &$log)
     {
@@ -38,7 +46,7 @@ class git_Lib
         $repoName = basename($repoPath);
 
         // Първият ред съдържа резултата
-        if (cmdExec($command, $res)) {
+        if (self::cmdExec($command, $res)) {
             
             return trim($res[0]);
         }
@@ -49,8 +57,12 @@ class git_Lib
     
     /**
      * Сетва репозитори в зададен бранч.
+     *
+     * @param string $repoPath - път до git репозитори
+     * @param array() $log - масив с резултати
+     * @return boolean - При неуспех - FALSE или текущият бранч
      */
-    private static function checkout($repoPath, &$log, $branch='master')
+    public static function checkout($repoPath, &$log, $branch='master')
     {
         $repoName = basename($repoPath);
 
@@ -66,20 +78,20 @@ class git_Lib
      
         if (!self::cmdExec($commandFetch, $arrRes)) {
             foreach ($arrRes as $val) {
-                $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$branch} fetch:" . $val):"";
+                $log[] = (!empty($val))?("<b>[$repoName]</b> грешка при превключване в {$branch} fetch:" . $val):"";
             }
             
             return FALSE;
         } else {
             if (!self::cmdExec($commandCheckOut, $arrRes)) {
                 foreach ($arrRes as $val) {
-                    $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$branch} checkOut:" . $val):"";
+                    $log[] = (!empty($val))?("<b>[$repoName]</b> грешка при превключване в {$branch} checkOut:" . $val):"";
                 }
                 
                 return FALSE;
             } else {
                 // Ако и двете команди са успешни значи всичко е ОК
-                $log[] = "info: [<b>$repoName</b>] превключен {$branch} бранч.";
+                $log[] = "<b>[$repoName]</b> превключен {$branch} бранч.";
                 
                 return TRUE;
             }
@@ -92,12 +104,18 @@ class git_Lib
     
     /**
      * Прилага последните промени в текущия бранч.
+     *
+     * @param string $repoPath - път до git репозитори
+     * @param array() $log - масив с резултати
+     * @return boolean - При неуспех - FALSE
      */
-    private static function pull($repoPath, &$log)
+    public static function pull($repoPath, &$log)
     {
         $repoName = basename($repoPath);
         
-        $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin " . self::currentBranch() . " 2>&1";
+        $currBranch = self::currentBranch($repoPath, &$log);
+        
+        $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin " . $currBranch . " 2>&1";
 
         $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge FETCH_HEAD 2>&1"; //origin/" . BGERP_GIT_BRANCH ." 2>&1";
         
@@ -105,7 +123,7 @@ class git_Lib
         
         if (!self::cmdExec($commandFetch, $arrResFetch)) {
             foreach ($arrResFetch as $val) {
-                $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при fetch: " . $val):"";
+                $log[] = (!empty($val))?("<b>[$repoName]</b> грешка при fetch: " . $val):"";
             }
             
             return FALSE;
@@ -113,38 +131,57 @@ class git_Lib
       
         if (!self::cmdExec($commandMerge, $arrResMerge)) {
             foreach ($arrResMerge as $val) {
-                $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при merge origin/" . BGERP_GIT_BRANCH .": " . $val):"";
+                $log[] = (!empty($val))?(" <b>[$repoName]</b> грешка при merge origin/" . $currBranch .": " . $val):"";
             }
             
             return FALSE;
         }
         
-        $log[] = "new:<b>[{$repoName}]</b> е обновено.";
+        $log[] = "<b>[{$repoName}]</b> е обновено.";
                 
         return TRUE;
     }
 
     
     /**
-     * Мърджва 2 бранча.
-     * branch1 -> branch2
+     * Мърджва 2 бранча branch1 -> branch2
+     * 
+     * @param string $repoPath - път до git репозитори
+     * @param array() $log - масив с резултати
+     * @param string $branch1 - име на бранч източник
+     * @param string $branch2 - име на бранч приемник
+     * @return boolean - При неуспех - FALSE
      */
     public static function merge($repoPath, &$log, $branch1, $branch2)
     {
-        if (!self::pull($repoPath, $log, $branch1)) return FALSE;
-        if (!self::pull($repoPath, $log, $branch2)) return FALSE;
-        if (!self::checkout($repoPath, $log, $branch2)) return FALSE;
-        $commandMerge = "git --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge {$branch1}";
-        exec($commandMerge);
         
+        if (!self::checkout($repoPath, $log, $branch1)) return FALSE;
+        if (!self::pull($repoPath, $log)) return FALSE;
+        if (!self::checkout($repoPath, $log, $branch2)) return FALSE;
+        if (!self::pull($repoPath, $log)) return FALSE;
+        $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge {$branch1}";
+        if(!self::cmdExec($commandMerge, $log)) return FALSE;
+        $log[] = "Успешен merge $branch1 -> $branch2";
+        
+        return TRUE;
     }
 
 
     /**
      * Качва промените от резултатния бранч
      *
+     * @param string $repoPath - път до git репозитори
+     * @param array() $log - масив с резултати
+     * @return boolean - При неуспех - FALSE
      */
-    public static function push($repoPath, &$log, $branch)
+    public static function push($repoPath, &$log)
     {
+        $currBranch = self::currentBranch($repoPath, &$log);
+        
+        $commandPush = " --git-dir=\"{$repoPath}/.git\" push origin {$currBranch}";
+        if(!self::cmdExec($commandPush, $log)) return FALSE;
+        $log[] = "Успешен merge $branch1 -> $branch2";
+        
+        return TRUE;
     }
 }
