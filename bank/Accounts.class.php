@@ -294,8 +294,8 @@ class bank_Accounts extends core_Master {
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        $title = $rec->iban;
-        
+        $title = iban_Type::removeDs($rec->iban);
+
         if($escaped) {
             $title = type_Varchar::escape($title);
         }
