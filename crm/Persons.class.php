@@ -2055,10 +2055,4 @@ class crm_Persons extends core_Master
             }
         }
     }
-    
-    
-    public static function on_AfterPrepareListRows($mvc, $data)
-    {
-//        bp($data->recs);
-    }
 }
