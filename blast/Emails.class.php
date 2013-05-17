@@ -204,6 +204,7 @@ class blast_Emails extends core_Master
         // Ако не е папка проект или контрагент, не може да се добави
         if (($coverClassName != 'doc_unsortedfolders') && 
             ($coverClassName != 'crm_persons') &&
+            ($coverClassName != 'crm_groups') &&
             ($coverClassName != 'crm_companies')) return FALSE;
     }
     
