@@ -2758,6 +2758,13 @@ div.locImage{
 .blast_ListDetails .listToolbar{
 	border-bottom:none !important;
 }
+.blast-overflow{
+	max-width: 850px; 
+	overflow: auto; 
+}
+.narrow .blast-overflow{
+	max-width:393px;
+}
 
 @media print{
 	.linkWithIcon, .docBgIcon,.button{
