@@ -18,7 +18,7 @@ class change_Log extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, change_Wrapper';
+    var $loadList = 'plg_Created';
     
     
     /**

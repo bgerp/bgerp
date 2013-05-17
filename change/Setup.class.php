@@ -53,22 +53,7 @@ class change_Setup extends core_Manager {
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.99, 'Система', 'Промени', 'change_Log', 'default', 'admin');
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
     }
 }
