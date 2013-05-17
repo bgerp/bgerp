@@ -51,8 +51,8 @@
 	[#ListToolbar#]
 	<p id='condition-title'> |Условия на офертата|* [#addOther#]</p>
 	<ol id='conditions'>
-		<li>|Всички цени са в|* [#paymentCurrencyId#] [#vat#]  |на ДДС|*
-		 <!--ET_BEGIN rate-->,|при курс|* [#rate#]<!--ET_END rate--></li>
+		<li>|Всички цени са в|* [#paymentCurrencyId#] [#vat#]  |на ДДС|*, 
+		<!--ET_BEGIN rate-->|при курс|* [#rate#]<!--ET_END rate--></li>
 		<li>|Офертата е валидна до 30 дни след датата на издаване|*</li>
 		<li>|Начин на плащане|*: [#paymentMethodId#]</li>
 		<li>|Начин на доставка|*: [#deliveryTermId#]</li>

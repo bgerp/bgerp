@@ -195,6 +195,21 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Преди подготвяне на едит формата
+     */
+    static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	if(!$type = Request::get('type')) return;
+    	if($type == 'debit_note') {
+    		$title = 'Дебитно известие';
+    	} elseif($type == 'credit_note'){
+    		$title = 'Кредитно известие';
+    	} 
+    	$mvc->singleTitle = $title;
+    }
+    
+    
+    /**
      * След подготовка на формата
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
@@ -213,11 +228,8 @@ class sales_Invoices extends core_Master
         if($type){
 	        	$form->setField('reason', 'input');
 	        	$form->setField('changeAmount', 'input');
-	        	if($type == 'debit_note'){
-	        		$caption = 'Увеличение';
-	        	}else {
-	        		$caption = 'Намаляване';
-	        	}
+	        	($type == 'debit_note') ? $caption = 'Увеличение':$caption = 'Намаляване';
+	        	
 	        	$form->setReadOnly('currencyId');
 	        	$form->setReadOnly('contragentName');
 	        	$form->setReadOnly('contragentVatNo');
