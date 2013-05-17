@@ -123,11 +123,26 @@ class iban_Type extends type_Varchar
      */
     function toVerbal($value)
     {
+        $value = $this->removeDs($value);
+         
+        return type_Varchar::escape($value);
+    }
+    
+    
+    /**
+     * Премахва първия # в IBAN' a
+     * 
+     * @param string $value - IBAN
+     * 
+     * @return string $value
+     */
+    static function removeDs($value)
+    {
         if($value{0} == '#') {
             $value = substr($value, 1);
         }
-         
-        return type_Varchar::escape($value);
+        
+        return $value;
     }
     
     
