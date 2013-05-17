@@ -105,7 +105,7 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank';
+    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin';
     
     
     /**
@@ -161,19 +161,19 @@ class blast_Letters extends core_Master
     function description()
     {
         $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък, mandatory');
-        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory, width=100%');
-        $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, width=100%');
+        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory, width=100%, changable');
+        $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, width=100%, changable');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory, input=none, hint=Колко писма ще се печатат едновременно');
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
-            triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory');
+            triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory, changable');
         
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице, width=100%');
-        $this->FLD('position', 'varchar', 'caption=Адресант->Длъжност, width=100%');
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма, width=100%');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, width=100%');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код, width=100%');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с, width=100%');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, width=100%');
+        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице, width=100%, changable');
+        $this->FLD('position', 'varchar', 'caption=Адресант->Длъжност, width=100%, changable');
+        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма, width=100%, changable');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, width=100%, changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код, width=100%, changable');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с, width=100%, changable');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, width=100%, changable');
     }
 
     /**
