@@ -104,14 +104,13 @@ class sales_QuotationsDetails extends core_Detail {
 		    	
 		    	// Сумата с добавено ддс и конвертирана
 	    		if($rec->quantity){
-	    			$amount = $rec->quantity * $price;
-			    	$rec->convAmount = round($amount / $masterRec->rate, 2);
+	    			$rec->amount = $rec->quantity * $price;
 			    }
 	    		
 	    		// Отстъпката с добавено ДДС и конвертирана
 		    	if($rec->discount && $rec->quantity){
-		    		$disc = round(($rec->convAmount * $rec->discount), 2);
-    				$rec->discAmountVat = $rec->convAmount - $disc;
+		    		$disc = round(($rec->amount * $rec->discount), 2);
+    				$rec->discAmountVat = $rec->amount - $disc;
 		    	}
 	    	}
     	}
@@ -276,7 +275,7 @@ class sales_QuotationsDetails extends core_Detail {
     			
     			// Ако няма количество, цената неможе да се изчисли
     			if(!$rec->quantity) return;
-    			$total += $rec->convAmount;
+    			$total += $rec->amount;
     			if($rec->discAmountVat){
     				$totalDisc += $rec->discAmountVat; 
     			}
@@ -285,7 +284,7 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	(!$totalDisc) ? $totalDisc = NULL : $totalDisc = $double->toVerbal($totalDisc);
+    	(!$totalDisc) ? $totalDisc = NULL : $totalDisc = $double->toVerbal($total-$totalDisc);
     	$total = $double->toVerbal($total);
     	$data->total = (object) array('total' => $total, 'totalDisc' => $totalDisc);
     }
@@ -386,8 +385,8 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	$double->params['decimals'] = 2;
     	$row->price = $double->toVerbal($rec->vatPrice);
-    	if($rec->convAmount){
-    		$row->amount = $double->toVerbal($rec->convAmount);
+    	if($rec->amount){
+    		$row->amount = $double->toVerbal($rec->amount);
     	} else {
     		$row->amount = '???';
     	}
