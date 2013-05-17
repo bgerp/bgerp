@@ -119,18 +119,6 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
-     * Изчислява на сумата с приложена отстъпка
-     */
-    static function on_CalcDiscAmount($mvc, $rec)
-    {
-    	if($rec->discount && $rec->quantity){
-    		$disc = round(($rec->amount * $rec->discount), 2);
-    		$rec->discAmount = $rec->amount - $disc;
-    	}
-    }
-    
-    
-    /**
      * Преди показване на форма за добавяне/промяна.
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
