@@ -9,6 +9,7 @@
 					<dl>
 						<dt>|Номер|*:</dt><dd>[#id#]</dd>
 						<dt>|Сметка|*</dt><dd>[#bankAccountId#]</dd>
+						<dt>|Тип|*</dt><dd>[#type#]</dd>
 						<dt>|Титуляри|*</dt><dd>[#titulars#]</dd>
 						<dt>|Заедно|*</dt><dd>[#together#]</dd>
 						<dt>|Oператори|*</dt><dd>[#operators#]</dd>
