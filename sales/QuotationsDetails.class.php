@@ -69,7 +69,7 @@ class sales_QuotationsDetails extends core_Detail {
     function description()
     {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
+    	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em;');
@@ -78,21 +78,6 @@ class sales_QuotationsDetails extends core_Detail {
     	$this->FLD('term', 'int', 'caption=Срок,unit=дни,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,value=no');
-    	$this->FNC('amount', 'varchar', 'caption=Сума,input=none');
-    	$this->FNC('discAmount', 'varchar', 'caption=Сума,input=none');
-    }
-    
-    
-	/**
-     * Изчислява на сумата
-     */
-    static function on_CalcAmount($mvc, $rec)
-    {
-        if($rec->quantity){
-        	$rec->amount = round($rec->quantity * $rec->price, 2);
-        } else {
-        	$rec->amount = "???";
-        }
     }
     
     
@@ -114,26 +99,20 @@ class sales_QuotationsDetails extends core_Detail {
 	    		if($applyVat){
 		    		$price = $rec->price + ($rec->price * $rec->vatPercent);
 		    	}
-	    		$price = round($price / $masterRec->rate, 2);
-		    	
+	    		$price = round($price / $masterRec->rate);
 	    		$rec->vatPrice = $price;
 		    	
 		    	// Сумата с добавено ддс и конвертирана
-	    		if($rec->amount != '???'){
-	    			if($applyVat){
-			    		$convAmount = $rec->amount + ($rec->amount * $rec->vatPercent);
-			    	}
-			    	
-	    			$rec->convAmount = round($convAmount / $masterRec->rate, 2);
+	    		if($rec->quantity){
+	    			$amount = $rec->quantity * $price;
+			    	$rec->convAmount = round($amount / $masterRec->rate, 2);
 			    }
 	    		
 	    		// Отстъпката с добавено ДДС и конвертирана
-		    	if($rec->discAmount){
-		    		if($applyVat){
-				    	$discAmountVat = $rec->discAmount + ($rec->discAmount * $rec->vatPercent);
-				    }
-		    		$rec->discAmountVat= round($discAmountVat / $masterRec->rate, 2);
-			    }
+		    	if($rec->discount && $rec->quantity){
+		    		$disc = round(($rec->convAmount * $rec->discount), 2);
+    				$rec->discAmountVat = $rec->convAmount - $disc;
+		    	}
 	    	}
     	}
     }
@@ -163,12 +142,13 @@ class sales_QuotationsDetails extends core_Detail {
        
        $masterRec = $mvc->Master->fetch($form->rec->quotationId);
        $Policy = cls::get($rec->policyId);
+       $productMan = $Policy->getProductMan();
        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
        $form->setOptions('productId', $products);
        
        if($form->rec->price && $masterRec->rate){
        	 	$price = round($rec->price / $masterRec->rate, 2);
-       	 	($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+       	 	($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
        	 	
        		$rec->price = $price + ($price * $vat);
        }
@@ -182,14 +162,15 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
+	    	$Policy = cls::get($rec->policyId);
+	    	$productMan = $Policy->getProductMan();
 	    	if(!$rec->vatPercent){
-	    		$rec->vatPercent = cat_Products::getVat($rec->productId, $masterRec->date);
+	    		$rec->vatPercent = $productMan::getVat($rec->productId, $masterRec->date);
 	    	}
 	    	
 	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
 	    	
 	    	if(!$rec->price){
-	    		$Policy = cls::get($rec->policyId);
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, 1, $masterRec->date);
 	    		if(!$price){
 	    			$form->setError('price', 'Неможе да се изчисли цената за този клиент');
@@ -390,8 +371,10 @@ class sales_QuotationsDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$double = cls::get('type_Double');
+    	$Policy = cls::get($rec->policyId);
+        $productMan = $Policy->getProductMan();
     	
+        $double = cls::get('type_Double');
     	if(!$rec->quantity){
     		$row->quantity = '???';
     	} else {
@@ -401,8 +384,8 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->quantity = $double->toVerbal($rec->quantity);
     	}
     	
-    	// Временно докато се изесним какво се прави с productManCls
-    	$uomId = cat_Products::fetchField($rec->productId, 'measureId');
+    	$row->productId = $productMan->getTitleById($rec->productId);
+    	$uomId = $productMan::fetchField($rec->productId, 'measureId');
     	$uomTitle = cat_UoM::recToVerbal($uomId, 'shortName')->shortName;
     	$row->quantity = "<b>{$row->quantity}</b> {$uomTitle}";
     	
