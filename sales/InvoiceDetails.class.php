@@ -76,7 +76,7 @@ class sales_InvoiceDetails extends core_Detail
     function description()
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
+        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт');
         $this->FLD('quantity', 'double(decimals=4)', 'caption=К-во,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
@@ -141,8 +141,9 @@ class sales_InvoiceDetails extends core_Detail
     {
         if($form->isSubmitted()) {
             $rec = &$form->rec;
-          
-            if(!$pInfo = cat_Products::getProductInfo($rec->productId, $rec->packagingId)){
+            $Policy = cls::get($rec->policyId);
+            $productMan = $Policy->getProductMan();
+            if(!$pInfo = $productMan::getProductInfo($rec->productId, $rec->packagingId)){
           	   $form->setError('packagingId', 'Продукта не се предлага в посочената опаковка');
           	   return;
             }
@@ -159,7 +160,6 @@ class sales_InvoiceDetails extends core_Detail
           	
 	            // Ако не е зададена цена, извличаме я от избраната политика
 	          	$contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
-	            $Policy = cls::get($rec->policyId);
 	            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
 	          	if(!$rec->price){
 		            $form->setError('price', 'Неможе да се определи цена');
@@ -179,6 +179,10 @@ class sales_InvoiceDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$Policy = cls::get($rec->policyId);
+        $productMan = $Policy->getProductMan();
+        $row->productId = $productMan::getTitleById($rec->productId);
+        
     	$double = cls::get('type_Double');
     	$quantity = floatval($rec->quantity);
     	$parts = explode('.', $quantity);
@@ -191,7 +195,7 @@ class sales_InvoiceDetails extends core_Detail
 	    	$row->productId .= "<br/><small style='color:#555;'>{$row->note}</small>";
     	}
     	
-    	$productRec = cat_Products::fetch($rec->productId);
+    	$productRec = $productMan::fetch($rec->productId);
     	if($rec->packagingId){
     		$quantityInPack = floatval($rec->quantityInPack);
     		$parts = explode('.', $quantityInPack);
@@ -200,7 +204,7 @@ class sales_InvoiceDetails extends core_Detail
     		$measureShort = cat_UoM::fetchField($productRec->measureId, 'shortName');
     		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
     	} else {
-    		$row->packagingId = cat_Products::getVerbal($productRec, 'measureId');
+    		$row->packagingId = $productMan::getVerbal($productRec, 'measureId');
     	}
     	
     	
