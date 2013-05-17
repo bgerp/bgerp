@@ -19,6 +19,12 @@ class log_Documents extends core_Manager
     
     
     /**
+     * Брой елементи на страница
+     */
+    var $itemsPerPage = 20;
+    
+    
+    /**
      * Заглавие на таблицата
      */
     var $title = "Лог на документи";
@@ -397,11 +403,17 @@ class log_Documents extends core_Manager
         // Името на таба
         $data->TabCaption = 'Отпечатвания';
         
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_log_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_PRINT));
+        
         // Екшъните
         $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF);
         
         // Вземаме записите
-        $recs = static::getRecs($cid, $actionArr);
+        $recs = static::getRecs($cid, $actionArr, $data->pager);
         
         // Ако няма записи не се изпълнява
         if (empty($recs)) {
@@ -411,7 +423,7 @@ class log_Documents extends core_Manager
             
             return ;
         }
-       
+        
         // Обхождаме записите
         foreach ($recs as $rec) {
             
@@ -475,6 +487,9 @@ class log_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($printTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
@@ -553,7 +568,7 @@ class log_Documents extends core_Manager
         }
 
         // Сортираме масива
-        krsort($rows);
+        ksort($rows);
         
         // Дабавяме в $data
         $data->rows = $rows; 
@@ -609,8 +624,14 @@ class log_Documents extends core_Manager
         // Екшъните
         $actionArr = array(static::ACTION_SEND, static::ACTION_FAX);
         
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_log_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_SEND));
+        
         // Вземаме записите
-        $recs = static::getRecs($cid, $actionArr);
+        $recs = static::getRecs($cid, $actionArr, $data->pager);
 
         // Ако няма записи не се изпълнява
         if (empty($recs)) {
@@ -720,6 +741,9 @@ class log_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
@@ -936,7 +960,7 @@ class log_Documents extends core_Manager
      * 
      * @return array $recsArr - Масив с намерените записи
      */
-    function getRecs($cid, $action = NULL)
+    function getRecs($cid, $action = NULL, &$pager = NULL)
     {
         // Очакваме да има $cid
         expect($cid);
@@ -959,6 +983,16 @@ class log_Documents extends core_Manager
                 $query->where("#action = '{$action}'");
             }
         }
+        
+        // Ако е подаден обект за странициране
+        if ($pager) {
+            
+            // Задаваме лимита за странициране
+            $pager->setLimit($query);    
+        }
+
+        // Записите да се подреждат по дата в обратен ред
+        $query->orderBy('createdOn', 'DESC');
         
         // Намираме всички записи, които отговарят на критериите ни
         while ($rec = $query->fetch()) {

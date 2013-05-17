@@ -475,6 +475,13 @@ class doc_DocumentPlg extends core_Plugin
                         $url['#'] = 'detailTabs';
                     }
                     
+                    // Ако има страница на документа
+                    if ($P = Request::get('P_log_Documents')) {
+                        
+                        // Добавяме страницата
+                        $url['P_log_Documents'] = $P;
+                    }
+                    
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;
                     }
