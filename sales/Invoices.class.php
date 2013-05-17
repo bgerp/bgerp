@@ -206,17 +206,24 @@ class sales_Invoices extends core_Master
 	        if(!$type){
 	        	$form->setDefault('type', 'invoice');
 	        }
-	        
-        	if($type){
-	        	$form->setField('reason', 'input');
-	        	$form->setField('changeAmount', 'input');
-	        	($type == 'debit_note') ? $caption = 'Увеличение' : $caption = 'Намаляване';
-	        	$form->setField('changeAmount', "caption=Плащане->{$caption}");
-	        }
-	        
         	// При създаване на нова ф-ра зареждаме полетата на 
             // формата с разумни стойности по подразбиране.
             $mvc::setFormDefaults($form);
+            
+        if($type){
+	        	$form->setField('reason', 'input');
+	        	$form->setField('changeAmount', 'input');
+	        	if($type == 'debit_note'){
+	        		$caption = 'Увеличение';
+	        	}else {
+	        		$caption = 'Намаляване';
+	        	}
+	        	$form->setReadOnly('currencyId');
+	        	$form->setReadOnly('contragentName');
+	        	$form->setReadOnly('contragentVatNo');
+	        	$form->setReadOnly('contragentCountryId');
+	        	$form->setField('changeAmount', "caption=Плащане->{$caption}");
+	        }
         }
     }
     
@@ -528,8 +535,8 @@ class sales_Invoices extends core_Master
     	
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
     		
-    		$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png');
-    		$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png');
+    		$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
+    		$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
     	}
     }
     
@@ -567,7 +574,7 @@ class sales_Invoices extends core_Master
     	$rec = $form->rec;
         if($rec->id) return;
         $invArr = (array)$origin->fetch();
-        foreach(array('id', 'number', 'date', 'containerId') as $key){
+        foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo') as $key){
         	 unset($invArr[$key]);
         }
         
