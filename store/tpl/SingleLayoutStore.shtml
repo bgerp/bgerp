@@ -8,7 +8,7 @@
 				<div class="groupList">
 					<dl>
 						<dt>|Номер|*:</dt><dd> [#id#]</dd>
-						<dt>|Отговорник|*:</dt><dd> [#chiefId#]</dd>
+						<dt>|Отговорник|*:</dt><dd> <b>[#chiefId#]</b></dd>
 						<!--ET_BEGIN workersIds-->
 						<dt>|Товарачи|*:</dt><dd> [#workersIds#]</dd>
 						<!--ET_END workersIds-->

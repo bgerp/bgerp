@@ -8,8 +8,8 @@
 				<div class="groupList">
 						<dl>
 							<dt>|Номер|*:</dt><dd> [#id#]</dd>
-							<dt>|Каса|*:</dt><dd> [#caseId#]</dd>
-							<dt>|Склад|*:</dt><dd> [#storeId#]</dd>
+							<dt>|Каса|*:</dt><dd> <b>[#caseId#]</b></dd>
+							<dt>|Склад|*:</dt><dd> <b>[#storeId#]</b></dd>
 							<dt>|Политика|*:</dt><dd> [#policyId#]</dd>
 						</dl>
 				</div>

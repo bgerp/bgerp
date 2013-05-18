@@ -8,7 +8,7 @@
 				<div class="groupList">
 					<dl>
 						<dt>|Номер|*:</dt><dd> [#id#]</dd>
-						<dt>|Касиер|*:</dt><dd> [#cashier#]</dd>
+						<dt>|Касиер|*:</dt><dd> <b>[#cashier#]</b></dd>
 						<!--ET_BEGIN creation-->
 						[#creation#]
 						<dt>|Създаден:|*</dt><dd> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
