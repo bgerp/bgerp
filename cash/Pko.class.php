@@ -381,6 +381,7 @@ class cash_Pko extends core_Master
         $rec->state = 'active';
         
         if ($this->save($rec)) {
+            // Нотифицираме origin-документа, че някой от веригата му се е променил
             if ($origin = $this->getOrigin($rec)) {
                 $ref = new core_ObjectReference($this, $rec);
                 $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
@@ -390,16 +391,18 @@ class cash_Pko extends core_Master
     
     
     /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::rejectTransaction
+     * След оттегляне на документа
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param object|int $id
      */
-    public static function rejectTransaction($id)
+    public static function on_AfterReject($mvc, &$res, $id)
     {
-        $rec = self::fetch($id, 'id,state,valior');
-        
-        if ($rec) {
-            static::reject($id);
+        // Нотифицираме origin-документа, че някой от веригата му се е променил
+        if ($origin = $mvc->getOrigin($id)) {
+            $ref = new core_ObjectReference($mvc, $id);
+            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
         }
     }
     
