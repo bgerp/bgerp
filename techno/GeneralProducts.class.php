@@ -142,7 +142,7 @@ class techno_GeneralProducts extends core_Manager {
     
     
     /*
-     * РЕАЛИЗАЦИЯ НА store_ShipmentIntf
+     * РЕАЛИЗАЦИЯ НА techno_ProductsIntf
      */
     
     /**
@@ -153,8 +153,9 @@ class techno_GeneralProducts extends core_Manager {
      */
     public function getEditForm($data)
     {
-    	$form = $this->getForm();
-    	return $form->renderHtml();
+        $this->prepareEditForm($data);
+        $this->prepareEditToolbar($data);
+    	return $data->form->renderHtml();
     }
     
     

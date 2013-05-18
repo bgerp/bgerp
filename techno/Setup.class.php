@@ -26,7 +26,7 @@ class techno_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'techno_GeneralProducts';
+    var $startCtr = 'techno_Specifications';
     
     
     /**
@@ -48,6 +48,7 @@ class techno_Setup
     {
         $managers = array(
             'techno_GeneralProducts',
+        	'techno_Specifications',
         );
         
         // Роля за power-user на този модул
@@ -66,7 +67,7 @@ class techno_Setup
         $html .= $Bucket->createBucket('techno_GeneralProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.1, 'Производство', 'Технологии', 'techno_GeneralProducts', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Производство', 'Технологии', 'techno_Specifications', 'default', "{$role}, admin");
         
         return $html;
     }
