@@ -1073,8 +1073,9 @@ class sales_Sales extends core_Master
         $saleBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($saleRec->valior);
         
         foreach ($descendants as $d) {
-            if ($d->rec('state') != 'active') {
-                // Игнорираме неактивните документи
+            $dState = $d->rec('state'); 
+            if ($dState == 'draft' || $dState == 'rejected') {
+                // Игнорираме черновите и оттеглените документи
                 continue;
             }
             
