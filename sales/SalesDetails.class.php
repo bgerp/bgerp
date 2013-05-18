@@ -340,10 +340,6 @@ class sales_SalesDetails extends core_Detail
             
             $salesRec->amountDeal += $rec->amount;
         }
-        
-        // Заради промяната на amountDeal се налага отново да конвертираме мастър записа към 
-        // вербална стойност. 
-        $data->masterData->row->amountDeal = sales_Sales::recToVerbal($salesRec)->amountDeal;
     }
     
     
