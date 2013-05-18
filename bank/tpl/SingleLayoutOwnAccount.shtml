@@ -9,7 +9,7 @@
 					<dl>
 						<dt>|Номер|*:</dt><dd>[#id#]</dd>
 						<dt>|Сметка|*:</dt><dd><b>[#bankAccountId#]</b></dd>
-						<!--ET_BEGIN type--><dt>|Тип|*:</dt><dd><b>[#type#]</b></dd><!--ET_END type-->
+						<dt>|Тип|*:</dt><dd><b>[#type#]</b></dd>
 						<dt>|Титуляри|*:</dt><dd><b>[#titulars#]</b></dd>
 						<dt>|Представляват|*:</dt><dd>[#together#]</dd>
 						<dt>|Oператори|*:</dt><dd>[#operators#]</dd>
@@ -24,9 +24,10 @@
 				<dl>
 					<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
 					<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
-					<!--ET_BEGIN shared-->
+					<!--ET_BEGIN shareBlock-->
+					[#shareBlock#]
 						<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
-					<!--ET_END shared-->
+					<!--ET_END shareBlock-->
 			
 					<dt>Създаване: </dt><dd> от <b>[#createdBy#]</b> на <b>[#createdOn#]</b></dd>
 				</dl>
