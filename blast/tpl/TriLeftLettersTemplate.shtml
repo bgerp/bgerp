@@ -1,4 +1,3 @@
-
 <div class='document print-letter'>
 	<!--ET_BEGIN blank-->
 		[#blank#]
@@ -8,53 +7,56 @@
 		<table width=100%>
 			<tr>
 				<td width=55% style='padding-left:55px;'>
-						<div style='color: #636363;text-decoration: underline;'>|Получател|*:</div>
-						<div style='font-size: 16px;min-height:135px'>
+					<div style='color: #636363;text-decoration: underline;'>|Получател|*:</div>
+					
+					<div style='font-size: 16px;min-height:135px'>
 						
-							<!--ET_BEGIN attn-->
-								<div>
-									[#attn#]
-								</div>
-							<!--ET_END attn-->
-							
-							<!--ET_BEGIN position-->
-								<div>
-									[#position#]
-								</div>
-							<!--ET_END position-->
-							
-							<!--ET_BEGIN recipient-->
-								<div>
-									[#recipient#]
-								</div>
-							<!--ET_END recipient-->
-							
-							<!--ET_BEGIN address-->
-								<div>
-									[#address#]
-								</div>
-							<!--ET_END address-->
-							
-							<!--ET_BEGIN pCodeAndPlace-->
-								[#pCodeAndPlace#]
-								<div>
-									[#pcode#] [#place#]
-								</div>
-							<!--ET_END pCodeAndPlace-->
-							
-							<!--ET_BEGIN country-->
-								<div>
-									[#country#]
-								</div>
-							<!--ET_END country-->
-						</div>
-			</td>
-			<td valign='top' style='padding-right:45px;'>
+						<!--ET_BEGIN attn-->
+							<div>
+								[#attn#]
+							</div>
+						<!--ET_END attn-->
+						
+						<!--ET_BEGIN position-->
+							<div>
+								[#position#]
+							</div>
+						<!--ET_END position-->
+						
+						<!--ET_BEGIN recipient-->
+							<div>
+								[#recipient#]
+							</div>
+						<!--ET_END recipient-->
+						
+						<!--ET_BEGIN address-->
+							<div>
+								[#address#]
+							</div>
+						<!--ET_END address-->
+						
+						<!--ET_BEGIN pCodeAndPlace-->
+							[#pCodeAndPlace#]
+							<div>
+								[#pcode#] [#place#]
+							</div>
+						<!--ET_END pCodeAndPlace-->
+						
+						<!--ET_BEGIN country-->
+							<div>
+								[#country#]
+							</div>
+						<!--ET_END country-->
+					</div>
+				</td>
+				
+				<td valign='top' style='padding-right:45px;'>
 						<div style='font-size: 20px;'>[#subject#]</div>
-			</td>
-		</tr>
-	</table>
-	</div>		
+				</td>
+			</tr>
+		</table>
+	</div>	
+		
 	<div style='clear: both'></div>
 	
 	<div class='textPart' style='text-align: justify; padding: 0 15px; margin-top:50px;max-width:900px'>
@@ -62,5 +64,4 @@
 	</div>
 	
 	<div style='clear: both'></div>
-	
 </div>
