@@ -88,6 +88,12 @@ class core_Master extends core_Manager
         // Подготвяме вербалните стойности на записа
         $data->row = $this->recToVerbal($data->rec, arr::combine($data->singleFields, '-single'));
         
+        /*
+         * Запомняме състоянието на $data->rec. Ще сравним това състояние със стойността 
+         * на $data->rec след изпълнение на всички `prepare' методи (заедно с техните прихващачи)
+         */
+        $oldRec = clone $data->rec;
+        
         // Подготвяме титлата
         $this->prepareSingleTitle($data);
         
@@ -113,6 +119,32 @@ class core_Master extends core_Manager
                 $detailData->masterId = $data->rec->id;
                 $detailData->masterData = $data;
                 $this->{$var}->$method($detailData);
+            }
+        }
+        
+        /*
+         * Сравняваме стойността на $data->rec с предварително запомнената му стойност преди
+         * изпълнението на `prepare` методите. Ако двете стойности се окажат различни, изчисляваме
+         * $data->row отново. Така гарантираме, че евентуални промени на $data->rec в `prepare`
+         * методите ще рефлектира върху $data->row (и в края на краищата - върху това, което вижда
+         * потребителя). За отбелязване е, че така получаваме възможност мениджър-детайл да 
+         * промени $data->rec (чрез $data->masterData->rec) и тези промени да се отразят на екрана.
+         * 
+         * По принцип recToVerbal() е метод на View слоя и като такъв той изглежда се извиква
+         * прекалено рано (още преди `prepare` методите). Оказва се, обаче, че не може просто
+         * да преместим извикването му по-назад (напр. тук) заради наличието на (неясно колко)
+         * `prepare` методи (и техни прихващачи), които използват $data->row. Вероятно това не
+         * би трябвало да е така, но промяната му би била прекалено рискова. По тази причина
+         * правим компромиса да изчислим $data->row втори път, ако се налага. 
+         */
+        $diff = array_diff_assoc((array)$data->rec, (array)$oldRec);
+        if (count($diff)) {
+            // $data->rec се е променил в някой `prepare` метод - преизчисляваме $data->row.
+            // подсигуряваме, че всички полета на $data->row които не са генерирани в 
+            // recToVerbal() a другаде, ще бъдат запазени.
+            $newRow = $this->recToVerbal($data->rec, arr::combine($data->singleFields, '-single'));
+            foreach (array_keys((array)$newRow) as $n) {
+                $data->row->{$n} = $newRow->{$n};
             }
         }
         
