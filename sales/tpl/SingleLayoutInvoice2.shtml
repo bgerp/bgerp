@@ -25,7 +25,7 @@
             		<!--ET_END origin-->
                 </div>
             	<div id='contragent-data'>
-            		<div id='contragent-label'>Получател / Buyer</div>
+            		<div id='contragent-label'>|Получател|* / Buyer</div>
             		<div class='contragent-info'>[#contragentName#]</div>
             		<div class='contragent-info'>[#contragentCountry#]</div>
             		<div class='contragent-info'>[#contragentAddress#]</div>
