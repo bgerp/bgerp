@@ -225,7 +225,7 @@ class sales_Invoices extends core_Master
             // формата с разумни стойности по подразбиране.
             $mvc::setFormDefaults($form);
             
-        if($type){
+        if($type && $type != 'invoice'){
 	        	$form->setField('reason', 'input');
 	        	$form->setField('changeAmount', 'input');
 	        	($type == 'debit_note') ? $caption = 'Увеличение':$caption = 'Намаляване';
