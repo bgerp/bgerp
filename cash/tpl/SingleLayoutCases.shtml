@@ -8,22 +8,15 @@
 				<div class="groupList">
 					<dl>
 						<dt>|Номер|*:</dt><dd> [#id#]</dd>
-						<dt>|Касиер|*</dt><dd> [#cashier#]</dd>
+						<dt>|Касиер|*:</dt><dd> [#cashier#]</dd>
+						<!--ET_BEGIN creation-->
+						[#creation#]
+						<dt>|Създаден:|*</dt><dd> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
+						<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></dd>
+						<!--ET_END creation-->
 					</dl>
 				</div>
 			</fieldset>
-			
-		<fieldset class="detail-info">
-	      <legend class="groupTitle">|Създаден|*</legend>
-	        <div class="groupList">
-	         	<ul>  
-			       <li class="info">
-						<span class="part"><span class="gray-title">|от|*:</span> [#createdBy#] </span>
-						<span class="part"><span class="gray-title">|на|*:</span> [#createdOn#]</span>
-				   </li>
-		        </ul>  
-			</div>
-		</fieldset>
 		</div>
 	</div>
 </div>
