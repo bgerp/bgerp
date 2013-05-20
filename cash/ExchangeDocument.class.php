@@ -201,6 +201,8 @@ class cash_ExchangeDocument extends core_Master
 		    } else {
 		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
 		    }
+		    
+		    $form->rec->folderId = cash_Cases::forceCoverAndFolder($form->rec->peroTo);
     	}
     }
     
@@ -295,7 +297,7 @@ class cash_ExchangeDocument extends core_Master
     public static function canAddToFolder($folderId)
     {
         // Може да създаваме документ-а само в дефолт папката му
-        if ($folderId == static::getDefaultFolder(NULL /* userId */, FALSE /* bForce */)) {
+        if ($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
         	
         	return TRUE;
         } 
