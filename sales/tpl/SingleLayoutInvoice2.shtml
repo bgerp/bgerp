@@ -21,7 +21,7 @@
             		<div class='title-subInfo original'>|ОРИГИНАЛ|* / <i>ORIGINAL</i></div>
             		<div style='font-weight:normal;'>[#POS#]</div>
             		<!--ET_BEGIN origin-->[#origin1#]
-            		<div id='origin-title'>|Към Фактура|* <b>№[#origin#]</b> |от|* [#invDate#]</div>
+            		<div id='origin-title'>|Към Фактура|* № <b>[#origin#]</b> |от|* [#invDate#]</div>
             		<!--ET_END origin-->
                 </div>
             	<div id='contragent-data'>

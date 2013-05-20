@@ -27,7 +27,7 @@
                         	<div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div><br />
                         	<span style='font-weight:normal;'>[#POS#]</span>
                         	<!--ET_BEGIN origin-->
-                        	<div id='origin-title'>|към Фактура|* <b>№[#origin#]</b> |от|* [#invDate#]</div>
+                        	<div id='origin-title'>|към Фактура|* № <b>№[#origin#]</b> |от|* [#invDate#]</div>
                         	<!--ET_END origin-->
                         </div>
                     </td>
