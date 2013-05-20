@@ -96,6 +96,7 @@ class hr_WorkingCycles extends core_Master
                 $night += hr_WorkingCycleDetails::getSection($dRec->start, $dRec->duration, 22*60*60, 7*60*60);
             } 
             
+
             $maxNight = max($maxNight, $night);
         }
 
@@ -213,8 +214,12 @@ class hr_WorkingCycles extends core_Master
      */
     function renderGrafic($data)
     {
-    	
     	$prepareRecs = static::prepareGrafic($data);
+    	
+		$tpl = new ET(getFileContent('hr/tpl/SingleLayoutShift.shtml'));
+		jquery_Jquery::enable($tpl);
+		$tpl->push('hr/tpl/style.css', 'CSS');
+		$tpl->appendOnce($jsFnc, 'SCRIPTS');
     	
     	if(!Mode::is('printing')) {
 	        if($prepareRecs){
@@ -228,15 +233,7 @@ class hr_WorkingCycles extends core_Master
 			            </table>";
 	       
 	        
-		        $tpl = new ET(getFileContent('hr/tpl/SingleLayoutShift.shtml'));
-		        jquery_Jquery::enable($tpl);
-		        $tpl->push('hr/tpl/style.css', 'CSS');
-		        
-		       
-		        
-		        $tpl->appendOnce($jsFnc, 'SCRIPTS');
 		        $tpl->append($prepareRecs->link, 'id');
-		        
 		        $tpl->append($prepareRecs->name, 'name');
 		        
 		        $monthHeader = dt::getMonth($prepareRecs->month, $format = 'F', $lg = 'bg');
@@ -245,40 +242,39 @@ class hr_WorkingCycles extends core_Master
 		        $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d, $header);
 		        $tpl->append($calendar, 'calendar');
 		        
-		        
-		        for($j = 0; $j <= 4; $j++){
-		        	for($i = 1; $i <= $prepareRecs->lastDay; $i++){
-				        if($prepareRecs->d[$i]->type == '0' && '0' == $j){
-				        	$tpl->append(' rest', "shift{$j}");
-				        } elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
-					        $tpl->append(' first', "shift{$j}");
-					    } elseif($prepareRecs->d[$i]->type == '2' && '2' == $j){
-					        $tpl->append(' second', "shift{$j}");
-					    } elseif($prepareRecs->d[$i]->type == '3' && '3' == $j){
-					        $tpl->append(' third', "shift{$j}");
-					    } elseif($prepareRecs->d[$i]->type == '4' && '4' == $j){
-					        $tpl->append(' diurnal', "shift{$j}");
-					    }
-			        }
-		        }
-	        }
-	        $url = toUrl(array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year));
-	        $title = "<legend class='groupTitle'>Работен график <a href='$url' target='_blank'><input id='btnPrint' class='btn-print button' type='button' value='Печат' style='color:#008800;'></a></legend>";
+		        $url = toUrl(array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year));
+	        	$title = "<legend class='groupTitle'>Работен график <a href='$url' target='_blank'><input id='btnPrint' class='btn-print button' type='button' value='Печат' style='color:#008800;'></a></legend>";
 	        
-	        $tpl->append($url, 'id');
-	        $tpl->append($title, 'title');
-	        
-    	}
+	        	$tpl->append($url, 'id');
+	        	$tpl->append($title, 'title');
+		    }
+	    }
         
     	if(Mode::is('printing')) {
     		
-    		$tpl = new ET(getFileContent('hr/tpl/SingleLayoutShift.shtml'));
-    		$calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
     		$month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'M',  'bg'), MB_CASE_LOWER, "UTF-8"); 
     		$title = "Работен график на структорно звено ". $prepareRecs->name. " за месец " . $month;
     		$tpl->append($title, 'title');
+    		
+    		$calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
     		$tpl->append($calendar, 'calendar');
         }
+        
+        for($j = 0; $j <= 4; $j++){
+			for($i = 1; $i <= $prepareRecs->lastDay; $i++){
+				if($prepareRecs->d[$i]->type == '0' && '0' == $j){
+					$tpl->append(' rest', "shift{$j}");
+				} elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
+					$tpl->append(' first', "shift{$j}");
+				} elseif($prepareRecs->d[$i]->type == '2' && '2' == $j){
+					$tpl->append(' second', "shift{$j}");
+				} elseif($prepareRecs->d[$i]->type == '3' && '3' == $j){
+					$tpl->append(' third', "shift{$j}");
+				} elseif($prepareRecs->d[$i]->type == '4' && '4' == $j){
+					$tpl->append(' diurnal', "shift{$j}");
+				}
+			}
+		}
         
         return $tpl;
     }
