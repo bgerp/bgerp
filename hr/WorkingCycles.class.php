@@ -78,9 +78,6 @@ class hr_WorkingCycles extends core_Master
         $this->setDbUnique('name');
     }
 
-
- 
-    
     
     /**
      *
@@ -98,13 +95,13 @@ class hr_WorkingCycles extends core_Master
                 $dRec = hr_WorkingCycleDetails::fetch("#cycleId = {$rec->id} AND #day = {$day}"); 
                 $night += hr_WorkingCycleDetails::getSection($dRec->start, $dRec->duration, 22*60*60, 7*60*60);
             } 
-            //echo "<li> $night";
-
+            
             $maxNight = max($maxNight, $night);
         }
 
        
         $maxNight = $tTime->toVerbal($maxNight);
+        
 
         $data->row->info = "Max night: $maxNight<br>";
     }
@@ -115,7 +112,8 @@ class hr_WorkingCycles extends core_Master
      */
     function prepareGrafic($data)
     {
-    	expect($data->masterId);
+
+        expect($data->masterId);
     	$shift = hr_Departments::fetchField($data->masterId, 'schedule');
     	
     	if($shift){
@@ -137,15 +135,15 @@ class hr_WorkingCycles extends core_Master
 	 		$month = Request::get('cal_month', 'int');
 	        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
 	        $year  = Request::get('cal_year', 'int');
-	
+
 	        if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
 	            $year = date('Y');
 	            $month = date('n');
 	        }
-	
+
 	        // Добавяне на първия хедър
 	        $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
-	
+		
 	        $pm = $month-1;
 	        if($pm == 0) {
 	            $pm = 12;
@@ -154,7 +152,7 @@ class hr_WorkingCycles extends core_Master
 	            $py = $year;
 	        }
 	        $prevMonth = tr(dt::$months[$pm-1]) . " " .$py;
-	
+	 
 	        $nm = $month+1;
 	        if($nm == 13) {
 	            $nm = 1;
@@ -165,6 +163,8 @@ class hr_WorkingCycles extends core_Master
 	        $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
 	        
 	        $link = $_SERVER['REQUEST_URI'];
+	        $link = Url::addParams($link, array('cal_month' => $month, 'cal_year' => $py));
+	        
 	        $nextLink = Url::addParams($link, array('cal_month' => $nm, 'cal_year' => $ny));
 	        $prevtLink = Url::addParams($link, array('cal_month' => $pm, 'cal_year' => $py));
 
@@ -184,9 +184,10 @@ class hr_WorkingCycles extends core_Master
 	    		
 		        
 	        }
-	
+	        
 	        $data->TabCaption = 'График';
- 
+	        $month = str_pad($month, 2, ' ', STR_PAD_LEFT);
+
 	        return (object) array('year'=>$year,
 	        					  'month'=>$month, 
 	        					  'd'=>$d, 
@@ -198,6 +199,10 @@ class hr_WorkingCycles extends core_Master
 	        					  'header'=>$header, 
 	        					  'lastDay'=>$lastDay,
 	        					  'name'=>$name,
+	        					  'link'=>$linkPrint,
+	        					  'name'=>$name,
+	        					  'year'=> $year,
+	        					 
 	        );
     	}
     }
@@ -208,57 +213,71 @@ class hr_WorkingCycles extends core_Master
      */
     function renderGrafic($data)
     {
-    	$urlShift = toUrl(array('hr_WorkingCycle', 'print'));
     	
-    	$jsFnc = "
-    	function goPrinting()
-    	{
-    		window.open = '{$urlShift}?Printing=yes';
-    		
-		}";
+    	$prepareRecs = static::prepareGrafic($data);
     	
-    	
-        $prepareRecs = static::prepareGrafic($data);
-        
-        if($prepareRecs){
-        
-	        $header = "<table class='mc-header' width='100%' cellpadding='0'>
-		                <tr>
-		                    <td align='left'><a href='{$prepareRecs->prevtLink}'>{$prepareRecs->prevMonth}</a></td>
-		                    <td align='center'><b>{$prepareRecs->currentMonth}</b></td>
-		                    <td align='right'><a href='{$prepareRecs->nextLink}'>{$prepareRecs->nextMonth}</a></td>
-		                </tr>
-		            </table>";
-       
-        
-	        $tpl = new ET(getFileContent('hr/tpl/SingleLayoutShift.shtml'));
+    	if(!Mode::is('printing')) {
+	        if($prepareRecs){
 	        
-	        $tpl->push('hr/tpl/style.css', 'CSS');
-	        $tpl->appendOnce($jsFnc, 'SCRIPTS');
+		        $header = "<table class='mc-header' width='100%' cellpadding='0'>
+			                <tr>
+			                    <td align='left'><a href='{$prepareRecs->prevtLink}'>{$prepareRecs->prevMonth}</a></td>
+			                    <td align='center'><b>{$prepareRecs->currentMonth}</b></td>
+			                    <td align='right'><a href='{$prepareRecs->nextLink}'>{$prepareRecs->nextMonth}</a></td>
+			                </tr>
+			            </table>";
+	       
 	        
-	        $tpl->append($prepareRecs->name, 'name');
-	        
-	        $monthHeader = dt::getMonth($prepareRecs->month, $format = 'F', $lg = 'bg');
-	        $tpl->append($monthHeader, 'month');
-	        
-	        $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d, $header);
-	        $tpl->append($calendar, 'calendar');
-	        
-	        for($j = 0; $j <= 4; $j++){
-	        	for($i = 1; $i <= $prepareRecs->lastDay; $i++){
-			        if($prepareRecs->d[$i]->type == '0' && '0' == $j){
-			        	$tpl->append(' rest', "shift{$j}");
-			        } elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
-				        $tpl->append(' first', "shift{$j}");
-				    } elseif($prepareRecs->d[$i]->type == '2' && '2' == $j){
-				        $tpl->append(' second', "shift{$j}");
-				    } elseif($prepareRecs->d[$i]->type == '3' && '3' == $j){
-				        $tpl->append(' third', "shift{$j}");
-				    } elseif($prepareRecs->d[$i]->type == '4' && '4' == $j){
-				        $tpl->append(' diurnal', "shift{$j}");
-				    }
+		        $tpl = new ET(getFileContent('hr/tpl/SingleLayoutShift.shtml'));
+		        jquery_Jquery::enable($tpl);
+		        $tpl->push('hr/tpl/style.css', 'CSS');
+		        
+		       
+		        
+		        $tpl->appendOnce($jsFnc, 'SCRIPTS');
+		        $tpl->append($prepareRecs->link, 'id');
+		        
+		        $tpl->append($prepareRecs->name, 'name');
+		        
+		        $monthHeader = dt::getMonth($prepareRecs->month, $format = 'F', $lg = 'bg');
+		        $tpl->append($monthHeader, 'month');
+		        
+		        $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d, $header);
+		        $tpl->append($calendar, 'calendar');
+		        
+		        
+		        for($j = 0; $j <= 4; $j++){
+		        	for($i = 1; $i <= $prepareRecs->lastDay; $i++){
+				        if($prepareRecs->d[$i]->type == '0' && '0' == $j){
+				        	$tpl->append(' rest', "shift{$j}");
+				        } elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
+					        $tpl->append(' first', "shift{$j}");
+					    } elseif($prepareRecs->d[$i]->type == '2' && '2' == $j){
+					        $tpl->append(' second', "shift{$j}");
+					    } elseif($prepareRecs->d[$i]->type == '3' && '3' == $j){
+					        $tpl->append(' third', "shift{$j}");
+					    } elseif($prepareRecs->d[$i]->type == '4' && '4' == $j){
+					        $tpl->append(' diurnal', "shift{$j}");
+					    }
+			        }
 		        }
 	        }
+	        $url = toUrl(array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year));
+	        $title = "<legend class='groupTitle'>Работен график <a href='$url' target='_blank'><input id='btnPrint' class='btn-print button' type='button' value='Печат' style='color:#008800;'></a></legend>";
+	        
+	        $tpl->append($url, 'id');
+	        $tpl->append($title, 'title');
+	        
+    	}
+        
+    	if(Mode::is('printing')) {
+    		
+    		$tpl = new ET(getFileContent('hr/tpl/SingleLayoutShift.shtml'));
+    		$calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
+    		$month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'M',  'bg'), MB_CASE_LOWER, "UTF-8"); 
+    		$title = "Работен график на структорно звено ". $prepareRecs->name. " за месец " . $month;
+    		$tpl->append($title, 'title');
+    		$tpl->append($calendar, 'calendar');
         }
         
         return $tpl;
@@ -312,6 +331,25 @@ class hr_WorkingCycles extends core_Master
 		$dayDuration = $cycleDetails->duration;
 		
 		return hr_WorkingCycleDetails::getWorkingShiftType($dayStart, $dayDuration);
+    }
+    
+    
+    static public function calcLeaveDaysBySchedule($id, $leaveFrom, $leaveTo)
+    {
+    	
+    }
+    
+    function act_Print()
+    {
+    	$data = new stdClass();
+    	$id = Request::get('masterId', 'int');
+    	$data->masterId  = $id;
+
+    	if(Mode::is('printing')) {
+
+    		return self::renderGrafic($data);
+    	}
+    	
     }
 
 }
