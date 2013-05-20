@@ -478,7 +478,7 @@ class crm_Companies extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields=NULL)
     {
         $row->nameList = new ET('[#1#]', $row->name);
         
