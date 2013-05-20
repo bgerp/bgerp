@@ -50,7 +50,7 @@ class techno_Specifications extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,title,data,prodTehnoClassId,createdOn,createdBy';
+    var $listFields = 'tools=Пулт,title,prodTehnoClassId,createdOn,createdBy';
     
     
     /**
@@ -69,6 +69,12 @@ class techno_Specifications extends core_Master {
      * Кой може да променя?
      */
     var $canEdit = 'admin,techno';
+    
+    
+    /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'techno/tpl/SingleLayoutSpecifications.shtml';
     
     
     /**
@@ -102,9 +108,9 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * 
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $canSingle = 'admin, techno';
+    var $rowToolsSingleField = 'title';
 	
 	
     /**
@@ -170,6 +176,7 @@ class techno_Specifications extends core_Master {
     	while($rec = $query->fetch()){
     		$products[$rec->id] = $this->getTitleById($rec->id);
     	}
+    	if(!count($products)) followRetUrl(NULL, 'Няма спецификации за този клиент');
     	
     	return $products;
     }
@@ -187,8 +194,74 @@ class techno_Specifications extends core_Master {
         $cover = doc_Folders::getCover($folderId);
         
         return $cover->haveInterface('doc_ContragentDataIntf') || 
-            ($cover->className == 'cash_Cases' && 
-             $cover->that == cash_Cases::getCurrent('id', FALSE) );
+            $folderId == static::getDefaultFolder(NULL, FALSE);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(!Mode::is('printing')){
+    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
+    	}
+    	
+    	if($fields['-single']){
+	    	if($rec->data){
+	    		$technoClass = cls::get($rec->prodTehnoClassId);
+	    		$row->data = $technoClass->getVerbal($rec->data);
+	    	}
+    	}
+    }
+    
+    
+	/**
+     * Подменя URL-то да сочи направо към формата на технологовия клас
+     */
+    static function on_AfterPrepareRetUrl($mvc, $data)
+    {
+        if ($data->form->isSubmitted()) {
+        	$rec = $data->form->rec;
+        	$technoClass = cls::get($rec->prodTehnoClassId);
+            $url = array($this, 'Ajust',
+                'id' => $rec->id,
+                'ret_url' => toUrl($data->retUrl, 'local')
+            );
+            $data->retUrl = $url;  
+        }
+    }
+    
+    
+    /**
+     * Екшън който показва формата за въвеждане на характеристики на продукта
+     * спрямо избрания продуктов технолог
+     */
+    function act_Ajust()
+    {
+    	$this->requireRightFor('add');
+    	expect($id = Request::get('id'));
+        
+        $rec = $this->fetch($id);
+        $technoClass = cls::get($rec->prodTehnoClassId);
+        $form = $technoClass->getEditForm();
+        
+    	$fRec = $form->input();
+        if($form->isSubmitted()) {
+            $rec->data = $technoClass->serialize($fRec);
+            $this->save($rec);
+            
+            return  Redirect(array($this, 'single', $rec->id));
+        }
+        
+        if($rec->data){
+        	$data = unserialize($rec->data);
+        	$data->title = $rec->title;
+        	$form->setDefaults($data);
+        }
+        
+        $form->title = "Характеристиките на ". $rec->title;
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
@@ -207,23 +280,10 @@ class techno_Specifications extends core_Master {
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn("Данни", array($mvc, 'getForm', 'sId' =>$data->rec->id), 'id=btnAdd,class=btn-add');
+    	$url = array($mvc, 'Ajust',
+                'id' => $data->rec->id,
+                'ret_url' => toUrl($data->retUrl, 'local')
+        );
+    	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
     }
-    
-    
-    /**
-     * 
-     */
-    function act_getForm()
-    {
-    	expect($id = Request::get('sId', 'int'));
-    	$rec = $this->fetch($id);
-    	$technoClass = cls::get($rec->prodTehnoClassId);
-    	$data = new stdClass();
-        $data->action = 'manage';
-    	$tpl = $technoClass->getEditForm($data);
-    	$tpl = $this->renderWrapping($tpl);
-    	return $tpl;
-    }
-    
 }

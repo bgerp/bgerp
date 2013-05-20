@@ -50,7 +50,7 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,name,measureId';
+    var $listFields = 'tools=Пулт,name,measureId,createdOn,createdBy';
     
     
     /**
@@ -110,40 +110,13 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Нов темплейт за показване
      */
-    //var $singleLayoutFile = 'cat/tpl/products/SingleProduct.shtml';
-    
-    
-    /**
-     * 
-     */
-    var $canSingle = 'admin, techno';
-	
-	
-    /**
-     * Описание на модела
-     */
-    function description()
-    {
-    	$this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
-		$this->FLD('description', 'richtext(rows=5)', 'caption=Описание');
-		$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory');
-		$this->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Изображение');
-    	
-		$this->FLD('price', 'double(decimals=2)', 'caption=Параметри->Цена,width=8em,mandatory');
-    	$this->FLD('height', 'double(decimals=2)', 'caption=Параметри->Височина,width=8em');
-		$this->FLD('width', 'double(decimals=2)', 'caption=Параметри->Ширина,width=8em');
-		$this->FLD('weight', 'double(decimals=2)', 'caption=Параметри->Тегло,width=8em');
-		$this->FLD('volume', 'double(decimals=2)', 'caption=Параметри->Обем,width=8em');
-		$this->FLD('length', 'double(decimals=2)', 'caption=Параметри->Дължина,width=8em');
-		
-		$this->FLD('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em');
-        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em');
-    }
+    var $singleLayoutFile = 'SingleLayoutGeneralProducts.shtml';
     
     
     /*
      * РЕАЛИЗАЦИЯ НА techno_ProductsIntf
      */
+    
     
     /**
      * Връща форма, с която могат да се въвеждат параметри на
@@ -151,11 +124,28 @@ class techno_GeneralProducts extends core_Manager {
      * @param stdClass $data - Обект с данни от модела 
      * @return core_Form $form - Формата на мениджъра
      */
-    public function getEditForm($data)
+    public function getEditForm()
     {
-        $this->prepareEditForm($data);
-        $this->prepareEditToolbar($data);
-    	return $data->form->renderHtml();
+    	$form = cls::get('core_Form');
+    	$form->FNC('title', 'richtext(rows=5)', 'caption=Описание,input=hidden');
+    	$form->FNC('description', 'richtext(rows=5)', 'caption=Описание,input,mandatory');
+		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,input');
+		$form->FNC('price', 'double(decimals=2)', 'caption=Параметри->Цена,width=8em,mandatory,input');
+    	$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Изображение,input');
+		$form->FNC('material', 'varchar(150)', 'caption=Параметри->Материал,width=8em,input');
+    	$form->FNC('height', 'double(decimals=2)', 'caption=Параметри->Височина,width=8em,input');
+		$form->FNC('width', 'double(decimals=2)', 'caption=Параметри->Ширина,width=8em,input');
+		$form->FNC('weight', 'double(decimals=2)', 'caption=Параметри->Тегло,width=8em,input');
+		$form->FNC('volume', 'double(decimals=2)', 'caption=Параметри->Обем,width=8em,input');
+		$form->FNC('length', 'double(decimals=2)', 'caption=Параметри->Дължина,width=8em,input');
+		$form->FNC('color', 'varchar(150)', 'caption=Параметри->Цвят,width=8em,input');
+		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
+        $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
+        
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
+        
+        return $form;
     }
     
     
@@ -167,7 +157,7 @@ class techno_GeneralProducts extends core_Manager {
      */
     public function serialize($data)
     {
-        //@TODO
+        return serialize($data);
     }
     
     
@@ -180,6 +170,14 @@ class techno_GeneralProducts extends core_Manager {
      */
     public function getVerbal($data, $short = FALSE)
     {
-        //@TODO
+        $data = unserialize($data);
+    	if($data->image){
+    		$file = fileman_Files::fetchByFh($data->image);
+	        $data->image = thumbnail_Thumbnail::getImg($file->fileHnd, array(150));
+    		
+    	}
+        $tpl = getTplFromFile("techno/tpl/" . $this->singleLayoutFile);
+        $tpl->placeObject($data);
+        return $tpl;
     }
 }

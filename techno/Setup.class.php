@@ -47,7 +47,6 @@ class techno_Setup
     function install()
     {
         $managers = array(
-            'techno_GeneralProducts',
         	'techno_Specifications',
         );
         

@@ -1,0 +1,33 @@
+[#SingleToolbar#]
+<div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+	</div>
+	<!--ET_END header-->
+	<table>
+		<tr>
+			<td>|Заглавие|*</td>
+			<td>[#title#]</td>
+		</tr>
+		<tr>
+			<td>|Технолог|*</td>
+			<td>[#prodTehnoClassId#]</td>
+		</tr>
+		<tr>
+			<td>|Създадено|*</td>
+			<td>|на|* [#createdOn#] |*от|* [#createdBy#] </td>
+		</tr>
+		<!--ET_BEGIN data-->
+		<tr>
+			<td colspan='2'>
+			[#data#]
+			</td>
+		</tr>
+		<!--ET_END data-->
+	</table>
+	
+</div>
