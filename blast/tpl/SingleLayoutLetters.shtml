@@ -92,7 +92,7 @@
 		<div class='additional-info'>
 			<!--ET_BEGIN ListLink--><div><b style="margin-bottom:10px; display:block">|Лист|*: [#ListLink#]</b></div><!--ET_END ListLink-->
 			
-			<!--ET_BEGIN GroupLink--><div><b style="margin-bottom:10px; display:block">|Група|*: [#GroupLink#]</b></div><!--ET_END GroupLink-->
+			<!--ET_BEGIN GroupLink--><div><b style="margin-bottom:10px; display:block">|Група|*: [#GroupLink#] - [#group#]</b></div><!--ET_END GroupLink-->
 			
 			<!--ET_BEGIN template-->          
 				<div>|Шаблон|*: [#template#]</div>
