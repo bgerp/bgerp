@@ -152,7 +152,7 @@ class blast_Letters extends core_Master
     /**
      * 
      */
-    var $cloneFields = 'listId, subject, body, numLetters, template, recipient, attn, country, pcode, place, address,position';
+    var $cloneFields = 'listId, group, subject, body, numLetters, template, recipient, attn, country, pcode, place, address,position';
 
     
     /**
@@ -404,14 +404,6 @@ class blast_Letters extends core_Master
      */
     function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
-        if ($options->__toListId) {
-            
-            // Фетчваме детайла за съответния лист
-            $detailRec = blast_ListDetails::fetch($options->__toListId);    
-        
-            // Десериализираме данните
-            $data = unserialize($detailRec->data);
-        }
         
         // Ако има id
         if ($id) {
@@ -422,6 +414,41 @@ class blast_Letters extends core_Master
         
         // Намираме преполагаемия език на писмото
         core_Lg::push(static::getLanguage($options->rec->body));
+        
+        // Ако е лист
+        if ($options->rec->listId) {
+            
+            // Фетчваме детайла за съответния лист
+            $detailRec = blast_ListDetails::fetch($options->__toListId);    
+        
+            // Десериализираме данните
+            $data = unserialize($detailRec->data);
+            
+        } elseif ($options->rec->group) {
+            
+            // Ако е група
+            
+            // Ако групата е фирма
+            if ($options->rec->group == 'company') {
+                
+                $group = 'company';
+            
+            } elseif ($options->rec->group == 'person') {
+                
+                // Ако групата е лице
+                
+                $group = 'person';
+                
+            }  elseif ($options->rec->group == 'personBiz') {
+                
+                // Ако групата е бизнес данни от лице
+                
+                $group = 'personBiz';
+            }
+            
+            // Вземаме масива с плейсхолдерите, които ще се заместват
+            $data = static::getDataFor($group, $options->__toListId);
+        }
         
         // Обхождаме масива с данните
         foreach ((array)$data as $key => $value) {
@@ -645,18 +672,60 @@ class blast_Letters extends core_Master
                 $exist .= $recLetterDetail->listDetailsId;
             }
             
-            // Вземаме всички детайли на листа, които са към избраното писмо и не са спрени
-            $queryListDetails = blast_ListDetails::getQuery();
-            $queryListDetails->where("#listId = '$rec->listId'");
-            $queryListDetails->where("#state != 'stopped'");
-            
-            while ($recListDetail = $queryListDetails->fetch()) {
-
-                // Ако нямаме запис с id'то в модела
-                if (!keylist::isIn($recListDetail->id, $exist)) {
+            // Ако е лист
+            if ($rec->listId) {
+                
+                // Вземаме всички детайли на листа, които са към избраното писмо и не са спрени
+                $queryListDetails = blast_ListDetails::getQuery();
+                $queryListDetails->where("#listId = '$rec->listId'");
+                $queryListDetails->where("#state != 'stopped'");
+                
+                // Обхождаме откритите резултата
+                while ($recListDetail = $queryListDetails->fetch()) {
+    
+                    // Ако нямаме запис с id'то в модела
+                    if (!keylist::isIn($recListDetail->id, $exist)) {
+                        
+                        // Добавяме към масива
+                        $allNewId[$recListDetail->id] = $recListDetail->id;
+                    }
+                }
+            } elseif ($rec->group) {
+                
+                // Ако е група
+                
+                // id на корицата
+                $coverId = doc_Folders::fetchCoverId($rec->folderId);
+                
+                // Добавяме в масив
+                $coverArr[$coverId] = $coverId;
+                
+                // Ако е фирма
+                if ($rec->group == 'company') {
                     
-                    // Добавяме към масива
-                    $allNewId[$recListDetail->id] = $recListDetail->id;
+                    // Извличаме записите за фирмата
+                    $gQuery = crm_Companies::getQuery();
+                } else {
+                    
+                    // Ако е лице
+                    
+                    // Извличаме записите за лицето
+                    $gQuery = crm_Persons::getQuery();
+                }
+                
+                // Всички, които са от тази група и не са оттеглени
+                $gQuery->likeKeylist('groupList', $coverArr);
+                $gQuery->where("#state != 'rejected'");
+                
+                // Обхождаме откритите резултати
+                while ($gRec = $gQuery->fetch()) {
+                    
+                    // Ако нямаме запис с id'то в модела
+                    if (!keylist::isIn($gRec->id, $exist)) {
+                        
+                        // Добавяме към масива
+                        $allNewId[$gRec->id] = $gRec->id;
+                    }
                 }
             }
             
@@ -703,34 +772,76 @@ class blast_Letters extends core_Master
         // Добавяме във формата информация, за да знаем за кое писмо става дума
         $form->info = new ET ('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
         
-        // Вземаме всички детайли, които не са спряни от съответния лист
-        $query = blast_ListDetails::getQuery();
-        $query->where("#listId = '{$rec->listId}'");
-        $query->where("#state != 'stopped'");
+        // Опциите за създаване на тялот
+        $options = new stdClass(); 
         
-        // Обхождаме получените резултати
-        while ($qRec = $query->fetch()) {
+        // Ако е листа
+        if ($rec->listId) {
             
-            // Ако имаме права за single
-            if (blast_ListDetails::haveRightFor('single', $qRec)) {
+            // Вземаме всички детайли, които не са спряни от съответния лист
+            $query = blast_ListDetails::getQuery();
+            $query->where("#listId = '{$rec->listId}'");
+            $query->where("#state != 'stopped'");
+            
+            // Обхождаме получените резултати
+            while ($lRec = $query->fetch()) {
                 
-                // Вземаме id' то
-                $listDet = $qRec->id;
+                // Ако имаме права за single
+                if (blast_ListDetails::haveRightFor('single', $lRec)) {
+                    
+                    // Добавяме listId до кого е
+                    $options->__toListId = $lRec->id;
+                    
+                    // Спираме по нататъшното изпълнение
+                    break;
+                }
+            }
+            
+        } elseif ($rec->group) {
+            
+            // Ако е група
+            
+            // Вземаме id на корицата
+            $coverId = doc_Folders::fetchCoverId($rec->folderId);
+            
+            // Добавяме в масива
+            $coverArr[$coverId] = $coverId;
+            
+            // Ако групата е фирма
+            if ($rec->group == 'company') {
                 
-                // Спираме по нататъшното изпълнение
-                break;
+                // Вземаме записите за фирмата
+                $gQuery = crm_Companies::getQuery();
+            } else {
+                
+                // Ако е лице
+                
+                // Вземаме записите за лицето
+                $gQuery = crm_Persons::getQuery();
+            }
+            
+            // Вземаме всички заиси от групата, които не са оттеглени
+            $gQuery->likeKeylist('groupList', $coverArr);
+            $gQuery->where("#state != 'rejected'");
+            
+            // Обхождаме получените резултати
+            while ($gRec = $gQuery->fetch()) {
+                
+                // Ако имаме права за сингула на документа
+                if ($gQuery->mvc->haveRightFor('single', $gRec)) {
+                    
+                    // Добавяме listId до кого е
+                    $options->__toListId = $gRec->id;
+                    
+                    // Прекратяваме изпълнението на програмата
+                    break;
+                }
             }
         }
         
-        // Опциите за създаване на тялот
-        $options = new stdClass();
-        
         // Записите
         $options->rec = $rec;
-        
-        // Добавяме listId до кого е
-        $options->__toListId = $listDet;
-        
+
         // Вземаме документа в xhtml формат
         $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
         
@@ -1041,10 +1152,10 @@ class blast_Letters extends core_Master
                 $arr['name'] = 'names';
                 $arr['buzCompanyId'] = 'company';
                 $arr['buzPosition'] = 'position';
-                $arr['companies_country'] = 'country';
-                $arr['companies_pCode'] = 'postCode';
-                $arr['companies_place'] = 'city';
-                $arr['companies_address'] = 'address';
+                $arr['company_country'] = 'country';
+                $arr['company_pCode'] = 'postCode';
+                $arr['company_place'] = 'city';
+                $arr['company_address'] = 'address';
                 
             break;
             
@@ -1066,6 +1177,83 @@ class blast_Letters extends core_Master
         }
         
         return $arr;
+    }
+    
+    
+    /**
+     * Връща масив с данни за заместване за съответното писмо
+     * 
+     * @param string $group - Групата
+     * @param integer $id - id' то на записа от съответната група
+     * 
+     * @return array $data - Масив с данни
+     */
+    static function getDataFor($group, $id)
+    {
+        // Вземама масива с плейсхолдерите за съответната група
+        $placeArr = static::getGroupPlaceholders($group);
+        
+        // Ако е фирма
+        if ($group == 'company') {
+            
+            // Вземаме данните за фирмата
+            $rec = crm_Companies::fetch($id);
+            
+            // Класа на групата
+            $groupClass = 'crm_Companies';
+        } else {
+            
+            //Ако е лице
+            
+            // Вземаме данните за лицето
+            $rec = crm_Persons::fetch($id);
+            
+            // Класа на групата
+            $groupClass = 'crm_Persons';
+        }
+        
+        // Обхождаме масива с плейсхолдерите
+        foreach ((array)$placeArr as $field => $place) {
+            
+            // Позициата на долната черта
+            $pos = mb_stripos($field, '_');
+            
+            // Ако няма долна черта
+            if ($pos === FALSE) {
+                
+                // Добавяме в масива плейсхолдера и стойността
+                $data[$place] = $groupClass::getVerbal($rec, $field);
+            } else {
+                
+                // Типа
+                $type =  mb_substr($field, 0,$pos);
+                
+                // Полето
+                $nField = mb_substr($field, $pos+1);
+                
+                // Ако е фирма
+                if ($type = 'company') {
+                    
+                    // Ако има бизнес данни
+                    if ($rec->buzCompanyId && $companyRec->id != $rec->buzCompanyId) {
+                        
+                        // Вземаме записите за фирмата
+                        $companyRec = crm_Companies::fetch($rec->buzCompanyId);
+                    }
+                    
+                    // Ако има фирма
+                    if ($companyRec) {
+                        
+                        // Вземаме стойността на съответното поле
+                        $placeVal = crm_Companies::getVerbal($companyRec, $nField);
+                    }
+                    // Добавяме стойността в полето
+                    $data[$place] = $placeVal;
+                }
+            }
+        }
+
+        return $data;
     }
     
     
