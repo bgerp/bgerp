@@ -262,14 +262,12 @@ class sales_SalesDetails extends core_Detail
         
         while ($rec = $query->fetch()) {
             $amountDeal += $rec->amount;
-            $amountDelivered += $rec->quantityDelivered * $rec->price;
         }
         
         sales_Sales::save(
             (object)array(
                 'id' => $masterId,
                 'amountDeal' => $amountDeal,
-                'amountDelivered' => $amountDelivered,
             )
         );
     }
