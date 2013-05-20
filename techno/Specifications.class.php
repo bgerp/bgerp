@@ -286,4 +286,54 @@ class techno_Specifications extends core_Master {
         );
     	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
     }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $productId
+     * @param unknown_type $date
+     */
+    public static function getVat($id, $date = NULL)
+    {
+    	$rec = static::fetch($id);
+    	if($rec->data){
+    		$data = unserialize($rec->data);
+    		if($data->vat) return $data->vat;
+    	}
+    	
+    	// Връщаме ДДС-то от периода
+    	$period = acc_Periods::fetchByDate($date);
+    	return $period->vatRate;
+    }
+    
+    
+    /**
+     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     * 
+     * @return object
+     * $rec->price  - цена
+     * $rec->discount - отстъпка
+     */
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    {
+    	$rec = $this->fetch($productId);
+    	if($rec->data){
+    		$data = unserialize($rec->data);
+    		if($data->price){
+    			$price = new stdClass();
+    			if($data->price){
+    				$price->price = $data->price;
+    			}
+    			
+    			if($data->discount){
+    				$price->discount = $data->discount;
+    			}
+    			
+    			if($price->price) return $price;
+    		}
+    	}
+    	
+    	return FALSE;
+    }
 }

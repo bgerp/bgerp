@@ -131,6 +131,7 @@ class techno_GeneralProducts extends core_Manager {
     	$form->FNC('description', 'richtext(rows=5)', 'caption=Описание,input,mandatory');
 		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,input');
 		$form->FNC('price', 'double(decimals=2)', 'caption=Параметри->Цена,width=8em,mandatory,input');
+		$form->FNC('discount', 'double(decimals=2)', 'caption=Параметри->Отстъпка,width=8em,input');
     	$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Изображение,input');
 		$form->FNC('material', 'varchar(150)', 'caption=Параметри->Материал,width=8em,input');
     	$form->FNC('height', 'double(decimals=2)', 'caption=Параметри->Височина,width=8em,input');
