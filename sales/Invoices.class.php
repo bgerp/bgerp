@@ -756,12 +756,23 @@ class sales_Invoices extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = sales_Invoices::getHandle($id);
+        $type = static::fetchField($id, 'type');
+        switch($type){
+        	case 'invoice':
+        		$type = "приложената фактура";
+        		break;
+        	case 'debit_note':
+        		$type = "приложеното дебитно известие";
+        		break;
+        	case 'credit_note':
+        		$type = "приложеното кредитно известие";
+        		break;
+        }
         
         //Създаваме шаблона
-        $tpl = new ET(tr("Моля запознайте се с приложената фактура:") . "\n#[#handle#]");
-        
-        //Заместваме хендъра в шаблона
+        $tpl = new ET(tr("Моля запознайте се с") . " [#type#]:\n#[#handle#]");
         $tpl->append($handle, 'handle');
+        $tpl->append($type, 'type');
         
         return $tpl->getContent();
     }
