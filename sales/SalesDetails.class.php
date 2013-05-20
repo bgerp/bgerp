@@ -252,16 +252,23 @@ class sales_SalesDetails extends core_Detail
      */
     public static function updateMasterSummary($masterId, $hotRec = NULL)
     {
+        $salesRec = sales_Sales::fetchRec($masterId);
+        
         /* @var $query core_Query */
         $query = static::getQuery();
         
-        $amountDeal      = 0;
-        $amountDelivered = 0;
+        $amountDeal = 0;
         
         $query->where("#saleId = '{$masterId}'");
         
         while ($rec = $query->fetch()) {
-            $amountDeal += $rec->amount;
+            $VAT = 1;
+            
+            if ($salesRec->chargeVat == 'yes') {
+                $VAT += cat_Products::getVat($rec->productId, $salesRec->valior);
+            }
+            
+            $amountDeal += $rec->amount * $VAT;
         }
         
         sales_Sales::save(
