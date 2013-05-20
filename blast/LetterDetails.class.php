@@ -179,7 +179,7 @@ class blast_LetterDetails extends core_Detail
                         $name = crm_Persons::getVerbal($pRec, 'name');
                         
                         // Добавяме линка към сингъла на лицето в стринга
-                        $str .= ht::createLink($listDet, array('crm_Companies', 'single', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $name));
+                        $str .= ht::createLink($listDet, array('crm_Persons', 'single', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $name));
                     } else {
                         
                         // Ако нямаме права добавяме само стринга
