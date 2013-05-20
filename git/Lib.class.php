@@ -78,20 +78,20 @@ class git_Lib
      
         if (!self::cmdExec($commandFetch, $arrRes)) {
             foreach ($arrRes as $val) {
-                $log[] = (!empty($val))?("<b>[$repoName]</b> грешка при превключване в {$branch} fetch:" . $val):"";
+                $log[] = (!empty($val))?("[$repoName]: грешка при превключване в {$branch} fetch:" . $val):"";
             }
             
             return FALSE;
         } else {
             if (!self::cmdExec($commandCheckOut, $arrRes)) {
                 foreach ($arrRes as $val) {
-                    $log[] = (!empty($val))?("<b>[$repoName]</b> грешка при превключване в {$branch} checkOut:" . $val):"";
+                    $log[] = (!empty($val))?("[$repoName]: грешка при превключване в {$branch} checkOut:" . $val):"";
                 }
                 
                 return FALSE;
             } else {
                 // Ако и двете команди са успешни значи всичко е ОК
-                $log[] = "<b>[$repoName]</b> превключен {$branch} бранч.";
+                $log[] = "[$repoName]: превключен {$branch} бранч.";
                 
                 return TRUE;
             }
@@ -123,7 +123,7 @@ class git_Lib
         
         if (!self::cmdExec($commandFetch, $arrResFetch)) {
             foreach ($arrResFetch as $val) {
-                $log[] = (!empty($val))?("<b>[$repoName]</b> грешка при fetch: " . $val):"";
+                $log[] = (!empty($val))?("[$repoName]: грешка при fetch: " . $val):"";
             }
             
             return FALSE;
@@ -131,13 +131,13 @@ class git_Lib
       
         if (!self::cmdExec($commandMerge, $arrResMerge)) {
             foreach ($arrResMerge as $val) {
-                $log[] = (!empty($val))?(" <b>[$repoName]</b> грешка при merge origin/" . $currBranch .": " . $val):"";
+                $log[] = (!empty($val))?("[$repoName]: грешка при merge origin/" . $currBranch .": " . $val):"";
             }
             
             return FALSE;
         }
         
-        $log[] = "<b>[{$repoName}]</b> е обновено.";
+        $log[] = "[{$repoName}]: е обновено.";
                 
         return TRUE;
     }
@@ -176,11 +176,13 @@ class git_Lib
      */
     public static function push($repoPath, &$log)
     {
+        $repoName = basename($repoPath);
+        
         $currBranch = self::currentBranch($repoPath, &$log);
         
         $commandPush = " --git-dir=\"{$repoPath}/.git\" push origin {$currBranch}";
         if(!self::cmdExec($commandPush, $log)) return FALSE;
-        $log[] = "Успешен merge $branch1 -> $branch2";
+        $log[] = "[{$repoName}]: успешен push {$currBranch}";
         
         return TRUE;
     }
