@@ -25,4 +25,3 @@
 #place=Град/с
 #address=Адрес
 #country=Държава
-#salutation=Обръщение
