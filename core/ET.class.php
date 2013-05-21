@@ -746,7 +746,7 @@ class core_ET extends core_BaseClass
      */
     function placeObject($data, $holderBlock = NULL, $prefix = NULL)
     {
-        $this->placeArray($data, $holderBlock, $prefix);
+        $this->placeArray((array)$data, $holderBlock, $prefix);
 
         return $this;
     }
