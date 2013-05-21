@@ -22,6 +22,12 @@ class doc_AssignPlg extends core_Plugin
     
     
     /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'doc, admin, ceo';
+    
+    
+    /**
      * 
      */
     var $loadList = 'change_Plugin';

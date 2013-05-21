@@ -116,6 +116,12 @@ class cal_Tasks extends core_Master
     
     
     /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'powerUser, admin, ceo';
+    
+    
+    /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/task-normal.png';

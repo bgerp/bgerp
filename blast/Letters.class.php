@@ -97,6 +97,13 @@ class blast_Letters extends core_Master
     
     
     /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'blast, admin, ceo';
+    
+    
+    
+    /**
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'email_DocumentIntf';
