@@ -30,7 +30,11 @@ class techno_ProductsIntf
      * Връща сериализиран вариант на данните, които представят
      * дадено изделие или услуга
      * 
-     * @param stdClass $data - Обект с данни от модела 
+     * @param stdClass $data - Обект с данни от модела
+     * 		В $data трябва да има пропъртита:
+     * 		1.price - цена на продукта (задължително)
+     * 		2.discount - отстъпка
+     * 		3.vat - ДДС
      * @return blob $serialized - сериализирани данни на обекта
      */
     public function serialize($data)

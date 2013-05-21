@@ -9,25 +9,25 @@
 	</div>
 	<!--ET_END header-->
 	<table>
+		<!--ET_BEGIN data-->
 		<tr>
-			<td>|Заглавие|*</td>
-			<td>[#title#]</td>
+			<td colspan='2' style='padding-top:20px'>
+			[#data#]
+			</td>
 		</tr>
+		<!--ET_END data-->
 		<tr>
 			<td>|Технолог|*</td>
 			<td>[#prodTehnoClassId#]</td>
 		</tr>
 		<tr>
+			<td>|Мярка|*</td>
+			<td>[#measureId#]</td>
+		</tr>
+		<tr>
 			<td>|Създадено|*</td>
 			<td>|на|* [#createdOn#] |*от|* [#createdBy#] </td>
 		</tr>
-		<!--ET_BEGIN data-->
-		<tr>
-			<td colspan='2'>
-			[#data#]
-			</td>
-		</tr>
-		<!--ET_END data-->
 	</table>
 	
 </div>

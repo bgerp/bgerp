@@ -127,6 +127,7 @@ class techno_Specifications extends core_Master {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf)', 'caption=Технолог,mandatory');
+		$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,input');
     }
     
     
@@ -160,8 +161,10 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Връща продуктие, които могат да се продават на посочения клиент.
-     * Това са всички спецификации от неговата папка
+     * Връща продуктие, които могат да се продават
+     * на посочения клиент. Това са всички спецификации от
+     * неговата папка, ако няма спецификации редиректваме с
+     * подходящо стобщение
      */
     function getProducts($customerClass, $customerId, $date = NULL)
     {
@@ -172,9 +175,10 @@ class techno_Specifications extends core_Master {
     	$products = array();
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
+    	$query->where("#data IS NOT NULL");
     	//$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
-    		$products[$rec->id] = $this->getTitleById($rec->id);
+    		$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
     	}
     	if(!count($products)) followRetUrl(NULL, 'Няма спецификации за този клиент');
     	
@@ -209,45 +213,50 @@ class techno_Specifications extends core_Master {
     	
     	if($fields['-single']){
 	    	if($rec->data){
+	    		
+	    		// Подготвяме изгледа на изделието
 	    		$technoClass = cls::get($rec->prodTehnoClassId);
-	    		$row->data = $technoClass->getVerbal($rec->data);
+	    		$row->data = $technoClass->getVerbal($rec->data, TRUE);
 	    	}
     	}
     }
     
     
 	/**
-     * Подменя URL-то да сочи направо към формата на технологовия клас
+     * Подменя URL-то да сочи направо към формата
+     * на технологовия клас
      */
     static function on_AfterPrepareRetUrl($mvc, $data)
     {
-        if ($data->form->isSubmitted()) {
+        if($data->form && $data->form->isSubmitted()) {
         	$rec = $data->form->rec;
-        	$technoClass = cls::get($rec->prodTehnoClassId);
-            $url = array($this, 'Ajust',
+        	$url = array($mvc, 'Ajust',
                 'id' => $rec->id,
                 'ret_url' => toUrl($data->retUrl, 'local')
             );
-            $data->retUrl = $url;  
+            $data->retUrl = $url;
         }
     }
     
     
     /**
-     * Екшън който показва формата за въвеждане на характеристики на продукта
-     * спрямо избрания продуктов технолог
+     * Екшън който показва формата за въвеждане на характеристики
+     * на продукта, спрямо избрания продуктов технолог
      */
     function act_Ajust()
     {
     	$this->requireRightFor('add');
     	expect($id = Request::get('id'));
-        
         $rec = $this->fetch($id);
+        
+        // Връщаме формата от технологовия клас
         $technoClass = cls::get($rec->prodTehnoClassId);
         $form = $technoClass->getEditForm();
         
     	$fRec = $form->input();
         if($form->isSubmitted()) {
+        	
+        	// Записваме въведените данни в пропъртито data на река
             $rec->data = $technoClass->serialize($fRec);
             $this->save($rec);
             
@@ -255,9 +264,11 @@ class techno_Specifications extends core_Master {
         }
         
         if($rec->data){
+        	
+        	// При вече въведени характеристики, слагаме ги за дефолт
         	$data = unserialize($rec->data);
         	$data->title = $rec->title;
-        	$form->setDefaults($data);
+        	$form->setDefaults($data->rec);
         }
         
         $form->title = "Характеристиките на ". $rec->title;
@@ -280,26 +291,29 @@ class techno_Specifications extends core_Master {
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$url = array($mvc, 'Ajust',
+    	if($data->rec->state == 'draft'){
+    		$url = array($mvc, 'Ajust',
                 'id' => $data->rec->id,
                 'ret_url' => toUrl($data->retUrl, 'local')
-        );
-    	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
+        	);
+        	
+        	// Може да се променят характеристиките само на чернова
+        	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
+    	}
     }
     
     
     /**
-     * 
-     * Enter description here ...
-     * @param unknown_type $productId
-     * @param unknown_type $date
+     * Връща ДДС-то на спродукта
+     * @param int $id - ид на спецификацията
+     * @param blob $date - данни на спецификацията
      */
     public static function getVat($id, $date = NULL)
     {
     	$rec = static::fetch($id);
     	if($rec->data){
     		$data = unserialize($rec->data);
-    		if($data->vat) return $data->vat;
+    		if($data->rec->vat) return $data->rec->vat;
     	}
     	
     	// Връщаме ДДС-то от периода
@@ -320,14 +334,14 @@ class techno_Specifications extends core_Master {
     	$rec = $this->fetch($productId);
     	if($rec->data){
     		$data = unserialize($rec->data);
-    		if($data->price){
+    		if($data->rec->price){
     			$price = new stdClass();
-    			if($data->price){
-    				$price->price = $data->price;
+    			if($data->rec->price){
+    				$price->price = $data->rec->price;
     			}
     			
-    			if($data->discount){
-    				$price->discount = $data->discount;
+    			if($data->rec->discount){
+    				$price->discount = $data->rec->discount;
     			}
     			
     			if($price->price) return $price;
@@ -335,5 +349,32 @@ class techno_Specifications extends core_Master {
     	}
     	
     	return FALSE;
+    }
+    
+    
+    /**
+     * Предефинираме метода getTitleById да връща вербалното
+     * представяне на продукта
+     * @param int $id - id на спецификацията
+     * @return core_ET - шаблон сunknown_type представянето на спецификацията
+     */
+     static function getTitleById($id)
+     {
+    	$rec = static::fetch($id);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	return $technoClass->getVerbal($rec->data, TRUE);
+     }
+     
+     
+     /**
+     * След проверка на ролите
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    {
+    	if($action == 'activate'){
+    		if(!isset($rec) || (isset($rec) && !$rec->data)){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }
