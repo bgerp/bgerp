@@ -127,7 +127,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, bgerp_plg_blank, change_Plugin';
+    var $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, bgerp_plg_blank, change_Plugin';
     
     
     /**
