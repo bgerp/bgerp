@@ -336,8 +336,8 @@ class blast_Emails extends core_Master
             $rec->tel = '[#tel#]';
             $rec->fax = '[#fax#]';
             $rec->country = '[#country#]';
-            $rec->pcode = '[#postCode#]';
-            $rec->place = '[#city#]';
+            $rec->pcode = '[#pCode#]';
+            $rec->place = '[#place#]';
             $rec->address = '[#address#]';
         }
     }

@@ -289,8 +289,8 @@ class blast_Letters extends core_Master
             $rec->recipient = '[#company#]';
             $rec->attn = '[#names#]';
             $rec->country = '[#country#]';
-            $rec->pcode = '[#postCode#]';
-            $rec->place = '[#city#]';
+            $rec->pcode = '[#pCode#]';
+            $rec->place = '[#place#]';
             $rec->address = '[#address#]';
             $rec->position = '[#position#]';
         }
@@ -1156,8 +1156,8 @@ class blast_Letters extends core_Master
             case 'company':
                 $arr['name'] = 'company';
                 $arr['country'] = 'country';
-                $arr['pCode'] = 'postCode';
-                $arr['place'] = 'city';
+                $arr['pCode'] = 'pCode';
+                $arr['place'] = 'place';
                 $arr['address'] = 'address';
             break;
             
@@ -1169,8 +1169,8 @@ class blast_Letters extends core_Master
                 $arr['buzCompanyId'] = 'company';
                 $arr['buzPosition'] = 'position';
                 $arr['company_country'] = 'country';
-                $arr['company_pCode'] = 'postCode';
-                $arr['company_place'] = 'city';
+                $arr['company_pCode'] = 'pCode';
+                $arr['company_place'] = 'place';
                 $arr['company_address'] = 'address';
                 
             break;
@@ -1181,8 +1181,8 @@ class blast_Letters extends core_Master
                 $arr['salutation'] = 'salutation';
                 $arr['name'] = 'names';
                 $arr['country'] = 'country';
-                $arr['pCode'] = 'postCode';
-                $arr['place'] = 'city';
+                $arr['pCode'] = 'pCode';
+                $arr['place'] = 'place';
                 $arr['address'] = 'address';
                 
             break;
