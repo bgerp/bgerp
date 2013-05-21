@@ -131,6 +131,7 @@ class sales_QuotationsDetails extends core_Detail {
        $Policy = cls::get($rec->policyId);
        $productMan = $Policy->getProductMan();
        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+       
        $form->setOptions('productId', $products);
        
        if($form->rec->price && $masterRec->rate){
@@ -244,7 +245,6 @@ class sales_QuotationsDetails extends core_Detail {
     			// Ако има вече такъв продукт, го махаме от записа
     			unset($row->productId);
     		}
-    		
     		
     		$newRows[$pId][] = $row;
     	}
@@ -374,6 +374,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$row->productId = $productMan->getTitleById($rec->productId);
     	$uomId = $productMan::fetchField($rec->productId, 'measureId');
     	$uomTitle = cat_UoM::recToVerbal($uomId, 'shortName')->shortName;
+    	
     	$row->quantity = "<b>{$row->quantity}</b> {$uomTitle}";
     	
     	if($rec->discount && $rec->discount < 0){
