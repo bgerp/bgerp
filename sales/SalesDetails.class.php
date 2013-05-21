@@ -410,7 +410,10 @@ class sales_SalesDetails extends core_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            $rec->packPrice *= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
+            if ($masterRec->chargeVat == 'yes') {
+                // Начисляваме ДДС в/у цената
+                $rec->packPrice *= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
+            }
             $rec->packPrice /= $masterRec->currencyRate;
         }
     }
@@ -478,8 +481,10 @@ class sales_SalesDetails extends core_Detail
                 // в мастър-продажбата.
                 $rec->packPrice *= $masterRec->currencyRate;
                 
-                // Потребителя въвежда цените с ДДС
-                $rec->packPrice /= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
+                if ($masterRec->chargeVat == 'yes') {
+                    // Потребителя въвежда цените с ДДС
+                    $rec->packPrice /= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
+                }
                 
                 // Изчисляваме цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
