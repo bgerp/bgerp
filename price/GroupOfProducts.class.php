@@ -189,6 +189,9 @@ class price_GroupOfProducts extends core_Detail
                 $rec->groupId = self::getGroup($rec->productId, dt::verbal2mysql());
             }
         }
+        
+        $groupName = price_Groups::fetchField($rec->groupId, 'title');
+        $data->form->title = '|Добавяне на артикул към|* "' . $groupName . '"';
     }
 
 
