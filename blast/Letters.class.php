@@ -679,6 +679,7 @@ class blast_Letters extends core_Master
                 $queryListDetails = blast_ListDetails::getQuery();
                 $queryListDetails->where("#listId = '$rec->listId'");
                 $queryListDetails->where("#state != 'stopped'");
+                $queryListDetails->orderBy('id', 'ASC');
                 
                 // Обхождаме откритите резултата
                 while ($recListDetail = $queryListDetails->fetch()) {
@@ -867,25 +868,40 @@ class blast_Letters extends core_Master
      */
     function act_Stop()
     {
-        //Права за работа с екшън-а
+        // Права за работа с екшън-а
         requireRole('blast, admin');
         
-        //Очаква да има въведено id
+        // Очаква да има въведено id
         expect($id = Request::get('id', 'int'));
         
-        //Очакваме да има такъв запис
+        // Очакваме да има такъв запис
         expect($rec = $this->fetch($id));
-        
+
         // Очакваме потребителя да има права за спиране
         $this->haveRightFor('stop', $rec);
         
-        //Променяме статуса на спрян
+        // Променяме статуса на спрян
         $recUpd = new stdClass();
         $recUpd->id = $rec->id;
         
         // Състоянието да е спряно
         $recUpd->state = 'stopped';
-        blast_Letters::save($recUpd, 'state');
+        
+        // Ако записа е успешен
+        if (blast_Letters::save($recUpd, 'state')) {
+            
+            // Вземаме детайлите, които не са печатани в съответното писмо
+            $dQuery = blast_LetterDetails::getQuery();
+            $dQuery->where("#letterId = '$id'");
+            $dQuery->where("#printedDate IS NULL");
+            
+            // Обикаляме резултатите
+            while ($dRec = $dQuery->fetch()) {
+                
+                // Изтриваме записите
+                blast_LetterDetails::delete($dRec->id);
+            }    
+        }
         
         // Вземаме ret_url
         $retUrl = getRetUrl();
