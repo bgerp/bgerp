@@ -8,24 +8,30 @@
 				<div class="groupList">
 					<dl>
 						<dt>|Номер|*:</dt><dd>[#id#]</dd>
-						<dt>|Сметка|*</dt><dd>[#bankAccountId#]</dd>
-						<dt>|Титуляри|*</dt><dd>[#titulars#]</dd>
-						<dt>|Заедно|*</dt><dd>[#together#]</dd>
-						<dt>|Oператори|*</dt><dd>[#operators#]</dd>
+						<dt>|Сметка|*:</dt><dd><b>[#bankAccountId#]</b></dd>
+						<dt>|Тип|*:</dt><dd><b>[#type#]</b></dd>
+						<dt>|Титуляри|*:</dt><dd><b>[#titulars#]</b></dd>
+						<dt>|Представляват|*:</dt><dd>[#together#]</dd>
+						<dt>|Oператори|*:</dt><dd>[#operators#]</dd>
+						
 					</dl>
 				</div>
 			</fieldset>
 			
-		<fieldset class="detail-info">
-	      <legend class="groupTitle">|Създаден|*</legend>
-	        <div class="groupList">
-	         	<ul>  
-			       <li class="info">
-						<span class="part"><span class="gray-title">|от|*:</span> [#createdBy#] </span>
-						<span class="part"><span class="gray-title">|на|*:</span> [#createdOn#]</span>
-				   </li>
-		        </ul>  
-			</div>
+			<fieldset class="detail-info">
+		    <legend class="groupTitle">|Права|*</legend>
+		    <div class="groupList">
+				<dl>
+					<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
+					<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
+					<!--ET_BEGIN shareBlock-->
+					[#shareBlock#]
+						<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
+					<!--ET_END shareBlock-->
+			
+					<dt>Създаване: </dt><dd> от <b>[#createdBy#]</b> на <b>[#createdOn#]</b></dd>
+				</dl>
+		     </div>
 		</fieldset>
 		</div>
 	</div>

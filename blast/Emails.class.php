@@ -113,6 +113,12 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'blast, admin, ceo';
+    
+    
+    /**
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'email_DocumentIntf';
@@ -121,7 +127,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, bgerp_plg_blank, change_Plugin';
+    var $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, bgerp_plg_blank, change_Plugin';
     
     
     /**
@@ -204,6 +210,7 @@ class blast_Emails extends core_Master
         // Ако не е папка проект или контрагент, не може да се добави
         if (($coverClassName != 'doc_unsortedfolders') && 
             ($coverClassName != 'crm_persons') &&
+            ($coverClassName != 'crm_groups') &&
             ($coverClassName != 'crm_companies')) return FALSE;
     }
     
@@ -280,6 +287,7 @@ class blast_Emails extends core_Master
         //Добавя в лист само списъци с имейли
         $query = blast_Lists::getQuery();
         $query->where("#keyField = 'email'");
+        $query->orderBy("createdOn", 'DESC');
         
         while ($rec = $query->fetch()) {
             $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
@@ -334,8 +342,8 @@ class blast_Emails extends core_Master
             $rec->tel = '[#tel#]';
             $rec->fax = '[#fax#]';
             $rec->country = '[#country#]';
-            $rec->pcode = '[#postCode#]';
-            $rec->place = '[#city#]';
+            $rec->pcode = '[#pCode#]';
+            $rec->place = '[#place#]';
             $rec->address = '[#address#]';
         }
     }

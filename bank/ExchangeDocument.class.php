@@ -206,6 +206,8 @@ class bank_ExchangeDocument extends core_Master
 		    } else {
 		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
 		    }
+		    
+		    $form->rec->folderId = bank_OwnAccounts::forceCoverAndFolder($form->rec->peroTo);
 		}
     }
     
@@ -308,12 +310,11 @@ class bank_ExchangeDocument extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        // Може да създаваме документ-а само в дефолт папката му
-        if ($folderId == static::getDefaultFolder(NULL /* userId */, FALSE /* bForce */)) {
-        	
+       // Може да създаваме документ-а само в дефолт папката му
+       if ($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
         	return TRUE;
-        } 
-        	
+       } 
+        
        return FALSE;
     }
     

@@ -181,7 +181,7 @@ class currency_Currencies extends core_Master {
     {
         $data->toolbar->removeBtn('btnAdd');
         
-        $data->toolbar->addBtn('Нова валута', array($mvc, 'Add', 'groupId' => Request::get('groupId')));
+        $data->toolbar->addBtn('Нова валута', array($mvc, 'Add', 'groupId' => Request::get('groupId', 'int')));
     }
     
     

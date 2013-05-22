@@ -1,0 +1,33 @@
+.general-product .list-info {
+	list-style:none;
+	font-size:15px;
+	padding-left:0;
+	float:left;
+	margin-top:0px;
+}
+
+.general-product .list-title {
+	font-size:16px;
+	text-transform:uppercase;
+}
+
+.general-product .list-description {
+	max-width:230px;
+	text-align:justify;
+}
+
+.general-product .list-measures {
+	list-style:none;
+	padding-left:10px;
+}
+
+.general-product .list-others {
+	list-style:none;
+	padding-left:10px;
+}
+
+.general-product .product-image {
+	float:left;
+	margin-top:25px;
+	margin-left:20px;
+}

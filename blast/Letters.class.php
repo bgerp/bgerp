@@ -97,6 +97,13 @@ class blast_Letters extends core_Master
     
     
     /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'blast, admin, ceo';
+    
+    
+    
+    /**
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'email_DocumentIntf';
@@ -105,7 +112,7 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank';
+    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin';
     
     
     /**
@@ -152,7 +159,7 @@ class blast_Letters extends core_Master
     /**
      * 
      */
-    var $cloneFields = 'listId, subject, body, numLetters, template, recipient, attn, country, pcode, place, address,position';
+    var $cloneFields = 'listId, group, subject, body, numLetters, template, recipient, attn, country, pcode, place, address,position';
 
     
     /**
@@ -161,19 +168,20 @@ class blast_Letters extends core_Master
     function description()
     {
         $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък, mandatory');
-        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory, width=100%');
-        $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, width=100%');
-        $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory');
+        $this->FLD('group', 'enum(company=Фирми, personBiz=Лица (Бизнес данни), person=Лица (Частни данни))', 'caption=Група, mandatory, input=none');
+        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory, width=100%, changable');
+        $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, width=100%, changable');
+        $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory, input=none, hint=Колко писма ще се печатат едновременно');
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
-            triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory');
+            triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory, changable');
         
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице, width=100%');
-        $this->FLD('position', 'varchar', 'caption=Адресант->Длъжност, width=100%');
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма, width=100%');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, width=100%');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код, width=100%');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с, width=100%');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, width=100%');
+        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице, width=100%, changable');
+        $this->FLD('position', 'varchar', 'caption=Адресант->Длъжност, width=100%, changable');
+        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма, width=100%, changable');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, width=100%, changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код, width=100%, changable');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с, width=100%, changable');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, width=100%, changable');
     }
 
     /**
@@ -191,6 +199,7 @@ class blast_Letters extends core_Master
         // Ако не е папка проект или контрагент, не може да се добави
         if (($coverClassName != 'doc_unsortedfolders') && 
             ($coverClassName != 'crm_persons') &&
+            ($coverClassName != 'crm_groups') &&
             ($coverClassName != 'crm_companies')) return FALSE;
     }
     
@@ -200,45 +209,97 @@ class blast_Letters extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$res, &$data)
     {
-        //Добавя в лист само списъци на лица и фирми
-        $query = blast_Lists::getQuery();
-        $query->where("#keyField = 'names' OR #keyField = 'company' OR #keyField = 'uniqId'");
-        while ($rec = $query->fetch()) {
-            $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
-        }
-        
-        //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
-        if (!$files) {
-            
-            return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
-        }
-
         $form = $data->form;
         
-        if (!$form->rec->id) {
-            //Слага state = draft по default при нов запис
-            $form->setDefault('state', 'draft');
+        // Ако има папка
+        if ($form->rec->folderId) {
             
-            //Ако добавяме нов показваме всички списъци
-            $form->setOptions('listId', $files, $form->rec->id);
-        } else {
+            // Корицата на папката
+            $coverClassName = doc_Folders::fetchCoverClassName($form->rec->folderId);
             
-            //Ако редактираме, показваме списъка, който го редактираме
-            $file[$form->rec->listId] = $files[$form->rec->listId];
-            $form->setOptions('listId', $file, $form->rec->id);
+            // Ако корицата е група
+            if (strtolower($coverClassName) == 'crm_groups') {
+                
+                // Сетваме стойността
+                $isGroup = TRUE;
+                
+                // Задаваме да се показва групата
+                $form->setField('group', 'input=input');
+                
+                // Задаваме да не се показва листа
+                $form->setField('listId', 'input=none');
+                
+                // Вземаме id на корицата
+                $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
+                
+                // Инстация на класа
+                $coverClassInst = cls::get($coverClassName);
+                
+                // Вземаме записа
+                $coverRec = $coverClassInst->fetch($coverId);
+                
+                // Ако няма лица и фирми
+                if (!$coverRec->companiesCnt && !$coverRec->personsCnt) {
+                    
+                    // Редиректваме към групата
+                    return redirect(array('crm_Groups', 'single', $coverId), FALSE, tr("Нямате добавени лица или фирми в групата."));
+                }
+            }
         }
+        
+        // Ако не е група
+        if (!$isGroup) {
+            
+            //Добавя в лист само списъци на лица и фирми
+            $query = blast_Lists::getQuery();
+            $query->where("#keyField = 'names' OR #keyField = 'company' OR #keyField = 'uniqId'");
+            $query->orderBy("createdOn", 'DESC');
+            
+            while ($rec = $query->fetch()) {
+                $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
+            }
+            
+            //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
+            if (!$files) {
+                
+                return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
+            }
     
+            $form = $data->form;
+            
+            if (!$form->rec->id) {
+                
+                //Ако добавяме нов показваме всички списъци
+                $form->setOptions('listId', $files, $form->rec->id);
+            } else {
+                
+                //Ако редактираме, показваме списъка, който го редактираме
+                $file[$form->rec->listId] = $files[$form->rec->listId];
+                $form->setOptions('listId', $file, $form->rec->id);
+            }
+        }
+        
         //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
         $rec = $data->form->rec;
+        
+        // Ако създаваме нов
+        if (!$rec->id) {
+            
+            //Слага state = draft по подразбиране при нов запис
+            $form->setDefault('state', 'draft');
+        }
+        
+        // Ако създваме
         if ((!$rec->id) && (!Request::get('clone'))) {
+            
+            // Задваме стойности по подразбиране
             $rec->recipient = '[#company#]';
             $rec->attn = '[#names#]';
             $rec->country = '[#country#]';
-            $rec->pcode = '[#postCode#]';
-            $rec->place = '[#city#]';
+            $rec->pcode = '[#pCode#]';
+            $rec->place = '[#place#]';
             $rec->address = '[#address#]';
             $rec->position = '[#position#]';
-            $rec->numLetters = 3;
         }
     }
     
@@ -350,14 +411,6 @@ class blast_Letters extends core_Master
      */
     function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
-        if ($options->__toListId) {
-            
-            // Фетчваме детайла за съответния лист
-            $detailRec = blast_ListDetails::fetch($options->__toListId);    
-        
-            // Десериализираме данните
-            $data = unserialize($detailRec->data);
-        }
         
         // Ако има id
         if ($id) {
@@ -368,6 +421,41 @@ class blast_Letters extends core_Master
         
         // Намираме преполагаемия език на писмото
         core_Lg::push(static::getLanguage($options->rec->body));
+        
+        // Ако е лист
+        if ($options->rec->listId) {
+            
+            // Фетчваме детайла за съответния лист
+            $detailRec = blast_ListDetails::fetch($options->__toListId);    
+        
+            // Десериализираме данните
+            $data = unserialize($detailRec->data);
+            
+        } elseif ($options->rec->group) {
+            
+            // Ако е група
+            
+            // Ако групата е фирма
+            if ($options->rec->group == 'company') {
+                
+                $group = 'company';
+            
+            } elseif ($options->rec->group == 'person') {
+                
+                // Ако групата е лице
+                
+                $group = 'person';
+                
+            }  elseif ($options->rec->group == 'personBiz') {
+                
+                // Ако групата е бизнес данни от лице
+                
+                $group = 'personBiz';
+            }
+            
+            // Вземаме масива с плейсхолдерите, които ще се заместват
+            $data = static::getDataFor($group, $options->__toListId);
+        }
         
         // Обхождаме масива с данните
         foreach ((array)$data as $key => $value) {
@@ -433,8 +521,37 @@ class blast_Letters extends core_Master
             return $tpl;        
         }
         
-        // Добавяме линк към листа
-        $data->row->ListLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId));
+        // Ако има лист
+        if ($data->rec->listId) {
+
+            // Добавяме линк към листа
+            $data->row->ListLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId));    
+        } elseif ($data->rec->group) {
+            
+            // Ако е група
+            
+            // Вземаме корицата
+            $coverObj = doc_Folders::getCover($data->rec->folderId);
+            
+            // Инстанцията на документа
+            $docInst = $coverObj->instance;
+            
+            // id' на документа
+            $docId = $coverObj->that;
+            
+            // Запис на документа
+            $docRec = $docInst->fetch($docId);
+            
+            // Името на групата
+            $name = $docInst->getVerbal($docRec, 'name');
+            
+            // Ако имаме права за сингъл на групата
+            if ($docInst->haveRightFor('single', $docRec)) {
+                
+                // Създаваме бутон към сигъла на групата
+                $data->row->GroupLink = ht::createLink($name, array($docInst, 'single', $docId));
+            }
+        }
         
         // Превръщаме в стринг заглавието
         $data->row->subject = strip_tags($data->row->subject);
@@ -474,10 +591,10 @@ class blast_Letters extends core_Master
         
         if (($state == 'draft') || ($state == 'stopped')) {
             //Добавяме бутона Активирай, ако състоянието е чернова или спряно
-            $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
+            $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id, 'ret_url' => TRUE), 'class=btn-activation');
         } elseif ($state == 'active') {
             //Добавяме бутона Спри, ако състоянието е активно или изчакване
-            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'class=btn-cancel');
+            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id, 'ret_url' => TRUE), 'class=btn-cancel');
         }
     }
     
@@ -487,68 +604,269 @@ class blast_Letters extends core_Master
      */
     function act_Activation()
     {
-        //Права за работа с екшън-а
+        // Права за работа с екшън-а
         requireRole('blast, admin');
         
         // Очакваме да има такъв запис
         expect($id = Request::get('id', 'int'));
         
-        expect($rec = $this->fetch($id));
+        // Вземаме формата към този модел
+        $form = $this->getForm();
         
-        // Очакваме потребителя да има права за синхронизиране
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        // Очакваме да имаме такъв запис
+        expect($rec = static::fetch($form->rec->id));
+
+        // Очакваме потребителя да има права за активиране
         $this->haveRightFor('activation', $rec);
         
-        ($rec->numLetters) ? $numLetters = $rec->numLetters : $numLetters = 1;
+        // Въвеждаме съдържанието на полетата
+        $form->input('numLetters');
+
+        // По подразбиране да е избрана стойността от записа
+        $form->setDefault('numLetters', $rec->numLetters);
         
-        $exist = '';
+        // Вземаме ret_url
+        $retUrl = getRetUrl();
+    
+        // URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
-        //Променяме статуса на активен
-        $recList = new stdClass();
-        $recList->id = $rec->id;
-        $recList->state = 'active';
-        blast_Letters::save($recList);
-        
-        //Вземаме всички записи, които са добавени от предишното активиране в детайлите на писмото
-        $queryLetterDetail = blast_LetterDetails::getQuery();
-        $queryLetterDetail->where("#letterId = '$rec->id'");
-        
-        while ($recLetterDetail = $queryLetterDetail->fetch()) {
-            $exist .= $recLetterDetail->listDetailsId;
-        }
-        
-        //Вземаме всички детайли на листа, които са към избраното писмо
-        $queryListDetails = blast_ListDetails::getQuery();
-        $queryListDetails->where("#listId = '$rec->listId'");
-        
-        while ($recListDetail = $queryListDetails->fetch()) {
+        // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
+        if($form->isSubmitted()) {
             
-            //Ако нямаме запис с id'то в модела, тогава го добавяме към масива
-            if (!keylist::isIn($recListDetail->id, $exist)) {
-                $allNewId[$recListDetail->id] = $recListDetail->id;
-            }
-        }
-        
-        //Ако имаме поне един нов запис
-        if (count($allNewId)) {
-            
-            //Сортираме масива, като най - отгоре са записити с най - голямо id
-            arsort($allNewId);
-            
-            //Групираме записите по максималния брой, който ще се печатат заедно
-            for ($i = 0; $i < count($allNewId); $i = $i + $numLetters) {
-                $slicedNewId = array_slice($allNewId, $i, $numLetters, TRUE);
-                $keylist = keylist::fromArray($slicedNewId);
+            // Ако броя на отпечатваният не отговаря на броя записан в модела
+            if ($rec->numLetters && $rec->numLetters != $form->rec->numLetters) {
                 
-                //Добавяме новите записи в модела
-                $newLetterDetail = new stdClass();
-                $newLetterDetail->letterId = $rec->id;
-                $newLetterDetail->listDetailsId = $keylist;
-                blast_LetterDetails::save($newLetterDetail);
+                // Вземаме вербалната стойност
+                $numLetters = static::getVerbal($rec, 'numLetters');
+                
+                // Сетваме предупреждение
+                $form->setWarning('numLetters', "Ще важи само за новите записи. За старите е: {$numLetters}");
             }
         }
         
-        // След като приключи операцията редиректваме към същата страница, където се намирахме
-        return redirect(array('blast_Letters', 'single', $rec->id), FALSE, tr("Успешно активирахте писмото."));
+        // Ако формата е изпратена успешно
+        if($form->isSubmitted()) {
+            
+            // Броя на пимсмата, които ще се печатат едновремнно
+            $numLetters = $form->rec->numLetters;
+
+            // Очакваме да е зададение
+            expect($numLetters);
+            
+            // Записваме новия брой
+            $nRec = new stdClass();
+            $nRec->id = $form->rec->id;
+            $nRec->numLetters = $numLetters;
+            static::save($nRec, 'numLetters');
+            
+            //Променяме статуса на активен
+            $recList = new stdClass();
+            $recList->id = $rec->id;
+            $recList->state = 'active';
+            blast_Letters::save($recList, 'id, state');
+            
+            // Вземаме всички записи, които са добавени от предишното активиране в детайлите на писмото
+            $queryLetterDetail = blast_LetterDetails::getQuery();
+            $queryLetterDetail->where("#letterId = '$rec->id'");
+            
+            while ($recLetterDetail = $queryLetterDetail->fetch()) {
+                
+                // Добавяме keylist'а към стринга
+                $exist .= $recLetterDetail->listDetailsId;
+            }
+            
+            // Ако е лист
+            if ($rec->listId) {
+                
+                // Вземаме всички детайли на листа, които са към избраното писмо и не са спрени
+                $queryListDetails = blast_ListDetails::getQuery();
+                $queryListDetails->where("#listId = '$rec->listId'");
+                $queryListDetails->where("#state != 'stopped'");
+                $queryListDetails->orderBy('id', 'ASC');
+                
+                // Обхождаме откритите резултата
+                while ($recListDetail = $queryListDetails->fetch()) {
+    
+                    // Ако нямаме запис с id'то в модела
+                    if (!keylist::isIn($recListDetail->id, $exist)) {
+                        
+                        // Добавяме към масива
+                        $allNewId[$recListDetail->id] = $recListDetail->id;
+                    }
+                }
+            } elseif ($rec->group) {
+                
+                // Ако е група
+                
+                // id на корицата
+                $coverId = doc_Folders::fetchCoverId($rec->folderId);
+                
+                // Добавяме в масив
+                $coverArr[$coverId] = $coverId;
+                
+                // Ако е фирма
+                if ($rec->group == 'company') {
+                    
+                    // Извличаме записите за фирмата
+                    $gQuery = crm_Companies::getQuery();
+                } else {
+                    
+                    // Ако е лице
+                    
+                    // Извличаме записите за лицето
+                    $gQuery = crm_Persons::getQuery();
+                }
+                
+                // Всички, които са от тази група и не са оттеглени
+                $gQuery->likeKeylist('groupList', $coverArr);
+                $gQuery->where("#state != 'rejected'");
+                
+                // Обхождаме откритите резултати
+                while ($gRec = $gQuery->fetch()) {
+                    
+                    // Ако нямаме запис с id'то в модела
+                    if (!keylist::isIn($gRec->id, $exist)) {
+                        
+                        // Добавяме към масива
+                        $allNewId[$gRec->id] = $gRec->id;
+                    }
+                }
+            }
+            
+            // Ако имаме поне един нов запис
+            if (count($allNewId)) {
+                
+                // Сортираме масива, като най - отгоре са записити с най - малко id
+                asort($allNewId);
+
+                // Групираме записите по максималния брой, който ще се печатат заедно
+                for ($i = 0; $i < count($allNewId); $i = $i + $numLetters) {
+                    $slicedNewId = array_slice($allNewId, $i, $numLetters, TRUE);
+                    $keylist = keylist::fromArray($slicedNewId);
+
+                    //Добавяме новите записи в модела
+                    $newLetterDetail = new stdClass();
+                    $newLetterDetail->letterId = $rec->id;
+                    $newLetterDetail->listDetailsId = $keylist;
+                    blast_LetterDetails::save($newLetterDetail);
+                }
+            }
+
+            // След като приключи операцията редиректваме към същата страница, където се намирахме
+            return redirect($retUrl, FALSE, tr("Успешно активирахте писмото."));
+        }
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'numLetters';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        
+        // Добавяме титлата на формата
+        $form->title = "Активиране на писмо за печат";
+        $subject = $this->getVerbal($rec, 'subject');
+        
+        // Превръщаме в стринг
+        $subject = strip_tags($subject);
+        
+        // Вземаме датата
+        $date = dt::mysql2verbal($rec->createdOn);
+        
+        // Добавяме във формата информация, за да знаем за кое писмо става дума
+        $form->info = new ET ('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
+        
+        // Опциите за създаване на тялот
+        $options = new stdClass(); 
+        
+        // Ако е листа
+        if ($rec->listId) {
+            
+            // Вземаме всички детайли, които не са спряни от съответния лист
+            $query = blast_ListDetails::getQuery();
+            $query->where("#listId = '{$rec->listId}'");
+            $query->where("#state != 'stopped'");
+            
+            // Обхождаме получените резултати
+            while ($lRec = $query->fetch()) {
+                
+                // Ако имаме права за single
+                if (blast_ListDetails::haveRightFor('single', $lRec)) {
+                    
+                    // Добавяме listId до кого е
+                    $options->__toListId = $lRec->id;
+                    
+                    // Спираме по нататъшното изпълнение
+                    break;
+                }
+            }
+            
+        } elseif ($rec->group) {
+            
+            // Ако е група
+            
+            // Вземаме id на корицата
+            $coverId = doc_Folders::fetchCoverId($rec->folderId);
+            
+            // Добавяме в масива
+            $coverArr[$coverId] = $coverId;
+            
+            // Ако групата е фирма
+            if ($rec->group == 'company') {
+                
+                // Вземаме записите за фирмата
+                $gQuery = crm_Companies::getQuery();
+            } else {
+                
+                // Ако е лице
+                
+                // Вземаме записите за лицето
+                $gQuery = crm_Persons::getQuery();
+            }
+            
+            // Вземаме всички заиси от групата, които не са оттеглени
+            $gQuery->likeKeylist('groupList', $coverArr);
+            $gQuery->where("#state != 'rejected'");
+            
+            // Обхождаме получените резултати
+            while ($gRec = $gQuery->fetch()) {
+                
+                // Ако имаме права за сингула на документа
+                if ($gQuery->mvc->haveRightFor('single', $gRec)) {
+                    
+                    // Добавяме listId до кого е
+                    $options->__toListId = $gRec->id;
+                    
+                    // Прекратяваме изпълнението на програмата
+                    break;
+                }
+            }
+        }
+        
+        // Записите
+        $options->rec = $rec;
+
+        // Вземаме документа в xhtml формат
+        $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
+        
+        // Получаваме изгледа на формата
+        $tpl = $form->renderHtml();
+        
+        // Добавяме превю на първото писмо, което ще печатаме
+        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерно писмо") . "</b></div>[#BLAST_LET#]</div>");
+        
+        // Добавяме към шаблона
+        $preview->append($res, 'BLAST_LET');
+        
+        // Добавяме изгледа към главния шаблон
+        $tpl->append($preview);
+        
+        // Рендираме шаблона и връщаме резултата
+        return static::renderWrapping($tpl);
     }
     
     
@@ -557,29 +875,49 @@ class blast_Letters extends core_Master
      */
     function act_Stop()
     {
-        //Права за работа с екшън-а
+        // Права за работа с екшън-а
         requireRole('blast, admin');
         
-        //Очаква да има въведено id
+        // Очаква да има въведено id
         expect($id = Request::get('id', 'int'));
         
-        //Очакваме да има такъв запис
+        // Очакваме да има такъв запис
         expect($rec = $this->fetch($id));
-        
+
         // Очакваме потребителя да има права за спиране
         $this->haveRightFor('stop', $rec);
         
-        //Променяме статуса на спрян
+        // Променяме статуса на спрян
         $recUpd = new stdClass();
         $recUpd->id = $rec->id;
         
-        //        $recUpd->state = 'stopped';
-        //За да може да се редактира
-        $recUpd->state = 'draft';
-        blast_Letters::save($recUpd);
+        // Състоянието да е спряно
+        $recUpd->state = 'stopped';
+        
+        // Ако записа е успешен
+        if (blast_Letters::save($recUpd, 'state')) {
+            
+            // Вземаме детайлите, които не са печатани в съответното писмо
+            $dQuery = blast_LetterDetails::getQuery();
+            $dQuery->where("#letterId = '$id'");
+            $dQuery->where("#printedDate IS NULL");
+            
+            // Обикаляме резултатите
+            while ($dRec = $dQuery->fetch()) {
+                
+                // Изтриваме записите
+                blast_LetterDetails::delete($dRec->id);
+            }    
+        }
+        
+        // Вземаме ret_url
+        $retUrl = getRetUrl();
+    
+        // URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
         // След като приключи операцията редиректваме към същата страница, където се намирахме
-        return redirect(array('blast_Letters', 'single', $rec->id), FALSE, tr("Успешно спряхте писмото."));
+        return redirect($retUrl, FALSE, tr("Успешно спряхте писмото."));
     }
     
     
@@ -618,17 +956,82 @@ class blast_Letters extends core_Master
 	*/
     function on_AfterInputEditForm($mvc, &$form)
     {
+        // Ако формата е изпраена успешно
+        if ($form->isSubmitted()) {
+            $rec = $form->rec;
+            
+            // Ако е група
+            if (isset($rec->group)) {
+                
+                // Ако има папка
+                if ($rec->folderId) {
+                    
+                    // Сетваме, че е група
+                    $isGroup = TRUE;
+                    
+                    // Вземаме id на корицата
+                    $coverId = doc_Folders::fetchCoverId($rec->folderId);
+                    
+                    // Името на корицата
+                    $coverClassName = doc_Folders::fetchCoverClassName($form->rec->folderId);
+                    
+                    // Инстанция на корицата
+                    $coverClassInst = cls::get($coverClassName);
+                    
+                    // Записа на корицата
+                    $coverRec = $coverClassInst->fetch($coverId);
+                    
+                    // Ако е групата е фирма
+                    if ($rec->group == 'company') {
+                        
+                        // Ако няма фирми в групата
+                        if (!$coverRec->companiesCnt) {
+                            
+                            // Сетваме грешка
+                            $form->setError('group', 'Няма въведени фирми в групата');
+                        }
+                    } else {
+                        
+                        // Ако е лице
+                        
+                        // Ако няма лица в групата
+                        if (!$coverRec->personsCnt) {
+                            
+                            // Сетваме грешка
+                            $form->setError('group', 'Няма въведени лица в групата');
+                        }
+                    }
+                }
+            }
+        }
+        
         // Ако сме субмитнали формата
         if ($form->isSubmitted()) {
             
             // Масив с всички записи
             $recArr = (array)$form->rec;
             
-            // id' то на листа, от който се вземат данните на потребителя
-            if (!$listId = $form->rec->listId) {
+            if (!$isGroup) {
                 
-                // Вземаме от записа
-                $listId = $mvc->fetchField($form->rec->id, 'listId');
+                // id' то на листа, от който се вземат данните на потребителя
+                if (!$listId = $form->rec->listId) {
+                    
+                    // Вземаме от записа
+                    $listId = $mvc->fetchField($form->rec->id, 'listId');
+                }
+                
+                // Вземаме всички полета, които ще се заместват
+                $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');   
+
+                //Вземаме всички имена на полетата на данните, които ще се заместват
+                preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
+                
+                // Вземаме плейсхолдерите
+                $onlyAllFieldsArr = $allFieldsArr[2];
+            } else {
+                
+                // Вземаме плейсхолдерите за групата
+                $onlyAllFieldsArr = static::getGroupPlaceholders($rec->group);
             }
             
             // Вземаме Относно и Съобщение
@@ -662,17 +1065,16 @@ class blast_Letters extends core_Master
             // Вземаме всички шаблони, които се използват
             $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
 
-            // Вземаме всички полета, които ще се заместват
-            $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');
-            
-            $allFieldsArr = array();
-            
-            //Вземаме всички имена на полетата на данните, които ще се заместват
-            preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
-
-            //Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
-            foreach ($allFieldsArr[2] as $field) {
+            // Обхождаме масива с плейсхолдерите
+            foreach ((array)$onlyAllFieldsArr as $field) {
+                
+                // Тримваме полето
                 $field = trim($field);
+                
+                // Името в долен регистър
+                $field = strtolower($field);
+                
+                // Добавяме в масива
                 $fieldsArr[$field] = $field;
             }
             
@@ -682,6 +1084,7 @@ class blast_Letters extends core_Master
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
                 
+                // Плейсхолдера в долен регистър
                 $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
@@ -704,6 +1107,7 @@ class blast_Letters extends core_Master
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($bodyAndSubPlaceHolder as $placeHolder) {
                 
+                // Плейсхолдера в долен регистър
                 $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
@@ -740,6 +1144,139 @@ class blast_Letters extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща масив с плейсхолдери за съответната група
+     * 
+     * @param sting $group - Групата
+     * 
+     * @return array $arr - Масив с плейсхолдери
+     */
+    static function getGroupPlaceholders($group)
+    {
+        $arr = array();
+        switch ($group) {
+            
+            // Ако е фирма
+            case 'company':
+                $arr['name'] = 'company';
+                $arr['country'] = 'country';
+                $arr['pCode'] = 'pCode';
+                $arr['place'] = 'place';
+                $arr['address'] = 'address';
+            break;
+            
+            // Ако е бизнес данни от лице
+            case 'personBiz':
+                
+                $arr['salutation'] = 'salutation';
+                $arr['name'] = 'names';
+                $arr['buzCompanyId'] = 'company';
+                $arr['buzPosition'] = 'position';
+                $arr['company_country'] = 'country';
+                $arr['company_pCode'] = 'pCode';
+                $arr['company_place'] = 'place';
+                $arr['company_address'] = 'address';
+                
+            break;
+            
+            // Ако е лични данни от лице
+            case 'person':
+                
+                $arr['salutation'] = 'salutation';
+                $arr['name'] = 'names';
+                $arr['country'] = 'country';
+                $arr['pCode'] = 'pCode';
+                $arr['place'] = 'place';
+                $arr['address'] = 'address';
+                
+            break;
+            
+            default:
+                ;
+            break;
+        }
+        
+        return $arr;
+    }
+    
+    
+    /**
+     * Връща масив с данни за заместване за съответното писмо
+     * 
+     * @param string $group - Групата
+     * @param integer $id - id' то на записа от съответната група
+     * 
+     * @return array $data - Масив с данни
+     */
+    static function getDataFor($group, $id)
+    {
+        // Вземама масива с плейсхолдерите за съответната група
+        $placeArr = static::getGroupPlaceholders($group);
+        
+        // Ако е фирма
+        if ($group == 'company') {
+            
+            // Вземаме данните за фирмата
+            $rec = crm_Companies::fetch($id);
+            
+            // Класа на групата
+            $groupClass = 'crm_Companies';
+        } else {
+            
+            //Ако е лице
+            
+            // Вземаме данните за лицето
+            $rec = crm_Persons::fetch($id);
+            
+            // Класа на групата
+            $groupClass = 'crm_Persons';
+        }
+        
+        // Обхождаме масива с плейсхолдерите
+        foreach ((array)$placeArr as $field => $place) {
+            
+            // Позициата на долната черта
+            $pos = mb_stripos($field, '_');
+            
+            // Ако няма долна черта
+            if ($pos === FALSE) {
+                
+                // Добавяме в масива плейсхолдера и стойността
+                $data[$place] = $groupClass::getVerbal($rec, $field);
+            } else {
+                
+                // Типа
+                $type =  mb_substr($field, 0,$pos);
+                
+                // Полето
+                $nField = mb_substr($field, $pos+1);
+                
+                // Ако е фирма
+                if ($type = 'company') {
+                    
+                    // Ако има бизнес данни
+                    if ($rec->buzCompanyId && $companyRec->id != $rec->buzCompanyId) {
+                        
+                        // Вземаме записите за фирмата
+                        $companyRec = crm_Companies::fetch($rec->buzCompanyId);
+                    }
+                    
+                    // Ако има фирма
+                    if ($companyRec) {
+                        
+                        // Вземаме стойността на съответното поле
+                        $placeVal = crm_Companies::getVerbal($companyRec, $nField);
+                    }
+                    // Добавяме стойността в полето
+                    $data[$place] = $placeVal;
+                }
+            }
+        }
+
+        return $data;
     }
     
     

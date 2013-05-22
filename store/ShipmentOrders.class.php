@@ -196,12 +196,31 @@ class store_ShipmentOrders extends core_Master
             $products = $origin->getShipmentProducts();
             
             foreach ($products as $p) {
-                $p->shipmentId = $rec->id;
-                store_ShipmentOrderDetails::save($p);
+                if ($p->quantity > 0) {
+                    $p->shipmentId = $rec->id;
+                    store_ShipmentOrderDetails::save($p);
+                }
             }
         }
     }
 
+
+    /**
+     * След оттегляне на документа
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param object|int $id
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+        // Нотифицираме origin-документа, че някой от веригата му се е променил
+        if ($origin = $mvc->getOrigin($id)) {
+            $ref = new core_ObjectReference($mvc, $id);
+            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
+        }
+    }
+    
 
     /**
      * Извиква се преди изпълняването на екшън
@@ -699,31 +718,6 @@ class store_ShipmentOrders extends core_Master
         ');
         
         $tpl->placeObject($total);
-    }
-    
-    
-    /**
-     * Връща документа, породил зададения документ
-     * 
-     * @param int|object $id
-     * @param string $intf
-     * @return NULL|core_ObjectReference
-     */
-    public static function getOrigin_($rec, $intf = NULL)
-    {
-        $rec = static::fetchRec($rec);
-        
-        $origin = NULL;
-
-        // Намираме рефенция към пораждащия документ само ако не е зададен $originId. В противен
-        // случай референцията ще бъде определена по стандартния начин в
-        // doc_DocumentPlg::on_AfterGetOrigin()
-        if (!$rec->originId) {
-            $origin = doc_Threads::getFirstDocument($rec->threadId);
-            expect('sales_Sales' == $origin->className);
-        }
-        
-        return $origin;
     }
 
 

@@ -238,7 +238,8 @@ class acc_Journal extends core_Master
         
         if ($success = $transaction->save()) {
             // Нотифицира мениджъра на документа за успешно приключилата транзакция
-            $docClass->finalizeTransaction($docId);
+            $docRec = $mvc->fetchRec($docId);
+            $docClass->finalizeTransaction($docRec);
             $success = 'Документът е контиран успешно';
         } else {
             $success = 'Документът НЕ Е контиран';

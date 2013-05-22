@@ -90,8 +90,7 @@ class sales_TransactionSourceImpl
     
     public function finalizeTransaction($id)
     {
-        $rec = $this->class->fetch($id);
-        
+        $rec = $this->class->fetchRec($id);
         $rec->state = 'active';
         
         if ($this->class->save($rec)) {

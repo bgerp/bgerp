@@ -204,6 +204,8 @@ class pos_Reports extends core_Master {
     			$form->setError('cashier, pointId', 'Няма активни бележки');
     			return;
     		}
+    		
+    		$form->rec->folderId = pos_Points::forceCoverAndFolder($form->rec->pointId);
     	}
     }
     
@@ -466,8 +468,20 @@ class pos_Reports extends core_Master {
      */
     public static function canAddToFolder($folderId)
     {
-        $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        $cover = doc_Folders::getCover($folderId);
+        
+        return $cover->className == 'doc_UnsortedFolders' || $cover->className == 'pos_Points';
+    }
     
-        return $folderClass == 'pos_Points';
+    
+	/**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    {
+        if(!$res) { 
+            $res = $mvc->singleIcon;
+        }
     }
 }

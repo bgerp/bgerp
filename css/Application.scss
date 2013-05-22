@@ -412,13 +412,13 @@ div.alphabet div.tab-page {
 		box-shadow:0 -1px 1px rgba(0,0,0,0.1);
 		position: relative;
 		top: 1px;
-		background-color:$history-bg;
 		@include border-radius4(5px,5px,0px,0px);
 		overflow:hidden;
 		z-index: 2;
 			.detail-info{
 				padding:0px;
 				margin-top:0px;
+				background-color:$history-bg;
 			}
 			 .listTable td{
 				border:1px dotted #bbb !important;
@@ -651,6 +651,14 @@ dl {
 		float:left;
 		line-height: 1.5em;
 		max-width:76%;
+	}
+}
+.narrow dl{
+	dt{
+		width:28%;
+	}
+	dd{
+		max-width:71%;
 	}
 }
 table{
@@ -1200,6 +1208,8 @@ div.folder-cover{
 	line-height:1.5em;
 	margin-left:0px;
 	margin-top:8px;
+	min-width:400px;
+	max-width:600px;
 	font-size:0.8em;
 	padding:10px 10px 12px 10px;
 	.detail-info{
@@ -1394,6 +1404,14 @@ td.portal-date {
 
 .narrow .document {
 	width:96.5%;
+}
+
+.listTable td{
+	max-width:600px;
+}
+
+.wide .single-thread .listTable td{
+	max-width:900px;
 }
 
 .listTable>tbody>tr>td div.document {
@@ -2237,9 +2255,6 @@ input.combo.pCode{
 		max-width:868px;
 		overflow:auto;
 	}
-	legend{
-		background-color:#fff;
-	}
 	pre.richtext{
 		max-width: 865px;
 		/*height:560px; */
@@ -2253,6 +2268,11 @@ input.combo.pCode{
 		font-family:monospace "courier new";
 	}
 }
+
+.webdrvFieldset legend{
+	background-color:#fff;
+}
+
 .narrow .email-source{
 	white-space:pre-wrap;
 	font-family:monospace "courier new";
@@ -2729,7 +2749,27 @@ div.locImage{
 .document.print-letter:last-child {
      page-break-after: auto;
 }
-
+.reminder-half{
+	width:50%;
+	display:block;
+	float:left;
+}
+.narrow .reminder-half{
+	width:100%;
+}
+.blast_ListDetails .listToolbar{
+	border-bottom:none !important;
+}
+.blast-overflow{
+	max-width: 850px; 
+	overflow: auto; 
+}
+.narrow .blast-overflow{
+	max-width:393px;
+}
+.store_Racks td{
+	max-width:700px;
+}
 @media print{
 	.linkWithIcon, .docBgIcon,.button{
 		padding-left:0 !important;

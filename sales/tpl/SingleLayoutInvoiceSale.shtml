@@ -121,8 +121,23 @@
                         <table>
                             <tbody>
                             <tr>
-                                <td style="text-align: right;">
-                                    Обща сума: <b>[#amountDeal#]</b> [#chargeVat#]
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <td style="text-align: right;">Обща сума:</td>
+                                            <td><b>[#amountDeal#]</b> [#chargeVat#]</td>
+                                        </tr>
+                                        <!--ET_BEGIN amountPaid-->
+                                        <tr>
+                                            <td style="text-align: right;">Платени:</td>
+                                            <td><b>[#amountPaid#]</b></td>
+                                        </tr>
+                                        <!--ET_END amountPaid-->
+                                        <tr>
+                                            <td style="text-align: right;">Остатък:</td>
+                                            <td><b>[#amountToPay#]</b></td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
                             <tr>

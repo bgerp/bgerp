@@ -71,7 +71,7 @@ class store_shipmentorders_Transaction
     
     public function finalizeTransaction($id)
     {
-        $rec = $this->class->fetch($id);
+        $rec = $this->class->fetchRec($id);
         
         $rec->state = 'active';
         

@@ -177,4 +177,18 @@ class doc_SharablePlg extends core_Plugin
         // Обединяваме потребителите, на които е споделен
         $shared = keylist::merge($sharedInDocs, $shared);
     }
+    
+    
+    /**
+     * 
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+            
+            // Да има само 2 колони
+            $data->form->setField('sharedUsers', array('maxColumns' => 2));    
+        }
+    }
 }

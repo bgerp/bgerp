@@ -352,6 +352,13 @@ class crm_Companies extends core_Master
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
                     $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
         }
+        
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+            
+            // Да има само 2 колони
+            $data->form->setField('groupList', array('maxColumns' => 2));    
+        }
     }
     
     
@@ -471,7 +478,7 @@ class crm_Companies extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields=NULL)
     {
         $row->nameList = new ET('[#1#]', $row->name);
         
@@ -492,6 +499,10 @@ class crm_Companies extends core_Master
             }
         }
         
+        
+        // Дали има права single' а на тазу фирма
+        $canSingle = static::haveRightFor('single', $rec);
+        
         $row->country = $mvc->getVerbal($rec, 'country');
         
         $pCode = $mvc->getVerbal($rec, 'pCode');
@@ -504,18 +515,27 @@ class crm_Companies extends core_Master
         $row->addressBox .= $pCode ? "{$pCode} " : "";
         $row->addressBox .= $place;
         
-        $row->addressBox .= $address ? "<br/>{$address}" : "";
+        // Ако имаме права за сингъл
+        if ($canSingle) {
+            
         
-        $tel = $mvc->getVerbal($rec, 'tel');
-        $fax = $mvc->getVerbal($rec, 'fax');
-        $eml = $mvc->getVerbal($rec, 'email');
+            $row->addressBox .= $address ? "<br/>{$address}" : "";
+            
+            $tel = $mvc->getVerbal($rec, 'tel');
+            $fax = $mvc->getVerbal($rec, 'fax');
+            $eml = $mvc->getVerbal($rec, 'email');
+            
+            // phonesBox
+            $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
+            $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
+            $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+            $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
+        } else {
+            
+            // Добавяме линк към профила на потребителя, който е inCharge на визитката
+            $row->phonesBox = crm_Profiles::createLink($rec->inCharge);
+        }
         
-        // phonesBox
-        $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
-        $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
-        $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
-        $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
-
         $row->title =  $mvc->getTitleById($rec->id);
         
         $vatType = new drdata_VatType();
@@ -524,9 +544,6 @@ class crm_Companies extends core_Master
         
         $row->title .= ($vat ? "&nbsp;&nbsp;<div style='display:inline-block'>{$vat}</div>" : "");
         $row->nameList .= ($vat ? "<div style='font-size:0.8em;margin-top:5px;'>{$vat}</div>" : "");
-        
-        //bp($row);
-        // END phonesBox
     }
     
     

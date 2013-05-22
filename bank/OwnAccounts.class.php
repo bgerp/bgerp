@@ -38,7 +38,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, bankAccountId';
+    var $listFields = 'tools=Пулт, title, bankAccountId, type';
     
     
     /**

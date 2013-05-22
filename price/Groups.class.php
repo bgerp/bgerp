@@ -33,7 +33,7 @@ class price_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, description';
+    var $listFields = 'id, title, description, productsCount';
     
     
     /**
@@ -86,7 +86,8 @@ class price_Groups extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Група');
         $this->FLD('description', 'text', 'caption=Описание');
-
+		$this->FLD('productsCount', 'int', 'caption=Артикули,input=none');
+		
         $this->setDbUnique('title');
     }
     
@@ -117,5 +118,14 @@ class price_Groups extends core_Master
     	$title = $mvc->getVerbal($data->rec, 'title');
     	$data->title = $title;
     	
+    }
+    
+    /**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        // Ако няма стойности
+        if (!$rec->productsCount) $row->productsCount=0;
     }
 }

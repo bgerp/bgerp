@@ -53,4 +53,14 @@ class price_PolicyIntf
     {
         return $this->class->getPolicyTitle($customerClass, $customerId);
     }
+    
+    
+	/**
+     * Връща мениджъра на продуктите
+     * @return core_Classes $class - инстанция на мениджъра
+     */
+    public function getProductMan()
+    {
+        return $this->class->getProductMan();
+    }
 }

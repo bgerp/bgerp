@@ -8,13 +8,19 @@
 				<div class="groupList">
 					<dl>
 						<dt>|Номер|*:</dt><dd> [#id#]</dd>
-						<dt>|Отговорник|*</dt><dd> [#chiefId#]</dd>
+						<dt>|Отговорник|*:</dt><dd> <b>[#chiefId#]</b></dd>
 						<!--ET_BEGIN workersIds-->
 						<dt>|Товарачи|*:</dt><dd> [#workersIds#]</dd>
 						<!--ET_END workersIds-->
 						<!--ET_BEGIN strategy-->
-						<dt>|Стратегия|*</dt><dd> [#strategy#]</dd>
+						<dt>|Стратегия|*:</dt><dd> [#strategy#]</dd>
 						<!--ET_END strategy-->
+						<!--ET_BEGIN creation-->
+						[#creation#]
+						<dt>|Създаден:|*</dt><dd> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
+						<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></dd>
+						<!--ET_END creation-->
+							
 					</dl>
 				</div>
 			</fieldset>
@@ -27,18 +33,7 @@
 				</div>
 			</fieldset>
 			<!--ET_END comments-->
-			
-		<fieldset class="detail-info">
-	      <legend class="groupTitle">|Създаден|*</legend>
-	        <div class="groupList">
-	         	<ul>  
-			       <li class="info">
-						<span class="part"><span class="gray-title">|от|*:</span> [#createdBy#] </span>
-						<span class="part"><span class="gray-title">|на|*:</span> [#createdOn#]</span>
-				   </li>
-		        </ul>  
-			</div>
-		</fieldset>
+		
 		</div>
 	</div>
 </div>

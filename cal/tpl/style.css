@@ -173,7 +173,7 @@ table.mc-calendar td.calDayN:hover,table.mc-calendar-year td.mc-day:hover{
 }
 
 .mc-wd-name, table.mc-calendar .mc-wd-name:hover{
-	text-align:center;
+	text-align:center !important;
 	font-weight:bold;
 }
 

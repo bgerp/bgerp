@@ -1,8 +1,12 @@
 <div  class="singleView shifts">
 [#SingleToolbar#]
+    <!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
 	<fieldset class="detail-info">
 	
-	<legend class="groupTitle">Работен график <input id="btnPrint" class="btn-print button" type="button" value="Печат" onclick="goPrinting()" style="color:#008800;"></legend>
+	[#title#]
+	
 	[#calendar#]</br>
 	<table class='mc-calendar cal-legend'>
 		<tr>

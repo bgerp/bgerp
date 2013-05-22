@@ -13,15 +13,15 @@
 #tel = Тел
 #fax = Факс
 #country = Държава
-#postCode = Пощенски код
-#city = Град
+#pCode = П. код
+#place = Град
 #address = Адрес
 
 #Препоръчителни за "Писма"
 #names=Лице
 #position=Длъжност
 #company=Фирма
-#postCode=П. код
-#city=Град/с
+#pCode=П. код
+#place=Град/с
 #address=Адрес
 #country=Държава

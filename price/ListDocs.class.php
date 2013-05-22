@@ -127,7 +127,7 @@ class price_ListDocs extends core_Master
     	$folderClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
     		
     	// Намираме политиката на зададената папка, ако няма
-    	// по подрабзиране е "каталог"
+    	// по подразбиране е "каталог"
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
     	$defaultList = price_ListToCustomers::getListForCustomer($folderClassId, $coverId);
     	$form->setDefault('policyId', $defaultList);
@@ -214,10 +214,11 @@ class price_ListDocs extends core_Master
 		    	}
 	    		
 		    	$arr = cat_Products::fetchField($productRec->id, 'groups');
-	    		$rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
+		    	$rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
 	    									   'code' => $productRec->code,
 	    									   'eanCode' => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
+		    								   'vat' => cat_Products::getVat($productRec->id, $rec->date),
 	    									   'pack' => NULL,
 	    									   'groups' => keylist::toArray($arr));
     		}
@@ -237,7 +238,9 @@ class price_ListDocs extends core_Master
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
-    		$product->price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
+    		$price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
+    		if(!$price) continue;
+    		$product->price = $price + ($price * $product->vat);
 	    	$rec->details->rows[] = $product;
     		
     		// За всяка от избраните опаковки
@@ -265,6 +268,8 @@ class price_ListDocs extends core_Master
     	if($info = cat_Products::getProductInfo($product->productId, $packId)){
     		$clone = clone $product;
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packId, $rec->date);
+    		
+    		$price = $price + ($price * $product->vat);
     		$clone->price = $info->packagingRec->quantity * $price;
     		$clone->perPack = $info->packagingRec->quantity;
     		$clone->eanCode = $info->packagingRec->eanCode;
@@ -329,7 +334,7 @@ class price_ListDocs extends core_Master
     private function renderDetails(&$tpl, $data)
     {
     	$rec = &$data->rec;
-    	$detailTpl = $tpl->getBlock("DETAILS");
+    	$detailTpl = $tpl->getBlock("GROUP");
     	
     	if($rec->details->rows || $rec->products){
     		
@@ -347,7 +352,7 @@ class price_ListDocs extends core_Master
 					
 					// Слагаме името на групата
 					$groupTpl = clone $detailTpl;
-					$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP');
+					$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP_NAME');
 					foreach ($products as $row){
 		    			$row = $this->getVerbalDetail($row);
 		    			$rowTpl = $groupTpl->getBlock('ROW');
@@ -357,11 +362,11 @@ class price_ListDocs extends core_Master
 			    	}
     				
     				$groupTpl->removeBlocks();
-			    	$tpl->append($groupTpl, 'DETAILS');
+			    	$tpl->append($groupTpl, 'GROUP');
 				}
     		}
     	} else {
-    		$tpl->append("<tr><td colspan='6'> " . tr("Няма цени") . "</td></tr>", 'ROW');
+    		$tpl->replace("<tr><td colspan='5'> " . tr("Няма цени") . "</td></tr>", 'GROUP');
     	}
     }
     

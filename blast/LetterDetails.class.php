@@ -118,35 +118,78 @@ class blast_LetterDetails extends core_Detail
         // Масив с всички детайли
         $listDetArr = type_Keylist::toArray($rec->listDetailsId);
         
+        // Инстанция на мастъра
+        $masterClass = cls::get($mvc->masterClass);
+        
+        // Външния ключ към мастъра
+        $masterKey = $mvc->masterKey;
+        
+        // Вземаме записите
+        $masterRec = $masterClass->fetch($rec->{$masterKey});
+
         // Обхождаме масива
         foreach ($listDetArr as $listDet) {
-            
-            // Вземаме записа за детайла
-            $listDetRec = blast_ListDetails::fetch($listDet);
             
             // Ако има стринг, добавяме запетая
             $str .= ($str) ? ', ' : '';
             
-            // Вземаме името на полето
-            $key = blast_ListDetails::getVerbal($listDetRec, 'key');
-            
-            // Добавяме към стринга
-            $str .= ht::createLink($listDet, array('blast_ListDetails', 'edit', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $key));
+            // Ако е лист
+            if ($masterRec->listId) {
+                
+                // Вземаме записа за детайла
+                $listDetRec = blast_ListDetails::fetch($listDet);
+                
+                // Вземаме името на полето
+                $key = blast_ListDetails::getVerbal($listDetRec, 'key');
+                
+                // Добавяме към стринга
+                $str .= ht::createLink($listDet, array('blast_ListDetails', 'edit', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $key));
+            } elseif ($masterRec->group) {
+                
+                // Ако е грпа
+                
+                // Ако групата е фирм
+                if ($masterRec->group == 'company') {
+                    
+                    // Ако имаме права към сингъла на фирмата
+                    if (crm_Companies::haveRightFor('single', $listDet)) {
+                        
+                        // Вземаме записа
+                        $cRec = crm_Companies::fetch($listDet);
+                        
+                        // Вземаме името на фирмата
+                        $name = crm_Companies::getVerbal($cRec, 'name');
+                        
+                        // Добавяме линка към сингъла на фирмата в стринга
+                        $str .= ht::createLink($listDet, array('crm_Companies', 'single', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $name));
+                    } else {
+                        
+                        // Ако нямаме права добавяме само стринга
+                        $str .= $listDet;
+                    }
+                } else {
+                    
+                    // Ако имаме права към сингъла на лицето
+                    if (crm_Persons::haveRightFor('single', $listDet)) {
+                        
+                        // Вземаме записа
+                        $pRec = crm_Persons::fetch($listDet);
+                        
+                        // Вземаме името мъ
+                        $name = crm_Persons::getVerbal($pRec, 'name');
+                        
+                        // Добавяме линка към сингъла на лицето в стринга
+                        $str .= ht::createLink($listDet, array('crm_Persons', 'single', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $name));
+                    } else {
+                        
+                        // Ако нямаме права добавяме само стринга
+                        $str .= $listDet;
+                    }
+                }
+            }
         }
         
         // Добавяме стринга
         $row->listDetailsId = $str;
-    }
-    
-    
-    /**
-     * Преди извличане на записите подрежда ги по дата на отпечатване и състояние
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, &$data)
-    {
-        $data->query->orderBy('#state', 'ASC');
-        $data->query->orderBy('#printedDate', 'DESC');
-        
-        return ;
     }
 }

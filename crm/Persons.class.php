@@ -447,6 +447,10 @@ class crm_Persons extends core_Master
 
 
         if($fields['-list']) {
+            
+            // Дали има права single' а на този потребител
+            $canSingle = static::haveRightFor('single', $rec);
+            
             $row->nameList = $row->name;
 
             $row->addressBox = $row->country;
@@ -455,25 +459,34 @@ class crm_Persons extends core_Master
             $row->addressBox .= $pCode ? "{$pCode} " : "";
             $row->addressBox .= $place;
 
-            $row->addressBox .= $address ? "<br/>{$address}" : "";
-
-            // Мобилен телефон
-            $mob = $mvc->getVerbal($rec, 'mobile');
-            $row->phonesBox .= $mob ? "<div class='mobile'>{$mob}</div>" : "";
+            // Ако имаме права за сингъл
+            if ($canSingle) {
+                
+                // Добавяме адреса
+                $row->addressBox .= $address ? "<br/>{$address}" : "";    
             
-            // Телефон
-            $tel = $mvc->getVerbal($rec, $rec->buzTel ? 'buzTel' : 'tel');
-            $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
-            
-            // Факс
-            $fax = $mvc->getVerbal($rec, $rec->buzFax ? 'buzFax' : 'fax');
-            $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
-            
-            // Email
-            $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
-            $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
-
-            $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
+                // Мобилен телефон
+                $mob = $mvc->getVerbal($rec, 'mobile');
+                $row->phonesBox .= $mob ? "<div class='mobile'>{$mob}</div>" : "";
+                
+                // Телефон
+                $tel = $mvc->getVerbal($rec, $rec->buzTel ? 'buzTel' : 'tel');
+                $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
+                
+                // Факс
+                $fax = $mvc->getVerbal($rec, $rec->buzFax ? 'buzFax' : 'fax');
+                $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
+                
+                // Email
+                $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
+                $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+    
+                $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
+            } else {
+                
+                // Добавяме линк към профила на потребителя, който е inCharge на визитката
+                $row->phonesBox = crm_Profiles::createLink($rec->inCharge);
+            }
         }
         
         $row->title =  $mvc->getTitleById($rec->id);
@@ -481,7 +494,7 @@ class crm_Persons extends core_Master
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
         if($birthday) {
-            $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$birthday}</div>";
+            $row->title .= "&nbsp;&nbsp;<div style='display:inline-block'>{$birthday}</div>";
 
             if(strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
@@ -1509,6 +1522,13 @@ class crm_Persons extends core_Master
             $Countries = cls::get('drdata_Countries');
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
                     $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+        }
+        
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+            
+            // Да има само 2 колони
+            $data->form->setField('groupList', array('maxColumns' => 2));    
         }
     }
     

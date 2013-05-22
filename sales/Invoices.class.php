@@ -145,6 +145,7 @@ class sales_Invoices extends core_Master
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData');
+        $this->FLD('changeAmount', 'double(decimals=2)', 'input=none,width=10em');
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods, select=name)', 'caption=Плащане->Начин');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
 		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
@@ -155,16 +156,17 @@ class sales_Invoices extends core_Master
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
-		$this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
-        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
-		$this->FLD('state', 
+		$this->FLD('reason', 'text(rows=2)', 'caption=Основание, input=none');
+        $this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
+        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
+        $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
         
         $this->FLD('type', 
             'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
-            'caption=Вид, input=none'
+            'caption=Вид, input=hidden,silent'
         );
         
         $this->FLD('docType', 'class(interface=store_ShipmentIntf)', 'input=hidden,silent');
@@ -193,6 +195,21 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Преди подготвяне на едит формата
+     */
+    static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	if(!$type = Request::get('type')) return;
+    	if($type == 'debit_note') {
+    		$title = 'Дебитно известие';
+    	} elseif($type == 'credit_note'){
+    		$title = 'Кредитно известие';
+    	} 
+    	$mvc->singleTitle = $title;
+    }
+    
+    
+    /**
      * След подготовка на формата
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
@@ -200,10 +217,25 @@ class sales_Invoices extends core_Master
         $form = $data->form;
         
         if (!$form->rec->id) {
-            
+            $type = Request::get('type');
+	        if(!$type){
+	        	$form->setDefault('type', 'invoice');
+	        }
         	// При създаване на нова ф-ра зареждаме полетата на 
             // формата с разумни стойности по подразбиране.
             $mvc::setFormDefaults($form);
+            
+        if($type && $type != 'invoice'){
+	        	$form->setField('reason', 'input');
+	        	$form->setField('changeAmount', 'input');
+	        	($type == 'debit_note') ? $caption = 'Увеличение':$caption = 'Намаляване';
+	        	
+	        	$form->setReadOnly('currencyId');
+	        	$form->setReadOnly('contragentName');
+	        	$form->setReadOnly('contragentVatNo');
+	        	$form->setReadOnly('contragentCountryId');
+	        	$form->setField('changeAmount', "caption=Плащане->{$caption}");
+	        }
         }
     }
     
@@ -233,18 +265,30 @@ class sales_Invoices extends core_Master
             $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
         }
 	}
-    
+	
 	
 	/**
-	 * Генерира фактура ако идва от продажба или пос продажба
+	 * Генерира фактура от пораждащ документ: може да се породи от:
+	 * 1. Продажба (@see sales_Sales)
+	 * 2. POS Продажба (@see pos_Receipts)
+	 * 3. Фактура (@see sales_Invoices) - тоест се прави ДИ или КИ
 	 */
 	public static function on_AfterCreate($mvc, $rec)
     {
     	if(!empty($rec->originId)){
-    		
-    		// Ако се генерира от продажба
-    		$origin = doc_Containers::getDocument($rec->originId, 'store_ShipmentIntf');
-        	$products = $origin->getShipmentProducts();
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		if($rec->type == 'invoice'){
+    			expect(cls::haveInterface('store_ShipmentIntf', $origin->className));
+    			$products = $origin->getShipmentProducts();
+    		} else {
+    			// Ако е ДИ или КИ и се генерира от фактура
+    			$products = $mvc->sales_InvoiceDetails->getInvoiceData($origin->that);
+    			if($rec->changeAmount) {
+    				$mvc->applyAmountChange($products, $rec);
+    				return;
+    			}
+    		}
+    	
     	} elseif($rec->docType && $rec->docId) {
     		
     		// Ако се генерира от пос продажба
@@ -256,18 +300,33 @@ class sales_Invoices extends core_Master
 	    	
     		// Записваме информацията за продуктите в детайла
 	    	foreach ($products as $product){
-	    		$dRec = new stdClass();
+	    		$dRec = clone $product;
 	    		$dRec->invoiceId = $rec->id;
-	    		$dRec->productId = $product->productId;
-	    		$dRec->packagingId = $product->packagingId;
-	    		$dRec->policyId = $product->policyId;
-	    		$dRec->price = $product->price;
-	    		$dRec->quantityInPack = $product->quantityInPack;
-	    		$dRec->quantity = $product->quantity;
 	    		$dRec->packQuantity = $product->quantity * $product->quantityInPack;
 	    		$dRec->amount = $dRec->packQuantity * $product->price;
 	    		$mvc->sales_InvoiceDetails->save($dRec);
 	    	}
+    	}
+    }
+    
+    
+    /**
+     * Помощна функция за прилагане на увеличение/намаляване на
+     * сумата на фактурата
+     * @param array $products - списък от продукти за ДИ или КИ
+     * @param stdClass $rec - запис на ДИ или КИ
+     */
+    public function applyAmountChange($products, $rec)
+    {
+    	if(!$rec->dealValue) return;
+    	$rec->changeAmount = (($rec->type == 'debit_note') ? 1 : -1) * $rec->changeAmount;
+    	
+    	foreach($products as $product){
+    		$queficient = round($product->amount / $rec->dealValue, 4);
+    		unset($product->id);
+    		$product->invoiceId = $rec->id;
+    		$product->amount = $rec->changeAmount * $queficient;
+    		sales_InvoiceDetails::save($product);
     	}
     }
     
@@ -426,6 +485,24 @@ class sales_Invoices extends core_Master
     		$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
     	}
     	
+    	if($rec->originId && $rec->type != 'invoice'){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		$row->origin = $origin->getHandle();
+    		$row->invDate = $origin->recToVerbal()->date;
+    	}
+    	
+    	switch($rec->type){
+    		case 'invoice':
+    			$row->type .= " / <i>Invoice</i>";
+    			break;
+    		case 'debit_note':
+    			$row->type .= " / <i>Debit Note</i>";
+    			break;
+    		case 'credit_note':
+    			$row->type .= " / <i>Credit Note</i>";
+    			break;
+    	}
+    	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->date);
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
@@ -461,6 +538,21 @@ class sales_Invoices extends core_Master
     }
     
     
+	/**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = &$data->rec;
+    	
+    	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
+    		
+    		$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
+    		$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
+    	}
+    }
+    
+    
     /**
      * Зарежда разумни начални стойности на полетата на форма за фактура.
      */
@@ -470,9 +562,37 @@ class sales_Invoices extends core_Master
         if (empty($form->rec->date)) {
             $form->rec->date = dt::now();
         }
-
-        // Данни за контрагент
-        static::populateContragentData($form);
+        
+        if($form->rec->originId){
+        	$origin = doc_Containers::getDocument($form->rec->originId);
+        	if($origin->className  == 'sales_Invoices' && Request::get('type')){
+        		static::populateNoteFromInvoice($form, $origin);
+        		$flag = TRUE;
+        	}
+        }
+		
+        if(!$flag){
+        	static::populateContragentData($form);
+        }
+    }
+    
+    
+    /**
+     * 
+     * @param core_Form $form
+     */
+    protected function populateNoteFromInvoice(core_Form $form, core_ObjectReference $origin)
+    {
+    	$rec = $form->rec;
+        if($rec->id) return;
+        $invArr = (array)$origin->fetch();
+        foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo') as $key){
+        	 unset($invArr[$key]);
+        }
+        
+        foreach($invArr as $field => $value){
+        	$form->setDefault($field, $value);
+        }
     }
     
     
@@ -541,7 +661,7 @@ class sales_Invoices extends core_Master
     	switch ($action) {
     		case 'edit':
 	    	    // Фактурата неможе се едитва, ако е възоснова на продажба
-	    		if($rec->originId || ($rec->docType && $rec->docId)){
+	    		if(($rec->originId && $rec->type == 'invoice') || ($rec->docType && $rec->docId)){
 	    			$res = 'no_one';
 	    		}
     			break;
@@ -636,12 +756,23 @@ class sales_Invoices extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = sales_Invoices::getHandle($id);
+        $type = static::fetchField($id, 'type');
+        switch($type){
+        	case 'invoice':
+        		$type = "приложената фактура";
+        		break;
+        	case 'debit_note':
+        		$type = "приложеното дебитно известие";
+        		break;
+        	case 'credit_note':
+        		$type = "приложеното кредитно известие";
+        		break;
+        }
         
         //Създаваме шаблона
-        $tpl = new ET(tr("Моля запознайте се с приложената фактура:") . "\n#[#handle#]");
-        
-        //Заместваме хендъра в шаблона
+        $tpl = new ET(tr("Моля запознайте се с") . " [#type#]:\n#[#handle#]");
         $tpl->append($handle, 'handle');
+        $tpl->append($type, 'type');
         
         return $tpl->getContent();
     }
@@ -708,11 +839,9 @@ class sales_Invoices extends core_Master
      */
     public static function finalizeTransaction($id)
     {
-        $rec = (object)array(
-            'id' => $id,
-            'state' => 'active'
-        );
-        
+        $rec = self::fetchRec($id);
+        $rec->state = 'active';
+                
         return self::save($rec);
     }
     

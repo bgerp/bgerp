@@ -145,6 +145,7 @@ class pos_Receipts extends core_Master {
     {
     	$rec = new stdClass();
     	$posId = pos_Points::getCurrent();
+    	
     	$rec->contragentName = tr('Анонимен Клиент');
     	$rec->contragentClass = core_Classes::getId('crm_Persons');
     	$rec->contragentObjectId = pos_Points::defaultContragent($posId);
@@ -286,6 +287,7 @@ class pos_Receipts extends core_Master {
 	    		'policyId' => $posRec->policyId,
 	    		'productId' => $rec->productId,
 		    	'price' => $rec->price,
+	    		'vatPrice' => $rec->price * $rec->param,
 	    	    'packagingId' => $packagingId,
 	    	    'quantityInPack' => $quantityInPack,
 	    	    'uomId' => $info->productRec->measureId,
@@ -441,6 +443,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = static::fetch($id));
     	$products = static::getProducts($id);
     	$posRec = pos_Points::fetch($rec->pointId);
+    	$totalVat = 0;
     	
     	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
     	$currencyCode = currency_Currencies::getCodeById($currencyId);
@@ -448,6 +451,7 @@ class pos_Receipts extends core_Master {
     	foreach ($products as $product) {
     		$totalQuantity = $product->quantity * $product->quantityInPack;
     		$totalAmount = $totalQuantity * $product->price;
+    		$totalVat += $product->vatPrice;
     		$amount = currency_CurrencyRates::convertAmount($totalAmount, $rec->createdOn, $currencyCode);
 	    	
     		// Първо Отчитаме прихода от продажбата
@@ -480,6 +484,21 @@ class pos_Receipts extends core_Master {
 	    	);
     	}
     	
+    	$entries[] = array(
+                    'amount' => $totalVat,  // равностойноста на сумата в основната валута
+                    
+                    'debit' => array(
+                        '501',  // Сметка "501. Каси"
+	                		array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
+	                		array('currency_Currencies', $currencyId), 
+	                	'quantity' => $totalVat, 
+                    ),
+                    
+                    'credit' => array(
+                        '4532', // кредитна сметка
+                        'quantity' => $totalVat,
+                    ));
+    	
     	$transaction = (object)array(
                 'reason'  => 'Касова бележка #' . $rec->id,
                 'valior'  => $rec->createdOn,
@@ -495,9 +514,9 @@ class pos_Receipts extends core_Master {
      */
     public static function finalizeTransaction($id)
     {
-    	$rec = static::fetch($id);
+        $rec = self::fetchRec($id);
         $rec->state = 'active';
-
+        
         return self::save($rec);
     }
     

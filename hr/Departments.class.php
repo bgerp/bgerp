@@ -38,7 +38,7 @@ class hr_Departments extends core_Master
      * Плъгини за зареждане
      */
    
-    var $loadList = 'plg_RowTools, hr_Wrapper,  plg_Printing, doc_FolderPlg,
+    var $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg,
                      plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
     
@@ -144,6 +144,12 @@ class hr_Departments extends core_Master
         }
     }
     
+    
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	
+    	//bp($data);
+    }
     
     static public function expand($departments, &$current = array())
     {

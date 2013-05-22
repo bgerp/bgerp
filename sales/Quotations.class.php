@@ -52,6 +52,12 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/document_quote.png';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'admin,sales';
@@ -79,14 +85,8 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number=Номер, reff, date, contragentName, deliveryTermId, createdOn,createdBy';
+    public $listFields = 'id, date, contragentName, deliveryTermId, createdOn,createdBy';
     
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'number';
-
 
     /**
      * Детайла, на модела
@@ -149,8 +149,14 @@ class sales_Quotations extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
-	    	if(!$form->rec->rate){
-		    	$form->rec->rate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->paymentCurrencyId, NULL), 4);
+    		$rec = &$form->rec;
+	    	if(!$rec->rate){
+		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
+		    }
+		    
+    		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
+		    	$form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    					   Сигурни ли сте че искате да запишете документа');
 		    }
     	}
     }
@@ -221,9 +227,6 @@ class sales_Quotations extends core_Master
     	$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$contragentData->pCode, $contragentData->place, $contragentData->country));
     
     	$row->number = $mvc->getHandle($rec->id);
-		if($fields['-list']){
-			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
-		}
 		
 		$username = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($username, 'names')->names;

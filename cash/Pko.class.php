@@ -20,7 +20,7 @@ class cash_Pko extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf';
    
     
     /**
@@ -129,7 +129,10 @@ class cash_Pko extends core_Master
     function description()
     {
     	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory');
+    	
+    	// Платена сума във валута, определена от полето `currencyId`
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%,summary=amount');
+    	
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
     	$this->FLD('number', 'int', 'caption=Номер,width=50%,width=30%');
@@ -372,28 +375,34 @@ class cash_Pko extends core_Master
      * @return stdClass
      * @see acc_TransactionSourceIntf::getTransaction
      */
-    public static function finalizeTransaction($id)
+    public function finalizeTransaction($id)
     {
-        $rec = (object)array(
-            'id' => $id,
-            'state' => 'active'
-        );
+        $rec = self::fetchRec($id);
+        $rec->state = 'active';
         
-        return self::save($rec);
+        if ($this->save($rec)) {
+            // Нотифицираме origin-документа, че някой от веригата му се е променил
+            if ($origin = $this->getOrigin($rec)) {
+                $ref = new core_ObjectReference($this, $rec);
+                $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
+            }
+        }
     }
     
     
     /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::rejectTransaction
+     * След оттегляне на документа
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param object|int $id
      */
-    public static function rejectTransaction($id)
+    public static function on_AfterReject($mvc, &$res, $id)
     {
-        $rec = self::fetch($id, 'id,state,valior');
-        
-        if ($rec) {
-            static::reject($id);
+        // Нотифицираме origin-документа, че някой от веригата му се е променил
+        if ($origin = $mvc->getOrigin($id)) {
+            $ref = new core_ObjectReference($mvc, $id);
+            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
         }
     }
     
@@ -455,4 +464,31 @@ class cash_Pko extends core_Master
     {
         return static::fetch("#number = '{$parsedHandle['id']}'");
     } 
+    
+    
+   	/*
+     * Реализация на интерфейса sales_PaymentIntf
+     */
+    
+    /**
+     * Информация за платежен документ
+     * 
+     * @param int|stdClass $id ключ (int) или запис (stdClass) на модел 
+     * @return stdClass Обект със следните полета:
+     *
+     *   o amount       - обща сума на платежния документ във валутата, зададена от `currencyCode`
+     *   o currencyCode - key(mvc=currency_Currencies, key=code): ISO код на валутата
+     *   o valior       - date - вальор на документа
+     */
+    public static function getPaymentInfo($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        return (object)array(
+            'amount' => $rec->amount,
+            'currencyCode' => currency_Currencies::getCodeById($rec->currencyId),
+            'valior'       => $rec->valior,
+        );
+    }
+    
 }

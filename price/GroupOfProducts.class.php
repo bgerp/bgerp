@@ -189,6 +189,9 @@ class price_GroupOfProducts extends core_Detail
                 $rec->groupId = self::getGroup($rec->productId, dt::verbal2mysql());
             }
         }
+        
+        $groupName = price_Groups::fetchField($rec->groupId, 'title');
+        $data->form->title = '|Добавяне на артикул към|* "' . $groupName . '"';
     }
 
 
@@ -360,9 +363,21 @@ class price_GroupOfProducts extends core_Detail
     public static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
         price_History::removeTimeline();
+        $mvc->updateGroupCount($rec);
     }
 
-
+	
+    /**
+     * Ъпдейтва броя на продуктите в групата
+     */
+    public function updateGroupCount($rec)
+    {
+    	$groupRec = price_Groups::fetch($rec->groupId);
+    	$groupRec->productsCount = count(price_GroupOfProducts::getAllProducts());
+    	price_Groups::save($groupRec);
+    }
+    
+    
     /**
      *
      */

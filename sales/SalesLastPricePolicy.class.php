@@ -104,4 +104,14 @@ class sales_SalesLastPricePolicy extends core_Manager
     {
         return $this->title;
     }
+    
+    
+	/**
+     * Връща мениджъра на продуктите (@see cat_Products)
+     * @return core_Classes $class - инстанция на мениджъра
+     */
+    public function getProductMan()
+    {
+        return cls::get('cat_Products');
+    }
 }

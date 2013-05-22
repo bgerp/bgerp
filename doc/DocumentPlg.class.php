@@ -475,6 +475,13 @@ class doc_DocumentPlg extends core_Plugin
                         $url['#'] = 'detailTabs';
                     }
                     
+                    // Ако има страница на документа
+                    if ($P = Request::get('P_log_Documents')) {
+                        
+                        // Добавяме страницата
+                        $url['P_log_Documents'] = $P;
+                    }
+                    
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;
                     }
@@ -1448,9 +1455,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $rec = $mvc->fetchRec($rec);
         
-        if ($rec->originId) {
-            $origin = doc_Containers::getDocument($rec->originId, $intf);
-        }
+        $origin = doc_Threads::getFirstDocument($rec->threadId);
     }
     
     
