@@ -1027,7 +1027,8 @@ class sales_Sales extends core_Master
                 'productId'  => $rec->productId,
                 'uomId'  => $rec->uomId,
                 'packagingId'  => $rec->packagingId,
-                'quantity'  => $rec->quantity - $rec->quantityDelivered, // само остатъка за експедиране
+                'quantity'  => $rec->quantity,
+                'quantityDelivered'  => $rec->quantityDelivered,
                 'quantityInPack'  => $rec->quantityInPack,
                 'price'  => $rec->price,
                 'discount'  => $rec->discount,

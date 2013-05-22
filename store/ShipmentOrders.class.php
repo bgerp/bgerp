@@ -196,7 +196,7 @@ class store_ShipmentOrders extends core_Master
             $products = $origin->getShipmentProducts();
             
             foreach ($products as $p) {
-                if ($p->quantity > 0) {
+                if ($p->quantity - $p->quantityDelivered > 0) {
                     $p->shipmentId = $rec->id;
                     store_ShipmentOrderDetails::save($p);
                 }
