@@ -56,7 +56,7 @@ class type_Double extends core_Type {
     {
         $value = trim($value);
         
-        if(empty($value)) return NULL;
+        if(!strlen($value)) return NULL;
         
         $originalVal = $value;
         
@@ -66,7 +66,7 @@ class type_Double extends core_Type {
         
         $value = str_replace($from, $to, trim($value));
         
-        if(empty($value)) return NULL;
+        if(!strlen($value)) return NULL;
         
         // Превръщаме 16-тичните числа в десетични
         //$value = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$value));
@@ -79,7 +79,7 @@ class type_Double extends core_Type {
         }
         
         if(empty($value)) $value = '0';
-        $code = "\$val  = $value;";
+        $code = "\$val = $value;";
         
         if(@eval('return TRUE;' . $code)) {
             eval($code);
@@ -113,7 +113,7 @@ class type_Double extends core_Type {
      */
     function toVerbal($value)
     {
-        if(!isset($value)) return NULL;
+        if(!strlen($value)) return NULL;
         
         setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
         
