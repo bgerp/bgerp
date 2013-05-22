@@ -264,13 +264,12 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	if(!$data->rows) return;
     	$total = $totalDisc = 0;
-    	$prevProduct = NULL;
-    	foreach($data->recs as $i => $rec){
+    	$resArr = array_values($data->recs);
+    	foreach($resArr as $i => $rec){
     		if($rec->optional == 'no'){
-    			if(!$prevProduct){
-    				$prevProduct = $rec->productId;
-    			} else {
-    				if($rec->productId == $prevProduct) return;
+    			if($i != 0){
+    				$prevRec = $resArr[$i-1];
+    				if($rec->productId == $prevRec->productId && $rec->policyId == $prevRec->policyId) return;
     			}
     			
     			// Ако няма количество, цената неможе да се изчисли
