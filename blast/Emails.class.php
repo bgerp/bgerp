@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -25,7 +25,7 @@ class blast_Emails extends core_Master
     /**
      * Полета, които ще се клонират
      */
-    var $cloneFields = 'listId, from, subject, body, recipient, attn, email, tel, fax, country, pcode, place, address, attachments, encoding';
+    var $cloneFields = 'listId, group, from, subject, body, recipient, attn, email, tel, fax, country, pcode, place, address, attachments, encoding';
     
     
     /**
@@ -154,6 +154,7 @@ class blast_Emails extends core_Master
      */
     var $prepared = array();
     
+    
     /**
      * Групиране на документите
      */
@@ -165,8 +166,9 @@ class blast_Emails extends core_Master
      */
     function description()
     {
-        $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
-        $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, changable');
+        $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист, mandatory');
+        $this->FLD('group', 'enum(company=Фирми, personBiz=Лица (Бизнес данни), person=Лица (Частни данни))', 'caption=Група, mandatory, input=none');
+        $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
         $this->FLD('sendPerMinute', 'int(min=1, max=10000)', 'caption=Изпращания в минута, input=none, mandatory');
@@ -284,52 +286,91 @@ class blast_Emails extends core_Master
      */
     static function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
     {
-        //Добавя в лист само списъци с имейли
-        $query = blast_Lists::getQuery();
-        $query->where("#keyField = 'email'");
-        $query->orderBy("createdOn", 'DESC');
-        
-        while ($rec = $query->fetch()) {
-            $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
-        }
-        
-        //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
-        if (!$files) {
-            
-            return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за имейли. Моля добавете."));
-        }
-        
         $form = $data->form;
-
-        $form->fields['from']->type->params['folderId'] = $form->rec->folderId;
-
-        if (!$form->rec->id) {
+        
+        // Ако има папка
+        if ($form->rec->folderId) {
             
-            //Ако не създаваме копие
-            if (!Request::get('clone')) {
+            // Корицата на папката
+            $coverClassName = doc_Folders::fetchCoverClassName($form->rec->folderId);
+            
+            // Ако корицата е група
+            if (strtolower($coverClassName) == 'crm_groups') {
                 
-                //По подразбиране да е избран текущия имейл на потребителя
-                $form->setDefault('from', email_Inboxes::getUserInboxId());  
+                // Сетваме стойността
+                $isGroup = TRUE;
+                
+                // Задаваме да се показва групата
+                $form->setField('group', 'input=input');
+                
+                // Задаваме да не се показва листа
+                $form->setField('listId', 'input=none');
+                
+                // Вземаме id на корицата
+                $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
+                
+                // Инстация на класа
+                $coverClassInst = cls::get($coverClassName);
+                
+                // Вземаме записа
+                $coverRec = $coverClassInst->fetch($coverId);
+                
+                // Ако няма лица и фирми
+                if (!$coverRec->companiesCnt && !$coverRec->personsCnt) {
+                    
+                    // Редиректваме към групата
+                    return redirect(array('crm_Groups', 'single', $coverId), FALSE, tr("Нямате добавени лица или фирми в групата."));
+                }
+            }
+        }
+        
+        // Ако не е група
+        if (!$isGroup) {
+            
+            //Добавя в лист само списъци с имейли
+            $query = blast_Lists::getQuery();
+            $query->where("#keyField = 'email'");
+            $query->orderBy("createdOn", 'DESC');
+            
+            // Обхождаме откритите резултати
+            while ($rec = $query->fetch()) {
+                
+                // Добавяме в масива
+                $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
             }
             
-            //Слага state = draft по default при нов запис
-            $form->setDefault('state', 'draft');
-            
-            //Ако добавяме нов показваме всички списъци
-            $form->setOptions('listId', $files, $form->rec->id);
-            
-        } else {
-            
-            if ($form->rec->state == 'draft') {
+            //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
+            if (!$files) {
                 
-                //Ако е ченова
-                $form->setOptions('listId', $files, $form->rec->id);   
-                $form->setOptions('listId', $files[$form->rec->listId], $form->rec->id);     
+                // Редиректваме
+                return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за имейли. Моля добавете."));
+            }
+            
+            // Ако добавяме нов
+            if (!$form->rec->id) {
+                
+                // Показваме всички списъци
+                $form->setOptions('listId', $files, $form->rec->id);
+                
             } else {
                 
-                //Ако редактираме, показваме списъка, който го редактираме
+                // Ако редактираме, показваме списъка, който го редактираме
                 $file[$form->rec->listId] = $files[$form->rec->listId];
-                $form->setOptions('listId', $file, $form->rec->id);    
+                $form->setOptions('listId', $file);    
+            }
+        }
+    
+        // Ако създаваме нов
+        if (!$rec->id) {
+            
+            //Слага state = draft по подразбиране при нов запис
+            $form->setDefault('state', 'draft');
+            
+            // Ако не създаваме копие
+            if (!Request::get('clone')) {
+                
+                // По подразбиране да е избран текущия имейл на потребителя
+                $form->setDefault('from', email_Inboxes::getUserInboxId());  
             }
         }
         
@@ -355,19 +396,83 @@ class blast_Emails extends core_Master
 	*/
     function on_AfterInputEditForm($mvc, &$form)
     {
+        // Ако формата е изпраена успешно
+        if ($form->isSubmitted()) {
+            $rec = $form->rec;
+            
+            // Ако е група
+            if (isset($rec->group)) {
+                
+                // Ако има папка
+                if ($rec->folderId) {
+                    
+                    // Сетваме, че е група
+                    $isGroup = TRUE;
+                    
+                    // Вземаме id на корицата
+                    $coverId = doc_Folders::fetchCoverId($rec->folderId);
+                    
+                    // Името на корицата
+                    $coverClassName = doc_Folders::fetchCoverClassName($form->rec->folderId);
+                    
+                    // Инстанция на корицата
+                    $coverClassInst = cls::get($coverClassName);
+                    
+                    // Записа на корицата
+                    $coverRec = $coverClassInst->fetch($coverId);
+                    
+                    // Ако е групата е фирма
+                    if ($rec->group == 'company') {
+                        
+                        // Ако няма фирми в групата
+                        if (!$coverRec->companiesCnt) {
+                            
+                            // Сетваме грешка
+                            $form->setError('group', 'Няма въведени фирми в групата');
+                        }
+                    } else {
+                        
+                        // Ако е лице
+                        
+                        // Ако няма лица в групата
+                        if (!$coverRec->personsCnt) {
+                            
+                            // Сетваме грешка
+                            $form->setError('group', 'Няма въведени лица в групата');
+                        }
+                    }
+                }
+            }
+        }
+        
         // Ако сме субмитнали формата
         if ($form->isSubmitted()) {
             
             // Масив с всички записи
             $recArr = (array)$form->rec;
             
-            // id' то на листа, от който се вземат данните на потребителя
-            if (!$listId = $form->rec->listId) {
+            if (!$isGroup) {
                 
-                // Вземаме от записа
-                $listId = $mvc->fetchField($form->rec->id, 'listId');
+                // id' то на листа, от който се вземат данните на потребителя
+                if (!$listId = $form->rec->listId) {
+                    
+                    // Вземаме от записа
+                    $listId = $mvc->fetchField($form->rec->id, 'listId');
+                }
+                
+                // Вземаме всички полета, които ще се заместват
+                $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');
+                
+                //Вземаме всички имена на полетата на данните, които ще се заместват
+                preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
+                
+                // Вземаме плейсхолдерите
+                $onlyAllFieldsArr = $allFieldsArr[2];
+                
+            } else {
+                $onlyAllFieldsArr = static::getGroupPlaceholders($rec->group);
             }
-            
+
             // Вземаме Относно и Съобщение
             $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
             
@@ -401,22 +506,20 @@ class blast_Emails extends core_Master
             // Вземаме всички шаблони, които се използват
             $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
 
-            // Вземаме всички полета, които ще се заместват
-            $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');
-            
-            $allFieldsArr = array();
-            
-            //Вземаме всички имена на полетата на данните, които ще се заместват
-            preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
-
             //Добавяме полетата, които се добавят от системата
-            $allFieldsArr[2][] = 'unsubscribe';
-            $allFieldsArr[2][] = 'mid';
-            $allFieldsArr[2][] = 'otpisvane';
+            $onlyAllFieldsArr[] = 'unsubscribe';
+            $onlyAllFieldsArr[] = 'mid';
+            $onlyAllFieldsArr[] = 'otpisvane';
             
             //Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
-            foreach ($allFieldsArr[2] as $field) {
+            foreach ((array)$onlyAllFieldsArr as $field) {
+                // Тримваме полето
                 $field = trim($field);
+                
+                // Името в долен регистър
+                $field = strtolower($field);
+                
+                // Добавяме в масива
                 $fieldsArr[$field] = $field;
             }
             
@@ -533,20 +636,46 @@ class blast_Emails extends core_Master
         
         //Рендираме шаблона
         if (Mode::is('text', 'xhtml')) {
-            
             //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
             $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutBlast.shtml')));
         } elseif (Mode::is('text', 'plain')) {
-            
             //Ако сме в текстов режим, рендираме txt
             $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutBlast.txt')));
         } else {
-            
             //Ако не сме в нито един от посочените рендираме html
             $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutEmails.shtml'))); 
         
-            // Линк към листа
-            $data->row->listLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId));
+            // Ако има лист
+            if ($data->rec->listId) {
+    
+                // Линк към листа
+                $data->row->listLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId)); 
+            } elseif ($data->rec->group) {
+            
+                // Ако е група
+                
+                // Вземаме корицата
+                $coverObj = doc_Folders::getCover($data->rec->folderId);
+                
+                // Инстанцията на документа
+                $docInst = $coverObj->instance;
+                
+                // id' на документа
+                $docId = $coverObj->that;
+                
+                // Запис на документа
+                $docRec = $docInst->fetch($docId);
+                
+                // Името на групата
+                $name = $docInst->getVerbal($docRec, 'name');
+                
+                // Ако имаме права за сингъл на групата
+                if ($docInst->haveRightFor('single', $docRec)) {
+                    
+                    // Създаваме бутон към сигъла на групата
+                    $data->row->GroupLink = ht::createLink($name, array($docInst, 'single', $docId));
+                }
+            }
         }
         
         return $tpl;
@@ -616,7 +745,7 @@ class blast_Emails extends core_Master
             core_Statuses::add(tr("Успешно активирахте бласт имейл-а"));
             
             // Редиректваме
-            return new Redirect($link);
+            return redirect($link);
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
@@ -719,7 +848,7 @@ class blast_Emails extends core_Master
         core_Statuses::add(tr("Успешно спряхте бласт имейл-а"));
         
         // Редиректваме
-        return new Redirect($link);
+        return redirect($link);
     }
     
     
@@ -1480,5 +1609,66 @@ class blast_Emails extends core_Master
     {
         // Връщаме езика по подразбиране
         core_Lg::pop();
+    }
+    
+    
+    /**
+     * Връща масив с плейсхолдери за съответната група
+     * 
+     * @param sting $group - Групата
+     * 
+     * @return array $arr - Масив с плейсхолдери
+     */
+    static function getGroupPlaceholders($group)
+    {
+        $arr = array();
+        switch ($group) {
+            
+            // Ако е фирма
+            case 'company':
+                $arr['name'] = 'company';
+                $arr['country'] = 'country';
+                $arr['pCode'] = 'pCode';
+                $arr['place'] = 'place';
+                $arr['address'] = 'address';
+                $arr['email'] = 'email';
+                $arr['tel'] = 'tel';
+                $arr['fax'] = 'fax';
+            break;
+            
+            // Ако е бизнес данни от лице
+            case 'personBiz':
+                $arr['salutation'] = 'salutation';
+                $arr['name'] = 'person';
+                $arr['buzCompanyId'] = 'company';
+                $arr['buzPosition'] = 'position';
+                $arr['buzEmail'] = 'email';
+                $arr['buzTel'] = 'tel';
+                $arr['buzFax'] = 'fax';
+                $arr['company_country'] = 'country';
+                $arr['company_pCode'] = 'pCode';
+                $arr['company_place'] = 'place';
+                $arr['company_address'] = 'address';
+            break;
+            
+            // Ако е лични данни от лице
+            case 'person':
+                $arr['salutation'] = 'salutation';
+                $arr['name'] = 'person';
+                $arr['country'] = 'country';
+                $arr['pCode'] = 'pCode';
+                $arr['place'] = 'place';
+                $arr['address'] = 'address';
+                $arr['email'] = 'email';
+                $arr['tel'] = 'tel';
+                $arr['fax'] = 'fax';
+            break;
+            
+            default:
+                ;
+            break;
+        }
+        
+        return $arr;
     }
 }
