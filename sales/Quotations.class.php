@@ -52,6 +52,12 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/document_quote.png';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'admin,sales';
