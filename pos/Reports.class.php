@@ -31,7 +31,7 @@ class pos_Reports extends core_Master {
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'plg_RowTools,pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, 
+   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, 
    					bgerp_plg_Blank, doc_ActivatePlg, plg_Sorting';
    
     
@@ -76,7 +76,7 @@ class pos_Reports extends core_Master {
      */
     var $canWrite = 'pos, ceo, admin';
     
-    var $canDelete = 'no_one';
+    
     /**
 	 * Файл за единичен изглед
 	 */
