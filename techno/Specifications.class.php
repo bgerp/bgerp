@@ -44,7 +44,7 @@ class techno_Specifications extends core_Master {
     /**
      * Икона за единичния изглед
      */
-    //var $singleIcon = 'img/16/wooden-box.png';
+    //var $singleIcon = 'img/16/toggle1.png';
     
     
     /**
@@ -358,7 +358,7 @@ class techno_Specifications extends core_Master {
      * @param int $id - id на спецификацията
      * @return core_ET - шаблон сunknown_type представянето на спецификацията
      */
-     static function getTitleById($id)
+     static function getTitleById($id, $escaped = TRUE)
      {
     	$rec = static::fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
