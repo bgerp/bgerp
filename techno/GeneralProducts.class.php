@@ -94,20 +94,11 @@ class techno_GeneralProducts extends core_Manager {
      * дадено изделие или услуга
      * @param stdClass $data - Обект с данни от модела 
      * @return blob $serialized - сериализирани данни на обекта
+     * @TODO ДА МАХНА ЗАПИСВАНЕТО НА ВЕРБАЛНОТО
      */
     public function serialize($data)
     {
-        $res = new stdClass();
-    	$res->rec = $data;
-        $res->row = new stdClass();
-        
-    	// Преобразуваме записа във вербален вид
-    	$fields = $this->getEditForm()->selectFields("");
-    	foreach($fields as $name => $fld){
-    		$res->row->$name = $fld->type->toVerbal($res->rec->$name);
-    	}
-    	
-    	return serialize($res);
+       return serialize($data);
     }
     
     
@@ -116,21 +107,29 @@ class techno_GeneralProducts extends core_Manager {
      * @param stdClass $data - Обект с данни от модела
      * @param boolean $short - Дали да е кратко представянето 
      * @return core_ET $tpl - вербално представяне на изделието
+     * @TODO ДА МАХНА ЗАПИСВАНЕТО НА ВЕРБАЛНОТО
      */
     public function getVerbal($data, $short = FALSE)
     {
         $data = unserialize($data);
+        $row = new stdClass();
+    	
+        // Преобразуваме записа във вербален вид
+    	$fields = $this->getEditForm()->selectFields("");
+    	foreach($fields as $name => $fld){
+    		$row->$name = $fld->type->toVerbal($data->$name);
+    	}
         
     	// Обработваме изображението в thumbnail
-    	if($data->rec->image){
-    		$file = fileman_Files::fetchByFh($data->rec->image);
-	        $data->row->image = thumbnail_Thumbnail::getImg($file->fileHnd, array(150));
+    	if($data->image){
+    		$file = fileman_Files::fetchByFh($data->image);
+	        $row->image = thumbnail_Thumbnail::getImg($file->fileHnd, array(150));
     	}
     	
     	// Спрямо $short взимаме шаблона за кратко или дълго представяне
     	($short) ? $file = $this->singleShortLayoutFile: $file = $this->singleLayoutFile;
         $tpl = getTplFromFile($file);
-        $tpl->placeObject($data->row);
+        $tpl->placeObject($row);
         
         return $tpl;
     }

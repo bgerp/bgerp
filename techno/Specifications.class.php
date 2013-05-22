@@ -313,7 +313,7 @@ class techno_Specifications extends core_Master {
     	$rec = static::fetch($id);
     	if($rec->data){
     		$data = unserialize($rec->data);
-    		if($data->rec->vat) return $data->rec->vat;
+    		if($data->vat) return $data->vat;
     	}
     	
     	// Връщаме ДДС-то от периода
@@ -334,14 +334,14 @@ class techno_Specifications extends core_Master {
     	$rec = $this->fetch($productId);
     	if($rec->data){
     		$data = unserialize($rec->data);
-    		if($data->rec->price){
+    		if($data->price){
     			$price = new stdClass();
-    			if($data->rec->price){
-    				$price->price = $data->rec->price;
+    			if($data->price){
+    				$price->price = $data->price;
     			}
     			
-    			if($data->rec->discount){
-    				$price->discount = $data->rec->discount;
+    			if($data->discount){
+    				$price->discount = $data->discount;
     			}
     			
     			if($price->price) return $price;
