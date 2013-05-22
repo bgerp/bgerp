@@ -33,6 +33,7 @@ class core_Message extends core_BaseClass
         
         // Създаване на липсващо съобщение
         if (!$msg) {
+        	$msg = new stdClass();
             if (Request::get('msg')) {
                 $msg->text = tr('Сгрешено или изтекло съобщение');
             } else {
