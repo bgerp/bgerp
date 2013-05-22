@@ -1,15 +1,15 @@
-<div>
-<ul style='list-style:none;font-size:15px;padding-left:0;float:left;margin-top:0px'>
+<div class='general-product'>
+<ul class='list-info'>
 	<li>
-	<b style='font-size:16px;text-transform:uppercase'>[#title#]</b></li>
-	<li style='max-width:230px;text-align:justify'>[#description#] </li>
+	<b class='list-title'>[#title#]</b></li>
+	<li class='list-description'>[#description#]</li>
 	<li>|Цена|*: <i>[#price#]</i></li>
 	<!--ET_BEGIN material-->
 		<li>|Материал|*: <i>[#material#]</i></li>
 	<!--ET_END material-->
 	<!--ET_BEGIN MEASURES-->
 	<li>|Размери|*:[#MEASURES#] 
-		<ul style='list-style:none;padding-left:10px'>
+		<ul class='list-measures'>
 		<!--ET_BEGIN height-->
 			<li>- |Височина|*: <i>[#height#]</i></li>
 		<!--ET_END height-->
@@ -37,7 +37,7 @@
 	</li>
 	<!--ET_END OTHERS-->
 	<li>|Други|*:[#OTHERS#] 
-		<ul style='list-style:none;padding-left:10px'>
+		<ul class='list-others'>
 			<!--ET_BEGIN color-->
 				<li>|Цвят|*: <i>[#color#]</i></li>
 			<!--ET_END color-->
@@ -54,7 +54,7 @@
 	<!--ET_END OTHERS-->
 </ul>
 <!--ET_BEGIN image-->
-<div style='float:left;margin-top:25px;margin-left:20px'>
+<div class='product-image'>
 [#image#]
 </div>
 <!--ET_END image-->

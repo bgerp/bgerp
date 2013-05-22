@@ -94,7 +94,6 @@ class techno_GeneralProducts extends core_Manager {
      * дадено изделие или услуга
      * @param stdClass $data - Обект с данни от модела 
      * @return blob $serialized - сериализирани данни на обекта
-     * @TODO ДА МАХНА ЗАПИСВАНЕТО НА ВЕРБАЛНОТО
      */
     public function serialize($data)
     {
@@ -107,7 +106,6 @@ class techno_GeneralProducts extends core_Manager {
      * @param stdClass $data - Обект с данни от модела
      * @param boolean $short - Дали да е кратко представянето 
      * @return core_ET $tpl - вербално представяне на изделието
-     * @TODO ДА МАХНА ЗАПИСВАНЕТО НА ВЕРБАЛНОТО
      */
     public function getVerbal($data, $short = FALSE)
     {
@@ -131,6 +129,7 @@ class techno_GeneralProducts extends core_Manager {
         $tpl = getTplFromFile($file);
         $tpl->placeObject($row);
         
+        $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
         return $tpl;
     }
 }
