@@ -125,9 +125,21 @@ class techno_Specifications extends core_Master {
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%');
-		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf)', 'caption=Технолог,mandatory');
-		$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,input');
+		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
+		$this->FNC('measureId', 'key(mvc=cat_UoM, select=name)', '');
+    }
+    
+    
+    /**
+     * Изчисляваме мярката според това въведено в детайла
+     */
+    function on_CalcMeasureId($mvc, $rec)
+    {
+    	if($rec->data){
+    		$data = unserialize($rec->data);
+    		$rec->measureId = $data->measureId;
+    	}
     }
     
     
@@ -138,7 +150,7 @@ class techno_Specifications extends core_Master {
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = $rec->title;
+        $row->title = $this->singleTitle . ' "' . $rec->title . '"';
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -164,7 +176,7 @@ class techno_Specifications extends core_Master {
      * Връща продуктие, които могат да се продават
      * на посочения клиент. Това са всички спецификации от
      * неговата папка, ако няма спецификации редиректваме с
-     * подходящо стобщение
+     * подходящо съобщение
      */
     function getProducts($customerClass, $customerId, $date = NULL)
     {
@@ -197,8 +209,7 @@ class techno_Specifications extends core_Master {
         // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
         $cover = doc_Folders::getCover($folderId);
         
-        return $cover->haveInterface('doc_ContragentDataIntf') || 
-            $folderId == static::getDefaultFolder(NULL, FALSE);
+        return $cover->haveInterface('doc_ContragentDataIntf');
     }
     
     
@@ -223,17 +234,13 @@ class techno_Specifications extends core_Master {
     
     
 	/**
-     * Подменя URL-то да сочи направо към формата
-     * на технологовия клас
+     * Подменя URL-то да сочи направо към формата на технологовия клас
      */
     static function on_AfterPrepareRetUrl($mvc, $data)
     {
         if($data->form && $data->form->isSubmitted()) {
         	$rec = $data->form->rec;
-        	$url = array($mvc, 'Ajust',
-                'id' => $rec->id,
-                'ret_url' => toUrl($data->retUrl, 'local')
-            );
+        	$url = array($mvc, 'Ajust', 'id' => $rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
             $data->retUrl = $url;
         }
     }
@@ -292,10 +299,7 @@ class techno_Specifications extends core_Master {
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft'){
-    		$url = array($mvc, 'Ajust',
-                'id' => $data->rec->id,
-                'ret_url' => toUrl($data->retUrl, 'local')
-        	);
+    		$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
         	
         	// Може да се променят характеристиките само на чернова
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
@@ -304,9 +308,9 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Връща ДДС-то на спродукта
+     * Връща ДДС-то на продукта
      * @param int $id - ид на спецификацията
-     * @param blob $date - данни на спецификацията
+     * @param date $date - дата
      */
     public static function getVat($id, $date = NULL)
     {
@@ -339,11 +343,9 @@ class techno_Specifications extends core_Master {
     			if($data->price){
     				$price->price = $data->price;
     			}
-    			
     			if($data->discount){
     				$price->discount = $data->discount;
     			}
-    			
     			if($price->price) return $price;
     		}
     	}
@@ -366,7 +368,7 @@ class techno_Specifications extends core_Master {
      }
      
      
-     /**
+    /**
      * След проверка на ролите
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
