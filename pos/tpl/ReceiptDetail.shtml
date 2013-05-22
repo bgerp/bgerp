@@ -15,9 +15,13 @@
 
 <!--ET_BEGIN discount-->
 <tr>
-	<td colspan='4' class='receipt-discount'>[#discountType#]: &nbsp;&nbsp;
+	<td colspan='4' class='receipt-discount'>
+	<!--ET_BEGIN discountType-->
+	[#discountType#]: &nbsp;&nbsp;
+	<!--ET_END discountType-->
+	
 	<!--ET_BEGIN discountPercent-->
-		[#discountPercent#]%
+		[#discountPercent#]
 	<!--ET_END discountPercent-->
 	<!--ET_BEGIN discountSum-->
 		[#discountSum#] <small>[#currency#]</small>
