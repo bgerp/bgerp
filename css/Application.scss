@@ -1208,7 +1208,7 @@ div.folder-cover{
 	line-height:1.5em;
 	margin-left:0px;
 	margin-top:8px;
-	min-width:400px;
+	min-width:0px;
 	max-width:600px;
 	font-size:0.8em;
 	padding:10px 10px 12px 10px;
@@ -2443,7 +2443,18 @@ table.styled-table tr:hover td {
 		width:50%;	
 	}
 }
-	
+
+.narrow .info-table	.cover{
+	min-width:380px;
+	padding:0px 8px 8px;
+}
+.narrow .info-table{
+	max-width:400px;
+	font-size:0.9em;
+}
+.narrow .info-table .rowtools{
+	padding-right:4px;
+}
 .info-table .gray-title{
 	color:#666;
 }
