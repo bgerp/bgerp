@@ -909,6 +909,8 @@ class core_App
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
 
+	if (is_readable($shortPath)) return $shortPath;
+
         if(defined('EF_PRIVATE_PATH')) {
             $pathsArr = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
         } else {
