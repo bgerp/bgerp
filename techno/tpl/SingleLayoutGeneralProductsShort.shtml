@@ -22,9 +22,9 @@
 			<li>- |Тегло|*: <i>[#weight#]</i></li>
 		<!--ET_END weight-->
 		
-		<!--ET_BEGIN weight-->
+		<!--ET_BEGIN thickness-->
 			<li>- |Дебелина|*: <i>[#thickness#]</i></li>
-		<!--ET_END weight-->
+		<!--ET_END thickness-->
 		
 		<!--ET_BEGIN volume-->
 			<li>- |Обем|*: <i>[#volume#]</i></li>
@@ -35,7 +35,8 @@
 		<!--ET_END length-->
 		</ul>
 	</li>
-	<!--ET_END OTHERS-->
+	<!--ET_END MEASURES-->
+	<!--ET_BEGIN OTHERS-->
 	<li>|Други|*:[#OTHERS#] 
 		<ul class='list-others'>
 			<!--ET_BEGIN color-->
