@@ -38,7 +38,7 @@ class type_Percent extends type_Double {
      */
     function toVerbal($value)
     {
-        if(!isset($value)) return NULL;
+        if(!strlen($value)) return NULL;
         
         $value = $value * 100;
         
