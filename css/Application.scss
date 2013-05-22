@@ -2255,9 +2255,6 @@ input.combo.pCode{
 		max-width:868px;
 		overflow:auto;
 	}
-	legend{
-		background-color:#fff;
-	}
 	pre.richtext{
 		max-width: 865px;
 		/*height:560px; */
@@ -2271,6 +2268,11 @@ input.combo.pCode{
 		font-family:monospace "courier new";
 	}
 }
+
+.webdrvFieldset legend{
+	background-color:#fff;
+}
+
 .narrow .email-source{
 	white-space:pre-wrap;
 	font-family:monospace "courier new";
