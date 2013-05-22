@@ -265,8 +265,6 @@ class blast_Letters extends core_Master
                 return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
             }
     
-            $form = $data->form;
-            
             if (!$form->rec->id) {
                 
                 //Ако добавяме нов показваме всички списъци
