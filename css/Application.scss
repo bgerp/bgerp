@@ -1208,7 +1208,7 @@ div.folder-cover{
 	line-height:1.5em;
 	margin-left:0px;
 	margin-top:8px;
-	min-width:0px;
+	min-width:400px;
 	max-width:600px;
 	font-size:0.8em;
 	padding:10px 10px 12px 10px;
@@ -2780,6 +2780,9 @@ div.locImage{
 }
 .store_Racks td{
 	max-width:700px;
+}
+.fileman_Indexes td, .fileman_Data td{
+	max-width:none !important;	
 }
 @media print{
 	.linkWithIcon, .docBgIcon,.button{
