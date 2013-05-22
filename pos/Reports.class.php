@@ -31,7 +31,7 @@ class pos_Reports extends core_Master {
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, 
+   var $loadList = 'plg_RowTools,pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, 
    					bgerp_plg_Blank, doc_ActivatePlg, plg_Sorting';
    
     
@@ -76,7 +76,7 @@ class pos_Reports extends core_Master {
      */
     var $canWrite = 'pos, ceo, admin';
     
-    
+    var $canDelete = 'no_one';
     /**
 	 * Файл за единичен изглед
 	 */
@@ -200,7 +200,7 @@ class pos_Reports extends core_Master {
     		$reportData = $mvc->fetchData($form->rec->pointId, $form->rec->cashier);
     		
     		// Проверяваме все пак дали има данни за репорта
-    		if(!count($reportData->receiptDetails)){
+    		if(!count($reportData['receiptDetails'])){
     			$form->setError('cashier, pointId', 'Няма активни бележки');
     			return;
     		}
@@ -223,8 +223,8 @@ class pos_Reports extends core_Master {
     	
     	$rec->details = $reportData;
     	$rec->productCount = $rec->change = $rec->total = $rec->paid = 0;
-    	if(count($reportData->receiptDetails)){
-		    foreach($reportData->receiptDetails as $index => $detail) {
+    	if(count($reportData['receiptDetails'])){
+		    foreach($reportData['receiptDetails'] as $index => $detail) {
 		    	list($action) = explode('|', $index);
 		    	
 		    	// Изчисляваме общата и платената сума на всички 
@@ -232,7 +232,7 @@ class pos_Reports extends core_Master {
 		    }
    	 	}
    	 	
-   	 	foreach($reportData->receipts as $receipt) {
+   	 	foreach($reportData['receipts'] as $receipt) {
    	 		$rec->productCount += $receipt->products;
    	 	}
    	 	
@@ -260,13 +260,14 @@ class pos_Reports extends core_Master {
      */
     static function on_AfterPrepareSingle($mvc, &$data)
     {
-    	$detail = &$data->rec->details;
+    	$detail = (object)$data->rec->details;
     	arr::orderA($detail->receiptDetails, 'action');
 	    
     	// Табличната информация и пейджъра на плащанията
 	    $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
     	$detail->rows = $detail->receiptDetails;
     	$mvc->prepareDetail($detail);
+    	$data->rec->details = $detail;
 	}
     
     
@@ -395,8 +396,8 @@ class pos_Reports extends core_Master {
     	
     	// извличаме нужната информация за продажбите и плащанията
     	$this->fetchReceiptData($query, $details, $receipts);
-    	
-    	return (object)array('receipts' => $receipts, 'receiptDetails' => $details);
+    	//bp($details, $receipts);
+    	return array('receipts' => $receipts, 'receiptDetails' => $details);
     }
     
     
@@ -441,7 +442,7 @@ class pos_Reports extends core_Master {
     	$mvc->save($rRec);
     	
     	// Всяка бележка в репорта се "затваря"
-    	foreach($rRec->details->receipts as $receiptRec){
+    	foreach($rRec->details['receipts'] as $receiptRec){
     		$receiptRec->state = 'closed';
     		pos_Receipts::save($receiptRec);
     	}
