@@ -550,7 +550,8 @@ class pos_Receipts extends core_Master {
 			$Details->invoke('AfterInputEditForm', array($dForm));
 			
         	// Ако формата е успешно изпратена - запис, лог, редирект
-            if ($dForm->isSubmitted() && Request::get('ean')) {
+            $ean = Request::get('ean');
+			if ($dForm->isSubmitted() && isset($ean)) {
             	
             	if($Details->haveRightFor('add', (object) array('receiptId' => $data->rec->id))) {
 	            	

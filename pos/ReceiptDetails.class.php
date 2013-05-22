@@ -183,17 +183,22 @@ class pos_ReceiptDetails extends core_Detail {
     			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
     			break;
     		case 'discount':
-    			if($rec->discountPercent){
-    				$discRec = &$rec->discountPercent;
-    				$discRow = &$row->discountPercent;
+    			if($rec->discountPercent || $rec->discountPercent == 0){
+    				$discRec = $rec->discountPercent;
+    				$discRow = $row->discountPercent;
     				unset($row->currency);
+    				if($discRec == 0){
+    					$row->discountPercent = tr('Без отстъпка');
+    				}
     			}else {
-    				$discRec = &$rec->discountSum;
-    				$discRow = &$row->discountSum;
+    				$discRec = $rec->discountSum;
+    				$discRow = $row->discountSum;
     			}
     			
-    			$discRow = abs($discRec);
-    			($discRec < 0) ? $row->discountType = tr("Надценка") : $row->discountType = tr("Отстъпка");
+    			if($discRec != 0){
+	    			$discRow = abs($discRec);
+	    			($discRec < 0) ? $row->discountType = tr("Надценка") : $row->discountType = tr("Отстъпка");
+    			}
     			break;
     	}
     }
@@ -317,14 +322,14 @@ class pos_ReceiptDetails extends core_Detail {
 	    				return;
 	    			}
 	    			$param = ucfirst(strtolower($action->value));
-	    			$rec->{"discount{$param}"} = $rec->ean;
+	    			$rec->{"discount{$param}"} = $rec->ean/100;
 	    			if($param == 'Sum'){
 	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
 	    				if($total < abs($rec->ean)){
 	    					$form->setError('ean', 'Въведената сума е по-голяма от крайната !');
 	    				}
 	    			} else {
-	    				if($rec->ean > 100) {
+	    				if($rec->ean/100 > 1) {
 	    					$form->setError('ean', 'Отстъпката неможе да е по-голяма от 100% !');
 	    				}
 	    			}
@@ -457,7 +462,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$query->orderBy("#id", "DESC");
     	if($dRec = $query->fetch()) {
     		
-    		$lastDisc = round(($price->price * $dRec->discountPercent / 100), 2);
+    		$lastDisc = round(($price->price * $dRec->discountPercent), 2);
     		$procent = $dRec->discountPercent;
     		
     		if($lastDisc > 0){
