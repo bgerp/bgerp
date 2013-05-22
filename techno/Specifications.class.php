@@ -268,10 +268,10 @@ class techno_Specifications extends core_Master {
         	// При вече въведени характеристики, слагаме ги за дефолт
         	$data = unserialize($rec->data);
         	$data->title = $rec->title;
-        	$form->setDefaults($data->rec);
+        	$form->setDefaults($data);
         }
         
-        $form->title = "Характеристиките на ". $rec->title;
+        $form->title = "Характеристики на ". $rec->title;
         return $this->renderWrapping($form->renderHtml());
     }
     

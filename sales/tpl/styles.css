@@ -6,6 +6,14 @@
 	margin-bottom:0px;
 }
 
+.narrow #quot-table{
+	margin-left:0;
+}
+
+.narrow .document{
+	max-width:430px;
+}
+
 .quote-title{
 	margin-top:12px;
 	font-size:32px;
@@ -25,8 +33,9 @@
 
 .receiver-block{
 	margin-top:12px;
-	height:170px;
+	min-height:170px;
 }
+
 #condition-title{
 	font-weight:bold;
 	text-decoration:underline;
@@ -45,6 +54,12 @@
 	margin-right:15px;
 }
 
+.narrow .sign-user{
+	display:block;
+	float:right;
+	margin-right:20px;
+}
+
 #conditions{
 	margin-top:5px;
 }
@@ -54,6 +69,17 @@
 	padding-top:0px;
 }
 
+.narrow #details-holder, .narrow #optional-holder, .narrow #condition-title, 
+.narrow #conditions, .narrow .document .listToolbar,.narrow .document .listToolbar .toolbar{
+	margin-left:0;
+}
+
+.narrow .products-table{
+	font-size:0.9em;
+	width:100%;
+	max-width:600px;
+	min-width:400px;
+}
 #details-holder p, #optional-holder p{
 	margin-bottom:10px;
 	font-weight:bold;

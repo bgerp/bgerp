@@ -2443,7 +2443,18 @@ table.styled-table tr:hover td {
 		width:50%;	
 	}
 }
-	
+
+.narrow .info-table	.cover{
+	min-width:380px;
+	padding:0px 8px 8px;
+}
+.narrow .info-table{
+	max-width:400px;
+	font-size:0.9em;
+}
+.narrow .info-table .rowtools{
+	padding-right:4px;
+}
 .info-table .gray-title{
 	color:#666;
 }
@@ -2769,6 +2780,9 @@ div.locImage{
 }
 .store_Racks td{
 	max-width:700px;
+}
+.fileman_Indexes td, .fileman_Data td{
+	max-width:none !important;	
 }
 @media print{
 	.linkWithIcon, .docBgIcon,.button{

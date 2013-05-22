@@ -4,6 +4,10 @@ table.mc-calendar {
 	1border-collapse:collapse;
 }
 
+.narrow table.mc-calendar{
+	width:100%;
+}
+
 table.mc-calendar td.mc-day {
 	text-align: right;
 	border: none;
@@ -17,7 +21,7 @@ table.mc-calendar td.mc-day span{
 	text-transform:uppercase;
 	width:10px;
 	text-align:center;
-}
+} 
 table.mc-calendar td.mc-week-nb {
 	border: none;
 	padding: 3px;

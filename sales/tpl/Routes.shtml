@@ -8,7 +8,7 @@
 				<ul>
 					<li style="width:44%;display:inline-block"><span class="gray-title">|Търговец|*:</span></li>
 					<li style='width:44%;display:inline-block'><span class="gray-title">|Следващо посещение|*:</span></li>
-					<li style='width:10%;display:inline-block'>[#HEADER#]</li>
+					<li style='width:8%;display:inline-block'>[#HEADER#]</li>
 				</ul>
 			</li>
 		<!--ET_END HEADER-->
@@ -19,7 +19,7 @@
 				<ul>
 					<li style="width:44%;display:inline-block"> [#salesmanId#]</li>
 					<li style='width:44%;display:inline-block'>[#nextVisit#]</li>
-					<li style='width:10%;display:inline-block'><span>[#tools#]</span></li>
+					<li style='width:8%;display:inline-block'><span>[#tools#]</span></li>
 				</ul>
 			</li>
 		<!--ET_END ROW-->
