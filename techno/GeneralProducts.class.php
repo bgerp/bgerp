@@ -26,18 +26,6 @@ class techno_GeneralProducts extends core_Manager {
      * Заглавие
      */
     var $title = "Нестандартни продукти";
-
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    var $listFields = 'tools=Пулт,name,measureId,createdOn,createdBy';
-    
-    
-    /**
-     * Кой може да го прочете?
-     */
-    var $canRead = 'admin,techno';
     
     
     /**
@@ -59,7 +47,7 @@ class techno_GeneralProducts extends core_Manager {
     
     /**
      * Връща форма, с която могат да се въвеждат параметри на
-     * определен клас не-стандартно изделие
+     * определен клас нестандартно изделие
      * @param stdClass $data - Обект с данни от модела 
      * @return core_Form $form - Формата на мениджъра
      */
@@ -68,7 +56,8 @@ class techno_GeneralProducts extends core_Manager {
     	$form = cls::get('core_Form');
     	$form->FNC('title', 'richtext(rows=5)', 'caption=Описание,input=hidden');
     	$form->FNC('description', 'richtext(rows=5)', 'caption=Описание,input,mandatory');
-		$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. цена,width=8em,mandatory,input');
+		$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,input');
+    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. цена,width=8em,mandatory,input');
 		$form->FNC('discount', 'double(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input');
 		$form->FNC('vat', 'percent(decimals=2)', 'caption=Цени->ДДС,width=8em,input');
     	$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
@@ -110,9 +99,9 @@ class techno_GeneralProducts extends core_Manager {
     public function getVerbal($data, $short = FALSE)
     {
         $data = unserialize($data);
-        $row = new stdClass();
-    	
+        
         // Преобразуваме записа във вербален вид
+        $row = new stdClass();
     	$fields = $this->getEditForm()->selectFields("");
     	foreach($fields as $name => $fld){
     		$row->$name = $fld->type->toVerbal($data->$name);
@@ -125,11 +114,11 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
     	// Спрямо $short взимаме шаблона за кратко или дълго представяне
-    	($short) ? $file = $this->singleShortLayoutFile: $file = $this->singleLayoutFile;
+    	($short) ? $file = $this->singleShortLayoutFile : $file = $this->singleLayoutFile;
         $tpl = getTplFromFile($file);
         $tpl->placeObject($row);
-        
         $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
+        
         return $tpl;
     }
 }

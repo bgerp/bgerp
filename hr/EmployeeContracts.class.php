@@ -86,7 +86,7 @@ class hr_EmployeeContracts extends core_Master
      * Поле за търсене
      */
     var $searchFields = 'typeId, managerId, personId, specialty, 
-                         departmentId, shiftId, positionId, startFrom, 
+                         departmentId, positionId, startFrom, 
                          endOn, folderId, threadId, containerId';
     
     /**
@@ -105,7 +105,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('managerId', 'key(mvc=crm_Persons,select=name)', 'caption=Управител, mandatory');
         
         // Служител
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory,width=100%');
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory,width=100%');
         $this->FLD('education', 'varchar', 'caption=Служител->Образование,width=100%');
         $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност,width=100%');
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №,width=100%');
@@ -114,7 +114,7 @@ class hr_EmployeeContracts extends core_Master
         
         // Работа
         $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел, mandatory');
-        $this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Работа->Смяна, mandatory');
+        //$this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Работа->Смяна, mandatory');
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност, mandatory,oldField=possitionId');
         
         // УСЛОВИЯ
@@ -158,7 +158,7 @@ class hr_EmployeeContracts extends core_Master
         
         $row->departmentId = ht::createLink($row->departmentId, array('hr_Departments', 'Single', $rec->departmentId));
         
-        $row->shiftId = ht::createLink($row->shiftId, array('hr_Shifts', 'Single', $rec->shiftId));
+        //$row->shiftId = ht::createLink($row->shiftId, array('hr_Shifts', 'Single', $rec->shiftId));
     }
     
     
@@ -250,6 +250,21 @@ class hr_EmployeeContracts extends core_Master
         }
         
         return $result;
+    }
+    
+    static function act_Test()
+    {
+    	$id = 2;
+    	bp(self::getWorkingSchedule($id));
+    }
+    
+    static public function getWorkingSchedule($id)
+    {
+    	$departmentId = self::fetchField($id, 'departmentId');
+    	
+    	$schedule = hr_Departments::fetchField($departmentId, 'schedule');
+    	
+    	return $schedule;
     }
     
     

@@ -91,7 +91,7 @@ class pos_Points extends core_Master {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование, mandatory');
     	$this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
-        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent, mandotory');
+        $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
     }
     
 	
@@ -105,6 +105,16 @@ class pos_Points extends core_Master {
 	    	$defaultContragent->name = "POS:" . $rec->id . "-Анонимен Клиент";
 	    	crm_Persons::save($defaultContragent);
     	}
+    }
+    
+    
+    /**
+     * Подготовка на формата за добавяне
+     */
+    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    { 
+    	$conf = core_Packs::getConfig('price');
+    	$data->form->setDefault('policyId', $conf->PRICE_LIST_CATALOG);
     }
     
     
