@@ -144,6 +144,15 @@ class hr_EmployeeContracts extends core_Master
         }
         
         $data->form->setOptions('managerId', $options);
+        
+    	$rec = $data->form->rec;
+        
+        $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        
+        if ('crm_Persons' == $coverClass) {
+        	$data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $data->form->setReadonly('personId');
+        }
     }
     
     
@@ -200,7 +209,7 @@ class hr_EmployeeContracts extends core_Master
 
         $res = $data;
     }
-    
+  
     
     /**
      * Render single
@@ -266,7 +275,7 @@ class hr_EmployeeContracts extends core_Master
     	
     	return $schedule;
     }
-    
+
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
@@ -300,4 +309,5 @@ class hr_EmployeeContracts extends core_Master
         
         return $row;
     }
+ 
 }

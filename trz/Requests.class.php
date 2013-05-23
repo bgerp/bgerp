@@ -235,10 +235,7 @@ class trz_Requests extends core_Master
     	$data->form->setSuggestions('useDaysFromYear', $years);
     	$data->form->setDefault('useDaysFromYear', $years[0]);
     	
-    	$cu = core_Users::getCurrent();
-        $data->form->setDefault('personId', $cu);
-        
-        $rec = $data->form->rec;
+    	$rec = $data->form->rec;
         if($rec->folderId){
 	        $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
 	        $data->form->setReadonly('personId');
