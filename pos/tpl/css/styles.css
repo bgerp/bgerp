@@ -395,9 +395,25 @@ div.scrollWrapper{
 }
 
 .document .listRows table {
-	width:730px;
+	1width:730px;
 	margin-bottom:15px;
 	margin-top:15px;
+}
+
+.narrow .document .listRows table{
+	max-width:400px;
+}
+
+.report-info{
+	width:450px;
+}
+
+.narrow .report-info{
+	width:380px;
+}
+
+.narrow .document{
+	max-width:400px;
 }
 
 .document .listTable tr td:last-child{
@@ -430,6 +446,10 @@ form #point {
 
 .doc_Containers table.listTable.listTable > tbody > tr > td:first-child  {
 	width:62%;
+}
+
+.narrow .doc_Containers table.listTable.listTable > tbody > tr > td:first-child{
+	width:auto;
 }
 
 .doc_Containers table.listTable.listTable > tbody > tr.report-payment > td:first-child {

@@ -8,7 +8,7 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
-	<table cellpadding='2px' width='430px' border='0'>
+	<table cellpadding='2px' class='report-info' border='0'>
 		<tr>
 			<td>|Касиер|*: </td>
 			<td></td>
@@ -44,13 +44,8 @@
 			<td><span class='cCode'>[#baseCurrency#]</span></td>
 			<td class = 'summary-right'><b>[#change#]</b></td>
 		</tr>
-		<tr>
-			<td>|Създаден на|* &nbsp;&nbsp;<b>[#createdDate#]</b> 
-			 &nbsp;|от|* &nbsp;&nbsp;<b>[#createdBy#]</b></td>
-			<td></td>
-			<td></td>
-		</tr>
 	</table>
+	<span>Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
 		[#SALES#]
 	<!--ET_BEGIN SALE_PAGINATOR-->
 		[#SALE_PAGINATOR#]
