@@ -273,8 +273,9 @@ class cal_Reminders extends core_Master
      */
     static function on_BeforeSave($mvc, &$id, $rec)
     {
-    	$now = dt::now();
-    	if($rec->state == 'active'){
+    	$now = dt::now(); 
+    	
+    	if($rec->id && $rec->modifiedBy && $rec->state == 'active'){
 	        $timeStart = self::fetchField($rec->id, 'timeStart');
 	        $threadId = self::fetchField($rec->id, 'threadId');
 	        
@@ -492,10 +493,9 @@ class cal_Reminders extends core_Master
     	 	 if($rec->repetitionEach == 0){
     	 	 	$rec->notifySent = 'yes';
     	 	 }
-    	 	 
     	 	 $rec->nextStartTime = $this->calcNextStartTime($rec);
-             self::save($rec);
-
+    	 	 
+    	 	 self::save($rec);
     	 }
 
     }
