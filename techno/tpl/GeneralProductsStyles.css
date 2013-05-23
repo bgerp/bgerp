@@ -4,6 +4,8 @@
 	padding-left:0;
 	float:left;
 	margin-top:0px;
+	margin-bottom:0;
+	padding-bottom:0;
 }
 
 .general-product .list-title {
@@ -11,9 +13,14 @@
 	text-transform:uppercase;
 }
 
-.general-product .list-description {
+.general-product .list-description-short{
 	max-width:230px;
 	text-align:justify;
+}
+
+.general-product .list-description-short{
+	font-size:14px;
+	color:#000;
 }
 
 .general-product .list-measures {
@@ -27,7 +34,28 @@
 }
 
 .general-product .product-image {
-	float:left;
+	float:right;
 	margin-top:25px;
-	margin-left:20px;
+	margin-left:5px;
+	margin-right:5px;
+}
+
+.img-wide{
+	margin-left:50px !important;
+}
+
+.wide{
+	max-width:380px !important;
+}
+
+.styled-table{
+	width:300px;
+}
+
+i.misc-values{
+	color:#040404;
+}
+
+th{
+	padding-bottom:4px;
 }

@@ -11,22 +11,25 @@
 	<table>
 		<!--ET_BEGIN data-->
 		<tr>
-			<td colspan='2' style='padding-top:20px'>
+			<td colspan='2'>
 			[#data#]
 			</td>
 		</tr>
 		<!--ET_END data-->
 		<tr>
-			<td>|Технолог|*</td>
-			<td>[#prodTehnoClassId#]</td>
-		</tr>
-		<tr>
-			<td>|Мярка|*</td>
-			<td>[#measureId#]</td>
-		</tr>
-		<tr>
-			<td>|Създадено|*</td>
-			<td>|на|* [#createdOn#] |*от|* [#createdBy#] </td>
+			<td>
+				<table class='styled-table'>
+					<tr>
+						<td>|Технолог|*</td>
+						<td>[#prodTehnoClassId#]</td>
+					</tr>
+					<tr>
+						<td>|Мярка|*</td>
+						<td>[#measureId#]</td>
+					</tr>
+				</table>
+				<div>|Създаване|* |на|* [#createdOn#] |*от|* [#createdBy#]</div>
+			</td>
 		</tr>
 	</table>
 	
