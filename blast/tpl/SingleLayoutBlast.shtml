@@ -15,6 +15,7 @@
 				
 			</div>
 			
+			<div style='display: inline-block;'></div>
 			<div style='width: 49%; display: inline-block; text-align: right; vertical-align: top;'>
 				<!--ET_BEGIN email--><div>|Имейл|*: <b>[#email#]</b></div><!--ET_END email-->
 				<!--ET_BEGIN tel--><div>|Тел.|*: [#tel#]</div><!--ET_END tel-->
@@ -23,9 +24,9 @@
 				
 			</div>
 	   	</small>  
-	   	
-		<div style='clear: both;'></div>
 	</div> 
+	
+	<div style='clear: both;'></div>
 	
 	<!--ET_BEGIN subject--> 
 	<div>
@@ -44,14 +45,10 @@
 	<div style='clear: both;'></div>
 	
 	<!-- BEGIN footer -->        
-	<div class='clear_l f_left block_subtitle mt_50px'>
-	    
-	</div>
+	<div class='clear_l f_left block_subtitle mt_50px'></div>
 	<!-- END footer -->
 	  
 	<div style='clear: both;'></div>
 	   
 </div>
 <!-- END container -->
-     
-<div style='clear: both;'></div>
