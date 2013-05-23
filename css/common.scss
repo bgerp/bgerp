@@ -762,9 +762,11 @@ a.button, input[type=button], input[type=submit] {
     background-color:#ddd; 
     border:1px solid #bbb; 
     height:24px;
-    @include border-radius(3px);
+    @include border-radius(3px) ;
     font-family: Arial, sans-serif; 
     font-size:13px;
+    -webkit-appearance: none;
+  	-webkit-border-radius: 3px;
     padding:2px 3px 3px 3px; /* IE6 */ 
 }
 
