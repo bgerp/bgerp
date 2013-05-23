@@ -275,15 +275,17 @@ class cal_Reminders extends core_Master
     {
     	$now = dt::now(); 
     	
-    	if($rec->id && $rec->modifiedBy && $rec->state == 'active'){
-	        $timeStart = self::fetchField($rec->id, 'timeStart');
+    	if($rec->id){
+    		$exState = self::fetchField($rec->id, 'state');
+    		$timeStart = self::fetchField($rec->id, 'timeStart');
 	        $threadId = self::fetchField($rec->id, 'threadId');
 	        
-	        if($timeStart < $now){
-	        	redirect(array('doc_Containers', 'list', 'threadId'=>$threadId), FALSE, tr("Не може да се направи напомняне в миналото |* "));
-	        }
+	       if($timeStart < $now && $rec->state != $exState){
+	       	redirect(array('doc_Containers', 'list', 'threadId'=>$threadId), FALSE, tr("Не може да се направи напомняне в миналото |* "));
+	       }
+    		
     	}
-   }
+    }
 
     
     /**
