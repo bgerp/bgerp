@@ -411,8 +411,8 @@ class pos_Receipts extends core_Master {
 			$res = 'no_one';
 		}
 		
-		// Никой неможе да изтрива активирана бележка
-		if($action == 'delete' && $rec->state != 'draft') {
+		// Никой неможе да изтрива активирана или затворена бележка
+		if($action == 'delete' && isset($rec) && $rec->state != 'draft') {
 			$res = 'no_one';
 		}
 		
