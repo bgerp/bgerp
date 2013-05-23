@@ -251,7 +251,7 @@ class cal_Reminders extends core_Master
      */
     function on_AfterInputEditForm($mvc, $form)
     {
-    	$now = dt::now(FALSE);
+    	$now = dt::now();
     	if ($form->isSubmitted()) {
         	if($form->rec->timeStart < $now){
         		// Добавяме съобщение за грешка
@@ -277,12 +277,14 @@ class cal_Reminders extends core_Master
     	
     	if($rec->id){
     		$exState = self::fetchField($rec->id, 'state');
-    		$timeStart = self::fetchField($rec->id, 'timeStart');
-	        $threadId = self::fetchField($rec->id, 'threadId');
-	        
-	       if($timeStart < $now && $rec->state != $exState){
-	       	redirect(array('doc_Containers', 'list', 'threadId'=>$threadId), FALSE, tr("Не може да се направи напомняне в миналото |* "));
-	       }
+    		$timeStart = $rec->timeStart;
+    		if(!$timeStart){
+    			$timeStart = self::fetchField($rec->id, 'timeStart');
+    		}
+	       
+	        if($timeStart < $now && $rec->state != $exState){
+	       		redirect(array('cal_Reminders', 'single', $rec->id), FALSE, tr("Не може да се направи напомняне в миналото |* "));
+	        }
     		
     	}
     }
