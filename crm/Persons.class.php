@@ -182,7 +182,7 @@ class crm_Persons extends core_Master
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 
             'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData');
-        $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Имейл,class=contactData');
+        $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData');
         $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,class=contactData');
         $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,class=contactData');
         $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData');
