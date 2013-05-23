@@ -31,7 +31,7 @@ class techno_Specifications extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, techno_Wrapper, plg_Printing,
+    public $loadList = 'plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank,
                     doc_DocumentPlg, doc_ActivatePlg, doc_plg_BusinessDoc';
 
 	
@@ -78,15 +78,15 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Кой може да добавя?
+     * Абревиатура
      */
-    var $canAdd = 'admin,techno,broker';
+    var $abbr = "Sp";
     
     
     /**
-     * Кой може да го види?
+     * Кой може да добавя?
      */
-    var $canView = 'admin,techno,broker';
+    var $canAdd = 'admin,techno,broker';
     
     
     /**
@@ -227,7 +227,7 @@ class techno_Specifications extends core_Master {
 	    		
 	    		// Подготвяме изгледа на изделието
 	    		$technoClass = cls::get($rec->prodTehnoClassId);
-	    		$row->data = $technoClass->getVerbal($rec->data, TRUE);
+	    		$row->data = $technoClass->getVerbal($rec->data);
 	    	}
     	}
     }
@@ -262,19 +262,20 @@ class techno_Specifications extends core_Master {
         
     	$fRec = $form->input();
         if($form->isSubmitted()) {
-        	
-        	// Записваме въведените данни в пропъртито data на река
-            $rec->data = $technoClass->serialize($fRec);
-            $this->save($rec);
-            
-            return  Redirect(array($this, 'single', $rec->id));
+        	if($this->haveRightFor('add')){
+        		
+        		// Записваме въведените данни в пропъртито data на река
+	            $fRec->title = $rec->title;
+        		$rec->data = $technoClass->serialize($fRec);
+	            $this->save($rec);
+	            return  Redirect(array($this, 'single', $rec->id));
+        	}
         }
         
         if($rec->data){
         	
         	// При вече въведени характеристики, слагаме ги за дефолт
         	$data = unserialize($rec->data);
-        	$data->title = $rec->title;
         	$form->setDefaults($data);
         }
         
@@ -301,9 +302,42 @@ class techno_Specifications extends core_Master {
     	if($data->rec->state == 'draft'){
     		$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
         	
-        	// Може да се променят характеристиките само на чернова
+        	// Може да се променят с само на чернова
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
     	}
+    	
+    	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'active'){
+    		$data->toolbar->addBtn("Оферирай", array($mvc, 'newQuote', $data->rec->id), 'ef_icon=img/16/document_quote.png');
+    	}
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     */
+    function act_newQuote()
+    {
+    	sales_Quotations::requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'active');
+    	
+    	$form = cls::get('core_Form');
+    	$form->FNC('quantity1', 'int', 'caption=К-во 1,input, mandatory');
+    	$form->FNC('quantity2', 'int', 'caption=К-во 2,input');
+    	$form->FNC('quantity3', 'int', 'caption=К-во 3,input');
+    	$form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), array('class' => 'btn-cancel'));
+    	$form->title = "Създаване на оферта за спецификация";
+        $form->input();
+    	if($form->isSubmitted()){
+    		if(sales_Quotations::haveRightFor('add')){
+	        	return Redirect(array('sales_Quotations', 'add', 'originId' => $rec->containerId, 'quantity1' => $form->rec->quantity1, 'quantity2' => $form->rec->quantity2, 'quantity3' => $form->rec->quantity3));
+    		}
+    	}
+    	
+    	return $this->renderWrapping($form->renderHtml());
     }
     
     
@@ -338,6 +372,7 @@ class techno_Specifications extends core_Master {
     	$rec = $this->fetch($productId);
     	if($rec->data){
     		$data = unserialize($rec->data);
+    		
     		if($data->price){
     			$price = new stdClass();
     			if($data->price){

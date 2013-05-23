@@ -56,21 +56,24 @@ class techno_GeneralProducts extends core_Manager {
     	$form = cls::get('core_Form');
     	$form->FNC('title', 'richtext(rows=5)', 'caption=Описание,input=hidden');
     	$form->FNC('description', 'richtext(rows=5)', 'caption=Описание,input,mandatory');
-		$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,input');
-    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. цена,width=8em,mandatory,input');
-		$form->FNC('discount', 'double(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input');
-		$form->FNC('vat', 'percent(decimals=2)', 'caption=Цени->ДДС,width=8em,input');
+		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,input');
+    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. цена,width=8em,mandatory,input,unit=без ддс');
+		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
+    	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,unit=%');
+		$form->FNC('vat', 'percent(decimals=2)', 'caption=Цени->ДДС,width=8em,input,unit=%');
     	$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
-		$form->FNC('material', 'varchar(150)', 'caption=Параметри->Материал,width=8em,input');
-    	$form->FNC('height', 'double(decimals=2)', 'caption=Параметри->Височина,width=8em,input');
+		$form->FNC('height', 'double(decimals=2)', 'caption=Параметри->Височина,width=8em,input');
 		$form->FNC('width', 'double(decimals=2)', 'caption=Параметри->Ширина,width=8em,input');
 		$form->FNC('weight', 'double(decimals=2)', 'caption=Параметри->Тегло,width=8em,input');
 		$form->FNC('thickness', 'double(decimals=2)', 'caption=Параметри->Дебелина,width=8em,input');
 		$form->FNC('volume', 'double(decimals=2)', 'caption=Параметри->Обем,width=8em,input');
 		$form->FNC('length', 'double(decimals=2)', 'caption=Параметри->Дължина,width=8em,input');
+		$form->FNC('material', 'varchar(150)', 'caption=Други->Материал,width=8em,input');
 		$form->FNC('color', 'varchar(150)', 'caption=Други->Цвят,width=8em,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Други->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Други->EAN,width=15em,input');
+        
+        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
         $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
         
@@ -99,25 +102,35 @@ class techno_GeneralProducts extends core_Manager {
     public function getVerbal($data, $short = FALSE)
     {
         $data = unserialize($data);
-        
-        // Преобразуваме записа във вербален вид
         $row = new stdClass();
-    	$fields = $this->getEditForm()->selectFields("");
-    	foreach($fields as $name => $fld){
-    		$row->$name = $fld->type->toVerbal($data->$name);
-    	}
         
-    	// Обработваме изображението в thumbnail
-    	if($data->image){
-    		$file = fileman_Files::fetchByFh($data->image);
-	        $row->image = thumbnail_Thumbnail::getImg($file->fileHnd, array(150));
+        // Спрямо $short взимаме шаблона за кратко или дълго представяне
+    	if($short){
+    		$layout = $this->singleShortLayoutFile;
+    		$size = array(130, 130);
+    		if($data->image){
+    			$file = fileman_Files::fetchByFh($data->image);
+    			$row->image = thumbnail_Thumbnail::getImg($file->fileHnd, $size);
+    		}
+    	}else {
+    		$layout = $this->singleLayoutFile;
+    		$size = array(200, 350);
+    		if($data->image){
+	    		$Fancybox = cls::get('fancybox_Fancybox');
+				$row->image = $Fancybox->getImage($data->image, $size, array(550, 550));
+    		}
     	}
     	
-    	// Спрямо $short взимаме шаблона за кратко или дълго представяне
-    	($short) ? $file = $this->singleShortLayoutFile : $file = $this->singleLayoutFile;
-        $tpl = getTplFromFile($file);
-        $tpl->placeObject($row);
+        // Преобразуваме записа във вербален вид
+        $fields = $this->getEditForm()->selectFields("");
+    	foreach($fields as $name => $fld){
+    		if($name == 'image') continue;
+    		$row->$name = $fld->type->toVerbal($data->$name);
+    	}
+    	
+        $tpl = getTplFromFile($layout);
         $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
+        $tpl->placeObject($row);
         
         return $tpl;
     }
