@@ -232,7 +232,9 @@ class core_Manager extends core_Mvc
         $data->cmd = isset($data->form->rec->id) ? 'Edit' : 'Add';
         
         // Очакваме до този момент във формата да няма грешки
-        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
+        $fields = $this->selectFields("#input == 'hidden'");
+       
+        expect(!$data->form->gotErrors(array_keys($fields)), 'Има грешки в silent полетата на формата', $data->form->errors);
         
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $data->form->rec, NULL, $retUrl);
@@ -244,7 +246,7 @@ class core_Manager extends core_Mvc
         
         // Проверка дали входните данни са уникални
         if($rec) {
-            if($data->form->isSubmitted() && !$this->isUnique($rec, $fields)) {
+            if($data->form->isSubmitted() && !$this->isUnique($rec)) {
                 $data->form->setError($fields, "Вече съществува запис със същите данни");
             }
         }
