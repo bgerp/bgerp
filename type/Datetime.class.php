@@ -65,9 +65,22 @@ class type_Datetime extends type_Date {
         $input = $this->dt->renderInput($name . '[d]', NULL, $attr);
         $attr['size'] = 6;
         $input->append('&nbsp;');
-        $attr['value'] = $time;
-        $input->append($this->createInput($name . '[t]', NULL, $attr));
         
+        $attr['value'] = $time;
+
+        unset($attr['id']);
+
+        if($ts = $this->params['timeSuggestions']) {
+            if(!is_array($ts)) {
+                $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), TRUE);
+            }
+            $timeInput = ht::createCombo($name . '[t]', $time, $attr, $ts);
+        } else {
+            $timeInput = $this->createInput($name . '[t]', NULL, $attr);
+        }
+
+        $input->append($timeInput);
+
         return $input;
     }
     
@@ -78,13 +91,16 @@ class type_Datetime extends type_Date {
     function fromVerbal($value)
     {
         if(!is_array($value)) return NULL;
-        
+    
+        if(!trim($value['d']) && trim($value['t'])) {
+            $value['d'] = date('d-m-Y');
+        }
+
         if(!trim($value['d'])) return NULL;
         
         $val1 = dt::verbal2mysql(trim(trim($value['d']) . ' ' . trim($value['t'])));
         
-        $val2 = dt::verbal2mysql(dt::mysql2verbal($val1, 'd-m-y H:i:s'));
-        
+        $val2 = dt::verbal2mysql(dt::mysql2verbal($val1, 'd-m-Y H:i:s'));
 
         if($val1 == $val2) {
             if(!trim($value['t'])) {
