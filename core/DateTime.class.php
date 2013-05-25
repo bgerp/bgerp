@@ -427,114 +427,97 @@ class core_DateTime
     static function verbal2mysql($verbDate = "", $full = TRUE)
     {
         if ($verbDate != "") {
+            
             $verbDate = trim(strtolower($verbDate));
+
+            for($i = 1; $i <= 12; $i++) {
+                $verbDate = str_replace(mb_strtolower(self::$months[$i-1]), "-{$i}-", $verbDate);
+                $verbDate = str_replace(mb_strtolower(self::$monthsShort[$i-1]), "-{$i}-", $verbDate);
+                $verbDate = str_replace(mb_strtolower(self::$monthsEn[$i-1]), "-{$i}-", $verbDate);
+                $verbDate = str_replace(mb_strtolower(self::$monthsShortEn[$i-1]), "-{$i}-", $verbDate);
+            }
+
+            $verbDate = trim($verbDate, '-');
             
             $verbDate = str_replace(".", "-", $verbDate);
             $verbDate = str_replace("/", "-", $verbDate);
             $verbDate = str_replace("\\", "-", $verbDate);
-            $verbDate = str_replace(",", "-", $verbDate);
-            $verbDate = str_replace(";", "-", $verbDate);
             $verbDate = str_replace("  ", " ", $verbDate);
             $verbDate = str_replace("  ", " ", $verbDate);
+            $verbDate = str_replace("  ", " ", $verbDate);
+            $verbDate = str_replace("- ", "-", $verbDate);
+            $verbDate = str_replace(" -", "-", $verbDate);
+            $verbDate = str_replace(" -", "-", $verbDate);
+            $verbDate = str_replace("--", "-", $verbDate);
+
             $verbDate = str_replace("''", ":", $verbDate);
             $verbDate = str_replace("'", ":", $verbDate);
             
-            $s = "^([0-9]{1,2})-([0-9]{1,2})-([0-9]{2,4})^";
-            preg_match($s, $verbDate, $out);
-            
-            if (count($out) > 0) {
-                $day = $out[1];
+            $dPtr = "/^(0?[1-9]|1[0-9]|2[0-9]|3[0-1])-(0?[1-9]|1[0-2]|[1-9])(?:-([0-2][0-9][0-9][0-9]|[0-9][0-9])){0,1}";
+            $tPtr = "(?: ((0?[0-9]|1[0-9]|2[0-3]):([0-5][0-9])(?:\\:([0-5][0-9])){0,1}(?: ?(pm|am)){0,1})){0,1}$/";
+
+            if(preg_match($dPtr . $tPtr, $verbDate, $out)) {
+                $day   = $out[1];
                 $month = $out[2];
-                $year = $out[3];
+                $year  = $out[3];
+
+                $hours = $out[5];
+                $minutes  = $out[6];
+                $seconds  = $out[7];
+                $mode  = $out[8];
+                $found = TRUE;
             } else {
-                $s = "^([0-9]{1,2})-([0-9]{1,2})^";
-                preg_match($s, $verbDate, $out);
-                
-                if (count($out) > 0) {
-                    $day = $out[1];
+                $dPtr = "/^([0-2][0-9][0-9][0-9]|[0-9][0-9])-(0?[1-9]|1[0-9]|2[0-9]|3[0-1])-(0?[1-9]|1[0-2]|[1-9])";
+                if(preg_match($dPtr . $tPtr, $verbDate, $out)) {
+                    $year  = $out[1];
                     $month = $out[2];
-                    $year = date("Y", time());
-                } else {
-                    
-                    return FALSE;
+                    $day   = $out[3];
+
+                    $hours = $out[5];
+                    $minutes  = $out[6];
+                    $seconds  = $out[7];
+                    $mode  = $out[8];
+                    $found = TRUE;
                 }
             }
-            
-            if ($day > 1900 && $year < 31) {
-                $temp = $day;
-                $day = $year;
-                $year = $temp;
-            }
-            
-            if ($month > 12 && $day < 12) {
-                $temp = $day;
-                $day = $month;
-                $month = $temp;
-            }
-            
-            // Некоректните дати с дни повече от колкото има в месеца ги приравняваме към последния ден
-            if ($month == 2) {
-                if (($year % 4 == 0) && ($year % 100 > 0)) {
-                    // Високосна година
-                    $daysInMonth = 29;
-                } else {
-                    $daysInMonth = 28;
+
+            // Ако сме намерили дата/време, правим малко обработки на числата
+            if($found) {
+
+                // Ако нямаме година, то това е текущата година 
+                if(!$year) {
+                    $year = date('Y');
                 }
-            } elseif ($month == 4 || $month == 6 || $month == 9 || $month == 11) {
-                $daysInMonth = 30;
-            } else {
-                $daysInMonth = 31;
-            }
-            
-            $day = min($day, $daysInMonth);
-            
-            $s = "^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})^";
-            preg_match($s, $verbDate, $out);
-            
-            if (count($out) > 0) {
-                $hours = $out[1];
-                $minutes = $out[2];
-                $seconds = $out[3];
-            } else {
-                $s = "^([0-9]{1,2}):([0-9]{1,2})^";
-                preg_match($s, $verbDate, $out);
+
+                // Ако годината е под 30, то приемаме че е 20??, ако е под 100, приемаме че е 19??
+                if(strlen($year) == 2) {
+                    if($year <= 30) {
+                        $year = 2000 + $year;
+                    } elseif($year < 100) {
+                        $year = 1900 + $year;
+                    }
+                }
                 
-                if (count($out) > 0) {
-                    $hours = $out[1];
-                    $minutes = $out[2];
-                    $seconds = 0;
-                } else {
-                    $hours = 0;
-                    $minutes = 0;
-                    $seconds = 0;
+                // Ако денят е по-голям от последния ден за месеца, то денят е равен на последния ден за месеца
+                $ldm = date("t", strtotime(sprintf("%04d-%02d-01", $year, $month, $day)));
+
+                if($day > $ldm) { 
+                    $day = $ldm;
                 }
+
+                // Ако Mode == 'pm', то към часовете прибавяме 12
+                if($mode == 'pm') {
+                    $hours += 12;
+                }
+                
+                $date = sprintf($full ? "%04d-%02d-%02d %02d:%02d:%02d" : "%04d-%02d-%02d", $year, $month, $day, $hours, $minutes, $seconds);
             }
-            
-            if ($year > 70 && $year < 100)
-            $year += 1900;
-            
-            if ($year < 30)
-            $year += 2000;
-            
-            if ($full) {
-                //$date1 = date ("Y-m-d H:i:s", mktime ($hours, $minutes,$seconds,$month, $day, $year));
-                $date2 = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $month, $day, $hours, $minutes, $seconds);
-            } else {
-                //$date1 = date ("Y-m-d", mktime ($hours,$minutes,$seconds,$month, $day, $year));
-                $date2 = sprintf("%04d-%02d-%02d", $year, $month, $day);
-            }
-            
-            return $date2;
-            
+
         } else {
-            if ($full) {
-                
-                return date("Y-m-d H:i:s", time());
-            } else {
-                
-                return date("Y-m-d", time());
-            }
+            $date = date($full ? "Y-m-d H:i:s" : "Y-m-d", time());
         }
+
+        return $date;
     }
     
     
