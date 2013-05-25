@@ -430,7 +430,7 @@ class core_Mvc extends core_FieldSet
             $query->orderBy($fields);
         }
         
-	$res = FALSE;
+        $res = FALSE;
 	
         if($query->count() > 500) {
 
@@ -625,12 +625,10 @@ class core_Mvc extends core_FieldSet
         }
 
         foreach($checkFields as $fArr) {
-
             $fieldSetFlag = TRUE;
-
             $cond = $rec->id ? "#id != $rec->id" : '';
 
-            foreach($fArr as $fName) {
+            foreach($fArr as $fName) {  
                 if(!isset($rec->{$fName})) {
                     $fieldSetFlag = FALSE;
                     break;
@@ -642,7 +640,7 @@ class core_Mvc extends core_FieldSet
 
                 $cond .= ($cond ? " AND " : "") . "#{$fName} = {$value}";
             }
-
+ 
             // Ако всички полета от множеството са сетнати, правим проверка, дали подобен запис съществува
             if($fieldSetFlag && ($exRec = $this->fetch($cond))) {
 
