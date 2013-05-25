@@ -93,9 +93,6 @@ class bgerp_Menu extends core_Manager
      */
     function on_AfterSave($mvc, $id, $rec)
     {
-        $cacheKey = 'menuObj_' . core_Lg::getCurrent();
-
-        core_Cache::remove('Menu', $cacheKey);
 
         $mvc->savedItems[$rec->id] = TRUE;
     }
@@ -377,15 +374,15 @@ class bgerp_Menu extends core_Manager
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->getRolesAsKeylist($accessByRoles);
         
-        $rec->id = $this->fetchField(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1", 
+        $rec->id = $this->fetchField(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#3#]' AND #act = '[#4#]' AND #createdBy = -1", 
             $menu, $subMenu, $ctr, $act), 'id');
         
         if($rec->id) {
-            $addCOnd = "AND #id != {$rec->id}";
+            $addCond = "AND #id != {$rec->id}";
         }
         
-        $this->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1 {$addCOnd}", $ctr, $act));
-        $this->delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #createdBy = -1 {$addCOnd}", $menu, $subMenu));
+        $this->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1 {$addCond}", $ctr, $act));
+        $this->delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #createdBy = -1 {$addCond}", $menu, $subMenu));
 
         // expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
         
@@ -403,18 +400,31 @@ class bgerp_Menu extends core_Manager
             }
         }
     }
+    
 
-    function removeUnsavedItems()
+    /**
+     * При спиране на скрипта
+     */
+    function on_Shutdown()
     {
-        $query = self::getQuery();
-        while($rec = $query->fetch("#createdBy = 0")) {
-            if(!$this->savedItems[$rec->id]) {
-                $this->delete($rec->id);
-                $res .= "<li style='color:green;'> Премахнат е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
+        // Ако имаме добавения по менюто
+        if(count($this->savedItems)) {
+            
+            // Премахваме кеша на менюто за всички езици
+            $lgArr = arr::make(EF_LANGUAGES, TRUE);
+
+            foreach($lgArr as $lg => $title) {
+                $cacheKey = 'menuObj_' . $lg;
+                core_Cache::remove('Menu', $cacheKey);
+            }
+
+            $query = self::getQuery();
+            while($rec = $query->fetch("#createdBy = -1")) {
+                if(!$this->savedItems[$rec->id]) {
+                    $this->delete($rec->id);
+                }
             }
         }
-
-        return $res;
     }
     
     
