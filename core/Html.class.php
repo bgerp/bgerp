@@ -782,11 +782,13 @@ class core_Html
      */
     static function setUniqId(&$attr)
     {
-        if ($attr['id'])
-        return;
-        static $id;
-        $id++;
-        $name = $attr['name'] ? $attr['name'] : 'autoElement';
-        $attr['id'] = $name . $id;
+        if (!$attr['id']) {
+       
+            static $id;
+            $id++;
+            $name = $attr['name'] ? $attr['name'] : 'autoElement';
+            $name = str_replace(array('[', ']'), array('_', '_'), $name);
+            $attr['id'] = $name . $id;
+        }
     }
 }
