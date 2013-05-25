@@ -368,7 +368,70 @@ class core_Os
 		
 	    return @rmdir($dir);
     }
+
+
+    /**
+     * Изтрива файловете в посочената директория и нейните под-директории,
+     * които не са прочитани в последните скудни указани от $maxAge
+     */
+    static function deleteOldFiels($dir, $maxAge = 86400)
+    {
+        $allFiles = self::listFiles($dir);
+         
+        if(is_array($allFiles['files'])) {
+            foreach($allFiles['files'] as $fPath) {
+                if(time() - fileatime($fPath) > $maxAge) {
+                    @unlink($fPath);
+                }
+            }
+        }
+    }
     
+
+    /**
+     * Връща масив със всички поддиректории и файлове от посочената начална директория
+     *
+     * array(
+     * 'files' => [],
+     * 'dirs'  => [],
+     * )
+     * @param string $root
+     * @result array
+     */
+    static function listFiles($root)
+    {
+        $files = array('files'=>array(), 'dirs'=>array());
+        $directories = array();
+        $last_letter = $root[strlen($root)-1];
+        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;        //?
+        $directories[] = $root;
+        
+        while (sizeof($directories)) {
+            
+            $dir = array_pop($directories);
+            
+            if ($handle = opendir($dir)) {
+                while (FALSE !== ($file = readdir($handle))) {
+                    if ($file == '.' || $file == '..') {
+                        continue;
+                    }
+                    $file = $dir . $file;
+                    
+                    if (is_dir($file)) {  
+                        $directory_path = $file . DIRECTORY_SEPARATOR;
+                        array_push($directories, $directory_path);
+                        $files['dirs'][] = $directory_path;
+                    } elseif (is_file($file)) {
+                        $files['files'][] = $file; 
+                    }
+                }
+                closedir($handle);
+            }
+        }
+ 
+        return $files;
+    }
+
     
     /**
      * Връща времето на последната промяна на файл в директорията
