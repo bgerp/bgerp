@@ -96,20 +96,26 @@ class type_Datetime extends type_Date {
             $value['d'] = date('d-m-Y');
         }
 
-        if(!trim($value['d'])) return NULL;
+        $val1 = trim(trim($value['d']) . ' ' . trim($value['t']));
         
-        $val1 = dt::verbal2mysql(trim(trim($value['d']) . ' ' . trim($value['t'])));
-        
-        $val2 = dt::verbal2mysql(dt::mysql2verbal($val1, 'd-m-Y H:i:s'));
+        if(!$val1) return NULL;
 
-        if($val1 == $val2) {
+        $val2 = dt::verbal2mysql($val1);
+         
+        if($val2) {
             if(!trim($value['t'])) {
-                $val1 = str_replace(' 00:00:00', '', $val1);
+                $val2 = str_replace(' 00:00:00', '', $val2);
             }
-            
-            return $val1;
+
+            if($val2 < '1970-01-01 02:00:00' || $val2 > '2038-01-01 00:00:00') {
+                $this->error = "Извън UNIX ерата|*: <B>1970 - 2038</B>";
+                
+                return FALSE;
+            }
+
+            return $val2;
         } else {
-             $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y G:i') . "</B>'";
+            $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y G:i') . "</B>'";
             
             return FALSE;
         }
