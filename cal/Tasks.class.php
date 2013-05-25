@@ -160,13 +160,14 @@ class cal_Tasks extends core_Master
         $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory');
         
         // Начало на задачата
-        $this->FLD('timeStart', 'datetime', 'caption=Времена->Начало, silent, changable');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 
+            'caption=Времена->Начало, silent, changable');
         
         // Продължителност на задачата
         $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност, changable');
         
         // Краен срок на задачата
-        $this->FLD('timeEnd', 'datetime',     'caption=Времена->Край, changable');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',     'caption=Времена->Край, changable');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
