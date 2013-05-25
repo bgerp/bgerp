@@ -1,6 +1,9 @@
 <IfModule mod_headers.c>
     Header set Cache-control "max-age=290304000, public"
     Header set X-Robots-Tag "noindex"
+    Header unset Last-Modified
+    Header unset ETag
+    FileETag None
 </IfModule>
 
 AddType text/plain .php
