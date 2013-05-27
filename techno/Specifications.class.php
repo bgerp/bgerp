@@ -258,18 +258,24 @@ class techno_Specifications extends core_Master {
 	    	$double = cls::get('type_Double');
 	    	$double->params['decimals'] = 2;
 	    	$row->shortMeasureId = cat_UoM::fetchField($rec->measureId, 'shortName');
-	    	foreach(range(1,3) as $num){
-	    		$quantity = "quantity{$num}";
-		    	$price = "price{$num}";
-	    		if($rec->$quantity){
-		    		$pPrice = $mvc->getPriceInfo(NULL, NULL, $rec->id, NULL, $rec->$quantity);
-		    		$row->$price = $pPrice->price - ($pPrice->price * $pPrice->discount);
-		    		$row->$price = $double->toVerbal($row->$price);
-		    		$row->$price .=" &nbsp;<span class='cCode'>{$rec->currencyId}</span>";
-		    		$row->$quantity .= " {$row->shortMeasureId}";
-	    		}
+	    	if($rec->state == 'draft'){
+		    	foreach(range(1,3) as $num){
+		    		$quantity = "quantity{$num}";
+			    	$price = "price{$num}";
+		    		if($rec->$quantity){
+			    		$pPrice = $mvc->getPriceInfo(NULL, NULL, $rec->id, NULL, $rec->$quantity);
+			    		$row->$price = $pPrice->price - ($pPrice->price * $pPrice->discount);
+			    		$row->$price = $double->toVerbal($row->$price);
+			    		$row->$price .=" &nbsp;<span class='cCode'>{$rec->currencyId}</span>";
+			    		$row->$quantity .= " {$row->shortMeasureId}";
+		    		}
+		    	}
+	    	} else {
+	    		unset($row->quantity1);
+	    		unset($row->quantity2);
+	    		unset($row->quantity3);
 	    	}
-    	}
+	    }
     }
     
     

@@ -10,10 +10,10 @@
 	<!--ET_END header-->
 			[#data#]
 	<!--ET_END data-->
+	<!--ET_BEGIN PREVIEW-->[#PREVIEW#]
 	<table class='styled-table'>
 		<tr>
-			<th>|К-во|*</th>
-			<th>|Цена|*</th>
+			<th colspan='2'>|Ценово превю|*</th>
 		</tr>
 		<tr>
 			<td>[#quantity1#]</td>
@@ -31,6 +31,7 @@
 			<td align='right'>[#price3#]</td>
 		</tr>
 		<!--ET_END quantity3-->
+	<!--ET_END PREVIEW-->	
 	</table>
 		<div>|Технолог|*: [#prodTehnoClassId#] </div>
 		<div>|Мярка|*: [#measureId#] </div>
