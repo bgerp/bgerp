@@ -8,29 +8,12 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
-	<table>
-		<!--ET_BEGIN data-->
-		<tr>
-			<td colspan='2'>
 			[#data#]
-			</td>
-		</tr>
-		<!--ET_END data-->
-		<tr>
-			<td>
-				<table class='styled-table'>
-					<tr>
-						<td>|Технолог|*</td>
-						<td>[#prodTehnoClassId#]</td>
-					</tr>
-					<tr>
-						<td>|Мярка|*</td>
-						<td>[#measureId#]</td>
-					</tr>
-				</table>
-				<div>|Създаване|* |на|* [#createdOn#] |*от|* [#createdBy#]</div>
-			</td>
-		</tr>
-	</table>
+	<!--ET_END data-->
+		<div>|Технолог|*: [#prodTehnoClassId#] </div>
+		<div>|Мярка|*: [#measureId#] </div>
+		<div>|Създаване|* |на|* [#createdOn#] |*от|* [#createdBy#]</div>
+	<div class='details'>
 	[#DETAILS#]
+	</div>
 </div>

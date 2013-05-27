@@ -1,10 +1,9 @@
 <div class='general-product'>
 <ul class='list-info'>
-	<li>
-	<b class='list-title'>[#title#]</b></li>
-	<li class='list-description wide'>[#description#]</li>
+	<li class='list-title'>[#title#]</li>
+	<li class='list-description'>[#description#]</li>
 	<li style='margin-bottom:10px'>|Цена|*: <b>[#price#]</b></li>
-	<li>
+	<li class='fleft'>
 		<!--ET_BEGIN MEASURES-->
 		<table class = 'styled-table'>
 			<tr>
@@ -19,7 +18,7 @@
 			<!--ET_BEGIN width-->
 			<tr>
 				<td width='50%'>|Ширина|*</td>
-				<td align='right'>[#width#]</td>
+				<td align='right'><i>[#width#]</i></td>
 			</tr>
 			<!--ET_END width-->
 			<!--ET_BEGIN weight-->
@@ -48,7 +47,8 @@
 			<!--ET_END length-->
 			</table>
 			<!--ET_END MEASURES-->
-			
+	</li>
+	<li class='fleft'>	
 			<!--ET_BEGIN OTHERS-->
 			<table class = 'styled-table'>
 			<tr>
@@ -81,11 +81,11 @@
 		</table>
 		<!--ET_END OTHERS-->
 	</li>
+	<!--ET_BEGIN image-->
+	<li class='product-image'>
+	[#image#]
+	</li>
+	<!--ET_END image-->
 </ul>
-<!--ET_BEGIN image-->
-<div class='product-image img-wide'>
-[#image#]
-</div>
-<!--ET_END image-->
 <div class='clearfix21'></div>
 </div>
