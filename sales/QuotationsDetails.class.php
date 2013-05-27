@@ -407,4 +407,31 @@ class sales_QuotationsDetails extends core_Detail {
     		}
     	}
     }
+    
+    
+    /**
+     * 
+     * @param stdClass $rec
+     * @param core_ObjectReference $origin
+     */
+    public function insertFromSpecification($rec, core_ObjectReference $origin)
+    {
+    	$originRec = $origin->fetch();
+    	$quantities = array($originRec->quantity1, $originRec->quantity2, $originRec->quantity3);
+    	$policyId = techno_Specifications::getClassId();
+    	$Policy = cls::get($policyId);
+    	foreach ($quantities as $q){
+    		if(empty($q)) continue;
+    		$dRec = new stdClass();
+    		$dRec->quotationId = $rec->id;
+    		$dRec->productId = $origin->that;
+    		$dRec->quantity = $q;
+    		$dRec->policyId = $policyId;
+    		$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $q, $rec->date);
+    		$dRec->price = $price->price;
+    		$dRec->discount = $price->discount;
+    		$dRec->vatPercent = $Policy->getVat($dRec->productId, $rec->date);
+    		$this->save($dRec);
+    	}
+    }
 }

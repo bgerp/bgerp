@@ -33,6 +33,9 @@ class bgerp_F extends core_Manager
         // Името на файла
         $name = Request::get('n');
 
+        // Името в долен регистър
+        $name = mb_strtolower($name);
+        
         // Очакваме да има изпратен документ с mid' а
         expect(($rec = log_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
 
@@ -42,14 +45,39 @@ class bgerp_F extends core_Manager
         // Вземаме линкнатите файлове в документите
         $linkedFiles = $doc->getLinkedFiles($rec);
         
-        // Ако файла съществува в масива
-        expect($fh = array_search($name, $linkedFiles), 'Няма такъв файл.');
+        // Имената на файловете в долен регистър
+        $linkedFiles = array_map('mb_strtolower', $linkedFiles);
+        
+        // Ако няма такъв файл
+        if (!$fh = array_search($name, $linkedFiles)) {
+            
+            // Обхождаме масива с файловете в документа
+            foreach ($linkedFiles as $fh => $name) {
                 
+                // Вземаме записа
+                $fRec = fileman_Files::fetchByFh($fh);
+                
+                // Ако името съвпада
+                if (mb_strtolower($fRec->name) == $name) {
+                    
+                    // Флаг
+                    $exist = TRUE;
+                    
+                    // Прекъсваме
+                    break;
+                }
+            }
+            
+            // Ако файла съществува в масива
+            expect($exist, 'Няма такъв файл.');
+        } else {
+            
+            // Записите за файла
+            $fRec = fileman_Files::fetchByFh($fh);
+        }
+        
         // Записваме, ако не е записоно, че файла е отворено от ip
         log_Documents::opened($rec->containerId, $mid);
-        
-        // Записите за файла
-        $fRec = fileman_Files::fetchByFh($fh);
         
         // Ако имаме права
         if (fileman_Files::haveRightFor('single', $fRec)) {

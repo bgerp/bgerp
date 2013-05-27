@@ -140,6 +140,9 @@ class bgerp_L extends core_Manager
                 
                 // Ако е изпратен
                 if ($action->action == log_Documents::ACTION_SEND) {
+                    if ($action->data->detId) {
+                        $options['__toDetId'] = $action->data->detId;
+                    }
                     $options['__toEmail'] = $action->data->to;
                 }
 

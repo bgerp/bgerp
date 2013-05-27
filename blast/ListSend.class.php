@@ -79,7 +79,7 @@ class blast_ListSend extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'listDetailId, sended, state';
+    var $listFields = 'listDetailId, sentOn, state';
     
     
     /**
@@ -94,10 +94,45 @@ class blast_ListSend extends core_Detail
     function description()
     {
         $this->FLD('listDetailId', 'key(mvc=blast_ListDetails, select=key)', 'caption=Имейл');
+        $this->FLD('groupDetailId', 'int', 'caption=Група');
         $this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Бласт');
-        $this->FLD('sended', 'datetime', 'caption=Изпратено на, input=none');
+        $this->FLD('sentOn', 'datetime', 'caption=Изпратено на, input=none, oldFieldName=sended');
         
-        $this->setDbUnique('listDetailId,emailId');
+        $this->setDbUnique('listDetailId, groupDetailId, emailId');
+    }
+    
+    function on_AfterPrepareListFields($mvc, $data)
+    {
+        if (!$data->masterData->rec->listId) {
+            $data->listFields = arr::make($data->listFields);
+            unset($data->listFields['listDetailId']);
+            array_unshift($data->listFields, 'groupDetailId');
+            $data->listFields['groupDetailId'] = 'Група';
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        if (!$data->masterData->rec->listId) {
+            
+            if ($data->masterData->rec->group == 'company') {
+                $class = 'crm_Companies';
+            } else {
+                $class = 'crm_Persons';
+            }
+            
+            foreach ((array)$data->rows as $key => $row) {
+                $groupId = $data->recs[$key]->groupDetailId;
+                if ($class::haveRightFor('single', $groupId)) {
+                    $name = $class::getVerbal($groupId, 'name');
+                    $row->groupDetailId = ht::createLink($name, array($class, 'single', $groupId));
+                }
+            }
+        }
     }
     
     

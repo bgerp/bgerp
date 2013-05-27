@@ -148,16 +148,29 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	if($form->isSubmitted()){
-    		$rec = &$form->rec;
-	    	if(!$rec->rate){
-		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
-		    }
+    	$rec = &$form->rec;
+	    if(!$rec->rate){
+		    $rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
+		}
 		    
-    		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
-		    	$form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
-		    					   Сигурни ли сте че искате да запишете документа');
-		    }
+    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
+		    $form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    					  Сигурни ли сте че искате да запишете документа');
+		}
+    }
+    
+    
+    /**
+     * Ако офертата е създадена към спецификация, попълваме
+     * данните на спецификацията в детайлите
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	if(!empty($rec->originId)){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		if($origin->className == 'techno_Specifications'){
+    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin);
+    		}
     	}
     }
     
@@ -322,9 +335,7 @@ class sales_Quotations extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-       
         $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . '#[#handle#]');
-        
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }

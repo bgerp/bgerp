@@ -112,7 +112,7 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin';
+    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing';
     
     
     /**
@@ -265,8 +265,6 @@ class blast_Letters extends core_Master
                 return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
             }
     
-            $form = $data->form;
-            
             if (!$form->rec->id) {
                 
                 //Ако добавяме нов показваме всички списъци

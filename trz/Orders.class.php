@@ -216,11 +216,8 @@ class trz_Orders extends core_Master
     	}
     	$data->form->setSuggestions('useDaysFromYear', $years);
     	$data->form->setDefault('useDaysFromYear', $years[0]);
-    	
-    	$cu = core_Users::getCurrent();
-        $data->form->setDefault('personId', $cu);
-        
-        if($data->form->rec->originId){
+
+    	if($data->form->rec->originId){
 			// Ако напомнянето е по  документ задача намираме кой е той
     		$doc = doc_Containers::getDocument($data->form->rec->originId);
     		$class = $doc->className;

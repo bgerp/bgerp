@@ -353,7 +353,9 @@ class price_ListToCustomers extends core_Detail
      */
     static function getListForCustomer($customerClass, $customerId, $datetime = NULL)
     {
-        $validRec = self::getValidRec($customerClass, $customerId, $datetime);
+        static::canonizeTime($datetime);
+    	
+    	$validRec = self::getValidRec($customerClass, $customerId, $datetime);
 
         if($validRec) {
             $listId   = $validRec->listId;
@@ -375,19 +377,6 @@ class price_ListToCustomers extends core_Detail
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
-        if(!$datetime) {
-            $datetime = dt::verbal2mysql();
-        } else { 
-            if(strlen($datetime) == 10) {
-                list($d, $t) = explode(' ', dt::verbal2mysql());
-                if($datetime == $d) {
-                    $datetime = dt::verbal2mysql();
-                } else {
-                    $datetime .= ' 23:59:59';
-                }
-            }
-        }
-        
         $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
 		
         $rec = new stdClass();
@@ -397,8 +386,27 @@ class price_ListToCustomers extends core_Detail
         return $rec;
     }
     
-
-
+	
+    /**
+     * Помощна функция, добавяща 23:59:59 ако е зададена дата без час
+     */
+	public static function canonizeTime(&$datetime)
+	{
+		if(!$datetime) {
+	            $datetime = dt::verbal2mysql();
+	        } else { 
+	            if(strlen($datetime) == 10) {
+	                list($d, $t) = explode(' ', dt::verbal2mysql());
+	                if($datetime == $d) {
+	                    $datetime = dt::verbal2mysql();
+	                } else {
+	                    $datetime .= ' 23:59:59';
+	                }
+	            }
+	  		}
+	}
+    
+    
     /**
      * Заглавие на ценоразписа за конкретен клиент
      *
