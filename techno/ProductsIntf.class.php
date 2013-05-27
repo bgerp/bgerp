@@ -66,6 +66,6 @@ class techno_ProductsIntf
      */
     public function getPrice($data, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
-    	return $this->class->getVerbal($data, $packagingId, $quantity, $datetime);
+    	return $this->class->getPrice($data, $packagingId, $quantity, $datetime);
     }
 }
