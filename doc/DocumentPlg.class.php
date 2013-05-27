@@ -884,11 +884,26 @@ class doc_DocumentPlg extends core_Plugin
             $bExitSudo = core_Users::sudo($mvc->getContainer($id)->activatedBy);
         }
         
-        // Подготвяме данните за единичния изглед
-        $data = $mvc->prepareDocument($id, $options);
-        $res  = $mvc->renderDocument($id, $data);
+        // Ако възникне изключение
+        try {
+            // Подготвяме данните за единичния изглед
+            $data = $mvc->prepareDocument($id, $options);
+            $res  = $mvc->renderDocument($id, $data);
+        } catch (Exception $e) {
+            
+            // Ако сме в SUDO режим
+            if ($bExitSudo) {
+                
+                // Възстановяване на текущия потребител
+                core_Users::exitSudo();
+            }
+            
+            expect(FALSE, $e);
+        }
         
+        // Ако сме в SUDO режим
         if ($bExitSudo) {
+            
             // Възстановяване на текущия потребител
             core_Users::exitSudo();
         }
@@ -1084,6 +1099,16 @@ class doc_DocumentPlg extends core_Plugin
             // Причината е, резултата от този метод (а следователно и конкретната стокност на MID)
             // в някои случаи се кешира, а това не бива да се случва!
             $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
+        }
+        
+        // Ако сме рендираме документ за навънка
+        if (Mode::is('text', 'xhtml')) {
+            
+            // Състоянието
+            $state = $data->rec->state;
+            
+            // Очакваме състоянието да не е чернова или оттеглено
+            expect($state != 'rejected' && $state != 'draft', 'Липсващ документ');
         }
     }
     
