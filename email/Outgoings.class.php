@@ -988,7 +988,7 @@ class email_Outgoings extends core_Master
             //Данни необходими за създаване на хедър-а на съобщението
             $contragentDataHeader['name'] = $contragentData->person;
             if($s = $contragentDataHeader['salutation'] = $contragentData->salutation) {
-                if($s != 'Г-н') {
+                if($s != 'г-н') {
                     $hello = "Уважаема";
                 } else {
                     $hello = "Уважаеми";
