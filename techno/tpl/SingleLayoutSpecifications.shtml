@@ -10,6 +10,28 @@
 	<!--ET_END header-->
 			[#data#]
 	<!--ET_END data-->
+	<table class='styled-table'>
+		<tr>
+			<th>|К-во|*</th>
+			<th>|Цена|*</th>
+		</tr>
+		<tr>
+			<td>[#quantity1#]</td>
+			<td align='right'>[#price1#]</td>
+		</tr>
+		<!--ET_BEGIN quantity2-->
+		<tr>
+			<td>[#quantity2#]</td>
+			<td align='right'>[#price2#]</td>
+		</tr>
+		<!--ET_END quantity2-->
+		<!--ET_BEGIN quantity3-->
+		<tr>
+			<td>[#quantity3#]</td>
+			<td align='right'>[#price3#]</td>
+		</tr>
+		<!--ET_END quantity3-->
+	</table>
 		<div>|Технолог|*: [#prodTehnoClassId#] </div>
 		<div>|Мярка|*: [#measureId#] </div>
 		<div>|Създаване|* |на|* [#createdOn#] |*от|* [#createdBy#]</div>

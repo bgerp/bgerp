@@ -127,7 +127,11 @@ class techno_Specifications extends core_Master {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%');
 		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf)', 'caption=Технолог,mandatory');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
-		$this->FNC('measureId', 'key(mvc=cat_UoM, select=name)', '');
+		$this->FLD('quantity1', 'int', 'caption=Превю цени->К-во 1,mandatory,width=4em');
+    	$this->FLD('quantity2', 'int', 'caption=Превю цени->К-во 2,width=4em');
+    	$this->FLD('quantity3', 'int', 'caption=Превю цени->К-во 3,width=4em');
+		$this->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', '');
+    	$this->FNC('measureId', 'key(mvc=cat_UoM, select=name)', '');
     }
     
     
@@ -140,6 +144,27 @@ class techno_Specifications extends core_Master {
     		$data = unserialize($rec->data);
     		$rec->measureId = $data->measureId;
     	}
+    }
+    
+    
+	/**
+     * Изчисляваме мярката според това въведено в детайла
+     */
+    function on_CalcCurrencyId($mvc, $rec)
+    {
+    	if($rec->data){
+    		$data = unserialize($rec->data);
+    		$rec->currencyId = $data->currencyId;
+    	}
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$data->form->setDefault('quantity1', '1');
     }
     
     
@@ -229,6 +254,21 @@ class techno_Specifications extends core_Master {
 	    		$technoClass = cls::get($rec->prodTehnoClassId);
 	    		$row->data = $technoClass->getVerbal($rec->data);
 	    	}
+	    	
+	    	$double = cls::get('type_Double');
+	    	$double->params['decimals'] = 2;
+	    	$row->shortMeasureId = cat_UoM::fetchField($rec->measureId, 'shortName');
+	    	foreach(range(1,3) as $num){
+	    		$quantity = "quantity{$num}";
+		    	$price = "price{$num}";
+	    		if($rec->$quantity){
+		    		$pPrice = $mvc->getPriceInfo(NULL, NULL, $rec->id, NULL, $rec->$quantity);
+		    		$row->$price = $pPrice->price - ($pPrice->price * $pPrice->discount);
+		    		$row->$price = $double->toVerbal($row->$price);
+		    		$row->$price .=" &nbsp;<span class='cCode'>{$rec->currencyId}</span>";
+		    		$row->$quantity .= " {$row->shortMeasureId}";
+	    		}
+	    	}
     	}
     }
     
@@ -313,8 +353,7 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * 
-     * Enter description here ...
+     * Създаване на нова оферта, с попълнени дефолт данни
      */
     function act_newQuote()
     {
@@ -323,21 +362,20 @@ class techno_Specifications extends core_Master {
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active');
     	
-    	$form = cls::get('core_Form');
-    	$form->FNC('quantity1', 'int', 'caption=К-во 1,input, mandatory');
-    	$form->FNC('quantity2', 'int', 'caption=К-во 2,input');
-    	$form->FNC('quantity3', 'int', 'caption=К-во 3,input');
-    	$form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), array('class' => 'btn-cancel'));
-    	$form->title = "Създаване на оферта за спецификация";
-        $form->input();
-    	if($form->isSubmitted()){
-    		if(sales_Quotations::haveRightFor('add')){
-	        	return Redirect(array('sales_Quotations', 'add', 'originId' => $rec->containerId, 'quantity1' => $form->rec->quantity1, 'quantity2' => $form->rec->quantity2, 'quantity3' => $form->rec->quantity3));
-    		}
-    	}
+    	$Quotations = cls::get('sales_Quotations');
+    	$data = new stdClass();
+    	$data->form = sales_Quotations::getForm();
+    	$data->form->rec->folderId = $rec->folderId;
+    	$data->form->rec->originId = $rec->containerId;
+    	$data->form->rec->threadId = $rec->threadId;
+    	$Quotations->invoke('AfterPrepareEditForm', array($data));
+    	$Quotations->invoke('AfterInputEditForm', array($data->form));
+    	$data->form->rec->vat = 'yes';
+    	$data->form->rec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
+    	$data->form->rec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
+    	$qId = $Quotations->save($data->form->rec);
     	
-    	return $this->renderWrapping($form->renderHtml());
+    	return Redirect(array($Quotations, 'single', $qId));
     }
     
     
@@ -381,7 +419,14 @@ class techno_Specifications extends core_Master {
     			if($data->discount){
     				$price->discount = $data->discount;
     			}
-    			if($price->price) return $price;
+    			if($price->price) {
+    				if($quantity){
+    					$price->price = $price->price * $quantity;
+    					return $price;
+    				} else {
+    					return $price;
+    				}
+    			}
     		}
     	}
     	
