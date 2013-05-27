@@ -50,14 +50,17 @@ class doc_SharablePlg extends core_Plugin
             static::markViewed($mvc, $data);
         }  
         
-        $data->rec->sharedUsers = $mvc->getShared($data->rec->id);
-        $history = static::prepareHistory($data->rec);
-                
-        // показваме (ако има) с кого е споделен файла
-        if (!empty($history)) {
-            $tpl->replace(static::renderSharedHistory($history), 'shareLog');
-        }
+        // Ако не сме в xhtml режим
+        if (!Mode::is('text', 'xhtml')) {
             
+            $data->rec->sharedUsers = $mvc->getShared($data->rec->id);
+            $history = static::prepareHistory($data->rec);
+                    
+            // показваме (ако има) с кого е споделен файла
+            if (!empty($history)) {
+                $tpl->replace(static::renderSharedHistory($history), 'shareLog');
+            }
+        }
     }
 
     
