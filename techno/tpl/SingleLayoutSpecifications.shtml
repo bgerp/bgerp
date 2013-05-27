@@ -8,6 +8,7 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
+	<div class='general-product'>
 			[#data#]
 	<!--ET_END data-->
 	<!--ET_BEGIN PREVIEW-->
@@ -37,6 +38,7 @@
 		<div>|Технолог|*: [#prodTehnoClassId#] </div>
 		<div>|Мярка|*: [#measureId#] </div>
 		<div>|Създаване|* |на|* [#createdOn#] |*от|* [#createdBy#]</div>
+	</div>
 	<div class='details'>
 	[#DETAILS#]
 	</div>

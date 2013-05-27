@@ -1,4 +1,3 @@
-<div class='general-product'>
 <ul class='list-info'>
 	<li class='list-title'>[#title#]</li>
 	<li class='list-description'>[#description#]</li>
@@ -88,4 +87,3 @@
 	<!--ET_END image-->
 </ul>
 <div class='clearfix21'></div>
-</div>

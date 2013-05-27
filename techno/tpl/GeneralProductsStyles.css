@@ -1,10 +1,13 @@
+.general-product{
+	font-size:16px;
+}
+
 .narrow .general-product{
 	min-width:350px;
 }
 
 .general-product .list-info {
 	list-style:none;
-	font-size:15px;
 	padding-left:0;
 	float:left;
 	margin-top:0px;
@@ -13,7 +16,7 @@
 }
 
 .general-product .list-title .richtext{
-	font-size:16px;
+	font-size:18px;
 	font-weight:bold;
 	text-transform:uppercase;
 	margin-top:10px;
