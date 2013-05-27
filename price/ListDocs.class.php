@@ -20,7 +20,7 @@ class price_ListDocs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf';
     
     
     /**
@@ -38,7 +38,7 @@ class price_ListDocs extends core_Master
      /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg,
+    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg';
     
     
@@ -491,5 +491,18 @@ class price_ListDocs extends core_Master
     	$self = cls::get(get_called_class());
     	
     	return $self->abbr . $rec->id;
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашия ценоразпис:") . '#[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }
