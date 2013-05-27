@@ -99,7 +99,8 @@ class sales_QuotationsDetails extends core_Detail {
 	    		if($applyVat){
 		    		$price = $rec->price + ($rec->price * $rec->vatPercent);
 		    	}
-	    		$price = round($price / $masterRec->rate);
+		    	
+	    		$price = round($price / $masterRec->rate, 2);
 	    		$rec->vatPrice = $price;
 		    	
 		    	// Сумата с добавено ддс и конвертирана
@@ -160,6 +161,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	
 	    	if(!$rec->price){
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, 1, $masterRec->date);
+	    		
 	    		if(!$price){
 	    			$form->setError('price', 'Неможе да се изчисли цената за този клиент');
 	    		}
