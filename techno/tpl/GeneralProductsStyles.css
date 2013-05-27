@@ -79,6 +79,14 @@ th{
 	padding-bottom:4px;
 }
 
+.custom-styled-table{
+	width:620px;
+}
+
+.cCode{
+	display:inline-block;
+}
+
 @media print{
 	.styled-table{
 		width:400px;

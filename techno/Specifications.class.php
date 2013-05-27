@@ -255,18 +255,23 @@ class techno_Specifications extends core_Master {
 	    		$row->data = $technoClass->getVerbal($rec->data);
 	    	}
 	    	
+	    	$vat = $mvc->getVat($rec->id);
+	    	
 	    	$double = cls::get('type_Double');
 	    	$double->params['decimals'] = 2;
 	    	$row->shortMeasureId = cat_UoM::fetchField($rec->measureId, 'shortName');
 	    	if($rec->state == 'draft'){
 		    	foreach(range(1,3) as $num){
 		    		$quantity = "quantity{$num}";
-			    	$price = "price{$num}";
+			    	$priceFld = "price{$num}";
+			    	$discountFld = "discount{$num}";
 		    		if($rec->$quantity){
-			    		$pPrice = $mvc->getPriceInfo(NULL, NULL, $rec->id, NULL, $rec->$quantity);
-			    		$row->$price = $pPrice->price - ($pPrice->price * $pPrice->discount);
-			    		$row->$price = $double->toVerbal($row->$price);
-			    		$row->$price .=" &nbsp;<span class='cCode'>{$rec->currencyId}</span>";
+			    		$priceRec = $mvc->getPriceInfo(NULL, NULL, $rec->id, NULL, $rec->$quantity);
+			    		$price = $priceRec->price + ($priceRec->price * $vat);
+			    		$row->$discountFld = $double->toVerbal($price - ($price * $priceRec->discount));
+			    		$row->$priceFld = $double->toVerbal($price);
+			    		$row->$discountFld .=" &nbsp;<span class='cCode'>{$rec->currencyId}</span>";
+			    		$row->$priceFld .=" &nbsp;<span class='cCode'>{$rec->currencyId}</span>";
 			    		$row->$quantity .= " {$row->shortMeasureId}";
 		    		}
 		    	}
@@ -376,6 +381,7 @@ class techno_Specifications extends core_Master {
     	$data->form->rec->threadId = $rec->threadId;
     	$Quotations->invoke('AfterPrepareEditForm', array($data));
     	$Quotations->invoke('AfterInputEditForm', array($data->form));
+    	$data->form->rec->paymentCurrencyId = $rec->currencyId;
     	$data->form->rec->vat = 'yes';
     	$data->form->rec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
     	$data->form->rec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');

@@ -13,24 +13,43 @@
 	<!--ET_END data-->
 	<!--ET_BEGIN PREVIEW-->
 	[#PREVIEW#]
-	<table class='styled-table'>
+	<table class='styled-table custom-styled-table'>
 		<tr>
 			<th colspan='2'>|Ценово превю|*</th>
 		</tr>
 		<tr>
 			<td>[#quantity1#]</td>
-			<td align='right'>[#price1#]</td>
+			<td align='right'>
+			[#price1#]
+			</td>
+			<!--ET_BEGIN discount1-->
+			<td align='right'>
+			<span style = 'color:green'>ТО: [#discount1#]</span>
+			</td>
+			<!--ET_END discount1-->
 		</tr>
 		<!--ET_BEGIN quantity2-->
 		<tr>
 			<td>[#quantity2#]</td>
-			<td align='right'>[#price2#]</td>
+			<td align='right'>[#price2#]
+			</td>
+			<!--ET_BEGIN discount2-->
+			<td align='right'>
+			<span style='color:green'>ТО: [#discount2#]</span>
+			</td>
+			<!--ET_END discount2-->
 		</tr>
 		<!--ET_END quantity2-->
 		<!--ET_BEGIN quantity3-->
 		<tr>
 			<td>[#quantity3#]</td>
-			<td align='right'>[#price3#]</td>
+			<td align='right'>[#price3#]
+			</td>
+			<!--ET_BEGIN discount3-->
+			<td align='right'>
+			<span style='color:green'>ТО: [#discount3#]</span>
+			</td>
+			<!--ET_END discount3-->
 		</tr>
 		<!--ET_END quantity3-->
 	</table>
