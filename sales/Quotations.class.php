@@ -128,6 +128,9 @@ class sales_Quotations extends core_Master
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
         $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
+        $this->FNC('quantity1', 'int', 'input=hidden,silent');
+    	$this->FNC('quantity2', 'int', 'input=hidden,silent');
+    	$this->FNC('quantity3', 'int', 'input=hidden,silent');
     }
     
     
@@ -158,6 +161,20 @@ class sales_Quotations extends core_Master
 		    	$form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
 		    					   Сигурни ли сте че искате да запишете документа');
 		    }
+    	}
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	if(!empty($rec->originId)){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		if($origin->className == 'techno_Specifications'){
+    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin);
+    		}
     	}
     }
     
@@ -322,9 +339,7 @@ class sales_Quotations extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-       
         $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . '#[#handle#]');
-        
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }
