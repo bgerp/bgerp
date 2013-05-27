@@ -10,7 +10,8 @@
 	<!--ET_END header-->
 			[#data#]
 	<!--ET_END data-->
-	<!--ET_BEGIN PREVIEW-->[#PREVIEW#]
+	<!--ET_BEGIN PREVIEW-->
+	[#PREVIEW#]
 	<table class='styled-table'>
 		<tr>
 			<th colspan='2'>|Ценово превю|*</th>
@@ -31,8 +32,8 @@
 			<td align='right'>[#price3#]</td>
 		</tr>
 		<!--ET_END quantity3-->
-	<!--ET_END PREVIEW-->	
 	</table>
+	<!--ET_END PREVIEW-->
 		<div>|Технолог|*: [#prodTehnoClassId#] </div>
 		<div>|Мярка|*: [#measureId#] </div>
 		<div>|Създаване|* |на|* [#createdOn#] |*от|* [#createdBy#]</div>
