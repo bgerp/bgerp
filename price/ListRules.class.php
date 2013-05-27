@@ -115,10 +115,8 @@ class price_ListRules extends core_Detail
      */
     static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {
-        if(!$datetime) {
-            $datetime = dt::verbal2mysql();
-        }
-
+        price_ListToCustomers::canonizeTime($datetime);
+		
        // $price = price_History::getPrice($listId, $datetime, $productId, $packagingId);
 
         if($price) {
