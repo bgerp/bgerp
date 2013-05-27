@@ -15,6 +15,7 @@
 class blast_Emails extends core_Master
 {
     
+    
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
@@ -766,9 +767,10 @@ class blast_Emails extends core_Master
         // Данните на имейла
         $emailRec = $rec;
         
-        // Ако е листа
+        // Ако е лист
         if ($rec->listId) {
             
+            // Вземаме записите за съответния лист
             $query = blast_ListDetails::getQuery();
             $query->where("#listId={$emailRec->listId}");
             $query->where("#state != 'stopped'");
@@ -854,7 +856,6 @@ class blast_Emails extends core_Master
         $tpl->append($preview);
 
         return static::renderWrapping($tpl);
-        
     }
     
     
@@ -929,7 +930,7 @@ class blast_Emails extends core_Master
         // Имейла на потребителя
         $email = $rec->data->to;
         
-        //Ако имейл-а е в листата на блокираните имейли или сме натиснали бутона за премахване от листата
+        // Ако имейл-а е в листата на блокираните имейли или сме натиснали бутона за премахване от листата
         if (($uns == 'del') || ((!$uns) && (blast_Blocked::fetch("#email='{$email}'")))) {
             
             //Какво действие ще правим след натискане на бутона
@@ -1031,6 +1032,8 @@ class blast_Emails extends core_Master
         
         // Ако е лист
         if ($rec->listId) {
+            
+            // Вземаме записите, за листа, които не са спряни
             $query = blast_ListDetails::getQuery();
             $query->where("#listId = '$rec->listId' AND #state != 'stopped'");
         } elseif ($rec->group) {
@@ -1063,21 +1066,31 @@ class blast_Emails extends core_Master
         
         // Задаваме достатъчно време, за да се обработи списъка
         set_time_limit($query->count()/10);
-
+        
+        // Вземаме имейлите за изпращане
         $listSendQuery = blast_ListSend::getQuery();
         $listSendQuery->where("#emailId = '{$rec->id}'");
+        
+        // Обхождаме резултатите
         while ($listSendRec = $listSendQuery->fetch()) {
-                
+
+            // Ако е лист
             if ($rec->listId) {
+                // Добавяме листа
                 $listSendArr[$listSendRec->listDetailId] = $listSendRec->listDetailId;
             } else {
+                
+                // Ако е груп, добавяме групата
                 $listSendArr[$listSendRec->groupDetailId] = $listSendRec->groupDetailId;
             }
         }
         
         // Записваме всички имейли в модела за изпращане, откъдето по - късно ще ги вземем за изпращане
         while ($recQ = $query->fetch()) {
+            
+            // Флаг, дали да се записва
             $save = FALSE;
+            
             // Ако е лист
             if ($rec->listId) {
                 
@@ -1088,28 +1101,42 @@ class blast_Emails extends core_Master
             
                 // Ако е група
                 
-                $s = static::getDataFor($rec->group, $recQ->id);
+                // Вземаме данните за съответната група
+                $groupData = static::getDataFor($rec->group, $recQ->id);
                 
-                $emailsArr = type_Emails::toArray($s->rec['email']);
+                // Масив с имейлите
+                $emailsArr = type_Emails::toArray($groupData->rec['email']);
 
                 // Ако първия имейл е в блокирани, тогава не се добавя в системата
                 if ($listBlocked[$emailsArr[0]]) continue;
             }
             
-            
-            
-            $recListSend = new stdClass();
-            $recListSend->emailId = $rec->id;
+            // Ако, групата не е добавена
             if (!$listSendArr[$recQ->id]) {
+                
+                // Флаг, да се записва
                 $save = TRUE;
             }
             
+            // Ако е сетнат флага да се записва
             if ($save) {
+                
+                // Данните, които ще записваме
+                $recListSend = new stdClass();
+                $recListSend->emailId = $rec->id;
+                
+                // Ако е лист
                 if ($rec->listId) {
+                    
+                    // Записваме id' то на листа
                     $recListSend->listDetailId = $recQ->id;
                 } else {
+                    
+                    // Ако е група, записваме id' то на група
                     $recListSend->groupDetailId = $recQ->id;
                 }
+                
+                // Записваме данните
                 blast_ListSend::save($recListSend, NULL, 'IGNORE');
             }
         }
@@ -1145,23 +1172,35 @@ class blast_Emails extends core_Master
         //обновяваме времето на изпращане на всички имейли, които сме взели.
         while ($recListSend = $query->fetch()) {
             
+            // Ако е лист
             if ($rec->listId) {
+                
+                // Вземаме детайлите
                 $listMailRec = blast_ListDetails::fetch("#id = '{$recListSend->listDetailId}' AND #state != 'stopped'");
-
+                
+                // Ако няма продължаваме
                 if (!$listMailRec) continue;
                 
+                // Добавяме ключа и имейлва в масива
                 $listMail[$listMailRec->id] = $listMailRec->key;
             } elseif ($rec->group) {
-                $s = static::getDataFor($rec->group, $recListSend->groupDetailId);
                 
-                $emailsArr = type_Emails::toArray($s->rec['email']);
+                // Ако е група
+                
+                // Вземаме данните за групата
+                $dataForGroup = static::getDataFor($rec->group, $recListSend->groupDetailId);
+                
+                // Вземаме имейлите
+                $emailsArr = type_Emails::toArray($dataForGroup->rec['email']);
 
-                // 
+                // Ако няма имейл
                 if (!$emailsArr[0]) continue;
                 
+                // Добавяме първия имейл в групата
                 $listMail[$recListSend->groupDetailId] = $emailsArr[0];
             }
             
+            // Записваме дата на изпращане на новия имейл
             $recListSendNew = new stdClass();
             $recListSendNew->id = $recListSend->id;
             $recListSendNew->sentOn = dt::verbal2mysql();
@@ -1233,7 +1272,7 @@ class blast_Emails extends core_Master
      * Подготвяме данните в rec'а
      * 
      * @param object $rec     - Обект с данните
-     * @param email  $emailTo - Имейл
+     * @param int    $detId - id на детайла на данните
      */
     function prepareRec(&$rec, $detId)
     {
@@ -1264,7 +1303,7 @@ class blast_Emails extends core_Master
      * Връща тялото на съобщението
      * 
      * @param object $rec - Данни за имейла
-     * @param email  $emailTo - Имейла на текущия потребител
+     * @param int    $detId - id на детайла на данните
      * @param bool   $sending - Дали ще изпращаме имейла
      * 
      * @return object $body - Обект с тялото на съобщението
@@ -1353,7 +1392,7 @@ class blast_Emails extends core_Master
      * Взема HTML частта на имейл-а
      * 
      * @param object $rec     - Данни за имейла
-     * @param email  $emailTo - Имейла на потребителя
+     * @param int    $detId - id на детайла на данните
      * 
      * @return core_ET $res
      */
@@ -1410,7 +1449,7 @@ class blast_Emails extends core_Master
      * Взема текстовата част на имейл-а
      * 
      * @param object $rec     - Данни за имейла
-     * @param email  $emailTo - Имейла на потребителя
+     * @param int    $detId - id на детайла на данните
      * 
      * @return core_ET $res 
      */
@@ -1440,7 +1479,8 @@ class blast_Emails extends core_Master
 	/**
      * Заместваме шаблоните в полетата, които образуват антетката, с техните стойности
      * 
-     * $rec object - Обект с данни, в които ще се заместват данните от антетката
+     * @param $rec object - Обект с данни, в които ще се заместват данните от антетката
+     * @param int    $detId - id на детайла на данните
      */
     function replaceHeaderData(&$rec, $detId) 
     {
@@ -1473,7 +1513,7 @@ class blast_Emails extends core_Master
      * 
      * @param mixed   $res    - шаблона, който ще се замества
      * @param integer $listId - id' то на шаблона на имейла
-     * @param email   $email  - Имейла на потребителя
+     * @param int     $detId - id на детайла на данните
      * 
      * @return mixed $res
      */
@@ -1504,7 +1544,7 @@ class blast_Emails extends core_Master
      * Сетваме всички данни за текущия потребител
      * 
      * @param integer $listId - id' то на текущия потребител
-     * @param email   $email - Имейл на потребителя
+     * @param int     $detId - id на детайла на данните
      */
     function setCurrentEmailData($rec, $detId, $cid)
     {
@@ -1524,8 +1564,11 @@ class blast_Emails extends core_Master
                 // Десериализираме данните за потребителя
                 $this->emailData[$id][$detId] = unserialize($recList->data);
             } elseif ($rec->group) {
+                
+                // Вземаме данните
                 $data = static::getDataFor($rec->group, $detId);
                 
+                // Подготвяме данните
                 $this->emailData[$id][$detId] = static::preparePlaceData($data);
             }
             
@@ -1539,24 +1582,6 @@ class blast_Emails extends core_Master
             $this->emailData[$id][$detId]['unsubscribe'] = "[link={$urlEn}]here[/link]";
             $this->emailData[$id][$detId]['mid'] = $mid;
         }
-    }
-    
-    
-    static function preparePlaceData($data)
-    {
-        
-        foreach ($data->rec as $key => $value) {
-            
-            if ($key == 'company' || $key == 'salutation' || $key == 'country') {
-                $nData[$key] = $data->row[$key];
-            } else {
-                $nData[$key] = $value;
-            }
-            
-            
-        }
-
-        return $nData;
     }
     
     
@@ -1739,24 +1764,38 @@ class blast_Emails extends core_Master
         
         // Намираме преполагаемия език на съобщението
         core_Lg::push(static::getLanguage($emailRec->body));
-        
-        if ($rec->listId) {
-            $listDetailRec = blast_ListDetails::fetch("#listId = '{$emailRec->listId}' AND #key = '{$options->__toEmail}'");
-            $listSendRec = blast_ListSend::fetch("#listDetailId = '{$listDetailRec->id}' AND #emailId = '{$emailRec->id}'");
-    
-            // Ако състоянието е затворено, не се показва имейла
-    //        expect(($listDetailRec->state != 'stopped' AND $listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
-            // Ако състоянието на изпратения имейл е затворено
-            expect(($listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
-        } elseif ($rec->group) {
-            
-        }
-        
+
+        // Ако е зададено __toDetId
         if ($options->__toDetId) {
+            
+            // Използваме него
             $detId = $options->__toDetId;
         } else {
+            
+            // За съвместимост със старите системи
             $detId = $options->__toEmail;
         }
+        
+        // Ако е лист
+        if ($emailRec->listId) {
+            
+            // Вземаме записа за изпращане за съответния запис
+            $listSendRec = blast_ListSend::fetch("#listDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
+        } elseif ($emailRec->group) {
+            
+            // Вземаме записа за изпращане за съответната група
+            $listSendRec = blast_ListSend::fetch("#groupDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
+        }
+
+        // Ако състоянието е затворено, не се показва имейла
+//        expect(($listDetailRec->state != 'stopped' AND $listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
+
+        if ($listSendRec) {
+
+            // Ако състоянието на изпратения имейл е затворено
+            expect(($listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
+        }
+        
         // Подготвяме данните за съответния имейл
         $mvc->prepareRec($emailRec, $detId);
 
@@ -1914,5 +1953,33 @@ class blast_Emails extends core_Master
         }
 
         return $data;
+    }
+    
+    
+    /**
+     * Подготвя данните за заместване - коя стойност да се иползва - вербалната или невербалната
+     * 
+     * @param object $data
+     * 
+     * @return array $nData - Масив с полетата и стойностите
+     */
+    static function preparePlaceData($data)
+    {
+        // Обхождаме записите
+        foreach ((array)$data->rec as $key => $value) {
+            
+            // Ако е един от зададените
+            if ($key == 'company' || $key == 'salutation' || $key == 'country') {
+                
+                // Използваме вербалната му стойност
+                $nData[$key] = $data->row[$key];
+            } else {
+                
+                // Използваме стойността от rec
+                $nData[$key] = $value;
+            }
+        }
+
+        return $nData;
     }
 }
