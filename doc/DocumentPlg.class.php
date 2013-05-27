@@ -1101,14 +1101,14 @@ class doc_DocumentPlg extends core_Plugin
             $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
         }
         
-        // Ако сме рендираме документ за навънка
+        // Ако рендираме документ за навънка
         if (Mode::is('text', 'xhtml')) {
             
             // Състоянието
             $state = $data->rec->state;
             
             // Очакваме състоянието да не е чернова или оттеглено
-            expect($state != 'rejected' && $state != 'draft', 'Липсващ документ');
+            expect($state != 'rejected', 'Липсващ документ');
         }
     }
     
