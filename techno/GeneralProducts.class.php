@@ -3,13 +3,13 @@
 
 
 /**
- * Нестандартни продукти
+ * Технологичен клас за въвеждане на нестандартни продукти
  *
  *
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -54,9 +54,9 @@ class techno_GeneralProducts extends core_Manager {
     public function getEditForm()
     {
     	$form = cls::get('core_Form');
-    	$form->FNC('title', 'richtext(rows=5)', 'caption=Описание,input=hidden');
+    	$form->FNC('title', 'varchar(184)', 'caption=Описание,input=hidden');
     	$form->FNC('description', 'richtext(rows=5)', 'caption=Описание,input,mandatory');
-		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,input');
+		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input');
     	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. цена,width=8em,mandatory,input,unit=без ддс');
 		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
     	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,unit=%');
@@ -93,6 +93,36 @@ class techno_GeneralProducts extends core_Manager {
     }
     
     
+    /**
+     * Изчислява цената на продукта
+     * @param string $data
+     * @param id $packagingId
+     * @param int $quantity
+     * @param datetime $datetime
+     */
+    public function getPrice($data, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    {
+    	if($data){
+    		$data = unserialize($data);
+    		
+    		if($data->price){
+    			$price = new stdClass();
+    			if($data->price){
+    				$price->price = $data->price;
+    			}
+    			if($data->discount){
+    				$price->discount = $data->discount;
+    			}
+    			if($price->price) {
+    				return $price;
+    			}
+    		}
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
 	/**
      * Връща вербалното представяне на даденото изделие (HTML, може с картинка)
      * @param stdClass $data - Обект с данни от модела
@@ -112,7 +142,7 @@ class techno_GeneralProducts extends core_Manager {
     			$file = fileman_Files::fetchByFh($data->image);
     			$row->image = thumbnail_Thumbnail::getImg($file->fileHnd, $size);
     		}
-    	}else {
+    	} else {
     		$layout = $this->singleLayoutFile;
     		$size = array(200, 350);
     		if($data->image){

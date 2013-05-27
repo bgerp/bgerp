@@ -56,7 +56,7 @@
 	<!--ET_END OTHERS-->
 </ul>
 <!--ET_BEGIN image-->
-<div class='product-image'>
+<div class='product-image' style='margin-left:10px'>
 [#image#]
 </div>
 <!--ET_END image-->

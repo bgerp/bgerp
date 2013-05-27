@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -268,6 +268,7 @@ class techno_Specifications extends core_Master {
 		    		if($rec->$quantity){
 			    		$priceRec = $mvc->getPriceInfo(NULL, NULL, $rec->id, NULL, $rec->$quantity);
 			    		$price = $priceRec->price + ($priceRec->price * $vat);
+			    		$price = $rec->$quantity * $price;
 			    		$row->$discountFld = $double->toVerbal($price - ($price * $priceRec->discount));
 			    		$row->$priceFld = $double->toVerbal($price);
 			    		$row->$discountFld .=" &nbsp;<span class='cCode'>{$rec->currencyId}</span>";
@@ -305,7 +306,8 @@ class techno_Specifications extends core_Master {
     {
     	$this->requireRightFor('add');
     	expect($id = Request::get('id'));
-        $rec = $this->fetch($id);
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'draft');
         
         // Връщаме формата от технологовия клас
         $technoClass = cls::get($rec->prodTehnoClassId);
@@ -358,7 +360,7 @@ class techno_Specifications extends core_Master {
     	}
     	
     	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'active'){
-    		$data->toolbar->addBtn("Оферирай", array($mvc, 'newQuote', $data->rec->id), 'ef_icon=img/16/document_quote.png');
+    		$data->toolbar->addBtn("Офериране", array($mvc, 'newQuote', $data->rec->id), 'ef_icon=img/16/document_quote.png');
     	}
     }
     
@@ -420,29 +422,8 @@ class techno_Specifications extends core_Master {
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
     	$rec = $this->fetch($productId);
-    	if($rec->data){
-    		$data = unserialize($rec->data);
-    		
-    		if($data->price){
-    			$price = new stdClass();
-    			if($data->price){
-    				$price->price = $data->price;
-    			}
-    			if($data->discount){
-    				$price->discount = $data->discount;
-    			}
-    			if($price->price) {
-    				if($quantity){
-    					$price->price = $price->price * $quantity;
-    					return $price;
-    				} else {
-    					return $price;
-    				}
-    			}
-    		}
-    	}
-    	
-    	return FALSE;
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	return $technoClass->getPrice($rec->data, $packagingId, $quantity, $datetime);
     }
     
     
