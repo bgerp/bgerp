@@ -91,7 +91,7 @@ class fileman_RichTextPlg extends core_Plugin
             //Добаваме линка към файла
             $res = "File: $title ( $link )";
         } else {
-            $link = fileman_Download::getDownloadLink($fh);
+            $link = fileman_Download::getDownloadLink($fh, $title);
             if (is_object($link)) {
                 $content = $link->getContent();
             } else {

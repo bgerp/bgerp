@@ -421,7 +421,7 @@ class fileman_Download extends core_Manager {
     /**
      * Ако имаме права за сваляне връща html <а> линк за сваляне на файла.
      */
-    static function getDownloadLink($fh)
+    static function getDownloadLink($fh, $title=NULL)
     {
     	$conf = core_Packs::getConfig('fileman');
     	
@@ -433,9 +433,25 @@ class fileman_Download extends core_Manager {
         
 		// Дали файла го има? Ако го няма, вместо линк, връщаме името му
 		$path = fileman_Files::fetchByFh($fh, 'path');
+        
+		// Тримваме титлата
+		$title = trim($title);
 
-        //Името на файла
-        $name = $fRec->name;
+		// Ако сме подали
+		if ($title) {
+		    
+		    // Използваме него за име
+		    $name = $title;
+		    
+		    // Обезопасяваме името
+		    $name = core_Type::escape($name);
+		} else {
+		    
+		    // Ако не е подадено, използваме името на файла
+		    
+		    //Името на файла
+            $name = $fRec->name;
+		}
         
         //Разширението на файла
         $ext = fileman_Files::getExt($fRec->name);
@@ -476,7 +492,7 @@ class fileman_Download extends core_Manager {
                 if ($fileLen >= $conf->LINK_NARROW_MIN_FILELEN_SHOW) {
                     
                     //След името на файла добавяме размера в скоби
-                    $name = $fRec->name . "&nbsp;({$size})";     
+                    $name = $name . "&nbsp;({$size})";     
                 }
             } else {
                 
