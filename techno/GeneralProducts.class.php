@@ -114,6 +114,7 @@ class techno_GeneralProducts extends core_Manager {
     				$price->discount = $data->discount;
     			}
     			if($price->price) {
+    				$price->price = currency_CurrencyRates::convertAmount($price->price, NULL, $data->currencyId, NULL);
     				return $price;
     			}
     		}

@@ -36,6 +36,12 @@ class techno_Specifications extends core_Master {
 
 	
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Спецификация";
@@ -213,7 +219,7 @@ class techno_Specifications extends core_Master {
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
     	$query->where("#data IS NOT NULL");
-    	//$query->where("#state = 'active'");
+    	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
     		$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
     	}
@@ -382,7 +388,7 @@ class techno_Specifications extends core_Master {
     	$data->form->rec->originId = $rec->containerId;
     	$data->form->rec->threadId = $rec->threadId;
     	$Quotations->invoke('AfterPrepareEditForm', array($data));
-    	$Quotations->invoke('AfterInputEditForm', array($data->form));
+    	$data->form->rec->rate = round(currency_CurrencyRates::getRate($data->form->rec->date, $rec->currencyId, NULL), 4);
     	$data->form->rec->paymentCurrencyId = $rec->currencyId;
     	$data->form->rec->vat = 'yes';
     	$data->form->rec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
