@@ -1071,7 +1071,7 @@ class core_Form extends core_FieldSet
             $errRec->msg = $msg;
             $errRec->ignorable = $ignorable;
             
-            if(!$this->errors[$f]) {
+            if(!$this->errors[$f] || ($this->errors[$f]->ignorable && !$ignorable)) {
                 $this->errors[$f] = $errRec;
                 $msg = FALSE;
             }
