@@ -2784,6 +2784,14 @@ div.locImage{
 .fileman_Indexes td, .fileman_Data td{
 	max-width:none !important;	
 }
+
+.wide .internal-amount{
+	margin-left:60px;
+}
+
+.narrow .internal-amount{
+	margin-top:15px;
+}
 @media print{
 	.linkWithIcon, .docBgIcon,.button{
 		padding-left:0 !important;
