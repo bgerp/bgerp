@@ -142,6 +142,34 @@ class git_Lib
         return TRUE;
     }
 
+    /**
+     * Проверява мърджа дали ще е успешен между branch1 -> branch2
+     * 
+     * @param string $repoPath - път до git репозитори
+     * @param array() $log - масив с резултати
+     * @param string $branch1 - име на бранч източник
+     * @param string $branch2 - име на бранч приемник
+     * @return boolean - При неуспех - FALSE
+     */
+    public static function mergeBeSuccess($repoPath, &$log, $branch1, $branch2)
+    {
+        
+        if (!self::checkout($repoPath, $log, $branch1)) return FALSE;
+        if (!self::pull($repoPath, $log)) return FALSE;
+        if (!self::checkout($repoPath, $log, $branch2)) return FALSE;
+        if (!self::pull($repoPath, $log)) return FALSE;
+        $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge --no-commit {$branch1}";
+        if(!self::cmdExec($commandMerge, $log)) {
+            $commandMergeAbort = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge --abort";
+            self::cmdExec($commandMergeAbort, $log);
+            
+            return FALSE;
+        }
+        $log[] = "Успешен merge $branch1 -> $branch2";
+        
+        return TRUE;
+    }
+
     
     /**
      * Мърджва 2 бранча branch1 -> branch2
