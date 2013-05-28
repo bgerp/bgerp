@@ -363,15 +363,19 @@ class price_GroupOfProducts extends core_Detail
         price_History::removeTimeline();
         $mvc->updateGroupCount($rec);
     }
-
 	
+    
     /**
      * Ъпдейтва броя на продуктите в групата
      */
     public function updateGroupCount($rec)
     {
+    	$query = $this->getQuery();
+    	$query->where("#groupId = '{$rec->groupId}'");
+    	$query->groupBy("productId");
+    	
     	$groupRec = price_Groups::fetch($rec->groupId);
-    	$groupRec->productsCount = count(price_GroupOfProducts::getAllProducts());
+    	$groupRec->productsCount = $query->count();
     	price_Groups::save($groupRec);
     }
     
