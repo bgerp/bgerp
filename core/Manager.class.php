@@ -232,8 +232,8 @@ class core_Manager extends core_Mvc
         $data->cmd = isset($data->form->rec->id) ? 'Edit' : 'Add';
         
         // Очакваме до този момент във формата да няма грешки
-        $fieldsH = $this->selectFields("#input = 'hidden'");
-       
+        $fieldsH = $this->selectFields("#input == 'hidden'");
+        
         expect(!$data->form->gotErrors(array_keys($fieldsH)), 'Има грешки в silent полетата на формата', $data->form->errors);
         
         // Дали имаме права за това действие към този запис?
