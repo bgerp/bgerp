@@ -69,6 +69,10 @@
 	padding-top:0px;
 }
 
+#optional-holder{
+	padding-top:25px;
+}
+
 .narrow #details-holder, .narrow #optional-holder, .narrow #condition-title, 
 .narrow #conditions, .narrow .document .listToolbar,.narrow .document .listToolbar .toolbar{
 	margin-left:0;
