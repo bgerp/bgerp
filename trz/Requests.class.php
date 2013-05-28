@@ -179,7 +179,24 @@ class trz_Requests extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         if($rec->leaveFrom &&  $rec->leaveTo){
-	    	$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+        	
+        	$state = hr_EmployeeContracts::getQuery();
+	        $state->where("#personId='{$rec->personId}'");
+	        
+	        if($employeeContractDetails = $state->fetch()){
+	           
+	        	$employeeContract = $employeeContractDetails->id;
+	        	
+	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
+	        	if($schedule){
+	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $employeeContract, $rec->leaveFrom, $rec->leaveTo);
+	        	} else {
+	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	        	}
+	        }else{
+        	
+	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	        }
 	    	$rec->leaveDays = $days->workDays;
         }
 
