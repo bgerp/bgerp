@@ -241,73 +241,73 @@ class fileman_Download extends core_Manager {
         $link = $this->getDownloadUrl($fh, 1);
         
         // Ако искам да форсираме свалянето
-        if (Request::get('forceDownload')) {
-
-            // Големина на файла
-            $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
-            
-            // 1024*1024
-            $chunksize = 1048576;
-            
-            // Големината на файловете, над която ще се игнорира forceDownload
-            $chunksizeOb = 30 * $chunksize;
-
-            // Ако файла е по - малък от $chunksizeOb
-            if ($fileLen < $chunksizeOb) {
-
-                // Задаваме хедърите
-                header('Content-Description: File Transfer');
-                header('Content-Type: application/octet-stream');
-                header('Content-Disposition: attachment; filename='.basename($link));
-                header('Content-Transfer-Encoding: binary');
-                header('Expires: 0');
-                header('Cache-Control: must-revalidate');
-                header('Content-Length: ' . $fileLen);
-                header("Connection: close");
-                
-//                header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
-//                header("Pragma: "); // TODO ако има проблеми с някои версии на IE
-//                header("Cache-Control: "); // TODO ако има проблеми с някои версии на IE
-
-                // Ако е файла по - малък от 1 MB
-                if ($fileLen < $chunksize) { 
-                    
-                    // Предизвикваме сваляне на файла
-                    readfile($link);  
-                } else {
-                    
-                    // Стартираме нов буфер
-                    ob_start();
-                    
-                    // Вземаме манипулатора на файла
-                    $handle = fopen($link, 'rb'); 
-                    $buffer = ''; 
-                    
-                    // Докато стигнем края на файла
-                    while (!feof($handle)) { 
-                        
-                        // Вземаме част от файла
-                        $buffer = fread($handle, $chunksize); 
-                        
-                        // Показваме го на екрана
-                        echo $buffer; 
-                        
-                        // Изчистваме буфера
-                        ob_flush(); 
-                        flush(); 
-                    } 
-                    
-                    // Затваряме файла
-                    fclose($handle);
-                    
-                    // Спираме буфера, който сме стартирали
-                    ob_end_clean();
-                }
-                
-                // Прекратяваме изпълнението на скрипта
-                shutdown();
-            }
-        }
+//        if (Request::get('forceDownload')) {
+//
+//            // Големина на файла
+//            $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
+//            
+//            // 1024*1024
+//            $chunksize = 1048576;
+//            
+//            // Големината на файловете, над която ще се игнорира forceDownload
+//            $chunksizeOb = 30 * $chunksize;
+//
+//            // Ако файла е по - малък от $chunksizeOb
+//            if ($fileLen < $chunksizeOb) {
+//
+//                // Задаваме хедърите
+//                header('Content-Description: File Transfer');
+//                header('Content-Type: application/octet-stream');
+//                header('Content-Disposition: attachment; filename='.basename($link));
+//                header('Content-Transfer-Encoding: binary');
+//                header('Expires: 0');
+//                header('Cache-Control: must-revalidate');
+//                header('Content-Length: ' . $fileLen);
+//                header("Connection: close");
+//                
+////                header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
+////                header("Pragma: "); // TODO ако има проблеми с някои версии на IE
+////                header("Cache-Control: "); // TODO ако има проблеми с някои версии на IE
+//
+//                // Ако е файла по - малък от 1 MB
+//                if ($fileLen < $chunksize) { 
+//                    
+//                    // Предизвикваме сваляне на файла
+//                    readfile($link);  
+//                } else {
+//                    
+//                    // Стартираме нов буфер
+//                    ob_start();
+//                    
+//                    // Вземаме манипулатора на файла
+//                    $handle = fopen($link, 'rb'); 
+//                    $buffer = ''; 
+//                    
+//                    // Докато стигнем края на файла
+//                    while (!feof($handle)) { 
+//                        
+//                        // Вземаме част от файла
+//                        $buffer = fread($handle, $chunksize); 
+//                        
+//                        // Показваме го на екрана
+//                        echo $buffer; 
+//                        
+//                        // Изчистваме буфера
+//                        ob_flush(); 
+//                        flush(); 
+//                    } 
+//                    
+//                    // Затваряме файла
+//                    fclose($handle);
+//                    
+//                    // Спираме буфера, който сме стартирали
+//                    ob_end_clean();
+//                }
+//                
+//                // Прекратяваме изпълнението на скрипта
+//                shutdown();
+//            }
+//        }
         
         // Редиректваме към линка
         redirect($link);  
@@ -393,6 +393,20 @@ class fileman_Download extends core_Manager {
             }
         }
         
+        if( CORE_OVERWRITE_HTAACCESS ) {
+            $filesToCopy = array(
+                core_App::getFullPath('fileman/tpl/htaccessDL.txt') => EF_DOWNLOAD_DIR . '/.htaccess',
+            );
+            
+            foreach($filesToCopy as $src => $dest) {
+                if(copy($src, $dest)) {
+                        $res .= "<li style='color:green;'>Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                } else {
+                        $res .= "<li style='color:red;'>Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                }
+            }
+        }
+        
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
         $rec = new stdClass();
@@ -413,7 +427,7 @@ class fileman_Download extends core_Manager {
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да изчиства линкове и директории, с изтекъл срок.</li>";
         }
-        
+
         return $res;
     }
     
