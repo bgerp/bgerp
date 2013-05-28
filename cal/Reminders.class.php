@@ -155,7 +155,7 @@ class cal_Reminders extends core_Master
         						   replicate=Копие на темата)', 'caption=Действие, mandatory,maxRadio=5,columns=1,notNull,value=notify');
         
         // Начало на напомнянето
-        $this->FLD('timeStart', 'datetime', 'caption=Време->Начало, silent');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Време->Начало, silent');
         
         // Предварително напомняне
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително');
