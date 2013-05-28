@@ -92,15 +92,17 @@ class sales_QuotationsDetails extends core_Detail {
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
+    	
     	if($recs){
 	    	foreach($recs as $id => $rec){
 	    		
 	    		// Цената с добавено ДДС и конвертирана
-	    		if($applyVat){
-		    		$price = $rec->price + ($rec->price * $rec->vatPercent);
-		    	}
-		    	
-	    		$price = round($price / $masterRec->rate, 2);
+	    		if(!$applyVat) {
+	    			$rec->vatPercent = 0;
+	    		}
+	    		
+		    	$price = $rec->price + ($rec->price * $rec->vatPercent);
+		    	$price = round($price / $masterRec->rate, 2);
 	    		$rec->vatPrice = $price;
 		    	
 		    	// Сумата с добавено ддс и конвертирана
