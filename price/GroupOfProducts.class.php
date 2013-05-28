@@ -120,12 +120,10 @@ class price_GroupOfProducts extends core_Detail
      */
     static function getAllProducts($datetime = NULL)
     {
-        if(!$datetime) {
-            $datetime = dt::verbal2mysql();
-        }
-
+        price_ListToCustomers::canonizeTime($datetime);
+		
         $datetime = price_History::canonizeTime($datetime);
-
+		
         $query = self::getQuery();
 
         $query->where("#validFrom < '{$datetime}'");
