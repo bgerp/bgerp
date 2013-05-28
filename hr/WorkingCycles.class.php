@@ -282,13 +282,14 @@ class hr_WorkingCycles extends core_Master
     
     function act_Test()
     {
-    	$id = 3;
-    	$rec = self::fetch("#id='{$id}'");
+    	$id = 5;
+    	//$rec = self::fetch("#id='{$id}'");
     	//$recDetail = hr_ShiftDetails::fetch("#shiftId='{$id}'");
-    	
-    	$date = '2013-05-03 00:00:00';
+    	$masterId = 5;
+    	$date = '2013-05-06 00:00:00';
+    	$date2 = '2013-05-10 00:00:00';
 
-    	bp(static::getShiftDay($rec, $date));
+    	bp(static::calcLeaveDaysBySchedule($id, $masterId, $date, $date2));
     	//bp(static::putNewShiftDetail($rec, $recDetail));
     }
  
@@ -329,13 +330,55 @@ class hr_WorkingCycles extends core_Master
 		return hr_WorkingCycleDetails::getWorkingShiftType($dayStart, $dayDuration);
     }
     
-    
-    static public function calcLeaveDaysBySchedule($id, $leaveFrom, $leaveTo)
+    /**
+     * По зададени работен график, отдел и начална и крайна дата изчислява
+     * неработните дни м/у двете дати според работния график
+     * 
+     * @param int $id
+     * @param int $masterId
+     * @param datetime $leaveFrom
+     * @param datetime $leaveTo
+     */
+    static public function calcLeaveDaysBySchedule($id, $masterId, $leaveFrom, $leaveTo)
     {
+    	$nonWorking = $workDays = $allDays = 0;
     	
+    	// Взимаме конкретния работен график
+    	$state = self::getQuery();
+	    $state->where("#id='{$id}'");
+	    $cycleDetails = $state->fetch();
+	    
+	    // Намираме кога започва графика
+	    $startingOn = hr_Departments::fetchField($masterId, 'startingOn');
+	    
+	    $curDate = $leaveFrom;
+	    
+	    // От началната дата до крайната, проверяваме всеки ден
+	    // дали е работен или не
+	    while($curDate < dt::addDays(1, $leaveTo)){
+	    	
+	    	$dateType = static::getShiftDay($cycleDetails, $curDate, $startingOn);
+
+	    	
+	    	if($dateType == 0) {
+	    		$nonWorking++;
+    			
+    		} else {
+    			$workDays++;
+    		}
+    		
+	    	$curDate = dt::addDays(1, $curDate); 
+    		
+    		$allDays++;
+	    }
+	    
+	    return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
+	   
     }
     
-    
+    /**
+     * Принтирване само на календара с работния график
+     */
     function act_Print()
     {
     	$data = new stdClass();
