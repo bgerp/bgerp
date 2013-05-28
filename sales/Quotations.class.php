@@ -148,14 +148,16 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$rec = &$form->rec;
-	    if(!$rec->rate){
-		    $rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
-		}
-		    
-    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
-		    $form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
-		    					  Сигурни ли сте че искате да запишете документа');
+    	if($form->isSubmitted()){
+	    	$rec = &$form->rec;
+		    if(!$rec->rate){
+			    $rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
+			}
+		
+	    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
+			    $form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
+			    					  Сигурни ли сте че искате да запишете документа');
+			}
 		}
     }
     
@@ -338,6 +340,22 @@ class sales_Quotations extends core_Master
         $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . '#[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     * 
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+	public static function canAddToThread($threadId)
+    {
+    	$threadRec = doc_Threads::fetch($threadId);
+    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
+    	
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     }
     
     

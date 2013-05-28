@@ -412,9 +412,11 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
-     * 
-     * @param stdClass $rec
-     * @param core_ObjectReference $origin
+     * Ако ориджина е спецификация вкарват се записи отговарящи
+     * на посочените примерни коли1ества в нея
+     * @param stdClass $rec - запис на оферта
+     * @param core_ObjectReference $origin - пораждащия документ
+     * (спецификация)
      */
     public function insertFromSpecification($rec, core_ObjectReference $origin)
     {
