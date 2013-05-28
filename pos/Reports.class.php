@@ -29,6 +29,12 @@ class pos_Reports extends core_Master {
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Плъгини за зареждане
      */
    var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, 

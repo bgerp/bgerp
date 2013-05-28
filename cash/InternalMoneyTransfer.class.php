@@ -29,6 +29,12 @@ class cash_InternalMoneyTransfer extends core_Master
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing,acc_plg_Contable, acc_plg_DocumentSummary,
@@ -247,6 +253,7 @@ class cash_InternalMoneyTransfer extends core_Master
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
     		$mvc->validateForm($form);
+    		$form->rec->folderId = cash_Cases::forceCoverAndFolder($form->rec->creditCase);
     	}
     }
     
@@ -393,7 +400,7 @@ class cash_InternalMoneyTransfer extends core_Master
     public static function canAddToFolder($folderId)
     {
         // Може да създаваме документ-а само в дефолт папката му
-        if ($folderId == static::getDefaultFolder(NULL /* userId */, FALSE /* bForce */)) {
+        if ($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
         	
         	return TRUE;
         } 

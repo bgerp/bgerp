@@ -305,6 +305,23 @@ class cash_ExchangeDocument extends core_Master
        return FALSE;
     }
     
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     * 
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+	public static function canAddToThread($threadId)
+    {
+    	$threadRec = doc_Threads::fetch($threadId);
+    	if ($threadRec->folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($threadRec->folderId) == 'cash_Cases') {
+        	return TRUE;
+       } 
+        
+       return FALSE;
+    }
+    
     
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)

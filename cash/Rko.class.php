@@ -463,6 +463,22 @@ class cash_Rko extends core_Master
     }
     
     
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     * 
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+	public static function canAddToThread($threadId)
+    {
+    	$threadRec = doc_Threads::fetch($threadId);
+    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
+    	
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+    
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */

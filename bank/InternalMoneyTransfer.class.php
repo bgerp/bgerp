@@ -29,6 +29,12 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
@@ -256,6 +262,7 @@ class bank_InternalMoneyTransfer extends core_Master
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
     		$mvc->validateForm($form);
+    		$form->rec->folderId = bank_OwnAccounts::forceCoverAndFolder($form->rec->creditBank);
     	}
     }
     
@@ -418,7 +425,7 @@ class bank_InternalMoneyTransfer extends core_Master
     public static function canAddToFolder($folderId)
     {
         // Може да създаваме документ-а само в дефолт папката му
-        if ($folderId == static::getDefaultFolder(NULL /* userId */, FALSE /* bForce */)) {
+        if ($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
         	
         	return TRUE;
         } 
