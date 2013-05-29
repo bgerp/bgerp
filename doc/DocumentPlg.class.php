@@ -1100,13 +1100,6 @@ class doc_DocumentPlg extends core_Plugin
             // в някои случаи се кешира, а това не бива да се случва!
             $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
         }
-        
-        // Ако рендираме документ за навънка
-        if (Mode::is('text', 'xhtml')) {
-            
-            // Очакваме състоянието да не е чернова или оттеглено
-            expect($data->rec->state != 'rejected', 'Липсващ документ');
-        }
     }
     
     
