@@ -1104,11 +1104,8 @@ class doc_DocumentPlg extends core_Plugin
         // Ако рендираме документ за навънка
         if (Mode::is('text', 'xhtml')) {
             
-            // Състоянието
-            $state = $data->rec->state;
-            
             // Очакваме състоянието да не е чернова или оттеглено
-            expect($state != 'rejected', 'Липсващ документ');
+            expect($data->rec->state != 'rejected', 'Липсващ документ');
         }
     }
     
