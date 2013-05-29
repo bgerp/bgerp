@@ -27,6 +27,102 @@ class acc_plg_Contable extends core_Plugin
         $mvc->declareInterface('acc_TransactionSourceIntf');
         
         $mvc->fields['state']->type->options['revert'] = 'Сторниран';
+        
+        // Добавяне на полета, свързани с фунционалността "Коригиращи документи"
+        $mvc->FLD('isCorrection', 'enum(no,yes)', 'input=none,notNull,default=no');
+        $mvc->FLD('correctionDocId', 'key(mvc='.get_class($mvc).')', 'input=none');
+    }
+    
+    
+    /**
+     * Преди изпълнението на контролерен екшън
+     * 
+     * @param core_Manager $mvc
+     * @param core_ET $res
+     * @param string $action
+     */
+    public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
+    {
+        if ($action == 'correction') {
+            $mvc->requireRightFor('correction');
+
+            expect($id  = core_Request::get('id', 'key(mvc='.get_class($mvc).')'));
+            
+            $rec = $mvc->fetchRec($id);
+            
+            $mvc->requireRightFor('correction', $rec);
+
+            $corrRec = $mvc->createCorrectionDocument($rec);
+            
+            if (empty($corrRec)) {
+                $notifMsg  = 'Проблем при създаване на коригиращ документ';
+                $notifType = 'error';
+                $redirUrl  = core_App::getRetUrl();
+            } else {
+                $notifMsg  = 'Успешно създаден коригиращ документ';
+                $notifType = 'info';
+                $redirUrl  = array($mvc, 'single', $corrRec->id);
+            }
+            
+            $res = new core_Redirect($redirUrl, $notifMsg, $notifType);
+            
+            return FALSE; // Прекатяваме изпълнението на екшъна до тук
+        }
+    }
+    
+    public static function on_AfterCreateCorrectionDocument(core_Manager $mvc, &$corrRec, $rec)
+    {
+        $corrRec = clone $rec;
+        
+        unset($corrRec->id);
+        unset($corrRec->containerId);
+        unset($corrRec->correctionDocId);
+        
+        $corrRec->originId     = $rec->containerId;
+        $corrRec->isCorrection = 'yes';
+        $corrRec->state        = 'draft';
+        
+        if ($mvc->save($corrRec)) {
+            $rec->correctionDocId = $corrRec->id;
+            $mvc->save($rec);
+        } else {
+            $corrRec = FALSE;
+        }
+    }
+    
+    
+    /**
+     * След създаване на документ-корекция, "клонира" детайлите на оригинала
+     * 
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_AfterCreate(core_Manager $mvc, $rec)
+    {
+        if ($rec->isCorrection != 'yes') {
+            return;
+        }
+        
+        expect($origin = $mvc->getOrigin($rec));
+        
+        $originalId   = $origin->id();
+        $correctionId = $rec->id;
+
+        $details = arr::make($mvc->details);
+        
+        // "клонираме" всички детайли на оригинала, прикачайки клонингите към документа-корекция
+        foreach ($details as $detailName) {
+            $DetailManager = cls::get($detailName);
+            $detailQuery   = $DetailManager->getQuery();
+            $masterKey     = $DetailManager->masterKey;
+            $detailQuery->where("#{$masterKey} = {$originalId}");
+            
+            while ($dRec = $detailQuery->fetch()) {
+                $dRec->{$masterKey} = $correctionId;
+                unset($dRec->id);
+                $DetailManager->save($dRec);
+            }
+        }
     }
     
     
@@ -55,6 +151,16 @@ class acc_plg_Contable extends core_Plugin
                 'ret_url' => TRUE
             );
             $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,class=btn-revert,warning=Наистина ли желаете документа да бъде сторниран?');
+        }
+        
+        if ($mvc->haveRightFor('correction', $data->rec)) {
+            $correctionUrl = array(
+                $mvc,
+                'correction',
+                $data->rec->id,
+                'ret_url' => TRUE
+            );
+            $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$data->rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?");
         }
         
         $journalRec = acc_Journal::fetch("#docId={$data->rec->id} && #docType='{$mvc::getClassId()}'");
@@ -110,6 +216,13 @@ class acc_plg_Contable extends core_Plugin
                     $requiredRoles = 'no_one';
                 }
             }
+        } elseif ($action == 'correction') {
+            if ($rec->state == 'draft' || $rec->state == 'rejected') {
+                $requiredRoles = 'no_one';
+            }
+            /*
+             * @TODO 
+             */
         }
     }
 
