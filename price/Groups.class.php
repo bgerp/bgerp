@@ -33,7 +33,7 @@ class price_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, description, productsCount';
+    var $listFields = 'id, title, description, productsCount=Продукти';
     
     
     /**
@@ -86,7 +86,6 @@ class price_Groups extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Група');
         $this->FLD('description', 'text', 'caption=Описание');
-		$this->FLD('productsCount', 'int', 'caption=Артикули,input=none');
 		
         $this->setDbUnique('title');
     }
@@ -125,7 +124,21 @@ class price_Groups extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        // Ако няма стойности
-        if (!$rec->productsCount) $row->productsCount=0;
+        $int = cls::get('type_Int');
+    	$row->productsCount = $int->toVerbal($mvc->countProductsInGroup($rec->id));
+    }
+    
+    
+	/**
+     * Преброява броя на продуктите в групата
+     * @param int $id - ид на група
+     * @return int - броя уникални продукти в група
+     */
+    public function countProductsInGroup($id)
+    {
+    	$query = price_GroupOfProducts::getQuery();
+    	$query->where("#groupId = '{$id}'");
+    	$query->groupBy("productId");
+    	return $query->count();
     }
 }
