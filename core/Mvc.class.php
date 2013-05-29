@@ -548,7 +548,7 @@ class core_Mvc extends core_FieldSet
             );
 
             foreach ($titleFields as $fieldName) {
-                if ($cRec->{$fieldName}) {
+                if (isset($cRec->{$fieldName})) {
                     $tpl = new ET("[#{$fieldName}#]");
                     break;
                 }
@@ -571,7 +571,7 @@ class core_Mvc extends core_FieldSet
             $tpl->placeObject($cRec);
 
             $value = (string) $tpl;
-
+			
             return $value;
         }
     }
@@ -592,7 +592,7 @@ class core_Mvc extends core_FieldSet
         } else {
             $rec->id = $id;
         }
-
+		
         return $me->getRecTitle($rec, $escaped);
     }
 
