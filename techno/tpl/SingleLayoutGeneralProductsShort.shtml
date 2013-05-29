@@ -2,7 +2,14 @@
 <ul class='list-info'>
 	<li>
 	<b class='list-title'>[#title#]</b></li>
-	<li class='list-description-short'>[#description#]</li>
+	<li class='list-description-short'>	
+		<!--ET_BEGIN image-->
+		<span class='product-image'>
+		[#image#]
+		</span>
+		<!--ET_END image-->
+	[#description#]</li>
+
 	<li>|Цена|*: <i>[#price#]</i></li>
 	<!--ET_BEGIN MEASURES-->
 	<li>|Размери|*:[#MEASURES#] 
@@ -55,10 +62,5 @@
 	</li>
 	<!--ET_END OTHERS-->
 </ul>
-<!--ET_BEGIN image-->
-<div class='product-image' style='margin-left:10px'>
-[#image#]
-</div>
-<!--ET_END image-->
 <div class='clearfix21'></div>
 </div>

@@ -15,7 +15,7 @@
 	[#PREVIEW#]
 	<table class='styled-table custom-styled-table'>
 		<tr>
-			<th colspan='2'>|Ценово превю|*</th>
+			<th colspan='2'>|Ценови преглед|*</th>
 		</tr>
 		<tr>
 			<td>[#quantity1#]</td>
@@ -56,7 +56,7 @@
 	<!--ET_END PREVIEW-->
 		<div>|Технолог|*: [#prodTehnoClassId#] </div>
 		<div>|Мярка|*: [#measureId#] </div>
-		<div>|Създаване|* |на|* [#createdOn#] |*от|* [#createdBy#]</div>
+		<div>|Създаване|* |на|* [#createdDate#] |от|* [#createdBy#]</div>
 	</div>
 	<div class='details'>
 	[#DETAILS#]
