@@ -165,7 +165,7 @@ class git_Lib
             
             return FALSE;
         }
-        $log[] = "Успешен merge $branch1 -> $branch2";
+        $log[] = "Бъдещ безпроблемен merge $branch1 -> $branch2";
         
         return TRUE;
     }
