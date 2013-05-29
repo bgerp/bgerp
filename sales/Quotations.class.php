@@ -253,13 +253,11 @@ class sales_Quotations extends core_Master
 		
 		switch($rec->vat){
 			case 'yes':
-				$row->vat = tr('с начислено');
+				$row->vat = tr('с');
 				break;
 			case 'freed':
-				$row->vat = tr('освободено от');
-				break;
 			case 'export':
-				$row->vat = tr('без начисление на');
+				$row->vat = tr('без');
 				break;
 		}
 		

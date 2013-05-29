@@ -78,7 +78,7 @@
 	<!--ET_END ROW-->
 	<!--ET_END GROUP-->
 	</table>
-	<div>|Всички цени са с начислено ДДС|*!</div>
+	<div>|Всички цени са с начислен ДДС|*!</div>
 	<!--ET_BEGIN DETAILS-->
 	<div class='details'>
 		[#DETAILS#]
