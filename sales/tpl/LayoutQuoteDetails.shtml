@@ -2,9 +2,11 @@
 	<tr>
 		<th width='4%'>№</th>
 		<th width='50%'>|Описание|*</th>
-		<th>|Количество|*</th>
+		<th class='display-narrow'>|К-во|*</th>
+		<th class='display-wide'>|Количество|*</th>
 		<th>|Цена|*</th>
-		<th>|Стойност|*</th>
+		<th class='display-wide'>|Стойност|*</th>
+		<th class='display-narrow'>|Ст-ст|*</th>
 	</tr>
 <!--ET_BEGIN ROW-->
 [#ROW#]

@@ -157,6 +157,12 @@
 	width:55%;
 }
 
+.wide .display-narrow{
+	display:none;
+}
+.narrow .display-wide{
+	display:none;
+}
 @media print{
 	.document{
 		padding:0px;
