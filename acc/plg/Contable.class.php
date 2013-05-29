@@ -103,7 +103,7 @@ class acc_plg_Contable extends core_Plugin
             return;
         }
         
-        expect($origin = $mvc->getOrigin($rec));
+        expect($origin = doc_Containers::getDocument($rec->originId));
         
         $originalId   = $origin->id();
         $correctionId = $rec->id;
