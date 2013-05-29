@@ -343,7 +343,11 @@ class price_ListToCustomers extends core_Detail
                  }
             }
             
-            return $products;
+            if(count($products)) {
+            	return $products;
+            } else {
+            	return followRetUrl(NULL, 'Няма продукти за тази политика');
+            }
         }
     }
 
