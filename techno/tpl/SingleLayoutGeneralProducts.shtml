@@ -1,8 +1,7 @@
 <ul class='list-info'>
 	<li class='list-title'>[#title#]</li>
 	<li class='list-description'>[#description#]</li>
-	<li style='margin-bottom:10px'>|Цена|*: <b>[#price#]</b> &nbsp;<span class='cCode'>[#currencyId#]</span></li>
-	<li class='fleft'>
+	<li class='fleft' style='margin-top:15px'>
 		<!--ET_BEGIN MEASURES-->
 		<table class = 'styled-table'>
 			<tr>

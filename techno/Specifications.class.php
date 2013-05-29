@@ -191,7 +191,7 @@ class techno_Specifications extends core_Master {
     
     
 	/**
-     * Заглавие на ценоразписа за конкретен клиент 
+     * Заглавие на политиката
      * 
      * @param mixed $customerClass
      * @param int $customerId
@@ -204,10 +204,10 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Връща продуктие, които могат да се продават
-     * на посочения клиент. Това са всички спецификации от
-     * неговата папка, ако няма спецификации редиректваме с
-     * подходящо съобщение
+     * Връща продуктие, които могат да се продават на
+     * посочения клиент. Това са всички спецификации
+     * от неговата папка, ако няма спецификации 
+     * редиректваме с подходящо съобщение
      */
     function getProducts($customerClass, $customerId, $date = NULL)
     {
@@ -254,6 +254,9 @@ class techno_Specifications extends core_Master {
     	}
     	
     	if($fields['-single']){
+    		$double = cls::get('type_Double');
+	    	$double->params['decimals'] = 2;
+	    	
 	    	if($rec->data){
 	    		
 	    		// Подготвяме изгледа на изделието
@@ -262,9 +265,6 @@ class techno_Specifications extends core_Master {
 	    	}
 	    	
 	    	$vat = $mvc->getVat($rec->id);
-	    	
-	    	$double = cls::get('type_Double');
-	    	$double->params['decimals'] = 2;
 	    	$row->shortMeasureId = cat_UoM::fetchField($rec->measureId, 'shortName');
 	    	if($rec->state == 'draft'){
 		    	foreach(range(1,3) as $num){
@@ -273,6 +273,7 @@ class techno_Specifications extends core_Master {
 			    	$discountFld = "discount{$num}";
 		    		if($rec->$quantity){
 			    		$priceRec = $mvc->getPriceInfo(NULL, NULL, $rec->id, NULL, $rec->$quantity);
+			    		$priceRec->price = currency_CurrencyRates::convertAmount($priceRec->price, NULL, NULL, $rec->currencyId);
 			    		$price = $priceRec->price + ($priceRec->price * $vat);
 			    		$price = $rec->$quantity * $price;
 			    		$row->$discountFld = $double->toVerbal($price - ($price * $priceRec->discount));
@@ -335,7 +336,7 @@ class techno_Specifications extends core_Master {
         	
         	// При вече въведени характеристики, слагаме ги за дефолт
         	$data = unserialize($rec->data);
-        	$form->setDefaults($data);
+        	$form->rec = $data;
         }
         
         $form->title = "Характеристики на ". $rec->title;
@@ -359,14 +360,14 @@ class techno_Specifications extends core_Master {
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft'){
-    		$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
-        	
+    		
         	// Може да се променят с само на чернова
+        	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
     	}
     	
     	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'active'){
-    		$data->toolbar->addBtn("Офериране", array($mvc, 'newQuote', $data->rec->id), 'ef_icon=img/16/document_quote.png');
+    		$data->toolbar->addBtn("Оферта", array($mvc, 'newQuote', $data->rec->id), 'ef_icon=img/16/document_quote.png');
     	}
     }
     
@@ -419,7 +420,8 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     * Връща цената за посочения продукт към посочения
+     * клиент на посочената дата
      * 
      * @return object
      * $rec->price  - цена
@@ -437,7 +439,7 @@ class techno_Specifications extends core_Master {
      * Предефинираме метода getTitleById да връща вербалното
      * представяне на продукта
      * @param int $id - id на спецификацията
-     * @return core_ET - шаблон сunknown_type представянето на спецификацията
+     * @return core_ET - шаблон с представянето на спецификацията
      */
      static function getTitleById($id, $escaped = TRUE)
      {
