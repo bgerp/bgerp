@@ -1,7 +1,7 @@
 <ul class='list-info'>
 	<li class='list-title'>[#title#]</li>
 	<li class='list-description'>[#description#]</li>
-	<li class='fleft' style='margin-top:15px'>
+	<li class='fleft'>
 		<!--ET_BEGIN MEASURES-->
 		<table class = 'styled-table'>
 			<tr>

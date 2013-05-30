@@ -19,6 +19,10 @@
 	color:#000;
 }
 
+.general-product .list-description{
+	margin-bottom:10px;
+}
+
 .general-product .list-description-short{
 	text-align:justify;
 	font-size:14px;
