@@ -633,12 +633,13 @@ class sales_Invoices extends core_Master
             // Случай 1 или 2: има данни за фирма
             $rec->contragentName    = $contragentData->company;
             $rec->contragentAddress = trim(
-                sprintf("%s %s\n%s", 
+                sprintf("%s %s %s", 
+					$contragentData->pCode,
                     $contragentData->place,
-                    $contragentData->pCode,
                     $contragentData->address
                 )
             );
+            
             $rec->contragentVatNo = $contragentData->vatNo;
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
