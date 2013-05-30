@@ -20,38 +20,34 @@
 		</div>
 		<div class='fleft internal-amount'>	
 				<div class="amounts">
-				
-				<table>
-				<tr>
-					<td>|Обърнати |*:</td>
-				</tr>
-				<!--ET_BEGIN creditQuantity-->
+					<table>
 					<tr>
-						<td>
-						<span class='cCode'>[#creditCurrency#]</span> &nbsp;
-						<b><span style='color:darkgreen'>[#creditQuantity#]</span></b>&nbsp; в &nbsp;<span class='cCode'>[#debitCurrency#]</span> &nbsp;
-						<b><span style='color:darkgreen'>[#debitQuantity#]</span></b><br>
-						</td>
+						<td>|Обърнати |*:</td>
 					</tr>
-					<!--ET_END creditQuantity-->
-					<!--ET_BEGIN rate-->
-					<tr>
-						<td>
-							|При курс|*: &nbsp;<b><span style='color:darkgreen'>[#rate#]</span></b>	
-						</td>
-					</tr>
-					<!--ET_END rate-->
-				</div> 
-				</table>
-	</div>
-			
-	</div>
+					<!--ET_BEGIN creditQuantity-->
+						<tr>
+							<td>
+							<span class='cCode'>[#creditCurrency#]</span> &nbsp;
+							<b><span style='color:darkgreen'>[#creditQuantity#]</span></b>&nbsp; в &nbsp;<span class='cCode'>[#debitCurrency#]</span> &nbsp;
+							<b><span style='color:darkgreen'>[#debitQuantity#]</span></b><br>
+							</td>
+						</tr>
+						<!--ET_END creditQuantity-->
+						<!--ET_BEGIN rate-->
+						<tr>
+							<td>
+								|При курс|*: &nbsp;<b><span style='color:darkgreen'>[#rate#]</span></b>	
+							</td>
+						</tr>
+						<!--ET_END rate-->
+					</table>
+				</div>
+		</div>
 	<!--ET_BEGIN DETAILS-->
 		<div class='details'>
 			[#DETAILS#]
 		</div>
 	<!--ET_END DETAILS-->
 	
-	<br>
-	</table>
+	</div>
 </div>
