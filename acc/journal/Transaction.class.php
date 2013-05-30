@@ -7,7 +7,7 @@ class acc_journal_Transaction
      */
     protected $entries = array(); 
     
-    protected $rec;
+    public $rec;
     
     /**
      * @var acc_Journal
@@ -211,5 +211,30 @@ class acc_journal_Transaction
     public function isEmpty()
     {
         return empty($this->entries);
+    }
+    
+    
+    /**
+     * Генерира обратна транзакция
+     */
+    public function invert()
+    {
+        // Обратната транзакция е множество от обратните записи на текущата транзакция
+        foreach ($this->entries as &$entry) {
+            $entry->invert();
+        }
+    }
+    
+    
+    /**
+     * Добавя към записите на текущата транзакция всички записи на друга транзакция
+     * 
+     * @param acc_journal_Transaction $transaction
+     */
+    public function join(acc_journal_Transaction $transaction)
+    {
+        foreach ($transaction->entries as $entry) {
+            $this->add($entry);
+        }
     }
 }

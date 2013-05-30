@@ -255,6 +255,20 @@ class acc_journal_EntrySide
     
     
     /**
+     * Обръща знаците на количеството и сумата
+     */
+    public function invert()
+    {
+        if (!empty($this->quantity)) {
+            $this->quantity = -$this->quantity;
+        }
+        if (!empty($this->amount)) {
+            $this->amount = -$this->amount;
+        }
+    }
+    
+    
+    /**
      * Връща зададената или изчислена цена
      * 
      * @return float NULL, ако цената нито е зададена, нито може да бъде изчислена

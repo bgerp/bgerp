@@ -288,6 +288,8 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterGetValidatedTransaction(core_Mvc $mvc, &$transaction, $rec)
     {
         try {
+            $rec = $mvc->fetchRec($rec);
+            
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
             
@@ -295,6 +297,25 @@ class acc_plg_Contable extends core_Plugin
             
             // Проверяваме валидността на транзакцията
             $transaction = new acc_journal_Transaction($transaction);
+
+            if ($rec->isCorrection == 'yes') {
+                // Документ-корекция. Намираме транзакцията на оригинала, обръщаме знаците
+                // на количествата и сумите на всички нейни записи и добавяме тези записи към 
+                // вече генерираната от текущия документ транзакция
+                
+                expect($origRef = doc_Containers::getDocument($rec->originId));
+                
+                // Генерираме транзакцията на коригирания (т.е. оригиналния) документ
+                $origTransaction = $transactionSource->getTransaction($origRef->rec());
+                $origTransaction = new acc_journal_Transaction($origTransaction);
+
+                // Обръщаме оригиналната транзакция
+                $origTransaction->invert();
+                
+                // Добавяме записите на обратната транзакция към записите на текущата
+                $transaction->join($origTransaction);
+            }
+            
             if (!$transaction->check()) {
                 return FALSE;
             }

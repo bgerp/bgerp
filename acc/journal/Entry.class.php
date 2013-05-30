@@ -190,4 +190,13 @@ class acc_journal_Entry
         
         return $this->JournalDetails->save((object)$entryRec);
     }
+    
+    /**
+     * Обръща знаците на запис на транзакция
+     */
+    public function invert()
+    {
+        $this->debit->invert();
+        $this->credit->invert();
+    }
 }
