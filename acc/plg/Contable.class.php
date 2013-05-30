@@ -324,4 +324,27 @@ class acc_plg_Contable extends core_Plugin
             $transaction = FALSE;
         }
     }
+    
+    
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+        $rec = $data->rec;
+        $row = $data->row;
+        
+        if ($rec->isCorrection == 'yes') {
+            expect($rec->originId);
+            $originTitle = doc_Containers::getDocTitle($rec->originId);
+            $originRef   = doc_Containers::getDocument($rec->originId);
+            $row->isCorrection = tr('Корекция на') . ' ' . ht::createLink($originTitle, array($mvc, 'single', $originRef->id()));
+        } else {
+            unset($row->isCorrection);
+        }
+        
+        if ($rec->correctionDocId) {
+            $corrRow = $mvc->getDocumentRow($rec->correctionDocId);
+            $row->correctionDocId = tr('Коригиран от') . ' ' . ht::createLink($corrRow->title, array($mvc, 'single', $rec->correctionDocId));
+        } else {
+            unset($row->correctionDocId);
+        }
+    }
 }
