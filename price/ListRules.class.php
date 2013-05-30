@@ -277,7 +277,10 @@ class price_ListRules extends core_Detail
             if(!$form->gotErrors()) {
                 Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
             }
-
+			
+            if(!cat_Products::getProductInfo($rec->productId, $rec->packagingId)){
+            	$form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
+            }
         }
     }
 
