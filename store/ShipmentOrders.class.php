@@ -192,7 +192,7 @@ class store_ShipmentOrders extends core_Master
     {
         $origin = static::getOrigin($rec, 'store_ShipmentIntf');
         
-        if ($origin) {
+        if ($origin && $origin->getInstance() instanceof sales_Sales) {
             $products = $origin->getShipmentProducts();
             
             foreach ($products as $p) {
