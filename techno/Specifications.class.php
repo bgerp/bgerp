@@ -439,11 +439,18 @@ class techno_Specifications extends core_Master {
      * Предефинираме метода getTitleById да връща вербалното
      * представяне на продукта
      * @param int $id - id на спецификацията
+     * @param boolean $full 
+     * 	      		FALSE - връща само името на спецификацията
+     * 		        TRUE - връща целия шаблон на спецификацията
      * @return core_ET - шаблон с представянето на спецификацията
      */
-     static function getTitleById($id, $escaped = TRUE)
+     static function getTitleById($id, $escaped = TRUE, $full = FALSE)
      {
-    	$rec = static::fetch($id);
+    	if(!$full) {
+    		return parent::getTitleById($id, $escaped);
+    	}
+    	
+     	$rec = static::fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getVerbal($rec->data, TRUE);
      }
@@ -459,5 +466,32 @@ class techno_Specifications extends core_Master {
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Метод връщаш информация за продукта и неговите опаковки
+     * @param int $productId - Ид на продукта
+     * @param int $packagingId - Ид на опаковката, по дефолт NULL
+     * @return stdClass $res - Обект с информация за продукта
+     * и опаковките му ако $packagingId не е зададено, иначе връща
+     * информацията за подадената опаковка
+     */
+    public static function getProductInfo($productId, $packagingId = NULL)
+    {
+    	// Ако няма такъв продукт връщаме NULL
+    	if(!$productRec = static::fetch($productId)) {
+    		return NULL;
+    	}
+    	
+    	$res = new stdClass();
+    	$res->productRec = $productRec;
+    	if(!$packagingId) {
+    		$res->packagings = array();
+    	} else {
+    		return NULL;
+    	}
+    	
+    	return $res;
     }
 }
