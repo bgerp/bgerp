@@ -68,6 +68,10 @@ $quiet-gray:#888;
     position:relative;
 }
 
+select option{
+	background-color:inherit;
+}
+
 select, input, textarea{
 	background:#fff;
 }
