@@ -55,7 +55,7 @@ class google_plg_LgTranslate extends core_Plugin
         
         // Вземаме променливите, необходими за превеждане
         $markup = google_Translate1::getMarkupTpl('', TRUE);
-        $tpl->push(google_Translate1::getElementJsUrl(), 'JS');
+        $tpl->push(google_Translate1::getElementJsUrl('en'), 'JS');
         $tpl->appendOnce(google_Translate1::getInitJs(), 'SCRIPTS');
         $tpl->appendOnce(google_Translate1::getCss(), 'STYLES');
         

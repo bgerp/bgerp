@@ -111,12 +111,12 @@ class google_Translate1
             // Вземаме текущия език
             $lg = core_Lg::getCurrent();
         }
-        
+
         // Вземаме URL' тп
         $jsUrl = static::$elementJsUrl;
         
         // Заместваме езика в URL' то
-        $jsUrl = sprintf($jsUrl, core_Lg::getCurrent());
+        $jsUrl = sprintf($jsUrl, $lg);
         
         // Ако е задедено да се ескейпва
         if ($escaped) {
