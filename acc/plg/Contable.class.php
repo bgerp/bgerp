@@ -82,10 +82,7 @@ class acc_plg_Contable extends core_Plugin
         $corrRec->isCorrection = 'yes';
         $corrRec->state        = 'draft';
         
-        if ($mvc->save($corrRec)) {
-            $rec->correctionDocId = $corrRec->id;
-            $mvc->save($rec);
-        } else {
+        if (!$mvc->save($corrRec)) {
             $corrRec = FALSE;
         }
     }
@@ -236,11 +233,20 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
-        if (is_object($id)) {
-            $id = $id->id;
+        $rec = $mvc->fetchRec($id);
+        
+        $res = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
+        
+        if ($res) {
+            if ($rec->isCorrection) {
+                $correctedRef = doc_Containers::getDocument($rec->originId);
+                $correctedRec = $correctedRef->rec();
+                $correctedRec->correctionDocId = $rec->id;
+                $correctedRef->getInstance()->save($correctedRec, 'correctionDocId');
+            }
         }
         
-        $res = acc_Journal::saveTransaction($mvc->getClassId(), $id);        
+        $res = !empty($res) ? 'Документът е контиран успешно' : 'Документът НЕ Е контиран';
     }
     
     
