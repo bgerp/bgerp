@@ -73,6 +73,12 @@ class price_GroupOfProducts extends core_Detail
     
     
     /**
+     * @todo Чака за документация...
+     */
+    var $currentTab = 'Групи';
+    
+    
+    /**
      * Поле - ключ към мастера
      */
     var $masterKey = 'productId';
@@ -190,7 +196,7 @@ class price_GroupOfProducts extends core_Detail
         }
         
         if($rec->groupId) {
-	        $groupName = price_Groups::fetchField($rec->groupId, 'title');
+	        $groupName = price_Groups::getTitleById($rec->groupId);
 	        $data->form->title = '|Добавяне на артикул към|* "' . $groupName . '"';
         }
     }
