@@ -109,6 +109,7 @@ class price_Groups extends core_Master
         }
     }
     
+    
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
@@ -118,6 +119,7 @@ class price_Groups extends core_Master
     	$data->title = "|*" . $title;
     	
     }
+    
     
     /**
      * Малко манипулации след подготвянето на формата за филтриране
@@ -136,9 +138,18 @@ class price_Groups extends core_Master
      */
     public function countProductsInGroup($id)
     {
+    	$i = 0;
     	$query = price_GroupOfProducts::getQuery();
-    	$query->where("#groupId = '{$id}'");
-    	$query->groupBy("productId");
-    	return $query->count();
+    	$query->orderBy('#validFrom', 'DESC');
+       	$used = array();
+         while($rec = $query->fetch()) {
+         	if($used[$rec->productId]) continue;
+            if($id == $rec->groupId) {
+            	$i++;
+            }
+            $used[$rec->productId] = TRUE;
+         }
+       
+         return $i;
     }
 }
