@@ -6,13 +6,13 @@ cls::load('fileman_Download');
 /**
  * @todo Чака за документация...
  */
-defIfNot('THUMBNAIL_FOLDER', EF_DOWNLOAD_DIR . '/' . 'TB');
+defIfNot('THUMBNAIL_FOLDER',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . '_tb_');
 
 
 /**
  * @todo Чака за документация...
  */
-defIfNot('THUMBNAIL_URL', EF_DOWNLOAD_ROOT . '/' . 'TB');
+defIfNot('THUMBNAIL_URL', '_tb_');
 
 
 /**
