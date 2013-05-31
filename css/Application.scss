@@ -1401,7 +1401,12 @@ td.portal-date {
 	margin-bottom: 20px;
 	float: left;
 	margin-top: 10px;
-	
+	.corrected{
+		color:#c00;
+	}
+	.correction{
+		color:#e78a02;
+	}
 }
 .wide .document{
 	max-width:900px; 
