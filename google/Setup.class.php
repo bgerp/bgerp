@@ -6,13 +6,12 @@
  * class google_Setup
  *
  * Инсталиране/Деинсталиране на
- * мениджъри свързани с 'email'
+ * плъгини свързани с 'google'
  *
- *
- * @category  bgerp
- * @package   email
+ * @category  vendors
+ * @package   google
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -51,22 +50,14 @@ class google_Setup
     
     
     /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array(
-    );
-    
-    
-    /**
      * Инсталиране на пакета
      */
     function install()
     {
         //
-        // Инсталиране на плъгин за автоматичен превод на входящата поща
+        // Инсталиране на плъгин за автоматичен превод
         //
-        core_Plugins::installPlugin('Email Translate', 'google_plg_Translate', 'email_Incomings', 'private');
-        $html .= "<li>Закачане на Google Translate към входящата поща";
+        $html .= core_Plugins::installPlugin('core_Lg Translate', 'google_plg_LgTranslate', 'core_Lg', 'private');
         
         return $html;
     }
@@ -81,8 +72,8 @@ class google_Setup
         $Plugins = cls::get('core_Plugins');
     
         // Инсталираме клавиатурата към password полета
-        if($delCnt = $Plugins->deinstallPlugin('google_plg_Translate')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'google_plg_Translate'";
+        if($delCnt = $Plugins->deinstallPlugin('google_plg_LgTranslate')) {
+            $html .= "<li>Премахнати са {$delCnt} закачания на 'google_plg_LgTranslate'";
         } else {
             $html .= "<li>Не са премахнати закачания на плъгина";
         }

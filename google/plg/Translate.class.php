@@ -1,6 +1,9 @@
 <?php
 
 
+/**
+ * @deprecated
+ */
 class google_plg_Translate extends core_Plugin
 {
     protected static $initJs = <<<EOT
