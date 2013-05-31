@@ -91,6 +91,32 @@ class sales_TransactionSourceImpl
     public function finalizeTransaction($id)
     {
         $rec = $this->class->fetchRec($id);
+
+        // Обновяване на кеша (платено)
+        if ($this->hasPaymentPart($rec)) {
+            $rec->amountPaid = $rec->amountDeal;
+        }
+
+        // Обновяване на кеша (доставено)
+        if ($this->hasDeliveryPart($rec)) {
+            $rec->amountDelivered = $rec->amountDeal;
+            // Извличаме детайлите на продажбата
+        
+            /* @var $SalesDetails sales_SalesDetails */
+            $SalesDetails = cls::get('sales_SalesDetails');
+        
+            /* @var $detailQuery core_Query */
+            $detailQuery = $SalesDetails->getQuery();
+            $detailQuery->where("#saleId = '{$rec->id}'");
+            $detailQuery->show('id, quantity');
+        
+            while ($dRec = $detailQuery->fetch()) {
+                $dRec->quantityDelivered = $dRec->quantity;
+                $SalesDetails->save_($dRec, 'id, quantityDelivered');
+            }
+        }
+        
+        // Активиране и запис
         $rec->state = 'active';
         
         if ($this->class->save($rec)) {
@@ -112,11 +138,6 @@ class sales_TransactionSourceImpl
         $rec = $this->class->fetchRec($id);
         
         expect($rec->id);
-        
-        // Преобразуване на трибуквен ISO код на валута към първичен ключ на валута
-        $rec->currencyCode = $rec->currencyId;
-        $rec->currencyId   = currency_Currencies::getIdByCode($rec->currencyId);
-        
         
         // Извличаме детайлите на продажбата
         /* @var $detailQuery core_Query */
@@ -195,7 +216,10 @@ class sales_TransactionSourceImpl
         
         // Изчисляваме курса на валутата на продажбата към базовата валута
         $currencyRate = $this->getCurrencyRate($rec);
-
+        
+        // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
+        $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+        
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
                 'amount' => $detailRec->amount * $currencyRate, // В основна валута
@@ -203,7 +227,7 @@ class sales_TransactionSourceImpl
                 'debit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
+                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
@@ -236,6 +260,9 @@ class sales_TransactionSourceImpl
         // Изчисляваме курса на валутата на продажбата към базовата валута
         $currencyRate = $this->getCurrencyRate($rec);
         
+        // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
+        $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+        
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
             
         foreach ($rec->details as $detailRec) {
@@ -244,15 +271,15 @@ class sales_TransactionSourceImpl
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
-                        array('cash_Cases', $rec->caseId),              // Перо 1 - Каса
-                        array('currency_Currencies', $rec->currencyId), // Перо 2 - Валута
+                        array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
+                        array('currency_Currencies', $currencyId), // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
+                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
             );
@@ -308,6 +335,6 @@ class sales_TransactionSourceImpl
      */
     protected function getCurrencyRate($rec)
     {
-        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyCode, NULL);
+        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
     }
 }
