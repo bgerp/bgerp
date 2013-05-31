@@ -75,7 +75,7 @@ class sales_QuotationsOthers extends core_Detail
      */
     function renderDetail_($data)
     {
-        $tpl = new ET(getFileContent('salecond/tpl/QuotationOthers.shtml'));
+        $tpl = getTplFromFile('salecond/tpl/QuotationOthers.shtml');
         
         if($data->changeBtn){
         	$tpl->append($data->changeBtn, 'addOther');

@@ -236,7 +236,7 @@ class survey_Alternatives extends core_Detail {
      */
     function renderAlternatives($data)
     {
-    	$tpl = new ET(getFileContent('survey/tpl/SingleAlternative.shtml'));
+    	$tpl = getTplFromFile('survey/tpl/SingleAlternative.shtml');
     	$tplAlt = $tpl->getBlock('ROW');
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
@@ -319,7 +319,7 @@ class survey_Alternatives extends core_Detail {
      */
 	function renderSummariseDetails($data)
     {
-    	$tpl = new ET(tr("|*" .getFileContent('survey/tpl/Summarise.shtml')));
+    	$tpl = getTplFromFile('survey/tpl/Summarise.shtml');
     	$blockTpl = $tpl->getBlock('ROW');
     	$varcharType = cls::get('type_Varchar');
     	$tpl->replace($varcharType->toVerbal($data->rec->title), 'TOPIC');

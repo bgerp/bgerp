@@ -301,7 +301,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$tpl = new ET("");
     	
     	// Шаблон за задължителните продукти
-    	$dTpl = new ET(tr("|*" . getFileContent('sales/tpl/LayoutQuoteDetails.shtml')));
+    	$dTpl = getTplFromFile('sales/tpl/LayoutQuoteDetails.shtml');
     	
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
