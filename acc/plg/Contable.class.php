@@ -245,7 +245,7 @@ class acc_plg_Contable extends core_Plugin
         $res = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         
         if ($res) {
-            if ($rec->isCorrection) {
+            if ($rec->isCorrection == 'yes') {
                 $correctedRef = doc_Containers::getDocument($rec->originId);
                 $correctedRec = $correctedRef->rec();
                 $correctedRec->correctionDocId = $rec->id;
