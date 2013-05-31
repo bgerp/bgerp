@@ -303,12 +303,6 @@ class sales_QuotationsDetails extends core_Detail {
     	// Шаблон за задължителните продукти
     	$dTpl = new ET(tr("|*" . getFileContent('sales/tpl/LayoutQuoteDetails.shtml')));
     	
-    	if(!Mode::is('printing') && $data->masterData->rec->state == 'draft'){
-    		
-    		// Маха се th-то на полето за редакция, ако се принтира
-    		$dTpl->replace(' ', 'toolsTh');
-    	}
-    	
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
     	$oCount = $dCount = 1;
