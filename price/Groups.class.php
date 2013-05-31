@@ -115,7 +115,7 @@ class price_Groups extends core_Master
     static function on_AfterPrepareSingleTitle($mvc, &$data)
     { 
     	$title = $mvc->getVerbal($data->rec, 'title');
-    	$data->title = $title;
+    	$data->title = "|*" . $title;
     	
     }
     
