@@ -59,8 +59,8 @@ class core_Lg extends core_Manager
     function description()
     {
         $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,export');
-        $this->FLD('kstring', 'varchar(size=34)', 'caption=Стринг,export');
-        $this->FLD('translated', 'text',  'caption=Превод,export');
+        $this->FLD('kstring', 'varchar(size=34)', 'caption=Стринг,export, width=100%');
+        $this->FLD('translated', 'text',  'caption=Превод,export, , width=100%, class=translated');
         
         $this->setDbUnique('kstring,lg');
     }
