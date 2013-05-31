@@ -28,8 +28,8 @@ class git_Lib
     private static function cmdExec ($cmd, &$output)
     {
         exec("git {$cmd}", $output, $returnVar);
-        
-        return ($returnVar == 0);  
+
+        return ($returnVar == 0); 
     }
 
     /**
@@ -74,7 +74,7 @@ class git_Lib
         
         $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin +{$branch}:{$branch} 2>&1";
         
-        $commandCheckOut = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$branch} 2>&1";
+        $commandCheckOut = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout -f {$branch} 2>&1";
      
         if (!self::cmdExec($commandFetch, $arrRes)) {
             foreach ($arrRes as $val) {
@@ -158,11 +158,15 @@ class git_Lib
         if (!self::pull($repoPath, $log)) return FALSE;
         if (!self::checkout($repoPath, $log, $branch2)) return FALSE;
         if (!self::pull($repoPath, $log)) return FALSE;
+        
         $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge --no-commit {$branch1}";
-        if(!self::cmdExec($commandMerge, $log)) {
-            $commandMergeAbort = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge --abort";
-            self::cmdExec($commandMergeAbort, $log);
+        $res = self::cmdExec($commandMerge, $log);
+        
+        $commandMergeAbort = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge --abort";
+        self::cmdExec($commandMergeAbort, $log);
             
+        if (!$res) {
+            $log[] = "Бъдещ проблемен merge.";
             return FALSE;
         }
         $log[] = "Бъдещ безпроблемен merge $branch1 -> $branch2";
