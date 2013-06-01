@@ -154,7 +154,9 @@ class cms_Articles extends core_Manager
 
             // Рендираме тулбара за споделяне
             $conf = core_Packs::getConfig('cms');
-            $content->prepend(new ET("<div style='margin-bottom:15px;'>[#1#]</div>", $conf->CMS_SHARE));
+            if($conf->CMS_SHARE) {
+                $content->prepend(new ET("<div style='margin-bottom:15px;'>[#1#]</div>", $conf->CMS_SHARE));
+            }
 
             $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
