@@ -8,7 +8,7 @@
 		<div class='month-name'>[#month1#]</div>
 			<table  class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -40,7 +40,7 @@
 		<div class='month-name'>[#month2#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -71,7 +71,7 @@
 			<div class='month-name'>[#month3#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -102,7 +102,7 @@
 		<div class='month-name'>[#month4#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -133,7 +133,7 @@
 		<div class='month-name'>[#month5#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -164,7 +164,7 @@
 		<div class='month-name'>[#month6#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -195,7 +195,7 @@
 		<div class='month-name'>[#month7#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -226,7 +226,7 @@
 		<div class='month-name'>[#month8#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -257,7 +257,7 @@
 		<div class='month-name'>[#month9#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -288,7 +288,7 @@
 			<div class='month-name'>[#month10#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -320,7 +320,7 @@
 		<div class='month-name'>[#month11#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>
@@ -351,7 +351,7 @@
 		<div class='month-name'>[#month12#]</div>
 			<table class='mc-calendar-year'>
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>

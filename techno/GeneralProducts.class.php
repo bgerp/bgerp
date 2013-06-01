@@ -72,10 +72,7 @@ class techno_GeneralProducts extends core_Manager {
 		$form->FNC('color', 'varchar(150)', 'caption=Други->Цвят,width=8em,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Други->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Други->EAN,width=15em,input');
-        
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
         
         return $form;
     }
@@ -132,7 +129,7 @@ class techno_GeneralProducts extends core_Manager {
      */
     public function getVerbal($data, $short = FALSE)
     {
-        $data = unserialize($data);
+        expect($data = unserialize($data));
         $row = new stdClass();
         
         // Спрямо $short взимаме шаблона за кратко или дълго представяне
@@ -164,5 +161,46 @@ class techno_GeneralProducts extends core_Manager {
         $tpl->placeObject($row);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * @TODO
+     * @param unknown_type $productId
+     * @param unknown_type $packagingId
+     */
+    public function getProductInfo($data, $packagingId = NULL)
+    {
+    	if($data){
+    		$data = unserialize($data);
+	    	
+	    	$res = new stdClass();
+	    	$res->productRec = $data;
+	    	if(!$packagingId) {
+	    		$res->packagings = array();
+	    	} else {
+	    		return NULL;
+	    	}
+	    	
+	    	return $res;
+    	}
+    }
+    
+    
+    /**
+     * 
+     * @TODO
+     * @param unknown_type $id
+     * @param unknown_type $date
+     */
+    public function getVat($data, $date = NULL){
+    	if(empty($data)) return NULL;
+    	
+    	$data = unserialize($data);
+    	if($data->vat) return $data->vat;
+    	
+    	// Връщаме ДДС-то от периода
+    	$period = acc_Periods::fetchByDate($date);
+    	return $period->vatRate;
     }
 }

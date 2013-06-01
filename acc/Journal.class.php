@@ -233,14 +233,11 @@ class acc_Journal extends core_Master
         expect($transaction = $mvc->getValidatedTransaction($docRec));
         
         $transaction->rec->docType = $mvc->getClassId();
-        $transaction->rec->docId   = $docId;
+        $transaction->rec->docId   = $docRec->id;
         
         if ($success = $transaction->save()) {
             // Нотифицира мениджъра на документа за успешно приключилата транзакция
             $docClass->finalizeTransaction($docRec);
-            $success = 'Документът е контиран успешно';
-        } else {
-            $success = 'Документът НЕ Е контиран';
         }
 
         return $success;

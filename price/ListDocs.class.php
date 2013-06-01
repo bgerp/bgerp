@@ -473,7 +473,7 @@ class price_ListDocs extends core_Master
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = $rec->title;
+        $row->title = $this->recToVerbal($rec, 'title')->title;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;

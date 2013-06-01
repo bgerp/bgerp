@@ -215,7 +215,7 @@ class pos_Favourites extends core_Manager {
      */
     public static function renderPosProducts($data)
     {
-    	$tpl = new ET(getFileContent($data->theme.'/Favourites.shtml'));
+    	$tpl = getTplFromFile($data->theme.'/Favourites.shtml');
     	$self = cls::get(get_called_class());
     	if($data->arr){
     		$self->renderProducts($data->arr, $tpl);

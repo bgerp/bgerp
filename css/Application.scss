@@ -523,6 +523,10 @@ div.alphabet div.tab-page {
 	padding:4px 2px 1px;
 }
 
+.narrow .single-thread .document div.alphabet .listTable{
+	font-size:0.8em;
+}
+
 div.crmImage {
 	padding:10px 0px 8px 8px;
 	float:right;
@@ -1005,7 +1009,9 @@ div.acc-detail {
 }
 .narrow .document .richtext .code{
 	white-space:normal;
+	font-size:0.9em;
 }
+
 .document div.richtext-holder{
 	margin-top:0;
 	margin-bottom:10px;
@@ -1395,7 +1401,12 @@ td.portal-date {
 	margin-bottom: 20px;
 	float: left;
 	margin-top: 10px;
-	
+	.corrected{
+		color:#c00;
+	}
+	.correction{
+		color:#e78a02;
+	}
 }
 .wide .document{
 	max-width:900px; 

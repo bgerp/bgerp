@@ -82,10 +82,7 @@ class acc_plg_Contable extends core_Plugin
         $corrRec->isCorrection = 'yes';
         $corrRec->state        = 'draft';
         
-        if ($mvc->save($corrRec)) {
-            $rec->correctionDocId = $corrRec->id;
-            $mvc->save($rec);
-        } else {
+        if (!$mvc->save($corrRec)) {
             $corrRec = FALSE;
         }
     }
@@ -216,8 +213,15 @@ class acc_plg_Contable extends core_Plugin
                     $requiredRoles = 'no_one';
                 }
             }
+        } elseif ($action == 'ship') {
+            if ($rec->correctionDocId) {
+                $requiredRoles = 'no_one';
+            }
         } elseif ($action == 'correction') {
             if ($rec->state == 'draft' || $rec->state == 'rejected') {
+                $requiredRoles = 'no_one';
+            }
+            if ($rec->correctionDocId) {
                 $requiredRoles = 'no_one';
             }
             /*
@@ -236,11 +240,20 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
-        if (is_object($id)) {
-            $id = $id->id;
+        $rec = $mvc->fetchRec($id);
+        
+        $res = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
+        
+        if ($res) {
+            if ($rec->isCorrection == 'yes') {
+                $correctedRef = doc_Containers::getDocument($rec->originId);
+                $correctedRec = $correctedRef->rec();
+                $correctedRec->correctionDocId = $rec->id;
+                $correctedRef->getInstance()->save($correctedRec, 'correctionDocId');
+            }
         }
         
-        $res = acc_Journal::saveTransaction($mvc->getClassId(), $id);        
+        $res = !empty($res) ? 'Документът е контиран успешно' : 'Документът НЕ Е контиран';
     }
     
     
@@ -258,6 +271,17 @@ class acc_plg_Contable extends core_Plugin
         }
         
         $res = acc_Journal::rejectTransaction($mvc->getClassId(), $id);
+        
+        if ($res !== FALSE) {
+            $rec = $mvc->fetchRec($id);
+            
+            if ($rec->isCorrection == 'yes') {
+                $correctedRef = doc_Containers::getDocument($rec->originId);
+                $correctedRec = $correctedRef->rec();
+                $correctedRec->correctionDocId = NULL;
+                $correctedRef->getInstance()->save($correctedRec, 'correctionDocId');
+            }
+        }
     }
     
     
@@ -270,11 +294,7 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        if (is_object($id)) {
-            $id = $id->id;
-        }
-        
-        $res = acc_Journal::saveTransaction($mvc->getClassId(), $id);
+        self::on_AfterConto($mvc, $res, $id);
     }
     
     

@@ -186,10 +186,11 @@ class trz_Requests extends core_Master
 	        if($employeeContractDetails = $state->fetch()){
 	           
 	        	$employeeContract = $employeeContractDetails->id;
+	        	$department = $employeeContractDetails->departmentId;
 	        	
 	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
 	        	if($schedule){
-	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $employeeContract, $rec->leaveFrom, $rec->leaveTo);
+	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
 	        	} else {
 	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        	}
