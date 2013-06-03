@@ -9,8 +9,6 @@
 		</span>
 		<!--ET_END image-->
 	[#description#]</li>
-
-	<li>|Цена|*: <i>[#price#]</i></li>
 	<!--ET_BEGIN MEASURES-->
 	<li>|Размери|*:[#MEASURES#] 
 		<ul class='list-measures'>
