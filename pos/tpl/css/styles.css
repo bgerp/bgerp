@@ -400,20 +400,12 @@ div.scrollWrapper{
 	margin-top:15px;
 }
 
-.narrow .document .listRows table{
-	max-width:400px;
-}
-
 .report-info{
 	width:450px;
 }
 
 .narrow .report-info{
 	width:380px;
-}
-
-.narrow .document{
-	max-width:400px;
 }
 
 .document .listTable tr td:last-child{
