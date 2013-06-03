@@ -516,7 +516,7 @@ class techno_Specifications extends core_Master {
      */
     public static function getProductInfo($productId, $packagingId = NULL)
     {
-    	$rec = $this->fetch($productId);
+    	$rec = static::fetch($productId);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getProductInfo($rec->data, $packagingId);
     }
