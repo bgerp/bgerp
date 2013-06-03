@@ -222,7 +222,8 @@ class techno_Specifications extends core_Master {
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-
+		$row->recTitle = $rec->title;
+		
         return $row;
     }
     

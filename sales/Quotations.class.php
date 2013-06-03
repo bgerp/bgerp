@@ -290,6 +290,7 @@ class sales_Quotations extends core_Master
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
+        $row->recTitle = $row->title;
 
         return $row;
     }

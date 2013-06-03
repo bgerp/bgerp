@@ -283,12 +283,14 @@ class survey_Surveys extends core_Master {
     function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
-        $row = new stdClass();
-        $row->title = $rec->title;
+    	$title = $this->recToverbal($rec, 'title')->title;
+    	$row = new stdClass();
+        $row->title = $this->singleTitle . ' "' . $title . '"';
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-
+		$row->recTitle = $rec->title;
+		
         return $row;
     }
     

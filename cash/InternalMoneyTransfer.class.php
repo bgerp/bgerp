@@ -420,7 +420,8 @@ class cash_InternalMoneyTransfer extends core_Master
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-
+		$row->recTitle = $rec->reason;
+		
         return $row;
     }
 }
