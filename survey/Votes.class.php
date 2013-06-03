@@ -78,7 +78,7 @@ class survey_Votes extends core_Manager {
     {
     	//Намираме на кой въпрос, кой отговор е избран
     	expect($alternativeId = Request::get('alternativeId', 'int'));
-    	expect($rowId = Request::get('id', 'int'));
+    	expect($rowId = Request::get('rowId'), 'int');
     	
     	// Подготвяме записа
     	$rec = new stdClass();
