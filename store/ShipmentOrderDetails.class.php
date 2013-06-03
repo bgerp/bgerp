@@ -119,7 +119,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика,silent,input=none');
         
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
+        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         
@@ -387,7 +387,8 @@ class store_ShipmentOrderDetails extends core_Detail
         $options = array();
         
         foreach ($products as $p) {
-            $options[$p->productId] = cat_Products::getTitleById($p->productId);
+            $ProductManager = self::getProductManager($p->policyId);
+            $options[$p->productId] = $ProductManager->getTitleById($p->productId);
         }
         
         $data->form->setOptions('productId', $options);
@@ -414,7 +415,7 @@ class store_ShipmentOrderDetails extends core_Detail
             $exactProduct  = NULL;
             
             foreach ($availProducts as $p) {
-                if ($p->productId == $rec->productId) {
+                if ($p->productId == $rec->productId && $p->policyId == $rec->policyId) {
                     $shipmentProduct = $p;
                     if ($p->packagingId == $rec->packagingId) {
                         $exactProduct = $p;
@@ -448,5 +449,27 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $ProductManager = self::getProductManager($rec->policyId);
+        
+        $row->productId = $ProductManager->getTitleById($rec->productId);
+    }
+    
+
+
+    /**
+     * Връща продуктовия мениджър на зададена ценова политика
+     *
+     * @param int|string|object $Policy
+     * @return core_Manager
+     */
+    protected static function getProductManager($Policy)
+    {
+        if (is_scalar($Policy)) {
+            $Policy = cls::get($Policy);
+        }
+    
+        $ProductManager = $Policy->getProductMan();
+    
+        return $ProductManager;
     }
 }
