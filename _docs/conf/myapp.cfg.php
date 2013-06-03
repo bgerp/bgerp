@@ -91,3 +91,7 @@ DEFINE('EF_USERS_HASH_FACTOR', 0);
 // Твърдо, фиксирано име на екшън (контролерна функция). 
 // Ако се укаже, от URL-то се изпускат екшъните.
  # DEFINE('EF_ACT_NAME', 'FIXED_CONTROLER');
+ 
+ // Дефинира се ако има нужда да се достъпват прокачени файлове през друг домейн 
+ # DEFINE('BGERP_ABSOLUTE_HTTP_HOST', 'experta2.local');
+

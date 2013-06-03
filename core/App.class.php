@@ -740,7 +740,9 @@ class core_App
             
             $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
             
-            $boot = $protocol . "://" . $_SERVER['HTTP_HOST'] . $dirName;
+            defIfNot('BGERP_ABSOLUTE_HTTP_HOST', $_SERVER['HTTP_HOST']);
+            
+            $boot = $protocol . "://" . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
         } else {
 
             $scriptName = $_SERVER['SCRIPT_NAME'];
