@@ -43,7 +43,10 @@ class techno_GeneralProducts extends core_Manager {
     /*
      * РЕАЛИЗАЦИЯ НА techno_ProductsIntf
      */
-    
+    function description()
+    {
+    	
+    }
     
     /**
      * Връща форма, с която могат да се въвеждат параметри на
@@ -130,7 +133,7 @@ class techno_GeneralProducts extends core_Manager {
     public function getVerbal($data, $short = FALSE)
     {
         expect($data = unserialize($data));
-        $row = new stdClass();
+        $row = $this->toVerbal($data);
         
         // Спрямо $short взимаме шаблона за кратко или дълго представяне
     	if($short){
@@ -149,13 +152,6 @@ class techno_GeneralProducts extends core_Manager {
     		}
     	}
     	
-        // Преобразуваме записа във вербален вид
-        $fields = $this->getEditForm()->selectFields("");
-    	foreach($fields as $name => $fld){
-    		if($name == 'image') continue;
-    		$row->$name = $fld->type->toVerbal($data->$name);
-    	}
-    	
         $tpl = getTplFromFile($layout);
         $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
         $tpl->placeObject($row);
@@ -165,35 +161,57 @@ class techno_GeneralProducts extends core_Manager {
     
     
     /**
-     * @TODO
-     * @param unknown_type $productId
-     * @param unknown_type $packagingId
+     * Помощна функция за привеждането на записа в вербален вид
+     * @param stdClass $data - не сериализирания запис
+     * @return stdClass $row - вербалното представяне на данните
      */
-    public function getProductInfo($data, $packagingId = NULL)
+    private function toVerbal($data)
     {
-    	if($data){
-    		$data = unserialize($data);
-	    	
-	    	$res = new stdClass();
-	    	$res->productRec = $data;
-	    	if(!$packagingId) {
-	    		$res->packagings = array();
-	    	} else {
-	    		return NULL;
-	    	}
-	    	
-	    	return $res;
+    	// Преобразуваме записа във вербален вид
+    	$row = new stdClass();
+        $fields = $this->getEditForm()->selectFields("");
+    	foreach($fields as $name => $fld){
+    		if($name == 'image') continue;
+    		if(is_numeric($data->$name)){
+    			$amount = floatval($data->$name);
+    			$parts = explode('.', $amount);
+    			$fld->type->params['decimals'] = count($parts[1]);
+    			$row->$name = $data->$name;
+    		}
+    		$row->$name = $fld->type->toVerbal($data->$name);
     	}
+    	return $row;
     }
     
     
     /**
-     * 
-     * @TODO
-     * @param unknown_type $id
-     * @param unknown_type $date
+     * Информация за продукта
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
      */
-    public function getVat($data, $date = NULL){
+    public function getProductInfo($data, $packagingId = NULL)
+    {
+    	expect($data);
+    	$data = unserialize($data);
+	    $res = new stdClass();
+	    $res->productRec = $data;
+	    if(!$packagingId) {
+	    	$res->packagings = array();
+	    } else {
+	    	return NULL;
+	    }
+	    	
+	    return $res;
+    }
+    
+    
+    /**
+     * Връща ддс-то на продукта
+     * @param int $id - ид на продукт
+     * @param datetime $date - към дата
+     */
+    public function getVat($data, $date = NULL)
+    {
     	if(empty($data)) return NULL;
     	
     	$data = unserialize($data);

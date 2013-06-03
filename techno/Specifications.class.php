@@ -19,7 +19,7 @@ class techno_Specifications extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, acc_RegisterIntf';
+    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, acc_RegisterIntf, cat_ProductAccRegIntf';
     
     
     /**
@@ -378,8 +378,7 @@ class techno_Specifications extends core_Master {
         if($rec->data){
         	
         	// При вече въведени характеристики, слагаме ги за дефолт
-        	$data = unserialize($rec->data);
-        	$form->rec = $data;
+        	$form->rec = unserialize($rec->data);
         }
         
         $form->title = "Характеристики на ". $this->getTitleById($rec->id);

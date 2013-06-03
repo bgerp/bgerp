@@ -48,6 +48,7 @@ class techno_Setup
     {
         $managers = array(
         	'techno_Specifications',
+        	'techno_GeneralProducts',
         );
         
         // Роля за power-user на този модул
