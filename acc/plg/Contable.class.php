@@ -224,9 +224,12 @@ class acc_plg_Contable extends core_Plugin
             if ($rec->correctionDocId) {
                 $requiredRoles = 'no_one';
             }
-            /*
-             * @TODO 
-             */
+
+            // Ако документа не генерира валидна и непразна транзакция - не може да му се прави
+            // корекция
+            if (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE || $transaction->isEmpty()) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
 
