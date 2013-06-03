@@ -40,13 +40,36 @@ class techno_GeneralProducts extends core_Manager {
     var $singleLayoutFile = 'techno/tpl/SingleLayoutGeneralProducts.shtml';
     
     
-    /*
-     * РЕАЛИЗАЦИЯ НА techno_ProductsIntf
+     /**
+     * Кой може да го прочете?
+     */
+    var $canRead = 'no_one';
+    
+    
+    /**
+     * Кой може да променя?
+     */
+    var $canWrite = 'no_one';
+    
+    
+    /**
+     * Кой може да променя?
+     */
+    var $canAdd = 'no_one';
+    
+    
+    /**
+     * Описание на модела
      */
     function description()
     {
-    	
     }
+    
+    
+    /*
+     * РЕАЛИЗАЦИЯ НА techno_ProductsIntf
+     */
+    
     
     /**
      * Връща форма, с която могат да се въвеждат параметри на
