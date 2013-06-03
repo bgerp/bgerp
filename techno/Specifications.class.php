@@ -127,7 +127,7 @@ class techno_Specifications extends core_Master {
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = '35';
+    var $listItemsPerPage = '40';
     
     
     /**
@@ -147,9 +147,9 @@ class techno_Specifications extends core_Master {
 		$this->FLD('quantity1', 'int', 'caption=Ценови преглед->К-во 1,mandatory,width=4em');
     	$this->FLD('quantity2', 'int', 'caption=Ценови преглед->К-во 2,width=4em');
     	$this->FLD('quantity3', 'int', 'caption=Ценови преглед->К-во 3,width=4em');
+    	$this->FLD('contragentName', 'varchar(136)', 'caption=Контрагент,input=hidden');
 		$this->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)');
-		$this->FLD('contragentName', 'varchar(136)', 'caption=Контрагент,input=hidden');
-    	$this->FNC('measureId', 'key(mvc=cat_UoM, select=name)');
+		$this->FNC('measureId', 'key(mvc=cat_UoM, select=name)');
     }
     
     
@@ -340,7 +340,7 @@ class techno_Specifications extends core_Master {
     {
         if($data->form && $data->form->isSubmitted()) {
         	$rec = $data->form->rec;
-        	$url = array($mvc, 'Ajust', 'id' => $rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
+        	$url = array($mvc, 'Ajust', $rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
             $data->retUrl = $url;
         }
     }
@@ -353,7 +353,7 @@ class techno_Specifications extends core_Master {
     function act_Ajust()
     {
     	$this->requireRightFor('add');
-    	expect($id = Request::get('id'));
+    	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'draft');
         
@@ -463,9 +463,9 @@ class techno_Specifications extends core_Master {
      * $rec->price  - цена
      * $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    public function getPriceInfo($customerClass, $customerId, $id, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
-    	$rec = $this->fetch($productId);
+    	$rec = $this->fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getPrice($rec->data, $packagingId, $quantity, $datetime);
     }
@@ -508,15 +508,15 @@ class techno_Specifications extends core_Master {
     
     /**
      * Метод връщаш информация за продукта и неговите опаковки
-     * @param int $productId - Ид на продукта
+     * @param int $id - Ид на продукта
      * @param int $packagingId - Ид на опаковката, по дефолт NULL
      * @return stdClass $res - Обект с информация за продукта
      * и опаковките му ако $packagingId не е зададено, иначе връща
      * информацията за подадената опаковка
      */
-    public static function getProductInfo($productId, $packagingId = NULL)
+    public static function getProductInfo($id, $packagingId = NULL)
     {
-    	$rec = static::fetch($productId);
+    	$rec = static::fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getProductInfo($rec->data, $packagingId);
     }
