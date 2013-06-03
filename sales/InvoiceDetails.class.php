@@ -143,7 +143,7 @@ class sales_InvoiceDetails extends core_Detail
             $rec = &$form->rec;
             $Policy = cls::get($rec->policyId);
             $productMan = $Policy->getProductMan();
-            if(!$pInfo = $productMan->getProductInfo($rec->productId, $rec->packagingId)){
+            if(!$pInfo = $productMan::getProductInfo($rec->productId, $rec->packagingId)){
           	   $form->setError('packagingId', 'Продукта не се предлага в посочената опаковка');
           	   return;
             }
@@ -181,7 +181,7 @@ class sales_InvoiceDetails extends core_Detail
     {
     	$Policy = cls::get($rec->policyId);
         $productMan = $Policy->getProductMan();
-        $row->productId = $productMan->getTitleById($rec->productId);
+        $row->productId = $productMan::getTitleById($rec->productId);
         
     	if($rec->note){
     		$varchar = cls::get('type_Varchar');

@@ -48,7 +48,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools';
+    public $loadList = 'plg_RowTools, plg_AlignDecimals';
     
     
     /**
@@ -89,8 +89,6 @@ class sales_QuotationsDetails extends core_Detail {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$masterRec = $data->masterData->rec;
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
     	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
     	
     	if($recs){
@@ -361,15 +359,10 @@ class sales_QuotationsDetails extends core_Detail {
         $double = cls::get('type_Double');
     	if(!$rec->quantity){
     		$row->quantity = '???';
-    	} else {
-    		$quantity = floatval($rec->quantity);
-    		$parts = explode('.', $quantity);
-    		$double->params['decimals'] = count($parts[1]);
-    		$row->quantity = $double->toVerbal($rec->quantity);
     	}
     	
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
-    	$uomId = $productMan::fetchField($rec->productId, 'measureId');
+    	$uomId = $productMan->fetchField($rec->productId, 'measureId');
     	$uomTitle = cat_UoM::recToVerbal($uomId, 'shortName')->shortName;
     	
     	$row->quantity = "<b>{$row->quantity}</b> {$uomTitle}";
