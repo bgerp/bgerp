@@ -134,6 +134,13 @@ class archive_Adapter
             return $entriesArr[$entry];
         }
         
+        // Обхождаме масива
+        foreach ($entriesArr as $e) {
+            
+            // Минаваме пътя през изчисване на името
+            $e->path = i18n_Charset::convertToUtf8($e->path);
+        }
+        
         // Връщаме целия маси
         return $entriesArr;
     }
@@ -170,8 +177,13 @@ class archive_Adapter
             expect(FALSE, 'Не може да се определи пътя до файла.');
         }
         
+        // Вземаме манипулатора на файла
+        $fh = $this->absorbFile($path);
         
-        return $this->absorbFile($path);
+        // Очакваме да има манипулатор
+        expect($fh, 'Не може да се вземе файла');
+        
+        return $fh;
     }
 
 
