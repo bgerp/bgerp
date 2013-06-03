@@ -25,7 +25,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering';
+    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**
@@ -77,7 +77,7 @@ class sales_InvoiceDetails extends core_Detail
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт');
-        $this->FLD('quantity', 'double(decimals=4)', 'caption=К-во,mandatory');
+        $this->FLD('quantity', 'double', 'caption=К-во,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         $this->FLD('quantityInPack', 'double', 'input=none,column=none');
@@ -143,7 +143,7 @@ class sales_InvoiceDetails extends core_Detail
             $rec = &$form->rec;
             $Policy = cls::get($rec->policyId);
             $productMan = $Policy->getProductMan();
-            if(!$pInfo = $productMan::getProductInfo($rec->productId, $rec->packagingId)){
+            if(!$pInfo = $productMan->getProductInfo($rec->productId, $rec->packagingId)){
           	   $form->setError('packagingId', 'Продукта не се предлага в посочената опаковка');
           	   return;
             }
@@ -181,33 +181,23 @@ class sales_InvoiceDetails extends core_Detail
     {
     	$Policy = cls::get($rec->policyId);
         $productMan = $Policy->getProductMan();
-        $row->productId = $productMan::getTitleById($rec->productId);
+        $row->productId = $productMan->getTitleById($rec->productId);
         
-    	$double = cls::get('type_Double');
-    	$quantity = floatval($rec->quantity);
-    	$parts = explode('.', $quantity);
-    	$double->params['decimals'] = count($parts[1]);
-    	$row->quantity = $double->toVerbal($quantity);
-    	
     	if($rec->note){
     		$varchar = cls::get('type_Varchar');
 	    	$row->note = $varchar->toVerbal($rec->note);
 	    	$row->productId .= "<br/><small style='color:#555;'>{$row->note}</small>";
     	}
     	
-    	$productRec = $productMan::fetch($rec->productId);
+    	$productRec = $productMan->fetch($rec->productId);
     	if($rec->packagingId){
-    		$quantityInPack = floatval($rec->quantityInPack);
-    		$parts = explode('.', $quantityInPack);
-    		$double->params['decimals'] = count($parts[1]);
-    		$row->quantityInPack = $double->toVerbal($rec->quantityInPack);
     		$measureShort = cat_UoM::fetchField($productRec->measureId, 'shortName');
     		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
     	} else {
-    		$row->packagingId = $productMan::getVerbal($productRec, 'measureId');
+    		$row->packagingId = $productMan->getVerbal($productRec, 'measureId');
     	}
     	
-    	
+    	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	$masterRec = $mvc->Master->fetch($rec->invoiceId);
     	
