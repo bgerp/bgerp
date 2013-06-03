@@ -314,7 +314,7 @@ class acc_plg_Contable extends core_Plugin
             $rec = $mvc->fetchRec($rec);
             
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
-            $transaction       = $transactionSource->getTransaction($rec);
+            $transaction       = $transactionSource->getTransaction($rec->id);
             
             expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
             
@@ -329,7 +329,7 @@ class acc_plg_Contable extends core_Plugin
                 expect($origRef = doc_Containers::getDocument($rec->originId));
                 
                 // Генерираме транзакцията на коригирания (т.е. оригиналния) документ
-                $origTransaction = $transactionSource->getTransaction($origRef->rec());
+                $origTransaction = $transactionSource->getTransaction($origRef->id());
                 $origTransaction = new acc_journal_Transaction($origTransaction);
 
                 // Обръщаме оригиналната транзакция
