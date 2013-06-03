@@ -325,7 +325,7 @@ class Archive_7z
      */
     public function getEntries()
     {
-        $cmd = $this->getCmdPrefix() . ' l ' . escapeshellarg($this->filename) . ' -slt ' . $this->getCmdPostfix();
+        $cmd = "LANG=en_US.UTF-8 " . $this->getCmdPrefix() . ' l ' . escapeshellarg($this->filename) . ' -slt ' . $this->getCmdPostfix();
 
         exec($cmd, $out, $rv);
 
