@@ -1020,7 +1020,9 @@ class sales_Sales extends core_Master
         while ($rec = $query->fetch()) {
             if ($saleRec->chargeVat == 'yes') {
                 // Начисляваме ДДС
-                $rec->price *= 1 + cat_Products::getVat($rec->productId, $saleRec->valior);
+                $Policy = cls::get($rec->policyId);
+                $ProductManager = $Policy->getProductMan();
+                $rec->price *= 1 + $ProductManager->getVat($rec->productId, $saleRec->valior);
             } 
             $products[] = (object)array(
                 'policyId'  => $rec->policyId,
