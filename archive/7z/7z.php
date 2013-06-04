@@ -265,7 +265,7 @@ class Archive_7z
      */
     public function extract()
     {
-        $cmd = $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' ' . escapeshellcmd(
+        $cmd = "LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 " . $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' ' . escapeshellcmd(
             $this->overwriteMode
         ) . ' -o' . escapeshellarg($this->outputDirectory) . ' ' . $this->getCmdPostfix();
 
@@ -284,7 +284,7 @@ class Archive_7z
      */
     public function extractEntry($file)
     {
-        $cmd = $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' ' . escapeshellcmd(
+        $cmd = "LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 " . $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' ' . escapeshellcmd(
             $this->overwriteMode
         ) . ' -o' . escapeshellarg($this->outputDirectory) . ' ' . $this->getCmdPostfix() . ' ' . escapeshellarg(
             $file
@@ -306,7 +306,7 @@ class Archive_7z
      */
     public function getContent($file)
     {
-        $cmd = $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' -so ' . escapeshellarg($file) . ' '
+        $cmd = "LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 " . $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' -so ' . escapeshellarg($file) . ' '
             . $this->getCmdPostfix();
 
         $out = shell_exec($cmd);
@@ -325,7 +325,7 @@ class Archive_7z
      */
     public function getEntries()
     {
-        $cmd = "LANG=en_US.UTF-8 " . $this->getCmdPrefix() . ' l ' . escapeshellarg($this->filename) . ' -slt ' . $this->getCmdPostfix();
+        $cmd = "LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 " . $this->getCmdPrefix() . ' l ' . escapeshellarg($this->filename) . ' -slt ' . $this->getCmdPostfix();
 
         exec($cmd, $out, $rv);
 
