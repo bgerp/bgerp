@@ -25,36 +25,31 @@
 		<tr>
 			<td>[#quantity1#]</td>
 			<td align='right'>
-			[#price1#]
-			</td>
+			[#price1#]<br />
 			<!--ET_BEGIN discount1-->
-			<td align='right'>
-			<span style = 'color:green'>ТО: [#discount1#]</span>
-			</td>
+			<span style = 'color:green;font-size:12px;'>ТО: [#discount1#]</span>
 			<!--ET_END discount1-->
+			</td>
 		</tr>
 		<!--ET_BEGIN quantity2-->
 		<tr>
 			<td>[#quantity2#]</td>
-			<td align='right'>[#price2#]
-			</td>
+			<td align='right'>[#price2#]<br />
 			<!--ET_BEGIN discount2-->
-			<td align='right'>
-			<span style='color:green'>ТО: [#discount2#]</span>
-			</td>
+			<span style = 'color:green;font-size:12px;'>ТО: [#discount2#]</span>
 			<!--ET_END discount2-->
+			</td>
+			
 		</tr>
 		<!--ET_END quantity2-->
 		<!--ET_BEGIN quantity3-->
 		<tr>
 			<td>[#quantity3#]</td>
-			<td align='right'>[#price3#]
-			</td>
+			<td align='right'>[#price3#]<br />
 			<!--ET_BEGIN discount3-->
-			<td align='right'>
-			<span style='color:green'>ТО: [#discount3#]</span>
-			</td>
+			<span style = 'color:green;font-size:12px;'>ТО: [#discount3#]</span>
 			<!--ET_END discount3-->
+			</td>
 		</tr>
 		<!--ET_END quantity3-->
 	</table>

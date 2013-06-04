@@ -410,7 +410,8 @@ class sales_QuotationsDetails extends core_Detail {
     public function insertFromSpecification($rec, core_ObjectReference $origin)
     {
     	$originRec = $origin->fetch();
-    	$quantities = array($originRec->quantity1, $originRec->quantity2, $originRec->quantity3);
+    	$originData = unserialize($originRec->data);
+    	$quantities = array($originData->quantity1, $originData->quantity2, $originData->quantity3);
     	$policyId = techno_Specifications::getClassId();
     	$Policy = cls::get($policyId);
     	foreach ($quantities as $q){

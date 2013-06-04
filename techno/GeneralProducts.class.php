@@ -25,7 +25,7 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Нестандартни продукти";
+    var $title = "Универсален драйвър";
     
     
     /**
@@ -80,26 +80,35 @@ class techno_GeneralProducts extends core_Manager {
     public function getEditForm()
     {
     	$form = cls::get('core_Form');
-    	$form->FNC('title', 'varchar(184)', 'caption=Описание,input=hidden');
-    	$form->FNC('description', 'richtext(rows=5)', 'caption=Описание,input,mandatory');
+    	$form->FNC('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%,input');
+    	$form->FNC('description', 'richtext(rows=5)', 'caption=Описание,input,mandatory,width=100%');
 		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input');
     	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. цена,width=8em,mandatory,input,unit=без ддс');
 		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
     	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,unit=%');
-		$form->FNC('vat', 'percent(decimals=2)', 'caption=Цени->ДДС,width=8em,input,unit=%');
-    	$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
-		$form->FNC('height', 'double(decimals=2)', 'caption=Параметри->Височина,width=8em,input');
-		$form->FNC('width', 'double(decimals=2)', 'caption=Параметри->Ширина,width=8em,input');
-		$form->FNC('weight', 'double(decimals=2)', 'caption=Параметри->Тегло,width=8em,input');
-		$form->FNC('thickness', 'double(decimals=2)', 'caption=Параметри->Дебелина,width=8em,input');
-		$form->FNC('volume', 'double(decimals=2)', 'caption=Параметри->Обем,width=8em,input');
-		$form->FNC('length', 'double(decimals=2)', 'caption=Параметри->Дължина,width=8em,input');
-		$form->FNC('material', 'varchar(150)', 'caption=Други->Материал,width=8em,input');
-		$form->FNC('color', 'varchar(150)', 'caption=Други->Цвят,width=8em,input');
-		$form->FNC('code', 'varchar(64)', 'caption=Други->Код,remember=info,width=15em,input');
-        $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Други->EAN,width=15em,input');
+		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
+		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
+        $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
+        $form->FNC('quantity1', 'int', 'caption=Ценови преглед->К-во 1,mandatory,width=4em,input');
+    	$form->FNC('quantity2', 'int', 'caption=Ценови преглед->К-во 2,width=4em,input');
+    	$form->FNC('quantity3', 'int', 'caption=Ценови преглед->К-во 3,width=4em,input');
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
+        $form->setDefault('quantity1', '1');
         
+        return $form;
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     */
+    public function getAddParamForm()
+    {
+    	$form = cls::get('core_Form');
+    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory');
+        $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
+    	
         return $form;
     }
     
@@ -126,7 +135,9 @@ class techno_GeneralProducts extends core_Manager {
     public function getPrice($data, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
     	if($data){
-    		$data = unserialize($data);
+    		if(is_string($data)){
+    			$data = unserialize($data);
+    		}
     		
     		if($data->price){
     			$price = new stdClass();
@@ -158,30 +169,56 @@ class techno_GeneralProducts extends core_Manager {
         expect($data = unserialize($data));
         $row = $this->toVerbal($data);
         
-        // Спрямо $short взимаме шаблона за кратко или дълго представяне
-    	if($short){
-    		$layout = $this->singleShortLayoutFile;
-    		$size = array(130, 130);
+        if($short){
     		if($data->image){
+    				$size = array(130, 130);
     			$file = fileman_Files::fetchByFh($data->image);
     			$row->image = thumbnail_Thumbnail::getImg($file->fileHnd, $size);
     		}
     	} else {
-    		$layout = $this->singleLayoutFile;
-    		$size = array(200, 350);
     		if($data->image){
+    			$size = array(200, 350);
 	    		$Fancybox = cls::get('fancybox_Fancybox');
 				$row->image = $Fancybox->getImage($data->image, $size, array(550, 550));
     		}
+    		$img = sbf('img/16/add.png');
+    		if(techno_Specifications::haveRightFor('edit', $data->specificationId)){
+    			$addUrl = array('techno_Specifications', 'configure', $data->specificationId, 'ret_url' => TRUE);
+	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams')); 
+    		}
+	    }
+    	
+    	$tpl = $this->getTpl($row, $data->params, $short);
+    	if($addBtn){
+    		$tpl->replace($addBtn, 'addBtn');
     	}
     	
-        $tpl = getTplFromFile($layout);
         $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
-        $tpl->placeObject($row);
-        
         return $tpl;
     }
     
+    
+    /**
+     */
+    private function getTpl($row, $params = array(), $short)
+    {
+    	$tpl = (!$short) ? getTplFromFile($this->singleLayoutFile) : getTplFromFile($this->singleShortLayoutFile);
+    	if(count($row->params)){
+    		$paramBlock = $tpl->getBlock('PARAMS');
+    		foreach($row->params as $id => $arr){
+    			$blockCl = clone($paramBlock);
+    			$blockCl->replace($arr['paramId'], 'paramId');
+    			$blockCl->replace($arr['paramValue'], 'paramValue');
+    			$blockCl->replace($arr['tools'], 'tools');
+    			$blockCl->removeBlocks();
+    			$tpl->append($blockCl, 'PARAMS');
+    		}
+    	}
+    	
+    	$tpl->placeObject($row);
+    	
+    	return $tpl;
+    }
     
     /**
      * Помощна функция за привеждането на записа в вербален вид
@@ -195,15 +232,42 @@ class techno_GeneralProducts extends core_Manager {
         $fields = $this->getEditForm()->selectFields("");
     	foreach($fields as $name => $fld){
     		if($name == 'image') continue;
-    		if(is_numeric($data->$name)){
-    			$amount = floatval($data->$name);
-    			$parts = explode('.', $amount);
-    			$fld->type->params['decimals'] = count($parts[1]);
-    			$row->$name = $data->$name;
-    		}
     		$row->$name = $fld->type->toVerbal($data->$name);
     	}
+    	
+    	if($data->params){
+    		$fields = $this->getAddParamForm()->selectFields("");
+    		foreach($data->params as $paramId => $value){
+    			$arr['paramId'] = $fields['paramId']->type->toVerbal($paramId);
+    			$arr['paramValue'] = $fields['paramValue']->type->toVerbal($value);
+    			$suffix = $fields['paramValue']->type->toVerbal(cat_Params::fetchField($paramId, 'suffix'));
+    			$arr['paramValue'] .= " &nbsp;{$suffix}";
+    			$arr['tools'] = $this->getParamTools($paramId, $data->specificationId);
+        		$row->params[$paramId] = $arr;
+    		}
+    	}
     	return $row;
+    }
+    
+    
+    /**
+     * 
+     * @param unknown_type $paramId
+     * @param unknown_type $specificationId
+     */
+    private function getParamTools($paramId, $specificationId)
+    {
+    	if(techno_Specifications::haveRightFor('edit', $specificationId)) {
+    		$editUrl = array('techno_Specifications', 'configure', $specificationId, 'edit' => $paramId,'ret_url' => TRUE);
+	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
+			$editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
+	        $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
+	        $deleteUrl = array('techno_Specifications', 'configure', $specificationId, 'delete' => $paramId,'ret_url' => TRUE);
+	        $deleteLink = ht::createLink($deleteImg, $deleteUrl,tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=del{$rec->id}");
+    		$tpl = new ET($editLink . " " . $deleteLink);
+    	}
+    	
+        return $tpl;
     }
     
     
@@ -236,12 +300,66 @@ class techno_GeneralProducts extends core_Manager {
     public function getVat($data, $date = NULL)
     {
     	if(empty($data)) return NULL;
+    	if(is_string($data)){
+    		$data = unserialize($data);
+    	}
     	
-    	$data = unserialize($data);
-    	if($data->vat) return $data->vat;
+    	$vatId = cat_Params::fetchIdBySysId('vat');
+    	if($vat = $data->params[$vatId]){
+    		return $vat;
+    	}
     	
     	// Връщаме ДДС-то от периода
     	$period = acc_Periods::fetchByDate($date);
     	return $period->vatRate;
     }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $data
+     */
+    public function preparePricePreview($data)
+    {
+    	$double = cls::get('type_Double');
+	    $double->params['decimals'] = 2;
+	    $int = cls::get('type_Int');
+	    
+	    $row = new stdClass();	
+    	$data = unserialize($data);
+    	$shortMeasureId = cat_UoM::fetchField($data->measureId, 'shortName');
+    	$vat = $this->getVat($data);
+    	
+    	foreach(range(1,3) as $num){
+		    $quantity = "quantity{$num}";
+			 $priceFld = "price{$num}";
+			 $discountFld = "discount{$num}";
+		     if($data->$quantity){
+		    	$priceRec = $this->getPrice($data, NULL, $data->$quantity);
+			    $priceRec->price = currency_CurrencyRates::convertAmount($priceRec->price, NULL, NULL, $data->currencyId);
+			    $price = $priceRec->price + ($priceRec->price * $vat);
+			    $price = $data->$quantity * $price;
+			    $row->$quantity = $int->toVerbal($data->$quantity);
+			    $row->$discountFld = $double->toVerbal($price - ($price * $priceRec->discount));
+			    $row->$priceFld = $double->toVerbal($price);
+			    $row->$discountFld .= " &nbsp;<span class='cCode'>{$data->currencyId}</span>";
+			    $row->$priceFld .= " &nbsp;<span class='cCode'>{$data->currencyId}</span>";
+			    $row->$quantity .= " {$shortMeasureId}";
+		    }
+		}
+		    
+		return $row;
+    }
+    
+    /*
+    public function addParam(&$data, $fRec)
+    {
+    	$data->params[$fRec->paramId] = $fRec->paramValue;
+    }
+    
+	public function deleteParam(&$data, $paramId)
+    {
+    	unset($data->params[$paramId]);
+    }*/
 }
