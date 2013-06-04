@@ -159,8 +159,8 @@ class crm_Groups extends core_Master
         
         if($fields['-list']){
 		    $row->content = '<div>';
-		    $row->content .= "<span style='font-size:14px;'>Брой фирми:</span> ". $row->companiesCnt;
-	        $row->content .= ", <span style='font-size:14px;'>Брой лица:</span> ".  $row->personsCnt;
+		    $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> ". $row->companiesCnt;
+	        $row->content .= ", <span style='font-size:14px;'>" . tr("Брой лица") . ":</span> ".  $row->personsCnt;
 	        $row->content .= '</div>';
         }
     }
