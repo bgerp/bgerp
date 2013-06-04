@@ -1110,13 +1110,13 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3,
 .state-rejected .richtext, .state-rejected .richtext a, , .state-rejected .richtext div, .state-rejected .cCode ,.state-rejected .antetka,
-.state-rejected ul, .state-rejected ol, .state-rejected b, .state-rejected p
+.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document b
 {
 	color:#999 !important;
 	text-decoration:line-through !important;
 }
 
-.state-rejected img{
+.state-rejected .document img{
 	opacity:0.5;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
 }
