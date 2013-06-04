@@ -673,7 +673,7 @@ class expert_Expert extends core_FieldSet {
     function getResult()
     {
         
-        $debug = "<hr style='margin-top:10px;'><small><a href='#' onclick=\"toggleDisplay('expDebug');\">Дебъг</a><div id='expDebug' style='padding-left:15px; display:none;'>";
+        $debug = "<hr style='margin-top:10px;'><small><a href='#' onclick=\"toggleDisplay('expDebug');\">" . tr("Дебъг") . "</a><div id='expDebug' style='padding-left:15px; display:none;'>";
         
         if(count($this->reason)) {
             foreach($this->reason as $l) {
