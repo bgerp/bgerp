@@ -202,12 +202,50 @@ class support_Issues extends core_Master
         if ($rec->componentId) {
             
             // systemId на съответния компонент
-            $systemId = support_Components::fetchField($rec->componentId, 'systemId');    
+            $systemId = support_Components::fetchField($rec->componentId, 'systemId');   
             
             $rec->systemIdShow = $systemId;
+        } elseif ($rec->folderId) {
+            
+            // Вземаме ковъра на папката
+            $cover = doc_Folders::getCover($rec->folderId);
+            
+            // Ако ковъра е support_Systems
+            if ($cover->className == 'support_Systems') {
+                
+                // Използваме id' то
+                $rec->systemIdShow = $cover->that;
+            }
         }
     }
-
+    
+    
+    /**
+     * 
+     */
+    function on_AfterPrepareListRows($mvc, $res, $data) {
+        
+        // Обхождаме записите
+        foreach ((array)$data->recs as $key => $rec) {
+            
+            // Ако има id на система
+            if ($rec->systemIdShow) {
+                
+                // Вземаме id' то на папката
+                $folderId = support_Systems::forceCoverAndFolder($rec->systemIdShow);
+                
+                // Ако нямамем права за папката, прескачаме
+                if (!doc_Folders::haveRightFor('single', $folderId)) continue;
+                
+                // Линк към папката
+                $folderLink = ht::createLink($data->rows[$key]->systemIdShow, array('doc_Threads', 'list', 'folderId' => $folderId));
+                
+                // Заместваме името на системата с линк към папката
+                $data->rows[$key]->systemIdShow = $folderLink;
+            }
+        }
+    }
+    
     
 	/**
      * Реализация  на интерфейсния метод ::getThreadState()
