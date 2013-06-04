@@ -18,6 +18,10 @@
 	font-family: impact;
 }
 
+.state-rejected .quote-title{
+	color:#999;	
+}
+
 .title-info {
 	margin:0 !important;
 }
