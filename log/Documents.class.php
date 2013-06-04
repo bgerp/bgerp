@@ -1767,6 +1767,7 @@ class log_Documents extends core_Manager
             if (isset($wordings[$action])) {
                 $actionVerbal = $wordings[$action][intval($count > 1)];
             }
+            $actionVerbal = tr($actionVerbal);
             $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
 	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr);
             
