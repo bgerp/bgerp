@@ -302,6 +302,7 @@ class i18n_Charset extends core_MVC {
         'CP1252_REP_UTF8' => 'all',
         'CP1251_REP_UTF8' => 'all',
         'ISO-8859-1_REP_UTF8' => 'all',
+        'CP819|866' => 'all',
     );
 
     static $cyrillicAlphabet = 'А Б В Г Д Е Ж З И Й К Л М Н О П Р С Т У Ф Х Ц Ч Ш Щ ѝ Ъ Ю Я а б в г д е ж з и й к л м н о п р с т у ф х ц ч ш щ ь ъ ю я';
@@ -460,10 +461,8 @@ class i18n_Charset extends core_MVC {
                     continue;
                 }
 
-
                 $debug = $sample . ' ';
                 $rates[$cs] = self::rateScript($sample, 'all', $debug);
-                
                    
                 $resDebug[$cs] = $debug;
             }
@@ -888,6 +887,9 @@ class i18n_Charset extends core_MVC {
         if($fromCharset == 'ISO-8859-1|CP1251') {
             $str = iconv('UTF-8', 'ISO-8859-1' . $mode, $str);
             $str = iconv('CP1251', 'UTF-8' . $mode, $str);
+        } elseif($fromCharset == 'CP819|866') { 
+            $str = iconv('UTF-8', 'CP819' . $mode, $str); 
+            $str = iconv('866', 'UTF-8' . $mode, $str);  
         } elseif($fromCharset == 'MIK') {
             $str = self::iconvMik2Utf8($str, $mode);
         } elseif($fromCharset == 'HTML_ENTITIES') {
@@ -927,6 +929,9 @@ class i18n_Charset extends core_MVC {
         if($toCharset == 'ISO-8859-1|CP1251') {
             $str = iconv('UTF-8', 'CP1251' . $mode, $str);
             $str = iconv('ISO-8859-1', 'UTF-8' . $mode, $str);
+        } if($toCharset == 'CP819|866') { bp();
+            $str = iconv('UTF-8', '866' . $mode, $str);
+            $str = iconv('CP819', 'UTF-8' . $mode, $str);
         } elseif($toCharset == 'MIK') {
             $str = self::iconvUtf82Mik($str, $mode);
         } elseif($toCharset != 'DEFAULT' && $toCharset != 'UTF-8') {
