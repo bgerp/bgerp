@@ -19,7 +19,8 @@ class techno_Specifications extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, acc_RegisterIntf, cat_ProductAccRegIntf';
+    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, 
+        acc_RegisterIntf=techno_specifications_Register, cat_ProductAccRegIntf';
     
     
     /**

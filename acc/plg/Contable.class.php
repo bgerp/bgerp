@@ -218,6 +218,9 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         } elseif ($action == 'correction') {
+            if (!$rec) {
+                return;
+            }
             if ($rec->state == 'draft' || $rec->state == 'rejected') {
                 $requiredRoles = 'no_one';
             }
