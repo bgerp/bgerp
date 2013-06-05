@@ -78,8 +78,9 @@ class type_Key extends type_Int {
                     
                     $value = $mvc->fields[$field]->type->toVerbal($value);
                 } else { 
+                    $value = $mvc->getTitleById($value);
                     if ($this->params['transliterate']) {
-                        $value = transliterate($mvc->getTitleById($value));
+                        $value = transliterate($value);
                     }
                 }
             }
