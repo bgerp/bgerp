@@ -35,7 +35,7 @@ class google_plg_LgTranslate extends core_Plugin
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Ако текущия език е български, да не се показва
-        if (core_Lg::getCurrent() == 'bg') return ;
+        if ($data->form->rec->lg == 'bg') return ;
         
         // Ако не е обейт
         if (!is_object($data->form->tpl)) {
