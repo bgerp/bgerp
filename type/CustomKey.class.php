@@ -102,6 +102,11 @@ class type_CustomKey extends type_Key
             
             if (isset($titleField)) {
                 if ($rec = $this->fetchForeignRec($value)) {
+                    
+                    if ($this->params['transliterate']) {
+                        $rec->{$titleField} = transliterate($rec->{$titleField}); 
+                    }
+                    
                     $verbalValue = $mvc->getVerbal($rec, $titleField);
                 }
             } else {
@@ -110,6 +115,10 @@ class type_CustomKey extends type_Key
                 expect($keyField == 'id');
                 
                 $verbalValue = $mvc->getTitleById($value);
+                
+                if ($this->params['transliterate']) {
+                    $verbalValue = transliterate($verbalValue);
+                }
             }
         } else {
             // @TODO Какво да става ако не е зададен 'mvc' параметър на типа?
@@ -352,6 +361,10 @@ class type_CustomKey extends type_Key
                     
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
+                    if ($this->params['transliterate']) {
+                        $v = transliterate($v);
+                    }
+                    
                     $selOpt[trim($key)] = $v;
                 }
                 
@@ -373,6 +386,10 @@ class type_CustomKey extends type_Key
                     }
                     
                     return new Redirect(array($mvc, 'list'), tr($msg));
+                } else {
+                    if ($this->params['transliterate']) {
+                        $options = array_map('transliterate', (array)$options); 
+                    }
                 }
                 
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
