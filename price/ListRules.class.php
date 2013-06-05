@@ -467,15 +467,19 @@ class price_ListRules extends core_Detail
         if (($handle = fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 2000, ",")) !== FALSE) {
             	if($groupId = price_Groups::fetchField("#title = '{$csvRow[0]}'", 'id')){
-            		$rec = new stdClass();
-	        		$rec->listId = $conf->PRICE_LIST_CATALOG;
-	        		$rec->groupId = $groupId;
-	        		$rec->discount = $csvRow[2]; //Задаваме груповата наддценка в проценти
-	        		$rec->type = 'groupDiscount';
-	        		$rec->validFrom = dt::now();
-        		
-        			static::save($rec);
-        			$inserted++;
+            		
+            		if(!$gRec = static::fetch("#discount = '$csvRow[2]' AND #listId = {$conf->PRICE_LIST_CATALOG} AND #groupId = {$groupId}")){
+            			$rec = new stdClass();
+		        		$rec->listId = $conf->PRICE_LIST_CATALOG;
+		        		$rec->groupId = $groupId;
+		        		$rec->discount = $csvRow[2]; // Задаваме груповата наддценка в проценти
+		        		$rec->type = 'groupDiscount';
+		        		$rec->validFrom = dt::now();
+		        		$rec->createdBy = -1;
+	        		
+	        			static::save($rec);
+	        			$inserted++;
+            		}
             	}
             }
             $res .= "<li style='color:green;'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
