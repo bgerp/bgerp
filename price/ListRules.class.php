@@ -198,7 +198,13 @@ class price_ListRules extends core_Detail
 
         $masterTitle = price_Lists::getVerbal($masterRec, 'title');
 		
-        $form->setOptions('productId', $mvc->getAvailableProducts());
+        $availableProducts = $mvc->getAvailableProducts();
+        if(count($availableProducts)){
+        	$form->setOptions('productId', $availableProducts);
+        } else {
+        	$form->fields['productId']->type->options = array('' => '');
+        }
+        
         
         switch($type) {
             case 'groupDiscount' :
