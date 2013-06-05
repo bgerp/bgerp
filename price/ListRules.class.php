@@ -92,8 +92,8 @@ class price_ListRules extends core_Detail
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,mandatory');
         $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка,mandatory,placeholder=%');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила->От');
-        $this->FLD('validUntil', 'datetime', 'caption=В сила->До');
+        $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От');
+        $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До');
     }
     
     
