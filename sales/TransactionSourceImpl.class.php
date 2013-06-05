@@ -66,16 +66,16 @@ class sales_TransactionSourceImpl
             $rec = $this->fetchSaleData($rec);
             
             // Всяка продажба трябва да има поне един детайл
-            expect(count($rec->details) > 0);
-            
-            // Записите от тип 1 (вземане от клиент)
-            $entries = $this->getTakingPart($rec);
-            
-            // Записите от тип 2 (експедиция)
-            $entries = array_merge($entries, $this->getDeliveryPart($rec));
-            
-            // Записите от тип 3 (получаване на плащане)
-            $entries = array_merge($entries, $this->getPaymentPart($rec));
+            if (count($rec->details) > 0) {
+                // Записите от тип 1 (вземане от клиент)
+                $entries = $this->getTakingPart($rec);
+                
+                // Записите от тип 2 (експедиция)
+                $entries = array_merge($entries, $this->getDeliveryPart($rec));
+                
+                // Записите от тип 3 (получаване на плащане)
+                $entries = array_merge($entries, $this->getPaymentPart($rec));
+            }
         }            
         
         $transaction = (object)array(

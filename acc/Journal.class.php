@@ -230,7 +230,13 @@ class acc_Journal extends core_Master
         $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $docRec   = $mvc->fetchRec($docId);
         
-        expect($transaction = $mvc->getValidatedTransaction($docRec));
+        try {
+            $transaction = $mvc->getValidatedTransaction($docRec);
+        } catch (acc_journal_Exception $ex) {
+            $tr = $mvc->getTransaction($docRec->id);
+            core_Html::$dumpMaxDepth = 6;
+            bp($ex->getMessage(), $tr);
+        }
         
         $transaction->rec->docType = $mvc->getClassId();
         $transaction->rec->docId   = $docRec->id;
