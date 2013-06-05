@@ -58,14 +58,6 @@ class techno_GeneralProducts extends core_Manager {
     var $canAdd = 'no_one';
     
     
-    /**
-     * Описание на модела
-     */
-    function description()
-    {
-    }
-    
-    
     /*
      * РЕАЛИЗАЦИЯ НА techno_ProductsIntf
      */
@@ -100,16 +92,39 @@ class techno_GeneralProducts extends core_Manager {
     
     
     /**
-     * 
-     * Enter description here ...
+     * Връщане на форма за добавяне на нови параметри
      */
-    public function getAddParamForm()
+    public function getAddParamForm($data)
     {
     	$form = cls::get('core_Form');
     	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory');
         $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
-    	
-        return $form;
+    	$paramOptions = $this->getRemainingOptions($data);
+    	$form->setOptions('paramId', $paramOptions);
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
+    	return $form;
+    }
+    
+    
+    /**
+     * Помощен метод за показване само на тези параметри, които
+     * не са добавени към продукта
+     * @param stdClass $data - сериализирана информация
+     * @return array $options - масив с опции
+     */
+    private function getRemainingOptions($data)
+    {
+      $options = cat_Params::makeArray4Select();
+      if(count($options)){
+      	foreach($options as $id => $value){
+      		if(isset($data->params[$id])){
+      			unset($options[$id]);
+      		} 
+      	}
+      }
+      
+      return $options;
     }
     
     
@@ -183,7 +198,7 @@ class techno_GeneralProducts extends core_Manager {
     		}
     		$img = sbf('img/16/add.png');
     		if(techno_Specifications::haveRightFor('edit', $data->specificationId)){
-    			$addUrl = array('techno_Specifications', 'configure', $data->specificationId, 'ret_url' => TRUE);
+    			$addUrl = array($this, 'configure', $data->specificationId, 'ret_url' => TRUE);
 	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams')); 
     		}
 	    }
@@ -199,6 +214,11 @@ class techno_GeneralProducts extends core_Manager {
     
     
     /**
+     * Връща шаблона с добавени плейсхолдъри за параметрите
+     * @param stdClass $row - Вербален запис
+     * @param array $params - параметрите на продукта
+     * @param bool $short - дали изгледа е кратак 
+     * @return core_ET $tpl - шаблон за показване
      */
     private function getTpl($row, $params = array(), $short)
     {
@@ -220,6 +240,7 @@ class techno_GeneralProducts extends core_Manager {
     	return $tpl;
     }
     
+    
     /**
      * Помощна функция за привеждането на записа в вербален вид
      * @param stdClass $data - не сериализирания запис
@@ -236,7 +257,7 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
     	if($data->params){
-    		$fields = $this->getAddParamForm()->selectFields("");
+    		$fields = $this->getAddParamForm($data)->selectFields("");
     		foreach($data->params as $paramId => $value){
     			$arr['paramId'] = $fields['paramId']->type->toVerbal($paramId);
     			$arr['paramValue'] = $fields['paramValue']->type->toVerbal($value);
@@ -251,20 +272,25 @@ class techno_GeneralProducts extends core_Manager {
     
     
     /**
-     * 
-     * @param unknown_type $paramId
-     * @param unknown_type $specificationId
+     * Създаване на туулбара на параметрите
+     * @param int $paramId - ид на параметър
+     * @param int $specificationId - ид на спецификация
+     * @return core_ET $tpl - туулбара за редакция
      */
     private function getParamTools($paramId, $specificationId)
     {
     	if(techno_Specifications::haveRightFor('edit', $specificationId)) {
-    		$editUrl = array('techno_Specifications', 'configure', $specificationId, 'edit' => $paramId,'ret_url' => TRUE);
+    		
 	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
-			$editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
-	        $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
-	        $deleteUrl = array('techno_Specifications', 'configure', $specificationId, 'delete' => $paramId,'ret_url' => TRUE);
+			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
+	        
+			$editUrl = array($this, 'configure', $specificationId, 'edit' => $paramId,'ret_url' => TRUE);
+	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId,'ret_url' => TRUE);
+
+	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
 	        $deleteLink = ht::createLink($deleteImg, $deleteUrl,tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=del{$rec->id}");
-    		$tpl = new ET($editLink . " " . $deleteLink);
+    		
+	        $tpl = new ET($editLink . " " . $deleteLink);
     	}
     	
         return $tpl;
@@ -306,7 +332,8 @@ class techno_GeneralProducts extends core_Manager {
     	
     	$vatId = cat_Params::fetchIdBySysId('vat');
     	if($vat = $data->params[$vatId]){
-    		return $vat;
+    		
+    		return $vat/100;
     	}
     	
     	// Връщаме ДДС-то от периода
@@ -316,50 +343,42 @@ class techno_GeneralProducts extends core_Manager {
     
     
     /**
-     * 
-     * Enter description here ...
-     * @param unknown_type $data
+     * Екшън за добавяне, изтриване и редактиране на параметри
      */
-    public function preparePricePreview($data)
+    function act_Configure()
     {
-    	$double = cls::get('type_Double');
-	    $double->params['decimals'] = 2;
-	    $int = cls::get('type_Int');
-	    
-	    $row = new stdClass();	
-    	$data = unserialize($data);
-    	$shortMeasureId = cat_UoM::fetchField($data->measureId, 'shortName');
-    	$vat = $this->getVat($data);
+    	$Specifications = cls::get('techno_Specifications');
+    	$Specifications->requireRightFor('edit');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $Specifications->fetch($id));
+    	$data = unserialize($rec->data);
     	
-    	foreach(range(1,3) as $num){
-		    $quantity = "quantity{$num}";
-			 $priceFld = "price{$num}";
-			 $discountFld = "discount{$num}";
-		     if($data->$quantity){
-		    	$priceRec = $this->getPrice($data, NULL, $data->$quantity);
-			    $priceRec->price = currency_CurrencyRates::convertAmount($priceRec->price, NULL, NULL, $data->currencyId);
-			    $price = $priceRec->price + ($priceRec->price * $vat);
-			    $price = $data->$quantity * $price;
-			    $row->$quantity = $int->toVerbal($data->$quantity);
-			    $row->$discountFld = $double->toVerbal($price - ($price * $priceRec->discount));
-			    $row->$priceFld = $double->toVerbal($price);
-			    $row->$discountFld .= " &nbsp;<span class='cCode'>{$data->currencyId}</span>";
-			    $row->$priceFld .= " &nbsp;<span class='cCode'>{$data->currencyId}</span>";
-			    $row->$quantity .= " {$shortMeasureId}";
-		    }
-		}
-		    
-		return $row;
+    	if($paramId = Request::get('delete')){
+    		unset($data->params[$paramId]);
+    		$rec->data = $this->serialize($data);
+	        $Specifications->save($rec);
+	        return followRetUrl();
+    	}
+    	
+    	$form = $this->getAddParamForm($data);
+    	$fRec = $form->input();
+        if($form->isSubmitted()) {
+        	if($Specifications->haveRightFor('edit')){
+        		
+        		// Записваме въведените данни в пропъртито data на река
+	            $data->params[$fRec->paramId] = $fRec->paramValue;
+        		$rec->data = $this->serialize($data);
+	            $Specifications->save($rec);
+	            return  Redirect(array($Specifications, 'single', $rec->id));
+        	}
+        }
+        
+    	if($paramId = Request::get('edit')){
+        	$form->rec->paramValue = $data->params[$paramId];
+        	$form->rec->paramId = $paramId;	
+        }
+        
+        $form->title = "Добавяне на параметри към ". $Specifications->getTitleById($rec->id);
+    	return $Specifications->renderWrapping($form->renderHtml());
     }
-    
-    /*
-    public function addParam(&$data, $fRec)
-    {
-    	$data->params[$fRec->paramId] = $fRec->paramValue;
-    }
-    
-	public function deleteParam(&$data, $paramId)
-    {
-    	unset($data->params[$paramId]);
-    }*/
 }

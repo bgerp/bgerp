@@ -16,44 +16,6 @@
 	<div style = 'padding:10px 0px;font-weight:bold;color:darkred'>[#noData#]</div>
 	<!--ET_END noData-->
 	
-	<!--ET_BEGIN PREVIEW-->
-	[#PREVIEW#]
-	<table class='styled-table custom-styled-table'>
-		<tr>
-			<th colspan='2'>|Ценови преглед|*</th>
-		</tr>
-		<tr>
-			<td>[#quantity1#]</td>
-			<td align='right'>
-			[#price1#]<br />
-			<!--ET_BEGIN discount1-->
-			<span style = 'color:green;font-size:12px;'>ТО: [#discount1#]</span>
-			<!--ET_END discount1-->
-			</td>
-		</tr>
-		<!--ET_BEGIN quantity2-->
-		<tr>
-			<td>[#quantity2#]</td>
-			<td align='right'>[#price2#]<br />
-			<!--ET_BEGIN discount2-->
-			<span style = 'color:green;font-size:12px;'>ТО: [#discount2#]</span>
-			<!--ET_END discount2-->
-			</td>
-			
-		</tr>
-		<!--ET_END quantity2-->
-		<!--ET_BEGIN quantity3-->
-		<tr>
-			<td>[#quantity3#]</td>
-			<td align='right'>[#price3#]<br />
-			<!--ET_BEGIN discount3-->
-			<span style = 'color:green;font-size:12px;'>ТО: [#discount3#]</span>
-			<!--ET_END discount3-->
-			</td>
-		</tr>
-		<!--ET_END quantity3-->
-	</table>
-	<!--ET_END PREVIEW-->
 		<div>|Контрагент|*: &nbsp;[#contragentName#] </div>
 		<div>|Технолог|*: &nbsp;[#prodTehnoClassId#] </div>
 		<div>|Мярка|*: &nbsp;[#measureId#] </div>

@@ -48,7 +48,6 @@ class techno_Setup
     {
         $managers = array(
         	'techno_Specifications',
-        	'techno_GeneralProducts',
         );
         
         // Роля за power-user на този модул
@@ -61,6 +60,9 @@ class techno_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
+        
+        // Добавяме Продуктовия драйвър в core_Classes
+        core_Classes::add('techno_GeneralProducts');
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');

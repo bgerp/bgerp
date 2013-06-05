@@ -401,6 +401,24 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
+     * 
+     * Enter description here ...
+     */
+    function act_updateData()
+    {
+    	$this->Master->requireRightFor('edit');
+    	expect($quotationId = Request::get('quotationId'));
+    	expect($rec = $this->Master->fetch($quotationId));
+    	expect($originId = Request::get('originId'));
+    	
+    	$origin = doc_Containers::getDocument($originId);
+    	$this->insertFromSpecification($rec, $origin);
+    	
+    	return Redirect(array($this->Master, 'single', $quotationId));
+    }
+    
+    
+    /**
      * Ако ориджина е спецификация вкарват се записи отговарящи
      * на посочените примерни коли1ества в нея
      * @param stdClass $rec - запис на оферта
@@ -411,6 +429,8 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	$originRec = $origin->fetch();
     	$originData = unserialize($originRec->data);
+    	
+    	$this->delete("#quotationId = $rec->id");
     	$quantities = array($originData->quantity1, $originData->quantity2, $originData->quantity3);
     	$policyId = techno_Specifications::getClassId();
     	$Policy = cls::get($policyId);

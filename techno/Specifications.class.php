@@ -298,11 +298,6 @@ class techno_Specifications extends core_Master {
 	    	} else {
 	    		$row->noData = tr('Няма данни');
 	    	}
-	    	
-	    	if($rec->data && $rec->state == 'draft'){
-	    		$previewRow = $technoClass->preparePricePreview($rec->data);
-	    		$row = (object)array_merge((array) $row, (array) $previewRow);
-	    	}
 	    }
     }
     
@@ -348,8 +343,8 @@ class techno_Specifications extends core_Master {
         		$rec->data = $technoClass->serialize($fRec);
         		
 	            $this->save($rec);
-	            return  Redirect(array($this, 'single', $rec->id));
-        	}
+	            return Redirect(array($this, 'newQuote', $rec->id));
+	        }
         }
         
         if($rec->data){
@@ -385,8 +380,9 @@ class techno_Specifications extends core_Master {
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
     	}
     	
-    	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'active'){
-    		$data->toolbar->addBtn("Оферта", array($mvc, 'newQuote', $data->rec->id), 'ef_icon=img/16/document_quote.png');
+    	if(sales_Quotations::haveRightFor('add') && isset($data->rec->data)){
+    		$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId}", 'id');
+    		$data->toolbar->addBtn("Оферта", array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'originId' => $data->rec->containerId), 'ef_icon=img/16/document_quote.png');
     	}
     }
     
@@ -399,24 +395,27 @@ class techno_Specifications extends core_Master {
     	sales_Quotations::requireRightFor('add');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'active');
     	
     	$Quotations = cls::get('sales_Quotations');
+    	$qId = $Quotations->fetchField("#originId = {$rec->containerId}", 'id');
     	$data = new stdClass();
-    	$data->form = sales_Quotations::getForm();
-    	$data->form->rec->folderId = $rec->folderId;
-    	$data->form->rec->originId = $rec->containerId;
-    	$data->form->rec->threadId = $rec->threadId;
-    	$Quotations->invoke('AfterPrepareEditForm', array($data));
-    	$data->form->rec->rate = round(currency_CurrencyRates::getRate($data->form->rec->date, $rec->currencyId, NULL), 4);
-    	$data->form->rec->paymentCurrencyId = $rec->currencyId;
-    	$data->form->rec->vat = 'yes';
-    	$data->form->rec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
-    	$data->form->rec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
-    	$qId = $Quotations->save($data->form->rec);
+	    $data->form = sales_Quotations::getForm();
+	    if($qId){
+	    	 $data->form->rec->id = $qId;
+	    }
+	    $data->form->rec->folderId = $rec->folderId;
+		$data->form->rec->originId = $rec->containerId;
+		$data->form->rec->threadId = $rec->threadId;
+	    $Quotations->invoke('AfterPrepareEditForm', array($data));
+	    $data->form->rec->rate = round(currency_CurrencyRates::getRate($data->form->rec->date, $rec->currencyId, NULL), 4);
+	    $data->form->rec->paymentCurrencyId = $rec->currencyId;
+	    $data->form->rec->vat = 'yes';
+	    $data->form->rec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
+	    $data->form->rec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
+	    $qId = $Quotations->save($data->form->rec);
     	
-    	return Redirect(array($Quotations, 'single', $qId));
-    }
+	    return Redirect(array($this, 'single', $id));
+	}
     
     
     /**
@@ -463,7 +462,6 @@ class techno_Specifications extends core_Master {
     		return parent::getTitleById($id, $escaped);
     	}
     	
-    	//$cache = core_Cache::get('techno_Specifications', "products");
     	$rec = static::fetch($id);
 	    $technoClass = cls::get($rec->prodTehnoClassId);
 	    return $technoClass->getVerbal($rec->data, TRUE);
@@ -496,50 +494,5 @@ class techno_Specifications extends core_Master {
     	$rec = static::fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getProductInfo($rec->data, $packagingId);
-    }
-    
-    
-	/**
-     * 
-     * Enter description here ...
-     */
-    function act_Configure()
-    {
-    	$this->requireRightFor('edit');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$data = unserialize($rec->data);
-    	$technoClass = cls::get($rec->prodTehnoClassId);
-    	
-    	if($paramId = Request::get('delete')){
-    		unset($data->params[$paramId]);
-    		$rec->data = $technoClass->serialize($data);
-	        $this->save($rec);
-	        return followRetUrl();
-    	}
-    	
-    	$form = $technoClass->getAddParamForm();
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', array('techno_Specifications', 'single', $id), array('class' => 'btn-cancel'));
-    	
-    	$fRec = $form->input();
-        if($form->isSubmitted()) {
-        	if($this->haveRightFor('edit')){
-        		
-        		// Записваме въведените данни в пропъртито data на река
-	            $data->params[$fRec->paramId] = $fRec->paramValue;
-        		$rec->data = $technoClass->serialize($data);
-	            $this->save($rec);
-	            return  Redirect(array($this, 'single', $rec->id));
-        	}
-        }
-        
-    	if($paramId = Request::get('edit')){
-        	$form->rec->paramValue = $data->params[$paramId];
-        	$form->rec->paramId = $paramId;	
-        }
-        
-        $form->title = "Добавяне на параметри към ". $this->getTitleById($rec->id);
-    	return $this->renderWrapping($form->renderHtml());
     }
 }
