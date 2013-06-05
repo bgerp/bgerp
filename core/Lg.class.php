@@ -333,6 +333,9 @@ class core_Lg extends core_Manager
      */
     static function transliterate($str)
     {
+        // Ако е обект, връщаме
+        if (is_object($str)) return ($str);
+        
         // Ако е празен стринг
         if (!trim($str)) return $str;
         
