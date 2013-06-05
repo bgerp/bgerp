@@ -57,16 +57,29 @@ class type_Keylist extends core_Type {
                 
                 $rec = $mvc->fetch($k);
                 
+                if ($this->params['transliterate']) {
+                    $rec->{$part} = transliterate($rec->{$part});
+                }
+                
                 $res = $mvc->getVerbal($rec, $part);
                 
                 return $res;
             } else {
                 $value = $mvc->getTitleById($k);
+                
+                if ($this->params['transliterate']) {
+                    $value = transliterate($value);
+                }
             }
         } elseif($this->params['function']) {
         
         } elseif($this->suggestions) {
+            
             $value = $this->suggestions[$k];
+            
+            if ($this->params['transliterate']) {
+                $value = transliterate($value);
+            }
         }
         
         return $value;
@@ -174,6 +187,11 @@ class type_Keylist extends core_Type {
                         }
                         $html .= '</tr>';
                     }
+                    
+                    if ($this->params['transliterate']) {
+                        $v->title = transliterate($v->title);
+                    }
+                    
                     $html .= "\n<tr><td class='keylist-group' colspan='" . $col . "'>" . $v->title . "</td></tr>";
                     $i = 0;
                 } else {
@@ -185,6 +203,10 @@ class type_Keylist extends core_Type {
                         $attrCB['checked'] = 'checked';
                     } else {
                         unset($attrCB['checked']);
+                    }
+                    
+                    if ($this->params['transliterate']) {
+                        $v = transliterate($v);
                     }
                     
                     $cb = ht::createElement('input', $attrCB);
