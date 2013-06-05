@@ -17,6 +17,14 @@
 class core_Html
 {
     /**
+     * Максимална дълбочина при показване на вложени структури (обекти, масиви)
+     * 
+     * @var int
+     * @see bp()
+     * @see core_Html::mixedToHtml()
+     */
+    public static $dumpMaxDepth = 4;
+    /**
      * Композира xHTML елемент
      */
     static function createElement($name, $attributes, $body = "", $closeTag = FALSE)
@@ -721,7 +729,7 @@ class core_Html
 
         $i++;
 
-        if ($i > 4) {
+        if ($i > self::$dumpMaxDepth) {
             $i--;
 
             return "...";
