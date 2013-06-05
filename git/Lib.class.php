@@ -28,7 +28,7 @@ class git_Lib
     private static function cmdExec ($cmd, &$output)
     {
         exec("git {$cmd}", $output, $returnVar);
-
+			
         return ($returnVar == 0); 
     }
 
@@ -166,7 +166,7 @@ class git_Lib
         self::cmdExec($commandMergeAbort, $log);
             
         if (!$res) {
-            $log[] = "Бъдещ проблемен merge.";
+            $log[] = "Бъдещ ПРОБЛЕМЕН merge.";
             return FALSE;
         }
         $log[] = "Бъдещ безпроблемен merge $branch1 -> $branch2";
