@@ -310,6 +310,21 @@ class core_Lg extends core_Manager
     
     
     /**
+     * 
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$res, &$data)
+    {
+        // Ако едитваме
+        if ($data->form->rec->id) {
+            
+            // Полето за език и стринг да не могат да се променят
+            $data->form->setReadOnly('lg');
+            $data->form->setReadOnly('kstring');
+        }
+    }
+    
+    
+    /**
      * Транслитерира подадения стринг в латиница, ако текущия език не е кирилски и в текста има поне един символ на кирилица
      * 
      * @param string $str - Стринга, който ще се транслитерира
