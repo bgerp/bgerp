@@ -2382,7 +2382,10 @@ input.combo.pCode{
 .document .details .listToolbar .toolbar{
 	padding-left:0;
 }
-
+.narrow .document .details .listToolbar .toolbar {
+	margin-top:8px;
+	margin-left:0;
+}
 .document .listTable th, .document .listTable td{
 	border:1px solid #000 !important;
 }
