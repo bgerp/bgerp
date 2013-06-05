@@ -143,8 +143,20 @@ class cat_products_Params extends cat_products_Detail
     static function on_AfterInputEditForm($mvc, $form)
     {
         if($form->isSubmitted()) {
-            $rec= &$form->rec;
-            $paramType = cat_Params::fetchField($rec->paramId, 'type');
+            static::isValueValid($form);
+        }
+    }
+    
+    
+    /**
+     * Проверка дали въведената стойност отговаря на типа
+     * на параметъра
+     * @param core_Form $form - формата
+     */
+    static function isValueValid(core_Form &$form)
+    {
+    	$rec = &$form->rec;
+    	expect($paramType = cat_Params::fetchField($rec->paramId, 'type'));
             
             // взависимост от избрания параметър проверяваме дали 
             // стойността му е във валиден формат за неговия тип
@@ -166,7 +178,6 @@ class cat_products_Params extends cat_products_Detail
             		}
             		break;
             }
-        }
     }
     
     
