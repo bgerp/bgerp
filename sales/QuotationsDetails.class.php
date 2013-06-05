@@ -401,8 +401,7 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
-     * 
-     * Enter description here ...
+     * Екшън за обновяване на данните в оферта от спецификация
      */
     function act_updateData()
     {
@@ -410,10 +409,10 @@ class sales_QuotationsDetails extends core_Detail {
     	expect($quotationId = Request::get('quotationId'));
     	expect($rec = $this->Master->fetch($quotationId));
     	expect($originId = Request::get('originId'));
-    	
     	$origin = doc_Containers::getDocument($originId);
-    	$this->insertFromSpecification($rec, $origin);
+    	expect($origin->fetchField('state') == 'draft');
     	
+    	$this->insertFromSpecification($rec, $origin);
     	return Redirect(array($this->Master, 'single', $quotationId));
     }
     

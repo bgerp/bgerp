@@ -197,6 +197,14 @@ class techno_Specifications extends core_Master {
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	/*$options = core_Classes::getOptionsByInterface('techno_ProductsIntf');
+    	foreach($options as $id => $intf){
+    		$btn = ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' => 'buttonForm'));
+    		//$btn = ht::createFnBtn($intf, '','', array('id' => 'decBtn','class' => 'buttonForm'));
+    		//bp($btn);
+    		//$form->fieldsLayout->append = $btn->getContent();
+    	}*/
+    	//$form->fieldsLayout = new ET(ht::createFnBtn('-1', '','', array('id' => 'decBtn','class' => 'buttonForm')));
     	if($contragentData = doc_Folders::getContragentData($form->rec->folderId)){
     		if($contragentData->person) {
     			$form->rec->contragentName = $contragentData->person;
@@ -342,7 +350,8 @@ class techno_Specifications extends core_Master {
 	            $fRec = (object)array_merge((array) unserialize($rec->data), (array) $fRec);
         		$rec->data = $technoClass->serialize($fRec);
         		
-	            $this->save($rec);
+	            // След запис се създава чернова оферта
+        		$this->save($rec);
 	            return Redirect(array($this, 'newQuote', $rec->id));
 	        }
         }
@@ -380,7 +389,8 @@ class techno_Specifications extends core_Master {
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
     	}
     	
-    	if(sales_Quotations::haveRightFor('add') && isset($data->rec->data)){
+    	// Добавяне на бутон за ъпдейт на съществуваща оферта
+    	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'draft'){
     		$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId}", 'id');
     		$data->toolbar->addBtn("Оферта", array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'originId' => $data->rec->containerId), 'ef_icon=img/16/document_quote.png');
     	}
@@ -474,6 +484,7 @@ class techno_Specifications extends core_Master {
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if($action == 'activate'){
+    		
     		if(!isset($rec) || (isset($rec) && !$rec->data)){
     			$res = 'no_one';
     		}

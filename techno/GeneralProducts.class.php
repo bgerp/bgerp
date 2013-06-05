@@ -332,8 +332,7 @@ class techno_GeneralProducts extends core_Manager {
     	
     	$vatId = cat_Params::fetchIdBySysId('vat');
     	if($vat = $data->params[$vatId]){
-    		
-    		return $vat/100;
+    		return $vat / 100;
     	}
     	
     	// Връщаме ДДС-то от периода
@@ -365,11 +364,16 @@ class techno_GeneralProducts extends core_Manager {
         if($form->isSubmitted()) {
         	if($Specifications->haveRightFor('edit')){
         		
-        		// Записваме въведените данни в пропъртито data на река
-	            $data->params[$fRec->paramId] = $fRec->paramValue;
-        		$rec->data = $this->serialize($data);
-	            $Specifications->save($rec);
-	            return  Redirect(array($Specifications, 'single', $rec->id));
+        		// Проверка дали въведените стойности за правилни
+        		cat_products_Params::isValueValid($form);
+        		if(!$form->gotErrors()){
+        			
+        			// Записваме въведените данни в пропъртито data на река
+		            $data->params[$fRec->paramId] = $fRec->paramValue;
+	        		$rec->data = $this->serialize($data);
+		            $Specifications->save($rec);
+		            return  Redirect(array($Specifications, 'single', $rec->id));
+        		}
         	}
         }
         
