@@ -109,6 +109,7 @@ class price_ListDocs extends core_Master
     {
     	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory,width=6em;');
     	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
+    	$this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=ДДС');
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
@@ -240,7 +241,8 @@ class price_ListDocs extends core_Master
     		// Изчисляваме цената за продукта в основна мярка
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
     		if(!$price) continue;
-    		$product->price = $price + ($price * $product->vat);
+    		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
+    		$product->price = $price + ($price * $vat);
 	    	$rec->details->rows[] = $product;
     		
     		// За всяка от избраните опаковки
@@ -268,8 +270,8 @@ class price_ListDocs extends core_Master
     	if($info = cat_Products::getProductInfo($product->productId, $packId)){
     		$clone = clone $product;
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packId, $rec->date);
-    		
-    		$price = $price + ($price * $product->vat);
+    		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
+    		$price = $price + ($price * $vat);
     		$clone->price = $info->packagingRec->quantity * $price;
     		$clone->perPack = $info->packagingRec->quantity;
     		$clone->eanCode = $info->packagingRec->eanCode;
@@ -437,6 +439,7 @@ class price_ListDocs extends core_Master
     		$row->productGroups = tr("Всички");
     	}
     	
+    	$row->vat = ($rec->vat == 'yes') ? tr('с начислен') : tr('без');
     	// Модифицираме данните които показваме при принтиране
     	if(Mode::is('printing')){
     		$row->printHeader = $row->title;
