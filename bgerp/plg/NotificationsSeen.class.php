@@ -23,7 +23,8 @@ class bgerp_plg_NotificationsSeen extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
-        $id = request->get('id', 'int');
+    	$Request = core_Cls::get('core_Request');
+        $id = $Request->get('id', 'int');
         $user = core_Users::getCurrent();
         
         bgerp_Notifications::markAsRead(array($mvc, $action, $id), $user);
