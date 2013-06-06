@@ -97,6 +97,10 @@ class acc_journal_Transaction
      */
     public function check()
     {
+        acc_journal_Exception::expect(
+            !$this->isEmpty(), 'Не може да се контира празна транзакция'
+        );
+        
         /* @var $entry acc_journal_Entry */ 
         foreach ($this->entries as $entry) {
             try {

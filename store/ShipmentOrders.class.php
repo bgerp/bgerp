@@ -234,30 +234,6 @@ class store_ShipmentOrders extends core_Master
     }
     
     
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        switch ($action) {
-            case 'conto':
-                if (empty($rec->id) || $rec->state != 'draft') {
-                    // Незаписаните ЕН не могат да се контират
-                    $requiredRoles = 'no_one';
-                } elseif (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE) {
-                    // Невъзможно е да се генерира транзакция
-                    $requiredRoles = 'no_one';
-                }
-                break;
-        }
-    }
-    
     function on_AfterRenderSingle($mvc, $tpl, $data)
     {
         // Данните на "Моята фирма"

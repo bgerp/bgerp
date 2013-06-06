@@ -251,7 +251,7 @@ class acc_plg_Contable extends core_Plugin
     protected static function hasContableTransaction(core_Manager $mvc, $rec)
     {
         try {
-            $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE && !$transaction->isEmpty();
+            $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
         } catch (acc_journal_Exception $ex) {
             $result = FALSE;
         }
