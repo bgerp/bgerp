@@ -7,9 +7,17 @@
 </IfModule>
 
 AddType text/plain .php
+
 AddType video/ogg .ogv
 AddType video/mp4 .mp4
 AddType video/webm .webm
+AddType video/x-flv .flv
+
+AddType audio/wav .wav
+AddType audio/mpeg .mp3
+AddType audio/ogg .oga
+AddType audio/ogg .ogg
+AddType audio/aac .aac
 
 php_flag engine off
 
