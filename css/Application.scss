@@ -2278,6 +2278,9 @@ input.combo.pCode{
 		max-width:868px;
 		overflow:auto;
 	}
+	>.mejs-container{
+		overflow:hidden;
+	}
 	pre.richtext{
 		max-width: 865px;
 		/*height:560px; */
