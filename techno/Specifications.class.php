@@ -51,7 +51,7 @@ class techno_Specifications extends core_Master {
     /**
      * Икона за единичния изглед
      */
-    //var $singleIcon = 'img/16/toggle1.png';
+    var $singleIcon = 'img/16/specification.png';
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
@@ -143,7 +143,7 @@ class techno_Specifications extends core_Master {
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, input=hidden');
-		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог,mandatory');
+		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('contragentName', 'varchar(136)', 'caption=Контрагент,input=hidden');
 		$this->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)');
@@ -197,13 +197,18 @@ class techno_Specifications extends core_Master {
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	/*$options = core_Classes::getOptionsByInterface('techno_ProductsIntf');
-    	foreach($options as $id => $intf){
-    		$btn = ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' => 'buttonForm'));
-    		//$btn = ht::createFnBtn($intf, '','', array('id' => 'decBtn','class' => 'buttonForm'));
+    	//$form->fieldsLayout = new ET("[#BTN#]");
+   	    //$options = core_Classes::getOptionsByInterface('techno_ProductsIntf');
+    	//foreach($options as $id => $cls){
+    	//	$title = cls::getTitle($cls);
+    		//$btn = ht::createFnBtn($title, '','', array('data-id' => $id, 'class' => 'specDriverBtn'));
+    		//$form->fieldsLayout->append($btn, 'BTN');
+    		//bp($title);
+    		//
     		//bp($btn);
     		//$form->fieldsLayout->append = $btn->getContent();
-    	}*/
+    	//}
+    	//bp($form->renderHtml());
     	//$form->fieldsLayout = new ET(ht::createFnBtn('-1', '','', array('id' => 'decBtn','class' => 'buttonForm')));
     	if($contragentData = doc_Folders::getContragentData($form->rec->folderId)){
     		if($contragentData->person) {
