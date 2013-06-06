@@ -11,7 +11,7 @@ defIfNot('LINK_NARROW_MIN_FILELEN_SHOW', 102400);
 /**
  * Широчината на preview' то
  */
-defIfNot('FILEMAN_PREVIEW_WIDTH', 800);
+defIfNot('FILEMAN_PREVIEW_WIDTH', 850);
 
 
 /**
@@ -23,13 +23,13 @@ defIfNot('FILEMAN_PREVIEW_HEIGHT', 1000);
 /**
  * Широчината на preview' то в мобилен режим
  */
-defIfNot('FILEMAN_PREVIEW_WIDTH_NARROW', 600);
+defIfNot('FILEMAN_PREVIEW_WIDTH_NARROW', 550);
 
 
 /**
  * Височината на preview' то в мобилен режим
  */
-defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 800);
+defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 700);
 
 
 /**
