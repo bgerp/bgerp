@@ -294,6 +294,29 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка 
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
+    {
+        $coverClass = doc_Folders::fetchCoverClassName($folderId);
+        
+        if ('crm_Persons' != $coverClass) {
+        	return FALSE;
+        }
+        
+        $personId = doc_Folders::fetchCoverId($folderId);
+        
+        $personRec = crm_Persons::fetch($personId);
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        
+        return keylist::isIn($emplGroupId, $personRec->groupList);
+    }
+    
+    
+    /**
      * Интерфейсен метод на doc_DocumentInterface
      */
     function getDocumentRow($id)
