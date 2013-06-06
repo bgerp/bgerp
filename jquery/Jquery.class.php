@@ -2,6 +2,13 @@
 
 
 /**
+ * Версията на JQuery, която се използва
+ */
+defIfNot(JQUERY_VERSION, '1.7.1');
+
+
+
+/**
  * Клас 'jquery_Jquery' -
  *
  *
@@ -30,7 +37,9 @@ class jquery_Jquery {
      */
     static function enable(&$tpl)
     {
-        $tpl->push("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", "JS");
+        $jQuery = sbf('jquery/' . JQUERY_VERSION . '/jquery.min.js', '', TRUE);
+
+        $tpl->push($jQuery, "JS");
     }
     
     

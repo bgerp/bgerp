@@ -112,7 +112,7 @@ class hclean_JSSanitizer extends core_Manager
      */
     static function JSSanitizer()
     {
-        $jsSanitize = sbf('hclean/jssanitize/html-css-sanitizer-minified.js', "'", FALSE);
+        $jsSanitize = sbf('hclean/jssanitize/html-css-sanitizer-minified.js', "'", TRUE);
         
         // Скрипта за санитаризирана на HTML
         $script = " <script src={$jsSanitize}></script>
