@@ -197,6 +197,10 @@ class acc_plg_Contable extends core_Plugin
             if ($rec->id && $rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             }
+            
+            if (!$this->hasContableTransaction($mvc, $rec)) {
+                $requiredRoles = 'no_one';
+            }
         } elseif ($action == 'revert') {
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
@@ -230,14 +234,29 @@ class acc_plg_Contable extends core_Plugin
 
             // Ако документа не генерира валидна и непразна транзакция - не може да му се прави
             // корекция
-            try {
-                if (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE || $transaction->isEmpty()) {
-                    $requiredRoles = 'no_one';
-                }
-            } catch (acc_journal_Exception $ex) {
+            if (!$this->hasContableTransaction($mvc, $rec)) {
                 $requiredRoles = 'no_one';
             }
         }
+    }
+    
+    
+    /**
+     * Помощен метод, енкапсулиращ условието за валидност на счетоводна транзакция
+     * 
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     * @return boolean
+     */
+    protected static function hasContableTransaction(core_Manager $mvc, $rec)
+    {
+        try {
+            $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE && !$transaction->isEmpty();
+        } catch (acc_journal_Exception $ex) {
+            $result = FALSE;
+        }
+        
+        return $result;        
     }
 
     
