@@ -87,7 +87,7 @@ class lab_Parameters extends core_Master
         $this->FLD('type', 'enum(number=Числов,bool=Да/Не,text=Текстов)', 'caption=Тип');
         $this->FLD('dimension', 'varchar(16)', 'caption=Размерност,notSorting,oldFieldName=dimention');
         $this->FLD('precision', 'int', 'caption=Прецизност,notSorting');
-        $this->FLD('description', 'richtext', 'caption=Описание,notSorting');
+        $this->FLD('description', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
         
         $this->setDbUnique('name,dimension');
     }

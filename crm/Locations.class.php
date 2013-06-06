@@ -99,7 +99,7 @@ class crm_Locations extends core_Master {
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код,width=15.4em');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
-        $this->FLD('comment', 'richtext(rows=4)', 'caption=@Информация');
+        $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
 
         $this->setDbUnique('gln');
     }

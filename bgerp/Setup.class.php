@@ -152,7 +152,7 @@ class bgerp_Setup {
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
         $Bucket = cls::get('fileman_Buckets');
-        $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '104857600', 'user', 'user');
+        $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
 
         //TODO в момента се записват само при инсталация на целия пакет
         

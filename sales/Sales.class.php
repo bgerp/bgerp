@@ -208,7 +208,7 @@ class sales_Sales extends core_Master
          * Допълнително
          */
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
-        $this->FLD('note', 'richtext', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
+        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
     	
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 

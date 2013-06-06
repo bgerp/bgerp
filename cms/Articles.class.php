@@ -62,7 +62,7 @@ class cms_Articles extends core_Manager
         $this->FLD('level', 'order', 'caption=Номер,mandatory');
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
-        $this->FLD('body', 'richtext', 'caption=Текст,column=none');
+        $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
     }
 
     

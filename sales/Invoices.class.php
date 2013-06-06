@@ -157,7 +157,7 @@ class sales_Invoices extends core_Master
         $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
 		$this->FLD('reason', 'text(rows=2)', 'caption=Основание, input=none');
-        $this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
+        $this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
