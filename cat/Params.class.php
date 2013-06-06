@@ -149,9 +149,9 @@ class cat_Params extends core_Manager
     	
     	$options = array();
     	while($rec = $query->fetch()){
-    		$title = $rec->name;
+    		$row = static::recToVerbal($rec, 'name,suffix');
     		if($rec->suffix){
-    			$title .= " - $rec->suffix";
+    			$title = "{$row->name} - {$row->suffix}";
     		}
     		$options[$rec->{$index}] = $title;
     	}

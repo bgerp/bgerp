@@ -242,7 +242,7 @@ class price_ListRules extends core_Detail
     	$catQuery = cat_Products::getQuery();
     	while($productRec = $catQuery->fetch()){
     		if($productGroup = price_GroupOfProducts::getGroup($productRec->id, $now)) {
-    			$options[$productRec->id] = $productRec->name;
+    			$options[$productRec->id] = cat_Products::getTitleById($productRec->id);
     		}
     	}
     	
