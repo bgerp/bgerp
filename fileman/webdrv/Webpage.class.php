@@ -61,7 +61,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         $tabsArr['text'] = (object) 
 			array(
 				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Текст</legend>{$textPart}</fieldset></div>",
+				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Текст") . "</legend>{$textPart}</fieldset></div>",
 				'order' => 4,
 			);
 			

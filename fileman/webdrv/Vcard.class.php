@@ -54,7 +54,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 		$tabsArr['preview'] = (object) 
 			array(
 				'title'   => 'Преглед',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Преглед</legend>{$previewStr}</fieldset></div>",
+				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>" . tr("Преглед") . "</legend>{$previewStr}</fieldset></div>",
 				'order' => 2,
 			);
 			
@@ -62,7 +62,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 		$tabsArr['content'] = (object) 
 			array(
 				'title'   => 'Съдържание',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>Съдържание</legend>{$contentStr}</fieldset></div>",
+				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>" . tr("Съдържание") . "</legend>{$contentStr}</fieldset></div>",
 				'order' => 7,
 			);
         

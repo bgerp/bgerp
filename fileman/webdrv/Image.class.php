@@ -44,7 +44,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Таб за преглед
 		$tabsArr['preview'] = new stdClass();
         $tabsArr['preview']->title = 'Преглед';
-        $tabsArr['preview']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Преглед</legend> {$preview} </fieldset></div>";
+        $tabsArr['preview']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Преглед") . "</legend> {$preview} </fieldset></div>";
         $tabsArr['preview']->order = 2;
         
         // URL за показване на текстовата част на файловете
@@ -53,7 +53,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Таб за текстовата част
 		$tabsArr['text'] = new stdClass();
         $tabsArr['text']->title = 'Текст';
-        $tabsArr['text']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Текст</legend><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></fieldset></iframe></div>";
+        $tabsArr['text']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Текст") . "</legend><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></fieldset></iframe></div>";
         $tabsArr['text']->order = 4;
         
         return $tabsArr;

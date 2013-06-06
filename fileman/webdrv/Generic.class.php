@@ -45,7 +45,7 @@ class fileman_webdrv_Generic extends core_Manager
         $tabsArr['info'] = (object) 
 			array(
 				'title' => 'Информация',
-				'html'  => "<div class='webdrvTabBody'><fieldset  class='webdrvFieldset'><legend>Мета информация</legend>
+				'html'  => "<div class='webdrvTabBody'><fieldset  class='webdrvFieldset'><legend>" . tr("Мета информация") . "</legend>
 					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
 				'order' => 1,
 			);
@@ -1113,7 +1113,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // HTML частта, ако не е включен JS
             $htmlPart = "<div class='webdrvTabBody'>
-            				<fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
+            				<fieldset class='webdrvFieldset'><legend>" . tr("HTML изглед") . "</legend>
                 				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
                 			</fieldset>
             			</div>";    
@@ -1122,7 +1122,7 @@ class fileman_webdrv_Generic extends core_Manager
             // HTML частта, ако е включен JS
             $htmlTpl = new ET("
             					<div class='webdrvTabBody'>
-                    				<fieldset class='webdrvFieldset'><legend>HTML изглед</legend>
+                    				<fieldset class='webdrvFieldset'><legend>" . tr("HTML изглед") . "</legend>
                     					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
                     					[#SANITIZEJS#]
                 					</fieldset>

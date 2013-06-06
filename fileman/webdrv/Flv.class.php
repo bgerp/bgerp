@@ -1,7 +1,7 @@
 <?php
 
 
-/*
+/**
  * Драйвер за работа с .flv файлове.
  * 
  * @category  vendors
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Flv extends fileman_webdrv_Archive
+class fileman_webdrv_Flv extends fileman_webdrv_Video
 {
     
 }

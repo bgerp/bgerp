@@ -45,7 +45,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 		$tabsArr['preview'] = (object) 
 			array(
 				'title'   => 'Преглед',
-				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Преглед</legend> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
+				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Преглед") . "</legend> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
 				'order' => 2,
 			);
         
@@ -56,7 +56,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $tabsArr['text'] = (object) 
 			array(
 				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>Текст</legend> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
+				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Текст") . "</legend> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
 				'order' => 4,
 			);
         
@@ -66,7 +66,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $tabsArr['html'] = (object) 
 			array(
 				'title' => 'HTML',
-				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>HTML</legend> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
+				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("HTML") . "</legend> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
 				'order' => 3,
 			);
 
