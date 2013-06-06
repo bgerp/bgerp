@@ -71,8 +71,14 @@ class archive_Adapter
      */
     function tree($url)
     {
-        // Вземаме съдържанието
-        $entriesArr = $this->getEntries();
+        try {
+            // Вземаме съдържанието
+            $entriesArr = $this->getEntries();
+        } catch (Exception $e) {
+            
+            // Връщаме грешката
+            return tr('Възникна грешка при показване на съдържанието на архива');
+        }
         
         // Инстанция на класа
         $tableInst = cls::get('core_Tree');
