@@ -239,7 +239,7 @@ class survey_Surveys extends core_Master {
     	if($summary && $data->rec->state == 'active') {
     		
     		unset($url['summary']);
-    		$data->toolbar->addBtn('Анкета',  $url);
+    		$data->toolbar->addBtn('Анкета',  $url, 'ef_icon=img/16/survey.png');
     		$data->toolbar->buttons['btnPrint']->url['summary'] = 'ok';
     	}
     	
@@ -304,13 +304,5 @@ class survey_Surveys extends core_Master {
     	$self = cls::get(get_called_class());
     	
     	return $self->abbr . $rec->id;
-    }
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $data->query->orderBy("#state=DESC");
     }
 }

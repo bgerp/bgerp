@@ -63,8 +63,8 @@ class survey_Votes extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('alternativeId', 'key(mvc=survey_Alternatives)', 'caption=Въпрос, input=hidden, silent');
-    	$this->FLD('rate', 'int', 'caption=Отговор');
+    	$this->FLD('alternativeId', 'key(mvc=survey_Alternatives, select=label)', 'caption=Въпрос, input=hidden, silent');
+    	$this->FLD('rate', 'key(mvc=survey_Options, select=text)', 'caption=Отговор');
     	$this->FLD('userUid', 'varchar(80)', 'caption=Потребител');
     	
     	$this->setDbUnique('alternativeId, userUid');
@@ -153,12 +153,12 @@ class survey_Votes extends core_Manager {
      * @param int row - реда който е избран
      * @return int - Броя гласове
      */
-    static function countVotes($alternativeId, $row = NULL)
+    static function countVotes($alternativeId, $id = NULL)
     {
     	$query = static::getQuery();
     	$query->where(array("#alternativeId = [#1#]", $alternativeId));
-    	if($row) {
-    		$query->where(array("#rate = [#1#]", $row));
+    	if($id) {
+    		$query->where(array("#rate = [#1#]", $id));
     	}
     	
     	return $query->count();
@@ -171,15 +171,6 @@ class survey_Votes extends core_Manager {
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-list']) {
-    		$varchar = cls::get('type_Varchar');
-    		
-    		// На кой въпрос е отговорено
-    		$altRec = survey_Alternatives::fetch($rec->alternativeId);
-    		$row->alternativeId = $varchar->toVerbal($altRec->label);
-    		
-    		// Кой отговор е избран
-    		$rate = survey_Alternatives::getAnswerRow($rec->alternativeId, $rec->rate);
-    		$row->rate = $varchar->toVerbal($rate);
     		
     		// Кой го е отговорил
     		$row->userUid = $mvc->verbalUserUid($rec->userUid);

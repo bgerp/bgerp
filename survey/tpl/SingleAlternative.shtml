@@ -5,6 +5,7 @@
 			[#icon#] &nbsp;
 			<span class='question-label'>[#label#]</span>
 			<span class='tools'>[#tools#]</span>
+			[#addOption#]
 		</td>
 	</tr>
 <tr>

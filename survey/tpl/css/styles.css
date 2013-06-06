@@ -143,10 +143,6 @@ div.document ul {
 #survey-list-toolbar {
 	margin-left:0px;
 }
-
-.question-text *{
-	background:none !important;
-}
 	
 .question-text{
 		background:#f1f1f1 !important;
@@ -200,4 +196,13 @@ div.richtext li {
 #summary{
 	list-style-type:none !important;
 
+}
+
+.opTools{
+	margin-left:25px;
+}
+
+.summary-points{
+	margin-left:20px;
+	font-weight:normal;
 }
