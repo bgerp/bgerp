@@ -107,31 +107,47 @@ class acc_journal_Entry
         // Цена по кредита е позволена единствено и само, когато кредит-сметка няма зададена 
         // стратегия (LIFO, FIFO, MAP).
         if ($this->credit->account->hasStrategy()) {
-            expect($this->credit->account->isDimensional(), 'Сметките със стратегия трябва да са с размерна аналитичност');
-            expect(!isset($this->credit->price), 'Зададена цена при кредитиране на сметка със стратегия');
-        } else {
-//             expect(!empty($this->credit->price), 'Липсва цена при кредитиране на сметка без стратегия', (array)$this);
+            acc_journal_Exception::expect(
+                $this->credit->account->isDimensional(), 
+                'Сметките със стратегия трябва да са с размерна аналитичност'
+            );
+            acc_journal_Exception::expect(
+                !isset($this->credit->price), 
+                'Зададена цена при кредитиране на сметка със стратегия'
+            );
         }
         
         // Има ли кредит сметката размерна аналитичност?
         if ($this->credit->account->isDimensional()) {
             // Количеството по кредита е задължително за сметки с размерна аналитичност
-            expect(isset($this->debit->quantity), 'Липсва количество при кредитиране на сметка с размерна аналитичност');
+            acc_journal_Exception::expect(
+                isset($this->debit->quantity), 
+                'Липсва количество при кредитиране на сметка с размерна аналитичност'
+            );
         }
         
         // Има ли кредит сметката размерна аналитичност?
         if ($this->debit->account->isDimensional()) {
             // Количеството по дебита е задължително за сметки с размерна аналитичност
-            expect(isset($this->debit->quantity), 'Липсва количество при дебитиране на сметка с размерна аналитичност');
+            acc_journal_Exception::expect(
+                isset($this->debit->quantity), 
+                'Липсва количество при дебитиране на сметка с размерна аналитичност'
+            );
 
             // Наличието на цена по дебита, за сметки с размерна аналитичност е
             // 1. Задължително, ако кореспондиращата кредит сметка НЯМА стратегия
             // 2. Забранено, ако  кореспондиращата кредит сметка ИМА стратегия
             
             if ($this->credit->account->hasStrategy()) {
-                expect(!isset($this->debit->price), 'Зададена цена при дебитиране на сметка с размерна аналитичност, която кореспондира с кредит сметка със стратегия');
+                acc_journal_Exception::expect(
+                    !isset($this->debit->price), 
+                    'Зададена цена при дебитиране на сметка с размерна аналитичност, която кореспондира с кредит сметка със стратегия'
+                );
             } else {
-                expect(isset($this->debit->price), 'Липсва цена при дебитиране на сметка с размерна аналитичност, която кореспондира с кредит сметка без стратегия');
+                acc_journal_Exception::expect(
+                    isset($this->debit->price), 
+                    'Липсва цена при дебитиране на сметка с размерна аналитичност, която кореспондира с кредит сметка без стратегия'
+                );
             }
         }
         
@@ -146,9 +162,9 @@ class acc_journal_Entry
         $PRECISION = 0.001;
         
         if (isset($this->debit->amount) && isset($this->credit->amount)) {
-            expect(
+            acc_journal_Exception::expect(
                 abs($this->debit->amount - $this->credit->amount) < $PRECISION 
-                &&
+                    &&
                 abs($this->debit->amount - $this->amount()) < $PRECISION,
                 "Дебит-стойността на транзакцията не съвпада с кредит-стойността"
             );

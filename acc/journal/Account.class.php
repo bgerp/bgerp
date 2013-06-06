@@ -18,7 +18,12 @@ class acc_journal_Account
     {
         if (is_scalar($rec)) {
             $systemId = $rec;
-            expect($rec = acc_Accounts::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
+            
+            acc_journal_Exception::expect(
+                $rec = acc_Accounts::fetch(array("#systemId = '[#1#]'", $systemId)), 
+                "Липсва сметка със `systemId`={$systemId}",
+                array('redirect'=>array('acc_Accounts', 'list'))
+            );
         }
         
         $this->rec = $rec;
@@ -32,7 +37,11 @@ class acc_journal_Account
      */
     public static function byId($id)
     {
-        expect($rec = acc_Accounts::fetch($id), "Липсва сметка с `id`={$id}");
+        acc_journal_Exception::expect(
+            $rec = acc_Accounts::fetch($id), 
+            "Липсва сметка с `id`={$id}",
+            array('redirect'=>array('acc_Accounts', 'list'))
+        );
 
         return new static($rec);
     }
@@ -65,7 +74,7 @@ class acc_journal_Account
             + intval(isset($this->rec->groupId3));
 
         // колкото са пера - толкова аналитичности на сметката 
-        expect(TRUE || $countAnalit == count($items), 
+        acc_journal_Exception::expect(TRUE || $countAnalit == count($items), 
             sprintf("Броя на аналитичностите на сметка '%s' (%d) не съвпада с броя на подадените пера (%d)",
                 $this->rec->systemId,
                 $countAnalit,
@@ -77,21 +86,24 @@ class acc_journal_Account
         foreach (array_values($items) as $N=>$item) {
             $nn = $N+1;
             
-            expect($listId = $this->rec->{"groupId{$nn}"}, 
+            acc_journal_Exception::expect(
+                $listId = $this->rec->{"groupId{$nn}"}, 
                 sprintf("{$this->rec->systemId}: на перо #%d(%s) не съответства аналитичност на сметката",
                     $nn, $item->className()
-                )
+                ),
+                array('redirect'=>array('acc_Accounts', 'list'))
             );
             
             // Съпоставка на интерфейсите
             $listInterfaceId = acc_Lists::fetchField($listId, 'regInterfaceId');
             if (!empty($listInterfaceId)) {
-                expect(
+                acc_journal_Exception::expect(
                     $item->implementsInterface($listInterfaceId), 
                     sprintf("{$this->rec->systemId}: перо #%d(%s) не поддържа интерфейс %s", 
                         $nn, $item->className(), core_Interfaces::fetchField($listInterfaceId, 'name')
                     ),
-                    (array)$items
+                    (array)$items,
+                    array('redirect'=>array('acc_Accounts', 'list'))
                 );
             }
         } 

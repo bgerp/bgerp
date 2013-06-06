@@ -87,11 +87,10 @@ class acc_journal_EntrySide
         // Преобразуваме $transactionData към структура, подходяща за параметър на метода init()
         $data = new stdClass();
         
-        if (!$d = $transactionData[$this->type]) {
-            throw new acc_journal_Exception("Липсва {$this->type} част на транзакция", 
-                array('data'=>$transactionData)
-            );
-        }
+        acc_journal_Exception::expect(
+            $d = $transactionData[$this->type],
+            "Липсва {$this->type} част на транзакция", array('data'=>$transactionData)
+        );
         
         $data->amount = $transactionData['amount']; // Сума в основна валута
         
@@ -104,11 +103,10 @@ class acc_journal_EntrySide
         $data->account = array_shift($d);
         
         // Приемаме, че всичко останало в $d е пера.
-        if (count($d) > 3) {
-            throw new acc_journal_Exception("{$this->type}: Макс 3 пера",
-                array('data'=>$transactionData)
-            );
-        }
+        acc_journal_Exception::expect(
+            count($d) <= 3,
+            "{$this->type}: Макс 3 пера",  array('data'=>$transactionData)
+        );
         
         $data->items = $d;
         
@@ -127,11 +125,10 @@ class acc_journal_EntrySide
         $this->account  = $data->account instanceof acc_journal_Account ? $data->account :
                                 new acc_journal_Account($data->account);
         
-        if (isset($this->quantity) && $this->quantity == 0) {
-            throw new acc_journal_Exception('Зададено не-положително количество',
-                array('data'=>$data)
-            );
-        }
+        acc_journal_Exception::expect(
+            !isset($this->quantity) || $this->quantity > 0,
+            'Зададено не-положително количество', array('data'=>$data)
+        );
 
         $this->items = array();
 
@@ -195,11 +192,7 @@ class acc_journal_EntrySide
      */
     public function checkItems()
     {
-//         try {
-            $this->account->accepts($this->items);
-//         } catch (core_exception_Expect $ex) {
-//             throw new core_exception_Expect("Грешка в {$this->type}" , $ex->args());
-//         }
+        $this->account->accepts($this->items);
         
         return TRUE;
     }

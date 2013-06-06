@@ -9,6 +9,22 @@ class bgerp_AppException extends Exception
 
         $this->options = $options;
     }
+    
+    
+    /**
+     * Генерира exception от съотв. клас, в случай че зададеното условие не е изпълнено
+     * 
+     * @param boolean $condition
+     * @param string $message
+     * @param array $options
+     * @throws static
+     */
+    public static function expect($condition, $message, $options = array())
+    {
+        if (!(boolean)$condition) {
+            throw new static($message, $options);
+        }
+    }
 
     public function __toString()
     {
