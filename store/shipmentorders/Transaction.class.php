@@ -51,13 +51,13 @@ class store_shipmentorders_Transaction
         $rec = $this->fetchShipmentData($id);
             
         // Всяко ЕН трябва да има поне един детайл
-        expect(count($rec->details) > 0);
-            
-        // Записите от тип 1 (вземане от клиент)
-        $entries = $this->getTakingPart($rec);
-            
-        // Записите от тип 2 (експедиция)
-        $entries = array_merge($entries, $this->getDeliveryPart($rec));
+        if (count($rec->details) > 0) {
+            // Записите от тип 1 (вземане от клиент)
+            $entries = $this->getTakingPart($rec);
+                
+            // Записите от тип 2 (експедиция)
+            $entries = array_merge($entries, $this->getDeliveryPart($rec));
+        }
         
         $transaction = (object)array(
             'reason'  => 'ЕН #' . $rec->id,
