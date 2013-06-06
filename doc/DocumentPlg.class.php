@@ -822,7 +822,7 @@ class doc_DocumentPlg extends core_Plugin
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = mb_strtolower($mvc->singleTitle) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
+            $title = tr(mb_strtolower($mvc->singleTitle)) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
 
         $rec = $form->rec;
@@ -851,7 +851,7 @@ class doc_DocumentPlg extends core_Plugin
                 $title = tr(mb_strtolower($mvc->singleTitle)) . $in . doc_Threads::recToVerbal($thRec)->title;
             }
         }
-        
+       
         $form->title .= $title;
      }
     
