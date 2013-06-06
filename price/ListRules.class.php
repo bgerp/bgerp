@@ -266,6 +266,7 @@ class price_ListRules extends core_Detail
 
             if(!$rec->validFrom) {
                 $rec->validFrom = $now;
+                Mode::setPermanent('PRICE_VALID_FROM', NULL);
             }
 
             if($rec->validFrom < $now) {
