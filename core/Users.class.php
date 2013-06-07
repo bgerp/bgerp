@@ -185,6 +185,14 @@ class core_Users extends core_Manager
         $data->form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},width=15em");
 
         self::setUserFormJS($data->form);
+
+        if($id = $data->form->rec->id) {
+            $exRec = self::fetch($id);
+            if($exRec->lastLoginTime) {
+                $stateType = &$mvc->fields['state']->type;
+                unset($stateType->options['draft']);
+            }
+        }
     }
     
     
@@ -227,6 +235,15 @@ class core_Users extends core_Manager
             } else {
                 // Ако няма грешки, задаваме да се модифицира хеша в DB
                 $rec->ps5Enc = $rec->passNewHash;
+            }
+        } else {
+            if($recId) {
+                $exRec  = self::fetch($recId);
+                if($rec->nick != $exRec->nick) {
+                    $form->setError('passNew,passRe', 'При промяна на ника на потребителя трябва да се зададе нова парола');
+                }
+            } else {
+                $form->setWarning('passNew,passRe', 'Не е зададена парола за достъп на потребителя');
             }
         }
 
