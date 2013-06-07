@@ -248,29 +248,17 @@ class sales_Sales extends core_Master
     {
         switch ($action) {
             /*
-             * Контират се само документи (продажби) които генерират *непразни* транзакции.
-             * Документите (продажбите), които не генерират счетоводни транзакции могат да се
-             * активират.
+             * Активират се само (непразни) продажби, които не генерират счетоводни транзакции
              */
-            case 'conto':
             case 'activate':
-                if (empty($rec->id) || $rec->state != 'draft') {
-                    // Незаписаните продажби не могат нито да се контират, нито да се активират
+                if (empty($rec->id)) {
+                    // не се допуска активиране на незаписани продажби
                     $requiredRoles = 'no_one';
-                    break;
-                } 
-                
-                if (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE) {
-                    // Невъзможно е да се генерира транзакция
+                } elseif (sales_SalesDetails::count("#saleId = {$rec->id}") == 0) {
+                    // Не се допуска активирането на продажба без детайли
                     $requiredRoles = 'no_one';
-                    break;
-                }
-                
-                // Активиране е позволено само за продажби, които не генерират транзакции
-                // Контиране е позволено само за продажби, които генерират транзакции
-                $deniedAction = ($transaction->isEmpty() ? 'conto' : 'activate');
-                
-                if ($action == $deniedAction) {
+                } elseif ($mvc->haveRightFor('conto', $rec)) {
+                    // не се допуска активиране на продажба, която генерира счет. транзакция.
                     $requiredRoles = 'no_one';
                 }
                 break;
