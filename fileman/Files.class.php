@@ -54,9 +54,15 @@ class fileman_Files extends core_Master
     /**
      * 
      */
-     var $singleLayoutFile = 'fileman/tpl/SingleLayoutFile.shtml';
+    var $singleLayoutFile = 'fileman/tpl/SingleLayoutFile.shtml';
     
-     
+    
+    /**
+     * 
+     */
+    var $canAdd = 'no_one';
+    
+    
     /**
      * Заглавие на модула
      */
