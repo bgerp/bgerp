@@ -33,7 +33,7 @@ class fileman_Versions extends core_Manager {
         $this->FLD("fileHnd", "varchar(8)", array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         
         // Версия на данните на файла
-        $this->FLD("dataId", "key(mvc=file_Data)", array('caption' => 'Данни Id'));
+        $this->FLD("dataId", "key(mvc=fileman_Data)", array('caption' => 'Данни Id'));
         
         // От кога са били валидни тези данни
         $this->FLD("from", "datetime", array('caption' => 'Валидност->от'));
