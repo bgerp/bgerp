@@ -199,7 +199,7 @@ class techno_GeneralProducts extends core_Manager {
     		$img = sbf('img/16/add.png');
     		if(techno_Specifications::haveRightFor('edit', $data->specificationId)){
     			$addUrl = array($this, 'configure', $data->specificationId, 'ret_url' => TRUE);
-	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams')); 
+	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
     		}
 	    }
     	
