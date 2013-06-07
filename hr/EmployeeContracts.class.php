@@ -124,7 +124,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('annualLeave', 'int', "caption=Условия->Годишен отпуск,unit=дни");
         $this->FLD('notice', 'int', "caption=Условия->Предизвестие,unit=дни");
         $this->FLD('probation', 'int', "caption=Условия->Изпитателен срок,unit=месеца");
-        $this->FLD('descriptions', 'richtext', 'caption=Условия->Допълнителни');
+        $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
     }
     
     

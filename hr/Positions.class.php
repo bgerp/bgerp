@@ -68,7 +68,7 @@ class hr_Positions extends core_Master
         $this->FLD('nkpd', 'varchar(9)', 'caption=НКПД, hint=Номер по НКИД');
         $this->FLD('nkid', 'varchar(9)', 'caption=НКИД, hint=Номер по НКПД');
         
-        $this->FLD('descriptions', 'richtext', 'caption=@Характеристика, ');
+        $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=@Характеристика, ');
         
         $this->FLD('employersCnt', 'datetime', "caption=Служители,input=none");
         
