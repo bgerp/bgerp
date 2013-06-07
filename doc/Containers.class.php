@@ -302,17 +302,6 @@ class doc_Containers extends core_Manager
     }
     
     
-	function on_AfterRenderWrapping($mvc, &$tpl)
-    {
-    	jquery_Jquery::enable($tpl);
-    	
-    	$tpl->push('doc/tpl/style.css', 'CSS');
-    	$tpl->push('doc/js/accordion.js', 'JS');
-    	
-    }
-    
-    
-    
     /**
      * Създава нов контейнер за документ от посочения клас
      * Връща $id на новосъздадения контейнер
@@ -728,7 +717,6 @@ class doc_Containers extends core_Manager
                     array($class, 'add', 
                         'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => TRUE), 
                         NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
-        		
         	}
         	
         	$tpl->append("</li>"); 
@@ -736,6 +724,11 @@ class doc_Containers extends core_Manager
         }
 
        	$tpl->append("</ul></div>");
+        
+        jquery_Jquery::enable($tpl);
+
+        $tpl->push('doc/tpl/style.css', 'CSS');
+    	$tpl->push('doc/js/accordion.js', 'JS');
 
         return $tpl;
     }

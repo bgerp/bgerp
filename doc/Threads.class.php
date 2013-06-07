@@ -891,17 +891,7 @@ class doc_Threads extends core_Manager
         }
     }
     
-    
-	function on_AfterRenderWrapping($mvc, &$tpl)
-    {
-    	jquery_Jquery::enable($tpl);
-    	
-    	$tpl->push('doc/tpl/style.css', 'CSS');
-    	$tpl->push('doc/js/accordion.js', 'JS');
-    	
-    }
-    
-    
+
     /**
      * Намира нишка по манипулатор на нишка.
      *
