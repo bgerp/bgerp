@@ -8,12 +8,15 @@
 				<th colspan='3'>|Параметри|* [#OTHERS#] [#addBtn#]</th>
 			<!--ET_BEGIN PARAMS-->
 				[#PARAMS#]
+			<!--ET_END PARAMS-->
 			<tr>
 				<td width='50%'>[#paramId#]</td>
-				<td><i>[#paramValue#]</i></td>
+				<td><i>[#paramValue#]</i>
 				<!--ET_BEGIN tools-->
-				<td>[#tools#]</td>
+				<span style='display:inline-block;float:right;top:2px;position:relative'>[#tools#]</span>
 				<!--ET_END tools-->
+				</td>
+				
 			</tr>	
 			<!--ET_END PARAMS-->
 			<!--ET_BEGIN code-->
