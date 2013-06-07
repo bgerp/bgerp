@@ -172,6 +172,10 @@ class price_ListRules extends core_Detail
             if($parent = price_Lists::fetchField($listId, 'parent')) {
             	$conf = core_Packs::getConfig('price');
             	if($parent == $conf->PRICE_LIST_COST){
+            		
+            		// Ако няма запис за продукта или групата
+            		// му и бащата на ценоразписа е "себестойност"
+            		// връщаме NULL
             		return NULL;
             	}
             	
