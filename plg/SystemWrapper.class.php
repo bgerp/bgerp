@@ -27,13 +27,13 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Packs', 'Пакети', 'admin');
         $this->TAB('core_Users', 'Потребители', 'admin');
         $this->TAB('core_Roles', 'Роли', 'admin');
-        $this->TAB('core_Classes', 'Класове', 'admin');
-        $this->TAB('core_Interfaces', 'Интерфейси', 'admin');
+        $this->TAB('core_Classes', 'Класове', 'debug');
+        $this->TAB('core_Interfaces', 'Интерфейси', 'debug');
         $this->TAB('core_Lg', 'Превод', 'admin');
         $this->TAB('core_Logs', 'Логове', 'admin');
         $this->TAB('core_Cron', 'Крон');
         $this->TAB('core_Plugins', 'Плъгини', 'admin');
-        $this->TAB('core_Cache', 'Кеш', 'admin');
-        $this->TAB('core_Locks', 'Заключвания', 'admin');
+        $this->TAB('core_Cache', 'Кеш', 'debug');
+        $this->TAB('core_Locks', 'Заключвания', 'debug');
     }
 }
