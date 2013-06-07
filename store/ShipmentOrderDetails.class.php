@@ -388,7 +388,10 @@ class store_ShipmentOrderDetails extends core_Detail
         
         foreach ($products as $p) {
             $ProductManager = self::getProductManager($p->policyId);
-            $options[$p->productId] = $ProductManager->getTitleById($p->productId);
+            
+            // Използваме стойността на select box-а за да предадем едновременно две стойности - 
+            // ид на политика и ид на продукт.
+            $options["{$p->policyId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
         }
         
         $data->form->setOptions('productId', $options);
@@ -408,6 +411,10 @@ class store_ShipmentOrderDetails extends core_Detail
             // Извличане на информация за продукта - количество в опаковка, единична цена
             
             $rec        = $form->rec;
+            
+            // Извличаме ид на политиката, кодирано в ид-то на продукта 
+            // @see store_ShipmentOrderDetails::on_AfterPrepareEditForm()
+            list($rec->policyId, $rec->productId) = explode('|', $rec->productId, 2);
 
             $origin        = store_ShipmentOrders::getOrigin($rec->{$mvc->masterKey}, 'store_ShipmentIntf');
             $availProducts = $origin->getShipmentProducts();
