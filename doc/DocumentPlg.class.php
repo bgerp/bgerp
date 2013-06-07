@@ -953,7 +953,7 @@ class doc_DocumentPlg extends core_Plugin
         }
 		
     	if ($rec->id) {
-            $rec = $mvc->fetch($rec->id);
+            $rec = (object)((array)$rec + (array)$mvc->fetch($rec->id));
             
             if($action == 'delete') {
                 $requiredRoles = 'no_one';
