@@ -434,6 +434,7 @@ class price_ListDocs extends core_Master
     {
     	$row->header = "{$row->title} &nbsp;<b>{$row->ident}</b> ({$row->state})";
     	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->date);
+    	$row->policyId = ht::createLink($row->policyId, array('price_Lists', 'single', $rec->policyId));
     	
     	if(!$rec->productGroups) {
     		$row->productGroups = tr("Всички");
