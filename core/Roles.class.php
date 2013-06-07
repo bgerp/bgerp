@@ -430,6 +430,14 @@ class core_Roles extends core_Manager
             $res .= "<li> Добавена роля 'admin'";
         }
         
+        if (!$this->fetch("#role = 'debug'")) {
+            $rec = new stdClass();
+            $rec->role = 'debug';
+            $rec->type = 'system';
+            $this->save($rec);
+            $res .= "<li> Добавена роля 'debug'";
+        }
+        
         if (!$this->fetch("#role = '" . EF_ROLES_DEFAULT . "'")) {
             $rec = new stdClass();
             $rec->role = EF_ROLES_DEFAULT;
