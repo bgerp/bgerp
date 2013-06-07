@@ -218,15 +218,15 @@ class price_ListRules extends core_Detail
         switch($type) {
             case 'groupDiscount' :
                 $form->setField('productId,packagingId,price', 'input=none');
-                $title = "Групова отстъпка в ценоразпис \"$masterTitle\"";
+                $title = "Групова отстъпка в ценова политика|* \"$masterTitle\"";
                 break;
             case 'discount' :
                 $form->setField('groupId,price', 'input=none');
-                $title = "Продуктова отстъпка в ценоразпис \"$masterTitle\"";
+                $title = "Продуктова отстъпка в ценова политика|* \"$masterTitle\"";
                 break;
             case 'value' :
                 $form->setField('groupId,discount', 'input=none');
-                $title = "Продуктова цена в ценоразпис \"$masterTitle\"";
+                $title = "Продуктова цена в ценова политика|* \"$masterTitle\"";
                 break;
         }
 
