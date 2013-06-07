@@ -25,11 +25,11 @@ class drdata_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {        
-        $this->TAB('drdata_Countries', 'Страни');
-        $this->TAB('drdata_Domains', 'Домейни', 'admin');
-        $this->TAB('drdata_IpToCountry', 'IP-to-Country');
-        $this->TAB('drdata_DialCodes', 'Тел. кодове');
-        $this->TAB('drdata_Vats', 'ЗДДС №');
+        $this->TAB('drdata_Countries', 'Страни', 'admin');
+        $this->TAB('drdata_Domains', 'Домейни', 'debug');
+        $this->TAB('drdata_IpToCountry', 'IP-to-Country', 'debug');
+        $this->TAB('drdata_DialCodes', 'Тел. кодове', 'admin');
+        $this->TAB('drdata_Vats', 'ЗДДС №', 'admin');
         $this->TAB('drdata_Mvr', 'МВР', 'admin, common');
         $this->TAB('drdata_DistrictCourts', 'Съдилища', 'admin, common');
         $this->TAB('drdata_Banks', 'Банки');
