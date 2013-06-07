@@ -73,6 +73,12 @@ class drdata_Vats extends core_Manager
     
     
     /**
+     * 
+     */
+    var $canAdd = 'no_one';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
