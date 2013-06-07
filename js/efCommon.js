@@ -910,24 +910,36 @@ function getStatuses(url, timeout) {
 
 
 /**
- * Добавя event, който слуша за отпускане на мишката
- */
-function startGettingText()
-{
-	window.onmouseup = saveSelectedTextToSession;
-}
-
-
-/**
  * Записва избрания текст в сесията и текущото време
+ * 
+ * @param string handle - Манипулатора на докуемента
  */
-function saveSelectedTextToSession()
+function saveSelectedTextToSession(handle)
 {
+	// Вземаме избрания текст
 	var selText = getSelText();
 
 	// Ако има избран текст
 	if (selText.focusOffset != selText.anchorOffset) {
+		
+		// Текста записан в сесията
+		sess = sessionStorage.selText;
+		
+		// Записваме в сесията новия текст
 		sessionStorage.selText = selText;
+		
+		// Ако има подадено id
+		if (handle) {
+			
+			// Ако е нямало записан текст или текстовете не си отговарят
+			if ((!sess) || (sess != selText)) {
+				
+				// Записваме манипулатора
+				sessionStorage.selHandle = handle;
+			}
+		}
+		
+		// Записваме текущото време
 		sessionStorage.selTime = new Date().getTime();
 		setTimeout(saveSelectedTextToSession, 1000)
 	}
@@ -942,7 +954,7 @@ function saveSelectedTextToSession()
 function getSelText()
 {
     var txt = '';
-     if (window.getSelection)
+    if (window.getSelection)
     {
         txt = window.getSelection();
     }
@@ -967,13 +979,39 @@ function getSelText()
  */
 function appendQuote(id)
 {
+	// Вземаме времето от сесията
 	selTime = sessionStorage.getItem('selTime');
+	
+	// Вземаме текущото време
 	now = new Date().getTime();
+	
+	// Махаме 5s
 	now = now-5000;
+	
+	// Ако не е по старо от 5s
 	if (selTime > now) {
+		
+		// Вземаме текста
 		text = sessionStorage.getItem('selText');
+		
 		if (text) {
-			get$(id).value += "\n[bQuote]" + text + "[/bQuote]";
+
+			// Вземаме манипулатора на документа
+			selHandle = sessionStorage.getItem('selHandle');
+			
+			// Стринга, който ще добавим
+			str = "\n[bQuote";
+			
+			// Ако има манипулато, го добавяме
+			if (selHandle) {
+				str += "=" + selHandle + "]";
+			} else {
+				str += "]";
+			}
+			str += text + "[/bQuote]";
+			
+			// Добавяме към данните
+			get$(id).value += str;
 		}
 	}
 }
