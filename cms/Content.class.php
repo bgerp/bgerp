@@ -172,7 +172,13 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        return '<div style="float:right;font-size:0.8em;">задвижвано от <b>bgERP</b>&nbsp;</div>';
+        if(Mode::is('screenMode', 'narrow')) {
+            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-right:5px;"><b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
+        } else {
+            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-top:-3px;margin-right:5px;">задвижвано<br>от <b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
+        }
+
+        return $footer;
     }
     
      
