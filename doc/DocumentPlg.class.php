@@ -150,7 +150,7 @@ class doc_DocumentPlg extends core_Plugin
                         'originId' => $data->rec->containerId,
                         'ret_url'=>$retUrl
                     ),
-                    'class=btn-posting');
+                    'class=btn-posting', 'onmouseup=saveSelectedTextToSession();');
             }
         } else {
             //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
