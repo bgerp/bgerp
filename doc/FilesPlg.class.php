@@ -43,7 +43,7 @@ class doc_FilesPlg extends core_Plugin
         
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
-        Mode::set('pageSubMenu', 'Общи');
+        Mode::set('pageSubMenu', 'Всички');
         
         // За да не се изпълнява по - нататък
         return FALSE;
