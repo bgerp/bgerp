@@ -221,9 +221,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	$row->productId = $varchar->toVerbal($productInfo->productRec->name);
     	$row->code = $varchar->toVerbal($productInfo->productRec->code);
-    	
-    	$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
-    	$row->uomId = $varchar->toVerbal($uomId);
+    	$row->uomId = cat_UoM::getShortName($productInfo->productRec->measureId);
     	
     	$row->perPack = $double->toVerbal($productInfo->packagingRec->quantity);
     	if($rec->value) {

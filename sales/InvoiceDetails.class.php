@@ -191,7 +191,7 @@ class sales_InvoiceDetails extends core_Detail
     	
     	$productRec = $productMan->fetch($rec->productId);
     	if($rec->packagingId){
-    		$measureShort = cat_UoM::fetchField($productRec->measureId, 'shortName');
+    		$measureShort = cat_UoM::getShortName($productRec->measureId);
     		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
     	} else {
     		$row->packagingId = $productMan->getVerbal($productRec, 'measureId');

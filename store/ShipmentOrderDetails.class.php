@@ -360,7 +360,7 @@ class store_ShipmentOrderDetails extends core_Detail
                         $row->packagingId = '???';
                     }
                 } else {
-                    $shortUomName = cat_UoM::fetchField($rec->uomId, 'shortName');
+                    $shortUomName = cat_UoM::getShortName($rec->uomId);
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
             }

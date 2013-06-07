@@ -306,7 +306,7 @@ class price_ListDocs extends core_Master
     	
 		if($rec->pack){
     		$row->pack = cat_Packagings::getTitleById($rec->pack);
-    		$measureShort = cat_UoM::fetchField($rec->measureId, 'shortName');
+    		$measureShort = cat_UoM::getShortName($rec->measureId);
     		$row->pack .= " &nbsp;({$rec->perPack} {$measureShort})";
 		} else {
     		$row->measureId = cat_UoM::getTitleById($rec->measureId);

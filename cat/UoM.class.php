@@ -141,4 +141,16 @@ class cat_UoM extends core_Manager
     	
     	return $value * $rate;
     }
+    
+    
+    /**
+     * Връща краткото име на мярката
+     * @param int $id - ид на мярка
+     * @return string - краткото име на мярката
+     */
+    public static function getShortName($id)
+    {
+    	expect($rec = static::fetch($id));
+    	return static::recToVerbal($rec, 'shortName')->shortName;
+    }
 }

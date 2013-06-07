@@ -363,7 +363,7 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
     	$uomId = $productMan->fetchField($rec->productId, 'measureId');
-    	$uomTitle = cat_UoM::recToVerbal($uomId, 'shortName')->shortName;
+    	$uomTitle = cat_UoM::getShortName($uomId);
     	
     	$row->quantity = "<b>{$row->quantity}</b> {$uomTitle}";
     	

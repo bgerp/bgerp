@@ -148,7 +148,7 @@ class store_Products extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $measureId = cat_Products::fetchField("#id = {$rec->name}", 'measureId');
-        $measureShortName = cat_UoM::fetchField("#id = {$measureId}", 'shortName');
+        $measureShortName = cat_UoM::getShortName($measureId);
         
         if (haveRole('admin,store')) {
             $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add', 'productId' => $rec->id));
