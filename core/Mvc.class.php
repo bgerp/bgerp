@@ -311,9 +311,9 @@ class core_Mvc extends core_FieldSet
 
         if (!$rec->id) {
             $rec->id = $this->db->insertId();
-            $this->invoke('afterCreate', array($rec));
+            $this->invoke('afterCreate', array($rec, $fields, $mode));
         } else {
-            $this->invoke('afterUpdate', array($rec));
+            $this->invoke('afterUpdate', array($rec, $fields, $mode));
         }
 
         return $rec->id;
