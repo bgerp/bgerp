@@ -175,7 +175,6 @@ class doc_Containers extends core_Manager
         bgerp_Notifications::clear($url);
         
         $tpl->appendOnce("flashHashDoc(flashDocInterpolation);", 'ON_LOAD');
-        $tpl->appendOnce("startGettingText();", 'ON_LOAD');
     }
     
     
@@ -210,6 +209,7 @@ class doc_Containers extends core_Manager
         if($docRow) {
             $data = $document->prepareDocument();
             $row->ROW_ATTR['id'] = $document->getHandle();
+            $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "');";
             $row->document = $document->renderDocument($data);
             
             if($q = Request::get('Q')) {
