@@ -170,6 +170,11 @@ class price_ListRules extends core_Detail
             }
         } else {
             if($parent = price_Lists::fetchField($listId, 'parent')) {
+            	$conf = core_Packs::getConfig('price');
+            	if($parent == $conf->PRICE_LIST_COST){
+            		return NULL;
+            	}
+            	
                 $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
             }
         }
@@ -285,8 +290,10 @@ class price_ListRules extends core_Detail
                 Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
             }
 			
-            if(!cat_Products::getProductInfo($rec->productId, $rec->packagingId)){
-            	$form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
+            if($rec->productId){
+	            if(!cat_Products::getProductInfo($rec->productId, $rec->packagingId)){
+	            	$form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
+	            }
             }
         }
     }
