@@ -420,61 +420,64 @@ class blast_Letters extends core_Master
         // Намираме преполагаемия език на писмото
         core_Lg::push(static::getLanguage($options->rec->body));
         
-        // Ако е лист
-        if ($options->rec->listId) {
-            
-            // Фетчваме детайла за съответния лист
-            $detailRec = blast_ListDetails::fetch($options->__toListId);    
+        // Ако име, тогава да се рендира
+        if ($options->__toListId) {
         
-            // Десериализираме данните
-            $data = unserialize($detailRec->data);
+            // Ако е лист
+            if ($options->rec->listId) {
+                
+                // Фетчваме детайла за съответния лист
+                $detailRec = blast_ListDetails::fetch($options->__toListId);    
             
-        } elseif ($options->rec->group) {
-            
-            // Ако е група
-            
-            // Ако групата е фирма
-            if ($options->rec->group == 'company') {
+                // Десериализираме данните
+                $data = unserialize($detailRec->data);
                 
-                $group = 'company';
-            
-            } elseif ($options->rec->group == 'person') {
+            } elseif ($options->rec->group) {
                 
-                // Ако групата е лице
+                // Ако е група
                 
-                $group = 'person';
+                // Ако групата е фирма
+                if ($options->rec->group == 'company') {
+                    
+                    $group = 'company';
                 
-            }  elseif ($options->rec->group == 'personBiz') {
+                } elseif ($options->rec->group == 'person') {
+                    
+                    // Ако групата е лице
+                    
+                    $group = 'person';
+                    
+                }  elseif ($options->rec->group == 'personBiz') {
+                    
+                    // Ако групата е бизнес данни от лице
+                    
+                    $group = 'personBiz';
+                }
                 
-                // Ако групата е бизнес данни от лице
-                
-                $group = 'personBiz';
+                // Вземаме масива с плейсхолдерите, които ще се заместват
+                $data = static::getDataFor($group, $options->__toListId);
             }
-            
-            // Вземаме масива с плейсхолдерите, които ще се заместват
-            $data = static::getDataFor($group, $options->__toListId);
-        }
         
-        // Обхождаме масива с данните
-        foreach ((array)$data as $key => $value) {
-            
-            // Какво ще заместваме
-            $search = "[#{$key}#]";
-            
-            //Заместваме данните
-            $options->rec->body = str_ireplace($search, $value, $options->rec->body);
-            $options->rec->subject = str_ireplace($search, $value, $options->rec->subject);
-            $options->rec->recipient = str_ireplace($search, $value, $options->rec->recipient);
-            $options->rec->attn = str_ireplace($search, $value, $options->rec->attn);
-            $options->rec->country = str_ireplace($search, $value, $options->rec->country);
-            $options->rec->pcode = str_ireplace($search, $value, $options->rec->pcode);
-            $options->rec->place = str_ireplace($search, $value, $options->rec->place);
-            $options->rec->address = str_ireplace($search, $value, $options->rec->address);
-            $options->rec->position = str_ireplace($search, $value, $options->rec->position);
+            // Обхождаме масива с данните
+            foreach ((array)$data as $key => $value) {
+                
+                // Какво ще заместваме
+                $search = "[#{$key}#]";
+                
+                //Заместваме данните
+                $options->rec->body = str_ireplace($search, $value, $options->rec->body);
+                $options->rec->subject = str_ireplace($search, $value, $options->rec->subject);
+                $options->rec->recipient = str_ireplace($search, $value, $options->rec->recipient);
+                $options->rec->attn = str_ireplace($search, $value, $options->rec->attn);
+                $options->rec->country = str_ireplace($search, $value, $options->rec->country);
+                $options->rec->pcode = str_ireplace($search, $value, $options->rec->pcode);
+                $options->rec->place = str_ireplace($search, $value, $options->rec->place);
+                $options->rec->address = str_ireplace($search, $value, $options->rec->address);
+                $options->rec->position = str_ireplace($search, $value, $options->rec->position);
+            }
+            // Добавяме, че разглеждаме детайла
+            $options->rec->__detail = TRUE;
         }
-        
-        // Добавяме, че разглеждаме детайла
-        $options->rec->__detail = TRUE;
     }
     
     

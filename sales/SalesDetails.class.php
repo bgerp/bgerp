@@ -119,7 +119,7 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent');
         
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,notNull,mandatory');
+        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
 
@@ -265,7 +265,8 @@ class sales_SalesDetails extends core_Detail
             $VAT = 1;
             
             if ($salesRec->chargeVat == 'yes') {
-                $VAT += cat_Products::getVat($rec->productId, $salesRec->valior);
+                $ProductManager = self::getProductManager($rec->policyId);
+                $VAT += $ProductManager->getVat($rec->productId, $salesRec->valior);
             }
             
             $amountDeal += $rec->amount * $VAT;
@@ -334,7 +335,8 @@ class sales_SalesDetails extends core_Detail
         foreach ($recs as $rec) {
             // Начисляваме ДДС, при нужда
             if ($salesRec->chargeVat == 'yes') {
-                $rec->packPrice *= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
+                $ProductManager = self::getProductManager($rec->policyId);
+                $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
             }
             
             // Конвертираме цените във валутата на продажбата
@@ -371,7 +373,7 @@ class sales_SalesDetails extends core_Detail
                         $row->packagingId = '???';
                     }
                 } else {
-                    $shortUomName = cat_UoM::fetchField($rec->uomId, 'shortName');
+                    $shortUomName = cat_UoM::getShortName($rec->uomId);
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
                 
@@ -412,7 +414,8 @@ class sales_SalesDetails extends core_Detail
         if (!empty($rec->packPrice)) {
             if ($masterRec->chargeVat == 'yes') {
                 // Начисляваме ДДС в/у цената
-                $rec->packPrice *= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
+                $ProductManager = self::getProductManager($rec->policyId);
+                $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
             }
             $rec->packPrice /= $masterRec->currencyRate;
         }
@@ -436,16 +439,18 @@ class sales_SalesDetails extends core_Detail
             $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
+            /* @var $Policy price_PolicyIntf */
+            $Policy = cls::get($rec->policyId);
+            
+            $ProductMan = self::getProductManager($Policy);
+            
             /* @var $productRef cat_ProductAccRegIntf */
-            $productRef  = new core_ObjectReference('cat_Products', $rec->productId);
+            $productRef  = new core_ObjectReference($ProductMan, $rec->productId);
             $productInfo = $productRef->getProductInfo();
             
             expect($productInfo);
             
             // Определяне на цена, количество и отстъпка за опаковка
-            
-            /* @var $Policy price_PolicyIntf */
-            $Policy = cls::get($rec->policyId);
             
             $policyInfo = $Policy->getPriceInfo(
                 $masterRec->contragentClassId, 
@@ -483,7 +488,7 @@ class sales_SalesDetails extends core_Detail
                 
                 if ($masterRec->chargeVat == 'yes') {
                     // Потребителя въвежда цените с ДДС
-                    $rec->packPrice /= 1 + cat_Products::getVat($rec->productId, $masterRec->valior);
+                    $rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);
                 }
                 
                 // Изчисляваме цената за единица продукт в осн. мярка
@@ -501,6 +506,24 @@ class sales_SalesDetails extends core_Detail
     
     
     /**
+     * Връща продуктовия мениджър на зададена ценова политика
+     * 
+     * @param int|string|object $Policy
+     * @return core_Manager
+     */
+    protected static function getProductManager($Policy)
+    {
+        if (is_scalar($Policy)) {
+            $Policy = cls::get($Policy);
+        }
+        
+        $ProductManager = $Policy->getProductMan();
+        
+        return $ProductManager;
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
@@ -509,6 +532,9 @@ class sales_SalesDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $ProductManager = self::getProductManager($rec->policyId);
+        
+        $row->productId = $ProductManager->getTitleById($rec->productId);
     }
     
     

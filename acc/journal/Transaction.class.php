@@ -1,4 +1,6 @@
 <?php
+use Behat\Mink\Exception\Exception;
+
 class acc_journal_Transaction
 {
     /**
@@ -91,17 +93,28 @@ class acc_journal_Transaction
      * Проверка на валидността на счетоводна транзакция
      * 
      * @return boolean
+     * @throws acc_journal_Exception
      */
     public function check()
     {
-        $sumItemsAmount = $this->amount();
+        acc_journal_Exception::expect(
+            !$this->isEmpty(), 'Не може да се контира празна транзакция'
+        );
         
-        if (isset($this->rec->totalAmount)) {
-            expect($this->rec->totalAmount == $sumItemsAmount, "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$this->rec->totalAmount}) суми на транзакция");
+        /* @var $entry acc_journal_Entry */ 
+        foreach ($this->entries as $entry) {
+            try {
+                $entry->check();
+            } catch (acc_journal_Exception $ex) {
+                throw new acc_journal_Exception('Невалиден ред на транзакция: ' . $ex->getMessage());
+            }
         }
         
-        foreach ($this->entries as $entry) {
-            expect($entry->check(), 'Невалиден ред на транзакция');
+        if (isset($this->rec->totalAmount)) {
+            $sumItemsAmount = $this->amount();
+        
+            acc_journal_Exception::expect($this->rec->totalAmount == $sumItemsAmount,
+                "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$this->rec->totalAmount}) суми на транзакция");
         }
         
         return TRUE;
@@ -113,14 +126,12 @@ class acc_journal_Transaction
      * 
      * @return float
      */
-    public function amount()
+    protected function amount()
     {
         $totalAmount = 0;
         
         /* @var $entry acc_journal_Entry */
         foreach ($this->entries as $entry) {
-            expect($entry->check(), 'Невалиден ред на транзакция');
-        
             $totalAmount += $entry->amount();
         }
         
@@ -151,7 +162,7 @@ class acc_journal_Transaction
             }
             
             $this->commit();
-        } catch (core_exception_Expect $ex) {
+        } catch (Exception $ex) {
             $this->rollback();
             throw $ex;
         }
@@ -165,7 +176,7 @@ class acc_journal_Transaction
      * 
      * @return boolean
      */
-    public function begin()
+    protected function begin()
     {
         // Начало на транзакция: създаваме draft мастър запис, за да имаме ключ за детайлите
         $this->rec->state = 'draft';
@@ -185,7 +196,7 @@ class acc_journal_Transaction
      * 
      * @return boolean
      */
-    public function commit()
+    protected function commit()
     {
         //  Транзакцията е записана. Активираме
         $this->rec->state = 'active';

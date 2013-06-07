@@ -25,7 +25,7 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Нестандартни продукти";
+    var $title = "Универсален драйвър";
     
     
     /**
@@ -38,6 +38,24 @@ class techno_GeneralProducts extends core_Manager {
      * Шаблон за показване на нормалната версия на изделието
      */
     var $singleLayoutFile = 'techno/tpl/SingleLayoutGeneralProducts.shtml';
+    
+    
+     /**
+     * Кой може да го прочете?
+     */
+    var $canRead = 'no_one';
+    
+    
+    /**
+     * Кой може да променя?
+     */
+    var $canWrite = 'no_one';
+    
+    
+    /**
+     * Кой може да променя?
+     */
+    var $canAdd = 'no_one';
     
     
     /*
@@ -54,27 +72,59 @@ class techno_GeneralProducts extends core_Manager {
     public function getEditForm()
     {
     	$form = cls::get('core_Form');
-    	$form->FNC('title', 'varchar(184)', 'caption=Описание,input=hidden');
-    	$form->FNC('description', 'richtext(rows=5)', 'caption=Описание,input,mandatory');
+    	$form->FNC('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%,input');
+    	$form->FNC('description', 'richtext(rows=5, bucket=Notes)', 'caption=Описание,input,mandatory,width=100%');
 		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input');
     	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. цена,width=8em,mandatory,input,unit=без ддс');
 		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
     	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,unit=%');
-		$form->FNC('vat', 'percent(decimals=2)', 'caption=Цени->ДДС,width=8em,input,unit=%');
-    	$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
-		$form->FNC('height', 'double(decimals=2)', 'caption=Параметри->Височина,width=8em,input');
-		$form->FNC('width', 'double(decimals=2)', 'caption=Параметри->Ширина,width=8em,input');
-		$form->FNC('weight', 'double(decimals=2)', 'caption=Параметри->Тегло,width=8em,input');
-		$form->FNC('thickness', 'double(decimals=2)', 'caption=Параметри->Дебелина,width=8em,input');
-		$form->FNC('volume', 'double(decimals=2)', 'caption=Параметри->Обем,width=8em,input');
-		$form->FNC('length', 'double(decimals=2)', 'caption=Параметри->Дължина,width=8em,input');
-		$form->FNC('material', 'varchar(150)', 'caption=Други->Материал,width=8em,input');
-		$form->FNC('color', 'varchar(150)', 'caption=Други->Цвят,width=8em,input');
-		$form->FNC('code', 'varchar(64)', 'caption=Други->Код,remember=info,width=15em,input');
-        $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Други->EAN,width=15em,input');
+		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
+		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
+        $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
+        $form->FNC('quantity1', 'int', 'caption=Ценови преглед->К-во 1,mandatory,width=4em,input');
+    	$form->FNC('quantity2', 'int', 'caption=Ценови преглед->К-во 2,width=4em,input');
+    	$form->FNC('quantity3', 'int', 'caption=Ценови преглед->К-во 3,width=4em,input');
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
+        $form->setDefault('quantity1', '1');
         
         return $form;
+    }
+    
+    
+    /**
+     * Връщане на форма за добавяне на нови параметри
+     */
+    public function getAddParamForm($data)
+    {
+    	$form = cls::get('core_Form');
+    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory');
+        $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
+    	$paramOptions = $this->getRemainingOptions($data);
+    	$form->setOptions('paramId', $paramOptions);
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
+    	return $form;
+    }
+    
+    
+    /**
+     * Помощен метод за показване само на тези параметри, които
+     * не са добавени към продукта
+     * @param stdClass $data - сериализирана информация
+     * @return array $options - масив с опции
+     */
+    private function getRemainingOptions($data)
+    {
+      $options = cat_Params::makeArray4Select();
+      if(count($options)){
+      	foreach($options as $id => $value){
+      		if(isset($data->params[$id])){
+      			unset($options[$id]);
+      		} 
+      	}
+      }
+      
+      return $options;
     }
     
     
@@ -100,7 +150,9 @@ class techno_GeneralProducts extends core_Manager {
     public function getPrice($data, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
     	if($data){
-    		$data = unserialize($data);
+    		if(is_string($data)){
+    			$data = unserialize($data);
+    		}
     		
     		if($data->price){
     			$price = new stdClass();
@@ -130,77 +182,209 @@ class techno_GeneralProducts extends core_Manager {
     public function getVerbal($data, $short = FALSE)
     {
         expect($data = unserialize($data));
-        $row = new stdClass();
+        $row = $this->toVerbal($data);
         
-        // Спрямо $short взимаме шаблона за кратко или дълго представяне
-    	if($short){
-    		$layout = $this->singleShortLayoutFile;
-    		$size = array(130, 130);
+        if($short){
     		if($data->image){
+    				$size = array(130, 130);
     			$file = fileman_Files::fetchByFh($data->image);
     			$row->image = thumbnail_Thumbnail::getImg($file->fileHnd, $size);
     		}
     	} else {
-    		$layout = $this->singleLayoutFile;
-    		$size = array(200, 350);
     		if($data->image){
+    			$size = array(200, 350);
 	    		$Fancybox = cls::get('fancybox_Fancybox');
 				$row->image = $Fancybox->getImage($data->image, $size, array(550, 550));
     		}
+    		$img = sbf('img/16/add.png');
+    		if(techno_Specifications::haveRightFor('edit', $data->specificationId)){
+    			$addUrl = array($this, 'configure', $data->specificationId, 'ret_url' => TRUE);
+	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
+    		}
+	    }
+    	
+    	$tpl = $this->getTpl($row, $data->params, $short);
+    	if($addBtn){
+    		$tpl->replace($addBtn, 'addBtn');
     	}
     	
-        // Преобразуваме записа във вербален вид
+        $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
+        return $tpl;
+    }
+    
+    
+    /**
+     * Връща шаблона с добавени плейсхолдъри за параметрите
+     * @param stdClass $row - Вербален запис
+     * @param array $params - параметрите на продукта
+     * @param bool $short - дали изгледа е кратак 
+     * @return core_ET $tpl - шаблон за показване
+     */
+    private function getTpl($row, $params = array(), $short)
+    {
+    	$tpl = (!$short) ? getTplFromFile($this->singleLayoutFile) : getTplFromFile($this->singleShortLayoutFile);
+    	if(count($row->params)){
+    		$paramBlock = $tpl->getBlock('PARAMS');
+    		foreach($row->params as $id => $arr){
+    			$blockCl = clone($paramBlock);
+    			$blockCl->replace($arr['paramId'], 'paramId');
+    			$blockCl->replace($arr['paramValue'], 'paramValue');
+    			if(!$short){
+    				$blockCl->replace($arr['tools'], 'tools');
+    			}
+    			$blockCl->removeBlocks();
+    			$tpl->append($blockCl, 'PARAMS');
+    		}
+    	}
+    	
+    	$tpl->placeObject($row);
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Помощна функция за привеждането на записа в вербален вид
+     * @param stdClass $data - не сериализирания запис
+     * @return stdClass $row - вербалното представяне на данните
+     */
+    private function toVerbal($data)
+    {
+    	// Преобразуваме записа във вербален вид
+    	$row = new stdClass();
         $fields = $this->getEditForm()->selectFields("");
     	foreach($fields as $name => $fld){
     		if($name == 'image') continue;
     		$row->$name = $fld->type->toVerbal($data->$name);
     	}
     	
-        $tpl = getTplFromFile($layout);
-        $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
-        $tpl->placeObject($row);
-        
+    	if($data->params){
+    		$fields = $this->getAddParamForm($data)->selectFields("");
+    		foreach($data->params as $paramId => $value){
+    			$arr['paramId'] = $fields['paramId']->type->toVerbal($paramId);
+    			$arr['paramValue'] = $fields['paramValue']->type->toVerbal($value);
+    			$suffix = $fields['paramValue']->type->toVerbal(cat_Params::fetchField($paramId, 'suffix'));
+    			$arr['paramValue'] .= " &nbsp;{$suffix}";
+    			$arr['tools'] = $this->getParamTools($paramId, $data->specificationId);
+        		$row->params[$paramId] = $arr;
+    		}
+    	}
+    	return $row;
+    }
+    
+    
+    /**
+     * Създаване на туулбара на параметрите
+     * @param int $paramId - ид на параметър
+     * @param int $specificationId - ид на спецификация
+     * @return core_ET $tpl - туулбара за редакция
+     */
+    private function getParamTools($paramId, $specificationId)
+    {
+    	if(techno_Specifications::haveRightFor('edit', $specificationId)) {
+    		
+	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
+			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
+	        
+			$editUrl = array($this, 'configure', $specificationId, 'edit' => $paramId,'ret_url' => TRUE);
+	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId,'ret_url' => TRUE);
+
+	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$paramId}");
+	        $deleteLink = ht::createLink($deleteImg, $deleteUrl,tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=delS{$paramId}");
+    		
+	        $tpl = new ET($editLink . " " . $deleteLink);
+    	}
+    	
         return $tpl;
     }
     
     
     /**
-     * @TODO
-     * @param unknown_type $productId
-     * @param unknown_type $packagingId
+     * Информация за продукта
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
      */
     public function getProductInfo($data, $packagingId = NULL)
     {
-    	if($data){
-    		$data = unserialize($data);
+    	expect($data);
+    	$data = unserialize($data);
+	    $res = new stdClass();
+	    $res->productRec = $data;
+	    if(!$packagingId) {
+	    	$res->packagings = array();
+	    } else {
+	    	return NULL;
+	    }
 	    	
-	    	$res = new stdClass();
-	    	$res->productRec = $data;
-	    	if(!$packagingId) {
-	    		$res->packagings = array();
-	    	} else {
-	    		return NULL;
-	    	}
-	    	
-	    	return $res;
-    	}
+	    return $res;
     }
     
     
     /**
-     * 
-     * @TODO
-     * @param unknown_type $id
-     * @param unknown_type $date
+     * Връща ддс-то на продукта
+     * @param int $id - ид на продукт
+     * @param datetime $date - към дата
      */
-    public function getVat($data, $date = NULL){
+    public function getVat($data, $date = NULL)
+    {
     	if(empty($data)) return NULL;
+    	if(is_string($data)){
+    		$data = unserialize($data);
+    	}
     	
-    	$data = unserialize($data);
-    	if($data->vat) return $data->vat;
+    	$vatId = cat_Params::fetchIdBySysId('vat');
+    	if($vat = $data->params[$vatId]){
+    		return $vat / 100;
+    	}
     	
     	// Връщаме ДДС-то от периода
     	$period = acc_Periods::fetchByDate($date);
     	return $period->vatRate;
+    }
+    
+    
+    /**
+     * Екшън за добавяне, изтриване и редактиране на параметри
+     */
+    function act_Configure()
+    {
+    	$Specifications = cls::get('techno_Specifications');
+    	$Specifications->requireRightFor('edit');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $Specifications->fetch($id));
+    	$data = unserialize($rec->data);
+    	
+    	if($paramId = Request::get('delete')){
+    		unset($data->params[$paramId]);
+    		$rec->data = $this->serialize($data);
+	        $Specifications->save($rec);
+	        return followRetUrl();
+    	}
+    	
+    	$form = $this->getAddParamForm($data);
+    	$fRec = $form->input();
+        if($form->isSubmitted()) {
+        	if($Specifications->haveRightFor('edit')){
+        		
+        		// Проверка дали въведените стойности за правилни
+        		cat_products_Params::isValueValid($form);
+        		if(!$form->gotErrors()){
+        			
+        			// Записваме въведените данни в пропъртито data на река
+		            $data->params[$fRec->paramId] = $fRec->paramValue;
+	        		$rec->data = $this->serialize($data);
+		            $Specifications->save($rec);
+		            return  Redirect(array($Specifications, 'single', $rec->id));
+        		}
+        	}
+        }
+        
+    	if($paramId = Request::get('edit')){
+        	$form->rec->paramValue = $data->params[$paramId];
+        	$form->rec->paramId = $paramId;	
+        }
+        
+        $form->title = "Добавяне на параметри към ". $Specifications->getTitleById($rec->id);
+    	return $Specifications->renderWrapping($form->renderHtml());
     }
 }

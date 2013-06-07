@@ -128,7 +128,7 @@ class trz_Orders extends core_Master
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-    	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
+    	$this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
     	$this->FLD('useDaysFromYear', 'int(nowYest, nowYear-1)', 'caption=Информация->Ползване от,unit=Година');
     	$this->FLD('isPaid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Вид,maxRadio=2,columns=2,notNull,value=paid');
     	$this->FLD('amount', 'double', 'caption=Начисления');
@@ -140,7 +140,24 @@ class trz_Orders extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         if($rec->leaveFrom &&  $rec->leaveTo){
-	    	$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+        	$state = hr_EmployeeContracts::getQuery();
+	        $state->where("#personId='{$rec->personId}'");
+	        
+	        if($employeeContractDetails = $state->fetch()){
+	           
+	        	$employeeContract = $employeeContractDetails->id;
+	        	$department = $employeeContractDetails->departmentId;
+	        	
+	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
+	        	if($schedule){
+	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
+	        	} else {
+	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	        	}
+	        }else{
+        	
+	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
+	        }
 	    	$rec->leaveDays = $days->workDays;
         }
 

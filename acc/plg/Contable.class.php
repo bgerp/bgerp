@@ -197,6 +197,10 @@ class acc_plg_Contable extends core_Plugin
             if ($rec->id && $rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             }
+            
+            if (!$this->hasContableTransaction($mvc, $rec)) {
+                $requiredRoles = 'no_one';
+            }
         } elseif ($action == 'revert') {
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
@@ -218,16 +222,41 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         } elseif ($action == 'correction') {
+            if (!$rec) {
+                return;
+            }
             if ($rec->state == 'draft' || $rec->state == 'rejected') {
                 $requiredRoles = 'no_one';
             }
             if ($rec->correctionDocId) {
                 $requiredRoles = 'no_one';
             }
-            /*
-             * @TODO 
-             */
+
+            // Ако документа не генерира валидна и непразна транзакция - не може да му се прави
+            // корекция
+            if (!$this->hasContableTransaction($mvc, $rec)) {
+                $requiredRoles = 'no_one';
+            }
         }
+    }
+    
+    
+    /**
+     * Помощен метод, енкапсулиращ условието за валидност на счетоводна транзакция
+     * 
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     * @return boolean
+     */
+    protected static function hasContableTransaction(core_Manager $mvc, $rec)
+    {
+        try {
+            $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
+        } catch (acc_journal_Exception $ex) {
+            $result = FALSE;
+        }
+        
+        return $result;        
     }
 
     
@@ -307,42 +336,35 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterGetValidatedTransaction(core_Mvc $mvc, &$transaction, $rec)
     {
-        try {
-            $rec = $mvc->fetchRec($rec);
-            
-            $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
-            $transaction       = $transactionSource->getTransaction($rec);
-            
-            expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
-            
-            // Проверяваме валидността на транзакцията
-            $transaction = new acc_journal_Transaction($transaction);
+        $rec = $mvc->fetchRec($rec);
+        
+        $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        $transaction       = $transactionSource->getTransaction($rec->id);
+        
+        expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
+        
+        // Проверяваме валидността на транзакцията
+        $transaction = new acc_journal_Transaction($transaction);
 
-            if ($rec->isCorrection == 'yes') {
-                // Документ-корекция. Намираме транзакцията на оригинала, обръщаме знаците
-                // на количествата и сумите на всички нейни записи и добавяме тези записи към 
-                // вече генерираната от текущия документ транзакция
-                
-                expect($origRef = doc_Containers::getDocument($rec->originId));
-                
-                // Генерираме транзакцията на коригирания (т.е. оригиналния) документ
-                $origTransaction = $transactionSource->getTransaction($origRef->rec());
-                $origTransaction = new acc_journal_Transaction($origTransaction);
-
-                // Обръщаме оригиналната транзакция
-                $origTransaction->invert();
-                
-                // Добавяме записите на обратната транзакция към записите на текущата
-                $transaction->join($origTransaction);
-            }
+        if ($rec->isCorrection == 'yes') {
+            // Документ-корекция. Намираме транзакцията на оригинала, обръщаме знаците
+            // на количествата и сумите на всички нейни записи и добавяме тези записи към 
+            // вече генерираната от текущия документ транзакция
             
-            if (!$transaction->check()) {
-                return FALSE;
-            }
-        } catch (core_exception_Expect $ex) {
-            // Транзакцията не се валидира
-            $transaction = FALSE;
+            expect($origRef = doc_Containers::getDocument($rec->originId));
+            
+            // Генерираме транзакцията на коригирания (т.е. оригиналния) документ
+            $origTransaction = $transactionSource->getTransaction($origRef->id());
+            $origTransaction = new acc_journal_Transaction($origTransaction);
+
+            // Обръщаме оригиналната транзакция
+            $origTransaction->invert();
+            
+            // Добавяме записите на обратната транзакция към записите на текущата
+            $transaction->join($origTransaction);
         }
+        
+        $transaction->check();
     }
     
     

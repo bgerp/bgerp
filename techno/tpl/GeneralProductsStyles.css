@@ -23,18 +23,17 @@
 	margin-bottom:10px;
 }
 
-.general-product .list-description-short{
+.general-product .list-description-short .richtext{
 	text-align:justify;
 	font-size:14px;
 	color:#000;
 }
 
 .general-product .list-measures {
-	list-style:none;
-	padding-left:10px;
+	font-size:0.9em;
 }
 
-.general-product .list-others {
+.general-product .list-measures ul {
 	list-style:none;
 	padding-left:10px;
 }
@@ -100,7 +99,7 @@ th{
 }
 
 .custom-styled-table{
-	width:620px;
+	width:300px;
 }
 
 .cCode{

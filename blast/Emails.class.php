@@ -1776,31 +1776,34 @@ class blast_Emails extends core_Master
             $detId = $options->__toEmail;
         }
         
-        // Ако е лист
-        if ($emailRec->listId) {
+        if ($detId) {
             
-            // Вземаме записа за изпращане за съответния запис
-            $listSendRec = blast_ListSend::fetch("#listDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
-        } elseif ($emailRec->group) {
+            // Ако е лист
+            if ($emailRec->listId) {
+                
+                // Вземаме записа за изпращане за съответния запис
+                $listSendRec = blast_ListSend::fetch("#listDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
+            } elseif ($emailRec->group) {
+                
+                // Вземаме записа за изпращане за съответната група
+                $listSendRec = blast_ListSend::fetch("#groupDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
+            }
+    
+            // Ако състоянието е затворено, не се показва имейла
+//            expect(($listDetailRec->state != 'stopped' AND $listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
+    
+            if ($listSendRec) {
+    
+                // Ако състоянието на изпратения имейл е затворено
+                expect(($listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
+            }
             
-            // Вземаме записа за изпращане за съответната група
-            $listSendRec = blast_ListSend::fetch("#groupDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
+            // Подготвяме данните за съответния имейл
+            $mvc->prepareRec($emailRec, $detId);
+    
+            // Добавяме данните в rec'a
+            $options->rec = $emailRec;
         }
-
-        // Ако състоянието е затворено, не се показва имейла
-//        expect(($listDetailRec->state != 'stopped' AND $listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
-
-        if ($listSendRec) {
-
-            // Ако състоянието на изпратения имейл е затворено
-            expect(($listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
-        }
-        
-        // Подготвяме данните за съответния имейл
-        $mvc->prepareRec($emailRec, $detId);
-
-        // Добавяме данните в rec'a
-        $options->rec = $emailRec;
     }
     
     

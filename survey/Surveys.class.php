@@ -233,13 +233,13 @@ class survey_Surveys extends core_Master {
     	$url = getCurrentUrl();
     	if($mvc::haveRightFor('summarise', $data->rec->id) && !$summary) {
     		$url['summary'] = 'ok';
-    		$data->toolbar->addBtn('Обобщение', $url);
+    		$data->toolbar->addBtn('Обобщение', $url, 'ef_icon=img/16/chart16.png');
     	} 
     	
     	if($summary && $data->rec->state == 'active') {
     		
     		unset($url['summary']);
-    		$data->toolbar->addBtn('Анкета',  $url);
+    		$data->toolbar->addBtn('Анкета',  $url, 'ef_icon=img/16/survey.png');
     		$data->toolbar->buttons['btnPrint']->url['summary'] = 'ok';
     	}
     	
@@ -283,12 +283,14 @@ class survey_Surveys extends core_Master {
     function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
-        $row = new stdClass();
-        $row->title = $rec->title;
+    	$title = $this->recToverbal($rec, 'title')->title;
+    	$row = new stdClass();
+        $row->title = $this->singleTitle . ' "' . $title . '"';
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-
+		$row->recTitle = $rec->title;
+		
         return $row;
     }
     
@@ -302,13 +304,5 @@ class survey_Surveys extends core_Master {
     	$self = cls::get(get_called_class());
     	
     	return $self->abbr . $rec->id;
-    }
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $data->query->orderBy("#state=DESC");
     }
 }

@@ -328,6 +328,7 @@ div.tab-control div.tab-page {
 	@include border-radius(5px);
 	z-index: 2;
 }
+
 .narrow div.tab-control div.tab-page {
 	padding:0.5em;
 }
@@ -418,7 +419,13 @@ div.alphabet div.tab-page {
 			.detail-info{
 				padding:0px;
 				margin-top:0px;
-				background-color:$history-bg;
+				background-color:$history-bg !important;
+				.listTable td{
+				background-color:$history-bg !important;
+				}
+			}
+			.listTable{
+				width: 100%
 			}
 			 .listTable td{
 				border:1px dotted #bbb !important;
@@ -447,7 +454,7 @@ div.alphabet div.tab-page {
 				}
 			}
 			.listTable th{
-				background-color:$history-bg;
+				background-color:$history-bg !important;
 				border-left:1px solid transparent !important;
 				border-right:1px solid transparent !important;
 				border-top:1px solid transparent !important;
@@ -501,7 +508,7 @@ div.alphabet div.tab-page {
 		}
 		&.selected {
 			margin: 1px -8px -3px 10px;
-			background: $history-bg;
+			background: $history-bg !important;
 			border: 1px solid #ccc;
 			box-shadow:0 -1px 1px rgba(0,0,0,0.2);
 			border-bottom: none;
@@ -659,10 +666,10 @@ dl {
 }
 .narrow dl{
 	dt{
-		width:28%;
+		width:34%;
 	}
 	dd{
-		max-width:71%;
+		max-width:63%;
 	}
 }
 table{
@@ -705,12 +712,17 @@ table{
 	border: solid 1px #bbb;
 	border-top: none;
 }
+	
 .vertical .formSection {
 	border-left: solid 1px #bbb;
 	border-right: solid 1px #bbb;
 	background-image:url('../img/yellow.png'); 
 }
- 
+
+.narrow .vertical .formSection {
+	padding:5px;
+}
+
 .narrow .formSection{
 	background-image:none;
 }
@@ -1003,8 +1015,7 @@ div.acc-detail {
 	margin-bottom:10px;
 }
 .narrow .document .richtext{
-	min-width:300px;
-	max-width:600px;
+	min-width:220px;
 	height:auto;
 }
 .narrow .document .richtext .code{
@@ -1214,8 +1225,8 @@ div.folder-cover{
 	line-height:1.5em;
 	margin-left:0px;
 	margin-top:8px;
-	min-width:400px;
-	max-width:600px;
+	min-width:300px;
+	max-width: 750px;
 	font-size:0.8em;
 	padding:10px 10px 12px 10px;
 	.detail-info{
@@ -1394,6 +1405,8 @@ td.portal-date {
 }
 
 .document {
+	max-width:900px; 
+    min-width:800px;
 	border: solid 1px #bbbbbb;
 	background: #ffffff;
 	@include border-radius(5px);
@@ -1408,20 +1421,18 @@ td.portal-date {
 		color:#e78a02;
 	}
 }
-.wide .document{
-	max-width:900px; 
-    min-width:800px;
+
+.narrow .document{
+	min-width:200px;
+	width: 98%;
 }
 
-.narrow .document {
-	width:96.5%;
-}
 
 .listTable td{
 	max-width:600px;
 }
 
-.wide .single-thread .listTable td{
+.single-thread .listTable td{
 	max-width:900px;
 }
 
@@ -1488,6 +1499,7 @@ td.portal-date {
 
 .listTable .toolbar .button{
 	margin:0px 5px 0px 0;
+		
 }
 
 .toolbar #btnDelete{
@@ -1501,7 +1513,7 @@ td.portal-date {
 }
 
 .narrow .listTable .toolbar {
-	margin: 0px 9px 5px 4px;
+	margin: 0px 4px 5px 4px;
 	padding-top:0px;
 }
 
@@ -2266,6 +2278,9 @@ input.combo.pCode{
 		max-width:868px;
 		overflow:auto;
 	}
+	>.mejs-container{
+		overflow:hidden;
+	}
 	pre.richtext{
 		max-width: 865px;
 		/*height:560px; */
@@ -2370,7 +2385,10 @@ input.combo.pCode{
 .document .details .listToolbar .toolbar{
 	padding-left:0;
 }
-
+.narrow .document .details .listToolbar .toolbar {
+	margin-top:8px;
+	margin-left:0;
+}
 .document .listTable th, .document .listTable td{
 	border:1px solid #000 !important;
 }

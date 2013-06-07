@@ -48,7 +48,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools';
+    public $loadList = 'plg_RowTools, plg_AlignDecimals';
     
     
     /**
@@ -89,8 +89,6 @@ class sales_QuotationsDetails extends core_Detail {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$masterRec = $data->masterData->rec;
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
     	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
     	
     	if($recs){
@@ -361,16 +359,11 @@ class sales_QuotationsDetails extends core_Detail {
         $double = cls::get('type_Double');
     	if(!$rec->quantity){
     		$row->quantity = '???';
-    	} else {
-    		$quantity = floatval($rec->quantity);
-    		$parts = explode('.', $quantity);
-    		$double->params['decimals'] = count($parts[1]);
-    		$row->quantity = $double->toVerbal($rec->quantity);
     	}
     	
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
-    	$uomId = $productMan::fetchField($rec->productId, 'measureId');
-    	$uomTitle = cat_UoM::recToVerbal($uomId, 'shortName')->shortName;
+    	$uomId = $productMan->fetchField($rec->productId, 'measureId');
+    	$uomTitle = cat_UoM::getShortName($uomId);
     	
     	$row->quantity = "<b>{$row->quantity}</b> {$uomTitle}";
     	
@@ -408,6 +401,23 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
+     * Екшън за обновяване на данните в оферта от спецификация
+     */
+    function act_updateData()
+    {
+    	$this->Master->requireRightFor('edit');
+    	expect($quotationId = Request::get('quotationId'));
+    	expect($rec = $this->Master->fetch($quotationId));
+    	expect($originId = Request::get('originId'));
+    	$origin = doc_Containers::getDocument($originId);
+    	expect($origin->fetchField('state') == 'draft');
+    	
+    	$this->insertFromSpecification($rec, $origin);
+    	return Redirect(array($this->Master, 'single', $quotationId));
+    }
+    
+    
+    /**
      * Ако ориджина е спецификация вкарват се записи отговарящи
      * на посочените примерни коли1ества в нея
      * @param stdClass $rec - запис на оферта
@@ -417,7 +427,10 @@ class sales_QuotationsDetails extends core_Detail {
     public function insertFromSpecification($rec, core_ObjectReference $origin)
     {
     	$originRec = $origin->fetch();
-    	$quantities = array($originRec->quantity1, $originRec->quantity2, $originRec->quantity3);
+    	$originData = unserialize($originRec->data);
+    	
+    	$this->delete("#quotationId = $rec->id");
+    	$quantities = array($originData->quantity1, $originData->quantity2, $originData->quantity3);
     	$policyId = techno_Specifications::getClassId();
     	$Policy = cls::get($policyId);
     	foreach ($quantities as $q){

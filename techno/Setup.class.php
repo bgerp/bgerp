@@ -61,6 +61,9 @@ class techno_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
+        // Добавяме Продуктовия драйвър в core_Classes
+        core_Classes::add('techno_GeneralProducts');
+        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('techno_GeneralProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');

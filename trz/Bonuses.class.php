@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Бонуси
  */
-class trz_Bonuses extends core_Manager
+class trz_Bonuses extends core_Master
 {
     
     
@@ -22,6 +22,12 @@ class trz_Bonuses extends core_Manager
      * Заглавие
      */
     var $title = 'Премии';
+    
+     
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = "Премия";
     
     
     /**
@@ -64,13 +70,18 @@ class trz_Bonuses extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'id, periodId, personId, type, sum';
+    
+    /**
+     * Групиране на документите
+     */
+    var $newBtnGroup = "5.5|Човешки ресурси"; 
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
     
     
     /**
@@ -78,17 +89,22 @@ class trz_Bonuses extends core_Manager
      */
     function description()
     {
+    	$this->FLD('periodId', 'date',     'caption=Дата');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
+    	$this->FLD('type', 'varchar',     'caption=Произход на бонуса');
+    	$this->FLD('sum', 'double',     'caption=Сума');
+    	
     }
     
     /**
      * Екшън по подразбиране.
      * Извежда картинка, че страницата е в процес на разработка
      */
-    function act_Default()
+   /* function act_Default()
     {
     	$text = tr('В процес на разработка');
     	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
         return $this->renderWrapping($underConstructionImg);
-    }
+    }*/
 }

@@ -367,12 +367,12 @@ class doc_Threads extends core_Manager
         $exp->ASSUME('#dest', "'exFolder'");
 
         if(count($selArr) > 1) {
-            $exp->question("#dest", "Моля, посочете къде да бъдат преместени нишките:", TRUE, 'title=Преместване на нишки от документи');
+            $exp->question("#dest", tr("Моля, посочете къде да бъдат преместени нишките") . ":", TRUE, 'title=' . tr('Преместване на нишки от документи'));
         } else {
             if($tRec->allDocCnt > 1) {
-                $exp->question("#dest", "Моля, посочете къде да бъде преместена нишката:", TRUE, 'title=Преместване на нишка от документи');
+                $exp->question("#dest", tr("Моля, посочете къде да бъде преместена нишката") . ":", TRUE, 'title=' . tr('Преместване на нишка от документи'));
             } else {
-                $exp->question("#dest", "Моля, посочете къде да бъде преместен документа:", TRUE, 'title=Преместване на документ в нова папка');
+                $exp->question("#dest", tr("Моля, посочете къде да бъде преместен документа") . ":", TRUE, 'title=' . tr('Преместване на документ в нова папка'));
             }
         }
         
@@ -414,9 +414,9 @@ class doc_Threads extends core_Manager
         // Допълнителна информация
         $exp->DEF('#info', 'richtext', 'caption=Бележки,height=150px');
         
-        $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Преместване в папка на нова фирма');
+        $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId", tr("Моля, въведете контактните данни на фирмата") . ":", "#dest == 'newCompany'", 'title=' . tr('Преместване в папка на нова фирма'));
         
-        $exp->question("#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website", "Моля, въведете контактните данни на лицето:", "#dest == 'newPerson'", 'title=Преместване в папка на ново лице');
+        $exp->question("#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website", tr("Моля, въведете контактните данни на лицето") . ":", "#dest == 'newPerson'", 'title=' . tr('Преместване в папка на ново лице'));
 
         $exp->rule('#folderId', "getPersonFolder(#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website)", TRUE);
 
@@ -424,12 +424,12 @@ class doc_Threads extends core_Manager
         
         $exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
         
-        $exp->question("#folderId", "Моля, изберете папка:", "#dest == 'exFolder'", 'title=Избор на папка за нишката');
+        $exp->question("#folderId", tr("Моля, изберете папка") . ":", "#dest == 'exFolder'", 'title=' . tr('Избор на папка за нишката'));
         
         // От какъв клас е корицата на папката където е изходния тред?
         $exp->DEF('#moveRest=Преместване на всички', 'enum(yes=Да,no=Не)');
         $exp->rule('#askMoveRest', "getQuestionForMoveRest(#threadId)", TRUE);
-        $exp->question("#moveRest", "=#askMoveRest", '#askMoveRest && #folderId', 'title=Групово преместване');
+        $exp->question("#moveRest", "=#askMoveRest", '#askMoveRest && #folderId', 'title=' . tr('Групово преместване'));
         $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');
         $exp->rule("#moveRest", "'no'", '#Selected');
         

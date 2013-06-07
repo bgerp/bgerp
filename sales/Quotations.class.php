@@ -290,6 +290,7 @@ class sales_Quotations extends core_Master
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
+        $row->recTitle = $row->title;
 
         return $row;
     }
@@ -322,6 +323,16 @@ class sales_Quotations extends core_Master
     			$detailQuery->where("#optional = 'no'");
     			if(!$detailQuery->count()){
     				$res = 'no_one';
+    			}
+    			
+    			if(!empty($rec->originId)){
+    				
+    				// Ако е базирана на спецификация и тя е чернова
+    				// активирането е забранено
+	    			$origin = doc_Containers::getDocument($rec->originId);
+	    			if($origin->className == 'techno_Specifications' && $origin->fetchField('state') == 'draft'){
+	    				$res = 'no_one';
+	    			}
     			}
     		}
     	}

@@ -202,12 +202,50 @@ class support_Issues extends core_Master
         if ($rec->componentId) {
             
             // systemId на съответния компонент
-            $systemId = support_Components::fetchField($rec->componentId, 'systemId');    
+            $systemId = support_Components::fetchField($rec->componentId, 'systemId');   
             
             $rec->systemIdShow = $systemId;
+        } elseif ($rec->folderId) {
+            
+            // Вземаме ковъра на папката
+            $cover = doc_Folders::getCover($rec->folderId);
+            
+            // Ако ковъра е support_Systems
+            if ($cover->className == 'support_Systems') {
+                
+                // Използваме id' то
+                $rec->systemIdShow = $cover->that;
+            }
         }
     }
-
+    
+    
+    /**
+     * 
+     */
+    function on_AfterPrepareListRows($mvc, $res, $data) {
+        
+        // Обхождаме записите
+        foreach ((array)$data->recs as $key => $rec) {
+            
+            // Ако има id на система
+            if ($rec->systemIdShow) {
+                
+                // Вземаме id' то на папката
+                $folderId = support_Systems::forceCoverAndFolder($rec->systemIdShow);
+                
+                // Ако нямамем права за папката, прескачаме
+                if (!doc_Folders::haveRightFor('single', $folderId)) continue;
+                
+                // Линк към папката
+                $folderLink = ht::createLink($data->rows[$key]->systemIdShow, array('doc_Threads', 'list', 'folderId' => $folderId));
+                
+                // Заместваме името на системата с линк към папката
+                $data->rows[$key]->systemIdShow = $folderLink;
+            }
+        }
+    }
+    
     
 	/**
      * Реализация  на интерфейсния метод ::getThreadState()
@@ -383,22 +421,19 @@ class support_Issues extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        // Подреждаме по дата по - новите по - напред
+        $data->query->orderBy('createdOn', 'DESC');
+        
         // Подреждаме сиганлите активните отпред, затворените отзад а другите по между им
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
         $data->query->orderBy('orderByState');
-        
-        // Подреждаме по приоритет - Критичен, Висок и нормален
-        $data->query->orderBy('priority=DESC');
-        
-        // Подреждаме по дата по - новите по - напред
-        $data->query->orderBy('modifiedOn', 'DESC');
         
         // Задаваме на полета да имат възможност за задаване на празна стойност
         $data->listFilter->getField('systemIdShow')->type->params['allowEmpty'] = TRUE;
         $data->listFilter->getField('componentId')->type->params['allowEmpty'] = TRUE;
          
         // Добавяме функционално поле за отговорници
-        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support)', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Кои полета да се показват
         $data->listFilter->showFields = 'systemIdShow, componentId, maintainers';

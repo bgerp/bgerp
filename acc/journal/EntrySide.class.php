@@ -78,42 +78,40 @@ class acc_journal_EntrySide
     /**
      * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
-     * @param array|stdClass $data
+     * @param array|stdClass $data резултат от @see acc_TransactionSourceIntf::getTransaction()
      */
-    public function initFromTransactionSource($data)
+    public function initFromTransactionSource($transactionData)
     {
-        $data = (array)$data;
+        $transactionData = (array)$transactionData;
         
-        expect($d = $data[$this->type], "Липсва {$this->type} част на транзакция", $data);
+        // Преобразуваме $transactionData към структура, подходяща за параметър на метода init()
+        $data = new stdClass();
         
-        $this->amount = $data['amount']; // Сума в основна валута
+        acc_journal_Exception::expect(
+            $d = $transactionData[$this->type],
+            "Липсва {$this->type} част на транзакция", array('data'=>$transactionData)
+        );
+        
+        $data->amount = $transactionData['amount']; // Сума в основна валута
         
         if (array_key_exists('quantity', $d)) {
-            $this->quantity = $d['quantity'];
+            $data->quantity = $d['quantity'];
             unset($d['quantity']);
         }
         
         // SystemID или обект-инстанция на сметката е винаги първия елемент
-        $this->account = array_shift($d);
-        
-        if (!$this->account instanceof acc_journal_Account) {
-            $this->account = new acc_journal_Account($this->account);
-        }
+        $data->account = array_shift($d);
         
         // Приемаме, че всичко останало в $d е пера.
-        expect(count($d) <= 3, "{$this->type}: Макс 3 пера", $data);
+        acc_journal_Exception::expect(
+            count($d) <= 3,
+            "{$this->type}: Макс 3 пера",  array('data'=>$transactionData)
+        );
         
-        foreach ($d as $item) {
-            if (empty($item)) {
-                continue;
-            }
-            if (!($item instanceof acc_journal_Item)) {
-                $item = new acc_journal_Item($item);
-            }
-            $this->items[] = $item;
-        }
+        $data->items = $d;
         
-        $this->evaluate();
+        // Делегираме работата по инитициализацията на метода init()
+        $this->init($data);
     }
     
 
@@ -127,7 +125,10 @@ class acc_journal_EntrySide
         $this->account  = $data->account instanceof acc_journal_Account ? $data->account :
                                 new acc_journal_Account($data->account);
         
-        expect(!isset($this->quantity) || $this->quantity > 0, 'Зададено не-положително количество: ' . $this->quantity);
+        acc_journal_Exception::expect(
+            !isset($this->quantity) || $this->quantity > 0,
+            'Зададено не-положително количество', array('data'=>$data)
+        );
 
         $this->items = array();
 
@@ -191,11 +192,7 @@ class acc_journal_EntrySide
      */
     public function checkItems()
     {
-//         try {
-            $this->account->accepts($this->items);
-//         } catch (core_exception_Expect $ex) {
-//             throw new core_exception_Expect("Грешка в {$this->type}" , $ex->args());
-//         }
+        $this->account->accepts($this->items);
         
         return TRUE;
     }

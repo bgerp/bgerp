@@ -10,16 +10,16 @@
 	margin-left:0;
 }
 
-.narrow .document{
-	max-width:430px;
-}
-
 .quote-title{
 	margin-top:12px;
 	font-size:32px;
 	font-weight:bold;
 	color:#636363;
 	font-family: impact;
+}
+
+.state-rejected .quote-title{
+	color:#999;	
 }
 
 .title-info {
@@ -55,9 +55,7 @@
 }
 
 .narrow .sign-user{
-	display:block;
-	float:right;
-	margin-right:20px;
+	display:inline-block;
 }
 
 #conditions{
@@ -81,8 +79,6 @@
 .narrow .products-table{
 	font-size:0.9em;
 	width:100%;
-	max-width:600px;
-	min-width:400px;
 }
 #details-holder p, #optional-holder p{
 	margin-bottom:10px;

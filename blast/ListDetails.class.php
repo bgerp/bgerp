@@ -370,16 +370,16 @@ class blast_ListDetails extends core_Detail
                                            groupPersons=Група от "Указател » Лица",
                                            blastList=Друг списък от "Разпращане")', 'maxRadio=5,columns=1,mandatory');
         $exp->ASSUME('#source', '"csv"');
-        $exp->question("#source", "Моля, посочете източника на данните:", TRUE, 'title=От къде ще се импортират данните?');
+        $exp->question("#source", tr("Моля, посочете източника на данните") . ":", TRUE, 'title=' . tr('От къде ще се импортират данните') . '?');
         
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
-        $exp->question("#csvData", "Моля, поставете данните:", "#source == 'csv'", 'title=Въвеждане на CSV данни за контакти');
+        $exp->question("#csvData", tr("Моля, поставете данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за контакти'));
         
         $exp->DEF('#companiesGroup=Група фирми', 'group(base=crm_Companies,keylist=groupList)', 'mandatory');
         $exp->DEF('#personsGroup=Група лица', 'group(base=crm_Persons,keylist=groupList)', 'mandatory');
         
-        $exp->question("#companiesGroup", "Посочете група от фирми, от която да се импортират контактните данни:", "#source == 'groupCompanies'", 'title=Избор на група фирми');
-        $exp->question("#personsGroup", "Посочете група от лица, от която да се импортират контактните данни:", "#source == 'groupPersons'", 'title=Избор на група лица');
+        $exp->question("#companiesGroup", tr("Посочете група от фирми, от която да се импортират контактните данни") . ":", "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
+        $exp->question("#personsGroup", tr("Посочете група от лица, от която да се импортират контактните данни") . ":", "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
         
         $exp->rule("#delimiter", "','", "#source == 'groupPersons' || #source == 'groupCompanies'");
         $exp->rule("#enclosure", "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies'");
@@ -390,16 +390,16 @@ class blast_ListDetails extends core_Detail
 
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
 
-        $exp->question("#blastList", "Изберете списъка от който да се импортират даните", "#source == 'blastList'", 'title=Импортиране от съществуващ списък');
+        $exp->question("#blastList", tr("Изберете списъка от който да се импортират даните"), "#source == 'blastList'", 'title=' . tr('Импортиране от съществуващ списък'));
         $exp->rule("#csvData", "importCsvFromLists(#blastList)", '#blastList');
 
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
-        $exp->question("#csvFile", "Въведете файл с контактни данни във CSV формат:", "#source == 'csvFile'", 'title=Въвеждане на данните от файл');
+        $exp->question("#csvFile", tr("Въведете файл с контактни данни във CSV формат") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл'));
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         $exp->rule("#csvColumnsCnt", "count(getCsvColNames(#csvData,#delimiter,#enclosure))");
-        $exp->WARNING("Възможен е проблем с формата на CSV данните, защото е открита само една колона", '#csvColumnsCnt == 2');
-        $exp->ERROR("Има проблем с формата на CSV данните. <br>Моля проверете дали правилно сте въвели данните и разделителя", '#csvColumnsCnt < 2');
+        $exp->WARNING(tr("Възможен е проблем с формата на CSV данните, защото е открита само една колона"), '#csvColumnsCnt == 2');
+        $exp->ERROR(tr("Има проблем с формата на CSV данните"). ". <br>" . tr("Моля проверете дали правилно сте въвели данните и разделителя"), '#csvColumnsCnt < 2');
         
         $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', array('value' => ','), 'mandatory');
         $exp->SUGGESTIONS("#delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
@@ -407,7 +407,7 @@ class blast_ListDetails extends core_Detail
         $exp->SUGGESTIONS("#enclosure", array('"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         
-        $exp->question("#delimiter,#enclosure,#firstRow", "Посочете формата на CSV данните:", "#csvData", 'title=Уточняване на разделителя и ограждането');
+        $exp->question("#delimiter,#enclosure,#firstRow", tr("Посочете формата на CSV данните") . ":", "#csvData", 'title=' . tr('Уточняване на разделителя и ограждането'));
         
         setIfNot($listId, Request::get('listId', 'int'), $exp->getValue('listId'));
         
@@ -427,9 +427,9 @@ class blast_ListDetails extends core_Detail
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
-        $exp->question("#priority", "Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето <font color=green>'" . $fieldsArr[$listRec->keyField] . "'</font> ?", TRUE, 'title=Приоритет на данните');
+        $exp->question("#priority", tr("Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето") . " <font color=green>'" . $fieldsArr[$listRec->keyField] . "'</font> ?", TRUE, 'title=' . tr('Приоритет на данните'));
         
-        $exp->question($qFields, "Въведете съответстващите полета:", TRUE, 'title=Съответствие между полетата на източника и списъка');
+        $exp->question($qFields, tr("Въведете съответстващите полета") . ":", TRUE, 'title=' . tr('Съответствие между полетата на източника и списъка'));
         
         $res = $exp->solve("#source,#csvData,#delimiter,#enclosure,#priority,{$qFields}");
         
@@ -510,12 +510,12 @@ class blast_ListDetails extends core_Detail
                     
                     $this->save($rec);
                 }
-                $exp->message = "Добавени са {$newCnt} нови записа, обновени - {$updateCnt}, пропуснати - {$skipCnt}";
+                $exp->message = tr("Добавени са"). " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
             } else {
-                $exp->message = "Липсват данни за добавяне";
+                $exp->message = tr("Липсват данни за добавяне");
             }
         } elseif($res == 'FAIL') {
-            $exp->message = 'Неуспешен опит за импортиране на списък с контакти.';
+            $exp->message = tr('Неуспешен опит за импортиране на списък с контакти') . '.';
         }
         
         return $res;

@@ -124,7 +124,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('annualLeave', 'int', "caption=Условия->Годишен отпуск,unit=дни");
         $this->FLD('notice', 'int', "caption=Условия->Предизвестие,unit=дни");
         $this->FLD('probation', 'int', "caption=Условия->Изпитателен срок,unit=месеца");
-        $this->FLD('descriptions', 'richtext', 'caption=Условия->Допълнителни');
+        $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
     }
     
     
@@ -291,6 +291,29 @@ class hr_EmployeeContracts extends core_Master
      *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
      *                                                                                      *
      ****************************************************************************************/
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка 
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
+    {
+        $coverClass = doc_Folders::fetchCoverClassName($folderId);
+        
+        if ('crm_Persons' != $coverClass) {
+        	return FALSE;
+        }
+        
+        $personId = doc_Folders::fetchCoverId($folderId);
+        
+        $personRec = crm_Persons::fetch($personId);
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        
+        return keylist::isIn($emplGroupId, $personRec->groupList);
+    }
     
     
     /**

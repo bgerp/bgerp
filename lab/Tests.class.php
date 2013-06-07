@@ -118,7 +118,7 @@ class lab_Tests extends core_Master
         $this->FLD('madeBy', 'varchar(255)', 'caption=Изпълнител');
         $this->FLD('origin', 'enum(order=Поръчка,research=Разработка,external=Външна)', 'caption=Произход,notSorting');
         $this->FLD('assignor', 'varchar(255)', 'caption=Възложител');
-        $this->FLD('note', 'richtext', 'caption=Описание,notSorting');
+        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
         $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит)', 'caption=Статус,input=none,notSorting');

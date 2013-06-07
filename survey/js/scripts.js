@@ -6,11 +6,11 @@ $('ul.answers input[type=radio]').click(function vote() {
     if(typeof rowId === "undefined")  return;
     var alternativeId = $(this).attr("data-alternativeId");
     var mid = $(this).attr("data-m");
-    var data = {id:rowId, alternativeId:alternativeId};
+    var data = {rowId:rowId, alternativeId:alternativeId};
     if(mid) {
     	data.m = mid;
     }
-    
+   
     var selected = $(this);
     $.ajax({
     	     type: "GET",

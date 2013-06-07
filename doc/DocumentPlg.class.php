@@ -150,7 +150,7 @@ class doc_DocumentPlg extends core_Plugin
                         'originId' => $data->rec->containerId,
                         'ret_url'=>$retUrl
                     ),
-                    'class=btn-posting');
+                    'class=btn-posting', 'onmouseup=saveSelectedTextToSession();');
             }
         } else {
             //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
@@ -822,7 +822,7 @@ class doc_DocumentPlg extends core_Plugin
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = mb_strtolower($mvc->singleTitle) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
+            $title = tr(mb_strtolower($mvc->singleTitle)) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
 
         $rec = $form->rec;
@@ -851,7 +851,7 @@ class doc_DocumentPlg extends core_Plugin
                 $title = tr(mb_strtolower($mvc->singleTitle)) . $in . doc_Threads::recToVerbal($thRec)->title;
             }
         }
-        
+       
         $form->title .= $title;
      }
     
@@ -953,7 +953,7 @@ class doc_DocumentPlg extends core_Plugin
         }
 		
     	if ($rec->id) {
-            $rec = $mvc->fetch($rec->id);
+            $rec = (object)((array)$rec + (array)$mvc->fetch($rec->id));
             
             if($action == 'delete') {
                 $requiredRoles = 'no_one';

@@ -208,7 +208,7 @@ class cal_Reminders extends core_Master
 							
 		if($folderClass == $idCompanies || $folderClass == $idPersons){
 
-			$mvc->fields[action]->type->options[notifyNoAns] = "Нотификация-ако няма отговор";
+			$mvc->fields[action]->type->options[notifyNoAns] = tr("Нотификация-ако няма отговор");
 		}
 
 		$data->form->setSuggestions('repetitionEach', static::$suggestions);
@@ -222,9 +222,9 @@ class cal_Reminders extends core_Master
     		
     		// Извличаме каквато информация можем от оригиналния документ
     		if($rec->timeStart){
-    			$data->form->setDefault('title', "Начало на задача ". "\"".$rec->title. "\"");
+    			$data->form->setDefault('title', tr("Начало на задача "). "\"".$rec->title. "\"");
     		} elseif($rec->timeEnd){
-    			$data->form->setDefault('title', "Изтичаща задача ". "\"".$rec->title. "\"");
+    			$data->form->setDefault('title', tr("Изтичаща задача "). "\"".$rec->title. "\"");
     		}
     		$data->form->setDefault('priority', $rec->priority);
     		$data->form->setDefault('sharedUsers', $rec->sharedUsers);
@@ -233,7 +233,7 @@ class cal_Reminders extends core_Master
     		} elseif($rec->timeEnd) {
     			$data->form->setDefault('timeStart', $rec->timeEnd);
     		}
-    		$data->form->setDefault('timePreviously', "15 мин.");
+    		$data->form->setDefault('timePreviously', tr("15 мин."));
     	    $data->form->setDefault('repetitionEach', " ");
 
 		}
@@ -255,7 +255,7 @@ class cal_Reminders extends core_Master
     	if ($form->isSubmitted()) {
         	if($form->rec->timeStart < $now){
         		// Добавяме съобщение за грешка
-                $form->setError('timeStart', "Датата за напомняне трябва да е след ". $now);
+                $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). $now);
         	}
         	
         	if (!$form->gotErrors()){
@@ -488,7 +488,7 @@ class cal_Reminders extends core_Master
     	     	 
     	 while($rec = $query->fetch()){
              
-    	 	 $rec->message  = "Напомняне \"" . self::getVerbal($rec, 'title') . "\"";
+    	 	 $rec->message  = tr("Напомняне \"" . self::getVerbal($rec, 'title') . "\"");
     	 	 $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
     	 	 $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
     	 	 
