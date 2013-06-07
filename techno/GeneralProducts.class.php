@@ -229,7 +229,9 @@ class techno_GeneralProducts extends core_Manager {
     			$blockCl = clone($paramBlock);
     			$blockCl->replace($arr['paramId'], 'paramId');
     			$blockCl->replace($arr['paramValue'], 'paramValue');
-    			$blockCl->replace($arr['tools'], 'tools');
+    			if(!$short){
+    				$blockCl->replace($arr['tools'], 'tools');
+    			}
     			$blockCl->removeBlocks();
     			$tpl->append($blockCl, 'PARAMS');
     		}
@@ -287,8 +289,8 @@ class techno_GeneralProducts extends core_Manager {
 			$editUrl = array($this, 'configure', $specificationId, 'edit' => $paramId,'ret_url' => TRUE);
 	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId,'ret_url' => TRUE);
 
-	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
-	        $deleteLink = ht::createLink($deleteImg, $deleteUrl,tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=del{$rec->id}");
+	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$paramId}");
+	        $deleteLink = ht::createLink($deleteImg, $deleteUrl,tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=delS{$paramId}");
     		
 	        $tpl = new ET($editLink . " " . $deleteLink);
     	}
