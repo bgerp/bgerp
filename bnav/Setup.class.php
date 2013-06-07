@@ -41,7 +41,7 @@ class bnav_Setup
     /**
      * Описание на модула
      */
-    var $info = "Каталог на стандартни продукти";
+    var $info = "Плъгин за работа с Бизнес навигатор";
     
     
     /**
@@ -51,6 +51,12 @@ class bnav_Setup
     { 
         $html = '';
     	
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме клавиатурата към password полета
+        $html .= $Plugins->installPlugin('bnavPlugin', 'bnav_Plugin', 'cat_Products', 'private');
+        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('bnav_importCsv', 'CSV на Бизнес навигатор', 'csv', '10MB', 'user', 'every_one');
@@ -65,9 +71,16 @@ class bnav_Setup
      */
     function deinstall()
     {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+         // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
         
-        return $res;
+        // Инсталираме клавиатурата към password полета
+        if($delCnt = $Plugins->deinstallPlugin('bnav_Plugin')) {
+            $html .= "<li>Премахнати са {$delCnt} закачания на 'keyboard_Plugin'";
+        } else {
+            $html .= "<li>Не са премахнати закачания на плъгина";
+        }
+        
+        return $html;
     }
 }

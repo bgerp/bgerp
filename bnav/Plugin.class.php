@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bnav_plg_ProductsImport extends core_Plugin
+class bnav_Plugin extends core_Plugin
 {
     
     
@@ -28,11 +28,14 @@ class bnav_plg_ProductsImport extends core_Plugin
         if(!static::checkApplicability($mvc)) return;
         
         // Добавяне на необходимите полета
-        $mvc->FLD('bnavCode', 'varchar(150)', 'caption=Код БН,remember=info,width=15em');
+        $mvc->FLD('bnavCode', 'varchar(150)', 'caption=Код БН,remember=info,width=15em,mandatory');
 		
         if($mvc->fields['eanCode']){
-        	$key = array_search('id', $mvc->fields);
-        	//bp($key,$mvc->fields);
+        	
+        	// Полето се слага след баркода на продукта
+        	$mvc->fields = array_slice($mvc->fields, 0, 4, true) +
+            array('bnavCode' => $mvc->fields['bnavCode']) +
+            array_slice($mvc->fields, 4, NULL, true);
         }
     }
     
@@ -75,6 +78,12 @@ class bnav_plg_ProductsImport extends core_Plugin
      */
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
+    	if($action == 'test'){
+    		$hnd = 'BltWOe';
+    		static::importProducts($hnd);
+    		//$mvc->
+    		return FALSE;
+    	}
     	
     	if ($action == 'import') {
     		
@@ -116,7 +125,70 @@ class bnav_plg_ProductsImport extends core_Plugin
      */
     private static function importProducts($hnd)
     {
-    	$fileContent = fileman_Files::getContent($hnd);
+    	$html = '';
     	
+    	$groups = static::importGroups($hnd, $html);
+    	bp($html);
+    	return $html;
+    }
+    
+    
+    /**
+     * Филтрира продуктовите групи и създава масив 
+     * с неповтарящи се групи
+     * @param array $arr - масив получен от csv файл
+     * @return array $newGroups - масив с групи
+     */
+    static function filterImportGroups(&$hnd)
+    {
+    	$i = 0;
+    	$newGroups = array();
+    	$path = fileman_Files::fetchByFh($hnd, 'path');
+    	
+    	if(($handle = fopen($path, "r")) !== FALSE) {
+	    	while (($csvRow = fgetcsv($handle, 5000, ",")) !== FALSE) {
+	    		if($i != 0){
+		    		if(!array_key_exists($csvRow[4], $newGroups) && !is_numeric($csvRow[4])){
+	    				$rowArr = array('title' =>$csvRow[4], 'sysId' =>$csvRow[3]);
+		    			$newGroups[$csvRow[4]] = $rowArr;
+	    			}
+	    		}
+	    		$i++;
+	    	}
+    	}
+    	
+    	return $newGroups;
+    }
+    
+    
+    /**
+     * Импортиране на групите от csv-то( ако ги няма )
+     * @param array $arr - масив получен от csv файл-а
+     * @param string $html - Съобщение
+     * @return array $groups - масив с ид-та на всяка 
+     * група от системата
+     */
+    static function importGroups(&$hnd, &$html)
+    {
+    	$newGroups = static::filterImportGroups($hnd);
+    	$added = $updated = 0;
+    	$groups = array();
+    	foreach($newGroups as $gr){
+    		$nRec = new stdClass();
+    		$nRec->name = $gr['title'];
+    		$nRec->sysId = $gr['sysId'];
+    		
+    		if($rec = cat_Groups::fetch("#name = '{$gr['title']}'")){
+    			$nRec->id = $rec->id;
+    			$updated++;
+    		} else {
+    			$added++;
+    		}
+    			
+    		$groups[$gr['title']] = cat_Groups::save($nRec);
+    	}
+    	
+    	$html .= "Добавени {$added} нови групи, Обновени {$updated} съществуващи групи";
+    	return $groups;
     }
 }
