@@ -514,12 +514,13 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyId($date = NULL)
     {
         $periodRec = static::fetchByDate($date);
-        if(!$periodRec->baseCurrencyId) {
+        
+        if(!($baseCurrencyId = $periodRec->baseCurrencyId)) {
         	$conf = core_Packs::getConfig('currency');
-        	$periodRec->baseCurrencyId = currency_Currencies::getIdByCode($conf->CURRENCY_BASE_CODE);
+        	$baseCurrencyId = currency_Currencies::getIdByCode($conf->CURRENCY_BASE_CODE);
         }
         
-        return $periodRec->baseCurrencyId;
+        return $baseCurrencyId;
     }
    
  
