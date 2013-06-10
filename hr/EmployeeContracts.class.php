@@ -97,6 +97,13 @@ class hr_EmployeeContracts extends core_Master
     
     var $listFields = 'id,typeId,personId=Имена,departmentId,positionId,startFrom,endOn';
     
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'typeId';
+    
+    
     /**
      * Описание на модела
      */
