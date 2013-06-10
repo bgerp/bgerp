@@ -357,7 +357,13 @@ class techno_Specifications extends core_Master {
         		
 	            // След запис се създава чернова оферта
         		$this->save($rec);
-	            return Redirect(array($this, 'newQuote', $rec->id));
+        		
+        		// Нова оферта се създава само ако има въведено количество
+	        	if(isset($fRec->quantity1) || isset($fRec->quantity2) || isset($fRec->quantity3)){
+	    			return Redirect(array($this, 'newQuote', $rec->id));
+	    		} else {
+	    			return Redirect(array($this, 'single', $rec->id));
+	    		}
 	        }
         }
         
@@ -367,7 +373,11 @@ class techno_Specifications extends core_Master {
         	$form->rec = unserialize($rec->data);
         }
         
-        $form->title = "Характеристики на ". $this->getTitleById($rec->id);
+        $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $coverId = doc_Folders::fetchCoverId($rec->folderId);
+        $title = $coverClass::getTitleById($coverId);
+        $form->title = 'Спецификация на универсален продукт в папка "' . $title . '"';
+        
         return $this->renderWrapping($form->renderHtml());
     }
     
@@ -396,8 +406,11 @@ class techno_Specifications extends core_Master {
     	
     	// Добавяне на бутон за ъпдейт на съществуваща оферта
     	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'draft'){
-    		$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId}", 'id');
-    		$data->toolbar->addBtn("Оферта", array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'originId' => $data->rec->containerId), 'ef_icon=img/16/document_quote.png');
+    		$tData = unserialize($data->rec->data);
+    		if(isset($tData->quantity1) || isset($tData->quantity2) || isset($tData->quantity3)){
+    			$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId}", 'id');
+    			$data->toolbar->addBtn("Оферта", array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'originId' => $data->rec->containerId), 'ef_icon=img/16/document_quote.png');
+    		}
     	}
     }
     
@@ -410,7 +423,7 @@ class techno_Specifications extends core_Master {
     	sales_Quotations::requireRightFor('add');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	
+    	$tData = unserialize($rec->data);
     	$Quotations = cls::get('sales_Quotations');
     	$qId = $Quotations->fetchField("#originId = {$rec->containerId}", 'id');
     	$data = new stdClass();
