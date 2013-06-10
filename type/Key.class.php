@@ -492,7 +492,7 @@ class type_Key extends type_Int {
             if(is_object($opt)) {
                 $opt->title = transliterate($opt->title);
             } else {
-                $opt->title = transliterate($opt->title);
+                $opt = transliterate($opt);
             }
         }
 
