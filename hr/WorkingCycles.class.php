@@ -188,12 +188,21 @@ class hr_WorkingCycles extends core_Master
 	        	$date = date("Y-m-d H:i", $daysTs);
 	        	$d[$i] = new stdClass(); 
 	    		
-	    		$d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
-	    		
+	        	$start = explode("-", $startingOn);
+	        	if($month < $start[1]){
+	        		$d[$i]->html = "";
+	        	}else{
+	    			$d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
+	        	}
 	    		if(core_Lg::getCurrent() == 'en'){
 	    			$d[$i]->html = "<span style='float: left;'>" . $shiftMapEn[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
 	    		}
 	    		$d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
+	    		
+	    		$link = toUrl(array('cal_Calendar', 'list'));
+	    		$url = Url::addParams($link, array('from' => $i . '.' . $month . '.' . $year));
+	    		
+	    		$d[$i]->url = $url;
 	    		
 		        
 	        }
@@ -215,6 +224,7 @@ class hr_WorkingCycles extends core_Master
 	        					  'link'=>$linkPrint,
 	        					  'name'=>$name,
 	        					  'year'=> $year,
+	        					  'start'=> $start[1],
 	        					 
 	        );
     	}
@@ -255,7 +265,7 @@ class hr_WorkingCycles extends core_Master
 		        $tpl->append($calendar, 'calendar');
 		        
 		        $url = toUrl(array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year));
-	        	$title = "<legend class='groupTitle'>Работен график <a href='$url' target='_blank'><img src=". sbf('img/16/print.gif') ."></a></legend>";
+	        	$title = "<legend class='groupTitle'>". tr('Работен график') . "</legend>";
 	        
 	        	$tpl->append($url, 'id');
 	        	$tpl->append($title, 'title');
@@ -265,7 +275,7 @@ class hr_WorkingCycles extends core_Master
     	if(Mode::is('printing')) {
     		//bp($data);
     		$month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'M',  'bg'), MB_CASE_LOWER, "UTF-8"); 
-    		$title = "Работен график на структорно звено ". $prepareRecs->name. " за месец " . $month;
+    		$title = tr("Работен график на структорно звено "). tr($prepareRecs->name). tr(" за месец ") . tr($month);
     		$tpl->append($title, 'title');
     		
     		$calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
@@ -274,7 +284,7 @@ class hr_WorkingCycles extends core_Master
         
         for($j = 0; $j <= 4; $j++){
 			for($i = 1; $i <= $prepareRecs->lastDay; $i++){
-				if($prepareRecs->d[$i]->type == '0' && '0' == $j){
+				if($prepareRecs->d[$i]->type == '0' && '0' == $j && $prepareRecs->month >= $prepareRecs->start){
 					$tpl->append(' rest', "shift{$j}");
 				} elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
 					$tpl->append(' first', "shift{$j}");
