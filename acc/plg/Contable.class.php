@@ -31,6 +31,10 @@ class acc_plg_Contable extends core_Plugin
         // Добавяне на полета, свързани с фунционалността "Коригиращи документи"
         $mvc->FLD('isCorrection', 'enum(no,yes)', 'input=none,notNull,default=no');
         $mvc->FLD('correctionDocId', 'key(mvc='.get_class($mvc).')', 'input=none');
+        
+        // Добавяне на кеш-поле за контируемостта на документа. Обновява се при (преди) всеки 
+        // запис. Използва се при определяне на правата за контиране.
+        $mvc->FLD('isContable', 'enum(no,yes)', 'input=none,notNull,default=no');
     }
     
     
@@ -85,6 +89,28 @@ class acc_plg_Contable extends core_Plugin
         if (!$mvc->save($corrRec)) {
             $corrRec = FALSE;
         }
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     * 
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+        if (!empty($rec->state) && $rec->state != 'draft') {
+            return;
+        }
+        
+        try {
+            $rec->isContable = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
+        } catch (acc_journal_Exception $ex) {
+            $rec->isContable = FALSE;
+        }
+        
+        $rec->isContable = $rec->isContable ? 'yes' : 'no';
     }
     
     
@@ -250,6 +276,8 @@ class acc_plg_Contable extends core_Plugin
      */
     protected static function hasContableTransaction(core_Manager $mvc, $rec)
     {
+        return $rec->isContable == 'yes';
+        
         try {
             $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
         } catch (acc_journal_Exception $ex) {
@@ -336,7 +364,17 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterGetValidatedTransaction(core_Mvc $mvc, &$transaction, $rec)
     {
+        if (empty($rec)) {
+            $transaction = FALSE;
+            return;
+        }
+        
         $rec = $mvc->fetchRec($rec);
+        
+        if (empty($rec->id)) {
+            $transaction = FALSE;
+            return;
+        }
         
         $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $transaction       = $transactionSource->getTransaction($rec->id);
