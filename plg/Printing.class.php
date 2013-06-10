@@ -40,7 +40,7 @@ class plg_Printing extends core_Plugin
         
         $url['Printing'] = 'yes';
 
-        self::addCmdParams($url);
+        //self::addCmdParams($url);
         
         $data->toolbar->addBtn('Печат', $url,
             'id=btnPrint,target=_blank,class=btn-print');
@@ -54,12 +54,15 @@ class plg_Printing extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        $url = array(
+    	$url = getCurrentUrl();
+    	$url = $url + array('Printing' => 'yes');
+        
+    	/*$url = array(
                 $mvc,
                 'single',
                 $data->rec->id,
                 'Printing' => 'yes',
-            );
+            );*/
 
         self::addCmdParams($url);
 
