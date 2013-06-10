@@ -45,10 +45,8 @@ class doc_ActivatePlg extends core_Plugin
     {
         if($form->isSubmitted() && $mvc->className != 'doc_Tasks') {
             if($form->cmd == 'active') {
-                if ($mvc->haveRightFor('activate', $form->rec)) {
-                    $form->rec->state = 'active';
-                    $mvc->invoke('Activation', array($form->rec));
-                }
+                $form->rec->state = 'active';
+                $mvc->invoke('Activation', array($form->rec));
             }
         }
     }

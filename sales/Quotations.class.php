@@ -324,16 +324,6 @@ class sales_Quotations extends core_Master
     			if(!$detailQuery->count()){
     				$res = 'no_one';
     			}
-    			
-    			if(!empty($rec->originId)){
-    				
-    				// Ако е базирана на спецификация и тя е чернова
-    				// активирането е забранено
-	    			$origin = doc_Containers::getDocument($rec->originId);
-	    			if($origin->className == 'techno_Specifications' && $origin->fetchField('state') == 'draft'){
-	    				$res = 'no_one';
-	    			}
-    			}
     		}
     	}
     }
@@ -376,5 +366,26 @@ class sales_Quotations extends core_Master
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
     
         return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+    
+    /**
+     * Функция, която прихваща след активирането на документа
+     * Ако офертата е базирана на чернова спецификация, активираме и нея
+     */
+    public static function on_Activation($mvc, &$rec)
+    {
+    	$rec = $mvc->fetch($rec->id);
+    	$rec->state = 'active';
+    	if($rec->originId){
+    		$origin = doc_Containers::getDocument($rec->originId);
+	    	if($origin->className == 'techno_Specifications'){
+	    		$originRec = $origin->fetch();
+	    		if($originRec->state == 'draft'){
+	    			$originRec->state = 'active';
+	    			techno_Specifications::save($originRec);
+	    		}		
+	    	}
+    	}
     }
 }

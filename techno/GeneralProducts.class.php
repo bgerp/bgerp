@@ -66,7 +66,7 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Връща форма, с която могат да се въвеждат параметри на
      * определен клас нестандартно изделие
-     * @param stdClass $data - Обект с данни от модела 
+     * @param int $folderId - ид на папката
      * @return core_Form $form - Формата на мениджъра
      */
     public function getEditForm()
@@ -75,17 +75,19 @@ class techno_GeneralProducts extends core_Manager {
     	$form->FNC('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%,input');
     	$form->FNC('description', 'richtext(rows=5, bucket=Notes)', 'caption=Описание,input,mandatory,width=100%');
 		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input');
-    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. цена,width=8em,mandatory,input,unit=без ддс');
+    	
+		$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. Себестойност,width=8em,mandatory,input');
+		$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Цени->Нач. такси,width=8em,input');
+		
 		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
     	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,unit=%');
 		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
-        $form->FNC('quantity1', 'int', 'caption=Ценови преглед->К-во 1,mandatory,width=4em,input');
-    	$form->FNC('quantity2', 'int', 'caption=Ценови преглед->К-во 2,width=4em,input');
-    	$form->FNC('quantity3', 'int', 'caption=Ценови преглед->К-во 3,width=4em,input');
+        $form->FNC('quantity1', 'int', 'caption=Последваща оферта->К-во 1,width=4em,input');
+    	$form->FNC('quantity2', 'int', 'caption=Последваща оферта->К-во 2,width=4em,input');
+    	$form->FNC('quantity3', 'int', 'caption=Последваща оферта->К-во 3,width=4em,input');
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
-        $form->setDefault('quantity1', '1');
         
         return $form;
     }
@@ -141,13 +143,15 @@ class techno_GeneralProducts extends core_Manager {
     
     
     /**
-     * Изчислява цената на продукта
+     * Изчислява цената на продукта по формулата:
+     * ([Начални такси] * (1 + НадценкаМакс) + [Количество] * 
+     *  [Единична себестойност] *(1 + НадценкаМин)) / [Количество]
      * @param string $data
      * @param id $packagingId
      * @param int $quantity
      * @param datetime $datetime
      */
-    public function getPrice($data, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    public function getPrice($data, $packagingId = NULL, $quantity = 1, $datetime = NULL)
     {
     	if($data){
     		if(is_string($data)){
@@ -163,7 +167,14 @@ class techno_GeneralProducts extends core_Manager {
     				$price->discount = $data->discount;
     			}
     			if($price->price) {
-    				$price->price = currency_CurrencyRates::convertAmount($price->price, NULL, $data->currencyId, NULL);
+    				$conf = core_Packs::getConfig('salecond');
+    				
+    				if(empty($data->bTaxes)) {
+    					$data->bTaxes = 0;
+    				}
+    				$calcPrice = ($data->bTaxes * (1 + $conf->SURPLUS_CHARGE_MAX) 
+    					+ $quantity * $data->price * (1 + $conf->SURPLUS_CHARGE_MIN)) / $quantity;
+    				$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
     				return $price;
     			}
     		}

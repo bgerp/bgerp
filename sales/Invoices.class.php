@@ -611,7 +611,7 @@ class sales_Invoices extends core_Master
         // Задължително условие е папката, в която се създава новата ф-ра да е известна
         expect($folderId = $rec->folderId);
         
-        // Извличаме данните на контрагент по подразбиране
+         // Извличаме данните на контрагент по подразбиране
          $sourceClass    = doc_Folders::fetchCoverClassName($folderId);
          $sourceObjectId = doc_Folders::fetchCoverId($folderId);
          $contragentData = $sourceClass::getContragentData($sourceObjectId);

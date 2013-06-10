@@ -79,9 +79,19 @@ class bnav_Plugin extends core_Plugin
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
     	if($action == 'test'){
-    		$hnd = 'BltWOe';
-    		static::importProducts($hnd);
-    		//$mvc->
+    		$hnd = 'o441Hq';
+    		$tpl = static::import($hnd);
+    		
+    		return FALSE;
+    	}
+    	
+    	
+    	if($action == 'test2'){
+    		
+    		$l = cat_Groups::delete("#id > 11");
+    		$li = cat_Products::delete("#id > 23");
+    		$lir = cat_UoM::delete("#id > 40");
+    		bp($l,$li, $lir);
     		return FALSE;
     	}
     	
@@ -91,7 +101,8 @@ class bnav_Plugin extends core_Plugin
         	$form = static::prepareImportForm();
         	$form->input();
         	if($form->isSubmitted()){
-        		$importRes = static::importProducts($form->rec->csvFile);
+        		$res = static::import($form->rec->csvFile);
+        		return Redirect(array('cat_Products', 'list'), 'FALSE', $res);
         	}
         	
         	$form->toolbar->addSbBtn('Запис', 'save', array('class'=>'btn-next btn-move'));
@@ -123,13 +134,15 @@ class bnav_Plugin extends core_Plugin
      * Enter description here ...
      * @param unknown_type $rec
      */
-    private static function importProducts($hnd)
+    private static function import($hnd)
     {
     	$html = '';
+    	core_Debug::startTimer('import');
+    	$params = static::importParams($hnd, $html);
+    	static::importProducts($hnd, $params, $html);
+    	core_Debug::stopTimer('import');
     	
-    	$groups = static::importGroups($hnd, $html);
-    	bp($html);
-    	return $html;
+    	return $html . "Общо време: " . core_Debug::$timers['import']->workingTime ." s<br />";
     }
     
     
@@ -139,25 +152,29 @@ class bnav_Plugin extends core_Plugin
      * @param array $arr - масив получен от csv файл
      * @return array $newGroups - масив с групи
      */
-    static function filterImportGroups(&$hnd)
+    static function filterImportParams(&$hnd)
     {
     	$i = 0;
-    	$newGroups = array();
+    	$newMeasures = $newGroups = array();
     	$path = fileman_Files::fetchByFh($hnd, 'path');
     	
     	if(($handle = fopen($path, "r")) !== FALSE) {
 	    	while (($csvRow = fgetcsv($handle, 5000, ",")) !== FALSE) {
 	    		if($i != 0){
-		    		if(!array_key_exists($csvRow[4], $newGroups) && !is_numeric($csvRow[4])){
+		    		if(!array_key_exists($csvRow[4], $newGroups)){
 	    				$rowArr = array('title' =>$csvRow[4], 'sysId' =>$csvRow[3]);
 		    			$newGroups[$csvRow[4]] = $rowArr;
-	    			}
+		    		}
+		    		
+		    		if(!array_key_exists($csvRow[2], $newMeasures)){
+		    			$newMeasures[$csvRow[2]] = $csvRow[2];
+		    		}
 	    		}
 	    		$i++;
 	    	}
     	}
     	
-    	return $newGroups;
+    	return array('groups' => $newGroups, 'measures' => $newMeasures);
     }
     
     
@@ -168,27 +185,84 @@ class bnav_Plugin extends core_Plugin
      * @return array $groups - масив с ид-та на всяка 
      * група от системата
      */
-    static function importGroups(&$hnd, &$html)
+    static function importParams(&$hnd, &$html)
     {
-    	$newGroups = static::filterImportGroups($hnd);
-    	$added = $updated = 0;
-    	$groups = array();
-    	foreach($newGroups as $gr){
+    	$params = static::filterImportParams($hnd);
+    	
+    	$addedMeasures = $updatedMeasures = $addedGroups = $updatedGroups = 0;
+    	$measures = $groups = array();
+    	
+    	foreach($params['groups'] as $gr){
     		$nRec = new stdClass();
     		$nRec->name = $gr['title'];
     		$nRec->sysId = $gr['sysId'];
     		
     		if($rec = cat_Groups::fetch("#name = '{$gr['title']}'")){
     			$nRec->id = $rec->id;
-    			$updated++;
+    			$updatedGroups++;
     		} else {
-    			$added++;
+    			$addedGroups++;
     		}
     			
     		$groups[$gr['title']] = cat_Groups::save($nRec);
     	}
     	
-    	$html .= "Добавени {$added} нови групи, Обновени {$updated} съществуващи групи";
-    	return $groups;
+    	foreach($params['measures'] as $measure){
+    		$nRec = new stdClass();
+    		$nRec->name = $measure;
+    		$nRec->shortName = $measure;
+    		$uomQuery = cat_UoM::getQuery();
+    		$id = cat_UoM::ifExists($measure);
+    		if(!$id){
+    			$id = cat_UoM::save($nRec);
+    			$updatedMeasures++;
+    		} else {
+    			$addedMeasures++;
+    		}
+    		
+    		$measures[$measure] = $id;
+    	}
+    	
+    	$html .= "Добавени {$addedGroups} нови групи, Обновени {$updatedGroups} съществуващи групи<br>";
+    	$html .= "Добавени {$addedMeasures} нови мерни еденици<br/>";
+    	
+    	return array('groups' => $groups, 'measures' => $measures);
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $hnd
+     * @param unknown_type $params
+     * @param unknown_type $html
+     */
+    static function importProducts($hnd, $params, &$html)
+    {
+    	$i = $added = $updated = 0;
+    	$path = fileman_Files::fetchByFh($hnd, 'path');
+    	
+    	if(($handle = fopen($path, "r")) !== FALSE) {
+	    	while (($csvRow = fgetcsv($handle, 5000, ",")) !== FALSE) {
+	    		if($i != 0){
+	    			$rec = new stdClass();
+	    			$rec->name = mysql_real_escape_string($csvRow[1]);
+	    			$rec->measureId = $params['measures'][$csvRow[2]];
+	    			$code = str_replace(array("[", "]"), "", $csvRow[5]);
+	    			$rec->code = $code;
+	    			$rec->bnavCode = $csvRow[5];
+	    			$rec->groups = "|{$params['groups'][$csvRow[4]]}|";
+	    			if($rec->id = cat_Products::fetchField(array("#code = '[#1#]'", $code), 'id')){
+	    				$updated++;
+	    			} else {
+	    				$added++;
+	    			}
+	    			cat_Products::save($rec);
+	    		}
+	    		$i++;
+	    	}
+    	}
+    	
+    	$html .= "Добавени {$added} нови артикула, Обновени {$updated} съществуващи артикула<br/>";
     }
 }

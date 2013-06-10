@@ -153,4 +153,26 @@ class cat_UoM extends core_Manager
     	expect($rec = static::fetch($id));
     	return static::recToVerbal($rec, 'shortName')->shortName;
     }
+    
+    
+    /**
+     * Функция проверяваща дали по зададен стринг има в системата
+     * такава мерна еденица, ако да връщаме ид-то и
+     * @param string $string - стринга представляващ мярката
+     * @return mixed FALSE/int - ид-то на мярката или FALSE
+     */
+    public static function ifExists($string)
+    {
+    	$string = plg_Search::normalizeText($string);
+    	$query = static::getQuery();
+    	while($rec = $query->fetch()){
+    		$uomNameNorm = plg_Search::normalizeText($rec->name);
+    		$uomShortNameNorm = plg_Search::normalizeText($rec->shortName);
+    		if($string == $uomNameNorm || $string == $uomShortNameNorm){
+    			return $rec->id;
+    		}
+    	}
+    	
+    	return FALSE;
+    }
 }

@@ -10,11 +10,11 @@
 	[#calendar#]</br>
 	<table class='mc-calendar cal-legend'>
 		<tr>
-			<!--ET_BEGIN shift1--><td class="[#shift1#]">I - първа смяна</td><!--ET_END shift1-->
-			<!--ET_BEGIN shift2--><td class="[#shift2#]">II - втора смяна</td><!--ET_END shift2-->
-			<!--ET_BEGIN shift3--><td class="[#shift3#]">Н - нощна</td><!--ET_END shift3-->
-			<!--ET_BEGIN shift4--><td class="[#shift4#]">Д - дневна</td><!--ET_END shift4-->
-			<!--ET_BEGIN shift0--><td class="[#shift0#]">П - почивка</td><!--ET_END shift0-->
+			<!--ET_BEGIN shift1--><td class="[#shift1#]">|I - първа смяна|*</td><!--ET_END shift1-->
+			<!--ET_BEGIN shift2--><td class="[#shift2#]">|II - втора смяна|*</td><!--ET_END shift2-->
+			<!--ET_BEGIN shift3--><td class="[#shift3#]">|Н - нощна|*</td><!--ET_END shift3-->
+			<!--ET_BEGIN shift4--><td class="[#shift4#]">|Д - дневна|*</td><!--ET_END shift4-->
+			<!--ET_BEGIN shift0--><td class="[#shift0#]">|П - почивка|*</td><!--ET_END shift0-->
 			
 		</tr>
 	</table>

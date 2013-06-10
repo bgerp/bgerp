@@ -1133,7 +1133,7 @@ div.cover{
 div.folder-cover{
 	background-image:url('../img/cover-bg.png');
 	display: inline-block;
-	min-width: 600px;
+	min-width: 510px;
 	max-width: 750px;
 	margin-top: 16px;
 	margin-left:3px;
@@ -1429,7 +1429,7 @@ td.portal-date {
 
 
 .listTable td{
-	max-width:600px;
+	max-width:500px;
 }
 
 .single-thread .listTable td{
@@ -2810,7 +2810,7 @@ div.locImage{
 .store_Racks td{
 	max-width:700px;
 }
-.fileman_Indexes td, .fileman_Data td{
+.fileman_Indexes td, .fileman_Data td, .log_Documents td, .core_Cache td{
 	max-width:none !important;	
 }
 
