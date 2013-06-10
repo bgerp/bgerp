@@ -226,19 +226,21 @@ class type_Key extends type_Int {
              
             // Ако трябва да показваме combo-box
             if(count($options) > $maxSuggestions) {
+
+                if(is_object($options[''])) {
+                    $options['']->title = '';
+                }
                 
                 // Генериране на cacheOpt ако не са в кеша
             	$cacheOpt = core_Cache::get('SelectOpt', $handler, 20, array($this->params['mvc']));
-            	
-                if(FALSE === $cacheOpt) {
+            	  
+                if(FALSE === $cacheOpt || 1) {
                     
+                    $cacheOpt = array();
+
                     foreach($options as $key => $v) {
                         
-                        if (!is_string($v)) {
-                            $title = $v->title;
-                        } else {
-                            $title = $v;
-                        }
+                        $title = self::getOptionTitle($v);
                         
                         $vNorm = strtolower(str::utf2ascii(trim($title)));
                         
@@ -257,23 +259,23 @@ class type_Key extends type_Int {
                         
                         $cacheOpt[$vNorm] = $v;
                     }
-                    
-                    core_Cache::set('SelectOpt', $handler, json_encode($cacheOpt), 20, array($this->params['mvc']));
+ 
+                    core_Cache::set('SelectOpt', $handler, serialize($cacheOpt), 20, array($this->params['mvc']));
                 } else {
-                	$cacheOpt = (array) json_decode($cacheOpt);
+                	$cacheOpt = (array) unserialize($cacheOpt);
                 }
                 
-   
+
                 
                 if($this->suggestions) {
                     $suggestions = $this->suggestions;
                 } else {
                     $suggestions = array_slice($cacheOpt, 0, $maxSuggestions, TRUE);
                 }
-                
+               
                 foreach($suggestions as $key => $v) {
-                    
-                    $key = is_object($v) ? $v->title : $v;
+                   
+                    $key = self::getOptionTitle($v);
                     
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
@@ -283,15 +285,17 @@ class type_Key extends type_Int {
                     
                     $selOpt[trim($key)] = $v;
                 }
-                
-                $selOpt[$options[$value]] = $options[$value];
+
+                $title = self::getOptionTitle($options[$value]);
+
+                $selOpt[$title] =  $options[$value];
                  
                 $this->options = $selOpt;
 
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
                 ", Act:\"ajax_GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\", ajax_mode:1}";
-                
-                $tpl = ht::createCombo($name, $options[$value], $attr, $selOpt);
+                 
+                $tpl = ht::createCombo($name, self::getOptionTitle($options[$value]), $attr, $selOpt); 
             } else {
                 
                 if(count($options) == 0 && $mvc->haveRightFor('list')) {
@@ -304,7 +308,7 @@ class type_Key extends type_Int {
                     return new Redirect(array($mvc, 'list'), tr($msg));
                 } else { 
                     if ($this->params['transliterate']) {
-                        $options = array_map('transliterate', (array)$options); 
+                        $options = self::transliterateOptions($options); 
                     }
                 }
                 
@@ -357,12 +361,17 @@ class type_Key extends type_Int {
         
         setIfNot($maxSuggestions, Request::get('maxSugg', 'int'), $conf->TYPE_KEY_MAX_SUGGESTIONS);
         
-        $select = new ET('<option value="">&nbsp;</option>');
         
-        $options = (array) json_decode(core_Cache::get('SelectOpt', $hnd));
+        $options = (array) unserialize(core_Cache::get('SelectOpt', $hnd));
         
+        if(isset($options[''])) {
+            $select = new ET('');
+        } else {
+            $select = new ET('<option value="">&nbsp;</option>');
+        }
+
         $cnt = 0;
-        
+ 
         if (is_array($options)) {
             
             foreach ($options as $id => $title) {
@@ -401,9 +410,9 @@ class type_Key extends type_Int {
                     }
                 }
                 
-                $attr['value'] = $title;
+                $attr['value'] = self::getOptionTitle($title);
                 
-                if ($title == $selected) {
+                if ($attr['value'] == $selected) {
                     $attr['selected'] = 'selected';
                 }
                 $option = ht::createElement($element, $attr, $title);
@@ -456,5 +465,37 @@ class type_Key extends type_Int {
         // Модифицираме заявката като добавяме филтриране по група, която
         // е зададена с нейно Id - отговарящо на посоченото systemId
         return "#{$mvc->groupsField} LIKE '%|{$groupRec->id}|%'";
+    }
+
+
+    /**
+     * Връща заглавието на опцията, независимо от това дали тя е стринг или обект
+     */
+    static function getOptionTitle($v)
+    {   
+        if($v == NULL || is_string($v)) {
+            $title = $v;
+        } else {
+            $title = $v->title;
+        } 
+
+        return $title;
+    }
+
+
+    /**
+     * Транслитерира масив с опции, като запазва възможността някои от тях да са обекти
+     */
+    static function transliterateOptions($options)
+    {
+        foreach($options as &$opt) {
+            if(is_object($opt)) {
+                $opt->title = transliterate($opt->title);
+            } else {
+                $opt->title = transliterate($opt->title);
+            }
+        }
+
+        return $options;
     }
 }

@@ -166,7 +166,7 @@ class core_Html
                         $title = $title->title;
                     }
                 }
-
+ 
                 if (!isset($attr['value'])) {
                     $attr['value'] = $id;
                 }
