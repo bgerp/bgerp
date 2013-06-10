@@ -298,6 +298,19 @@ class core_ET extends core_BaseClass
         
         return $this;
     }
+
+
+    /**
+     * Премахва чакащите субституции за мястото $place
+     */
+    function removePendings($place)
+    {
+        foreach($this->pending as $id => $pending) {
+            if($pending->place == $place) {
+                unset($this->pending[$id]);
+            }
+        }
+    }
     
     
     /**
