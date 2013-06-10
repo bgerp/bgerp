@@ -95,6 +95,8 @@ class hr_EmployeeContracts extends core_Master
     var $newBtnGroup = "5.1|Човешки ресурси";
     
     
+    var $listFields = 'id,typeId,personId=Имена,departmentId,positionId,startFrom,endOn';
+    
     /**
      * Описание на модела
      */
