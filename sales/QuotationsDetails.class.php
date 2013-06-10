@@ -160,7 +160,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
 	    	
 	    	if(!$rec->price){
-	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, 1, $masterRec->date);
+	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
 	    		
 	    		if(!$price){
 	    			$form->setError('price', 'Неможе да се изчисли цената за този клиент');

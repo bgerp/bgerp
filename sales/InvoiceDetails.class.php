@@ -160,7 +160,7 @@ class sales_InvoiceDetails extends core_Detail
           	
 	            // Ако не е зададена цена, извличаме я от избраната политика
 	          	$contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
-	            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId)->price;
+	            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId, $rec->quantity)->price;
 	          	if(!$rec->price){
 		            $form->setError('price', 'Неможе да се определи цена');
 		        }
