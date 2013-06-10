@@ -205,6 +205,8 @@ class type_Keylist extends core_Type {
                         unset($attrCB['checked']);
                     }
                     
+                    $v = type_Key::getOptionTitle($v);
+
                     if ($this->params['transliterate']) {
                         $v = transliterate($v);
                     }
