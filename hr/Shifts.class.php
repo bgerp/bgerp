@@ -19,13 +19,13 @@ class hr_Shifts extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Смени";
+    var $title = "Графици";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Смяна";
+    var $singleTitle = "График";
     
     
     /**

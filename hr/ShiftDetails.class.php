@@ -18,7 +18,7 @@ class hr_ShiftDetails extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Смени - детайли";
+    var $title = "Грaфици - детайли";
     
     
     var $masterKey = 'shiftId';

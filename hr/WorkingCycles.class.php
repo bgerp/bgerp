@@ -19,13 +19,13 @@ class hr_WorkingCycles extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Смени";
+    var $title = "Графици";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Работен цикъл";
+    var $singleTitle = "Работни графици";
     
     
     /**
@@ -40,10 +40,21 @@ class hr_WorkingCycles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
-                       plg_SaveAndNew';
+    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing';
+    
+
+    /**
+     * Единична икона
+     */
+    var $singleIcon = 'img/16/timespan.png';
     
     
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
+
+
     /**
      * Кой има право да чете?
      */

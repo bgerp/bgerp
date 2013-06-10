@@ -2,7 +2,7 @@
 
 
 /**
- * Смени
+ * Длъжности
  *
  *
  * @category  bgerp
@@ -58,6 +58,18 @@ class hr_Positions extends core_Master
      */
     var $singleLayoutFile = 'hr/tpl/SingleLayoutPosition.shtml';
     
+    
+    /**
+     * Единична икона
+     */
+    var $singleIcon = 'img/16/construction-work-icon.png';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
+
     
     /**
      * Описание на модела
