@@ -953,20 +953,20 @@ class doc_DocumentPlg extends core_Plugin
         }
 		
     	if ($rec->id) {
-            $rec = (object)((array)$rec + (array)$mvc->fetch($rec->id));
+            $oRec = $mvc->fetch($rec->id);
             
             if($action == 'delete') {
                 $requiredRoles = 'no_one';
-            } elseif(($action == 'edit') && ($rec->state != 'draft')) {
+            } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
                 $requiredRoles = 'no_one';
             } elseif ($action == 'reject' || $action == 'edit' || $action == 'restore' || $action == 'add') {
-                if (doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     $requiredRoles = 'user';    
                 } else {
                     $requiredRoles = 'no_one';
                 } 
             } elseif ($action == 'single') { 
-                if (doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     $requiredRoles = 'user';
                 }
             } elseif ($action == 'clone') {
@@ -974,17 +974,17 @@ class doc_DocumentPlg extends core_Plugin
                 // Ако клонираме
                 
                 // id на първия документ
-                $firstContainerId = doc_Threads::fetch($rec->threadId)->firstContainerId;
+                $firstContainerId = doc_Threads::fetch($oRec->threadId)->firstContainerId;
                 
                 // Ако е първи документ в нишката
-                if ($firstContainerId == $rec->containerId) {
+                if ($firstContainerId == $oRec->containerId) {
                     
                     // Проверяваме за сингъл права в папката
-                    $haveRightForClone = doc_Folders::haveRightFor('single', $rec->folderId);
+                    $haveRightForClone = doc_Folders::haveRightFor('single', $oRec->folderId);
                 } else {
                     
                     // За останалите, проверяваме за сингъл в нишката
-                    $haveRightForClone = doc_Threads::haveRightFor('single', $rec->threadId);
+                    $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId);
                 }
                 
                 // Ако един от двата начина върне, че имаме права
