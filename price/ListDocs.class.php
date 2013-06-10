@@ -109,6 +109,7 @@ class price_ListDocs extends core_Master
     {
     	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory,width=6em;');
     	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,width=8em,input');
     	$this->FLD('vat', 'enum(yes=с ДДС,no=без ДДС)','caption=ДДС');
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Продукти->Групи,columns=2');
@@ -132,6 +133,26 @@ class price_ListDocs extends core_Master
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
     	$defaultList = price_ListToCustomers::getListForCustomer($folderClassId, $coverId);
     	$form->setDefault('policyId', $defaultList);
+    	
+    	$form->setDefault('currencyId', $mvc->getDefaultCurrency($form->rec));
+    }
+    
+    
+    /**
+     * Валута по подразбиране: ако е контрагент - дефолт валутата му,
+     * в противен случай основната валута за периода
+     */
+    private function getDefaultCurrency($rec)
+    {
+    	 $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    	 if(cls::haveInterface('doc_ContragentDataIntf', $folderClass)){
+    	 	$coverId = doc_Folders::fetchCoverId($rec->folderId);
+    	 	$contragentData = $folderClass::getContragentData($coverId);
+    	 	
+    	 	return drdata_Countries::fetchField($contragentData->countryId, 'currencyCode');
+    	 }
+    	 
+    	 return acc_Periods::getBaseCurrencyCode($rec->date);
     }
     
     
@@ -243,6 +264,9 @@ class price_ListDocs extends core_Master
     		if(!$price) continue;
     		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
     		$product->price = $price + ($price * $vat);
+    		
+    		$product->price = currency_CurrencyRates::convertAmount($product->price, $rec->date, NULL, $rec->currencyId);
+                    
 	    	$rec->details->rows[] = $product;
     		
     		// За всяка от избраните опаковки
@@ -272,6 +296,7 @@ class price_ListDocs extends core_Master
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packId, $rec->date);
     		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
     		$price = $price + ($price * $vat);
+    		$price = currency_CurrencyRates::convertAmount($price, $rec->date, NULL, $rec->currencyId);
     		$clone->price = $info->packagingRec->quantity * $price;
     		$clone->perPack = $info->packagingRec->quantity;
     		$clone->eanCode = $info->packagingRec->eanCode;
@@ -433,7 +458,6 @@ class price_ListDocs extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->header = "{$row->title} &nbsp;<b>{$row->ident}</b> ({$row->state})";
-    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->date);
     	$row->policyId = ht::createLink($row->policyId, array('price_Lists', 'single', $rec->policyId));
     	
     	if(!$rec->productGroups) {
@@ -444,11 +468,11 @@ class price_ListDocs extends core_Master
     	// Модифицираме данните които показваме при принтиране
     	if(Mode::is('printing')){
     		$row->printHeader = $row->title;
-    		$row->currency =  $row->baseCurrency;
+    		$row->currency =  $row->currencyId;
     		$row->created =  $row->date;
     		$row->number =  $row->id;
     		unset($row->header);
-    		unset($row->baseCurrency);
+    		unset($row->currencyId);
     		unset($row->productGroups);
     		unset($row->packagings);
     		unset($row->createdOn);
