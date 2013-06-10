@@ -236,13 +236,15 @@ class price_ListDocs extends core_Master
 		    	}
 	    		
 		    	$arr = cat_Products::fetchField($productRec->id, 'groups');
+		    	($arr) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
+		    	
 		    	$rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
 	    									   'code' => $productRec->code,
 	    									   'eanCode' => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
 		    								   'vat' => cat_Products::getVat($productRec->id, $rec->date),
 	    									   'pack' => NULL,
-	    									   'groups' => keylist::toArray($arr));
+	    									   'groups' => $arr);
     		}
     	}
     }
@@ -374,12 +376,18 @@ class price_ListDocs extends core_Master
     			$rec->products = $this->groupProductsByGroups($rec->details->rows, $groupsArr);
     		}
     		
+    		krsort($rec->products);
     		foreach ($rec->products as $groupId => $products){
     			if(count($products) != 0){
 					
 					// Слагаме името на групата
 					$groupTpl = clone $detailTpl;
-					$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP_NAME');
+					if($groupId){
+						$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP_NAME');
+					} else {
+						$groupTpl->replace(tr('Без група'), 'GROUP_NAME');
+					}
+					
 					foreach ($products as $row){
 		    			$row = $this->getVerbalDetail($row);
 		    			$rowTpl = $groupTpl->getBlock('ROW');
