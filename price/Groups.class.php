@@ -84,7 +84,7 @@ class price_Groups extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Група');
+        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Група');
         $this->FLD('description', 'text', 'caption=Описание');
 		
         $this->setDbUnique('title');
