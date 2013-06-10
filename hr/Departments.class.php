@@ -25,7 +25,7 @@ class hr_Departments extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Структорно звено";
+    var $singleTitle = "Структурно звено";
     
     
     /**

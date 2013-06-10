@@ -133,6 +133,14 @@ class hr_WorkingCycles extends core_Master
 	    		4 => 'д',
 	 		);
 	 		
+	 		static $shiftMapEn = array(
+	    		0 => 'r',
+	    		1 => 'I',
+	    		2 => 'II',
+	    		3 => 'n',
+	    		4 => 'd',
+	 		);
+	 		
 	 		$month = Request::get('cal_month', 'int');
 	        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
 	        $year  = Request::get('cal_year', 'int');
@@ -181,12 +189,16 @@ class hr_WorkingCycles extends core_Master
 	        	$d[$i] = new stdClass(); 
 	    		
 	    		$d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
+	    		
+	    		if(core_Lg::getCurrent() == 'en'){
+	    			$d[$i]->html = "<span style='float: left;'>" . $shiftMapEn[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
+	    		}
 	    		$d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
 	    		
 		        
 	        }
 	        
-	        $data->TabCaption = 'График';
+	        $data->TabCaption = tr('График');
 	        $month = str_pad($month, 2, ' ', STR_PAD_LEFT);
 
 	        return (object) array('year'=>$year,
