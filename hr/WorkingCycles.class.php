@@ -196,6 +196,10 @@ class hr_WorkingCycles extends core_Master
 	        	}
 	    		if(core_Lg::getCurrent() == 'en'){
 	    			$d[$i]->html = "<span style='float: left;'>" . $shiftMapEn[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
+	    			
+	    			if($month < $start[1]){
+	        			$d[$i]->html = "";
+	    			}
 	    		}
 	    		$d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
 	    		
