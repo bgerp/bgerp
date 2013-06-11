@@ -48,7 +48,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools';
+    public $loadList = 'plg_RowTools, plg_AlignDecimals';
     
     
     /**
@@ -89,17 +89,18 @@ class sales_QuotationsDetails extends core_Detail {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$masterRec = $data->masterData->rec;
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
     	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
+    	
     	if($recs){
 	    	foreach($recs as $id => $rec){
 	    		
 	    		// Цената с добавено ДДС и конвертирана
-	    		if($applyVat){
-		    		$price = $rec->price + ($rec->price * $rec->vatPercent);
-		    	}
-	    		$price = round($price / $masterRec->rate);
+	    		if(!$applyVat) {
+	    			$rec->vatPercent = 0;
+	    		}
+	    		
+		    	$price = $rec->price + ($rec->price * $rec->vatPercent);
+		    	$price = round($price / $masterRec->rate, 2);
 	    		$rec->vatPrice = $price;
 		    	
 		    	// Сумата с добавено ддс и конвертирана
@@ -159,7 +160,8 @@ class sales_QuotationsDetails extends core_Detail {
 	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
 	    	
 	    	if(!$rec->price){
-	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, 1, $masterRec->date);
+	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
+	    		
 	    		if(!$price){
 	    			$form->setError('price', 'Неможе да се изчисли цената за този клиент');
 	    		}
@@ -205,7 +207,7 @@ class sales_QuotationsDetails extends core_Detail {
 	static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
-        $data->query->orderBy("productId", 'ASC');
+        $data->query->orderBy("id,productId", 'ASC');
     }
     
     
@@ -297,13 +299,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$tpl = new ET("");
     	
     	// Шаблон за задължителните продукти
-    	$dTpl = new ET(tr("|*" . getFileContent('sales/tpl/LayoutQuoteDetails.shtml')));
-    	
-    	if(!Mode::is('printing') && $data->masterData->rec->state == 'draft'){
-    		
-    		// Маха се th-то на полето за редакция, ако се принтира
-    		$dTpl->replace(' ', 'toolsTh');
-    	}
+    	$dTpl = getTplFromFile('sales/tpl/LayoutQuoteDetails.shtml');
     	
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
@@ -363,16 +359,11 @@ class sales_QuotationsDetails extends core_Detail {
         $double = cls::get('type_Double');
     	if(!$rec->quantity){
     		$row->quantity = '???';
-    	} else {
-    		$quantity = floatval($rec->quantity);
-    		$parts = explode('.', $quantity);
-    		$double->params['decimals'] = count($parts[1]);
-    		$row->quantity = $double->toVerbal($rec->quantity);
     	}
     	
-    	$row->productId = $productMan->getTitleById($rec->productId);
-    	$uomId = $productMan::fetchField($rec->productId, 'measureId');
-    	$uomTitle = cat_UoM::recToVerbal($uomId, 'shortName')->shortName;
+    	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
+    	$uomId = $productMan->fetchField($rec->productId, 'measureId');
+    	$uomTitle = cat_UoM::getShortName($uomId);
     	
     	$row->quantity = "<b>{$row->quantity}</b> {$uomTitle}";
     	
@@ -410,14 +401,36 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
-     * 
-     * @param stdClass $rec
-     * @param core_ObjectReference $origin
+     * Екшън за обновяване на данните в оферта от спецификация
+     */
+    function act_updateData()
+    {
+    	$this->Master->requireRightFor('edit');
+    	expect($quotationId = Request::get('quotationId'));
+    	expect($rec = $this->Master->fetch($quotationId));
+    	expect($originId = Request::get('originId'));
+    	$origin = doc_Containers::getDocument($originId);
+    	expect($origin->fetchField('state') == 'draft');
+    	
+    	$this->insertFromSpecification($rec, $origin);
+    	return Redirect(array($this->Master, 'single', $quotationId));
+    }
+    
+    
+    /**
+     * Ако ориджина е спецификация вкарват се записи отговарящи
+     * на посочените примерни коли1ества в нея
+     * @param stdClass $rec - запис на оферта
+     * @param core_ObjectReference $origin - пораждащия документ
+     * (спецификация)
      */
     public function insertFromSpecification($rec, core_ObjectReference $origin)
     {
     	$originRec = $origin->fetch();
-    	$quantities = array($originRec->quantity1, $originRec->quantity2, $originRec->quantity3);
+    	$originData = unserialize($originRec->data);
+    	
+    	$this->delete("#quotationId = $rec->id");
+    	$quantities = array($originData->quantity1, $originData->quantity2, $originData->quantity3);
     	$policyId = techno_Specifications::getClassId();
     	$Policy = cls::get($policyId);
     	foreach ($quantities as $q){

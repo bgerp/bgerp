@@ -11,7 +11,8 @@
 			 	</div>
 		     </div>
 	      	<!--ET_END image-->
-	      
+	        
+			<!--ET_BEGIN type-->
 			<fieldset class="detail-info">
 	        <legend class="groupTitle">|Информация|*</legend>
 	        <div class="groupList">
@@ -32,10 +33,11 @@
 					</li>
 					<!--ET_END comment-->
 		         </ul> 
-		     </div>
-	      </fieldset>
-	     
-		  <fieldset class="detail-info">
+			</div>
+		</fieldset>
+		<!--ET_END type-->
+
+		<fieldset class="detail-info">
 	        <legend class="groupTitle">|Адрес|*</legend>
 	         <div class="groupList">
 	          <!--ET_BEGIN countryId-->

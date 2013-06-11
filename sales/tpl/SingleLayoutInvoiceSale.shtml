@@ -33,6 +33,13 @@
                         	№ <span class="bigData">[#id#]</span> / 
                         	<span class="bigData">[#valior#]</span>
                         </div>
+ 
+                        <!--ET_BEGIN isCorrection-->
+                        <div class="correction"><small>[#isCorrection#]</small></div>
+                        <!--ET_END isCorrection-->
+                        <!--ET_BEGIN correctionDocId-->
+                        <div class="corrected"><small>[#correctionDocId#]</small></div>
+                        <!--ET_END correctionDocId-->
                         
                         <!--ET_BEGIN stateText-->
                         <br/>
@@ -57,12 +64,6 @@
             		[#sales_SalesDetails#]
            	</div>
            	
-			<!--ET_BEGIN DETAILS-->
-				<div class='details'>
-					[#DETAILS#]
-				</div>
-			<!--ET_END DETAILS-->
-			
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
@@ -152,11 +153,12 @@
                 </tr>           
                 </tbody>
             </table>
- 
+ 			<!--ET_BEGIN DETAILS-->
+				<div class='details'>
+					[#DETAILS#]
+				</div>
+			<!--ET_END DETAILS-->
         </td>
-    </tr>
-    <tr>
-        <td></td>
     </tr>
     </tbody>
 </table>

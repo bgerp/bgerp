@@ -44,6 +44,11 @@ class currency_CurrencyRates extends core_Detail
      */
     var $listItemsPerPage = 20;
     
+
+    /**
+     * Кой може да зарежда валутните курсове ръчно от ЕЦБ?
+     */
+    var $canRetrieve = 'admin,currency,ceo';
     
     /**
      * Работен кеш за вече изчислени валутни курсове
@@ -155,7 +160,9 @@ class currency_CurrencyRates extends core_Detail
      * В production mode този метод не се използва.
      */
     function act_RetrieveCurrencies()
-    {
+    {   
+        $this->requireRightFor('retrieve');
+
         return new Redirect (array('currency_CurrencyRates', 'default'), $this->retrieveCurrenciesFromEcb());
     }
     
@@ -194,9 +201,20 @@ class currency_CurrencyRates extends core_Detail
      */
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->toolbar->addBtn('Зареди от ECB', array($mvc, 'RetrieveCurrencies'));
+        if($mvc->haveRightFor('retrieve')) {
+            $data->toolbar->addBtn('Зареди от ECB', array($mvc, 'RetrieveCurrencies'));
+        }
     }
     
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $data->query->orderBy("date", 'DESC');;
+    }
+   
     
     /**
      *  Обръща сума от една валута в друга към дата

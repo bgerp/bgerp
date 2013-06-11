@@ -469,13 +469,13 @@ class crm_Profiles extends core_Master
         }
         
         
-        if(!empty($user->names)) {
-            $person->name      = $user->names;
+        if(!empty($user->names) && ($person->name != $user->names)) {
+            $person->name = $user->names;
             $mustSave = TRUE;
         }
         
         // Само ако записа на потребителя има 
-        if(!empty($user->email)) {
+        if(!empty($user->email) && ($user->email != $person->email)) {
             $person->email     = type_Emails::prepend($person->email, $user->email);
             $mustSave = TRUE;
         }

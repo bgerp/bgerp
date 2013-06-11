@@ -101,12 +101,25 @@ class blast_ListSend extends core_Detail
         $this->setDbUnique('listDetailId, groupDetailId, emailId');
     }
     
+    
+    /**
+     * 
+     */
     function on_AfterPrepareListFields($mvc, $data)
-    {
+    {    
+        // Ако не лист, а група
         if (!$data->masterData->rec->listId) {
+            
+            // Полетата, като масив
             $data->listFields = arr::make($data->listFields);
+            
+            // Премахваме показването на листа
             unset($data->listFields['listDetailId']);
+            
+            // Добавяме в началото групата
             array_unshift($data->listFields, 'groupDetailId');
+            
+            // Задаваме името
             $data->listFields['groupDetailId'] = 'Група';
         }
     }
@@ -117,18 +130,30 @@ class blast_ListSend extends core_Detail
      */
     static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
+        // Ако не е лист
         if (!$data->masterData->rec->listId) {
             
+            // Ако групата е фирма
             if ($data->masterData->rec->group == 'company') {
                 $class = 'crm_Companies';
             } else {
+                // Ако групата е лице
                 $class = 'crm_Persons';
             }
             
+            // Обхождаме масива
             foreach ((array)$data->rows as $key => $row) {
+                
+                // id на запис от групата
                 $groupId = $data->recs[$key]->groupDetailId;
+                
+                // Ако има права за сингъла
                 if ($class::haveRightFor('single', $groupId)) {
+                    
+                    // Вербалното име
                     $name = $class::getVerbal($groupId, 'name');
+                    
+                    // Добавяме линк към сингъла на записа в групата
                     $row->groupDetailId = ht::createLink($name, array($class, 'single', $groupId));
                 }
             }
@@ -145,14 +170,17 @@ class blast_ListSend extends core_Detail
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if ($rec->state != 'stopped') {
-			
-            // Бутон за спиране
-			$row->state = HT::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE));
-        } else {
-            
-            // Бутон за активиране
-            $row->state = HT::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE));
+        // Ако имаме права за сингъла
+        if (static::haveRightFor('single', $rec)) {
+            if ($rec->state != 'stopped') {
+    			
+                // Бутон за спиране
+    			$row->state = HT::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE));
+            } else {
+                
+                // Бутон за активиране
+                $row->state = HT::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE));
+            }
         }
     }
     

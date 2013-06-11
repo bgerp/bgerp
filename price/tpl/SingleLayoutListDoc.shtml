@@ -34,12 +34,12 @@
 		<td>[#packagings#]</td>
 	</tr>
 	<!--ET_END packagings-->
-	<!--ET_BEGIN baseCurrency-->
+	<!--ET_BEGIN currencyId-->
 	<tr>
 		<td>|Валута|*</td>
-		<td><span class='cCode'>[#baseCurrency#]</span></td>
+		<td><span class='cCode'>[#currencyId#]</span></td>
 	</tr>
-	<!--ET_END baseCurrency-->
+	<!--ET_END currencyId-->
 	<!--ET_BEGIN createdOn-->
 	<tr>
 		<td>|Създадено на|* </td>
@@ -54,7 +54,7 @@
 	</tr>
 	<!--ET_END printHeader-->
 	</table>
-	
+	<div style='margin-top:10px;text-indent:5px'>|Всички цени са|* [#vat#] |ДДС|* </div>
 	<table border='1' class = 'norm-table' width='100%'>
 	
 	<!--ET_BEGIN GROUP-->
@@ -78,7 +78,6 @@
 	<!--ET_END ROW-->
 	<!--ET_END GROUP-->
 	</table>
-	[#BottomPager#]
 	<!--ET_BEGIN DETAILS-->
 	<div class='details'>
 		[#DETAILS#]

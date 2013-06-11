@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -60,6 +60,9 @@ class techno_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
+        
+        // Добавяме Продуктовия драйвър в core_Classes
+        core_Classes::add('techno_GeneralProducts');
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');

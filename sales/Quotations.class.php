@@ -148,14 +148,16 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$rec = &$form->rec;
-	    if(!$rec->rate){
-		    $rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
-		}
-		    
-    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
-		    $form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
-		    					  Сигурни ли сте че искате да запишете документа');
+    	if($form->isSubmitted()){
+	    	$rec = &$form->rec;
+		    if(!$rec->rate){
+			    $rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
+			}
+		
+	    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
+			    $form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
+			    					  Сигурни ли сте че искате да запишете документа');
+			}
 		}
     }
     
@@ -251,13 +253,11 @@ class sales_Quotations extends core_Master
 		
 		switch($rec->vat){
 			case 'yes':
-				$row->vat = tr('с начислено');
+				$row->vat = tr('с');
 				break;
 			case 'freed':
-				$row->vat = tr('освободено от');
-				break;
 			case 'export':
-				$row->vat = tr('без начисление на');
+				$row->vat = tr('без');
 				break;
 		}
 		
@@ -290,6 +290,7 @@ class sales_Quotations extends core_Master
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
+        $row->recTitle = $row->title;
 
         return $row;
     }
@@ -341,6 +342,22 @@ class sales_Quotations extends core_Master
     }
     
     
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     * 
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+	public static function canAddToThread($threadId)
+    {
+    	$threadRec = doc_Threads::fetch($threadId);
+    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
+    	
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+    
 	/**
      * Документи-оферти могат да се добавят само в папки с корица контрагент.
      */
@@ -349,5 +366,26 @@ class sales_Quotations extends core_Master
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
     
         return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+    
+    /**
+     * Функция, която прихваща след активирането на документа
+     * Ако офертата е базирана на чернова спецификация, активираме и нея
+     */
+    public static function on_Activation($mvc, &$rec)
+    {
+    	$rec = $mvc->fetch($rec->id);
+    	$rec->state = 'active';
+    	if($rec->originId){
+    		$origin = doc_Containers::getDocument($rec->originId);
+	    	if($origin->className == 'techno_Specifications'){
+	    		$originRec = $origin->fetch();
+	    		if($originRec->state == 'draft'){
+	    			$originRec->state = 'active';
+	    			techno_Specifications::save($originRec);
+	    		}		
+	    	}
+    	}
     }
 }

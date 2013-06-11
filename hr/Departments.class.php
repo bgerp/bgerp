@@ -25,7 +25,7 @@ class hr_Departments extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Структорно звено";
+    var $singleTitle = "Структурно звено";
     
     
     /**
@@ -59,7 +59,19 @@ class hr_Departments extends core_Master
      */
     var $singleLayoutFile = 'hr/tpl/SingleLayoutDepartment.shtml';
     
+
+    /**
+     * Единична икона
+     */
+    var $singleIcon = 'img/16/user_group.png';
     
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */

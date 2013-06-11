@@ -135,19 +135,6 @@ class acc_Articles extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
-        
-        //  $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
-        $this->FNC('isContable', 'int', 'column=none');
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_CalcIsContable($mvc, $rec)
-    {
-        $rec->isContable =
-        ($rec->state == 'draft');
     }
     
     

@@ -27,6 +27,125 @@ class acc_plg_Contable extends core_Plugin
         $mvc->declareInterface('acc_TransactionSourceIntf');
         
         $mvc->fields['state']->type->options['revert'] = 'Сторниран';
+        
+        // Добавяне на полета, свързани с фунционалността "Коригиращи документи"
+        $mvc->FLD('isCorrection', 'enum(no,yes)', 'input=none,notNull,default=no');
+        $mvc->FLD('correctionDocId', 'key(mvc='.get_class($mvc).')', 'input=none');
+        
+        // Добавяне на кеш-поле за контируемостта на документа. Обновява се при (преди) всеки 
+        // запис. Използва се при определяне на правата за контиране.
+        $mvc->FLD('isContable', 'enum(no,yes)', 'input=none,notNull,default=no');
+    }
+    
+    
+    /**
+     * Преди изпълнението на контролерен екшън
+     * 
+     * @param core_Manager $mvc
+     * @param core_ET $res
+     * @param string $action
+     */
+    public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
+    {
+        if ($action == 'correction') {
+            $mvc->requireRightFor('correction');
+
+            expect($id  = core_Request::get('id', 'key(mvc='.get_class($mvc).')'));
+            
+            $rec = $mvc->fetchRec($id);
+            
+            $mvc->requireRightFor('correction', $rec);
+
+            $corrRec = $mvc->createCorrectionDocument($rec);
+            
+            if (empty($corrRec)) {
+                $notifMsg  = 'Проблем при създаване на коригиращ документ';
+                $notifType = 'error';
+                $redirUrl  = core_App::getRetUrl();
+            } else {
+                $notifMsg  = 'Успешно създаден коригиращ документ';
+                $notifType = 'info';
+                $redirUrl  = array($mvc, 'single', $corrRec->id);
+            }
+            
+            $res = new core_Redirect($redirUrl, $notifMsg, $notifType);
+            
+            return FALSE; // Прекатяваме изпълнението на екшъна до тук
+        }
+    }
+    
+    public static function on_AfterCreateCorrectionDocument(core_Manager $mvc, &$corrRec, $rec)
+    {
+        $corrRec = clone $rec;
+        
+        unset($corrRec->id);
+        unset($corrRec->containerId);
+        unset($corrRec->correctionDocId);
+        
+        $corrRec->originId     = $rec->containerId;
+        $corrRec->isCorrection = 'yes';
+        $corrRec->state        = 'draft';
+        
+        if (!$mvc->save($corrRec)) {
+            $corrRec = FALSE;
+        }
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     * 
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+        if (!empty($rec->state) && $rec->state != 'draft') {
+            return;
+        }
+        
+        try {
+            $rec->isContable = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
+        } catch (acc_journal_Exception $ex) {
+            $rec->isContable = FALSE;
+        }
+        
+        $rec->isContable = $rec->isContable ? 'yes' : 'no';
+    }
+    
+    
+    /**
+     * След създаване на документ-корекция, "клонира" детайлите на оригинала
+     * 
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_AfterCreate(core_Manager $mvc, $rec)
+    {
+        if ($rec->isCorrection != 'yes') {
+            return;
+        }
+        
+        expect($origin = doc_Containers::getDocument($rec->originId));
+        
+        $originalId   = $origin->id();
+        $correctionId = $rec->id;
+
+        $details = arr::make($mvc->details);
+        
+        // "клонираме" всички детайли на оригинала, прикачайки клонингите към документа-корекция
+        foreach ($details as $detailName) {
+            $DetailManager = cls::get($detailName);
+            $detailQuery   = $DetailManager->getQuery();
+            $masterKey     = $DetailManager->masterKey;
+            $detailQuery->where("#{$masterKey} = {$originalId}");
+            
+            while ($dRec = $detailQuery->fetch()) {
+                $dRec->{$masterKey} = $correctionId;
+                unset($dRec->id);
+                $DetailManager->save($dRec);
+            }
+        }
     }
     
     
@@ -55,6 +174,16 @@ class acc_plg_Contable extends core_Plugin
                 'ret_url' => TRUE
             );
             $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,class=btn-revert,warning=Наистина ли желаете документа да бъде сторниран?');
+        }
+        
+        if ($mvc->haveRightFor('correction', $data->rec)) {
+            $correctionUrl = array(
+                $mvc,
+                'correction',
+                $data->rec->id,
+                'ret_url' => TRUE
+            );
+            $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$data->rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?");
         }
         
         $journalRec = acc_Journal::fetch("#docId={$data->rec->id} && #docType='{$mvc::getClassId()}'");
@@ -94,6 +223,10 @@ class acc_plg_Contable extends core_Plugin
             if ($rec->id && $rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             }
+            
+            if (!$this->hasContableTransaction($mvc, $rec)) {
+                $requiredRoles = 'no_one';
+            }
         } elseif ($action == 'revert') {
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
@@ -110,7 +243,48 @@ class acc_plg_Contable extends core_Plugin
                     $requiredRoles = 'no_one';
                 }
             }
+        } elseif ($action == 'ship') {
+            if ($rec->correctionDocId) {
+                $requiredRoles = 'no_one';
+            }
+        } elseif ($action == 'correction') {
+            if (!$rec) {
+                return;
+            }
+            if ($rec->state == 'draft' || $rec->state == 'rejected') {
+                $requiredRoles = 'no_one';
+            }
+            if ($rec->correctionDocId) {
+                $requiredRoles = 'no_one';
+            }
+
+            // Ако документа не генерира валидна и непразна транзакция - не може да му се прави
+            // корекция
+            if (!$this->hasContableTransaction($mvc, $rec)) {
+                $requiredRoles = 'no_one';
+            }
         }
+    }
+    
+    
+    /**
+     * Помощен метод, енкапсулиращ условието за валидност на счетоводна транзакция
+     * 
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     * @return boolean
+     */
+    protected static function hasContableTransaction(core_Manager $mvc, $rec)
+    {
+        return $rec->isContable == 'yes';
+        
+        try {
+            $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
+        } catch (acc_journal_Exception $ex) {
+            $result = FALSE;
+        }
+        
+        return $result;        
     }
 
     
@@ -123,11 +297,20 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
-        if (is_object($id)) {
-            $id = $id->id;
+        $rec = $mvc->fetchRec($id);
+        
+        $res = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
+        
+        if ($res) {
+            if ($rec->isCorrection == 'yes') {
+                $correctedRef = doc_Containers::getDocument($rec->originId);
+                $correctedRec = $correctedRef->rec();
+                $correctedRec->correctionDocId = $rec->id;
+                $correctedRef->getInstance()->save($correctedRec, 'correctionDocId');
+            }
         }
         
-        $res = acc_Journal::saveTransaction($mvc->getClassId(), $id);        
+        $res = !empty($res) ? 'Документът е контиран успешно' : 'Документът НЕ Е контиран';
     }
     
     
@@ -145,6 +328,17 @@ class acc_plg_Contable extends core_Plugin
         }
         
         $res = acc_Journal::rejectTransaction($mvc->getClassId(), $id);
+        
+        if ($res !== FALSE) {
+            $rec = $mvc->fetchRec($id);
+            
+            if ($rec->isCorrection == 'yes') {
+                $correctedRef = doc_Containers::getDocument($rec->originId);
+                $correctedRec = $correctedRef->rec();
+                $correctedRec->correctionDocId = NULL;
+                $correctedRef->getInstance()->save($correctedRec, 'correctionDocId');
+            }
+        }
     }
     
     
@@ -157,11 +351,7 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        if (is_object($id)) {
-            $id = $id->id;
-        }
-        
-        $res = acc_Journal::saveTransaction($mvc->getClassId(), $id);
+        self::on_AfterConto($mvc, $res, $id);
     }
     
     
@@ -174,20 +364,67 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterGetValidatedTransaction(core_Mvc $mvc, &$transaction, $rec)
     {
-        try {
-            $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
-            $transaction       = $transactionSource->getTransaction($rec);
-            
-            expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
-            
-            // Проверяваме валидността на транзакцията
-            $transaction = new acc_journal_Transaction($transaction);
-            if (!$transaction->check()) {
-                return FALSE;
-            }
-        } catch (core_exception_Expect $ex) {
-            // Транзакцията не се валидира
+        if (empty($rec)) {
             $transaction = FALSE;
+            return;
+        }
+        
+        $rec = $mvc->fetchRec($rec);
+        
+        if (empty($rec->id)) {
+            $transaction = FALSE;
+            return;
+        }
+        
+        $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        $transaction       = $transactionSource->getTransaction($rec->id);
+        
+        expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
+        
+        // Проверяваме валидността на транзакцията
+        $transaction = new acc_journal_Transaction($transaction);
+
+        if ($rec->isCorrection == 'yes') {
+            // Документ-корекция. Намираме транзакцията на оригинала, обръщаме знаците
+            // на количествата и сумите на всички нейни записи и добавяме тези записи към 
+            // вече генерираната от текущия документ транзакция
+            
+            expect($origRef = doc_Containers::getDocument($rec->originId));
+            
+            // Генерираме транзакцията на коригирания (т.е. оригиналния) документ
+            $origTransaction = $transactionSource->getTransaction($origRef->id());
+            $origTransaction = new acc_journal_Transaction($origTransaction);
+
+            // Обръщаме оригиналната транзакция
+            $origTransaction->invert();
+            
+            // Добавяме записите на обратната транзакция към записите на текущата
+            $transaction->join($origTransaction);
+        }
+        
+        $transaction->check();
+    }
+    
+    
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+        $rec = $data->rec;
+        $row = $data->row;
+        
+        if ($rec->isCorrection == 'yes') {
+            expect($rec->originId);
+            $originTitle = doc_Containers::getDocTitle($rec->originId);
+            $originRef   = doc_Containers::getDocument($rec->originId);
+            $row->isCorrection = tr('Корекция на') . ' ' . ht::createLink($originTitle, array($mvc, 'single', $originRef->id()));
+        } else {
+            unset($row->isCorrection);
+        }
+        
+        if ($rec->correctionDocId) {
+            $corrRow = $mvc->getDocumentRow($rec->correctionDocId);
+            $row->correctionDocId = tr('Коригиран от') . ' ' . ht::createLink($corrRow->title, array($mvc, 'single', $rec->correctionDocId));
+        } else {
+            unset($row->correctionDocId);
         }
     }
 }

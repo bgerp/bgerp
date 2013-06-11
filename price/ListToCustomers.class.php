@@ -184,7 +184,7 @@ class price_ListToCustomers extends core_Detail
     {
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $data->toolbar->removeBtn('*');
-            $masterClassId = core_Classes::getId($this->Master);
+            $masterClassId = core_Classes::getId($data->masterMvc);
             $data->addUrl = array($mvc, 'add', 'cClass' => $masterClassId, 'cId' => $data->masterId, 'ret_url' => TRUE);
         }
     }
@@ -343,6 +343,9 @@ class price_ListToCustomers extends core_Detail
                  }
             }
             
+            if(!count($products)){
+            	return followRetUrl(NULL, 'Няма продукти за тази политика');
+            } 
             return $products;
         }
     }

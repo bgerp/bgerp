@@ -8,34 +8,19 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
+	<div class='general-product'>
 			[#data#]
 	<!--ET_END data-->
-	<!--ET_BEGIN PREVIEW-->[#PREVIEW#]
-	<table class='styled-table'>
-		<tr>
-			<th colspan='2'>|Ценово превю|*</th>
-		</tr>
-		<tr>
-			<td>[#quantity1#]</td>
-			<td align='right'>[#price1#]</td>
-		</tr>
-		<!--ET_BEGIN quantity2-->
-		<tr>
-			<td>[#quantity2#]</td>
-			<td align='right'>[#price2#]</td>
-		</tr>
-		<!--ET_END quantity2-->
-		<!--ET_BEGIN quantity3-->
-		<tr>
-			<td>[#quantity3#]</td>
-			<td align='right'>[#price3#]</td>
-		</tr>
-		<!--ET_END quantity3-->
-	<!--ET_END PREVIEW-->	
-	</table>
-		<div>|Технолог|*: [#prodTehnoClassId#] </div>
-		<div>|Мярка|*: [#measureId#] </div>
-		<div>|Създаване|* |на|* [#createdOn#] |*от|* [#createdBy#]</div>
+	
+	<!--ET_BEGIN noData-->
+	<div style = 'padding:10px 0px;font-weight:bold;color:darkred'>[#noData#]</div>
+	<!--ET_END noData-->
+	
+		<div>|Контрагент|*: &nbsp;[#contragentName#] </div>
+		<div>|Технолог|*: &nbsp;[#prodTehnoClassId#] </div>
+		<div>|Мярка|*: &nbsp;[#measureId#] </div>
+		<div>|Създаване|* |на|* [#createdDate#] |от|* [#createdBy#]</div>
+	</div>
 	<div class='details'>
 	[#DETAILS#]
 	</div>

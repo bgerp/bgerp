@@ -12,7 +12,7 @@
          		<div class="clearfix21"></div>
                 <table cellspacing='1' class='mc-calendar mc-calendar-week'>
 				<tr>
-					 <th class="calWeekTime"><b>Време</b></th>
+					 <th class="calWeekTime"><b>|Време|*</b></th>
                      <td onclick="goToWeekDate('[#date0Js#]');" class="[#c0#]"><b>[#0#]</b></td>
                      <td onclick="goToWeekDate('[#date1Js#]');" class="[#c1#]"><b>[#1#]</b></td>
                      <td onclick="goToWeekDate('[#date2Js#]');" class="[#c2#]"><b>[#2#]</b></td>

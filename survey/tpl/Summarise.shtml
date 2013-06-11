@@ -2,7 +2,7 @@
 <ul id = 'summary'>
 <!--ET_BEGIN ROW-->
 	<li style='margin-top:10px;margin-bottom:10px;'>
-		<div class='summary-question'>[#QUESTION#]</div>
+		<div class='summary-question'>[#QUESTION#] <span class='summary-points'>[#points#] |точки|*</span></div>
 		<ul class='summary-answers' style='list-style:none'>
 			<!--ET_BEGIN subRow-->
 			<li>

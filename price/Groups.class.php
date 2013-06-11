@@ -33,7 +33,7 @@ class price_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, description, productsCount';
+    var $listFields = 'id, title, description, productsCount=Продукти';
     
     
     /**
@@ -84,9 +84,8 @@ class price_Groups extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Група');
+        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Група');
         $this->FLD('description', 'text', 'caption=Описание');
-		$this->FLD('productsCount', 'int', 'caption=Артикули,input=none');
 		
         $this->setDbUnique('title');
     }
@@ -110,22 +109,47 @@ class price_Groups extends core_Master
         }
     }
     
+    
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
     static function on_AfterPrepareSingleTitle($mvc, &$data)
     { 
     	$title = $mvc->getVerbal($data->rec, 'title');
-    	$data->title = $title;
+    	$data->title = "|*" . $title;
     	
     }
+    
     
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        // Ако няма стойности
-        if (!$rec->productsCount) $row->productsCount=0;
+        $int = cls::get('type_Int');
+    	$row->productsCount = $int->toVerbal($mvc->countProductsInGroup($rec->id));
+    }
+    
+    
+	/**
+     * Преброява броя на продуктите в групата
+     * @param int $id - ид на група
+     * @return int - броя уникални продукти в група
+     */
+    public function countProductsInGroup($id)
+    {
+    	$i = 0;
+    	$query = price_GroupOfProducts::getQuery();
+    	$query->orderBy('#validFrom', 'DESC');
+       	$used = array();
+         while($rec = $query->fetch()) {
+         	if($used[$rec->productId]) continue;
+            if($id == $rec->groupId) {
+            	$i++;
+            }
+            $used[$rec->productId] = TRUE;
+         }
+       
+         return $i;
     }
 }

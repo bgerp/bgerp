@@ -60,6 +60,7 @@ class survey_Setup
             'survey_Surveys',
             'survey_Alternatives',
             'survey_Votes',
+        	'survey_Options',
         );
         
         // Роля за power-user на този модул

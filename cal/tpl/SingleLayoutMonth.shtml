@@ -22,7 +22,7 @@
                 <table class='mc-calendar mc-calendar-month'>
 				     
 				 <tr>
-				 	<th class='mc-wd-name'>Сд</th>
+				 	<th class='mc-wd-name'>|Сд|*</th>
 				 	<td class='mc-wd-name'>[#0#]</td>
 				 	<td class='mc-wd-name'>[#1#]</td>
 				 	<td class='mc-wd-name'>[#2#]</td>

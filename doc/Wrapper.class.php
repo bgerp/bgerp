@@ -109,9 +109,9 @@ class doc_Wrapper extends plg_ProtoWrapper
         $this->TAB('doc_Comments', 'Коментари', 'admin');
 
         // Показва таба генерирани PDF файлове, ако имаме права
-        $this->TAB('doc_PdfCreator', 'PDF файлове', 'admin');
+        $this->TAB('doc_PdfCreator', 'PDF файлове', 'debug');
         
         // Показва таба генерирани PDF файлове, ако имаме права
-        $this->TAB('doc_ThreadUsers', 'Отношения', 'admin');
+        $this->TAB('doc_ThreadUsers', 'Отношения', 'debug');
     }
 }

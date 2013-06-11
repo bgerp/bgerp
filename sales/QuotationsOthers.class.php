@@ -75,7 +75,7 @@ class sales_QuotationsOthers extends core_Detail
      */
     function renderDetail_($data)
     {
-        $tpl = new ET(getFileContent('salecond/tpl/QuotationOthers.shtml'));
+        $tpl = getTplFromFile('salecond/tpl/QuotationOthers.shtml');
         
         if($data->changeBtn){
         	$tpl->append($data->changeBtn, 'addOther');
@@ -119,10 +119,10 @@ class sales_QuotationsOthers extends core_Detail
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
-    	if($action == 'write' && $rec->id){
+    	if($action == 'write' && $rec->quotationId){
     		
     		// Ако офертата е активирана или отказана неможем да модифицираме
-    		$quoteState = sales_Quotations::fetchField($rec->id, 'state');
+    		$quoteState = sales_Quotations::fetchField($rec->quotationId, 'state');
     		if($quoteState != 'draft'){
     			$res = 'no_one';
     		}

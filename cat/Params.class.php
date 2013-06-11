@@ -135,4 +135,28 @@ class cat_Params extends core_Manager
     {
     	return static::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
     }
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
+    {
+    	$query = static::getQuery();
+    	if(strlen($where)){
+    		$query->where = $where;
+    	}
+    	
+    	$options = array();
+    	while($rec = $query->fetch()){
+    		$row = static::recToVerbal($rec, 'name,suffix');
+    		$title = $row->name;
+    		if($rec->suffix){
+    			$title .= " - {$row->suffix}";
+    		}
+    		$options[$rec->{$index}] = $title;
+    	}
+    	
+    	return $options;
+    }
 }

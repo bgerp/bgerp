@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -53,5 +53,19 @@ class techno_ProductsIntf
     public function getVerbal($data, $short = FALSE)
     {
         return $this->class->getVerbal($data, $short);
+    }
+    
+    
+    /**
+     * Връща цената на продукта, спрямо вече генерирания запис
+     * @param string $data - сериализирана информация върната от метода
+     * serialize
+     * @param id $packagingId - id на опаковка
+     * @param int $quantity - к-во
+     * @param datetime $datetime - дата
+     */
+    public function getPrice($data, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    {
+    	return $this->class->getPrice($data, $packagingId, $quantity, $datetime);
     }
 }

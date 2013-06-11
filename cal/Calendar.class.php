@@ -117,6 +117,9 @@ class cal_Calendar extends core_Master
     // Дните от седмицата
     static $weekDays = array('Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота', 'Неделя');
     
+    // Дните от седмицата на английски
+    static $weekDaysEn = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+    
     // Масив с часове в деня
     static $hours = array( "allDay" => "Цял ден");
     
@@ -1837,7 +1840,10 @@ class cal_Calendar extends core_Master
         	
             $cTpl->append2master();
          }
-        
+         
+        if(core_Lg::getCurrent() == 'en'){
+        	$tpl->placeArray(static::$weekDaysEn);
+        }
         $tpl->placeArray(static::$weekDays);
         
         $date = $data->listFilter->rec->from;
@@ -1851,7 +1857,7 @@ class cal_Calendar extends core_Master
         $tpl->replace($link['nextMonth'], 'nextMonth');
         
         // Заглавието на страницата
-    	$tpl->replace(tr('Събития за месец') . ' » '. $link['currentMonth'], 'title');
+    	$tpl->replace(tr('Събития за месец') . ' » '. tr($link['currentMonth']), 'title');
     	
     	return $tpl;
     }
@@ -1904,6 +1910,9 @@ class cal_Calendar extends core_Master
     	$tpl->replace(tr('Събития за година') . ' » '. $fromFilter[2], 'title');
 
     	// Имената на дните от седмицата
+    	if(core_Lg::getCurrent() == 'en'){
+    		$tpl->placeArray(dt::$weekDaysShortEn );
+    	}
         $tpl->placeArray(dt::$weekDays);
         
         return $tpl;

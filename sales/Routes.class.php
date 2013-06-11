@@ -336,7 +336,7 @@ class sales_Routes extends core_Manager {
      */
 	function renderRoutes($data)
     {
-    	$tpl = new ET(tr("|*" . getFileContent("sales/tpl/Routes.shtml")));
+    	$tpl = getTplFromFile("sales/tpl/Routes.shtml");
     	
     	// Рендираме информацията за маршрутите
     	if($data->masterData->rec->state != 'rejected'){

@@ -179,7 +179,7 @@ class support_Systems extends core_Master
     /**
      * След създаване на папка, сменяма състоянието на активно
      */
-    function on_AfterForceCoverAndFolder($mvc, &$folderId, $rec)
+    function on_AfterForceCoverAndFolder($mvc, &$folderId, &$rec, $bForce = TRUE)
     {
         $rec->state = 'active';
         $mvc->save($rec, 'state');

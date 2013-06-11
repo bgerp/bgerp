@@ -20,7 +20,7 @@ class price_ListDocs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf';
     
     
     /**
@@ -38,7 +38,7 @@ class price_ListDocs extends core_Master
      /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg,
+    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg';
     
     
@@ -109,6 +109,8 @@ class price_ListDocs extends core_Master
     {
     	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory,width=6em;');
     	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,width=8em,input');
+    	$this->FLD('vat', 'enum(yes=с ДДС,no=без ДДС)','caption=ДДС');
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
@@ -131,6 +133,26 @@ class price_ListDocs extends core_Master
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
     	$defaultList = price_ListToCustomers::getListForCustomer($folderClassId, $coverId);
     	$form->setDefault('policyId', $defaultList);
+    	
+    	$form->setDefault('currencyId', $mvc->getDefaultCurrency($form->rec));
+    }
+    
+    
+    /**
+     * Валута по подразбиране: ако е контрагент - дефолт валутата му,
+     * в противен случай основната валута за периода
+     */
+    private function getDefaultCurrency($rec)
+    {
+    	 $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    	 if(cls::haveInterface('doc_ContragentDataIntf', $folderClass)){
+    	 	$coverId = doc_Folders::fetchCoverId($rec->folderId);
+    	 	$contragentData = $folderClass::getContragentData($coverId);
+    	 	
+    	 	return drdata_Countries::fetchField($contragentData->countryId, 'currencyCode');
+    	 }
+    	 
+    	 return acc_Periods::getBaseCurrencyCode($rec->date);
     }
     
     
@@ -214,13 +236,15 @@ class price_ListDocs extends core_Master
 		    	}
 	    		
 		    	$arr = cat_Products::fetchField($productRec->id, 'groups');
+		    	($arr) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
+		    	
 		    	$rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
 	    									   'code' => $productRec->code,
 	    									   'eanCode' => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
 		    								   'vat' => cat_Products::getVat($productRec->id, $rec->date),
 	    									   'pack' => NULL,
-	    									   'groups' => keylist::toArray($arr));
+	    									   'groups' => $arr);
     		}
     	}
     }
@@ -240,7 +264,11 @@ class price_ListDocs extends core_Master
     		// Изчисляваме цената за продукта в основна мярка
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
     		if(!$price) continue;
-    		$product->price = $price + ($price * $product->vat);
+    		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
+    		$product->price = $price + ($price * $vat);
+    		
+    		$product->price = currency_CurrencyRates::convertAmount($product->price, $rec->date, NULL, $rec->currencyId);
+                    
 	    	$rec->details->rows[] = $product;
     		
     		// За всяка от избраните опаковки
@@ -268,8 +296,9 @@ class price_ListDocs extends core_Master
     	if($info = cat_Products::getProductInfo($product->productId, $packId)){
     		$clone = clone $product;
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packId, $rec->date);
-    		
-    		$price = $price + ($price * $product->vat);
+    		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
+    		$price = $price + ($price * $vat);
+    		$price = currency_CurrencyRates::convertAmount($price, $rec->date, NULL, $rec->currencyId);
     		$clone->price = $info->packagingRec->quantity * $price;
     		$clone->perPack = $info->packagingRec->quantity;
     		$clone->eanCode = $info->packagingRec->eanCode;
@@ -304,7 +333,7 @@ class price_ListDocs extends core_Master
     	
 		if($rec->pack){
     		$row->pack = cat_Packagings::getTitleById($rec->pack);
-    		$measureShort = cat_UoM::fetchField($rec->measureId, 'shortName');
+    		$measureShort = cat_UoM::getShortName($rec->measureId);
     		$row->pack .= " &nbsp;({$rec->perPack} {$measureShort})";
 		} else {
     		$row->measureId = cat_UoM::getTitleById($rec->measureId);
@@ -347,12 +376,18 @@ class price_ListDocs extends core_Master
     			$rec->products = $this->groupProductsByGroups($rec->details->rows, $groupsArr);
     		}
     		
+    		krsort($rec->products);
     		foreach ($rec->products as $groupId => $products){
     			if(count($products) != 0){
 					
 					// Слагаме името на групата
 					$groupTpl = clone $detailTpl;
-					$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP_NAME');
+					if($groupId){
+						$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP_NAME');
+					} else {
+						$groupTpl->replace(tr('Без група'), 'GROUP_NAME');
+					}
+					
 					foreach ($products as $row){
 		    			$row = $this->getVerbalDetail($row);
 		    			$rowTpl = $groupTpl->getBlock('ROW');
@@ -431,20 +466,21 @@ class price_ListDocs extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->header = "{$row->title} &nbsp;<b>{$row->ident}</b> ({$row->state})";
-    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->date);
+    	$row->policyId = ht::createLink($row->policyId, array('price_Lists', 'single', $rec->policyId));
     	
     	if(!$rec->productGroups) {
     		$row->productGroups = tr("Всички");
     	}
     	
+    	$row->vat = ($rec->vat == 'yes') ? tr('с начислен') : tr('без');
     	// Модифицираме данните които показваме при принтиране
     	if(Mode::is('printing')){
     		$row->printHeader = $row->title;
-    		$row->currency =  $row->baseCurrency;
+    		$row->currency =  $row->currencyId;
     		$row->created =  $row->date;
     		$row->number =  $row->id;
     		unset($row->header);
-    		unset($row->baseCurrency);
+    		unset($row->currencyId);
     		unset($row->productGroups);
     		unset($row->packagings);
     		unset($row->createdOn);
@@ -473,7 +509,7 @@ class price_ListDocs extends core_Master
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = $rec->title;
+        $row->title = $this->recToVerbal($rec, 'title')->title;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -491,5 +527,18 @@ class price_ListDocs extends core_Master
     	$self = cls::get(get_called_class());
     	
     	return $self->abbr . $rec->id;
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашия ценоразпис:") . '#[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }

@@ -298,4 +298,22 @@ class cms_Feeds extends core_Manager {
 		// Връщаме шаблона
 		return $tpl;
 	}
+	
+	
+	/**
+     * Добавя контролна сума към ID параметър
+     */
+    function protectId($id)
+    {
+        return $id;
+    }
+    
+
+    /**
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     */
+    function unprotectId($id)
+    {
+        return $id;
+    }
 }

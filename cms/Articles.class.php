@@ -62,7 +62,7 @@ class cms_Articles extends core_Manager
         $this->FLD('level', 'order', 'caption=Номер,mandatory');
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
-        $this->FLD('body', 'richtext', 'caption=Текст,column=none');
+        $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
     }
 
     
@@ -154,7 +154,9 @@ class cms_Articles extends core_Manager
 
             // Рендираме тулбара за споделяне
             $conf = core_Packs::getConfig('cms');
-            $content->prepend(new ET("<div style='margin-bottom:15px;'>[#1#]</div>", $conf->CMS_SHARE));
+            if($conf->CMS_SHARE) {
+                $content->prepend(new ET("<div style='margin-bottom:15px;'>[#1#]</div>", $conf->CMS_SHARE));
+            }
 
             $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
@@ -304,4 +306,23 @@ class cms_Articles extends core_Manager
 	    
     	return $ogp;
     }
+
+
+    /**
+     * Добавя контролна сума към ID параметър
+     */
+    function protectId($id)
+    {
+        return $id;
+    }
+    
+
+    /**
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     */
+    function unprotectId($id)
+    {
+        return $id;
+    }
+
 }

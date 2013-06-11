@@ -117,9 +117,15 @@ class bgerp_L extends core_Manager
         try {
             //Вземаме номера на контейнера
             expect($cid = Request::get('id', 'int'));
-            
+
             // Вземаме документа
             expect($doc = doc_Containers::getDocument($cid));
+            
+            // Вземаме записа за документа
+            $rec = $doc->fetch();
+            
+            // Очакваме да не е чернова или оттеглен документ
+            expect($rec->state != 'rejected' && $rec->state != 'draft', 'Липсващ документ');
             
             //Спираме режима за принтиране
             Mode::set('printing', FALSE); // @todo Необходимо ли е?
@@ -177,13 +183,12 @@ class bgerp_L extends core_Manager
             requireRole('user'); // Ако има логнат потребител, този ред няма никакъв ефект. 
                                  // Ако няма - това ще форсира потребителя да се логне и ако
                                  // логинът е успешен, управлението ще се върне отново тук
-            
+
             // До тук се стига ако логнат потребител заяви липсващ документ или документ с 
             // невалиден MID. 
 
             // Ако потребителя има права до треда на документа, то той му се показва
             if($doc) {
-                $rec = $doc->fetch();
                 
                 if($doc->instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
 

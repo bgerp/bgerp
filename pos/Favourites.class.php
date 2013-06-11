@@ -215,7 +215,7 @@ class pos_Favourites extends core_Manager {
      */
     public static function renderPosProducts($data)
     {
-    	$tpl = new ET(getFileContent($data->theme.'/Favourites.shtml'));
+    	$tpl = getTplFromFile($data->theme.'/Favourites.shtml');
     	$self = cls::get(get_called_class());
     	if($data->arr){
     		$self->renderProducts($data->arr, $tpl);
@@ -284,8 +284,7 @@ class pos_Favourites extends core_Manager {
     	// До името на продукта показваме неговата основна мярка и ако
     	// има зададена опаковка - колко броя в опаковката има.
     	$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
-    	$measureRow = cat_UoM::fetchField($info->productRec->measureId, 'shortName');
-    	$measureRow = $varchar->toVerbal($measureRow);
+    	$measureRow = cat_UoM::getShortName($info->productRec->measureId);
     	if($info->packagingRec) {
     		$packName = cat_Packagings::getTitleById($rec->packagingId);
     		$quantity = $info->packagingRec->quantity;

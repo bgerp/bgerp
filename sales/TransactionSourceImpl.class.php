@@ -66,16 +66,16 @@ class sales_TransactionSourceImpl
             $rec = $this->fetchSaleData($rec);
             
             // Всяка продажба трябва да има поне един детайл
-            expect(count($rec->details) > 0);
-            
-            // Записите от тип 1 (вземане от клиент)
-            $entries = $this->getTakingPart($rec);
-            
-            // Записите от тип 2 (експедиция)
-            $entries = array_merge($entries, $this->getDeliveryPart($rec));
-            
-            // Записите от тип 3 (получаване на плащане)
-            $entries = array_merge($entries, $this->getPaymentPart($rec));
+            if (count($rec->details) > 0) {
+                // Записите от тип 1 (вземане от клиент)
+                $entries = $this->getTakingPart($rec);
+                
+                // Записите от тип 2 (експедиция)
+                $entries = array_merge($entries, $this->getDeliveryPart($rec));
+                
+                // Записите от тип 3 (получаване на плащане)
+                $entries = array_merge($entries, $this->getPaymentPart($rec));
+            }
         }            
         
         $transaction = (object)array(
@@ -91,6 +91,32 @@ class sales_TransactionSourceImpl
     public function finalizeTransaction($id)
     {
         $rec = $this->class->fetchRec($id);
+
+        // Обновяване на кеша (платено)
+        if ($this->hasPaymentPart($rec)) {
+            $rec->amountPaid = $rec->amountDeal;
+        }
+
+        // Обновяване на кеша (доставено)
+        if ($this->hasDeliveryPart($rec)) {
+            $rec->amountDelivered = $rec->amountDeal;
+            // Извличаме детайлите на продажбата
+        
+            /* @var $SalesDetails sales_SalesDetails */
+            $SalesDetails = cls::get('sales_SalesDetails');
+        
+            /* @var $detailQuery core_Query */
+            $detailQuery = $SalesDetails->getQuery();
+            $detailQuery->where("#saleId = '{$rec->id}'");
+            $detailQuery->show('id, quantity');
+        
+            while ($dRec = $detailQuery->fetch()) {
+                $dRec->quantityDelivered = $dRec->quantity;
+                $SalesDetails->save_($dRec, 'id, quantityDelivered');
+            }
+        }
+        
+        // Активиране и запис
         $rec->state = 'active';
         
         if ($this->class->save($rec)) {
@@ -112,11 +138,6 @@ class sales_TransactionSourceImpl
         $rec = $this->class->fetchRec($id);
         
         expect($rec->id);
-        
-        // Преобразуване на трибуквен ISO код на валута към първичен ключ на валута
-        $rec->currencyCode = $rec->currencyId;
-        $rec->currencyId   = currency_Currencies::getIdByCode($rec->currencyId);
-        
         
         // Извличаме детайлите на продажбата
         /* @var $detailQuery core_Query */
@@ -195,21 +216,26 @@ class sales_TransactionSourceImpl
         
         // Изчисляваме курса на валутата на продажбата към базовата валута
         $currencyRate = $this->getCurrencyRate($rec);
-
+        
+        // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
+        $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+        
         foreach ($rec->details as $detailRec) {
+            $Policy = cls::get($detailRec->policyId);
+            $ProductManager = $Policy->getProductMan();
             $entries[] = array(
                 'amount' => $detailRec->amount * $currencyRate, // В основна валута
                 
                 'debit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
+                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
+                        array($ProductManager, $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -236,6 +262,9 @@ class sales_TransactionSourceImpl
         // Изчисляваме курса на валутата на продажбата към базовата валута
         $currencyRate = $this->getCurrencyRate($rec);
         
+        // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
+        $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+        
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
             
         foreach ($rec->details as $detailRec) {
@@ -244,15 +273,15 @@ class sales_TransactionSourceImpl
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
-                        array('cash_Cases', $rec->caseId),              // Перо 1 - Каса
-                        array('currency_Currencies', $rec->currencyId), // Перо 2 - Валута
+                        array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
+                        array('currency_Currencies', $currencyId), // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
+                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
             );
@@ -280,17 +309,19 @@ class sales_TransactionSourceImpl
         expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
             
         foreach ($rec->details as $detailRec) {
+            $Policy = cls::get($detailRec->policyId);
+            $ProductManager = $Policy->getProductMan();
             $entries[] = array(
                 'debit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array('cat_Products', $detailRec->productId), // Перо 1 - Продукт
+                        array($ProductManager, $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                 ),
                 
                 'credit' => array(
                     '321', // Сметка "321. Стоки и Продукти"
                         array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
-                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
+                        array($ProductManager, $detailRec->productId), // Перо 2 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                 ),
             );
@@ -308,6 +339,6 @@ class sales_TransactionSourceImpl
      */
     protected function getCurrencyRate($rec)
     {
-        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyCode, NULL);
+        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
     }
 }

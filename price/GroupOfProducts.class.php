@@ -36,7 +36,6 @@ class price_GroupOfProducts extends core_Detail
     var $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
                     
  
-     
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -74,6 +73,12 @@ class price_GroupOfProducts extends core_Detail
     
     
     /**
+     * @todo Чака за документация...
+     */
+    var $currentTab = 'Групи';
+    
+    
+    /**
      * Поле - ключ към мастера
      */
     var $masterKey = 'productId';
@@ -108,8 +113,7 @@ class price_GroupOfProducts extends core_Detail
         $query->limit(1);
 
         if($rec = $query->fetch()) {
-
-            return $rec->groupId;
+			return $rec->groupId;
         }
     }
 
@@ -120,12 +124,10 @@ class price_GroupOfProducts extends core_Detail
      */
     static function getAllProducts($datetime = NULL)
     {
-        if(!$datetime) {
-            $datetime = dt::verbal2mysql();
-        }
-
+        price_ListToCustomers::canonizeTime($datetime);
+		
         $datetime = price_History::canonizeTime($datetime);
-
+		
         $query = self::getQuery();
 
         $query->where("#validFrom < '{$datetime}'");
@@ -144,13 +146,13 @@ class price_GroupOfProducts extends core_Detail
         }
 
         asort($res);
-
+		
         return $res;
     }
     
     
     /**
-     *
+     * Извиква се след подготовка на заявката за детайла
      */
     static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
@@ -159,6 +161,9 @@ class price_GroupOfProducts extends core_Detail
     }
 
 
+    /**
+     * Извиква се след обработка на ролите
+     */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
     {
         if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
@@ -190,8 +195,10 @@ class price_GroupOfProducts extends core_Detail
             }
         }
         
-        $groupName = price_Groups::fetchField($rec->groupId, 'title');
-        $data->form->title = '|Добавяне на артикул към|* "' . $groupName . '"';
+        if($rec->groupId) {
+	        $groupName = price_Groups::getTitleById($rec->groupId);
+	        $data->form->title = '|Добавяне на артикул към|* "' . $groupName . '"';
+        }
     }
 
 
@@ -269,7 +276,7 @@ class price_GroupOfProducts extends core_Detail
 
 
     /**
-     *
+     * След подготовка на записите във вербален вид
      */
     public static function on_AfterPrepareListRows(core_Detail $mvc, $data)
     {   
@@ -314,7 +321,7 @@ class price_GroupOfProducts extends core_Detail
 
 
     /**
-     *
+     * Извиква се след рендиране на детайла
      */
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
@@ -348,6 +355,9 @@ class price_GroupOfProducts extends core_Detail
     }
     
     
+    /**
+     * Рендиране изгледа на детайла
+     */
     public function renderPriceGroup($data)
     {
         // Премахваме продукта - в случая той е фиксиран и вече е показан 
@@ -363,20 +373,8 @@ class price_GroupOfProducts extends core_Detail
     public static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
         price_History::removeTimeline();
-        $mvc->updateGroupCount($rec);
     }
-
 	
-    /**
-     * Ъпдейтва броя на продуктите в групата
-     */
-    public function updateGroupCount($rec)
-    {
-    	$groupRec = price_Groups::fetch($rec->groupId);
-    	$groupRec->productsCount = count(price_GroupOfProducts::getAllProducts());
-    	price_Groups::save($groupRec);
-    }
-    
     
     /**
      *
@@ -436,8 +434,6 @@ class price_GroupOfProducts extends core_Detail
                 }
             }
         }
-
- 
     }
 
 
@@ -448,7 +444,4 @@ class price_GroupOfProducts extends core_Detail
     {
         return self::renderDetail_($data);
     }
-
-
-
 }

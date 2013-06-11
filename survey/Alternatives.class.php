@@ -25,7 +25,7 @@ class survey_Alternatives extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, survey_Wrapper, plg_Sorting, plg_SaveAndNew';
+    var $loadList = 'plg_RowTools, survey_Wrapper, plg_Sorting, plg_SaveAndNew,options=survey_Options';
     
   
     /**
@@ -50,7 +50,7 @@ class survey_Alternatives extends core_Detail {
      * Наименование на единичния обект
      */
     var $singleTitle = "Въпрос";
-
+    
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -83,7 +83,6 @@ class survey_Alternatives extends core_Detail {
     {
     	$this->FLD('surveyId', 'key(mvc=survey_Surveys, select=title)', 'caption=Тема, input=hidden, silent');
 		$this->FLD('label', 'varchar(64)', 'caption=Въпрос, mandatory, width=100%');
-		$this->FLD('answers', 'text', 'caption=Отговори, mandatory');
 		$this->FLD('image', 'fileman_FileType(bucket=survey_Images)', 'caption=Картинка');
     }
     
@@ -94,21 +93,6 @@ class survey_Alternatives extends core_Detail {
     static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()) {
-    		$txtArr = explode("\n", $form->rec->answers);
-    		
-    		// Изчистваме подадените отговори от празни редове, и правим
-    		// проверка за тяхната дължина
-    		$txtArr = array_filter($txtArr, 'trim');
-			if(count($txtArr) == 1) {
-				$form->setWarning('answers', 
-								  'Въпросът има само един въжможен отговор. 
-				                   Сигурни ли сте че искате да го запишете ? ');
-			} elseif(count($txtArr) == 0) {
-				$form->setError('answers', 'Не сте подали възможни отговори !!!');
-			}
-    		
-			// преобразуваме изчистения масив във вида на текст, записвайки го
-			$form->rec->answers = implode("\n", $txtArr);
     	}
     }
     
@@ -131,6 +115,32 @@ class survey_Alternatives extends core_Detail {
     	}
     	
     	parent::prepareDetail_($data);
+    	
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterPrepareListRows($mvc, &$res)
+    {
+        $rows = &$res->rows;
+        $recs = &$res->recs;
+        if($res->masterData){
+	        $masterRec = $res->masterData->rec;
+	       	if(count($recs) && !survey_Surveys::isClosed($masterRec->id)) {
+	            foreach ($recs as $id => $rec) {
+	            	$rows[$id]->answers = $mvc->options->prepareOptions($id, $rec->surveyId);
+	            	if(!count($rows[$id]->answers) && $masterRec->state == 'active'){
+	            		unset($rows[$id]);
+	            	}
+	            }
+	        }
+        }
     }
     
     
@@ -162,10 +172,10 @@ class survey_Alternatives extends core_Detail {
 	{
 		if($fields['-list']) {
 			
-			// Обработваме представянето на въпросите от анкетата само ако
-			// тя е отворена;
-			if(!survey_Surveys::isClosed($rec->surveyId)) {
-				$row->answers = $mvc->verbalAnswers($rec->answers, $rec->id);
+			if($mvc->haveRightFor('edit', $rec)){
+				$img = sbf('img/16/add.png');
+				$addUrl = array('survey_Options', 'add', 'alternativeId' => $rec->id, 'retUrl' => TRUE);
+				$row->addOption = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams'));
 			}
 			
 			$imgLink = sbf('survey/img/question.png', '');
@@ -175,58 +185,7 @@ class survey_Alternatives extends core_Detail {
 				$Fancybox = cls::get('fancybox_Fancybox');
 				$row->image = $Fancybox->getImage($rec->image, array(140, 140), array(500, 500), null, array('class'=>'question-image'));
 			}
-			
 		}
-	}
-	
-	
-	/**
-	 * Подготвя отговорите на въпроса, от текст във вида на радио бутони
-	 * с връзки към екшъна Vote на survey_Votes
-	 * @param text $text - Отговорите на въпроса във вида на текст
-	 * @param int $id - ид на въпроса
-	 * @param int $surveyId - id на анкетата
-	 * @return core_ET $tpl
-	 */
-	function verbalAnswers($text, $id)
-	{
-		$tpl = new ET("");
-		$altTpl = new ET("<li><input name='quest{$id}' type='radio' [#data#] [#checked#]>&nbsp;&nbsp;[#answer#]</li>");
-		
-		$rec = static::fetch($id);
-		($this->haveRightFor('vote', $rec)) ? $can = TRUE : $can = FALSE;
-		
-		// Разбиваме подадения текст по редове, и махаме празните такива
-		$txtArr = explode("\n", $text);
-		
-		// Кой е послед посочения отговор от потребителя
-		$lastVote = survey_Votes::lastUserVote($id);
-		
-		// Всеки непразен ред от текста е отговор, 
-		// рендираме го във вида на радио бутон
-		for($i = 1; $i <= count($txtArr); $i++) {
-			$copyTpl = clone($altTpl);
-
-			if($can) {
-				$params = "data-rowId='{$i}' data-alternativeId='{$id}' ";
-				if($mid = Request::get('m')) {
-					$params .= " data-m='{$mid}'";
-				}
-				
-				$copyTpl->replace($params, 'data');
-			}
-			
-			$copyTpl->replace($txtArr[$i-1], 'answer');
-				
-			// Ако потребителя вече е гласувал, чекваме радио бутона
-			if($i == $lastVote->rate) {
-				$copyTpl->replace('checked', 'checked');
-			}
-				
-			$tpl->append($copyTpl);
-		}
-		
-		return $tpl;
 	}
 	
 	
@@ -236,7 +195,7 @@ class survey_Alternatives extends core_Detail {
      */
     function renderAlternatives($data)
     {
-    	$tpl = new ET(getFileContent('survey/tpl/SingleAlternative.shtml'));
+    	$tpl = getTplFromFile('survey/tpl/SingleAlternative.shtml');
     	$tplAlt = $tpl->getBlock('ROW');
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
@@ -268,7 +227,9 @@ class survey_Alternatives extends core_Detail {
     	$queryAlt = survey_Alternatives::getQuery();
     	$queryAlt->where("#surveyId = {$rec->id}");
     	while($altRec = $queryAlt->fetch()) {
-    		$recs[$altRec->id] = $this->prepareResults($altRec);
+    		$row = $this->prepareResults($altRec);
+    		if(!count($row->answers)) continue;
+    		$recs[$altRec->id] = $row;
     	}
     	
     	$data->summary = $recs;
@@ -283,28 +244,35 @@ class survey_Alternatives extends core_Detail {
      */
     function prepareResults($rec)
     {
+    	$int = cls::get('type_Int');
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	
     	// Всички гласове, които е получил въпроса
     	$totalVotes = survey_Votes::countVotes($rec->id);
     	
     	// Преброяваме колко гласа е получил всеки ред от отговорите
-    	$txtArr = explode("\n", $rec->answers);
     	$answers = array();
-    	for($i = 0; $i < count($txtArr); $i++) {
+    	$query = $this->options->getQuery();
+    	$query->where("#alternativeId = {$rec->id}");
+    	while($option = $query->fetch()) {
     		$op = new stdClass();
-    		$op->text = $txtArr[$i];
+    		$op->text = $option->text;
     		if($totalVotes != 0) {
-	    		$op->votes = survey_Votes::countVotes($rec->id, $i+1);
-	    		$op->percent = round($op->votes / $totalVotes * 100, 2);
+	    		$op->votes = $int->toVerbal(survey_Votes::countVotes($rec->id, $option->id));
+	    		$op->percent = $double->toVerbal(round($op->votes / $totalVotes * 100, 2));
 	    	} else {
     			$op->votes = 0;
     			$op->percent = 0;
     		}
-    		
     		$answers[] = $op;
     	}
     	
     	$res = new stdClass();
+    	
     	$res->label = $rec->label;
+    	$res->points = $this->options->countPoints($rec->id);
+    	$res->points = $double->toVerbal($res->points);
     	
     	arr::order($answers, 'votes');
     	$answers = array_reverse($answers, true);
@@ -319,22 +287,23 @@ class survey_Alternatives extends core_Detail {
      */
 	function renderSummariseDetails($data)
     {
-    	$tpl = new ET(tr("|*" .getFileContent('survey/tpl/Summarise.shtml')));
+    	$tpl = getTplFromFile('survey/tpl/Summarise.shtml');
     	$blockTpl = $tpl->getBlock('ROW');
-    	$varcharType = cls::get('type_Varchar');
-    	$tpl->replace($varcharType->toVerbal($data->rec->title), 'TOPIC');
+    	$type = cls::get('type_Varchar');
+    	$tpl->replace($type->toVerbal($data->rec->title), 'TOPIC');
     	
     	// За всеки въпрос от анкетата го рендираме заедно с отговорите
     	foreach($data->summary as $rec) {
     		$questionTpl = clone($blockTpl);
     		$subRow = $questionTpl->getBlock('subRow');
-    		$label = $varcharType->toVerbal($rec->label);
+    		$label = $type->toVerbal($rec->label);
     		$questionTpl->replace($label, 'QUESTION');
+    		$questionTpl->replace($rec->points, 'points');
     		
     		// Рендираме всеки отговор от въпроса с неговите гласове
     		foreach($rec->answers as $answer) {
     			$answersTpl = clone($subRow);
-    			$answer->text = $varcharType->toVerbal($answer->text);
+    			$answer->text = $type->toVerbal($answer->text);
     			$answersTpl->placeObject($answer);
     			$answersTpl->removeBlocks();
     			$answersTpl->append2master();
@@ -347,22 +316,6 @@ class survey_Alternatives extends core_Detail {
     }
     
     
-    /**
-     * Метод връщащ подаден ред от отговорите на даден въпрос
-     * @param alternativeId $id - ид ана въпроса
-     * @param int $rate - номер на реда
-     * @return varchar $res - текста, който се намира на този ред
-     */
-    static function getAnswerRow($id, $rate)
-    {
-    	// Разбираме отговорите по нови редове, и връщаме търсения ред
-    	expect($rec = static::fetch($id));
-    	$txtArr = explode("\n", $rec->answers);
-    	
-    	return $txtArr[$rate-1];
-    }
-    
-    
 	/**
      * Метод проверяващ дали даден потребител вече е отговорил на
      * даден въпрос
@@ -371,8 +324,7 @@ class survey_Alternatives extends core_Detail {
     static function hasUserVoted($alternativeId)
     {
     	if($rec = survey_Votes::lastUserVote($alternativeId)) {
-    		
-    			return TRUE;
+    		return TRUE;
     	}
     	
     	return FALSE;

@@ -44,7 +44,7 @@ class sales_Sales extends core_Master
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
-                    doc_plg_BusinessDoc, acc_plg_Registry, store_plg_Shippable';
+                    doc_plg_BusinessDoc, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
     
     
     /**
@@ -161,9 +161,9 @@ class sales_Sales extends core_Master
         /*
          * Стойности
          */
-        $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none'); // Сумата на договорената стока
-        $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none'); // Сумата на доставената стока
-        $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none'); // Сумата която е платена
+        $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
+        $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
+        $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         
         /*
          * Контрагент
@@ -208,7 +208,7 @@ class sales_Sales extends core_Master
          * Допълнително
          */
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
-        $this->FLD('note', 'richtext', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
+        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
     	
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -248,29 +248,17 @@ class sales_Sales extends core_Master
     {
         switch ($action) {
             /*
-             * Контират се само документи (продажби) които генерират *непразни* транзакции.
-             * Документите (продажбите), които не генерират счетоводни транзакции могат да се
-             * активират.
+             * Активират се само (непразни) продажби, които не генерират счетоводни транзакции
              */
-            case 'conto':
             case 'activate':
-                if (empty($rec->id) || $rec->state != 'draft') {
-                    // Незаписаните продажби не могат нито да се контират, нито да се активират
+                if (empty($rec->id)) {
+                    // не се допуска активиране на незаписани продажби
                     $requiredRoles = 'no_one';
-                    break;
-                } 
-                
-                if (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE) {
-                    // Невъзможно е да се генерира транзакция
+                } elseif (sales_SalesDetails::count("#saleId = {$rec->id}") == 0) {
+                    // Не се допуска активирането на продажба без детайли
                     $requiredRoles = 'no_one';
-                    break;
-                }
-                
-                // Активиране е позволено само за продажби, които не генерират транзакции
-                // Контиране е позволено само за продажби, които генерират транзакции
-                $deniedAction = ($transaction->isEmpty() ? 'conto' : 'activate');
-                
-                if ($action == $deniedAction) {
+                } elseif ($mvc->haveRightFor('conto', $rec)) {
+                    // не се допуска активиране на продажба, която генерира счет. транзакция.
                     $requiredRoles = 'no_one';
                 }
                 break;
@@ -799,59 +787,32 @@ class sales_Sales extends core_Master
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
-        $data->listFilter = cls::get('core_Form', array('method'=>'get'));
-        
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('filterDealerId', 'users', 'placeholder=Търговец, caption=Търговец', array('attr'=>array('onchange'=>'submit();')));
-        $data->listFilter->FNC('fromDate', 'date', 'placeholder=От,caption=От,width=100px');
-        $data->listFilter->FNC('toDate', 'date', 'placeholder=До,caption=До,width=100px');
-    
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
-    
-        // Показваме тези полета. Иначе и другите полета на модела ще се появят
-        $data->listFilter->showFields = 'filterDealerId, fromDate, toDate';
-        
-        $data->listFilter->setDefault('filterDealerId', keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE)));
-    
-        $filter = $data->listFilter->input();
-        
-        /* @var $query core_Query */
-        $query = $data->query;
-        
-        /*
-         * Филтър по дилър / тийм
-         */
-        if ($filter->filterDealerId) {
-            $query->where(
-                sprintf(
-                    '#dealerId IN (%s)', 
-                    implode(',', keylist::toArray($filter->filterDealerId))
-                )
-            );
-        }
-        
-        /*
-         * Филтър по дати
-         */
-        $dateRange = array();
-        
-        if (!empty($filter->fromDate)) {
-            $dateRange[0] = $filter->fromDate; 
-        }
-        if (!empty($filter->toDate)) {
-            $dateRange[1] = $filter->toDate; 
-        }
-        
-        if (count($dateRange) == 2) {
-            sort($dateRange);
-        }
-        
-        if (!empty($dateRange[0])) {
-            $query->where(array("#valior >= '[#1#]'", $dateRange[0]));
-        }
-        if (!empty($dateRange[1])) {
-            $query->where(array("#valior <= '[#1#]'", $dateRange[1]));
-        }
+        $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
+		$data->listFilter->showFields .= ',type';
+		$data->listFilter->input();
+		
+		if($filter = $data->listFilter->rec) {
+			if($filter->type) {
+				switch($filter->type){
+					case "all":
+						break;
+					case 'paid':
+						$data->query->orWhere("#amountPaid = #amountDeal");
+						break;
+					case 'delivered':
+						$data->query->orWhere("#amountDelivered = #amountDeal");
+						break;
+					case 'undelivered':
+						$data->query->orWhere("#amountDelivered != #amountDeal");
+						break;
+					case 'unpaid':
+						$data->query->orWhere("#amountPaid != #amountDelivered");
+						$data->query->orWhere("#amountPaid IS NULL");
+						$data->query->Where("#state = 'active'");
+						break;
+				}
+			}
+		}
     }
     
     
@@ -860,83 +821,6 @@ class sales_Sales extends core_Master
         // Използваме заглавието на списъка за заглавие на филтър-формата
         $data->listFilter->title = $data->title;
         $data->title = NULL;
-    }
-    
-    
-    public static function on_AfterRenderListSummary($mvc, $tpl, $data)
-    {
-        /*
-         * Подготвяне на тоталите - използваме същата заявка, с която сме извлекли списъка.
-         */
-        
-        /* @var $query core_Query */
-        $query = clone $data->query;
-        
-        $query->limit = $query->start = NULL;
-        $query->orderBy = array();
-        $query->executed = FALSE;
-        $query->show = arr::make('amountDeal,amountDelivered,amountPaid,currencyId,valior', TRUE);
-        
-        $now = dt::now();
-        $total = (object)array(
-            'currencyId' => acc_Periods::getBaseCurrencyCode($now),
-            'countDeal' => 0,
-            'amountDeal' => 0.0,
-            'amountDelivered' => 0.0,
-            'amountPaid' => 0.0,
-        );
-        
-        // Кеш за вече извличаните валутни курсове
-        // ключ - код на валута; стойност - курс на тази валута към основната за днес
-        $ratesCache = array();
-        
-        while ($rec = $query->fetch()) {
-            $total->countDeal       += 1;
-            if (!isset($ratesCache[$rec->currencyId])) {
-                $ratesCache[$rec->currencyId] = 
-                    currency_CurrencyRates::getRate($now, $rec->currencyId, $total->currencyId);
-                expect($ratesCache[$rec->currencyId], 
-                    sprintf('Липсва курс на %s към %s за %s', $rec->currencyId, $total->currencyId, $now)
-                );
-            }
-            $total->amountDeal      += (float)$rec->amountDeal * $ratesCache[$rec->currencyId];
-            $total->amountDelivered += (float)$rec->amountDelivered * $ratesCache[$rec->currencyId];
-            $total->amountPaid      += (float)$rec->amountPaid * $ratesCache[$rec->currencyId];
-        }
-        
-        /*
-         * Рендиране на съмърито 
-         */
-        
-        // Форматиране на сумите
-        foreach (array('amountDeal', 'amountDelivered', 'amountPaid') as $amountField) {
-            $total->{$amountField} = sprintf("%0.02f", round($total->{$amountField}, 2));
-        }
-        
-        $tpl = new core_ET('
-            <div style="float: right; background: #eee; padding: 10px;">
-                <table>
-                    <tr>
-                        <td class="quiet">Продажби</td>
-                        <td align="right">[#countDeal#]</td>
-                    </tr>
-                    <tr>
-                        <td class="quiet">Поръчано</td>
-                        <td align="right">[#amountDeal#] [#currencyId#]</td>
-                    </tr>
-                    <tr>
-                        <td class="quiet">Доставено</td>
-                        <td align="right">[#amountDelivered#] [#currencyId#]</td>
-                    </tr>
-                    <tr>
-                        <td class="quiet">Платено</td>
-                        <td align="right">[#amountPaid#] [#currencyId#]</td>
-                    </tr>
-                </table>
-            </div>
-        ');
-        
-        $tpl->placeObject($total);
     }
     
     
@@ -1020,14 +904,17 @@ class sales_Sales extends core_Master
         while ($rec = $query->fetch()) {
             if ($saleRec->chargeVat == 'yes') {
                 // Начисляваме ДДС
-                $rec->price *= 1 + cat_Products::getVat($rec->productId, $saleRec->valior);
+                $Policy = cls::get($rec->policyId);
+                $ProductManager = $Policy->getProductMan();
+                $rec->price *= 1 + $ProductManager->getVat($rec->productId, $saleRec->valior);
             } 
             $products[] = (object)array(
                 'policyId'  => $rec->policyId,
                 'productId'  => $rec->productId,
                 'uomId'  => $rec->uomId,
                 'packagingId'  => $rec->packagingId,
-                'quantity'  => $rec->quantity - $rec->quantityDelivered, // само остатъка за експедиране
+                'quantity'  => $rec->quantity,
+                'quantityDelivered'  => $rec->quantityDelivered,
                 'quantityInPack'  => $rec->quantityInPack,
                 'price'  => $rec->price,
                 'discount'  => $rec->discount,

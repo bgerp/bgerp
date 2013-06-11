@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,7 +19,8 @@ class techno_Specifications extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, acc_RegisterIntf';
+    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, 
+        acc_RegisterIntf=techno_specifications_Register, cat_ProductAccRegIntf';
     
     
     /**
@@ -32,9 +33,15 @@ class techno_Specifications extends core_Master {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank,
-                    doc_DocumentPlg, doc_ActivatePlg, doc_plg_BusinessDoc';
+                    doc_DocumentPlg, doc_ActivatePlg, doc_plg_BusinessDoc, plg_Search';
 
 	
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
     /**
      * Наименование на единичния обект
      */
@@ -44,13 +51,18 @@ class techno_Specifications extends core_Master {
     /**
      * Икона за единичния изглед
      */
-    //var $singleIcon = 'img/16/toggle1.png';
+    var $singleIcon = 'img/16/specification.png';
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'title, contragentName';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,title,prodTehnoClassId,createdOn,createdBy';
+    var $listFields = 'tools=Пулт,title,contragentName,prodTehnoClassId,createdOn,createdBy';
     
     
     /**
@@ -114,6 +126,12 @@ class techno_Specifications extends core_Master {
 	
 	
     /**
+     * Брой записи на страница
+     */
+    var $listItemsPerPage = '40';
+    
+    
+    /**
      * Групиране на документите
      */
     var $newBtnGroup = "3.7|Търговия";
@@ -124,14 +142,28 @@ class techno_Specifications extends core_Master {
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%');
-		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf)', 'caption=Технолог,mandatory');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие, input=hidden');
+		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
-		$this->FLD('quantity1', 'int', 'caption=Превю цени->К-во 1,mandatory,width=4em');
-    	$this->FLD('quantity2', 'int', 'caption=Превю цени->К-во 2,width=4em');
-    	$this->FLD('quantity3', 'int', 'caption=Превю цени->К-во 3,width=4em');
-		$this->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', '');
-    	$this->FNC('measureId', 'key(mvc=cat_UoM, select=name)', '');
+		$this->FLD('contragentName', 'varchar(136)', 'caption=Контрагент,input=hidden');
+		$this->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)');
+		$this->FNC('measureId', 'key(mvc=cat_UoM, select=name)');
+    }
+    
+    
+    /**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	 $data->listFilter->view = 'horizontal';
+    	 $data->listFilter->FNC('prodTehnoClass', 'class(interface=techno_ProductsIntf,allowEmpty)', 'placeholder=Технолог');
+    	 $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+    	 $data->listFilter->showFields = 'search,prodTehnoClass';
+    	 $data->listFilter->input();
+    	 if($technoClass = $data->listFilter->rec->prodTehnoClass){
+    	 	$data->query->orWhere("#prodTehnoClassId = {$technoClass}");
+    	 }
     }
     
     
@@ -164,7 +196,27 @@ class techno_Specifications extends core_Master {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$data->form->setDefault('quantity1', '1');
+    	$form = &$data->form;
+    	//$form->fieldsLayout = new ET("[#BTN#]");
+   	    //$options = core_Classes::getOptionsByInterface('techno_ProductsIntf');
+    	//foreach($options as $id => $cls){
+    	//	$title = cls::getTitle($cls);
+    		//$btn = ht::createFnBtn($title, '','', array('data-id' => $id, 'class' => 'specDriverBtn'));
+    		//$form->fieldsLayout->append($btn, 'BTN');
+    		//bp($title);
+    		//
+    		//bp($btn);
+    		//$form->fieldsLayout->append = $btn->getContent();
+    	//}
+    	//bp($form->renderHtml());
+    	//$form->fieldsLayout = new ET(ht::createFnBtn('-1', '','', array('id' => 'decBtn','class' => 'buttonForm')));
+    	if($contragentData = doc_Folders::getContragentData($form->rec->folderId)){
+    		if($contragentData->person) {
+    			$form->rec->contragentName = $contragentData->person;
+    		} elseif($contragentData->company) {
+    			$form->rec->contragentName = $contragentData->company;
+    		} 
+    	}
     }
     
     
@@ -174,18 +226,20 @@ class techno_Specifications extends core_Master {
     function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
+    	$title = $this->recToVerbal($rec, 'title')->title;
         $row = new stdClass();
-        $row->title = $this->singleTitle . ' "' . $rec->title . '"';
+        $row->title = $this->singleTitle . ' "' . $title . '"';
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-
+		$row->recTitle = $rec->title;
+		
         return $row;
     }
     
     
 	/**
-     * Заглавие на ценоразписа за конкретен клиент 
+     * Заглавие на политиката
      * 
      * @param mixed $customerClass
      * @param int $customerId
@@ -198,10 +252,10 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Връща продуктие, които могат да се продават
-     * на посочения клиент. Това са всички спецификации от
-     * неговата папка, ако няма спецификации редиректваме с
-     * подходящо съобщение
+     * Връща продуктие, които могат да се продават на
+     * посочения клиент. Това са всички спецификации
+     * от неговата папка, ако няма спецификации 
+     * редиректваме с подходящо съобщение
      */
     function getProducts($customerClass, $customerId, $date = NULL)
     {
@@ -213,7 +267,7 @@ class techno_Specifications extends core_Master {
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
     	$query->where("#data IS NOT NULL");
-    	//$query->where("#state = 'active'");
+    	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
     		$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
     	}
@@ -248,32 +302,14 @@ class techno_Specifications extends core_Master {
     	}
     	
     	if($fields['-single']){
+    		$double = cls::get('type_Double');
+	    	$double->params['decimals'] = 2;
+	    	
 	    	if($rec->data){
-	    		
-	    		// Подготвяме изгледа на изделието
 	    		$technoClass = cls::get($rec->prodTehnoClassId);
 	    		$row->data = $technoClass->getVerbal($rec->data);
-	    	}
-	    	
-	    	$double = cls::get('type_Double');
-	    	$double->params['decimals'] = 2;
-	    	$row->shortMeasureId = cat_UoM::fetchField($rec->measureId, 'shortName');
-	    	if($rec->state == 'draft'){
-		    	foreach(range(1,3) as $num){
-		    		$quantity = "quantity{$num}";
-			    	$price = "price{$num}";
-		    		if($rec->$quantity){
-			    		$pPrice = $mvc->getPriceInfo(NULL, NULL, $rec->id, NULL, $rec->$quantity);
-			    		$row->$price = $pPrice->price - ($pPrice->price * $pPrice->discount);
-			    		$row->$price = $double->toVerbal($row->$price);
-			    		$row->$price .=" &nbsp;<span class='cCode'>{$rec->currencyId}</span>";
-			    		$row->$quantity .= " {$row->shortMeasureId}";
-		    		}
-		    	}
 	    	} else {
-	    		unset($row->quantity1);
-	    		unset($row->quantity2);
-	    		unset($row->quantity3);
+	    		$row->noData = tr('Няма данни');
 	    	}
 	    }
     }
@@ -286,7 +322,7 @@ class techno_Specifications extends core_Master {
     {
         if($data->form && $data->form->isSubmitted()) {
         	$rec = $data->form->rec;
-        	$url = array($mvc, 'Ajust', 'id' => $rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
+        	$url = array($mvc, 'Ajust', $rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
             $data->retUrl = $url;
         }
     }
@@ -299,33 +335,49 @@ class techno_Specifications extends core_Master {
     function act_Ajust()
     {
     	$this->requireRightFor('add');
-    	expect($id = Request::get('id'));
-        $rec = $this->fetch($id);
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'draft');
         
         // Връщаме формата от технологовия клас
         $technoClass = cls::get($rec->prodTehnoClassId);
         $form = $technoClass->getEditForm();
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), array('class' => 'btn-cancel'));
         
     	$fRec = $form->input();
         if($form->isSubmitted()) {
         	if($this->haveRightFor('add')){
         		
         		// Записваме въведените данни в пропъртито data на река
-	            $fRec->title = $rec->title;
+	            $rec->title = $fRec->title;
+	            $fRec->specificationId = $rec->id;
+	            $fRec = (object)array_merge((array) unserialize($rec->data), (array) $fRec);
         		$rec->data = $technoClass->serialize($fRec);
-	            $this->save($rec);
-	            return  Redirect(array($this, 'single', $rec->id));
-        	}
+        		
+	            // След запис се създава чернова оферта
+        		$this->save($rec);
+        		
+        		// Нова оферта се създава само ако има въведено количество
+	        	if(isset($fRec->quantity1) || isset($fRec->quantity2) || isset($fRec->quantity3)){
+	    			return Redirect(array($this, 'newQuote', $rec->id));
+	    		} else {
+	    			return Redirect(array($this, 'single', $rec->id));
+	    		}
+	        }
         }
         
         if($rec->data){
         	
         	// При вече въведени характеристики, слагаме ги за дефолт
-        	$data = unserialize($rec->data);
-        	$form->setDefaults($data);
+        	$form->rec = unserialize($rec->data);
         }
         
-        $form->title = "Характеристики на ". $rec->title;
+        $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $coverId = doc_Folders::fetchCoverId($rec->folderId);
+        $title = $coverClass::getTitleById($coverId);
+        $form->title = 'Спецификация на универсален продукт в папка "' . $title . '"';
+        
         return $this->renderWrapping($form->renderHtml());
     }
     
@@ -346,14 +398,19 @@ class techno_Specifications extends core_Master {
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft'){
-    		$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
-        	
+    		
         	// Може да се променят с само на чернова
+        	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
     	}
     	
-    	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'active'){
-    		$data->toolbar->addBtn("Оферирай", array($mvc, 'newQuote', $data->rec->id), 'ef_icon=img/16/document_quote.png');
+    	// Добавяне на бутон за ъпдейт на съществуваща оферта
+    	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'draft'){
+    		$tData = unserialize($data->rec->data);
+    		if(isset($tData->quantity1) || isset($tData->quantity2) || isset($tData->quantity3)){
+    			$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId}", 'id');
+    			$data->toolbar->addBtn("Оферта", array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'originId' => $data->rec->containerId), 'ef_icon=img/16/document_quote.png');
+    		}
     	}
     }
     
@@ -366,23 +423,27 @@ class techno_Specifications extends core_Master {
     	sales_Quotations::requireRightFor('add');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'active');
-    	
+    	$tData = unserialize($rec->data);
     	$Quotations = cls::get('sales_Quotations');
+    	$qId = $Quotations->fetchField("#originId = {$rec->containerId}", 'id');
     	$data = new stdClass();
-    	$data->form = sales_Quotations::getForm();
-    	$data->form->rec->folderId = $rec->folderId;
-    	$data->form->rec->originId = $rec->containerId;
-    	$data->form->rec->threadId = $rec->threadId;
-    	$Quotations->invoke('AfterPrepareEditForm', array($data));
-    	$Quotations->invoke('AfterInputEditForm', array($data->form));
-    	$data->form->rec->vat = 'yes';
-    	$data->form->rec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
-    	$data->form->rec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
-    	$qId = $Quotations->save($data->form->rec);
+	    $data->form = sales_Quotations::getForm();
+	    if($qId){
+	    	 $data->form->rec->id = $qId;
+	    }
+	    $data->form->rec->folderId = $rec->folderId;
+		$data->form->rec->originId = $rec->containerId;
+		$data->form->rec->threadId = $rec->threadId;
+	    $Quotations->invoke('AfterPrepareEditForm', array($data));
+	    $data->form->rec->rate = round(currency_CurrencyRates::getRate($data->form->rec->date, $rec->currencyId, NULL), 4);
+	    $data->form->rec->paymentCurrencyId = $rec->currencyId;
+	    $data->form->rec->vat = 'yes';
+	    $data->form->rec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
+	    $data->form->rec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
+	    $qId = $Quotations->save($data->form->rec);
     	
-    	return Redirect(array($Quotations, 'single', $qId));
-    }
+	    return Redirect(array($this, 'single', $id));
+	}
     
     
     /**
@@ -393,50 +454,24 @@ class techno_Specifications extends core_Master {
     public static function getVat($id, $date = NULL)
     {
     	$rec = static::fetch($id);
-    	if($rec->data){
-    		$data = unserialize($rec->data);
-    		if($data->vat) return $data->vat;
-    	}
-    	
-    	// Връщаме ДДС-то от периода
-    	$period = acc_Periods::fetchByDate($date);
-    	return $period->vatRate;
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	return $technoClass->getVat($id, $date);
     }
     
     
     /**
-     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     * Връща цената за посочения продукт към посочения
+     * клиент на посочената дата
      * 
      * @return object
      * $rec->price  - цена
      * $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    public function getPriceInfo($customerClass, $customerId, $id, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
-    	$rec = $this->fetch($productId);
-    	if($rec->data){
-    		$data = unserialize($rec->data);
-    		
-    		if($data->price){
-    			$price = new stdClass();
-    			if($data->price){
-    				$price->price = $data->price;
-    			}
-    			if($data->discount){
-    				$price->discount = $data->discount;
-    			}
-    			if($price->price) {
-    				if($quantity){
-    					$price->price = $price->price * $quantity;
-    					return $price;
-    				} else {
-    					return $price;
-    				}
-    			}
-    		}
-    	}
-    	
-    	return FALSE;
+    	$rec = $this->fetch($id);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	return $technoClass->getPrice($rec->data, $packagingId, $quantity, $datetime);
     }
     
     
@@ -444,13 +479,20 @@ class techno_Specifications extends core_Master {
      * Предефинираме метода getTitleById да връща вербалното
      * представяне на продукта
      * @param int $id - id на спецификацията
-     * @return core_ET - шаблон сunknown_type представянето на спецификацията
+     * @param boolean $full 
+     * 	      		FALSE - връща само името на спецификацията
+     * 		        TRUE - връща целия шаблон на спецификацията
+     * @return core_ET - шаблон с представянето на спецификацията
      */
-     static function getTitleById($id, $escaped = TRUE)
+     static function getTitleById($id, $escaped = TRUE, $full = FALSE)
      {
+    	if(!$full) {
+    		return parent::getTitleById($id, $escaped);
+    	}
+    	
     	$rec = static::fetch($id);
-    	$technoClass = cls::get($rec->prodTehnoClassId);
-    	return $technoClass->getVerbal($rec->data, TRUE);
+	    $technoClass = cls::get($rec->prodTehnoClassId);
+	    return $technoClass->getVerbal($rec->data, TRUE);
      }
      
      
@@ -460,9 +502,26 @@ class techno_Specifications extends core_Master {
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if($action == 'activate'){
+    		
     		if(!isset($rec) || (isset($rec) && !$rec->data)){
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Метод връщаш информация за продукта и неговите опаковки
+     * @param int $id - Ид на продукта
+     * @param int $packagingId - Ид на опаковката, по дефолт NULL
+     * @return stdClass $res - Обект с информация за продукта
+     * и опаковките му ако $packagingId не е зададено, иначе връща
+     * информацията за подадената опаковка
+     */
+    public static function getProductInfo($id, $packagingId = NULL)
+    {
+    	$rec = static::fetch($id);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	return $technoClass->getProductInfo($rec->data, $packagingId);
     }
 }

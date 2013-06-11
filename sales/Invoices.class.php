@@ -157,7 +157,7 @@ class sales_Invoices extends core_Master
         $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
 		$this->FLD('reason', 'text(rows=2)', 'caption=Основание, input=none');
-        $this->FLD('additionalInfo', 'richtext(rows=6)', 'caption=Допълнително->Бележки,width:100%');
+        $this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -611,7 +611,7 @@ class sales_Invoices extends core_Master
         // Задължително условие е папката, в която се създава новата ф-ра да е известна
         expect($folderId = $rec->folderId);
         
-        // Извличаме данните на контрагент по подразбиране
+         // Извличаме данните на контрагент по подразбиране
          $sourceClass    = doc_Folders::fetchCoverClassName($folderId);
          $sourceObjectId = doc_Folders::fetchCoverId($folderId);
          $contragentData = $sourceClass::getContragentData($sourceObjectId);
@@ -633,12 +633,13 @@ class sales_Invoices extends core_Master
             // Случай 1 или 2: има данни за фирма
             $rec->contragentName    = $contragentData->company;
             $rec->contragentAddress = trim(
-                sprintf("%s %s\n%s", 
+                sprintf("%s %s %s", 
+					$contragentData->pCode,
                     $contragentData->place,
-                    $contragentData->pCode,
                     $contragentData->address
                 )
             );
+            
             $rec->contragentVatNo = $contragentData->vatNo;
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице

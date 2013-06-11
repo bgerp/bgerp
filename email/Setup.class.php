@@ -166,6 +166,11 @@ class email_Setup
         // Инсталираме плъгина за преобразуване на имейлите в линкове
         $html .= $Plugins->installPlugin('EmailToLink', 'email_ToLinkPlg', 'type_Email', 'private');
         
+        //
+        // Инсталиране на плъгин за автоматичен превод на входящата поща
+        //
+        $html .= $Plugins->installPlugin('Email Translate', 'email_plg_IncomingsTranslate', 'email_Incomings', 'private');
+        
         return $html;
     }
     

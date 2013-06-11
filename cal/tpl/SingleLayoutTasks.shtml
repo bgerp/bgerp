@@ -2,36 +2,36 @@
                  
 	<div class='document'>
 		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>Задача <b>[#ident#]</b> ([#state#])</div>
+			<div class='docBgIcon' style='[#iconStyle#]'>|Задача|* <b>[#ident#]</b> ([#state#])</div>
 		</div>
 
 		<div class='antetka' style='line-height:150%;'>
 			<b>[#title#]</b><br>
 			<small>
 			<div>
-				Приоритет: [#priority#]
+				|Приоритет|*: [#priority#]
 			</div>
 			<div>
-				Отговорници: [#shareLog#]
+				|Отговорници|*: [#shareLog#]
 			</div>
 				
 			<!--ET_BEGIN timeStart-->
-            Начало: [#timeStart#]<br>
+            |Начало|*: [#timeStart#]<br>
             <!--ET_END timeStart-->
 
 			<!--ET_BEGIN timeDuration-->
-            Продължителност: [#timeDuration#]<br>
+            |Продължителност|*: [#timeDuration#]<br>
             <!--ET_END timeDuration-->
             
 			<!--ET_BEGIN timeEnd-->
-	        Краен срок: [#timeEnd#] [#remainingTime#]</br>                   
+	        |Краен срок|*: [#timeEnd#] [#remainingTime#]<br />                   
 			<!--ET_END timeEnd-->
 			
 			 
-	        Прогрес: [#progressBar#] [#progress#] </br>
+	        |Прогрес|*: [#progressBar#] [#progress#] <br />
 			
 			<!--ET_BEGIN workingTime-->
-	        Отработено време: [#workingTime#] </br>                   
+	        |Отработено време|*: [#workingTime#] <br />                   
 			<!--ET_END workingTime-->
 			
 

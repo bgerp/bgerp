@@ -150,7 +150,7 @@ class doc_DocumentPlg extends core_Plugin
                         'originId' => $data->rec->containerId,
                         'ret_url'=>$retUrl
                     ),
-                    'class=btn-posting');
+                    'class=btn-posting', 'onmouseup=saveSelectedTextToSession();');
             }
         } else {
             //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
@@ -822,7 +822,7 @@ class doc_DocumentPlg extends core_Plugin
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = mb_strtolower($mvc->singleTitle) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
+            $title = tr(mb_strtolower($mvc->singleTitle)) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
 
         $rec = $form->rec;
@@ -851,7 +851,7 @@ class doc_DocumentPlg extends core_Plugin
                 $title = tr(mb_strtolower($mvc->singleTitle)) . $in . doc_Threads::recToVerbal($thRec)->title;
             }
         }
-        
+       
         $form->title .= $title;
      }
     
@@ -953,20 +953,20 @@ class doc_DocumentPlg extends core_Plugin
         }
 		
     	if ($rec->id) {
-            $rec = $mvc->fetch($rec->id);
+            $oRec = $mvc->fetch($rec->id);
             
             if($action == 'delete') {
                 $requiredRoles = 'no_one';
-            } elseif(($action == 'edit') && ($rec->state != 'draft')) {
+            } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
                 $requiredRoles = 'no_one';
             } elseif ($action == 'reject' || $action == 'edit' || $action == 'restore' || $action == 'add') {
-                if (doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     $requiredRoles = 'user';    
                 } else {
                     $requiredRoles = 'no_one';
                 } 
             } elseif ($action == 'single') { 
-                if (doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     $requiredRoles = 'user';
                 }
             } elseif ($action == 'clone') {
@@ -974,17 +974,17 @@ class doc_DocumentPlg extends core_Plugin
                 // Ако клонираме
                 
                 // id на първия документ
-                $firstContainerId = doc_Threads::fetch($rec->threadId)->firstContainerId;
+                $firstContainerId = doc_Threads::fetch($oRec->threadId)->firstContainerId;
                 
                 // Ако е първи документ в нишката
-                if ($firstContainerId == $rec->containerId) {
+                if ($firstContainerId == $oRec->containerId) {
                     
                     // Проверяваме за сингъл права в папката
-                    $haveRightForClone = doc_Folders::haveRightFor('single', $rec->folderId);
+                    $haveRightForClone = doc_Folders::haveRightFor('single', $oRec->folderId);
                 } else {
                     
                     // За останалите, проверяваме за сингъл в нишката
-                    $haveRightForClone = doc_Threads::haveRightFor('single', $rec->threadId);
+                    $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId);
                 }
                 
                 // Ако един от двата начина върне, че имаме права
@@ -1099,16 +1099,6 @@ class doc_DocumentPlg extends core_Plugin
             // Причината е, резултата от този метод (а следователно и конкретната стокност на MID)
             // в някои случаи се кешира, а това не бива да се случва!
             $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
-        }
-        
-        // Ако сме рендираме документ за навънка
-        if (Mode::is('text', 'xhtml')) {
-            
-            // Състоянието
-            $state = $data->rec->state;
-            
-            // Очакваме състоянието да не е чернова или оттеглено
-            expect($state != 'rejected' && $state != 'draft', 'Липсващ документ');
         }
     }
     

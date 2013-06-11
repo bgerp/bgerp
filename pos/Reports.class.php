@@ -29,6 +29,12 @@ class pos_Reports extends core_Master {
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Плъгини за зареждане
      */
    var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, 
@@ -356,12 +362,14 @@ class pos_Reports extends core_Master {
     function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
+    	$title = "Отчет за POS продажба №{$rec->id}";
         $row = new stdClass();
-        $row->title = "Отчет за POS продажба №{$rec->id}";
+        $row->title = $title;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-
+		$row->recTitle = $title;
+		
         return $row;
     }
     

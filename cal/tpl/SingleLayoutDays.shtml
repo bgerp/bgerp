@@ -12,8 +12,8 @@
          		<div class="clearfix21"></div>
                 <table cellspacing='1' class='mc-calendar mc-calendar-day'>
 				<tr>
-                     <th class="calDayTime">Време</th>
-                     <td class="calDayTime">Заглавие</td>
+                     <th class="calDayTime">|Време|*</th>
+                     <td class="calDayTime">|Заглавие|*</td>
                      
                  </tr>
                 

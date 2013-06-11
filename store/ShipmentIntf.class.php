@@ -42,10 +42,11 @@ class store_ShipmentIntf
      *
      *   o policyId       - class(interface=price_PolicyIntf): ценова политика, по която е 
      *                           определена цената (price) и отстъпката (discount)
-     *   o productId      - key(mvc=cat_Products): Продукт
+     *   o productId      - key(mvc=ProductManager): Продукт
      *   o uomId          - key(mvc=cat_UoM): Мярка
      *   o packagingId    - key(mvc=cat_Packagings): Опаковка (ако има)
      *   o quantity       - float: количество в основна мярка
+     *   o quantityDelivered       - float: експедирано количество в основна мярка
      *   o quantityInPack - float: количество (в осн. мярка) в опаковката, зададена от 'packagingId'; 
      *                             Ако 'packagingId' е празно, се приема ст-ст единица.
      *   o price          - float: цена за единица продукт в основна мярка

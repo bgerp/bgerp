@@ -148,7 +148,7 @@ class cash_Pko extends core_Master
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em');
-    	$this->FLD('notes', 'richtext(rows=6)', 'caption=Допълнително->Бележки');
+    	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('peroCase', 'key(mvc=cash_Cases, select=name)','input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -423,7 +423,8 @@ class cash_Pko extends core_Master
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-
+		$row->recTitle = $rec->reason;
+		
         return $row;
     }
     
@@ -442,6 +443,22 @@ class cash_Pko extends core_Master
         return $cover->haveInterface('doc_ContragentDataIntf') || 
             ($cover->className == 'cash_Cases' && 
              $cover->that == cash_Cases::getCurrent('id', FALSE) );
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     * 
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+	public static function canAddToThread($threadId)
+    {
+    	$threadRec = doc_Threads::fetch($threadId);
+    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
+    	
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     }
     
     

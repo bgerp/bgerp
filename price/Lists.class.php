@@ -102,7 +102,7 @@ class price_Lists extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика,width=100%');
-        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,1noChange');
+        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута,noChange');
         $this->FLD('vat', 'enum(yes=С начислен ДДС,no=Без ДДС)', 'mandatory,notNull,caption=ДДС,noChange'); 
@@ -127,7 +127,11 @@ class price_Lists extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-
+		
+        if($rec->parent){
+        	$form->setReadOnly('parent');
+        }
+        
         if($rec->cId && $rec->cClass) {
             $cMvc = cls::get($rec->cClass);
             expect($cRec = $cMvc->fetch($rec->cId));
@@ -138,14 +142,19 @@ class price_Lists extends core_Master
             $title = $cMvc->gettitleById($rec->cId);
             $rec->customer =  $title;
             $form->setReadonly('customer');
-            $rec->parent =  price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId);
-            $parentOptions = self::makeArray4select('title', "#id = '{$rec->parent}' OR #public = 'yes' OR (#cId = '{$rec->cId}' AND #cClass = '{$rec->cClass}')");
-            $form->setOptions('parent', $options);
-        } else {
-            $conf = core_Packs::getConfig('price');
-            $rec->parent = $conf->PRICE_LIST_CATALOG;
         }
-
+        
+        if(empty($rec->id)){
+	        if($rec->cId && $rec->cClass){
+	        	$rec->parent =  price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId);
+	            $parentOptions = self::makeArray4select('title', "#id = '{$rec->parent}' OR #public = 'yes' OR (#cId = '{$rec->cId}' AND #cClass = '{$rec->cClass}')");
+	            $form->setOptions('parent', $parentOptions);
+	        } else {
+	        	$conf = core_Packs::getConfig('price');
+	            $rec->parent = $conf->PRICE_LIST_CATALOG;
+	        }
+        }
+            
 
         if(!$rec->currency) {
             $rec->currency = acc_Periods::getBaseCurrencyCode();
@@ -227,7 +236,8 @@ class price_Lists extends core_Master
             $rec->parent = $conf->PRICE_LIST_COST;
             $rec->title  = 'Каталог';
             $rec->currency = acc_Periods::getBaseCurrencyCode();
-            $rec->vat      = 'yes';
+            $rec->vat = 'yes';
+            $rec->public = 'yes';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
             $mvc->save($rec, NULL, 'REPLACE');

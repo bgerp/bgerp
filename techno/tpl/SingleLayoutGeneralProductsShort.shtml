@@ -2,48 +2,21 @@
 <ul class='list-info'>
 	<li>
 	<b class='list-title'>[#title#]</b></li>
-	<li class='list-description-short'>[#description#]</li>
-	<li>|Цена|*: <i>[#price#]</i></li>
-	<!--ET_BEGIN MEASURES-->
-	<li>|Размери|*:[#MEASURES#] 
-		<ul class='list-measures'>
-		<!--ET_BEGIN height-->
-			<li>- |Височина|*: <i>[#height#]</i></li>
-		<!--ET_END height-->
-		
-		<!--ET_BEGIN width-->
-			<li>- |Ширина|*: <i>[#width#]</i></li>
-		<!--ET_END width-->
-		
-		<!--ET_BEGIN weight-->
-			<li>- |Тегло|*: <i>[#weight#]</i></li>
-		<!--ET_END weight-->
-		
-		<!--ET_BEGIN thickness-->
-			<li>- |Дебелина|*: <i>[#thickness#]</i></li>
-		<!--ET_END thickness-->
-		
-		<!--ET_BEGIN volume-->
-			<li>- |Обем|*: <i>[#volume#]</i></li>
-		<!--ET_END volume-->
-		
-		<!--ET_BEGIN length-->
-			<li>- |Дължина|*: <i>[#length#]</i></li>
-		<!--ET_END length-->
-		</ul>
-	</li>
-	<!--ET_END MEASURES-->
+	<li class='list-description-short'>	
+		<!--ET_BEGIN image-->
+		<span class='product-image'>
+		[#image#]
+		</span>
+		<!--ET_END image-->
+	[#description#]</li>
 	<!--ET_BEGIN OTHERS-->
-	<li>|Други|*:[#OTHERS#] 
-		<ul class='list-others'>
-			<!--ET_BEGIN material-->
-				<li>- |Материал|*: <i>[#material#]</i></li>
-			<!--ET_END material-->
-			
-			<!--ET_BEGIN color-->
-				<li>- |Цвят|*: <i>[#color#]</i></li>
-			<!--ET_END color-->
-			
+	<li class='list-measures'>|Параметри|*:[#OTHERS#] 
+		<ul>
+			<!--ET_BEGIN PARAMS-->
+				[#PARAMS#]
+				<li>- [#paramId#]: <i>[#paramValue#]</i></li>
+			<!--ET_END PARAMS-->
+				
 			<!--ET_BEGIN code-->
 				<li>- |Вътр. код|*: <i>[#code#]</i></li>
 			<!--ET_BEGIN code-->
@@ -55,10 +28,5 @@
 	</li>
 	<!--ET_END OTHERS-->
 </ul>
-<!--ET_BEGIN image-->
-<div class='product-image'>
-[#image#]
-</div>
-<!--ET_END image-->
 <div class='clearfix21'></div>
 </div>

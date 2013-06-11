@@ -79,7 +79,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if($this->haveRightFor('add', $rRec)) {
 	    	$form = $this->getForm();
 	    	$form->method = 'POST';
-	    	$form->layout = new ET(getFileContent("pos/tpl/DetailsForm.shtml"));
+	    	$form->layout = getTplFromFile("pos/tpl/DetailsForm.shtml");
 	    	$form->action = array($this->Master, 'single', $data->masterId, '#'=>'form');
 	    	$form->fieldsLayout = $this->createFormFieldsLayout($data);
 	    	$form->setField('id', 'input=none');
@@ -97,7 +97,7 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function createFormFieldsLayout($data)
     {
-    	$tpl = new ET(getFileContent("pos/tpl/DetailsFormFields.shtml"));
+    	$tpl = getTplFromFile("pos/tpl/DetailsFormFields.shtml");
     	$tpl->append(ht::createSbBtn('Запис', 'default', NULL, NULL, array('class' => 'buttonForm')), 'FIRST_ROW');
     	$tpl->append(ht::createFnBtn('+1', '','', array('id' => 'incBtn','class' => 'buttonForm')), 'FIRST_ROW');
 	    $tpl->append(ht::createFnBtn('-1', '','', array('id' => 'decBtn','class' => 'buttonForm')), 'FIRST_ROW');
@@ -132,7 +132,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$tpl = new ET("");
     	$lastRow = Mode::get('lastAdded');
-    	$blocksTpl = new ET(tr('|*' . getFileContent('pos/tpl/ReceiptDetail.shtml')));
+    	$blocksTpl = getTplFromFile('pos/tpl/ReceiptDetail.shtml');
     	$saleTpl = $blocksTpl->getBlock('sale');
     	$discountTpl = $blocksTpl->getBlock('discount');
     	$paymentTpl = $blocksTpl->getBlock('payment');
@@ -221,9 +221,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	$row->productId = $varchar->toVerbal($productInfo->productRec->name);
     	$row->code = $varchar->toVerbal($productInfo->productRec->code);
-    	
-    	$uomId = cat_UoM::fetchField($productInfo->productRec->measureId, 'shortName');
-    	$row->uomId = $varchar->toVerbal($uomId);
+    	$row->uomId = cat_UoM::getShortName($productInfo->productRec->measureId);
     	
     	$row->perPack = $double->toVerbal($productInfo->packagingRec->quantity);
     	if($rec->value) {

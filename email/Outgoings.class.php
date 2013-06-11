@@ -538,7 +538,6 @@ class email_Outgoings extends core_Master
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
-        $data->form->setDefault('boxFrom', $boxFromId);
         
         // Масив, който ще съдърща прикачените файлове
         $filesArr = array();  
@@ -987,8 +986,12 @@ class email_Outgoings extends core_Master
             
             //Данни необходими за създаване на хедър-а на съобщението
             $contragentDataHeader['name'] = $contragentData->person;
-            if($s = $contragentDataHeader['salutation'] = $contragentData->salutation) {
-                if($s != 'Г-н') {
+            
+            // Ако има обръщение
+            if($contragentData->salutation) {
+                
+                $contragentDataHeader['salutation'] = $contragentData->salutation;
+                if(mb_strtolower($contragentData->salutation) != 'г-н') {
                     $hello = "Уважаема";
                 } else {
                     $hello = "Уважаеми";

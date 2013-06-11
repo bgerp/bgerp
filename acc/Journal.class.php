@@ -228,21 +228,22 @@ class acc_Journal extends core_Master
     {
         $mvc      = cls::get($docClassId);
         $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        $docRec   = $mvc->fetchRec($docId);
         
-        expect($transaction = $docClass->getTransaction($docId));
+        try {
+            $transaction = $mvc->getValidatedTransaction($docRec);
+        } catch (acc_journal_Exception $ex) {
+            $tr = $mvc->getTransaction($docRec->id);
+            core_Html::$dumpMaxDepth = 6;
+            bp($ex->getMessage(), $tr);
+        }
         
-        $transaction->docType = $mvc->getClassId();
-        $transaction->docId   = $docId;
-        
-        $transaction = new acc_journal_Transaction($transaction);
+        $transaction->rec->docType = $mvc->getClassId();
+        $transaction->rec->docId   = $docRec->id;
         
         if ($success = $transaction->save()) {
             // Нотифицира мениджъра на документа за успешно приключилата транзакция
-            $docRec = $mvc->fetchRec($docId);
             $docClass->finalizeTransaction($docRec);
-            $success = 'Документът е контиран успешно';
-        } else {
-            $success = 'Документът НЕ Е контиран';
         }
 
         return $success;

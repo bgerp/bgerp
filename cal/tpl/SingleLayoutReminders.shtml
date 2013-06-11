@@ -1,7 +1,7 @@
 [#SingleToolbar#]  
 	<div class='document'>
 		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>Напомняне <b>[#ident#]</b> ([#state#])</div>
+			<div class='docBgIcon' style='[#iconStyle#]'>|Напомняне|* <b>[#ident#]</b> ([#state#])</div>
 		</div>
 
 		<div class='antetka' style='line-height:150%;'>
@@ -9,23 +9,23 @@
 			<small>
 			<div class='block_left'>
 			<div class='reminder-half'>
-				<div>Приоритет: [#priority#]</div>
-				<!--ET_BEGIN timeStart--><div>Начало: [#timeStart#]</div><!--ET_END timeStart-->
-				<div>Действие: [#action#]</div>
-				<!--ET_BEGIN timePreviously--><div>Предварително: [#timePreviously#]</div><!--ET_END timePreviously-->
+				<div>|Приоритет|*: [#priority#]</div>
+				<!--ET_BEGIN timeStart--><div>|Начало|*: [#timeStart#]</div><!--ET_END timeStart-->
+				<div>|Действие|*: [#action#]</div>
+				<!--ET_BEGIN timePreviously--><div>|Предварително|*: [#timePreviously#]</div><!--ET_END timePreviously-->
 			</div>
 			<div class='reminder-half'>
-				<div>Споделяне: [#shareLog#]</div>
-				<div>Следващо напомняне: [#nextStartTime#]</div>
+				<div>|Споделяне|*: [#shareLog#]</div>
+				<div>|Следващо напомняне|*: [#nextStartTime#]</div>
 				<!--ET_BEGIN repetitionEach-->   
 					<div>
-				     	 <!--ET_BEGIN each-->Повторение [#each#]<!--ET_END each--> 
+				     	 <!--ET_BEGIN each-->|Повторение|* [#each#]<!--ET_END each--> 
 				     	 <!--ET_BEGIN repetitionEach-->[#repetitionEach#]<!--ET_END repetitionEach-->
 				     	 <!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->
 			     	 </div> 
 			     <!--ET_END repetitionEach-->
 				<!--ET_BEGIN repetitionTypeMonth-->
-			     	<div>Съблюдаване на [#repetitionTypeMonth#]</div>
+			     	<div>|Съблюдаване на|* [#repetitionTypeMonth#]</div>
 			     	<!--ET_END repetitionTypeMonth-->
 			</div>
 	    	<div class='clearfix21'></div>

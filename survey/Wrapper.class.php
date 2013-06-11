@@ -24,6 +24,7 @@ class survey_Wrapper extends plg_ProtoWrapper
     {
        $this->TAB('survey_Surveys', 'Анкети', 'admin, survey');
        $this->TAB('survey_Alternatives', 'Въпроси', 'admin, survey');
+       $this->TAB('survey_Options', 'Опции', 'admin, survey');
        $this->TAB('survey_Votes', 'Гласуване', 'admin, survey');
        $this->title = 'Анкети';
     }

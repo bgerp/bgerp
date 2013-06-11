@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,6 +23,6 @@ class techno_Wrapper extends plg_ProtoWrapper
     function description()
     {
         $this->TAB('techno_Specifications', 'Спецификации', 'admin,techno');
-    	$this->title = 'Не специфични продукти';
+    	$this->title = 'Спецификации';
     }
 }

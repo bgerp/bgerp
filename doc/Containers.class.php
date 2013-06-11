@@ -175,7 +175,6 @@ class doc_Containers extends core_Manager
         bgerp_Notifications::clear($url);
         
         $tpl->appendOnce("flashHashDoc(flashDocInterpolation);", 'ON_LOAD');
-        $tpl->appendOnce("startGettingText();", 'ON_LOAD');
     }
     
     
@@ -210,6 +209,7 @@ class doc_Containers extends core_Manager
         if($docRow) {
             $data = $document->prepareDocument();
             $row->ROW_ATTR['id'] = $document->getHandle();
+            $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "');";
             $row->document = $document->renderDocument($data);
             
             if($q = Request::get('Q')) {
@@ -300,17 +300,6 @@ class doc_Containers extends core_Manager
             $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'class=btn-move');
         }
     }
-    
-    
-	function on_AfterRenderWrapping($mvc, &$tpl)
-    {
-    	jquery_Jquery::enable($tpl);
-    	
-    	$tpl->push('doc/tpl/style.css', 'CSS');
-    	$tpl->push('doc/js/accordion.js', 'JS');
-    	
-    }
-    
     
     
     /**
@@ -718,7 +707,10 @@ class doc_Containers extends core_Manager
         $active = ' class="active"';
         
         foreach($btns as $group => $bArr) {
-       	
+            
+            // Превеждаме групата
+       	    $group = tr($group);
+       	    
         	$tpl->append("<li{$active}><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
         	$tpl->append("<li>");
         	foreach($bArr as $btn => $class) {
@@ -728,7 +720,6 @@ class doc_Containers extends core_Manager
                     array($class, 'add', 
                         'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => TRUE), 
                         NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
-        		
         	}
         	
         	$tpl->append("</li>"); 
@@ -736,6 +727,11 @@ class doc_Containers extends core_Manager
         }
 
        	$tpl->append("</ul></div>");
+        
+        jquery_Jquery::enable($tpl);
+
+        $tpl->push('doc/tpl/style.css', 'CSS');
+    	$tpl->push('doc/js/accordion.js', 'JS');
 
         return $tpl;
     }

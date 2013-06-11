@@ -18,6 +18,12 @@ class bgerp_Menu extends core_Manager
     
     
     /**
+     * Дали да се изтриват неинсталираните менюта в текущия хит
+     */
+    var $deleteNotInstalledMenu = FALSE;
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, bgerp_Wrapper';
@@ -417,11 +423,14 @@ class bgerp_Menu extends core_Manager
                 $cacheKey = 'menuObj_' . $lg;
                 core_Cache::remove('Menu', $cacheKey);
             }
-
-            $query = self::getQuery();
-            while($rec = $query->fetch("#createdBy = -1")) {
-                if(!$this->savedItems[$rec->id]) {
-                    $this->delete($rec->id);
+            
+            // Ако е зададено да се изтриват
+            if ($this->deleteNotInstalledMenu) {
+                $query = self::getQuery();
+                while($rec = $query->fetch("#createdBy = -1")) {
+                    if(!$this->savedItems[$rec->id]) {
+                        $this->delete($rec->id);
+                    }
                 }
             }
         }

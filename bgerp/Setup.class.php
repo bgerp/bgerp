@@ -152,7 +152,7 @@ class bgerp_Setup {
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
         $Bucket = cls::get('fileman_Buckets');
-        $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '104857600', 'user', 'user');
+        $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
 
         //TODO в момента се записват само при инсталация на целия пакет
         
@@ -165,6 +165,9 @@ class bgerp_Setup {
         $html .= $Plugins->installPlugin('First Login', 'bgerp_plg_FirstLogin', 'core_Users', 'private');
 
         $Menu = cls::get('bgerp_Menu');
+        
+        // Да се изтрият необновените менюта
+        $Menu->deleteNotInstalledMenu = TRUE;
         
         $html .= $Menu->addItem(1.62, 'Система', 'Ядро', 'core_Packs', 'default', 'admin');
         $html .= $Menu->addItem(1.64, 'Система', 'bgERP', 'bgerp_Menu', 'default', 'admin');
