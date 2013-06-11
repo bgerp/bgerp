@@ -51,6 +51,12 @@ class cms_Objects extends core_Master
 
 
     /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'cms/tpl/SingleLayoutObject.shtml';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -147,7 +153,15 @@ class cms_Objects extends core_Master
     {
         $data->title = $data->rec->tag;
     }
-
+    
+    
+    /**
+     * Връща само името на тага
+     */
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$data->row->titleTag = $data->title;
+    }
 
 
     /**
