@@ -81,6 +81,7 @@ class salecond_Setup
         	'salecond_PaymentMethodDetails',
         	'salecond_DeliveryTerms',
         	'salecond_Others',
+        	'salecond_ConditionsToCustomers',
         );
         
         // Роля за power-user на този модул
