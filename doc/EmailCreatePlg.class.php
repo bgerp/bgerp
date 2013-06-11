@@ -42,7 +42,7 @@ class doc_EmailCreatePlg extends core_Plugin
                     'originId' => $data->rec->containerId,
                     'ret_url'=>$retUrl
                 ),
-                'class=btn-email-create');
+                'class=btn-email-create', 'onmouseup=saveSelectedTextToSession();');
         }
     }
 }
