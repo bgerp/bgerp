@@ -57,10 +57,8 @@ class bnav_Setup
         // Инсталираме клавиатурата към password полета
         $html .= $Plugins->installPlugin('bnavPlugin', 'bnav_Plugin', 'cat_Products', 'private');
         
-        // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('bnav_importCsv', 'CSV на Бизнес навигатор', 'csv', '10MB', 'user', 'every_one');
-        
+        // Добавяме Импортиращия драйвър в core_Classes
+        core_Classes::add('bnav_bnavImporter');
         
         return $html;
     }
@@ -76,7 +74,7 @@ class bnav_Setup
         
         // Инсталираме клавиатурата към password полета
         if($delCnt = $Plugins->deinstallPlugin('bnav_Plugin')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'keyboard_Plugin'";
+            $html .= "<li>Премахнати са {$delCnt} закачания на 'bnav_Plugin'";
         } else {
             $html .= "<li>Не са премахнати закачания на плъгина";
         }
