@@ -120,7 +120,7 @@ class crm_Companies extends core_Master
      * Детайли, на модела
      */
     var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,CourtReg=crm_ext_CourtReg';
+                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,CourtReg=crm_ext_CourtReg,CustomerSalecond=salecond_ConditionsToCustomers';
     
     
     /**

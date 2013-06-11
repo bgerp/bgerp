@@ -141,7 +141,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,IdCard=crm_ext_IdCards';
+                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,IdCard=crm_ext_IdCards,CustomerSalecond=salecond_ConditionsToCustomers';
     
 
     /**
