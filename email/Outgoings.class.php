@@ -538,7 +538,6 @@ class email_Outgoings extends core_Master
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
-        $data->form->setDefault('boxFrom', $boxFromId);
         
         // Масив, който ще съдърща прикачените файлове
         $filesArr = array();  
