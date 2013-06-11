@@ -569,6 +569,10 @@ class type_Richtext extends type_Blob
             // Добавяме в начлоато на всеки ред стринга за цитат
             $quote = str_ireplace(array( "\r\n", "\n\r"), array("\r\n{$quoteStr}", "\n\r{$quoteStr}"), $quote);
             $quote = "\n{$quoteStr}" . $quote; 
+        } else {
+            
+            // Добавяме в цитата, ако не сме в текстов режим
+            $quote = "<pre class='richtext-quote'>" . $quote . "</pre>";
         }
         
         // Ако има манипулатор на документа
@@ -614,9 +618,6 @@ class type_Richtext extends type_Blob
                 $quote = $authorInfo . $quote; 
             } else {
                 
-                // Добавяме към стринга автора и датата
-                $quote = "<pre class='richtext-quote'>" .  $quote . "</pre>"; 
-                
                 // Ако има информация за автора
                 if ($authorInfo) {
                     
@@ -626,14 +627,6 @@ class type_Richtext extends type_Blob
                     // Добавяме информация за автора
                     $quote = $authorInfo . $quote;
                 }
-            }
-        } else {
-            
-            // Ако не сме в текстов режим
-            if (!Mode::is('text', 'plain')) {
-                
-                // Добавяме в цитата
-                $quote = "<pre class='richtext-quote'>" . $quote . "</pre>";
             }
         }
         
