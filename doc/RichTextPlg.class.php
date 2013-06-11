@@ -170,6 +170,9 @@ class doc_RichTextPlg extends core_Plugin
      */
     static function getFileInfo($fileName)
     {
+        // Ако не е подадено нищо
+        if (!trim($fileName)) return ;
+        
         //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
         preg_match("/(?'name'(?'abbr'[a-z]+)(?'id'[0-9]+))/i", $fileName, $matches);
         
@@ -195,6 +198,52 @@ class doc_RichTextPlg extends core_Plugin
             $info['id'] = $id;
             
             return $info;
+        }
+    }
+
+    
+    /**
+     * Прихваща извикването на getInfoFromDocHandle
+     * Връща информация за документа, от манипулатора му
+     */
+    function on_GetInfoFromDocHandle($mvc, &$res, $fileHnd)
+    {
+        // Вземаме информация за файла
+        $fileInfo = static::getFileInfo($fileHnd);
+        
+        // Ако няма, връщаме
+        if (!$fileInfo) return ;
+        
+        // Вземаме инстанция на класа
+        $class = cls::get($fileInfo['className']);
+        
+        // Вземаме записа от контейнера на съответния документ
+        $cRec = $class->getContainer($fileInfo['id']);
+        
+        // Добавяме датата
+        $res['date'] = dt::mysql2verbal($cRec->createdOn);
+        
+        // Ако има създател
+        if ($cRec->createdBy > 0) {
+            
+            // Добавяме имената на автора
+            $res['author'] = core_Users::getVerbal($cRec->createdBy, 'names');
+        } else {
+            
+            // Ако няма създател или е системата
+            
+            // Ако има клас и id на документ
+            if ($class && $fileInfo['id']) {
+                
+                // Вземаме данните за документа
+                $dRow = $class->getDocumentRow($fileInfo['id']);
+                
+                // Добавяме автора
+                $res['author'] = $dRow->author;
+                
+                // Добавяме имейла, ако има такъв
+                $res['authorEmail'] = $dRow->authorEmail;
+            }
         }
     }
 }
