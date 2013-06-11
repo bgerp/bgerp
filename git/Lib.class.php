@@ -219,3 +219,4 @@ class git_Lib
         return TRUE;
     }
 }
+
