@@ -611,15 +611,15 @@ class type_Richtext extends type_Blob
                 $authorInfo .= "&lt;{$author}&gt;";
             }
             
-            // Ако сме в текстов режим
-            if (Mode::is('text', 'plain')) {
+            // Ако има информация за автора
+            if ($authorInfo) {
                 
-                // Добавяме към цитата автора и дата
-                $quote = $authorInfo . $quote; 
-            } else {
-                
-                // Ако има информация за автора
-                if ($authorInfo) {
+                // Ако сме в текстов режим
+                if (Mode::is('text', 'plain')) {
+                    
+                    // Добавяме към цитата автора и дата
+                    $quote = $authorInfo . $quote; 
+                } else {
                     
                     // Автора и датата
                     $authorInfo = "<div class='quote-title'>{$authorInfo}</div>";
