@@ -614,11 +614,18 @@ class type_Richtext extends type_Blob
                 $quote = $authorInfo . $quote; 
             } else {
                 
-                // Автора и датата
-                $authorInfo = "<div class='quote-title'>{$authorInfo}</div>";
-            
                 // Добавяме към стринга автора и датата
-                $quote = "$authorInfo<pre class='richtext-quote'>" .  $quote . "</pre>"; 
+                $quote = "<pre class='richtext-quote'>" .  $quote . "</pre>"; 
+                
+                // Ако има информация за автора
+                if ($authorInfo) {
+                    
+                    // Автора и датата
+                    $authorInfo = "<div class='quote-title'>{$authorInfo}</div>";
+                    
+                    // Добавяме информация за автора
+                    $quote = $authorInfo . $quote;
+                }
             }
         } else {
             
