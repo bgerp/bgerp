@@ -505,7 +505,7 @@ class type_Richtext extends type_Blob
         
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
-        $this->_htmlBoard[$place] = "<div><iframe src=\"http://docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe><br><small>";
+        $this->_htmlBoard[$place] = "<div><iframe src=\"//docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe><br><small>";
         
         return "[#{$place}#]{$title}</small></div>";
     }
@@ -656,7 +656,7 @@ class type_Richtext extends type_Blob
         if($title{0} != ' ') {
             
             $bgPlace = $this->getPlace();
-            $this->_htmlBoard[$bgPlace] = "background-image:url('http://www.google.com/s2/u/0/favicons?domain={$domain}');";
+            $this->_htmlBoard[$bgPlace] = "background-image:url('//www.google.com/s2/u/0/favicons?domain={$domain}');";
             $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
               
         } else {
