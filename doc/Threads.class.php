@@ -27,8 +27,13 @@ class doc_Threads extends core_Manager
      */
     var $canList = 'user';
     
+    
+    /**
+     * 
+     */
     var $canWrite = 'no_one';
-
+    
+    
     /**
      * Заглавие
      */
@@ -1316,5 +1321,22 @@ class doc_Threads extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * @todo - Само за тест. Ще се премахне.
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+        // Името на приложението
+        $appName = strtolower(EF_APP_NAME);
+        
+        // Ако е тестово
+        if ($appName == 'selenium' || $appName == 'worktest') {
+            
+            // Листа да излгежда по стария начин
+            $mvc->listFields = 'hnd=Номер,title=Заглавие,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване,modifiedOn=Модифициране';
+        }
     }
 }

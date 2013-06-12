@@ -49,7 +49,7 @@
 	<!--ET_END OPTIONAL-->
 	
 	[#ListToolbar#]
-	<p id='condition-title'> |Условия на офертата|* [#addOther#]</p>
+	<p id='condition-title'> |Условия на офертата|*</p>
 	<ol id='conditions'>
 		<li>|Всички цени са в|* [#paymentCurrencyId#], [#vat#] |ДДС|* 
 		<!--ET_BEGIN rate-->|при курс|* [#rate#]<!--ET_END rate--></li>

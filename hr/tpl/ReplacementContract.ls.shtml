@@ -1,29 +1,30 @@
 <h1>ТРУДОВ ДОГОВОР ЗА ЗАМЕСТВАНЕ</h1> 
 
-№ [#num#]/[#createdOn#] г. 
+№ [#num#]/[#createdDate#] г. 
 
-Днес, [#createdOn#] г. в гр./с [#employerRec_address#], между: 
+Днес, [#createdDate#] г. в гр./с [#employerRec_place#], [#employerRec_address#], между: 
 
-<b>[#companyName#]</b> 
+<b>[#employerRec_name#]</b>
 
-със седалище и адрес на управление [#employerRec_address#], 
-регистрирано по фирмено дело № ……../…………г. на ………………, номер от НДР …………………, 
-ЕИК по БУЛСТАТ [#employerRec_EIC#].., 
-представлявано от <b>[#companyManager#]</b> – с ЕГН <b>[#companyManagerEgn#]</b> 
+със седалище и адрес на управление [#employerRec_address#],
+регистрирано по фирмено дело № [#employersRec_regCompanyFileNumber#]/[#employersRec_regCompanyFileYear#]г.,
+в [#employersRec_regCourt#] с решение [#employersRec_regDecisionNumber#]/[#employersRec_regDecisionDate#]г.,
+ЕИК <b>[#employerRec_vatId#]</b>, 
+представлявано от <b>[#managerRec_name#]</b> – с ЕГН <b>[#managerRec_egn#]</b>
 
 от една страна, наричан/а/ за краткост в договора <b>РАБОТОДАТЕЛ</b> и 
 
-<b>[#contactId#]</b> 
+<b>[#employeeRec_name#]</b> 
 
-<p>от друга страна, наричан/а/ <b>РАБОТНИК /СЛУЖИТЕЛ/</b> 
+<p>от друга страна, наричан/а/ <b>РАБОТНИК</b> 
 
-<p> с ЕГН: [#employeeEgn#], 
+<p> с ЕГН: [#employeeRec_egn#], 
 местоживеене: [#employeeRec_address#], 
-лична карта №:[#employerRec_idCardNum#], изд. на [#employerRec_idCardIssueDate#] г., от [#employerRec_idCardIssuer#], 
-oбразование: ………………………………., 
-специалност: ………………………………………, 
-диплома №: ………………., издадена от ……………………………………………………, 
-трудов стаж: ………………, 
+лична карта №:[#employeeRec_idCard_idCardNumber#], изд. на [#employeeRec_idCard_idCardIssuedOn#] г., от [#employeeRec_idCard_idCardIssuedBy#], 
+образование: [#education#], 
+специалност: [#specialty#], 
+диплома №: [#diplomId#], издадена от [#diplomIssuer#], 
+трудов стаж: [#lengthOfService#] г.,
 
 на основание чл. 68 ал. 1, т. 3 от Кодекса на труда, 
 
@@ -85,7 +86,7 @@ oбразование: ……………………………….,
 <tr> 
 <td>РАБОТОДАТЕЛ:</td> 
 <td>   </td> 
-<td align=right>РАБОТНИК/СЛУЖИТЕЛ/:</td> 
+<td align=right>РАБОТНИК:</td> 
 </tr> 
 <tr> 
 <td height=50 valign=bottom> / подпис и печат / </td> 

@@ -55,7 +55,6 @@ class sales_Setup
         	'sales_SalesLastPricePolicy',
         	'sales_Quotations',
         	'sales_QuotationsDetails',
-        	'sales_QuotationsOthers'
         );
         
         // Роля за power-user на този модул
