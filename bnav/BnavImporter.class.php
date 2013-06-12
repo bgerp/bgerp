@@ -46,67 +46,54 @@ class bnav_BnavImporter extends core_Manager {
     var $title = "Импорт от бизнес навигатор";
     
     
+    /**
+     * Кои полета ще бъдат импортирани
+     */
+    private static $importFields = "name,measureId,groups,bnavCode";
+    
+    
     /*
      * Имплементация на bgerp_ImportIntf
      */
     
     
     /**
-     * Инпортиране на csv-файл в cat_Products
-     * @param unknown_type $rec
+     * Функция връщаща полетата в които ще се вкарват данни в мениджъра-дестинация
      */
-    public function import($hnd, $text)
+    public function getFields()
     {
-    	$html = '';
-    	expect($hnd || $text);
+    	$fields = array();
+    	$Dmanager = $this->getDestinationManager();
+    	$Dfields = $Dmanager->selectFields();
+    	$selFields = arr::make(static::$importFields, TRUE);
+    	foreach($Dfields as $name => $fld){
+    		if(isset($selFields[$name])){
+    			$fields[$name] = $fld->caption;
+    		}
+    	}
     	
-    	$rows = $this->getRows($hnd, $text);
-    	
-    	core_Debug::startTimer('import');
-    	
-    	// Импортиране на групите и мерните еденици
-    	$params = static::importParams($rows, $html);
-    	
-    	// импортиране на продуктите
-    	static::importProducts($rows, $params, $html);
-    	
-    	core_Debug::stopTimer('import');
-    	return $html . "Общо време: " . round(core_Debug::$timers['import']->workingTime, 2) ." s<br />";
+    	return $fields;
     }
     
     
     /**
-     * Връща подадените редове за импортиране от 
-     * csv файл или от текст
-     * @param string $hnd - хендлър към качен csv
-     * @param text $text - ръчно въведен csv текст
-     * Поне едното от $hnd и $text трябва да е зададено
-     * @return array $rows - масив с обработените входни данни
+     * Инпортиране на csv-файл в cat_Products
+     * @param unknown_type $rec
      */
-    private function getRows($hnd, $text)
+    public function import($rows, $fields)
     {
-    	$rows = array();
-    	if($hnd){
-    		$i = 0;
-    		$path = fileman_Files::fetchByFh($hnd, 'path');
-    		if(($handle = fopen($path, "r")) !== FALSE) {
-		    	while (($csvRow = fgetcsv($handle, 5000, ",")) !== FALSE) {
-		    		if($i != 0){
-		    			$rows[] = $csvRow;
-		    		}
-		    		$i++;
-		    	}
-    		}
-    	} 
+    	$html = '';
     	
-    	if($text){
-    		$textArr = explode(PHP_EOL, $text);
-    		foreach($textArr as $line){
-    			$rows[] = explode(',', $line);
-    		}
-    	}
+    	core_Debug::startTimer('import');
     	
-    	return $rows;
+    	// Импортиране на групите и мерните еденици
+    	$params = static::importParams($rows, $fields, $html);
+    	
+    	// импортиране на продуктите
+    	static::importProducts($rows, $params, $fields, $html);
+    	
+    	core_Debug::stopTimer('import');
+    	return $html . "Общо време: " . round(core_Debug::$timers['import']->workingTime, 2) ." s<br />";
     }
     
     
@@ -116,18 +103,22 @@ class bnav_BnavImporter extends core_Manager {
      * @param array $rows - масив получен от csv файл или текст
      * @return array $newGroups - масив с групи
      */
-    static function filterImportParams($rows)
+    static function filterImportParams($rows, $fields)
     {
     	$newMeasures = $newGroups = array();
 	    foreach($rows as $row) {
-		    if(!array_key_exists($row[4], $newGroups)){
-	    		$rowArr = array('title' => $row[4], 'sysId' => $row[3]);
-		    	$newGroups[$row[4]] = $rowArr;
-		    }
-		    		
-		    if(!array_key_exists($row[2], $newMeasures)){
-		    	$newMeasures[$row[2]] = $row[2];
-		    }
+	    	if($row[0] !== NULL){
+		    	$groupIndex = $fields['groups'];
+		    	$measureIndex = $fields['measureId'];
+			    if(!array_key_exists($row[$groupIndex], $newGroups)){
+		    		$rowArr = array('title' => $row[$groupIndex], 'sysId' => $row[3]);
+			    	$newGroups[$row[$groupIndex]] = $rowArr;
+			    }
+			    		
+			    if(!array_key_exists($row[$measureIndex], $newMeasures)){
+			    	$newMeasures[$row[$measureIndex]] = $row[$measureIndex];
+			    }
+	    	}
 	    }
     	
     	return array('groups' => $newGroups, 'measures' => $newMeasures);
@@ -141,9 +132,9 @@ class bnav_BnavImporter extends core_Manager {
      * @return array $groups - масив с ид-та на всяка 
      * група от системата
      */
-    static function importParams(&$rows, &$html)
+    static function importParams(&$rows, $fields, &$html)
     {
-    	$params = static::filterImportParams($rows);
+    	$params = static::filterImportParams($rows, $fields);
     	
     	$addedMeasures = $updatedMeasures = $addedGroups = $updatedGroups = 0;
     	$measures = $groups = array();
@@ -175,8 +166,6 @@ class bnav_BnavImporter extends core_Manager {
     		if(!$id){
     			$id = cat_UoM::save($nRec);
     			$addedMeasures++;
-    		} else {
-    			$updatedMeasures++;
     		}
     		
     		$measures[$measure] = $id;
@@ -195,17 +184,17 @@ class bnav_BnavImporter extends core_Manager {
      * @param array $params - Масив с външни ключове на полета
      * @param string $html - съобщение
      */
-    static function importProducts($rows, $params, &$html)
+    static function importProducts($rows, $params, $fields, &$html)
     {
     	$added = $updated = 0;
     	
     	foreach($rows as $row) { 
 	    	$rec = new stdClass();
-	    	$rec->name = mysql_real_escape_string($row[1]);
-	    	$rec->measureId = $params['measures'][$row[2]];
-	    	$code = trim(str_replace(array("[", "]"), "", $row[5]));
+	    	$rec->name = mysql_real_escape_string($fields['name']);
+	    	$rec->measureId = $params['measures'][$fields['measureId']];
+	    	$code = trim(str_replace(array("[", "]"), "", $fields['bnavCode']));
 	    	$rec->code = $code;
-	    	$rec->bnavCode = $row[5];
+	    	$rec->bnavCode = $fields['bnavCode'];
 	    	$rec->groups = "|{$params['groups'][$row[4]]}|";
 	    	if($rec->id = cat_Products::fetchField(array("#code = '[#1#]'", $code), 'id')){
 	    		$updated++;
@@ -224,8 +213,12 @@ class bnav_BnavImporter extends core_Manager {
     /**
      * Връща мениджъра към който се импортират продуктите
      */
-	public function getDestinationManager()
+	public function getDestinationManager($name = FALSE)
     {
+    	if($name){
+    		return 'cat_Products';
+    	} 
+    	
     	return cls::get('cat_Products');
     }
 }
