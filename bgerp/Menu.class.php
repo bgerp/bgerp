@@ -151,7 +151,7 @@ class bgerp_Menu extends core_Manager
         $bestW = 0;
         $bestKey = NULL;
         
-        if(count($menuObj)) {
+        if (($menuObj) && (count($menuObj))) {
             foreach($menuObj as $key => $rec) {
                 
                 if($rec->ctr == $ctr && $rec->act == $act) return $key;
@@ -165,6 +165,21 @@ class bgerp_Menu extends core_Manager
                         $bestKey = $key;
                         $bestW = $w;
                     }
+                }
+            }
+        } else {
+            
+            // Ако имаме роля админ
+            if (haveRole('admin')) {
+                
+                // Текущото URL
+                $currUrl = getCurrentUrl();
+                
+                // Ако контролера не е core_Packs
+                if (strtolower($currUrl['Ctr']) != 'core_packs') {
+                    
+                    // Редиректваме към yправление на пакети
+                    return redirect(array('core_Packs', 'list'), FALSE, tr('Няма инсталирано меню'));
                 }
             }
         }
@@ -184,7 +199,7 @@ class bgerp_Menu extends core_Manager
         
         $activeArr = explode(':', $active);
         
-        if(count($menuObj)) {
+        if (($menuObj) && (count($menuObj))) {
             foreach($menuObj as $key => $rec)
             {
                 // state: 3 - active, 2 - normal, 1 - disabled, 0 - hidden
@@ -216,6 +231,20 @@ class bgerp_Menu extends core_Manager
                 // Дали да влезе в списъка с менюта?
                 if((!isset($menus[$rec->menu])) || $menus[$rec->menu]->state < $rec->state) {
                     $menus[$rec->menu] = $rec;
+                }
+            }
+        } else {
+            // Ако имаме роля админ
+            if (haveRole('admin')) {
+                
+                // Текущото URL
+                $currUrl = getCurrentUrl();
+                
+                // Ако контролера не е core_Packs
+                if (strtolower($currUrl['Ctr']) != 'core_packs') {
+                    
+                    // Редиректваме към yправление на пакети
+                    return redirect(array('core_Packs', 'list'), FALSE, tr('Няма инсталирано меню'));
                 }
             }
         }
