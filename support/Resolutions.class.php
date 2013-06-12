@@ -126,7 +126,7 @@ class support_Resolutions extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "9.5|Поддръжка";
+    var $newBtnGroup = "10.5|Поддръжка";
     
     /**
      * Описание на модела

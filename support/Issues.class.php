@@ -152,7 +152,7 @@ class support_Issues extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "8.1|Поддръжка";
+    var $newBtnGroup = "10.1|Поддръжка";
 	
     
 	/**

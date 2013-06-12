@@ -38,7 +38,7 @@ class sales_Invoices extends core_Master
     /**
      * @todo Чака за документация...
      */
-    var $singleTitle = 'Фактура за продажба';
+    var $singleTitle = 'Фактура';
     
     
     /**

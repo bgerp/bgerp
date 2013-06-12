@@ -126,7 +126,7 @@ class support_Preventions extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "9.3|Поддръжка";
+    var $newBtnGroup = "10.3|Поддръжка";
     
     /**
      * Описание на модела

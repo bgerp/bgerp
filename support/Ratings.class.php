@@ -126,7 +126,7 @@ class support_Ratings extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "9.4|Поддръжка";
+    var $newBtnGroup = "10.4|Поддръжка";
     
     /**
      * Описание на модела

@@ -125,7 +125,7 @@ class cal_Reminders extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "1.5|Общи"; 
+    var $newBtnGroup = "1.4|Общи"; 
     
     //var $cloneFields = 'title, priority, ';
     
