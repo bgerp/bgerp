@@ -67,7 +67,7 @@ class email_Incomings extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin,ceo';
+    var $canList = 'ceo';
     
     
     /**

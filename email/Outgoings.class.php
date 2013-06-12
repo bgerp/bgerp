@@ -79,7 +79,7 @@ class email_Outgoings extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'user, ceo, admin';
     
     
     /**

@@ -49,7 +49,13 @@ class email_Inboxes extends core_Master
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,manager,';
+    var $canAdd = 'ceo, admin, email';
+    
+    
+    /**
+     * 
+     */
+    var $canSingle = 'ceo, admin, email';
     
     
     /**
@@ -61,7 +67,7 @@ class email_Inboxes extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,manager,officer,executive';
+    var $canList = 'ceo, admin, user';
     
     
     /**
@@ -596,5 +602,23 @@ class email_Inboxes extends core_Master
         }
 
         return $allEmailsArr;
+    }
+    
+    
+	/**
+     * 
+     */
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        // Ако няма роля admin или ceo
+        if(!haveRole('ceo, admin')) {
+            
+            // id на текущия потребител
+            $cu = core_Users::getCurrent();
+            
+            // Да се показват кутиите на които е inCharge или му са споделени
+            $data->query->where("#inCharge = {$cu}");
+            $data->query->orLikeKeylist("shared", $cu);
+        }
     }
 }
