@@ -54,15 +54,34 @@ class plg_Printing extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-    	$url = getCurrentUrl();
-    	$url = $url + array('Printing' => 'yes');
-        
-    	/*$url = array(
+        // Текущото URL
+    	$currUrl = getCurrentUrl();
+    	
+    	// Ако името на класа е текущото URL
+    	if (strtolower($mvc->className) == strtolower($currUrl['Ctr'])) {
+    	    
+    	    // Екшъна
+    	    $act = strtolower($currUrl['Act']);
+    	    
+    	    // Ако екшъна е single или list
+    	    if ($act == 'single' || $act == 'list') {
+    	        
+    	        // URL за принтиране
+    	        $url = $currUrl + array('Printing' => 'yes');
+    	    }
+    	}
+    	
+    	// Ако няма URL
+    	if (!$url) {
+    	    
+    	    // Създаваме го
+    	    $url = array(
                 $mvc,
                 'single',
                 $data->rec->id,
                 'Printing' => 'yes',
-            );*/
+            );
+    	}
 
         self::addCmdParams($url);
 

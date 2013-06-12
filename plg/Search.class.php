@@ -259,7 +259,7 @@ class plg_Search extends core_Plugin
                 
                 $end = "[\\pL]{{$min},32}";
                 
-                $mask = "/(?<!\pL)(" . preg_quote($w) . $end . ")(?=[^><]*<|.$)/ui";
+                $mask = "/(?<!\pL)(" . preg_quote($w, '/') . $end . ")(?=[^><]*<|.$)/ui";
 
                 $text = preg_replace($mask , "{$startMark}$1{$endMark}" , $text);
             }

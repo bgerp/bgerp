@@ -228,6 +228,9 @@ class type_Richtext extends type_Blob
         // Обработваме едноредовите кодове: стрингове
         $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/u", array($this, '_catchOneLineCode'), $html);
         
+        // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
+        $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
+        
         // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
         
@@ -254,9 +257,9 @@ class type_Richtext extends type_Blob
             
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') { 
-            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[bQuote]', '[/bQuote]', ); 
+            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
                // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>','<div class="richtext-quote">', '</div>');
+            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } else {
             $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[bQuote]', '[/bQuote]');
@@ -532,6 +535,103 @@ class type_Richtext extends type_Blob
         }
         
         $this->_htmlBoard[$place] = $code1;
+        
+        return "[#{$place}#]";
+    }
+    
+
+	/**
+     * Заменя елемента [bQuote=???] .... [/bQuote]
+     */
+    function _catchBQuote($match)
+    {
+        // Мястото
+        $place = $this->getPlace();
+        
+        // Цитата
+        $quote = $match[3];
+        
+        // Тримваме цитата
+        $quote = trim($quote);
+        
+        // Ако няма цитата, връщаме
+        if(!strlen($quote)) return "";
+        
+        // Манипулатора на файла
+        $docHnd = $match[2];
+        
+        // Ако сме в текстов режим
+        if (Mode::is('text', 'plain')) {
+            
+            // Стринга за цитата
+            $quoteStr = "  > ";
+            
+            // Добавяме в начлоато на всеки ред стринга за цитат
+            $quote = str_ireplace(array( "\r\n", "\n\r"), array("\r\n{$quoteStr}", "\n\r{$quoteStr}"), $quote);
+            $quote = "\n{$quoteStr}" . $quote; 
+        } else {
+            
+            // Добавяме в цитата, ако не сме в текстов режим
+            $quote = "<pre class='richtext-quote'>" . $quote . "</pre>";
+        }
+        
+        // Ако има манипулатор на документа
+        if ($docHnd) {
+            
+            // Извикваме функцията
+            $this->invoke('getInfoFromDocHandle', array(&$dInfo, $docHnd));
+            
+            // Датата
+            $date = $dInfo['date'];
+            
+            // Ако има имейл
+            if ($dInfo['authorEmail']) {
+                
+                // Инстанция на имейка
+                $emailInst = cls::get('type_Email');
+                
+                // Вземаме вербалния имейл
+                $dInfo['authorEmail'] = $emailInst->toVerbal($dInfo['authorEmail']);
+            }
+            
+            // Определяме автора
+            $author = ($dInfo['authorEmail']) ? $dInfo['authorEmail'] : $dInfo['author'];
+            
+            // Ако има дата
+            if ($date) {
+                
+                // Добавяме в стринга
+                $authorInfo = $date . " ";
+            }
+            
+            // Ако има автор
+            if ($author) {
+                
+                // Добавяме автора в стринга
+                $authorInfo .= "&lt;{$author}&gt;";
+            }
+            
+            // Ако има информация за автора
+            if ($authorInfo) {
+                
+                // Ако сме в текстов режим
+                if (Mode::is('text', 'plain')) {
+                    
+                    // Добавяме към цитата автора и дата
+                    $quote = $authorInfo . $quote; 
+                } else {
+                    
+                    // Автора и датата
+                    $authorInfo = "<div class='quote-title'>{$authorInfo}</div>";
+                    
+                    // Добавяме информация за автора
+                    $quote = $authorInfo . $quote;
+                }
+            }
+        }
+        
+        // Добавяме към масива
+        $this->_htmlBoard[$place] = $quote;
         
         return "[#{$place}#]";
     }
