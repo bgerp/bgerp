@@ -98,7 +98,21 @@ class salecond_Setup
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3.9, 'Търговия', 'Терминология', 'salecond_DeliveryTerms', 'default', "{$role}, admin");
         
+        $html .= $this->loadSetupData();
+        
         return $html;
+    }
+    
+    
+    /**
+     * Инициализране на началните данни
+     */
+    function loadSetupData()
+    {
+    	// Зареждане на други условия за продажба от csv файл
+    	$html .= salecond_Others::setup();
+    	
+    	return $html;
     }
     
     
