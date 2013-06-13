@@ -1,14 +1,4 @@
 <?php
-/**
- * Максимална надценка
- */
-defIfNot('SURPLUS_CHARGE_MAX', '0.4');
-
-
-/**
- * Минимална надценка
- */
-defIfNot('SURPLUS_CHARGE_MIN', '0.1');
 
 
 /**
@@ -57,18 +47,6 @@ class salecond_Setup
      * Описание на модула
      */
     var $info = "Условия на продажба";
-    
-    
-    /**
-     * Описание на конфигурационните константи за този модул
-     */
-    var $configDescription = array(
-            
-            //Задаване на основна валута
-            'SURPLUS_CHARGE_MAX' => array ('percent'),
-         
-    		'SURPLUS_CHARGE_MIN' => array ('percent'),
-        );
         
         
     /**

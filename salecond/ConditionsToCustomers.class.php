@@ -53,9 +53,9 @@ class salecond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * Активния таб в случай, че wrapper-а е таб контрол.
+     * Кой може да вижда списъчния изглед
      */
-    //var $tabName = 'sales_Quotations';
+    var $canList = 'no_one';
     
     
     /**
@@ -166,27 +166,38 @@ class salecond_ConditionsToCustomers extends core_Manager
     	$rec = &$form->rec;
     	expect($paramType = salecond_Others::fetchField($rec->conditionId, 'type'));
             
-            // взависимост от избрания параметър проверяваме дали 
-            // стойността му е във валиден формат за неговия тип
-            switch($paramType){
-            	case 'double':
-            		if(!is_numeric($rec->value)){
-            			$form->setError('value', "Невалидна стойност за параметър. Трябва да е число");
-            		}
-            		break;
-            	case 'int':
-            		if(!ctype_digit($rec->value)){
-            			$form->setError('value', "Невалидна стойност за параметър. Трябва да е цяло число");
-            		}
-            		break;
-            	case 'date':
-            		$date = cls::get('type_Date');
-            		if(!$date->fromVerbal($rec->value)){
-            			$form->setError('value', "Невалидна стойност за параметър. Трябва да е валидна дата");
-            		}
-            		break;
-            	case 'enum':
-            		break;
+        // взависимост от избрания параметър проверяваме дали 
+        // стойността му е във валиден формат за неговия тип
+        switch($paramType){
+            case 'double':
+            	if(!is_numeric($rec->value)){
+            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е число");
+            	}
+            	break;
+            case 'int':
+            	if(!ctype_digit($rec->value)){
+            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е цяло число");
+            	}
+            	break;
+            case 'date':
+            	$date = cls::get('type_Date');
+            	if(!$date->fromVerbal($rec->value)){
+            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е валидна дата");
+            	}
+            	break;
+            case 'enum':
+            	break;
             }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+       if ($action == 'add' && (empty($rec->cClass) || empty($rec->cId))) {
+        	$res = 'no_one';
+        }
     }
 }
