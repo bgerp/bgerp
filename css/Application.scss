@@ -164,7 +164,8 @@ a {
 }
 
 .wide #mainMenu{
-	min-height:70px; 
+	min-height:70px;
+	min-width:700px;
 }
 
 #maincontent {
@@ -1430,6 +1431,7 @@ td.portal-date {
 
 .listTable td{
 	max-width:500px;
+	word-wrap: break-word;
 }
 
 .single-thread .listTable td{
