@@ -1339,4 +1339,13 @@ class doc_Threads extends core_Manager
             $mvc->listFields = 'hnd=Номер,title=Заглавие,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване,modifiedOn=Модифициране';
         }
     }
+
+    
+    /**
+     * Прави широчината на колонката със заглавието на треда да не се свива под 240px
+     */
+    function on_AfterPrepareListFields($mvc, $res, $data)
+    {
+        $data->listFields['title'] = "|*<div style='min-width:240px'>|" . $data->listFields['title'] . '|*</div>';
+    }
 }
