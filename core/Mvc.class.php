@@ -1022,7 +1022,7 @@ class core_Mvc extends core_FieldSet
      */
     function protectId($id)
     {   
-        if(!$this->idProtect) {
+        if(!$this->protectId) {
 
             return $id;
         }
@@ -1040,7 +1040,7 @@ class core_Mvc extends core_FieldSet
     {   
         $id = $this->db->escape($id);
 
-        if(!$this->idProtect) {
+        if(!$this->protectId) {
 
             return $id;
         }
