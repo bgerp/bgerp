@@ -70,6 +70,12 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Да не се защитава id' то
+     */
+    var $protectId = FALSE;
+
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -1100,5 +1106,30 @@ class fileman_Files extends core_Master
         $res = "[file={$fileHnd}]{$name}[/file]";
         
         return $res;
+    }
+    
+    
+    /**
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     */
+    function unprotectId($id)
+    {
+        // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
+        if (mb_strlen($id) > FILEMAN_HANDLER_LEN) {
+            
+            // Променлива, в която държим старото състояние
+            $old = $this->protectId;
+            
+            // Задаваме да се защитава
+            $this->protectId = TRUE;
+            
+            // Вземаме id' to
+            $id = $this->unprotectId_($id);
+
+            // Връщаме стойността
+            $this->protectId = $old;
+        }
+        
+        return $id;
     }
 }
