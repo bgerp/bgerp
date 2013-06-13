@@ -50,6 +50,12 @@ class core_Mvc extends core_FieldSet
      * в други модели, която е зависима от изтритите полета
      */
     var $fetchFieldsBeforeDelete;
+    
+
+    /**
+     * Дали id-тата на този модел да са защитени?
+     */
+    var $protectId = TRUE;
 
 
     /**
@@ -1015,7 +1021,12 @@ class core_Mvc extends core_FieldSet
      * Добавя контролна сума към ID параметър
      */
     function protectId($id)
-    {
+    {   
+        if(!$this->idProtect) {
+
+            return $id;
+        }
+
         $hash = substr(base64_encode(md5(EF_SALT . $this->className . $id)), 0, EF_ID_CHECKSUM_LEN);
         
         return $id . $hash;
@@ -1025,16 +1036,23 @@ class core_Mvc extends core_FieldSet
     /**
      * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
      */
-    function unprotectId($id)
-    {
+    function unprotectId_($id)
+    {   
+        $id = $this->db->escape($id);
+
+        if(!$this->idProtect) {
+
+            return $id;
+        }
+
         $idStrip = substr($id, 0, strlen($id) - EF_ID_CHECKSUM_LEN);
         $idProt  = $this->protectId($idStrip);
 
         if($id == $idProt) {
-
+            
             return $idStrip;
         } else {
-            sleep(3);
+            sleep(2);
 
             return FALSE;
         }

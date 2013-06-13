@@ -39,6 +39,9 @@ class plg_Vid extends core_Plugin
         $mvc->FLD($this->fieldName, 'varchar(' . EF_VID_LEN . ')', 'caption=Verbal ID,  column=none, width=100%');
 
         $mvc->setDbUnique($this->fieldName);
+        
+        // Да не се кодират id-тата, когато се използва verbalId
+        $mvc->protectId = FALSE;
     }
     
     
