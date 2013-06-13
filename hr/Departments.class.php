@@ -107,6 +107,7 @@ class hr_Departments extends core_Master
         $data->form->setOptions('locationId', array('' => '&nbsp;') + crm_Locations::getOwnLocations());
     }
     
+    
     /**
      * Проверка за зацикляне след субмитване на формата. Разпъване на всички наследени роли
      */
@@ -163,6 +164,30 @@ class hr_Departments extends core_Master
     	//bp($data);
     }
     
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	
+    	if($action == 'delete'){
+	    	if ($rec->id) {
+	        	
+	    		$inUse = hr_EmployeeContracts::fetch("#departmentId = '{$rec->id}'");
+	    		
+	    		if($inUse){
+	    			$requiredRoles = 'no_one';
+	    		}
+    	     }
+         }
+    }
+    
     static public function expand($departments, &$current = array())
     {
     	if (!is_array($departments)) {
@@ -189,5 +214,6 @@ class hr_Departments extends core_Master
         
         return $current;
     }
+
     
 }
