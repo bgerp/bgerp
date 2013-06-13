@@ -39,9 +39,7 @@ class page_InternalLayout extends core_ET
             "</div></div>");
 
         // Опаковките и главното съдържание заемат екрана до долу
-        if(!Mode::is('screenMode', 'narrow')) {
-            $this->append("runOnLoad(setMinHeight);", "JQRUN");
-        }
+        $this->append("runOnLoad(setMinHeight);", "JQRUN");
     }
             
 
