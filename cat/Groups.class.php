@@ -127,7 +127,6 @@ class cat_Groups extends core_Master
     	$row->productCnt = intval($rec->productCnt);
     	if($fields['-list']){
     		$row->name .= " ({$row->productCnt})";
-            //$row->name .= "<div><small>" . $mvc->getVerbal($rec, 'info') . "</small></div>";
     	}
     }
     
@@ -147,18 +146,6 @@ class cat_Groups extends core_Master
         if(($rec->sysId || $rec->productCnt) && $action == 'delete') {
             $requiredRoles = 'no_one';
         }
-    }
-
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function updateProductCnt($id)
-    {
-        $query = cat_Products::getQuery();
-        $productCnt = $query->count("#groups LIKE '%|{$id}|%'");
-        
-        return static::save((object)compact('id', 'productCnt'));
     }
 
 
