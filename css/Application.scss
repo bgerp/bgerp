@@ -2317,7 +2317,7 @@ input.combo.pCode{
 
 .narrow pre.richtext{
 	white-space:pre-line;
-	font-size:1.2em;
+	font-size:0.9em;
 }
 
 .narrow .webdrvFieldset {
@@ -2823,6 +2823,7 @@ div.locImage{
 .narrow .internal-amount{
 	margin-top:15px;
 }
+
 @media print{
 	.linkWithIcon, .docBgIcon,.button{
 		padding-left:0 !important;

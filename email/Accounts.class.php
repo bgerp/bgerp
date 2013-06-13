@@ -31,9 +31,14 @@ class email_Accounts extends core_Master
      * Кой има право да чете?
      */
     var $canRead = 'admin, ceo';
-
-     
-     
+    
+    
+    /**
+     * 
+     */
+    var $canList = 'admin';
+    
+    
     /**
      * Кой може да го разглежда?
      */

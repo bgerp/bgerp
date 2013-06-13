@@ -48,6 +48,12 @@ class email_Filters extends core_Manager
     
     
     /**
+     * 
+     */
+    var $canList = 'admin, debug';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead   = 'admin';

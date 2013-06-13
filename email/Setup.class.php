@@ -155,7 +155,7 @@ class email_Setup
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', "admin, {$roleE}, {$roleF}");
+        $html .= $Menu->addItem(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', "admin, {$roleE}, {$roleF}, user");
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');

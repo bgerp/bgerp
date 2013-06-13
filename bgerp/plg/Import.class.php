@@ -68,33 +68,141 @@ class bgerp_plg_Import extends core_Plugin
      */
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
-    	if ($action == 'import') {
+    	if($action == 'import'){
     		$importOptions = core_Classes::getOptionsByInterface('bgerp_ImportIntf');
-    		expect(count($importOptions), 'Няма инсталиран драйвър за импортиране');
+    		expect(count($importOptions), 'Няма инсталирани драйвъри за импортиране');
     		
-    		// Генерираме форма за основание и "обличаме" я във wrapper-а на $mvc.
-        	$form = static::prepareImportForm();
-        	$rec = $form->input();
-        	if($form->isSubmitted()){
-        		if(empty($rec->csvFile) && empty($rec->text)){
-        			$form->setError('csvFile,text', 'Неможе и двете полета да са празни');
+    		$exp = cls::get('expert_Expert', array('mvc' => $mvc));
+    		$content = static::solveExpert($exp);
+    		
+        	if($content == 'SUCCESS') {
+        		$driverId = $exp->getValue("#driver");
+        		$csvData = $exp->getValue("#csvData");
+        		$delimiter = $exp->getValue("#delimiter");
+        		$enclosure = $exp->getValue("#enclosure");
+        		$firstRow = $exp->getValue("#firstRow");
+        		
+        		$Driver = cls::get($driverId);
+        		$fields = $Driver->getFields();
+        		foreach($fields as $name => $caption){
+        			$fields[$name] = $exp->getValue("#col{$name}");
         		}
         		
-        		if(!$form->gotErrors()) {
-        			$ImportClass = cls::get($rec->importClass);
-        			$res = $ImportClass->import($rec->csvFile, $rec->text);
-        			return Redirect(array($ImportClass->getDestinationManager(), 'list'), 'FALSE', $res);
-        		}
-        	}
+        		$rows = static::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
+        		$msg = $Driver->import($rows, $fields);
+        		return Redirect(array($Driver->getDestinationManager(), 'list'), 'FALSE', $msg);
+        	} 
         	
-        	$form->toolbar->addSbBtn('Запис', 'save', array('class'=>'btn-next btn-move'));
-        	$form->toolbar->addBtn('Отказ', array($mvc, 'list'), array('class'=>'btn-cancel'));
+    		if($content == 'DIALOG') {
+                $content = $exp->getResult();
+            }
+            
+            if($content == 'FAIL') {
+                if($exp->onFail) {
+                    $content = $mvc->onFail($exp);
+                } else {
+                    $exp->setRedirect();
+                    setIfNot($exp->midRes->alert, $exp->message, 'Не може да се достигне крайната цел');
+                    $content = $exp->getResult();
+                }
+            }
         	
-        	$form = $form->renderHtml();
-        	$tpl = $mvc->renderWrapping($form);
+        	$tpl = $mvc->renderWrapping($content);
+            
+            return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Връща масив с данните от csv-то
+     * @param string $csvData -
+     * @param char $delimiter -
+     * @param char $enclosure -
+     * @param string $firstRow -
+     * @return array $rows -
+     */
+    private static function getCsvRows($csvData, $delimiter, $enclosure, $firstRow)
+    {
+    	$textArr = explode(PHP_EOL, $csvData);
+    	foreach($textArr as $line){
+    		$rows[] = str_getcsv($line, $delimiter, $enclosure);
+    	}
+    	
+    	if($firstRow == 'columnNames'){
+    		unset($rows[0]);
+    	}
+    	
+    	return $rows;
+    }
+    
+    
+	/**
+     * Зарежда данни от посочен CSV файл, като се опитва да ги конвертира в UTF-8
+     */
+    static function getFileContent($fh)
+    {
+        $csv = fileman_Files::getContent($fh);
+        $csv = i18n_Charset::convertToUtf8($csv);
+        
+        return $csv;
+    }
+   
+    
+    /**
+     * Enter description here ...
+     * @param expert_Expert $exp
+     */
+    public static function solveExpert(expert_Expert &$exp)
+    {
+    	$exp->functions['getfilecontentcsv'] = 'bgerp_plg_Import::getFileContent';
+    	$exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
+    		
+    	$exp->DEF('#driver', 'class(interface=bgerp_ImportIntf,select=title)', 'caption=Драйвър,input,mandatory');
+    	$exp->question("#driver", tr("Моля, изберете драйвър") . ":", TRUE, 'title=' . tr('Какъв драйвер ще се използва') . '?');
+    		
+    	$exp->DEF('#source=Източник', 'enum(csvFile=Файл със CSV данни,csv=Copy&Paste на CSV данни)', 'maxRadio=5,columns=1,mandatory');
+        $exp->ASSUME('#source', '"csvFile"');
+        $exp->question("#source", tr("Моля, посочете източника на данните") . ":", TRUE, 'title=' . tr('От къде ще се импортират данните') . '?');
+    		
+        $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
+        $exp->question("#csvData", tr("Моля, поставете данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за контакти'));
         	
-        	return FALSE;
+        $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
+        $exp->question("#csvFile", tr("Въведете файл с контактни данни във CSV формат") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл'));
+        $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
+        	
+        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', array('value' => ','), 'mandatory');
+        $exp->SUGGESTIONS("#delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
+        $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', array('value' => '"'), 'mandatory');
+        $exp->SUGGESTIONS("#enclosure", array('"' => '"', '\'' => '\''));
+        $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
+        $exp->question("#delimiter,#enclosure,#firstRow", tr("Посочете формата на CSV данните") . ":", "#csvData", 'title=' . tr('Уточняване на разделителя и ограждането'));
+        
+        $exp->rule("#csvColumnsCnt", "count(getCsvColNames(#csvData,#delimiter,#enclosure))");
+        $exp->WARNING(tr("Възможен е проблем с формата на CSV данните, защото е открита само една колона"), '#csvColumnsCnt == 2');
+        $exp->ERROR(tr("Има проблем с формата на CSV данните"). ". <br>" . tr("Моля проверете дали правилно сте въвели данните и разделителя"), '#csvColumnsCnt < 2');
+        
+        $driverId = $exp->getValue('#driver');
+        if($driverId){
+        	$Driver = cls::get($driverId);
+	        $fieldsArr = $Driver->getFields();
+	        $dManager= $Driver->getDestinationManager();
+	        	
+	    	foreach($fieldsArr as $name => $caption) {
+		        $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
+		        $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
+		        $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}')");
+		            
+		        $qFields .= ($qFields ? ',' : '') . "#col{$name}";
+	        }
+	        	$exp->question($qFields, tr("Въведете съответстващите полета за \"{$dManager->className}\"") . ":", TRUE, 'title=' . tr('Съответствие между полетата на източника и списъка'));
+        		$res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow,{$qFields}");
+        } else {
+        	$res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow");
         }
+        	
+        	return $res;
     }
     
     
