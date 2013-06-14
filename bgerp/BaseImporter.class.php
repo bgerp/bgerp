@@ -44,6 +44,7 @@ class bgerp_BaseImporter extends core_Manager {
     /**
      * Функция, връщаща полетата в които ще се вкарват данни
      * в мениджъра-дестинация
+     * Не връща полетата които са hidden, input=none,enum,key и keylist
      */
     public function getFields()
     {
@@ -51,9 +52,10 @@ class bgerp_BaseImporter extends core_Manager {
     	$Dfields = $this->mvc->selectFields();
     	
     	foreach($Dfields as $name => $fld){
-    		$arr = array('caption' =>$fld->caption, 'mandatory'=>$fld->mandatory);
-    		if($fld->input != 'none' && $fld->input != 'hidden' && $fld->kind != 'FNC'){
-    			$fields[$name] = $arr;
+    		if($fld->input != 'none' && $fld->input != 'hidden' &&
+    		   $fld->kind != 'FNC' && !($fld->type instanceof type_Enum) &&
+    		   !($fld->type instanceof type_Key) && !($fld->type instanceof type_KeyList)){
+    				$fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
     		}
     	}
     	
@@ -86,7 +88,7 @@ class bgerp_BaseImporter extends core_Manager {
     		}
     		
     		if($rec->id = $this->mvc->fetchField($where, 'id')){
-    			$updated ++;
+    			$updated++;
     		} else {
     			$created++;
     		}
@@ -94,6 +96,7 @@ class bgerp_BaseImporter extends core_Manager {
     		$this->mvc->save($rec);
     		
     	}
+    	
     	core_Debug::stopTimer('import');
     	
     	$html .= "Импортирани {$created} нови записа, обновени {$updated} съществуващи записа<br />";
