@@ -265,7 +265,7 @@ class crm_Groups extends core_Master
                 $nAffected++;
             }
 
-            $mvc->save($rec, NULL, 'replace');
+            $mvc->save($rec, NULL, 'IGNORE');
         }
         
         // END За всеки елемент от масива
