@@ -84,6 +84,15 @@ class crm_Groups extends core_Master
     
     
     /**
+     * Дали да се превежда, транслитерира singleField полето
+     * 
+     * translate - Превежда
+     * transliterate - Транслитерира
+     */
+    var $langSingleField = 'translate';
+    
+    
+    /**
      * Клас за елемента на обграждащия <div>
      */
     var $cssClass = 'folder-cover';
