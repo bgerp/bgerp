@@ -108,6 +108,7 @@ class crm_Groups extends core_Master
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         
         $this->setDbUnique("name");
+        $this->setDbUnique("sysId");
     }
    
    /**

@@ -46,6 +46,7 @@ class salecond_Others extends core_Manager
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id');
         
         $this->setDbUnique('name');
+        $this->setDbUnique("sysId");
     }
     
     
