@@ -42,6 +42,15 @@ class cat_Groups extends core_Master
     
     
     /**
+     * Дали да се превежда, транслитерира singleField полето
+     * 
+     * translate - Превежда
+     * transliterate - Транслитерира
+     */
+    var $langSingleField = 'translate';
+    
+    
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
