@@ -34,5 +34,7 @@ class hr_Wrapper extends plg_ProtoWrapper
         $this->TAB('hr_ContractTypes', 'Данни', 'admin,hr');
         
         $this->title = 'Персонал';
+        //$this->title = 'HR « Персонал';
+        //Mode::set('menuPage', 'Персонал:ТРЗ');
     }
 }

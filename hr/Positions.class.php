@@ -77,8 +77,8 @@ class hr_Positions extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
-        $this->FLD('nkpd', 'varchar(9)', 'caption=НКПД, hint=Номер по НКИД');
-        $this->FLD('nkid', 'varchar(9)', 'caption=НКИД, hint=Номер по НКПД');
+        $this->FLD('nkpd', 'key(mvc=hr_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
+        $this->FLD('nkid', 'key(mvc=hr_NKID, select=title)', 'caption=НКИД, hint=Номер по НКИД');
         
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=@Характеристика, ');
         

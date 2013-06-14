@@ -10,6 +10,6 @@ function on_AfterRenderWrapping($mvc, &$tpl)
         $tabs->TAB('hr_NKID', 'НКИД');
 
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
-        $mvc->currentTab = 'Данни >> Шаблони';
+        $mvc->currentTab = 'Данни';
     }
 }
