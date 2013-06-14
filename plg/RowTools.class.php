@@ -42,7 +42,21 @@ class plg_RowTools extends core_Plugin
 
             $icon = $mvc->getIcon($rec->id);
             
-            if($singleField = $mvc->rowToolsSingleField) { 
+            if($singleField = $mvc->rowToolsSingleField) {
+                
+                // Ако е зададено да се превежда singleField
+                if ($mvc->langSingleField == 'translate') {
+                    
+                    // Превеждаме
+                    $row->{$singleField} = tr($row->{$singleField});
+                } elseif ($mvc->langSingleField == 'transliterate') {
+                    
+                    // Ако е зададено да се транслитерира
+                    
+                    // Транслитерираме
+                    $row->{$singleField} = transliterate($row->{$singleField});
+                }
+                
                 $attr1['class'] = 'linkWithIcon';
                 $attr1['style'] = 'background-image:url(' . sbf($icon) . ');';
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
