@@ -388,7 +388,7 @@ class type_CustomKey extends type_Key
                     return new Redirect(array($mvc, 'list'), tr($msg));
                 } else {
                     if ($this->params['transliterate']) {
-                        $options = array_map('transliterate', (array)$options); 
+                        $options = self::transliterateOptions($options);
                     }
                 }
                 
@@ -423,5 +423,22 @@ class type_CustomKey extends type_Key
         // Извикваме базовата имплементация (дефинирана в core_Type), за да прескочим 
         // имплементацията на type_Int
         return $this->_baseGetMysqlAttr();
+    }
+    
+    
+	/**
+     * Транслитерира масив с опции, като запазва възможността някои от тях да са обекти
+     */
+    static function transliterateOptions($options)
+    {
+        foreach($options as &$opt) {
+            if(is_object($opt)) {
+                $opt->title = transliterate($opt->title);
+            } else {
+                $opt = transliterate($opt);
+            }
+        }
+
+        return $options;
     }
 }
