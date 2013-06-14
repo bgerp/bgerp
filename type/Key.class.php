@@ -58,6 +58,10 @@ class type_Key extends type_Int {
                 
                 if(!$rec) return '??????????????';
                 
+                if ($this->params['translate']) {
+                    $rec->{$part} = tr($rec->{$part});
+                }
+                
                 if ($this->params['transliterate']) {
                     $rec->{$part} = transliterate($rec->{$part});
                 }
@@ -72,6 +76,10 @@ class type_Key extends type_Int {
                     
                     if(!$value) return '??????????????';
                     
+                    if ($this->params['translate']) {
+                        $value = tr($value);
+                    }
+                    
                     if ($this->params['transliterate']) {
                         $value = transliterate($value);
                     }
@@ -79,6 +87,11 @@ class type_Key extends type_Int {
                     $value = $mvc->fields[$field]->type->toVerbal($value);
                 } else { 
                     $value = $mvc->getTitleById($value);
+                    
+                    if ($this->params['translate']) {
+                        $value = tr($value);
+                    }
+                    
                     if ($this->params['transliterate']) {
                         $value = transliterate($value);
                     }
@@ -279,6 +292,10 @@ class type_Key extends type_Int {
                     
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
+                    if ($this->params['translate']) {
+                        $v = tr($v);
+                    }
+                    
                     if ($this->params['transliterate']) {
                         $v = transliterate($v);
                     }
@@ -306,7 +323,11 @@ class type_Key extends type_Int {
                     }
                     
                     return new Redirect(array($mvc, 'list'), tr($msg));
-                } else { 
+                } else {
+                    if ($this->params['translate']) {
+                        $options = self::translateOptions($options); 
+                    }
+                    
                     if ($this->params['transliterate']) {
                         $options = self::transliterateOptions($options); 
                     }
@@ -493,6 +514,23 @@ class type_Key extends type_Int {
                 $opt->title = transliterate($opt->title);
             } else {
                 $opt = transliterate($opt);
+            }
+        }
+
+        return $options;
+    }
+    
+    
+	/**
+     * Превежда масив с опции, като запазва възможността някои от тях да са обекти
+     */
+    static function translateOptions($options)
+    {
+        foreach($options as &$opt) {
+            if(is_object($opt)) {
+                $opt->title = tr($opt->title);
+            } else {
+                $opt = tr($opt);
             }
         }
 
