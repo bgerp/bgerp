@@ -182,6 +182,8 @@ class sales_Sales extends core_Master
             'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
         $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 
             'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
+        $this->FLD('isInstantShipment', 'enum(no=Не,yes=Да)', 
+            'input, maxRadio=2, columns=2, caption=Експедиция на момента');
         
         /*
          * Плащане
@@ -195,6 +197,7 @@ class sales_Sales extends core_Master
             'caption=Плащане->Банкова сметка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
             'caption=Плащане->Каса');
+        $this->FLD('isInstantPayment', 'enum(no=Не,yes=Да)', 'input,maxRadio=2, columns=2, caption=Плащане на момента');
         
         /*
          * Наш персонал
@@ -218,7 +221,7 @@ class sales_Sales extends core_Master
     	$this->fields['dealerId']->type->params['roles'] = $this->getRequiredRoles('add');
     }
     
-    public static function on_AfterSave($mvc)
+    public static function on_BeforeSave($mvc, $res, $rec)
     {
     }
 
@@ -434,6 +437,28 @@ class sales_Sales extends core_Master
         $form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ?
                 'yes' : 'no'
         );
+        
+        /*
+         * Моментни експедиция и плащане по подразбиране
+         */
+        if (empty($form->rec->id)) {
+            $isInstantShipment = !empty($form->rec->shipmentStoreId);
+            $isInstantShipment = $isInstantShipment && 
+                ($form->rec->shipmentStoreId == store_Stores::getCurrent('id', FALSE));
+            $isInstantShipment = $isInstantShipment && 
+                store_Stores::fetchField('chiefId', $form->rec->shipmentStoreId);
+            
+            $isInstantPayment = !empty($form->rec->caseId);
+            $isInstantPayment = $isInstantPayment && 
+                ($form->rec->caseId == store_Stores::getCurrent('id', FALSE));
+            $isInstantPayment = $isInstantPayment && 
+                store_Stores::fetchField('chiefId', $form->rec->shipmentStoreId);
+            
+            $form->setDefault('isInstantShipment', 
+                $isInstantShipment ? 'yes' : 'no');
+            $form->setDefault('isInstantPayment', 
+                $isInstantPayment ? 'yes' : 'no');
+        }
     }
     
 
@@ -687,6 +712,24 @@ class sales_Sales extends core_Master
             $form->rec->currencyRate = 
                 currency_CurrencyRates::getRate($form->rec->valior, $form->rec->currencyId, NULL);
         }
+
+        if ($form->rec->isInstantShipment == 'yes') {
+            $invalid = empty($form->rec->shipmentStoreId);
+            $invalid = $invalid ||
+                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId') == core_Users::getCurrent();
+            if ($invalid) {
+                $form->setError('isInstantShipment', 'Само отговорика на склада може да експедира на момента от него');
+            }
+        }
+
+        if ($form->rec->isInstantPayment == 'yes') {
+            $invalid = empty($form->rec->caseId);
+            $invalid = $invalid ||
+                cash_Cases::fetchField($form->rec->caseId, 'cashier') == core_Users::getCurrent();
+            if ($invalid) {
+                $form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
+            }
+        }
     }
     
     
@@ -715,6 +758,13 @@ class sales_Sales extends core_Master
 
         if ($rec->chargeVat == 'no') {
             $row->chargeVat = '';
+        }
+        
+        if ($rec->isInstantPayment == 'yes') {
+            $row->caseId .= ' (на момента)';
+        }
+        if ($rec->isInstantShipment == 'yes') {
+            $row->shipmentStoreId .= ' (на момента)';
         }
     }
     
