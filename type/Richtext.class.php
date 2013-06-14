@@ -259,9 +259,9 @@ class type_Richtext extends type_Blob
             $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } else {
-            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[bQuote]', '[/bQuote]');
+            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',);
                // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n", "\n", "\n");
+            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
                // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
    
@@ -567,7 +567,7 @@ class type_Richtext extends type_Blob
             $quoteStr = "  > ";
             
             // Добавяме в начлоато на всеки ред стринга за цитат
-            $quote = str_ireplace(array( "\r\n", "\n\r"), array("\r\n{$quoteStr}", "\n\r{$quoteStr}"), $quote);
+            $quote = str_ireplace(array( "\r\n", "\n\r", "\n"), array("\r\n{$quoteStr}", "\n\r{$quoteStr}", "\n{$quoteStr}"), $quote);
             $quote = "\n{$quoteStr}" . $quote; 
         } else {
             
