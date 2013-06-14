@@ -22,7 +22,7 @@ echo '[1;33m' >> /etc/issue
 
 if [ "$ipaddress" != "" ] && [ "$ipaddress" != "127.0.0.1" ]; then
   echo "[1m*** Приложението е достъпно на адрес: http://$ipaddress     ***"  >> /etc/issue
-  echo "[1m*** За повече детайли http://bgerp.com/cms_Articles/Article/Virtualna-mashina/ ***[0m"  >> /etc/issue
+  echo "[1m*** Вижте повече на http://bgerp.com/cms_Articles/Article/Virtualna-mashina/ ***[0m"  >> /etc/issue
   echo "" >> /etc/issue
 else
   echo "[1m*** Машината не може да конфигурира мрежовия интерфейс.  ***"  >> /etc/issue
