@@ -623,8 +623,9 @@ class blast_ListDetails extends core_Detail
                 }
             }
         } else {
-            $resArr = arr::combine(array('-1' => ''), $rowArr);
-            
+            $resArr = arr::combine(array(NULL => ''), $rowArr);
+            array_unshift($resArr, "");
+            unset($resArr[0]);
             return $resArr;
         }
     }
