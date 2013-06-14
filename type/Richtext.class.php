@@ -228,9 +228,6 @@ class type_Richtext extends type_Blob
         // Обработваме едноредовите кодове: стрингове
         $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/u", array($this, '_catchOneLineCode'), $html);
         
-        // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
-        $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
-        
         // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
         
@@ -282,6 +279,9 @@ class type_Richtext extends type_Blob
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
+        
+        // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
+        $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
         
         if(!Mode::is('text', 'plain')) {
             
