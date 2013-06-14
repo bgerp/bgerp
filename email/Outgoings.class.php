@@ -49,7 +49,7 @@ class email_Outgoings extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Изходящ имейл";
+    var $singleTitle = "Имейл";
     
     
     /**
@@ -79,7 +79,7 @@ class email_Outgoings extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'user, ceo, admin';
     
     
     /**
@@ -1076,8 +1076,12 @@ class email_Outgoings extends core_Master
         // Всички имейли от река
         $recEmails = type_Emails::toArray($rec->email);
         
-        // От река премахваме нашите имейли
-        $recEmails = email_Inboxes::removeOurEmails($recEmails);
+        // Ако не отговаряме на конкретен имейл
+        if (!$emailTo) {
+            
+            // От река премахваме нашите имейли
+            $recEmails = email_Inboxes::removeOurEmails($recEmails);
+        }
         
         // Ако се редактира или клонира
         if ($editing) {

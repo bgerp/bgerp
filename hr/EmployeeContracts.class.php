@@ -208,6 +208,7 @@ class hr_EmployeeContracts extends core_Master
         
         $row->managerRec = crm_Persons::fetch($rec->managerId);
         $row->managerRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->managerId}");
+        $row->employersRec = crm_ext_CourtReg::fetch("#companyId = {$row->employerRec->id}");
 
         if(!$row->managerRec->egn) {
             unset($row->managerRec->egn);

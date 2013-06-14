@@ -38,7 +38,7 @@ class sales_Invoices extends core_Master
     /**
      * @todo Чака за документация...
      */
-    var $singleTitle = 'Фактура за продажба';
+    var $singleTitle = 'Фактура';
     
     
     /**
@@ -657,36 +657,27 @@ class sales_Invoices extends core_Master
     /**
      * След проверка на ролите
      */
-	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	switch ($action) {
     		case 'edit':
 	    	    // Фактурата неможе се едитва, ако е възоснова на продажба
 	    		if(($rec->originId && $rec->type == 'invoice') || ($rec->docType && $rec->docId)){
-	    			$res = 'no_one';
+	    			$requiredRoles = 'no_one';
 	    		}
     			break;
            
-            case 'conto':
             case 'activate':
-               if (empty($rec->id) || $rec->state != 'draft') {
-                    // Незаписаните продажби не могат нито да се контират, нито да се активират
-                    $res = 'no_one';
-                    break;
-                } 
-               
-                if (($transaction = $mvc->getValidatedTransaction($rec)) === FALSE) {
-                    // Невъзможно е да се генерира транзакция
-                    $res = 'no_one';
-                    break;
-                }
-                
-                // Активиране е позволено само за продажби, които не генерират транзакции
-                // Контиране е позволено само за продажби, които генерират транзакции
-                $deniedAction = ($transaction->isEmpty() ? 'conto' : 'activate');
-               
-                if ($action == $deniedAction) {
-                    $res = 'no_one';
+                if (empty($rec->id)) {
+                    // не се допуска активиране на незаписани фактури
+                    $requiredRoles = 'no_one';
+                } elseif (sales_InvoiceDetails::count("#invoiceId = {$rec->id}") == 0) {
+                    // Не се допуска активирането на празни фактури без детайли
+                    $requiredRoles = 'no_one';
+                } elseif ($mvc->haveRightFor('conto', $rec)) {
+                    // не се допуска активиране на фактура, която генерира счет. транзакция.
+                    // Tакива фактури трябва да се контират, не да се активират
+                    $requiredRoles = 'no_one';
                 }
                 break;
     	}
@@ -882,6 +873,8 @@ class sales_Invoices extends core_Master
         }
         
       	$result->entries = $entries;
+      	
+      	bp($result);
       	return $result;
     }
     

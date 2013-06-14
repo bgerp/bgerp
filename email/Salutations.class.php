@@ -44,7 +44,7 @@ class email_Salutations extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'admin, debug, email';
     
     
     /**

@@ -50,7 +50,7 @@ class cat_setup_UoM extends core_Mvc
             fclose($handle);
             
             $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
-            $res .= "Създадени {$created} нови мерни еденици, обновени {$updated} съществуващи мерни еденици.</li>";
+            $res .= "Създадени {$created} нови мерни единици, обновени {$updated} съществуващи мерни еденици.</li>";
         } else {
         	$res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }

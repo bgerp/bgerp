@@ -1,9 +1,0 @@
-[#others#]
-<!--ET_BEGIN value-->
-	<li>
-    [#conditionId#]: [#value#] <span class='other-tools'>[#tools#]</span>
-    </li>
-<!--ET_END value-->
-
-
-

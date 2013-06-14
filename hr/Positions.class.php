@@ -86,8 +86,32 @@ class hr_Positions extends core_Master
         
         $this->setDbUnique('name');
     }
+    
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	//bp($data->rec, $data->singleFields, $data);
+    }
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete'){
+	    	if ($rec->id) {
+	        	
+	    		$inUse = hr_EmployeeContracts::fetch("#positionId = '{$rec->id}'");
+	    		
+	    		if($inUse){
+	    			$requiredRoles = 'no_one';
+	    		}
+    	     }
+         }
     }
 }

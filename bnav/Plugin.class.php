@@ -3,7 +3,7 @@
 
 
 /**
- * Плъгин за импорт на данни от Бизнес навигатор
+ * Плъгин за добавяне на полета в cat_Products за импорт/експорт от БН
  * 
  *
  * @category  bgerp
@@ -42,9 +42,6 @@ class bnav_Plugin extends core_Plugin
     
     /**
      * Проверява дали този плъгин е приложим към зададен мениджър
-     * 
-     * @param core_Mvc $mvc
-     * @return boolean
      */
     protected static function checkApplicability($mvc)
     {

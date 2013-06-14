@@ -1,7 +1,4 @@
-<div class='header [#STATE_CLASS#]'>
-	 <span style='[#iconStyle#];'>Безсрочен трудов договор [#id#] / [#createdDate#]</span>
-	 </div>
-
+<h1>БЕЗСРОЧЕН ТРУДОВ ДОГОВОР</h1> 
 
 № [#num#] / [#createdDate#] г. 
 
@@ -10,9 +7,9 @@
 <b>[#employerRec_name#]</b>
 
 със седалище и адрес на управление [#employerRec_address#],
-регистрирано по фирмено дело № [#employerRec_regCompanyFileNumber#]/[#employerRec_regCompanyFileYear#]г.,
-в [#employerRec_regCourt#] с решение [#employerRec_regDecisionNumber#]/[#employerRec_regDecisionDate#]г.,
-с данъчен номер [#employerRec_vatId#], 
+регистрирано по фирмено дело № [#employersRec_regCompanyFileNumber#]/[#employersRec_regCompanyFileYear#]г.,
+в [#employersRec_regCourt#] с решение [#employersRec_regDecisionNumber#]/[#employersRec_regDecisionDate#]г.,
+ЕИК <b>[#employerRec_vatId#]</b>, 
 представлявано от <b>[#managerRec_name#]</b> – с ЕГН <b>[#managerRec_egn#]</b>
 
 от една страна, наричан/а/ за краткост в договора <b>РАБОТОДАТЕЛ</b> и 
@@ -25,11 +22,11 @@
 местоживеене: 
 [#employeeRec_pCode#]
  [#employeeRec_place#], [#employeeRec_address#], 
-лична карта №:[#employeeRec_idCardNumber#], изд. на [#employeeRec_idCardIssuedOn#] г., от [#employeeRec_idCardIssuedBy#], 
+лична карта №:[#employeeRec_idCard_idCardNumber#], изд. на [#employeeRec_idCard_idCardIssuedOn#] г., от [#employeeRec_idCard_idCardIssuedBy#], 
 образование: [#education#], 
 специалност: [#specialty#], 
 диплома №: [#diplomId#], издадена от [#diplomIssuer#], 
-трудов стаж: [#lengthOfService#],
+трудов стаж: [#lengthOfService#] г.,
 
 на основание чл. 67, ал. 1, т. 1 от Кодекса на труда, 
 
@@ -74,7 +71,7 @@
 
 # Други условия
 
-## Срокът на настоящия трудов договор е [#term#]</b>
+## Срокът на настоящия трудов договор е [#term#] месеца.
 
 ## СЛУЖИТЕЛЯТ се задължава да постъпи на работа на [#startFrom#] г.
 

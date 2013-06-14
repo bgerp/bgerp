@@ -150,8 +150,9 @@ class techno_GeneralProducts extends core_Manager {
      * @param id $packagingId
      * @param int $quantity
      * @param datetime $datetime
+     * @return stdClass $price
      */
-    public function getPrice($data, $packagingId = NULL, $quantity = 1, $datetime = NULL)
+    public function getPrice($customerClass, $customerId, $data, $packagingId = NULL, $quantity = 1, $datetime = NULL)
     {
     	if($data){
     		if(is_string($data)){
@@ -166,15 +167,19 @@ class techno_GeneralProducts extends core_Manager {
     			if($data->discount){
     				$price->discount = $data->discount;
     			}
+    			
     			if($price->price) {
-    				$conf = core_Packs::getConfig('salecond');
-    				
+    				$cClass = cls::get($customerClass);
+    				$minCharge = $cClass::getSaleCondition($customerId, 'minSurplusCharge');
+    				$maxCharge = $cClass::getSaleCondition($customerId, 'minSurplusCharge');
     				if(empty($data->bTaxes)) {
     					$data->bTaxes = 0;
     				}
-    				$calcPrice = ($data->bTaxes * (1 + $conf->SURPLUS_CHARGE_MAX) 
-    					+ $quantity * $data->price * (1 + $conf->SURPLUS_CHARGE_MIN)) / $quantity;
+    				
+    				$calcPrice = ($data->bTaxes * (1 + $maxCharge/100) 
+    					+ $quantity * $data->price * (1 + $minCharge/100)) / $quantity;
     				$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
+    				
     				return $price;
     			}
     		}

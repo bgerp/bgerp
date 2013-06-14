@@ -25,6 +25,11 @@ class cms_Feeds extends core_Manager {
 	 */
 	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, cms_Wrapper';
 	
+
+    /**
+     * Да не се кодират id-тата
+     */
+    var $protectId = FALSE;
 	
 	/**
 	 * Поле за лентата с инструменти
@@ -298,22 +303,4 @@ class cms_Feeds extends core_Manager {
 		// Връщаме шаблона
 		return $tpl;
 	}
-	
-	
-	/**
-     * Добавя контролна сума към ID параметър
-     */
-    function protectId($id)
-    {
-        return $id;
-    }
-    
-
-    /**
-     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
-     */
-    function unprotectId($id)
-    {
-        return $id;
-    }
 }

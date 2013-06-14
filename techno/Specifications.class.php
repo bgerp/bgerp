@@ -471,7 +471,7 @@ class techno_Specifications extends core_Master {
     {
     	$rec = $this->fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
-    	return $technoClass->getPrice($rec->data, $packagingId, $quantity, $datetime);
+    	return $technoClass->getPrice($customerClass, $customerId, $rec->data, $packagingId, $quantity, $datetime);
     }
     
     

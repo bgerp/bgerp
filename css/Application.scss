@@ -164,7 +164,8 @@ a {
 }
 
 .wide #mainMenu{
-	min-height:70px; 
+	min-height:70px;
+	min-width:700px;
 }
 
 #maincontent {
@@ -1430,6 +1431,7 @@ td.portal-date {
 
 .listTable td{
 	max-width:500px;
+	word-wrap: break-word;
 }
 
 .single-thread .listTable td{
@@ -2315,7 +2317,7 @@ input.combo.pCode{
 
 .narrow pre.richtext{
 	white-space:pre-line;
-	font-size:1.2em;
+	font-size:0.9em;
 }
 
 .narrow .webdrvFieldset {
@@ -2821,6 +2823,7 @@ div.locImage{
 .narrow .internal-amount{
 	margin-top:15px;
 }
+
 @media print{
 	.linkWithIcon, .docBgIcon,.button{
 		padding-left:0 !important;

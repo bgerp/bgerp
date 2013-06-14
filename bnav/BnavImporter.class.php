@@ -3,27 +3,28 @@
 
 
 /**
- * Технологичен клас за импортиране на артикули
- * от бизнес навигатор в cat_Products
- * За целта е нужно да се подаде csv файл или стойнсоти разделени
- * с запетая във вида:
+ * Драйвър за импортиране на артикули от Бизнес навигатор
+ * в cat_Products, изпозва се плъгина bgerp_plg_Import той подава 
+ * на драйвъра масив от полета извлечени от csv файл, и масив от
+ * полета от модела на кои колони от csv данните съответстват
  * 
- * [Код], [Название], [Мерна единица], [Номенклатура: код], [Номенклатура: име], [Article String Code]
+ *   - Преди импортирването на артикулите се по импортират при нужда
+ *     Групите и Мерните единици. 
+ *     
+ *   - При импортирането на артикули имената на групите и мерките се заменят с
+ *     техните ид-та от системата.
  * 
- * Имената в [Номенклатура: име]  представляват групите към които
- * артикула ще участва. Ако няма група с това име в системата се
- * създава нова и се връща ид-то и
+ * 	 - Полето [code] в cat_Products се образува като от [Article String Code]
+ * 	   на csv-то се премахнат "[" и "]".
  * 
- * [Мерна еденица]: ако няма мерна еденица в системата с такова име
- * се създава нова и се връща ид-то и
+ * CSV колона:           | поле в cat_Products: 
+ * ––––––––––––––––––––––––––––––––––––––––––––––––––––
+ * [Название]            | [name]
+ * [Мерна единица]       | [measureId] (ид на подадената мярка)
+ * [Номенклатура: име]   | [groups]  (ид на групата)
+ * [Article String Code] | [bnavCode]
  * 
- * Еквивалентите на тези полета в cat_Products са;
- * Название = name
- * [Мерна еденица] = [measureId] (ид на подадената еденица след импортирането)
- * [Article String Code] = [code]  след като се премахнат  "[" и "]"
- * [Номенклатура: име] = [groups]  (ид на групата след импортирането)
- * [Article String Code] = [bnavCode]
- *
+ * 
  * @category  bgerp
  * @package   bnav
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
@@ -46,114 +47,133 @@ class bnav_BnavImporter extends core_Manager {
     var $title = "Импорт от бизнес навигатор";
     
     
+    /**
+     * Кои полета от cat_Products ще получат стойностти от csv-то
+     */
+    private static $importFields = "name,measureId,groups,bnavCode";
+    
+    
     /*
      * Имплементация на bgerp_ImportIntf
      */
     
     
     /**
-     * Инпортиране на csv-файл в cat_Products
-     * @param unknown_type $rec
+     * Функция, връщаща полетата в които ще се вкарват данни
+     * в мениджъра-дестинация
      */
-    public function import($hnd, $text)
+    public function getFields()
     {
-    	$html = '';
-    	expect($hnd || $text);
+    	$fields = array();
     	
-    	$rows = $this->getRows($hnd, $text);
+    	// Взимат се всички полета на мениджъра, в който ще се импортира
+    	$Dmanager = $this->getDestinationManager();
+    	$Dfields = $Dmanager->selectFields();
+    	$selFields = arr::make(static::$importFields, TRUE);
     	
-    	core_Debug::startTimer('import');
-    	
-    	// Импортиране на групите и мерните еденици
-    	$params = static::importParams($rows, $html);
-    	
-    	// импортиране на продуктите
-    	static::importProducts($rows, $params, $html);
-    	
-    	core_Debug::stopTimer('import');
-    	return $html . "Общо време: " . round(core_Debug::$timers['import']->workingTime, 2) ." s<br />";
-    }
-    
-    
-    /**
-     * Връща подадените редове за импортиране от 
-     * csv файл или от текст
-     * @param string $hnd - хендлър към качен csv
-     * @param text $text - ръчно въведен csv текст
-     * Поне едното от $hnd и $text трябва да е зададено
-     * @return array $rows - масив с обработените входни данни
-     */
-    private function getRows($hnd, $text)
-    {
-    	$rows = array();
-    	if($hnd){
-    		$i = 0;
-    		$path = fileman_Files::fetchByFh($hnd, 'path');
-    		if(($handle = fopen($path, "r")) !== FALSE) {
-		    	while (($csvRow = fgetcsv($handle, 5000, ",")) !== FALSE) {
-		    		if($i != 0){
-		    			$rows[] = $csvRow;
-		    		}
-		    		$i++;
-		    	}
-    		}
-    	} 
-    	
-    	if($text){
-    		$textArr = explode(PHP_EOL, $text);
-    		foreach($textArr as $line){
-    			$rows[] = explode(',', $line);
+    	// За всяко поле посочено в, проверява се имали го като поле
+    	// ако го има се добавя в масива с неговото наименование
+    	foreach($Dfields as $name => $fld){
+    		if(isset($selFields[$name])){
+    			$fields[$name] = $fld->caption;
     		}
     	}
     	
-    	return $rows;
+    	return $fields;
     }
     
     
     /**
-     * Филтрира продуктовите групи и създава масив 
-     * с неповтарящи се групи
-     * @param array $rows - масив получен от csv файл или текст
-     * @return array $newGroups - масив с групи
+     * Инпортиране на csv-файл в cat_Products
+     * @param array $rows - масив с обработени csv данни,
+     * 					 получен от Експерта в bgerp_Import
+     * @param array $fields - масив с съответстията на колоните от csv-то и
+     * полетата от модела array[{поле_oт_модела}] = {колона_от_csv}
+     * @return string $html - съобщение с резултата
      */
-    static function filterImportParams($rows)
+    public function import($rows, $fields)
+    {
+    	$html = '';
+    	
+    	// Начало на таймера
+    	core_Debug::startTimer('import');
+    	
+    	// Импортиране на групите и мерните единици
+    	$params = $this->importParams($rows, $fields, $html);
+    	
+    	// импортиране на продуктите
+    	$this->importProducts($rows, $params, $fields, $html);
+    	
+    	// Стоп на таймера
+    	core_Debug::stopTimer('import');
+    	
+    	// Връща се резултата от импортирането, с изтеклото време
+    	return $html . "Общо време: " . round(core_Debug::$timers['import']->workingTime, 2) ." с<br />";
+    }
+    
+    
+    /**
+     * Връща мениджъра към който се импортират продуктите
+     */
+	public function getDestinationManager()
+    {
+    	return cls::get('cat_Products');
+    }
+    
+    
+    /**
+     * Филтрира продуктовите групи и създава масив с неповтарящи се групи
+     * @param array $rows - масив получен от csv файл или текст
+     * @return array $fields - масив със съотвествия на полетата
+     */
+    private function filterImportParams($rows, $fields)
     {
     	$newMeasures = $newGroups = array();
 	    foreach($rows as $row) {
-		    if(!array_key_exists($row[4], $newGroups)){
-	    		$rowArr = array('title' => $row[4], 'sysId' => $row[3]);
-		    	$newGroups[$row[4]] = $rowArr;
-		    }
+	    	
+	    	// Намира се на кой индекс стои името на групата и мярката
+		    $groupIndex = $fields['groups'];
+		    $measureIndex = $fields['measureId'];
+		    
+			if(!array_key_exists($row[$groupIndex], $newGroups)){
 		    		
-		    if(!array_key_exists($row[2], $newMeasures)){
-		    	$newMeasures[$row[2]] = $row[2];
-		    }
+			    // Недобавените групи в се добавят в нов масив
+			    $rowArr = array('title' => $row[$groupIndex], 'sysId' => $row[3]);
+			    $newGroups[$row[$groupIndex]] = $rowArr;
+			}
+			    		
+			if(!array_key_exists($row[$measureIndex], $newMeasures)){
+			    	
+			    // Недобавените мерки в се добавят в нов масив
+			    $newMeasures[$row[$measureIndex]] = $row[$measureIndex];
+			}
 	    }
     	
+	    // Връщат се масив съдържащ уникалните групи и мерни единици
     	return array('groups' => $newGroups, 'measures' => $newMeasures);
     }
     
     
     /**
-     * Импортиране на групите от csv-то( ако ги няма )
+     * Импортиране на групите от csv-то(ако ги няма)
      * @param array $rows - масив получен от csv файл или текст
+     * @return array $fields - масив със съответствия
      * @param string $html - Съобщение
-     * @return array $groups - масив с ид-та на всяка 
-     * група от системата
+     * @return array  масив със съответствия група от системата
      */
-    static function importParams(&$rows, &$html)
+    private function importParams(&$rows, $fields, &$html)
     {
-    	$params = static::filterImportParams($rows);
+    	$params = $this->filterImportParams($rows, $fields);
     	
-    	$addedMeasures = $updatedMeasures = $addedGroups = $updatedGroups = 0;
     	$measures = $groups = array();
+    	$addedMeasures = $addedGroups = $updatedGroups = 0;
     	
     	// Импортиране на групите
     	foreach($params['groups'] as $gr){
+    		
     		$nRec = new stdClass();
     		$nRec->name = $gr['title'];
     		$nRec->sysId = $gr['sysId'];
-    		
     		if($rec = cat_Groups::fetch("#name = '{$gr['title']}'")){
     			$nRec->id = $rec->id;
     			$updatedGroups++;
@@ -165,7 +185,7 @@ class bnav_BnavImporter extends core_Manager {
     	}
     	
     	
-    	// Импортиране на мерните еденици
+    	// Импортиране на мерните единици
     	foreach($params['measures'] as $measure){
     		$nRec = new stdClass();
     		$nRec->name = $measure;
@@ -175,15 +195,12 @@ class bnav_BnavImporter extends core_Manager {
     		if(!$id){
     			$id = cat_UoM::save($nRec);
     			$addedMeasures++;
-    		} else {
-    			$updatedMeasures++;
     		}
-    		
     		$measures[$measure] = $id;
     	}
     	
     	$html .= "Добавени {$addedGroups} нови групи, Обновени {$updatedGroups} съществуващи групи<br>";
-    	$html .= "Добавени {$addedMeasures} нови мерни еденици<br/>";
+    	$html .= "Добавени {$addedMeasures} нови мерни единици<br/>";
     	
     	return array('groups' => $groups, 'measures' => $measures);
     }
@@ -193,24 +210,24 @@ class bnav_BnavImporter extends core_Manager {
      * Импортиране на артикулите
      * @param array $rows - хендлър на csv файл-а
      * @param array $params - Масив с външни ключове на полета
+     * @param array $fields - масив със съответствия
      * @param string $html - съобщение
      */
-    static function importProducts($rows, $params, &$html)
+    private function importProducts($rows, $params, $fields, &$html)
     {
     	$added = $updated = 0;
     	
-    	foreach($rows as $row) { 
+    	foreach($rows as $row) {
 	    	$rec = new stdClass();
-	    	$rec->name = mysql_real_escape_string($row[1]);
-	    	$rec->measureId = $params['measures'][$row[2]];
-	    	$code = trim(str_replace(array("[", "]"), "", $row[5]));
+	    	$rec->name = $row[$fields['name']];
+	    	$rec->measureId = $params['measures'][$row[$fields['measureId']]];
+	    	$code = trim(str_replace(array("[", "]"), "", $row[$fields['bnavCode']]));
 	    	$rec->code = $code;
-	    	$rec->bnavCode = $row[5];
-	    	$rec->groups = "|{$params['groups'][$row[4]]}|";
+	    	$rec->bnavCode = $row[$fields['bnavCode']];
+	    	$rec->groups = "|{$params['groups'][$row[$fields['groups']]]}|";
 	    	if($rec->id = cat_Products::fetchField(array("#code = '[#1#]'", $code), 'id')){
 	    		$updated++;
 	    	} else {
-	    		cat_Products::fetchField(array("#code = '[#1#]'", $code), 'id');
 	    		$added++;
 	    	}
 	    	
@@ -218,14 +235,5 @@ class bnav_BnavImporter extends core_Manager {
     	}
     	
     	$html .= "Добавени {$added} нови артикула, Обновени {$updated} съществуващи артикула<br/>";
-    }
-    
-    
-    /**
-     * Връща мениджъра към който се импортират продуктите
-     */
-	public function getDestinationManager()
-    {
-    	return cls::get('cat_Products');
     }
 }

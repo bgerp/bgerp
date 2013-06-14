@@ -117,6 +117,30 @@ class hr_WorkingCycles extends core_Master
 
         $data->row->info = "Max night: $maxNight<br>";
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete'){
+	    	if ($rec->id) {
+	        	
+	    		$inUse = hr_Departments::fetch("#schedule = '{$rec->id}'");
+	    		
+	    		if($inUse){
+	    			$requiredRoles = 'no_one';
+	    		}
+    	     }
+         }
+    }
 
     
     /**

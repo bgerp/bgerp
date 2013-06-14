@@ -307,22 +307,4 @@ class cms_Articles extends core_Manager
     	return $ogp;
     }
 
-
-    /**
-     * Добавя контролна сума към ID параметър
-     */
-    function protectId($id)
-    {
-        return $id;
-    }
-    
-
-    /**
-     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
-     */
-    function unprotectId($id)
-    {
-        return $id;
-    }
-
 }

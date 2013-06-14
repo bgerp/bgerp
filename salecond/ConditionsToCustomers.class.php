@@ -53,9 +53,9 @@ class salecond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * Активния таб в случай, че wrapper-а е таб контрол.
+     * Кой може да вижда списъчния изглед
      */
-    //var $tabName = 'sales_Quotations';
+    var $canList = 'no_one';
     
     
     /**
@@ -67,16 +67,17 @@ class salecond_ConditionsToCustomers extends core_Manager
         $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
         $this->FLD('conditionId', 'key(mvc=salecond_Others,select=name)', 'input,caption=условие,mandatory');
         $this->FLD('value', 'varchar(255)', 'input,caption=Стойност,mandatory');
-        //$this->setDbUnique('productId,paramId');
     }
     
     
     /**
-     * Рендираме общия изглед за 'List'
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function renderDetail_($data)
+    static function on_AfterInputEditForm($mvc, $form)
     {
-        
+        if($form->isSubmitted()) {
+            static::isValueValid($form);
+        }
     }
     
 
@@ -125,13 +126,78 @@ class salecond_ConditionsToCustomers extends core_Manager
 	    
 	    return $tpl;
     }
-   
+    
     
     /**
-     * След проверка на ролите
+     * Връща условие на даден контрагент или всички негови условия
+     * @param int $cClass - ид на клас на контрагент
+     * @param int $cId - ид на контрагент
+     * @param $conditionId = NULL - ако е зададено връща стойността
+     * на параметъра, ако не масив от всички условия за клиента
+     * @return string/array
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    public static function fetchByCustomer($cClass, $cId, $conditionId = NULL)
     {
+    	expect(cls::haveInterface('doc_ContragentDataIntf', $cClass));
     	
+    	$query = static::getQuery();
+    	$query->where("#cClass = {$cClass}");
+    	$query->where("#cId = {$cId}");
+    	if($conditionId){
+    		$query->where("#conditionId = {$conditionId}");
+    		return $query->fetch()->value;
+    	} else {
+    		$recs = array();
+    		while($rec = $query->fetch()){
+    			$recs[$rec->conditionId] = $rec->value;
+    		}
+    		return $recs;
+    	}
+    }
+    
+    
+    /**
+     * Проверка дали въведената стойност отговаря на типа
+     * на параметъра
+     * @param core_Form $form - формата
+     */
+    static function isValueValid(core_Form &$form)
+    {
+    	$rec = &$form->rec;
+    	expect($paramType = salecond_Others::fetchField($rec->conditionId, 'type'));
+            
+        // взависимост от избрания параметър проверяваме дали 
+        // стойността му е във валиден формат за неговия тип
+        switch($paramType){
+            case 'double':
+            	if(!is_numeric($rec->value)){
+            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е число");
+            	}
+            	break;
+            case 'int':
+            	if(!ctype_digit($rec->value)){
+            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е цяло число");
+            	}
+            	break;
+            case 'date':
+            	$date = cls::get('type_Date');
+            	if(!$date->fromVerbal($rec->value)){
+            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е валидна дата");
+            	}
+            	break;
+            case 'enum':
+            	break;
+            }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+       if ($action == 'add' && (empty($rec->cClass) || empty($rec->cId))) {
+        	$res = 'no_one';
+        }
     }
 }

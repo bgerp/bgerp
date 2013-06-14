@@ -23,6 +23,12 @@ class bgerp_F extends core_Manager
     
     
     /**
+     * Да не се кодират id-тата
+     */
+    var $protectId = FALSE;
+
+    
+    /**
      * Екшън за показване на файловете, на нерегистрираните потребители
      */
     function act_S()
@@ -97,27 +103,4 @@ class bgerp_F extends core_Manager
         redirect($url);    
     }
     
-    
-    /**
-     * Да не се добавя контролна сума към ID параметър
-     * 
-     * @see core_Mvc::protectId($id)
-     */
-    function protectId($id)
-    {
-        
-        return $id;
-    }
-    
-    
-    /**
-     * Да не се проверява контролната сума към id-то
-     * 
-     * @see core_Mvc::unprotectId($id)
-     */
-    function unprotectId($id)
-    {
-        
-        return $id;
-    }
 }
