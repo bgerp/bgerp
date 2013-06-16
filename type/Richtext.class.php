@@ -228,9 +228,6 @@ class type_Richtext extends type_Blob
         // Обработваме едноредовите кодове: стрингове
         $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/u", array($this, '_catchOneLineCode'), $html);
         
-        // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
-        $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
-        
         // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
         
@@ -259,12 +256,12 @@ class type_Richtext extends type_Blob
         if($textMode != 'plain') { 
             $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
                // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
+            $to = array("\n", "\n", "\n", "<br>", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } else {
-            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[bQuote]', '[/bQuote]');
+            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]','[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',);
                // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n", "\n", "\n");
+            $to   = array("\n",   "\n",   "\n",  "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
                // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
    
@@ -282,6 +279,9 @@ class type_Richtext extends type_Blob
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
+        
+        // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
+        $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
         
         if(!Mode::is('text', 'plain')) {
             
@@ -529,9 +529,9 @@ class type_Richtext extends type_Blob
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $code1 = "<pre class='richtext code{$classLg}'><code>" . rtrim($code) . "</code></pre>"; 
+            $code1 = "<div class='richtext code{$classLg}'><div>" . rtrim($code) . "</div></div>"; 
         } else {
-            $code1 = "<pre class='richtext'>" . rtrim($code) . "</pre>";
+            $code1 = "<div class='richtext'>" . rtrim($code) . "</div>";
         }
         
         $this->_htmlBoard[$place] = $code1;
@@ -567,12 +567,12 @@ class type_Richtext extends type_Blob
             $quoteStr = "  > ";
             
             // Добавяме в начлоато на всеки ред стринга за цитат
-            $quote = str_ireplace(array( "\r\n", "\n\r"), array("\r\n{$quoteStr}", "\n\r{$quoteStr}"), $quote);
+            $quote = str_ireplace(array( "\r\n", "\n\r", "\n"), array("\r\n{$quoteStr}", "\n\r{$quoteStr}", "\n{$quoteStr}"), $quote);
             $quote = "\n{$quoteStr}" . $quote; 
         } else {
             
             // Добавяме в цитата, ако не сме в текстов режим
-            $quote = "<pre class='richtext-quote'>" . $quote . "</pre>";
+            $quote = "<div class='richtext-quote'>" . $quote . "</div>";
         }
         
         // Ако има манипулатор на документа

@@ -209,9 +209,9 @@ function comboBoxInit(id, suffix)
 		var arrow = selCombo.offsetHeight - 7;
 
 		selCombo.style.width = (width) + 'px'; 
-		txtCombo.style.width = (width -  arrow) + 'px';
-		txtCombo.style.marginRight = (arrow) + 'px';
-		selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow - 3) + 'px)';
+		txtCombo.style.width = (width -  arrow + 6 ) + 'px';
+		txtCombo.style.marginRight = (arrow - 5) + 'px';
+		selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow ) + 'px)';
 		txtCombo.style.paddingRight = '2px';
 
 		if(txtCombo.offsetHeight != selCombo.offsetHeight) {

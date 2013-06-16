@@ -103,6 +103,10 @@ class type_CustomKey extends type_Key
             if (isset($titleField)) {
                 if ($rec = $this->fetchForeignRec($value)) {
                     
+                    if ($this->params['translate']) {
+                        $rec->{$titleField} = tr($rec->{$titleField}); 
+                    }
+                    
                     if ($this->params['transliterate']) {
                         $rec->{$titleField} = transliterate($rec->{$titleField}); 
                     }
@@ -115,6 +119,10 @@ class type_CustomKey extends type_Key
                 expect($keyField == 'id');
                 
                 $verbalValue = $mvc->getTitleById($value);
+                
+                if ($this->params['translate']) {
+                    $verbalValue = tr($verbalValue);
+                }
                 
                 if ($this->params['transliterate']) {
                     $verbalValue = transliterate($verbalValue);
@@ -361,6 +369,10 @@ class type_CustomKey extends type_Key
                     
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
+                    if ($this->params['translate']) {
+                        $v = tr($v);
+                    }
+                    
                     if ($this->params['transliterate']) {
                         $v = transliterate($v);
                     }
@@ -387,8 +399,12 @@ class type_CustomKey extends type_Key
                     
                     return new Redirect(array($mvc, 'list'), tr($msg));
                 } else {
+                    if ($this->params['translate']) {
+                        $options = self::translateOptions($options);
+                    }
+                    
                     if ($this->params['transliterate']) {
-                        $options = array_map('transliterate', (array)$options); 
+                        $options = self::transliterateOptions($options);
                     }
                 }
                 
@@ -414,5 +430,39 @@ class type_CustomKey extends type_Key
         // Извикваме базовата имплементация (дефинирана в core_Type), за да прескочим 
         // имплементацията на type_Int
         return $this->_baseGetMysqlAttr();
+    }
+    
+    
+	/**
+     * Транслитерира масив с опции, като запазва възможността някои от тях да са обекти
+     */
+    static function transliterateOptions($options)
+    {
+        foreach($options as &$opt) {
+            if(is_object($opt)) {
+                $opt->title = transliterate($opt->title);
+            } else {
+                $opt = transliterate($opt);
+            }
+        }
+
+        return $options;
+    }
+    
+    
+	/**
+     * Превежда масив с опции, като запазва възможността някои от тях да са обекти
+     */
+    static function translateOptions($options)
+    {
+        foreach($options as &$opt) {
+            if(is_object($opt)) {
+                $opt->title = tr($opt->title);
+            } else {
+                $opt = tr($opt);
+            }
+        }
+
+        return $options;
     }
 }

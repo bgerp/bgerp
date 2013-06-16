@@ -246,8 +246,12 @@ class core_Master extends core_Manager
         // Рендираме заглавието
         $data->row->SingleTitle = $this->renderSingleTitle($data);
         
-        // Рендираме лентата с инструменти
-        $data->row->SingleToolbar = $this->renderSingleToolbar($data);
+        // Ако е зададено да се рендира
+        if (!$data->noToolbar) {
+            
+            // Рендираме лентата с инструменти
+            $data->row->SingleToolbar = $this->renderSingleToolbar($data);
+        }
         
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
