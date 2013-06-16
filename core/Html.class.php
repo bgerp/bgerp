@@ -95,10 +95,10 @@ class core_Html
         }
 
         unset($attr['onblur']);
-        
+        $attr['type'] = 'text';
         $tpl->append(ht::createElement('input', $attr));
         
-        unset($attr['autocomplete']);
+        unset($attr['autocomplete'], $attr['type']);
 
         $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$suffix}');";
 
