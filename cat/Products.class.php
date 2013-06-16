@@ -155,7 +155,7 @@ class cat_Products extends core_Master {
         $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=EAN,width=15em');
 		$this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи,maxColumns=2');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, translate)', 'caption=Групи,maxColumns=2');
         
         $this->setDbUnique('code');
     }
@@ -530,5 +530,50 @@ class cat_Products extends core_Master {
     	// Връщаме ДДС-то от периода
     	$period = acc_Periods::fetchByDate($date);
     	return $period->vatRate;
+    }
+    
+    
+	/**
+     * След всеки запис
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+        if($rec->groups) {
+            $mvc->updateGroupsCnt = TRUE;
+        }
+    }
+    
+    
+	/**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    static function on_Shutdown($mvc)
+    {
+        if($mvc->updateGroupsCnt) {
+            $mvc->updateGroupsCnt();
+        }
+    }
+    
+    
+    /**
+     * Ъпдейтване на броя продукти на всички групи
+     */
+    private function updateGroupsCnt()
+    {
+    	$groupsCnt = array();
+    	$query = $this->getQuery();
+        
+        while($rec = $query->fetch()) {
+            $keyArr = keylist::toArray($rec->groups);
+            foreach($keyArr as $groupId) {
+                $groupsCnt[$groupId]++;
+            }
+        }
+        
+        $groupQuery = cat_Groups::getQuery();
+        while($grRec = $groupQuery->fetch()){
+        	$grRec->productCnt = (int)$groupsCnt[$grRec->id];
+        	cat_Groups::save($grRec);
+        }
     }
 }

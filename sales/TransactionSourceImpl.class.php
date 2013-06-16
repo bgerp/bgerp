@@ -167,13 +167,7 @@ class sales_TransactionSourceImpl
             return FALSE;
         }
         
-        // Експедиране от текущ склад?
-        if ($rec->shipmentStoreId != store_Stores::getCurrent('id', FALSE)) {
-            // Експедиране от склад, който не е зададен като текущ
-            return FALSE;
-        }
-        
-        return TRUE;
+        return $rec->isInstantShipment == 'yes';
     }
     
     
@@ -191,13 +185,7 @@ class sales_TransactionSourceImpl
             return FALSE;
         }
         
-        // Плащане в текущата каса?
-        if (empty($rec->caseId) || $rec->caseId != cash_Cases::getCurrent('id', FALSE)) {
-            // Не е избрана каса или избраната каса не е текущата
-            return FALSE;
-        }
-        
-        return TRUE;
+        return $rec->isInstantPayment == 'yes';
     }
     
     

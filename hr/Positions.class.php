@@ -77,8 +77,8 @@ class hr_Positions extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
-        $this->FLD('nkpd', 'varchar(9)', 'caption=НКПД, hint=Номер по НКИД');
-        $this->FLD('nkid', 'varchar(9)', 'caption=НКИД, hint=Номер по НКПД');
+        $this->FLD('nkpd', 'key(mvc=hr_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
+        $this->FLD('nkid', 'key(mvc=hr_NKID, select=title)', 'caption=НКИД, hint=Номер по НКИД');
         
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=@Характеристика, ');
         
@@ -86,8 +86,32 @@ class hr_Positions extends core_Master
         
         $this->setDbUnique('name');
     }
+    
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	//bp($data->rec, $data->singleFields, $data);
+    }
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete'){
+	    	if ($rec->id) {
+	        	
+	    		$inUse = hr_EmployeeContracts::fetch("#positionId = '{$rec->id}'");
+	    		
+	    		if($inUse){
+	    			$requiredRoles = 'no_one';
+	    		}
+    	     }
+         }
     }
 }

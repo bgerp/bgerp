@@ -91,6 +91,7 @@ class cat_Params extends core_Manager
         $this->FNC('typeExt', 'varchar', 'caption=Име');
         
         $this->setDbUnique('name, suffix');
+        $this->setDbUnique("sysId");
     }
     
     

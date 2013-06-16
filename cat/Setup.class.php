@@ -101,7 +101,7 @@ class cat_Setup
      */
     function loadSetupData()
     {
-    	// Зареждане на Мерни еденици от csv файл
+    	// Зареждане на Мерни единици от csv файл
     	$html .= cat_setup_UoM::setup();
     	
     	// Зареждане на Опаковки от csv файл

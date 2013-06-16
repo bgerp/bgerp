@@ -155,7 +155,9 @@ class bgerp_Setup {
         $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
 		$Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
 		
-		
+		// Добавяме Импортиращия драйвър в core_Classes
+        core_Classes::add('bgerp_BaseImporter');
+        
         //TODO в момента се записват само при инсталация на целия пакет
         
         

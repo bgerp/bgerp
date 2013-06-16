@@ -795,7 +795,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $document = doc_Containers::getDocument($rec->originId);
             
-            $docHtml = $document->getDocumentBody();
+            $docHtml = $document->getInlineDocumentBody('html');
             
             $tpl->append($docHtml, 'DOCUMENT');
             
@@ -854,6 +854,55 @@ class doc_DocumentPlg extends core_Plugin
        
         $form->title .= $title;
      }
+    
+     
+    /**
+     * Рендиране на документи за вътрешно представяне
+     */
+    function on_AfterGetInlineDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml');
+        
+        // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
+        // във формата, указан от `text` режима (plain или html)
+        Mode::push('text', $mode);
+        
+        if (!Mode::is('text', 'html')) {
+            
+            // Временна промяна на текущия потребител на този, който е активирал документа
+            $bExitSudo = core_Users::sudo($mvc->getContainer($id)->activatedBy);
+        }
+        
+        // Ако възникне изключение
+        try {
+            // Подготвяме данните за единичния изглед
+            $data = $mvc->prepareDocument($id, $options);
+            
+            $data->noToolbar = !$options->withToolbar;
+            
+            $res  = $mvc->renderDocument($id, $data);
+        } catch (Exception $e) {
+            
+            // Ако сме в SUDO режим
+            if ($bExitSudo) {
+                
+                // Възстановяване на текущия потребител
+                core_Users::exitSudo();
+            }
+            
+            expect(FALSE, $e);
+        }
+        
+        // Ако сме в SUDO режим
+        if ($bExitSudo) {
+            
+            // Възстановяване на текущия потребител
+            core_Users::exitSudo();
+        }
+        
+        // Връщаме старата стойност на 'printing' и 'text'
+        Mode::pop('text');
+    }
     
     
     /**
