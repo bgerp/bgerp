@@ -319,16 +319,8 @@ class type_Key extends type_Int {
             }
         } else {
             
-            if(method_exists($mvc, 'act_ajax_GetOptions')) {
-                $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"{$this->params['mvc']}\"" .
-                ", Act:\"ajax_GetOptions\", ajax_mode:1}";
-            }
-            
-            if($this->params['size']) {
-                $attr['size'] = $this->params['size'];
-            }
-            
-            $tpl = ht::createCombo($name, $value, $attr, $this->suggestions);
+            expect(FALSE);
+
         }
         
         return $tpl;
