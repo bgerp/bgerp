@@ -450,10 +450,10 @@ class core_Packs extends core_Manager
         $pack = strtolower($pack);
         
         // Предпазване срещу рекурсивно зацикляне
-        if($this->alreadySetup[$pack]) return;
+        if($this->alreadySetup[$pack . $force]) return;
         
         // Отбелязваме, че на текущия хит, този пакет е установен
-        $this->alreadySetup[$pack] = TRUE;
+        $this->alreadySetup[$pack . $force] = TRUE;
 
         GLOBAL $setupFlag;
         
