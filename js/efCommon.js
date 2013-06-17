@@ -206,7 +206,7 @@ function comboBoxInit(id, suffix)
 
 	if(txtCombo && selCombo) {
 		var width = txtCombo.offsetWidth;
-		var arrow = selCombo.offsetHeight - 7;
+		var arrow = selCombo.offsetHeight - 5;
 
 		selCombo.style.width = (width) + 'px'; 
 		txtCombo.style.width = (width -  arrow + 6 ) + 'px';
@@ -217,8 +217,8 @@ function comboBoxInit(id, suffix)
 		if(txtCombo.offsetHeight != selCombo.offsetHeight) {
 			txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
 			// txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
-			txtCombo.style.marginTop = '2px';
-			selCombo.style.marginTop = '2px';
+			//txtCombo.style.marginTop = '2px';
+			//selCombo.style.marginTop = '2px';
 		}
 
 		selCombo.style.visibility = 'visible';

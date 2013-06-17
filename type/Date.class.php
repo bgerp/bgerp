@@ -95,6 +95,8 @@ class type_Date extends core_Type {
         } else {
             $value = $attr['value'];
         }
+
+        setIfNot($attr['type'], 'text');
         
         return $this->createInput($name, $value, $attr);
     }
