@@ -11,7 +11,7 @@
 	<table border = '0'id='quot-table'>
 	<tr>
 		<td id='quot-title-td' style="vertical-align:top">
-		<div class='quote-title'>|ОФЕРТА|*</div>
+		<div class='quote_title'>|ОФЕРТА|*</div>
 			<p class='title-info'>
 				№  &nbsp;<b>[#number#]</b> 
 			</p>
