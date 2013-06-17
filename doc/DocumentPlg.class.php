@@ -795,7 +795,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $document = doc_Containers::getDocument($rec->originId);
             
-            $docHtml = $document->getInlineDocumentBody('html');
+            $docHtml = $document->getInlineDocumentBody();
             
             $tpl->append($docHtml, 'DOCUMENT');
             

@@ -502,7 +502,7 @@ class doc_Threads extends core_Manager
             $threadRec = self::fetch($threadId);
             $originTpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Първи документ в нишката") . "</b></div>[#DOCUMENT#]</div>");
             $document = doc_Containers::getDocument($threadRec->firstContainerId);
-            $docHtml = $document->getDocumentBody();
+            $docHtml = $document->getInlineDocumentBody();
             $originTpl->append($docHtml, 'DOCUMENT');
             
             if(!$exp->midRes) {
