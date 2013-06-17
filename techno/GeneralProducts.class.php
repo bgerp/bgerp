@@ -213,7 +213,7 @@ class techno_GeneralProducts extends core_Manager {
 				$row->image = $Fancybox->getImage($data->image, $size, array(550, 550));
     		}
     		$img = sbf('img/16/add.png');
-    		if(techno_Specifications::haveRightFor('edit', $data->specificationId)){
+    		if(techno_Specifications::haveRightFor('configure', $data->specificationId)){
     			$addUrl = array($this, 'configure', $data->specificationId, 'ret_url' => TRUE);
 	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
     		}
@@ -297,7 +297,7 @@ class techno_GeneralProducts extends core_Manager {
      */
     private function getParamTools($paramId, $specificationId)
     {
-    	if(techno_Specifications::haveRightFor('edit', $specificationId)) {
+    	if(techno_Specifications::haveRightFor('configure', $specificationId)) {
     		
 	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
 			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
@@ -365,9 +365,9 @@ class techno_GeneralProducts extends core_Manager {
     function act_Configure()
     {
     	$Specifications = cls::get('techno_Specifications');
-    	$Specifications->requireRightFor('edit');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $Specifications->fetch($id));
+    	$Specifications->requireRightFor('configure', $rec);
     	$data = unserialize($rec->data);
     	
     	if($paramId = Request::get('delete')){
@@ -380,7 +380,7 @@ class techno_GeneralProducts extends core_Manager {
     	$form = $this->getAddParamForm($data);
     	$fRec = $form->input();
         if($form->isSubmitted()) {
-        	if($Specifications->haveRightFor('edit')){
+        	if($Specifications->haveRightFor('configure', $rec)){
         		
         		// Проверка дали въведените стойности за правилни
         		cat_products_Params::isValueValid($form);
@@ -402,5 +402,21 @@ class techno_GeneralProducts extends core_Manager {
         
         $form->title = "Добавяне на параметри към ". $Specifications->getTitleById($rec->id);
     	return $Specifications->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Помага за генериране на последваща оферта
+     * Връща масив от вида [име_на_поле] => [количество]
+     * За всяка една от тези стойностти в генерираната оферта
+     * се добавя по един ред
+     * @return array
+     */
+    function getFollowingQuoteInfo($data)
+    {
+    	$data = unserialize($data);
+    	return array('quantity1' => $data->quantity1,
+    				 'quantity2' => $data->quantity2,
+    				 'quantity3' => $data->quantity3);
     }
 }

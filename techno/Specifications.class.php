@@ -120,6 +120,12 @@ class techno_Specifications extends core_Master {
     
     
     /**
+     * Кой може да го отхвърли?
+     */
+    var $canAjust = 'admin,techno';
+    
+    
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'title';
@@ -143,7 +149,7 @@ class techno_Specifications extends core_Master {
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, input=hidden');
-		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог');
+		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог,input=hidden,silent');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('contragentName', 'varchar(136)', 'caption=Контрагент,input=hidden');
 		$this->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)');
@@ -192,31 +198,84 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
+     * Преди всеки екшън на мениджъра-домакин
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_BeforeAction($mvc, &$tpl, $action)
     {
-    	$form = &$data->form;
-    	//$form->fieldsLayout = new ET("[#BTN#]");
-   	    //$options = core_Classes::getOptionsByInterface('techno_ProductsIntf');
-    	//foreach($options as $id => $cls){
-    	//	$title = cls::getTitle($cls);
-    		//$btn = ht::createFnBtn($title, '','', array('data-id' => $id, 'class' => 'specDriverBtn'));
-    		//$form->fieldsLayout->append($btn, 'BTN');
-    		//bp($title);
-    		//
-    		//bp($btn);
-    		//$form->fieldsLayout->append = $btn->getContent();
-    	//}
-    	//bp($form->renderHtml());
-    	//$form->fieldsLayout = new ET(ht::createFnBtn('-1', '','', array('id' => 'decBtn','class' => 'buttonForm')));
-    	if($contragentData = doc_Folders::getContragentData($form->rec->folderId)){
-    		if($contragentData->person) {
-    			$form->rec->contragentName = $contragentData->person;
-    		} elseif($contragentData->company) {
-    			$form->rec->contragentName = $contragentData->company;
-    		} 
-    	}
+        if ($action != 'add') {
+            // Плъгина действа само при добавяне на документ
+            return;
+        }
+        
+        if (!$mvc->haveRightFor($action)) {
+            // Няма права за този екшън - не правим нищо - оставяме реакцията на мениджъра.
+            return;
+        }
+        
+        $form = static::getForm();
+        $form->title = 'Създаване на нова спецификация';
+
+        $jsEnabled = Mode::is('javascript', 'yes');
+        if(!$jsEnabled){
+        	$form->setField('prodTehnoClassId', 'input');
+        	 $form->toolbar->addSbBtn('Напред', 'default', array('class'=>'btn-next btn-move'));
+        }
+        
+    	$form->toolbar->addBtn('Отказ', array(get_called_class(), 'add'), array('class'=>'btn-cancel'));
+    	$form->cmd = 1;
+    	$form->method = 'GET';
+        $form->input();
+       
+        
+        if ($form->isSubmitted() && isset($form->rec->prodTehnoClassId)) {
+        	
+        	if($contragentData = doc_Folders::getContragentData($form->rec->folderId)){
+	    		if($contragentData->person) {
+	    			$form->rec->contragentName = $contragentData->person;
+	    		} elseif($contragentData->company) {
+	    			$form->rec->contragentName = $contragentData->company;
+	    		}
+        	} 
+        	
+        	$form->rec->id = static::fetchLastEmpty($form->rec->folderId);
+        	$id = static::save($form->rec);
+    		return Redirect(array(get_called_class(), 'Ajust', $id));
+        }
+        
+        $form = $form->renderHtml();
+        
+        if($jsEnabled){
+	        $options = core_Classes::getOptionsByInterface('techno_ProductsIntf');
+	    	foreach($options as $id => $cls){
+	    		$title = cls::getTitle($cls);
+	    		$btn = ht::createFnBtn($title, '','', array('data-techno-id' => $id, 'class' => 'specDriverBtn'));
+	    		$form->append($btn, 'FORM_FIELDS');
+	    	}
+        }
+    	
+    	$tpl = $mvc->renderWrapping($form);
+        jquery_Jquery::enable($tpl);
+        $tpl->push('js/techno.js', 'JS');
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $folderId
+     */
+    private static function fetchLastEmpty($folderId)
+    {
+    	$query = static::getQuery();
+    	$query->where("#state = 'draft'");
+    	$query->where("#folderId = {$folderId}");
+    	$query->orderBy("#id", "DESC");
+    	$query->where("#title = ''");
+    	$query->where("#data IS NULL");
+    	
+    	return $query->fetch()->id;
     }
     
     
@@ -271,7 +330,7 @@ class techno_Specifications extends core_Master {
     	while($rec = $query->fetch()){
     		$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
     	}
-    	if(!count($products)) followRetUrl(NULL, 'Няма спецификации за този клиент');
+    	//if(!count($products)) followRetUrl(NULL, 'Няма спецификации за този клиент');
     	
     	return $products;
     }
@@ -312,19 +371,13 @@ class techno_Specifications extends core_Master {
 	    		$row->noData = tr('Няма данни');
 	    	}
 	    }
-    }
-    
-    
-	/**
-     * Подменя URL-то да сочи направо към формата на технологовия клас
-     */
-    static function on_AfterPrepareRetUrl($mvc, $data)
-    {
-        if($data->form && $data->form->isSubmitted()) {
-        	$rec = $data->form->rec;
-        	$url = array($mvc, 'Ajust', $rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
-            $data->retUrl = $url;
-        }
+	    
+	    if($fields['-list']){
+	    	if($mvc->haveRightFor('ajust', $rec)){
+	    		$img = "<img src=" . sbf('img/16/testing.png') . ">";
+	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id));
+	    	}
+	    }
     }
     
     
@@ -397,7 +450,7 @@ class techno_Specifications extends core_Master {
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($data->rec->state == 'draft'){
+    	if($mvc->haveRightFor('ajust', $data->rec)){
     		
         	// Може да се променят с само на чернова
         	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
@@ -503,7 +556,27 @@ class techno_Specifications extends core_Master {
     {
     	if($action == 'activate'){
     		
-    		if(!isset($rec) || (isset($rec) && !$rec->data)){
+    		if(!isset($rec) || (isset($rec) && $rec->state != 'draft') || (isset($rec) && !$rec->data)){
+    			$res = 'no_one';
+    		}else {
+    			$res = 'admin, techno';
+    		}
+    	}
+    	
+    	if($action == 'ajust' && isset($rec)){
+    		if($rec->state != 'draft'){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'edit'){
+    		$res = 'no_one';
+    	}
+    	
+    	if($action == 'configure' && isset($rec)){
+    		if($rec->state == 'draft'){
+    			$res = 'admin, techno';
+    		} else {
     			$res = 'no_one';
     		}
     	}
@@ -523,5 +596,20 @@ class techno_Specifications extends core_Master {
     	$rec = static::fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getProductInfo($rec->data, $packagingId);
+    }
+    
+    
+    /**
+     * Помага за генериране на последваща оферта
+     * Връща масив от вида [име_на_поле] => [количество]
+     * За всяка една от тези стойностти в генерираната оферта
+     * се добавя по един ред
+     * @return array
+     */
+	function getFollowingQuoteInfo($id)
+	{
+    	$rec = static::fetch($id);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	return $technoClass->getFollowingQuoteInfo($rec->data);
     }
 }
