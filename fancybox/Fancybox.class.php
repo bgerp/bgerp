@@ -49,7 +49,12 @@ class fancybox_Fancybox {
         $imgAttr['title']  = tr('Кликни за увеличение');
         setIfNot($imgAttr['alt'], $baseName);
         $imgTpl = ht::createElement('img', $imgAttr);
-        
+
+        if($imgAttr['height'] >= $maxSize[0] && $imgAttr['width'] >= $maxSize[1]) {
+
+            return $imgTpl;
+        }
+
         // Създаваме хипервръзката
         $sizes['baseName'] = $baseName;
         $aAttr['href'] = $Thumb->getLink($fh, $maxSize, $sizes);
