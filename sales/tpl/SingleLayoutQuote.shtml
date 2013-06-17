@@ -55,7 +55,7 @@
 		<!--ET_BEGIN rate-->|при курс|* [#rate#]<!--ET_END rate--></li>
 		<li>|Офертата е валидна до 30 дни след датата на издаване|*</li>
 		<li>|Начин на плащане|*: [#paymentMethodId#]</li>
-		<li>|Начин на доставка|*: [#deliveryTermId#]</li>
+		<li>|Условие на доставка|*: [#deliveryTermId#] [#deliveryPlace#]</li>
 		<!--ET_BEGIN others-->
 		[#others#]
 		<!--ET_END others-->

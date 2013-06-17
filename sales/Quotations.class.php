@@ -117,18 +117,22 @@ class sales_Quotations extends core_Master
      */
     public function description()
     {
-    	$this->FLD('date', 'date', 'caption=Дата, mandatory,width=8em'); 
-    	$this->FLD('contragentName', 'varchar(255)', 'caption=Клиент,mandatory,width=15em');
-    	$this->FLD('receiver', 'key(mvc=crm_Persons, select=name)', 'caption=Получател');
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф');
+    	$this->FLD('date', 'date', 'caption=Дата, mandatory'); 
+        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,unit=дни,width=8em');
+        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,width=100%', array('attr' => array('style' => 'max-width:500px;')));
+        $this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em');
         $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
         $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
-        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Условия->Доставка,width=8em');
-        $this->FLD('others', 'text(rows=4)', 'caption=Условия->Други,width=25em');
+        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
+        $this->FLD('deliveryPlace', 'varchar(128)', 'caption=Доставка->Място,width=8em');
+        
+        $this->FLD('contragentName', 'varchar(255)', 'caption=Получател->Фирма,mandatory');
+    	$this->FLD('receiver', 'key(mvc=crm_Persons, select=name)', 'caption=Получател->Лице');
+
     }
     
     
