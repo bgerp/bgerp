@@ -335,7 +335,11 @@ div .rich-text {
     color:#000;
     line-height:120%;
     border:solid 1px #ddd;
-	white-space: pre-wrap;	
+	white-space: pre-wrap;
+}
+
+.narrow div .rich-text{
+	font-size:0.9em;
 }
 
 div.richtext .code{
@@ -372,7 +376,6 @@ div.richtext .code code{
 	overflow:visible;
 	max-width: auto;
 	white-space:pre-line;
-	font-size:0.8em;
 }
 
 .richtext .code {
