@@ -460,16 +460,13 @@ class blast_ListDetails extends core_Detail
                 foreach($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
                     $rec = new stdClass();
-                    
                     foreach($fieldsArr as $name => $caption) {
                         $id = $exp->getValue("#col{$name}");
-                        
-                        if($id == -1) continue;
-                        $rec->{$name} = trim($rowArr[$id]);
+                        if($id == NULL) continue;
+                        $rec->{$name} = trim($rowArr[$id-1]);
                     }
-                    
+                   
                     $err = $this->normalizeRec($rec);
-                    
                     $keyField = $listRec->keyField;
                     
                     // Вземаме стойността на ключовото поле;
@@ -679,9 +676,9 @@ class blast_ListDetails extends core_Detail
             
             $csv[] = $rCsv;
         }
-
+		
         $csv = array_merge(array($columns),(array)$csv);
-
+		
         return $csv;
     }
 }
