@@ -56,17 +56,25 @@ class cms_plg_RichTextPlg extends core_Plugin
 
         // извличаме изображенията от групата и генерираме шаблона им
         $count = 1;
+        
         while($img = $imgagesRec->fetch()) {
-        	 $res = $Fancybox->getImage($img->src, $tArr, $mArr, $img->title, array('style' => $img->style));
-        	 $row = $tpl->getBlock('ROW');;
+            
+            $attr = array();
+
+            if($img->style || $groupRec->style) {
+                $attr['style'] = $img->style . ';' . $groupRec->style;
+            }
+
+            $res = $Fancybox->getImage($img->src, $tArr, $mArr, $img->title, $attr);
+            $row = $tpl->getBlock('ROW');;
         	 
-        	 $row->replace($res, 'TPL');
-        	 if($count % $groupRec->columns == 0) {
-        	 	$row->append("</tr><tr>");
-        	 }
-        	 $row->removeBlocks;
-        	 $row->append2master();
-        	 $count++;
+            $row->replace($res, 'TPL');
+            if($count % $groupRec->columns == 0) {
+                $row->append("</tr><tr>");
+            }
+            $row->removeBlocks;
+            $row->append2master();
+            $count++;
          }
          
          $place = $this->mvc->getPlace();
@@ -98,8 +106,14 @@ class cms_plg_RichTextPlg extends core_Plugin
         $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
             
         $Fancybox = cls::get('fancybox_Fancybox');
+        
+        $attr = array();
 
-        $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, array('style' => $imgRec->style));
+        if($img->style || $groupRec->style) {
+            $attr['style'] = $img->style . ';' . $groupRec->style;
+        }
+
+        $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, $attr);
         
         $place = $this->mvc->getPlace();
 
