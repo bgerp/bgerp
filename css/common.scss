@@ -320,11 +320,12 @@ p.richtext {
 	padding: 2px 0 0 15px;
 	border-left: 5px solid #e0e0e0;
 }
+
 .quote-title {
 	margin-top: 1em;
 }
 
-pre.richtext {
+div .rich-text {
     font-family: Courier New,monospace;
     padding:10px;
 	background:transparent;
@@ -337,18 +338,19 @@ pre.richtext {
 	white-space: pre-wrap;	
 }
 
-.wide pre.richtext.code{
-	padding:0;
-	max-width: 830px;
+div.richtext .code{
 	border:1px solid #ddd;
 	background:transparent;
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
-    zoom: 1;
-    width:100%;
 	background:rgba(245,245,255,0.5);
 }
 
-pre.richtext.code code{
+.wide div.richtext .code{
+	padding:10px;
+	max-width: 830px;
+}
+
+div.richtext .code code{
 	background:none;
 }
 
@@ -361,24 +363,27 @@ pre.richtext.code code{
 	padding: 0 5px;
 }
 
-.wide pre.richtext{
+.wide div.richtext{
 	overflow: auto; 
 	max-width:810px;
 }
 
-.narrow  pre.richtext {
+.narrow  div.richtext {
 	overflow:visible;
 	max-width: auto;
+	white-space:pre-line;
+	font-size:0.8em;
 }
 
 .richtext .code {
-	white-space:pre;
+	white-space:pre !important;
 	margin: 10px 0px;
-
 }
-pre.code{
+
+div.code{
     background: rgba(255,255,230,0.5);
 }
+
 div.richtext li {
     margin:0px;
     padding:0px;

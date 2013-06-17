@@ -529,9 +529,9 @@ class type_Richtext extends type_Blob
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $code1 = "<div class='richtext code{$classLg}'><div>" . rtrim($code) . "</div></div>"; 
+            $code1 = "<div class='rich-text code{$classLg}'><div>" . rtrim($code) . "</div></div>"; 
         } else {
-            $code1 = "<div class='richtext'>" . rtrim($code) . "</div>";
+            $code1 = "<div class='rich-text'>" . rtrim($code) . "</div>";
         }
         
         $this->_htmlBoard[$place] = $code1;
