@@ -24,8 +24,8 @@ class crm_ext_CourtReg extends core_Detail
         $this->FLD('companyId', 'key(mvc=crm_Companies)', 'input=hidden,silent');
         
         // Данни за съдебната регистрация
-        $this->FLD('regCourt', 'varchar', 'caption=Решение по регистрация->Съдилище,width=60%');
-        $this->FLD('regDecisionNumber', 'int', 'caption=Решение по регистрация->Номер');
+        $this->FLD('regCourt', 'varchar', 'caption=Решение по регистрация->Съдилище,width=100%');
+        $this->FLD('regDecisionNumber', 'int(8)', 'caption=Решение по регистрация->Номер');
         $this->FLD('regDecisionDate', 'date', 'caption=Решение по регистрация->Дата');
         
         // Фирмено дело
