@@ -1,0 +1,20 @@
+/*
+ * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
+ * вляво
+ */
+table.keylist {
+	
+    width: auto;
+	
+	td {
+	   padding-left: 0.5em;
+	   padding-right: 0.5em;
+	
+	   &:first-child {
+	       padding-left: 0;
+	   }
+	   &:last-child {
+	       padding-right: 0;
+	   }
+	}
+}
