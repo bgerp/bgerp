@@ -182,8 +182,8 @@ class sales_Sales extends core_Master
             'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
         $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 
             'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
-        $this->FLD('isInstantShipment', 'enum(no=Не,yes=Да)', 
-            'input, maxRadio=2, columns=2, caption=Експедиция на момента');
+        $this->FLD('isInstantShipment', 'enum(no=По-късно,yes=На момента)', 
+            'input, maxRadio=2, columns=2, caption=Експедиция');
         
         /*
          * Плащане
