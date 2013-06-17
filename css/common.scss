@@ -325,7 +325,7 @@ p.richtext {
 	margin-top: 1em;
 }
 
-div .rich-text {
+div.rich-text {
     font-family: Courier New,monospace;
     padding:10px;
 	background:transparent;
@@ -338,7 +338,7 @@ div .rich-text {
 	white-space: pre-wrap;
 }
 
-.narrow div .rich-text{
+.narrow div.rich-text{
 	font-size:0.9em;
 }
 
