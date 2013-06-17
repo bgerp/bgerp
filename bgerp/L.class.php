@@ -34,8 +34,14 @@ class bgerp_L extends core_Manager
      * Дължина на манипулатора 'mid'
      */
     const MID_LEN = 7;
-
-
+    
+    
+    /**
+     * 
+     */
+    var $protectId = FALSE;
+    
+    
     /**
      * Описание на модела
      */
@@ -240,5 +246,29 @@ class bgerp_L extends core_Manager
         
         return $url;
     }
-
+    
+    
+    /**
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     */
+    function unprotectId($id)
+    {
+        // Ако е число
+        if (!is_numeric($id)) {
+            
+            // Променлива, в която държим старото състояние
+            $protectId = $this->protectId;
+            
+            // Задаваме да се защитава
+            $this->protectId = TRUE;
+            
+            // Вземаме id' то
+            $id = $this->unprotectId_($id);
+            
+            // Връщаме стойността
+            $this->protectId = $protectId;
+        }
+        
+        return $id;
+    }
 }
