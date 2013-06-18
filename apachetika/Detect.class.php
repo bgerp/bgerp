@@ -67,7 +67,7 @@ class apachetika_Detect
         }
         
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Пътя до файла, в който ще се записва получения текст
         $textPath = $Script->tempDir . $file;
