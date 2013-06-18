@@ -213,6 +213,7 @@ class techno_GeneralProducts extends core_Manager {
 				$row->image = $Fancybox->getImage($data->image, $size, array(550, 550));
     		}
     		$img = sbf('img/16/add.png');
+    		//bp($data);
     		if(techno_Specifications::haveRightFor('configure', $data->specificationId)){
     			$addUrl = array($this, 'configure', $data->specificationId, 'ret_url' => TRUE);
 	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
@@ -408,6 +409,8 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Помага за генериране на последваща оферта
      * Връща масив от вида [име_на_поле] => [количество]
+     * Първия елемент е задължително [currencyId] - валута в която
+     * е цената на артикула
      * За всяка една от тези стойностти в генерираната оферта
      * се добавя по един ред
      * @return array
@@ -415,8 +418,14 @@ class techno_GeneralProducts extends core_Manager {
     function getFollowingQuoteInfo($data)
     {
     	$data = unserialize($data);
-    	return array('quantity1' => $data->quantity1,
-    				 'quantity2' => $data->quantity2,
-    				 'quantity3' => $data->quantity3);
+    	$array = array('currencyId' => $data->currencyId);
+    	
+    	foreach(range(1, 3) as $n){
+	    	if($q = $data->{"quantity{$n}"}){
+	    		$array["quantity{$n}"] = $q;
+	    	}
+    	}
+    	
+    	return $array;
     }
 }
