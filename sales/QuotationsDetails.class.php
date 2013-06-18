@@ -368,6 +368,7 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	$Policy = cls::get($rec->policyId);
         $productMan = $Policy->getProductMan();
+        $pInfo = $productMan->getProductInfo($rec->productId);
     	
         $double = cls::get('type_Double');
     	if(!$rec->quantity){
@@ -376,7 +377,7 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
     	
-    	$uomId = $productMan->fetchField($rec->productId, 'measureId');
+    	$uomId = $pInfo->productRec->measureId;
     	$row->uomShort = cat_UoM::getShortName($uomId);
     	
     	if($rec->discount && $rec->discount < 0){
@@ -446,8 +447,8 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	// Намират се полетата съдържащи информация за офертата
     	$quantities = $origin->getFollowingQuoteInfo();
+    	unset($quantities['currencyId']);
     	foreach($quantities as $q) {
-    		if(empty($q)) continue;
     		
     		// Записва се нов детайл за всяко зададено к-во
     		$dRec = new stdClass();

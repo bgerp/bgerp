@@ -235,6 +235,12 @@ class sales_Quotations extends core_Master
     		if($data->person) {
     			$form->setDefault('attn', $data->person);
     		}
+    		
+    		if(!$data->country){
+    			$conf = core_Packs::getConfig('crm');
+    			$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
+    		}
+    		$form->setDefault('country', $data->country);
     	}
     }
     
@@ -244,8 +250,6 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$varchar = cls::get('type_Varchar');
-    	
     	if(!Mode::is('printing')){
     		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
     	}
@@ -255,10 +259,10 @@ class sales_Quotations extends core_Master
 		$username = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($username, 'names')->names;
 		
-		if($rec->receiver){
-			$personRec = crm_Persons::fetch($rec->receiver);
-			$row->personPosition = crm_Persons::recToVerbal($personRec, 'buzPosition')->buzPosition;
+		if($row->address){
+			$row->contragentAdress = $row->address . ",";
 		}
+		$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$row->pcode, $row->place, $row->country)); 
 		
 		switch($rec->vat){
 			case 'yes':
