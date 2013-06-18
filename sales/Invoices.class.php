@@ -873,8 +873,6 @@ class sales_Invoices extends core_Master
         }
         
       	$result->entries = $entries;
-      	
-      	bp($result);
       	return $result;
     }
     

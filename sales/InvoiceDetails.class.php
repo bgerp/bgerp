@@ -189,12 +189,13 @@ class sales_InvoiceDetails extends core_Detail
 	    	$row->productId .= "<br/><small style='color:#555;'>{$row->note}</small>";
     	}
     	
-    	$productRec = $productMan->fetch($rec->productId);
+    	$pInfo = $productMan->getProductInfo($rec->productId);
+    	
     	if($rec->packagingId){
-    		$measureShort = cat_UoM::getShortName($productRec->measureId);
+    		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
     		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
     	} else {
-    		$row->packagingId = $productMan->getVerbal($productRec, 'measureId');
+    		$row->packagingId = cat_UoM::getTitleById($pInfo->productRec->measureId);
     	}
     	
     	$double = cls::get('type_Double');
