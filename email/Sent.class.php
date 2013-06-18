@@ -288,6 +288,7 @@ class email_Sent extends core_Manager
         $PML->Subject   = $message->subject;
         $PML->CharSet   = $message->charset;
         $PML->MessageID = $message->messageId;
+        $PML->Encoding = "base64";
         $PML->ClearReplyTos();
         
         if (!empty($message->html)) {
