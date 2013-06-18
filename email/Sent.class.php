@@ -288,7 +288,14 @@ class email_Sent extends core_Manager
         $PML->Subject   = $message->subject;
         $PML->CharSet   = $message->charset;
         $PML->MessageID = $message->messageId;
+        
+        /* 
+         * Ако не е зададено е 8bit
+         * Проблема се появява при дълъг стринг - без интервали и на кирилица.
+         * Понеже е entity се режи грешно от phpmailer -> class.smtpl.php - $max_line_length = 998;
+         */
         $PML->Encoding = "base64";
+        
         $PML->ClearReplyTos();
         
         if (!empty($message->html)) {
