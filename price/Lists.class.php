@@ -147,7 +147,11 @@ class price_Lists extends core_Master
         if(empty($rec->id)){
 	        if($rec->cId && $rec->cClass){
 	        	$rec->parent =  price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId);
-	            $parentOptions = self::makeArray4select('title', "#id = '{$rec->parent}' OR #public = 'yes' OR (#cId = '{$rec->cId}' AND #cClass = '{$rec->cClass}')");
+	            $cond = "#id = '{$rec->parent}' OR #public = 'yes' OR (#cId = '{$rec->cId}' AND #cClass = '{$rec->cClass}')";
+	        	if(haveRole('price,ceo')) {
+	        		$cond .= " OR #public = 'no' OR #public IS NULL";
+	        	}
+	            $parentOptions = self::makeArray4select('title', $cond);
 	            $form->setOptions('parent', $parentOptions);
 	        } else {
 	        	$conf = core_Packs::getConfig('price');
@@ -217,7 +221,7 @@ class price_Lists extends core_Master
     function on_AfterSetupMVC($mvc, $res)
     {
         $conf = core_Packs::getConfig('price');
-
+		
         if(!$mvc->fetchField($conf->PRICE_LIST_COST, 'id')) {
             $rec = new stdClass();
             $rec->id = $conf->PRICE_LIST_COST;
@@ -225,6 +229,7 @@ class price_Lists extends core_Master
             $rec->title  = 'Себестойност';
             $rec->currency = acc_Periods::getBaseCurrencyCode();
             $rec->vat      = 'no';
+            $rec->public = 'yes';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
             $mvc->save($rec, NULL, 'REPLACE');
