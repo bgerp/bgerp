@@ -229,7 +229,7 @@ class price_Lists extends core_Master
             $rec->title  = 'Себестойност';
             $rec->currency = acc_Periods::getBaseCurrencyCode();
             $rec->vat      = 'no';
-            $rec->public = 'yes';
+            $rec->public = 'no';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
             $mvc->save($rec, NULL, 'REPLACE');
