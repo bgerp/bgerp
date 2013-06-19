@@ -1,6 +1,10 @@
 [#SingleToolbar#]
 <!-- BEGIN container -->
 <div class='document'>
+
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
 	
 	 <div class='header [#STATE_CLASS#]'>
 		<div class='docBgIcon' style='[#iconStyle#]'>|Входящ имейл|*  <b>[#ident#]</b> ([#state#])</div>
@@ -18,6 +22,12 @@
 			<div class="em-holder" style='float:left;margin-right:10px;'>
 			  <small>   
 				<table cellspacing='1' class='top-table'>
+				<!--ET_BEGIN fromEml-->          
+					<tr>
+					    <td  align='right' style='vertical-align:top'>|От|*:</td>
+					    <td>[#fromEml#]</td>
+					</tr>
+				<!--ET_END fromEml-->
 				<!--ET_BEGIN allTo-->          
 					<tr>
 					    <td  align='right'>|До|*:</td>
@@ -30,12 +40,6 @@
 					    <td>[#allCc#]</td>
 					</tr>
 				<!--ET_END allCc-->
-				<!--ET_BEGIN from-->          
-					<tr>
-					    <td  align='right' style='vertical-align:top'>|От|*:</td>
-					    <td>[#fromEml#]</td>
-					</tr>
-				<!--ET_END to-->
 				<!--ET_BEGIN date-->          
 					<tr>
 					    <td align='right'>|На|*:</td>

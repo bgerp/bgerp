@@ -10,7 +10,7 @@
 	margin-left:0;
 }
 
-.quote-title{
+.quote_title{
 	margin-top:12px;
 	font-size:32px;
 	font-weight:bold;
@@ -109,7 +109,7 @@
 }
 
 .doc_Containers table.listTable td.misc-info{
-	vertical-align:middle !important;
+	vertical-align:top !important;
 }
 
 .discount {
@@ -156,9 +156,15 @@
 .wide .display-narrow{
 	display:none;
 }
+
 .narrow .display-wide{
 	display:none;
 }
+
+.discount{
+	font-size:14px;
+}
+
 @media print{
 	.document{
 		padding:0px;

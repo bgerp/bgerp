@@ -3,9 +3,8 @@
 
 
 /**
- * Интерфейс за импортиране на csv данни.
- * Класовете които го имплементират не трябва да имат description, но трябва
- * след сетъпа да са дефинирани в core_Classes
+ * Интерфейс за импортиране на csv данни. Класовете които го имплементират
+ * трябва след сетъпа да са дефинирани в core_Classes
  *
  *
  * @category  bgerp
@@ -18,8 +17,9 @@
 class bgerp_ImportIntf
 {
     
+    
 	/**
-	 * Инпортиране на csv-файл в cat_Products
+	 * Инпортиране на csv-файл в даден мениджър
      * @param array $rows - масив с обработени csv данни, получен от Експерта в bgerp_Import
      * @param array $fields - масив с съответстията на колоните от csv-то и
      * 		полетата от модела array[{поле_oт_модела}] = {колона_от_csv}
@@ -32,16 +32,6 @@ class bgerp_ImportIntf
     
     
     /**
-     * В кой мениджър ще се импортират данните
-     * @return core_Class $class - инстанция на мениджъра-дестинация
-     */
-	function getDestinationManager()
-    {
-        return $this->class->getDestinationManager();
-    }
-    
-    
-    /**
      * Метод връщащ масив от полета с техните заглавия от мениджъра, 
      * които ще приемат стойностти от csv-то
      * @return array $fields - масив от вида [{име_на_полето}] = {заглавие_на_полето}
@@ -49,5 +39,17 @@ class bgerp_ImportIntf
     function getFields()
     {
     	return $this->class->getFields();
+    }
+    
+    
+    /**
+     * Дали драйвъра може да се прикрепи към даден мениджър
+     * Мениджърите към които може да се прикачва се дефинират в $applyOnlyTo
+     * @param core_Mvc - мениджър за който се проверява
+     * @return boolean TRUE/FALSE - можели да се прикепи или не
+     */
+	function isApplicable($mvc)
+    {
+    	return $this->class->isApplicable($mvc);
     }
 }

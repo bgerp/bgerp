@@ -11,12 +11,6 @@
 	<div class='general-product'>
 			[#data#]
 	<!--ET_END data-->
-	
-	<!--ET_BEGIN noData-->
-	<div style = 'padding:10px 0px;font-weight:bold;color:darkred'>[#noData#]</div>
-	<!--ET_END noData-->
-	
-		<div>|Контрагент|*: &nbsp;[#contragentName#] </div>
 		<div>|Технолог|*: &nbsp;[#prodTehnoClassId#] </div>
 		<div>|Мярка|*: &nbsp;[#measureId#] </div>
 		<div>|Създаване|* |на|* [#createdDate#] |от|* [#createdBy#]</div>

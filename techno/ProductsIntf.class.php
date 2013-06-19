@@ -68,4 +68,19 @@ class techno_ProductsIntf
     {
     	return $this->class->getPrice($data, $packagingId, $quantity, $datetime);
     }
+    
+    
+    /**
+     * Помага за генериране на последваща оферта
+     * Връща масив от вида [име_на_поле] => [количество]
+     * Първия елемент е задължително [currencyId] - валута в която
+     * е цената на артикула
+     * За всяка една от тези стойностти в генерираната оферта
+     * се добавя по един ред
+     * @return array
+     */
+	public function getFollowingQuoteInfo($data)
+    {
+    	return $this->class->getFollowingQuoteInfo($data);
+    }
 }

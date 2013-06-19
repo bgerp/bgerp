@@ -1019,10 +1019,6 @@ div.acc-detail {
 	min-width:220px;
 	height:auto;
 }
-.narrow .document .richtext .code{
-	white-space:normal;
-	font-size:0.9em;
-}
 
 .document div.richtext-holder{
 	margin-top:0;
@@ -1425,9 +1421,12 @@ td.portal-date {
 
 .narrow .document{
 	min-width:200px;
-	width: 98%;
+	width: 100%;
 }
 
+.narrow .single-thread .document{
+	width:98%;
+}
 
 .listTable td{
 	max-width:500px;
@@ -2313,11 +2312,6 @@ input.combo.pCode{
 
 .narrow .webdrvFieldset div{
 	font-size:0.6em;
-}
-
-.narrow pre.richtext{
-	white-space:pre-line;
-	font-size:0.9em;
 }
 
 .narrow .webdrvFieldset {

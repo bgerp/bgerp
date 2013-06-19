@@ -29,6 +29,8 @@
  */
 class bgerp_plg_Import extends core_Plugin
 {
+	
+	
 	/**
      * Извиква се след описанието на модела
      * 
@@ -93,9 +95,9 @@ class bgerp_plg_Import extends core_Plugin
         		$firstRow = $exp->getValue("#firstRow");
         		
         		// Намиране на коя колона от csv-то на кое поле съответства
-        		$Driver = cls::get($driverId);
+        		$Driver = cls::get($driverId, $mvc);
         		$fields = $Driver->getFields();
-        		foreach($fields as $name => $caption){
+        		foreach($fields as $name => $arr){
         			$fields[$name] = $exp->getValue("#col{$name}");
         		}
         		
@@ -106,7 +108,7 @@ class bgerp_plg_Import extends core_Plugin
         		$msg = $Driver->import($rows, $fields);
         		
         		// Редирект кум лист изгледа на мениджъра в който се импортира
-        		return Redirect(array($Driver->getDestinationManager(), 'list'), 'FALSE', $msg);
+        		return Redirect(array($mvc, 'list'), 'FALSE', $msg);
         	} 
         	
     		if($content == 'DIALOG') {
@@ -141,7 +143,10 @@ class bgerp_plg_Import extends core_Plugin
     {
     	$textArr = explode(PHP_EOL, trim($csvData));
     	foreach($textArr as $line){
-    		$rows[] = str_getcsv($line, $delimiter, $enclosure);
+    		$arr = str_getcsv($line, $delimiter, $enclosure);
+    		array_unshift($arr, "");
+            unset($arr[0]);
+            $rows[] = $arr;
     	}
     	
     	if($firstRow == 'columnNames'){
@@ -173,11 +178,14 @@ class bgerp_plg_Import extends core_Plugin
     {
     	$exp->functions['getfilecontentcsv'] = 'bgerp_plg_Import::getFileContent';
     	$exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
-    		
+    	$exp->functions['getimportdrivers'] = 'bgerp_plg_Import::getImportDrivers';
+    	$exp->functions['verifydata'] = 'bgerp_plg_Import::verifyInputData';
+    	
     	// Избиране на драйвър за импортиране
-    	$exp->DEF('#driver', 'class(interface=bgerp_ImportIntf,select=title)', 'caption=Драйвър,input,mandatory');
+    	$exp->DEF('#driver', 'int', 'caption=Драйвър,input,mandatory');
+    	$exp->OPTIONS("#driver", "getimportdrivers()");
     	$exp->question("#driver", tr("Моля, изберете драйвър") . ":", TRUE, 'title=' . tr('Какъв драйвер ще се използва') . '?');
-
+		
     	// Избор как ще се въведат данните с copy & paste или с ъплоуд
     	$exp->DEF('#source=Източник', 'enum(csvFile=Файл със CSV данни,csv=Copy&Paste на CSV данни)', 'maxRadio=5,columns=1,mandatory');
         $exp->ASSUME('#source', '"csvFile"');
@@ -206,27 +214,47 @@ class bgerp_plg_Import extends core_Plugin
         
         $driverId = $exp->getValue('#driver');
         if($driverId){
-        	$Driver = cls::get($driverId);
+        	$Driver = cls::get($driverId , $exp->mvc);
 	        $fieldsArr = $Driver->getFields();
-	        $dManager= $Driver->getDestinationManager();
-
+			
 	        // Поставяне на възможност да се направи мачване на 
 	        // полетата от модела и полетата от csv-то
-	    	foreach($fieldsArr as $name => $caption) {
-		        $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
+	    	foreach($fieldsArr as $name => $fld) {
+		        $exp->DEF("#col{$name}={$fld['caption']}", 'int', "{$fld['mandatory']}");
 		        $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
-		        $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}')");
-		            
+		        $exp->ASSUME("#col{$name}", "-1");
 		        $qFields .= ($qFields ? ',' : '') . "#col{$name}";
 	        }
-	        $exp->question($qFields, tr("Въведете съответстващите полета за \"{$dManager->className}\"") . ":", TRUE, 'title=' . tr('Съответствие между полетата на източника и списъка'));
-        	$res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow,{$qFields}");
+	        
+	        $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->className}\"") . ":", TRUE, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
+	       
+        	$res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow,#lastQ");
         } else {
         	$res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow");
         }
-        
+	        
         // Връщане на резултата
         return $res;
+    }
+    
+    
+    /**
+     * Функция връщаща опции с всички драйвери които могат да се прикачват
+     * към мениджъра
+     * @return array $options - масив с възможни драйвъри
+     */
+    public function getImportDrivers()
+    {
+    	$options = array();
+    	$Drivers = core_Classes::getOptionsByInterface('bgerp_ImportIntf');
+    	foreach ($Drivers as $id => $driver){
+    		$Driver = cls::get($id);
+    		if($Driver->isApplicable($this->mvc)){
+    			$options[$id] = $Driver->title;
+    		}
+    	}
+    	
+    	return $options;
     }
     
     
@@ -236,14 +264,7 @@ class bgerp_plg_Import extends core_Plugin
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'import') {
-        	
-        	// Неможе да се импортира ако няма инсталиран драйвър
-        	$importOptions = core_Classes::getOptionsByInterface('bgerp_ImportIntf');
-    		if(count($importOptions)){
-    			$res = 'admin';
-    		} else {
-    			$res = 'no_one';
-    		}
+        	$res = 'admin';
         }
     }
 }

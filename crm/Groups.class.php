@@ -84,6 +84,15 @@ class crm_Groups extends core_Master
     
     
     /**
+     * Дали да се превежда, транслитерира singleField полето
+     * 
+     * translate - Превежда
+     * transliterate - Транслитерира
+     */
+    var $langSingleField = 'translate';
+    
+    
+    /**
      * Клас за елемента на обграждащия <div>
      */
     var $cssClass = 'folder-cover';
@@ -108,6 +117,7 @@ class crm_Groups extends core_Master
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         
         $this->setDbUnique("name");
+        $this->setDbUnique("sysId");
     }
    
    /**
@@ -264,7 +274,7 @@ class crm_Groups extends core_Master
                 $nAffected++;
             }
 
-            $mvc->save($rec, NULL, 'replace');
+            $mvc->save($rec, NULL, 'IGNORE');
         }
         
         // END За всеки елемент от масива

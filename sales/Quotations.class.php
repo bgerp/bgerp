@@ -85,7 +85,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, date, contragentName, deliveryTermId, createdOn,createdBy';
+    public $listFields = 'id, date, recipient, attn, deliveryTermId, createdOn,createdBy';
     
 
     /**
@@ -117,18 +117,30 @@ class sales_Quotations extends core_Master
      */
     public function description()
     {
-    	$this->FLD('date', 'date', 'caption=Дата, mandatory,width=8em'); 
-    	$this->FLD('contragentName', 'varchar(255)', 'caption=Клиент,mandatory,width=15em');
-    	$this->FLD('receiver', 'key(mvc=crm_Persons, select=name)', 'caption=Получател');
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф');
+    	$this->FLD('date', 'date', 'caption=Дата, mandatory'); 
+        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,unit=дни,width=8em');
+        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,width=100%', array('attr' => array('style' => 'max-width:500px;')));
+        $this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em');
         $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
         $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
-        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Условия->Доставка,width=8em');
-        $this->FLD('others', 'text(rows=4)', 'caption=Условия->Други,width=25em');
+        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
+        $this->FLD('deliveryPlace', 'varchar(128)', 'caption=Доставка->Място,width=8em');
+        
+        //$this->FLD('contragentName', 'varchar(255)', 'caption=Получател');
+    	//$this->FLD('receiver', 'key(mvc=crm_Persons, select=name)', 'caption=Получател->Лице');
+		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData, changable');
+        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,class=contactData, changable');
+        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,class=contactData, changable');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,class=contactData, changable');
+        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,class=contactData, changable');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,class=contactData, changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=contactData, changable');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData, changable');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData, changable');
     }
     
     
@@ -190,32 +202,46 @@ class sales_Quotations extends core_Master
     	$form->setDefault('contragentClassId', $contragentClassId);
     	$form->setDefault('contragentId', $contragentId);
     	
-    	if($data->person) {
-    		$form->setDefault('contragentName', $data->person);
-    		
-    	} elseif ($data->company) {
-    		$form->setDefault('contragentName', $data->company);
-    	}
-    	$form->setReadOnly('contragentName');
-    	
-    	if($data->countryId){
-    		$currencyCode  = drdata_Countries::fetchField($data->countryId, 'currencyCode');
-    	} else {
-    		$currencyCode = acc_Periods::getBaseCurrencyCode($rec->date);
-    	}
-    	
-    	if($contragentClassId == crm_Companies::getClassId()){
-    		$options = array();
-    		$personQuery = crm_Persons::getQuery();
-    		$personQuery->where("#buzCompanyId = {$contragentId}");
-    		while($pRec = $personQuery->fetch()){
-    			$options[$pRec->id] = crm_Persons::recToVerbal($pRec, 'name')->name;
-    		}
-    	}
-    	
-    	(!count($options)) ? $form->setField('receiver', 'input=none') : $form->setOptions('receiver', $options);
-    	
+    	$currencyCode = ($data->countryId) ? drdata_Countries::fetchField($data->countryId, 'currencyCode') : acc_Periods::getBaseCurrencyCode($rec->date);
     	$form->setDefault('paymentCurrencyId', $currencyCode);
+    	
+    	if($rec->threadId){
+    		$query = $this->getQuery();
+    		$query->where("#threadId = {$rec->threadId}");
+    		$query->orderBy('#createdOn', 'DESC');
+    		$lastOffer = $query->fetch();
+    	} 
+    	
+    	if(!$lastOffer){
+    		$query = $this->getQuery();
+    		$query->where("#folderId = {$rec->folderId}");
+    		$query->orderBy('#createdOn', 'DESC');
+    		$lastOffer = $query->fetch();
+    	}
+    	
+    	if($lastOffer){
+    		$fields = $this->selectFields("#class == contactData");
+    		foreach ($fields as $name => $fld){
+    			if(isset($lastOffer->$name)){
+    				$rec->$name = $lastOffer->$name;
+    			}
+    		}
+    		
+    	} else {
+    		if ($data->company) {
+    			$form->setDefault('recipient', $data->company);
+    		}
+    		
+    		if($data->person) {
+    			$form->setDefault('attn', $data->person);
+    		}
+    		
+    		if(!$data->country){
+    			$conf = core_Packs::getConfig('crm');
+    			$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
+    		}
+    		$form->setDefault('country', $data->country);
+    	}
     }
     
     
@@ -224,33 +250,19 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$varchar = cls::get('type_Varchar');
-    	
     	if(!Mode::is('printing')){
     		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
     	}
-    	
-    	$contragentData =  doc_Folders::getContragentData($rec->folderId);
-    	
-    	if($contragentData->person) {
-    		$row->contragentAdress .= " {$contragentData->pAddress}";
-    	}
-
-    	if($contragentData->company) {
-    		$row->contragentAdress .= " {$contragentData->address}";
-    	}
-
-    	$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$contragentData->pCode, $contragentData->place, $contragentData->country));
     
     	$row->number = $mvc->getHandle($rec->id);
 		
 		$username = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($username, 'names')->names;
 		
-		if($rec->receiver){
-			$personRec = crm_Persons::fetch($rec->receiver);
-			$row->personPosition = crm_Persons::recToVerbal($personRec, 'buzPosition')->buzPosition;
+		if($row->address){
+			$row->contragentAdress = $row->address . ",";
 		}
+		$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$row->pcode, $row->place, $row->country)); 
 		
 		switch($rec->vat){
 			case 'yes':

@@ -42,6 +42,15 @@ class cat_Groups extends core_Master
     
     
     /**
+     * Дали да се превежда, транслитерира singleField полето
+     * 
+     * translate - Превежда
+     * transliterate - Транслитерира
+     */
+    var $langSingleField = 'translate';
+    
+    
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
@@ -116,6 +125,8 @@ class cat_Groups extends core_Master
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         $this->FLD('productCnt', 'int', 'input=none');
+        
+        $this->setDbUnique("sysId");
     }
     
     

@@ -133,6 +133,19 @@ class sales_QuotationsDetails extends core_Detail {
        $productMan = $Policy->getProductMan();
        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
        
+       // Ако офертата е базирана на спецификация, то тя може да
+       // се добавя редактира в нея дори ако е чернова
+       if(!count($products)){
+       		if(isset($masterRec->originId)){
+	       		$origin = doc_Containers::getDocument($masterRec->originId);
+	    		if($origin->className == 'techno_Specifications'){
+	    			$products[$origin->that] = $origin->recToVerbal('title')->title;
+	    		}
+       		} else {
+       			return Redirect(array($mvc->Master, 'single', $rec->quotationId), NULL, 'Няма достъпни продукти');
+       		}
+       }
+       
        $form->setOptions('productId', $products);
        
        if($form->rec->price && $masterRec->rate){
@@ -285,7 +298,7 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	(!$totalDisc) ? $totalDisc = NULL : $totalDisc = $double->toVerbal($total-$totalDisc);
+    	(!$totalDisc) ? $totalDisc = NULL : $totalDisc = $double->toVerbal($totalDisc);
     	$total = $double->toVerbal($total);
     	$data->total = (object) array('total' => $total, 'totalDisc' => $totalDisc);
     }
@@ -355,6 +368,7 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	$Policy = cls::get($rec->policyId);
         $productMan = $Policy->getProductMan();
+        $pInfo = $productMan->getProductInfo($rec->productId);
     	
         $double = cls::get('type_Double');
     	if(!$rec->quantity){
@@ -362,10 +376,9 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
-    	$uomId = $productMan->fetchField($rec->productId, 'measureId');
-    	$uomTitle = cat_UoM::getShortName($uomId);
     	
-    	$row->quantity = "<b>{$row->quantity}</b> {$uomTitle}";
+    	$uomId = $pInfo->productRec->measureId;
+    	$row->uomShort = cat_UoM::getShortName($uomId);
     	
     	if($rec->discount && $rec->discount < 0){
     		$row->discount = abs($rec->discount);
@@ -419,22 +432,25 @@ class sales_QuotationsDetails extends core_Detail {
     
     /**
      * Ако ориджина е спецификация вкарват се записи отговарящи
-     * на посочените примерни коли1ества в нея
+     * на посочените примерни количества в нея
      * @param stdClass $rec - запис на оферта
      * @param core_ObjectReference $origin - пораждащия документ
-     * (спецификация)
      */
     public function insertFromSpecification($rec, core_ObjectReference $origin)
     {
     	$originRec = $origin->fetch();
-    	$originData = unserialize($originRec->data);
-    	
-    	$this->delete("#quotationId = $rec->id");
-    	$quantities = array($originData->quantity1, $originData->quantity2, $originData->quantity3);
     	$policyId = techno_Specifications::getClassId();
     	$Policy = cls::get($policyId);
-    	foreach ($quantities as $q){
-    		if(empty($q)) continue;
+    	
+    	// Изтриват се предишни записи на спецификацията в офертата
+    	$this->delete("#quotationId = $rec->id AND #productId = {$origin->that} AND #policyId = {$policyId}");
+    	
+    	// Намират се полетата съдържащи информация за офертата
+    	$quantities = $origin->getFollowingQuoteInfo();
+    	unset($quantities['currencyId']);
+    	foreach($quantities as $q) {
+    		
+    		// Записва се нов детайл за всяко зададено к-во
     		$dRec = new stdClass();
     		$dRec->quotationId = $rec->id;
     		$dRec->productId = $origin->that;

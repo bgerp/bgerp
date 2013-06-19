@@ -44,9 +44,15 @@ class bnav_BnavImporter extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Импорт от бизнес навигатор";
+    var $title = "Импорт от артикули от Бизнес навигатор";
     
     
+    /**
+     * Към кои мениджъри да се показва драйвъра
+     */
+	static $applyOnlyTo = 'cat_Products';
+	
+	
     /**
      * Кои полета от cat_Products ще получат стойностти от csv-то
      */
@@ -58,6 +64,15 @@ class bnav_BnavImporter extends core_Manager {
      */
     
     
+	/**
+     * Инициализиране драйвъра
+     */
+    function init($mvc)
+    {
+    	$this->mvc = $mvc;
+    }
+    
+    
     /**
      * Функция, връщаща полетата в които ще се вкарват данни
      * в мениджъра-дестинация
@@ -67,15 +82,15 @@ class bnav_BnavImporter extends core_Manager {
     	$fields = array();
     	
     	// Взимат се всички полета на мениджъра, в който ще се импортира
-    	$Dmanager = $this->getDestinationManager();
-    	$Dfields = $Dmanager->selectFields();
+    	$Dfields = $this->mvc->selectFields();
     	$selFields = arr::make(static::$importFields, TRUE);
     	
     	// За всяко поле посочено в, проверява се имали го като поле
     	// ако го има се добавя в масива с неговото наименование
     	foreach($Dfields as $name => $fld){
     		if(isset($selFields[$name])){
-    			$fields[$name] = $fld->caption;
+    			$arr = array('caption' =>$fld->caption, 'mandatory'=>$fld->mandatory);
+    			$fields[$name] = $arr;
     		}
     	}
     	
@@ -235,5 +250,14 @@ class bnav_BnavImporter extends core_Manager {
     	}
     	
     	$html .= "Добавени {$added} нови артикула, Обновени {$updated} съществуващи артикула<br/>";
+    }
+    
+    
+    /**
+     * Драйвъра може да се показва само към инстанция на cat_Products
+     */
+    public static function isApplicable($mvc)
+    {
+    	return $mvc instanceof static::$applyOnlyTo;
     }
 }

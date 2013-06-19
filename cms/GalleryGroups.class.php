@@ -57,6 +57,8 @@ class cms_GalleryGroups extends core_Manager {
         
         $this->FLD('tpl', 'html', 'caption=Шаблон');
         
+        $this->FLD('style', 'varchar', 'caption=Стил');
+
         $this->FLD('columns', 'int', 'caption=Колони');
      
         $this->FLD('tWidth', 'int', 'caption=Тъмб->широчина');
