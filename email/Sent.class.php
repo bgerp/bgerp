@@ -294,7 +294,7 @@ class email_Sent extends core_Manager
          * Проблема се появява при дълъг стринг - без интервали и на кирилица.
          * Понеже е entity се режи грешно от phpmailer -> class.smtpl.php - $max_line_length = 998;
          */
-        $PML->Encoding = "base64";
+        $PML->Encoding = "quoted-printable";
         
         $PML->ClearReplyTos();
         
