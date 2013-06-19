@@ -10,10 +10,17 @@
 	<!--ET_END header-->
 	<div class='general-product'>
 			[#data#]
-	<!--ET_END data-->
-		<div>|Технолог|*: &nbsp;[#prodTehnoClassId#] </div>
-		<div>|Мярка|*: &nbsp;[#measureId#] </div>
-		<div>|Създаване|* |на|* [#createdDate#] |от|* [#createdBy#]</div>
+			<table class='styled-table'>
+			<tr>
+				<td>|Технолог|*:</td>
+				<td>[#prodTehnoClassId#]</td>
+			</tr>
+			<tr>
+				<td>|Мярка|*:</td>
+				<td>[#measureId#]</td>
+			</tr>
+			</table>
+		<div>|Създаване на|* [#createdDate#] |от|* [#createdBy#]</div>
 	</div>
 	<div class='details'>
 	[#DETAILS#]

@@ -75,10 +75,8 @@ class techno_GeneralProducts extends core_Manager {
     	$form->FNC('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%,input');
     	$form->FNC('description', 'richtext(rows=5, bucket=Notes)', 'caption=Описание,input,mandatory,width=100%');
 		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input');
-    	
-		$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. Себестойност,width=8em,mandatory,input');
+    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. Себестойност,width=8em,mandatory,input');
 		$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Цени->Нач. такси,width=8em,input');
-		
 		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
     	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,unit=%');
 		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
@@ -202,7 +200,7 @@ class techno_GeneralProducts extends core_Manager {
         
         if($short){
     		if($data->image){
-    				$size = array(130, 130);
+    			$size = array(130, 130);
     			$file = fileman_Files::fetchByFh($data->image);
     			$row->image = thumbnail_Thumbnail::getImg($file->fileHnd, $size);
     		}
@@ -212,9 +210,9 @@ class techno_GeneralProducts extends core_Manager {
 	    		$Fancybox = cls::get('fancybox_Fancybox');
 				$row->image = $Fancybox->getImage($data->image, $size, array(550, 550));
     		}
-    		$img = sbf('img/16/add.png');
-    		//bp($data);
-    		if(techno_Specifications::haveRightFor('configure', $data->specificationId)){
+    		
+    		if(techno_Specifications::haveRightFor('configure', $data->specificationId) && !Mode::is('printing')){
+    			$img = sbf('img/16/add.png');
     			$addUrl = array($this, 'configure', $data->specificationId, 'ret_url' => TRUE);
 	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
     		}
@@ -267,6 +265,10 @@ class techno_GeneralProducts extends core_Manager {
      */
     private function toVerbal($data)
     {
+    	$varchar = cls::get('type_Varchar');
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	
     	// Преобразуваме записа във вербален вид
     	$row = new stdClass();
         $fields = $this->getEditForm()->selectFields("");
@@ -276,11 +278,10 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
     	if($data->params){
-    		$fields = $this->getAddParamForm($data)->selectFields("");
     		foreach($data->params as $paramId => $value){
-    			$arr['paramId'] = $fields['paramId']->type->toVerbal($paramId);
-    			$arr['paramValue'] = $fields['paramValue']->type->toVerbal($value);
-    			$suffix = $fields['paramValue']->type->toVerbal(cat_Params::fetchField($paramId, 'suffix'));
+    			$arr['paramId'] = cat_Params::getTitleById($paramId);
+    			$arr['paramValue'] = (is_numeric($value)) ? $double->toVerbal($value) : $varchar->toVerbal($value);
+    			$suffix = $varchar->toVerbal(cat_Params::fetchField($paramId, 'suffix'));
     			$arr['paramValue'] .= " &nbsp;{$suffix}";
     			$arr['tools'] = $this->getParamTools($paramId, $data->specificationId);
         		$row->params[$paramId] = $arr;
@@ -298,7 +299,7 @@ class techno_GeneralProducts extends core_Manager {
      */
     private function getParamTools($paramId, $specificationId)
     {
-    	if(techno_Specifications::haveRightFor('configure', $specificationId)) {
+    	if(techno_Specifications::haveRightFor('configure', $specificationId) && !Mode::is('printing')) {
     		
 	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
 			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
@@ -400,8 +401,8 @@ class techno_GeneralProducts extends core_Manager {
         	$form->rec->paramValue = $data->params[$paramId];
         	$form->rec->paramId = $paramId;	
         }
-        
-        $form->title = "Добавяне на параметри към ". $Specifications->getTitleById($rec->id);
+       
+        $form->title = "Добавяне на параметри към |*". $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
     }
     
@@ -419,7 +420,6 @@ class techno_GeneralProducts extends core_Manager {
     {
     	$data = unserialize($data);
     	$array = array('currencyId' => $data->currencyId);
-    	
     	foreach(range(1, 3) as $n){
 	    	if($q = $data->{"quantity{$n}"}){
 	    		$array["quantity{$n}"] = $q;

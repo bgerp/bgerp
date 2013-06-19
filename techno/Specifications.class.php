@@ -56,7 +56,7 @@ class techno_Specifications extends core_Master {
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title';
+    var $searchFields = 'title, folderId';
     
     
     /**
@@ -75,12 +75,6 @@ class techno_Specifications extends core_Master {
      * Кой може да го прочете?
      */
     var $canRead = 'admin,techno';
-    
-    
-    /**
-     * Кой може да променя?
-     */
-    var $canEdit = 'no_one';
     
     
     /**
@@ -160,7 +154,7 @@ class techno_Specifications extends core_Master {
     static function on_AfterPrepareListFilter($mvc, $data)
     {
     	 $data->listFilter->view = 'horizontal';
-    	 $data->listFilter->FNC('prodTehnoClass', 'class(interface=techno_ProductsIntf,allowEmpty)', 'placeholder=Технолог');
+    	 $data->listFilter->FNC('prodTehnoClass', 'class(interface=techno_ProductsIntf,allowEmpty,select=title)', 'placeholder=Технолог');
     	 $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
     	 $data->listFilter->showFields = 'search,prodTehnoClass';
     	 $data->listFilter->input();
@@ -172,6 +166,8 @@ class techno_Specifications extends core_Master {
     
     /**
      * Преди всеки екшън на мениджъра-домакин
+     * Показва се меню с достъпните драйвери и след като се избере
+     * един се преминава към създаването на спецификация
      */
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
@@ -184,8 +180,6 @@ class techno_Specifications extends core_Master {
             // Няма права за този екшън - не правим нищо - оставяме реакцията на мениджъра.
             return;
         }
-        
-        $jsEnabled = Mode::is('javascript', 'yes');
         
         $tpl = new ET("");
         $options = core_Classes::getOptionsByInterface('techno_ProductsIntf');
@@ -300,13 +294,12 @@ class techno_Specifications extends core_Master {
 	    if($fields['-list']){
 	    	if($mvc->haveRightFor('ajust', $rec)){
 	    		$img = "<img src=" . sbf('img/16/testing.png') . ">";
-	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id));
+	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id)) . $row->tools;
 	    	}
 	    	
 	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
 	    		$img = doc_Folders::getIconImg($rec->folderId);
-	    		$attr['class'] = 'linkWithIcon';
-	    		$attr['style'] = 'background-image:url(' . $img . ');';
+	    		$attr = array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . $img . ');');
 	    		$link = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
             	$row->folderId = ht::createLink($row->folderId, $link, NULL, $attr);
 	    	}
@@ -341,7 +334,7 @@ class techno_Specifications extends core_Master {
         expect($technoClass = cls::get($rec->prodTehnoClassId));
     	$form = $technoClass->getEditForm();
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), array('class' => 'btn-cancel'));
+        $form->toolbar->addBtn('Отказ', array($this, 'list'), array('class' => 'btn-cancel'));
         
     	$fRec = $form->input();
         if($form->isSubmitted()) {
@@ -353,15 +346,15 @@ class techno_Specifications extends core_Master {
         		
 	            // Записваме мастър - данните
 	            $this->save($rec);
+	            
+	            // Записваме данните въведени от технолога
         		$fRec->specificationId = $rec->id;
         		$rec->data = $technoClass->serialize($fRec);
-        		
-        		// Записваме данните въведени от технолога
         		$this->save($rec);
         		
+        		// Нова оферта се създава само ако има въведени количества
         		$quantities = $technoClass->getFollowingQuoteInfo($rec->data);
-        		// Нова оферта се създава само ако има въведено количество
-	        	if(count($quantities) > 1){
+        		if(count($quantities) > 1){
 	    			return Redirect(array($this, 'newQuote', $rec->id));
 	    		} else {
 	    			return Redirect(array($this, 'single', $rec->id));
@@ -429,22 +422,20 @@ class techno_Specifications extends core_Master {
     	$Quotations = cls::get('sales_Quotations');
     	$qId = $Quotations->fetchField("#originId = {$rec->containerId}", 'id');
     	
-    	$data = new stdClass();
-	    $data->form = sales_Quotations::getForm();
-	    if($qId){
-	    	 $data->form->rec->id = $qId;
+    	$qRec = new stdClass();
+    	if($qId){
+	    	 $rec->id = $qId;
 	    }
-	    $data->form->rec->folderId = $rec->folderId;
-		$data->form->rec->originId = $rec->containerId;
-		$data->form->rec->threadId = $rec->threadId;
-	    $Quotations->invoke('AfterPrepareEditForm', array($data));
-	    $data->form->rec->rate = round(currency_CurrencyRates::getRate($data->form->rec->date, $qInfo['currencyId'], NULL), 4);
-	    
-	    $data->form->rec->paymentCurrencyId = $qInfo['currencyId'];
-	    $data->form->rec->vat = 'yes';
-	    $data->form->rec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
-	    $data->form->rec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
-	    $qId = $Quotations->save($data->form->rec);
+	    $qRec->folderId = $rec->folderId;
+		$qRec->originId = $rec->containerId;
+		$qRec->threadId = $rec->threadId;
+		$Quotations->populateDefaultData($qRec);
+	    $qRec->rate = round(currency_CurrencyRates::getRate($qRec->date, $qInfo['currencyId'], NULL), 4);
+	    $qRec->paymentCurrencyId = $qInfo['currencyId'];
+	    $qRec->vat = 'yes';
+	    $qRec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
+	    $qRec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
+	    $qId = $Quotations->save($qRec);
     	
 	    return Redirect(array($this, 'single', $id));
 	}
@@ -518,6 +509,10 @@ class techno_Specifications extends core_Master {
     		if($rec->state != 'draft'){
     			$res = 'no_one';
     		}
+    	}
+    	
+    	if($action == 'edit'){
+    		$res = 'no_one';
     	}
     	
     	if($action == 'configure' && isset($rec)){
