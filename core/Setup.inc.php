@@ -963,8 +963,11 @@ function gitHasNewVersion($repoPath, &$log)
         
         return FALSE;
     }
-    
-    $arrResRemote = preg_split('/\s+/', $arrResRemote[0]);
+    foreach ($arrResRemote as $val) {
+    	if (strpos($val, "refs/heads") === TRUE);
+    	$refsHeads = $val;
+    }
+    $arrResRemote = preg_split('/\s+/', $refsHeads);
     
     //print_r($arrResRemote); die;
     
