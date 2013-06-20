@@ -37,7 +37,7 @@ class jquery_Jquery {
      */
     static function enable(&$tpl)
     {
-        $jQuery = sbf('jquery/' . JQUERY_VERSION . '/jquery.min.js', '', TRUE);
+        $jQuery = 'jquery/' . JQUERY_VERSION . '/jquery.min.js';
 
         $tpl->push($jQuery, "JS");
     }
