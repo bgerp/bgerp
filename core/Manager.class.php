@@ -493,7 +493,7 @@ class core_Manager extends core_Mvc
      */
     function prepareEditToolbar_($data)
     {
-        $data->form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $data->form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $data->form->toolbar->addBtn('Отказ', $data->retUrl, array('class' => 'btn-cancel'));
         
         return $data;
@@ -572,7 +572,7 @@ class core_Manager extends core_Mvc
         
         // Шаблон за листовия изглед
         $listLayout = new ET("
-            <div style='display:table' class='clearfix21 {$className}'>
+            <div class='clearfix21 switching-display {$className}'>
                 [#ListTitle#]
                 <div class='listTopContainer clearfix21'>
                     [#ListFilter#]
@@ -585,6 +585,10 @@ class core_Manager extends core_Mvc
             </div>
           ");
         
+        if($data->listScroll){
+        	$listLayout->replace('whole-page', 'WHOLEPAGE');
+        }
+        		
         return $listLayout;
     }
     
