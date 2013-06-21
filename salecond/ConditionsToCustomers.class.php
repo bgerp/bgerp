@@ -18,12 +18,6 @@ class salecond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * Поле - ключ към мастера
-     */
-    //var $masterKey = 'cId';
-    
-    
-    /**
      * Заглавие
      */
     var $title = 'Други условия';
@@ -32,12 +26,6 @@ class salecond_ConditionsToCustomers extends core_Manager
      * Единично заглавие
      */
     var $singleTitle = 'Друго условие';
-    
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-   //var $listFields = 'otherId, otherValue, tools=Пулт';
     
     
     /**
@@ -65,8 +53,26 @@ class salecond_ConditionsToCustomers extends core_Manager
     {
         $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
-        $this->FLD('conditionId', 'key(mvc=salecond_Others,select=name)', 'input,caption=условие,mandatory');
-        $this->FLD('value', 'varchar(255)', 'input,caption=Стойност,mandatory');
+        $this->FLD('conditionId', 'key(mvc=salecond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory');
+        $this->FLD('value', 'varchar(255)', 'caption=Стойност');
+    }
+    
+    
+    /**
+     * Извиква се след подготовка на формата
+     */
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+    	/*$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	if(!$rec->id){
+    		$form->addAttr('conditionId', array('onchange' => "addCmdRefresh(this.form); this.form.submit();"));
+    	}
+    	
+    	if($form->cmd == 'refresh'){
+    		$form->setField('value', 'input=hidden');
+    	} */
     }
     
     
@@ -75,6 +81,24 @@ class salecond_ConditionsToCustomers extends core_Manager
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
+    	/*if($form->cmd == 'refresh'){
+    		$condRec = salecond_Parameters::fetch($form->rec->conditionId);
+    		
+    		if($condRec->options){
+    			$vArr = explode(",", $condRec->options);
+    			$options = array_combine($vArr, $vArr);
+    			
+	    		if($condRec->type == 'enum'){
+	    			//$form->FNC('enumValues',  cls::get('type_Enum', array('options' => $options)), 'input,caption=Опции');
+	    			$form->setField('value', 'disabled');
+	    			$form->setOptions('value', $options);
+	    		} else {
+	    			$vArr = explode(',', $condRec->values);
+	    			$form->setSuggestions('value', array_combine($vArr, $vArr));
+	    		}
+    		}
+    	}*/
+    	
         if($form->isSubmitted()) {
             static::isValueValid($form);
         }
@@ -164,7 +188,7 @@ class salecond_ConditionsToCustomers extends core_Manager
     static function isValueValid(core_Form &$form)
     {
     	$rec = &$form->rec;
-    	expect($paramType = salecond_Others::fetchField($rec->conditionId, 'type'));
+    	expect($paramType = salecond_Parameters::fetchField($rec->conditionId, 'type'));
             
         // взависимост от избрания параметър проверяваме дали 
         // стойността му е във валиден формат за неговия тип

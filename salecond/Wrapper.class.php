@@ -25,7 +25,7 @@ class salecond_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('salecond_DeliveryTerms', 'Доставки');
     	$this->TAB('salecond_PaymentMethods', 'Плащания');    
-        $this->TAB('salecond_Others', 'Условия');
+        $this->TAB('salecond_Parameters', 'Параметри');
    		
         $this->title = 'Терминология';
     }
