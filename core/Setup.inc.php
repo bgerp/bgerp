@@ -57,10 +57,19 @@ if (setupKeyValid() && !setupProcess()) {
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
 
+// Какъв е протокол-а
+
+if (isset($_SERVER['HTTPS']) &&
+		($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
+		isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
+		$_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+	$protocol = 'https://';
+}
+else {
+	$protocol = 'http://';
+}
 // Собственото URL
-$selfUri = "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
-
-
+$selfUri = "{$protocol}{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
 
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
