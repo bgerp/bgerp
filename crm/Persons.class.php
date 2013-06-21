@@ -2017,42 +2017,6 @@ class crm_Persons extends core_Master
             $requiredRoles = 'no_one';
         }
     }
-
-    
-    /**
-     * Връща стойността на дадено търговско условие за клиента
-     * @param int $id - ид на контрагента
-     * @param string $conditionSysId - sysId на параметър (@see salecond_Others)
-     * @return string $value - стойността на параметъра
-     * Намира се в следния ред:
-     * 	  1. Директен запис в salecond_ConditionsToCustomers
-     * 	  2. Дефолт метод "get{$conditionSysId}" дефиниран в модела
-     *    3. Супер дефолта на параметъра дефиниран в salecond_Others
-     *    4. NULL ако нищо не е намерено
-     */
-    public static function getSaleCondition($id, $conditionSysId)
-    {
-    	expect(static::fetch($id));
-    	expect($condId = salecond_Others::fetchField("#sysId = '{$conditionSysId}'", 'id'));
-    	$cClass = static::getClassId();
-    	
-    	//Връщаме стойността ако има директен запис за условието
-    	if($value = salecond_ConditionsToCustomers::fetchByCustomer($cClass, $id, $condId)){
-    		return $value;
-    	}
-    	
-    	// Търси се метод дефиниран за връщане на стойността на условието
-    	$method = "get{$conditionSysId}";
-    	if(method_exists(get_called_class(), $method)){
-    		return static::$method($id);
-    	}
-    	
-    	// Връща се супер дефолта на параметъра;
-    	$default = salecond_Others::fetchField($condId, 'default');
-    	if(isset($default)) return $default;
-    	
-    	return NULL;
-    }
     
     
     /**

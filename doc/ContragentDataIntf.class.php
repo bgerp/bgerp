@@ -64,21 +64,4 @@ class doc_ContragentDataIntf
     {
         return $this->class->shouldChargeVat($id);
     }
-    
-    
-    /**
-     * Връща стойността на дадено търговско условие за контрагента
-     * @param int $id - ид на контрагента
-     * @param string $conditionSysId - sysId на параметър (@see salecond_Others)
-     * @return string $value - стойността на параметъра
-     * Намира се в следния ред:
-     * 	  1. Директен запис в salecond_ConditionsToCustomers
-     * 	  2. Дефолт метод "get{$conditionSysId}" дефиниран в модела
-     *    3. Супер дефолта на параметъра дефиниран в salecond_Others
-     *    4. NULL ако нищо не е намерено
-     */
-    function getSaleCondition($id, $conditionSysId)
-    {
-    	return $this->class->getSaleCondition($id, $conditionSysId);
-    }
 }
