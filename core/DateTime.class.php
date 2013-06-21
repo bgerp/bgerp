@@ -220,6 +220,16 @@ class core_DateTime
     
     
     /**
+     * Връща разликата в секунди между две дати.
+     * Може да работи само с дати в UNIX ерата
+     */
+    static function secBetwen($date1, $date2)
+    {
+        return dt::mysql2timestamp($date1) - dt::mysql2timestamp($date2);
+    }
+    
+    
+    /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
     static function mysql2verbal($mysqlDate, $mask = "d-m-y H:i", $lg = NULL)
