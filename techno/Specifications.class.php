@@ -3,7 +3,7 @@
 
 
 /**
- * Документ "Спецификации"
+ * Документ "Спецификация"
  *
  *
  * @category  bgerp
@@ -145,7 +145,8 @@ class techno_Specifications extends core_Master {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, input=hidden');
 		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог,input=hidden,silent');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
-	}
+		$this->FLD('common', 'enum(no,yes)', 'input=none,value=no');
+    }
     
     
     /**
@@ -196,7 +197,6 @@ class techno_Specifications extends core_Master {
 	    }
       	
 	    $tpl = $mvc->renderWrapping($tpl);
-        
         return FALSE;
     }
     
@@ -233,10 +233,9 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Връща продуктие, които могат да се продават на
-     * посочения клиент. Това са всички спецификации
-     * от неговата папка, ако няма спецификации 
-     * редиректваме с подходящо съобщение
+     * Връща продуктие, които могат да се продават на посочения клиент
+     * Това са всички спецификации от неговата папка, както и
+     * всички общи спецификации (създадени в папка "Проект")
      */
     function getProducts($customerClass, $customerId, $date = NULL)
     {
@@ -246,9 +245,10 @@ class techno_Specifications extends core_Master {
     	
     	$products = array();
     	$query = $this->getQuery();
-    	$query->where("#folderId = {$folderId}");
-    	$query->where("#data IS NOT NULL");
     	$query->where("#state = 'active'");
+    	$query->where("#folderId = {$folderId} AND #data IS NOT NULL");
+    	$query->orWhere("#common = 'yes'");
+    	
     	while($rec = $query->fetch()){
     		$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
     	}
@@ -267,8 +267,8 @@ class techno_Specifications extends core_Master {
     {
         // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
         $cover = doc_Folders::getCover($folderId);
-        
-        return $cover->haveInterface('doc_ContragentDataIntf');
+       
+        return $cover->haveInterface('doc_ContragentDataIntf') || $cover->className == 'doc_UnsortedFolders';
     }
     
     
@@ -310,15 +310,17 @@ class techno_Specifications extends core_Master {
     /**
      * Екшън който показва формата за въвеждане на характеристики
      * на продукта, спрямо избрания продуктов технолог
+     * Формата за характеристиките се взима от драйвера
      */
     function act_Ajust()
     {
     	$this->requireRightFor('add');
     	if($id = Request::get('id', 'int')){
     		expect($rec = $this->fetch($id));
+    		expect($rec->state == 'draft');
     	} else {
     		expect($technoId = Request::get('technoId', 'int'));
-	    	$folderId = Request::get('technoId', 'int');
+	    	$folderId = Request::get('folderId', 'int');
 	    	$originId = Request::get('originId', 'int');
 	    	$rec = new stdClass();
 	    	$rec->prodTehnoClassId = $technoId;
@@ -332,7 +334,17 @@ class techno_Specifications extends core_Master {
     	
         // Връщаме формата от технологовия клас
         expect($technoClass = cls::get($rec->prodTehnoClassId));
-    	$form = $technoClass->getEditForm();
+    	$form = $technoClass->getEditForm($rec);
+    	if($rec->folderId) {
+    		$cover = doc_Folders::fetchCoverClassName($rec->folderId);
+    	}
+    	
+    	if($cover != 'doc_UnsortedFolders'){
+			$form->FNC('quantity1', 'int', 'caption=Последваща оферта->К-во 1,width=4em,input');
+    		$form->FNC('quantity2', 'int', 'caption=Последваща оферта->К-во 2,width=4em,input');
+    		$form->FNC('quantity3', 'int', 'caption=Последваща оферта->К-во 3,width=4em,input');
+		}
+    	
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
         $form->toolbar->addBtn('Отказ', array($this, 'list'), array('class' => 'btn-cancel'));
         
@@ -340,9 +352,16 @@ class techno_Specifications extends core_Master {
         if($form->isSubmitted()) {
         	if($this->haveRightFor('add')){
         		
+        		// Ако се създава в папка проект, то спецификацията е обща
+        		if($cover == 'doc_UnsortedFolders'){
+        			$rec->common = 'yes';
+        		}
+        		
         		// Записваме въведените данни в пропъртито data на река
 	            $rec->title = $fRec->title;
 	            $fRec = (object)array_merge((array) unserialize($rec->data), (array) $fRec);
+        		$quantities = array($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
+	            unset($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
         		
 	            // Записваме мастър - данните
 	            $this->save($rec);
@@ -352,23 +371,27 @@ class techno_Specifications extends core_Master {
         		$rec->data = $technoClass->serialize($fRec);
         		$this->save($rec);
         		
-        		// Нова оферта се създава само ако има въведени количества
-        		$quantities = $technoClass->getFollowingQuoteInfo($rec->data);
-        		if(count($quantities) > 1){
-	    			return Redirect(array($this, 'newQuote', $rec->id));
-	    		} else {
-	    			return Redirect(array($this, 'single', $rec->id));
-	    		}
+        		$hasQuantities = $quantities[0] || $quantities[1] || $quantities[2];
+        		if($rec->common != 'yes' && $hasQuantities){
+        			$qId = sales_Quotations::fetchField("#originId = {$rec->containerId} AND #threadId = {$rec->threadId}", 'id');
+        			if($qId){
+        				
+        				// Ако има оферта в треда и има въведени к-ва -> ъпдейтва се наличната офертата
+        				return Redirect(array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'specId' => $rec->id, 'quantity1' => $quantities[0], 'quantity2' => $quantities[1], 'quantity3' => $quantities[2]));
+        			} else {
+        				
+        				// Ако няма оферта в треда и има количества -> създава се нова офертва
+        				return Redirect(array($this, 'newQuote', $rec->id, 'quantity1' => $quantities[0], 'quantity2' => $quantities[1], 'quantity3' => $quantities[2]));
+        			}
+        		} else {
+        			
+        			// Ако няма к-ва и оферта -> отива се в single
+        			return Redirect(array($this, 'single', $rec->id));
+        		}
 	        }
         }
         
-        if($rec->data){
-        	
-        	// При вече въведени характеристики, слагаме ги за дефолт
-        	$form->rec = unserialize($rec->data);
-        }
-        
-        $params = array('doc_Threads', 'single', 'folderId' => $rec->folderId);
+        $params = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
         $folderLink = doc_Folders::getVerbalLink($params);
         $form->title = "Спецификация на универсален продукт в|* {$folderLink}";
         
@@ -397,15 +420,6 @@ class techno_Specifications extends core_Master {
         	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
     	}
-    	
-    	// Добавяне на бутон за ъпдейт на съществуваща оферта
-    	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'draft'){
-    		$tData = unserialize($data->rec->data);
-    		if(isset($tData->quantity1) || isset($tData->quantity2) || isset($tData->quantity3)){
-    			$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId}", 'id');
-    			$data->toolbar->addBtn("Оферта", array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'originId' => $data->rec->containerId), 'ef_icon=img/16/document_quote.png');
-    		}
-    	}
     }
     
     
@@ -417,27 +431,24 @@ class techno_Specifications extends core_Master {
     	sales_Quotations::requireRightFor('add');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	$qInfo = $this->getFollowingQuoteInfo($id);
-    	
     	$Quotations = cls::get('sales_Quotations');
-    	$qId = $Quotations->fetchField("#originId = {$rec->containerId}", 'id');
     	
     	$qRec = new stdClass();
-    	if($qId){
-	    	 $rec->id = $qId;
-	    }
 	    $qRec->folderId = $rec->folderId;
 		$qRec->originId = $rec->containerId;
 		$qRec->threadId = $rec->threadId;
 		$Quotations->populateDefaultData($qRec);
-	    $qRec->rate = round(currency_CurrencyRates::getRate($qRec->date, $qInfo['currencyId'], NULL), 4);
-	    $qRec->paymentCurrencyId = $qInfo['currencyId'];
+	    $qRec->rate = round(currency_CurrencyRates::getRate($qRec->date, NULL, NULL), 4);
+	    $qRec->paymentCurrencyId = acc_Periods::getBaseCurrencyCode($qRec->date);
 	    $qRec->vat = 'yes';
 	    $qRec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
 	    $qRec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
 	    $qId = $Quotations->save($qRec);
     	
-	    return Redirect(array($this, 'single', $id));
+	    $quantity1 = Request::get('quantity1', 'double');
+	    $quantity2 = Request::get('quantity2', 'double');
+	    $quantity3 = Request::get('quantity3', 'double');
+	    return Redirect(array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'specId' => $id, 'quantity1' => $quantity1, 'quantity2' => $quantity2, 'quantity3' => $quantity3));
 	}
     
     
@@ -448,8 +459,8 @@ class techno_Specifications extends core_Master {
      */
     public static function getVat($id, $date = NULL)
     {
-    	$rec = static::fetch($id);
-    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	$technoId = static::fetchField($id, 'prodTehnoClassId');
+    	$technoClass = cls::get($technoId);
     	return $technoClass->getVat($id, $date);
     }
     
@@ -479,7 +490,7 @@ class techno_Specifications extends core_Master {
      * 		        TRUE - връща целия шаблон на спецификацията
      * @return core_ET - шаблон с представянето на спецификацията
      */
-     static function getTitleById($id, $escaped = TRUE, $full = FALSE)
+     public static function getTitleById($id, $escaped = TRUE, $full = FALSE)
      {
     	if(!$full) {
     		return parent::getTitleById($id, $escaped);
@@ -550,7 +561,7 @@ class techno_Specifications extends core_Master {
      * се добавя по един ред
      * @return array
      */
-	function getFollowingQuoteInfo($id)
+	public function getFollowingQuoteInfo($id)
 	{
     	$rec = static::fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);

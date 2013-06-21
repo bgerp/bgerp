@@ -3,7 +3,7 @@
 
 
 /**
- * Технологичен клас за въвеждане на нестандартни продукти
+ * Универсален драйвър за нестандартни продукти
  *
  *
  * @category  bgerp
@@ -69,7 +69,7 @@ class techno_GeneralProducts extends core_Manager {
      * @param int $folderId - ид на папката
      * @return core_Form $form - Формата на мениджъра
      */
-    public function getEditForm()
+    public function getEditForm($data)
     {
     	$form = cls::get('core_Form');
     	$form->FNC('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%,input');
@@ -82,10 +82,14 @@ class techno_GeneralProducts extends core_Manager {
 		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
-        $form->FNC('quantity1', 'int', 'caption=Последваща оферта->К-во 1,width=4em,input');
-    	$form->FNC('quantity2', 'int', 'caption=Последваща оферта->К-во 2,width=4em,input');
-    	$form->FNC('quantity3', 'int', 'caption=Последваща оферта->К-во 3,width=4em,input');
+		
+        
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
+        if($data->data){
+        	
+        	// При вече въведени характеристики, слагаме ги за дефолт
+        	$form->rec = unserialize($data->data);
+        }
         
         return $form;
     }
@@ -103,14 +107,15 @@ class techno_GeneralProducts extends core_Manager {
     	$form->setOptions('paramId', $paramOptions);
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
         $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
-    	return $form;
+    	
+        return $form;
     }
     
     
     /**
      * Помощен метод за показване само на тези параметри, които
      * не са добавени към продукта
-     * @param stdClass $data - сериализирана информация
+     * @param stdClass $data - десериализираната информация
      * @return array $options - масив с опции
      */
     private function getRemainingOptions($data)
@@ -144,11 +149,13 @@ class techno_GeneralProducts extends core_Manager {
      * Изчислява цената на продукта по формулата:
      * ([Начални такси] * (1 + НадценкаМакс) + [Количество] * 
      *  [Единична себестойност] *(1 + НадценкаМин)) / [Количество]
-     * @param string $data
-     * @param id $packagingId
-     * @param int $quantity
-     * @param datetime $datetime
-     * @return stdClass $price
+     * @param int $customerClass - контрагент клас
+     * @param int $customerId - контрагент Ид
+     * @param stdClass $data - дата от модела
+     * @param int $packagingId - ид на опаковка
+     * @param double quantity - количество
+     * @param datetime $datetime - дата
+     * @return stdClass $price - цена и отстъпка на продукта
      */
     public function getPrice($customerClass, $customerId, $data, $packagingId = NULL, $quantity = 1, $datetime = NULL)
     {
@@ -167,9 +174,9 @@ class techno_GeneralProducts extends core_Manager {
     			}
     			
     			if($price->price) {
-    				$cClass = cls::get($customerClass);
-    				$minCharge = $cClass::getSaleCondition($customerId, 'minSurplusCharge');
-    				$maxCharge = $cClass::getSaleCondition($customerId, 'minSurplusCharge');
+    				$minCharge =  salecond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    				$maxCharge = salecond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    				
     				if(empty($data->bTaxes)) {
     					$data->bTaxes = 0;
     				}
@@ -251,7 +258,6 @@ class techno_GeneralProducts extends core_Manager {
     			$tpl->append($blockCl, 'PARAMS');
     		}
     	}
-    	
     	$tpl->placeObject($row);
     	
     	return $tpl;
@@ -271,7 +277,7 @@ class techno_GeneralProducts extends core_Manager {
     	
     	// Преобразуваме записа във вербален вид
     	$row = new stdClass();
-        $fields = $this->getEditForm()->selectFields("");
+        $fields = $this->getEditForm($data)->selectFields("");
     	foreach($fields as $name => $fld){
     		if($name == 'image') continue;
     		$row->$name = $fld->type->toVerbal($data->$name);
@@ -308,7 +314,7 @@ class techno_GeneralProducts extends core_Manager {
 	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId,'ret_url' => TRUE);
 
 	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$paramId}");
-	        $deleteLink = ht::createLink($deleteImg, $deleteUrl,tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=delS{$paramId}");
+	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=delS{$paramId}");
     		
 	        $tpl = new ET($editLink . " " . $deleteLink);
     	}
@@ -321,10 +327,10 @@ class techno_GeneralProducts extends core_Manager {
      * Информация за продукта
      * @param int $productId - ид на продукт
      * @param int $packagingId - ид на опаковка
+     * @return stdClass $rec
      */
     public function getProductInfo($data, $packagingId = NULL)
     {
-    	expect($data);
     	$data = unserialize($data);
 	    $res = new stdClass();
 	    $res->productRec = $data;
@@ -416,7 +422,7 @@ class techno_GeneralProducts extends core_Manager {
      * се добавя по един ред
      * @return array
      */
-    function getFollowingQuoteInfo($data)
+    public function getFollowingQuoteInfo($data)
     {
     	$data = unserialize($data);
     	$array = array('currencyId' => $data->currencyId);
