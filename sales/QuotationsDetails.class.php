@@ -3,13 +3,13 @@
 
 
 /**
- * Мениджър за "Оферти за продажба" 
+ * Мениджър за "Детайли на офертите" 
  *
  *
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -294,11 +294,12 @@ class sales_QuotationsDetails extends core_Detail {
     		}
     	}
     	
+    	$afterDisc = $total - $totalDisc;
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	(!$totalDisc) ? $totalDisc = NULL : $totalDisc = $double->toVerbal($totalDisc);
     	$total = $double->toVerbal($total);
-    	$data->total = (object) array('total' => $total, 'totalDisc' => $totalDisc);
+    	$data->total = (object) array('total' => $total, 'totalDisc' => $afterDisc);
     }
     
     
@@ -417,13 +418,17 @@ class sales_QuotationsDetails extends core_Detail {
     function act_updateData()
     {
     	$this->Master->requireRightFor('edit');
+    	$quantities = array();
+    	$quantities[] = Request::get('quantity1', 'double');
+    	$quantities[] = Request::get('quantity2', 'double');
+    	$quantities[] = Request::get('quantity3', 'double');
+    	expect($quantities[0] || $quantities[1] || $quantities[2]);
     	expect($quotationId = Request::get('quotationId'));
     	expect($rec = $this->Master->fetch($quotationId));
-    	expect($originId = Request::get('originId'));
-    	$origin = doc_Containers::getDocument($originId);
-    	expect($origin->fetchField('state') == 'draft');
+    	expect($sId = Request::get('specId', 'int'));
+    	expect(techno_Specifications::fetch($sId));
     	
-    	$this->insertFromSpecification($rec, $origin);
+    	$this->insertFromSpecification($rec, $sId, $quantities);
     	return Redirect(array($this->Master, 'single', $quotationId));
     }
     
@@ -432,32 +437,32 @@ class sales_QuotationsDetails extends core_Detail {
      * Ако ориджина е спецификация вкарват се записи отговарящи
      * на посочените примерни количества в нея
      * @param stdClass $rec - запис на оферта
-     * @param core_ObjectReference $origin - пораждащия документ
+     * @param int $sId - ид на спецификацията
+     * @param array $quantities - количества подадени от заявката
      */
-    public function insertFromSpecification($rec, core_ObjectReference $origin)
+    public function insertFromSpecification($rec, $sId, $quantities = array())
     {
-    	$originRec = $origin->fetch();
     	$policyId = techno_Specifications::getClassId();
     	$Policy = cls::get($policyId);
     	
     	// Изтриват се предишни записи на спецификацията в офертата
-    	$this->delete("#quotationId = $rec->id AND #productId = {$origin->that} AND #policyId = {$policyId}");
+    	$this->delete("#quotationId = $rec->id AND #productId = {$sId} AND #policyId = {$policyId}");
     	
-    	// Намират се полетата съдържащи информация за офертата
-    	$quantities = $origin->getFollowingQuoteInfo();
-    	unset($quantities['currencyId']);
     	foreach($quantities as $q) {
+    		if(empty($q)) continue;
     		
     		// Записва се нов детайл за всяко зададено к-во
     		$dRec = new stdClass();
     		$dRec->quotationId = $rec->id;
-    		$dRec->productId = $origin->that;
+    		$dRec->productId = $sId;
     		$dRec->quantity = $q;
     		$dRec->policyId = $policyId;
     		$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $q, $rec->date);
+    		
     		$dRec->price = $price->price;
     		$dRec->discount = $price->discount;
     		$dRec->vatPercent = $Policy->getVat($dRec->productId, $rec->date);
+    		
     		$this->save($dRec);
     	}
     }

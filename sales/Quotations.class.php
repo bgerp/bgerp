@@ -1,6 +1,6 @@
 <?php
 /**
- * Клас 'sales_Quotations'
+ * Документ "Оферта"
  *
  * Мениджър на документи за Оферта за продажба
  *
@@ -171,21 +171,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Ако офертата е създадена към спецификация, попълваме
-     * данните на спецификацията в детайлите
-     */
-    public static function on_AfterCreate($mvc, $rec)
-    {
-    	if(!empty($rec->originId)){
-    		$origin = doc_Containers::getDocument($rec->originId);
-    		if($origin->className == 'techno_Specifications'){
-    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin);
-    		}
-    	}
-    }
-    
-    
-    /**
      * Попълваме дефолт данните
      */
     public function populateDefaultData(&$rec)
@@ -221,7 +206,6 @@ class sales_Quotations extends core_Master
     				$rec->$name = $lastOffer->$name;
     			}
     		}
-    		
     	} else {
     		if ($data->company) {
     			$rec->recipient = $data->company;
