@@ -2147,6 +2147,34 @@ div.locImage{
 }
 /*край на напомняния*/
 
+
+/*стилове за състояния в колцентъра*/
+.dialStatus-opened {
+    background-color: #bbffcc;
+}
+
+.dialStatus-answered {
+    background-color: #eee;
+}
+
+.dialStatus-failed {
+    background-color: #feadad;
+}
+
+.dialStatus-busy{
+    background-color: #b1e5fb;
+}
+
+.dialStatus-noanswer {
+    background-color: #fffcbc;
+}
+
+.dialStatus-unknown {
+    background-color: #eec8e9;
+}
+/*край на стилове за състояния в колцентъра*/
+
+
 /*бъгфиксове*/
 .store_Racks td,.hr_ContractTypes td{
 	max-width:700px;
