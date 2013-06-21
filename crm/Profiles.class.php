@@ -18,7 +18,7 @@ class crm_Profiles extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = array();
+    var $interfaces = array('crm_ProfileIntf');
     
     
     /**
