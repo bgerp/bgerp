@@ -380,7 +380,7 @@ class bgerp_Menu extends core_Manager
         }
         
         foreach($menu as $rec) {
-            $link = ht::createLink($rec->menuTr, array($rec->ctr, $rec->act),  NULL, array('style' => 'padding:1px; background-color:#ddd; '));
+            $link = ht::createLink($rec->menuTr, array($rec->ctr, $rec->act),  NULL, array('style' => 'padding:3px; background-color:#ddd; '));
             $row = 'MENU_ROW';
             $tpl->append($link, $row);
             foreach($subMenu[$rec->menu] as $subRec) {

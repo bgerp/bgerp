@@ -135,7 +135,7 @@ class doc_Containers extends core_Manager
      */
     static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
-        $title = new ET("<div style='font-size:18px'>[#user#] » [#folder#] ([#folderCover#]) » [#threadTitle#]</div>");
+        $title = new ET("<div class='path-title'>[#user#] » [#folder#] ([#folderCover#]) » [#threadTitle#]</div>");
         
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
@@ -701,7 +701,7 @@ class doc_Containers extends core_Manager
         
         // Генериране на изгледа
         $tpl = new ET();        
-        $tpl->append("\n<h3>" . tr('Добавяне на нов документ в нишката') . ":</h3>");
+        $tpl->append("\n<div class='listTitle'>" . tr('Добавяне на нов документ в нишката') . ":</div>");
         $tpl->append("<div class='accordian'><ul>");
         
         $active = ' class="active"';

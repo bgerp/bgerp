@@ -6,7 +6,7 @@
 	 	<span style='[#iconStyle#]'>|Списък за масово разпращане|* - [#ident#]</span>
 	 </div>
 	
-	<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>
+	<div class='antetka'>
 		<div style='float:left;'>  <small>   
 			<table cellspacing='1' class='top-table'>
 			
@@ -55,6 +55,7 @@
 						
 			</table>   </small>  
 		</div>    
+			<div style='clear: both;'></div>
 	</div>
 	
 	<div style='clear: both;'></div>

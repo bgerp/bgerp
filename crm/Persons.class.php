@@ -868,7 +868,7 @@ class crm_Persons extends core_Master
                          </fieldset>");
 
         foreach($data->rows as $row) {
-            $tpl->append("<div style='float:left;min-width:300px;font-size:0.9em'>", 'persons');
+            $tpl->append("<div>", 'persons');
 
             $tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
 

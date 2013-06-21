@@ -20,9 +20,13 @@
 	text-indent:8px;
 	width:551px;
 	border-collapse:collapse;
+	
 	margin-top:15px;
 }
-
+#receipt-table td,#receipt-table th{
+	border:1px solid #000;
+	padding:5px 5px;
+}
 .narrow #receipt-table{
 	width:400px;
 	text-indent:0;
@@ -37,7 +41,7 @@
 }
 
 #receipt-title {
-	font-size: 26px;
+	font-size: 1.5em;
 	font-weight:bold;
 }
 
@@ -85,7 +89,7 @@
 }
 
 #total-label, #receipt-total-sum  {
-	font-size:26px;
+	font-size:1.5em;
 	font-weight:bold;
 }
 

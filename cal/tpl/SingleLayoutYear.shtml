@@ -2,7 +2,7 @@
 			<p class="calTitle" style='color:[#colTitle#]'>[#title#]</p>
 			<span>[#ListFilter#]</span>
 	    </div>
-<div class="clearfix21"></div>
+<div class="clearfix" style="min-height:10px;"></div>
 <div style='width:100%'>
 		<div class='floating-div'>
 		<div class='month-name'>[#month1#]</div>

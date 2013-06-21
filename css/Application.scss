@@ -29,8 +29,6 @@ $history-bg:#fefec2;
 	padding-left:22px;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
-	height:24px;
-	font-size: 13px;
 }
 
 @mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
@@ -50,79 +48,52 @@ $history-bg:#fefec2;
 	-webkit-box-shadow: none;
     box-shadow: none;
 }
- 
-
-body{
-	margin: 0;
-	padding: 0;
-	border: 0;
-	background-color: #ddd;
-	font-family:Helvetica,Arial,Verdana,Sans-serif;
-	font-size:16px; 
+ /*common elements*/
+ dl {
+	margin:0;
+	dt {
+		display: block;
+		float: left;
+		width: 21.5%;
+		clear: both;
+		text-align: right;
+		color: $quiet-gray;
+		margin-left: 0;
+		margin-right: 0;
+		line-height: 1.5em;
+		white-space: nowrap
+	}
+	dd {
+		margin-left: 10px;
+		margin-right: 0;
+		float:left;
+		line-height: 1.5em;
+		max-width:76%;
+	}
 }
-
-body.narrow{
-	font-size:18px;
+.narrow dl{
+	dt{
+		width:34%;
+	}
+	dd{
+		max-width:63%;
+	}
 }
-
-a img {
-	border: none;
+table{
+	.dt {
+		width: 21.5%;
+		text-align: right;
+		color: $quiet-gray;
+		line-height: 1em;
+		white-space: nowrap;
+		padding-right:10px;
+		vertical-align:top;
+	}
 }
+/*край на common elements*/
 
-legend img {
-	vertical-align: middle;
-}
 
-.wide h2{
-	margin-top:0px;
-}
-
-select{
-	background: #fff;
-	padding-left:0;
-}
-
-.narrow select.tab-control{
-	background-color: rgb(221, 221, 221);
-}
-
-/* Общи стилове за елементите */
-
-a {
-  &:hover {
-  color: #f90;
-  }
-  &.out {
-    color: #0066ff;
-    &:visited {
-      color: #6600cc;
-    }
-  }
-  &:link, &:visited {
-    text-decoration: none;
-    color: $blue;
-  }
-}
-
-.narrow a:hover {
-  color: $red;
-}
-
-.wide .listTitle{
-	padding:0 1px;
-}
-
-.narrow .ListTitle {  
-	font-size:1.2em;
-	font-weight:bold;
-	padding-top:5px;
-	padding-bottom:5px;
-}
-
-.narrow .ListToolbar, .narrow .SingleToolbar { 
-	margin-top: 10px;
-}
-
+/*менюта и подменюта*/
 #framecontentTop,#framecontentBottom,#framecontentTop.a,#framecontentBottom.a{
 	display:block;
 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
@@ -137,7 +108,9 @@ a {
 
 #framecontentBottom {
 	border-top: solid 2px $blue;
-	padding-left:3px;
+	padding-left:0.2em;
+	padding-top:0.2em;
+	
 }
 
 .narrow #framecontentBottom {
@@ -150,7 +123,7 @@ a {
 }
 
 .wide #subMenu{
-	padding-top:1px;
+	padding-top:0.1em;
 }
 
 .narrow #submenu{
@@ -193,13 +166,13 @@ a {
 .menuRow {
 	color: #997;
 	font-family: Arial;
-	padding: 1px;
+	padding: 3px;
 	text-decoration: none;
 	font-weight: bold;
 }
 
 #mainMenu a  { /*nav при wide*/
-	padding:1px; 
+	padding:0.1em; 
 	text-decoration:none; 
 	font-weight:bold; 
 	font-family:arial; 
@@ -232,6 +205,10 @@ a {
 	padding-right:3px;
 	font-family:arial; 
 	border:solid 2px transparent;
+}
+
+.narrow #subMenu a{
+	padding:0 2px;
 }
 
 #subMenu a.selected:hover  { 
@@ -272,12 +249,25 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	background-color:$blue;
 	@include border-radius(2px);
 }
+/*край на менюта и подменюта*/
 
-.stateIndicator {
-	height: 0.6em;
-	width: 0.6em;
-	border: solid 1px #999;
-	@include border-radius(0.3em);
+
+
+
+.narrow select.tab-control{
+	background-color: rgb(221, 221, 221);
+}
+
+
+.narrow .ListTitle {  
+	font-size:1.2em;
+	font-weight:bold;
+	padding-top:5px;
+	padding-bottom:5px;
+}
+
+.narrow .ListToolbar, .narrow .SingleToolbar { 
+	margin-top: 10px;
 }
 
 .wide table.top-table td{
@@ -285,13 +275,12 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	vertical-align: top;
 }
 
-/* Стилове за елемента 'tab' */
+/* Стилове за елемента 'tab' от BGERP*/
 div.tab-control div.tab-row .tab {
 	font-family: arial;
 	display: inline;
 	margin: 1px -16px -1px 18px;
 	float: left;
-	padding: 4px 5px 4px 5px;
 	background: #ddd;
 	border: 1px solid #bbb;
 	border-bottom: none;
@@ -306,15 +295,17 @@ div.tab-control div.tab-row .tab {
 		border-top: 2px solid $blue;
 		border-bottom: none;
 		z-index: 3;
-		padding: 5px 5px 4px 5px;
+		padding: 5px 5px 6px 5px;
 		margin: 1px -16px -3px 18px;
 		top: 0px;
 		font-weight: bold;
 	}
 }
+
 .narrow div.tab-control div.tab-row .tab:first-child{
 	margin-left:10px;
 }
+
 .narrow div.tab-control.alphabet div.tab-row .tab:first-child{
 	margin-left:2px;
 }
@@ -342,32 +333,20 @@ div.tab-control div.tab-page {
 .narrow div.tab-control.alphabet div.tab-page {
 	padding:0.1em;
 }
+/* край на стилове за елемента 'tab' от BGERP*/
 
-.alphabet{
-	padding-bottom:5px;
-}
-.wide .pages{
-	clear:both;
-	margin:10px 2px 10px 2px;
-}
-.narrow .pages{
-	clear:both;
-	margin:0px 2px 15px 2px;
-}
-.narrow .portal .pages{
-	clear:both;
-	margin:13px 0 8px;
-}
-.doc_Folders .pages, .core_Packs .pages ,.acc_Items .pages, .core_Lg .pages, 
-.cal_Calendar .pages ,.cal_Holidays .pages, .core_Logs .pages{
-	margin-top:0;
-	margin-bottom:15px;
+
+/*таб alphabet*/
+.tab-control.alphabet{
+	font-size:1.1em;
 }
 div.alphabet div.tab-row .tab {
 	background: #ddd;
-	font-size: 8pt;
+	font-size: 0.6em;
+	line-height:1.1em;
 	padding: 5px;
 	border: 1px solid #aaa;
+	text-align: center;
 	margin: 2px;
 	@include border-radius(5px);
 	display: table;
@@ -399,12 +378,17 @@ div.alphabet div.tab-page {
 	margin: 0px;
 	padding: 0px;
 }
-
+div.alphabet div.tab-row .tab{
+	margin-bottom:5px;
+	&:hover, &.selected {
+		margin-bottom:8px;
+	}
+}
 .narrow div.alphabet  div.tab-row {
 	width: 330px;
 }
 
-/*alphabet табовете в документ да изглеждат като основните, но по-малки*/
+/*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
 .single-thread .document div.alphabet {
 	padding-bottom:0;
 	.tab-page{
@@ -535,46 +519,22 @@ div.alphabet div.tab-page {
 	font-size:0.8em;
 }
 
+.thread-opened th {
+	border: solid 1px green !important;
+	background-color: #aea !important;
+}
+/*край на таб alphabet*/
+
+
+/*стилове за CRM*/
 div.crmImage {
 	padding:10px 0px 8px 8px;
 	float:right;
 }
 
-
 .narrow div.crmImage {
 	padding:10px  8px  8px 0px;
 	float:left;
-}
-
-.quiet {
-	color: $quiet-gray;
-}
-
-.quiet td {
-	border-top-width: 0; 
-	border-bottom: none; 
-}
-
-.red {
-	color: #800;
-}
-
-.green {
-	color: #080;
-}
-
-.future {
-	background-color: #9ec;
-}
-
-.current {
-	font-weight: bold; 
-	td {
-		border-bottom: none; 
-	}
-}
-.pricegroup td { 
-	border-top-width: 1px; 
 }
 
 div.crm_Companies div.tab-row .tab.selected, div.crm_Companies  div.tab-page{
@@ -589,101 +549,13 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 	background: #ffffe8;
 }
 
-/*
- * Хипервръзки към профилите на потребители
- */
-a.profile {
-	padding: 2px;
-	@include border-radius(2px);
-	&.ceo {
-		color: #0000cc;
-		&.inactive{
-			color:#333399;
-		}
-		&.active{
-			color: #0000ff;
-		}
-	}
-	&.manager {
-		color: #a000b0;
-		&.inactive{
-			color: #773387;
-		}
-		&.active{
-			color:#bb00cb;
-		}
-	}
-	&.officer {
-		color: #00bb00;
-		&.inactive{
-			color:#447744;
-		}
-		&.active{
-			color:#00ee00;
-		}
-	}
-	&.executive {
-		color: #aa6600;
-		&.inactive{
-			color:#886622;
-		}
-		&.active{
-			color:#dd8800;
-		}
-	}
-	&.contractor {
-		color: #cc0000;
-		&.inactive{
-			color:#993333;
-		}
-		&.active{
-			color:#ff0000;
-		}
-	}
+#crm_Persons-EditForm  input {
+	max-width: 600px;
 }
+/*край на стилове за CRM*/
 
 
-dl {
-	margin:0;
-	dt {
-		display: block;
-		float: left;
-		width: 21.5%;
-		clear: both;
-		text-align: right;
-		color: $quiet-gray;
-		margin-left: 0;
-		margin-right: 0;
-		line-height: 1.5em;
-		white-space: nowrap
-	}
-	dd {
-		margin-left: 10px;
-		margin-right: 0;
-		float:left;
-		line-height: 1.5em;
-		max-width:76%;
-	}
-}
-.narrow dl{
-	dt{
-		width:34%;
-	}
-	dd{
-		max-width:63%;
-	}
-}
-table{
-	.dt {
-		width: 21.5%;
-		text-align: right;
-		color: $quiet-gray;
-		line-height: 1em;
-		white-space: nowrap;
-		padding-right:10px;
-		vertical-align:top;
-	}
-}
+/*стилове за форми*/
 .vertical .formTitle {
 	background-color: #99f;
 	border: solid 1px #88e;
@@ -696,8 +568,8 @@ table{
 	background-image:none;
 }
 
-.formGroup {
-	margin-top: 10px;
+.narrow .path-title{
+	font-size:0.9em;
 }
 
 .vertical .formToolbar {
@@ -713,7 +585,7 @@ table{
 	border: solid 1px #bbb;
 	border-top: none;
 }
-	
+
 .vertical .formSection {
 	border-left: solid 1px #bbb;
 	border-right: solid 1px #bbb;
@@ -731,257 +603,56 @@ table{
 .wide .vertical .formTable {
 	@include border-radius(5px);
     @include shadow4(2px,2px,8px,3px,#aab);
+    margin-bottom:20px;
+    border-collapse:separate;
+}
+
+.narrow .vertical .formTable {
+	 border-collapse:separate;
 }
 
 .wide .listTopContainer .formTable { 
 	@include no-shadow();
-}
-.vertical select{
-	margin-left:0px;
-}
-.horizontal{
-	margin-top:0 !important;
+	border-collapse:separate;
 }
 
-.wide .horizontal .formFields {
+.narrow .listTopContainer .formTable{
+	border-collapse:separate;
+}
+
+.wide .groupList{
+	line-height:1.4em;	
+}
+
+.groupList .listTable{
 	margin-bottom:0;
 }
-@-moz-document url-prefix() { 
- 	.wide .horizontal{
- 		margin-left:2px;
- 	}
+
+.right-align{
+	min-width:120px; 
+	text-align:right;
+	line-height:18px;
+	padding-right:15px;
+	color:#888;
 }
+
+.form-filter-btn{
+	margin-top:5px;
+	margin-bottom:10px;
+}
+
+.narrow .form-filter-btn{
+	margin-left:0;
+}
+/*край на стилове за форми*/
+
+
 option.team {
 	background: black;
 	color: #fc0;
 }
 
-.wide .btn-posting { 
-	background-image:url('../img/16/comment_add.png');
-	@include btn-style();
-}
 
-.wide .btn-person { 
-	background-image:url('../img/16/vcard.png');
-	@include btn-style();
-}
-
-.wide .btn-profile { 
-	background-image:url('../img/16/user-profile.png');
-	@include btn-style();
-}
-
-.wide .btn-user { 
-	background-image:url('../img/16/user_add.png');
-	@include btn-style();
-}
-
-.wide .btn-zoho{
-	@include btn-style();
-}
-
-.wide .btn-order{
-	@include btn-style();
-	background-image:url('../img/16/btn-order.png');
-}
-
-.linkWithIcon{
-	&.sick{
-	background-image:url('../img/16/sick.png');
-	}
-	&.trip{
-	background-image:url('../img/16/working-travel.png');
-	}
-	&.leave{
-	background-image:url('../img/16/leaves.png');
-	}
-	&.home{
-	background-image:url('../img/16/house_blue.png');
-	}
-	&.office{
-	background-image:url('../img/16/company-building-icon.png');
-	}
-	&.work{
-	background-image:url('../img/16/clock_green.png');
-	}
-	&.after-work{
-	background-image:url('../img/16/clock_red.png');
-	}
-	&.birthday{
-	background-image:url('../img/16/birthday.png');
-	}
-	&.nameday{
-	background-image:url('../img/16/orthodox.png');
-	}
-}
-.more-btn{
-	float:left;
-	padding:4px 3px 2px 3px !important;
-	background-position:center center;
-	background-image:url(../img/16/toggle-expand.png) !important;
-	background-repeat:no-repeat !important;
-	width: 24px !important;
-}
-
-.more-btn.show-btn{
-	background-image:url(../img/16/toggle2.png) !important;
-}
-
-.narrow .more-btn{
-	width:24px !important;
-}
-
-.wide .btn-export  { 
-	background-image:url('../img/16/table_export.png');
-	@include btn-style();
-}
-
-.wide .btn-fax  { 
-	background-image:url('../img/16/fax.png');
-	@include btn-style();
-}
-
-.wide .btn-email-create { 
-	background-image:url('../img/16/email_edit.png');
-	@include btn-style();
-}
-
-.wide .btn-conto  { 
-	background-image:url('../img/16/tick-circle-frame.png');
-	@include btn-style();
-}
-
-.wide .btn-task  {
-	background-image:url('../img/16/sheduled-task-icon.png');
-	@include btn-style();
-}
-
-.wide .btn-docIncomings  { 
-	background-image:url('../img/16/page_attach.png');
-	@include btn-style();
-}
-
-.wide .btn-docIncomingsNew  { 
-	background-image:url('../img/16/page_lightning-new.png');
-	@include btn-style();
-}
-
-.wide .btn-back { 
-    background-image:url('../img/16/red-back.png');
-    @include btn-style();
-}
-
-.wide .btn-createLink { 
-    background-image:url('../img/16/link.png');
-    @include btn-style();
-}
-
-.wide .btn-email-send { 
-	background-image:url('../img/16/email_go.png');
-	@include btn-style();
-}
-
-.wide .btn-settings { 
-	background-image:url('../img/16/settings.png');
-	@include btn-style();
-}
-
-.wide .btn-task-close { 
-    background-image:url('../img/16/media-playback-stop.png');
-    @include btn-style();
-}
-
-.wide .btn-reload { 
-    background-image:url('../img/16/clock_go.png');
-   @include btn-style();
-}
-
-.wide .btn-add {
-	background-image:url('../img/16/star_2.png');
-	@include btn-style();
-}
-
-.wide .btn-clone { 
-    background-image:url('../img/16/page_copy.png');
-    @include btn-style();
-}
-
-.wide .btn-select {
-	background-image:url('../img/16/key.png');
-	@include btn-style();
-}
-
-.wide .btn-move { 
-    background-image:url('../img/16/arrow_right.png');
-    @include btn-style();
-}
-
-.wide .btn-activation {
-    background-image:url('../img/16/lightning.png');
-    @include btn-style();
-}
-
-.wide .btn-open {
-    background-image:url('../img/16/open_bulb.png');
-    @include btn-style();
-}
-
-.wide .btn-close { 
-    background-image:url('../img/16/close_bulb.png');
-    @include btn-style();
-}
-
-.wide .btn-active {
-    background-image:url('../img/16/active_bulb.png');
-    @include btn-style();
-}
-
-.wide .btn-revert {
-    background-image:url('../img/16/red-back.png');
-    @include btn-style();
-}
-
-.wide .btn-eml { 
-    background-image:url('../img/16/file_extension_eml.png');
-    @include btn-style();
-}
-
-.wide .btn-html { 
-    background-image:url('../img/16/file_extension_html.png');
-    @include btn-style();
-}
-
-.wide .btn-ocr {
-    background-image:url('../img/16/scanner.png');
-    @include btn-style();
-}
-
-.wide .btn-forward { 
-    background-image:url('../img/16/email_forward.png');
-    @include btn-style();
-}
-
-.wide .btn-assign {
-    background-image:url('../img/16/assign.png');
-    @include btn-style();
-}
-
-.wide .btn-change {
-    background-image:url('../img/16/to_do_list.png');
-    @include btn-style();
-}
-
-.wide .btn-shop{
-	background-image:url('../img/16/shopping.png');
-   	@include btn-style();
-}
-
-.narrow .btn-add{
-	margin-left:0;
-}
-.toolbarHide{
-	margin-top:5px !important;
-}
 /*Стилове за acc*/
 div.acc-detail {
 	font-size: 0.8em;
@@ -992,53 +663,7 @@ div.acc-detail {
 	background-color: #eee;
 }
 
-/* стилове за 'contacts/tpl/ViewSingleLayout' */
-
-.document .block_left{
-	margin-top:10px;
-}
-
-.document .centered{
-	text-align:center;
-}
-
-.document p{
-	margin-top:0;
-	margin-bottom:10px;
-	line-height:150%;
-}
-
-.document .indent{
-	text-indent:25px;
-}
-
-.document h3{
-	margin-bottom:10px;
-}
-.narrow .document .richtext{
-	min-width:220px;
-	height:auto;
-}
-
-.document div.richtext-holder{
-	margin-top:0;
-	margin-bottom:10px;
-	line-height:150%;
-}
-
-.document div.richtext-holder .richtext{
-	display:inline;
-	color:#000;	
-}
-
-.narrow .printing .folder-cover{
-	line-height:1.5em;
-}
-
-#crm_Persons-EditForm  input {
-	max-width: 600px;
-}
-
+/*детайли*/
 .detail-info {
 	margin: 10px 0 0 0;
 	padding: 5px 10px;
@@ -1055,8 +680,6 @@ div.acc-detail {
 		margin-left:0 !important;
 	}
 	table tr{
-		height: 1em;
-		line-height: 1.1em;
 		padding: 0;
 	}
 	&.portal{
@@ -1073,6 +696,10 @@ div.acc-detail {
 		}
 	}
 }
+/*край на детайли*/
+
+
+/*портал*/
 .portal {
   margin-top: 15px;
   padding: 10px;
@@ -1102,7 +729,8 @@ div.acc-detail {
   table.listTable {
     width: 100% !important;
     border: none;
-    font-size: 0.9em;
+    font-size:0.9em;
+    line-height:1.1em;
     margin-bottom:0;
     td {
       border: none !important;
@@ -1119,261 +747,9 @@ div.acc-detail {
     }
   }
 }
-div.cover{
-	min-width: 600px;
-	max-width: 750px;
-	@include border-radius(5px);
-	border:1px solid #ccc;
-	padding:0 20px 20px;
-	margin-top: 16px;
-}
-div.folder-cover{
-	background-image:url('../img/cover-bg.png');
-	display: inline-block;
-	min-width: 510px;
-	max-width: 750px;
-	margin-top: 16px;
-	margin-left:3px;
-	line-height:1.2em;
-	position:relative;
-	border:1px solid #ccc;
-	padding:20px 20px 20px 20px;
-	@include border-radius4(0px,25px,0px,0px);
-	box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
-	&.state-opened{
-		background-image:url('../img/cover-bg-green.png');
-	}
-	&.state-active{
-		background-image:url('../img/cover-bg-yellow.png');
-	}
-	.detail-info{
-		background:none;
-	}
-	.groupTitle {
-		color: #333;
-		font-weight: bold;
-	}
-	.label {
-		color: #777777;
-		font-size: 13px;
-		width: 70px;
-		float: left;
-	}
-	a.sky:link, a.sky:visited, a.sky:visited{
-		font-size: 13px;
-		color: #4a66b0;
-		text-decoration: none;
-	}
-	a.sky:hover {
-		font-size: 13px;
-		color: #4a6z6b0;
-		text-decoration: underline;
-	}
-	.fancybox img {
-		background: #f0f0f0;
-		border: solid 1px #dddddd;
-		padding: 3px;
-		padding: 10px;
-	}
-	.block_title {
-		border-bottom: solid 1px #dddddd;
-		padding: 7px;
-		@include border-radius4(0,15px,0,0);
-		font-size: 1.35em;
-		color: #433;
-		margin-bottom:10px;
-		text-shadow: 1px 1px 1px #ddd;
-		img {
-			vertical-align:top;
-		}
-	}
-	.block_left {
-		clear: left;
-		font-size: 12px;
-		padding: 0 10px 10px 0;
-		min-width: 250px;
-		float: left;
-		margin-right: 20px;
-		position: relative;
-		.address {
-			max-width: 240px;
-			margin-bottom: 15px;
-		}
-	}
-	.block_right {
-		min-width: 100px;
-		font-size: 12px;
-		padding: 0 0 10px 10px;
-		float: left;
-	}
-	h2{
-		margin:0 0 20px 0;
-	}
-	.alphabet{
-		line-height:0.9em;
-		padding-bottom:0;
-	}
-	.tab-page .detail-info{
-		margin-bottom: 0 !important;
-	}
-}
 
-.narrow .folder-cover{
-	line-height:1.5em;
-	margin-left:0px;
-	margin-top:8px;
-	min-width:300px;
-	max-width: 750px;
-	font-size:0.8em;
-	padding:10px 10px 12px 10px;
-	.detail-info{
-		padding:3px 7px 7px 7px;
-	}
-	.tab-page{
-		padding:0 !important;
-	}
-	.tab-page .portal.detail-info{
-		margin-left:2px;
-	}
-}
-
-.narrow .block_title {
-	font-size: 1.2em !important;
-}
-
-.printing .folder-cover {
-	border: none;
-	font-size: 0.8em;
-	background: #ffffff;
-	@include no-shadow();
-	padding: 10px;
-	display: table;
-	min-width: 600px;
-	max-width: 750px;
-	line-height: 1.2em;
-	margin-top: 0px;
-}
-
-.fright{
-	float:right;
-}
-.fleft{
-	float:left;
-}
-.user-profile{
-	max-width:860px;
-	border:1px solid #ccc;
-	border-radius:5px;
-	background:#f1f1f1;	
-	margin-top:15px;
-	.user-title{
-		position:relative;
-		padding:70px 20px 10px 132px;
-		font-size:1.3em;
-		text-shadow:1px 1px 2px rgba(0,0,0,0.7);
-		background: rgb(234,234,234); /* Old browsers */
-		background: -moz-linear-gradient(top, rgba(234,234,234,1) 0%, rgba(97,97,98,1) 100%); /* FF3.6+ */
-		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(234,234,234,1)), color-stop(100%,rgba(97,97,98,1))); /* Chrome,Safari4+ */
-		background: -webkit-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* Chrome10+,Safari5.1+ */
-		background: -o-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* Opera 11.10+ */
-		background: -ms-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* IE10+ */
-		background: linear-gradient(to bottom, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* W3C */
-		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eaeaea', endColorstr='#616162',GradientType=0 ); /* IE6-9 */
-		color:#fff;
-		font-weight:bold;
-		border-radius:5px 5px 0 0;
-	}
-   .profile-image>a, .profile-image div{
-		position:absolute;
-		top:15px;
-		left:15px;
-		width:100px;
-		height:100px;
-		@include border-radius(3px);
-		border:3px solid #fff;
-		box-shadow:0 1px 4px rgba(0,0,0,0.5);
-		display:block;
-		text-align:center;
-		background:#fff;
-		overflow:hidden;
-		img{
-			width:auto;
-			height:100px;
-		}
-	}
-	.linkWithIcon{
-		height:19px;
-		padding-top:1px;
-	}
-	> .groupList{
-		margin-left:10px;
-	}
-	.card-profile{
-		margin:0 10px 10px;
-	}
-	.fright{
-		margin-left:10px;
-	}
-	.inner-holder{
-		padding:15px 15px 15px 15px;
-	}
-	.detail-info{
-		background:#fff;
-	}
-	.detail-info.portal .dt{
-		width:1%;
-		min-width:85px
-	}
-}
-.narrow .user-profile{
-	margin-top:7px; 
-	min-width:100px;
-	max-width:600px;
-	.user-title{
-		font-size:1.1em;
-		padding:70px 20px 10px 127px;
-	}
-	table .dt{
-		padding-right:5px;
-	}
-	.profile-image>a, .profile-image div{
-		left:10px;
-		top:10px;
-	}
-	.detail-info{
-		font-size:0.8em;
-		min-width:90%;
-	}
-	.inner-holder{
-		padding:10px;
-	}
-	.linkWithIcon{
-		height:auto;
-		padding-top:1px;
-		
-	}
-	.fleft,.fright{
-		float:none;
-		margin-left:0;
-	}
-} 
-
-.wide .groupList{
-	font-size:0.9em;
-	line-height:1.4em;	
-}
-.detail-info.portal table.listTable{
-	font-size:1em;
-}
-.groupList .listTable{
-	margin-bottom:0;
-}
-.right-align{
-	min-width:120px; 
-	text-align:right;
-	line-height:18px;
-	padding-right:15px;
-	color:#888;
+.narrow .portal .listRows{
+	font-size:0.9em;	
 }
 
 td.portal-date {
@@ -1381,26 +757,13 @@ td.portal-date {
 	white-space:nowrap;
 }
 
-
-/* ENDOF стилове за 'contacts/tpl/ViewSingleLayout' */
-.antetka {
-	margin-top: 10px;
-	margin-left:1px;
-	padding: 5px;
-	border: solid 1px #ddd;
-	background:transparent;
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
-    zoom: 1;
-	background: rgba(200, 200, 200, 0.3);
+.detail-info.portal table.listTable{
+	font-size:1em;
 }
+/*край на портал*/
 
-.threadSubTitle {
-	font-size: 0.75em;
-	padding: 2px;
-	padding-bottom: 0px;
-	color: #353;
-}
 
+/*стилове за документи*/
 .document {
 	max-width:900px; 
     min-width:800px;
@@ -1410,6 +773,7 @@ td.portal-date {
 	padding: 10px;
 	margin-bottom: 20px;
 	float: left;
+	line-height:120%;
 	margin-top: 10px;
 	.corrected{
 		color:#c00;
@@ -1429,7 +793,7 @@ td.portal-date {
 }
 
 .listTable td{
-	max-width:500px;
+	max-width:400px;
 	word-wrap: break-word;
 }
 
@@ -1442,10 +806,8 @@ td.portal-date {
 	background: transparent;
 	@include no-shadow();
 	padding: 2px 4px 5px 4px;
-	margin-bottom: 0px;
 	float: left;
-	margin-right: 0px;
-	margin-top: 0px;
+	margin: 0px;
 }
 
 .wide .listTable>tbody>tr>td div.document{
@@ -1479,9 +841,169 @@ td.portal-date {
 .thread-opened > div > table.listTable > tbody > tr > td {
 	border: solid 1px green !important;
 }
+
+.antetka {
+	margin-top: 10px;
+	margin-left:1px;
+	padding: 5px;
+	border: solid 1px #ddd;
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
+    zoom: 1;
+	background: rgba(200, 200, 200, 0.3);
+	.top-table{
+		border-spacing:2px;
+	}
+}
+
+.threadSubTitle {
+	font-size: 0.75em;
+	padding: 2px;
+	padding-bottom: 0px;
+	color: #353;
+}
 .document table.listTable{
 	margin-bottom:0;
 }
+
+.document .block_left{
+	margin-top:10px;
+}
+
+.narrow .block_title {
+	font-size: 1.2em !important;
+}
+
+.document .centered{
+	text-align:center;
+}
+
+.document p{
+	margin-top:0;
+	margin-bottom:5px;
+	line-height:120%;
+}
+
+.document .indent{
+	text-indent:25px;
+}
+
+.document h3{
+	margin-bottom:10px;
+}
+
+.narrow .document .richtext{
+	min-width:220px;
+	height:auto;
+}
+
+.document div.richtext-holder{
+	margin-top:0;
+	margin-bottom:5px;
+	line-height:120%;
+}
+
+.document div.richtext-holder .richtext{
+	display:inline;
+	color:#000;	
+}
+
+.document .header {
+	@include border-radius(3px);
+	padding: 3px;
+	font-size: 1em;
+	margin-bottom:10px;
+	span {
+		background-position: 3px center;
+		padding-left: 24px;
+		background-repeat: no-repeat;
+		font-weight: bold;
+	}
+}
+
+.document .details .listTable {
+	width:100%;
+}
+
+.document .details .listToolbar{
+	padding:5px 0px;
+	margin: 0;
+	border-bottom:1px solid #000;
+}
+
+.document .details .listToolbar .toolbar{
+	padding-left:0;
+}
+.narrow .document .details .listToolbar .toolbar {
+	margin-top:8px;
+	margin-left:0;
+}
+.document .listTable th, .document .listTable td{
+	border:1px solid #000 !important;
+}
+
+.smallData {
+	padding:1px; 
+	font-size:1em; 
+}
+
+.bigData {
+  font-family:"Courier New";
+  font-size:1em; 
+  font-weight:bold;
+}
+
+.cell {
+	border:1px solid #000;
+}
+
+.topCell {
+	border: 1px solid #000;
+	div {
+		padding-bottom:2px;
+	}
+}
+
+.innerTable {
+	border-collapse:collapse;
+}
+
+.innerTable td{
+	padding:5px;
+}
+
+.rowData {
+	font-size:0.9em;
+}
+
+.topCell td{
+	padding:1px !important;
+}
+
+.footer-notes{
+	border:1px solid #000;
+}
+
+.footer-notes td{
+	padding:5px;
+}
+
+#invoice-info{
+	border-left:1px solid #000;
+}
+
+.lines{
+	height:5px;
+	background:url('../img/thumb.png');  
+	background-repeat:repeat-x;
+	background-position:center;
+	border-left:1px solid #000;
+	border-right:1px solid #000;
+}
+/*край на стилове за документи*/
+
+
+/*стилове за листова таблица*/
 .listTable{
   	.document h2 {
 		margin-top: 3px;
@@ -1493,14 +1015,16 @@ td.portal-date {
 	 	border-color:#000;
 	 }
 }
+/*край на стилове за листова таблица*/
 
-.listToolbar {
+
+/*стилове за тулбар*/
+.wide .listToolbar {
 	margin-top: 15px;
 }
 
 .listTable .toolbar .button{
 	margin:0px 5px 0px 0;
-		
 }
 
 .toolbar #btnDelete{
@@ -1510,11 +1034,11 @@ td.portal-date {
 .narrow .toolbar{
 	white-space:nowrap;
 	margin: 0px 0px 2px 0px ;
-	padding:2px 0px 3px 0px;
+	padding:0px 0px 3px 0px;
 }
 
 .narrow .listTable .toolbar {
-	margin: 0px 4px 5px 4px;
+	margin: 5px 4px 5px 4px;
 	padding-top:0px;
 }
 
@@ -1522,32 +1046,14 @@ td.portal-date {
 	margin-top: 3px;
 	margin-bottom:3px;
 }
+/*край на стилове за тулбар*/
 
-.document .header {
-	@include border-radius(3px);
-	padding: 3px;
-	font-size: 1em;
-	span {
-		background-position: 3px center;
-		padding-left: 24px;
-		background-repeat: no-repeat;
-		font-weight: bold;
-	}
-}
 
-.printing .document {
-	border: none;
-	background: #ffffff;
-	@include no-shadow();
-	padding: 10px 25px 15px 25px;
-	margin-bottom: 20px;
-	float: left;
-	margin-right: 10px;
-	margin-top: 10px;
-	min-width: 0px;
-}
+/*стилове за календара в портала*/
 table.mc-calendar {
   width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
   font-size: 0.8em;
   td.mc-day {
   	width:13%;
@@ -1587,11 +1093,12 @@ table.mc-calendar {
 table.mc-header a {
   color: #999;
 }
-/*
- * Стилове за счетоводството
- */
-.wide .legalscript{
-	margin-top:-15px;
+/*край на стиловете за календара в портала*/
+
+
+/*Стилове за счетоводството*/
+.legalscript h1{
+	margin-bottom: 0.5em;
 }
 
 .wide .level-1 td { 
@@ -1610,6 +1117,23 @@ table.mc-header a {
 
 .wide .level-3 td, .wide .level-4 td, .wide .level-5 td { 
 	background-color: #fff;
+}
+
+.wide .internal-amount{
+	margin-left:60px;
+}
+
+.narrow .internal-amount{
+	margin-top:15px;
+}
+/*край на стилове за счетоводството*/
+
+
+/*стилове за палети*/
+.pallet-table{
+	clear:left;
+	border-collapse: separate;
+	border-spacing: 1px;
 }
 
 input.inplace {
@@ -1657,37 +1181,15 @@ td.constrColumnRight {
 td.constrColumnLeft { 
     border-left: solid 3px #777 !important;
 }
+/*край на стилове за палети*/
 
 tr.noHover td:hover { 
 	color: #999999; 
 	background: white;
 }
 
-.wide .em-holder{
-	width:70%;
-}
-
-.narrow .em-holder{
-	width:100%;
-}
-
-.wide .sm-att{
-	width:27%;
-	overflow:hidden; 
-	float:right;
-}
-
-.narrow .sm-att{
-	margin-top:10px;
-	width:100%;
-	float:left;
-	.attachments{
-		float:left;
-	}
-}
-
+/*стилове за прикачени файлове*/
 .wide div.attachments {
-	float:right;
 	display: inline-block;
 	margin: 2px;
 }
@@ -1718,11 +1220,31 @@ div.attachments {
 	background-color: #e0f0e0;
 }
 
-.thread-opened th {
-	border: solid 1px green !important;
-	background-color: #aea !important;
+.wide .em-holder{
+	width:68%;
 }
 
+.narrow .em-holder{
+	width:100%;
+}
+
+.wide .sm-att{
+	width:29%;
+	float:right;
+}
+
+.narrow .sm-att{
+	margin-top:10px;
+	width:100%;
+	float:left;
+	.attachments{
+		float:left;
+	}
+}
+/*край на стилове за прикачени файлове*/
+
+
+/*стилове за нотификация*/
 #notificationsCnt {
 	position: absolute;
 	margin-left:30px;
@@ -1769,6 +1291,10 @@ div.attachments {
 	background-color: #bbb !important; 
 	border: solid 1px #999 !important;
 }
+/*край на стилове за нотификация*/
+
+
+/*стилове за история и автор*/
 table.profile-summary-table{
 	margin-left:2px;
 	margin-top:3px;
@@ -1849,6 +1375,7 @@ ul.history {
 .wide ul.history.summary{
 	width: 100px;
 }
+
 .narrow ul.history{
 	white-space: nowrap;
 	display: inline-block;
@@ -1908,9 +1435,11 @@ span.sharing-history-title {
 	border-top: none;
 	color: #777;
 }
+
 .narrow span.sharing-history-title{
 	font-size:14px;
 }
+
 span.change-log-title {
 	padding: 2px 5px;
 	padding-left: 23px;
@@ -1946,38 +1475,8 @@ fieldset.sharing-history {
 		font-size: 0.9em;
 	}
 }
+/*край на стилове за история и автор*/
 
-.wide .icon { 
-	display: inline-block;
-	height: 16px;
-	width: 16px;
-	background-repeat: no-repeat;
-	background-position: left center;
-}
-
-.wide input.contactData, .wide textarea.contactData, .wide select.contactData {
-	width:400px;
-}
-
-.narrow input.contactData {
-	width:100%;
-}
-
-.wide input.pCode { 
-	width:80px;
-}
-
-.wide select {
-    /*max-width:500px; махнато заради селекта при изпращане на емейли */
-}
-
-.hasDatepick{
-	margin-left:2px;
-}
-
-input.combo.pCode{
-	margin-left:0 !important;
-}
 
 /* CMS */
 #cmsTop {
@@ -2069,6 +1568,10 @@ input.combo.pCode{
 	margin-left: 20px;
 }
 
+/*край на CMS*/
+
+
+/*grid*/
 /* ==================================================================================================================== */
 /* ! The 1140px Grid V2 by Andy Taylor \ http://cssgrid.net \ http://www.twitter.com/andytlr \ http://www.andytlr.com   */
 /* ==================================================================================================================== */
@@ -2152,100 +1655,10 @@ input.combo.pCode{
 .cms-last {
 	margin-right: 0px;
 }
-
-@media handheld , only screen and (max-width: 1000px) {
-	#cmsTop {
-		@include rounded(top, left, 0px);
-		@include rounded(top, right, 0px);
-	}
-	#all {
-		margin-top: 0px;
-		margin-bottom: 0px;
-		@include rounded(top, left, 0px);
-		@include rounded(top, right, 0px);
-	}
-}
-
-/* Mobile */
-
-@media handheld, only screen and (max-width: 950px) { 
-
-	body {
-		-webkit-text-size-adjust: none;
-	}
+/*край на grid*/
 
 
-	#cmsTop, #all, #cmsBottom { 
-		width: 100% !important;
-	} 
-
-	.cms-row, body, .cms-container {
-		width: 100%;
-		min-width: 0;
-		margin-left: 0px;
-		margin-right: 0px;
-		padding-left: 0px;
-		padding-right: 0px;
-	}
-	
-	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol, 
-	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol { 
-		width: auto;
-		float: none;
-		margin-left: 0px;
-		margin-right: 0px;
-		padding-left: 20px;
-		padding-right: 20px;
-	}
-	
-	#cmsMenu a {
-		margin-left:8px;
-		margin-right:8px;
-		font-size:1.1em;
-    }
-}
-
-
-@media handheld, only screen and (max-width: 800px) { 
-	#cmsMenu a {
-		margin-left:5px;
-		margin-right:5px;
-		font-size:1em;
-    }
-}
-
-@media handheld, only screen and (max-width: 760px) { 
-	#cmsMenu a {
-		margin-left:3px;
-		margin-right:3px;
-		font-size:0.90em;
-    }
-}
-
-@media handheld, only screen and (max-width: 700px) { 
-	#cmsMenu a { 
-		margin-left:2px;
-		margin-right:2px;
-		font-size:0.85em;
-    }
-}
-
-@media handheld, only screen and (max-width: 600px) { 
-	#cmsMenu a {
-		margin-left:2px;
-		margin-right:2px;
-		font-size:0.8em;
-    }
-}
-
-.badge {
-	@include border-radius(9px);
-    color: #fff;
-    background-color: #999;
-    font-size: 0.84em;
-    padding: 1px 7px 2px;
-}
-
+/*стилове за fileman*/
 .webdrvTabBody {
 	max-width: 900px;
 	min-width: 800px;
@@ -2273,10 +1686,11 @@ input.combo.pCode{
 .wide .webdrvFieldset{
 	min-height:620px;
 	border:1px solid #ccc;
+	padding:5px 10px 10px;
 	@include border-radius(5px);
 	box-shadow:0 0 5px rgba(0,0,0,0.2) inset;
 	>div{
-		max-width:868px;
+		max-width:880px;
 		overflow:auto;
 	}
 	>.mejs-container{
@@ -2290,7 +1704,7 @@ input.combo.pCode{
 		margin-top:0;
 	}
 	.email-source{
-		max-width:850px;
+		max-width:880px;
 		white-space:pre-wrap;
 		font-family:monospace "courier new";
 	}
@@ -2298,6 +1712,8 @@ input.combo.pCode{
 
 .webdrvFieldset legend{
 	background-color:#fff;
+	padding:0 5px;
+	margin:0px 15px;
 }
 
 .narrow .email-source{
@@ -2311,17 +1727,25 @@ input.combo.pCode{
 }
 
 .narrow .webdrvFieldset div{
-	font-size:0.6em;
+	font-size:0.9em;
 }
 
 .narrow .webdrvFieldset {
 	min-height: 300px;
 	height:100%;
+	padding:5px;
 	border:1px solid #ccc;
 	@include border-radius(5px);
 	box-shadow:0 0 5px rgba(0,0,0,0.2) inset;
 }
 
+.filesContainer .top-table{
+	margin-bottom:15px;
+}
+/*стилове за fileman*/
+
+
+/*стилове за блог*/
 #blog-article-details .listTable th{
 	display:none;
 }
@@ -2329,18 +1753,56 @@ input.combo.pCode{
 #blog-article-details .listTable { 
 	background:rgb(229,229,229);
 }
+/*край на стилове за блог*/
 
-.order-table{
-	margin-top:11px;
+
+/*стилове при скролиране на таблица*/
+.main-container{
+	display: inline-block;
+	min-width:100%;
 }
 
-.wide .listRows{
-	margin-left:2px;
+.switching-display{
+	display:table;
 }
 
-.wide .document .listRows{
-	margin-left:0;
+.narrow .whole-page .switching-display{
+	display:block;
 }
+
+.narrow .main-container.whole-page{
+	display:block;
+}
+
+.narrow .whole-page .listRows .listTable{
+	margin-bottom:0;
+}
+
+.narrow .whole-page div.alphabet  div.tab-row {
+	width: 100%;
+}
+
+.narrow .whole-page .listRows{
+	width: 100% !important;
+	overflow-y: auto !important;
+	_overflow: auto !important;
+	
+}
+.narrow .whole-page .listRows::-webkit-scrollbar{
+	-webkit-appearance: none;
+	width: 14px;
+	height: 14px;
+}
+
+.narrow .whole-page .listRows::-webkit-scrollbar-thumb{
+	border-radius: 8px;
+	border: 3px solid #fff;
+	background-color: rgba(0, 0, 0, .3);
+}
+/*край на стилове при скролиране на таблица*/
+
+
+/*стилове за автор в документ*/
 .wide-profile-info{
 	text-align:center;
 	.holder-box{
@@ -2366,74 +1828,10 @@ input.combo.pCode{
 		text-align:center;
 	}
 }
+/*стилове за автор в документ*/
 
-/*стилове за документи*/
-.document .details .listTable {
-	width:100%;
-}
 
-.document .details .listToolbar{
-	padding:5px 0px;
-	margin: 0;
-	border-bottom:1px solid #000;
-}
-
-.document .details .listToolbar .toolbar{
-	padding-left:0;
-}
-.narrow .document .details .listToolbar .toolbar {
-	margin-top:8px;
-	margin-left:0;
-}
-.document .listTable th, .document .listTable td{
-	border:1px solid #000 !important;
-}
-
-.smallData {
-	padding:1px; 
-	font-size:1em; 
-}
-
-.bigData {
-  font-family:"Courier New";
-  font-size:1em; 
-  font-weight:bold;
-}
-
-.cell {
-	border:1px solid #000;
-}
-
-.topCell {
-	border: 1px solid #000;
-	div {
-		padding-bottom:2px;
-	}
-}
-
-.innerTable {
-	border-collapse:collapse;
-}
-
-.rowData {
-	font-size:0.9em;
-}
-
-.footer-notes{
-	font-size:14px;
-}
-  
-.lines{
-	height:5px;
-	background:url('../img/thumb.png');  
-	background-repeat:repeat-x;
-	background-position:center;
-	border-left:1px solid #000;
-	border-right:1px solid #000;
-}
-
-/*стилове за емейл кутии*/
-
+/*стилове за custom таблица*/
 .styled-table{
 	border-collapse:collapse;
 	margin-bottom:20px;
@@ -2445,7 +1843,7 @@ input.combo.pCode{
 
 .styled-table td{
 	border:1px solid #ccc;
-	padding:2px 5px;
+	padding:3px 5px;
 }
 
 .styled-table th{
@@ -2459,6 +1857,9 @@ input.combo.pCode{
 table.styled-table tr:hover td {
     background-color:#ffc !important;
 }
+/*стилове за custom таблица*/
+
+
 /*стилове за локации*/
 .info-table ul{
 	padding:0;
@@ -2498,35 +1899,42 @@ table.styled-table tr:hover td {
 div.locImage{
 	padding-bottom:0;
 }
+/*край на стилове за локации*/
+
+
 /*шаблон за пускане в експлоатация на ДА*/
-	.calign{
+.calign{
 	text-align:center;
-	}
-	
-	.sign-holder{
-		display:inline-block;
-	}
-	
-	.sign-holder span{
-		display:inline-block;
-		float:right;
-		width:160px;
-		text-align:center;
-	}
+}
+
+.sign-holder{
+	display:inline-block;
+}
+
+.sign-holder span{
+	display:inline-block;
+	float:right;
+	width:160px;
+	text-align:center;
+}
+/*край на шаблон за пускане в експлоатация на ДА*/
+
 
 /*шаблон за журнал*/
-	.acc_JournalDetails {
-		margin-top:10px;
-	}
-	
-	.acc_JournalDetails ul{
-		margin-left:0 !important;
-		padding-left:0 !important;
-	}
-	
-	.acc_JournalDetails .listTable th, .acc_JournalDetails .listTable td{
-		padding: 5px;
-	}
+.acc_JournalDetails {
+	margin-top:10px;
+}
+
+.acc_JournalDetails ul{
+	margin-left:0 !important;
+	padding-left:0 !important;
+}
+
+.acc_JournalDetails .listTable th, .acc_JournalDetails .listTable td{
+	padding: 5px;
+}
+/*шаблон за журнал*/
+
 
 /*bugFix - ширина при коментари на документ*/
 #doc_Comments-EditForm{
@@ -2549,18 +1957,10 @@ div.locImage{
 	margin-bottom:2px;
 	margin-left:2px;
 }
+/*край на bugFix - ширина при коментари на документ*/
 
 /*bugFix - заглавие при емейлите*/
-.email-class h2{
-	margin:10px 0 12px;
-}
 
-.free-text{
-	max-width:600px;
-	text-align:justify;
-	line-height:130%;
-	margin-bottom:20px;
-}
 
 .trans_DeliveryTerms{
 	max-width: 800px;
@@ -2570,19 +1970,7 @@ div.locImage{
 	margin:10px 0;
 }
 
-.folder-cover h2{
-	margin:0 0 20px 0;
-}
 
-.doc_Search .combo{
-	margin-left:-1px !important;
-}
-.doc_Search select{
-	margin-left:-1px;
-}
-.doc_Search .hasDatepick{
-	margin-left:0;
-}
 .cCode {
 	border:solid 1px #ccc;
 	color:black !important;
@@ -2592,46 +1980,22 @@ div.locImage{
     vertical-align:middle;
 }
 
-/*пренаписване на някои стилове на селекти тип chosen*/
-.chzn-container-multi .chzn-choices .search-field input{
-	padding:4px 4px 3px 4px !important;
-	font-size:0.9em !important;
-	height:21px;
-}
-
-.narrow .horizontal input.combo{
-	margin-left:2px;
-}
-
-.narrow .horizontal .chzn-container{
-	margin-left:2px;
-}
-
-.narrow .hFormField .hasDatepick{
-	margin-left:2px;
-}
-
-.chzn-container-multi .chzn-choices .search-choice .search-choice-close {
-	top:2px !important;
-}
-
-.chzn-container-multi .chzn-choices .search-choice {
-	line-height:11px !important;
-	margin: 2px 0 2px 2px !important;
-}
-
-.chzn-container{
-	top:0px;
-}
-
-
+/*email*/
 .additional-info{
 	border-top:1px solid #ccc;
 	padding:10px;
 	background-color: rgba(240,240,255,0.5);
 	border: solid 1px #ddddff;
-	
 }
+
+.email-class h2{
+	margin:10px 0 12px;
+}
+
+/*край на email*/
+
+
+/*бласт*/
 .blast-table{
 	display:inline-block;
 }
@@ -2643,7 +2007,20 @@ div.locImage{
 		color:#333;
 	}
 }
+.blast_ListDetails .listToolbar{
+	border-bottom:none !important;
+}
+.blast-overflow{
+	max-width: 850px; 
+	overflow: auto; 
+}
+.narrow .blast-overflow{
+	max-width:393px;
+}
+/*край на бласт*/
 
+
+/*търсене в портала*/
 .portal-filter{
 	position:relative;
 	min-width:30px;
@@ -2737,27 +2114,9 @@ div.locImage{
 	padding:2px 0;
 	background-color:rgb(221, 221, 221) !important;
 }
+/*край на търсене в портала*/
 
-.special-title{
-	padding:10px !important;
-	font-size:0.9em;
-	line-height:1.1em;
-	@include border-radius4(3px,3px,0,0);
-	box-shadow:0 1px 2px rgba(0,0,0,0.2);
-}
-.addRoute{
-    	display:inline-block;
-    	width:16px;
-    	height:16px;
-    	padding-left:5px !important;
-		position:relative;
-		top:2px;
-    }
-
-.filesContainer .top-table{
-	margin-bottom:15px;
-}
-
+/*напомняния*/
 .reminder-table td{
     width:400px;
 }
@@ -2767,14 +2126,7 @@ div.locImage{
    padding-right:20px;
    white-space: nowrap;
 }
-.acc_ArticleDetails form {
-	.formFields{
-		margin-top:10px;
-	}
-	.formToolbar{
-		margin-top:3px;
-	}
-}
+
 .document.print-letter{
 	page-break-after:always;
 	max-width:850px;
@@ -2793,32 +2145,171 @@ div.locImage{
 .narrow .reminder-half{
 	width:100%;
 }
-.blast_ListDetails .listToolbar{
-	border-bottom:none !important;
-}
-.blast-overflow{
-	max-width: 850px; 
-	overflow: auto; 
-}
-.narrow .blast-overflow{
-	max-width:393px;
-}
+/*край на напомняния*/
+
+/*бъгфиксове*/
 .store_Racks td,.hr_ContractTypes td{
 	max-width:700px;
 }
+
 .fileman_Indexes td, .fileman_Data td, .log_Documents td, .core_Cache td{
 	max-width:none !important;	
 }
 
-.wide .internal-amount{
-	margin-left:60px;
+.calendar table{
+	border-collapse:separate;
+}
+.calendar table td{
+	vertical-align:middle;
+}
+.doc_Containers .formToolbar .toolbar{
+	padding:0;
+	margin:0;
 }
 
-.narrow .internal-amount{
-	margin-top:15px;
+.accordian{
+	margin-top:0.5em;
+}
+/*край на бъгфиксове*/
+
+
+/*queries*/
+@media handheld , only screen and (max-width: 1000px) {
+	#cmsTop {
+		@include rounded(top, left, 0px);
+		@include rounded(top, right, 0px);
+	}
+	#all {
+		margin-top: 0px;
+		margin-bottom: 0px;
+		@include rounded(top, left, 0px);
+		@include rounded(top, right, 0px);
+	}
 }
 
+/* Mobile */
+
+@media handheld, only screen and (max-width: 950px) { 
+
+	body {
+		-webkit-text-size-adjust: none;
+	}
+
+
+	#cmsTop, #all, #cmsBottom { 
+		width: 100% !important;
+	} 
+
+	.cms-row, body, .cms-container {
+		width: 100%;
+		min-width: 0;
+		margin-left: 0px;
+		margin-right: 0px;
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+	
+	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol, 
+	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol { 
+		width: auto;
+		float: none;
+		margin-left: 0px;
+		margin-right: 0px;
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+	
+	#cmsMenu a {
+		margin-left:8px;
+		margin-right:8px;
+		font-size:1.1em;
+    }
+}
+
+
+@media handheld, only screen and (max-width: 800px) { 
+	#cmsMenu a {
+		margin-left:5px;
+		margin-right:5px;
+		font-size:1em;
+    }
+}
+
+@media handheld, only screen and (max-width: 760px) { 
+	#cmsMenu a {
+		margin-left:3px;
+		margin-right:3px;
+		font-size:0.90em;
+    }
+}
+
+@media handheld, only screen and (max-width: 700px) { 
+	#cmsMenu a { 
+		margin-left:2px;
+		margin-right:2px;
+		font-size:0.85em;
+    }
+}
+
+@media handheld, only screen and (max-width: 600px) { 
+	#cmsMenu a {
+		margin-left:2px;
+		margin-right:2px;
+		font-size:0.8em;
+    }
+}
+
+/*край на queries*/
+
+/*стилове за принтиране*/
 @media print{
+	.richtext-question{
+    	padding-left:10px;
+    	color: darken(#132c5c,10%);
+	}
+	.richtext-error{
+ 		padding-left:10px;
+ 		color: darken(#D8000C,10%);
+	}
+	.richtext-tip{
+    	padding-left:10px;
+    	color:darken(#c9841a,10%);
+	}
+	.richtext-success{
+ 		padding-left:10px;
+ 		color: darken(#4F8A10,10%);
+	}
+	.richtext-warning{
+    	padding-left:10px;
+    	color: darken(#9F6000,10%);
+	}
+	.richtext-info{
+		padding-left:10px;
+    	color: darken(#00529B,10%);
+	}
+	.folder-cover {
+		border: none;
+		font-size: 0.8em;
+		background: #ffffff;
+		@include no-shadow();
+		padding: 10px;
+		display: table;
+		min-width: 600px;
+		max-width: 750px;
+		line-height: 1.2em;
+		margin-top: 0px;
+	}
+	.document {
+		border: none;
+		background: #ffffff;
+		@include no-shadow();
+		padding: 10px 25px 15px 25px;
+		margin-bottom: 20px;
+		float: none;
+		margin-right: 10px;
+		margin-top: 10px;
+		min-width: 0px;
+	}
 	.linkWithIcon, .docBgIcon,.button{
 		padding-left:0 !important;
 	}
@@ -2874,5 +2365,10 @@ div.locImage{
 	table.mc-calendar td.mc-day {
 		color:#333; 
 	}
-	
+	.richtextHide{
+		display:block !important;
+	}
+	.aHeader{
+		padding-left:2px !important;
+	}
 }

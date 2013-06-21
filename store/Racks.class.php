@@ -456,7 +456,7 @@ class store_Racks extends core_Master
         
         $html .= "</div>";
         
-        $html .= "<table cellspacing='1' style='clear: left;'>";
+        $html .= "<table cellspacing='1' class='pallet-table'>";
         
         /* За всеки ред от стелажа */
         for ($r = $rec->rows; $r >= 1; $r--) {

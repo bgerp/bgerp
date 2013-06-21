@@ -8,9 +8,8 @@
 	 </div>
 	<!-- END Заглавие -->                     
 	<!-- BEGIN Писмо -->
-	<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>
+	<div class='antetka'>
 		<div>  
-			<small>   
 				<table class='top-table' width='100%' cellspacing='1'>
 					<tr>
 						<!--ET_BEGIN subject--> 
@@ -71,8 +70,9 @@
 					    </td> 
 					</tr>
 				</table>
-			</small>  
-		</div>    
+		
+		</div>  
+		<div style='clear: both;'></div>    
 	</div>
 	<!-- END Писмо -->
 	

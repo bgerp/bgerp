@@ -12,7 +12,8 @@
 
 .quote_title{
 	margin-top:12px;
-	font-size:32px;
+	margin-bottom:10px;	
+	font-size:2em;
 	font-weight:bold;
 	color:#636363;
 	font-family: impact;
@@ -23,7 +24,7 @@
 }
 
 .title-info {
-	margin:0 !important;
+	margin:2px 0 !important;
 }
 
 .receiver{
@@ -102,10 +103,12 @@
 .products-table th{
 	border:1px solid #ccc;
 	background-color:#eee;
+	padding:5px;
 }
 
 .products-table td{
 	border:1px solid #ccc;
+	padding:5px;
 }
 
 .doc_Containers table.listTable td.misc-info{

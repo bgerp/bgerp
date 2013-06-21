@@ -7,9 +7,18 @@ table {
 @media print {
 	table {width:97% !important;}
 }
+h2{
+	line-height:120%;
+}
+.order-table td{
+	padding:10px;
+}
+
 .order-table td {
 	padding-left:15px;
 	border-bottom-style:none;
+	border:1px solid #000;
+	padding:4px;
 }
 
 .top-head{
@@ -90,14 +99,23 @@ th {
 .labels {
 	font-size:14px;
 }
+.border-table td{
+	border:1px solid #000;
+	padding:3px;
+}
 
 .sign_names {
 	margin-left:15%;
 }
 
 .pko-notes{
+	border:none;
+	border-collapse:collapse;
+}
+.pko-notes td{
+	border:1px solid #000;
 	border-top:none;
 }
-
-.pko-notes td{
-	border-top:none;
+.pko-notes table td{
+	border:none;
+}

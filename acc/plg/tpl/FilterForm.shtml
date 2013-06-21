@@ -10,7 +10,7 @@
 	<!--ET_END FORM_FIELDS-->
 	
 	<!--ET_BEGIN FORM_TOOLBAR-->
-	<div style='margin-top:10px;margin-left:50px'>
+	<div class='form-filter-btn'>
 	[#FORM_TOOLBAR#]
 	</div>
 	<!--ET_END FORM_TOOLBAR-->

@@ -153,7 +153,7 @@ class doc_Threads extends core_Manager
     {
         expect($data->folderId = Request::get('folderId', 'int'));
         
-        $title = new ET("<div style='font-size:18px;'>[#user#] » [#folder#] ([#folderCover#])</div>");
+        $title = new ET("<div class='path-title'>[#user#] » [#folder#] ([#folderCover#])</div>");
         
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
