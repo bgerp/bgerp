@@ -287,6 +287,7 @@ div.tab-control div.tab-row .tab {
 	z-index: 1;
 	white-space: nowrap;
 	position: relative;
+	line-height: normal;
 	@include border-radius4(5px, 5px, 0px, 0px);
 	border-top: 2px solid $blue;
 	&.selected {
