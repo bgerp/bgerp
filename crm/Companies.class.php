@@ -561,6 +561,36 @@ class crm_Companies extends core_Master
          * @TODO Това не трябва да е тук, но по някаква причина не сработва в on_Shutdown()
          */
         $mvc->updateRoutingRules($rec);
+        
+        // Обновяме номерата
+        $mvc->updateNumbers($rec);
+    }
+    
+    
+	/**
+     * Обновява номера за фирмата
+     */
+    static function updateNumbers($rec)
+    {
+        // Ако има телефон
+        if ($rec->tel) {
+            
+            // Добавяме в масива
+            $numbersArr['tel'] = $rec->tel;
+        }
+        
+        // Ако има факс
+        if ($rec->fax) {
+            
+            // Добавяме в масива
+            $numbersArr['fax'] = $rec->fax;
+        }
+        
+        // Вземаме id на класа
+        $classId = static::getClassId();
+        
+        // Добавяме в КЦ
+        callcenter_ExternalNum::updateNumbers($numbersArr, $classId, $rec->id);
     }
     
     

@@ -575,6 +575,57 @@ class crm_Persons extends core_Master
         $mvc->updatedRecs[$id] = $rec;
 
         $mvc->updateRoutingRules($rec);
+        
+        // Обновяме номерата
+        $mvc->updateNumbers($rec);
+    }
+    
+    
+    /**
+     * Добавя номера за лицето
+     */
+    static function updateNumbers($rec)
+    {
+        // Ако има телефон
+        if ($rec->tel) {
+            
+            // Добавяме в масива
+            $numbersArr['tel'] = $rec->tel;
+        }
+        
+        // Ако има бизнес номер
+        if ($rec->buzTel) {
+            
+            // Добавяме към телефона
+            $numbersArr['tel'] .= $numbersArr['tel'] ? ', ' . $rec->buzTel : $rec->buzTel;
+        }
+        
+        // Ако има факс
+        if ($rec->fax) {
+            
+            // Добавяме факса
+            $numbersArr['fax'] = $rec->fax;
+        }
+        
+        // Ако има бизнес факс
+        if ($rec->buzFax) {
+            
+            // Добавяме към факса
+            $numbersArr['fax'] .= $numbersArr['fax'] ? ', ' . $rec->buzFax : $rec->buzFax;
+        }
+        
+        // Ако има мобилен
+        if ($rec->mobile) {
+            
+            // Добавяме мобилния
+            $numbersArr['mobile'] = $rec->mobile;
+        }
+        
+        // id на класа
+        $classId = static::getClassId();
+        
+        // Добавяме номерата в КЦ
+        callcenter_ExternalNum::updateNumbers($numbersArr, $classId, $rec->id);
     }
 
 
