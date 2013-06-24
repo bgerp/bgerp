@@ -669,4 +669,32 @@ class core_Db extends core_BaseClass
         
         return mysql_real_escape_string($value, $this->link);
     }
+
+    /**
+     * Празна ли е базата данни?
+     * @param string $databaseName
+     * @return bool
+     */
+    function databaseEmpty($databaseName)
+    {
+        $dbRes = $this->query("SELECT SUM(TABLE_ROWS) AS RECS
+                                    FROM INFORMATION_SCHEMA.TABLES 
+                                    WHERE TABLE_SCHEMA = '" . $databaseName ."'", TRUE);
+        
+        if(!is_resource($dbRes)) {
+        
+        	return TRUE;
+        }
+        
+        // Извличаме резултата
+        $rows = $this->fetchObject();
+        
+        $this->freeResult($dbRes);
+        
+        if (!$rows->RECS) {
+        	return TRUE;
+        }
+        
+        return FALSE;
+    }
 }
