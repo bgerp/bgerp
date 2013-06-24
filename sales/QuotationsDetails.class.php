@@ -140,7 +140,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	if($origin->className == 'techno_Specifications'){
 	    		$products[$origin->that] = $origin->recToVerbal('title')->title;
 	    	}
-       	} else {
+       	} elseif(!count($products)) {
        		return Redirect(array($mvc->Master, 'single', $rec->quotationId), NULL, 'Няма достъпни продукти');
        }
        

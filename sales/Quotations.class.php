@@ -42,13 +42,19 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg,
-                    doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc';
+                    doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary';
        
     
     /**
      * Кой има право да чете?
      */
     public $canRead = 'admin,sales';
+    
+    
+    /**
+     * 
+     */
+    public $filterDateField = 'date';
     
     
     /**
@@ -336,7 +342,7 @@ class sales_Quotations extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . '#[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . ' #[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }
