@@ -52,7 +52,7 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * 
+     * Поле за търсене по дата
      */
     public $filterDateField = 'date';
     

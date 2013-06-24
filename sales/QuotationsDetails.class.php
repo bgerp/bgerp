@@ -289,15 +289,16 @@ class sales_QuotationsDetails extends core_Detail {
     			if(!$rec->quantity) return;
     			$total += $rec->amount;
     			if($rec->discAmountVat){
-    				$totalDisc += $rec->discAmountVat; 
+    				$totalDisc += $rec->amount - $rec->discAmountVat; 
     			}
     		}
     	}
     	
-    	$afterDisc = $total - $totalDisc;
+    	if($totalDisc != 0){
+    		$afterDisc = $total - $totalDisc;
+    	}
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	(!$totalDisc) ? $totalDisc = NULL : $totalDisc = $double->toVerbal($totalDisc);
     	$total = $double->toVerbal($total);
     	$data->total = (object) array('total' => $total, 'totalDisc' => $afterDisc);
     }
