@@ -181,8 +181,38 @@ class type_Users extends type_Keylist
         // Ако подадения тип не е в опциите
         if (!$typeObj = $this->options[$type]) {
             
-            // Вземаме първия от масива
-            $typeObj = reset($this->options);    
+            // Ако се иска текущия потребител
+            if ($type == 'current') {
+                
+                // id' то на текущия потребител
+                $currUser = core_Users::getCurrent();
+                
+                // Екипите в които участва
+                $teams = core_Users::getUserRolesByType($currUser, 'team');
+                
+                // Масив с екипите
+                $teamsArr = type_Keylist::toArray($teams);
+                
+                // Обхождаме масива
+                foreach ($teamsArr as $team) {
+                    
+                    // Създаваме ключа
+                    $key = $team . '_' . $currUser;
+                    
+                    // Вземаме обекта
+                    $typeObj = $this->options[$key];
+                    
+                    // Ако открием обекта, прекъсваме цикъла
+                    if ($typeObj) break;
+                }
+            }
+            
+            // Ако не се е определил все още
+            if (!$typeObj) {
+                
+                // Вземаме първия от масива
+                $typeObj = reset($this->options);
+            }
         }
         
         // Връщаме ключа
