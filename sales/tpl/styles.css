@@ -109,6 +109,7 @@
 .products-table td{
 	border:1px solid #ccc;
 	padding:5px;
+	vertical-align:top;
 }
 
 .doc_Containers table.listTable td.misc-info{
