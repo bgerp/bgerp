@@ -171,15 +171,17 @@ class type_Users extends type_Keylist
     
     
     /**
-     * Проверява, дали типа се съдържа в опциите
+     * Проверява дали подадения ключ го има в опциите и ако го няма връща първия възможен
+     * 
+     * @param string $key - Ключа от опциите
      */
-    function fitInDomain($type)
+    function fitInDomain($key)
     {
         // Подготвяме опциите
         $this->prepareOptions();
         
         // Ако подадения тип не е в опциите
-        if (!$typeObj = $this->options[$type]) {
+        if (!$typeObj = $this->options[$key]) {
             
             // Вземаме първия от масива
             $typeObj = reset($this->options);

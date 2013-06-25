@@ -117,33 +117,34 @@ class type_UserList extends type_Keylist
     
     
 	/**
-     * Проверява, дали типа се съдържа в опциите
+     * Проверява дали подадения ключ го има в опциите и ако го няма връща първия възможен
+     * 
+     * @param string $key - Ключа от опциите
      */
-    function fitInDomain($type)
+    function fitInDomain($key)
     {
-        
         // Подготвяме опциите
         $this->prepareSuggestions();
         
         $suggestions = $this->suggestions;
 
         // Ако е зададен всички потребители
-        if ($type == 'all_users') {
+        if ($key == 'all_users') {
             
             // Обхождаме масива с предположенията
-            foreach ($suggestions as $key => $suggestion) {
+            foreach ($suggestions as $keySugg => $suggestion) {
                 
                 // Ако не е група
                 if (!$suggestion->group) {
                     
                     // Добавяме в масива
-                    $retTypeArr[$key] = $key;
+                    $retTypeArr[$keySugg] = $keySugg;
                 }
             }
         } else {
             
             // Масив с типовете
-            $typeArr = type_Keylist::toArray($type);
+            $typeArr = type_Keylist::toArray($key);
             
             // Обхождаме типовете
             foreach ($typeArr as $t) {

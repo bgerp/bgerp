@@ -178,9 +178,11 @@ class type_User extends type_Key
     
     
     /**
-     * Проверява, дали типа се съдържа в опциите
+     * Проверява дали подадения ключ го има в опциите и ако го няма връща първия възможен
+     * 
+     * @param string $key - Ключа от опциите
      */
-    function fitInDomain($type)
+    function fitInDomain($key)
     {
         // Подготвяме опциите
         $this->prepareOptions();
@@ -192,8 +194,9 @@ class type_User extends type_Key
             $val = $options->value;
             
             if ($val) {
+                
                 // Ако стойността е равна на търсената връщаме я
-                if ($val == $type) return $val;
+                if ($val == $key) return $val;
                 
                 // Ако има стойност и няма първа стойност сетваме я
                 if (!$firstVal) $firstVal = $val;    
