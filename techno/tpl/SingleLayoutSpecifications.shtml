@@ -19,6 +19,12 @@
 				<td>|Мярка|*:</td>
 				<td>[#measureId#]</td>
 			</tr>
+			<!--ET_BEGIN common-->
+			<tr>
+				<td>|Споделяне|*</td>
+				<td>[#common#]</td>
+			</tr>
+			<!--ET_END common-->
 			</table>
 		<div>|Създаване на|* [#createdDate#] |от|* [#createdBy#]</div>
 	</div>

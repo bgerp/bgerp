@@ -83,7 +83,6 @@ class techno_GeneralProducts extends core_Manager {
 		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
 		
-        
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         if($data->data){
         	
@@ -103,9 +102,7 @@ class techno_GeneralProducts extends core_Manager {
     	$form = cls::get('core_Form');
     	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory');
         $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
-    	$paramOptions = $this->getRemainingOptions($data);
-    	$form->setOptions('paramId', $paramOptions);
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
     	
         return $form;
@@ -120,14 +117,14 @@ class techno_GeneralProducts extends core_Manager {
      */
     private function getRemainingOptions($data)
     {
-      $options = cat_Params::makeArray4Select();
-      if(count($options)){
-      	foreach($options as $id => $value){
-      		if(isset($data->params[$id])){
+        $options = cat_Params::makeArray4Select();
+        if(count($options)){
+      	   foreach($options as $id => $value){
+      		 if(isset($data->params[$id])){
       			unset($options[$id]);
-      		} 
-      	}
-      }
+      		 } 
+      	   }
+        }
       
       return $options;
     }
@@ -181,10 +178,9 @@ class techno_GeneralProducts extends core_Manager {
     					$data->bTaxes = 0;
     				}
     				
-    				$calcPrice = ($data->bTaxes * (1 + $maxCharge/100) 
-    					+ $quantity * $data->price * (1 + $minCharge/100)) / $quantity;
+    				$calcPrice = ($data->bTaxes * (1 + $maxCharge / 100) 
+    					+ $quantity * $data->price * (1 + $minCharge / 100)) / $quantity;
     				$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
-    				
     				return $price;
     			}
     		}
@@ -386,7 +382,7 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
     	$form = $this->getAddParamForm($data);
-    	$fRec = $form->input();
+        $fRec = $form->input();
         if($form->isSubmitted()) {
         	if($Specifications->haveRightFor('configure', $rec)){
         		
@@ -406,9 +402,15 @@ class techno_GeneralProducts extends core_Manager {
     	if($paramId = Request::get('edit')){
         	$form->rec->paramValue = $data->params[$paramId];
         	$form->rec->paramId = $paramId;	
-        }
-       
-        $form->title = "Добавяне на параметри към |*". $Specifications->recToVerbal($rec, 'id,title,-list')->title;
+    		$form->setReadOnly('paramId');
+    		$action = tr('Редактиране');
+    	} else {
+    		$paramOptions = $this->getRemainingOptions($data);
+    		$form->setOptions('paramId', $paramOptions);
+    		$action = tr('Дoбавяне');
+    	}
+        
+        $form->title = "{$action} на параметри към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
     }
     

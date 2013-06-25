@@ -53,6 +53,7 @@ class techno_Specifications extends core_Master {
      */
     var $singleIcon = 'img/16/specification.png';
     
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -145,7 +146,7 @@ class techno_Specifications extends core_Master {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, input=hidden');
 		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог,input=hidden,silent');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
-		$this->FLD('common', 'enum(no,yes)', 'input=none,value=no');
+		$this->FLD('common', 'enum(no=Не,yes=Общо)', 'input=none,value=no');
     }
     
     
@@ -156,7 +157,7 @@ class techno_Specifications extends core_Master {
     {
     	 $data->listFilter->view = 'horizontal';
     	 $data->listFilter->FNC('prodTehnoClass', 'class(interface=techno_ProductsIntf,allowEmpty,select=title)', 'placeholder=Технолог');
-    	 $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	 $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png'); 
     	 $data->listFilter->showFields = 'search,prodTehnoClass';
     	 $data->listFilter->input();
     	 if($technoClass = $data->listFilter->rec->prodTehnoClass){
@@ -246,7 +247,7 @@ class techno_Specifications extends core_Master {
     	$products = array();
     	$query = $this->getQuery();
     	$query->where("#state = 'active'");
-    	$query->where("#folderId = {$folderId} AND #data IS NOT NULL");
+    	$query->where("#folderId = {$folderId}");
     	$query->orWhere("#common = 'yes'");
     	
     	while($rec = $query->fetch()){
@@ -289,12 +290,16 @@ class techno_Specifications extends core_Master {
 	    	$row->data = $technoClass->getVerbal($rec->data);
 	    	$pInfo = $mvc->getProductInfo($rec->id);
 	    	$row->measureId = cat_UoM::getTitleById($pInfo->productRec->measureId);
-	    }
+	    
+	    	if($rec->common == 'no'){
+	    		unset($row->common);
+	    	}
+    	}
 	    
 	    if($fields['-list']){
 	    	if($mvc->haveRightFor('ajust', $rec)){
 	    		$img = "<img src=" . sbf('img/16/testing.png') . ">";
-	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id)) . $row->tools;
+	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id)) . $row->tools . " " . $rec->id;
 	    	}
 	    	
 	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
@@ -345,8 +350,8 @@ class techno_Specifications extends core_Master {
     		$form->FNC('quantity3', 'int', 'caption=Последваща оферта->К-во 3,width=4em,input');
 		}
     	
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', array($this, 'list'), 'ef_icon = img/16/close16.png');
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', array($this, 'list'), array('class' => 'btn-cancel'));
         
     	$fRec = $form->input();
         if($form->isSubmitted()) {
