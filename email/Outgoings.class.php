@@ -506,8 +506,17 @@ class email_Outgoings extends core_Master
                 // id
                 $id = Request::get('id', 'int');
                 
+                // Вземаме URL' то
+                $retUrl = getRetUrl();
+                
+                // Ако няма
+                if (!$retUrl) {
+                    
+                    // Връщаме към сингъла на имейла
+                    $retUrl = array('email_Outgoings', 'single', $id);
+                }
                 // Добавяме бутона за факс
-                $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => TRUE), 'ef_icon = img/16/fax.png');      
+                $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => $retUrl), 'ef_icon = img/16/fax.png');      
             }
         }
         
