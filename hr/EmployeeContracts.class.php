@@ -219,6 +219,8 @@ class hr_EmployeeContracts extends core_Master
         $houresInSec = self::houresForAWeek($rec->id);
         $houres = $houresInSec / 60 / 60;
         
+        $row->shiftRec = new stdClass();
+        
         if($houres % 2 !== 0){
         	$min = round(($houres - round($houres)) * 60);
         	
