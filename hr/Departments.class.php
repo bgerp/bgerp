@@ -75,7 +75,7 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, type, staff, dependent, locationId, employersCntAll, employersCnt, schedule';
+    var $listFields = 'id, name, type, nkid, staff, dependent, locationId, employersCntAll, employersCnt, schedule';
     
     
     var $details = 'grafic=hr_WorkingCycles';
@@ -87,6 +87,7 @@ class hr_Departments extends core_Master
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,width=100%');
         $this->FLD('type', 'enum(department=отдел, link=звено, brigade=бригада)', 'caption=Тип, mandatory,width=100%');
+        $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title)', 'caption=НКИД, hint=Номер по НКИД');
         $this->FLD('staff', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=В състава на,width=100%');
         $this->FLD('dependent', 'keylist(mvc=hr_Departments, select=name)', "caption=Подчинен на,width=100%");
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
