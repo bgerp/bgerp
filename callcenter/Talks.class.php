@@ -568,4 +568,51 @@ class callcenter_Talks extends core_Master
         // Извикваме линка
         exec("wget -q --spider '{$url}'");
     }
+    
+    
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако искаме да отворим сингъла на документа
+        if ($rec->id && $action == 'single' && $userId) {
+            
+            // Ако нямаме роля CEO
+            if (!haveRole('ceo')) {
+                
+                // Ако сме мениджър
+                if (haveRole('manager')) {
+                    
+                    // Вземаме хората от нашия екип
+                    $teemMates = core_Users::getTeammates($userId);
+                    
+                    // Масив с потребителите на този номер
+                    $usersArr = type_Keylist::toArray($rec->users);
+                    
+                    // Обхождаме масива
+                    foreach ($usersArr as $user) {
+                        
+                        // Ако потребителя е в групата на мениджъра
+                        if (type_Keylist::isIn($user, $teemMates)) {
+                            
+                            // Вдигаме флага
+                            $haveRole = TRUE;
+                            
+                            // Прекъсваме
+                            break;
+                        }
+                    }
+                    
+                    // Ако флага не е вдингнат
+                    if (!$haveRole) {
+                        
+                        // Нямаме права
+                        $requiredRoles = 'no_one';
+                    }
+                } elseif (!type_Keylist::isIn($userId, $rec->users)) {
+                    
+                    // Ако номера не е на текущия потребител, няма права да разглежда
+                    $requiredRoles = 'no_one';
+                }
+            }
+        } 
+    }
 }
