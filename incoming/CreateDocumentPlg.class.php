@@ -33,7 +33,7 @@ class incoming_CreateDocumentPlg extends core_Plugin
 //                
 //                // Добавяме бутон за разглеждане на single'a на документа, ако имаме права
 //                $viewDocUrl = toUrl(array('incoming_Documents', 'single', $dRec->id, 'ret_url' => TRUE), FALSE);
-//                $data->toolbar->addBtn('Документ', $viewDocUrl, 'id=btn-docIncomings,class=btn-docIncomings', 'order=50');
+//                $data->toolbar->addBtn('Документ', $viewDocUrl, 'id=btn-docIncomings', 'order=50', 'ef_icon = img/16/page_attach.png');
 //            }
 //        } else {
 //            
@@ -66,7 +66,7 @@ class incoming_CreateDocumentPlg extends core_Plugin
             $createDocUrl = toUrl(array('incoming_Documents', 'showDocMenu', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
             
             // Създаваме бутона за създаване на документ
-            $data->toolbar->addBtn('Документ', $createDocUrl, 'id=btn-New,class=btn-docIncomingsNew', 'order=50');
+            $data->toolbar->addBtn('Документ', $createDocUrl, 'id=btn-New', 'order=50', 'ef_icon = img/16/page_lightning-new.png');
         }
     }
 }

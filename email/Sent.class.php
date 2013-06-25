@@ -657,7 +657,7 @@ class email_Sent extends core_Manager
         $data->listFilter->FNC('recipient', 'varchar', 'caption=До,input,silent');
         $data->listFilter->showFields = 'users,state,recipient';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->input(null, 'silent');

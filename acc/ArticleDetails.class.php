@@ -167,7 +167,7 @@ class acc_ArticleDetails extends core_Detail
         
         $form->title = 'Нов запис в журнала';
         
-        $form->toolbar->addSbBtn('Нов', '', '', "id=btnAdd,class=btn-add");
+        $form->toolbar->addSbBtn('Нов', '', '', "id=btnAdd", 'ef_icon = img/16/star_2.png');
         
         $data->accSelectToolbar = $form;
     }

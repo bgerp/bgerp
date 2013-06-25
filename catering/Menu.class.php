@@ -144,7 +144,7 @@ class catering_Menu extends core_Master
         if ($hasRecords) {
             $data->listFilter->title = 'Изберете дата';
             $data->listFilter->view = 'vertical';
-            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             $data->listFilter->FNC('dateFilter', 'date', 'caption=Дата');
             $data->listFilter->showFields = 'dateFilter';
             

@@ -204,7 +204,7 @@ class sales_QuotationsDetails extends core_Detail {
                 $Policy = cls::getInterface('price_PolicyIntf', $Policy);
                 
                 $data->toolbar->addBtn($Policy->getPolicyTitle($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId), $addUrl + array('policyId' => $policyId,),
-                    "id=btnAdd-{$policyId},class=btn-shop");
+                    "id=btnAdd-{$policyId}", 'ef_icon = img/16/shopping.png');
             }
             
             unset($data->toolbar->buttons['btnAdd']);

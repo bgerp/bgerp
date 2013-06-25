@@ -293,16 +293,16 @@ class email_FaxSent extends core_Manager
         $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
         
         // Подготвяме лентата с инструменти на формата
-        $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
+        $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save','ef_icon = img/16/arrow_right.png');
         
         // Ако има права за ипзващане на имейл
         if (email_Outgoings::haveRightFor('send')) {
 
             // показваме бутона за изпращане на имейл
-            $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'class=btn-email-send');    
+            $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'ef_icon = img/16/email_go.png');    
         }
         
-        $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
+        $data->form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close16.png');
 
         $data->form->input(NULL, 'silent');
 

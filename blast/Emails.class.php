@@ -233,7 +233,7 @@ class blast_Emails extends core_Master
         $data->listFilter->view = 'horizontal';
         
         //Добавяме бутон "Филтрирай"
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $filterInput = trim($data->listFilter->input()->filter);
         
@@ -274,10 +274,10 @@ class blast_Emails extends core_Master
         
         if (($state == 'draft') || ($state == 'stopped')) {
             //Добавяме бутона Активирай, ако състоянието е чернова или спряно
-            $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
+            $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'ef_icon = img/16/lightning.png');
         } elseif (($state == 'waiting') || ($state == 'active')) {
             //Добавяме бутона Спри, ако състоянието е активно или изчакване
-            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'class=btn-cancel');
+            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'ef_icon = img/16/close16.png');
         }
     }
     
@@ -753,8 +753,8 @@ class blast_Emails extends core_Master
         $form->showFields = 'sendPerMinute, startOn';
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
         // Добавяме титлата на формата
         $form->title = "Стартиране на масово разпращане";

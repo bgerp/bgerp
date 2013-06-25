@@ -439,7 +439,7 @@ class support_Issues extends core_Master
         $data->listFilter->showFields = 'systemIdShow, componentId, maintainers';
         
         // Добавяме бутон за филтриране
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Да се показват в хоризонтална подредба
         $data->listFilter->view = 'horizontal';

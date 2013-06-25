@@ -473,8 +473,9 @@ class bgerp_Menu extends core_Manager
     {
         if(isDebug()) {
             $data->toolbar->addBtn('Изпразване', array($mvc, 'DeleteAll'), array(
-                    'class' => 'btn-delete',
-                    'warning' => 'Наистина ли желаете да премахнете всички записи?'));
+                    'warning' => 'Наистина ли желаете да премахнете всички записи?'),
+            		'ef_icon = img/16/delete-icon.png'
+            		);
         }
     }
     

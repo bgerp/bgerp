@@ -141,7 +141,7 @@ class crm_Profiles extends core_Master
                 
                 if ($data->Person->rec->id) {
                     // Добавяме бутон към сингъла на лицето
-                    $data->toolbar->addBtn(tr('Визитка'), array('crm_Persons', 'single', $data->Person->rec->id), 'id=btnPerson, class=btn-person');    
+                    $data->toolbar->addBtn(tr('Визитка'), array('crm_Persons', 'single', $data->Person->rec->id), 'id=btnPerson', 'ef_icon = img/16/vcard.png');    
                 }
             }
         }
@@ -312,8 +312,8 @@ class crm_Profiles extends core_Master
         }
         
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Смяна', 'change_password', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Смяна', 'change_password', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
         // Потготвяме заглавието на формата
         $form->title = 'Смяна на паролата';
@@ -378,7 +378,7 @@ class crm_Profiles extends core_Master
 
         $data->form->setField('personId', 'input');
         
-        $data->form->toolbar->addBtn('Нов потребител', $addUserUrl, array('class'=>'btn-add'));
+        $data->form->toolbar->addBtn('Нов потребител', $addUserUrl, 'ef_icon = img/16/star_2.png');
     }
     
     

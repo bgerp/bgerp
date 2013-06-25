@@ -152,7 +152,7 @@ class lab_Tests extends core_Master
                 'id' => $data->rec->id,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Активиране', $url, 'id=activate,class=btn-activation,warning=Наистина ли желаете да активирате теста?');
+            $data->toolbar->addBtn('Активиране', $url, 'id=activate,warning=Наистина ли желаете да активирате теста?', 'ef_icon = img/16/lightning.png');
         }
         
         if ($mvc->haveRightFor('compare', $data->rec)) {
@@ -389,7 +389,7 @@ class lab_Tests extends core_Master
         if ($hasRecords) {
             $data->listFilter->title = 'Филтър';
             $data->listFilter->view = 'horizontal';
-            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             $data->listFilter->FNC('dateStartFilter', 'date', 'caption=От,placeholder=От');
             $data->listFilter->FNC('dateEndFilter', 'date', 'caption=До,placeholder=До');
             $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 'caption=Параметри');

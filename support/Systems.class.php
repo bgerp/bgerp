@@ -171,7 +171,7 @@ class support_Systems extends core_Master
             
             // Добавяме бутон за създаване на папка
             $row->folderId = ht::createBtn('Папка', array($mvc, 'createFolder', $rec->id), "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?", 
-                             FALSE, array('class' => 'btn-new-folder'));
+                             FALSE, 'ef_icon = img/16/folder_new.png');
         }
     }
     

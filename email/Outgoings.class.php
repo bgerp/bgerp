@@ -507,12 +507,12 @@ class email_Outgoings extends core_Master
                 $id = Request::get('id', 'int');
                 
                 // Добавяме бутона за факс
-                $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => TRUE), 'class=btn-fax');      
+                $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => TRUE), 'ef_icon = img/16/fax.png');      
             }
         }
         
         // Добавяме бутона отказ
-        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
         
         // Вкарваме silent полетата
         $form->input(NULL, 'silent');
@@ -1587,14 +1587,14 @@ class email_Outgoings extends core_Master
             if (($faxCount) && (email_FaxSent::haveRightFor('send'))) {
                 
                 // Бутона за изпращане да сочи към екшъна за изпращане на факсове
-                $data->toolbar->addBtn('Изпращане', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+                $data->toolbar->addBtn('Изпращане', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'ef_icon = img/16/email_go.png');    
             } else {
                 
                 // Ако няма факс номер и имаме права за изпращане на имейл
                 if (email_Outgoings::haveRightFor('email')) {
                     
                     // Добавяме бутон за изпращане на имейл
-                    $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+                    $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'ef_icon = img/16/email_go.png');    
                 }
             }
 
@@ -1604,7 +1604,7 @@ class email_Outgoings extends core_Master
                     'forward',
                     $data->rec->containerId,
                     'ret_url' => TRUE,
-                ), 'class=btn-forward, order=20, row=2'
+                ), 'order=20, row=2', 'ef_icon = img/16/email_forward.png'
             );
         }
     }
@@ -1897,8 +1897,8 @@ class email_Outgoings extends core_Master
         $retUrl = ($retUrl) ? $retUrl : toUrl(array($class,'single', $id));
         
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Избор', 'default', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Избор', 'default', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
         // Потготвяме заглавието на формата
         $form->title = 'Препращане на имейл';

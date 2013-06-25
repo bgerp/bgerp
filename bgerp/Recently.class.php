@@ -299,7 +299,7 @@ class bgerp_Recently extends core_Manager
     	if(strtolower(Request::get('Act')) == 'show'){
         	bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
     	} else {
-    		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+    		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	}
 	}
     

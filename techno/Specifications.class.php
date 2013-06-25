@@ -156,7 +156,7 @@ class techno_Specifications extends core_Master {
     {
     	 $data->listFilter->view = 'horizontal';
     	 $data->listFilter->FNC('prodTehnoClass', 'class(interface=techno_ProductsIntf,allowEmpty,select=title)', 'placeholder=Технолог');
-    	 $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+    	 $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	 $data->listFilter->showFields = 'search,prodTehnoClass';
     	 $data->listFilter->input();
     	 if($technoClass = $data->listFilter->rec->prodTehnoClass){
@@ -345,8 +345,8 @@ class techno_Specifications extends core_Master {
     		$form->FNC('quantity3', 'int', 'caption=Последваща оферта->К-во 3,width=4em,input');
 		}
     	
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', array($this, 'list'), array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', array($this, 'list'), 'ef_icon = img/16/close16.png');
         
     	$fRec = $form->input();
         if($form->isSubmitted()) {

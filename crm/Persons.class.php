@@ -316,7 +316,7 @@ class crm_Persons extends core_Master
 
         $data->listFilter->view = 'horizontal';
 
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
@@ -347,9 +347,9 @@ class crm_Persons extends core_Master
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             if($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd,class=btn-add');
+                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
             } else {
-                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd,class=btn-add');
+                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
             }
         }
     }
@@ -1875,8 +1875,8 @@ class crm_Persons extends core_Master
         $form->setDefault('buzPosition', $buzPosition);
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'), array('order' => 1));
-        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'), array('order' => 10));
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png', array('order' => 1));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), array('order' => 10), 'ef_icon = img/16/close16.png');
         
         // Добавяме във формата информация, за да знаем коя визитка добавяме
 //        $form->info = "Извличане на информация за първата визитка";
@@ -2085,7 +2085,7 @@ class crm_Persons extends core_Master
                 $profileUrl = crm_Profiles::getUrl($profileRec->userId);
                 
                 // Добавяме бутон към профилите
-                $data->toolbar->addBtn(tr('Профил'), $profileUrl, 'id=btnProfile, class=btn-profile');  
+                $data->toolbar->addBtn(tr('Профил'), $profileUrl, 'id=btnProfile', 'ef_icon = img/16/user-profile.png');  
             }
         } else {
             
@@ -2102,7 +2102,7 @@ class crm_Persons extends core_Master
                     $personUrl = array('core_Users', 'add', 'personId' => $data->rec->id, 'ret_url' => TRUE);
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn(tr('Потребител'), $personUrl, 'id=btnUser, class=btn-user');     
+                    $data->toolbar->addBtn(tr('Потребител'), $personUrl, 'id=btnUser', 'ef_icon = img/16/user_add.png');     
                 }
             }
         }

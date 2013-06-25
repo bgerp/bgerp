@@ -133,7 +133,7 @@ class cat_products_Packagings extends cat_products_Detail
      */
     static function on_AfterPrepareEditToolbar($mvc, $data)
     {
-        $data->form->toolbar->addBtn('Отказ', array($mvc->Master, 'single', $data->form->rec->productId), array('class'=>'btn-cancel'));
+        $data->form->toolbar->addBtn('Отказ', array($mvc->Master, 'single', $data->form->rec->productId),  'ef_icon = img/16/close16.png');
     }
     
     

@@ -591,7 +591,7 @@ class store_ShipmentOrders extends core_Master
         $data->listFilter->FNC('fromDate', 'date', 'placeholder=От,caption=От,width=100px');
         $data->listFilter->FNC('toDate', 'date', 'placeholder=До,caption=До,width=100px');
     
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     
         // Показваме тези полета. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'fromDate, toDate';

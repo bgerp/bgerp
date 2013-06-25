@@ -105,8 +105,8 @@ class techno_GeneralProducts extends core_Manager {
         $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
     	$paramOptions = $this->getRemainingOptions($data);
     	$form->setOptions('paramId', $paramOptions);
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
     	
         return $form;
     }

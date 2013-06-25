@@ -149,7 +149,7 @@ class bgerp_plg_Importer extends core_Plugin
         $data->form->title = 'Импорт';
 
         $data->form->toolbar = new core_Toolbar();
-        $data->form->toolbar->addSbBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport,class=btn-import');
+        $data->form->toolbar->addSbBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png');
     }
 
 
@@ -177,7 +177,7 @@ class bgerp_plg_Importer extends core_Plugin
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport,class=btn-import', array('order' => 19));
+        $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png', array('order' => 19));
     }
 
 }
