@@ -58,7 +58,6 @@ $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
 
 // Какъв е протокол-а
-
 if (isset($_SERVER['HTTPS']) &&
 		($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
 		isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
@@ -68,6 +67,7 @@ if (isset($_SERVER['HTTPS']) &&
 else {
 	$protocol = 'http://';
 }
+
 // Собственото URL
 $selfUri = "{$protocol}{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
 
@@ -84,11 +84,10 @@ if (strpos($appUri,'/?') !== FALSE) {
     $appUri = substr($appUri, 0, strpos($appUri,'/?'));
 } 
 
-
-
 if (isset($_REQUEST['cancel'])) {
-    setupUnlock();
-    header("location: {$appUri}");
+	setupUnlock();	
+
+	header("location: {$appUri}");
 }
 
 ob_end_clean();
@@ -1167,15 +1166,6 @@ function setupProcess()
     return TRUE;
 }
     
-/**
- * Връща валиден ключ за оторизация в Setup-а
- * 
- * @return string
- */
-function setupKey()
-{
-    return md5(BGERP_SETUP_KEY . round(time()/10));
-}
 
 /**
  * Проверява валидност на сетъп ключ

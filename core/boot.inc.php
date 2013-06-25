@@ -119,6 +119,18 @@ function getTplFromFile($file)
     return core_ET::getTplFromFile($file);
 }
 
+/**
+ * Връща валиден ключ за оторизация в Setup-а
+ *
+ * @return string
+ */
+function setupKey()
+{
+	// Сетъп ключ, ако не е зададен
+	defIfNot('BGERP_SETUP_KEY', md5(EF_SALT . '*9fbaknc'));
+	
+	return md5(BGERP_SETUP_KEY . round(time()/10));
+}
 
 /********************************************************************************************
  *                                                                                          *
@@ -280,12 +292,7 @@ defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
 /**
  * Директорията с качените и генерираните файлове
  */
-defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);/**
-
-/**
- * Сетъп ключ, ако не е зададен
- */
-defIfNot('BGERP_SETUP_KEY', md5(EF_SALT . '*9fbaknc'));
+defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
 
 // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
 ob_clean();
@@ -296,7 +303,9 @@ ini_set('zlib.output_compression', 'Off');
 /**
  * Стартира Setup, ако се изисква
  */
-require_once(EF_EF_PATH . "/core/Setup.inc.php");
+if (isset($_GET['SetupKey'])) {
+	require_once(EF_EF_PATH . "/core/Setup.inc.php");
+}
 
 
 // Стартира записа в буфера, като по възможност компресира съдържанието
