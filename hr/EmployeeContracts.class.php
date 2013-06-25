@@ -218,7 +218,15 @@ class hr_EmployeeContracts extends core_Master
         
         $houresInSec = self::houresForAWeek($rec->id);
         $houres = $houresInSec / 60 / 60;
-		$row->shiftRec->weekhours =  $houres;
+        
+        if($houres % 2 !== 0){
+        	$min = round(($houres - round($houres)) * 60);
+        	
+        	$row->shiftRec->weekhours =  round($houres) . " часа". " и " . $min . " мин.";	
+        } else {
+	        // да добавя и минитуте
+			$row->shiftRec->weekhours =  $houres . " часа";
+        }
         
 		$res = $data;
     }
@@ -318,7 +326,7 @@ class hr_EmployeeContracts extends core_Master
 			$break += $cycDuration->break;
 		}
 		
-		$hoursWeekSec = $allHours / $duration * 7 - $break;
+		$hoursWeekSec = ($allHours - $break) / $duration  * 7 ;
 		
 		return $hoursWeekSec;
     }
