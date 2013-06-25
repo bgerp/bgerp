@@ -440,7 +440,7 @@ class php_Formater extends core_Manager
     {
         $data->listFilter->showFields = 'search, type';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('search, type', 'silent');
         
         if($type = $data->listFilter->rec->type){

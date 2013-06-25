@@ -61,7 +61,7 @@ class abbyyocr_Plugin extends core_Plugin
                  
                 // Добавяме бутона
                 $data->toolbar->addBtn('OCR', $url, 
-                	"class=btn-ocr", 
+                	'ef_icon = img/16/scanner.png', 
                     $btnParams
                 ); 
             } catch (core_Exception_Expect $expect) {}

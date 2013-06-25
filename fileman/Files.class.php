@@ -781,8 +781,8 @@ class fileman_Files extends core_Master
         $form->showFields = 'name';
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
 
         // Вербалното име на файла
         $fileName = fileman_Files::getVerbal($fRec, 'name');
@@ -931,7 +931,7 @@ class fileman_Files extends core_Master
     {
         // Добавяме бутон за сваляне
         $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
-        $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download,class=btn-download', array('order=8'));
+        $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
     }
     
     

@@ -175,7 +175,7 @@ class legalact_Acts extends core_Master
  
         $data->listFilter->view = 'horizontal';
 
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
@@ -218,7 +218,7 @@ class legalact_Acts extends core_Master
     function on_AfterPrepareListToolbar($mvc, $data)
     {   
         if(haveRole('admin')) {
-            $data->toolbar->addBtn('Импортирай файловете', array($mvc, 'Import'), 'class=btn-import');
+            $data->toolbar->addBtn('Импортирай файловете', array($mvc, 'Import'), 'ef_icon = img/16/table-import-icon.png');
         }
     }
 

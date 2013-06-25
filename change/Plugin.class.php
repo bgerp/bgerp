@@ -36,7 +36,7 @@ class change_Plugin extends core_Plugin
                 );
                 
                 // Добавяме бутона за промяна
-                $data->toolbar->addBtn('Промяна', $changeUrl, 'id=conto,class=btn-change,order=20');    
+                $data->toolbar->addBtn('Промяна', $changeUrl, 'id=conto,order=20', 'ef_icon = img/16/to_do_list.png');    
             }
         }
     }
@@ -134,8 +134,8 @@ class change_Plugin extends core_Plugin
         $form->showFields = $allowedFieldsArr;
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
         // Титлата на документа
         $title = $mvc->getDocumentRow($form->rec->id)->title;
