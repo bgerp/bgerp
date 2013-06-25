@@ -211,8 +211,9 @@ class cash_Pko extends core_Master
         
     	$options = acc_Operations::getPossibleOperations(get_called_class());
         $options = acc_Operations::filter($options, $contragentClassId);
+    	$form->setOptions('operationSysId', $options);
     	
-        $form->setOptions('operationSysId', $options);
+    	$form->setDefault('peroCase', cash_Cases::getCurrent());
     }
 
     
@@ -236,7 +237,6 @@ class cash_Pko extends core_Master
 	    	$rec->contragentPcode = $contragentData->pCode;
 	    	$rec->contragentPlace = $contragentData->place;
 	    	$rec->contragentAdress = $contragentData->adress;
-	    	$rec->peroCase = cash_Cases::getCurrent();
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
 		    if(!$rec->rate){
