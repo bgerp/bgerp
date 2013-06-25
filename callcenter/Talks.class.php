@@ -469,6 +469,13 @@ class callcenter_Talks extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+        // Ако не е избран потребител по подразбиране
+        if(!$data->listFilter->rec->usersSearch) {
+            
+            // Да е текущия
+            $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
+        }
+        
         // Сортиране на записите по num
         $data->query->orderBy('startTime', 'DESC');
         
