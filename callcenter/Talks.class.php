@@ -448,13 +448,7 @@ class callcenter_Talks extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        
-        // Вземаме стойността по подразбиране, която може да се покаже
-        $default = $data->listFilter->getField('usersSearch')->type->fitInDomain('current');
-        
-        // Задаваме стойността по подразбиране (текущия потребител)
-        $data->listFilter->setDefault('usersSearch', $default);
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
