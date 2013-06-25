@@ -174,6 +174,8 @@ class type_Users extends type_Keylist
      * Проверява дали подадения ключ го има в опциите и ако го няма връща първия възможен
      * 
      * @param string $key - Ключа от опциите
+     * 
+     * @return string - Стринг, с възможните стойности
      */
     function fitInDomain($key)
     {
