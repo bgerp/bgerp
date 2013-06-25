@@ -255,8 +255,8 @@ class core_Packs extends core_Manager
         $form->setOptions('pack', $opt);
         $form->toolbar = cls::get('core_Toolbar');
         $form->setHidden(array('Act' => 'install'));
-        $form->toolbar->addSbBtn('Инсталирай', 'default', 'class=btn-install');
-        $form->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'class=btn-install');
+        $form->toolbar->addSbBtn('Инсталирай', 'default', 'ef_icon = img/16/install.png');
+        $form->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/install.png');
         
         return $form->renderHtml();
     }
@@ -687,7 +687,7 @@ class core_Packs extends core_Manager
             return new Redirect(array($this));
         }
         
-        $form->toolbar->addSbBtn('Запис', 'default', 'class=btn-save');
+        $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png');
 
         // Добавяне на допълнителни системни действия
         if(count($setup->systemActions)) {
@@ -696,7 +696,7 @@ class core_Packs extends core_Manager
             }
         }
 
-        $form->toolbar->addBtn('Отказ', array($this), 'class=btn-cancel');
+        $form->toolbar->addBtn('Отказ', array($this),  'ef_icon = img/16/close16.png');
 
         return $this->renderWrapping($form->renderHtml());
 

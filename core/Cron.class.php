@@ -85,7 +85,7 @@ class core_Cron extends core_Manager
                 'core_Logs',
                 'className' => $mvc->className
             ),
-            array('class' => 'btn-logs'));
+            'ef_icon = img/16/action_log.png');
     }
     
     

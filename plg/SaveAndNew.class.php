@@ -95,7 +95,7 @@ class plg_SaveAndNew extends core_Plugin
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (empty($data->form->rec->id)) {
-            $data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', 'class=btn-save-n-new,order=9.99965');
+            $data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', 'order=9.99965', 'ef_icon = img/16/save_and_new.png');
         }
     }
     

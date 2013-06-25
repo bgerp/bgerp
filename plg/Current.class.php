@@ -94,7 +94,7 @@ class plg_Current extends core_Plugin
             $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'style' => 'margin-left:20px;', 'width' => '16px', 'height' => '16px'));
             $row->ROW_ATTR['class'] .= ' state-active';
         } elseif($mvc->haveRightFor('write', $rec)) {
-            $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id), NULL, NULL, array('class' => 'btn-select'));
+            $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id), NULL, NULL, 'ef_icon = img/16/key.png');
             $row->ROW_ATTR['class'] .= ' state-closed';
         }
     }

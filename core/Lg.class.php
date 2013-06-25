@@ -263,7 +263,7 @@ class core_Lg extends core_Manager
         
         $data->listFilter->showFields = 'filter,lg';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $filterRec = $data->listFilter->input();
         

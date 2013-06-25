@@ -177,7 +177,7 @@ class core_Detail extends core_Manager
                     $masterKey => $data->masterId,
                     'ret_url' => array($data->masterMvc, 'single', $rec->{$masterKey}, 'Tab' => Request::get('Tab'))
                 ),
-                'id=btnAdd,class=btn-add');
+                'id=btnAdd', 'ef_icon = img/16/star_2.png');
         }
         
         return $data;

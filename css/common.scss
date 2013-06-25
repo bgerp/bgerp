@@ -1108,21 +1108,6 @@ input[type=radio]:checked + label {
     padding:2px 3px 3px 3px !important; /* IE6 */
 }
 
-.wide .btn-print { 
-    background-image:url('../img/16/printer.png');
-    @include btn-style();
-}
-
-.wide .btn-csvExport { 
-    background-image:url('../img/16/file_extension_xls.png');
-    @include btn-style();
-}
-
-.wide .btn-new-folder { 
-    background-image:url('../img/16/folder_new.png');
-    @include btn-style();
-}
-
 .wide .btn-folder { 
     background-image:url('../img/16/folder.png');
     @include btn-style();
@@ -1133,33 +1118,8 @@ input[type=radio]:checked + label {
     @include btn-style();
 }
 
-.wide .btn-download { 
-    background-image:url('../img/16/down16.png');
-    @include btn-style();
-}
-
-.wide .btn-send { 
-    background-image:url('../img/16/arrow_right.png');
-    @include btn-style();
-}
-
-.wide .btn-save-n-new { 
-    background-image:url('../img/16/save_and_new.png');
-    @include btn-style();
-}
-
-.wide .btn-logs { 
-	background-image:url('../img/16/action_log.png');
-	@include btn-style();
-}
-
 .wide .btn-next,  .wide input.btn-prev {
     float: right;
-}
-
-.wide .btn-import {
-    background-image:url('../img/16/table-import-icon.png');
-    @include btn-style();
 }
 
 .wide .btn-with-selected {
@@ -1185,27 +1145,13 @@ input[type=radio]:checked + label {
 	background-color:#ddd !important;
 }
 
-.wide .btn-install {
-    background-image:url('../img/16/install.png');
-    @include btn-style();
-}
-
-.wide .btn-filter { 
-    background-image:url('../img/16/funnel.png');
-    @include btn-style();
-}
-
 .wide .btn-bin {
     float:right;
     background-image:url('../img/16/bin_closed.png');
     @include btn-style();
 }
 
-.wide .btn-list { 
-    background-image:url('../img/16/application_view_list.png');
-    @include btn-style();
-}
-
+/**/
 .wide .btn-software-update {
     background-image:url('../img/16/software-update.png');
     @include btn-style();
@@ -1216,48 +1162,9 @@ input[type=radio]:checked + label {
     @include btn-style();
 	float: right;
 }
-
-.wide .btn-restore {
-    background-image:url('../img/16/restore.png');
-    @include btn-style();
-}
-
-.wide .btn-delete { 
-    background-image:url('../img/16/delete-icon.png');
-    @include btn-style();
-}
-
-.wide .btn-cancel {
-    background-image:url('../img/16/close16.png');
-    @include btn-style();
-}
-
-.wide .btn-edit {
-    background-image:url('../img/16/edit-icon.png');
-    @include btn-style();
-}
-
-.wide .btn-add { 
-    background-image:url('../img/16/star_2.png');
-    @include btn-style();
-}
+/**/
 .wide .btn-posting { 
 	background-image:url('../img/16/comment_add.png');
-	@include btn-style();
-}
-
-.wide .btn-person { 
-	background-image:url('../img/16/vcard.png');
-	@include btn-style();
-}
-
-.wide .btn-profile { 
-	background-image:url('../img/16/user-profile.png');
-	@include btn-style();
-}
-
-.wide .btn-user { 
-	background-image:url('../img/16/user_add.png');
 	@include btn-style();
 }
 
@@ -1265,59 +1172,22 @@ input[type=radio]:checked + label {
 	@include btn-style();
 }
 
-.wide .btn-order{
-	@include btn-style();
-	background-image:url('../img/16/btn-order.png');
-}
-
+/**/
 .wide .btn-export  { 
 	background-image:url('../img/16/table_export.png');
 	@include btn-style();
 }
 
-.wide .btn-fax  { 
-	background-image:url('../img/16/fax.png');
-	@include btn-style();
-}
-
-.wide .btn-email-create { 
-	background-image:url('../img/16/email_edit.png');
-	@include btn-style();
-}
-
-.wide .btn-conto  { 
-	background-image:url('../img/16/tick-circle-frame.png');
-	@include btn-style();
-}
-
+/**/
 .wide .btn-task  {
 	background-image:url('../img/16/sheduled-task-icon.png');
 	@include btn-style();
 }
 
-.wide .btn-docIncomings  { 
-	background-image:url('../img/16/page_attach.png');
-	@include btn-style();
-}
-
-.wide .btn-docIncomingsNew  { 
-	background-image:url('../img/16/page_lightning-new.png');
-	@include btn-style();
-}
-
-.wide .btn-back { 
-    background-image:url('../img/16/red-back.png');
-    @include btn-style();
-}
-
+/**/
 .wide .btn-createLink { 
     background-image:url('../img/16/link.png');
     @include btn-style();
-}
-
-.wide .btn-email-send { 
-	background-image:url('../img/16/email_go.png');
-	@include btn-style();
 }
 
 .wide .btn-settings { 
@@ -1331,98 +1201,31 @@ input[type=radio]:checked + label {
 	position: relative;
 }
 
+/**/
 .wide .btn-task-close { 
     background-image:url('../img/16/media-playback-stop.png');
     @include btn-style();
 }
 
+/**/
 .wide .btn-reload { 
     background-image:url('../img/16/clock_go.png');
    @include btn-style();
 }
-
-.wide .btn-add {
-	background-image:url('../img/16/star_2.png');
-	@include btn-style();
-}
-
-.wide .btn-clone { 
-    background-image:url('../img/16/page_copy.png');
-    @include btn-style();
-}
-
-.wide .btn-select {
-	background-image:url('../img/16/key.png');
-	@include btn-style();
-}
-
-.wide .btn-move { 
-    background-image:url('../img/16/arrow_right.png');
-    @include btn-style();
-}
-
-.wide .btn-activation {
-    background-image:url('../img/16/lightning.png');
-    @include btn-style();
-}
-
-.wide .btn-open {
-    background-image:url('../img/16/open_bulb.png');
-    @include btn-style();
-}
-
-.wide .btn-close { 
-    background-image:url('../img/16/close_bulb.png');
-    @include btn-style();
-}
-
+/**/
 .wide .btn-active {
     background-image:url('../img/16/active_bulb.png');
     @include btn-style();
 }
-
-.wide .btn-revert {
-    background-image:url('../img/16/red-back.png');
-    @include btn-style();
-}
-
-.wide .btn-eml { 
-    background-image:url('../img/16/file_extension_eml.png');
-    @include btn-style();
-}
-
+/**/
 .wide .btn-html { 
     background-image:url('../img/16/file_extension_html.png');
     @include btn-style();
 }
-
-.wide .btn-ocr {
-    background-image:url('../img/16/scanner.png');
-    @include btn-style();
-}
-
-.wide .btn-forward { 
-    background-image:url('../img/16/email_forward.png');
-    @include btn-style();
-}
-
+/**/
 .wide .btn-assign {
     background-image:url('../img/16/assign.png');
     @include btn-style();
-}
-
-.wide .btn-change {
-    background-image:url('../img/16/to_do_list.png');
-    @include btn-style();
-}
-
-.wide .btn-shop{
-	background-image:url('../img/16/shopping.png');
-   	@include btn-style();
-}
-
-.narrow .btn-add{
-	margin-left:0;
 }
 
 .linkWithIcon{

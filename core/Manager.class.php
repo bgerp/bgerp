@@ -394,7 +394,7 @@ class core_Manager extends core_Mvc
                     $this,
                     'add'
                 ),
-                'id=btnAdd,class=btn-add');
+                'id=btnAdd', 'ef_icon = img/16/star_2.png');
         }
         
         return $data;
@@ -494,7 +494,7 @@ class core_Manager extends core_Mvc
     function prepareEditToolbar_($data)
     {
         $data->form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $data->form->toolbar->addBtn('Отказ', $data->retUrl, array('class' => 'btn-cancel'));
+        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'ef_icon = img/16/close16.png');
         
         return $data;
     }
