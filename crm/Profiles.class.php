@@ -489,8 +489,9 @@ class crm_Profiles extends core_Master
         $person->_skipUserUpdate = TRUE; // Флаг за предотвратяване на безкраен цикъл
         
         if($mustSave) {
-
-            return crm_Persons::save($person);
+            crm_Persons::save($person);
+            
+            return $person->id;
         }
     }
     
