@@ -119,7 +119,8 @@ class core_Db extends core_BaseClass
     {
         if (!isset($this->link)) {
             $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or
-            error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+            //error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             
             // След успешно осъществяване на връзката изтриваме паролата
             // с цел да не се появи случайно при някой забравен bp()
@@ -135,7 +136,8 @@ class core_Db extends core_BaseClass
             
             // Избираме указаната база от данни на сървъра
             if (!mysql_select_db($this->dbName)) {
-                error("Грешка при избиране на база {$this->dbName}", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            	redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+                //error("Грешка при избиране на база {$this->dbName}", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             }
         }
         
