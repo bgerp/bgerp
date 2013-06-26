@@ -209,6 +209,8 @@ class log_Documents extends core_Manager
         $this->FNC('ip', 'ip', 'input=none');
         $this->FNC('toEmail', 'emails', 'input=none');
         $this->FNC('cc', 'emails', 'input=none');
+        $this->FNC('faxTo', 'drdata_PhoneType', 'input=none');
+        $this->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input=none');
         
         $this->setDbIndex('containerId');
         
@@ -658,6 +660,14 @@ class log_Documents extends core_Manager
                 'returnedOn' => $rec->returnedOn,
             );
             
+            // Ако е факс
+            if ($rec->data->faxTo) {
+                
+                // Добавяме факса и услугата
+                $row->faxTo = $rec->data->faxTo;
+                $row->service = $rec->data->service;
+            }
+            
             // Записите във вербален вид
             $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
             
@@ -682,6 +692,23 @@ class log_Documents extends core_Manager
                 
                 // Добавяме към имейлите
                 $row->emails .= "<br />" . tr("Kп") . ": {$row->cc}";
+            }
+            
+            // Ако имаме фак номер
+            if ($row->faxTo) {
+                
+                // Ако има имейл
+                if ($row->emails) {
+                    
+                    // Добавяме нов ред
+                    $row->emails .= "<br />";
+                }
+                
+                // Добаваме факса
+                $row->emails .= tr("Факс") . ": {$row->faxTo}";
+                
+                // Добавяме услугата
+                $row->emails .= " ({$row->service})";
             }
             
             // Стейта на класа
