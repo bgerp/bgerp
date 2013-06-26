@@ -2305,6 +2305,9 @@ div.locImage{
 		margin-right:3px;
 		font-size:0.90em;
     }
+    .narrow select{
+    	padding-left:2px;
+    }
 }
 
 @media handheld, only screen and (max-width: 700px) { 
@@ -2313,6 +2316,9 @@ div.locImage{
 		margin-right:2px;
 		font-size:0.85em;
     }
+    .narrow select{
+    	padding-left:2px;
+    }
 }
 
 @media handheld, only screen and (max-width: 600px) { 
@@ -2320,6 +2326,9 @@ div.locImage{
 		margin-left:2px;
 		margin-right:2px;
 		font-size:0.8em;
+    }
+    .narrow select{
+    	padding-left:2px;
     }
 }
 
