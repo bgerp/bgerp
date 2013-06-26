@@ -27,7 +27,13 @@ class cat_products_Params extends cat_products_Detail
      * Заглавие
      */
     var $title = 'Параметри';
+    
+    
+    /**
+     * Единично заглавие
+     */
     var $singleTitle = 'Параметър';
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -40,7 +46,12 @@ class cat_products_Params extends cat_products_Detail
      */
     var $loadList = 'cat_Wrapper,plg_RowTools';
     
+    
+    /**
+     * Поле за пулт-а
+     */
     var $rowToolsField = 'tools';
+    
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
@@ -54,7 +65,7 @@ class cat_products_Params extends cat_products_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
         
         $this->setDbUnique('productId,paramId');
@@ -71,20 +82,19 @@ class cat_products_Params extends cat_products_Detail
     static function on_AfterPrepareListRows($mvc, $data)
     {
         $recs = &$data->recs;
-        
         if ($recs) {
             $rows = &$data->rows;
-            
             foreach ($recs as $i=>$rec) {
                 
                 $row = $rows[$i];
-                
                 $paramRec = cat_Params::fetch($rec->paramId);
-                
-                $row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
+            	$Type = cls::get("type_{$paramRec->type}");
+            	$row->paramValue = $Type->toVerbal($rec->paramValue);
+            	if($paramRec->type != 'percent'){
+            		$row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
+            	}
             }
         }
-      
     }
     
     
@@ -95,6 +105,10 @@ class cat_products_Params extends cat_products_Detail
     {
         $form = $data->form;
         
+    	if(!$rec->id){
+    		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['paramValue'].value ='';this.form.submit();"));
+    	}
+    	
         expect($productId = $form->rec->productId);
 
         $options = self::getRemainingOptions($productId, $form->rec->id);
@@ -106,6 +120,14 @@ class cat_products_Params extends cat_products_Detail
         }
 		
         $form->setOptions('paramId', $options);
+        
+        if($form->rec->paramId){
+        	$type = cat_Params::fetchField($form->rec->paramId, 'type');
+        	expect($Type = cls::get("type_{$type}"), "Няма тип \"type_{$type}\" в системата");
+    		$form->fields['paramValue']->type = $Type;
+        } else {
+        	$form->setField('paramValue', 'input=hidden');
+        }
     }
 
     
@@ -138,59 +160,14 @@ class cat_products_Params extends cat_products_Detail
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    static function on_AfterInputEditForm($mvc, $form)
-    {
-        if($form->isSubmitted()) {
-            static::isValueValid($form);
-        }
-    }
-    
-    
-    /**
-     * Проверка дали въведената стойност отговаря на типа
-     * на параметъра
-     * @param core_Form $form - формата
-     */
-    static function isValueValid(core_Form &$form)
-    {
-    	$rec = &$form->rec;
-    	expect($paramType = cat_Params::fetchField($rec->paramId, 'type'));
-            
-            // взависимост от избрания параметър проверяваме дали 
-            // стойността му е във валиден формат за неговия тип
-            switch($paramType){
-            	case 'double':
-            		if(!is_numeric($rec->paramValue)){
-            			$form->setError('paramValue', "Невалидна стойност за параметър. Трябва да е число");
-            		}
-            		break;
-            	case 'int':
-            		if(!ctype_digit($rec->paramValue)){
-            			$form->setError('paramValue', "Невалидна стойност за параметър. Трябва да е цяло число");
-            		}
-            		break;
-            	case 'date':
-            		$date = cls::get('type_Date');
-            		if(!$date->fromVerbal($rec->paramValue)){
-            			$form->setError('paramValue', "Невалидна стойност за параметър. Трябва да е валидна дата");
-            		}
-            		break;
-            }
-    }
-    
-    
-    /**
      * Връща стойноста на даден параметър за даден продукт по негово sysId
      * @param int $productId - ид на продукт
      * @param int $sysId - sysId на параметъра
-     * @return varchar $value - стойноста на параметъра
+     * @return varchar $value - стойността на параметъра
      */
     public static function fetchParamValue($productId, $sysId)
     {
-     	$paramId = cat_Params::fetchIdBySysId($sysId);
-     	if($paramId){
+     	if($paramId = cat_Params::fetchIdBySysId($sysId)){
      		return static::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
      	}
      	
@@ -199,18 +176,16 @@ class cat_products_Params extends cat_products_Detail
     
     
     /**
-     * Рендираме общия изглед за 'List'
+     * Рендиране на общия изглед за 'List'
      */
     function renderDetail_($data)
     {
-        $tpl = new ET(getFileContent('cat/tpl/products/Params.shtml'));
-        
+        $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
         $tpl->append($data->changeBtn, 'TITLE');
         
         foreach((array)$data->rows as $row) {
             $block = $tpl->getBlock('param');
             $block->placeObject($row);
-            
             $block->append2Master();
         }
             
