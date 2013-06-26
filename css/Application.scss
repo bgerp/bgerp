@@ -1881,6 +1881,11 @@ fieldset.sharing-history {
 	color:#666;	
 }
 
+.singleView p{
+	margin-bottom:10px;
+	line-height:120%;	
+}
+
 table.styled-table tr:hover td {
     background-color:#ffc !important;
 }
@@ -2224,6 +2229,10 @@ div.locImage{
 
 .accordian{
 	margin-top:0.5em;
+}
+
+#hr_Departments-EditForm select{
+	max-width:500px;
 }
 /*край на бъгфиксове*/
 
