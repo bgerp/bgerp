@@ -621,29 +621,27 @@ class core_Db extends core_BaseClass
      * Проверява за грешки при последната MySQL операция
      *
      * Реагира по следния начин:
-     * Ако имаме липсваща таблица, проверява дали са инсталирани пакетите
-     * на ядрото и на приложението. Ако не са инсталирани - стартира
-     * процеса по инсталация
+     * Ако имаме липсваща таблица или липсваща колона
+     * връща грешката
+     * на ядрото и на приложението.
      *
      *
      * @return int нула означава липса на грешка.
      */
-    function checkForErrors($action, $silent)
+    function checkForErrors($action, $silent = FALSE)
     {
         global $_GET;
         
         if (!$silent && mysql_errno($this->link) > 0) {
-            
-            if (($_GET['Ctr'] != 'core_Cron' || $_GET['Act'] != 'cron')) {
-                
-                $errno = mysql_errno($this->link);
-                $error = mysql_error($this->link);
-                
-                if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) {
-                    // throw new core_exception_Expect ("Грешка в Базата данни.");
-                }
+            // Ако има грешка при извикване от крон-а - игнорираме.
+            if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
+            	
+            	return;
             }
-
+                
+            $errno = mysql_errno($this->link);
+            $error = mysql_error($this->link);
+                
             error("Грешка {$errno} в БД при " . $action, array(
                     "query" => $this->query,
                     "error" => $error

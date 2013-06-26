@@ -28,14 +28,23 @@ class core_exception_Expect extends Exception
 
     public function getAsHtml()
     {
-        if (isDebug() && isset($this->debug)) { 
-        	$msg = $this->getMessage();
-        	$p1 = core_Html::arrayToHtml(array($this->errorTitle, $msg, $this->debug));
+    	
+    	$msg = $this->getMessage();
+    	 
+    	if (isDebug() && isset($this->debug)) { 
+
+    		// Ако имаме права на администратор пускаме и линк към сетъп-а
+	    	if (haveRole('admin')) {
+	    		$setupKey = setupKey();
+	    		$setupUrl = core_Url::addParams(getSelfURL(), array('SetupKey'=>$setupKey));
+	    		$p1 = "<a href='" . $setupUrl . "'>Стартиране сетъп ...</a><br>"; 
+	    	}
+    		$p1 .= core_Html::arrayToHtml(array($this->errorTitle, $msg, $this->debug));
         
             core_App::_bp($p1, $this->getTrace());
         }
  
-        $text = core_App::isDebug() ? $this->getMessage() : $this->errorTitle;
+        $text = core_App::isDebug() ? $msg : $this->errorTitle;
 
         core_Message::redirect($text, 'page_Error');
     }
