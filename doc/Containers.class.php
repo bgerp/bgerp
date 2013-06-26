@@ -844,8 +844,8 @@ class doc_Containers extends core_Manager
             // Вземаме записите
             $rec = $ctrInst->fetch($params['id']);
             
-            //Кое поле е избрано да се показва, като текст
-            expect($field = $ctrInst->rowToolsSingleField);
+            // Кое поле е избрано да се показва, като текст
+            $field = $ctrInst->rowToolsSingleField;
 
             // Очакваме да имаме права за съответния екшън
             expect($rec && $ctrInst->haveRightFor('single', $rec));
@@ -854,9 +854,20 @@ class doc_Containers extends core_Manager
             // Ако възникне някаква греша
             return FALSE;
         }
-
-        //Стойността на полето на текстовата част
-        $title = $ctrInst->getVerbal($params['id'], $field);
+        
+        // Ако не е зададено поле
+        if ($field) {
+            
+            // Стойността на полето на текстовата част
+            $title = $ctrInst->getVerbal($params['id'], $field);
+        } else {
+            
+            // Използваме името на модула
+            $title = ($ctrInst->singleTitle) ? $ctrInst->singleTitle : $ctrInst->title;
+            
+            // Добавяме id на фирмата
+            $title .= ' #' . $rec->id;
+        }
         
         // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
