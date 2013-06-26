@@ -1,2 +1,2 @@
-Минимална надценка,double,minSurplusCharge,0.2
-Максимална надценка,double,maxSurplusCharge,0.4
+Минимална надценка,percent,minSurplusCharge,0.2
+Максимална надценка,percent,maxSurplusCharge,0.4
