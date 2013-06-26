@@ -166,14 +166,23 @@ class email_FaxSent extends core_Manager
 //            $emailCss = getFileContent('css/email.css'); //TODO
             $success  = $failure = array(); // списъци с изпратени и проблемни получатели
             
-            foreach ($faxToArr as $faxTo) {
+            // Обхождаме масива
+            foreach ($faxToArr as $faxToA) {
+                
+                // Вземаме факс номера
+                $faxTo = $faxToA['faxNum'];
+                
+                // Оригиналния факс номер
+                $originalFaxTo = $faxToA['original'];
+                
+                // Пушвяме екшъна
                 log_Documents::pushAction(
                     array(
                         'containerId' => $data->rec->containerId,
                         'action'      => log_Documents::ACTION_FAX, 
                         'data'        => (object)array(
                             'service' => $service,
-                            'faxTo'   => $faxTo,
+                            'faxTo'   => $originalFaxTo,
                         )
                     )
                 );
@@ -423,13 +432,16 @@ class email_FaxSent extends core_Manager
         $faxesArr = drdata_PhoneType::toArray($faxTo);
         
         // Обхождаме масива
-        foreach ($faxesArr as $faxArr) {
+        foreach ($faxesArr as $key => $faxArr) {
             
             // Създаваме факс номер от кода на държавата + кода на града + самия номер
             $faxNum = "00{$faxArr->countryCode}{$faxArr->areaCode}{$faxArr->number}";
             
             // Добавяме в масива
-            $toFaxArr[$faxNum] = $faxNum;
+            $toFaxArr[$key]['faxNum'] = $faxNum;
+            
+            // Добавяме оригиналния номер
+            $toFaxArr[$key]['original'] = $faxArr->original;
         }
         
         return $toFaxArr;
