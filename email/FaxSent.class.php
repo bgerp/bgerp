@@ -175,7 +175,7 @@ class email_FaxSent extends core_Manager
                 // Оригиналния факс номер
                 $originalFaxTo = $faxToA['original'];
                 
-                // Пушвяме екшъна
+                // Пушваме екшъна
                 log_Documents::pushAction(
                     array(
                         'containerId' => $data->rec->containerId,

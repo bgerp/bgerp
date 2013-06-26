@@ -694,7 +694,7 @@ class log_Documents extends core_Manager
                 $row->emails .= "<br />" . tr("Kп") . ": {$row->cc}";
             }
             
-            // Ако имаме фак номер
+            // Ако имаме факс номер
             if ($row->faxTo) {
                 
                 // Ако има имейл
