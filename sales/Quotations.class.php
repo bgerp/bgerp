@@ -1,6 +1,6 @@
 <?php
 /**
- * Клас 'sales_Quotations'
+ * Документ "Оферта"
  *
  * Мениджър на документи за Оферта за продажба
  *
@@ -42,13 +42,19 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg,
-                    doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc';
+                    doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary';
        
     
     /**
      * Кой има право да чете?
      */
     public $canRead = 'admin,sales';
+    
+    
+    /**
+     * Поле за търсене по дата
+     */
+    public $filterDateField = 'date';
     
     
     /**
@@ -119,7 +125,7 @@ class sales_Quotations extends core_Master
     {
     	$this->FLD('date', 'date', 'caption=Дата, mandatory'); 
         $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,unit=дни,width=8em');
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,width=100%', array('attr' => array('style' => 'max-width:500px;')));
+        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
@@ -130,8 +136,6 @@ class sales_Quotations extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
         $this->FLD('deliveryPlace', 'varchar(128)', 'caption=Доставка->Място,width=8em');
         
-        //$this->FLD('contragentName', 'varchar(255)', 'caption=Получател');
-    	//$this->FLD('receiver', 'key(mvc=crm_Persons, select=name)', 'caption=Получател->Лице');
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData, changable');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,class=contactData, changable');
         $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,class=contactData, changable');
@@ -149,10 +153,7 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-       $form = $data->form;
-       $form->setDefault('date', dt::now());
-       
-       $mvc->populateContragentData($form);
+       $mvc->populateDefaultData($data->form->rec);
     }
 	
     
@@ -176,34 +177,19 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Ако офертата е създадена към спецификация, попълваме
-     * данните на спецификацията в детайлите
+     * Попълваме дефолт данните
      */
-    public static function on_AfterCreate($mvc, $rec)
+    public function populateDefaultData(&$rec)
     {
-    	if(!empty($rec->originId)){
-    		$origin = doc_Containers::getDocument($rec->originId);
-    		if($origin->className == 'techno_Specifications'){
-    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Попълваме информацията за контрагента
-     */
-    private function populateContragentData(core_Form &$form)
-    {
-    	$rec = &$form->rec;
+    	$rec->date = dt::now();
     	expect($data = doc_Folders::getContragentData($rec->folderId), "Проблем с данните за контрагент по подразбиране");
     	$contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
     	$contragentId = doc_Folders::fetchCoverId($rec->folderId);
-    	$form->setDefault('contragentClassId', $contragentClassId);
-    	$form->setDefault('contragentId', $contragentId);
+    	$rec->contragentClassId = $contragentClassId;
+    	$rec->contragentId = $contragentId;
     	
     	$currencyCode = ($data->countryId) ? drdata_Countries::fetchField($data->countryId, 'currencyCode') : acc_Periods::getBaseCurrencyCode($rec->date);
-    	$form->setDefault('paymentCurrencyId', $currencyCode);
+    	$rec->paymentCurrencyId = $currencyCode;
     	
     	if($rec->threadId){
     		$query = $this->getQuery();
@@ -226,21 +212,20 @@ class sales_Quotations extends core_Master
     				$rec->$name = $lastOffer->$name;
     			}
     		}
-    		
     	} else {
     		if ($data->company) {
-    			$form->setDefault('recipient', $data->company);
+    			$rec->recipient = $data->company;
     		}
     		
     		if($data->person) {
-    			$form->setDefault('attn', $data->person);
+    			$rec->attn = $data->person;
     		}
     		
     		if(!$data->country){
     			$conf = core_Packs::getConfig('crm');
     			$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
     		}
-    		$form->setDefault('country', $data->country);
+    		$rec->country = $data->country;
     	}
     }
     
@@ -357,7 +342,7 @@ class sales_Quotations extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . '#[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . ' #[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }

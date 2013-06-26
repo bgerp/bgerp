@@ -84,7 +84,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
 		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
 		$data->listFilter->setDefault('from', date('Y-m-01'));

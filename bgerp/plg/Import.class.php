@@ -104,11 +104,14 @@ class bgerp_plg_Import extends core_Plugin
         		// Преобразуване на csv-то в масив, по зададените параметри
         		$rows = static::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
         		
-        		// Импортиране на данните от масива в зададените полета
-        		$msg = $Driver->import($rows, $fields);
-        		
-        		// Редирект кум лист изгледа на мениджъра в който се импортира
-        		return Redirect(array($mvc, 'list'), 'FALSE', $msg);
+        		if($mvc->haveRightFor('import')){
+        			
+        			// Импортиране на данните от масива в зададените полета
+        			$msg = $Driver->import($rows, $fields);
+        			
+        			// Редирект кум лист изгледа на мениджъра в който се импортира
+        			return Redirect(array($mvc, 'list'), 'FALSE', $msg);
+        		}
         	} 
         	
     		if($content == 'DIALOG') {

@@ -103,7 +103,7 @@ class price_ListRules extends core_Detail
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->view = 'horizontal';
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('from', 'date', 'input,caption=В сила,width=6em,silent');
 		$data->listFilter->showFields = 'search, from';
 		$data->listFilter->input();

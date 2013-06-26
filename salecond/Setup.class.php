@@ -58,7 +58,7 @@ class salecond_Setup
         	'salecond_PaymentMethods',
         	'salecond_PaymentMethodDetails',
         	'salecond_DeliveryTerms',
-        	'salecond_Others',
+        	'salecond_Parameters',
         	'salecond_ConditionsToCustomers',
         );
         
@@ -88,7 +88,7 @@ class salecond_Setup
     function loadSetupData()
     {
     	// Зареждане на други условия за продажба от csv файл
-    	$html .= salecond_Others::setup();
+    	$html .= salecond_Parameters::setup();
     	
     	return $html;
     }

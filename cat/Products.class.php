@@ -292,7 +292,7 @@ class cat_Products extends core_Master {
             'placeholder=Всички групи,caption=Група,input,silent,remember');
 
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'search,order,groupId';
         $data->listFilter->input('order,groupId,search', 'silent');
     }

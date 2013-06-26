@@ -233,7 +233,7 @@ class doc_Search extends core_Manager
         $data->listFilter->setDefault('author', 'all_users');
 
         $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
-        $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 
     

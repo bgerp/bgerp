@@ -28,7 +28,8 @@
 		</td>
 	</tr>
 	</table>
-	<table border='1px' cellpadding='5px'>
+	<div class='lines'></div>
+	<table border='1px' cellpadding='5px'  class='border-table'>
 		<tr>
 			<td width='67%' align='left' style='padding-left:10px;'>
 				<b>|Основание|*:</b>&nbsp;&nbsp;&nbsp;[#reason#]

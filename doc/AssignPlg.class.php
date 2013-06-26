@@ -161,7 +161,7 @@ class doc_AssignPlg extends core_Plugin
         $title = str::limitLen($mvc->getDocumentRow($id)->recTitle, 90);
         
         // Съобщението, което ще се показва и URL' то
-        $message = tr("|*{$nick} |възложи|* {$docSingleTitleLower}: \"{$title}\"");
+        $message = "{$nick} |възложи|* {$docSingleTitleLower}: \"{$title}\"";
         $url = array('doc_Containers', 'list', 'threadId' => $threadId);
         $customUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'docId' => $docHnd, '#' => $docHnd);
         

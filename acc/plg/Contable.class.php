@@ -162,7 +162,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->className,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Контиране', $contoUrl, 'id=btnConto,class=btn-conto,warning=Наистина ли желаете документа да бъде контиран?');
+            $data->toolbar->addBtn('Контиране', $contoUrl, 'id=btnConto,warning=Наистина ли желаете документа да бъде контиран?', 'ef_icon = img/16/tick-circle-frame.png');
         }
         
         if ($mvc->haveRightFor('revert', $data->rec)) {
@@ -173,7 +173,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->className,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,class=btn-revert,warning=Наистина ли желаете документа да бъде сторниран?');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png');
         }
         
         if ($mvc->haveRightFor('correction', $data->rec)) {

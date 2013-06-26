@@ -150,11 +150,10 @@ class bnav_BnavImporter extends core_Manager {
 		    $groupIndex = $fields['groups'];
 		    $measureIndex = $fields['measureId'];
 		    
-			if(!array_key_exists($row[$groupIndex], $newGroups)){
-		    		
+			if(!in_array($row[$groupIndex], $newGroups)){
+		    	
 			    // Недобавените групи в се добавят в нов масив
-			    $rowArr = array('title' => $row[$groupIndex], 'sysId' => $row[3]);
-			    $newGroups[$row[$groupIndex]] = $rowArr;
+			    $newGroups[] = $row[$groupIndex];
 			}
 			    		
 			if(!array_key_exists($row[$measureIndex], $newMeasures)){
@@ -163,7 +162,7 @@ class bnav_BnavImporter extends core_Manager {
 			    $newMeasures[$row[$measureIndex]] = $row[$measureIndex];
 			}
 	    }
-    	
+
 	    // Връщат се масив съдържащ уникалните групи и мерни единици
     	return array('groups' => $newGroups, 'measures' => $newMeasures);
     }
@@ -187,16 +186,15 @@ class bnav_BnavImporter extends core_Manager {
     	foreach($params['groups'] as $gr){
     		
     		$nRec = new stdClass();
-    		$nRec->name = $gr['title'];
-    		$nRec->sysId = $gr['sysId'];
-    		if($rec = cat_Groups::fetch("#name = '{$gr['title']}'")){
+    		$nRec->name = $gr;
+    		if($rec = cat_Groups::fetch("#name = '{$gr}'")){
     			$nRec->id = $rec->id;
     			$updatedGroups++;
     		} else {
     			$addedGroups++;
     		}
     			
-    		$groups[$gr['title']] = cat_Groups::save($nRec);
+    		$groups[$gr] = cat_Groups::save($nRec);
     	}
     	
     	

@@ -8,7 +8,7 @@
 
  table.mc-calendar {
    width: 100%;
-   font-size:0.7em;
+   font-size:0.8em;
    table-layout:fixed;
    font-family:Arial,sans-serif;
 }
@@ -16,6 +16,8 @@
 .mc-calendar-year{
 	font-size:0.8em;
 	width:300px;
+	border-collapse:separate;
+	border-spacing:2px;
 }
 
 .mc-calendar-year th ,.mc-calendar-month th, .mc-calendar-week th,.mc-calendar-day th{
@@ -35,6 +37,10 @@
 	text-align: left;
 }
 
+.mc-calendar-year th{
+	vertical-align:middle;
+}
+
 .mc-calendar-year td,  .mc-calendar-year th {
 	width:11%;
 }
@@ -44,7 +50,9 @@
 	height:auto;
 	min-height:2em;
 }
-
+.mc-calendar th{
+   vertical-align:middle !important;
+}
 .mc-calendar-day{
 	min-width: 200px !important;
 	max-width: 600px;
@@ -54,10 +62,16 @@
 	width:1000px !important;
 }
 
+.calTitle{
+	margin-bottom:10px;
+	padding-top:2px;
+	font-size:1.2em;
+}
+
 .month-name{
 	text-align:center;
 	font-weight:bold;
-	font-size:1.1em;
+	margin-bottom:5px;
 }
 
 table.mc-calendar.mc-calendar-week td.calWeekN {
@@ -234,7 +248,7 @@ p.calWeek{
 	clear:both;
 	text-align: left;
 	font-weight:normal;
-	margin:3px 2px 4px;
+	margin:1px 2px 4px;
 	overflow:hidden;
 	white-space:nowrap;
 }
@@ -246,7 +260,7 @@ p.calWeek{
 
 .task a{
 	display:inline-block;
-	line-height:18px;
+	line-height:1.2em;
 }
 
 .task a p{

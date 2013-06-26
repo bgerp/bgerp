@@ -15,7 +15,7 @@
 		<!--ET_BEGIN productId-->
 		<td rowspan = '[#rowspan#]' valign='top'>[#productId#]</td>
 		<!--ET_END productId-->
-		<td class='misc-info' align='right'>
+		<td class='misc-info' align='right' valign='top'>
 		<b>[#quantity#]</b> [#uomShort#]
 		<!--ET_BEGIN tolerance-->
 		<div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
@@ -30,7 +30,7 @@
 		<div class='discount'>[#discount#] |ТО|*</div>
 		<!--ET_END discount-->
 		</td>
-		<td class='misc-info' align='right'>
+		<td class='misc-info' align='right' valign='top'>
 		<b>[#amount#]</b>
 		<!--ET_BEGIN discAmount-->
 		<div class='discount'>[#discAmount#]</div>

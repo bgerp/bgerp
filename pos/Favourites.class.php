@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -85,8 +85,7 @@ class pos_Favourites extends core_Manager {
     {
     	// намираме дефолт контрагента на текущата точка на продажба
     	$contragentId = pos_Points::defaultContragent();
-    	$policyId = pos_Points::fetchField(pos_Points::getCurrent(), 'policyId');
-    	$Policy = cls::get($policyId);
+    	$Policy = cls::get('price_ListToCustomers');
     	$data->form->setOptions('productId', $Policy->getProducts(crm_Persons::getClassId(), $contragentId));
     }
     
@@ -97,10 +96,7 @@ class pos_Favourites extends core_Manager {
     static function on_AfterInputEditForm($mvc, $form)
     {
     	if($form->isSubmitted()) {
-    		$rec = &$form->rec;
-    		
-    		$productInfo = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
-    		if(!$productInfo) {
+    		if(!$productInfo = cat_Products::getProductInfo($form->rec->productId, $form->rec->packagingId)) {
     			$form->setError('productId', 'Избрания продукт не поддържа посочената опаковка');
     		}
     	}
@@ -131,15 +127,10 @@ class pos_Favourites extends core_Manager {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	// Коя е текущата точка на продажба и нейния дефолт контрагент
-    	$posRec = pos_Points::fetch(pos_Points::getCurrent());
-    	$defaultPosContragentId = pos_Points::defaultContragent($posRec->id);
-    	$crmPersonsClassId = crm_Persons::getClassId();
-    	$Policy = cls::get($posRec->policyId);
     	
-    	// Изчличаме кеша, ако го няма го създаваме
-    	$cPoint = pos_Points::getCurrent('id', NULL, FALSE);
-    	$cache = core_Cache::get('pos_Favourites', "products{$cPoint}");
+    	// Коя е текущата точка на продажба и нейния дефолт контрагент
+    	$posRec = pos_Points::fetch(pos_Points::getCurrent('id', NULL, FALSE));
+    	$cache = core_Cache::get('pos_Favourites', "products{$posRec->id}");
     	if(!$cache){
     		$query = static::getQuery();
 	    	$query->where("#pointId IS NULL");
@@ -153,15 +144,17 @@ class pos_Favourites extends core_Manager {
 		    	$obj->packagingId = $rec->packagingId;
 		    	$cache[$rec->id] = $obj;
 	    	}
-	    	core_Cache::set('pos_Favourites', "products{$cPoint}", $cache, 1440, array('cat_Products'));
+	    	core_Cache::set('pos_Favourites', "products{$posRec->id}", $cache, 1440, array('cat_Products'));
 	    }
     	
 	    if($cache){
+	    	$date = dt::verbal2mysql();
 	    	foreach($cache as $obj){
 	    		
 	    		// За всеки обект от кеша, изчисляваме актуалната му цена
-	    		$price = $Policy->getPriceInfo($crmPersonsClassId, $defaultPosContragentId, $obj->productId, $obj->packagingId, $obj->quantity, dt::verbal2mysql());
-	    		$obj->price = $double->toVerbal($price->price);
+	    		$price = price_ListRules::getPrice($posRec->policyId, $obj->productId, $obj->packagingId, $date);
+	    		$vat = cat_Products::getVat($obj->productId, $date);
+	    		$obj->price = $double->toVerbal($price * (1 + $vat));
 	    	}
 	    }
     	return $cache;
@@ -215,7 +208,7 @@ class pos_Favourites extends core_Manager {
      */
     public static function renderPosProducts($data)
     {
-    	$tpl = getTplFromFile($data->theme.'/Favourites.shtml');
+    	$tpl = getTplFromFile($data->theme . '/Favourites.shtml');
     	$self = cls::get(get_called_class());
     	if($data->arr){
     		$self->renderProducts($data->arr, $tpl);
@@ -252,7 +245,6 @@ class pos_Favourites extends core_Manager {
 	function renderProducts($products, &$tpl)
 	{
     	$blockTpl = $tpl->getBlock('ITEM');
-		$baseCurrency = acc_Periods::getBaseCurrencyCode();
 		
 		$attr = array('isAbsolute' => FALSE, 'qt' => '');
         $size = array(80, 'max' => TRUE);
@@ -262,7 +254,7 @@ class pos_Favourites extends core_Manager {
     			$row->image = ht::createElement('img', array('src' => $imageUrl, 'width'=>'90px', 'height'=>'90px'));
     		}
     		$rowTpl = clone($blockTpl);
-    		$rowTpl->replace($baseCurrency, 'baseCurrency');
+    		$rowTpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrency');
     		$rowTpl->placeObject($row);
     		$rowTpl->removeBlocks();
     		$rowTpl->append2master();

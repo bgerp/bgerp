@@ -380,7 +380,7 @@ class bgerp_Menu extends core_Manager
         }
         
         foreach($menu as $rec) {
-            $link = ht::createLink($rec->menuTr, array($rec->ctr, $rec->act),  NULL, array('style' => 'padding:1px; background-color:#ddd; '));
+            $link = ht::createLink($rec->menuTr, array($rec->ctr, $rec->act),  NULL, array('style' => 'padding:3px; background-color:#ddd; '));
             $row = 'MENU_ROW';
             $tpl->append($link, $row);
             foreach($subMenu[$rec->menu] as $subRec) {
@@ -473,8 +473,9 @@ class bgerp_Menu extends core_Manager
     {
         if(isDebug()) {
             $data->toolbar->addBtn('Изпразване', array($mvc, 'DeleteAll'), array(
-                    'class' => 'btn-delete',
-                    'warning' => 'Наистина ли желаете да премахнете всички записи?'));
+                    'warning' => 'Наистина ли желаете да премахнете всички записи?'),
+            		'ef_icon = img/16/delete-icon.png'
+            		);
         }
     }
     

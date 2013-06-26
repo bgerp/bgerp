@@ -3,7 +3,7 @@
                  
 	<div class='folder-cover [#STATE_CLASS#]'>
 	  <div class='inner-folder'>
-		<div class='block_title [#STATE_CLASS#] special-title'>[#SingleIcon#] Проект » [#name#] ([#state#])</div>
+		<div class='block_title [#STATE_CLASS#] special-title'>[#SingleIcon#] |Проект|* » [#name#] ([#state#])</div>
 			
 			<!--ET_BEGIN DETAILS-->
 				<div class='details'>

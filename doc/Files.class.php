@@ -200,7 +200,7 @@ class doc_Files extends core_Manager
         
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->showFields = 'folderId,search';
 

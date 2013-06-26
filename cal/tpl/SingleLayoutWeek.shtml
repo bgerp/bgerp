@@ -5,7 +5,7 @@
 			<span style='width:15%;'>[#ListFilter#]</span>
 		</div>
 
-		<div class="clearfix" style="min-height:30px;"></div>
+		<div class="clearfix" style="min-height:10px;"></div>
 		<!--ET_BEGIN event-->	
 		
          <div class='block_left'>

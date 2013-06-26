@@ -230,7 +230,7 @@ class trz_Requests extends core_Master
               
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
@@ -293,7 +293,7 @@ class trz_Requests extends core_Master
     {
         if($mvc->haveRightFor('orders') && $data->rec->state == 'active') {
             
-            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''),'class=btn-order');
+            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon = img/16/btn-order.png');
         }
         
     }

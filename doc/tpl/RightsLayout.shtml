@@ -10,9 +10,9 @@
 			
 			<!--ET_BEGIN mod-->
 				[#mod#]
-				<dt>Модифициране: </dt><dd>от <b>[#modifiedBy#]</b> на <b>[#modifiedOn#]</b></dd>
+				<dt>|Модифициране|*: </dt><dd>|от|* <b>[#modifiedBy#]</b> |на|* <b>[#modifiedOn#]</b></dd>
 			<!--ET_END mod-->
-			<dt>Създаване: </dt><dd> от <b>[#createdBy#]</b> на <b>[#createdOn#]</b></dd>
+			<dt>|Създаване|*: </dt><dd>|от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></dd>
 		</dl>
      </div>
 </fieldset>

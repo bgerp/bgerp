@@ -216,8 +216,21 @@ class hr_EmployeeContracts extends core_Master
 
         $row->positionRec = hr_Positions::fetch($rec->positionId);
         
-
-        $res = $data;
+        $houresInSec = self::houresForAWeek($rec->id);
+        $houres = $houresInSec / 60 / 60;
+        
+        $row->shiftRec = new stdClass();
+        
+        if($houres % 2 !== 0){
+        	$min = round(($houres - round($houres)) * 60);
+        	
+        	$row->shiftRec->weekhours =  round($houres) . " часа". " и " . $min . " мин.";	
+        } else {
+	        // да добавя и минитуте
+			$row->shiftRec->weekhours =  $houres . " часа";
+        }
+        
+		$res = $data;
     }
   
     
@@ -274,8 +287,9 @@ class hr_EmployeeContracts extends core_Master
     static function act_Test()
     {
     	$id = 2;
-    	bp(self::getWorkingSchedule($id));
+    	bp(self::houresForAWeek($id));
     }
+    
     
     static public function getWorkingSchedule($id)
     {
@@ -284,6 +298,39 @@ class hr_EmployeeContracts extends core_Master
     	$schedule = hr_Departments::fetchField($departmentId, 'schedule');
     	
     	return $schedule;
+    }
+    
+    /**
+     * 
+     * Изчислява седмичното натоварване според графика в секунди
+     * @param int $id
+     */
+    static public function houresForAWeek($id)
+    {
+    	// Кой е графика
+    	$scheduleId = static::getWorkingSchedule($id);
+    	
+    	// Каква продължителност има
+    	$duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
+    	
+    	// Извличане на данните за циклите
+        $stateDetails = hr_WorkingCycleDetails::getQuery();
+
+		// Подробности за конкретния цикъл
+		$stateDetails->where("#cycleId='{$scheduleId}'");
+		while ($rec = $stateDetails->fetch()){
+			$cycleDetails [] = $rec;
+		}
+		
+		foreach($cycleDetails as $cycDuration){
+		
+			$allHours += $cycDuration->duration;
+			$break += $cycDuration->break;
+		}
+		
+		$hoursWeekSec = ($allHours - $break) / $duration  * 7 ;
+		
+		return $hoursWeekSec;
     }
 
     

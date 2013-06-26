@@ -174,7 +174,7 @@ class store_Racks extends core_Master
     {
         $data->listFilter->title = 'Търсене на продукт в склада';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
         
         $data->listFilter->showFields = 'productIdFilter';
@@ -456,7 +456,7 @@ class store_Racks extends core_Master
         
         $html .= "</div>";
         
-        $html .= "<table cellspacing='1' style='clear: left;'>";
+        $html .= "<table cellspacing='1' class='pallet-table'>";
         
         /* За всеки ред от стелажа */
         for ($r = $rec->rows; $r >= 1; $r--) {

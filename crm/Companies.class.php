@@ -294,7 +294,7 @@ class crm_Companies extends core_Master
         
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
@@ -325,9 +325,9 @@ class crm_Companies extends core_Master
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             if($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd,class=btn-add');
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
             } else {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd,class=btn-add');
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
             }
         }
     }
@@ -561,6 +561,36 @@ class crm_Companies extends core_Master
          * @TODO Това не трябва да е тук, но по някаква причина не сработва в on_Shutdown()
          */
         $mvc->updateRoutingRules($rec);
+        
+        // Обновяме номерата
+        $mvc->updateNumbers($rec);
+    }
+    
+    
+	/**
+     * Обновява номера за фирмата
+     */
+    static function updateNumbers($rec)
+    {
+        // Ако има телефон
+        if ($rec->tel) {
+            
+            // Добавяме в масива
+            $numbersArr['tel'] = $rec->tel;
+        }
+        
+        // Ако има факс
+        if ($rec->fax) {
+            
+            // Добавяме в масива
+            $numbersArr['fax'] = $rec->fax;
+        }
+        
+        // Вземаме id на класа
+        $classId = static::getClassId();
+        
+        // Добавяме в КЦ
+        callcenter_ExternalNum::updateNumbers($numbersArr, $classId, $rec->id);
     }
     
     
@@ -809,42 +839,6 @@ class crm_Companies extends core_Master
 
         return TRUE;
 	}
-    
-	
-	/**
-     * Връща стойността на дадено търговско условие за клиента
-     * @param int $id - ид на контрагента
-     * @param string $conditionSysId - sysId на параметър (@see salecond_Others)
-     * @return string $value - стойността на параметъра
-     * Намира се в следния ред:
-     * 	  1. Директен запис в salecond_ConditionsToCustomers
-     * 	  2. Дефолт метод "get{$conditionSysId}" дефиниран в модела
-     *    3. Супер дефолта на параметъра дефиниран в salecond_Others
-     *    4. NULL ако нищо не е намерено
-     */
-    public static function getSaleCondition($id, $conditionSysId)
-    {
-    	expect(static::fetch($id));
-    	expect($condId = salecond_Others::fetchField("#sysId = '{$conditionSysId}'", 'id'));
-    	$cClass = static::getClassId();
-    	
-    	//Връщаме стойността ако има директен запис за условието
-    	if($value = salecond_ConditionsToCustomers::fetchByCustomer($cClass, $id, $condId)){
-    		return $value;
-    	}
-    	
-    	// Търси се метод дефиниран за връщане на стойността на условието
-    	$method = "get{$conditionSysId}";
-    	if(method_exists(get_called_class(), $method)){
-    		return static::$method($id);
-    	}
-    	
-    	// Връща се супер дефолта на параметъра;
-    	$default = salecond_Others::fetchField($condId, 'default');
-    	if(isset($default)) return $default;
-    	
-    	return NULL;
-    }
     
     
     /**

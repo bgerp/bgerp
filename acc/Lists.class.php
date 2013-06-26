@@ -510,8 +510,8 @@ class acc_Lists extends core_Manager {
         $AccRegister = cls::getInterface('acc_RegisterIntf', $form->rec->classId);
         $form->title = 'Номенклатури на|* ' . strip_tags($AccRegister->getLinkToObj($form->rec->objectId));
         
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
         
         $class = cls::get($form->rec->classId);
         

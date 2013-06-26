@@ -1,19 +1,14 @@
-.general-product{
-	font-size:16px;
-}
-
 .general-product .list-info {
 	list-style:none;
 	padding-left:0;
-	float:left;
 	margin-top:0px;
 	margin-bottom:0;
 	padding-bottom:0;
 }
 
 .general-product .list-title{
+	font-size:1.1em;
 	text-transform:uppercase;
-	margin-top:10px;
 	color:#000;
 }
 
@@ -22,13 +17,9 @@
 }
 
 .general-product .list-description-short .richtext{
+	font-family: Arial,Verdana;
 	text-align:justify;
-	font-size:14px;
 	color:#000;
-}
-
-.general-product .list-measures {
-	font-size:0.9em;
 }
 
 .general-product .list-measures ul {
@@ -54,11 +45,7 @@
 }
 
 .narrow .general-product .list-title{
-	font-size:16px;
-}
-
-.narrow .general-product .list-info li{
-	font-size:15px;
+	font-size:1.2em;
 }
 
 .narrow .general-product .list-description-short .product-image{

@@ -492,7 +492,7 @@ class email_Outgoings extends core_Master
         $form->FNC('emailsCc', 'emails', 'input,caption=Копие,width=750px,formOrder=3', array('attr' => array('data-role' => 'list' )));
         
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
+        $form->toolbar->addSbBtn('Изпрати', 'send', 'id=save', 'ef_icon = img/16/arrow_right.png');
         
         // Ако има права за ипзващне на факс
         if (email_FaxSent::haveRightFor('send')) {
@@ -506,13 +506,22 @@ class email_Outgoings extends core_Master
                 // id
                 $id = Request::get('id', 'int');
                 
+                // Вземаме URL' то
+                $retUrl = getRetUrl();
+                
+                // Ако няма
+                if (!$retUrl) {
+                    
+                    // Връщаме към сингъла на имейла
+                    $retUrl = array('email_Outgoings', 'single', $id);
+                }
                 // Добавяме бутона за факс
-                $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => TRUE), 'class=btn-fax');      
+                $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => $retUrl), 'ef_icon = img/16/fax.png');      
             }
         }
         
         // Добавяме бутона отказ
-        $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
         
         // Вкарваме silent полетата
         $form->input(NULL, 'silent');
@@ -825,7 +834,7 @@ class email_Outgoings extends core_Master
         $forward = Request::get('forward');
         
         // Добавяме бутона изпрати
-        $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
+        $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/arrow_right.png');
                 
         //Зареждаме нужните променливи от $data->form->rec
         $originId = $rec->originId;
@@ -1587,14 +1596,14 @@ class email_Outgoings extends core_Master
             if (($faxCount) && (email_FaxSent::haveRightFor('send'))) {
                 
                 // Бутона за изпращане да сочи към екшъна за изпращане на факсове
-                $data->toolbar->addBtn('Изпращане', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+                $data->toolbar->addBtn('Изпращане', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'ef_icon = img/16/email_go.png');    
             } else {
                 
                 // Ако няма факс номер и имаме права за изпращане на имейл
                 if (email_Outgoings::haveRightFor('email')) {
                     
                     // Добавяме бутон за изпращане на имейл
-                    $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+                    $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'ef_icon = img/16/email_go.png');    
                 }
             }
 
@@ -1604,7 +1613,7 @@ class email_Outgoings extends core_Master
                     'forward',
                     $data->rec->containerId,
                     'ret_url' => TRUE,
-                ), 'class=btn-forward, order=20, row=2'
+                ), 'order=20, row=2', 'ef_icon = img/16/email_forward.png'
             );
         }
     }
@@ -1897,8 +1906,8 @@ class email_Outgoings extends core_Master
         $retUrl = ($retUrl) ? $retUrl : toUrl(array($class,'single', $id));
         
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Избор', 'default', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        $form->toolbar->addSbBtn('Избор', 'default', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
         // Потготвяме заглавието на формата
         $form->title = 'Препращане на имейл';

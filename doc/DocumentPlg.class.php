@@ -133,7 +133,7 @@ class doc_DocumentPlg extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnRestore,class=btn-restore,warning=Наистина ли желаете да възстановите документа?,order=32');
+                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32', 'ef_icon = img/16/restore.png');
         }
         
         //Бутон за добавяне на коментар 
@@ -177,7 +177,7 @@ class doc_DocumentPlg extends core_Plugin
                             'clone' => 'clone',
                             'ret_url'=>$retUrl
                         ),
-                        'class=btn-clone, order=14, row=2');    
+                        'order=14, row=2', 'ef_icon = img/16/page_copy.png');    
                 }
             }
         }
@@ -202,7 +202,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*');
-            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn,class=btn-list');
+            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
 
             $data->rejectedCnt = $data->rejQuery->count();

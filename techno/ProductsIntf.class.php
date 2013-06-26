@@ -16,8 +16,6 @@ class techno_ProductsIntf
     /**
      * Връща форма, с която могат да се въвеждат параметри на
      * определен клас не-стандартно изделие
-     * 
-     * @param stdClass $data - Обект с данни от модела 
      * @return core_Form $form - Формата на мениджъра
      */
     public function getEditForm($data)

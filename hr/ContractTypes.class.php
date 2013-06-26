@@ -37,7 +37,7 @@ class hr_ContractTypes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, hr_DataWrapper, plg_Printing,
+    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing,
                        plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
     
     

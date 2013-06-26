@@ -9,7 +9,7 @@
 			<!--ET_BEGIN PARAMS-->
 				[#PARAMS#]
 			<tr>
-				<td width='50%'>[#paramId#]</td>
+				<td width='30%'>[#paramId#]</td>
 				<td><i>[#paramValue#]</i>
 				<!--ET_BEGIN tools-->
 				<span style='display:inline-block;float:right;top:2px;position:relative'>[#tools#]</span>
@@ -19,14 +19,14 @@
 			<!--ET_END PARAMS-->
 			<!--ET_BEGIN code-->
 			<tr>
-				<td width='50%'>|Вътр. код|*</td>
+				<td width='30%'>|Вътр. код|*</td>
 				<td colspan='1'><i>[#code#]</i></td>
 			</tr>
 			<!--ET_END code-->
 			<!--ET_END code-->
 			<!--ET_BEGIN eanCode-->
 			<tr>
-				<td width='50%'>|ЕАН|*</td>
+				<td width='30%'>|ЕАН|*</td>
 				<td colspan='1'><i>[#eanCode#]</i></td>
 			</tr>
 			<!--ET_END eanCode-->

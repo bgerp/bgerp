@@ -592,7 +592,7 @@ class price_ConsumptionNorms extends core_Master {
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
 		$data->listFilter->FNC('gr', 'key(mvc=price_ConsumptionNormGroups, select=title, allowEmpty)', 'placeholder=Група,width=9em,silent');
 		$data->listFilter->FNC('measure', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'width=9em,caption=Мярка,silent');
