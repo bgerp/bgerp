@@ -178,8 +178,8 @@ class techno_GeneralProducts extends core_Manager {
     					$data->bTaxes = 0;
     				}
     				
-    				$calcPrice = ($data->bTaxes * (1 + $maxCharge / 100) 
-    					+ $quantity * $data->price * (1 + $minCharge / 100)) / $quantity;
+    				$calcPrice = ($data->bTaxes * (1 + $maxCharge) 
+    					+ $quantity * $data->price * (1 + $minCharge)) / $quantity;
     				$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
     				return $price;
     			}
