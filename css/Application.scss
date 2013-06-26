@@ -417,6 +417,7 @@ div.alphabet div.tab-row .tab{
 			 .listTable td{
 				border:1px dotted #bbb !important;
 				text-align:center;
+				padding:2px;
 			}
 			.listTable tr:last-child td{
 				&:first-child{
@@ -525,6 +526,15 @@ div.alphabet div.tab-row .tab{
 	border: solid 1px green !important;
 	background-color: #aea !important;
 }
+
+.badge {
+  @include border-radius(9px);
+  border-radius: 9px;
+  color: #fff;
+  background-color: #999;
+  font-size: 0.84em;
+  padding: 1px 7px 2px; 
+ }
 /*край на таб alphabet*/
 
 
