@@ -386,7 +386,7 @@ div.alphabet div.tab-row .tab{
 	}
 }
 .narrow div.alphabet  div.tab-row {
-	width: 330px;
+	width: 340px;
 }
 
 /*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
@@ -638,6 +638,14 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 	color:#888;
 }
 
+.wide .listFilter{
+	padding-bottom:	10px;
+}
+
+.formFields{
+	margin-bottom:0;
+}
+
 .form-filter-btn{
 	margin-top:5px;
 	margin-bottom:10px;
@@ -645,6 +653,10 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 
 .narrow .form-filter-btn{
 	margin-left:0;
+}
+
+.wide div.hFormField{
+	margin-bottom:2px;
 }
 /*край на стилове за форми*/
 
