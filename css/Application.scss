@@ -405,6 +405,7 @@ div.alphabet div.tab-row .tab{
 			.detail-info{
 				padding:0px;
 				margin-top:0px;
+				font-size:0.85em;
 				background-color:$history-bg !important;
 				.listTable td{
 				background-color:$history-bg !important;
@@ -517,7 +518,7 @@ div.alphabet div.tab-row .tab{
 }
 
 .narrow .single-thread .document div.alphabet .listTable{
-	font-size:0.8em;
+	font-size:0.9em;
 }
 
 .thread-opened th {
