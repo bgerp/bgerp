@@ -31,7 +31,7 @@
 		<!--ET_END discount-->
 		</td>
 		<td class='misc-info' align='right' valign='top'>
-		<b>[#amount#]</b>
+		[#amount#]
 		<!--ET_BEGIN discAmount-->
 		<div class='discount'>[#discAmount#]</div>
 		<!--ET_END discAmount-->
@@ -42,9 +42,9 @@
 <tr>
 	<td colspan='4' id='total-td-label'></td>
 	<td colspan='2' align='right'>
-	|Общо|*: &nbsp;<b>[#total#]</b>
+	<span class = '[#totalClass#]'>|Общо|*: &nbsp;[#total#]</span>
 	<!--ET_BEGIN totalDisc-->
-	<div class='discount'> |След ТО|*: &nbsp; [#totalDisc#]</div>
+	<div class = 'discount'> |След ТО|*: &nbsp; <span class = 'newAmount'>[#totalDisc#]</span></div>
 	<!--ET_END totalDisc-->
 	</td>
 </tr>

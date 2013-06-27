@@ -345,6 +345,9 @@ class sales_QuotationsDetails extends core_Detail {
 	    	}
     	}
     	if($data->total){
+    		if($data->total->totalDisc){
+    			$data->total->totalClass = 'oldAmount';
+    		}
     		$dTpl->placeObject($data->total);
     	}
     	
@@ -395,7 +398,12 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->amount = '???';
     	}
     	
+    	
     	$row->discAmount = $double->toVerbal($rec->discAmountVat);
+    	if($rec->discAmountVat){
+    		$row->amount = "<span class='oldAmount'>{$row->amount}</span>";
+    		$row->discAmount = "<span class='newAmount'>{$row->discAmount}</span>";
+    	}
     }
     
     

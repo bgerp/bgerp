@@ -41,7 +41,7 @@ class sales_Quotations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg, plg_Search,
                     doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary';
        
     
@@ -113,6 +113,12 @@ class sales_Quotations extends core_Master
    
    
    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'paymentMethodId, reff, recipient, attn, email, address';
+    
+    
+   /**
      * Групиране на документите
      */ 
    var $newBtnGroup = "3.7|Търговия";
@@ -145,6 +151,16 @@ class sales_Quotations extends core_Master
         $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=contactData, changable');
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData, changable');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData, changable');
+    }
+    
+    
+	/**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	 $data->listFilter->showFields = 'search,' . $data->listFilter->showFields;
+    	 $data->listFilter->input();
     }
     
     
