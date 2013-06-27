@@ -171,6 +171,14 @@ class sales_QuotationsDetails extends core_Detail {
 	    	
 	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
 	    	
+    		if($rec->discount){
+	    		if($rec->discount < 0) {
+	    			$form->setError('discount', 'Неможе да се въведе отрицателно число');
+	    		}
+	    	} else {
+	    		$rec->discount = $price->discount;
+	    	}
+	    		
 	    	if(!$rec->price){
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
 	    		
@@ -180,13 +188,6 @@ class sales_QuotationsDetails extends core_Detail {
 	    		
 	    		// Конвертираме цената към посочената валута в офертата
 	    		$rec->price = $price->price;
-	    		if($rec->discount){
-	    			if($rec->discount < 0) {
-	    				$form->setError('discount', 'Неможе да се въведе отрицателно число');
-	    			}
-	    		} else {
-	    			$rec->discount = $price->discount;
-	    		}
 	    	} else {
        			$rec->price = $rec->price / (1 + $rec->vatPercent);
 	    		$rec->price = round($rec->price * $masterRec->rate, 2);
