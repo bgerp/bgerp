@@ -52,9 +52,15 @@ class crm_Persons extends core_Master
      * Наименование на единичния обект
      */
     var $singleTitle = "Лице";
-
-
+    
+    
     /**
+     * Необходими пакети
+     */
+    var $depends = 'callcenter=0.1';
+    
+    
+    /**	
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/vcard.png';
