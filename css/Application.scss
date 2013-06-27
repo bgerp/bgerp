@@ -338,17 +338,12 @@ div.tab-control div.tab-page {
 
 
 /*таб alphabet*/
-.tab-control.alphabet{
-	font-size:1.1em;
-	.listTitle{
-		font-size:1.1em;
-	}
-}
+
 div.alphabet div.tab-row .tab {
 	background: #ddd;
-	font-size: 0.6em;
 	line-height:1.1em;
 	padding: 5px;
+	font-size:0.7em;
 	border: 1px solid #aaa;
 	text-align: center;
 	margin: 2px;
