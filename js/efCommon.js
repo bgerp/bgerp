@@ -206,9 +206,9 @@ function comboBoxInit(id, suffix)
 
 	if(txtCombo && selCombo) {
 		var width = txtCombo.offsetWidth;
-		var arrow = selCombo.offsetHeight - 5;
-
-		selCombo.style.width = (width) + 'px'; 
+		var arrow = 22;
+ 
+		selCombo.style.width = (width+1) + 'px'; 
 		txtCombo.style.width = (width -  arrow + 6 ) + 'px';
 		txtCombo.style.marginRight = (arrow - 5) + 'px';
 		selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow + 3 ) + 'px)';
