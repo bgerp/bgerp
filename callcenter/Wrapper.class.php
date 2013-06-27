@@ -20,6 +20,7 @@ class callcenter_Wrapper extends plg_ProtoWrapper
     function description()
     {        
         $this->TAB('callcenter_Talks', 'Разговори');
+        $this->TAB('callcenter_Fax', 'Факсове');
         $this->TAB('callcenter_InternalNum', 'Данни');
         
         $this->title = 'КЦ';

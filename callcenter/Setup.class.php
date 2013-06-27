@@ -49,6 +49,7 @@ class callcenter_Setup
             'callcenter_Talks',
             'callcenter_InternalNum',
             'callcenter_ExternalNum',
+            'callcenter_Fax',
         );
         
         $instances = array();

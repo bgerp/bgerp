@@ -1100,4 +1100,41 @@ class doc_Containers extends core_Manager
 
         return $contragentData;
     }
+    
+    
+    /**
+     * Връща линк към сингъла на документа
+     * 
+     * @param int $id - id на документа
+     * 
+     * @return string - Линк към документа
+     */
+    static function getLinkForSingle($id)
+    {
+        // Ако не е чило, връщаме
+        if (!is_numeric($id)) return ;
+
+        // Документа
+        $doc = doc_Containers::getDocument($id);
+        
+        // Полетата на документа във вербален вид
+        $docRow = $doc->getDocumentRow();
+
+        if ($doc->instance->haveRightFor('single', $doc->that)) {
+            
+            // Атрибутеите на линка
+            $attr['class'] = 'linkWithIcon';
+            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
+            $attr['title'] = tr('Документ') . ': ' . $docRow->title;
+            
+            // Документа да е линк към single' а на документа
+            $res = ht::createLink(str::limitLen($docRow->title, 35), array($doc, 'single', $doc->that), NULL, $attr);
+        } else {
+            
+            // Само заглавието
+            $res = $docRow->title;
+        }
+        
+        return $res;
+    }
 }

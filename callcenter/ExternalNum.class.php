@@ -204,4 +204,41 @@ class callcenter_ExternalNum extends core_Manager
         
         $data->listFilter->input('search', 'silent');
     }
+    
+    
+    /**
+     * Връща последния запис за номера
+     * 
+     * @param string $number - Номера
+     * @param string $type - Типа на номера - tel, mobile, fax
+     * 
+     * @return core_Query - Запис от модела, отговарящ на условията
+     */
+    static function getLastRecForNum($number, $type=FALSE)
+    {
+        // Вземаме номера, на инициатора
+        $numberArr = drdata_PhoneType::toArray($number);
+        
+        // Ако има номер
+        if (!$numberArr[0]) return ;
+        
+        // Вземаме стринга на номера
+        $numStr =  $numberArr[0]->countryCode . $numberArr[0]->areaCode . $numberArr[0]->number;
+        
+        // Вземаме последния номер, който сме регистрирали
+        $query = callcenter_ExternalNum::getQuery();
+        $query->where(array("#number = '[#1#]'", $numStr));
+        $query->orderBy('id', 'DESC');
+        $query->limit(1);
+        
+        // Ако е зададен типа
+        if ($type) {
+            
+            // Добавяме типа в клаузата
+            $query->where(array("#type = '[#1#]'", $type));
+        }
+        
+        // Вземаме записа
+        return $query->fetch();
+    }
 }
