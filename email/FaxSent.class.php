@@ -82,6 +82,15 @@ class email_FaxSent extends core_Manager
     
     
     /**
+     * Описание на модела (таблицата)
+     */
+    function description()
+    {
+        
+    }
+    
+    
+    /**
      * 
      */
     function act_Send()
