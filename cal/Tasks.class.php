@@ -138,10 +138,18 @@ class cal_Tasks extends core_Master
      */
     var $abbr = "Tsk";
     
+    
+    /**
+     * 
+     */
+    var $canSingle = 'user';
+    
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "1.3|Общи"; 
+    
     
     /**
      * Описание на модела (таблицата)
@@ -369,6 +377,17 @@ class cal_Tasks extends core_Master
 	                }
 	            }
     	     }
+         }
+         
+         // Ако екшъна е сингъл
+         if ($action == 'single') {
+             
+             // Ако няма права за сингъла на контейнера
+             if (!doc_Containers::haveRightFor('single', $rec->containerId)) {
+                 
+                 // Няма права и към сингъла
+                 $requiredRoles = 'no_one';
+             }
          }
     }
     
