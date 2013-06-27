@@ -994,15 +994,9 @@ class core_App
      */
     public static function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
     {
-//         if (static::isDebug() && isset($debug)) {
-//             static::bp($errorTitle, $errorInfo, $debug);
-//         }
-
         $text = static::isDebug() ? $errorInfo : $errorTitle;
 
         throw new core_exception_Expect($text, $debug, $errorTitle);
-
-//         exit(-1);
     }
 
 

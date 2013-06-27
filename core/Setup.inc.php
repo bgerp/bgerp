@@ -495,31 +495,35 @@ if($step == 3) {
     // Проверка за връзка с MySQL сървъра
     $log[] = 'h:Проверка на сървъра на базата данни:';
     if (defined('EF_DB_USER') && defined('EF_DB_HOST') && defined('EF_DB_PASS')) {
-        $link = mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
+        $link = @mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
         if (FALSE !== $link) {
-            $log[] = "inf:Успешна връзка със сървъра: <b>`" . EF_DB_HOST ." `</b>";
+            
+        	$log[] = "inf:Успешна връзка със сървъра: <b>`" . EF_DB_HOST ." `</b>";
+            
+            if(defined('EF_DB_NAME')) {
+            	if (!mysql_select_db(EF_DB_NAME)) {
+            		$createQuery = "CREATE DATABASE IF NOT EXISTS `" . EF_DB_NAME . "`";
+            		@mysql_query($createQuery, $link);
+            		if(($mysqlErr = mysql_errno($link)) > 0) {
+            			$log[] = "err:Грешка <b>{$mysqlErr}</b> при избор на базата: <b>`" . EF_DB_NAME . "`</b>";
+            		} else {
+            			$log[] = "new:Създадена е базата: <b>`" . EF_DB_NAME . "`</b>";
+            		}
+            	} else {
+            		$log[] = "inf:Налична база данни: <b>`" . EF_DB_NAME . "`</b>";
+            	}
+            } else {
+            	$log[] = "err:Не е дефинирана константата <b>`EF_DB_NAME`</b>";
+            }
+            
         } else {
             $log[] = "err:Неуспешна връзка на <b>`" . EF_DB_USER . "`</b> с MySQL сървъра: <b>`" . EF_DB_HOST ." `</b>";
         }
+        
     } else {
         $log[] = "err:Недефинирани константи за връзка със сървъра на базата данни";
     }
     
-    if(defined('EF_DB_NAME')) {
-        if (!mysql_select_db(EF_DB_NAME)) {
-            $createQuery = "CREATE DATABASE IF NOT EXISTS `" . EF_DB_NAME . "`";
-            @mysql_query($createQuery, $link);
-            if(($mysqlErr = mysql_errno($link)) > 0) {
-                $log[] = "err:Грешка <b>{$mysqlErr}</b> при избор на базата: <b>`" . EF_DB_NAME . "`</b>";
-            } else {
-                $log[] = "new:Създадена е базата: <b>`" . EF_DB_NAME . "`</b>";
-            }
-        } else {
-            $log[] = "inf:Налична база данни: <b>`" . EF_DB_NAME . "`</b>";
-        }
-    } else {
-        $log[] = "err:Не е дефинирана константата <b>`EF_DB_NAME`</b>";
-    }
 
     // Ако не са дефинирани някой от константите EF_USERS_PASS_SALT, EF_SALT, EF_USERS_HASH_FACTOR ги дефинираме в bgerp.conf.php 
     $consts = array();

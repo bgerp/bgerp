@@ -119,7 +119,8 @@ class core_Db extends core_BaseClass
     {
         if (!isset($this->link)) {
             $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or
-            error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+            //error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             
             // След успешно осъществяване на връзката изтриваме паролата
             // с цел да не се появи случайно при някой забравен bp()
@@ -135,7 +136,8 @@ class core_Db extends core_BaseClass
             
             // Избираме указаната база от данни на сървъра
             if (!mysql_select_db($this->dbName)) {
-                error("Грешка при избиране на база {$this->dbName}", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            	redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+                //error("Грешка при избиране на база {$this->dbName}", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             }
         }
         
@@ -621,29 +623,27 @@ class core_Db extends core_BaseClass
      * Проверява за грешки при последната MySQL операция
      *
      * Реагира по следния начин:
-     * Ако имаме липсваща таблица, проверява дали са инсталирани пакетите
-     * на ядрото и на приложението. Ако не са инсталирани - стартира
-     * процеса по инсталация
+     * Ако имаме липсваща таблица или липсваща колона
+     * връща грешката
+     * на ядрото и на приложението.
      *
      *
      * @return int нула означава липса на грешка.
      */
-    function checkForErrors($action, $silent)
+    function checkForErrors($action, $silent = FALSE)
     {
         global $_GET;
         
         if (!$silent && mysql_errno($this->link) > 0) {
-            
-            if (($_GET['Ctr'] != 'core_Cron' || $_GET['Act'] != 'cron')) {
-                
-                $errno = mysql_errno($this->link);
-                $error = mysql_error($this->link);
-                
-                if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) {
-                    // throw new core_exception_Expect ("Грешка в Базата данни.");
-                }
+            // Ако има грешка при извикване от крон-а - игнорираме.
+            if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
+            	
+            	return;
             }
-
+                
+            $errno = mysql_errno($this->link);
+            $error = mysql_error($this->link);
+                
             error("Грешка {$errno} в БД при " . $action, array(
                     "query" => $this->query,
                     "error" => $error
