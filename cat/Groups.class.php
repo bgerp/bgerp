@@ -126,7 +126,28 @@ class cat_Groups extends core_Master
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         $this->FLD('productCnt', 'int', 'input=none');
         
+        // Свойства присъщи на продуктите в групата
+        $this->FLD('meta', 'set(canSell=Продаваеми,
+        						canBuy=Купуваеми,
+        						canStore=Складируеми,
+        						canConvert=Вложими,
+        						fixedAsset=Дма,
+        						canManifacture=Производими)', 'caption=Свойства->Списък');
+        
         $this->setDbUnique("sysId");
+    }
+    
+    
+     /**
+     * Изпълнява се след подготовка на Едит Формата
+     */
+    static function on_AfterPrepareEditForm($mvc, $data)
+    {
+    	if(!haveRole('admin')){
+    		
+    		// Кой може да променя мета пропъртитата на групите
+    		$data->form->setField('meta', 'input=none');
+    	}
     }
     
     

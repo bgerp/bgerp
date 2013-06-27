@@ -32,7 +32,7 @@ class cat_Products extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
-                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select, plg_Search';
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select, plg_Search, bgerp_plg_Import';
 
     
     /**
@@ -156,6 +156,12 @@ class cat_Products extends core_Master {
 		$this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, translate)', 'caption=Групи,maxColumns=2');
+        $this->FLD('meta', 'set(canSell=Продаваем,
+        						canBuy=Купуваем,
+        						canStore=Складируем,
+        						canConvert=Вложим,
+        						fixedAsset=Дма,
+        						canManifacture=Производим)', 'caption=Свойства->Списък,input=hidden');
         
         $this->setDbUnique('code');
     }
@@ -209,7 +215,6 @@ class cat_Products extends core_Master {
 			        }
     			}
     		}
-            
         }
                 
         if (!$form->gotErrors()) {
@@ -217,6 +222,30 @@ class cat_Products extends core_Master {
                 Mode::setPermanent('catLastProductCode', $code);
             }    
         }
+    }
+    
+    
+    /**
+     * Преди запис на продукт
+     */
+    public static function on_BeforeSave($mvc, $res, $rec)
+    {
+    	if($rec->groups){
+    		
+    		// Ако има групи се обновяват, мета данните му
+	    	$meta = array();
+	    	$groups = keylist::toArray($rec->groups);
+	    	foreach($groups as $grId){
+	    		$grRec = cat_Groups::fetch($grId);
+	    		if($grRec->meta){
+	    			$arr = explode(",", $grRec->meta);
+	    			$meta = array_merge($meta, array_combine($arr, $arr));
+	    		}
+	    	}
+	    	$rec->meta = implode(',', $meta);
+    	} else {
+    		$rec->meta = '';
+    	}
     }
     
     
@@ -320,7 +349,6 @@ class cat_Products extends core_Master {
             $data->query->where("#groups LIKE '|{$data->listFilter->rec->groupId}|'");
         }
     }
-    
 
 
     /**
@@ -371,13 +399,54 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Метод връщаш информация за продукта и неговите опаковки
-     * @param int $productId - Ид на продукта
-     * @param int $packagingId - Ид на опаковката, по дефолт NULL
-     * @return stdClass $res - Обект с информация за продукта
-     * и опаковките му ако $packagingId не е зададено, иначе връща
-     * информацията за подадената опаковка
+     * Връща масив от продукти отговарящи на зададени мета данни:
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
+     * @param mixed $properties - комбинация на горе посочените мета 
+     * 							  данни или като масив или като стринг
+     * @return array $products - продукти отговарящи на условието, ако не са
+     * 							 зададени мета данни връща всички продукти
      */
+    public static function getByProperty($properties)
+    {
+    	$where = "";
+    	$arr = arr::make($properties, TRUE);
+    	foreach ($arr as $meta){
+    		if(strlen($where)) {
+    			$where .= " AND #meta LIKE";
+    		}
+    		$where .= "'%{$meta}%'";
+    	}
+    	
+    	$query = static::getQuery();
+    	if($where){
+    		$query->where("#meta LIKE {$where}");
+    	}
+    	
+    	$products = array();
+    	while($rec = $query->fetch()){
+    		$products[$rec->id] = $rec->name;
+    	}
+    	
+    	return $products;
+    }
+    
+    
+    /**
+     * Метод връщаш информация за продукта и неговите опаковки
+     * @param int $productId - ид на продукта
+     * @param int $packagingId - ид на опаковката, по дефолт NULL
+     * @return stdClass $res
+     * 		-> productRec - записа на продукта
+     * 		-> meta - мета данни за продукта ако има
+	 * 			 meta['canSell'] - дали може да се продава
+	 * 			 meta['canBuy'] - дали може да се купува
+	 * 			 meta['canConvert'] -дали може да се влага
+	 * 			 meta['canStore'] - дали може да се съхранява
+	 * 			 meta['canManifacture'] - дали може да се прозивежда
+	 * 		     meta['fixedAsset'] - дали е ДМА
+     * 		-> packagingRec - записа на опаковката, ако е зададена
+     * 		-> packagings - всички опаковки на продукта, ако не е зададена
+     */					
     public static function getProductInfo($productId, $packagingId = NULL)
     {
     	// Ако няма такъв продукт връщаме NULL
@@ -387,6 +456,14 @@ class cat_Products extends core_Master {
     	
     	$res = new stdClass();
     	$res->productRec = $productRec;
+    	
+    	// Добавяне на мета данните за продукта
+    	$res->meta = array();
+    	$meta = explode(',', $productRec->meta);
+    	foreach($meta as $value){
+    		$res->meta[$value] = TRUE;
+    	}
+    	
     	$Packagings = cls::get('cat_products_Packagings');
     	
     	if(!$packagingId) {
@@ -524,7 +601,7 @@ class cat_Products extends core_Master {
     	
     	// Ако има фиксиран параметър "ДДС" го връщаме
     	if($value = cat_products_Params::fetchParamValue($productId, 'vat')){
-    		return $value / 100;
+    		return $value;
     	}
     	
     	// Връщаме ДДС-то от периода

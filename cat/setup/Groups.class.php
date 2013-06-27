@@ -34,6 +34,7 @@ class cat_setup_Groups extends core_Mvc
                 $rec->name = $csvRow[0];
                 $rec->info = $csvRow[1];
                 $rec->sysId = $csvRow[2];
+                $rec->meta = implode(',', array_keys(keylist::toArray($csvRow[3])));
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 
                 // Ако има запис с този 'name'
@@ -43,7 +44,7 @@ class cat_setup_Groups extends core_Mvc
                     $created++;
                 }
                
-                $Groups->save($rec, NULL, 'IGNORE');
+                $Groups->save($rec, NULL, 'REPLACE');
             }
             
             fclose($handle);
