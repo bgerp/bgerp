@@ -2,6 +2,12 @@
 
 
 /**
+ * Колко дни да се пази в лога в core_Logs
+ */
+defIfNot('LOG_DOCUMENTS_DAYS', 5);
+
+
+/**
  * История от събития, свързани с документите
  *
  * Събитията са изпращане по имейл, получаване, връщане, печат, разглеждане
@@ -1197,7 +1203,7 @@ class log_Documents extends core_Manager
             'alert' // Важност (приоритет)
         );
     
-        core_Logs::add(get_called_class(), $sendRec->id, $msg);
+        core_Logs::add(get_called_class(), $sendRec->id, $msg, LOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1254,7 +1260,7 @@ class log_Documents extends core_Manager
         */
         
         
-        core_Logs::add(get_called_class(), $sendRec->id, $msg);
+        core_Logs::add(get_called_class(), $sendRec->id, $msg, LOG_DOCUMENTS_DAYS);
     
         return TRUE;
     }
@@ -1344,7 +1350,7 @@ class log_Documents extends core_Manager
         
         $msg = tr("Видян документ|*: ") . doc_Containers::getDocTitle($action->containerId);
         
-        core_Logs::add('doc_Containers', $action->containerId, $msg);
+        core_Logs::add('doc_Containers', $action->containerId, $msg, LOG_DOCUMENTS_DAYS);
         
         return $action;
     }
@@ -1404,7 +1410,7 @@ class log_Documents extends core_Manager
         $msg = tr("Препратен имейл|*: ") . doc_Containers::getDocTitle($containerId);
         
         // Добавяме запис в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg);
+        core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
@@ -1472,7 +1478,7 @@ class log_Documents extends core_Manager
         $msg = tr("Редактиран документ|*: ") . doc_Containers::getDocTitle($containerId);
         
         // Добавяме запис в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg);
+        core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
@@ -1546,7 +1552,7 @@ class log_Documents extends core_Manager
         // Добавяме запис в лога
         $msg = tr("Свален файл|*: ") . fileman_Download::getDownloadLink($fh);
         
-        core_Logs::add('doc_Containers', $rec->containerId, $msg);
+        core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
 
         return $rec;
     }
@@ -2091,7 +2097,7 @@ class log_Documents extends core_Manager
         }
 
         if($count > 0) {
-            core_Logs::add(get_called_class(), NULL, "Записани {$count} действия");
+            core_Logs::add(get_called_class(), NULL, "Записани {$count} действия", LOG_DOCUMENTS_DAYS);
         }
     }
     
