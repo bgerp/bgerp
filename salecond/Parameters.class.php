@@ -72,6 +72,10 @@ class salecond_Parameters extends core_Manager
         				$form->setError('options', "Някоя от зададените стойности не е от типа {$rec->type}");
         			}
         		}
+        	} else {
+        		if($rec->type == 'enum'){
+        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойностти");
+        		}
         	}
         }
     }
@@ -167,8 +171,7 @@ class salecond_Parameters extends core_Manager
     	$res->type = $rec->type;
     	
     	if($rec->options){
-    		$vArr = explode(",", $rec->options);
-    		$res->options = array('' => '') + array_combine($vArr, $vArr);
+    		$res->options = array('' => '') + arr::make($rec->options, TRUE);
     	}
     	return $res;
     }

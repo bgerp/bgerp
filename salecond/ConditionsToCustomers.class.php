@@ -68,6 +68,8 @@ class salecond_ConditionsToCustomers extends core_Manager
     	
     	if(!$rec->id){
     		$form->addAttr('conditionId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['value'].value ='';this.form.submit();"));
+    	} else {
+    		$form->setReadOnly('conditionId');
     	}
     	
     	if($form->rec->conditionId){
@@ -161,41 +163,6 @@ class salecond_ConditionsToCustomers extends core_Manager
     		}
     		return $recs;
     	}
-    }
-    
-    
-    /**
-     * Проверка дали въведената стойност отговаря на типа
-     * на параметъра
-     * @param core_Form $form - формата
-     */
-    static function isValueValid(core_Form &$form)
-    {
-    	$rec = &$form->rec;
-    	expect($paramType = salecond_Parameters::fetchField($rec->conditionId, 'type'));
-            
-        // взависимост от избрания параметър проверяваме дали 
-        // стойността му е във валиден формат за неговия тип
-        switch($paramType){
-            case 'double':
-            	if(!is_numeric($rec->value)){
-            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е число");
-            	}
-            	break;
-            case 'int':
-            	if(!ctype_digit($rec->value)){
-            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е цяло число");
-            	}
-            	break;
-            case 'date':
-            	$date = cls::get('type_Date');
-            	if(!$date->fromVerbal($rec->value)){
-            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е валидна дата");
-            	}
-            	break;
-            case 'enum':
-            	break;
-            }
     }
     
     
