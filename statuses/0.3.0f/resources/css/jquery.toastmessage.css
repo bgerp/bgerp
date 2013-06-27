@@ -92,6 +92,10 @@
     border-color: #B32B2B;
 }
 
+.toast-item p{
+	margin-bottom:1em;
+	margin-top:1em;
+}
 /**
  * positions
  *
