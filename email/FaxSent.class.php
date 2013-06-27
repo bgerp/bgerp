@@ -183,6 +183,7 @@ class email_FaxSent extends core_Manager
                         'data'        => (object)array(
                             'service' => $service,
                             'faxTo'   => $originalFaxTo,
+                            'sendedBy'   => core_Users::getCurrent(),
                         )
                     )
                 );
