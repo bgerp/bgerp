@@ -88,8 +88,10 @@ class cat_products_Params extends cat_products_Detail
                 
                 $row = $rows[$i];
                 $paramRec = cat_Params::fetch($rec->paramId);
-            	$Type = cls::get("type_{$paramRec->type}");
-            	$row->paramValue = $Type->toVerbal($rec->paramValue);
+                if($paramRec->type != 'enum'){
+                	$Type = cls::get("type_{$paramRec->type}");
+            		$row->paramValue = $Type->toVerbal($rec->paramValue);
+                }
             	if($paramRec->type != 'percent'){
             		$row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
             	}
@@ -103,27 +105,27 @@ class cat_products_Params extends cat_products_Detail
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $form = $data->form;
+        $form = &$data->form;
         
-    	if(!$rec->id){
+    	if(!$form->rec->id){
     		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['paramValue'].value ='';this.form.submit();"));
+	    	expect($productId = $form->rec->productId);
+			$options = self::getRemainingOptions($productId, $form->rec->id);
+			expect(count($options));
+	        
+	        if(!$data->form->rec->id){
+	        	$options = array('' => '') + $options;
+	        }
+	        $form->setOptions('paramId', $options);
+    	} else {
+    		$form->setReadOnly('paramId');
     	}
     	
-        expect($productId = $form->rec->productId);
-
-        $options = self::getRemainingOptions($productId, $form->rec->id);
-
-        expect(count($options));
-        
-        if(!$data->form->rec->id){
-        	$options = array('' => '') + $options;
-        }
-		
-        $form->setOptions('paramId', $options);
-        
         if($form->rec->paramId){
-        	$type = cat_Params::fetchField($form->rec->paramId, 'type');
-        	expect($Type = cls::get("type_{$type}"), "Няма тип \"type_{$type}\" в системата");
+        	$paramRec = cat_Params::fetch($form->rec->paramId);
+        	$optType = ($paramRec->type == 'enum') ? 'options' : 'suggestions';
+        	$options = array('' => '') + arr::make($paramRec->options, TRUE);
+        	expect($Type = cls::get("type_{$paramRec->type}", array($optType => $options)), "Няма тип \"type_{$paramRec->type}\" в системата");
     		$form->fields['paramValue']->type = $Type;
         } else {
         	$form->setField('paramValue', 'input=hidden');

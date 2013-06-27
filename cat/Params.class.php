@@ -39,7 +39,7 @@ class cat_Params extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeExt';
+    var $listFields = 'id,typeExt,type,options';
     
     
     /**
@@ -84,10 +84,10 @@ class cat_Params extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число, int=Цяло число, varchar=Текст, date=Дата,percent=Процент)', 'caption=Тип');
+        $this->FLD('type', 'enum(double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изборим)', 'caption=Тип');
+        $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
-        
         $this->FNC('typeExt', 'varchar', 'caption=Име');
         
         $this->setDbUnique('name, suffix');
@@ -108,6 +108,30 @@ class cat_Params extends core_Manager
     }
     
 
+	/**
+     * След изпращане на формата
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if ($form->isSubmitted()) {
+        	$rec = &$form->rec;
+        	if($rec->options){
+        		$vArr = arr::make($rec->options);
+        		$Type = cls::get("type_{$rec->type}");
+        		foreach($vArr as $option){
+        			if($rec->type != 'enum' && !$Type->fromVerbal($option)){
+        				$form->setError('options', "Някоя от зададените стойности не е от типа {$rec->type}");
+        			}
+        		}
+        	} else {
+        		if($rec->type == 'enum'){
+        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойностти");
+        		}
+        	}
+        }
+    }
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -139,7 +163,8 @@ class cat_Params extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Подготвя опциите за селектиране на параметър като към името се
+     * добавя неговия suffix 
      */
     static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
     {
