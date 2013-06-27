@@ -21,6 +21,7 @@ class sales_QuotationsDetails extends core_Detail {
      */
     var $title = 'Детайли на офертите';
     
+    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -73,7 +74,7 @@ class sales_QuotationsDetails extends core_Detail {
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em;');
-        $this->FLD('discount', 'percent(decimals=0)', 'caption=Отстъпка,width=8em;');
+        $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка,width=8em;');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'int', 'caption=Срок,unit=дни,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
@@ -179,8 +180,11 @@ class sales_QuotationsDetails extends core_Detail {
 	    		
 	    		// Конвертираме цената към посочената валута в офертата
 	    		$rec->price = $price->price;
-	    		
-	    		if(!$rec->discount){
+	    		if($rec->discount){
+	    			if($rec->discount < 0) {
+	    				$form->setError('discount', 'Неможе да се въведе отрицателно число');
+	    			}
+	    		} else {
 	    			$rec->discount = $price->discount;
 	    		}
 	    	} else {
@@ -374,23 +378,14 @@ class sales_QuotationsDetails extends core_Detail {
         $pInfo = $productMan->getProductInfo($rec->productId);
     	
         $double = cls::get('type_Double');
+        $double->params['decimals'] = 2;
     	if(!$rec->quantity){
     		$row->quantity = '???';
     	}
     	
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
-    	
     	$uomId = $pInfo->productRec->measureId;
     	$row->uomShort = cat_UoM::getShortName($uomId);
-    	
-    	if($rec->discount && $rec->discount < 0){
-    		$row->discount = abs($rec->discount);
-    		$row->discount = "+ {$row->discount}%";
-    	} elseif($rec->discount && $rec->discount > 0){
-    		$row->discount = "- {$row->discount}";
-    	}
-    	
-    	$double->params['decimals'] = 2;
     	$row->price = $double->toVerbal($rec->vatPrice);
     	if($rec->amount){
     		$row->amount = $double->toVerbal($rec->amount);
@@ -398,11 +393,12 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->amount = '???';
     	}
     	
-    	
     	$row->discAmount = $double->toVerbal($rec->discAmountVat);
     	if($rec->discAmountVat){
     		$row->amount = "<span class='oldAmount'>{$row->amount}</span>";
     		$row->discAmount = "<span class='newAmount'>{$row->discAmount}</span>";
+    	} else {
+    		$row->amount = "<b>{$row->amount}</b>";
     	}
     }
     

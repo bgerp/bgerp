@@ -27,7 +27,7 @@
 		<td class='misc-info' align='right' valign='top'>
 		<b>[#price#]</b>
 		<!--ET_BEGIN discount-->
-		<div class='discount'>[#discount#] |ТО|*</div>
+		<div class='discount'>- [#discount#] |ТО|*</div>
 		<!--ET_END discount-->
 		</td>
 		<td class='misc-info' align='right' valign='top'>
