@@ -112,8 +112,8 @@ class plg_Select extends core_Plugin
             
             $res = new ET();
             
-            $res->append("\n<h3>" . tr('Действия с избраните редове') . ":</h3>");
-            $res->append("\n<table>");
+            $res->append("\n<h2>" . tr('Действия с избраните редове') . ":</h2>");
+            $res->append("\n<table class='no-border-table'>");
 
             foreach($actArr as $action => $caption) {
                 
@@ -125,7 +125,7 @@ class plg_Select extends core_Plugin
                             'ret_url' => Request::get('ret_url')),
                         NULL,
                         NULL,
-                        "class=btn-$action,style=float:none !important;width:100%;text-align:left;"));
+                        "class=btn-$action"));
                  $res->append("</td></tr>");
 
             }

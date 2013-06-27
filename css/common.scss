@@ -118,7 +118,7 @@ table {
 /*our reset and common classes*/
 body{
 	background-color: #ddd;
-	font-family:Arial,Helvetica,Verdana,Sans-serif;
+	font-family:Helvetica,Arial,Verdana,Sans-serif;
 	font-size:16px; 
 }
 
@@ -191,7 +191,6 @@ select, input, textarea{
 	-moz-box-sizing:border-box;
 	border: solid 1px #9999ff;
 	font-size: 1.07em;
-	font-family:Arial,Helvetica,Verdana,Sans-serif;
 }
 
 select.combo {  
@@ -336,7 +335,7 @@ a.profile {
 }
 
 .wide .doc_Folders .pages, .wide .core_Packs .pages , .wide .acc_Items .pages, .wide .core_Lg .pages, .wide .doc_Threads .pages, 
-.wide .cal_Calendar .pages ,.wide .cal_Holidays .pages, .wide .core_Logs .pages{
+.wide .cal_Calendar .pages ,.wide .cal_Holidays .pages, .wide .core_Logs .pages, .wide .crm_Companies .pages, .wide .crm_Persons .pages{
 	margin-top:0;
 	margin-bottom:15px;
 }
@@ -611,20 +610,22 @@ div.hFormField {
 	border: none !important;
 	box-shadow:none;
 	margin:3px 3px 3px 4px;
+	background-color:transparent;
 }
 
 .narrow .formAll {
     display:table;
-}
-.formFields input:focus, textarea:focus, select:focus { 
-    outline: none;
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
 }
 
 .formFields input, textarea, select { 
 	margin-top:0px;
     -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
+}
+
+.formFields input:focus, textarea:focus, select:focus { 
+    outline: none;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
 }
 
 .inputError {
@@ -957,7 +958,7 @@ table.listTable>tbody>tr:hover  {
 
 table.listTable>tbody>tr>td {
     border: 1px solid #bbb;
-    padding: 5px; 
+    padding: 4px; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
 }
@@ -1013,6 +1014,7 @@ a.button, input[type="button"], input[type="submit"] {
     font-size: 0.85em;
     padding:0.2em;
     height:1.8em;
+    font-family: Arial,sans-serif;
     overflow:visible;
     display:inline-block;
     background-color:#ddd; 
@@ -1117,6 +1119,27 @@ input[type=radio]:checked + label {
     background-image:url('../img/16/folder-y.png');
     @include btn-style();
 }
+
+.wide .btn-delete{
+	background-image:url('../img/16/delete-icon.png');
+	@include btn-style();
+}
+
+.wide .btn-open {
+	background-image: url("../img/16/open_bulb.png");
+	@include btn-style();
+}
+
+.wide .btn-close {
+	background-image: url("../img/16/close_bulb.png");
+	@include btn-style();
+}
+
+.wide .btn-move {
+  background-image: url("../img/16/arrow_right.png");
+  @include btn-style();
+}
+
 
 .wide .btn-next,  .wide input.btn-prev {
     float: right;
@@ -1597,6 +1620,9 @@ div.folder-cover{
 	.groupTitle {
 		color: #333;
 		font-weight: bold;
+	}
+	.groupList{
+		font-size:0.95em;
 	}
 	.label {
 		color: #777777;
