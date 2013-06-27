@@ -340,6 +340,9 @@ div.tab-control div.tab-page {
 /*таб alphabet*/
 .tab-control.alphabet{
 	font-size:1.1em;
+	.listTitle{
+		font-size:1.1em;
+	}
 }
 div.alphabet div.tab-row .tab {
 	background: #ddd;
@@ -2233,6 +2236,18 @@ div.locImage{
 
 #hr_Departments-EditForm select{
 	max-width:500px;
+}
+
+.no-border-table{
+	margin-top:10px;
+	border-spacing:5px;
+	border-collapse:separate;
+}
+
+.no-border-table .button{
+	float:none !important;
+	width:100%;
+	text-align:left;
 }
 /*край на бъгфиксове*/
 
