@@ -50,7 +50,7 @@ class core_Manager extends core_Mvc
     /**
      * Колко дни да пазим логовете за този клас?
      */
-    static $logKeepDays = 1;
+    static $logKeepDays = 180;
     
     
     /**
