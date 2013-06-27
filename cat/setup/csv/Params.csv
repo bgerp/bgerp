@@ -5,4 +5,4 @@
 Цвят,varchar,,color
 Дебелина,double,микрон,thickness
 Обем,double,литри,volume
-ДДС,double,%,vat
+ДДС,percent,%,vat

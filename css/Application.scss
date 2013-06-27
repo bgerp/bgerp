@@ -340,6 +340,9 @@ div.tab-control div.tab-page {
 /*таб alphabet*/
 .tab-control.alphabet{
 	font-size:1.1em;
+	.listTitle{
+		font-size:1.1em;
+	}
 }
 div.alphabet div.tab-row .tab {
 	background: #ddd;
@@ -580,8 +583,12 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 	background-image:none;
 }
 
+.wide .path-title{
+	font-size:0.86em;
+}
+
 .narrow .path-title{
-	font-size:0.9em;
+	font-size:0.8em;
 }
 
 .vertical .formToolbar {
@@ -749,6 +756,9 @@ div.acc-detail {
 		position:relative;
 		top:2px;
     }
+  }
+  .richtext{
+  	line-height:normal;
   }
   table.listTable {
     width: 100% !important;
@@ -1881,6 +1891,11 @@ fieldset.sharing-history {
 	color:#666;	
 }
 
+.singleView p{
+	margin-bottom:10px;
+	line-height:120%;	
+}
+
 table.styled-table tr:hover td {
     background-color:#ffc !important;
 }
@@ -2225,6 +2240,22 @@ div.locImage{
 .accordian{
 	margin-top:0.5em;
 }
+
+#hr_Departments-EditForm select{
+	max-width:500px;
+}
+
+.no-border-table{
+	margin-top:10px;
+	border-spacing:5px;
+	border-collapse:separate;
+}
+
+.no-border-table .button{
+	float:none !important;
+	width:100%;
+	text-align:left;
+}
 /*край на бъгфиксове*/
 
 
@@ -2296,6 +2327,9 @@ div.locImage{
 		margin-right:3px;
 		font-size:0.90em;
     }
+    .narrow select{
+    	padding-left:2px;
+    }
 }
 
 @media handheld, only screen and (max-width: 700px) { 
@@ -2304,6 +2338,9 @@ div.locImage{
 		margin-right:2px;
 		font-size:0.85em;
     }
+    .narrow select{
+    	padding-left:2px;
+    }
 }
 
 @media handheld, only screen and (max-width: 600px) { 
@@ -2311,6 +2348,9 @@ div.locImage{
 		margin-left:2px;
 		margin-right:2px;
 		font-size:0.8em;
+    }
+    .narrow select{
+    	padding-left:2px;
     }
 }
 

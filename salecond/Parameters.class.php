@@ -47,13 +47,37 @@ class salecond_Parameters extends core_Manager
     function description()
     {
     	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число, int=Цяло число, varchar=Текст, color=Цвят, date=Дата,enum=Изброим)', 'caption=Тип');
+        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Текст,date=Дата,enum=Изброим,percent=Процент)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id');
         
         $this->setDbUnique('name');
         //$this->setDbUnique("sysId");
+    }
+    
+    
+    /**
+     * След изпращане на формата
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if ($form->isSubmitted()) {
+        	$rec = &$form->rec;
+        	if($rec->options){
+        		$vArr = explode(",", $rec->options);
+        		$Type = cls::get("type_{$rec->type}");
+        		foreach($vArr as $option){
+        			if($rec->type != 'enum' && !$Type->fromVerbal($option)){
+        				$form->setError('options', "Някоя от зададените стойности не е от типа {$rec->type}");
+        			}
+        		}
+        	} else {
+        		if($rec->type == 'enum'){
+        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойностти");
+        		}
+        	}
+        }
     }
     
     
@@ -129,5 +153,26 @@ class salecond_Parameters extends core_Manager
     	if(isset($default)) return $default;
     	
     	return NULL;
+    }
+    
+    
+    /**
+     * Помощен метод за извличане на информация на параметър
+     * @param int $id - ид на параметър
+     * @return stdClass $res
+     * 				    ->type - тип на полето
+     * 					->options - масив с допустими стойности
+     */
+    public static function getParamInfo($id)
+    {
+    	$res = new stdClass();
+    	$res->options = array();
+    	expect($rec = static::fetch($id));
+    	$res->type = $rec->type;
+    	
+    	if($rec->options){
+    		$res->options = array('' => '') + arr::make($rec->options, TRUE);
+    	}
+    	return $res;
     }
 }

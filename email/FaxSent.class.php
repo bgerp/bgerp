@@ -4,7 +4,6 @@
 /**
  * Изпращане на факсове
  *
- *
  * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -61,7 +60,7 @@ class email_FaxSent extends core_Manager
     /**
      * Кой може да изпраща факс?
      */
-    var $canSend = 'fax, admin';
+    var $canSend = 'fax, admin, ceo';
     
     
     /**
@@ -83,10 +82,11 @@ class email_FaxSent extends core_Manager
     
     
     /**
-     * 
+     * Описание на модела (таблицата)
      */
     function description()
     {
+        
     }
     
     
@@ -183,6 +183,7 @@ class email_FaxSent extends core_Manager
                         'data'        => (object)array(
                             'service' => $service,
                             'faxTo'   => $originalFaxTo,
+                            'sendedBy'   => core_Users::getCurrent(),
                         )
                     )
                 );
@@ -216,6 +217,9 @@ class email_FaxSent extends core_Manager
                 $status = $instance->sendFax($data, $faxTo);
                 
                 if ($status) {
+                    
+                    callcenter_Fax::saveSend($originalFaxTo, $data->rec->containerId);
+                    
                     // Правим запис в лога
                     $Email->log('Send fax to ' . $faxTo, $data->rec->id);
                     $success[] = $faxTo;

@@ -150,6 +150,17 @@
     margin-left:5px;
 }
 
+.oldAmount {
+	text-decoration:line-through;
+	font-size:14px;
+	color: #999999;
+}
+
+.newAmount {
+	font-weight:bold;
+	font-size:16px;
+}
+
 .page-break{
 	display: none;
 }

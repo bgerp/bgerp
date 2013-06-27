@@ -613,14 +613,19 @@ class doc_DocumentPlg extends core_Plugin
         if (!$mvc->save($rec, 'state, brState, containerId')) {
             return FALSE;
         }
-    
-        // Премахваме този документ от нотификациите
-        $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-        bgerp_Notifications::setHidden($keyUrl, $rec->state == 'rejected' ? 'yes':'no');
-    
-        // Премахваме документа от "Последно"
-        bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
-    
+        
+        // Ако състоянието е било чернова, не е нужно да се минава от там,
+        // защото не е добавена нотификация и няма нужда да се чисти
+        if ($rec->brState != 'draft') {
+            
+            // Премахваме този документ от нотификациите
+            $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+            bgerp_Notifications::setHidden($keyUrl, $rec->state == 'rejected' ? 'yes':'no');
+        
+            // Премахваме документа от "Последно"
+            bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
+        }
+        
         $mvc->log($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;

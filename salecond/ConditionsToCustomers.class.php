@@ -53,8 +53,8 @@ class salecond_ConditionsToCustomers extends core_Manager
     {
         $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
-        $this->FLD('conditionId', 'key(mvc=salecond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory');
-        $this->FLD('value', 'varchar(255)', 'caption=Стойност');
+        $this->FLD('conditionId', 'key(mvc=salecond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent');
+        $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
     }
     
     
@@ -63,45 +63,23 @@ class salecond_ConditionsToCustomers extends core_Manager
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-    	/*$form = &$data->form;
+    	$form = &$data->form;
     	$rec = &$form->rec;
     	
     	if(!$rec->id){
-    		$form->addAttr('conditionId', array('onchange' => "addCmdRefresh(this.form); this.form.submit();"));
+    		$form->addAttr('conditionId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['value'].value ='';this.form.submit();"));
+    	} else {
+    		$form->setReadOnly('conditionId');
     	}
     	
-    	if($form->cmd == 'refresh'){
+    	if($form->rec->conditionId){
+    		$condInfo = salecond_Parameters::getParamInfo($form->rec->conditionId);
+    		$optType = ($condInfo->type == 'enum') ? 'options' : 'suggestions';
+    		expect($Type = cls::get("type_{$condInfo->type}", array($optType => $condInfo->options)), "Няма тип \"type_{$condInfo->type}\" в системата");
+    		$form->fields['value']->type = $Type;
+    	} else {
     		$form->setField('value', 'input=hidden');
-    	} */
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    static function on_AfterInputEditForm($mvc, $form)
-    {
-    	/*if($form->cmd == 'refresh'){
-    		$condRec = salecond_Parameters::fetch($form->rec->conditionId);
-    		
-    		if($condRec->options){
-    			$vArr = explode(",", $condRec->options);
-    			$options = array_combine($vArr, $vArr);
-    			
-	    		if($condRec->type == 'enum'){
-	    			//$form->FNC('enumValues',  cls::get('type_Enum', array('options' => $options)), 'input,caption=Опции');
-	    			$form->setField('value', 'disabled');
-	    			$form->setOptions('value', $options);
-	    		} else {
-	    			$vArr = explode(',', $condRec->values);
-	    			$form->setSuggestions('value', array_combine($vArr, $vArr));
-	    		}
-    		}
-    	}*/
-    	
-        if($form->isSubmitted()) {
-            static::isValueValid($form);
-        }
+    	}
     }
     
 
@@ -116,8 +94,16 @@ class salecond_ConditionsToCustomers extends core_Manager
         $query->where("#cClass = {$data->cClass} AND #cId = {$data->masterId}");
     	
         while($rec = $query->fetch()) {
+        	
+        	// Според параметарът, се променя вербалното представяне на стойността
             $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = static::recToVerbal($rec);
+            $row = static::recToVerbal($rec);
+            $type = salecond_Parameters::fetchField($rec->conditionId, 'type');
+            if($type != 'enum'){
+            	$Type = cls::get("type_{$type}");
+            	$row->value = $Type->toVerbal($rec->value);
+            }
+            $data->rows[$rec->id] = $row; 
         }
         
         $data->TabCaption = 'Условия';
@@ -129,7 +115,7 @@ class salecond_ConditionsToCustomers extends core_Manager
      */
     public static function renderCustomerSalecond($data)
     {
-      	$tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+      	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Условия на продажба'), 'title');
         
         $img = sbf('img/16/add.png');
@@ -140,8 +126,8 @@ class salecond_ConditionsToCustomers extends core_Manager
 	    if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
 				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>", 'content');
-				 $tpl->append($row->conditionId . " - " . $row->value . "<span style='position:relative;top:4px'>" . $row->tools . "</span>", 'content');
-				 $tpl->append("</div>", 'content');
+				$tpl->append($row->conditionId . " - " . $row->value . "<span style='position:relative;top:4px'>" . $row->tools . "</span>", 'content');
+				$tpl->append("</div>", 'content');
 				
 			}
 	    } else {
@@ -177,41 +163,6 @@ class salecond_ConditionsToCustomers extends core_Manager
     		}
     		return $recs;
     	}
-    }
-    
-    
-    /**
-     * Проверка дали въведената стойност отговаря на типа
-     * на параметъра
-     * @param core_Form $form - формата
-     */
-    static function isValueValid(core_Form &$form)
-    {
-    	$rec = &$form->rec;
-    	expect($paramType = salecond_Parameters::fetchField($rec->conditionId, 'type'));
-            
-        // взависимост от избрания параметър проверяваме дали 
-        // стойността му е във валиден формат за неговия тип
-        switch($paramType){
-            case 'double':
-            	if(!is_numeric($rec->value)){
-            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е число");
-            	}
-            	break;
-            case 'int':
-            	if(!ctype_digit($rec->value)){
-            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е цяло число");
-            	}
-            	break;
-            case 'date':
-            	$date = cls::get('type_Date');
-            	if(!$date->fromVerbal($rec->value)){
-            		$form->setError('value', "Невалидна стойност за параметър. Трябва да е валидна дата");
-            	}
-            	break;
-            case 'enum':
-            	break;
-            }
     }
     
     

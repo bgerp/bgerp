@@ -38,13 +38,13 @@ class cat_setup_Params extends core_Mvc
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 
                 // Ако има запис с този 'name'
-                if($Params->fetchField("#name = '{$rec->name}' AND #suffix = '{$rec->suffix}'", 'id')){
+                if($rec->id = $Params->fetchField("#name = '{$rec->name}' AND #suffix = '{$rec->suffix}'", 'id')){
                  	$updated++;
                 } else {
                     $created++;
                 }
                
-                $Params->save($rec, NULL, 'IGNORE');
+                $Params->save($rec, NULL, 'REPLACE');
             }
             
             fclose($handle);

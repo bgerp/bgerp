@@ -66,6 +66,12 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Необходими пакети
+     */
+    var $depends = 'callcenter=0.1';
+    
+    
+    /**
      * Икона на единичния обект
      */
     var $singleIcon = 'img/16/office-building.png';
