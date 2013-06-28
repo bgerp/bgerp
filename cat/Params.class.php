@@ -84,7 +84,7 @@ class cat_Params extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изборим)', 'caption=Тип');
+        $this->FLD('type', 'enum(double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
