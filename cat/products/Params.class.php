@@ -122,11 +122,7 @@ class cat_products_Params extends cat_products_Detail
     	}
     	
         if($form->rec->paramId){
-        	$paramRec = cat_Params::fetch($form->rec->paramId);
-        	$optType = ($paramRec->type == 'enum') ? 'options' : 'suggestions';
-        	$options = array('' => '') + arr::make($paramRec->options, TRUE);
-        	expect($Type = cls::get("type_{$paramRec->type}", array($optType => $options)), "Няма тип \"type_{$paramRec->type}\" в системата");
-    		$form->fields['paramValue']->type = $Type;
+        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($form->rec->paramId);
         } else {
         	$form->setField('paramValue', 'input=hidden');
         }

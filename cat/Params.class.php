@@ -185,4 +185,27 @@ class cat_Params extends core_Manager
     	
     	return $options;
     }
+    
+    
+    /**
+     * Помощна функция връщаща инстанция на класа от системата
+     * отговарящ на типа на параметъра с опции зададените стойности
+     * ако е enum или същите като предложения
+     * @param int $paramId - ид на параметър
+     * @return core_Type $Type - типа от системата
+     */
+    public static function getParamTypeClass($id)
+    {
+    	expect($rec = cat_Params::fetch($id));
+    	$Varchar = cls::get('type_Varchar');
+        $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
+        $options = explode(',', $rec->options);
+	    foreach($options as $i => &$opt){
+	        $opt = $Varchar->toVerbal($opt);
+	    }
+        $options = array('' => '') + array_combine($options, $options);
+	    expect($Type = cls::get("type_{$rec->type}", array($optType => $options)), "Няма тип \"type_{$rec->type}\" в системата");
+    	
+	    return $Type;
+    }
 }
