@@ -918,7 +918,7 @@ class crm_Persons extends core_Master
 
         $tpl = new ET("<fieldset class='detail-info'>
                             <legend class='groupTitle'>" . tr('Представители') . "</legend>
-                                <div class='groupList,clearfix21'>
+                                <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
                             <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt-->
@@ -997,7 +997,7 @@ class crm_Persons extends core_Master
 
         $tpl = new ET("<fieldset class='detail-info'>
                             <legend class='groupTitle'>" . tr('Именници във визитника') . "</legend>
-                                <div class='groupList,clearfix21'>
+                                <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
                             <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt-->
