@@ -366,6 +366,7 @@ class doc_Threads extends core_Manager
         $exp->functions['getpersonfolder'] = 'crm_Persons::getPersonFolder';
         $exp->functions['getcontragentdata'] = 'doc_Threads::getContragentData';
         $exp->functions['getquestionformoverest'] = 'doc_Threads::getQuestionForMoveRest';
+        $exp->functions['haveaccess'] = 'doc_Folders::haveRightToFolder';
         
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
@@ -439,13 +440,16 @@ class doc_Threads extends core_Manager
         $exp->question("#moveRest", "=#askMoveRest", '#askMoveRest && #folderId', 'title=' . tr('Групово преместване'));
         $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');
         $exp->rule("#moveRest", "'no'", '#Selected');
+        $exp->rule("#haveAccess", "haveaccess(#folderId)");
+        $exp->WARNING(tr("Нямате достъп до избраната папка! Сигурнили сте че искате да преместите нишката?"), '#haveAccess === FALSE');
         
-        $result = $exp->solve('#folderId,#moveRest');
+        $result = $exp->solve('#folderId,#moveRest,#haveAccess');
         
         if($result == 'SUCCESS') {
             $threadId = $exp->getValue('threadId');
             $this->requireRightFor('single', $threadId);
             $folderId = $exp->getValue('folderId');
+            $haveAccess = $exp->getValue('haveAccess');
             $selected = $exp->getValue('Selected');
             $moveRest = $exp->getValue('moveRest');
             $threadRec = doc_Threads::fetch($threadId);
@@ -494,6 +498,11 @@ class doc_Threads extends core_Manager
             }
 
             $exp->message = tr($message);
+            
+            // Ако няма достъп до входящата папка, се остава в изходящата след местене
+            if(!$haveAccess){
+            	$exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $threadRec->folderId)));
+            }
         }
         
         // Поставя  под формата, първия постинг в треда
