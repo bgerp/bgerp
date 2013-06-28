@@ -958,7 +958,8 @@ table.listTable>tbody>tr:hover  {
 
 table.listTable>tbody>tr>td {
     border: 1px solid #bbb;
-    padding: 4px; 
+    padding: 3px;
+    line-height:normal; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
 }
