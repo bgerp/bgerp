@@ -1,7 +1,7 @@
 <table border='1' class = 'products-table' cellpadding='4px' cellspacing='4px'>
 	<tr>
 		<th width='4%'>№</th>
-		<th width='50%'>|Описание|*</th>
+		<th width='45%'>|Описание|*</th>
 		<th class='display-narrow'>|К-во|*</th>
 		<th class='display-wide'>|Количество|*</th>
 		<th>|Цена|*</th>
@@ -25,7 +25,7 @@
 		<!--ET_END term-->
 		</td>
 		<td class='misc-info' align='right' valign='top'>
-		<b>[#price#]</b>
+		[#price#]
 		<!--ET_BEGIN discount-->
 		<div class='discount'>- [#discount#] |ТО|*</div>
 		<!--ET_END discount-->

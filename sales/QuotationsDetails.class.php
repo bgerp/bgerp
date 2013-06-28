@@ -74,7 +74,7 @@ class sales_QuotationsDetails extends core_Detail {
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em;');
-        $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка,width=8em;');
+        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em;');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'int', 'caption=Срок,unit=дни,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
@@ -171,12 +171,8 @@ class sales_QuotationsDetails extends core_Detail {
 	    	
 	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
 	    	
-    		if($rec->discount){
-	    		if($rec->discount < 0) {
-	    			$form->setError('discount', 'Неможе да се въведе отрицателно число');
-	    		}
-	    	} else {
-	    		$rec->discount = $price->discount;
+    		if(!$rec->discount){
+    			$rec->discount = $price->discount;
 	    	}
 	    		
 	    	if(!$rec->price){
@@ -392,6 +388,13 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->amount = $double->toVerbal($rec->amount);
     	} else {
     		$row->amount = '???';
+    	}
+    	
+    	if($rec->discount){
+    		$row->price = "<span class='oldAmount' style='text-decoration:none'>{$row->price}</span>";
+    		$row->discount = "<span class='newAmount'>{$row->discount}</span>";
+    	} else {
+    		$row->price = "<b>{$row->price}</b>";
     	}
     	
     	$row->discAmount = $double->toVerbal($rec->discAmountVat);
