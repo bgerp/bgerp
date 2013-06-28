@@ -100,11 +100,25 @@ class techno_GeneralProducts extends core_Manager {
     public function getAddParamForm($data)
     {
     	$form = cls::get('core_Form');
-    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory');
+    	$form->formAttr['id'] = 'addParamSpec';
+    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
         $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
     	
+        /*if($paramId = Request::get('edit')){
+        	$form->rec->paramId = $paramId;
+        } 
+        	//$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['addParamSpec'].elements['paramValue'].value ='';this.form.submit();"));
+        
+        
+        	//$form->setReadOnly('paramId');
+        if($form->rec->paramId){bp();
+        	$form->setField('paramValue', 'input');
+        } else {bp($form->rec);
+        	$form->setField('paramValue', 'input=hidden');
+        }*/
+        
         return $form;
     }
     
@@ -306,8 +320,8 @@ class techno_GeneralProducts extends core_Manager {
 	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
 			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
 	        
-			$editUrl = array($this, 'configure', $specificationId, 'edit' => $paramId,'ret_url' => TRUE);
-	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId,'ret_url' => TRUE);
+			$editUrl = array($this, 'configure', $specificationId, 'paramId' => $paramId, 'edit' => TRUE, 'ret_url' => TRUE);
+	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId, 'ret_url' => TRUE);
 
 	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$paramId}");
 	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=delS{$paramId}");
@@ -382,12 +396,32 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
     	$form = $this->getAddParamForm($data);
+        
+    	if(Request::get('edit')){
+        	$paramId = Request::get('paramId');
+        	$form->rec->paramValue = $data->params[$paramId];
+        	$form->rec->paramId = $paramId;
+        	$form->setReadOnly('paramId');
+        	$action = tr('Редактиране');
+        } else {
+        	$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['paramValue'].value ='';this.form.submit();"));
+        	$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['addParamSpec'].elements['paramValue'].value ='';this.form.submit();"));
+	    	$paramOptions = $this->getRemainingOptions($data);
+	    	$form->setOptions('paramId', array('' => '') + $paramOptions);
+        	$action = tr('Добавяне');
+        }
+        
+        if($paramId = Request::get('paramId')){
+        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($paramId);
+        } else {
+        	$form->setField('paramValue', 'input=hidden');
+        }
+        
         $fRec = $form->input();
         if($form->isSubmitted()) {
         	if($Specifications->haveRightFor('configure', $rec)){
         		
         		// Проверка дали въведените стойности за правилни
-        		cat_products_Params::isValueValid($form);
         		if(!$form->gotErrors()){
         			
         			// Записваме въведените данни в пропъртито data на река
@@ -398,17 +432,6 @@ class techno_GeneralProducts extends core_Manager {
         		}
         	}
         }
-        
-    	if($paramId = Request::get('edit')){
-        	$form->rec->paramValue = $data->params[$paramId];
-        	$form->rec->paramId = $paramId;	
-    		$form->setReadOnly('paramId');
-    		$action = tr('Редактиране');
-    	} else {
-    		$paramOptions = $this->getRemainingOptions($data);
-    		$form->setOptions('paramId', $paramOptions);
-    		$action = tr('Дoбавяне');
-    	}
         
         $form->title = "{$action} на параметри към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
