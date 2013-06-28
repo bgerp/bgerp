@@ -48,6 +48,13 @@ $history-bg:#fefec2;
 	-webkit-box-shadow: none;
     box-shadow: none;
 }
+
+@mixin crm-icon(){
+	padding-top:3px;
+	padding-left:21px; ;
+	background-repeat:no-repeat;
+	background-position: 3px 4px;
+}
  /*common elements*/
  dl {
 	margin:0;
@@ -561,6 +568,34 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 
 #crm_Persons-EditForm  input {
 	max-width: 600px;
+}
+
+div.telephone { 
+	@include crm-icon();
+	background-image:url('../img/16/telephone.png');
+}
+
+div.fax { 
+	@include crm-icon();
+	background-image:url('../img/16/fax.png');
+}
+
+div.email { 
+	@include crm-icon();
+	background-image:url('../img/16/email_link.png');
+}
+
+div.mobile { 
+	@include crm-icon();
+	background-image:url('../img/16/mobile.png');
+}
+
+.telephone a, .fax a, .email a, .mobile a {
+	color:#031;
+}
+
+.telephone a:hover, .fax a:hover, .email a:hover, .mobile a:hover {
+	color: #093;
 }
 /*край на стилове за CRM*/
 
