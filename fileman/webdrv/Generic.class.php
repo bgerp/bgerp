@@ -1158,17 +1158,15 @@ class fileman_webdrv_Generic extends core_Manager
             // Ако няма съдържание прескачаме
             if (!trim($contentLine)) continue;
             
-            // Разделяме реда на тагове и стойност
-            list($tag, $value) = explode(': ', $contentLine, 2);
-            
-            // Ако няма стойност и има таг
-            if (!$value && $tag) {
+            // Ако има двуеточние с интервал
+            if (strripos($contentLine, ': ') !== FALSE) {
                 
-                // Стойността е тага
-                $value = $tag;
+                // Разделяме реда на тагове и стойност
+                list($tag, $value) = explode(': ', $contentLine, 2);
+            } else {
                 
-                // Нулираме тага
-                $tag = NULL;
+                // Стойността е цялото поле
+                $value = $contentLine;
             }
             
             // Създаваме ред от съдържанието
