@@ -1169,6 +1169,9 @@ class fileman_webdrv_Generic extends core_Manager
                 $value = $contentLine;
             }
             
+            // Ако дължината е повече от 70
+            if (mb_strlen($value) > 70) continue;
+            
             // Създаваме ред от съдържанието
             $nLink = '';
             
