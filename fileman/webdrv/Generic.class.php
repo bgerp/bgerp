@@ -1146,6 +1146,9 @@ class fileman_webdrv_Generic extends core_Manager
      */
     static function parseInfo($content)
     {
+        // Опитваме се да оправим енкодинга
+        $content = i18n_Charset::convertToUtf8($content);
+        
         // Разделяме съдържанието в масив
         $contentArr = explode("\n", $content);
         
@@ -1158,30 +1161,50 @@ class fileman_webdrv_Generic extends core_Manager
             // Разделяме реда на тагове и стойност
             list($tag, $value) = explode(': ', $contentLine, 2);
             
+            // Ако няма стойност и има таг
+            if (!$value && $tag) {
+                
+                // Стойността е тага
+                $value = $tag;
+                
+                // Нулираме тага
+                $tag = NULL;
+            }
+            
             // Създаваме ред от съдържанието
             $nLink = '';
             
-            // Ако все още има двуеточние
-            if (strripos($tag, ':') !== FALSE) {
+            // Ако има таг
+            if ($tag) {
                 
-                // Разделяма тага на части
-                $partTagArr = explode(':', $tag);  
-                
-                // Обхождаме всички части
-                foreach ($partTagArr as $partTag) {
+                // Ако все още има двуеточние
+                if (strripos($tag, ':') !== FALSE) {
                     
-                    // Добавяме към реда и превеждаме
-                    $nLink .= ($nLink) ? ":" . tr($partTag) : tr($partTag);
+                    // Разделяма тага на части
+                    $partTagArr = explode(':', $tag);  
+                    
+                    // Обхождаме всички части
+                    foreach ($partTagArr as $partTag) {
+                        
+                        // Добавяме към реда и превеждаме
+                        $nLink .= ($nLink) ? ":" . tr($partTag) : tr($partTag);
+                    }
+                    
+                } else {
+                    
+                    // Ако няма двуеточни, само превеждаме и добавяме към реда
+                    $nLink .= tr($tag);
                 }
                 
+                // Към реда добавяме и стойността, без да я превеждаме
+                $nLink .= ": " . $value;
             } else {
                 
-                // Ако няма двуеточни, само превеждаме и добавяме към реда
-                $nLink .= tr($tag);
+                // Ако няма таг
+                
+                // Добавяме стойността
+                $nLink .= $value;
             }
-            
-            // Към реда добавяме и стойността, без да я превеждаме
-            $nLink .= ": " . $value;
             
             // Получения ред го добавяме към новото съдържание
             $newContent .= ($newContent) ? "\n" . $nLink : $nLink;
