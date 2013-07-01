@@ -130,7 +130,7 @@ class purchase_Requests extends core_Master
         /*
          * Контрагент
          */ 
-        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
+        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         /*
@@ -225,7 +225,7 @@ class purchase_Requests extends core_Master
         }
         
         /*
-         * Валута на продажбата по подразбиране
+         * Валута на покупка по подразбиране
          */
         if (empty($data->form->rec->currencyId)) {
             $form->setDefault('currencyId', $mvc::getDefaultCurrencyCode($data->form->rec));
@@ -242,7 +242,7 @@ class purchase_Requests extends core_Master
             $form->setDefault('makeInvoice', $mvc::getDefaultMakeInvoice($data->form->rec));
         }
         
-        // Поле за избор на локация - само локациите на контрагента по продажбата
+        // Поле за избор на локация - само локациите на контрагента по покупката
         $form->getField('deliveryLocationId')->type->options = 
             array(''=>'') +
             crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
@@ -289,12 +289,12 @@ class purchase_Requests extends core_Master
     {
         $deliveryTermId = NULL;
     
-        // 1. Условията на последната продажба на същия клиент
+        // 1. Условията на последната покупка от същия доставчик
         if ($recentRec = self::getRecent($rec)) {
             $deliveryTermId = $recentRec->deliveryTermId;
         }
     
-        // 2. Условията определени от локацията на клиента (държава, населено място)
+        // 2. Условията определени от локацията на доставчика (държава, населено място)
         // @see salecond_DeliveryTermsByPlace
         if (empty($deliveryTermId)) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
@@ -310,7 +310,7 @@ class purchase_Requests extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        $title = tr("Продажба| №" . $rec->id);
+        $title = tr("№" . $rec->id);
     
          
         return $title;
@@ -327,7 +327,7 @@ class purchase_Requests extends core_Master
     {
         $paymentMethodId = NULL;
     
-        // 1. Според последната продажба на същия клиент от тек. потребител
+        // 1. Според последната покупка от същия доставчик от тек. потребител
         if ($recentRec = self::getRecent($rec, 'user')) {
             $paymentMethodId = $recentRec->paymentMethodId;
         }
@@ -337,12 +337,12 @@ class purchase_Requests extends core_Master
             $paymentMethodId = salecond_PaymentMethods::fetchField("#name = 'COD'", 'id');
         }
     
-        // 3. Според последната продажба към този клиент
+        // 3. Според последната покупка от този доставчик
         if (!$paymentMethodId && $recentRec = self::getRecent($rec, 'any')) {
             $paymentMethodId = $recentRec->paymentMethodId;
         }
     
-        // 4. Според данните на клиента
+        // 4. Според данните на доставчика
         if (!$paymentMethodId) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
             $paymentMethodId = salecond_PaymentMethods::getDefault($contragent->getContragentData());
@@ -525,7 +525,7 @@ class purchase_Requests extends core_Master
             foreach ($data->rows as $i=>&$row) {
                 $rec = $data->recs[$i];
     
-                // "Изчисляване" на името на клиента
+                // "Изчисляване" на името на доставчика
                 $contragentData = NULL;
     
                 if ($rec->contragentClassId && $rec->contragentId) {

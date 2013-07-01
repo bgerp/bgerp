@@ -116,7 +116,7 @@ class purchase_RequestDetails extends core_Detail
      */
     public function description()
     {
-        $this->FLD('purchaseId', 'key(mvc=purchase_Requests)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('requestId', 'key(mvc=purchase_Requests)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent');
         
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
@@ -339,7 +339,7 @@ class purchase_RequestDetails extends core_Detail
                 $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
             }
             
-            // Конвертираме цените във валутата на продажбата
+            // Конвертираме цените във валутата на покупката
             $rec->packPrice = $rec->packPrice / $salesRec->currencyRate;
             
             $rec->amount = $rec->packPrice * $rec->packQuantity;
@@ -462,10 +462,10 @@ class purchase_RequestDetails extends core_Detail
             );
             
             if (empty($rec->packagingId)) {
-                // В продажба в основна мярка
+                // Покупка в основна мярка
                 $rec->quantityInPack = 1;
             } else {
-                // Продажба на опаковки
+                // Покупка на опаковки
                 if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
                     $form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
                     return;
@@ -491,8 +491,8 @@ class purchase_RequestDetails extends core_Detail
                 $rec->price = $policyInfo->price;
             } else {
                 // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
-                // на продажбата. Конвертираме цената към основна валута по курса, зададен
-                // в мастър-продажбата.
+                // на покупката. Конвертираме цената към основна валута по курса, зададен
+                // в мастър-покупка.
                 $rec->packPrice *= $masterRec->currencyRate;
                 
                 if ($masterRec->chargeVat == 'yes') {
