@@ -73,10 +73,7 @@ class salecond_ConditionsToCustomers extends core_Manager
     	}
     	
     	if($form->rec->conditionId){
-    		$condInfo = salecond_Parameters::getParamInfo($form->rec->conditionId);
-    		$optType = ($condInfo->type == 'enum') ? 'options' : 'suggestions';
-    		expect($Type = cls::get("type_{$condInfo->type}", array($optType => $condInfo->options)), "Няма тип \"type_{$condInfo->type}\" в системата");
-    		$form->fields['value']->type = $Type;
+    		$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'salecond_Parameters');
     	} else {
     		$form->setField('value', 'input=hidden');
     	}
