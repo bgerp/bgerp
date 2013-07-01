@@ -103,6 +103,13 @@ class purchase_Requests extends core_Master
      */
     public $singleTitle = 'Покупка';
 
+
+    /**
+     * Лейаут на единичния изглед 
+     */
+    var $singleLayoutFile = 'purchase/tpl/SingleLayoutRequest.shtml';
+    
+    
     /**
      * Групиране на документите
      */
@@ -310,8 +317,7 @@ class purchase_Requests extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        $title = tr("№" . $rec->id);
-    
+        $title = tr("Покупка| №" . $rec->id);
          
         return $title;
     }
@@ -568,7 +574,7 @@ class purchase_Requests extends core_Master
         expect($rec = $this->fetch($id));
     
         $row = (object)array(
-            'title'    => "Продажба №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
+            'title'    => "Покупка №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
@@ -578,5 +584,123 @@ class purchase_Requests extends core_Master
         return $row;
     }
     
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if (empty($row->amountDeal)) {
+            $row->amountDeal = '0.00';
+        }
+        $row->amountDeal = $row->currencyId . ' ' . $row->amountDeal;
+    
+        if (!empty($rec->amountPaid)) {
+            $row->amountPaid = $row->currencyId . ' ' . $row->amountPaid;
+        }
+    
+        $amountType = $mvc->getField('amountDeal')->type;
+    
+        $row->amountToPay = $row->currencyId . ' '
+        . $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
+    
+        if ($rec->chargeVat == 'no') {
+            $row->chargeVat = '';
+        }
+    
+        if ($rec->isInstantPayment == 'yes') {
+            $row->caseId .= ' (на момента)';
+        }
+        if ($rec->isInstantShipment == 'yes') {
+            $row->shipmentStoreId .= ' (на момента)';
+        }
+    }
+
+
+    function on_AfterRenderSingle($mvc, $tpl, $data)
+    {
+        // Данните на "Моята фирма"
+        $ownCompanyData = crm_Companies::fetchOwnCompany();
+    
+        $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
+        if ($address && !empty($ownCompanyData->address)) {
+            $address .= '<br/>' . $ownCompanyData->address;
+        }
+    
+        $tpl->placeArray(
+            array(
+                'MyCompany'      => $ownCompanyData->company,
+                'MyCountry'      => $ownCompanyData->country,
+                'MyAddress'      => $address,
+                'MyCompanyVatNo' => $ownCompanyData->vatNo,
+            ), 'supplier'
+        );
+    
+        // Данните на клиента
+        $contragent = new core_ObjectReference($data->rec->contragentClassId, $data->rec->contragentId);
+        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+    
+        $tpl->placeObject($cdata, 'contragent');
+    
+        // Описателното (вербалното) състояние на документа
+        $tpl->replace($data->row->state, 'stateText');
+    
+        if (!empty($data->rec->currencyRate) && $data->rec->currencyRate != 1) {
+            $tpl->replace('(<span class="quiet">' . tr('курс') . "</span> {$data->row->currencyRate})", 'currencyRateText');
+        }
+    }
+    
+    
+    public static function normalizeContragentData($contragentData)
+    {
+        /*
+         * Разглеждаме четири случая според данните в $contragentData
+        *
+        *  1. Има данни за фирма и данни за лице
+        *  2. Има само данни за фирма
+        *  3. Има само данни за лице
+        *  4. Нито едно от горните не е вярно
+        */
+    
+        if (empty($contragentData->company) && empty($contragentData->person)) {
+            // Случай 4: нито фирма, нито лице
+            return FALSE;
+        }
+    
+        // Тук ще попълним резултата
+        $rec = new stdClass();
+    
+        $rec->contragentCountryId = $contragentData->countryId;
+        $rec->contragentCountry   = $contragentData->country;
+    
+        if (!empty($contragentData->company)) {
+            // Случай 1 или 2: има данни за фирма
+            $rec->contragentName    = $contragentData->company;
+            $rec->contragentAddress = trim(
+                sprintf("%s %s\n%s",
+                    $contragentData->place,
+                    $contragentData->pCode,
+                    $contragentData->address
+                )
+            );
+            $rec->contragentVatNo = $contragentData->vatNo;
+    
+            if (!empty($contragentData->person)) {
+                // Случай 1: данни за фирма + данни за лице
+    
+                // TODO за сега не правим нищо допълнително
+            }
+        } elseif (!empty($contragentData->person)) {
+            // Случай 3: само данни за физическо лице
+            $rec->contragentName    = $contragentData->person;
+            $rec->contragentAddress = $contragentData->pAddress;
+        }
+    
+        return $rec;
+    }
     
 }

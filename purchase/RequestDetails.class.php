@@ -5,7 +5,7 @@
  * Детайли на мениджър на документи за покупка на продукти (@see purchase_Requests)
  *
  * @category  bgerp
- * @package   sales
+ * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
@@ -40,7 +40,7 @@ class purchase_RequestDetails extends core_Detail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, 
                         plg_AlignDecimals';
     
     
@@ -252,27 +252,27 @@ class purchase_RequestDetails extends core_Detail
      */
     public static function updateMasterSummary($masterId, $hotRec = NULL)
     {
-        $salesRec = sales_Sales::fetchRec($masterId);
+        $purchaseRec = purchase_Requests::fetchRec($masterId);
         
         /* @var $query core_Query */
         $query = static::getQuery();
         
         $amountDeal = 0;
         
-        $query->where("#saleId = '{$masterId}'");
+        $query->where("#requestId = '{$masterId}'");
         
         while ($rec = $query->fetch()) {
             $VAT = 1;
             
-            if ($salesRec->chargeVat == 'yes') {
+            if ($purchaseRec->chargeVat == 'yes') {
                 $ProductManager = self::getProductManager($rec->policyId);
-                $VAT += $ProductManager->getVat($rec->productId, $salesRec->valior);
+                $VAT += $ProductManager->getVat($rec->productId, $purchaseRec->valior);
             }
             
             $amountDeal += $rec->amount * $VAT;
         }
         
-        sales_Sales::save(
+        purchase_Requests::save(
             (object)array(
                 'id' => $masterId,
                 'amountDeal' => $amountDeal,
@@ -303,7 +303,7 @@ class purchase_RequestDetails extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $requiredRoles = sales_Sales::getRequiredRoles('edit', (object)array('id'=>$rec->saleId), $userId);
+        $requiredRoles = purchase_Requests::getRequiredRoles('edit', (object)array('id'=>$rec->requestId), $userId);
     }
     
     
@@ -322,11 +322,11 @@ class purchase_RequestDetails extends core_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs     = $data->recs;
-        $salesRec = $data->masterData->rec;
+        $purchaseRec = $data->masterData->rec;
         
         // amountDeal е записана в БД, но за да се избегнат грешки от закръгление я пресмятаме
         // тук отново
-        $salesRec->amountDeal = 0;
+        $purchaseRec->amountDeal = 0;
         
         if (empty($recs)) {
             return;
@@ -334,18 +334,22 @@ class purchase_RequestDetails extends core_Detail
         
         foreach ($recs as $rec) {
             // Начисляваме ДДС, при нужда
-            if ($salesRec->chargeVat == 'yes') {
+            if ($purchaseRec->chargeVat == 'yes') {
                 $ProductManager = self::getProductManager($rec->policyId);
                 $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
             }
             
+            if (empty($purchaseRec->currencyRate)) {
+                $purchaseRec->currencyRate = 1;
+            }
+            
             // Конвертираме цените във валутата на покупката
-            $rec->packPrice = $rec->packPrice / $salesRec->currencyRate;
+            $rec->packPrice = $rec->packPrice / $purchaseRec->currencyRate;
             
             $rec->amount = $rec->packPrice * $rec->packQuantity;
             $rec->amount = round($rec->amount, 2);
             
-            $salesRec->amountDeal += $rec->amount;
+            $purchaseRec->amountDeal += $rec->amount;
         }
     }
     
@@ -436,7 +440,7 @@ class purchase_RequestDetails extends core_Detail
             
             $rec        = $form->rec;
 
-            $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
+            $masterRec  = purchase_Requests::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
             /* @var $Policy price_PolicyIntf */
@@ -560,7 +564,7 @@ class purchase_RequestDetails extends core_Detail
             foreach ($pricePolicies as $policyId=>$Policy) {
                 $Policy = cls::getInterface('price_PolicyIntf', $Policy);
                 $data->toolbar->addBtn($Policy->getPolicyTitle($customerClass, $customerId), $addUrl + array('policyId' => $policyId,),
-                    "id=btnAdd-{$policyId},class=btn-shop");
+                    "id=btnAdd-{$policyId}", 'ef_icon = img/16/shopping.png');
             }
             
             unset($data->toolbar->buttons['btnAdd']);
