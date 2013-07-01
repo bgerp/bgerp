@@ -958,7 +958,8 @@ table.listTable>tbody>tr:hover  {
 
 table.listTable>tbody>tr>td {
     border: 1px solid #bbb;
-    padding: 4px; 
+    padding: 3px;
+    line-height:normal; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
 }
@@ -1011,9 +1012,9 @@ a.button, input[type="button"], input[type="submit"] {
     font-weight:bold;
     text-decoration:none;
     cursor:pointer;
-    font-size: 0.85em;
-    padding:0.2em;
-    height:1.8em;
+    font-size: 0.8em;
+    padding:0.3em;
+    height:2em;
     font-family: Arial,sans-serif;
     overflow:visible;
     display:inline-block;
@@ -1024,7 +1025,7 @@ a.button, input[type="button"], input[type="submit"] {
 
 @-moz-document url-prefix() {
 	a.button, input[type="button"], input[type="submit"]{
-		height:1.7em !important;
+		height:1.85em !important;
 		padding-top:0;
 	}
 }

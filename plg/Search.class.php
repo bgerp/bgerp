@@ -147,7 +147,7 @@ class plg_Search extends core_Plugin
                 
                 $w = static::normalizeText($w);
                
-                $query->where("#{$field} {$like} '%{$w}{$exact}%'");
+                $query->where("#{$field} {$like} '% {$w}{$exact}%'");
             }
         }
     }
