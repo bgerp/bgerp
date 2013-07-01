@@ -2424,17 +2424,6 @@ div.locImage{
 		line-height: 1.2em;
 		margin-top: 0px;
 	}
-	.document {
-		border: none;
-		background: #ffffff;
-		@include no-shadow();
-		padding: 10px 25px 15px 25px;
-		margin-bottom: 20px;
-		float: none;
-		margin-right: 10px;
-		margin-top: 10px;
-		min-width: 0px;
-	}
 	.linkWithIcon, .docBgIcon,.button{
 		padding-left:0 !important;
 	}
@@ -2498,6 +2487,19 @@ div.locImage{
 	}
 }
 
-.printing .docBgIcon{
-	padding:0;
+.printing{
+	.docBgIcon{
+		padding:0;
+	}
+	.document {
+		border: none;
+		background: #ffffff;
+		@include no-shadow();
+		padding: 10px 25px 15px 25px;
+		margin-bottom: 20px;
+		float: none;
+		margin-right: 10px;
+		margin-top: 10px;
+		min-width: 0px;
+	}
 }
