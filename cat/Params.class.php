@@ -190,13 +190,16 @@ class cat_Params extends core_Manager
     /**
      * Помощна функция връщаща инстанция на класа от системата
      * отговарящ на типа на параметъра с опции зададените стойности
-     * ако е enum или същите като предложения
+     * ако е enum или същите като предложения. Използва се и от
+     * salecond_ConditionsToCustomers
      * @param int $paramId - ид на параметър
+     * @param string $className - в кой мениджър се намрират параметрите
      * @return core_Type $Type - типа от системата
      */
-    public static function getParamTypeClass($id)
+    public static function getParamTypeClass($id, $className)
     {
-    	expect($rec = cat_Params::fetch($id));
+    	expect($Class = cls::get($className));
+    	expect($rec = $Class::fetch($id));
     	$Varchar = cls::get('type_Varchar');
         $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
         $options = explode(',', $rec->options);
