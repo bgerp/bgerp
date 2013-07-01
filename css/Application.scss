@@ -606,7 +606,11 @@ div.mobile {
 	border: solid 1px #88e;
 	border-bottom: none;
 	padding: 8px;
+	vertical-align:middle !important;
 	@include border-radius4(5px, 5px, 0, 0);
+	img{
+		vertical-align:middle !important;
+	}
 }
 
 .narrow .vertical .formTitle {
