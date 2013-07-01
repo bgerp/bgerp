@@ -25,7 +25,7 @@ class purchase_Wrapper extends plg_ProtoWrapper
         
         
         $this->TAB('purchase_Offers', 'Оферти', 'admin,purchase');
-        $this->TAB('purchase_Requests', 'Заявки', 'admin,purchase');
+        $this->TAB('purchase_Requests', 'Покупки', 'admin,purchase');
         $this->TAB('purchase_Debt', 'Задължения', 'admin,purchase');
   
         

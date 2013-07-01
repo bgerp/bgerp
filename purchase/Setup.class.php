@@ -47,8 +47,9 @@ class purchase_Setup
     function install()
     {
         $managers = array(
-            'purchase_Offers',
+//             'purchase_Offers',
             'purchase_Requests',
+            'purchase_RequestDetails',
             'purchase_Debt',
         );
         
