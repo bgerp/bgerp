@@ -68,6 +68,20 @@ defIfNot('EF_USERS_MIN_TIME_WITHOUT_BLOCKING', 120);
  */
 defIfNot('USERS_DRAFT_MAX_DAYS', 3);
 
+/**
+ * Ще има ли криптиращ протокол?
+ * NO - не
+ * OPTIONAL - да, където може изпозлвай криптиране
+ * MANDATORY - да, използвай задължително
+ */
+defIfNot('EF_HTTPS', 'OPTIONAL');
+
+
+/**
+ *  Порта на Apache, отговорен за криптиращия протокол
+ */
+defIfNot('EF_HTTPS_PORT', 443);
+
 
 /**
  * Клас 'core_Users' - Мениджър за потребителите на системата
@@ -111,6 +125,10 @@ class core_Users extends core_Manager
      */
     var $isSystemUser = FALSE;
     
+    /**
+     * URL за javascript
+     */
+    var $httpsURL = '';
     
     /**
      * Описание на полетата на модела
@@ -267,6 +285,13 @@ class core_Users extends core_Manager
     {
     	$conf = core_Packs::getConfig('core');
     	
+        $connection = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'HTTPS' : 'HTTP';
+        
+        if(EF_HTTPS == 'MANDATORY' && $connection == 'HTTP'){
+        		
+        	static::createHttpsUrl();
+        }
+    	
         if (Request::get('popup')) {
             Mode::set('wrapper', 'page_Empty');
         }
@@ -304,7 +329,16 @@ class core_Users extends core_Manager
         
         $form->addAttr('nick,pass,email', array('style' => 'width:240px;' ));
         $form->toolbar->addSbBtn('Вход', 'default', NULL,  array('class' => 'noicon'));
+       
+        $httpUrl = core_App::getSelfURL();
+        $httpsUrl = str_replace('http', 'https', $httpUrl);
         
+        $connection = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'HTTPS' : 'HTTP';
+
+        if(EF_HTTPS === 'OPTIONAL' && $connection === 'HTTP'){
+        	$form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF'));
+        }
+
         $this->invoke('PrepareLoginForm', array(&$form));
         
         // Декриприраме cookie
@@ -963,7 +997,21 @@ class core_Users extends core_Manager
     static function requireRole($requiredRoles, $retUrl = NULL, $action = NULL)
     {
         Users::refreshSession();
-       
+
+        $connection = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'HTTPS' : 'HTTP';
+        
+        if($requiredRoles !== 'every_one'){
+        	
+        	if(EF_HTTPS == 'MANDATORY' && $connection == 'HTTP' && $_GET){
+        		
+        		static::createHttpsUrl();
+        		//$currUrl = core_App::getSelfURL();
+        		//$newUrl = toUrl(str_replace("http", "https", $currUrl));
+        		
+        		//return  Redirect($newUrl);
+        	}
+        }
+        
         if (!Users::haveRole($requiredRoles)) {
             Users::forceLogin($retUrl);
             error('Недостатъчни права за този ресурс', array(
@@ -1228,5 +1276,13 @@ class core_Users extends core_Manager
         return $user;
     }
 
+    
+    static public function createHttpsUrl()
+    {
+    	$currUrl = core_App::getSelfURL();
+        $newUrl = toUrl(str_replace("http", "https", $currUrl));
+        		
+        return  Redirect($newUrl);
+    }
     
 }
