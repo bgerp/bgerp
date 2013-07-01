@@ -179,7 +179,7 @@ class core_Html
                 if($selAttr['placeholder'] &&
                     empty($attr['value']) && !trim($title)) {
                     $title = $selAttr['placeholder'];
-                    $attr['style'] .= 'color:#666;';
+                    $attr['style'] .= 'color:#777;';
                 }
 
                 $title = strip_tags($title);

@@ -95,8 +95,8 @@ class type_Users extends type_Keylist
                 
                 // Добавя в началото опция за избор на всички потребители на системата
                 $all = new stdClass();
-                $all->title = tr("Всички");
-                $all->attr = array('style' => 'background-color:#ffc;');
+                $all->title = tr("Всички потребители");
+                $all->attr = array('style' => 'color:#777;');
                 $uQueryCopy = clone($uQuery);
                 $allUsers = '';
                 

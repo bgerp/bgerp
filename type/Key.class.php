@@ -210,7 +210,7 @@ class type_Key extends type_Int {
             if(!count($options)) {
                 
                 if($this->params['allowEmpty']) {
-                    $options = array('' => (object) array('title' => $this->params['allowEmpty'] ? $attr['placeholder'] : '&nbsp;', 'attr' => array('style' => 'color:#aaa;')));
+                    $options = array('' => (object) array('title' => $this->params['allowEmpty'] ? $attr['placeholder'] : '&nbsp;', 'attr' => array('style' => 'color:#777;')));
                 }
                 
                 if (!is_array($this->options)) {
