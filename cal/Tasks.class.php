@@ -68,40 +68,45 @@ class cal_Tasks extends core_Master
      */
     var $rowToolsSingleField = 'title';
  
-    
     /**
-     * Кой може да чете?
+     * Кой има право да го чете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'user';
+    
     
     /**
-     * Кой може да отлага задачата?
-     */    
-    var $canPostpone = 'powerUser';
-    
-    /**
-     * Кой може да го промени?
+     * Кой има право да го променя?
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'user';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    var $canAdd = 'user';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    var $canView = 'user';
     
     
     /**
-     * Кой има право да го изтрие?
+     * Кой може да го разглежда?
      */
-    var $canDelete = 'powerUser';
+    var $canList = 'user';
     
+    /**
+     * Кой има право да изтрива?
+     */
+    var $canDelete = 'no_one';
+
+
+    /**
+     * 
+     */
+    var $canSingle = 'ceo';
     
     /**
      * Кой има право да приключва?
@@ -372,22 +377,34 @@ class cal_Tasks extends core_Master
          }
     }
     
+    
     /**
      * Прилага филтъра, така че да се показват записите за определение потребител
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	$userId = core_Users::getCurrent();
-        $data->query->orderBy("#timeStart=ASC,#state=DESC");
+    	
+    	$data->query->orderBy("#timeStart=ASC,#state=DESC");
         
-                
+        if($data->action === 'list'){
+        	
+	        if($data->listFilter->rec->selectedUsers != 'all_users') {
+	        	
+	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
+	       }
+        }
+        
+        if(!$data->listFilter->rec->selectedUsers) {
+      	
+		  $data->listFilter->rec->selectedUsers = 
+		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+	  	}
+       
         if($data->listFilter->rec->selectedUsers) {
-	           
-	         if($data->listFilter->rec->selectedUsers != 'all_users') {
-	                $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
-	               
-	           }
-            	
+          
+	        $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
+	        $data->query->orWhere('#sharedUsers IS NULL OR #sharedUsers = ""');
+          
         } 
     }
     
@@ -401,22 +418,25 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+    	
     	$cu = core_Users::getCurrent();
-  
-        
+
         // Добавяме поле във формата за търсене
-       
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-                
+               
         $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->input('selectedUsers', 'silent');
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, selectedUsers';
-        
-        $data->listFilter->input('selectedUsers', 'silent');
+        if($data->action === "list"){
+        	$data->listFilter->showFields = 'search, selectedUsers';
+        } else{
+        	$data->listFilter->showFields = 'selectedUsers';
+        }
     }
 
     /**
