@@ -473,6 +473,9 @@ class techno_Specifications extends core_Master {
     /**
      * Връща цената за посочения продукт към посочения
      * клиент на посочената дата
+     * Цената се изчислява по формулата формулата:
+     * ([Начални такси] * (1 + НадценкаМакс) + [Количество] * 
+     *  [Единична себестойност] *(1 + НадценкаМин)) / [Количество]
      * 
      * @return object
      * $rec->price  - цена
@@ -482,7 +485,26 @@ class techno_Specifications extends core_Master {
     {
     	$rec = $this->fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
-    	return $technoClass->getPrice($customerClass, $customerId, $rec->data, $packagingId, $quantity, $datetime);
+    	$priceInfo = $technoClass->getPrice($rec->data, $packagingId, $quantity, $datetime);
+    	if($priceInfo->price){
+    		$price = new stdClass();
+    		if($priceInfo->discount){
+    			$price->discount = $priceInfo->discount;
+    		}
+    		
+    		$minCharge =  salecond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		$maxCharge = salecond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		if(!$quantity){
+    			$quantity = 1;
+    		}
+    		$calcPrice = ($priceInfo->tax * (1 + $maxCharge) 
+    					+ $quantity * $priceInfo->price * (1 + $minCharge)) / $quantity;
+    		
+    		$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
+    		return $price;
+    	}
+    	
+    	return FALSE;
     }
     
     
